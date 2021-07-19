@@ -1,0 +1,24 @@
+{
+    "compilerOptions": {
+        "target": "es2015",
+        "lib": [
+            "esnext"
+        ],
+        "module": "commonjs",
+        "strict": true,
+        "outDir": "build",
+        "esModuleInterop": true,
+        "skipLibCheck": true,
+        "forceConsistentCasingInFileNames": true,
+        "paths": {
+            "types/*": [ "../src/types/*" ],
+        }
+    },
+    "include": [
+        "src/**/*"
+    ],
+    "exclude": [
+        "build",
+        "node_modules"
+    ]
+}

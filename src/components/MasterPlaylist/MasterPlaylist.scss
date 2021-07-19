@@ -1,0 +1,23 @@
+.master-playlist {
+    table {
+        width: 100%;
+        table-layout: fixed;
+    }
+
+    thead {
+        display: none;
+    }
+
+    th,
+    td {
+        &:nth-child(1) {
+            padding-right: 0;
+            width: 2em;
+        }
+
+        &:nth-child(3) {
+            padding-left: 0;
+            width: 3.5em;
+        }
+    }
+}

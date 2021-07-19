@@ -1,0 +1,62 @@
+.list-view {
+    position: absolute;
+    inset: 0;
+    outline: none;
+    background-color: rgb(8, 9, 10);
+    user-select: none;
+    cursor: default;
+
+    table {
+        border-spacing: 0;
+    }
+
+    thead {
+        color: var(--text-color);
+    }
+
+    tbody {
+        color: var(--focus-color);
+    }
+
+    tr:nth-child(even) {
+        background-color: rgb(13, 14, 15);
+    }
+
+    tr.selected {
+        background-color: rgb(22, 61, 90);
+        color: var(--text-color);
+    }
+
+    th,
+    td {
+        text-align: left;
+        font-weight: normal;
+        padding: 2px 4px;
+        max-width: 100%;
+
+        &.type-number,
+        &.type-boolean,
+        &.type-time {
+            text-align: right;
+        }
+
+        &.type-string {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+    }
+
+    th {
+        position: sticky;
+        top: 0;
+        border: 1px outset rgb(100, 103, 104);
+        background-color: rgb(73, 76, 77);
+    }
+
+    &:focus {
+        tr.selected {
+            outline: 1px dotted var(--text-color);
+        }
+    }
+}
