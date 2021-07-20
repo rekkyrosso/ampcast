@@ -1,62 +1,129 @@
+@import 'styles/mixins.scss';
+
 .list-view {
-    position: absolute;
-    inset: 0;
-    outline: none;
-    background-color: rgb(8, 9, 10);
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex: auto;
+    @include inset;
+    border-radius: var(--app-border-radius);
     user-select: none;
-    cursor: default;
 
-    table {
-        border-spacing: 0;
+    &-head {
+        background: var(--frame-color);
+        border-radius: var(--app-border-radius);
     }
 
-    thead {
-        color: var(--text-color);
+    &-body,
+    &-row {
+        display: block;
     }
 
-    tbody {
-        color: var(--focus-color);
-    }
+    &-body &-row {
+        position: absolute;
+        width: 100%;
 
-    tr:nth-child(even) {
-        background-color: rgb(13, 14, 15);
-    }
-
-    tr.selected {
-        background-color: rgb(22, 61, 90);
-        color: var(--text-color);
-    }
-
-    th,
-    td {
-        text-align: left;
-        font-weight: normal;
-        padding: 2px 4px;
-        max-width: 100%;
-
-        &.type-number,
-        &.type-boolean,
-        &.type-time {
-            text-align: right;
+        &:nth-child(even) {
+            background-color: var(--even-row-background-color);
         }
 
-        &.type-string {
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
+        &.selected {
+            background-color: var(--selected-background-color-blurred);
         }
     }
 
-    th {
-        position: sticky;
+    &:focus &-row.selected {
+        background-color: var(--selected-background-color);
+    }
+
+    &-row.selected &-cell {
+        color: var(--selected-text-color);
+    }
+
+    &-cell {
+        position: absolute;
+        padding: 0 0.5em;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    &-head &-cell {
+        @include button;
+        border-radius: var(--app-border-radius);
+        height: inherit;
+    }
+
+    &-cursor {
+        position: absolute;
+        width: 100%;
+        height: 1.5em;
+        border: 1px dotted var(--selected-background-color);
+        filter: invert(1);
+        pointer-events: none;
+    }
+
+    &-body:empty + &-cursor,
+    &:not(:focus) &-cursor {
+        visibility: hidden;
+    }
+
+    &-row.drag-over::before,
+    &-row.drag-over-last::after {
+        content: "";
+        display: block;
+        position: absolute;
+        left: 0;
         top: 0;
-        border: 1px outset rgb(100, 103, 104);
-        background-color: rgb(73, 76, 77);
+        width: 100%;
+        height: 1px;
+        border: 1px dotted var(--selected-background-color);
+        filter: invert(1);
+        pointer-events: none;
     }
 
-    &:focus {
-        tr.selected {
-            outline: 1px dotted var(--text-color);
+    &-row.drag-over-last::after {
+        top: 100%;
+    }
+
+    .column-resizer {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        width: 8px;
+        cursor: col-resize;
+    }
+
+    &-card &-cursor {
+        height: 6em;
+    }
+
+    &-card.compact &-cursor {
+        height: 4em;
+    }
+
+    &-card.minimal &-cursor {
+        height: 2em;
+    }
+
+    &-card &-body {
+        width: 100%;
+    }
+
+    &-card &-row {
+        width: 100%;
+        line-height: 1.5;
+    }
+
+    &-drag-image {
+        transform: translateY(-9999px);
+    }
+
+    &-drag-image &-row {
+        background-color: black !important;
+
+        .app.light & {
+            background-color: white !important;
         }
     }
 }

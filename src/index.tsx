@@ -1,44 +1,33 @@
-import './index.scss';
+import 'styles/index.scss';
 import React from 'react';
-import ReactDOM from 'react-dom';
-import MasterPlaylist from './components/MasterPlaylist';
-import Media from './components/Media';
-import MediaBrowser from './components/MediaBrowser';
-import Panel from './components/Panel';
-import Playlist from './components/Playlist';
-import Splitter from './components/Splitter';
-import items from '../data';
+import {createRoot} from 'react-dom/client';
+import MediaLibrary from 'components/MediaLibrary';
+import MediaPlayback from 'components/MediaPlayback';
+import Splitter from 'components/Splitter';
+import useBrowser from 'hooks/useBrowser';
+import useConnectivity from 'hooks/useConnectivity';
+import usePreventDrop from 'hooks/usePreventDrop';
+import useMediaSession from 'hooks/useMediaSession';
+import useGlobalActions from 'hooks/useGlobalActions';
+import 'styles/layout.scss';
+
+console.log('module::App');
 
 function App() {
+    useBrowser();
+    useConnectivity();
+    usePreventDrop();
+    useMediaSession();
+    useGlobalActions();
+
     return (
         <main>
-            <Splitter orientation="horizontal" primaryIndex={0} secondaryInitialSize={300}> 
-                <Splitter orientation="vertical" primaryIndex={1} secondaryInitialSize={120}>                
-                    <Panel>
-                        <Media src="/media/test.mp3" />
-                    </Panel>
-                    <Splitter orientation="horizontal" primaryIndex={1} secondaryInitialSize={200}>                
-                        <Panel>
-                            <MediaBrowser />
-                        </Panel>
-                        <Panel>
-                            <Playlist items={items} />
-                        </Panel>
-                    </Splitter>
-                </Splitter>
-                <Splitter orientation="vertical" primaryIndex={0} secondaryInitialSize={169}>                
-                    <Panel>
-                        <MasterPlaylist />
-                    </Panel>
-                    <Panel>
-                        <p>Visual output</p>
-                    </Panel>
-                </Splitter>
+            <Splitter id="main-layout" arrange="columns">
+                <MediaLibrary />
+                <MediaPlayback />
             </Splitter>
         </main>
     );
 }
 
-ReactDOM.render(
-    <App />, document.getElementById('react-root')
-);
+createRoot(document.getElementById('app')!).render(<App />);

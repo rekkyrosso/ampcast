@@ -1,0 +1,17 @@
+{
+    "name": "Lilac",
+    "backgroundColor": "#12051a",
+    "textColor": "#f5d1ed",
+    "frameColor": "#79437a",
+    "frameTextColor": "#f3f7f3",
+    "buttonColor": null,
+    "buttonTextColor": null,
+    "mediaButtonColor": null,
+    "mediaButtonTextColor": null,
+    "selectedBackgroundColor": null,
+    "selectedTextColor": null,
+    "evenRowBackgroundColor": null,
+    "spacing": 0.625,
+    "roundness": 0.84375,
+    "flat": true
+}

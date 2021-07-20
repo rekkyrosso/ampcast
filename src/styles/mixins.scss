@@ -1,0 +1,43 @@
+@mixin inset {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border-width: 1px;
+    border-style: solid;
+    border-color:
+        var(--frame-color-lo)
+        var(--frame-color-hi)
+        var(--frame-color-hi)
+        var(--frame-color-lo);
+}
+
+@mixin button {
+    color: var(--button-text-color);
+    background-clip: padding-box;
+    background-color: var(--button-color);
+    background-image: var(--button-background);
+    border: 1px solid var(--button-border-color);
+    border-radius: calc(var(--roundness) * 1.5em);
+}
+
+@mixin pressable-button {
+    @include button;
+    transform-origin: bottom right;
+
+    .browser-firefox & {
+        will-change: transform;
+    }
+
+    &:hover {
+        filter: brightness(1.1);
+    }
+
+    &:active {
+        filter: brightness(0.95);
+        transform: scale(0.99);
+    }
+
+    &:disabled {
+        filter: none !important;
+        transform: none !important;
+    }
+}

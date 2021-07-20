@@ -1,0 +1,46 @@
+.icon-button {
+    all: unset;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 1.25em;
+    height: 1.25em;
+    cursor: pointer;
+    filter: brightness(0.75);
+
+    &.with-overlay {
+        padding: 0.25em;
+        border-radius: 50%;
+        background: radial-gradient(rgba(0, 0, 0, 0.6) 50%, rgba(0, 0, 0, 0.6), transparent);
+        box-shadow: 0px 0px 2px 1px rgba(0, 0, 0, 0.3);
+        color: var(--soft-white);
+    }
+
+    & + & {
+        margin-left: 0.25em;
+    }
+
+    &:hover {
+        filter: brightness(1);
+    }
+
+    &:active {
+        transform: none;
+    }
+
+    &.in-frame {
+        filter: none;
+        opacity: 0.75;
+
+        &:hover {
+            opacity: 1;
+        }
+    }
+
+    .icon {
+        width: inherit;
+        height: inherit;
+    }
+}

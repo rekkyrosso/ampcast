@@ -1,0 +1,17 @@
+{
+    "name": "Seaweed",
+    "backgroundColor": "#244319",
+    "textColor": "#76ea84",
+    "frameColor": "#3b722c",
+    "frameTextColor": "#fcfcf7",
+    "buttonColor": null,
+    "buttonTextColor": null,
+    "mediaButtonColor": "#54e3da",
+    "mediaButtonTextColor": null,
+    "selectedBackgroundColor": "#04958b",
+    "selectedTextColor": null,
+    "evenRowBackgroundColor": null,
+    "spacing": 0.78125,
+    "roundness": 0.8125,
+    "flat": true
+}

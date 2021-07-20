@@ -1,0 +1,39 @@
+.media {
+    background: var(--black);
+    border-radius: calc(var(--roundness) * 1rem);
+    user-select: none;
+
+    &.full-screen {
+        background: var(black);
+        border-radius: 0;
+        inset: 0;
+    }
+
+    .html5-video {
+        position: absolute;
+        object-fit: cover;
+    }
+
+    .youtube-video {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &[hidden] {
+            display: none;
+        }
+
+        &-wrapper {
+            display: flex;
+        }
+    }
+
+    .apple-video video {
+        position: absolute;
+        object-fit: cover;
+        width: inherit;
+        height: inherit;
+    }
+}

@@ -1,0 +1,14 @@
+.media-source-selector {
+    .media-sources {
+        display: block;
+        text-align: center;
+    }
+
+    .media-source {
+        display: inline-block;
+        vertical-align: middle;
+        margin: 0 0.5em;
+    }
+
+    margin-bottom: calc(var(--gutter-width) / 2);
+}

@@ -1,0 +1,40 @@
+.interstitial {
+    position: absolute;
+    inset: 0;
+    padding: calc(var(--gutter-width) * 4);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background: var(--black);
+    color: var(--soft-white);
+    text-shadow: 1px 1px 0 rgba(16, 16, 16, 0.6);
+    text-align: center;
+    opacity: 0;
+    transition: opacity 4s linear;
+
+    &.is-recent,
+    .media-playback.paused & {
+        transition: none;
+    }
+
+    &.is-recent {
+        opacity: 0.85;
+    }
+
+    .media-playback.paused & {
+        opacity: 1;
+    }
+
+    .full-screen & {
+        font-size: 2rem;
+    }
+
+    .by {
+        font-size: 0.5em;
+    }
+
+    h4 {
+        font-size: 0.75em;
+    }
+}

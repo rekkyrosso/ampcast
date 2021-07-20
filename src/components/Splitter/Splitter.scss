@@ -1,0 +1,88 @@
+@import 'styles/mixins.scss';
+
+.splitter {
+    --layout-pane-min-size: 80px;
+    --layout-splitter-size: 4px;
+
+    position: absolute;
+    display: flex;
+    flex-direction: row;
+    width: 100%;
+    height: 100%;
+    overflow: hidden;
+
+    .layout-pane {
+        position: relative;
+        overflow: auto;
+
+        &-primary {
+            flex: auto;
+        }
+
+        &-secondary {
+            flex: none;
+        }
+    }
+
+    .layout-splitter {
+        position: relative;
+        flex: none;
+        background-color: var(--button-color);
+        border-width: 1px;
+        border-style: solid;
+        border-color:
+            var(--button-color-hi)
+            var(--button-color-lo)
+            var(--button-color-lo)
+            var(--button-color-hi);
+        border-radius: calc(var(--roundness) * 1.5 * var(--layout-splitter-size));
+
+        &:hover {
+            border: none;
+            filter: brightness(2);
+
+            .frame-light & {
+                filter: brightness(1.33);
+            }
+        }
+
+        &.active {
+            border: none;
+            filter: brightness(1.5);
+
+            .frame-light & {
+                filter: brightness(0.67);
+            }
+        }
+    }
+
+    &-columns {
+        flex-direction: row;
+
+        > .layout-pane {
+            min-width: var(--layout-pane-min-size);
+        }
+
+        > .layout-splitter {
+            top: var(--gutter-width);
+            width: var(--layout-splitter-size);
+            height: calc(100% - 2 * var(--gutter-width));
+            cursor: ew-resize;
+        }
+    }
+
+    &-rows {
+        flex-direction: column;
+
+        > .layout-pane {
+            min-height: var(--layout-pane-min-size);
+        }
+
+        > .layout-splitter {
+            left: var(--gutter-width);
+            width: calc(100% - 2 * var(--gutter-width));
+            height: var(--layout-splitter-size);
+            cursor: ns-resize;
+        }
+    }
+}

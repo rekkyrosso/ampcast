@@ -1,0 +1,42 @@
+@import 'styles/mixins.scss';
+
+.tab-list {
+    position: relative;
+    isolation: isolate;
+    display: flex;
+    flex: auto;
+    flex-direction: column;
+
+    &-tabs {
+        display: flex;
+        flex-direction: row;
+        user-select: none;
+        z-index: 1;
+    }
+
+    &-panels {
+        flex: auto;
+        border: 1px solid var(--text-color);
+        border-top-right-radius: calc(var(--roundness) * 1.5em);
+        margin-top: -1px;
+    }
+
+    .tab {
+        background-image:
+            linear-gradient(to bottom, var(--button-color-hi), transparent 0.125rem),
+            linear-gradient(to right, var(--button-color-hi), transparent 0.125rem),
+            linear-gradient(to left, var(--button-color-lo), transparent 0.125rem);
+        border-color: var(--text-color);
+        border-bottom-left-radius: 0;
+        border-bottom-right-radius: 0;
+
+        &[aria-selected="true"] {
+            border-bottom: 1px solid var(--background-color);
+            background-color: var(--background-color);
+        }
+    }
+
+    .tab-panel {
+        padding: 1em;
+    }
+}

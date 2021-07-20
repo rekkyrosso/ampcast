@@ -1,8 +1,102 @@
 .media-browser {
+    display: flex;
+    flex-direction: column;
     position: absolute;
-    inset: 0;
-    outline: none;
-    background-color: rgb(8, 9, 10);
-    user-select: none;
-    cursor: default;
+    inset: var(--gutter-width);
+    bottom: 0;
+    color: var(--frame-text-color);
+    background-color: var(--frame-color);
+
+    .splitter-rows > .layout-splitter {
+        left: 0;
+        width: 100%;
+    }
+
+    .artist-browser .splitter-rows > .layout-splitter {
+        left: var(--gutter-width);
+    }
+
+    .splitter-columns > .layout-splitter {
+        top: 0;
+        height: calc(100% - 3 * var(--gutter-width));
+    }
+
+    .panel {
+        inset: 0;
+
+        &.artists {
+            right: var(--gutter-width);
+        }
+
+        &.artist-albums {
+            left: var(--gutter-width);
+        }
+    }
+
+    > .panel {
+        position: static;
+        flex: auto;
+    }
+
+    .playlist-items,
+    .album-items {
+        top: var(--gutter-width);
+    }
+
+    .artist-browser .album-items {
+        left: var(--gutter-width);
+    }
+
+    &.apple-browser {
+        button.branded {
+            background: #d60017;
+            color: white;
+        }
+    }
+
+    &.jellyfin-browser {
+        button.branded {
+            background: linear-gradient(135deg, #aa5cc3, #00a4dc);
+            color: white;
+        }
+    }
+
+    &.lastfm-browser {
+        button.branded {
+            background: #b90000;
+            color: white;
+        }
+    }
+
+    &.plex-browser {
+        button.branded {
+            background: #282a2c;
+            color: #e49f0d;
+        }
+    }
+
+    &.spotify-browser {
+        button.branded {
+            background: rgb(29, 185, 84);
+            color: white;
+        }
+    }
+
+    &.youtube-browser {
+        button.branded {
+            background: red;
+            color: white;
+        }
+
+        /*
+        .list-view {
+            .title {
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                white-space: normal;
+            }
+        }
+        */
+    }
 }

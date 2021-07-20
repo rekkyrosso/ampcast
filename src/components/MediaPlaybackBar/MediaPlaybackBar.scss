@@ -1,0 +1,115 @@
+@import 'styles/mixins.scss';
+
+.media-playback-bar {
+    &-current-time,
+    &-controls,
+    &-volume,
+    &-buttons,
+    &-more {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    &-current-time,
+    &-controls {
+        margin-bottom: var(--gutter-width);
+    }
+
+    input[type=range] {
+        display: flex;
+        flex: auto;
+        min-width: 4rem;
+        color: var(--frame-text-color);
+        margin-left: 0.25rem;
+
+        @mixin media-thumb {
+            background-color: var(--media-button-color);
+            background-image: var(--media-button-background);
+            border: 1px solid var(--media-button-text-color);
+            border-radius: calc(var(--roundness) * var(--thumb-size));
+
+            &:hover {
+                filter: brightness(1.1);
+            }
+
+            &:active {
+                filter: brightness(0.95);
+            }
+        }
+
+        &::-webkit-slider-thumb {
+            @include media-thumb;
+        }
+
+        &::-moz-range-thumb {
+            @include media-thumb;
+        }
+    }
+
+    &-volume {
+        flex: auto;
+        min-width: 4.25rem;
+        max-width: 6.25rem;
+        margin-right: 0.25em;
+
+        .icon-button {
+            flex: initial;
+        }
+
+        input[type=range] {
+            --track-height: 0.15em;
+            --thumb-size: .875em;
+            min-width: 3rem;
+            max-width: 5rem;
+        }
+    }
+
+    &-buttons {
+        flex: auto;
+        margin-left: 0.25rem;
+        margin-right: 0.25rem;
+    }
+
+    time {
+        @include inset;
+        display: flex;
+        flex: initial;
+        justify-content: center;
+        appearance: none;
+        min-width: 4rem;
+        border-radius: calc(var(--roundness) * 1rem);
+        user-select: none;
+    }
+
+    #playhead {
+        @mixin smiley-thumb {
+            background-repeat: no-repeat;
+            background-position: center;
+            background-size: var(--thumb-size);
+            background-image:
+                var(--smiley),
+                var(--media-button-background);
+
+            .app.flat & {
+                background-image: var(--smiley);
+            }
+
+            .media-playback.paused & {
+                background-image: var(--media-button-background);
+            }
+        }
+
+        &:disabled {
+            pointer-events: none;
+        }
+
+        &:not([value="0"])::-webkit-slider-thumb {
+            @include smiley-thumb;
+        }
+
+        &:not([value="0"])::-moz-range-thumb {
+            @include smiley-thumb;
+        }
+    }
+}

@@ -1,0 +1,100 @@
+@import 'styles/mixins.scss';
+
+.dialog {
+    @include button;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+    border-radius: var(--app-border-radius);
+    box-shadow: rgba(0, 0, 0, 0.67) 4px 10px 20px;
+    isolation: isolate;
+    contain: content;
+
+    .system & {
+        border-radius: 0.5em;
+    }
+
+    &-head {
+        position: relative;
+        height: 2em;
+        display: flex;
+        flex-direction: row;
+        flex: initial;
+        align-items: center;
+        user-select: none;
+
+        h2 {
+            flex: auto;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 6em 0 0.5em;
+            font-weight: bold;
+        }
+
+        button {
+            width: 1.25em;
+            height: 1.25em;
+            margin: 0 0.5em 0 auto;
+            color: white;
+            background-color: rgb(155, 26, 37);
+            border-radius: 0.25em;
+            padding: 0;
+
+            .app:not(.flat) & {
+                background-image:
+                    linear-gradient(rgba(255, 255, 255, 0.2), rgba(0, 0, 0, 0) 0.125rem),
+                    linear-gradient(to right, rgba(255, 255, 255, 0.2), rgba(0, 0, 0, 0) 0.125rem),
+                    linear-gradient(to left, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0) 0.125rem),
+                    linear-gradient(to top, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0) 0.125rem);
+            }
+
+            .icon {
+                width: 0.5em;
+            }
+        }
+    }
+
+    &-body {
+        @include inset;
+        position: relative;
+        flex: initial;
+        margin: 0 0.375em 0.375em 0.375em;
+        padding: 1em;
+        border-radius: 0 0 var(--app-border-radius) var(--app-border-radius);
+
+        .system & {
+            border-radius: 0 0 0.5em 0.5em;
+        }
+
+        p {
+            margin: 0.5em 0;
+
+            &:first-child {
+                margin-top: 0;
+            }
+
+            &:last-child {
+                margin-bottom: 0;
+            }
+        }
+
+        legend + p {
+            margin-top: 0;
+        }
+    }
+
+    &-body &-buttons {
+        text-align: right;
+        margin: 2em 0 0 0;
+    }
+
+    &::backdrop {
+        background: none;
+    }
+
+    & + .backdrop {
+        background: none;
+    }
+}

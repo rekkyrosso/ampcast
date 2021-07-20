@@ -1,0 +1,17 @@
+{
+    "name": "Black Gold",
+    "backgroundColor": "#0d0c0c",
+    "textColor": "#cbccad",
+    "frameColor": "#0e0e0c",
+    "frameTextColor": "#e8e8bf",
+    "buttonColor": null,
+    "buttonTextColor": null,
+    "mediaButtonColor": null,
+    "mediaButtonTextColor": null,
+    "selectedBackgroundColor": null,
+    "selectedTextColor": null,
+    "evenRowBackgroundColor": null,
+    "spacing": 0.375,
+    "roundness": 0.25,
+    "flat": false
+}

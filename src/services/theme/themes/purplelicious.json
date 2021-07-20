@@ -1,0 +1,17 @@
+{
+    "name": "Purplelicious (Winamp)",
+    "backgroundColor": "#000000",
+    "textColor": "#ffb464",
+    "frameColor": "#3e0445",
+    "frameTextColor": "#ffb464",
+    "buttonColor": null,
+    "buttonTextColor": null,
+    "mediaButtonColor": null,
+    "mediaButtonTextColor": null,
+    "selectedBackgroundColor": "#3e0445",
+    "selectedTextColor": "#ffb464",
+    "evenRowBackgroundColor": null,
+    "spacing": 0.21875,
+    "roundness": 0.09375,
+    "flat": false
+}

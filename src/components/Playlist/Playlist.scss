@@ -1,0 +1,66 @@
+.playlist {
+    background-color: var(--frame-color);
+    color: var(--frame-text-color);
+    display: flex;
+    flex-direction: column;
+    flex: auto;
+
+    .list-view {
+        &-body {
+            width: 100%;
+        }
+
+        &-row {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+
+            .apple-not-connected &.source-apple,
+            .jellyfin-not-connected &.source-jellyfin,
+            .plex-not-connected &.source-plex,
+            .spotify-not-connected &.source-spotify {
+                &:not(.selected) {
+                    color: var(--grey1-color);
+                }
+            }
+        }
+
+        &-cell {
+            position: static;
+            display: flex;
+            flex: initial;
+            padding: 0 0.25rem;
+            overflow: initial;
+            text-overflow: initial;
+
+            &.title {
+                flex: auto;
+                min-width: 0;
+
+                > .artist-text,
+                > .title-text {
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                    /* Prevents italic text from being clipped on the right. */
+                    padding-right: 0.1em;
+                }
+
+                > [role="separator"] {
+                    flex: initial;
+                    /* Different left/right because of the padding above. */
+                    margin: 0 0.25rem 0 0.15rem;
+                }
+            }
+
+            &.track {
+                font-family: monospace;
+            }
+        }
+    }
+
+    .status-bar {
+        margin-bottom: 0;
+    }
+}

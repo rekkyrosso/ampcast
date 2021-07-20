@@ -1,0 +1,16 @@
+.visualizer-info {
+    width: 100%;
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid;
+    font-size: 0.75rem;
+    color: var(--grey2-color);
+
+    .external-view .icon {
+        vertical-align: middle;
+    }
+
+    p {
+        margin: 0;
+    }
+}

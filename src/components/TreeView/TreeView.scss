@@ -1,0 +1,70 @@
+@import 'styles/mixins.scss';
+
+.tree-view {
+    @include inset;
+    flex: auto;
+    position: relative;
+    isolation: isolate;
+    user-select: none;
+    border-radius: var(--app-border-radius);
+
+    &,
+    &-node,
+    &-node-children {
+        display: block;
+        list-style: none;
+    }
+
+    &-node {
+        &-marker {
+            min-width: 1em;
+            width: 1em;
+            height: 1em;
+            margin-right: 0.125em;
+            fill: currentColor;
+        }
+
+        &-label {
+            display: inline-block;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        &.empty &-label {
+            margin-left: 1.125em;
+        }
+    }
+
+    &-row {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        padding-left: 0.125em;
+    }
+
+    &-node.selected > &-row {
+        color: var(--selected-text-color);
+        background-color: var(--selected-background-color-blurred);
+    }
+
+    &:focus &-node.selected > &-row {
+        background-color: var(--selected-background-color);
+    }
+
+    &-cursor {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 1.5em;
+        border: 1px dotted var(--selected-background-color);
+        filter: invert(1);
+        pointer-events: none;
+    }
+
+    [role="tree"]:empty + &-cursor,
+    &:not(:focus) &-cursor {
+        visibility: hidden;
+    }
+}

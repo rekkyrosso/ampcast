@@ -1,0 +1,17 @@
+{
+    "name": "Lemon",
+    "backgroundColor": "#e7fdfc",
+    "textColor": "#000000",
+    "frameColor": "#e8d502",
+    "frameTextColor": "#180c06",
+    "buttonColor": null,
+    "buttonTextColor": null,
+    "mediaButtonColor": null,
+    "mediaButtonTextColor": null,
+    "selectedBackgroundColor": "#aaaaaa",
+    "selectedTextColor": "#000000",
+    "evenRowBackgroundColor": null,
+    "spacing": 0.375,
+    "roundness": 0,
+    "flat": true
+}

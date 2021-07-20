@@ -1,0 +1,41 @@
+.media-button {
+    background-color: var(--media-button-color);
+    background-image: var(--media-button-background);
+    color: var(--media-button-text-color);
+    border: 1px solid;
+    padding: 0.5rem;
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.75rem;
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    background-clip: padding-box;
+    border-radius: calc(var(--roundness) * 100%);
+
+    &:first-child {
+        margin-left: auto;
+    }
+
+    &:last-child {
+        margin-right: auto;
+    }
+
+    &:active {
+        transform: scale(0.98);
+    }
+
+    &-shuffle {
+        width: auto;
+        margin-right: 0;
+        font-weight: 600;
+        font-size: 0.675rem;
+        line-height: 2em;
+        border-radius: calc(var(--roundness) * 2rem);
+    }
+
+    &:not(&-shuffle) {
+        will-change: transform;
+    }
+}

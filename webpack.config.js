@@ -1,57 +1,82 @@
-const path = require('path');
+const {resolve} = require('path');
+const webpack = require('webpack');
+const ESLintPlugin = require('eslint-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
-const devMode = process.env.NODE_ENV !== 'production';
+const packageJson = require('./package.json');
 
-module.exports = {
-    entry: './src/index.tsx',
-    module: {
-        rules: [
-            {
-                test: /\.tsx?$/,
-                use: 'ts-loader',
-                exclude: /node_modules/,
-            },
-            {
-                // Apply rule for .sass, .scss or .css files
-                test: /\.s?css$/,
+module.exports = (env) => {
+    const mode = env.mode || 'production';
+    const __dev__ = mode === 'development';
+    const credentials = resolve(__dirname, `../credentials`);
+    const wwwDir = resolve(__dirname, __dev__ ? 'www-dev' : 'www');
 
-                // Set loaders to transform files.
-                // Loaders are applying from right to left(!)
-                // The first loader will be applied after others
-                use: [
-                    {
-                        // After all CSS loaders we use plugin to do his work.
-                        // It gets all transformed CSS and extracts it into separate
-                        // single bundled file
-                        loader: MiniCssExtractPlugin.loader
-                    },
-                    {
-                        // This loader resolves url() and @imports inside CSS
-                        loader: 'css-loader',
-                    },
-                    {
-                        // First we transform SASS to standard CSS
-                        loader: 'sass-loader'
-                    }
-                ]
+    return {
+        entry: './src/index.tsx',
+        output: {
+            filename: 'bundle.js',
+            path: wwwDir,
+        },
+        module: {
+            rules: [
+                {
+                    test: /\.tsx?$/,
+                    use: 'ts-loader',
+                    exclude: /node_modules/,
+                },
+                {
+                    test: /\.s?css$/,
+                    use: [
+                        MiniCssExtractPlugin.loader,
+                        {
+                            loader: 'css-loader',
+                        },
+                        {
+                            loader: 'sass-loader',
+                        },
+                    ],
+                },
+            ],
+        },
+        plugins: [
+            new ESLintPlugin({
+                extensions: ['.tsx', '.ts'],
+            }),
+            new MiniCssExtractPlugin({
+                filename: 'bundle.css',
+            }),
+            new webpack.ProvidePlugin({
+                Buffer: ['buffer', 'Buffer'],
+            }),
+            new webpack.ProvidePlugin({
+                process: 'process/browser',
+            }),
+            new webpack.DefinePlugin({
+                __dev__,
+                __app_name__: JSON.stringify(packageJson.name),
+                __app_version__: JSON.stringify(packageJson.version),
+                __am_dev_token__: JSON.stringify(require(`${credentials}/am_dev_token.json`)),
+                __lf_api_key__: JSON.stringify(require(`${credentials}/lf_api_key.json`)),
+                __lf_api_secret__: JSON.stringify(require(`${credentials}/lf_api_secret.json`)),
+                __sp_client_id__: JSON.stringify(require(`${credentials}/sp_client_id.json`)),
+                __yt_api_key__: JSON.stringify(require(`${credentials}/yt_api_key.json`)),
+                __yt_client_id__: JSON.stringify(require(`${credentials}/yt_client_id.json`)),
+            }),
+        ],
+        resolve: {
+            alias: {
+                assets: resolve(__dirname, 'src/assets/'),
+                components: resolve(__dirname, 'src/components/'),
+                hooks: resolve(__dirname, 'src/hooks/'),
+                services: resolve(__dirname, 'src/services/'),
+                styles: resolve(__dirname, 'src/styles/'),
+                types: resolve(__dirname, 'src/types/'),
+                utils: resolve(__dirname, 'src/utils/'),
             },
-        ],
-    },
-    plugins: [
-        new MiniCssExtractPlugin({
-            filename: 'bundle.css'
-        })
-    ],
-    resolve: {
-        extensions: [
-            '.tsx',
-            '.ts',
-            '.js'
-        ],
-    },
-    output: {
-        filename: 'bundle.js',
-        path: path.resolve(__dirname, 'build'),
-    },
-    mode: 'development'
+            extensions: ['.tsx', '.ts', '.js'],
+        },
+        stats: {
+            builtAt: true,
+        },
+        mode,
+    };
 };

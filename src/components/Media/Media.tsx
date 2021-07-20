@@ -1,72 +1,55 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
-import ReactHowler from 'react-howler';
+import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
+import {fromEvent} from 'rxjs';
+import {map} from 'rxjs/operators';
+import mediaPlayback from 'services/mediaPlayback';
+import useOnResize from 'hooks/useOnResize';
+import VisualizerControls from './VisualizerControls';
+import Interstitial from './Interstitial';
+import './Media.scss';
 
-export interface MediaProps {
-    readonly src: string;
-}
+console.log('component::Media');
 
-export default function Media({src}: MediaProps) {
-    const player = useRef<ReactHowler | null>(null);
-    const seek = useRef<HTMLInputElement | null>(null);
-    const interval = useRef<ReturnType<typeof setInterval>>();
-    const [playing, setPlaying] = useState(false);
-    const [position, setPosition] = useState(0);
+export default function Media() {
+    const ref = useRef<HTMLDivElement>(null);
+    const [fullScreen, setFullScreen] = useState(false);
 
-    const handlePlayClick = useCallback(() => {
-        setPlaying(!playing);
-    }, [playing, setPlaying]);
+    useLayoutEffect(() => {
+        mediaPlayback.appendTo(ref.current!);
+    }, []);
 
-    const handleSeekChange = useCallback(() => {
-        const position = seek.current!.valueAsNumber;
-        setPosition(position);
-        player.current!.seek(position);
-    }, [setPosition]);
+    useLayoutEffect(() => {
+        const subscription = fromEvent(document, 'fullscreenchange')
+            .pipe(map(() => document.fullscreenElement === ref.current!))
+            .subscribe(setFullScreen);
+        return () => subscription.unsubscribe();
+    }, []);
 
-    const handleEnd = useCallback(() => {
-        setPlaying(false);
-        setPosition(player.current!.duration());
-    }, [setPlaying, setPosition]);
+    useOnResize(
+        ref,
+        useCallback(() => {
+            const element = ref.current!;
+            mediaPlayback.resize(element.clientWidth, element.clientHeight);
+        }, [])
+    );
 
-    useEffect(() => {
-        if (playing) {
-            setPosition(player.current!.seek());
-
-            interval.current = setInterval(() => {
-                setPosition(player.current!.seek());
-            }, 500)
-        
-            return () => {
-                clearInterval(interval.current!);
-            }
+    const toggleFullScreen = useCallback(() => {
+        if (fullScreen) {
+            document.exitFullscreen();
+        } else {
+            ref.current!.requestFullscreen();
         }
-        return undefined;
-      }, [playing]);
+    }, [fullScreen]);
 
     return (
-        <div>
-            <ReactHowler
-                html5
-                src={src}
-                playing={playing}
-                onEnd={handleEnd}
-                ref={player}
-            />
-            <p>
-                <button onClick={handlePlayClick}>{playing ? 'Pause' : 'Play'}</button>
-                <br />
-                <input
-                    type="range"
-                    min="0"
-                    max={String(player.current?.duration() ?? 0)}
-                    value={String(position)}
-                    onChange={handleSeekChange}
-                    ref={seek}
-                    style={{
-                        width: '100%',
-                        margin: '4px 0',
-                    }}
-                />
-            </p>
+        <div
+            className={`panel media ${fullScreen ? 'full-screen' : ''}`}
+            onDoubleClick={toggleFullScreen}
+            ref={ref}
+        >
+            <div id="players" />
+            <div id="visualizers" />
+            <Interstitial />
+            <VisualizerControls />
         </div>
     );
 }

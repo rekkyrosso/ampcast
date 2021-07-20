@@ -1,0 +1,65 @@
+import type {Observable} from 'rxjs';
+import {EMPTY, BehaviorSubject, combineLatest, of} from 'rxjs';
+import {catchError, concatMap, filter, map, switchMap, takeUntil, take, tap} from 'rxjs/operators';
+import MediaObject from 'types/MediaObject';
+import {Page, PagerConfig} from 'types/Pager';
+import {exists, Logger, uniqBy} from 'utils';
+import AbstractPager from './AbstractPager';
+
+const logger = new Logger('SequentialPager');
+
+export default class SequentialPager<T extends MediaObject> extends AbstractPager<T> {
+    protected readonly fetching$ = new BehaviorSubject(false);
+
+    constructor(
+        private readonly fetchNext: (pageSize: number | undefined) => Promise<Page<T>>,
+        options?: PagerConfig
+    ) {
+        super(options);
+    }
+
+    protected createSubscriptions(): void {
+        if (!this.subscriptions) {
+            super.createSubscriptions();
+
+            this.subscriptions!.add(
+                this.observeShouldFetch()
+                    .pipe(
+                        tap(() => this.fetching$.next(true)),
+                        concatMap(() => this.fetchNext(this.config.pageSize)),
+                        tap((page) => this.addPage(page)),
+                        catchError((err: unknown) => {
+                            logger.error(err);
+                            this.error$.next(err);
+                            return of(undefined);
+                        }),
+                        tap(() => this.fetching$.next(false)),
+                        takeUntil(this.observeComplete())
+                    )
+                    .subscribe(logger)
+            );
+        }
+    }
+
+    private observeShouldFetch(): Observable<void> {
+        const shouldFetch$ = combineLatest([this.fetches$, this.items$]).pipe(
+            map(([{index, length}, items]) => index + 2 * length > items.length),
+            filter((shouldFetch) => shouldFetch),
+            map(() => undefined),
+            take(1)
+        );
+        return this.fetching$.pipe(switchMap((fetching) => (fetching ? EMPTY : shouldFetch$)));
+    }
+
+    private addPage(page: Page<T>): void {
+        const newItems = (page.items || []).filter(exists);
+        const items = uniqBy(this.items.concat(newItems), 'src');
+        items.length = Math.min(items.length, this.maxSize);
+        const atEnd = page.atEnd || items.length === this.maxSize;
+        const size = atEnd ? items.length : page.total;
+        if (size !== undefined) {
+            this.size$.next(size);
+        }
+        this.items$.next(items);
+    }
+}

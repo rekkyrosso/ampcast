@@ -1,0 +1,17 @@
+{
+    "name": "Boring Skyblue",
+    "backgroundColor": "#08090a",
+    "textColor": "#7ccaf8",
+    "frameColor": "#333738",
+    "frameTextColor": "#d2d2d2",
+    "buttonColor": null,
+    "buttonTextColor": null,
+    "mediaButtonColor": null,
+    "mediaButtonTextColor": null,
+    "selectedBackgroundColor": "#163d5a",
+    "selectedTextColor": null,
+    "evenRowBackgroundColor": null,
+    "spacing": 0.375,
+    "roundness": 0,
+    "flat": false
+}

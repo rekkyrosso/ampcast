@@ -1,0 +1,17 @@
+{
+    "name": "Tangerine",
+    "backgroundColor": "#eaf2c5",
+    "textColor": "#2e1f05",
+    "frameColor": "#e89f02",
+    "frameTextColor": "#180c06",
+    "buttonColor": null,
+    "buttonTextColor": null,
+    "mediaButtonColor": null,
+    "mediaButtonTextColor": null,
+    "selectedBackgroundColor": "#adaaaa",
+    "selectedTextColor": "#000000",
+    "evenRowBackgroundColor": null,
+    "spacing": 0.46875,
+    "roundness": 1,
+    "flat": false
+}

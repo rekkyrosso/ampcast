@@ -1,0 +1,29 @@
+.scrollable {
+    overflow: hidden;
+    border-radius: inherit;
+
+    &,
+    &-content {
+        position: absolute;
+        inset: 0;
+    }
+
+    &-content {
+        isolation: isolate;
+        display: flex;
+        flex-direction: column;
+    }
+
+    &-head {
+        flex: initial;
+    }
+
+    &-body {
+        flex: auto;
+        overflow: hidden;
+    }
+
+    &-body-content {
+        position: relative;
+    }
+}

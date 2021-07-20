@@ -1,0 +1,17 @@
+{
+    "name": "Indigo",
+    "backgroundColor": "#06181e",
+    "textColor": "#d1d3f5",
+    "frameColor": "#43477a",
+    "frameTextColor": "#f3f3f7",
+    "buttonColor": null,
+    "buttonTextColor": null,
+    "mediaButtonColor": null,
+    "mediaButtonTextColor": null,
+    "selectedBackgroundColor": "#4b4049",
+    "selectedTextColor": "#ffffff",
+    "evenRowBackgroundColor": null,
+    "spacing": 0.625,
+    "roundness": 0.84375,
+    "flat": true
+}

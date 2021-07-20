@@ -1,0 +1,65 @@
+.visualizer {
+    position: absolute;
+    inset: 0;
+    background: var(--black);
+
+    &-audiomotion {
+        &[hidden] {
+            display: block;
+            visibility: hidden;
+
+            canvas {
+                display: none;
+            }
+        }
+    }
+
+    &-ampshade,
+    &-milkdrop {
+        .light.frame-light & {
+            opacity: 0.5;
+        }
+    }
+
+    &-controls {
+        position: absolute;
+        inset: 0;
+        color: var(--soft-white);
+        opacity: 0;
+
+        &:hover {
+            opacity: 1;
+        }
+
+        .full-screen & {
+            opacity: 0;
+        }
+
+        .source-icon,
+        &-settings,
+        &-selector {
+            position: absolute;
+        }
+
+        .source-icon {
+            right: 0.375rem;
+            bottom: 0.375rem;
+            width: 1.5rem;
+            height: 1.5rem;
+
+            &.icon-apple {
+                fill: white !important;
+            }
+        }
+
+        &-settings {
+            right: 0.25rem;
+            top: 0.25rem;
+        }
+
+        &-selector {
+            left: 0.25rem;
+            bottom: 0.25rem;
+        }
+    }
+}

@@ -1,0 +1,88 @@
+@import './mixins.scss';
+
+html {
+    font-size: calc(var(--font-size) * 1px);
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    position: fixed;
+    inset: 0;
+    font-size: 1em;
+}
+
+body,
+button,
+input,
+select,
+textarea {
+    font-family: var(--font-family);
+    font-weight: 400;
+    line-height: 1.5;
+}
+
+.panel,
+.page {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.panel {
+    isolation: isolate;
+    contain: strict;
+    inset: var(--gutter-width);
+}
+
+.page {
+    @include inset;
+    padding: 1rem;
+    border-radius: var(--app-border-radius);
+
+    &.login {
+        text-align: center;
+    }
+
+    p {
+        margin: 1em 0;
+    }
+}
+
+#app {
+    position: absolute;
+    isolation: isolate;
+    contain: strict;
+    inset: 0;
+}
+
+#popup {
+    position: absolute;
+    isolation: isolate;
+
+    &:empty {
+        pointer-events: none;
+    }
+}
+
+.app {
+    background-color: var(--frame-color);
+    color: var(--frame-text-color);
+}
+
+#system {
+    position: absolute;
+    isolation: isolate;
+    contain: strict;
+    font-size: calc(min(max(var(--font-size), 12), 20) * 1px);
+
+    &:empty {
+        pointer-events: none;
+    }
+}
+
+body.dragging {
+    cursor: inherit !important;
+    pointer-events: none !important;
+    user-select: none !important;
+}

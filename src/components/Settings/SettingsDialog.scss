@@ -1,0 +1,28 @@
+.settings-dialog {
+    width: 44em;
+    height: 36em;
+
+    .dialog-body {
+        display: flex;
+        flex-direction: row;
+        height: 100%;
+    }
+
+    &-sources {
+        flex: initial;
+        width: 10em;
+    }
+
+    &-source {
+        display: flex;
+        flex: auto;
+        margin-left: 1em;
+    }
+
+    footer.dialog-buttons {
+        position: absolute;
+        right: 1em;
+        bottom: 1em;
+        margin: 0;
+    }
+}

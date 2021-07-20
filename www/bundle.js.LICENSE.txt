@@ -1,0 +1,1032 @@
+/*!
+ * Determine if an object is a Buffer
+ *
+ * @author   Feross Aboukhadijeh <https://feross.org>
+ * @license  MIT
+ */
+
+/*!
+ * The buffer module from node.js, for the browser.
+ *
+ * @author   Feross Aboukhadijeh <https://feross.org>
+ * @license  MIT
+ */
+
+/*!
+ * content-type
+ * Copyright(c) 2015 Douglas Christopher Wilson
+ * MIT Licensed
+ */
+
+/*!
+ * media-typer
+ * Copyright(c) 2014-2017 Douglas Christopher Wilson
+ * MIT Licensed
+ */
+
+/*! ../../utils */
+
+/*! ../audio/audioLevels */
+
+/*! ../blankPreset */
+
+/*! ../build/parser */
+
+/*! ../equations/presetEquationRunner */
+
+/*! ../equations/presetEquationRunnerWASM */
+
+/*! ../image/imageTextures */
+
+/*! ../noise/noise */
+
+/*! ../shaderUtils */
+
+/*! ../shaders/shaderUtils */
+
+/*! ../utils */
+
+/*! ./../../../process/browser.js */
+
+/*! ./../../../webpack/buildin/module.js */
+
+/*! ./assemblyscript/presetFunctions.ts */
+
+/*! ./astUtils */
+
+/*! ./audio/audioProcessor */
+
+/*! ./blendPattern */
+
+/*! ./blurHorizontal */
+
+/*! ./blurVertical */
+
+/*! ./compiler */
+
+/*! ./constants */
+
+/*! ./emitter */
+
+/*! ./encoding */
+
+/*! ./envParser */
+
+/*! ./errorUtils */
+
+/*! ./fft */
+
+/*! ./ieee754 */
+
+/*! ./loader */
+
+/*! ./motionVectors/motionVectors */
+
+/*! ./parser */
+
+/*! ./preProcessor */
+
+/*! ./presetBase */
+
+/*! ./presets/converted/$$$ Royal - Mashup (197).json */
+
+/*! ./presets/converted/$$$ Royal - Mashup (220).json */
+
+/*! ./presets/converted/$$$ Royal - Mashup (431).json */
+
+/*! ./presets/converted/AdamFx 2 Geiss, Zylot and Flexi - Reaction Diffusion 3 (Overload Mix 2) EATIT4 hypno.json */
+
+/*! ./presets/converted/Aderrasi + Geiss - Airhandler (Kali Mix) - Canvas Mix.json */
+
+/*! ./presets/converted/Aderrasi - Potion of Spirits.json */
+
+/*! ./presets/converted/Aderrasi - Storm of the Eye (Thunder) - mash0000 - quasi pseudo meta concentrics.json */
+
+/*! ./presets/converted/An AdamFX n Martin Infusion 2 flexi - Why The Sky Looks Diffrent Today - AdamFx n Martin Infusion - Tack Tile Disfunction B.json */
+
+/*! ./presets/converted/Cope - The Neverending Explosion of Red Liquid Fire.json */
+
+/*! ./presets/converted/Eo.S. + Zylot - skylight (Stained Glass Majesty mix).json */
+
+/*! ./presets/converted/Eo.S. - glowsticks v2 05 and proton lights (+Krash′s beat code) _Phat_remix02b.json */
+
+/*! ./presets/converted/Flexi + Martin - astral projection.json */
+
+/*! ./presets/converted/Flexi + Martin - cascading decay swing.json */
+
+/*! ./presets/converted/Flexi + amandio c - piercing 05 - Kopie (2) - Kopie.json */
+
+/*! ./presets/converted/Flexi + stahlregen - jelly showoff parade.json */
+
+/*! ./presets/converted/Flexi - alien fish pond.json */
+
+/*! ./presets/converted/Flexi - area 51.json */
+
+/*! ./presets/converted/Flexi - infused with the spiral.json */
+
+/*! ./presets/converted/Flexi - mindblob [shiny mix].json */
+
+/*! ./presets/converted/Flexi - mindblob mix.json */
+
+/*! ./presets/converted/Flexi - predator-prey-spirals.json */
+
+/*! ./presets/converted/Flexi - smashing fractals [acid etching mix].json */
+
+/*! ./presets/converted/Flexi - truly soft piece of software - this is generic texturing (Jelly) .json */
+
+/*! ./presets/converted/Flexi, fishbrain, Geiss + Martin - tokamak witchery.json */
+
+/*! ./presets/converted/Flexi, martin + geiss - dedicated to the sherwin maxawow.json */
+
+/*! ./presets/converted/Fumbling_Foo + En D & Martin - Mandelverse.json */
+
+/*! ./presets/converted/Geiss + Flexi + Martin - disconnected.json */
+
+/*! ./presets/converted/Geiss - Cauldron - painterly 2 (saturation remix).json */
+
+/*! ./presets/converted/Geiss - Reaction Diffusion 2.json */
+
+/*! ./presets/converted/Geiss - Spiral Artifact.json */
+
+/*! ./presets/converted/Geiss - Thumb Drum.json */
+
+/*! ./presets/converted/Geiss, Flexi + Stahlregen - Thumbdrum Tokamak [crossfiring aftermath jelly mashup].json */
+
+/*! ./presets/converted/Goody - The Wild Vort.json */
+
+/*! ./presets/converted/Halfbreak - Funny Madness.json */
+
+/*! ./presets/converted/Halfbreak - Light of Breakers.json */
+
+/*! ./presets/converted/Hexcollie, Pieturp, Orb, Flexi, Geiss n Demon Lord - Premeditative Urination Clause.json */
+
+/*! ./presets/converted/LuxXx - Play v3 (the war within all of us).json */
+
+/*! ./presets/converted/Martin - acid wiring.json */
+
+/*! ./presets/converted/Martin - charisma.json */
+
+/*! ./presets/converted/Martin - liquid arrows.json */
+
+/*! ./presets/converted/Milk Artist At our Best - FED - SlowFast Ft AdamFX n Martin - HD CosmoFX.json */
+
+/*! ./presets/converted/MilkDrop2077.R002.json */
+
+/*! ./presets/converted/MilkDrop2077.R033.json */
+
+/*! ./presets/converted/ORB - Waaa.json */
+
+/*! ./presets/converted/Phat+fiShbRaiN+Eo.S_Mandala_Chasers_remix.json */
+
+/*! ./presets/converted/Rovastar + Loadus + Geiss - FractalDrop (Triple Mix).json */
+
+/*! ./presets/converted/Rovastar - Oozing Resistance.json */
+
+/*! ./presets/converted/ShadowHarlequin - LovelyShinySquares [ liquid starburst rmx ] - unchained + rovaster - luckless - martin - starfield sector.json */
+
+/*! ./presets/converted/TonyMilkdrop - Leonardo Da Vinci's Balloon [Flexi - merry-go-round + techstyle].json */
+
+/*! ./presets/converted/TonyMilkdrop - Magellan's Nebula [Flexi - you enter first + multiverse].json */
+
+/*! ./presets/converted/Unchained - Rewop.json */
+
+/*! ./presets/converted/Unchained - Unified Drag 2.json */
+
+/*! ./presets/converted/Zylot - Paint Spill (Music Reactive Paint Mix).json */
+
+/*! ./presets/converted/Zylot - Star Ornament.json */
+
+/*! ./presets/converted/Zylot - True Visionary (Final Mix).json */
+
+/*! ./presets/converted/_Aderrasi - Wanderer in Curved Space - mash0000 - faclempt kibitzing meshuggana schmaltz (Geiss color mix).json */
+
+/*! ./presets/converted/_Geiss - Artifact 01.json */
+
+/*! ./presets/converted/_Geiss - Desert Rose 2.json */
+
+/*! ./presets/converted/_Geiss - untitled.json */
+
+/*! ./presets/converted/_Mig_049.json */
+
+/*! ./presets/converted/_Mig_085.json */
+
+/*! ./presets/converted/_Rovastar + Geiss - Hurricane Nightmare (Posterize Mix).json */
+
+/*! ./presets/converted/cope + flexi - colorful marble (ghost mix).json */
+
+/*! ./presets/converted/cope + martin - mother-of-pearl.json */
+
+/*! ./presets/converted/fiShbRaiN + Flexi - witchcraft 2.0.json */
+
+/*! ./presets/converted/flexi + amandio c - organic [random mashup].json */
+
+/*! ./presets/converted/flexi + amandio c - organic12-3d-2.json */
+
+/*! ./presets/converted/flexi + fishbrain - neon mindblob grafitti.json */
+
+/*! ./presets/converted/flexi + geiss - pogo cubes vs. tokamak vs. game of life [stahls jelly 4.5 finish].json */
+
+/*! ./presets/converted/flexi - bouncing balls [double mindblob neon mix].json */
+
+/*! ./presets/converted/flexi - mom, why the sky looks different today.json */
+
+/*! ./presets/converted/flexi - patternton, district of media, capitol of the united abstractions of fractopia.json */
+
+/*! ./presets/converted/flexi - swing out on the spiral.json */
+
+/*! ./presets/converted/flexi - what is the matrix.json */
+
+/*! ./presets/converted/gunthry is out back bloodying up the pine trees - adm atomising (v) the disintigrate (n).json */
+
+/*! ./presets/converted/high-altitude basket unraveling - singh grooves nitrogen argon nz+.json */
+
+/*! ./presets/converted/martin + flexi - diamond cutter [prismaticvortex.com] - camille - i wish i wish i wish i was constrained.json */
+
+/*! ./presets/converted/martin - The Bridge of Khazad-Dum.json */
+
+/*! ./presets/converted/martin - angel flight.json */
+
+/*! ./presets/converted/martin - another kind of groove.json */
+
+/*! ./presets/converted/martin - bombyx mori.json */
+
+/*! ./presets/converted/martin - castle in the air.json */
+
+/*! ./presets/converted/martin - chain breaker.json */
+
+/*! ./presets/converted/martin - disco mix 4.json */
+
+/*! ./presets/converted/martin - extreme heat.json */
+
+/*! ./presets/converted/martin - frosty caves 2.json */
+
+/*! ./presets/converted/martin - fruit machine.json */
+
+/*! ./presets/converted/martin - glass corridor.json */
+
+/*! ./presets/converted/martin - mandelbox explorer - high speed demo version.json */
+
+/*! ./presets/converted/martin - mucus cervix.json */
+
+/*! ./presets/converted/martin - reflections on black tiles.json */
+
+/*! ./presets/converted/martin - stormy sea (2010 update).json */
+
+/*! ./presets/converted/martin - witchcraft reloaded.json */
+
+/*! ./presets/converted/martin [shadow harlequins shape code] - fata morgana.json */
+
+/*! ./presets/converted/martin, flexi, fishbrain + sto - enterstate [random mashup].json */
+
+/*! ./presets/converted/sawtooth grin roam.json */
+
+/*! ./presets/converted/shifter - dark tides bdrv mix 2.json */
+
+/*! ./presets/converted/shifter - escape (sigur ros).json */
+
+/*! ./presets/converted/shifter - liquid circuitry - conjugoth.json */
+
+/*! ./presets/converted/suksma - Hexcollie - Julian Carnival - shimmy dumb grid.json */
+
+/*! ./presets/converted/suksma - Rovastar - Sunflower Passion (Enlightment Mix)_Phat_edit + flexi und martin shaders - circumflex in character classes in regular expression.json */
+
+/*! ./presets/converted/suksma - ed geining hateops - squeakers.json */
+
+/*! ./presets/converted/suksma - heretical crosscut playpen.json */
+
+/*! ./presets/converted/suksma - uninitialized variabowl (hydroponic chronic).json */
+
+/*! ./presets/converted/suksma - vector exp 1 - couldn′t not.json */
+
+/*! ./presets/converted/yin - 191 - Temporal singularities.json */
+
+/*! ./presets/converted/yin - 393 - Artificial Inspiration (music driven - outward).json */
+
+/*! ./rendering/renderer */
+
+/*! ./shaderUtils */
+
+/*! ./shaders/blur/blur */
+
+/*! ./shaders/comp */
+
+/*! ./shaders/output */
+
+/*! ./shaders/resample */
+
+/*! ./shaders/warp */
+
+/*! ./shapes/customShape */
+
+/*! ./shims */
+
+/*! ./sprites/border */
+
+/*! ./sprites/darkenCenter */
+
+/*! ./text/titleText */
+
+/*! ./utils */
+
+/*! ./visualizer */
+
+/*! ./wasmFunctions */
+
+/*! ./waveUtils */
+
+/*! ./waves/basicWaveform */
+
+/*! ./waves/customWaveform */
+
+/*! @assemblyscript/loader */
+
+/*! @babel/runtime/helpers/defineProperty */
+
+/*! ecma-proposal-math-extensions */
+
+/*! eel-wasm */
+
+/*! exports provided: default */
+
+/*! exports provided: instantiate, instantiateSync, instantiateStreaming, demangle, default */
+
+/*! ieee754. BSD-3-Clause License. Feross Aboukhadijeh <https://feross.org/opensource> */
+
+/*! no static exports found */
+
+/*! safe-buffer. MIT License. Feross Aboukhadijeh <https://feross.org/opensource> */
+
+/*!*****************!*\
+  !*** ./base.js ***!
+  \*****************/
+
+/*!**********************!*\
+  !*** ./src/index.js ***!
+  \**********************/
+
+/*!**********************!*\
+  !*** ./src/utils.js ***!
+  \**********************/
+
+/*!**************************!*\
+  !*** ./src/audio/fft.js ***!
+  \**************************/
+
+/*!***************************!*\
+  !*** ./src/presetBase.js ***!
+  \***************************/
+
+/*!***************************!*\
+  !*** ./src/visualizer.js ***!
+  \***************************/
+
+/*!****************************!*\
+  !*** ./src/blankPreset.js ***!
+  \****************************/
+
+/*!****************************!*\
+  !*** ./src/noise/noise.js ***!
+  \****************************/
+
+/*!**********************************!*\
+  !*** ./src/audio/audioLevels.js ***!
+  \**********************************/
+
+/*!***********************************!*\
+  !*** (webpack)/buildin/module.js ***!
+  \***********************************/
+
+/*!***********************************!*\
+  !*** ./src/rendering/renderer.js ***!
+  \***********************************/
+
+/*!************************************!*\
+  !*** ./src/image/imageTextures.js ***!
+  \************************************/
+
+/*!*************************************!*\
+  !*** ./src/audio/audioProcessor.js ***!
+  \*************************************/
+
+/*!***************************************!*\
+  !*** ./src/rendering/blendPattern.js ***!
+  \***************************************/
+
+/*!***************************************!*\
+  !*** ./src/rendering/shaders/comp.js ***!
+  \***************************************/
+
+/*!***************************************!*\
+  !*** ./src/rendering/shaders/warp.js ***!
+  \***************************************/
+
+/*!*****************************************!*\
+  !*** ./node_modules/process/browser.js ***!
+  \*****************************************/
+
+/*!*****************************************!*\
+  !*** ./presets/converted/_Mig_049.json ***!
+  \*****************************************/
+
+/*!*****************************************!*\
+  !*** ./presets/converted/_Mig_085.json ***!
+  \*****************************************/
+
+/*!*****************************************!*\
+  !*** ./src/rendering/shaders/output.js ***!
+  \*****************************************/
+
+/*!*****************************************!*\
+  !*** ./src/rendering/sprites/border.js ***!
+  \*****************************************/
+
+/*!*****************************************!*\
+  !*** ./src/rendering/text/titleText.js ***!
+  \*****************************************/
+
+/*!******************************************!*\
+  !*** ./src/rendering/waves/waveUtils.js ***!
+  \******************************************/
+
+/*!*******************************************!*\
+  !*** ./presets/converted/ORB - Waaa.json ***!
+  \*******************************************/
+
+/*!*******************************************!*\
+  !*** ./src/rendering/shaders/resample.js ***!
+  \*******************************************/
+
+/*!********************************************!*\
+  !*** ./src/rendering/shaders/blur/blur.js ***!
+  \********************************************/
+
+/*!*********************************************!*\
+  !*** ./src/rendering/shapes/customShape.js ***!
+  \*********************************************/
+
+/*!**********************************************!*\
+  !*** ./src/rendering/shaders/shaderUtils.js ***!
+  \**********************************************/
+
+/*!**********************************************!*\
+  !*** ./src/rendering/waves/basicWaveform.js ***!
+  \**********************************************/
+
+/*!***********************************************!*\
+  !*** ./src/assemblyscript/presetFunctions.ts ***!
+  \***********************************************/
+
+/*!***********************************************!*\
+  !*** ./src/equations/presetEquationRunner.js ***!
+  \***********************************************/
+
+/*!***********************************************!*\
+  !*** ./src/rendering/sprites/darkenCenter.js ***!
+  \***********************************************/
+
+/*!***********************************************!*\
+  !*** ./src/rendering/waves/customWaveform.js ***!
+  \***********************************************/
+
+/*!************************************************!*\
+  !*** ./presets/converted/Flexi - area 51.json ***!
+  \************************************************/
+
+/*!*************************************************!*\
+  !*** ./node_modules/eel-wasm/dist/src/index.js ***!
+  \*************************************************/
+
+/*!*************************************************!*\
+  !*** ./node_modules/eel-wasm/dist/src/shims.js ***!
+  \*************************************************/
+
+/*!*************************************************!*\
+  !*** ./node_modules/eel-wasm/dist/src/utils.js ***!
+  \*************************************************/
+
+/*!**************************************************!*\
+  !*** ./node_modules/eel-wasm/dist/src/loader.js ***!
+  \**************************************************/
+
+/*!**************************************************!*\
+  !*** ./node_modules/eel-wasm/dist/src/parser.js ***!
+  \**************************************************/
+
+/*!**************************************************!*\
+  !*** ./presets/converted/Martin - charisma.json ***!
+  \**************************************************/
+
+/*!**************************************************!*\
+  !*** ./presets/converted/MilkDrop2077.R002.json ***!
+  \**************************************************/
+
+/*!**************************************************!*\
+  !*** ./presets/converted/MilkDrop2077.R033.json ***!
+  \**************************************************/
+
+/*!**************************************************!*\
+  !*** ./presets/converted/Unchained - Rewop.json ***!
+  \**************************************************/
+
+/*!**************************************************!*\
+  !*** ./presets/converted/_Geiss - untitled.json ***!
+  \**************************************************/
+
+/*!***************************************************!*\
+  !*** ./node_modules/eel-wasm/dist/src/emitter.js ***!
+  \***************************************************/
+
+/*!***************************************************!*\
+  !*** ./node_modules/eel-wasm/dist/src/ieee754.js ***!
+  \***************************************************/
+
+/*!***************************************************!*\
+  !*** ./presets/converted/Geiss - Thumb Drum.json ***!
+  \***************************************************/
+
+/*!***************************************************!*\
+  !*** ./presets/converted/sawtooth grin roam.json ***!
+  \***************************************************/
+
+/*!***************************************************!*\
+  !*** ./src/equations/presetEquationRunnerWASM.js ***!
+  \***************************************************/
+
+/*!****************************************************!*\
+  !*** ./node_modules/eel-wasm/dist/build/parser.js ***!
+  \****************************************************/
+
+/*!****************************************************!*\
+  !*** ./node_modules/eel-wasm/dist/src/astUtils.js ***!
+  \****************************************************/
+
+/*!****************************************************!*\
+  !*** ./node_modules/eel-wasm/dist/src/compiler.js ***!
+  \****************************************************/
+
+/*!****************************************************!*\
+  !*** ./node_modules/eel-wasm/dist/src/encoding.js ***!
+  \****************************************************/
+
+/*!****************************************************!*\
+  !*** ./src/rendering/shaders/blur/blurVertical.js ***!
+  \****************************************************/
+
+/*!*****************************************************!*\
+  !*** ./node_modules/eel-wasm/dist/src/constants.js ***!
+  \*****************************************************/
+
+/*!*****************************************************!*\
+  !*** ./node_modules/eel-wasm/dist/src/envParser.js ***!
+  \*****************************************************/
+
+/*!*****************************************************!*\
+  !*** ./presets/converted/Flexi - mindblob mix.json ***!
+  \*****************************************************/
+
+/*!*****************************************************!*\
+  !*** ./presets/converted/Martin - acid wiring.json ***!
+  \*****************************************************/
+
+/*!*****************************************************!*\
+  !*** ./presets/converted/_Geiss - Artifact 01.json ***!
+  \*****************************************************/
+
+/*!*****************************************************!*\
+  !*** ./presets/converted/martin - bombyx mori.json ***!
+  \*****************************************************/
+
+/*!*****************************************************!*\
+  !*** ./presets/converted/martin - disco mix 4.json ***!
+  \*****************************************************/
+
+/*!******************************************************!*\
+  !*** ./node_modules/@assemblyscript/loader/index.js ***!
+  \******************************************************/
+
+/*!******************************************************!*\
+  !*** ./node_modules/eel-wasm/dist/src/errorUtils.js ***!
+  \******************************************************/
+
+/*!******************************************************!*\
+  !*** ./presets/converted/Goody - The Wild Vort.json ***!
+  \******************************************************/
+
+/*!******************************************************!*\
+  !*** ./presets/converted/Zylot - Star Ornament.json ***!
+  \******************************************************/
+
+/*!******************************************************!*\
+  !*** ./presets/converted/martin - angel flight.json ***!
+  \******************************************************/
+
+/*!******************************************************!*\
+  !*** ./presets/converted/martin - extreme heat.json ***!
+  \******************************************************/
+
+/*!******************************************************!*\
+  !*** ./presets/converted/martin - mucus cervix.json ***!
+  \******************************************************/
+
+/*!******************************************************!*\
+  !*** ./src/rendering/motionVectors/motionVectors.js ***!
+  \******************************************************/
+
+/*!******************************************************!*\
+  !*** ./src/rendering/shaders/blur/blurHorizontal.js ***!
+  \******************************************************/
+
+/*!*******************************************************!*\
+  !*** ./presets/converted/Martin - liquid arrows.json ***!
+  \*******************************************************/
+
+/*!*******************************************************!*\
+  !*** ./presets/converted/_Geiss - Desert Rose 2.json ***!
+  \*******************************************************/
+
+/*!*******************************************************!*\
+  !*** ./presets/converted/martin - chain breaker.json ***!
+  \*******************************************************/
+
+/*!*******************************************************!*\
+  !*** ./presets/converted/martin - fruit machine.json ***!
+  \*******************************************************/
+
+/*!********************************************************!*\
+  !*** ./node_modules/eel-wasm/dist/src/preProcessor.js ***!
+  \********************************************************/
+
+/*!********************************************************!*\
+  !*** ./presets/converted/Flexi - alien fish pond.json ***!
+  \********************************************************/
+
+/*!********************************************************!*\
+  !*** ./presets/converted/Geiss - Spiral Artifact.json ***!
+  \********************************************************/
+
+/*!********************************************************!*\
+  !*** ./presets/converted/martin - frosty caves 2.json ***!
+  \********************************************************/
+
+/*!********************************************************!*\
+  !*** ./presets/converted/martin - glass corridor.json ***!
+  \********************************************************/
+
+/*!*********************************************************!*\
+  !*** ./node_modules/eel-wasm/dist/src/wasmFunctions.js ***!
+  \*********************************************************/
+
+/*!*********************************************************!*\
+  !*** ./presets/converted/$$$ Royal - Mashup (197).json ***!
+  \*********************************************************/
+
+/*!*********************************************************!*\
+  !*** ./presets/converted/$$$ Royal - Mashup (220).json ***!
+  \*********************************************************/
+
+/*!*********************************************************!*\
+  !*** ./presets/converted/$$$ Royal - Mashup (431).json ***!
+  \*********************************************************/
+
+/*!**********************************************************!*\
+  !*** ./presets/converted/Halfbreak - Funny Madness.json ***!
+  \**********************************************************/
+
+/*!***********************************************************!*\
+  !*** ./presets/converted/Unchained - Unified Drag 2.json ***!
+  \***********************************************************/
+
+/*!***********************************************************!*\
+  !*** ./presets/converted/flexi - what is the matrix.json ***!
+  \***********************************************************/
+
+/*!***********************************************************!*\
+  !*** ./presets/converted/martin - castle in the air.json ***!
+  \***********************************************************/
+
+/*!*************************************************************!*\
+  !*** ./presets/converted/Aderrasi - Potion of Spirits.json ***!
+  \*************************************************************/
+
+/*!*************************************************************!*\
+  !*** ./presets/converted/Flexi - mindblob [shiny mix].json ***!
+  \*************************************************************/
+
+/*!*************************************************************!*\
+  !*** ./presets/converted/Geiss - Reaction Diffusion 2.json ***!
+  \*************************************************************/
+
+/*!*************************************************************!*\
+  !*** ./presets/converted/Rovastar - Oozing Resistance.json ***!
+  \*************************************************************/
+
+/*!*************************************************************!*\
+  !*** ./presets/converted/martin - witchcraft reloaded.json ***!
+  \*************************************************************/
+
+/*!*************************************************************!*\
+  !*** ./presets/converted/shifter - escape (sigur ros).json ***!
+  \*************************************************************/
+
+/*!**************************************************************!*\
+  !*** ./presets/converted/Flexi - predator-prey-spirals.json ***!
+  \**************************************************************/
+
+/*!**************************************************************!*\
+  !*** ./presets/converted/Halfbreak - Light of Breakers.json ***!
+  \**************************************************************/
+
+/*!***************************************************************!*\
+  !*** ./node_modules/@babel/runtime/helpers/defineProperty.js ***!
+  \***************************************************************/
+
+/*!****************************************************************!*\
+  !*** ./presets/converted/Flexi - infused with the spiral.json ***!
+  \****************************************************************/
+
+/*!****************************************************************!*\
+  !*** ./presets/converted/cope + martin - mother-of-pearl.json ***!
+  \****************************************************************/
+
+/*!****************************************************************!*\
+  !*** ./presets/converted/flexi - swing out on the spiral.json ***!
+  \****************************************************************/
+
+/*!****************************************************************!*\
+  !*** ./presets/converted/martin - another kind of groove.json ***!
+  \****************************************************************/
+
+/*!****************************************************************!*\
+  !*** ./presets/converted/shifter - dark tides bdrv mix 2.json ***!
+  \****************************************************************/
+
+/*!******************************************************************!*\
+  !*** ./presets/converted/martin - The Bridge of Khazad-Dum.json ***!
+  \******************************************************************/
+
+/*!******************************************************************!*\
+  !*** ./presets/converted/martin - stormy sea (2010 update).json ***!
+  \******************************************************************/
+
+/*!*******************************************************************!*\
+  !*** ./presets/converted/Flexi + Martin - astral projection.json ***!
+  \*******************************************************************/
+
+/*!*******************************************************************!*\
+  !*** ./presets/converted/Zylot - True Visionary (Final Mix).json ***!
+  \*******************************************************************/
+
+/*!*******************************************************************!*\
+  !*** ./presets/converted/fiShbRaiN + Flexi - witchcraft 2.0.json ***!
+  \*******************************************************************/
+
+/*!*******************************************************************!*\
+  !*** ./presets/converted/flexi + amandio c - organic12-3d-2.json ***!
+  \*******************************************************************/
+
+/*!*******************************************************************!*\
+  !*** ./presets/converted/yin - 191 - Temporal singularities.json ***!
+  \*******************************************************************/
+
+/*!********************************************************************!*\
+  !*** ./presets/converted/martin - reflections on black tiles.json ***!
+  \********************************************************************/
+
+/*!********************************************************************!*\
+  !*** ./presets/converted/suksma - heretical crosscut playpen.json ***!
+  \********************************************************************/
+
+/*!*********************************************************************!*\
+  !*** ./presets/converted/suksma - vector exp 1 - couldn′t not.json ***!
+  \*********************************************************************/
+
+/*!**********************************************************************!*\
+  !*** ./presets/converted/Geiss + Flexi + Martin - disconnected.json ***!
+  \**********************************************************************/
+
+/*!***********************************************************************!*\
+  !*** ./presets/converted/Flexi + Martin - cascading decay swing.json ***!
+  \***********************************************************************/
+
+/*!***********************************************************************!*\
+  !*** ./presets/converted/shifter - liquid circuitry - conjugoth.json ***!
+  \***********************************************************************/
+
+/*!************************************************************************!*\
+  !*** ./presets/converted/suksma - ed geining hateops - squeakers.json ***!
+  \************************************************************************/
+
+/*!**************************************************************************!*\
+  !*** ./presets/converted/Flexi + stahlregen - jelly showoff parade.json ***!
+  \**************************************************************************/
+
+/*!**************************************************************************!*\
+  !*** ./presets/converted/Phat+fiShbRaiN+Eo.S_Mandala_Chasers_remix.json ***!
+  \**************************************************************************/
+
+/*!***************************************************************************!*\
+  !*** ./presets/converted/Fumbling_Foo + En D & Martin - Mandelverse.json ***!
+  \***************************************************************************/
+
+/*!***************************************************************************!*\
+  !*** ./presets/converted/LuxXx - Play v3 (the war within all of us).json ***!
+  \***************************************************************************/
+
+/*!***************************************************************************!*\
+  !*** ./presets/converted/cope + flexi - colorful marble (ghost mix).json ***!
+  \***************************************************************************/
+
+/*!***************************************************************************!*\
+  !*** ./presets/converted/flexi + fishbrain - neon mindblob grafitti.json ***!
+  \***************************************************************************/
+
+/*!****************************************************************************!*\
+  !*** ./presets/converted/flexi + amandio c - organic [random mashup].json ***!
+  \****************************************************************************/
+
+/*!*****************************************************************************!*\
+  !*** ./presets/converted/Flexi - smashing fractals [acid etching mix].json ***!
+  \*****************************************************************************/
+
+/*!*******************************************************************************!*\
+  !*** ./presets/converted/Zylot - Paint Spill (Music Reactive Paint Mix).json ***!
+  \*******************************************************************************/
+
+/*!*******************************************************************************!*\
+  !*** ./presets/converted/flexi - mom, why the sky looks different today.json ***!
+  \*******************************************************************************/
+
+/*!**********************************************************************************!*\
+  !*** ./presets/converted/Geiss - Cauldron - painterly 2 (saturation remix).json ***!
+  \**********************************************************************************/
+
+/*!**********************************************************************************!*\
+  !*** ./presets/converted/flexi - bouncing balls [double mindblob neon mix].json ***!
+  \**********************************************************************************/
+
+/*!************************************************************************************!*\
+  !*** ./presets/converted/Cope - The Neverending Explosion of Red Liquid Fire.json ***!
+  \************************************************************************************/
+
+/*!************************************************************************************!*\
+  !*** ./presets/converted/Flexi + amandio c - piercing 05 - Kopie (2) - Kopie.json ***!
+  \************************************************************************************/
+
+/*!************************************************************************************!*\
+  !*** ./presets/converted/Flexi, fishbrain, Geiss + Martin - tokamak witchery.json ***!
+  \************************************************************************************/
+
+/*!*************************************************************************************!*\
+  !*** ./presets/converted/Eo.S. + Zylot - skylight (Stained Glass Majesty mix).json ***!
+  \*************************************************************************************/
+
+/*!*************************************************************************************!*\
+  !*** ./presets/converted/Rovastar + Loadus + Geiss - FractalDrop (Triple Mix).json ***!
+  \*************************************************************************************/
+
+/*!*************************************************************************************!*\
+  !*** ./presets/converted/martin [shadow harlequins shape code] - fata morgana.json ***!
+  \*************************************************************************************/
+
+/*!**************************************************************************************!*\
+  !*** ./node_modules/ecma-proposal-math-extensions/reference-implementation/index.js ***!
+  \**************************************************************************************/
+
+/*!**************************************************************************************!*\
+  !*** ./presets/converted/Aderrasi + Geiss - Airhandler (Kali Mix) - Canvas Mix.json ***!
+  \**************************************************************************************/
+
+/*!**************************************************************************************!*\
+  !*** ./presets/converted/martin - mandelbox explorer - high speed demo version.json ***!
+  \**************************************************************************************/
+
+/*!**************************************************************************************!*\
+  !*** ./presets/converted/suksma - uninitialized variabowl (hydroponic chronic).json ***!
+  \**************************************************************************************/
+
+/*!****************************************************************************************!*\
+  !*** ./presets/converted/_Rovastar + Geiss - Hurricane Nightmare (Posterize Mix).json ***!
+  \****************************************************************************************/
+
+/*!****************************************************************************************!*\
+  !*** ./presets/converted/suksma - Hexcollie - Julian Carnival - shimmy dumb grid.json ***!
+  \****************************************************************************************/
+
+/*!*****************************************************************************************!*\
+  !*** ./presets/converted/Flexi, martin + geiss - dedicated to the sherwin maxawow.json ***!
+  \*****************************************************************************************/
+
+/*!********************************************************************************************!*\
+  !*** ./presets/converted/martin, flexi, fishbrain + sto - enterstate [random mashup].json ***!
+  \********************************************************************************************/
+
+/*!********************************************************************************************!*\
+  !*** ./presets/converted/yin - 393 - Artificial Inspiration (music driven - outward).json ***!
+  \********************************************************************************************/
+
+/*!***************************************************************************************************!*\
+  !*** ./presets/converted/high-altitude basket unraveling - singh grooves nitrogen argon nz+.json ***!
+  \***************************************************************************************************/
+
+/*!********************************************************************************************************!*\
+  !*** ./presets/converted/TonyMilkdrop - Magellan's Nebula [Flexi - you enter first + multiverse].json ***!
+  \********************************************************************************************************/
+
+/*!*********************************************************************************************************!*\
+  !*** ./presets/converted/Milk Artist At our Best - FED - SlowFast Ft AdamFX n Martin - HD CosmoFX.json ***!
+  \*********************************************************************************************************/
+
+/*!**********************************************************************************************************!*\
+  !*** ./presets/converted/Flexi - truly soft piece of software - this is generic texturing (Jelly) .json ***!
+  \**********************************************************************************************************/
+
+/*!***************************************************************************************************************!*\
+  !*** ./presets/converted/Eo.S. - glowsticks v2 05 and proton lights (+Krash′s beat code) _Phat_remix02b.json ***!
+  \***************************************************************************************************************/
+
+/*!****************************************************************************************************************!*\
+  !*** ./presets/converted/TonyMilkdrop - Leonardo Da Vinci's Balloon [Flexi - merry-go-round + techstyle].json ***!
+  \****************************************************************************************************************/
+
+/*!*****************************************************************************************************************!*\
+  !*** ./presets/converted/Aderrasi - Storm of the Eye (Thunder) - mash0000 - quasi pseudo meta concentrics.json ***!
+  \*****************************************************************************************************************/
+
+/*!******************************************************************************************************************!*\
+  !*** ./presets/converted/flexi + geiss - pogo cubes vs. tokamak vs. game of life [stahls jelly 4.5 finish].json ***!
+  \******************************************************************************************************************/
+
+/*!*******************************************************************************************************************!*\
+  !*** ./presets/converted/Geiss, Flexi + Stahlregen - Thumbdrum Tokamak [crossfiring aftermath jelly mashup].json ***!
+  \*******************************************************************************************************************/
+
+/*!********************************************************************************************************************!*\
+  !*** ./presets/converted/Hexcollie, Pieturp, Orb, Flexi, Geiss n Demon Lord - Premeditative Urination Clause.json ***!
+  \********************************************************************************************************************/
+
+/*!*********************************************************************************************************************!*\
+  !*** ./presets/converted/AdamFx 2 Geiss, Zylot and Flexi - Reaction Diffusion 3 (Overload Mix 2) EATIT4 hypno.json ***!
+  \*********************************************************************************************************************/
+
+/*!***********************************************************************************************************************!*\
+  !*** ./presets/converted/flexi - patternton, district of media, capitol of the united abstractions of fractopia.json ***!
+  \***********************************************************************************************************************/
+
+/*!*************************************************************************************************************************!*\
+  !*** ./presets/converted/gunthry is out back bloodying up the pine trees - adm atomising (v) the disintigrate (n).json ***!
+  \*************************************************************************************************************************/
+
+/*!*****************************************************************************************************************************************!*\
+  !*** ./presets/converted/martin + flexi - diamond cutter [prismaticvortex.com] - camille - i wish i wish i wish i was constrained.json ***!
+  \*****************************************************************************************************************************************/
+
+/*!*******************************************************************************************************************************************!*\
+  !*** ./presets/converted/_Aderrasi - Wanderer in Curved Space - mash0000 - faclempt kibitzing meshuggana schmaltz (Geiss color mix).json ***!
+  \*******************************************************************************************************************************************/
+
+/*!************************************************************************************************************************************************************!*\
+  !*** ./presets/converted/An AdamFX n Martin Infusion 2 flexi - Why The Sky Looks Diffrent Today - AdamFx n Martin Infusion - Tack Tile Disfunction B.json ***!
+  \************************************************************************************************************************************************************/
+
+/*!************************************************************************************************************************************************************!*\
+  !*** ./presets/converted/ShadowHarlequin - LovelyShinySquares [ liquid starburst rmx ] - unchained + rovaster - luckless - martin - starfield sector.json ***!
+  \************************************************************************************************************************************************************/
+
+/*!*************************************************************************************************************************************************************************************!*\
+  !*** ./presets/converted/suksma - Rovastar - Sunflower Passion (Enlightment Mix)_Phat_edit + flexi und martin shaders - circumflex in character classes in regular expression.json ***!
+  \*************************************************************************************************************************************************************************************/
+
+/**
+ * @license React
+ * react-dom.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/**
+ * @license React
+ * react.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/**
+ * @license React
+ * scheduler.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/**
+* @link https://github.com/gajus/sister for the canonical source repository
+* @license https://github.com/gajus/sister/blob/master/LICENSE BSD 3-Clause
+*/

@@ -1,0 +1,109 @@
+@import 'styles/mixins.scss';
+
+.scrollbar {
+    --scrollbar-size: 1.5rem;
+    --scrollbar-color: hsl(
+        var(--button-color-h),
+        var(--button-color-s),
+        calc(var(--button-color-l) - var(--button-color-l) * 0.5)
+    );
+
+    position: absolute;
+    background: var(--scrollbar-color);
+    border-radius: var(--app-border-radius);
+    display: none;
+
+    &-vertical {
+        right: 0;
+        top: 0;
+        bottom: 0;
+        width: var(--scrollbar-size);
+    }
+
+    &-horizontal {
+        left: 0;
+        bottom: 0;
+        right: 0;
+        height: var(--scrollbar-size);
+    }
+
+    &-thumb,
+    &-button {
+        @include pressable-button;
+        position: absolute;
+        width: var(--scrollbar-size);
+        height: var(--scrollbar-size);
+        border-radius: var(--app-border-radius);
+
+        .browser-firefox &:active {
+            transform: none;
+        }
+    }
+
+    &-button {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        .icon {
+            width: 0.5rem;
+            height: 0.5rem;
+            pointer-events: none;
+        }
+    }
+
+    &-vertical &-button-increment {
+        bottom: 0;
+    }
+
+    &-horizontal &-button-increment {
+        right: 0;
+    }
+
+    &-track {
+        position: absolute;
+    }
+
+    &-vertical &-track {
+        left: 0;
+        right: 0;
+        top: var(--scrollbar-size);
+        bottom: var(--scrollbar-size);
+    }
+
+    &-horizontal &-track {
+        left: var(--scrollbar-size);
+        right: var(--scrollbar-size);
+        top: 0;
+        bottom: 0;
+    }
+
+    &-horizontal &-thumb {
+        min-width: calc(var(--scrollbar-size) / 2);
+    }
+
+    &-vertical &-thumb {
+        min-height: calc(var(--scrollbar-size) / 2);
+    }
+
+    .overflow-x > &-horizontal,
+    .overflow-y > &-vertical {
+        display: block;
+    }
+
+    .overflow-x.overflow-y > &-horizontal &-track {
+        right: calc(2 * var(--scrollbar-size));
+    }
+
+    .overflow-x.overflow-y > &-horizontal &-button-increment {
+        right: var(--scrollbar-size);
+    }
+
+    .overflow-x.overflow-y > &-vertical &-track {
+        bottom: calc(2 * var(--scrollbar-size));
+    }
+
+    .overflow-x.overflow-y > &-vertical &-button-increment {
+        bottom: var(--scrollbar-size);
+    }
+}

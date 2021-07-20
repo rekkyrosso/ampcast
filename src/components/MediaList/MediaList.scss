@@ -1,0 +1,193 @@
+.media-list.list-view {
+    .list-view-row.selected .list-view-cell {
+        color: var(--selected-text-color);
+    }
+
+    .list-view-row {
+        &.playing .list-view-cell,
+        &.selected.playing .list-view-cell {
+            font-style: italic;
+            color: var(--currently-playing-color);
+        }
+    }
+
+    &.playable .unplayable:not(.selected) .list-view-cell {
+        color: var(--grey1-color);
+    }
+
+    /*.list-view-row:hover .actions {
+        visibility: visible;
+    }*/
+
+    &-card {
+        .thumbnail {
+            left: 0;
+            width: 6em;
+            height: 6em;
+            padding: 0;
+
+            &-img {
+                position: absolute;
+                inset: 0.25em;
+                background-size: cover;
+                background-position: center;
+                background-repeat: no-repeat;
+                background-color: rgba(255, 255, 255, 0.1);
+                border: 1px solid var(--black);
+                border-radius: var(--app-border-radius);
+
+                .themed.light & {
+                    background-color: rgba(0, 0, 0, 0.1);
+                }
+            }
+        }
+
+        .title,
+        .artist,
+        .owner,
+        .album {
+            left: 6em;
+            right: 4em;
+        }
+
+        .title {
+            left: 5.25em;
+            top: 0;
+            font-size: 1.125em;
+        }
+
+        .artist,
+        .owner {
+            top: 1.5em;
+            color: var(--grey2-color);
+        }
+
+        .album,
+        .year {
+            top: 3.25em;
+            color: var(--grey2-color);
+        }
+
+        .duration,
+        .track-count,
+        .play-count {
+            left: auto;
+            top: 0.25em;
+            right: 0.25em;
+            padding: 0 0.25em;
+            color: var(--text-color);
+            background-color: rgba(0, 0, 0, 0.25);
+            border-radius: var(--app-border-radius);
+
+            &:empty {
+                visibility: hidden;
+            }
+        }
+
+        .actions {
+            right: 0.25em;
+            bottom: 0.25em;
+            visibility: hidden;
+        }
+
+        &.compact {
+            .thumbnail {
+                width: 4em;
+                height: 4em;
+            }
+
+            .title,
+            .artist,
+            .owner,
+            .album {
+                left: 4em;
+            }
+
+            .year {
+                left: 4em;
+
+                .artist-albums & {
+                    top: 1.25em;
+                }
+            }
+
+            .title {
+                font-size: 1em;
+            }
+
+            .artist,
+            .owner {
+                top: 1.25em;
+            }
+
+            .album,
+            .year {
+                top: 2.5em;
+            }
+        }
+
+        &.minimal {
+            .thumbnail {
+                width: 2em;
+                height: 2em;
+
+                &-img {
+                    inset: 0.125em;
+                    border-radius: 50%;
+                }
+            }
+
+            .title {
+                top: 0.25em;
+                left: 2em;
+                right: 0;
+                font-size: 1em;
+            }
+        }
+
+        .albums &,
+        &.thin {
+            .title,
+            .artist,
+            .owner,
+            .album {
+                right: 0;
+            }
+        }
+
+        &.thin {
+            .duration,
+            .track-count,
+            .play-count {
+                right: calc(100% - 7.375em);
+                top: 0.625em;
+                font-size: 0.75em;
+                color: var(--soft-white) !important;
+                background-color: rgba(0, 0, 0, 0.75);
+            }
+
+            &.compact {
+                .duration,
+                .track-count,
+                .play-count {
+                    right: calc(100% - 4.75em);
+                    top: 0.625em;
+                }
+            }
+        }
+
+        &.playable .unplayable:not(.selected) {
+            .list-view-cell {
+                color: var(--grey1-color);
+            }
+
+            .title {
+                color: var(--grey2-color);
+            }
+        }
+    }
+
+    &:not(:focus) + .status-bar .selected {
+        display: none;
+    }
+}

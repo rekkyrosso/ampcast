@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Ampcast Redirect</title>
+<link rel="icon" sizes="any" href="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=">
+<script>
+const params = new URLSearchParams(location.search);
+const target = self === top ? opener : parent;
+const message = {};
+for (const [key, value] of params.entries()) {
+    message[key] = value;
+}
+target.postMessage(message, target.origin);
+</script>

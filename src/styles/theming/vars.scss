@@ -1,0 +1,289 @@
+:root {
+    --black: black;
+    --soft-white: #ebebeb;
+
+    --font-size: 16;
+    --font-family: Arial, sans-serif;
+
+    --background-color-h: 0;
+    --background-color-s: 0%;
+    --background-color-l: 0%;
+
+    --text-color-h: 0;
+    --text-color-s: 0%;
+    --text-color-l: 92.2%;
+
+    --frame-color-h: 192;
+    --frame-color-s: 4.7%;
+    --frame-color-l: 21%;
+
+    --frame-text-color-h: 0;
+    --frame-text-color-s: 0%;
+    --frame-text-color-l: 92.2%;
+
+    --spacing: 0.375;
+    --roundness: 0.25;
+}
+
+.themed {
+    --background-color: hsl(
+        var(--background-color-h),
+        var(--background-color-s),
+        var(--background-color-l)
+    );
+
+    --text-color: hsl(
+        var(--text-color-h),
+        var(--text-color-s),
+        var(--text-color-l)
+    );
+
+    --grey1-color: hsl(
+        var(--text-color-h),
+        calc(var(--text-color-s) * 0.5),
+        calc(var(--text-color-l) + (100% - var(--text-color-l)) * 0.45)
+    );
+
+    &.dark {
+        --grey1-color: hsl(
+            var(--text-color-h),
+            calc(var(--text-color-s) * 0.5),
+            calc(var(--text-color-l) * 0.5)
+        );
+    }
+
+    --grey2-color: hsl(
+        var(--text-color-h),
+        calc(var(--text-color-s) * 0.5),
+        calc(var(--text-color-l) + (100% - var(--text-color-l)) * 0.25)
+    );
+
+    &.dark {
+        --grey2-color: hsl(
+            var(--text-color-h),
+            calc(var(--text-color-s) * 0.5),
+            calc(var(--text-color-l) * 0.75)
+        );
+    }
+
+    --frame-color: hsl(
+        var(--frame-color-h),
+        var(--frame-color-s),
+        var(--frame-color-l)
+    );
+
+    --frame-color-hi: hsl(
+        var(--frame-color-h),
+        var(--frame-color-s),
+        calc(var(--frame-color-l) + (100% - var(--frame-color-l)) * 0.15)
+    );
+
+    --frame-color-lo: hsl(
+        var(--frame-color-h),
+        var(--frame-color-s),
+        calc(var(--frame-color-l) - var(--frame-color-l) * 0.5)
+    );
+
+    --frame-text-color: hsl(
+        var(--frame-text-color-h),
+        var(--frame-text-color-s),
+        var(--frame-text-color-l)
+    );
+
+    --button-color: hsl(
+        var(--button-color-h),
+        var(--button-color-s),
+        var(--button-color-l)
+    );
+
+    --button-text-color: hsl(
+        var(--button-text-color-h),
+        var(--button-text-color-s),
+        var(--button-text-color-l)
+    );
+
+    --button-background:
+        linear-gradient(
+            to bottom,
+            var(--button-color-hi),
+            transparent 0.125rem
+        ),
+        linear-gradient(
+            to right,
+            var(--button-color-hi),
+            transparent 0.125rem
+        ),
+        linear-gradient(
+            to left,
+            var(--button-color-lo),
+            transparent 0.125rem
+        ),
+        linear-gradient(
+            to top,
+            var(--button-color-lo),
+            transparent 0.125rem
+        );
+
+    --button-border-color: var(--black);
+
+    --media-button-color: hsl(
+        var(--media-button-color-h),
+        var(--media-button-color-s),
+        var(--media-button-color-l)
+    );
+
+    --media-button-text-color: hsl(
+        var(--media-button-text-color-h),
+        var(--media-button-text-color-s),
+        var(--media-button-text-color-l)
+    );
+
+    --media-button-background: linear-gradient(
+        hsl(
+            var(--media-button-color-h),
+            var(--media-button-color-s),
+            calc(var(--media-button-color-l) + (100% - var(--media-button-color-l)) * 0.4)
+        ),
+        hsl(
+            var(--media-button-color-h),
+            calc(var(--media-button-color-s) - var(--media-button-color-s) * 0.6),
+            calc(var(--media-button-color-l) - var(--media-button-color-l) * 0.3)
+        )
+    );
+
+    --media-button-background-flat: hsl(
+        var(--media-button-color-h),
+        calc(var(--media-button-color-s) + (100% - var(--media-button-color-s)) * 0.33),
+        calc(var(--media-button-color-l) + (100% - var(--media-button-color-l)) * 0.33)
+    );
+
+    --selected-background-color: hsl(
+        var(--selected-background-color-h),
+        var(--selected-background-color-s),
+        var(--selected-background-color-l)
+    );
+
+    --selected-background-color-blurred: hsl(
+        var(--selected-background-color-h),
+        calc(var(--selected-background-color-s) - var(--selected-background-color-s) * 0.5),
+        calc(var(--selected-background-color-l) - 5%)
+    );
+
+    --selected-text-color: hsl(
+        var(--selected-text-color-h),
+        var(--selected-text-color-s),
+        var(--selected-text-color-l)
+    );
+
+    --gutter-width: calc(var(--spacing) * 1rem);
+    --app-border-radius: calc(var(--roundness) * var(--roundness) * 0.75rem);
+
+}
+
+.app,
+.system {
+    --button-color-h: var(--frame-color-h);
+    --button-color-s: calc(var(--frame-color-s) + 5%);
+    --button-color-l: calc(var(--frame-color-l) + 5%);
+
+    --button-text-color-h: var(--frame-text-color-h);
+    --button-text-color-s: var(--frame-text-color-s);
+    --button-text-color-l: var(--frame-text-color-l);
+}
+
+.app.frame-dark,
+.system.dark {
+    --button-color-hi: rgba(255, 255, 255, 0.2);
+    --button-color-lo: rgba(0, 0, 0, 0.4);
+}
+
+.app.frame-light,
+.system.light {
+    --button-color-hi: rgba(255, 255, 255, 0.5);
+    --button-color-lo: rgba(0, 0, 0, 0.25);
+}
+
+.app {
+    --media-button-color-h: var(--frame-color-h);
+    --media-button-color-s: calc(var(--frame-color-s) + (100% - var(--frame-color-s)) * 0.33);
+    --media-button-color-l: calc(var(--frame-color-l) + (100% - var(--frame-color-l)) * 0.5);
+
+    --media-button-text-color-h: var(--media-button-color-h);
+    --media-button-text-color-s: calc(var(--media-button-color-s) - var(--media-button-color-s) * 0.5);
+    --media-button-text-color-l: calc(var(--media-button-color-l) - var(--media-button-color-l) * 0.9);
+
+    --selected-background-color-h: var(--frame-color-h);
+    --selected-background-color-s: var(--frame-color-s);
+    --selected-background-color-l: var(--frame-color-l);
+
+    --selected-text-color-h: var(--frame-text-color-h);
+    --selected-text-color-s: var(--frame-text-color-s);
+    --selected-text-color-l: var(--frame-text-color-l);
+
+    accent-color: var(--frame-text-color);
+}
+
+.app.dark {
+    --currently-playing-color: yellow;
+    --even-row-background-color: rgba(255, 255, 255, 0.02);
+    color-scheme: dark;
+}
+
+.app.light {
+    --currently-playing-color: blue;
+    --even-row-background-color: rgba(0, 0, 0, 0.025);
+    color-scheme: light;
+}
+
+.system.dark {
+    --background-color-h: 0;
+    --background-color-s: 0%;
+    --background-color-l: 0%;
+
+    --text-color: var(--soft-white);
+    --grey1-color: darkgray;
+
+    --frame-color-h: 0;
+    --frame-color-s: 0%;
+    --frame-color-l: 8%;
+
+    --frame-text-color: var(--soft-white);
+    --button-text-color: var(--soft-white);
+    --selected-background-color: blue;
+    --selected-background-color-blurred: darkblue;
+    --selected-text-color: var(--soft-white);
+
+    accent-color: var(--soft-white);
+    color-scheme: dark;
+}
+
+.system.light {
+    --background-color-h: 0;
+    --background-color-s: 0%;
+    --background-color-l: 100%;
+
+    --text-color: black;
+    --grey1-color: silver;
+
+    --frame-color-h: 0;
+    --frame-color-s: 0%;
+    --frame-color-l: 74%;
+
+    --frame-text-color: black;
+    --button-text-color: black;
+    --selected-background-color: blue;
+    --selected-background-color-blurred: darkblue;
+    --selected-text-color: var(--soft-white);
+
+    accent-color: black;
+    color-scheme: light;
+}
+
+.app.light.frame-light {
+    --black: hsl(
+        var(--button-color-h),
+        calc(var(--button-color-s) - var(--button-color-s) * 0.6),
+        calc(var(--button-color-l) - var(--button-color-l) * 0.8)
+    );
+    --soft-white: white;
+}

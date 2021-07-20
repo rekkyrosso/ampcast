@@ -1,0 +1,9 @@
+.media-library-settings {
+    .disconnect {
+        width: 100%;
+
+        &:disabled {
+            background-image: none;
+        }
+    }
+}

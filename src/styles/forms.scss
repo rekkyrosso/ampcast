@@ -1,0 +1,215 @@
+@import './mixins.scss';
+
+fieldset {
+    position: relative;
+    padding: 0.5em 1em 1em 1em;
+    color: var(--text-color);
+    border-radius: 0.25em;
+
+    & + & {
+        margin-top: 1em;
+    }
+}
+
+label,
+legend {
+    user-select: none;
+}
+
+button,
+input,
+select,
+textarea {
+    font-size: 1em;
+    padding: 0.125em 0.25em;
+    border: 0;
+}
+
+input,
+textarea {
+    @include inset;
+}
+
+input {
+    padding: calc(0.125em - 2px) 0.25em;
+}
+
+select {
+    border: 1px solid;
+    border-radius: 0.25em;
+
+    legend & {
+        max-width: 20em;
+    }
+}
+
+input[type="checkbox"],
+input[type="radio"] {
+    width: 1em;
+    height: 1em;
+    border: none;
+    vertical-align: middle;
+
+    & + label {
+        vertical-align: middle;
+    }
+}
+
+input[type="color"] {
+    border: none;
+    width: 3em;
+    padding: 0;
+
+    & + & {
+        margin-left:  0.5em;
+    }
+}
+
+input[type="range"] {
+    --track-height: 0.25em;
+    --thumb-size: 1.5em;
+
+    border: none;
+    -webkit-appearance: none;
+    appearance: none;
+    margin: 0;
+    padding: 0;
+    background: transparent;
+    color: var(--text-color);
+    height: 0.5em;
+
+    @mixin track {
+        width: 100%;
+        height: var(--track-height);
+        background-color: currentColor;
+        border: none;
+        border-radius: var(--track-height);
+        box-sizing: border-box;
+    }
+
+    @mixin thumb {
+        appearance: none;
+        width: var(--thumb-size);
+        height: var(--thumb-size);
+        background-color: currentColor;
+        border: calc(var(--thumb-size) / 10) solid var(--background-color);
+        border-radius: var(--thumb-size);
+        margin-top: calc(var(--track-height) / 2 - var(--thumb-size) / 2);
+        box-sizing: border-box;
+        background-clip: padding-box;
+    }
+
+    &::-webkit-slider-runnable-track {
+        @include track;
+    }
+
+    &::-webkit-slider-thumb {
+        -webkit-appearance: none;
+        @include thumb;
+    }
+
+    &::-moz-range-track {
+        @include track;
+    }
+
+    &::-moz-range-thumb {
+        @include thumb;
+    }
+}
+
+label + input[type],
+input[type] + label,
+label + select {
+    margin-left: 0.5em;
+}
+
+input:disabled + label {
+    color: var(--grey1-color);
+}
+
+input,
+select,
+textarea {
+    background-color: var(--background-color);
+    color: var(--text-color);
+}
+
+button {
+    @include pressable-button;
+    -webkit-appearance: none;
+    appearance: none;
+    padding: calc(0.125em - 1px) 1em;
+    text-align: center;
+    white-space: nowrap;
+    user-select: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    &.branded {
+        padding: 1em 3em;
+        text-shadow: none;
+        border-radius: 0.5em;
+        font-weight: bold;
+
+        &.login {
+            padding: 1em 3em;
+            font-weight: bold;
+            cursor: pointer;
+        }
+    }
+
+    &[disabled] {
+        filter: grayscale(0.5);
+        background-image: none;
+        opacity: 0.75;
+    }
+
+    & + & {
+        margin-left: 0.5em;
+    }
+
+    &.small {
+        padding: calc(0.125em - 1px) 0.5em;
+        font-size: 0.75em;
+    }
+}
+
+.buttons {
+    text-align: right;
+    margin-top: 1em;
+}
+
+.table-layout {
+    display: table;
+    width: 100%;
+
+    & > p {
+        display: table-row;
+        line-height: 2;
+
+        & > label {
+            display: table-cell;
+            width: 10%;
+
+            &:first-child {
+                text-align: right;
+            }
+        }
+
+        & > label + input,
+        & > label + select {
+            display: table-cell;
+            width: 100%;
+        }
+
+        & > input,
+        & > select {
+            vertical-align: middle;
+        }
+
+        input[type=checkbox],
+        input[type=radio] {
+            width: 1em;
+        }
+    }
+}

@@ -1,0 +1,34 @@
+import type {Observable} from 'rxjs';
+import MediaAlbum from './MediaAlbum';
+import MediaItem from './MediaItem';
+import PlaylistItem from './PlaylistItem';
+
+export default interface Playlist {
+    observe(): Observable<readonly PlaylistItem[]>;
+    observeCurrentIndex(): Observable<number>;
+    observeCurrentItem(): Observable<PlaylistItem | null>;
+    observeSize(): Observable<number>;
+    getCurrentItem(): Promise<PlaylistItem | null>;
+    setCurrentItem(item: PlaylistItem): Promise<void>;
+    add(album: MediaAlbum): Promise<void>;
+    add(item: MediaItem): Promise<void>;
+    add(items: readonly MediaItem[]): Promise<void>;
+    add(file: File): Promise<void>;
+    add(files: readonly File[]): Promise<void>;
+    add(files: FileList): Promise<void>;
+    clear(): Promise<void>;
+    insertAt(album: MediaAlbum, index: number): Promise<void>;
+    insertAt(item: MediaItem, index: number): Promise<void>;
+    insertAt(items: MediaItem[], index: number): Promise<void>;
+    insertAt(file: File, index: number): Promise<void>;
+    insertAt(files: readonly File[], index: number): Promise<void>;
+    insertAt(files: FileList, index: number): Promise<void>;
+    insertAt(items: readonly MediaItem[] | FileList, index: number): Promise<void>;
+    moveSelection(selection: readonly PlaylistItem[], toIndex: number): Promise<void>;
+    remove(item: PlaylistItem): Promise<void>;
+    remove(items: readonly PlaylistItem[]): Promise<void>;
+    next(): Promise<void>;
+    prev(): Promise<void>;
+    removeAt(index: number): Promise<void>;
+    shuffle(): Promise<void>;
+}

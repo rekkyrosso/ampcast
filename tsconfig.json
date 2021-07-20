@@ -19,17 +19,24 @@
         "jsx": "react",
         "baseUrl": "src",
         "paths": {
-            "types/*": [ "types/*" ],
+            "assets/*": [ "assets/*" ],
             "components/*": [ "components/*" ],
             "hooks/*": [ "hooks/*" ],
-        }
+            "styles/*": ["styles/*"],
+            "types/*": [ "types/*" ],
+            "utils/*": [ "utils/*" ]
+        },
+        "typeRoots": [
+            "node_modules/musickit-typescript",
+            "node_modules/@types"
+        ]
     },
     "include": [
         "src/**/*"
     ],
     "exclude": [
-        "build",
-        "server",
+        "www",
+        "www-dev",
         "node_modules"
     ]
 }

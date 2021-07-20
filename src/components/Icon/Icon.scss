@@ -1,0 +1,133 @@
+.icon {
+    width: 1em;
+    height: 1em;
+    color: inherit;
+    fill: currentColor;
+    stroke: currentColor;
+    pointer-events: none;
+
+    &-muted,
+    &-volume {
+        stroke: none;
+    }
+
+    &-volume {
+        .medium {
+            .volume-low & {
+                display: none;
+            }
+        }
+
+        .high {
+            .volume-low &,
+            .volume-medium & {
+                display: none;
+            }
+        }
+    }
+
+    &-apple {
+        fill: rgba(255, 255, 255, 0.1);
+
+        .themed.light & {
+            fill: rgba(0, 0, 0, 0.1);
+        }
+
+        .apple-connected &,
+        &:not(.show-connectivity) {
+            stroke: none;
+            fill: white;
+        }
+
+        .apple-connected .app.light &,
+        .themed.light &:not(.show-connectivity) {
+            fill: black;
+        }
+
+        .apple-connected .unplayable & {
+            fill: currentColor;
+        }
+    }
+
+    &-jellyfin {
+        .jellyfin-connected &,
+        &:not(.show-connectivity) {
+            fill: url("#jellyfin-linear-gradient");
+        }
+    }
+
+    &-lastfm {
+        border-radius: 0.125em;
+
+        &-inner {
+            fill: none;
+        }
+
+        .lastfm-connected &,
+        &:not(.show-connectivity) {
+            .icon-lastfm {
+                &-inner {
+                    fill: white;
+                }
+
+                &-outer {
+                    fill: #b90000;
+                }
+            }
+        }
+    }
+
+    &-plex {
+        &-inner {
+            fill: var(--background-color);
+        }
+
+        &-outer {
+            stroke: none;
+        }
+
+        .plex-connected &,
+        &:not(.show-connectivity) {
+            .icon-plex {
+                &-inner {
+                    fill: #e49f0d;
+                }
+
+                &-outer {
+                    fill: #282a2c;
+                    stroke: currentColor;
+                }
+            }
+        }
+    }
+
+    &-spotify {
+        .spotify-connected &,
+        &:not(.show-connectivity) {
+            fill: #1ed760;
+        }
+
+        .spotify-connected .unplayable & {
+            fill: currentColor;
+        }
+    }
+
+    &-youtube {
+        &-inner {
+            fill: none;
+        }
+
+        .youtube-connected &,
+        &:not(.show-connectivity) {
+            .icon-youtube {
+                &-inner {
+                    fill: white;
+                }
+
+                &-outer {
+                    fill: red;
+                }
+            }
+        }
+    }
+}

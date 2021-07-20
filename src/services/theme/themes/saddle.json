@@ -1,0 +1,17 @@
+{
+    "name": "Saddle",
+    "backgroundColor": "#271607",
+    "textColor": "#cbbe86",
+    "frameColor": "#331d0a",
+    "frameTextColor": "#fedfc3",
+    "buttonColor": null,
+    "buttonTextColor": null,
+    "mediaButtonColor": null,
+    "mediaButtonTextColor": null,
+    "selectedBackgroundColor": null,
+    "selectedTextColor": null,
+    "evenRowBackgroundColor": null,
+    "spacing": 0.375,
+    "roundness": 0.34375,
+    "flat": false
+}

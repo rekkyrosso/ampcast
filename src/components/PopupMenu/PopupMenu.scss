@@ -1,0 +1,54 @@
+@import 'styles/mixins.scss';
+
+.popup-menu {
+    @include button;
+    position: fixed;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    overflow: hidden;
+    border-radius: var(--app-border-radius);
+    box-shadow: rgb(0 0 0 / 33%) 2px 5px 10px;
+
+    button {
+        border: 0;
+        border-radius: 0;
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        background-image: none;
+        transform: none;
+        will-change: filter;
+
+        &:hover {
+            filter: invert(1);
+        }
+    }
+
+    &-separator {
+        height: 1px;
+        background-color: var(--frame-text-color);
+        opacity: 0.75;
+
+        &:first-child,
+        &:last-child {
+            display: none;
+        }
+    }
+
+    &-item {
+        &-label {
+            flex: auto;
+            text-align: left;
+        }
+
+        &-accelerator-key {
+            flex: initial;
+            margin-left: 3em;
+            text-align: right;
+            font-size: 0.75em;
+        }
+    }
+}
