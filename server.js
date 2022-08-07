@@ -7,11 +7,13 @@ const host = 'localhost';
 const port = 8000;
 const app = express();
 const webServer = Router();
-const webDir = resolve(__dirname, './www');
+const wwwDir = resolve(__dirname, './www');
 const devDir = resolve(__dirname, './www-dev');
-const webIndex = resolve(webDir, './index.html');
+const webIndex = resolve(wwwDir, './index.html');
 
 webServer.get('/', (_, res) => res.sendFile(webIndex));
+
+webServer.use('/auth', express.static(resolve(wwwDir, './auth')));
 
 webServer.get('/bundle.css', async (_, res) => {
     const path = await getLatest('bundle.css');
@@ -33,9 +35,27 @@ app.listen(port, host, () => {
 });
 
 async function getLatest(fileName) {
-    const devFile = resolve(devDir, `./${fileName}`);
-    const prodFile = resolve(webDir, `./${fileName}`);
-    const devTimestamp = (await fsp.stat(devFile)).mtimeMs;
-    const prodTimestamp = (await fsp.stat(prodFile)).mtimeMs;
-    return devTimestamp > prodTimestamp ? devFile : prodFile;
+    const useDev = await isDev();
+    const dir = useDev ? devDir : wwwDir;
+    return resolve(dir, `./${fileName}`);
+}
+
+async function isDev() {
+    const devCss = resolve(devDir, 'bundle.css');
+    const prodCss = resolve(wwwDir, 'bundle.css');
+    const devJs = resolve(devDir, 'bundle.js');
+    const prodJs = resolve(wwwDir, 'bundle.js');
+    const stats = await Promise.all([
+        fsp.stat(devCss),
+        fsp.stat(prodCss),
+        fsp.stat(devJs),
+        fsp.stat(prodJs),
+    ]);
+    const [devCssTimestamp, prodCssTimestamp, devJsTimestamp, prodJsTimestamp] = stats.map(
+        (stat) => stat.mtimeMs
+    );
+    const sorted = [devCssTimestamp, prodCssTimestamp, devJsTimestamp, prodJsTimestamp]
+        .sort()
+        .reverse();
+    return sorted[0] === devCssTimestamp || sorted[0] === devJsTimestamp;
 }

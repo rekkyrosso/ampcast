@@ -14,6 +14,7 @@ export type Field =
     | 'Year'
     | 'Genre'
     | 'Owner'
+    | 'LastPlayed'
     | 'Thumbnail';
 
 export default interface MediaSourceLayout<T extends MediaObject> {

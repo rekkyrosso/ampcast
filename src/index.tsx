@@ -9,6 +9,7 @@ import useConnectivity from 'hooks/useConnectivity';
 import usePreventDrop from 'hooks/usePreventDrop';
 import useMediaSession from 'hooks/useMediaSession';
 import useGlobalActions from 'hooks/useGlobalActions';
+import useStoragePersistence from 'hooks/useStoragePersistence';
 import 'styles/layout.scss';
 
 console.log('module::App');
@@ -19,6 +20,7 @@ function App() {
     usePreventDrop();
     useMediaSession();
     useGlobalActions();
+    useStoragePersistence();
 
     return (
         <main>

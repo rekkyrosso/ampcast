@@ -15,9 +15,14 @@ import './lastfmScrobbler';
 
 console.log('module::lastfm');
 
-const defaultTrackLayout: MediaSourceLayout<MediaItem> = {
-    view: 'card',
+const topTracksLayout: MediaSourceLayout<MediaItem> = {
+    view: 'card compact',
     fields: ['Thumbnail', 'Title', 'Artist', 'PlayCount'],
+};
+
+const recentTracksLayout: MediaSourceLayout<MediaItem> = {
+    view: 'card',
+    fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'LastPlayed'],
 };
 
 const albumLayout: MediaSourceLayout<MediaAlbum> = {
@@ -57,7 +62,7 @@ const lastfmRecentlyPlayed: MediaSource<MediaItem> = {
     title: 'Recently Played',
     icon: 'clock',
     itemType: ItemType.Media,
-    layout: defaultTrackLayout,
+    layout: recentTracksLayout,
     unplayable: true,
 
     search(): Pager<MediaItem> {
@@ -87,7 +92,7 @@ const lastfm: MediaService = {
         createTopView('user.getTopTracks', {
             title: 'Top Tracks',
             itemType: ItemType.Media,
-            layout: defaultTrackLayout,
+            layout: topTracksLayout,
         }),
         createTopView('user.getTopAlbums', {
             title: 'Top Albums',

@@ -186,6 +186,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             albumArtist: album?.artists[0]?.name,
             album: album?.name,
             duration: track.duration_ms / 1000,
+            playedOn: track.played_at ? new Date(track.played_at).getTime() || undefined : undefined,
             genre: (track.album as any)?.genres?.join(';'),
             disc: album ? track.disc_number : undefined,
             track: album ? track.track_number : undefined,

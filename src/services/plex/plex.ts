@@ -46,6 +46,10 @@ const plexRecentlyPlayed: MediaSource<MediaItem> = {
     title: 'Recently Played',
     icon: 'clock',
     itemType: ItemType.Media,
+    layout: {
+        view: 'card',
+        fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'LastPlayed'],
+    },
 
     search(): Pager<MediaItem> {
         return new PlexPager(`/library/sections/${plexSettings.libraryId}/all`, {

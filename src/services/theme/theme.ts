@@ -5,6 +5,9 @@ import {Writable} from 'type-fest';
 import Theme from 'types/Theme';
 import presets from 'services/theme/themes/presets';
 import none from 'services/theme/themes/none';
+import LiteStorage from 'utils/LiteStorage';
+
+const storage = new LiteStorage('theme');
 
 class MainTheme implements Theme {
     private sheet: CSSStyleSheet;
@@ -322,23 +325,16 @@ class MainTheme implements Theme {
     }
 
     private retrieve(key: string): string | null {
-        return localStorage.getItem(`theme/${key}`);
+        return storage.getItem(key);
     }
 
     private store(key: string, value: string | number | boolean): void {
-        localStorage.setItem(`theme/${key}`, String(value));
+        storage.setItem(key, String(value));
     }
 
     private toDashName(text: string): string {
         return text.replace(/[A-Z]/g, (char: string) => `-${char.toLowerCase()}`);
     }
-
-    // private invert(color: string | TinyColor): string {
-    //     const {r, g, b} = new TinyColor(color);
-    //     console.log('original', {r, g, b});
-    //     const inverted = new TinyColor({r: 255 - r, g: 255 - g, b: 255 - b});
-    //     return inverted.toHexString();
-    // }
 }
 
 export default new MainTheme();

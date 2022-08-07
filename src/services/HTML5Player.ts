@@ -127,9 +127,7 @@ export default class HTML5Player implements Player<string> {
     }
 
     private getMediaSource(src: string): string {
-        if (src.startsWith('file:')) {
-            return `/media/${encodeURIComponent(src)}`;
-        } else if (src.startsWith('jellyfin:')) {
+        if (src.startsWith('jellyfin:')) {
             return jellyfinApi.getPlayableUrlFromSrc(src);
         } else if (src.startsWith('plex:')) {
             return plexApi.getPlayableUrlFromSrc(src);

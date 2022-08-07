@@ -66,7 +66,10 @@ const jellyfinRecentlyPlayed: MediaSource<MediaItem> = {
     title: 'Recently Played',
     icon: 'clock',
     itemType: ItemType.Media,
-    layout: defaultLayout,
+    layout: {
+        view: 'card',
+        fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'LastPlayed'],
+    },
 
     search(): Pager<MediaItem> {
         return createJellyfinItemsPager({

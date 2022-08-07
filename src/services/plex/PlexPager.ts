@@ -113,6 +113,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             track: albumTitle ? track.index : undefined,
             rating: track.userRating,
             year: track.parentYear,
+            playedOn: track.lastViewedAt ? track.lastViewedAt * 1000 : undefined,
             playCount: track.viewCount,
             plex: {
                 ratingKey: track.ratingKey,
@@ -130,6 +131,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             artist: album.parentTitle,
             rating: album.userRating,
             year: album.year,
+            playedOn: album.lastViewedAt ? album.lastViewedAt * 1000 : undefined,
             playCount: album.viewCount,
             genre: album.Genre?.map((genre) => genre.tag).join(';'),
             plex: {
@@ -168,6 +170,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             addedOn: video.addedAt,
             artist: video.grandparentTitle,
             duration: video.duration / 1000,
+            playedOn: video.lastViewedAt ? video.lastViewedAt * 1000 : undefined,
             playCount: video.viewCount,
             plex: {
                 ratingKey: video.ratingKey,
@@ -183,6 +186,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             title: playlist.title,
             addedOn: playlist.addedAt,
             duration: playlist.duration / 1000,
+            playedOn: playlist.lastViewedAt ? playlist.lastViewedAt * 1000 : undefined,
             playCount: playlist.viewCount,
             trackCount: playlist.leafCount,
             plex: {

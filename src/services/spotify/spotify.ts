@@ -22,7 +22,9 @@ export type SpotifyArtist = SpotifyApi.ArtistObjectFull;
 export type SpotifyAlbum = SpotifyApi.AlbumObjectFull;
 export type SpotifyPlaylist = SpotifyApi.PlaylistObjectFull;
 export type SpotifyTrack = SpotifyApi.TrackObjectSimplified &
-    Partial<Pick<SpotifyApi.TrackObjectFull, 'album'>>;
+    Partial<Pick<SpotifyApi.TrackObjectFull, 'album'>> & {
+        played_at?: string; // ISO string
+    };
 export type SpotifyEpisode = SpotifyApi.EpisodeObjectFull; // TODO: get rid of this somehow
 export type SpotifyItem =
     | SpotifyArtist
@@ -41,18 +43,23 @@ const spotifyRecentlyPlayed: MediaSource<MediaItem> = {
     title: 'Recently Played',
     icon: 'clock',
     itemType: ItemType.Media,
-    layout: defaultLayout,
+    layout: {
+        view: 'card',
+        fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'LastPlayed'],
+    },
 
     search(): Pager<MediaItem> {
         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
-            const {
-                items,
-                total,
-                next,
-            } = await spotifyApi.getMyRecentlyPlayedTracks({
+            const {items, total, next} = await spotifyApi.getMyRecentlyPlayedTracks({
                 limit,
             });
-            return {items: items.map((item) => item.track as SpotifyTrack), total, next};
+            return {
+                items: items.map(
+                    (item) => ({played_at: item.played_at, ...item.track} as SpotifyTrack)
+                ),
+                total,
+                next,
+            };
         });
     },
 };

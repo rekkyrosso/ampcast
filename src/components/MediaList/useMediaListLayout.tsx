@@ -49,6 +49,40 @@ export const Year: RenderField<MediaAlbum | MediaItem> = (item) => item.year || 
 export const Genre: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) =>
     item.genre?.split(';').join(', ');
 export const Owner: RenderField = (item) => item.owner?.name;
+export const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
+    if (!item.playedOn) {
+        return '';
+    }
+    const elapsedTime = Date.now() - item.playedOn;
+    const minute = 60_000;
+    if (elapsedTime < minute * 2) {
+        return 'just now';
+    }
+    const hour = 60 * minute;
+    if (elapsedTime < hour * 1.5) {
+        return `${Math.round(elapsedTime / minute)} minutes ago`;
+    }
+    const day = 24 * hour;
+    if (elapsedTime < day * 1.5) {
+        return `${Math.round(elapsedTime / hour)} hours ago`;
+    }
+    if (elapsedTime < day * 12) {
+        return `${Math.round(elapsedTime / day)} days ago`;
+    }
+    const week = 7 * day;
+    if (elapsedTime < week * 10) {
+        return `${Math.round(elapsedTime / week)} weeks ago`;
+    }
+    const month = 30 * day;
+    const year = 365 * day;
+    if (elapsedTime < year) {
+        return `${Math.round(elapsedTime / month)} months ago`;
+    }
+    if (elapsedTime < 2 * year) {
+        return `1 year ago`;
+    }
+    return `${Math.floor(elapsedTime / year)} years ago`;
+}
 
 export const AlbumAndYear: RenderField<MediaItem> = (item) =>
     item.album ? (item.year ? `${item.album} (${item.year})` : item.album) : item.year || '';
@@ -109,5 +143,6 @@ const mediaFields: MediaFields<any> = {
     Year: {title: 'Year', render: Year, align: 'right', width: 120, className: 'year'},
     Genre: {title: 'Genre', render: Genre, className: 'genre'},
     Owner: {title: 'Owner', render: Owner, className: 'owner'},
+    LastPlayed: {title: 'Last Played', render: LastPlayed, className: 'played-on'},
     Thumbnail: {title: 'Thumbnail', render: Thumbnail, className: 'thumbnail'},
 };

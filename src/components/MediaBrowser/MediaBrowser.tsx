@@ -34,7 +34,9 @@ export default function MediaBrowserAuth<T extends MediaObject>({
     return (
         <div className={`media-browser ${service.id}-browser`} key={key}>
             {isLoggedIn ? (
-                <MediaBrowser service={service} sources={sources} />
+                service.sources.length === 0 ? null : (
+                    <MediaBrowser service={service} sources={sources} />
+                )
             ) : (
                 <Login service={service} />
             )}

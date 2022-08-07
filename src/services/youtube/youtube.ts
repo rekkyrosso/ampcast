@@ -14,6 +14,8 @@ import YouTubePager from './YouTubePager';
 
 console.log('module::youtube');
 
+export const youtubeHost = `https://www.youtube.com`;
+
 const defaultLayout: MediaSourceLayout<MediaItem> = {
     view: 'card',
     fields: ['Thumbnail', 'Title', 'Duration', 'Owner'],
@@ -56,8 +58,8 @@ const youtubePlaylists: MediaSource<MediaPlaylist> = {
 };
 
 export async function getYouTubeVideoInfo(videoId: string): Promise<MediaItem> {
-    const url = `https://www.youtube.com/watch?v=${videoId}`;
-    const response = await fetch(`https://www.youtube.com/oembed?url=${url}&format=json`);
+    const url = `${youtubeHost}/watch?v=${videoId}`;
+    const response = await fetch(`${youtubeHost}/oembed?url=${url}&format=json`);
 
     if (!response.ok) {
         throw response;

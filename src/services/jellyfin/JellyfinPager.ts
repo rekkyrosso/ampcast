@@ -117,6 +117,9 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             src: `jellyfin:album:${album.Id}`,
             title: album.Name || '',
             duration: album.RunTimeTicks ? album.RunTimeTicks / 10_000_000 : 0,
+            playedOn: album.UserData?.LastPlayedDate
+                ? new Date(album.UserData.LastPlayedDate).getTime()
+                : undefined,
             playCount: album.UserData?.PlayCount || undefined,
             genre: album.Genres?.join(';'),
             thumbnails: this.createThumbnails(album.Id),
@@ -133,6 +136,9 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             src: `jellyfin:playlist:${playlist.Id}`,
             title: playlist.Name || '',
             duration: playlist.RunTimeTicks ? playlist.RunTimeTicks / 10_000_000 : 0,
+            playedOn: playlist.UserData?.LastPlayedDate
+                ? new Date(playlist.UserData.LastPlayedDate).getTime()
+                : undefined,
             playCount: playlist.UserData?.PlayCount || undefined,
             genre: playlist.Genres?.join(';'),
             thumbnails: this.createThumbnails(playlist.Id),
@@ -151,6 +157,9 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             title: track.Name || '',
             duration: track.RunTimeTicks ? track.RunTimeTicks / 10_000_000 : 0,
             year: track.ProductionYear || undefined,
+            playedOn: track.UserData?.LastPlayedDate
+                ? new Date(track.UserData.LastPlayedDate).getTime()
+                : undefined,
             playCount: track.UserData?.PlayCount || undefined,
             genre: track.Genres?.join(';'),
             thumbnails: this.createThumbnails(thumbnailId),

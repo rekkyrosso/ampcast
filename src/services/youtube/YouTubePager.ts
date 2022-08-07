@@ -1,5 +1,11 @@
 import type {Observable} from 'rxjs';
-import {get as dbRead, set as dbWrite, createStore} from 'idb-keyval';
+import {
+    get as dbRead,
+    set as dbWrite,
+    entries as dbEntries,
+    delMany as dbDeleteMany,
+    createStore,
+} from 'idb-keyval';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
@@ -9,6 +15,7 @@ import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import SequentialPager from 'services/SequentialPager';
 import {createEmptyMediaObject} from 'utils';
+import {youtubeHost} from './youtube';
 
 type YouTubeVideo = gapi.client.youtube.Video;
 type YouTubePlaylist = gapi.client.youtube.Playlist;
@@ -27,10 +34,24 @@ interface YouTubePage<T extends YouTubeItem = YouTubeItem> extends YouTubeCachea
     readonly nextPageToken?: string | undefined;
 }
 
-const youtubeHost = `https://www.youtube.com`;
 const apiHost = `https://www.googleapis.com/youtube/v3`;
 
 const cache = createStore('ampcast/youtube-cache', 'keyval');
+
+(async function (): Promise<void> {
+    const entries = await dbEntries(cache);
+    const keys: IDBValidKey[] = [];
+    const week = 7 * 24 * 60 * 60_000;
+    const now = Date.now();
+    for (const [key, result] of entries) {
+        if (now - result.cachedAt > week) {
+            keys.push(key);
+        }
+    }
+    if (keys.length > 0) {
+        await dbDeleteMany(keys, cache);
+    }
+})();
 
 export default class YouTubePager<T extends MediaObject> implements Pager<T> {
     static minPageSize = 5;
@@ -255,7 +276,7 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
 
     private async saveToCache<T>(key: string, result: T): Promise<void> {
         if (!this.config.noCache) {
-            await dbWrite(key, result, cache);
+            await dbWrite(key, {...result, cachedAt: Date.now()}, cache);
         }
     }
 

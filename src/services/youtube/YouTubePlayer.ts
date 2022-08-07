@@ -140,7 +140,6 @@ export default class YouTubePlayer implements Player<string> {
             .subscribe(logger);
 
         this.observeError().subscribe(logger.error);
-        // this.observeState().subscribe(logger.all('state'));
     }
 
     get hidden(): boolean {

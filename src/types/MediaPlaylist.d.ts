@@ -8,7 +8,5 @@ export default interface MediaPlaylist extends BaseMediaObject<ItemType.Playlist
     readonly trackCount?: number;
     readonly duration?: number;
     readonly playedOn?: number;
-    readonly playCount?: number;
-    readonly globalPlayCount?: number;
     readonly unplayable?: boolean;
 }

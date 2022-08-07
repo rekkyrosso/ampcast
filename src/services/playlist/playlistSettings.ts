@@ -1,5 +1,8 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
+import LiteStorage from 'utils/LiteStorage';
+
+const storage = new LiteStorage('playlist');
 
 export interface PlaylistSettings {
     allowDuplicates: boolean;
@@ -17,7 +20,7 @@ const defaultSettings: PlaylistSettings = {
 
 function getSavedSettings(): PlaylistSettings {
     try {
-        const json = localStorage.getItem('playlist/settings');
+        const json = storage.getItem('settings');
         const settings = json ? JSON.parse(json) : defaultSettings;
         return settings;
     } catch (err) {
@@ -37,7 +40,7 @@ function get(): PlaylistSettings {
 }
 
 function set(settings: PlaylistSettings): void {
-    localStorage.setItem('playlist/settings', JSON.stringify(settings));
+    storage.setItem('settings', JSON.stringify(settings));
     settings$.next(settings);
 }
 

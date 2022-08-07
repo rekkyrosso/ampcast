@@ -139,6 +139,10 @@ export function ExternalLink({src, url}: {src: string; url: string | undefined})
             name = 'YouTube';
             break;
 
+        case 'lastfm':
+            name = 'last.fm';
+            break;
+
         default:
             return null;
     }
