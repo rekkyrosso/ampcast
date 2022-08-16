@@ -118,7 +118,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
 
         return {
             ...createEmptyMediaObject(ItemType.Playlist),
-            src: `apple:${kind}:${id}` + (item.playParams ? '' : ':unplayable'),
+            src: `apple:${kind}:${id}`,
             externalUrl: item.url,
             title: item.name,
             thumbnails: this.createThumbnails(playlist),
@@ -160,7 +160,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
 
         return {
             ...createEmptyMediaObject(ItemType.Album),
-            src: `apple:${kind}:${id}` + (item.playParams ? '' : ':unplayable'),
+            src: `apple:${kind}:${id}`,
             externalUrl: item.url,
             title: item.name,
             thumbnails: this.createThumbnails(album),
@@ -186,7 +186,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         return {
             ...createEmptyMediaObject(ItemType.Media),
             mediaType: kind === 'musicVideo' ? MediaType.Video : MediaType.Audio,
-            src: `apple:${kind}:${id}` + (item.playParams ? '' : ':unplayable'),
+            src: `apple:${kind}:${id}`,
             externalUrl: item.url,
             title: item.name,
             thumbnails: this.createThumbnails(song),

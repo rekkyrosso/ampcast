@@ -9,7 +9,9 @@ import {Logger} from 'utils';
 export default class HTML5Player implements Player<string> {
     private readonly element: HTMLMediaElement;
     private readonly error$ = new Subject<unknown>();
-    public readonly autoplay = false;
+    private src = '';
+    private loadedSrc = '';
+    public autoplay = false;
 
     constructor(type: 'audio' | 'video') {
         const player = (this.element = document.createElement(type));
@@ -92,19 +94,29 @@ export default class HTML5Player implements Player<string> {
     }
 
     load(src: string): void {
-        if (src) {
-            this.element.setAttribute('src', this.getMediaSource(src));
+        this.src = src;
+        try {
+            const mediaSource = this.getMediaSource(this.src);
+            this.loadedSrc = src;
+            this.element.setAttribute('src', mediaSource);
             if (this.autoplay) {
-                this.play();
+                this.element.play().then(undefined, (err) => this.error$.next(err));
             }
+        } catch (err) {
+            this.error$.next(err);
         }
     }
 
     play(): void {
-        if (this.element.error) {
-            this.error$.next(this.element.error);
-        } else {
+        try {
+            const mediaSource = this.getMediaSource(this.src);
+            if (this.src !== this.loadedSrc) {
+                this.loadedSrc = this.src;
+                this.element.setAttribute('src', mediaSource);
+            }
             this.element.play().then(undefined, (err) => this.error$.next(err));
+        } catch (err) {
+            this.error$.next(err);
         }
     }
 

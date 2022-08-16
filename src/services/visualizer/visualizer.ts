@@ -6,8 +6,7 @@ import MediaType from 'types/MediaType';
 import PlaylistItem from 'types/PlaylistItem';
 import Visualizer from 'types/Visualizer';
 import VisualizerProvider from 'types/VisualizerProvider';
-import {observePaused} from 'services/mediaPlayback/playback';
-import {observeCurrentItem} from 'services/playlist';
+import {observeCurrentItem, observePaused} from 'services/mediaPlayback';
 import {exists, getRandomValue, Logger} from 'utils';
 import audioMotionPresets from './audioMotionPresets';
 import butterchurnPresets from './butterchurnPresets';
@@ -72,14 +71,6 @@ export function observeSettings(): Observable<VisualizerSettings> {
     return settings$;
 }
 
-export function appendTo(parentElement: HTMLElement): void {
-    player.appendTo(parentElement);
-}
-
-export function resize(width: number, height: number): void {
-    player.resize(width, height);
-}
-
 export function nextVisualizer(): void {
     next$.next(undefined);
 }
@@ -112,18 +103,10 @@ export async function setProvider(provider: VisualizerProvider | ''): Promise<vo
 }
 
 export default {
-    get autoplay(): boolean {
-        return player.autoplay;
-    },
-    set autoplay(autoplay: boolean) {
-        player.autoplay = autoplay;
-    },
     observeCurrentVisualizer,
     observeLocked,
     observeProvider,
     observeSettings,
-    appendTo,
-    resize,
     nextVisualizer,
     lock,
     unlock,
@@ -156,9 +139,7 @@ observeCurrentVisualizer()
     .pipe(tap((visualizer) => player.load(visualizer)))
     .subscribe(logger);
 
-audio$
-    .pipe(switchMap(() => playing$))
-    .subscribe(() => player.play());
+audio$.pipe(switchMap(() => playing$)).subscribe(() => player.play());
 
 function getNextVisualizer(item: PlaylistItem, settings: VisualizerSettings): Visualizer {
     if (settings.locked) {

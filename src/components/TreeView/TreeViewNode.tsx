@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {TreeNode} from './TreeView';
+import {hasSelectedNode, TreeNode} from './TreeView';
 
 export interface TreeViewNodeProps<T> extends TreeNode<T> {
     selectedId: string;
@@ -122,15 +122,4 @@ export default function TreeViewNode<T>({
             )}
         </li>
     );
-}
-
-function hasSelectedNode<T>(children: TreeNode<T>[], selectedId: string): boolean {
-    for (const child of children) {
-        if (child.id === selectedId) {
-            return true;
-        } else if (child.children && hasSelectedNode(child.children, selectedId)) {
-            return true;
-        }
-    }
-    return false;
 }

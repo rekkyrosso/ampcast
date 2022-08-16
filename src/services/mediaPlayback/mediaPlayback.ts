@@ -1,11 +1,19 @@
 import type {Observable} from 'rxjs';
-import {combineLatest, fromEvent} from 'rxjs';
-import {distinctUntilChanged, filter, map, withLatestFrom} from 'rxjs/operators';
+import {EMPTY, BehaviorSubject, combineLatest, fromEvent} from 'rxjs';
+import {
+    debounceTime,
+    distinctUntilChanged,
+    filter,
+    map,
+    switchMap,
+    tap,
+    withLatestFrom,
+} from 'rxjs/operators';
 import MediaPlayback from 'types/MediaPlayback';
 import PlaybackState from 'types/PlaybackState';
 import PlaylistItem from 'types/PlaylistItem';
 import playlist from 'services/playlist';
-import visualizer from 'services/visualizer';
+import visualizerPlayer from 'services/visualizer/player';
 import {LiteStorage, Logger} from 'utils';
 import mediaPlayer from './mediaPlayer';
 import playback from './playback';
@@ -17,7 +25,16 @@ const logger = new Logger('mediaPlayback');
 const appSettings = new LiteStorage('mediaPlayback');
 const sessionSettings = new LiteStorage('mediaPlayback', sessionStorage);
 
+const loadingLocked$ = new BehaviorSubject(false);
+
 let direction: 'backward' | 'forward' = 'forward';
+
+export function observeCurrentItem(): Observable<PlaylistItem | null> {
+    return loadingLocked$.pipe(
+        distinctUntilChanged(),
+        switchMap((locked) => (locked ? EMPTY : playlist.observeCurrentItem()))
+    );
+}
 
 export function observeCurrentTime(): Observable<number> {
     return playback.observeCurrentTime();
@@ -63,17 +80,18 @@ export function appendTo(parentElement: HTMLElement): void {
     const playersContainer = parentElement.querySelector('#players') as HTMLElement;
     const visualizerContainer = parentElement.querySelector('#visualizers') as HTMLElement;
     mediaPlayer.appendTo(playersContainer);
-    visualizer.appendTo(visualizerContainer);
+    visualizerPlayer.appendTo(visualizerContainer);
 }
 
 export function load(item: PlaylistItem | null): void {
-    logger.log('load', item?.title);
+    logger.log('load', item?.title, mediaPlayback.autoplay);
     mediaPlayer.load(item);
 }
 
 export function play(): void {
     logger.log('play');
     direction = 'forward';
+    unlockLoading();
     playback.play();
     if (!playback.paused) {
         mediaPlayer.play();
@@ -82,6 +100,7 @@ export function play(): void {
 
 export function pause(): void {
     logger.log('pause');
+    unlockLoading();
     playback.pause();
     mediaPlayer.pause();
 }
@@ -92,22 +111,25 @@ export function seek(time: number): void {
 
 export function stop(): void {
     logger.log('stop');
+    unlockLoading();
     playback.stop();
     mediaPlayer.stop();
 }
 
 export function resize(width: number, height: number): void {
     mediaPlayer.resize(width, height);
-    visualizer.resize(width, height);
+    visualizerPlayer.resize(width, height);
 }
 
 export function prev(): void {
     direction = 'backward';
+    lockLoading();
     playlist.prev();
 }
 
 export function next(): void {
     direction = 'forward';
+    lockLoading();
     playlist.next();
 }
 
@@ -129,13 +151,25 @@ function observePlaylistAtStart(): Observable<boolean> {
     );
 }
 
+function lockLoading() {
+    if (!playback.paused && loadingLocked$.getValue() === false) {
+        stop();
+        playback.play();
+    }
+    loadingLocked$.next(true);
+}
+
+function unlockLoading(): void {
+    loadingLocked$.next(false);
+}
+
 const mediaPlayback: MediaPlayback = {
     get autoplay(): boolean {
         return mediaPlayer.autoplay;
     },
     set autoplay(autoplay: boolean) {
         mediaPlayer.autoplay = autoplay;
-        visualizer.autoplay = autoplay;
+        visualizerPlayer.autoplay = autoplay;
     },
     get hidden(): boolean {
         return false;
@@ -150,6 +184,9 @@ const mediaPlayback: MediaPlayback = {
         sessionSettings.setItem('muted', String(muted));
         mediaPlayer.muted = muted;
     },
+    get paused(): boolean {
+        return playback.paused;
+    },
     get volume(): number {
         return mediaPlayer.volume;
     },
@@ -157,6 +194,7 @@ const mediaPlayback: MediaPlayback = {
         appSettings.setItem('volume', String(volume));
         mediaPlayer.volume = volume;
     },
+    observeCurrentItem,
     observeCurrentTime,
     observeDuration,
     observeEnded,
@@ -182,7 +220,7 @@ const mediaPlayback: MediaPlayback = {
 export default mediaPlayback;
 
 mediaPlayback.muted = sessionSettings.getItem('muted') === 'true';
-mediaPlayback.volume = Number(appSettings.getItem('volume')) || 1;
+mediaPlayback.volume = Number(appSettings.getItem('volume')) || 1; // TODO - zero, lol
 
 mediaPlayer.observeCurrentTime().subscribe((time) => playback.setCurrentTime(time));
 mediaPlayer.observeDuration().subscribe((duration) => playback.setDuration(duration));
@@ -198,7 +236,7 @@ mediaPlayer
         if (atEnd) {
             stop();
         } else {
-            next();
+            playlist.next();
         }
     });
 
@@ -210,9 +248,9 @@ mediaPlayer
             stop();
         } else if (!paused) {
             if (direction === 'backward') {
-                prev();
+                playlist.prev();
             } else {
-                next();
+                playlist.next();
             }
         }
     });
@@ -226,7 +264,18 @@ playlist
     )
     .subscribe(stop);
 
-playlist.observeCurrentItem().subscribe(load);
+loadingLocked$
+    .pipe(
+        debounceTime(250),
+        filter((paused) => paused),
+        tap(() => {
+            mediaPlayback.autoplay = !playback.paused;
+            loadingLocked$.next(false);
+        })
+    )
+    .subscribe(logger);
+
+observeCurrentItem().subscribe(load);
 
 fromEvent(window, 'pagehide').subscribe(stop);
 

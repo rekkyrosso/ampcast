@@ -154,11 +154,11 @@ class MainTheme implements Theme {
         this.setColor('selectedBackgroundColor', color);
         if (this.selectedBackgroundColor) {
             const backgroundColor = new TinyColor(this.selectedBackgroundColor);
-            let backgroundColorBlurred = backgroundColor.desaturate(50);
+            let backgroundColorBlurred = backgroundColor.desaturate(40);
             if (backgroundColorBlurred.isLight()) {
-                backgroundColorBlurred = backgroundColorBlurred.lighten();
+                backgroundColorBlurred = backgroundColorBlurred.tint(25);
             } else {
-                backgroundColorBlurred = backgroundColorBlurred.darken();
+                backgroundColorBlurred = backgroundColorBlurred.shade(25);
             }
             this.setProperty(
                 'selected-background-color-blurred',

@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {EMPTY, BehaviorSubject, Subject, combineLatest, from, of} from 'rxjs';
+import {EMPTY, BehaviorSubject, Subject, combineLatest, from} from 'rxjs';
 import {
     catchError,
     distinctUntilChanged,
@@ -10,10 +10,9 @@ import {
     switchMap,
     take,
     tap,
-    withLatestFrom,
 } from 'rxjs/operators';
 import Player from 'types/Player';
-import {exists, Logger} from 'utils';
+import {Logger} from 'utils';
 import {observeIsLoggedIn} from './appleAuth';
 
 const logger = new Logger('MusicKitPlayer');
@@ -22,12 +21,11 @@ const ERR_NOT_CONNECTED = 'Apple Music player not connected.';
 
 export class MusicKitPlayer implements Player<string> {
     private player?: MusicKit.MusicKitInstance;
-    private readonly paused$ = new BehaviorSubject(true);
     private readonly duration$ = new Subject<number>();
     private readonly currentTime$ = new Subject<number>();
     private readonly ended$ = new Subject<void>();
     private readonly playing$ = new Subject<void>();
-    private readonly error$ = new BehaviorSubject<unknown>(undefined);
+    private readonly error$ = new Subject<unknown>();
     private readonly playerReady$ = new Subject<void>();
     private readonly element: HTMLElement;
     private readonly src$ = new BehaviorSubject('');
@@ -77,7 +75,6 @@ export class MusicKitPlayer implements Player<string> {
         this.observeReady()
             .pipe(
                 mergeMap(() => combineLatest([this.observeSrc(), this.observeIsLoggedIn()])),
-                tap(() => this.error$.next(undefined)),
                 switchMap(([src, isLoggedIn]) => {
                     if (isLoggedIn && src && src !== this.loadedSrc) {
                         const [, kind, id] = src.split(':');
@@ -87,12 +84,12 @@ export class MusicKitPlayer implements Player<string> {
                                 if (this.autoplay) {
                                     return this.player!.play();
                                 } else {
-                                    return of(undefined);
+                                    return EMPTY;
                                 }
                             }),
                             catchError((err) => {
                                 this.error$.next(err);
-                                return of(undefined);
+                                return EMPTY;
                             })
                         );
                     } else {
@@ -111,22 +108,6 @@ export class MusicKitPlayer implements Player<string> {
                     this.error$.next(Error(ERR_NOT_CONNECTED));
                 }
             });
-
-        // TODO: Better to pass in the item instead of messing with `src`?
-        this.observeDuration()
-            .pipe(
-                withLatestFrom(this.observeSrc()),
-                tap(([duration, src]) => {
-                    // ":unplayable" is appended to `src` if it's unplayable.
-                    // e.g. 'apple:song:xyz:unplayable'.
-                    const [, , , availability = 'playable'] = src.split(':');
-                    // Unplayable items timeout after 30 seconds.
-                    if (availability === 'unplayable' && duration === 30) {
-                        this.error$.next(Error('Unplayable'));
-                    }
-                })
-            )
-            .subscribe(logger);
 
         this.observeError().subscribe(logger.error);
     }
@@ -182,9 +163,7 @@ export class MusicKitPlayer implements Player<string> {
     }
 
     observeError(): Observable<unknown> {
-        return combineLatest([this.observeSrc(), this.observePaused()]).pipe(
-            switchMap(([, paused]) => (paused ? EMPTY : this.error$.pipe(filter(exists))))
-        );
+        return this.error$;
     }
 
     appendTo(parentElement: HTMLElement): void {
@@ -195,7 +174,6 @@ export class MusicKitPlayer implements Player<string> {
         this.src$.next(src);
         if (this.player && this.isLoggedIn) {
             if (this.autoplay) {
-                this.paused$.next(false);
                 if (src === this.loadedSrc) {
                     this.player.play().then(undefined, (err) => this.error$.next(err));
                 }
@@ -206,7 +184,6 @@ export class MusicKitPlayer implements Player<string> {
     }
 
     play(): void {
-        this.paused$.next(false);
         if (this.player && this.isLoggedIn) {
             if (this.src === this.loadedSrc) {
                 this.player.play().then(undefined, (err) => this.error$.next(err));
@@ -217,14 +194,12 @@ export class MusicKitPlayer implements Player<string> {
     }
 
     pause(): void {
-        this.paused$.next(true);
         if (this.player?.isPlaying) {
             this.player.pause();
         }
     }
 
     stop(): void {
-        this.paused$.next(true);
         this.player?.stop();
     }
 
@@ -243,10 +218,6 @@ export class MusicKitPlayer implements Player<string> {
 
     private observeIsLoggedIn(): Observable<boolean> {
         return this.isLoggedIn$;
-    }
-
-    private observePaused(): Observable<boolean> {
-        return this.paused$.pipe(distinctUntilChanged());
     }
 
     private observeReady(): Observable<void> {
@@ -272,6 +243,14 @@ export class MusicKitPlayer implements Player<string> {
 
     private readonly onPlaybackDurationChange: any = ({duration}: {duration: number}) => {
         this.duration$.next(duration);
+        if (this.player!.nowPlayingItem?.isPlayable === false) {
+            // Apple Music plays silence for unplayable tracks.
+            if (duration) {
+                this.seek(duration);
+            } else {
+                this.ended$.next(undefined);
+            }
+        }
     };
 
     private readonly onPlaybackTimeChange: any = ({

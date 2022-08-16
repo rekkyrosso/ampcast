@@ -25,20 +25,25 @@ async function fetch(path: string, init: RequestInit): Promise<Response> {
 }
 
 export function getPlayableUrlFromSrc(src: string): string {
-    const [, , trackId] = src.split(':');
-    const trackParams = new URLSearchParams({
-        MaxStreamingBitrate: '140000000',
-        MaxSampleRate: '48000',
-        TranscodingProtocol: 'hls',
-        TranscodingContainer: 'ts',
-        Container: 'opus,webm|opus,mp3,aac,m4a|aac,m4b|aac,flac,webma,webm|webma,wav,ogg',
-        AudioCodec: 'aac',
-        static: 'true',
-        UserId: jellyfinSettings.userId,
-        api_key: jellyfinSettings.token,
-        DeviceId: jellyfinSettings.deviceId,
-    });
-    return `${jellyfinSettings.host}/Audio/${trackId}/universal?${trackParams}`;
+    const {host, userId, token, deviceId} = jellyfinSettings;
+    if (host && userId && token && deviceId) {
+        const [, , trackId] = src.split(':');
+        const trackParams = new URLSearchParams({
+            MaxStreamingBitrate: '140000000',
+            MaxSampleRate: '48000',
+            TranscodingProtocol: 'hls',
+            TranscodingContainer: 'ts',
+            Container: 'opus,webm|opus,mp3,aac,m4a|aac,m4b|aac,flac,webma,webm|webma,wav,ogg',
+            AudioCodec: 'aac',
+            static: 'true',
+            UserId: userId,
+            api_key: token,
+            DeviceId: deviceId,
+        });
+        return `${host}/Audio/${trackId}/universal?${trackParams}`;
+    } else {
+        throw (Error('Not logged in.'));
+    }
 }
 
 const jellyfinApi = {

@@ -25,6 +25,7 @@ export interface TreeViewProps<T> {
     roots: TreeNode<T>[];
     className?: string;
     storeId?: string;
+    onContextMenu?: (item: T, x: number, y: number) => void;
     onDelete?: (item: T) => void;
     onEnter?: (item: T) => void;
     onInfo?: (item: T) => void;
@@ -37,6 +38,7 @@ export default function TreeView<T>({
     roots,
     className = '',
     storeId,
+    onContextMenu,
     onDelete,
     onEnter,
     onInfo,
@@ -64,6 +66,14 @@ export default function TreeView<T>({
     const [debouncedValue, setDebouncedValue] = useState<T>(() => selectedValue);
 
     useLayoutEffect(() => {
+        if (!hasSelectedNode(roots, selectedId)) {
+            const parentNode =
+                roots.find((root) => selectedId.startsWith(`${root.id}/`)) || roots[0];
+            setSelectedId(parentNode?.id);
+        }
+    }, [roots, selectedId]);
+
+    useLayoutEffect(() => {
         onSelect?.(debouncedValue);
     }, [debouncedValue, onSelect]);
 
@@ -76,6 +86,14 @@ export default function TreeView<T>({
             setDebouncedValue(selectedValue);
         }
     }, [selectedValue, busy]);
+
+    const handleContextMenu = useCallback(
+        (event: React.MouseEvent) => {
+            event.preventDefault();
+            onContextMenu?.(selectedValue, event.pageX, event.pageY);
+        },
+        [selectedValue, onContextMenu]
+    );
 
     const handleKeyDown = useCallback(
         (event: React.KeyboardEvent) => {
@@ -177,6 +195,7 @@ export default function TreeView<T>({
         <div
             className={`tree-view ${className}`}
             tabIndex={0}
+            onContextMenu={handleContextMenu}
             onKeyDown={handleKeyDown}
             ref={containerRef}
         >
@@ -213,6 +232,17 @@ export default function TreeView<T>({
             </Scrollable>
         </div>
     );
+}
+
+export function hasSelectedNode<T>(children: TreeNode<T>[], selectedId: string): boolean {
+    for (const child of children) {
+        if (child.id === selectedId) {
+            return true;
+        } else if (child.children && hasSelectedNode(child.children, selectedId)) {
+            return true;
+        }
+    }
+    return false;
 }
 
 function getSelectedIdByKey(key: string, visibleIds: string[], selectedId: string): string {

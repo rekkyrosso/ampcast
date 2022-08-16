@@ -73,8 +73,13 @@ async function fetch({
 }
 
 function getPlayableUrlFromSrc(src: string): string {
-    const [, , key] = src.split(':');
-    return `${plexSettings.host}${key}?X-Plex-Token=${plexSettings.serverToken}`;
+    const {host, serverToken} = plexSettings;
+    if (host && serverToken) {
+        const [, , key] = src.split(':');
+        return `${host}${key}?X-Plex-Token=${serverToken}`;
+    } else {
+        throw Error('Not logged in.');
+    }
 }
 
 function getHeaders(token: string): Record<string, string> {

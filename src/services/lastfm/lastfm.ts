@@ -48,7 +48,6 @@ function getTop<T extends MediaObject>(method: string, itemType: ItemType): Page
             const result = response[topType.slice(3)];
             const attr = result['@attr'];
             const resultType = topType.slice(6, -1);
-            console.log({method, topType, resultType});
             const items = result[resultType];
             const total = Number(attr.total) || undefined;
             const atEnd = attr.page === attr.totalPages;

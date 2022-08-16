@@ -3,15 +3,12 @@
         color: var(--selected-text-color);
     }
 
-    .list-view-row {
-        &.playing .list-view-cell,
-        &.selected.playing .list-view-cell {
-            font-style: italic;
-            color: var(--currently-playing-color);
-        }
+    .list-view-row.playing .list-view-cell {
+        font-style: italic;
+        color: var(--currently-playing-color);
     }
 
-    &.playable .unplayable:not(.selected) .list-view-cell {
+    &.playable .unplayable:not(.selected):not(.playing) .list-view-cell {
         color: var(--grey1-color);
     }
 
@@ -78,7 +75,7 @@
             padding: 0 0.25em;
             color: var(--text-color);
             background-color: rgba(0, 0, 0, 0.25);
-            border-radius: var(--app-border-radius);
+            border-radius: calc(var(--roundness) * var(--roundness) * 0.75em);
 
             &:empty {
                 visibility: hidden;
@@ -90,7 +87,6 @@
             font-style: italic;
             background-color: transparent;
             color: var(--grey2-color);
-            border-radius: 0;
         }
 
         .actions {
