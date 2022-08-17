@@ -1,7 +1,9 @@
-import type {Observable} from 'rxjs';
-import {EMPTY, BehaviorSubject, Subject, combineLatest, interval, merge, of} from 'rxjs';
+import {from, Observable} from 'rxjs';
+import {EMPTY, BehaviorSubject, Subject, interval, merge, of} from 'rxjs';
 import {
     catchError,
+    delay,
+    delayWhen,
     distinctUntilChanged,
     filter,
     map,
@@ -19,6 +21,7 @@ import {observeAccessToken, refreshToken} from './spotifyAuth';
 interface LoadError {
     readonly src: string;
     readonly error: unknown;
+    readonly timeStamp: number;
 }
 
 const logger = new Logger('SpotifyPlayer');
@@ -55,16 +58,14 @@ export class SpotifyPlayer implements Player<string> {
         // Load new tracks.
         this.observeReady()
             .pipe(
-                mergeMap(() => combineLatest([this.observeSrc(), this.observeAccessToken()])),
-                filter(([src]) => src !== this.loadedSrc),
-                mergeMap(([src, token]) =>
-                    this.player!.setVolume(0)
-                        .then(undefined, logger.error)
-                        .then(() => [src, token])
-                ),
+                mergeMap(() => this.observeIsLoggedIn()),
+                switchMap((isLoggedIn) => (isLoggedIn ? this.observeSrc() : EMPTY)),
+                withLatestFrom(this.observeAccessToken()),
+                // mergeMap(([src, token]) => this.setVolume(0).then(() => [src, token])),
                 switchMap(([src, token]) => {
                     if (src && src !== this.loadedSrc) {
                         return this.observeNotLoading().pipe(
+                            delayWhen(() => (this.loadError ? this.reconnect() : of(0))),
                             mergeMap(() => this.addToQueue(src, token)),
                             mergeMap(() =>
                                 this.observeState().pipe(
@@ -74,13 +75,15 @@ export class SpotifyPlayer implements Player<string> {
                                     take(1)
                                 )
                             ),
-                            mergeMap(() => this.player!.setVolume(this.muted ? 0 : this.volume)),
+                            // mergeMap(() => this.setVolume(this.muted ? 0 : this.volume)),
                             catchError((error) => {
                                 this.loadedSrc = '';
-                                this.loadError = {src, error};
+                                this.currentTrackSrc = '';
+                                this.loadError = {src, error, timeStamp: Date.now()};
                                 this.error$.next(error);
                                 return EMPTY;
                             }),
+                            tap(logger.all('step5')),
                             take(1)
                         );
                     } else {
@@ -95,9 +98,13 @@ export class SpotifyPlayer implements Player<string> {
             .pipe(
                 tap((state) => {
                     if (this.paused && !state.paused) {
-                        this.player!.pause();
-                    } else if (state.paused && !this.paused && this.src === this.loadedSrc) {
-                        this.player!.resume().then(undefined, (error) => this.error$.next(error));
+                        this.player!.pause().then(undefined, logger.error);
+                    } else if (
+                        state.paused &&
+                        !this.paused &&
+                        state.track_window.current_track.uri === this.currentTrackSrc
+                    ) {
+                        this.player!.resume().then(undefined, (err) => this.error$.next(err));
                     }
                 })
             )
@@ -128,7 +135,7 @@ export class SpotifyPlayer implements Player<string> {
     set muted(muted: boolean) {
         if (this.#muted !== muted) {
             this.#muted = muted;
-            this.player?.setVolume(muted ? 0 : this.volume);
+            this.setVolume(muted ? 0 : this.volume);
         }
     }
 
@@ -139,7 +146,7 @@ export class SpotifyPlayer implements Player<string> {
     set volume(volume: number) {
         if (this.#volume !== volume) {
             this.#volume = volume;
-            this.player?.setVolume(this.muted ? 0 : volume);
+            this.setVolume(this.muted ? 0 : volume);
         }
     }
 
@@ -206,7 +213,7 @@ export class SpotifyPlayer implements Player<string> {
             if (this.autoplay) {
                 this.paused$.next(false);
                 if (src === this.loadedSrc) {
-                    this.player.resume().then(undefined, (error) => this.error$.next(error));
+                    this.player.resume().then(undefined, (err) => this.error$.next(err));
                 }
             }
         } else if (this.autoplay) {
@@ -220,7 +227,7 @@ export class SpotifyPlayer implements Player<string> {
             if (this.src === this.loadError?.src) {
                 this.error$.next(this.loadError.error);
             } else if (this.src === this.loadedSrc) {
-                this.player.resume().then(undefined, (error) => this.error$.next(error));
+                this.player.resume().then(undefined, (err) => this.error$.next(err));
             }
         } else {
             this.error$.next(Error(ERR_NOT_CONNECTED));
@@ -326,7 +333,7 @@ export class SpotifyPlayer implements Player<string> {
                     player.addListener('initialization_error', logger.error);
                     player.addListener('authentication_error', logger.error);
                     player.addListener('account_error', logger.error);
-                    player.addListener('playback_error', (error) => this.error$.next(error));
+                    player.addListener('playback_error', (err) => this.error$.next(err));
                     player.addListener('player_state_changed', (state) => this.state$.next(state));
 
                     player.addListener('not_ready', () => {
@@ -348,7 +355,7 @@ export class SpotifyPlayer implements Player<string> {
             .subscribe(logger);
     };
 
-    private async addToQueue(src: string, token: string): Promise<void> {
+    private async addToQueue(src: string, token: string, retryCount = 3): Promise<void> {
         if (!token) {
             throw Error(ERR_NOT_CONNECTED);
         }
@@ -363,18 +370,31 @@ export class SpotifyPlayer implements Player<string> {
         });
 
         if (!response.ok) {
-            this.loadError = {src, error: response};
-            if (response.status === 401) {
+            if (response.status === 401 && retryCount > 0) {
                 const newToken = await refreshToken();
-                return this.addToQueue(src, newToken);
-            } else {
-                this.player!.pause();
-                throw response;
+                return this.addToQueue(src, newToken, --retryCount);
             }
+            throw response;
         }
 
         this.loadError = undefined;
         this.loadedSrc = src;
+    }
+
+    private reconnect(): Observable<void> {
+        return from(Promise.resolve().then(() => this.player!.disconnect())).pipe(
+            delay(1000),
+            mergeMap(() => this.player!.connect()),
+            delay(1000),
+            tap(() => (this.loadError = undefined)),
+            map(() => undefined)
+        );
+    }
+
+    private setVolume(volume: number): Promise<void> {
+        return this.player
+            ? this.player!.setVolume(volume).then(undefined, logger.error)
+            : Promise.resolve();
     }
 }
 

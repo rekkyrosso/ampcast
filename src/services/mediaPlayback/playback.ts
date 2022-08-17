@@ -81,7 +81,10 @@ export function getCurrentTime(): number {
 
 export function setCurrentTime(currentTime: number): void {
     const state = playbackState$.getValue();
-    currentTime = Math.min(Math.floor(isFinite(currentTime) ? currentTime : 0), state.duration);
+    currentTime = Math.max(
+        Math.min(Math.floor(isFinite(currentTime) ? currentTime : 0), state.duration),
+        0
+    );
     if (currentTime !== state.currentTime) {
         playbackState$.next({...state, currentTime});
     }
@@ -93,7 +96,7 @@ export function getDuration(): number {
 
 export function setDuration(duration: number): void {
     const state = playbackState$.getValue();
-    duration = Math.floor(isFinite(duration) ? duration : 0);
+    duration = Math.max(Math.floor(isFinite(duration) ? duration : 0), 0);
     if (duration !== state.duration) {
         const currentTime = Math.min(state.currentTime, duration);
         playbackState$.next({...state, duration, currentTime});

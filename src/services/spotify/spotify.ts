@@ -1,3 +1,4 @@
+import {mergeMap, skipWhile, take, tap} from 'rxjs';
 import SpotifyWebApi from 'spotify-web-api-js';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
@@ -9,14 +10,15 @@ import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
 import SimplePager from 'services/SimplePager';
-import {observeAccessToken, observeIsLoggedIn, login, logout} from './spotifyAuth';
+import {observeAccessToken, observeIsLoggedIn, login, logout, authSettings} from './spotifyAuth';
 import SpotifyPager, {SpotifyPage} from './SpotifyPager';
+import {Logger} from 'utils';
 
 console.log('module::spotify');
 
-export const spotifyApi = new SpotifyWebApi();
+const logger = new Logger('spotify');
 
-observeAccessToken().subscribe((token) => spotifyApi.setAccessToken(token));
+export const spotifyApi = new SpotifyWebApi();
 
 export type SpotifyArtist = SpotifyApi.ArtistObjectFull;
 export type SpotifyAlbum = SpotifyApi.AlbumObjectFull;
@@ -38,6 +40,10 @@ const defaultLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
 };
 
+function getMarket(): string {
+    return authSettings.getItem('market') || '';
+}
+
 const spotifyRecentlyPlayed: MediaSource<MediaItem> = {
     id: 'spotify/recently-played',
     title: 'Recently Played',
@@ -49,18 +55,21 @@ const spotifyRecentlyPlayed: MediaSource<MediaItem> = {
     },
 
     search(): Pager<MediaItem> {
-        return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
-            const {items, total, next} = await spotifyApi.getMyRecentlyPlayedTracks({
-                limit,
-            });
-            return {
-                items: items.map(
-                    (item) => ({played_at: item.played_at, ...item.track} as SpotifyTrack)
-                ),
-                total,
-                next,
-            };
-        });
+        return new SpotifyPager(
+            async (offset: number, limit: number): Promise<SpotifyPage> => {
+                const {items, total} = await spotifyApi.getMyRecentlyPlayedTracks({
+                    limit,
+                });
+                return {
+                    items: items.map(
+                        (item) => ({played_at: item.played_at, ...item.track} as SpotifyTrack)
+                    ),
+                    total,
+                    next: undefined, // deliberately ignore this
+                };
+            },
+            {maxSize: 50, pageSize: 50}
+        );
     },
 };
 
@@ -73,7 +82,7 @@ const spotifyTopTracks: MediaSource<MediaItem> = {
 
     search(): Pager<MediaItem> {
         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
-            return await spotifyApi.getMyTopTracks({offset, limit});
+            return spotifyApi.getMyTopTracks({offset, limit});
         });
     },
 };
@@ -86,8 +95,9 @@ const spotifyLikedSongs: MediaSource<MediaItem> = {
     layout: defaultLayout,
 
     search(): Pager<MediaItem> {
+        const market = getMarket();
         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
-            const {items, total, next} = await spotifyApi.getMySavedTracks({offset, limit});
+            const {items, total, next} = await spotifyApi.getMySavedTracks({offset, limit, market});
             return {items: items.map((item) => item.track), total, next};
         });
     },
@@ -100,9 +110,10 @@ const spotifyLikedAlbums: MediaSource<MediaAlbum> = {
     itemType: ItemType.Album,
 
     search(): Pager<MediaAlbum> {
+        const market = getMarket();
         return new SpotifyPager(
             async (offset: number, limit: number): Promise<SpotifyPage> => {
-                const {items, total, next} = await spotifyApi.getMySavedAlbums({offset, limit});
+                const {items, total, next} = await spotifyApi.getMySavedAlbums({offset, limit, market});
                 return {items: items.map((item) => item.album), total, next};
             },
             {calculatePageSize: true}
@@ -121,10 +132,12 @@ const spotifyPlaylists: MediaSource<MediaPlaylist> = {
     },
 
     search(): Pager<MediaPlaylist> {
+        const market = getMarket();
         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
             const {items, total, next} = await spotifyApi.getUserPlaylists(undefined, {
                 offset,
                 limit,
+                market,
             });
             return {items: items as SpotifyPlaylist[], total, next};
         });
@@ -153,11 +166,12 @@ const spotify: MediaService = {
 
             search(q: string): Pager<MediaItem> {
                 if (q) {
+                    const market = getMarket();
                     return new SpotifyPager(
                         async (offset: number, limit: number): Promise<SpotifyPage> => {
                             const {
                                 tracks: {items, total, next},
-                            } = await spotifyApi.searchTracks(q, {offset, limit});
+                            } = await spotifyApi.searchTracks(q, {offset, limit, market});
                             return {items, total, next};
                         },
                         {maxSize: 250}
@@ -176,11 +190,12 @@ const spotify: MediaService = {
 
             search(q: string): Pager<MediaAlbum> {
                 if (q) {
+                    const market = getMarket();
                     return new SpotifyPager(
                         async (offset: number, limit: number): Promise<SpotifyPage> => {
                             const {
                                 albums: {items, total, next},
-                            } = await spotifyApi.searchAlbums(q, {offset, limit});
+                            } = await spotifyApi.searchAlbums(q, {offset, limit, market});
                             return {items: items as SpotifyAlbum[], total, next};
                         },
                         {maxSize: 250}
@@ -199,11 +214,12 @@ const spotify: MediaService = {
 
             search(q: string): Pager<MediaArtist> {
                 if (q) {
+                    const market = getMarket();
                     return new SpotifyPager(
                         async (offset: number, limit: number): Promise<SpotifyPage> => {
                             const {
                                 artists: {items, total, next},
-                            } = await spotifyApi.searchArtists(q, {offset, limit});
+                            } = await spotifyApi.searchArtists(q, {offset, limit, market});
                             return {items: items as SpotifyArtist[], total, next};
                         },
                         {maxSize: 250}
@@ -222,11 +238,12 @@ const spotify: MediaService = {
 
             search(q: string): Pager<MediaPlaylist> {
                 if (q) {
+                    const market = getMarket();
                     return new SpotifyPager(
                         async (offset: number, limit: number): Promise<SpotifyPage> => {
                             const {
                                 playlists: {items, total, next},
-                            } = await spotifyApi.searchPlaylists(q, {offset, limit});
+                            } = await spotifyApi.searchPlaylists(q, {offset, limit, market});
                             return {items: items as SpotifyPlaylist[], total, next};
                         },
                         {maxSize: 250}
@@ -244,3 +261,16 @@ const spotify: MediaService = {
 };
 
 export default spotify;
+
+observeAccessToken().subscribe((token) => spotifyApi.setAccessToken(token));
+
+if (!getMarket()) {
+    observeAccessToken()
+        .pipe(
+            skipWhile((token) => !token),
+            mergeMap(() => spotifyApi.getMe()),
+            tap((me) => authSettings.setItem('market', me.country)),
+            take(1)
+        )
+        .subscribe(logger);
+}

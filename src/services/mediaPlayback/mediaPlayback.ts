@@ -84,7 +84,7 @@ export function appendTo(parentElement: HTMLElement): void {
 }
 
 export function load(item: PlaylistItem | null): void {
-    logger.log('load', item?.title, mediaPlayback.autoplay);
+    logger.log('load', item?.title);
     mediaPlayer.load(item);
 }
 

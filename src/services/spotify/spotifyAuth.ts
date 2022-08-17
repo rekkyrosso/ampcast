@@ -8,7 +8,8 @@ import {LiteStorage, Logger} from 'utils';
 console.log('module::spotifyAuth');
 
 const logger = new Logger('spotifyAuth');
-const settings = new LiteStorage('spotify/auth');
+
+export const authSettings = new LiteStorage('spotify/auth');
 
 const host = location.hostname;
 const base = host === 'localhost' ? `http://${host}:${location.port}` : `https://${host}`;
@@ -66,7 +67,7 @@ async function obtainAccessToken(): Promise<TokenResponse> {
     const code_verifier = generateRandomString(64);
     const code_challenge = await generateCodeChallenge(code_verifier);
 
-    settings.setItem('code_verifier', code_verifier);
+    authSettings.setItem('code_verifier', code_verifier);
 
     return new Promise((resolve, reject) => {
         let authWindow: Window | null = null;
@@ -150,7 +151,7 @@ async function generateCodeChallenge(codeVerifier: string): Promise<string> {
 }
 
 async function exchangeToken(code: string): Promise<TokenResponse> {
-    const code_verifier = settings.getItem('code_verifier')!;
+    const code_verifier = authSettings.getItem('code_verifier')!;
 
     const response = await fetch(`${spotifyAccounts}/api/token`, {
         method: 'POST',
@@ -206,13 +207,13 @@ function storeAccessToken(token: TokenResponse): void {
     const {access_token, refresh_token, expires_in} = token;
     const now = new Date();
     const expires_at = new Date(now.setSeconds(now.getSeconds() + expires_in)).toISOString();
-    settings.setItem('token', JSON.stringify({access_token, refresh_token, expires_at}));
+    authSettings.setItem('token', JSON.stringify({access_token, refresh_token, expires_at}));
     nextAccessToken(access_token);
     setTimeout(refreshToken, expires_in * 1000);
 }
 
 function retrieveAccessToken(): TokenStore | null {
-    const token: TokenStore | null = JSON.parse(settings.getItem('token') || 'null');
+    const token: TokenStore | null = JSON.parse(authSettings.getItem('token') || 'null');
     if (token) {
         token.expires_at = new Date(token.expires_at);
     }
@@ -225,7 +226,7 @@ function nextAccessToken(access_token: string): void {
 }
 
 function clearAccessToken(): void {
-    settings.removeItem('token');
+    authSettings.removeItem('token');
     accessToken$.next('');
 }
 

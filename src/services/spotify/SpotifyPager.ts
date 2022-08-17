@@ -20,7 +20,7 @@ import {
     SpotifyPlaylist,
     SpotifyTrack,
 } from './spotify';
-import {refreshToken} from './spotifyAuth';
+import {authSettings, refreshToken} from './spotifyAuth';
 
 export interface SpotifyPage extends Page<SpotifyItem> {
     readonly next?: string | undefined;
@@ -48,11 +48,12 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             async (limit = this.defaultConfig.pageSize!): Promise<Page<T>> => {
                 const offset = (this.pageNumber - 1) * limit;
                 const fetchPage = async () => {
-                    const {items, total} = await fetch(offset, limit);
+                    const {items, total, next} = await fetch(offset, limit);
                     this.pageNumber++;
                     return {
                         items: items.map((item) => this.createMediaObject(item)),
                         total,
+                        atEnd: !next
                     };
                 };
                 try {
@@ -128,6 +129,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             title: episode.name,
             duration: episode.duration_ms / 1000,
             thumbnails: episode.images as Thumbnail[],
+            unplayable: episode.is_playable === false,
         };
     }
 
@@ -186,22 +188,27 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             albumArtist: album?.artists[0]?.name,
             album: album?.name,
             duration: track.duration_ms / 1000,
-            playedOn: track.played_at ? new Date(track.played_at).getTime() || undefined : undefined,
+            playedOn: track.played_at
+                ? new Date(track.played_at).getTime() || undefined
+                : undefined,
             genre: (track.album as any)?.genres?.join(';'),
             disc: album ? track.disc_number : undefined,
             track: album ? track.track_number : undefined,
             year: track.album ? new Date(track.album.release_date).getFullYear() : undefined,
             thumbnails: track.album?.images as Thumbnail[],
+            unplayable: track.is_playable === false,
         };
     }
 
     private createArtistAlbumsPager(artist: SpotifyArtist): Pager<MediaAlbum> {
+        const market = this.getMarket();
         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
-            const {items, total} = await spotifyApi.getArtistAlbums(artist.id, {
+            const {items, total, next} = await spotifyApi.getArtistAlbums(artist.id, {
                 offset,
                 limit,
+                market,
             });
-            return {items: items as SpotifyAlbum[], total};
+            return {items: items as SpotifyAlbum[], total, next};
         });
     }
 
@@ -210,23 +217,31 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         if (tracks && tracks.length === album.total_tracks) {
             return new SimplePager(tracks.map((track) => this.createMediaItemFromTrack(track)));
         } else {
+            const market = this.getMarket();
             return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
-                const {items, total} = await spotifyApi.getAlbumTracks(album.id, {
+                const result = await spotifyApi.getAlbumTracks(album.id, {
                     offset,
                     limit,
+                    market,
                 });
-                return {items, total};
+                return result;
             });
         }
     }
 
     private createPlaylistPager(playlist: SpotifyPlaylist): Pager<MediaItem> {
+        const market = this.getMarket();
         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
-            const {items, total} = await spotifyApi.getPlaylistTracks(playlist.id, {
+            const {items, total, next} = await spotifyApi.getPlaylistTracks(playlist.id, {
                 offset,
                 limit,
+                market,
             });
-            return {items: items.map((item) => item.track), total};
+            return {items: items.map((item) => item.track), total, next};
         });
+    }
+
+    private getMarket(): string {
+        return authSettings.getItem('market') || '';
     }
 }

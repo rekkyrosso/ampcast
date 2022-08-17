@@ -10,6 +10,7 @@ const logger = new Logger('SequentialPager');
 
 export default class SequentialPager<T extends MediaObject> extends AbstractPager<T> {
     protected readonly fetching$ = new BehaviorSubject(false);
+    private emptyCount = 0;
 
     constructor(
         private readonly fetchNext: (pageSize: number | undefined) => Promise<Page<T>>,
@@ -22,6 +23,7 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
         if (!this.subscriptions) {
             super.createSubscriptions();
 
+            // TODO: better error handling.
             this.subscriptions!.add(
                 this.observeShouldFetch()
                     .pipe(
@@ -34,7 +36,8 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
                             return of(undefined);
                         }),
                         tap(() => this.fetching$.next(false)),
-                        takeUntil(this.observeComplete())
+                        takeUntil(this.observeComplete()),
+                        take(100)
                     )
                     .subscribe(logger)
             );
@@ -54,8 +57,12 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
     private addPage(page: Page<T>): void {
         const newItems = (page.items || []).filter(exists);
         const items = uniqBy(this.items.concat(newItems), 'src');
+        if (items.length === this.items.length) {
+            // Nothing got added
+            this.emptyCount++;
+        }
         items.length = Math.min(items.length, this.maxSize);
-        const atEnd = page.atEnd || items.length === this.maxSize;
+        const atEnd = page.atEnd || items.length === this.maxSize || this.emptyCount > 2;
         const size = atEnd ? items.length : page.total;
         if (size !== undefined) {
             this.size$.next(size);

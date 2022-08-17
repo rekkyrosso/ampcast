@@ -237,20 +237,20 @@ export class MusicKitPlayer implements Player<string> {
         if (state === MusicKit.PlaybackStates.ended) {
             this.ended$.next(undefined);
         } else if (state === MusicKit.PlaybackStates.playing) {
-            this.playing$.next(undefined);
+            const [, , id] = this.src.split(':');
+            const nowPlayingItem = this.player!.nowPlayingItem;
+            if (nowPlayingItem?.isPlayable === false && nowPlayingItem?.id === id) {
+                // Apple Music plays silence for unplayable tracks.
+                this.error$.next(Error('Unplayable'));
+                this.player!.stop();
+            } else {
+                this.playing$.next(undefined);
+            }
         }
     };
 
     private readonly onPlaybackDurationChange: any = ({duration}: {duration: number}) => {
         this.duration$.next(duration);
-        if (this.player!.nowPlayingItem?.isPlayable === false) {
-            // Apple Music plays silence for unplayable tracks.
-            if (duration) {
-                this.seek(duration);
-            } else {
-                this.ended$.next(undefined);
-            }
-        }
     };
 
     private readonly onPlaybackTimeChange: any = ({
@@ -262,7 +262,7 @@ export class MusicKitPlayer implements Player<string> {
     };
 
     private readonly onPlaybackError: any = (event: any) => {
-        // TODO: Generate this error somehow.
+        // TODO: Generate this error somehow. I've never seen it!
         console.log('MusicKit::onPlaybackError', event);
     };
 }
