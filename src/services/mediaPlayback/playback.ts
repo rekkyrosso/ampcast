@@ -17,6 +17,7 @@ console.log('module::playback');
 export const defaultPlaybackState: PlaybackState = {
     currentItem: null,
     currentTime: 0,
+    playTime: 0,
     startedAt: 0,
     endedAt: 0,
     duration: 0,

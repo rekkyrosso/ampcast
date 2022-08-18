@@ -181,11 +181,14 @@ function getNextVisualizer(item: PlaylistItem, settings: VisualizerSettings): Vi
 
         case 'milkdrop':
             preset = getRandomValue(butterchurnPresets.getNames(), currentPreset);
+            if (!preset) {
+                return defaultVisualizer;
+            }
             break;
 
         case 'video':
             preset = getRandomValue(videos, currentPreset);
             break;
     }
-    return preset ? {provider, preset} : defaultVisualizer;
+    return {provider, preset};
 }
