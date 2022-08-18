@@ -6,11 +6,8 @@ import musicKitPlayer from 'services/apple/musicKitPlayer';
 import spotifyPlayer from 'services/spotify/spotifyPlayer';
 import OmniPlayer from 'services/OmniPlayer';
 import HTML5Player from 'services/HTML5Player';
-import {Logger} from 'utils';
 
 console.log('module::mediaPlayer');
-
-const logger = new Logger('mediaPlayer');
 
 const html5AudioPlayer = new HTML5Player('audio');
 const html5VideoPlayer = new HTML5Player('video');
@@ -37,7 +34,11 @@ function selectPlayer(item: PlaylistItem | null) {
 }
 
 function loadPlayer(player: Player<string>, item: PlaylistItem | null) {
-    player.load(getMediaSource(item));
+    if (item?.unplayable) {
+        throw Error('Unplayable.');
+    } else {
+        player.load(getMediaSource(item));
+    }
 }
 
 function getMediaSource(item: PlaylistItem | null): string {
@@ -53,7 +54,3 @@ function getMediaSource(item: PlaylistItem | null): string {
 const mediaPlayer = new OmniPlayer<PlaylistItem | null, string>(players, selectPlayer, loadPlayer);
 
 export default mediaPlayer;
-
-mediaPlayer.observeError().subscribe(logger.error);
-mediaPlayer.observePlaying().subscribe(logger.all('playing'));
-mediaPlayer.observeEnded().subscribe(logger.all('ended'));

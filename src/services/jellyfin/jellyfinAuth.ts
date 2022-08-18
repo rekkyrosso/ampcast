@@ -5,6 +5,7 @@ import Auth from 'types/Auth';
 import {Logger} from 'utils';
 import settings from './jellyfinSettings';
 import {showJellyfinLoginDialog} from 'components/Login/JellyfinLoginDialog';
+import jellyfinSettings from './jellyfinSettings';
 
 console.log('module::jellyfinAuth');
 
@@ -47,6 +48,7 @@ export async function login(): Promise<void> {
 
 export async function logout(): Promise<void> {
     setAccessToken('');
+    jellyfinSettings.clear();
 }
 
 function setAccessToken(token: string): void {

@@ -43,7 +43,9 @@ export async function login(): Promise<void> {
 }
 
 export async function logout(): Promise<void> {
+    isConnected$.next(false);
     setAccessToken('');
+    plexSettings.clear();
 }
 
 function setAccessToken(token: string): void {

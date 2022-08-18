@@ -59,6 +59,7 @@ export async function login(): Promise<void> {
 
 export async function logout(): Promise<void> {
     clearAccessToken();
+    authSettings.clear();
 }
 
 // From: https://github.com/JMPerez/spotify-dedup/blob/master/dedup/oauthManager.ts

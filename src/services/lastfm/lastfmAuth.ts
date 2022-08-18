@@ -53,6 +53,7 @@ export async function login(): Promise<void> {
 export async function logout(): Promise<void> {
     sessionKey$.next('');
     accessToken$.next('');
+    lastfmSettings.clear();
 }
 
 async function obtainAccessToken(): Promise<string> {

@@ -1,6 +1,6 @@
 {
     "name": "ampcast",
-    "version": "0.4.6",
+    "version": "0.4.7",
     "description": "Ampcast music player",
     "author": "rekkyrosso",
     "main": "index.js",
@@ -15,7 +15,6 @@
         "@ctrl/tinycolor": "^3.4.0",
         "audiomotion-analyzer": "^3.6.0",
         "butterchurn": "^3.0.0-beta.4",
-        "butterchurn-presets": "3.0.0-beta.4",
         "detect-browser": "^5.3.0",
         "dialog-polyfill": "^0.5.6",
         "get-youtube-id": "^1.0.1",

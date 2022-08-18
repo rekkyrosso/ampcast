@@ -1,6 +1,14 @@
 import type {Observable} from 'rxjs';
 import {Subject, BehaviorSubject, merge, partition} from 'rxjs';
-import {distinctUntilChanged, filter, map, switchMap, tap, withLatestFrom} from 'rxjs/operators';
+import {
+    distinctUntilChanged,
+    filter,
+    map,
+    switchMap,
+    take,
+    tap,
+    withLatestFrom,
+} from 'rxjs/operators';
 import {get as dbRead, set as dbWrite, createStore} from 'idb-keyval';
 import MediaType from 'types/MediaType';
 import PlaylistItem from 'types/PlaylistItem';
@@ -17,12 +25,7 @@ console.log('module::visualizer');
 
 const logger = new Logger('visualizer');
 
-logger.log('Ambient videos:', videos.length);
-logger.log('AudioMotion presets:', audioMotionPresets.length);
-logger.log('Butterchurn presets:', butterchurnPresets.length);
-
 const audioMotionPresetNames = audioMotionPresets.map((preset) => preset.name);
-const butterchurnPresetNames = butterchurnPresets.map((preset) => preset.name);
 
 const store = createStore('ampcast/visualizer', 'keyval');
 
@@ -141,6 +144,22 @@ observeCurrentVisualizer()
 
 audio$.pipe(switchMap(() => playing$)).subscribe(() => player.play());
 
+logger.log('Ambient videos:', videos.length);
+logger.log('AudioMotion presets:', audioMotionPresets.length);
+
+butterchurnPresets
+    .observe()
+    .pipe(
+        withLatestFrom(observeCurrentVisualizer()),
+        tap(([, currentVisualizer]) => {
+            if (currentVisualizer === defaultVisualizer) {
+                nextVisualizer();
+            }
+        }),
+        take(2)
+    )
+    .subscribe(() => logger.log('Butterchurn presets:', butterchurnPresets.size));
+
 function getNextVisualizer(item: PlaylistItem, settings: VisualizerSettings): Visualizer {
     if (settings.locked) {
         return settings.locked; /// TODO: Rename this
@@ -161,12 +180,12 @@ function getNextVisualizer(item: PlaylistItem, settings: VisualizerSettings): Vi
             break;
 
         case 'milkdrop':
-            preset = getRandomValue(butterchurnPresetNames, currentPreset);
+            preset = getRandomValue(butterchurnPresets.getNames(), currentPreset);
             break;
 
         case 'video':
             preset = getRandomValue(videos, currentPreset);
             break;
     }
-    return {provider, preset};
+    return preset ? {provider, preset} : defaultVisualizer;
 }

@@ -28,3 +28,8 @@ interface ButterchurnVisualizerOptions {
 }
 
 type MilkdropRawData = any;
+
+interface Window {
+    butterchurnPresets: Record<string, MilkdropRawData>;
+    butterchurnPresetsExtra: Record<string, MilkdropRawData>;
+}

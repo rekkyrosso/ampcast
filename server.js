@@ -14,6 +14,7 @@ const webIndex = resolve(wwwDir, './index.html');
 webServer.get('/', (_, res) => res.sendFile(webIndex));
 
 webServer.use('/auth', express.static(resolve(wwwDir, './auth')));
+webServer.use('/lib', express.static(resolve(wwwDir, './lib')));
 
 webServer.get('/bundle.css', async (_, res) => {
     const path = await getLatest('bundle.css');

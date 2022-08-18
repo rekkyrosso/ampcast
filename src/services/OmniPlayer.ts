@@ -1,11 +1,12 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, EMPTY, of} from 'rxjs';
+import {EMPTY, BehaviorSubject, Subject, merge, of} from 'rxjs';
 import {distinctUntilChanged, switchMap} from 'rxjs/operators';
 import {SetReturnType} from 'type-fest';
 import Player from 'types/Player';
 
 export default class OmniPlayer<T, S> implements Player<T> {
     private readonly player$ = new BehaviorSubject<Player<S> | null>(null);
+    private readonly error$ = new Subject<unknown>();
     #hidden = false;
     #muted = false;
 
@@ -13,7 +14,13 @@ export default class OmniPlayer<T, S> implements Player<T> {
         private readonly players: Player<S>[],
         private readonly selectPlayer: SetReturnType<Player<T>['load'], Player<S> | null>,
         private readonly loadPlayer: (player: Player<S>, src: T) => void
-    ) {}
+    ) {
+        players.forEach((player) => {
+            player.autoplay = false;
+            player.muted = true;
+            player.hidden = true;
+        });
+    }
 
     get hidden(): boolean {
         return this.#hidden;
@@ -83,7 +90,7 @@ export default class OmniPlayer<T, S> implements Player<T> {
 
     observeError(): Observable<unknown> {
         return this.observeCurrentPlayer().pipe(
-            switchMap((player) => (player ? player.observeError() : EMPTY))
+            switchMap((player) => (player ? merge(this.error$, player.observeError()) : EMPTY))
         );
     }
 
@@ -110,12 +117,15 @@ export default class OmniPlayer<T, S> implements Player<T> {
         this.player$.next(nextPlayer);
 
         if (nextPlayer) {
-            this.loadPlayer(nextPlayer, src);
-
-            if (nextPlayer !== prevPlayer) {
+            try {
+                this.loadPlayer(nextPlayer, src);
                 nextPlayer.muted = this.muted;
                 nextPlayer.hidden = this.hidden;
+            } catch (err) {
+                this.error$.next(err);
             }
+        } else {
+            this.error$.next(Error('No player found.'));
         }
     }
 

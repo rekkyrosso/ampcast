@@ -50,7 +50,7 @@ export default class Milkdrop extends AbstractVisualizer<string> {
 
     load(presetName: string): void {
         logger.log('load', presetName);
-        const preset = butterchurnPresets.find((preset) => preset.name === presetName);
+        const preset = butterchurnPresets.find(presetName);
         if (preset) {
             logger.log(`Using butterchurn preset: ${preset.name}`);
             this.visualizer.loadPreset(preset.data, 0.5);

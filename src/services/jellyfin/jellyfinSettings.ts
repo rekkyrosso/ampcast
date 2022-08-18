@@ -5,7 +5,7 @@ const storage = new LiteStorage('jellyfin');
 
 export default {
     get host(): string {
-        return storage.getItem(`host`) || ''
+        return storage.getItem(`host`) || '';
     },
 
     set host(host: string) {
@@ -39,5 +39,10 @@ export default {
 
     set userId(userId: string) {
         storage.setItem(`userId`, userId);
+    },
+
+    clear(): void {
+        storage.removeItem(`userId`);
+        storage.removeItem(`token`);
     },
 };

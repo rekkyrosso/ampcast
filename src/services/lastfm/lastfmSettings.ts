@@ -26,4 +26,8 @@ export default {
     set sessionKey(sessionKey: string) {
         storage.setItem(`sessionKey`, sessionKey);
     },
+
+    clear(): void {
+        storage.clear();
+    },
 };

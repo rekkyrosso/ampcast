@@ -50,7 +50,7 @@ export default {
     },
 
     get serverToken(): string {
-        return this.server?.accessToken || ''
+        return this.server?.accessToken || '';
     },
 
     get userToken(): string {
@@ -67,5 +67,13 @@ export default {
 
     set userId(userId: string) {
         storage.setItem(`userId`, userId);
+    },
+
+    clear(): void {
+        const clientId = this.clientId;
+        storage.clear();
+        if (clientId) {
+            storage.setItem(`clientId`, clientId);
+        }
     },
 };
