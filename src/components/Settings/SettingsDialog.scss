@@ -25,4 +25,8 @@
         bottom: 1em;
         margin: 0;
     }
+
+    .light & .tree-view-node.selected .icon-apple {
+        fill: white;
+    }
 }

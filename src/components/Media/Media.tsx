@@ -2,6 +2,7 @@ import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
 import {fromEvent} from 'rxjs';
 import {map} from 'rxjs/operators';
 import mediaPlayback from 'services/mediaPlayback';
+import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
 import useOnResize from 'hooks/useOnResize';
 import VisualizerControls from './VisualizerControls';
 import Interstitial from './Interstitial';
@@ -12,6 +13,8 @@ console.log('component::Media');
 export default function Media() {
     const ref = useRef<HTMLDivElement>(null);
     const [fullScreen, setFullScreen] = useState(false);
+    const visualizer = useCurrentVisualizer();
+    const noVisualizer = !visualizer || visualizer.provider === 'none';
 
     useLayoutEffect(() => {
         mediaPlayback.appendTo(ref.current!);
@@ -42,7 +45,7 @@ export default function Media() {
 
     return (
         <div
-            className={`panel media ${fullScreen ? 'full-screen' : ''}`}
+            className={`panel media ${noVisualizer ? 'no-visualizer' : ''}`}
             onDoubleClick={toggleFullScreen}
             ref={ref}
         >

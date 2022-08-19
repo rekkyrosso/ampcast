@@ -9,13 +9,12 @@ import {
     tap,
     withLatestFrom,
 } from 'rxjs/operators';
-import {get as dbRead, set as dbWrite, createStore} from 'idb-keyval';
 import MediaType from 'types/MediaType';
 import PlaylistItem from 'types/PlaylistItem';
 import Visualizer from 'types/Visualizer';
 import VisualizerProvider from 'types/VisualizerProvider';
 import {observeCurrentItem, observePaused} from 'services/mediaPlayback';
-import {exists, getRandomValue, Logger} from 'utils';
+import {exists, getRandomValue, LiteStorage, Logger} from 'utils';
 import audioMotionPresets from './audioMotionPresets';
 import butterchurnPresets from './butterchurnPresets';
 import videos from './videos';
@@ -27,7 +26,7 @@ const logger = new Logger('visualizer');
 
 const audioMotionPresetNames = audioMotionPresets.map((preset) => preset.name);
 
-const store = createStore('ampcast/visualizer', 'keyval');
+const storage = new LiteStorage('visualizer');
 
 export interface VisualizerSettings {
     readonly provider?: VisualizerProvider;
@@ -78,29 +77,29 @@ export function nextVisualizer(): void {
     next$.next(undefined);
 }
 
-export async function lock(): Promise<void> {
-    return setLocked(true);
+export function lock(): void {
+    setLocked(true);
 }
 
-export async function unlock(): Promise<void> {
-    return setLocked(false);
+export function unlock(): void {
+    setLocked(false);
 }
 
-async function setLocked(locked: boolean): Promise<void> {
-    const {locked: prevLocked, ...settings} = settings$.getValue();
+function setLocked(locked: boolean): void {
+    const {locked: prevLocked, ...prevSettings} = settings$.getValue();
     if (!!prevLocked !== locked) {
         const currentVisualizer = currentVisualizer$.getValue();
-        const newSettings = locked ? {...settings, locked: currentVisualizer} : settings;
-        await dbWrite('settings', newSettings, store);
+        const newSettings = locked ? {...prevSettings, locked: currentVisualizer} : prevSettings;
+        storage.setItem('settings', JSON.stringify(newSettings));
         settings$.next(newSettings);
     }
 }
 
-export async function setProvider(provider: VisualizerProvider | ''): Promise<void> {
+export function setProvider(provider: VisualizerProvider | ''): void {
     const {provider: prevProvider, ...settings} = settings$.getValue();
     if (provider !== prevProvider) {
         const newSettings = provider ? {...settings, provider} : settings;
-        await dbWrite('settings', newSettings, store);
+        storage.setItem('settings', JSON.stringify(newSettings));
         settings$.next(newSettings);
     }
 }
@@ -116,9 +115,13 @@ export default {
     setProvider,
 };
 
-(async () => {
-    const settings = (await dbRead<VisualizerSettings>('settings', store)) ?? {};
-    settings$.next(settings);
+(() => {
+    try {
+        const settings = storage.getItem('settings') || '{}';
+        settings$.next(JSON.parse(settings));
+    } catch (err) {
+        logger.error(err);
+    }
 })();
 
 empty$.subscribe(() => player.stop());
@@ -155,14 +158,19 @@ butterchurnPresets
             if (currentVisualizer === defaultVisualizer) {
                 nextVisualizer();
             }
+            logger.log('Butterchurn presets:', butterchurnPresets.size);
         }),
         take(2)
     )
-    .subscribe(() => logger.log('Butterchurn presets:', butterchurnPresets.size));
+    .subscribe(logger);
 
 function getNextVisualizer(item: PlaylistItem, settings: VisualizerSettings): Visualizer {
-    if (settings.locked) {
-        return settings.locked; /// TODO: Rename this
+    const locked = settings.locked;
+    if (locked) {
+        if (locked.provider === 'milkdrop' && !butterchurnPresets.find(locked.preset)) {
+            return defaultVisualizer;
+        }
+        return locked;
     }
     let provider = settings.provider;
     let preset = '';

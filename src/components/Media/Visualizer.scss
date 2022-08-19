@@ -31,10 +31,6 @@
             opacity: 1;
         }
 
-        .full-screen & {
-            opacity: 0;
-        }
-
         .source-icon,
         &-settings,
         &-selector {
@@ -60,6 +56,10 @@
         &-selector {
             left: 0.25rem;
             bottom: 0.25rem;
+
+            .no-visualizer & {
+                display: none;
+            }
         }
     }
 }

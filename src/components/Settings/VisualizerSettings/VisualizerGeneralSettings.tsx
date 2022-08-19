@@ -22,6 +22,7 @@ export default function VisualizerGeneralSettings() {
                     key={provider}
                     ref={selectRef}
                 >
+                    <option value="none">(none)</option>
                     <option value="">(random)</option>
                     <option value="video">Ambient Video</option>
                     <option value="audiomotion">AudioMotion Visualizer</option>
