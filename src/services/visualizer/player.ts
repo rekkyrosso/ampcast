@@ -7,6 +7,7 @@ import ambientVideoPlayer from './ambientVideoPlayer';
 import AmpShade from './AmpShade';
 import AudioMotion from './AudioMotion';
 import Milkdrop from './Milkdrop';
+import SpotifyViz from './SpotifyViz';
 import Waveform from './Waveform';
 
 console.log('module::visualizer/player');
@@ -16,9 +17,10 @@ const logger = new Logger('visualizer/player');
 const ampshade = new AmpShade(audioContext, analyser);
 const audioMotion = new AudioMotion(audioContext, observeAudioSourceNode());
 const milkdrop = new Milkdrop(analyser);
+const spotifyViz = new SpotifyViz();
 const waveform = new Waveform(analyser);
 
-const visualizers = [ampshade, audioMotion, milkdrop, waveform, ambientVideoPlayer];
+const visualizers = [ampshade, audioMotion, milkdrop, spotifyViz, waveform, ambientVideoPlayer];
 
 function selectVisualizer(visualizer: Visualizer) {
     switch (visualizer.provider) {
@@ -37,6 +39,9 @@ function selectVisualizer(visualizer: Visualizer) {
         case 'waveform':
             return waveform;
 
+        case 'spotify-viz':
+            return spotifyViz;
+
         default:
             return null;
     }
@@ -46,7 +51,11 @@ function loadVisualizer(player: Player<string>, visualizer: Visualizer) {
     player.load(visualizer.preset);
 }
 
-const visualizer = new OmniPlayer<Visualizer, string>(visualizers, selectVisualizer, loadVisualizer);
+const visualizer = new OmniPlayer<Visualizer, string>(
+    visualizers,
+    selectVisualizer,
+    loadVisualizer
+);
 
 visualizer.loop = true;
 visualizer.muted = true;

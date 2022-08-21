@@ -4,3 +4,4 @@
 # except:
 !src
 !src/**
+src/services/visualizer/spotify-viz

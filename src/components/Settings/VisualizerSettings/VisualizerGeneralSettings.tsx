@@ -25,10 +25,11 @@ export default function VisualizerGeneralSettings() {
                     <option value="none">(none)</option>
                     <option value="">(random)</option>
                     <option value="video">Ambient Video</option>
-                    <option value="audiomotion">AudioMotion Visualizer</option>
-                    <option value="milkdrop">Milkdrop Visualizer</option>
-                    <option value="waveform">Waveform Visualizer</option>
-                    <option value="ampshade">Ampshade Visualizer</option>
+                    <option value="audiomotion">AudioMotion</option>
+                    <option value="milkdrop">Milkdrop</option>
+                    <option value="spotify-viz">SpotifyViz</option>
+                    <option value="waveform">Waveform</option>
+                    <option value="ampshade">Ampshade</option>
                 </select>
             </p>
             <footer className="dialog-buttons">

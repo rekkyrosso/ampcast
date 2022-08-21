@@ -64,10 +64,9 @@ export default class Waveform extends AbstractVisualizer<void> {
     }
 
     private clear(): void {
-        const canvasContext = this.canvas.getContext('2d')!;
         const width = this.canvas.width;
         const height = this.canvas.height;
-        canvasContext.clearRect(0, 0, width, height);
+        this.canvasContext.clearRect(0, 0, width, height);
     }
 
     private render(): void {

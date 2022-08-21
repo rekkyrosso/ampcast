@@ -83,7 +83,6 @@ export class SpotifyPlayer implements Player<string> {
                                 this.error$.next(error);
                                 return EMPTY;
                             }),
-                            tap(logger.all('step5')),
                             take(1)
                         );
                     } else {
@@ -203,6 +202,13 @@ export class SpotifyPlayer implements Player<string> {
         );
     }
 
+    observeCurrentTrackState(): Observable<Spotify.PlaybackState> {
+        return this.observeState().pipe(
+            filter((state) => state.track_window?.current_track?.uri === this.currentTrackSrc),
+            map((state) => state)
+        );
+    }
+
     appendTo(): void {
         // not visible
     }
@@ -297,13 +303,6 @@ export class SpotifyPlayer implements Player<string> {
 
     private observeState(): Observable<Spotify.PlaybackState> {
         return this.state$.pipe(filter(exists));
-    }
-
-    private observeCurrentTrackState(): Observable<Spotify.PlaybackState> {
-        return this.observeState().pipe(
-            filter((state) => state.track_window.current_track.uri === this.currentTrackSrc),
-            map((state) => state)
-        );
     }
 
     private getCurrentState(): Promise<Spotify.PlaybackState | null> {

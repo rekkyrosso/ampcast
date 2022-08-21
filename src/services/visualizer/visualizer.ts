@@ -160,7 +160,7 @@ butterchurnPresets
             }
             logger.log('Butterchurn presets:', butterchurnPresets.size);
         }),
-        take(2)
+        take(3)
     )
     .subscribe(logger);
 
@@ -175,7 +175,11 @@ function getNextVisualizer(item: PlaylistItem, settings: VisualizerSettings): Vi
     let provider = settings.provider;
     let preset = '';
     if (item.src.startsWith('spotify:')) {
-        provider = 'video';
+        if (provider !== 'video') {
+            provider = 'spotify-viz';
+        }
+    } else if (provider === 'spotify-viz') {
+        provider = 'milkdrop';
     }
     if (!provider) {
         provider = getRandomValue(randomProviders);
