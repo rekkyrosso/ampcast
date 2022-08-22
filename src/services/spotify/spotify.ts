@@ -113,7 +113,11 @@ const spotifyLikedAlbums: MediaSource<MediaAlbum> = {
         const market = getMarket();
         return new SpotifyPager(
             async (offset: number, limit: number): Promise<SpotifyPage> => {
-                const {items, total, next} = await spotifyApi.getMySavedAlbums({offset, limit, market});
+                const {items, total, next} = await spotifyApi.getMySavedAlbums({
+                    offset,
+                    limit,
+                    market,
+                });
                 return {items: items.map((item) => item.album), total, next};
             },
             {calculatePageSize: true}

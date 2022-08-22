@@ -5,7 +5,7 @@ import sample from './spotify-viz/sample';
 
 const logger = new Logger('SpotifyViz');
 
-export default class SpotifyViz extends AbstractVisualizer<void> {
+export default class SpotifyViz extends AbstractVisualizer<string> {
     private readonly element = document.createElement('div');
     private readonly visualizer = new Visualizer();
 

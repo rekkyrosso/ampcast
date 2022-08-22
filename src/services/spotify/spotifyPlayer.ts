@@ -71,7 +71,9 @@ export class SpotifyPlayer implements Player<string> {
                                     map((state) => state.track_window.current_track.uri),
                                     skipWhile((src) => src === this.currentTrackSrc),
                                     tap((src) => (this.currentTrackSrc = src)),
-                                    mergeMap(() => this.paused ? of(undefined) : this.player!.resume()),
+                                    mergeMap(() =>
+                                        this.paused ? of(undefined) : this.player!.resume()
+                                    ),
                                     take(1)
                                 )
                             ),
@@ -261,6 +263,10 @@ export class SpotifyPlayer implements Player<string> {
         // not visible
     }
 
+    getCurrentState(): Promise<Spotify.PlaybackState | null> {
+        return this.player ? this.player.getCurrentState() : Promise.resolve(null);
+    }
+
     private get paused(): boolean {
         return this.paused$.getValue();
     }
@@ -302,10 +308,6 @@ export class SpotifyPlayer implements Player<string> {
 
     private observeState(): Observable<Spotify.PlaybackState> {
         return this.state$.pipe(filter(exists));
-    }
-
-    private getCurrentState(): Promise<Spotify.PlaybackState | null> {
-        return this.player ? this.player.getCurrentState() : Promise.resolve(null);
     }
 
     private onSpotifyWebPlaybackSDKReady = () => {
