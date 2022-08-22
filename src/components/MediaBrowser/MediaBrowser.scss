@@ -14,6 +14,7 @@
 
     .artist-browser .splitter-rows > .layout-splitter {
         left: var(--gutter-width);
+        width: calc(100% - var(--gutter-width));
     }
 
     .splitter-columns > .layout-splitter {

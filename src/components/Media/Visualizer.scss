@@ -3,10 +3,6 @@
     inset: 0;
     background: var(--black);
 
-    &-spotify-viz {
-        background: brown;
-    }
-
     &-audiomotion {
         &[hidden] {
             display: block;

@@ -61,7 +61,6 @@ export class SpotifyPlayer implements Player<string> {
                 mergeMap(() => this.observeIsLoggedIn()),
                 switchMap((isLoggedIn) => (isLoggedIn ? this.observeSrc() : EMPTY)),
                 withLatestFrom(this.observeAccessToken()),
-                // mergeMap(([src, token]) => this.setVolume(0).then(() => [src, token])),
                 switchMap(([src, token]) => {
                     if (src && src !== this.loadedSrc) {
                         return this.observeNotLoading().pipe(
@@ -72,10 +71,10 @@ export class SpotifyPlayer implements Player<string> {
                                     map((state) => state.track_window.current_track.uri),
                                     skipWhile((src) => src === this.currentTrackSrc),
                                     tap((src) => (this.currentTrackSrc = src)),
+                                    mergeMap(() => this.paused ? of(undefined) : this.player!.resume()),
                                     take(1)
                                 )
                             ),
-                            // mergeMap(() => this.setVolume(this.muted ? 0 : this.volume)),
                             catchError((error) => {
                                 this.loadedSrc = '';
                                 this.currentTrackSrc = '';
