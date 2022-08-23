@@ -6,7 +6,6 @@ import {
     filter,
     map,
     switchMap,
-    tap,
     withLatestFrom,
 } from 'rxjs/operators';
 import MediaPlayback from 'types/MediaPlayback';
@@ -30,10 +29,7 @@ const loadingLocked$ = new BehaviorSubject(false);
 let direction: 'backward' | 'forward' = 'forward';
 
 export function observeCurrentItem(): Observable<PlaylistItem | null> {
-    return loadingLocked$.pipe(
-        distinctUntilChanged(),
-        switchMap((locked) => (locked ? EMPTY : playlist.observeCurrentItem()))
-    );
+    return playlist.observeCurrentItem();
 }
 
 export function observeCurrentTime(): Observable<number> {
@@ -153,7 +149,8 @@ function observePlaylistAtStart(): Observable<boolean> {
 
 function lockLoading() {
     if (!playback.paused && loadingLocked$.getValue() === false) {
-        stop();
+        playback.stop();
+        mediaPlayer.stop();
         playback.play();
     }
     loadingLocked$.next(true);
@@ -226,7 +223,6 @@ mediaPlayer.observeCurrentTime().subscribe((time) => playback.setCurrentTime(tim
 mediaPlayer.observeDuration().subscribe((duration) => playback.setDuration(duration));
 mediaPlayer.observePlaying().subscribe(() => playback.started());
 mediaPlayer.observeEnded().subscribe(() => playback.ended());
-
 mediaPlayer.observePlaying().subscribe(() => (direction = 'forward'));
 
 mediaPlayer
@@ -267,15 +263,19 @@ playlist
 loadingLocked$
     .pipe(
         debounceTime(250),
-        filter((paused) => paused),
-        tap(() => {
-            mediaPlayback.autoplay = !playback.paused;
-            loadingLocked$.next(false);
-        })
+        filter((locked) => locked)
     )
-    .subscribe(logger);
+    .subscribe(() => {
+        mediaPlayback.autoplay = !playback.paused;
+        loadingLocked$.next(false);
+    });
 
-observeCurrentItem().subscribe(load);
+loadingLocked$
+    .pipe(
+        distinctUntilChanged(),
+        switchMap((locked) => (locked ? EMPTY : observeCurrentItem()))
+    )
+    .subscribe(load);
 
 fromEvent(window, 'pagehide').subscribe(stop);
 

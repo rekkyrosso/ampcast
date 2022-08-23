@@ -46,6 +46,7 @@ export class SpotifyPlayer implements Player<string> {
     private loadError?: LoadError;
     private isLoggedIn = false;
     private deviceId = '';
+    private hasPlayed = false;
     public autoplay = false;
     public hidden = true;
     public loop = false;
@@ -72,7 +73,9 @@ export class SpotifyPlayer implements Player<string> {
                                     skipWhile((src) => src === this.currentTrackSrc),
                                     tap((src) => (this.currentTrackSrc = src)),
                                     mergeMap(() =>
-                                        this.paused ? of(undefined) : this.player!.resume()
+                                        this.autoplay && !this.hasPlayed
+                                            ? this.safeResume()
+                                            : of(undefined)
                                     ),
                                     take(1)
                                 )
@@ -98,13 +101,13 @@ export class SpotifyPlayer implements Player<string> {
             .pipe(
                 tap((state) => {
                     if (this.paused && !state.paused) {
-                        this.player!.pause().then(undefined, logger.error);
+                        this.safePause();
                     } else if (
                         state.paused &&
                         !this.paused &&
                         state.track_window.current_track.uri === this.currentTrackSrc
                     ) {
-                        this.player!.resume().then(undefined, (err) => this.error$.next(err));
+                        this.safeResume();
                     }
                 })
             )
@@ -135,7 +138,7 @@ export class SpotifyPlayer implements Player<string> {
     set muted(muted: boolean) {
         if (this.#muted !== muted) {
             this.#muted = muted;
-            this.setVolume(muted ? 0 : this.volume);
+            this.safeVolume(muted ? 0 : this.volume);
         }
     }
 
@@ -146,7 +149,7 @@ export class SpotifyPlayer implements Player<string> {
     set volume(volume: number) {
         if (this.#volume !== volume) {
             this.#volume = volume;
-            this.setVolume(this.muted ? 0 : volume);
+            this.safeVolume(this.muted ? 0 : volume);
         }
     }
 
@@ -220,7 +223,7 @@ export class SpotifyPlayer implements Player<string> {
             if (this.autoplay) {
                 this.paused$.next(false);
                 if (src === this.loadedSrc) {
-                    this.player.resume().then(undefined, (err) => this.error$.next(err));
+                    this.safeResume();
                 }
             }
         } else if (this.autoplay) {
@@ -234,7 +237,7 @@ export class SpotifyPlayer implements Player<string> {
             if (this.src === this.loadError?.src) {
                 this.error$.next(this.loadError.error);
             } else if (this.src === this.loadedSrc) {
-                this.player.resume().then(undefined, (err) => this.error$.next(err));
+                this.safeResume();
             }
         } else {
             this.error$.next(Error(ERR_NOT_CONNECTED));
@@ -243,15 +246,13 @@ export class SpotifyPlayer implements Player<string> {
 
     pause(): void {
         this.paused$.next(true);
-        if (this.loadedSrc) {
-            this.player?.pause();
-        }
+        this.safePause();
     }
 
     stop(): void {
         this.paused$.next(true);
         if (this.loadedSrc) {
-            this.player?.seek(0).then(() => this.player!.pause());
+            this.player?.seek(0).then(() => this.safePause(), logger.error);
         }
     }
 
@@ -391,9 +392,26 @@ export class SpotifyPlayer implements Player<string> {
         );
     }
 
-    private setVolume(volume: number): Promise<void> {
+    private safeVolume(volume: number): Promise<void> {
         return this.player
             ? this.player!.setVolume(volume).then(undefined, logger.error)
+            : Promise.resolve();
+    }
+
+    private safePause(): Promise<void> {
+        return this.player && this.loadedSrc
+            ? this.player!.pause().then(undefined, logger.error)
+            : Promise.resolve();
+    }
+
+    private safeResume(): Promise<void> {
+        return this.player
+            ? this.player.resume().then(
+                  () => {
+                      this.hasPlayed = true;
+                  },
+                  (err) => this.error$.next(err)
+              )
             : Promise.resolve();
     }
 }
