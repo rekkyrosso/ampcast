@@ -46,8 +46,8 @@ function YouTubeVideoInfo({visualizer}: VisualizerInfoProps) {
 
 function getProviderName(visualizer: Visualizer | null): string {
     switch (visualizer?.provider) {
-        case 'ampshade':
-            return 'Ampshade';
+        case 'ampshader':
+            return 'Ampshader';
 
         case 'audiomotion':
             return 'AudioMotion';

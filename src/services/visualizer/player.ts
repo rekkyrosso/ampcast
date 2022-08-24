@@ -4,7 +4,7 @@ import {analyser, audioContext, observeAudioSourceNode} from 'services/audio';
 import OmniPlayer from 'services/OmniPlayer';
 import {Logger} from 'utils';
 import ambientVideoPlayer from './ambientVideoPlayer';
-import AmpShade from './AmpShade';
+import AmpShader from './AmpShader';
 import AudioMotion from './AudioMotion';
 import Milkdrop from './Milkdrop';
 import SpotifyViz from './SpotifyViz';
@@ -14,18 +14,18 @@ console.log('module::visualizer/player');
 
 const logger = new Logger('visualizer/player');
 
-const ampshade = new AmpShade(audioContext, analyser);
+const ampshader = new AmpShader(audioContext, analyser);
 const audioMotion = new AudioMotion(audioContext, observeAudioSourceNode());
 const milkdrop = new Milkdrop(analyser);
 const spotifyViz = new SpotifyViz();
 const waveform = new Waveform(analyser);
 
-const visualizers = [ampshade, audioMotion, milkdrop, spotifyViz, waveform, ambientVideoPlayer];
+const visualizers = [ampshader, audioMotion, milkdrop, spotifyViz, waveform, ambientVideoPlayer];
 
 function selectVisualizer(visualizer: Visualizer) {
     switch (visualizer.provider) {
-        case 'ampshade':
-            return ampshade;
+        case 'ampshader':
+            return ampshader;
 
         case 'audiomotion':
             return audioMotion;

@@ -1,6 +1,6 @@
 type VisualizerProvider =
     | 'none'
-    | 'ampshade'
+    | 'ampshader'
     | 'milkdrop'
     | 'audiomotion'
     | 'waveform'

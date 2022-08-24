@@ -67,19 +67,6 @@ export class SpotifyPlayer implements Player<string> {
                         return this.observeNotLoading().pipe(
                             delayWhen(() => (this.loadError ? this.reconnect() : of(0))),
                             mergeMap(() => this.addToQueue(src, token)),
-                            mergeMap(() =>
-                                this.observeState().pipe(
-                                    map((state) => state.track_window.current_track.uri),
-                                    skipWhile((src) => src === this.currentTrackSrc),
-                                    tap((src) => (this.currentTrackSrc = src)),
-                                    mergeMap(() =>
-                                        this.autoplay && !this.hasPlayed
-                                            ? this.safeResume()
-                                            : of(undefined)
-                                    ),
-                                    take(1)
-                                )
-                            ),
                             catchError((error) => {
                                 this.loadedSrc = '';
                                 this.currentTrackSrc = '';
@@ -100,10 +87,13 @@ export class SpotifyPlayer implements Player<string> {
         this.observeState()
             .pipe(
                 tap((state) => {
+                    if (this.src === this.loadedSrc) {
+                        this.currentTrackSrc = state.track_window.current_track.uri;
+                    }
                     if (this.paused && !state.paused) {
                         this.safePause();
                     } else if (
-                        state.paused &&
+                        (state.paused || !this.hasPlayed) &&
                         !this.paused &&
                         state.track_window.current_track.uri === this.currentTrackSrc
                     ) {
@@ -127,6 +117,10 @@ export class SpotifyPlayer implements Player<string> {
             .subscribe(logger);
 
         this.observeError().subscribe(logger.error);
+        // this.observeCurrentTrackState().subscribe(logger.all('currentTrack'));
+        // this.observePlaying().subscribe(logger.all('playing'));
+        // this.observeDuration().subscribe(logger.all('duration'));
+        // this.observeEnded().subscribe(logger.all('ended'));
 
         loadScript(spotifyPlayerSdk);
     }
@@ -170,15 +164,9 @@ export class SpotifyPlayer implements Player<string> {
     }
 
     observeDuration(): Observable<number> {
-        return this.observeSrc().pipe(
-            switchMap((src) =>
-                src
-                    ? this.observeCurrentTrackState().pipe(
-                          map((track) => track.duration / 1000),
-                          take(1)
-                      )
-                    : of(0)
-            )
+        return this.observeCurrentTrackState().pipe(
+            map((track) => track.duration / 1000),
+            distinctUntilChanged()
         );
     }
 

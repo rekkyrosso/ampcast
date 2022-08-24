@@ -108,12 +108,12 @@ export default class Sync {
                         state = null;
                     }
                 }
+                if (state && this.currentTrackAnalysis) {
+                    this.updateState(state);
+                }
                 const active =
                     !!this.currentTrackAnalysis && !!state && !state.paused && !state.loading;
                 if (this.state.active !== active) {
-                    if (active) {
-                        this.updateState(state!);
-                    }
                     this.state.active = active;
                 }
             });

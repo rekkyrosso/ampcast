@@ -15,6 +15,7 @@ import Visualizer from 'types/Visualizer';
 import VisualizerProvider from 'types/VisualizerProvider';
 import {observeCurrentItem, observePaused} from 'services/mediaPlayback';
 import {exists, getRandomValue, LiteStorage, Logger} from 'utils';
+import ampshaderPresets from './ampshaderPresets';
 import audioMotionPresets from './audioMotionPresets';
 import butterchurnPresets from './butterchurnPresets';
 import videos from './videos';
@@ -24,6 +25,7 @@ console.log('module::visualizer');
 
 const logger = new Logger('visualizer');
 
+const ampshaderPresetNames = ampshaderPresets.map((preset) => preset.name);
 const audioMotionPresetNames = audioMotionPresets.map((preset) => preset.name);
 
 const storage = new LiteStorage('visualizer');
@@ -47,10 +49,10 @@ const [audio$, video$] = partition(media$, (item) => item.mediaType === MediaTyp
 const [paused$, playing$] = partition(observePaused(), Boolean);
 
 const randomProviders: VisualizerProvider[] = [
-    ...Array(83).fill('milkdrop'), // most of the time use this one
+    ...Array(79).fill('milkdrop'), // most of the time use this one
     ...Array(10).fill('video'),
+    ...Array(5).fill('ampshader'),
     ...Array(5).fill('audiomotion'),
-    ...Array(1).fill('ampshade'),
     ...Array(1).fill('waveform'),
 ];
 
@@ -148,6 +150,7 @@ observeCurrentVisualizer()
 audio$.pipe(switchMap(() => playing$)).subscribe(() => player.play());
 
 logger.log('Ambient videos:', videos.length);
+logger.log('Ampshader presets:', ampshaderPresets.length);
 logger.log('AudioMotion presets:', audioMotionPresets.length);
 
 butterchurnPresets
@@ -187,6 +190,10 @@ function getNextVisualizer(item: PlaylistItem, settings: VisualizerSettings): Vi
     const currentVisualizer = currentVisualizer$.getValue();
     const currentPreset = currentVisualizer.preset;
     switch (provider) {
+        case 'ampshader':
+            preset = getRandomValue(ampshaderPresetNames, currentPreset);
+            break;
+
         case 'audiomotion':
             preset = getRandomValue(audioMotionPresetNames, currentPreset);
             break;

@@ -75,6 +75,7 @@ export default function JellyfinLoginDialog(props: DialogProps) {
                         type="url"
                         id="jellyfin-host"
                         defaultValue={jellyfinSettings.host}
+                        placeholder="https://"
                         ref={hostRef}
                     />
                 </p>
