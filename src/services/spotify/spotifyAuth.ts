@@ -210,7 +210,6 @@ function storeAccessToken(token: TokenResponse): void {
     const expires_at = new Date(now.setSeconds(now.getSeconds() + expires_in)).toISOString();
     authSettings.setItem('token', JSON.stringify({access_token, refresh_token, expires_at}));
     nextAccessToken(access_token);
-    // setTimeout(refreshToken, expires_in * 1000);
 }
 
 function retrieveAccessToken(): TokenStore | null {
@@ -247,7 +246,6 @@ export default spotifyAuth;
             await refreshToken();
         } else {
             nextAccessToken(token.access_token);
-            // setTimeout(refreshToken, expiresIn);
         }
     }
 })();

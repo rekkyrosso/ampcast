@@ -22,7 +22,7 @@
         opacity: 0.85;
     }
 
-    .no-visualizer &,
+    .no-visualizer:not(.playing-video) &,
     .media-playback.paused & {
         opacity: 1;
     }

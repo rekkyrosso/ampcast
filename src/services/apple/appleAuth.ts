@@ -3,12 +3,12 @@ import {BehaviorSubject} from 'rxjs';
 import {distinctUntilChanged, map} from 'rxjs/operators';
 import {am_dev_token} from 'services/credentials';
 import {loadScript, Logger} from 'utils';
+import appleSettings from './appleSettings';
+import MusicKitV1Wrapper from './MusicKitV1Wrapper';
 
 console.log('module::appleAuth');
 
 const logger = new Logger('appleAuth');
-
-const scriptUrl = `https://js-cdn.music.apple.com/musickit/v3/musickit.js`;
 
 const accessToken$ = new BehaviorSubject('');
 
@@ -55,8 +55,16 @@ async function getMusicKit(): Promise<MusicKit.MusicKitInstance> {
         return MusicKit.getInstance();
     } else {
         return new Promise((resolve, reject) => {
-            loadScript(scriptUrl).then(undefined, reject);
+            const version = appleSettings.useMusicKitBeta ? 3 : 1;
+            loadScript(`https://js-cdn.music.apple.com/musickit/v${version}/musickit.js`).then(
+                undefined,
+                reject
+            );
             document.addEventListener('musickitloaded', () => {
+                logger.log(`Loaded MusicKit version`, MusicKit.version);
+                if (window.MusicKit.version.startsWith('1')) {
+                    window.MusicKit = new MusicKitV1Wrapper(MusicKit) as any;
+                }
                 const promise = MusicKit.configure({
                     developerToken: am_dev_token,
                     app: {

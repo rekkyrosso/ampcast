@@ -97,7 +97,7 @@ export class SpotifyPlayer implements Player<string> {
                         !this.paused &&
                         state.track_window.current_track.uri === this.currentTrackSrc
                     ) {
-                        this.safeResume();
+                        this.safePlay();
                     }
                 })
             )
@@ -211,7 +211,7 @@ export class SpotifyPlayer implements Player<string> {
             if (this.autoplay) {
                 this.paused$.next(false);
                 if (src === this.loadedSrc) {
-                    this.safeResume();
+                    this.safePlay();
                 }
             }
         } else if (this.autoplay) {
@@ -225,7 +225,7 @@ export class SpotifyPlayer implements Player<string> {
             if (this.src === this.loadError?.src) {
                 this.error$.next(this.loadError.error);
             } else if (this.src === this.loadedSrc) {
-                this.safeResume();
+                this.safePlay();
             }
         } else {
             this.error$.next(Error(ERR_NOT_CONNECTED));
@@ -380,19 +380,13 @@ export class SpotifyPlayer implements Player<string> {
         );
     }
 
-    private safeVolume(volume: number): Promise<void> {
-        return this.player
-            ? this.player!.setVolume(volume).then(undefined, logger.error)
-            : Promise.resolve();
-    }
-
     private safePause(): Promise<void> {
         return this.player && this.loadedSrc
-            ? this.player!.pause().then(undefined, logger.error)
+            ? this.player.pause().then(undefined, logger.error)
             : Promise.resolve();
     }
 
-    private safeResume(): Promise<void> {
+    private safePlay(): Promise<void> {
         return this.player
             ? this.player.resume().then(
                   () => {
@@ -400,6 +394,12 @@ export class SpotifyPlayer implements Player<string> {
                   },
                   (err) => this.error$.next(err)
               )
+            : Promise.resolve();
+    }
+
+    private safeVolume(volume: number): Promise<void> {
+        return this.player
+            ? this.player.setVolume(volume).then(undefined, logger.error)
             : Promise.resolve();
     }
 }

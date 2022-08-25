@@ -18,6 +18,7 @@ import {observeIsLoggedIn} from './appleAuth';
 const logger = new Logger('MusicKitPlayer');
 
 const ERR_NOT_CONNECTED = 'Apple Music player not connected.';
+const ERR_VIDEO_PLAYBACK_NOT_SUPPORTED = 'Video playback not supported.';
 
 export class MusicKitPlayer implements Player<string> {
     private player?: MusicKit.MusicKitInstance;
@@ -77,6 +78,10 @@ export class MusicKitPlayer implements Player<string> {
                 mergeMap(() => combineLatest([this.observeSrc(), this.observeIsLoggedIn()])),
                 switchMap(([src, isLoggedIn]) => {
                     if (isLoggedIn && src && src !== this.loadedSrc) {
+                        if (!this.canPlay(src)) {
+                            this.error$.next(Error(ERR_VIDEO_PLAYBACK_NOT_SUPPORTED));
+                            return EMPTY;
+                        }
                         const [, kind, id] = src.split(':');
                         return from(this.player!.setQueue({[kind]: id})).pipe(
                             mergeMap(() => {
@@ -175,7 +180,9 @@ export class MusicKitPlayer implements Player<string> {
         if (this.player && this.isLoggedIn) {
             if (this.autoplay) {
                 if (src === this.loadedSrc) {
-                    this.player.play().then(undefined, (err) => this.error$.next(err));
+                    this.safePlay();
+                } else if (!this.canPlay(src)) {
+                    this.error$.next(Error(ERR_VIDEO_PLAYBACK_NOT_SUPPORTED));
                 }
             }
         } else if (this.autoplay) {
@@ -186,7 +193,9 @@ export class MusicKitPlayer implements Player<string> {
     play(): void {
         if (this.player && this.isLoggedIn) {
             if (this.src === this.loadedSrc) {
-                this.player.play().then(undefined, (err) => this.error$.next(err));
+                this.safePlay();
+            } else if (!this.canPlay(this.src)) {
+                this.error$.next(Error(ERR_VIDEO_PLAYBACK_NOT_SUPPORTED));
             }
         } else {
             this.error$.next(Error(ERR_NOT_CONNECTED));
@@ -231,6 +240,16 @@ export class MusicKitPlayer implements Player<string> {
         return this.src$.pipe(distinctUntilChanged());
     }
 
+    private canPlay(src: string): boolean {
+        return this.player?.version.startsWith('1') ? !/musicVideo/.test(src) : true;
+    }
+
+    private safePlay(): Promise<void> {
+        return this.player
+            ? this.player.play().then(undefined, (err) => this.error$.next(err))
+            : Promise.resolve();
+    }
+
     // The MusicKit typings for these callbacks are a bit lacking so they are all `any` for now.
 
     private readonly onPlaybackStateChange: any = ({state}: {state: MusicKit.PlaybackStates}) => {
@@ -261,9 +280,8 @@ export class MusicKitPlayer implements Player<string> {
         this.currentTime$.next(currentPlaybackTime);
     };
 
-    private readonly onPlaybackError: any = (event: any) => {
-        // TODO: Generate this error somehow. I've never seen it!
-        console.log('MusicKit::onPlaybackError', event);
+    private readonly onPlaybackError: any = (err: any) => {
+        this.error$.next(err);
     };
 }
 
