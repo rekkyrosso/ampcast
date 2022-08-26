@@ -1,5 +1,7 @@
+import {AmbientVideoVisualizer} from 'types/Visualizer';
+
 // Some sample ambient videos to get us started.
-const videos = `
+const presets: AmbientVideoVisualizer[] = `
 mo2re_RX3Bs blXien2Jh_o etiatMRgFcM DYsMJiwiZSI _MZ7UZ5frCI 33XT9PQUfVU HCx1Z92PjJE dIP7wWY4Znw
 A1m0SEqmmbE 9uZ8CCa0t4Y MXlFDpaQ1ec wz_ItcoR0-c jS4-FmNEDKo Tz77vqH_LJw K73lfmxDVR0 W8ayfyRWUrg
 cbuldALGsaQ AJZon2grzmA H5ASEM9dMiA GE2YEq7vaLc MYGOdJNAzrI Oszl95YWfbs b0-IkxXyhmY
@@ -59,8 +61,12 @@ qqC80mXlOKo MS2asGj1-_M BizH494DmJI IahW6hJ1-SM 9MIJm1NeUpE 2qzbMPpgtDw H3UY2gQf
 SH4f_DnPIto
 `
     .match(/\S+/g)!
-    .map((videoId) => `youtube:video:${videoId}`);
+    .map((videoId) => ({
+        provider: 'ambient-video',
+        name: videoId,
+        src: `youtube:video:${videoId}`,
+    }));
 
 // const playlists = [`youtube:playlist:PLcwpmmLk1lWLzND2664ij2OgvmT9rN_0n`];
 
-export default videos;
+export default presets;

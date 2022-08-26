@@ -1,5 +1,5 @@
 import React from 'react';
-import Visualizer from 'types/Visualizer';
+import Visualizer, {AmbientVideoVisualizer} from 'types/Visualizer';
 import useYouTubeVideoInfo from 'hooks/useYouTubeVideoInfo';
 import {ExternalLink, Owner} from './MediaInfo';
 import './VisualizerInfo.scss';
@@ -23,17 +23,20 @@ function VisualizerProvider({visualizer}: VisualizerInfoProps) {
 
 function VisualizerPreset({visualizer}: VisualizerInfoProps) {
     const isYouTubeVideo =
-        visualizer?.provider === 'video' && visualizer.preset.startsWith('youtube:');
+        visualizer?.provider === 'ambient-video' && visualizer.src.startsWith('youtube:');
 
     return isYouTubeVideo ? (
         <YouTubeVideoInfo visualizer={visualizer} />
-    ) : visualizer?.preset ? (
-        <h4>Name: {visualizer!.preset}</h4>
+    ) : visualizer?.name ? (
+        <>
+            <h4>Name: {visualizer!.name}</h4>
+            <ExternalLink url={visualizer.externalUrl} src="" />
+        </>
     ) : null;
 }
 
-function YouTubeVideoInfo({visualizer}: VisualizerInfoProps) {
-    const video = useYouTubeVideoInfo(visualizer!.preset);
+function YouTubeVideoInfo({visualizer}: {visualizer: AmbientVideoVisualizer}) {
+    const video = useYouTubeVideoInfo(visualizer!.src);
 
     return video ? (
         <div className="youtube-video-info">
@@ -46,6 +49,9 @@ function YouTubeVideoInfo({visualizer}: VisualizerInfoProps) {
 
 function getProviderName(visualizer: Visualizer | null): string {
     switch (visualizer?.provider) {
+        case 'ambient-video':
+            return 'Ambient Video';
+
         case 'ampshader':
             return 'Ampshader';
 
@@ -55,8 +61,8 @@ function getProviderName(visualizer: Visualizer | null): string {
         case 'milkdrop':
             return 'Milkdrop';
 
-        case 'video':
-            return 'Ambient Video';
+        case 'spotify-viz':
+            return 'SpotifyViz';
 
         case 'waveform':
             return 'Waveform';

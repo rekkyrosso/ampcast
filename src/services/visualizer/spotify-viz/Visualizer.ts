@@ -15,7 +15,7 @@ export interface PaintData {
     sync: SyncData;
 }
 
-export interface VisualizerPreset {
+export interface SpotifyVizConfig {
     volumeSmoothing?: number;
     onPaint?: (data: PaintData) => void;
     onBar?: (bar: ActiveIntervals['bars']) => void;
@@ -28,7 +28,7 @@ export interface VisualizerPreset {
 export default class Visualizer {
     private sync: Sync = new Sync();
     private sketch: Sketch;
-    private preset?: VisualizerPreset;
+    private config?: SpotifyVizConfig;
 
     constructor(hidpi = true) {
         /** Initialize Sketch class. Assign `this.paint` as the main animation loop. */
@@ -45,9 +45,9 @@ export default class Visualizer {
         this.sketch.appendTo(parentElement);
     }
 
-    load(preset: VisualizerPreset): void {
-        this.preset = preset;
-        this.sync.volumeSmoothing = preset?.volumeSmoothing ?? 100;
+    load(config: SpotifyVizConfig): void {
+        this.config = config;
+        this.sync.volumeSmoothing = config?.volumeSmoothing ?? 100;
     }
 
     /**
@@ -69,23 +69,23 @@ export default class Visualizer {
      */
     hooks(): void {
         this.sync.on('bar', (bar: ActiveIntervals['bars']) => {
-            this.preset?.onBar?.(bar);
+            this.config?.onBar?.(bar);
         });
 
         this.sync.on('beat', (beat: ActiveIntervals['beats']) => {
-            this.preset?.onBeat?.(beat);
+            this.config?.onBeat?.(beat);
         });
 
         this.sync.on('section', (section: ActiveIntervals['sections']) => {
-            this.preset?.onSection?.(section);
+            this.config?.onSection?.(section);
         });
 
         this.sync.on('segment', (segment: ActiveIntervals['segments']) => {
-            this.preset?.onSegment?.(segment);
+            this.config?.onSegment?.(segment);
         });
 
         this.sync.on('tatum', (tatum: ActiveIntervals['tatums']) => {
-            this.preset?.onTatum?.(tatum);
+            this.config?.onTatum?.(tatum);
         });
     }
 
@@ -93,7 +93,7 @@ export default class Visualizer {
      * @method paint - Paint a single frame of the main animation loop.
      */
     paint(data: Omit<PaintData, 'sync'>): void {
-        this.preset?.onPaint?.({...data, sync: this.sync.data});
+        this.config?.onPaint?.({...data, sync: this.sync.data});
     }
 
     resize(width: number, height: number): void {

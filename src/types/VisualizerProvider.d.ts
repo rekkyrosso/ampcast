@@ -1,10 +1,11 @@
 type VisualizerProvider =
     | 'none'
+    | 'ambient-video'
     | 'ampshader'
-    | 'milkdrop'
     | 'audiomotion'
-    | 'waveform'
+    | 'milkdrop'
     | 'spotify-viz'
-    | 'video';
+    | 'waveform'
+    ;
 
 export default VisualizerProvider;

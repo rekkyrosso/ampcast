@@ -142,14 +142,18 @@ export function ExternalLink({src, url}: {src: string; url: string | undefined})
         case 'lastfm':
             name = 'last.fm';
             break;
-
-        default:
-            return null;
     }
 
     return (
         <p className="external-view">
-            View on {name}: <Icon name={source as MediaSourceIconName} />{' '}
+            {name ? (
+                <>
+                    View on {name}: <Icon name={source as MediaSourceIconName} />{' '}
+                </>
+            ) : (
+                <>Url: </>
+            )}
+
             <a href={url} target={`ampcast-${source}`}>
                 {url}
             </a>

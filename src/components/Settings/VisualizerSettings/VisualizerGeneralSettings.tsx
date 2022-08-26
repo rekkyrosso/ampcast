@@ -24,7 +24,7 @@ export default function VisualizerGeneralSettings() {
                 >
                     <option value="none">(none)</option>
                     <option value="">(random)</option>
-                    <option value="video">Ambient Video</option>
+                    <option value="ambient-video">Ambient Video</option>
                     <option value="ampshader">Ampshader</option>
                     <option value="audiomotion">AudioMotion</option>
                     <option value="milkdrop">Milkdrop</option>

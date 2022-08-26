@@ -11,33 +11,31 @@ import {
 } from 'rxjs/operators';
 import MediaType from 'types/MediaType';
 import PlaylistItem from 'types/PlaylistItem';
-import Visualizer from 'types/Visualizer';
+import Visualizer, {NoVisualizer} from 'types/Visualizer';
 import VisualizerProvider from 'types/VisualizerProvider';
 import {observeCurrentItem, observePaused} from 'services/mediaPlayback';
 import {exists, getRandomValue, LiteStorage, Logger} from 'utils';
+import ambientVideoPresets from './ambientVideoPresets';
 import ampshaderPresets from './ampshaderPresets';
 import audioMotionPresets from './audioMotionPresets';
 import butterchurnPresets from './butterchurnPresets';
-import videos from './videos';
+import spotifyVizPresets from './spotifyVizPresets';
+import waveformPresets from './waveformPresets';
 import player from './player';
 
 console.log('module::visualizer');
 
 const logger = new Logger('visualizer');
-
-const ampshaderPresetNames = ampshaderPresets.map((preset) => preset.name);
-const audioMotionPresetNames = audioMotionPresets.map((preset) => preset.name);
-
 const storage = new LiteStorage('visualizer');
 
 export interface VisualizerSettings {
     readonly provider?: VisualizerProvider;
-    readonly locked?: Visualizer;
+    readonly locked?: Pick<Visualizer, 'provider' | 'name'>;
 }
 
-const defaultVisualizer: Visualizer = {
+const defaultVisualizer: NoVisualizer = {
     provider: 'none',
-    preset: '',
+    name: '',
 };
 
 const currentVisualizer$ = new BehaviorSubject<Visualizer>(defaultVisualizer);
@@ -50,9 +48,9 @@ const [paused$, playing$] = partition(observePaused(), Boolean);
 
 const randomProviders: VisualizerProvider[] = [
     ...Array(79).fill('milkdrop'), // most of the time use this one
-    ...Array(10).fill('video'),
-    ...Array(5).fill('ampshader'),
-    ...Array(5).fill('audiomotion'),
+    ...Array(10).fill('ambient-video'),
+    ...Array(6).fill('audiomotion'),
+    ...Array(4).fill('ampshader'),
     ...Array(1).fill('waveform'),
 ];
 
@@ -149,7 +147,7 @@ observeCurrentVisualizer()
 
 audio$.pipe(switchMap(() => playing$)).subscribe(() => player.play());
 
-logger.log('Ambient videos:', videos.length);
+logger.log('Ambient videos:', ambientVideoPresets.length);
 logger.log('Ampshader presets:', ampshaderPresets.length);
 logger.log('AudioMotion presets:', audioMotionPresets.length);
 
@@ -170,15 +168,14 @@ butterchurnPresets
 function getNextVisualizer(item: PlaylistItem, settings: VisualizerSettings): Visualizer {
     const locked = settings.locked;
     if (locked) {
-        if (locked.provider === 'milkdrop' && !butterchurnPresets.find(locked.preset)) {
+        if (locked.provider === 'milkdrop' && !butterchurnPresets.find(locked.name)) {
             return defaultVisualizer;
         }
-        return locked;
+        return findVisualizer(locked);
     }
     let provider = settings.provider;
-    let preset = '';
     if (item.src.startsWith('spotify:')) {
-        if (provider !== 'video') {
+        if (provider !== 'ambient-video') {
             provider = 'spotify-viz';
         }
     } else if (provider === 'spotify-viz') {
@@ -188,26 +185,36 @@ function getNextVisualizer(item: PlaylistItem, settings: VisualizerSettings): Vi
         provider = getRandomValue(randomProviders);
     }
     const currentVisualizer = currentVisualizer$.getValue();
-    const currentPreset = currentVisualizer.preset;
+    const presets = getPresets(provider);
+    return getRandomValue(presets, currentVisualizer) || defaultVisualizer;
+}
+
+function findVisualizer({provider, name}: Pick<Visualizer, 'provider' | 'name'>): Visualizer {
+    const presets = getPresets(provider);
+    return presets.find((preset) => preset.name === name) || defaultVisualizer;
+}
+
+function getPresets(provider: VisualizerProvider): readonly Visualizer[] {
     switch (provider) {
+        case 'ambient-video':
+            return ambientVideoPresets;
+
         case 'ampshader':
-            preset = getRandomValue(ampshaderPresetNames, currentPreset);
-            break;
+            return ampshaderPresets;
 
         case 'audiomotion':
-            preset = getRandomValue(audioMotionPresetNames, currentPreset);
-            break;
+            return audioMotionPresets;
 
         case 'milkdrop':
-            preset = getRandomValue(butterchurnPresets.getNames(), currentPreset);
-            if (!preset) {
-                return defaultVisualizer;
-            }
-            break;
+            return butterchurnPresets.get();
 
-        case 'video':
-            preset = getRandomValue(videos, currentPreset);
-            break;
+        case 'spotify-viz':
+            return spotifyVizPresets;
+
+        case 'waveform':
+            return waveformPresets;
+
+        default:
+            return [defaultVisualizer];
     }
-    return {provider, preset};
 }

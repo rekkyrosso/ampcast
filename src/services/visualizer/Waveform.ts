@@ -1,10 +1,11 @@
+import {WaveformVisualizer} from 'types/Visualizer';
 import theme from 'services/theme';
 import AbstractVisualizer from './AbstractVisualizer';
 import {Logger} from 'utils';
 
 const logger = new Logger('Waveform');
 
-export default class Waveform extends AbstractVisualizer<void> {
+export default class Waveform extends AbstractVisualizer<WaveformVisualizer> {
     private readonly canvas = document.createElement('canvas');
     private readonly canvasContext = this.canvas.getContext('2d')!;
     private animationFrameId = 0;

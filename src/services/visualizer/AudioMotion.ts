@@ -1,6 +1,6 @@
 import type {Observable} from 'rxjs';
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
-import audioMotionPresets from './audioMotionPresets';
+import {AudioMotionVisualizer} from 'types/Visualizer';
 import AbstractVisualizer from './AbstractVisualizer';
 import Logger from 'utils/Logger';
 
@@ -17,7 +17,7 @@ const logger = new Logger('AudioMotion');
 //     ],
 // };
 
-export default class AudioMotion extends AbstractVisualizer<string> {
+export default class AudioMotion extends AbstractVisualizer<AudioMotionVisualizer> {
     private readonly element: HTMLElement;
     private readonly visualizer: AudioMotionAnalyzer;
     private audioSourceNode: AudioNode;
@@ -70,12 +70,11 @@ export default class AudioMotion extends AbstractVisualizer<string> {
         parentElement.append(this.element);
     }
 
-    load(presetName: string): void {
+    load(visualizer: AudioMotionVisualizer): void {
         logger.log('load');
-        const preset = audioMotionPresets.find((preset) => preset.name === presetName);
-        if (preset) {
-            logger.log(`Using AudioMotion preset: ${preset.name}`);
-            this.visualizer.setOptions(preset.options);
+        if (visualizer) {
+            logger.log(`Using AudioMotion preset: ${visualizer.name}`);
+            this.visualizer.setOptions(visualizer.options);
         }
         if (this.autoplay) {
             this.play();

@@ -1,12 +1,12 @@
 import {interpolateRgb, interpolateBasis} from 'd3-interpolate';
 import {sin, circle} from './util/canvas';
-import {PaintData, VisualizerPreset} from './Visualizer';
+import {PaintData, SpotifyVizConfig} from './Visualizer';
 
 const colors = ['#18FF2A', '#7718FF', '#06C5FE', '#FF4242', '#18FF2A'];
 let prevColor = '';
 let nextColor = '';
 
-const sample: VisualizerPreset = {
+const sample: SpotifyVizConfig = {
     volumeSmoothing: 10,
 
     onBar() {

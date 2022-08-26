@@ -1,4 +1,5 @@
 import ItemType from './ItemType';
+import Thumbnail from './Thumbnail';
 
 export default interface BaseMediaObject<T extends ItemType> {
     readonly itemType: T;

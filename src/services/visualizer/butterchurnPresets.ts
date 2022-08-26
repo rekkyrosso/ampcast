@@ -1,21 +1,18 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
+import {MilkdropVisualizer} from 'types/Visualizer';
 import {loadScript} from 'utils';
 
-export interface ButterchurnPreset {
-    readonly name: string;
-    readonly data: MilkdropRawData;
-}
-
-const presets$ = new BehaviorSubject<ButterchurnPreset[]>([]);
+const presets$ = new BehaviorSubject<MilkdropVisualizer[]>([]);
 
 setTimeout(async () => {
     await loadScript('./lib/butterchurn-presets-base.min.js');
+    const provider = 'milkdrop';
     const presets = window.butterchurnPresets;
     if (presets) {
         presets$.next(
             Object.keys(presets).map((name) => {
-                return {name, data: presets[name]};
+                return {provider, name, data: presets[name]};
             })
         );
         setTimeout(async () => {
@@ -25,7 +22,7 @@ setTimeout(async () => {
                 presets$.next(
                     presets$.getValue().concat(
                         Object.keys(presets).map((name) => {
-                            return {name, data: presets[name]};
+                            return {provider, name, data: presets[name]};
                         })
                     )
                 );
@@ -34,19 +31,15 @@ setTimeout(async () => {
     }
 }, 1000);
 
-export function observe(): Observable<readonly ButterchurnPreset[]> {
+export function observe(): Observable<readonly MilkdropVisualizer[]> {
     return presets$;
 }
 
-export function get(): readonly ButterchurnPreset[] {
+export function get(): readonly MilkdropVisualizer[] {
     return presets$.getValue();
 }
 
-export function getNames(): readonly string[] {
-    return presets$.getValue().map((preset) => preset.name);
-}
-
-export function find(name: string): ButterchurnPreset | null {
+export function find(name: string): MilkdropVisualizer | null {
     return presets$.getValue().find((preset) => preset.name === name) || null;
 }
 
@@ -57,5 +50,4 @@ export default {
     observe,
     find,
     get,
-    getNames,
 };

@@ -33,7 +33,7 @@ export function AppleMusicBetaSettings() {
 
     return (
         <form
-            className={`media-library-settings apple-beta-settings`}
+            className="apple-beta-settings"
             method="dialog"
             onSubmit={handleSubmit}
         >

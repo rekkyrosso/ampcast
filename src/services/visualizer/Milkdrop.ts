@@ -1,11 +1,11 @@
 import butterchurn from 'butterchurn';
-import butterchurnPresets from './butterchurnPresets';
+import {MilkdropVisualizer} from 'types/Visualizer';
 import AbstractVisualizer from './AbstractVisualizer';
 import {Logger} from 'utils';
 
 const logger = new Logger('Milkdrop');
 
-export default class Milkdrop extends AbstractVisualizer<string> {
+export default class Milkdrop extends AbstractVisualizer<MilkdropVisualizer> {
     private readonly canvas = document.createElement('canvas');
     private readonly canvasContext = this.canvas.getContext('2d')!;
     private readonly visualizer: ButterchurnVisualizer;
@@ -48,12 +48,10 @@ export default class Milkdrop extends AbstractVisualizer<string> {
         parentElement.append(this.canvas);
     }
 
-    load(presetName: string): void {
-        logger.log('load', presetName);
-        const preset = butterchurnPresets.find(presetName);
-        if (preset) {
-            logger.log(`Using butterchurn preset: ${preset.name}`);
-            this.visualizer.loadPreset(preset.data, 0.5);
+    load(visualizer: MilkdropVisualizer): void {
+        if (visualizer) {
+            logger.log(`Using butterchurn preset: ${visualizer.name}`);
+            this.visualizer.loadPreset(visualizer.data, 0.5);
         }
         this.play();
     }

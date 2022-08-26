@@ -4,7 +4,7 @@ import {distinctUntilChanged, switchMap} from 'rxjs/operators';
 import {SetReturnType} from 'type-fest';
 import Player from 'types/Player';
 
-export default class OmniPlayer<T, S> implements Player<T> {
+export default class OmniPlayer<T, S = T> implements Player<T> {
     private readonly player$ = new BehaviorSubject<Player<S> | null>(null);
     private readonly error$ = new Subject<unknown>();
     #hidden = false;

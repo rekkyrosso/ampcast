@@ -14,7 +14,10 @@ export default function useVideoSourceIcon(): MediaSourceIconName | '' {
             setIcon('youtube');
         } else if (media?.src.startsWith('apple:') && media?.mediaType === MediaType.Video) {
             setIcon('apple');
-        } else if (visualizer?.preset.startsWith('youtube:')) {
+        } else if (
+            visualizer?.provider === 'ambient-video' &&
+            visualizer?.src.startsWith('youtube:')
+        ) {
             setIcon('youtube');
         } else {
             setIcon('');

@@ -8,3 +8,8 @@ declare const __lf_api_secret__: string;
 declare const __sp_client_id__: string;
 declare const __yt_api_key__: string;
 declare const __yt_client_id__: string;
+
+declare module '*.frag' {
+    const value: string;
+    export = value;
+}

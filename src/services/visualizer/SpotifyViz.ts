@@ -1,11 +1,11 @@
+import Visualizer from './spotify-viz/Visualizer';
+import {SpotifyVizVisualizer} from 'types/Visualizer';
 import AbstractVisualizer from './AbstractVisualizer';
 import {Logger} from 'utils';
-import Visualizer from './spotify-viz/Visualizer';
-import sample from './spotify-viz/sample';
 
 const logger = new Logger('SpotifyViz');
 
-export default class SpotifyViz extends AbstractVisualizer<string> {
+export default class SpotifyViz extends AbstractVisualizer<SpotifyVizVisualizer> {
     private readonly element = document.createElement('div');
     private readonly visualizer = new Visualizer();
 
@@ -28,9 +28,9 @@ export default class SpotifyViz extends AbstractVisualizer<string> {
         parentElement.append(this.element);
     }
 
-    load(): void {
+    load(visualizer: SpotifyVizVisualizer): void {
         logger.log('load');
-        this.visualizer.load(sample);
+        this.visualizer.load(visualizer.config);
         if (this.autoplay) {
             this.visualizer.start();
         }

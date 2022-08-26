@@ -24,6 +24,9 @@ const visualizers = [ampshader, audioMotion, milkdrop, spotifyViz, waveform, amb
 
 function selectVisualizer(visualizer: Visualizer) {
     switch (visualizer.provider) {
+        case 'ambient-video':
+            return ambientVideoPlayer;
+
         case 'ampshader':
             return ampshader;
 
@@ -33,25 +36,22 @@ function selectVisualizer(visualizer: Visualizer) {
         case 'milkdrop':
             return milkdrop;
 
-        case 'video':
-            return ambientVideoPlayer;
+        case 'spotify-viz':
+            return spotifyViz;
 
         case 'waveform':
             return waveform;
-
-        case 'spotify-viz':
-            return spotifyViz;
 
         default:
             return null;
     }
 }
 
-function loadVisualizer(player: Player<string>, visualizer: Visualizer) {
-    player.load(visualizer.preset);
+function loadVisualizer(player: Player<Visualizer>, visualizer: Visualizer) {
+    player.load(visualizer);
 }
 
-const visualizer = new OmniPlayer<Visualizer, string>(
+const visualizer = new OmniPlayer<Visualizer>(
     visualizers,
     selectVisualizer,
     loadVisualizer

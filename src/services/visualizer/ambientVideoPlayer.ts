@@ -1,3 +1,4 @@
+import {AmbientVideoVisualizer} from 'types/Visualizer';
 import Player from 'types/Player';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
 import HTML5Player from 'services/HTML5Player';
@@ -7,9 +8,9 @@ const html5VideoPlayer = new HTML5Player('video');
 const youtubePlayer = new YouTubePlayer('ambient', {startTime: 120});
 const players = [html5VideoPlayer, youtubePlayer];
 
-function selectPlayer(src: string) {
-    if (src) {
-        if (src.startsWith('youtube:')) {
+function selectPlayer(visualizer: AmbientVideoVisualizer) {
+    if (visualizer) {
+        if (visualizer.src.startsWith('youtube:')) {
             return youtubePlayer;
         } else {
             return html5VideoPlayer;
@@ -19,11 +20,15 @@ function selectPlayer(src: string) {
     }
 }
 
-function loadPlayer(player: Player<string>, src: string) {
-    player.load(src);
+function loadPlayer(player: Player<string>, visualizer: AmbientVideoVisualizer) {
+    player.load(visualizer.src);
 }
 
-const ambientVideoPlayer = new OmniPlayer(players, selectPlayer, loadPlayer);
+const ambientVideoPlayer = new OmniPlayer<AmbientVideoVisualizer, string>(
+    players,
+    selectPlayer,
+    loadPlayer
+);
 
 ambientVideoPlayer.loop = true;
 ambientVideoPlayer.volume = 0;

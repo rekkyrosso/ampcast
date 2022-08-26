@@ -35,6 +35,10 @@ module.exports = (env) => {
                         },
                     ],
                 },
+                {
+                    test: /\.frag$/,
+                    type: 'asset/source',
+                },
             ],
         },
         plugins: [

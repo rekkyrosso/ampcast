@@ -1,10 +1,10 @@
-import {Logger} from 'utils';
+import {AmpshaderVisualizer} from 'types/Visualizer';
 import AbstractVisualizer from './AbstractVisualizer';
-import ampshaderPresets from './ampshaderPresets';
+import {Logger} from 'utils';
 
 const logger = new Logger('AmpShader');
 
-export default class AmpShader extends AbstractVisualizer<string> {
+export default class AmpShader extends AbstractVisualizer<AmpshaderVisualizer> {
     private readonly canvas = document.createElement('canvas');
     private readonly gl = this.canvas.getContext('webgl')!;
     private animationFrameId = 0;
@@ -46,12 +46,11 @@ export default class AmpShader extends AbstractVisualizer<string> {
         parentElement.append(this.canvas);
     }
 
-    load(presetName: string): void {
+    load(visualizer: AmpshaderVisualizer): void {
         logger.log('load');
-        const preset = ampshaderPresets.find((preset) => preset.name === presetName);
-        if (preset) {
-            logger.log(`Using Ampshader preset: ${preset.name}`);
-            this.createShader(preset.shader);
+        if (visualizer) {
+            logger.log(`Using Ampshader preset: ${visualizer.name}`);
+            this.createShader(visualizer.shader);
         }
         // A bit weird but `autoplay` controls looping.
         this.play();
@@ -133,7 +132,10 @@ function initQuad(gl: WebGLRenderingContext): void {
 
 function createShader(gl: WebGLRenderingContext, fragmentShaderSrc: string): WebGLProgram {
     const vertexShader = gl.createShader(gl.VERTEX_SHADER)!;
-    gl.shaderSource(vertexShader, `attribute vec2 position;void main(void){gl_Position=vec4(position, 0, 1);}`);
+    gl.shaderSource(
+        vertexShader,
+        `attribute vec2 position;void main(void){gl_Position=vec4(position, 0, 1);}`
+    );
     gl.compileShader(vertexShader);
     if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
         throw new Error(gl.getShaderInfoLog(vertexShader)!);

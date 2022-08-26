@@ -1,13 +1,9 @@
-import {Options} from 'audiomotion-analyzer';
-
-export interface AudioMotionPreset {
-    readonly name: string;
-    readonly options: Options;
-}
+import { AudioMotionVisualizer } from 'types/Visualizer';
 
 // From: https://audiomotion.dev/demo/fluid.js
-const presets: AudioMotionPreset[] = [
+const presets: AudioMotionVisualizer[] = [
     {
+        provider: 'audiomotion',
         name: 'Anemone',
         options: {
             radial: true,
@@ -26,6 +22,7 @@ const presets: AudioMotionPreset[] = [
         },
     },
     {
+        provider: 'audiomotion',
         name: 'Classic LEDs',
         options: {
             mode: 7,
@@ -40,6 +37,7 @@ const presets: AudioMotionPreset[] = [
         },
     },
     {
+        provider: 'audiomotion',
         name: 'Mirror wave',
         options: {
             mode: 10,
@@ -56,6 +54,7 @@ const presets: AudioMotionPreset[] = [
         },
     },
     {
+        provider: 'audiomotion',
         name: 'Radial overlay',
         options: {
             mode: 5,
@@ -69,6 +68,7 @@ const presets: AudioMotionPreset[] = [
         },
     },
     {
+        provider: 'audiomotion',
         name: 'Reflex Bars',
         options: {
             mode: 5,
