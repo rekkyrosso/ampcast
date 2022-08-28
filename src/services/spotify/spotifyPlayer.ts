@@ -385,6 +385,9 @@ export class SpotifyPlayer implements Player<string> {
     }
 
     private async disconnect(): Promise<void> {
+        this.loadedSrc = '';
+        this.currentTrackSrc = '';
+        this.loadError = undefined;
         const player = this.player;
         if (player) {
             player.removeListener('initialization_error');
@@ -394,7 +397,7 @@ export class SpotifyPlayer implements Player<string> {
             player.removeListener('player_state_changed');
             player.removeListener('not_ready');
             player.removeListener('ready');
-            return Promise.resolve().then(() => player.disconnect());
+            return this.safePause().then(() => player.disconnect());
         } else {
             return Promise.resolve();
         }
@@ -406,7 +409,6 @@ export class SpotifyPlayer implements Player<string> {
             delay(1000), // TODO: remove/reduce?
             mergeMap(() => this.connect(token)),
             delay(1000),
-            tap(() => (this.loadError = undefined)),
             map(() => undefined)
         );
         return firstValueFrom(reconnect$);
