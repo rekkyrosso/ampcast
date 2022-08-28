@@ -1,9 +1,8 @@
-import {from, Observable} from 'rxjs';
-import {EMPTY, BehaviorSubject, Subject, interval, merge, of} from 'rxjs';
+import type {Observable} from 'rxjs';
+import {EMPTY, BehaviorSubject, Subject, firstValueFrom, from, interval, merge, of} from 'rxjs';
 import {
     catchError,
     delay,
-    delayWhen,
     distinctUntilChanged,
     filter,
     map,
@@ -59,13 +58,15 @@ export class SpotifyPlayer implements Player<string> {
         // Load new tracks.
         this.observeReady()
             .pipe(
-                mergeMap(() => this.observeIsLoggedIn()),
+                switchMap(() => this.observeIsLoggedIn()),
                 switchMap((isLoggedIn) => (isLoggedIn ? this.observeSrc() : EMPTY)),
                 withLatestFrom(this.observeAccessToken()),
                 switchMap(([src, token]) => {
                     if (src && src !== this.loadedSrc) {
                         return this.observeNotLoading().pipe(
-                            delayWhen(() => (this.loadError ? this.reconnect() : of(0))),
+                            mergeMap(() =>
+                                this.loadError ? this.reconnect(token) : of(undefined)
+                            ),
                             mergeMap(() => this.addToQueue(src, token)),
                             catchError((error) => {
                                 this.loadedSrc = '';
@@ -90,12 +91,14 @@ export class SpotifyPlayer implements Player<string> {
                     if (this.src === this.loadedSrc) {
                         this.currentTrackSrc = state.track_window.current_track.uri;
                     }
-                    if (this.paused && !state.paused) {
+                    const isCurrentTrack =
+                        state.track_window.current_track.uri === this.currentTrackSrc;
+                    if ((this.paused && !state.paused) || !isCurrentTrack) {
                         this.safePause();
                     } else if (
                         (state.paused || !this.hasPlayed) &&
                         !this.paused &&
-                        state.track_window.current_track.uri === this.currentTrackSrc
+                        isCurrentTrack
                     ) {
                         this.safePlay();
                     }
@@ -117,10 +120,6 @@ export class SpotifyPlayer implements Player<string> {
             .subscribe(logger);
 
         this.observeError().subscribe(logger.error);
-        // this.observeCurrentTrackState().subscribe(logger.all('currentTrack'));
-        // this.observePlaying().subscribe(logger.all('playing'));
-        // this.observeDuration().subscribe(logger.all('duration'));
-        // this.observeEnded().subscribe(logger.all('ended'));
 
         loadScript(spotifyPlayerSdk);
     }
@@ -189,6 +188,7 @@ export class SpotifyPlayer implements Player<string> {
             distinctUntilChanged(comparePausedAndPosition),
             withLatestFrom(this.observePaused()),
             map(([state, paused]) => !paused && !state.paused),
+            distinctUntilChanged(),
             filter((playing) => playing),
             map(() => undefined)
         );
@@ -304,41 +304,8 @@ export class SpotifyPlayer implements Player<string> {
         this.observeAccessToken()
             .pipe(
                 filter((token) => token !== ''),
-                tap((token) => {
-                    let tokenRefreshRequired = false;
-
-                    const player = new Spotify.Player({
-                        name: __app_name__,
-                        getOAuthToken: async (callback) => {
-                            if (tokenRefreshRequired) {
-                                token = await refreshToken();
-                            }
-                            tokenRefreshRequired = true;
-                            callback(token);
-                        },
-                        volume: this.muted ? 0 : this.volume,
-                    });
-
-                    player.addListener('initialization_error', logger.error);
-                    player.addListener('authentication_error', logger.error);
-                    player.addListener('account_error', logger.error);
-                    player.addListener('playback_error', (err) => this.error$.next(err));
-                    player.addListener('player_state_changed', (state) => this.state$.next(state));
-
-                    player.addListener('not_ready', () => {
-                        logger.log('not_ready');
-                        this.deviceId = '';
-                    });
-
-                    player.addListener('ready', ({device_id}) => {
-                        logger.log('ready');
-                        this.player = player;
-                        this.deviceId = device_id;
-                        this.ready$.next(undefined);
-                    });
-
-                    player.connect();
-                }),
+                mergeMap((token) => this.connect(token)),
+                tap(() => this.ready$.next(undefined)),
                 take(1)
             )
             .subscribe(logger);
@@ -359,9 +326,18 @@ export class SpotifyPlayer implements Player<string> {
         });
 
         if (!response.ok) {
-            if (response.status === 401 && retryCount > 0) {
-                const newToken = await refreshToken();
-                return this.addToQueue(src, newToken, --retryCount);
+            if (retryCount > 0) {
+                switch (response.status) {
+                    case 401: {
+                        const token = await refreshToken();
+                        return this.addToQueue(src, token, --retryCount);
+                    }
+
+                    case 502: {
+                        await this.reconnect(token);
+                        return this.addToQueue(src, token, --retryCount);
+                    }
+                }
             }
             throw response;
         }
@@ -370,14 +346,70 @@ export class SpotifyPlayer implements Player<string> {
         this.loadedSrc = src;
     }
 
-    private reconnect(): Observable<void> {
-        return from(Promise.resolve().then(() => this.player!.disconnect())).pipe(
-            delay(1000),
-            mergeMap(() => this.player!.connect()),
+    private async connect(token: string): Promise<Spotify.Player> {
+        return new Promise((resolve, reject) => {
+            let tokenRefreshRequired = false;
+
+            const player = new Spotify.Player({
+                name: __app_name__,
+                getOAuthToken: async (callback) => {
+                    if (tokenRefreshRequired) {
+                        token = await refreshToken();
+                    }
+                    tokenRefreshRequired = true;
+                    callback(token);
+                },
+                volume: this.muted ? 0 : this.volume,
+            });
+
+            player.addListener('initialization_error', reject);
+            player.addListener('authentication_error', reject);
+            player.addListener('account_error', reject);
+            player.addListener('playback_error', (err) => this.error$.next(err));
+            player.addListener('player_state_changed', (state) => this.state$.next(state));
+
+            player.addListener('not_ready', () => {
+                this.deviceId = '';
+                reject('not_ready');
+            });
+
+            player.addListener('ready', ({device_id}) => {
+                logger.log('ready');
+                this.player = player;
+                this.deviceId = device_id;
+                resolve(player);
+            });
+
+            player.connect();
+        });
+    }
+
+    private async disconnect(): Promise<void> {
+        const player = this.player;
+        if (player) {
+            player.removeListener('initialization_error');
+            player.removeListener('authentication_error');
+            player.removeListener('account_error');
+            player.removeListener('playback_error');
+            player.removeListener('player_state_changed');
+            player.removeListener('not_ready');
+            player.removeListener('ready');
+            return Promise.resolve().then(() => player.disconnect());
+        } else {
+            return Promise.resolve();
+        }
+    }
+
+    private async reconnect(token: string): Promise<void> {
+        logger.log('reconnect');
+        const reconnect$ = from(this.disconnect()).pipe(
+            delay(1000), // TODO: remove/reduce?
+            mergeMap(() => this.connect(token)),
             delay(1000),
             tap(() => (this.loadError = undefined)),
             map(() => undefined)
         );
+        return firstValueFrom(reconnect$);
     }
 
     private safePause(): Promise<void> {

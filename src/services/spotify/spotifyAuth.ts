@@ -193,7 +193,7 @@ export async function refreshToken(): Promise<string> {
         });
         if (!response.ok) {
             clearAccessToken();
-            throw Error(response.statusText);
+            throw response;
         }
         const token = await response.json();
         storeAccessToken(token);

@@ -1,6 +1,6 @@
 export function isPrimitive(val: any): boolean {
     const type = typeof val;
-    return val == null || (type != 'object' && type != 'function');
+    return val == null || (type !== 'object' && type !== 'function');
 }
 
 /**
@@ -23,20 +23,24 @@ export function isPrimitive(val: any): boolean {
  * // => 'lmao', 'bar'
  */
 
-export type Observable<T> = T & {watch: (key: keyof T, callback: Function) => void};
+type Observer<T> = (value: T, prevValue?: T) => void;
+
+export type Observable<T> = T & {
+    watch: <K extends keyof T>(key: K, callback: Observer<T[K]>) => void;
+};
 
 export default function Observe<T>(target: T) {
     const _target = Object.seal({...target});
 
     /** Store observers for the entire object. */
-    const _observers: Record<string, Function[]> = {
+    const _observers: Record<string, Observer<T>[]> = {
         __all__: [],
     };
 
     /** Store observers for individual keys. */
-    for (const key in _target) {
+    Object.keys(_target).forEach((key) => {
         _observers[key] = [];
-    }
+    });
 
     /** Hijack the `set` method for sweet interception action. */
     const traps = {
@@ -65,17 +69,10 @@ export default function Observe<T>(target: T) {
     return new Proxy(
         {
             ..._target,
-            watch(key: string | Function, callback: Function) {
+            watch(key: string, callback: Observer<T>) {
                 /** Watch a single key. */
-                if (typeof key === 'string') {
-                    if (key in _observers) {
-                        _observers[key].push(callback);
-                    }
-                }
-
-                /** Watch entire object. */
-                if (typeof key === 'function') {
-                    _observers.__all__.push(key);
+                if (key in _observers) {
+                    _observers[key].push(callback);
                 }
             },
         },

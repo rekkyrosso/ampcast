@@ -1,7 +1,6 @@
 import Observe, {Observable} from './util/observe';
 import {scaleLog} from 'd3-scale';
 import {min} from 'd3-array';
-import ease from './util/easing';
 import {spotifyApi, spotifyPlayer} from 'services/spotify';
 
 type IntervalType = 'bars' | 'beats' | 'sections' | 'segments' | 'tatums';
@@ -59,25 +58,25 @@ export default class Sync {
     private currentTrackAnalysis: SpotifyApi.AudioAnalysisObject | null = null;
     private state: Observable<SyncState>;
     private hooks: Hooks = {
-        tatum: () => undefined,
-        segment: () => undefined,
-        beat: () => undefined,
         bar: () => undefined,
+        beat: () => undefined,
         section: () => undefined,
+        segment: () => undefined,
+        tatum: () => undefined,
     };
     public volume = 0;
 
     constructor({volumeSmoothing = 100} = {}) {
         this.state = Observe({
-            intervalTypes: ['tatums', 'segments', 'beats', 'bars', 'sections'],
+            intervalTypes: ['bars', 'beats', 'sections', 'segments', 'tatums'],
             activeIntervals: Observe({
-                tatums: {} as unknown as ActiveInterval,
-                segments: {} as unknown as ActiveInterval,
-                beats: {} as unknown as ActiveInterval,
-                bars: {} as unknown as ActiveInterval,
-                sections: {} as unknown as ActiveInterval,
+                bars: {},
+                beats: {},
+                sections: {},
+                segments: {},
+                tatums: {},
             }),
-            trackAnalysis: {} as unknown as SpotifyApi.AudioAnalysisObject & ActiveIntervals,
+            trackAnalysis: {},
             initialTrackProgress: 0,
             initialStart: 0,
             trackProgress: 0,
@@ -97,6 +96,7 @@ export default class Sync {
                 const trackId = state?.track_window?.current_track?.id;
                 if (trackId && this.currentTrackId !== trackId) {
                     this.currentTrackId = trackId;
+                    this.currentTrackAnalysis = null;
                     try {
                         this.currentTrackAnalysis = await spotifyApi.getAudioAnalysisForTrack(
                             trackId
@@ -122,6 +122,7 @@ export default class Sync {
     }
 
     get data(): SyncData {
+        // eslint-disable-next-line @typescript-eslint/no-this-alias
         const sync = this;
         return {
             get tatum(): ActiveIntervals['tatums'] {
@@ -162,21 +163,21 @@ export default class Sync {
      * @method initHooks - Initialize interval event hooks.
      */
     private initHooks(): void {
-        this.state.activeIntervals.watch('tatums', (tatum: ActiveIntervals['tatums']) =>
-            this.hooks.tatum(tatum)
-        );
-        this.state.activeIntervals.watch('segments', (segment: ActiveIntervals['segments']) =>
-            this.hooks.segment(segment)
-        );
-        this.state.activeIntervals.watch('beats', (beat: ActiveIntervals['beats']) =>
-            this.hooks.beat(beat)
-        );
-        this.state.activeIntervals.watch('bars', (bar: ActiveIntervals['bars']) =>
-            this.hooks.bar(bar)
-        );
-        this.state.activeIntervals.watch('sections', (section: ActiveIntervals['sections']) =>
-            this.hooks.section(section)
-        );
+        this.state.activeIntervals.watch('bars', (bar: ActiveIntervals['bars']) => {
+            this.hooks.bar(bar);
+        });
+        this.state.activeIntervals.watch('beats', (beat: ActiveIntervals['beats']) => {
+            this.hooks.beat(beat);
+        });
+        this.state.activeIntervals.watch('sections', (section: ActiveIntervals['sections']) => {
+            this.hooks.section(section);
+        });
+        this.state.activeIntervals.watch('segments', (segment: ActiveIntervals['segments']) => {
+            this.hooks.segment(segment);
+        });
+        this.state.activeIntervals.watch('tatums', (tatum: ActiveIntervals['tatums']) => {
+            this.hooks.tatum(tatum);
+        });
     }
 
     /**
@@ -190,13 +191,13 @@ export default class Sync {
             const type = this.state.trackAnalysis[t];
             type[0].duration = type[0].start + type[0].duration;
             type[0].start = 0;
-            type[type.length - 1].duration = state.duration / 1000 - type[type.length - 1].start;
+            // type[type.length - 1].duration = state.duration / 1000 - type[type.length - 1].start;
             type.forEach((interval) => {
                 if (this.isSegment(interval)) {
                     interval.loudness_max_time = interval.loudness_max_time * 1000;
                 }
-                interval.start = interval.start * 1000;
-                interval.duration = interval.duration * 1000;
+                interval.start = (interval.start || 0) * 1000;
+                interval.duration = (interval.duration || 0) * 1000;
             });
         });
 
@@ -206,12 +207,21 @@ export default class Sync {
     }
 
     private setActiveIntervals(): void {
+        const easeOutQuart = (t: number): number => {
+            t = Math.min(Math.max(0, t), 1);
+            return 1 - --t * t * t * t;
+        };
+
         const determineInterval = (type: IntervalType): number => {
             const analysis = this.state.trackAnalysis[type];
             const progress = this.state.trackProgress;
             for (let i = 0; i < analysis.length; i++) {
-                if (i === analysis.length - 1) return i;
-                if (analysis[i].start < progress && progress < analysis[i + 1].start) return i;
+                if (i === analysis.length - 1) {
+                    return i;
+                }
+                if (analysis[i].start < progress && progress < analysis[i + 1].start) {
+                    return i;
+                }
             }
             return 0;
         };
@@ -219,7 +229,7 @@ export default class Sync {
         this.state.intervalTypes.forEach((type: IntervalType) => {
             const index = determineInterval(type);
             if (
-                !this.state.activeIntervals[type].start ||
+                this.state.activeIntervals[type].start == null ||
                 index !== this.state.activeIntervals[type].index
             ) {
                 this.state.activeIntervals[type] = <any>{
@@ -231,7 +241,7 @@ export default class Sync {
             const {start, duration} = this.state.activeIntervals[type];
             const elapsed = this.state.trackProgress - start;
             this.state.activeIntervals[type].elapsed = elapsed;
-            this.state.activeIntervals[type].progress = ease(elapsed / duration);
+            this.state.activeIntervals[type].progress = easeOutQuart(elapsed / duration);
         });
     }
 
@@ -239,7 +249,9 @@ export default class Sync {
         const {loudness_max, loudness_start, loudness_max_time, duration, elapsed, start, index} =
             this.state.activeIntervals.segments;
 
-        if (!this.state.trackAnalysis.segments[index + 1]) return 0;
+        if (!this.state.trackAnalysis.segments[index + 1]) {
+            return 0;
+        }
 
         const next = this.state.trackAnalysis.segments[index + 1].loudness_start;
         const current = start + elapsed;
@@ -269,11 +281,11 @@ export default class Sync {
         }
     }
 
-    watch<T extends keyof SyncState>(key: T, method: (value: SyncState[T]) => void): void {
+    watch<K extends keyof SyncState>(key: K, method: (value: SyncState[K]) => void): void {
         this.state.watch(key, method);
     }
 
-    on<T extends keyof Hooks>(interval: T, method: Hooks[T]): void {
+    on<K extends keyof Hooks>(interval: K, method: Hooks[K]): void {
         this.hooks[interval] = method;
     }
 
@@ -283,7 +295,9 @@ export default class Sync {
 
     private tick(now: number): void {
         this.animationFrameId = requestAnimationFrame(this.tick.bind(this));
-        if (!this.state.active) return;
+        if (!this.state.active) {
+            return;
+        }
 
         /** Set track progress and active intervals. */
         this.state.trackProgress = now - this.state.initialStart + this.state.initialTrackProgress;

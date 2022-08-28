@@ -4,6 +4,3 @@
 # except:
 !src
 !src/**
-
-# todo:
-src/services/visualizer/spotify-viz

@@ -29,7 +29,7 @@ export function polygon(sides: number, radius: number, cx = 0, cy = 0, rotation 
     const angle = 360 / sides;
     const vertices = [];
 
-    for (var i = 0; i < sides; i++) {
+    for (let i = 0; i < sides; i++) {
         const _coords = coords(radius, toRadians(angle * i + rotation), cx, cy);
         vertices.push(_coords);
     }
@@ -43,14 +43,13 @@ export function star(
     outerRadius: number,
     cx = 0,
     cy = 0,
-    rotation = 0,
-    round = false
+    rotation = 0
 ) {
     const outer = polygon(points, outerRadius, cx, cy, rotation);
     const inner = polygon(points, innerRadius, cx, cy, 360 / points / 2 + rotation);
     const vertices = [];
 
-    for (var i = 0; i < points; i++) {
+    for (let i = 0; i < points; i++) {
         vertices.push({x: outer[i].x, y: outer[i].y});
         vertices.push({x: inner[i].x, y: inner[i].y});
     }
@@ -100,7 +99,7 @@ export function sin(
     const y = (x: number) => amplitude * Math.sin(x / frequency + xOffset) + yOffset;
     const {width} = ctx.canvas;
     ctx.beginPath();
-    for (var x = -50; x < width + 50; x += tick) {
+    for (let x = -50; x < width + 50; x += tick) {
         if (x === -50) {
             ctx.moveTo(x, y(x));
         } else {
