@@ -1,7 +1,8 @@
 import Player from 'types/Player';
 import Visualizer from 'types/Visualizer';
-import {analyser, audioContext, observeAudioSourceNode} from 'services/audio';
+import {analyser, audioContext, observeAudioSourceNode, simpleAnalyser} from 'services/audio';
 import OmniPlayer from 'services/OmniPlayer';
+import spotifyAudioAnalyser from 'services/spotify/spotifyAudioAnalyser';
 import {Logger} from 'utils';
 import ambientVideoPlayer from './ambientVideoPlayer';
 import AmpShader from './AmpShader';
@@ -14,11 +15,11 @@ console.log('module::visualizer/player');
 
 const logger = new Logger('visualizer/player');
 
-const ampshader = new AmpShader(audioContext, analyser);
+const ampshader = new AmpShader(audioContext, simpleAnalyser);
 const audioMotion = new AudioMotion(audioContext, observeAudioSourceNode());
 const milkdrop = new Milkdrop(analyser);
-const spotifyViz = new SpotifyViz();
-const waveform = new Waveform(analyser);
+const spotifyViz = new SpotifyViz(spotifyAudioAnalyser);
+const waveform = new Waveform(simpleAnalyser);
 
 const visualizers = [ampshader, audioMotion, milkdrop, spotifyViz, waveform, ambientVideoPlayer];
 

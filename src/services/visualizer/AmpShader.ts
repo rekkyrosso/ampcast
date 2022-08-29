@@ -1,6 +1,7 @@
 import {AmpshaderVisualizer} from 'types/Visualizer';
 import AbstractVisualizer from './AbstractVisualizer';
 import {Logger} from 'utils';
+import SimpleAudioAnalyser from 'types/SimpleAudioAnalyser';
 
 const logger = new Logger('AmpShader');
 
@@ -12,10 +13,11 @@ export default class AmpShader extends AbstractVisualizer<AmpshaderVisualizer> {
     private fragSpectrumArray: Uint8Array;
     private fragTime: WebGLUniformLocation | null = null;
     private shader: WebGLProgram | null = null;
+    private startTime = performance.now();
 
     constructor(
         private readonly audioContext: AudioContext,
-        private readonly analyser: AnalyserNode
+        private readonly analyser: SimpleAudioAnalyser
     ) {
         super();
 
@@ -51,6 +53,7 @@ export default class AmpShader extends AbstractVisualizer<AmpshaderVisualizer> {
         if (visualizer) {
             logger.log(`Using Ampshader preset: ${visualizer.name}`);
             this.createShader(visualizer.shader);
+            this.analyser.fftSize = 2048;
         }
         // A bit weird but `autoplay` controls looping.
         this.play();
@@ -88,6 +91,10 @@ export default class AmpShader extends AbstractVisualizer<AmpshaderVisualizer> {
         }
     }
 
+    private get currentTime(): number {
+        return (performance.now() - this.startTime) / 1000;
+    }
+
     private clear(): void {
         // do nothing
     }
@@ -98,7 +105,7 @@ export default class AmpShader extends AbstractVisualizer<AmpshaderVisualizer> {
         const position = gl.getAttribLocation(this.shader, 'position');
         gl.enableVertexAttribArray(position);
         this.fragTime = gl.getUniformLocation(this.shader, 'time')!;
-        gl.uniform1f(this.fragTime, this.audioContext.currentTime);
+        gl.uniform1f(this.fragTime, this.currentTime);
         const fragResolution = gl.getUniformLocation(this.shader, 'resolution');
         gl.uniform2f(fragResolution, this.canvas.width, this.canvas.height);
     }
@@ -113,7 +120,7 @@ export default class AmpShader extends AbstractVisualizer<AmpshaderVisualizer> {
     private renderFrame(): void {
         if (this.shader) {
             this.analyser.getByteFrequencyData(this.spectrum);
-            this.gl.uniform1f(this.fragTime, this.audioContext.currentTime);
+            this.gl.uniform1f(this.fragTime, this.currentTime);
             copyAudioDataToTexture(this.gl, this.spectrum, this.fragSpectrumArray);
             this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
         }
@@ -134,7 +141,7 @@ function createShader(gl: WebGLRenderingContext, fragmentShaderSrc: string): Web
     const vertexShader = gl.createShader(gl.VERTEX_SHADER)!;
     gl.shaderSource(
         vertexShader,
-        `attribute vec2 position;void main(void){gl_Position=vec4(position, 0, 1);}`
+        `attribute vec2 position;void main(void){gl_Position=vec4(position,0,1);}`
     );
     gl.compileShader(vertexShader);
     if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {

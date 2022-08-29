@@ -1,5 +1,6 @@
 import {Options as AudioMotionOptions} from 'audiomotion-analyzer';
-import {SpotifyVizConfig} from 'services/visualizer/spotify-viz/Visualizer';
+import {SpotifyVizConfig} from 'services/visualizer/SpotifyViz';
+import {WaveformConfig} from 'services/visualizer/Waveform';
 import BaseVisualizer from './BaseVisualizer';
 
 export type NoVisualizer = BaseVisualizer<'none'>;
@@ -24,7 +25,9 @@ export interface SpotifyVizVisualizer extends BaseVisualizer<'spotify-viz'> {
     config: SpotifyVizConfig;
 }
 
-export type WaveformVisualizer = BaseVisualizer<'waveform'> ;
+export interface WaveformVisualizer extends BaseVisualizer<'waveform'> {
+    config: WaveformConfig;
+}
 
 type Visualizer =
     | NoVisualizer

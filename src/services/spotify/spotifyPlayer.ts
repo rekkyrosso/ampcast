@@ -88,11 +88,11 @@ export class SpotifyPlayer implements Player<string> {
         this.observeState()
             .pipe(
                 tap((state) => {
-                    if (this.src === this.loadedSrc) {
+                    if (this.src === this.loadedSrc && state.track_window.current_track) {
                         this.currentTrackSrc = state.track_window.current_track.uri;
                     }
                     const isCurrentTrack =
-                        state.track_window.current_track.uri === this.currentTrackSrc;
+                        state.track_window.current_track?.uri === this.currentTrackSrc;
                     if ((this.paused && !state.paused) || !isCurrentTrack) {
                         this.safePause();
                     } else if (

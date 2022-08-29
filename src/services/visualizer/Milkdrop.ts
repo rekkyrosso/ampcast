@@ -7,7 +7,7 @@ const logger = new Logger('Milkdrop');
 
 export default class Milkdrop extends AbstractVisualizer<MilkdropVisualizer> {
     private readonly canvas = document.createElement('canvas');
-    private readonly canvasContext = this.canvas.getContext('2d')!;
+    private readonly context2D = this.canvas.getContext('2d')!;
     private readonly visualizer: ButterchurnVisualizer;
     private animationFrameId = 0;
 
@@ -51,6 +51,7 @@ export default class Milkdrop extends AbstractVisualizer<MilkdropVisualizer> {
     load(visualizer: MilkdropVisualizer): void {
         if (visualizer) {
             logger.log(`Using butterchurn preset: ${visualizer.name}`);
+            this.analyser.fftSize = 2048;
             this.visualizer.loadPreset(visualizer.data, 0.5);
         }
         this.play();
@@ -86,7 +87,7 @@ export default class Milkdrop extends AbstractVisualizer<MilkdropVisualizer> {
     private clear(): void {
         const width = this.canvas.width;
         const height = this.canvas.height;
-        this.canvasContext.clearRect(0, 0, width, height);
+        this.context2D.clearRect(0, 0, width, height);
     }
 
     private render(): void {

@@ -1,6 +1,8 @@
 import {BehaviorSubject, Observable} from 'rxjs';
 import {distinctUntilChanged, skip} from 'rxjs/operators';
 import {observePlaybackStart} from 'services/mediaPlayback/playback';
+import spotifyAudioAnalyser from 'services/spotify/spotifyAudioAnalyser';
+import OmniAnalyser from './OmniAnalyser';
 
 console.log('module::audio');
 
@@ -9,6 +11,7 @@ export const analyser = new AnalyserNode(audioContext, {
     fftSize: 2048,
     smoothingTimeConstant: 0,
 });
+export const simpleAnalyser = new OmniAnalyser(analyser, spotifyAudioAnalyser);
 
 analyser.connect(audioContext.destination);
 
@@ -53,4 +56,9 @@ observeAudioSourceNode()
     .pipe(skip(1)) // TODO: Do we need to disconnect?
     .subscribe((audioSourceNode) => audioSourceNode.connect(analyser));
 
-export default {context: audioContext, analyser, observeAudioSourceNode};
+export default {
+    context: audioContext,
+    analyser,
+    simpleAnalyser,
+    observeAudioSourceNode,
+};

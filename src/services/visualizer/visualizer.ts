@@ -175,7 +175,7 @@ function getNextVisualizer(item: PlaylistItem, settings: VisualizerSettings): Vi
     }
     let provider = settings.provider;
     if (item.src.startsWith('spotify:')) {
-        if (provider !== 'ambient-video') {
+        if (provider === 'milkdrop') {
             provider = 'spotify-viz';
         }
     } else if (provider === 'spotify-viz') {
