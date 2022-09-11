@@ -15,7 +15,7 @@ console.log('module::visualizer/player');
 
 const logger = new Logger('visualizer/player');
 
-const ampshader = new AmpShader(audioContext, simpleAnalyser);
+const ampshader = new AmpShader(simpleAnalyser);
 const audioMotion = new AudioMotion(audioContext, observeAudioSourceNode());
 const milkdrop = new Milkdrop(analyser);
 const spotifyViz = new SpotifyViz(spotifyAudioAnalyser);
@@ -52,18 +52,16 @@ function loadVisualizer(player: Player<Visualizer>, visualizer: Visualizer) {
     player.load(visualizer);
 }
 
-const visualizer = new OmniPlayer<Visualizer>(
+const player = new OmniPlayer<Visualizer>(
     visualizers,
     selectVisualizer,
     loadVisualizer
 );
 
-visualizer.loop = true;
-visualizer.muted = true;
-visualizer.volume = 0.07;
+player.loop = true;
+player.muted = true;
+player.volume = 0.07;
 
-export default visualizer;
+player.observeError().subscribe(logger.error);
 
-visualizer.observeError().subscribe(logger.error);
-visualizer.observePlaying().subscribe(logger.all('playing'));
-visualizer.observeEnded().subscribe(logger.all('ended'));
+export default player;

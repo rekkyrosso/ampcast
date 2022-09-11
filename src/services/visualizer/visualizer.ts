@@ -4,6 +4,7 @@ import {
     distinctUntilChanged,
     filter,
     map,
+    skipWhile,
     switchMap,
     take,
     tap,
@@ -40,7 +41,7 @@ const defaultVisualizer: NoVisualizer = {
 
 const currentVisualizer$ = new BehaviorSubject<Visualizer>(defaultVisualizer);
 const settings$ = new BehaviorSubject<VisualizerSettings>({});
-const next$ = new Subject<void>();
+const next$ = new Subject<'next'>();
 const empty$ = observeCurrentItem().pipe(filter((item) => item == null));
 const media$ = observeCurrentItem().pipe(filter(exists));
 const [audio$, video$] = partition(media$, (item) => item.mediaType === MediaType.Audio);
@@ -51,6 +52,13 @@ const randomProviders: VisualizerProvider[] = [
     ...Array(10).fill('ambient-video'),
     ...Array(6).fill('audiomotion'),
     ...Array(4).fill('ampshader'),
+    ...Array(1).fill('waveform'),
+];
+
+const randomSpotifyProviders: VisualizerProvider[] = [
+    ...Array(59).fill('spotify-viz'), // most of the time use this one
+    ...Array(20).fill('ambient-video'),
+    ...Array(20).fill('ampshader'),
     ...Array(1).fill('waveform'),
 ];
 
@@ -74,7 +82,7 @@ export function observeSettings(): Observable<VisualizerSettings> {
 }
 
 export function nextVisualizer(): void {
-    next$.next(undefined);
+    next$.next('next');
 }
 
 export function lock(): void {
@@ -136,7 +144,7 @@ paused$.subscribe(() => player.pause());
 merge(audio$, next$, observeProvider(), player.observeError())
     .pipe(
         withLatestFrom(audio$, observeSettings()),
-        map(([, item, settings]) => getNextVisualizer(item, settings)),
+        map(([reason, item, settings]) => getNextVisualizer(item, settings, reason === 'next')),
         distinctUntilChanged()
     )
     .subscribe(currentVisualizer$);
@@ -154,6 +162,7 @@ logger.log('AudioMotion presets:', audioMotionPresets.length);
 butterchurnPresets
     .observe()
     .pipe(
+        skipWhile((presets) => presets.length === 0),
         withLatestFrom(observeCurrentVisualizer()),
         tap(([, currentVisualizer]) => {
             if (currentVisualizer === defaultVisualizer) {
@@ -161,30 +170,28 @@ butterchurnPresets
             }
             logger.log('Butterchurn presets:', butterchurnPresets.size);
         }),
-        take(3)
+        take(2)
     )
     .subscribe(logger);
 
-function getNextVisualizer(item: PlaylistItem, settings: VisualizerSettings): Visualizer {
-    const locked = settings.locked;
-    if (locked) {
-        if (locked.provider === 'milkdrop' && !butterchurnPresets.find(locked.name)) {
-            return defaultVisualizer;
-        }
-        return findVisualizer(locked);
-    }
-    let provider = settings.provider;
-    if (item.src.startsWith('spotify:')) {
-        if (provider === 'milkdrop') {
-            provider = 'spotify-viz';
-        }
-    } else if (provider === 'spotify-viz') {
-        provider = 'milkdrop';
-    }
-    if (!provider) {
-        provider = getRandomValue(randomProviders);
+function getNextVisualizer(
+    item: PlaylistItem,
+    settings: VisualizerSettings,
+    next?: boolean
+): Visualizer {
+    if (settings.locked) {
+        return findVisualizer(settings.locked);
     }
     const currentVisualizer = currentVisualizer$.getValue();
+    let provider = settings.provider;
+    if (!provider) {
+        const isSpotify = item.src.startsWith('spotify:');
+        const providers = isSpotify ? randomSpotifyProviders : randomProviders;
+        provider = getRandomValue(providers);
+        if (next && provider === currentVisualizer.provider && getPresets(provider).length === 1) {
+            provider = getRandomValue(providers, provider);
+        }
+    }
     const presets = getPresets(provider);
     return getRandomValue(presets, currentVisualizer) || defaultVisualizer;
 }

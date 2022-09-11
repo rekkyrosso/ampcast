@@ -8,10 +8,14 @@ declare namespace MusicKit {
         readonly nowPlayingItem: MediaItem;
         readonly queue: Queue;
         readonly isPlaying: boolean;
+        readonly version: string;
         volume: number;
-        version: string;
         clearQueue(): Promise<void>;
         pause(): Promise<void>;
+    }
+
+    interface API {
+        music(href: string): Promise<any>;
     }
 
     interface SetQueueOptions {

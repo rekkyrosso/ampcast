@@ -7,6 +7,7 @@ import plexApi from 'services/plex/plexApi';
 import {Logger} from 'utils';
 
 export default class HTML5Player implements Player<string> {
+    private readonly logger: Logger;
     private readonly element: HTMLMediaElement;
     private readonly error$ = new Subject<unknown>();
     private src = '';
@@ -26,7 +27,7 @@ export default class HTML5Player implements Player<string> {
             .pipe(map(() => player.error))
             .subscribe(this.error$);
 
-        const logger = new Logger(`HTML5Player.${type}`);
+        const logger = (this.logger = new Logger(`HTML5Player(${type})`));
 
         this.observeError().subscribe(logger.error);
     }
@@ -94,6 +95,7 @@ export default class HTML5Player implements Player<string> {
     }
 
     load(src: string): void {
+        this.logger.log('load');
         this.src = src;
         try {
             const mediaSource = this.getMediaSource(this.src);
@@ -108,6 +110,7 @@ export default class HTML5Player implements Player<string> {
     }
 
     play(): void {
+        this.logger.log('play');
         try {
             const mediaSource = this.getMediaSource(this.src);
             if (this.src !== this.loadedSrc) {
@@ -121,10 +124,12 @@ export default class HTML5Player implements Player<string> {
     }
 
     pause(): void {
+        this.logger.log('pause');
         this.element.pause();
     }
 
     stop(): void {
+        this.logger.log('stop');
         this.element.pause();
         this.element.currentTime = 0;
     }

@@ -126,7 +126,8 @@ export default function ListView<T>({
     const size = items.length;
     const {selectedItems, selectAll, selectAt, selectRange, toggleSelectionAt} = useSelectedItems(
         items,
-        itemKey
+        itemKey,
+        rowIndex
     );
     const fontSize = useFontSize();
     const [rangeSelectionStart, setRangeSelectionStart] = useState(-1);

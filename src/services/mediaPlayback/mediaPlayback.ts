@@ -1,11 +1,12 @@
 import type {Observable} from 'rxjs';
-import {EMPTY, BehaviorSubject, combineLatest, fromEvent} from 'rxjs';
+import {EMPTY, BehaviorSubject, Subject, combineLatest, fromEvent} from 'rxjs';
 import {
     debounceTime,
     distinctUntilChanged,
     filter,
     map,
     switchMap,
+    takeUntil,
     withLatestFrom,
 } from 'rxjs/operators';
 import MediaPlayback from 'types/MediaPlayback';
@@ -25,6 +26,7 @@ const appSettings = new LiteStorage('mediaPlayback');
 const sessionSettings = new LiteStorage('mediaPlayback', sessionStorage);
 
 const loadingLocked$ = new BehaviorSubject(false);
+const killed$ = new Subject<void>();
 
 let direction: 'backward' | 'forward' = 'forward';
 
@@ -119,14 +121,18 @@ export function resize(width: number, height: number): void {
 
 export function prev(): void {
     direction = 'backward';
-    lockLoading();
-    playlist.prev();
+    if (!playlist.atStart) {
+        lockLoading();
+        playlist.prev();
+    }
 }
 
 export function next(): void {
     direction = 'forward';
-    lockLoading();
-    playlist.next();
+    if (!playlist.atEnd) {
+        lockLoading();
+        playlist.next();
+    }
 }
 
 export function shuffle(): void {
@@ -158,6 +164,11 @@ function lockLoading() {
 
 function unlockLoading(): void {
     loadingLocked$.next(false);
+}
+
+function kill(): void {
+    killed$.next(undefined);
+    stop();
 }
 
 const mediaPlayback: MediaPlayback = {
@@ -227,7 +238,7 @@ mediaPlayer.observePlaying().subscribe(() => (direction = 'forward'));
 
 mediaPlayer
     .observeEnded()
-    .pipe(withLatestFrom(observePlaylistAtEnd()))
+    .pipe(withLatestFrom(observePlaylistAtEnd()), takeUntil(killed$))
     .subscribe(([, atEnd]) => {
         if (atEnd) {
             stop();
@@ -238,7 +249,10 @@ mediaPlayer
 
 mediaPlayer
     .observeError()
-    .pipe(withLatestFrom(observePaused(), observePlaylistAtStart(), observePlaylistAtEnd()))
+    .pipe(
+        withLatestFrom(observePaused(), observePlaylistAtStart(), observePlaylistAtEnd()),
+        takeUntil(killed$)
+    )
     .subscribe(([, paused, atStart, atEnd]) => {
         if (atEnd || (atStart && direction === 'backward')) {
             stop();
@@ -277,7 +291,7 @@ loadingLocked$
     )
     .subscribe(load);
 
-fromEvent(window, 'pagehide').subscribe(stop);
+fromEvent(window, 'pagehide').subscribe(kill);
 
 // logging
 observeDuration().subscribe(logger.all('duration'));

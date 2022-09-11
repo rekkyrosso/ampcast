@@ -51,7 +51,6 @@ export default class Milkdrop extends AbstractVisualizer<MilkdropVisualizer> {
     load(visualizer: MilkdropVisualizer): void {
         if (visualizer) {
             logger.log(`Using butterchurn preset: ${visualizer.name}`);
-            this.analyser.fftSize = 2048;
             this.visualizer.loadPreset(visualizer.data, 0.5);
         }
         this.play();

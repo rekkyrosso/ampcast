@@ -84,7 +84,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         if (limit && !/[?&]limit=/.test(href)) {
             href = `${href}${href.includes('?') ? '&' : '?'}limit=${limit}`;
         }
-        return (musicKit.api as any).music(href);
+        return musicKit.api.music(href);
     }
 
     private createItems(items: readonly MusicKitItem[]): T[] {

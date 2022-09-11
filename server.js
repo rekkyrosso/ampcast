@@ -46,17 +46,23 @@ async function isDev() {
     const prodCss = resolve(wwwDir, 'bundle.css');
     const devJs = resolve(devDir, 'bundle.js');
     const prodJs = resolve(wwwDir, 'bundle.js');
-    const stats = await Promise.all([
-        fsp.stat(devCss),
-        fsp.stat(prodCss),
-        fsp.stat(devJs),
-        fsp.stat(prodJs),
+    const [devCssTimestamp, prodCssTimestamp, devJsTimestamp, prodJsTimestamp] = await Promise.all([
+        getModifiedTime(devCss),
+        getModifiedTime(prodCss),
+        getModifiedTime(devJs),
+        getModifiedTime(prodJs),
     ]);
-    const [devCssTimestamp, prodCssTimestamp, devJsTimestamp, prodJsTimestamp] = stats.map(
-        (stat) => stat.mtimeMs
-    );
     const sorted = [devCssTimestamp, prodCssTimestamp, devJsTimestamp, prodJsTimestamp]
         .sort()
         .reverse();
     return sorted[0] === devCssTimestamp || sorted[0] === devJsTimestamp;
+}
+
+async function getModifiedTime(fileName) {
+    try {
+        const stat = await fsp.stat(fileName);
+        return stat.mtimeMs;
+    } catch (err) {
+        return 0;
+    }
 }

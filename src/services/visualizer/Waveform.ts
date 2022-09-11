@@ -6,7 +6,6 @@ import {Logger} from 'utils';
 const logger = new Logger('Waveform');
 
 export interface WaveformConfig {
-    fftSize?: number;
     onPaint: (data: WaveformPaintData) => void;
 }
 
@@ -52,7 +51,6 @@ export default class Waveform extends AbstractVisualizer<WaveformVisualizer> {
         if (visualizer) {
             logger.log(`Using Waveform preset: ${visualizer.name}`);
             this.config = visualizer.config;
-            this.analyser.fftSize = visualizer.config.fftSize || 2048;
         }
         if (this.autoplay) {
             this.play();

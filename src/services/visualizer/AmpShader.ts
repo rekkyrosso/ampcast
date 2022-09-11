@@ -1,34 +1,39 @@
+import SimpleAudioAnalyser from 'types/SimpleAudioAnalyser';
 import {AmpshaderVisualizer} from 'types/Visualizer';
 import AbstractVisualizer from './AbstractVisualizer';
 import {Logger} from 'utils';
-import SimpleAudioAnalyser from 'types/SimpleAudioAnalyser';
 
 const logger = new Logger('AmpShader');
+
+// Based on: https://noisehack.com/build-music-visualizer-web-audio-api/
 
 export default class AmpShader extends AbstractVisualizer<AmpshaderVisualizer> {
     private readonly canvas = document.createElement('canvas');
     private readonly gl = this.canvas.getContext('webgl')!;
     private animationFrameId = 0;
-    private spectrum: Uint8Array;
-    private fragSpectrumArray: Uint8Array;
     private fragTime: WebGLUniformLocation | null = null;
     private shader: WebGLProgram | null = null;
     private startTime = performance.now();
 
-    constructor(
-        private readonly audioContext: AudioContext,
-        private readonly analyser: SimpleAudioAnalyser
-    ) {
+    constructor(private readonly analyser: SimpleAudioAnalyser) {
         super();
+
+        const gl = this.gl;
 
         this.canvas.hidden = true;
         this.canvas.className = `visualizer visualizer-ampshader`;
 
-        this.spectrum = new Uint8Array(this.analyser.frequencyBinCount);
-        this.fragSpectrumArray = new Uint8Array(4 * this.spectrum.length);
+        const texture = gl.createTexture()!;
+        gl.bindTexture(gl.TEXTURE_2D, texture);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
 
-        createTexture(this.gl);
-        initQuad(this.gl);
+        const vbo = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+        const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
+        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
+        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
     }
 
     get hidden(): boolean {
@@ -53,7 +58,6 @@ export default class AmpShader extends AbstractVisualizer<AmpshaderVisualizer> {
         if (visualizer) {
             logger.log(`Using Ampshader preset: ${visualizer.name}`);
             this.createShader(visualizer.shader);
-            this.analyser.fftSize = 2048;
         }
         // A bit weird but `autoplay` controls looping.
         this.play();
@@ -81,9 +85,12 @@ export default class AmpShader extends AbstractVisualizer<AmpshaderVisualizer> {
     resize(width: number, height: number): void {
         const canvas = this.canvas;
         const gl = this.gl;
+
         canvas.width = width;
         canvas.height = height;
+
         gl.viewport(0, 0, width, height);
+
         if (this.shader) {
             const fragResolution = gl.getUniformLocation(this.shader, 'resolution');
             gl.uniform2f(fragResolution, canvas.width, canvas.height);
@@ -99,15 +106,40 @@ export default class AmpShader extends AbstractVisualizer<AmpshaderVisualizer> {
         // do nothing
     }
 
-    private createShader(shader: string): void {
+    private createShader(fragmentShaderSrc: string): void {
         const gl = this.gl;
-        this.shader = createShader(gl, shader);
-        const position = gl.getAttribLocation(this.shader, 'position');
+
+        const vertexShader = gl.createShader(gl.VERTEX_SHADER)!;
+        const vertexShaderSrc = `attribute vec2 position;void main(void){gl_Position=vec4(position,0,1);}`;
+        gl.shaderSource(vertexShader, vertexShaderSrc);
+        gl.compileShader(vertexShader);
+        if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
+            throw new Error(gl.getShaderInfoLog(vertexShader)!);
+        }
+
+        const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)!;
+        gl.shaderSource(fragmentShader, fragmentShaderSrc);
+        gl.compileShader(fragmentShader);
+        if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
+            throw new Error(gl.getShaderInfoLog(fragmentShader)!);
+        }
+
+        const shader = gl.createProgram()!;
+        gl.attachShader(shader, vertexShader);
+        gl.attachShader(shader, fragmentShader);
+        gl.linkProgram(shader);
+        gl.useProgram(shader);
+
+        const position = gl.getAttribLocation(shader, 'position');
         gl.enableVertexAttribArray(position);
-        this.fragTime = gl.getUniformLocation(this.shader, 'time')!;
+
+        this.fragTime = gl.getUniformLocation(shader, 'time')!;
         gl.uniform1f(this.fragTime, this.currentTime);
-        const fragResolution = gl.getUniformLocation(this.shader, 'resolution');
+
+        const fragResolution = gl.getUniformLocation(shader, 'resolution');
         gl.uniform2f(fragResolution, this.canvas.width, this.canvas.height);
+
+        this.shader = shader;
     }
 
     private render(): void {
@@ -119,80 +151,33 @@ export default class AmpShader extends AbstractVisualizer<AmpshaderVisualizer> {
 
     private renderFrame(): void {
         if (this.shader) {
-            this.analyser.getByteFrequencyData(this.spectrum);
-            this.gl.uniform1f(this.fragTime, this.currentTime);
-            copyAudioDataToTexture(this.gl, this.spectrum, this.fragSpectrumArray);
+            const gl = this.gl;
+            const spectrum = new Uint8Array(this.analyser.frequencyBinCount);
+            const fragSpectrumArray = new Uint8Array(4 * spectrum.length);
+
+            this.analyser.getByteFrequencyData(spectrum);
+            gl.uniform1f(this.fragTime, this.currentTime);
+
+            for (let i = 0; i < spectrum.length; i++) {
+                fragSpectrumArray[4 * i + 0] = spectrum[i]; // R
+                fragSpectrumArray[4 * i + 1] = spectrum[i]; // G
+                fragSpectrumArray[4 * i + 2] = spectrum[i]; // B
+                fragSpectrumArray[4 * i + 3] = 255; // A
+            }
+
+            gl.texImage2D(
+                gl.TEXTURE_2D,
+                0,
+                gl.RGBA,
+                spectrum.length,
+                1,
+                0,
+                gl.RGBA,
+                gl.UNSIGNED_BYTE,
+                fragSpectrumArray
+            );
+
             this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
         }
     }
-}
-
-// From: https://noisehack.com/build-music-visualizer-web-audio-api/
-
-function initQuad(gl: WebGLRenderingContext): void {
-    const vbo = gl.createBuffer();
-    gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-    const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
-    gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-    gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
-}
-
-function createShader(gl: WebGLRenderingContext, fragmentShaderSrc: string): WebGLProgram {
-    const vertexShader = gl.createShader(gl.VERTEX_SHADER)!;
-    gl.shaderSource(
-        vertexShader,
-        `attribute vec2 position;void main(void){gl_Position=vec4(position,0,1);}`
-    );
-    gl.compileShader(vertexShader);
-    if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-        throw new Error(gl.getShaderInfoLog(vertexShader)!);
-    }
-
-    const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)!;
-    gl.shaderSource(fragmentShader, fragmentShaderSrc);
-    gl.compileShader(fragmentShader);
-    if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-        throw new Error(gl.getShaderInfoLog(fragmentShader)!);
-    }
-
-    const shader = gl.createProgram()!;
-    gl.attachShader(shader, vertexShader);
-    gl.attachShader(shader, fragmentShader);
-    gl.linkProgram(shader);
-    gl.useProgram(shader);
-
-    return shader;
-}
-
-function createTexture(gl: WebGLRenderingContext): WebGLTexture {
-    const texture = gl.createTexture()!;
-    gl.bindTexture(gl.TEXTURE_2D, texture);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-    gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-    return texture;
-}
-
-function copyAudioDataToTexture(
-    gl: WebGLRenderingContext,
-    audioData: Uint8Array,
-    textureArray: Uint8Array
-): void {
-    for (let i = 0; i < audioData.length; i++) {
-        textureArray[4 * i + 0] = audioData[i]; // R
-        textureArray[4 * i + 1] = audioData[i]; // G
-        textureArray[4 * i + 2] = audioData[i]; // B
-        textureArray[4 * i + 3] = 255; // A
-    }
-    gl.texImage2D(
-        gl.TEXTURE_2D,
-        0,
-        gl.RGBA,
-        audioData.length,
-        1,
-        0,
-        gl.RGBA,
-        gl.UNSIGNED_BYTE,
-        textureArray
-    );
 }

@@ -60,21 +60,25 @@ async function getMusicKit(): Promise<MusicKit.MusicKitInstance> {
                 undefined,
                 reject
             );
-            document.addEventListener('musickitloaded', () => {
+            document.addEventListener('musickitloaded', async () => {
                 logger.log(`Loaded MusicKit version`, MusicKit.version);
                 if (window.MusicKit.version.startsWith('1')) {
                     window.MusicKit = new MusicKitV1Wrapper(MusicKit) as any;
                 }
-                const promise = MusicKit.configure({
-                    developerToken: am_dev_token,
-                    app: {
-                        name: __app_name__,
-                        build: __app_version__,
-                    },
-                    sourceType: 8, // not sure where this number came from
-                    suppressErrorDialog: true,
-                } as any) as unknown as Promise<MusicKit.MusicKitInstance>;
-                promise.then(resolve, reject);
+                try {
+                    const instance = await window.MusicKit.configure({
+                        developerToken: am_dev_token,
+                        app: {
+                            name: __app_name__,
+                            build: __app_version__,
+                        },
+                        sourceType: 8, // not sure where this number came from
+                        suppressErrorDialog: true,
+                    } as any);
+                    resolve(instance);
+                } catch (error) {
+                    reject(error);
+                }
             });
         });
     }

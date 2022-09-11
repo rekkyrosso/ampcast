@@ -101,14 +101,13 @@ export function createEmptyMediaObject<T extends ItemType>(itemType: T): BaseMed
     return {itemType, src: '', title: ''};
 }
 
-export function getRandomValue<T>(values: readonly T[], previousValue?: T, callCount = 0): T {
+export function getRandomValue<T>(values: readonly T[], previousValue?: T): T {
     if (values.length === 1) {
         return values[0];
     }
-    const index = Math.floor(Math.random() * values.length);
-    const value = values[index];
-    if (previousValue !== undefined && value === previousValue && callCount < 3) {
-        return getRandomValue(values, previousValue, callCount++);
+    if (previousValue !== undefined) {
+        values = values.filter((value) => value !== previousValue);
     }
-    return value;
+    const index = Math.floor(Math.random() * values.length);
+    return values[index];
 }

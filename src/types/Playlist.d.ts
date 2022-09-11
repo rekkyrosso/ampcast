@@ -4,6 +4,8 @@ import MediaItem from './MediaItem';
 import PlaylistItem from './PlaylistItem';
 
 export default interface Playlist {
+    readonly atEnd: boolean;
+    readonly atStart: boolean;
     observe(): Observable<readonly PlaylistItem[]>;
     observeCurrentIndex(): Observable<number>;
     observeCurrentItem(): Observable<PlaylistItem | null>;

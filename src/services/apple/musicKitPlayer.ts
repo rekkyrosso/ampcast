@@ -28,10 +28,12 @@ export class MusicKitPlayer implements Player<string> {
     private readonly playing$ = new Subject<void>();
     private readonly error$ = new Subject<unknown>();
     private readonly playerReady$ = new Subject<void>();
+    private readonly playbackState$ = new BehaviorSubject<MusicKit.PlaybackStates>(0);
     private readonly element: HTMLElement;
     private readonly src$ = new BehaviorSubject('');
     private loadedSrc = '';
     private isLoggedIn = false;
+    private hasPlayed = false;
     public loop = false;
     public autoplay = false;
     #muted = true;
@@ -176,6 +178,7 @@ export class MusicKitPlayer implements Player<string> {
     }
 
     load(src: string): void {
+        logger.log('load');
         this.src$.next(src);
         if (this.player && this.isLoggedIn) {
             if (this.autoplay) {
@@ -191,6 +194,7 @@ export class MusicKitPlayer implements Player<string> {
     }
 
     play(): void {
+        logger.log('play');
         if (this.player && this.isLoggedIn) {
             if (this.src === this.loadedSrc) {
                 this.safePlay();
@@ -203,13 +207,17 @@ export class MusicKitPlayer implements Player<string> {
     }
 
     pause(): void {
+        logger.log('pause');
         if (this.player?.isPlaying) {
             this.player.pause();
         }
     }
 
     stop(): void {
-        this.player?.stop();
+        logger.log('stop');
+        if (this.hasPlayed) {
+            this.player!.stop();
+        }
     }
 
     seek(time: number): void {
@@ -246,13 +254,19 @@ export class MusicKitPlayer implements Player<string> {
 
     private safePlay(): Promise<void> {
         return this.player
-            ? this.player.play().then(undefined, (err) => this.error$.next(err))
+            ? this.player.play().then(
+                  () => {
+                      this.hasPlayed = true;
+                  },
+                  (err) => this.error$.next(err)
+              )
             : Promise.resolve();
     }
 
     // The MusicKit typings for these callbacks are a bit lacking so they are all `any` for now.
 
     private readonly onPlaybackStateChange: any = ({state}: {state: MusicKit.PlaybackStates}) => {
+        this.playbackState$.next(state);
         if (state === MusicKit.PlaybackStates.ended) {
             this.ended$.next(undefined);
         } else if (state === MusicKit.PlaybackStates.playing) {

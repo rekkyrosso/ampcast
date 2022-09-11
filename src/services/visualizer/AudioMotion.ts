@@ -87,6 +87,7 @@ export default class AudioMotion extends AbstractVisualizer<AudioMotionVisualize
     }
 
     pause(): void {
+        logger.log('pause');
         this.visualizer.toggleAnalyzer(false);
     }
 

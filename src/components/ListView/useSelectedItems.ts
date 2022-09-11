@@ -1,17 +1,36 @@
+import usePrevious from 'hooks/usePrevious';
 import {useCallback, useLayoutEffect, useState} from 'react';
 
-export default function useSelectedItems<T>(items: readonly T[], itemKey: keyof T) {
+export default function useSelectedItems<T>(
+    items: readonly T[],
+    itemKey: keyof T,
+    rowIndex: number
+) {
     const [selectedItems, setSelectedItems] = useState<readonly T[]>([]);
+    const prevItems = usePrevious(items);
 
     useLayoutEffect(() => {
         // Make sure that `selectedItems` is always a subset of `items`.
-        const newSelectedItems = items.filter((item) =>
-            selectedItems.some((selectedItem) => selectedItem[itemKey] === item[itemKey])
-        );
-        if (!compareArrays(selectedItems, newSelectedItems)) {
-            setSelectedItems(newSelectedItems);
+        if (items !== prevItems) {
+            const newSelectedItems = items.filter((item) =>
+                selectedItems.some((selectedItem) => selectedItem[itemKey] === item[itemKey])
+            );
+            if (!compareArrays(selectedItems, newSelectedItems)) {
+                const size = items.length;
+                if (size > 0 && newSelectedItems.length === 0) {
+                    if (rowIndex < size) {
+                        setSelectedItems([items[rowIndex]]);
+                    } else if (rowIndex === size) {
+                        setSelectedItems([items[rowIndex - 1]]);
+                    } else {
+                        setSelectedItems(newSelectedItems);
+                    }
+                } else {
+                    setSelectedItems(newSelectedItems);
+                }
+            }
         }
-    }, [items, selectedItems, itemKey]);
+    }, [prevItems, items, selectedItems, itemKey, rowIndex]);
 
     const selectAll = useCallback(() => {
         setSelectedItems(items.slice());

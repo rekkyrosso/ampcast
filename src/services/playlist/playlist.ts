@@ -43,8 +43,8 @@ async function setAll(items: PlaylistItem[]): Promise<void> {
     await dbWrite('items', items, store);
     items$.next(items);
     if (items.length !== 0) {
-        const currentlyPlayingId = await getCurrentItemId();
-        if (!currentlyPlayingId) {
+        const currentItemId = getCurrentItemId();
+        if (!currentItemId) {
             // make sure something is selected.
             setCurrentItemId(items[0].id);
         }
@@ -55,7 +55,7 @@ export function observe(): Observable<PlaylistItem[]> {
     return items$;
 }
 
-async function getCurrentItemId(): Promise<string> {
+function getCurrentItemId(): string {
     return currentItemId$.getValue();
 }
 
@@ -65,10 +65,10 @@ async function setCurrentItemId(id: string): Promise<void> {
 }
 
 export async function getCurrentItem(): Promise<PlaylistItem | null> {
-    const currentlyPlayingId = await getCurrentItemId();
-    if (currentlyPlayingId) {
+    const currentItemId = getCurrentItemId();
+    if (currentItemId) {
         const items = await getAll();
-        const item = items.find((item) => item.id === currentlyPlayingId);
+        const item = items.find((item) => item.id === currentItemId);
         return item || null;
     }
     return null;
@@ -94,6 +94,12 @@ export function observeCurrentIndex(): Observable<number> {
     );
 }
 
+function getCurrentIndex(): number {
+    const items = items$.getValue();
+    const currentItemId = getCurrentItemId();
+    return items.findIndex((item) => item.id === currentItemId);
+}
+
 export function observeSize(): Observable<number> {
     return items$.pipe(
         map((items) => items.length),
@@ -101,11 +107,15 @@ export function observeSize(): Observable<number> {
     );
 }
 
+function getSize(): number {
+    return items$.getValue().length;
+}
+
 async function moveCurrentIndexBy(amount: -1 | 1): Promise<void> {
-    const currentlyPlayingId = await getCurrentItemId();
-    if (currentlyPlayingId) {
+    const currentItemId = getCurrentItemId();
+    if (currentItemId) {
         const items = await getAll();
-        const index = items.findIndex((item) => item.id === currentlyPlayingId);
+        const index = items.findIndex((item) => item.id === currentItemId);
         if (index !== -1) {
             const nextItem = items[index + amount];
             if (nextItem) {
@@ -188,7 +198,7 @@ export async function remove(item: PlaylistItem | readonly PlaylistItem[]): Prom
     const removals = Array.isArray(item) ? item : [item];
     const newItems = items.filter((item) => !removals.includes(item));
     if (newItems.length !== items.length) {
-        const currentlyPlayingId = await getCurrentItemId();
+        const currentlyPlayingId = getCurrentItemId();
         const index = newItems.findIndex((item) => item.id === currentlyPlayingId);
         if (index === -1) {
             await setCurrentItemId('');
@@ -221,6 +231,9 @@ export async function shuffle(): Promise<void> {
 async function createMediaItems(
     source: PlaylistSource
 ): Promise<readonly MediaItem[]> {
+    const isAlbum = (album: PlaylistSource): album is MediaAlbum => {
+        return 'itemType' in album && album.itemType === ItemType.Album;
+    }
     let items: readonly (MediaItem | null)[] = [];
     if (Array.isArray(source)) {
         if (isAlbum(source[0])) {
@@ -324,11 +337,13 @@ async function getDuration(file: File): Promise<number> {
     });
 }
 
-function isAlbum(album: PlaylistSource): album is MediaAlbum {
-    return ('itemType' in album) && album.itemType === ItemType.Album;
-}
-
 const playlist: Playlist = {
+    get atEnd(): boolean {
+        return getCurrentIndex() === getSize() - 1;
+    },
+    get atStart(): boolean {
+        return getSize() === 0 || getCurrentIndex() === 0;
+    },
     observe,
     observeCurrentItem,
     observeCurrentIndex,

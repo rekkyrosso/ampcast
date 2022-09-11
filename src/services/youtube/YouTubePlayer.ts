@@ -51,10 +51,6 @@ export const enum PlayerState {
     CUED = 5,
 }
 
-export interface YouTubePlayerOptions {
-    startTime?: number;
-}
-
 export default class YouTubePlayer implements Player<string> {
     private readonly logger: Logger;
     private readonly player: YT.Player | null = null;
@@ -70,7 +66,7 @@ export default class YouTubePlayer implements Player<string> {
     #muted = true;
     #volume = 1;
 
-    constructor(id: string, {startTime = 0}: YouTubePlayerOptions = {}) {
+    constructor(id: string) {
         const element = (this.element = document.createElement('div'));
         const wrapper = document.createElement('div');
         const target = document.createElement('div');
@@ -91,13 +87,14 @@ export default class YouTubePlayer implements Player<string> {
                 skipWhile((src) => !src),
                 tap((src) => {
                     const player = this.player!;
-                    const [, type, id] = src.split(':');
+                    const [, type, id, startTime = '0'] = src.split(':');
+                    const offset = Number(startTime) || 0;
                     if (id) {
                         if (type === 'playlist') {
                             const args: YT.IPlaylistSettings = {
                                 list: id,
                                 listType: type,
-                                startSeconds: startTime,
+                                startSeconds: offset,
                             };
                             if (this.autoplay) {
                                 player.loadPlaylist(args);
@@ -106,9 +103,9 @@ export default class YouTubePlayer implements Player<string> {
                             }
                         } else {
                             if (this.autoplay) {
-                                player.loadVideoById(id, startTime);
+                                player.loadVideoById(id, offset);
                             } else {
-                                player.cueVideoById(id, startTime);
+                                player.cueVideoById(id, offset);
                             }
                         }
                     } else {
@@ -230,6 +227,14 @@ export default class YouTubePlayer implements Player<string> {
         );
     }
 
+    // Loaded
+    observeVideoId(): Observable<string> {
+        return this.observeState().pipe(
+            map(() => this.getVideoId(this.player?.getVideoUrl() || '')),
+            distinctUntilChanged()
+        );
+    }
+
     appendTo(parentElement: HTMLElement): void {
         parentElement.appendChild(this.element);
 
@@ -259,9 +264,8 @@ export default class YouTubePlayer implements Player<string> {
     }
 
     load(src: string): void {
-        if (this.autoplay && !this.player) {
-            this.error$.next(Error('YouTube player not loaded.'));
-        } else if (this.autoplay && this.player && src === this.src) {
+        this.logger.log('load');
+        if (this.autoplay && this.player && src === this.src) {
             this.player.playVideo();
         } else {
             this.src$.next(src);
@@ -269,6 +273,7 @@ export default class YouTubePlayer implements Player<string> {
     }
 
     play(): void {
+        this.logger.log('play');
         if (this.player) {
             this.player.playVideo();
         } else {
@@ -277,10 +282,12 @@ export default class YouTubePlayer implements Player<string> {
     }
 
     pause(): void {
+        this.logger.log('pause');
         this.player?.pauseVideo();
     }
 
     stop(): void {
+        this.logger.log('stop');
         this.player?.stopVideo();
     }
 
@@ -327,13 +334,6 @@ export default class YouTubePlayer implements Player<string> {
 
     protected observeState(): Observable<PlayerState> {
         return this.state$;
-    }
-
-    protected observeVideoId(): Observable<string> {
-        return this.observeState().pipe(
-            map(() => this.getVideoId(this.player?.getVideoUrl() || '')),
-            distinctUntilChanged()
-        );
     }
 
     protected observeVideoSize(): Observable<Size> {

@@ -14,40 +14,42 @@ export default class MusicKitV1Wrapper {
     }
 
     async configure(configuration: MusicKit.Configuration): Promise<MusicKit.MusicKitInstance> {
-        return new Promise((resolve, reject) => {
-            try {
-                const musicKit: any = this.MusicKit.configure(configuration);
-                Object.defineProperties(musicKit, {
-                    volume: {
-                        get: () => musicKit.player.volume,
-                        set: (volume: number) => (musicKit.player.volume = volume),
-                    },
-                    queue: {
-                        get: () => musicKit.player.queue,
-                    },
-                    isPlaying: {
-                        get: () => musicKit.player.isPlaying,
-                    },
-                    nowPlayingItem: {
-                        get: () => musicKit.player.nowPlayingItem,
-                    },
-                });
-                Object.defineProperties(musicKit.api, {
-                    music: {
-                        get: () => (href: string) => this.music(href),
-                        set: (volume: number) => (musicKit.player.volume = volume),
-                    },
-                });
-                resolve((this.instance = musicKit));
-            } catch (err) {
-                reject(err);
-            }
+        const instance: any = this.MusicKit.configure(configuration);
+        this.instance = instance;
+        Object.defineProperties(instance, {
+            volume: {
+                get: () => instance.player.volume,
+                set: (volume: number) => (instance.player.volume = volume),
+            },
+            queue: {
+                get: () => instance.player.queue,
+            },
+            isPlaying: {
+                get: () => instance.player.isPlaying,
+            },
+            nowPlayingItem: {
+                get: () => instance.player.nowPlayingItem,
+            },
         });
+        Object.defineProperties(instance.api, {
+            music: {
+                get: () => (href: string) => this.music(href),
+            },
+        });
+        return this.instance;
     }
 
     getInstance(): MusicKit.MusicKitInstance {
-        if (this.instance) {
-            return this.instance;
+        const instance = this.instance;
+        if (instance) {
+            if (!instance.api.music) {
+                Object.defineProperties(instance.api, {
+                    music: {
+                        get: () => (href: string) => this.music(href),
+                    },
+                });
+            }
+            return instance;
         } else {
             throw Error('Not configured.');
         }

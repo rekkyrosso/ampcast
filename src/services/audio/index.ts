@@ -57,7 +57,7 @@ observeAudioSourceNode()
     .subscribe((audioSourceNode) => audioSourceNode.connect(analyser));
 
 export default {
-    context: audioContext,
+    audioContext,
     analyser,
     simpleAnalyser,
     observeAudioSourceNode,

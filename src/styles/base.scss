@@ -86,16 +86,3 @@ body.dragging {
     pointer-events: none !important;
     user-select: none !important;
 }
-
-.note {
-    background-color: rgba(165, 42, 42, 0.2);
-    padding: 1em;
-    margin: 1em 0;
-    border: 1px solid brown;
-    border-radius: 0.25em;
-    font-size: 0.75rem;
-
-    .light & {
-        background-color: rgba(255, 255, 0, 0.4);
-    }
-}

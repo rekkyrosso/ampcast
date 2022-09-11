@@ -7,6 +7,7 @@ import Player from 'types/Player';
 export default class OmniPlayer<T, S = T> implements Player<T> {
     private readonly player$ = new BehaviorSubject<Player<S> | null>(null);
     private readonly error$ = new Subject<unknown>();
+    #autoplay = false;
     #hidden = false;
     #muted = false;
 
@@ -34,11 +35,14 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
     }
 
     get autoplay(): boolean {
-        return this.players[0].autoplay;
+        return this.#autoplay;
     }
 
     set autoplay(autoplay: boolean) {
-        this.players.forEach((player) => (player.autoplay = autoplay));
+        this.#autoplay = autoplay;
+        if (this.currentPlayer) {
+            this.currentPlayer.autoplay = autoplay;
+        }
     }
 
     get loop(): boolean {
@@ -108,6 +112,8 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
         const prevPlayer = this.currentPlayer;
         const nextPlayer = this.selectPlayer(src);
 
+        this.player$.next(null); // turn off event streams
+
         if (prevPlayer && prevPlayer !== nextPlayer) {
             prevPlayer.muted = true;
             prevPlayer.hidden = true;
@@ -118,6 +124,7 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
 
         if (nextPlayer) {
             try {
+                nextPlayer.autoplay = this.autoplay;
                 this.loadPlayer(nextPlayer, src);
                 nextPlayer.muted = this.muted;
                 nextPlayer.hidden = this.hidden;
@@ -136,12 +143,12 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
 
     pause(): void {
         this.autoplay = false;
-        this.players.forEach((player) => player.pause());
+        this.currentPlayer?.pause();
     }
 
     stop(): void {
         this.autoplay = false;
-        this.players.forEach((player) => player.stop());
+        this.currentPlayer?.stop();
     }
 
     seek(time: number): void {

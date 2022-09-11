@@ -1,19 +1,24 @@
-import {AmbientVideoVisualizer} from 'types/Visualizer';
+import {filter, map, tap, withLatestFrom} from 'rxjs/operators';
 import Player from 'types/Player';
+import {AmbientVideoVisualizer} from 'types/Visualizer';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
 import HTML5Player from 'services/HTML5Player';
 import OmniPlayer from 'services/OmniPlayer';
+import {LiteStorage, Logger} from 'utils';
 
-const html5VideoPlayer = new HTML5Player('video');
-const youtubePlayer = new YouTubePlayer('ambient', {startTime: 120});
-const players = [html5VideoPlayer, youtubePlayer];
+const logger = new Logger('ambientVideoPlayer');
+
+const html5Player = new HTML5Player('video');
+const youtubePlayer = new YouTubePlayer('ambient');
+const players = [html5Player, youtubePlayer];
+const storage = new LiteStorage('ambientVideoPlayer/progress');
 
 function selectPlayer(visualizer: AmbientVideoVisualizer) {
     if (visualizer) {
         if (visualizer.src.startsWith('youtube:')) {
             return youtubePlayer;
         } else {
-            return html5VideoPlayer;
+            return html5Player;
         }
     } else {
         return null;
@@ -21,7 +26,14 @@ function selectPlayer(visualizer: AmbientVideoVisualizer) {
 }
 
 function loadPlayer(player: Player<string>, visualizer: AmbientVideoVisualizer) {
-    player.load(visualizer.src);
+    const src = visualizer.src;
+    if (src.startsWith('youtube:')) {
+        const [, , videoId] = src.split(':');
+        const startTime = storage.getItem(videoId) || '120';
+        player.load(`${src}:${startTime}`);
+    } else {
+        player.load(src);
+    }
 }
 
 const ambientVideoPlayer = new OmniPlayer<AmbientVideoVisualizer, string>(
@@ -33,5 +45,15 @@ const ambientVideoPlayer = new OmniPlayer<AmbientVideoVisualizer, string>(
 ambientVideoPlayer.loop = true;
 ambientVideoPlayer.volume = 0;
 ambientVideoPlayer.hidden = true;
+
+youtubePlayer
+    .observeCurrentTime()
+    .pipe(
+        map(Math.round),
+        filter((time) => time > 120 && time % 30 === 0),
+        withLatestFrom(youtubePlayer.observeVideoId()),
+        tap(([time, videoId]) => storage.setItem(videoId, String(time)))
+    )
+    .subscribe(logger);
 
 export default ambientVideoPlayer;

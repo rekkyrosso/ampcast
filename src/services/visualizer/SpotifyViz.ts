@@ -34,23 +34,23 @@ export default class SpotifyViz extends AbstractVisualizer<SpotifyVizVisualizer>
         this.canvas.hidden = true;
         this.canvas.className = `visualizer visualizer-spotify-viz`;
 
-        analyser.observeBars().subscribe((bar: ActiveIntervals['bars']) => {
+        analyser.observeBar().subscribe((bar: ActiveIntervals['bars']) => {
             this.config?.onBar?.(bar);
         });
 
-        analyser.observeBeats().subscribe((beat: ActiveIntervals['beats']) => {
+        analyser.observeBeat().subscribe((beat: ActiveIntervals['beats']) => {
             this.config?.onBeat?.(beat);
         });
 
-        analyser.observeSections().subscribe((section: ActiveIntervals['sections']) => {
+        analyser.observeSection().subscribe((section: ActiveIntervals['sections']) => {
             this.config?.onSection?.(section);
         });
 
-        analyser.observeSegments().subscribe((segment: ActiveIntervals['segments']) => {
+        analyser.observeSegment().subscribe((segment: ActiveIntervals['segments']) => {
             this.config?.onSegment?.(segment);
         });
 
-        analyser.observeTatums().subscribe((tatum: ActiveIntervals['tatums']) => {
+        analyser.observeTatum().subscribe((tatum: ActiveIntervals['tatums']) => {
             this.config?.onTatum?.(tatum);
         });
     }
@@ -78,7 +78,6 @@ export default class SpotifyViz extends AbstractVisualizer<SpotifyVizVisualizer>
             logger.log(`Using SpotifyViz preset: ${visualizer.name}`);
             this.config = visualizer.config;
             this.analyser.volumeSmoothing = visualizer.config?.volumeSmoothing ?? 100;
-            this.analyser.fftSize = 2048;
         }
         if (this.autoplay) {
             this.play();

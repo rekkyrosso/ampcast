@@ -15,7 +15,10 @@ export default function ThemeSettings() {
         // Lock `font-size` for this dialog.
         const systemStyle = document.getElementById('system')!.style;
         systemStyle.setProperty('--font-size', String(theme.fontSize));
-        return () => theme.restore();
+        return () => {
+            theme.restore();
+            systemStyle.removeProperty('--font-size');
+        }
     }, []);
 
     const handleSubmit = useCallback(() => theme.save(), []);
@@ -132,7 +135,7 @@ export default function ThemeSettings() {
                 <Input
                     type="range"
                     id="theme-fontSize"
-                    min={10}
+                    min={12}
                     max={32}
                     step={1}
                     defaultValue={initialFontSize}
