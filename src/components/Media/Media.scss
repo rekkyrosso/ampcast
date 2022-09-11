@@ -8,6 +8,14 @@
         border-radius: 0;
         inset: 0;
         font-size: 2rem;
+
+        &.idle {
+            cursor: none;
+
+            .visualizer-controls {
+                display: none;
+            }
+        }
     }
 
     .html5-video {

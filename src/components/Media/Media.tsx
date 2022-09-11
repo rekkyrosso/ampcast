@@ -5,6 +5,7 @@ import MediaType from 'types/MediaType';
 import mediaPlayback from 'services/mediaPlayback';
 import {observeProvider} from 'services/visualizer';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
+import useMouseBusy from 'hooks/useMouseBusy';
 import useObservable from 'hooks/useObservable';
 import useOnResize from 'hooks/useOnResize';
 import VisualizerControls from './VisualizerControls';
@@ -16,6 +17,7 @@ console.log('component::Media');
 export default function Media() {
     const ref = useRef<HTMLDivElement>(null);
     const [fullScreen, setFullScreen] = useState(false);
+    const busy = useMouseBusy(ref.current, 10_000);
     const currentlyPlaying = useCurrentlyPlaying();
     const playingVideo = currentlyPlaying?.mediaType === MediaType.Video;
     const visualizerProvider = useObservable(observeProvider, 'none');
@@ -27,7 +29,7 @@ export default function Media() {
 
     useLayoutEffect(() => {
         const subscription = fromEvent(document, 'fullscreenchange')
-            .pipe(map(() => document.fullscreenElement === ref.current!))
+            .pipe(map(() => document.fullscreenElement === ref.current))
             .subscribe(setFullScreen);
         return () => subscription.unsubscribe();
     }, []);
@@ -52,7 +54,7 @@ export default function Media() {
         <div
             className={`panel media ${playingVideo ? 'playing-video' : ''} ${
                 noVisualizer ? 'no-visualizer' : ''
-            }`}
+            }  ${busy ? '' : 'idle'}`}
             onDoubleClick={toggleFullScreen}
             ref={ref}
         >
