@@ -31,7 +31,7 @@ interface DialogPosition {
 const startPosition: DialogPosition = {left: 0, top: 0};
 
 function Dialog(
-    {title, className = '', children, onClose}: DialogProps,
+    {title, className = '', children, onClose, ...props}: DialogProps,
     ref: React.ForwardedRef<DialogHandle>
 ) {
     const dialogRef = useRef<HTMLDialogElement>(null);
@@ -62,8 +62,11 @@ function Dialog(
     }, [onClose]);
 
     const handleBodyClick = useCallback((event: React.MouseEvent) => {
-        const button = event.target as HTMLButtonElement;
-        if (button.type === 'submit' && button.value === '#cancel') {
+        let button: any = event.target;
+        while (button && button.type !== 'submit') {
+            button = button.parentElement;
+        }
+        if (button?.value === '#cancel') {
             event.preventDefault();
             dialogRef.current!.close();
         }
@@ -115,6 +118,7 @@ function Dialog(
 
     return (
         <dialog
+            {...props}
             className={`dialog ${className}`}
             onClose={handleClose}
             style={{

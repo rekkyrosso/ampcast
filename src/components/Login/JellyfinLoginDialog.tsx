@@ -3,6 +3,7 @@ import jellyfinSettings from 'services/jellyfin/jellyfinSettings';
 import Dialog, {showDialog, DialogProps} from 'components/Dialog';
 import Button from 'components/Button';
 import Input from 'components/Input';
+import './JellyfinLoginDialog.scss';
 
 export async function showJellyfinLoginDialog(): Promise<string> {
     return showDialog(JellyfinLoginDialog, true);
@@ -13,6 +14,7 @@ export default function JellyfinLoginDialog(props: DialogProps) {
     const hostRef = useRef<HTMLInputElement>(null);
     const userNameRef = useRef<HTMLInputElement>(null);
     const passwordRef = useRef<HTMLInputElement>(null);
+    const submitRef = useRef<HTMLButtonElement>(null);
 
     const login = useCallback(async () => {
         try {
@@ -49,14 +51,20 @@ export default function JellyfinLoginDialog(props: DialogProps) {
         }
     }, []);
 
-    const handleKeyDown = useCallback(
-        async (event: React.KeyboardEvent) => {
-            if (event.key === 'Enter') {
-                event.preventDefault();
-                if (!event.repeat) {
-                    await login();
-                }
+    const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
+        if (event.key === 'Enter') {
+            event.preventDefault();
+            event.stopPropagation();
+            if (!event.repeat) {
+                submitRef.current!.click(); // forces form validation
             }
+        }
+    }, []);
+
+    const handleSubmit = useCallback(
+        (event: React.FormEvent) => {
+            event.preventDefault();
+            login();
         },
         [login]
     );
@@ -68,30 +76,37 @@ export default function JellyfinLoginDialog(props: DialogProps) {
             title="Login to Jellyfin"
             ref={dialogRef}
         >
-            <form method="dialog" onKeyDown={handleKeyDown}>
-                <p>
-                    <label htmlFor="jellyfin-host">Host:</label>
-                    <Input
-                        type="url"
-                        id="jellyfin-host"
-                        defaultValue={jellyfinSettings.host}
-                        placeholder="https://"
-                        ref={hostRef}
-                    />
-                </p>
-                <p>
-                    <label htmlFor="jellyfin-username">User:</label>
-                    <Input type="text" id="jellyfin-username" autoFocus ref={userNameRef} />
-                </p>
-                <p>
-                    <label htmlFor="jellyfin-password">Password:</label>
-                    <Input type="password" id="jellyfin-password" ref={passwordRef} />
-                </p>
+            <form method="dialog" onKeyDown={handleKeyDown} onSubmit={handleSubmit}>
+                <div className="table-layout">
+                    <p>
+                        <label htmlFor="jellyfin-host">Host:</label>
+                        <Input
+                            type="url"
+                            id="jellyfin-host"
+                            defaultValue={jellyfinSettings.host}
+                            placeholder="https://"
+                            ref={hostRef}
+                            required
+                        />
+                    </p>
+                    <p>
+                        <label htmlFor="jellyfin-username">User:</label>
+                        <Input
+                            type="text"
+                            id="jellyfin-username"
+                            autoFocus
+                            ref={userNameRef}
+                            required
+                        />
+                    </p>
+                    <p>
+                        <label htmlFor="jellyfin-password">Password:</label>
+                        <Input type="password" id="jellyfin-password" ref={passwordRef} required />
+                    </p>
+                </div>
                 <footer className="dialog-buttons">
                     <Button value="#cancel">Cancel</Button>
-                    <Button type="button" onClick={login}>
-                        Login
-                    </Button>
+                    <Button ref={submitRef}>Login</Button>
                 </footer>
             </form>
         </Dialog>

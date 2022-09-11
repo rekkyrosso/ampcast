@@ -199,7 +199,7 @@ button {
         & > label + input,
         & > label + select {
             display: table-cell;
-            width: 100%;
+            width: calc(100% - 0.5em);
         }
 
         & > input,

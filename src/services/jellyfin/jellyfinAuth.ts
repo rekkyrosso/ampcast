@@ -36,9 +36,11 @@ export async function login(): Promise<void> {
     if (!isLoggedIn()) {
         try {
             const returnValue = await showJellyfinLoginDialog();
-            const {userId, token} = JSON.parse(returnValue);
-            settings.userId = userId;
-            setAccessToken(token);
+            if (returnValue) {
+                const {userId, token} = JSON.parse(returnValue);
+                settings.userId = userId;
+                setAccessToken(token);
+            }
         } catch (err) {
             logger.log('Could not obtain access token.');
             logger.error(err);
