@@ -1,11 +1,11 @@
 import React, {useCallback, useRef} from 'react';
 import jellyfinSettings from 'services/jellyfin/jellyfinSettings';
-import Dialog, {showModal, DialogProps} from 'components/Dialog';
+import Dialog, {showDialog, DialogProps} from 'components/Dialog';
 import Button from 'components/Button';
 import Input from 'components/Input';
 
 export async function showJellyfinLoginDialog(): Promise<string> {
-    return showModal(JellyfinLoginDialog);
+    return showDialog(JellyfinLoginDialog, true);
 }
 
 export default function JellyfinLoginDialog(props: DialogProps) {

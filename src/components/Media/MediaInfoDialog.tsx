@@ -1,6 +1,6 @@
 import React from 'react';
 import MediaObject from 'types/MediaObject';
-import Dialog, {DialogProps, showModal} from 'components/Dialog';
+import Dialog, {DialogProps, showDialog} from 'components/Dialog';
 import Button from 'components/Button';
 import MediaInfo from './MediaInfo';
 import './MediaInfoDialog.scss';
@@ -10,7 +10,7 @@ export interface MediaInfoDialogProps<T extends MediaObject = MediaObject> exten
 }
 
 export function showMediaInfoDialog<T extends MediaObject>(item: T): void {
-    showModal((props: DialogProps) => <MediaInfoDialog {...props} item={item} target="popup" />);
+    showDialog((props: DialogProps) => <MediaInfoDialog {...props} item={item} />);
 }
 
 export default function MediaInfoDialog<T extends MediaObject>({item, ...props}: MediaInfoDialogProps<T>) {

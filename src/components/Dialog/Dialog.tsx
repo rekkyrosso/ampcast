@@ -6,23 +6,17 @@ import React, {
     useRef,
     useState,
 } from 'react';
-import ReactDOM from 'react-dom';
+import {Except} from 'type-fest';
 import dialogPolyfill from 'dialog-polyfill';
+import 'dialog-polyfill/dialog-polyfill.css';
 import {stopPropagation} from 'utils';
 import Button from 'components/Button';
 import Icon from 'components/Icon';
-import 'dialog-polyfill/dialog-polyfill.css';
 import './Dialog.scss';
 
-export interface DialogProps {
+export interface DialogProps
+    extends Except<React.DialogHTMLAttributes<HTMLDialogElement>, 'onClose'> {
     onClose: (returnValue: string) => void;
-    target?: 'popup' | 'system';
-}
-
-export interface BaseDialogProps extends DialogProps {
-    title: string;
-    className?: string;
-    children: React.ReactNode;
 }
 
 export interface DialogHandle {
@@ -37,7 +31,7 @@ interface DialogPosition {
 const startPosition: DialogPosition = {left: 0, top: 0};
 
 function Dialog(
-    {title, className = '', children, onClose, target = 'system'}: BaseDialogProps,
+    {title, className = '', children, onClose}: DialogProps,
     ref: React.ForwardedRef<DialogHandle>
 ) {
     const dialogRef = useRef<HTMLDialogElement>(null);
@@ -119,7 +113,7 @@ function Dialog(
         }
     }, [dragStart, handleMouseMove, handleMouseUp]);
 
-    return ReactDOM.createPortal(
+    return (
         <dialog
             className={`dialog ${className}`}
             onClose={handleClose}
@@ -139,9 +133,8 @@ function Dialog(
             <div className="dialog-body" onClick={handleBodyClick}>
                 {children}
             </div>
-        </dialog>,
-        document.getElementById(target)!
+        </dialog>
     );
 }
 
-export default forwardRef<DialogHandle, BaseDialogProps>(Dialog);
+export default forwardRef<DialogHandle, DialogProps>(Dialog);

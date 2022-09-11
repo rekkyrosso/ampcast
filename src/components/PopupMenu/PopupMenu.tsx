@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import ReactDOM from 'react-dom';
 import {fromEvent, merge} from 'rxjs';
 import './PopupMenu.scss';
 
@@ -20,7 +19,7 @@ export default function PopupMenu({className = '', children, onClose, x, y}: Bas
 
     useLayoutEffect(() => {
         const style: React.CSSProperties = {};
-        const popup = popupRef.current!
+        const popup = popupRef.current!;
         if (x + popup.offsetWidth > document.body.clientWidth) {
             style.left = `${x - popup.offsetWidth}px`;
         } else {
@@ -58,7 +57,7 @@ export default function PopupMenu({className = '', children, onClose, x, y}: Bas
         [onClose]
     );
 
-    return ReactDOM.createPortal(
+    return (
         <menu
             className={`popup-menu ${className}`}
             onClick={handleClick}
@@ -66,7 +65,6 @@ export default function PopupMenu({className = '', children, onClose, x, y}: Bas
             ref={popupRef}
         >
             {children}
-        </menu>,
-        document.getElementById('popup')!
+        </menu>
     );
 }

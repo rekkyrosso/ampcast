@@ -1,16 +1,19 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import Splitter from 'components/Splitter';
 import MediaSources from 'components/MediaSources';
 import {SettingsDialog} from 'components/Settings';
+import {showDialog} from 'components/Dialog';
 import IconButton from 'components/Button/IconButton';
-import {useDialog} from 'components/Dialog';
 import './MediaLibrary.scss';
 
 console.log('component::MediaLibrary');
 
 export default function MediaLibrary() {
     const [source, setSource] = useState<React.ReactNode>(null);
-    const [settingsDialog, openSettingsDialog] = useDialog(SettingsDialog);
+
+    const openSettingsDialog = useCallback(() => {
+        showDialog(SettingsDialog, true);
+    }, []);
 
     return (
         <div className="media-library">
@@ -24,7 +27,6 @@ export default function MediaLibrary() {
                     title="Settings"
                     onClick={openSettingsDialog}
                 />
-                {settingsDialog}
             </header>
             <div className="media-library-body">
                 <Splitter id="media-library-layout" arrange="columns" primaryIndex={1}>

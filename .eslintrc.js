@@ -41,6 +41,7 @@ module.exports = {
         'eqeqeq': ['error', 'smart'],
         'no-caller': 'error',
         'no-alert': 'error',
+        'react/no-unknown-property': ['error', { ignore: ['onClose'] }],
         'react-hooks/rules-of-hooks': 'error',
         'react-hooks/exhaustive-deps': 'error',
 
