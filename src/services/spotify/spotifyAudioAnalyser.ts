@@ -184,60 +184,48 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
     }
 
     getByteFrequencyData(array: Uint8Array): void {
-        array.fill(0);
-
         if (!this.active) {
             return;
         }
 
         const pitches = this.segment.pitches;
 
+        if (pitches) {
+            const beat = interpolateBasis([0, this.volume, 0])(this.beat.progress);
+            const bufferSize = this.frequencyBinCount;
+            for (let i = 0; i < bufferSize; i++) {
+                const sample = this.samplePitches(pitches, i);
+                // logger.log({i, sample});
+                array[i] = sample * beat * 256;
+            }
+        }
+
         // if (pitches) {
         //     const beat = interpolateBasis([0, this.volume, 0])(this.beat.progress);
         //     const brightness = this.segment.timbre[1];
-        //     const index = Math.floor((brightness + 540) / 30) % 12;
-        //     logger.log({brightness, index});
-        //     pitches = pitches.slice();
-        //     for (let i = 0; i < index; i++) {
-        //         pitches.unshift(pitches.pop()!);
-        //     }
-        //     const chunkSize = Math.max(Math.floor(this.frequencyBinCount / pitches.length), 1);
-        //     const endIndex = chunkSize * pitches.length;
-        //     for (let i = 0; i < endIndex; i++) {
-        //         const pitch = pitches[Math.floor(i / chunkSize)];
-        //         array[i] = pitch * beat * 256;
+        //     const centre = brightness / 360;
+        //     const bufferSize = this.frequencyBinCount;
+        //     // logger.log({beat, brightness});
+        //     for (let i = 0; i < bufferSize; i++) {
+        //         let radian = (i - bufferSize / 2 - centre * bufferSize) / bufferSize + 1;
+        //         if (radian < 0 || radian > 2) {
+        //             radian = 0;
+        //         }
+        //         array[i] = 255 * Math.sin(radian * (Math.PI / 2)) * beat;
         //     }
         // }
-
-        if (pitches) {
-            const spectrum = this.segment.timbre[1];
-            const brightness = spectrum / 360 + 1;
-            // logger.log({brightness: spectrum / 360, pitch: pitches.reduce((t, p) => t + p, 0)});
-
-            const beat = 1; // interpolateBasis([0, this.volume, 0])(this.beat.progress);
-            const bufferSize = this.frequencyBinCount;
-            const sampleSize = this.sampleSize;
-            for (let i = 0; i < bufferSize; i++) {
-                const sample = this.samplePitches(
-                    pitches,
-                    i * sampleSize,
-                    (i + 1) * sampleSize,
-                    brightness
-                );
-                array[i] = sample * beat * 8192;
-            }
-        }
     }
 
-    private samplePitches(pitches: number[], min: number, max: number, brightness: number): number {
+    private samplePitches(pitches: number[], sample: number): number {
+        const sampleSize = this.sampleSize;
+        const min = sample * sampleSize;
+        const max = min + sampleSize;
         let total = 0;
         for (let i = 0; i < 12; i++) {
-            for (let j = 0; j < 9; j++) {
-                const frequency = frequencyTable[i][j] * brightness;
+            for (let j = 0; j < 12; j++) {
+                const frequency = frequencyTable[i][j];
                 if (frequency >= min && frequency < max) {
                     total += pitches[i];
-                }
-                if (frequency > max) {
                     break;
                 }
             }
@@ -247,26 +235,6 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
 
     getByteTimeDomainData(array: Uint8Array): void {
         array.fill(128);
-    }
-
-    private getPitchFrequencyData(array: Uint8Array): void {
-        array.fill(0);
-
-        if (!this.active) {
-            return;
-        }
-
-        const beat = interpolateBasis([0, this.volume, 0])(this.beat.progress);
-        const pitches = this.segment.pitches;
-
-        if (pitches) {
-            const chunkSize = Math.max(Math.floor(this.frequencyBinCount / pitches.length), 1);
-            const endIndex = chunkSize * pitches.length;
-            for (let i = 0; i < endIndex; i++) {
-                const pitch = pitches[Math.floor(i / chunkSize)];
-                array[i] = pitch * beat * 512;
-            }
-        }
     }
 
     private get activeIntervals(): ActiveIntervals {

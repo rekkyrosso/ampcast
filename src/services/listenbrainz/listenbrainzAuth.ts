@@ -3,13 +3,12 @@ import {BehaviorSubject} from 'rxjs';
 import {distinctUntilChanged, map} from 'rxjs/operators';
 import Auth from 'types/Auth';
 import {Logger} from 'utils';
-import settings from './jellyfinSettings';
-import {showJellyfinLoginDialog} from 'components/Login/JellyfinLoginDialog';
-import jellyfinSettings from './jellyfinSettings';
+import {showListenBrainzLoginDialog} from 'components/Login/ListenBrainzLoginDialog';
+import listenbrainzSettings from './listenbrainzSettings';
 
-console.log('module::jellyfinAuth');
+console.log('module::listenbrainzAuth');
 
-const logger = new Logger('jellyfinAuth');
+const logger = new Logger('listenbrainzAuth');
 
 const accessToken$ = new BehaviorSubject('');
 
@@ -18,7 +17,7 @@ export function observeAccessToken(): Observable<string> {
 }
 
 function isLoggedIn(): boolean {
-    return getAccessToken() !== '';
+    return accessToken$.getValue() !== '';
 }
 
 export function observeIsLoggedIn(): Observable<boolean> {
@@ -28,18 +27,16 @@ export function observeIsLoggedIn(): Observable<boolean> {
     );
 }
 
-function getAccessToken(): string {
-    return accessToken$.getValue();
-}
-
 export async function login(): Promise<void> {
     if (!isLoggedIn()) {
         try {
-            const returnValue = await showJellyfinLoginDialog();
+            const returnValue = await showListenBrainzLoginDialog();
             if (returnValue) {
                 const {userId, token} = JSON.parse(returnValue);
-                settings.userId = userId;
-                setAccessToken(token);
+                listenbrainzSettings.userId = userId;
+                listenbrainzSettings.token = token;
+                logger.log('Access token successfully obtained.');
+                accessToken$.next(token);
             }
         } catch (err) {
             logger.log('Could not obtain access token.');
@@ -49,24 +46,16 @@ export async function login(): Promise<void> {
 }
 
 export async function logout(): Promise<void> {
-    setAccessToken('');
-    jellyfinSettings.clear();
+    accessToken$.next('');
+    listenbrainzSettings.clear();
 }
 
-function setAccessToken(token: string): void {
-    settings.token = token;
-    if (token) {
-        logger.log('Access token successfully obtained.');
-    }
-    accessToken$.next(token);
-}
-
-const jellyfinAuth: Auth = {
+const listenbrainzAuth: Auth = {
     observeIsLoggedIn,
     login,
     logout,
 };
 
-export default jellyfinAuth;
+accessToken$.next(listenbrainzSettings.token);
 
-setAccessToken(settings.token);
+export default listenbrainzAuth;

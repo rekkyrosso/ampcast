@@ -138,12 +138,13 @@ export default function ListView<T>({
     const isDragging = dragStartIndex !== -1;
     const scrollIndex = rowHeight ? Math.floor(scrollTop / rowHeight) : 0;
     const keyboardBusy = useKeyboardBusy();
-    const atEnd = rowIndex === 0 || rowIndex === size - 1;
-    const busy = keyboardBusy && !atEnd;
+    const atStart = rowIndex === 0;
+    const atEnd = rowIndex === size - 1;
+    const busy = keyboardBusy && !(atStart || atEnd);
     const [debouncedSelectedItems, setDebouncedSelectedItems] = useState<readonly T[]>(
         () => selectedItems
     );
-    const [dragItem1, dragItem2, dragItem3, dragItem4] = draggable ? debouncedSelectedItems : [];
+    const [dragItem1, dragItem2, dragItem3, dragItem4] = draggable ? selectedItems : [];
 
     useEffect(() => {
         if (listViewRef) {

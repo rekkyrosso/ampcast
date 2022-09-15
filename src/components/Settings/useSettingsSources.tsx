@@ -8,6 +8,7 @@ import MediaLibrarySettings from './MediaLibrarySettings';
 import AppleMusicSettings from './MediaLibrarySettings/AppleMusicSettings';
 import JellyfinSettings from './MediaLibrarySettings/JellyfinSettings';
 import LastFmSettings from './MediaLibrarySettings/LastFmSettings';
+import ListenBrainzSettings from './MediaLibrarySettings/ListenBrainzSettings';
 import PlexSettings from './MediaLibrarySettings/PlexSettings';
 import SpotifySettings from './MediaLibrarySettings/SpotifySettings';
 import YouTubeSettings from './MediaLibrarySettings/YouTubeSettings';
@@ -48,6 +49,11 @@ const sources: TreeNode<React.ReactNode>[] = [
                 id: 'lastfm',
                 label: <MediaSourceLabel icon="lastfm" text="last.fm" />,
                 value: <LastFmSettings />,
+            },
+            {
+                id: 'listenbrainz',
+                label: <MediaSourceLabel icon="listenbrainz" text="ListenBrainz" />,
+                value: <ListenBrainzSettings />,
             },
         ],
     },

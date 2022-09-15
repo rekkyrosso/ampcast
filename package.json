@@ -1,6 +1,6 @@
 {
     "name": "ampcast",
-    "version": "0.4.24",
+    "version": "0.4.25",
     "description": "Ampcast music player",
     "author": "rekkyrosso",
     "main": "index.js",

@@ -40,9 +40,9 @@ export async function login(): Promise<void> {
         try {
             const token = await obtainAccessToken();
             const sessionKey = await obtainSessionKey(token);
+            logger.log('Access token successfully obtained.');
             sessionKey$.next(sessionKey);
             accessToken$.next(token);
-            logger.log('Access token successfully obtained.');
         } catch (err) {
             logger.log('Could not obtain access token.');
             logger.error(err);

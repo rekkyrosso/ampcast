@@ -15,5 +15,6 @@ export default interface MediaItem extends BaseMediaObject<ItemType.Media> {
     readonly playedOn?: number;
     readonly aspectRatio?: number;
     readonly unplayable?: boolean;
+    readonly isrc?: string;
     readonly blob?: Blob;
 }

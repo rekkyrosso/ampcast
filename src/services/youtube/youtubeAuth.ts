@@ -37,8 +37,8 @@ export async function login(): Promise<void> {
     if (!isLoggedIn()) {
         try {
             const accessToken = await obtainAccessToken();
-            accessToken$.next(accessToken);
             logger.log('Access token successfully obtained.');
+            accessToken$.next(accessToken);
         } catch (err) {
             logger.log('Could not obtain access token.');
             logger.error(err);

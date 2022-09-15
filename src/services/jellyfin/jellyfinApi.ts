@@ -16,9 +16,7 @@ async function fetch(path: string, init: RequestInit): Promise<Response> {
     const {device, deviceId, token} = jellyfinSettings;
     init.headers = {
         ...init.headers,
-        ...{
-            ['X-Emby-Authorization']: `MediaBrowser Client="${__app_name__}", Version="${__app_version__}", Device="${device}", DeviceId="${deviceId}", Token="${token}"`,
-        },
+        'X-Emby-Authorization': `MediaBrowser Client="${__app_name__}", Version="${__app_version__}", Device="${device}", DeviceId="${deviceId}", Token="${token}"`,
     };
 
     return window.fetch(`${jellyfinSettings.host}/${path}`, init);
@@ -42,7 +40,7 @@ export function getPlayableUrlFromSrc(src: string): string {
         });
         return `${host}/Audio/${trackId}/universal?${trackParams}`;
     } else {
-        throw (Error('Not logged in.'));
+        throw Error('Not logged in.');
     }
 }
 

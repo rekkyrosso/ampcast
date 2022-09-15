@@ -49,10 +49,10 @@ export async function logout(): Promise<void> {
 }
 
 function setAccessToken(token: string): void {
+    plexSettings.userToken = token;
     if (token) {
         logger.log('Access token successfully obtained.');
     }
-    plexSettings.userToken = token;
     accessToken$.next(token);
 }
 

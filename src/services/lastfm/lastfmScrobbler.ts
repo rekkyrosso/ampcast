@@ -94,5 +94,8 @@ function getParamsFromMediaItem(item: MediaItem): Record<string, string> {
     if (item.track) {
         params.trackNumber = String(item.track);
     }
+    if (item.mbid) {
+        params.mbid = item.mbid;
+    }
     return params;
 }

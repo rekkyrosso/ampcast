@@ -38,7 +38,8 @@ export type IconName =
     | 'youtube'
     | 'jellyfin'
     | 'plex'
-    | 'lastfm';
+    | 'lastfm'
+    | 'listenbrainz';
 
 export type MediaSourceIconName = Extract<
     IconName,
@@ -342,19 +343,21 @@ export default function Icon({name, className = ''}: IconProps) {
         case 'lastfm':
             return (
                 <svg className={className} viewBox="0 0 455 455">
-                    <rect
-                        className="icon-lastfm-inner"
-                        x="5"
-                        y="5"
-                        width="445"
-                        height="445"
-                    />
+                    <rect className="icon-lastfm-inner" x="5" y="5" width="445" height="445" />
                     <path
                         className="icon-lastfm-outer"
                         fillRule="evenodd"
                         clipRule="evenodd"
                         d="M0,0v455h455V0H0z M309.94,315.01c-62.425,0-84.085-28.145-95.625-63.145 L202.77,215.77c-8.65-26.33-18.75-46.915-50.505-46.915c-22.035,0-44.395,15.88-44.395,60.275c0,34.63,17.695,56.29,42.575,56.29 c28.145,0,46.915-20.94,46.915-20.94l11.565,31.385c0,0-19.495,19.125-60.275,19.125c-50.51,0-78.65-29.57-78.65-84.435 c0-56.99,28.14-90.565,81.19-90.565c47.99,0,72.165,17.325,87.305,64.235L250.41,240.3c8.65,26.35,23.805,45.47,60.25,45.47 c24.555,0,37.52-5.41,37.52-18.77c0-10.45-6.13-18.025-24.53-22.365l-24.53-5.76c-29.94-7.225-41.855-22.735-41.855-47.265 c0-39.335,31.755-51.6,64.215-51.6c36.82,0,59.18,13.34,62.07,45.82l-36.07,4.335c-1.445-15.53-10.82-22.015-28.145-22.015 c-15.88,0-25.625,7.21-25.625,19.475c0,10.84,4.685,17.325,20.565,20.94l23.085,5.055c31.035,7.21,47.64,22.365,47.64,51.585 C385,301.295,354.685,315.01,309.94,315.01z"
                     />
+                </svg>
+            );
+
+        case 'listenbrainz':
+            return (
+                <svg className={className} viewBox="0 0 27 30">
+                    <polygon fill="#353070" points="13 1 1 8 1 22 13 29 13 1" />
+                    <polygon fill="#eb743b" points="14 1 26 8 26 22 14 29 14 1" />
                 </svg>
             );
 

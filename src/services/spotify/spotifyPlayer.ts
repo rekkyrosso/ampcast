@@ -96,12 +96,14 @@ export class SpotifyPlayer implements Player<string> {
                         const isCurrentTrack =
                             state.track_window.current_track?.uri === this.currentTrackSrc;
                         if ((this.paused && !state.paused) || !isCurrentTrack) {
+                            logger.log('synch::pause');
                             this.safePause();
                         } else if (
                             (state.paused || !this.hasPlayed) &&
                             !this.paused &&
                             isCurrentTrack
                         ) {
+                            logger.log('synch::play');
                             this.safePlay();
                         }
                     }

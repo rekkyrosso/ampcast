@@ -122,12 +122,4 @@
     &-drag-image {
         transform: translateY(-9999px);
     }
-
-    &-drag-image &-row {
-        background-color: black !important;
-
-        .app.light & {
-            background-color: white !important;
-        }
-    }
 }
