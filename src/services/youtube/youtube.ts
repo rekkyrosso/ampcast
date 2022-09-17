@@ -94,6 +94,7 @@ const youtube: MediaService = {
     id: 'youtube',
     title: 'YouTube',
     icon: 'youtube',
+    url: 'https://www.youtube.com/',
     sources: [youtubeLikes, youtubePlaylists],
     searches: [
         {

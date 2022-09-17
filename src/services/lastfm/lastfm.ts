@@ -86,6 +86,7 @@ const lastfm: MediaService = {
     id: 'lastfm',
     title: 'last.fm',
     icon: 'lastfm',
+    url: 'https://www.last.fm/',
     sources: [lastfmRecentlyPlayed],
     searches: [
         createTopView('user.getTopTracks', {

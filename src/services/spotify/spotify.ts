@@ -152,6 +152,7 @@ const spotify: MediaService = {
     id: 'spotify',
     title: 'Spotify',
     icon: 'spotify',
+    url: 'https://www.spotify.com/',
     sources: [
         spotifyRecentlyPlayed,
         spotifyTopTracks,

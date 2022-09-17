@@ -1,6 +1,7 @@
 import React from 'react';
-import {login} from 'services/youtube';
+import youtube, {login} from 'services/youtube';
 import Button from 'components/Button';
+import ExternalLink from 'components/ExternalLink';
 
 export default function YouTubeLogin() {
     return (
@@ -15,6 +16,9 @@ export default function YouTubeLogin() {
                     <Button className="branded login" onClick={login}>
                         Log in to YouTube
                     </Button>
+                </p>
+                <p>
+                    <ExternalLink href={youtube.url} />
                 </p>
             </div>
         </div>

@@ -8,9 +8,9 @@ async function getISRC(mbid: string): Promise<string> {
     return recording.isrcs?.[0] || '';
 }
 
-async function getRecordingByISRC(isrc: string): Promise<MusicBrainz.Recording> {
+async function getRecordingByISRC(isrc: string): Promise<MusicBrainz.Recording | null> {
     const response = await get<MusicBrainz.isrc.Response>(`/isrc/${isrc}`);
-    return response.recordings[0];
+    return response.recordings[0] || null;
 }
 
 async function get<T>(path: string, params: Record<string, string> = {}): Promise<T> {

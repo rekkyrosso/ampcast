@@ -11,7 +11,7 @@ import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
 import SimplePager from 'services/SimplePager';
 import JellyfinPager from './JellyfinPager';
-import settings from './jellyfinSettings';
+import jellyfinSettings from './jellyfinSettings';
 import {observeIsLoggedIn, login, logout} from './jellyfinAuth';
 import './jellyfinReporting';
 
@@ -117,13 +117,14 @@ const jellyfinPlaylists: MediaSource<MediaPlaylist> = {
 };
 
 function createJellyfinItemsPager<T extends MediaObject>(params: Record<string, string>): Pager<T> {
-    return new JellyfinPager(`Users/${settings.userId}/Items`, params);
+    return new JellyfinPager(`Users/${jellyfinSettings.userId}/Items`, params);
 }
 
 const jellyfin: MediaService = {
     id: 'jellyfin',
     title: 'Jellyfin',
     icon: 'jellyfin',
+    url: 'https://jellyfin.org/',
     searches: [
         createSearch('Audio', {title: 'Songs', itemType: ItemType.Media}),
         createSearch('MusicAlbum', {title: 'Albums', itemType: ItemType.Album}),

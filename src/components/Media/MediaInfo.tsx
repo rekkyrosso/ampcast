@@ -6,6 +6,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {findBestThumbnail, formatTime} from 'utils';
+import ExternalLink from 'components/ExternalLink';
 import Icon, {MediaSourceIconName} from 'components/Icon';
 import './MediaInfo.scss';
 
@@ -39,7 +40,7 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
                 <AlbumAndYear album={item.album} year={item.year} />
                 <Owner owner={item.owner} src={item.src} />
             </div>
-            <ExternalLink url={item.externalUrl} src={item.src} />
+            <ExternalView url={item.externalUrl} src={item.src} />
         </article>
     );
 }
@@ -53,7 +54,7 @@ function AlbumInfo({item: album}: MediaInfoProps<MediaAlbum>) {
                 <Artist artist={album.artist} />
                 <Year year={album.year} />
             </div>
-            <ExternalLink url={album.externalUrl} src={album.src} />
+            <ExternalView url={album.externalUrl} src={album.src} />
         </article>
     );
 }
@@ -65,7 +66,7 @@ function ArtistInfo({item: artist}: MediaInfoProps<MediaArtist>) {
                 <Thumbnail thumbnails={artist.thumbnails} />
                 <Title title={artist.title} />
             </div>
-            <ExternalLink url={artist.externalUrl} src={artist.src} />
+            <ExternalView url={artist.externalUrl} src={artist.src} />
         </article>
     );
 }
@@ -78,7 +79,7 @@ function PlaylistInfo({item}: MediaInfoProps<MediaPlaylist>) {
                 <Title title={item.title} />
                 <Owner owner={item.owner} src={item.src} />
             </div>
-            <ExternalLink url={item.externalUrl} src={item.src} />
+            <ExternalView url={item.externalUrl} src={item.src} />
         </article>
     );
 }
@@ -118,7 +119,7 @@ export function Owner<T extends MediaObject>({src, owner}: Pick<T, 'src' | 'owne
     );
 }
 
-export function ExternalLink({src, url}: {src: string; url: string | undefined}) {
+export function ExternalView({src, url}: {src: string; url: string | undefined}) {
     if (!url) {
         return null;
     }
@@ -153,10 +154,7 @@ export function ExternalLink({src, url}: {src: string; url: string | undefined})
             ) : (
                 <>Url: </>
             )}
-
-            <a href={url} target={`ampcast-${source}`}>
-                {url}
-            </a>
+            <ExternalLink href={url} />
         </p>
     );
 }

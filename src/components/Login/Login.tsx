@@ -27,6 +27,12 @@ export default function Login({service}: LoginProps) {
                                 Log in to {service.title}
                             </Button>
                         </p>
+                        <p>
+                            {/* eslint-disable-next-line react/jsx-no-target-blank */}
+                            <a href={service.url} target="_blank" rel="noopener">
+                                {service.url}
+                            </a>
+                        </p>
                     </div>
                 </div>
             );

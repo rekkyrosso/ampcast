@@ -6,12 +6,11 @@ import MediaSource from 'types/MediaSource';
 import Pager from 'types/Pager';
 import listenbrainzApi from './listenbrainzApi';
 import {observeIsLoggedIn, login, logout} from './listenbrainzAuth';
-import settings from './listenbrainzSettings';
 
 console.log('module::listenbrainz');
 
 async function test() {
-    const result = await listenbrainzApi.get(`/1/stats/user/${settings.userId}/recordings`);
+    const result = await listenbrainzApi.user.get(`listens`);
     console.log({result});
 }
 
@@ -31,6 +30,7 @@ const listenbrainz: MediaService = {
     id: 'listenbrainz',
     title: 'ListenBrainz',
     icon: 'listenbrainz',
+    url: 'https://listenbrainz.org/',
     sources: [recentlyPlayed],
     searches: [],
 

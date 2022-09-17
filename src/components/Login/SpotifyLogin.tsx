@@ -1,6 +1,7 @@
 import React from 'react';
-import {login} from 'services/spotify';
+import spotify, {login} from 'services/spotify';
 import Button from 'components/Button';
+import ExternalLink from 'components/ExternalLink';
 
 export default function SpotifyLogin() {
     return (
@@ -11,6 +12,9 @@ export default function SpotifyLogin() {
                     <Button className="branded login" onClick={login}>
                         Log in to Spotify
                     </Button>
+                </p>
+                <p>
+                    <ExternalLink href={spotify.url} />
                 </p>
                 <p>
                     <small>

@@ -163,6 +163,7 @@ const apple: MediaService = {
     id: 'apple',
     title: 'Apple Music',
     icon: 'apple',
+    url: 'https://music.apple.com/',
     searches: [
         createSearch('songs', {title: 'Songs', itemType: ItemType.Media, layout: defaultLayout}),
         createSearch('albums', {title: 'Albums', itemType: ItemType.Album}),

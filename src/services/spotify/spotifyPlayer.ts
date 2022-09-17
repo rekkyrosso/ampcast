@@ -1,5 +1,15 @@
-import {combineLatest, Observable} from 'rxjs';
-import {EMPTY, BehaviorSubject, Subject, firstValueFrom, from, interval, merge, of} from 'rxjs';
+import type {Observable} from 'rxjs';
+import {
+    EMPTY,
+    BehaviorSubject,
+    Subject,
+    combineLatest,
+    firstValueFrom,
+    from,
+    interval,
+    merge,
+    of,
+} from 'rxjs';
 import {
     catchError,
     delay,
@@ -46,7 +56,6 @@ export class SpotifyPlayer implements Player<string> {
     private loadError?: LoadError;
     private isLoggedIn = false;
     private deviceId = '';
-    private hasPlayed = false;
     public hidden = true;
     public loop = false;
     #autoplay = false;
@@ -56,15 +65,23 @@ export class SpotifyPlayer implements Player<string> {
     constructor(private readonly accessToken$: Observable<string>) {
         window.onSpotifyWebPlaybackSDKReady = this.onSpotifyWebPlaybackSDKReady;
 
+        this.observeReady()
+            .pipe(
+                tap(() => this.player!.activateElement()),
+                take(1)
+            )
+            .subscribe(logger);
+
         // Load new tracks.
         this.observeReady()
             .pipe(
                 switchMap(() => this.observeIsLoggedIn()),
-                switchMap((isLoggedIn) => (isLoggedIn ? this.observeSrc() : EMPTY)),
+                switchMap((isLoggedIn) => (isLoggedIn ? this.observePaused() : EMPTY)),
+                switchMap((paused) => (paused ? EMPTY : this.observeSrc())),
                 withLatestFrom(this.observeAccessToken()),
                 switchMap(([src, token]) => {
                     if (src && src !== this.loadedSrc) {
-                        return this.observeNotLoading().pipe(
+                        return of(undefined).pipe(
                             mergeMap(() =>
                                 this.loadError ? this.reconnect(token) : of(undefined)
                             ),
@@ -91,21 +108,6 @@ export class SpotifyPlayer implements Player<string> {
                 tap((state) => {
                     if (this.src === this.loadedSrc && state.track_window.current_track) {
                         this.currentTrackSrc = state.track_window.current_track.uri;
-                    }
-                    if (!state.loading) {
-                        const isCurrentTrack =
-                            state.track_window.current_track?.uri === this.currentTrackSrc;
-                        if ((this.paused && !state.paused) || !isCurrentTrack) {
-                            logger.log('synch::pause');
-                            this.safePause();
-                        } else if (
-                            (state.paused || !this.hasPlayed) &&
-                            !this.paused &&
-                            isCurrentTrack
-                        ) {
-                            logger.log('synch::play');
-                            this.safePlay();
-                        }
                     }
                 })
             )
@@ -188,7 +190,8 @@ export class SpotifyPlayer implements Player<string> {
     }
 
     observeEnded(): Observable<void> {
-        return this.observeCurrentTrackState().pipe(
+        return this.observePlaying().pipe(
+            switchMap(() => this.observeCurrentTrackState()),
             distinctUntilChanged(comparePausedAndPosition),
             withLatestFrom(this.observePaused()),
             map(([state, paused]) => !paused && state.paused && state.position === 0),
@@ -292,14 +295,6 @@ export class SpotifyPlayer implements Player<string> {
         return this.observeAccessToken().pipe(
             map((accessToken) => !!accessToken),
             distinctUntilChanged()
-        );
-    }
-
-    private observeNotLoading(): Observable<void> {
-        return this.state$.pipe(
-            map((state) => state?.loading !== true),
-            distinctUntilChanged(),
-            map(() => undefined)
         );
     }
 
@@ -454,7 +449,6 @@ export class SpotifyPlayer implements Player<string> {
         try {
             if (this.player && this.loadedSrc) {
                 await this.player.resume();
-                this.hasPlayed = true;
             }
         } catch (err) {
             this.error$.next(err);
@@ -464,11 +458,11 @@ export class SpotifyPlayer implements Player<string> {
     private async safeStop(): Promise<void> {
         try {
             if (this.player && this.loadedSrc) {
+                await this.player.pause();
                 const state = await this.getCurrentState();
                 if (state?.position) {
                     await this.player.seek(0);
                 }
-                await this.player.pause();
             }
         } catch (err) {
             logger.error(err);
@@ -477,7 +471,7 @@ export class SpotifyPlayer implements Player<string> {
 
     private async safeVolume(volume: number): Promise<void> {
         try {
-            this.player?.setVolume(volume);
+            await this.player?.setVolume(volume);
         } catch (err) {
             logger.error(err);
         }

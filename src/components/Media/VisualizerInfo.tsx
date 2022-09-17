@@ -1,7 +1,7 @@
 import React from 'react';
 import Visualizer, {AmbientVideoVisualizer} from 'types/Visualizer';
 import useYouTubeVideoInfo from 'hooks/useYouTubeVideoInfo';
-import {ExternalLink, Owner} from './MediaInfo';
+import {ExternalView, Owner} from './MediaInfo';
 import './VisualizerInfo.scss';
 
 interface VisualizerInfoProps {
@@ -30,7 +30,7 @@ function VisualizerPreset({visualizer}: VisualizerInfoProps) {
     ) : visualizer?.name ? (
         <>
             <h4>Name: {visualizer!.name}</h4>
-            <ExternalLink url={visualizer.externalUrl} src="" />
+            <ExternalView url={visualizer.externalUrl} src="" />
         </>
     ) : null;
 }
@@ -42,7 +42,7 @@ function YouTubeVideoInfo({visualizer}: {visualizer: AmbientVideoVisualizer}) {
         <div className="youtube-video-info">
             <h4>Title: {video.title}</h4>
             <Owner owner={video.owner} src={video.src} />
-            <ExternalLink url={video.externalUrl} src={video.src} />
+            <ExternalView url={video.externalUrl} src={video.src} />
         </div>
     ) : null;
 }
