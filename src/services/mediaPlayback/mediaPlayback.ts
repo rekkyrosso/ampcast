@@ -5,6 +5,7 @@ import {
     distinctUntilChanged,
     filter,
     map,
+    mergeMap,
     switchMap,
     takeUntil,
     withLatestFrom,
@@ -12,6 +13,7 @@ import {
 import MediaPlayback from 'types/MediaPlayback';
 import PlaybackState from 'types/PlaybackState';
 import PlaylistItem from 'types/PlaylistItem';
+import localdb from 'services/localdb';
 import playlist from 'services/playlist';
 import visualizerPlayer from 'services/visualizer/player';
 import {LiteStorage, Logger} from 'utils';
@@ -84,6 +86,9 @@ export function appendTo(parentElement: HTMLElement): void {
 export function load(item: PlaylistItem | null): void {
     logger.log('load', item?.title);
     mediaPlayer.load(item);
+    if (mediaPlayer.autoplay) {
+        playback.play();
+    }
 }
 
 export function play(): void {
@@ -104,6 +109,7 @@ export function pause(): void {
 }
 
 export function seek(time: number): void {
+    logger.log('seek', {time});
     mediaPlayer.seek(time);
 }
 
@@ -290,6 +296,10 @@ loadingLocked$
         switchMap((locked) => (locked ? EMPTY : observeCurrentItem()))
     )
     .subscribe(load);
+
+observePlaybackEnd()
+    .pipe(mergeMap((state) => localdb.addListen(state)))
+    .subscribe(logger);
 
 fromEvent(window, 'pagehide').subscribe(kill);
 

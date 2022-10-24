@@ -51,9 +51,9 @@ export async function login(): Promise<void> {
 }
 
 export async function logout(): Promise<void> {
+    lastfmSettings.clear();
     sessionKey$.next('');
     accessToken$.next('');
-    lastfmSettings.clear();
 }
 
 async function obtainAccessToken(): Promise<string> {
@@ -100,7 +100,6 @@ async function obtainAccessToken(): Promise<string> {
 
 async function obtainSessionKey(token: string): Promise<string> {
     const method = 'auth.getSession';
-    // const format = 'json';
     const params = {api_key: lf_api_key, token, method};
     const api_sig = getApiSignature(params);
     const response = await fetch(

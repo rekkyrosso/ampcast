@@ -24,10 +24,12 @@ export type SpotifyArtist = SpotifyApi.ArtistObjectFull;
 export type SpotifyAlbum = SpotifyApi.AlbumObjectFull;
 export type SpotifyPlaylist = SpotifyApi.PlaylistObjectFull;
 export type SpotifyTrack = SpotifyApi.TrackObjectSimplified &
-    Partial<Pick<SpotifyApi.TrackObjectFull, 'album'>> & {
+    Partial<SpotifyApi.TrackObjectFull> & {
         played_at?: string; // ISO string
     };
-export type SpotifyEpisode = SpotifyApi.EpisodeObjectFull; // TODO: get rid of this somehow
+export type SpotifyEpisode = SpotifyApi.EpisodeObjectFull & {
+    played_at?: string; // ISO string
+}; // TODO: get rid of this somehow
 export type SpotifyItem =
     | SpotifyArtist
     | SpotifyAlbum

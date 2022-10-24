@@ -1,19 +1,30 @@
 import MediaItem from 'types/MediaItem';
+import Logger from 'utils/Logger';
 import plexSettings from './plexSettings';
 import plexApi from './plexApi';
 
 console.log('module::plexPlayback');
 
+const logger = new Logger('plexPlayback');
+
 let playQueue: plex.PlayQueue | null = null; // TODO: Do this better.
 
 export async function reportStart(item: MediaItem): Promise<void> {
-    const [, , key] = item.src.split(':');
-    playQueue = await createPlayQueue(key);
-    await reportState(item, 0, 'playing');
+    try {
+        const [, , key] = item.src.split(':');
+        playQueue = await createPlayQueue(key);
+        await reportState(item, 0, 'playing');
+    } catch (err) {
+        logger.error(err);
+    }
 }
 
 export async function reportStop(item: MediaItem): Promise<void> {
-    await reportState(item, 0, 'stopped', true);
+    try {
+        await reportState(item, 0, 'stopped', true);
+    } catch (err) {
+        logger.error(err);
+    }
 }
 
 export async function reportProgress(
@@ -21,7 +32,11 @@ export async function reportProgress(
     currentTime: number,
     state: 'paused' | 'playing'
 ): Promise<void> {
-    await reportState(item, currentTime, state);
+    try {
+        await reportState(item, currentTime, state);
+    } catch (err) {
+        logger.error(err);
+    }
 }
 
 async function reportState(

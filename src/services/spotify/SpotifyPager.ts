@@ -10,7 +10,6 @@ import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import SequentialPager from 'services/SequentialPager';
 import SimplePager from 'services/SimplePager';
-import {createEmptyMediaObject} from 'utils';
 import {
     SpotifyAlbum,
     spotifyApi,
@@ -53,7 +52,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                     return {
                         items: items.map((item) => this.createMediaObject(item)),
                         total,
-                        atEnd: !next
+                        atEnd: !next,
                     };
                 };
                 try {
@@ -122,7 +121,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
 
     private createMediaItemFromEpisode(episode: SpotifyEpisode): MediaItem {
         return {
-            ...createEmptyMediaObject(ItemType.Media),
+            itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             src: episode.uri,
             externalUrl: episode.external_urls.spotify,
@@ -130,12 +129,15 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             duration: episode.duration_ms / 1000,
             thumbnails: episode.images as Thumbnail[],
             unplayable: episode.is_playable === false,
+            playedAt: episode.played_at
+                ? Math.floor(new Date(episode.played_at).getTime() || 0 / 1000)
+                : 0,
         };
     }
 
     private createMediaAlbum(album: SpotifyAlbum): MediaAlbum {
         return {
-            ...createEmptyMediaObject(ItemType.Album),
+            itemType: ItemType.Album,
             src: album.uri,
             externalUrl: album.external_urls.spotify,
             title: album.name,
@@ -149,7 +151,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
 
     private createMediaArtist(artist: SpotifyArtist): MediaArtist {
         return {
-            ...createEmptyMediaObject(ItemType.Artist),
+            itemType: ItemType.Artist,
             src: artist.uri,
             externalUrl: artist.external_urls.spotify,
             title: artist.name,
@@ -160,7 +162,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
 
     private createMediaPlaylist(playlist: SpotifyPlaylist): MediaPlaylist {
         return {
-            ...createEmptyMediaObject(ItemType.Playlist),
+            itemType: ItemType.Playlist,
             src: playlist.uri,
             externalUrl: playlist.external_urls.spotify,
             title: playlist.name,
@@ -178,23 +180,23 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         const album = /album|compilation/i.test(track.album?.album_type || '') ? track.album : null;
 
         return {
-            ...createEmptyMediaObject(ItemType.Media),
+            itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             src: track.uri,
-            // unplayable: track.available_markets?.length === 0,
             externalUrl: track.external_urls.spotify,
             title: track.name,
             artist: track.artists.map((artist) => artist.name).join('/'),
             albumArtist: album?.artists[0]?.name,
             album: album?.name,
             duration: track.duration_ms / 1000,
-            playedOn: track.played_at
-                ? new Date(track.played_at).getTime() || undefined
-                : undefined,
+            playedAt: track.played_at
+                ? Math.floor(new Date(track.played_at).getTime() || 0 / 1000)
+                : 0,
             genre: (track.album as any)?.genres?.join(';'),
             disc: album ? track.disc_number : undefined,
             track: album ? track.track_number : undefined,
             year: track.album ? new Date(track.album.release_date).getFullYear() : undefined,
+            isrc: track.external_ids?.isrc,
             thumbnails: track.album?.images as Thumbnail[],
             unplayable: track.is_playable === false,
         };

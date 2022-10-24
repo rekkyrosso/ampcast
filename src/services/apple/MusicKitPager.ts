@@ -9,7 +9,6 @@ import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import SequentialPager from 'services/SequentialPager';
-import {createEmptyMediaObject} from 'utils';
 
 type LibrarySong = Omit<AppleMusicApi.Song, 'type'> & {type: 'library-songs'};
 type LibraryMusicVideo = Omit<AppleMusicApi.Song, 'type'> & {type: 'music-videos'};
@@ -27,7 +26,7 @@ type MusicKitItem =
     | AppleMusicApi.Playlist
     | LibraryPlaylist;
 
-interface MusicKitPage extends Page<MusicKitItem> {
+export interface MusicKitPage extends Page<MusicKitItem> {
     readonly nextPageUrl?: string | undefined;
 }
 
@@ -38,10 +37,14 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
     constructor(
         href: string,
         map: (response: any) => MusicKitPage,
+        params?: Record<string, string>,
         options?: Partial<PagerConfig>
     ) {
         this.pager = new SequentialPager<T>(async (limit?: number): Promise<Page<T>> => {
-            const response = await this.fetchNext(this.nextPageUrl || href, limit);
+            const response = await this.fetchNext(
+                this.nextPageUrl || href,
+                limit ? (params ? {...params, limit} : {limit}) : params
+            );
             const result = map(response.data);
             const items = this.createItems(result.items);
             const total = result.total;
@@ -79,10 +82,10 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         this.pager.fetchAt(index, length);
     }
 
-    private async fetchNext(href: string, limit?: number): Promise<any> {
+    private async fetchNext(href: string, params?: Record<string, string | number>): Promise<any> {
         const musicKit = MusicKit.getInstance();
-        if (limit && !/[?&]limit=/.test(href)) {
-            href = `${href}${href.includes('?') ? '&' : '?'}limit=${limit}`;
+        if (params) {
+            href = `${href}${href.includes('?') ? '&' : '?'}${new URLSearchParams(params as any)}`;
         }
         return musicKit.api.music(href);
     }
@@ -113,40 +116,39 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaPlaylist(playlist: AppleMusicApi.Playlist | LibraryPlaylist): MediaPlaylist {
-        const item = playlist.attributes!;
+        const item = this.createFromLibrary<AppleMusicApi.Playlist['attributes']>(playlist);
         const {id, kind} = item.playParams || {id: playlist.id, kind: 'playlist'};
+        const isLibrary = playlist.href?.startsWith('/v1/me/library/');
 
         return {
-            ...createEmptyMediaObject(ItemType.Playlist),
+            itemType: ItemType.Playlist,
             src: `apple:${kind}:${id}`,
-            externalUrl: item.url,
+            externalUrl:
+                item.url || (isLibrary ? `https://music.apple.com/library/playlist/${id}` : ''),
             title: item.name,
             thumbnails: this.createThumbnails(playlist),
-            apple: {
-                href: playlist.href,
-            },
             owner: {
                 name: item.curatorName || '',
                 url: '',
             },
-            pager: this.createPager(`${playlist.href}?include=tracks`),
+            pager: this.createPager(`${playlist.href}`, {
+                include: 'tracks,catalog',
+                'fields[library-playlists]': 'playParams,name,artwork,url,tracks',
+            }),
             unplayable: !item.playParams,
         };
     }
 
     private createMediaArtist(artist: AppleMusicApi.Artist | LibraryArtist): MediaArtist {
-        const item = artist.attributes!;
+        const item = this.createFromLibrary<AppleMusicApi.Artist['attributes']>(artist);
 
         return {
-            ...createEmptyMediaObject(ItemType.Artist),
+            itemType: ItemType.Artist,
             src: `apple:artist:${artist.id}`,
             externalUrl: item.url,
             title: item.name,
             thumbnails: this.createThumbnails(artist),
             genre: item.genreNames.join(';'),
-            apple: {
-                href: artist.href,
-            },
             pager: this.createPager(
                 artist.relationships?.albums.href ||
                     `/v1/catalog/{{storefrontId}}/artists/${artist.id}/albums`
@@ -155,11 +157,11 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaAlbum(album: AppleMusicApi.Album | LibraryAlbum): MediaAlbum {
-        const item = album.attributes!;
+        const item = this.createFromLibrary<AppleMusicApi.Album['attributes']>(album);
         const {id, kind} = item.playParams || {id: album.id, kind: 'album'};
 
         return {
-            ...createEmptyMediaObject(ItemType.Album),
+            itemType: ItemType.Album,
             src: `apple:${kind}:${id}`,
             externalUrl: item.url,
             title: item.name,
@@ -168,23 +170,23 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             trackCount: item.trackCount,
             genre: item.genreNames.join(';'),
             year: new Date(item.releaseDate).getFullYear() || 0,
-            pager: this.createPager(album.href!),
-            apple: {
-                href: album.href,
-            },
+            pager: this.createPager(album.href!, {
+                'include[library-songs]': 'catalog',
+                'fields[library-songs]': 'playParams,name,artistName,albumName,artwork',
+            }),
             unplayable: !item.playParams,
         };
     }
 
     private createMediaItem(song: AppleMusicApi.Song | LibrarySong | LibraryMusicVideo): MediaItem {
-        const item = song.attributes!;
+        const item = this.createFromLibrary<AppleMusicApi.Song['attributes']>(song);
         const {id, kind} = item.playParams || {
             id: song.id,
             kind: song.type === 'music-videos' ? 'musicVideo' : 'song',
         };
 
         return {
-            ...createEmptyMediaObject(ItemType.Media),
+            itemType: ItemType.Media,
             mediaType: kind === 'musicVideo' ? MediaType.Video : MediaType.Audio,
             src: `apple:${kind}:${id}`,
             externalUrl: item.url,
@@ -198,11 +200,15 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             disc: item.discNumber,
             track: item.trackNumber,
             year: new Date(item.releaseDate).getFullYear() || undefined,
-            apple: {
-                href: song.href,
-            },
+            isrc: item.isrc,
             unplayable: !item.playParams,
+            playedAt: 0,
         };
+    }
+
+    private createFromLibrary<T>(item: any): NonNullable<T> {
+        const catalog = item.relationships?.catalog?.data?.[0];
+        return {...catalog?.attributes, ...item.attributes};
     }
 
     private createThumbnails(item: MusicKitItem): Thumbnail[] {
@@ -229,6 +235,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
 
     private createPager<T extends MediaObject>(
         href: string,
+        params?: Record<string, string>,
         options?: Partial<PagerConfig>
     ): Pager<T> {
         return new MusicKitPager(
@@ -240,6 +247,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
                 const total = result.meta?.total;
                 return {items, total, nextPageUrl};
             },
+            params,
             options
         );
     }

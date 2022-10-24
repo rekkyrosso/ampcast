@@ -40,7 +40,7 @@ export default function MediaItemList({
                 case 'play':
                     mediaPlayback.autoplay = true;
                     await playlist.insertAt(items, currentlyPlayingIndex + 1);
-                    mediaPlayback.next();
+                    await playlist.next();
                     break;
 
                 case 'play-next':
@@ -48,7 +48,7 @@ export default function MediaItemList({
                     break;
 
                 case 'queue':
-                    playlist.add(items);
+                    await playlist.add(items);
                     break;
 
                 case 'info':
@@ -73,12 +73,12 @@ export default function MediaItemList({
             if (!unplayable) {
                 if (!ctrlKey && !shiftKey) {
                     // Queue
-                    playlist.add(items);
+                    await playlist.add(items);
                 } else if (ctrlKey && !shiftKey) {
                     // Play Now
                     mediaPlayback.autoplay = true;
                     await playlist.insertAt(items, currentlyPlayingIndex + 1);
-                    mediaPlayback.next();
+                    await playlist.next();
                 } else if (shiftKey && !ctrlKey) {
                     // Play Next
                     await playlist.insertAt(items, currentlyPlayingIndex + 1);

@@ -6,7 +6,7 @@ import {PagedBrowserProps} from './MediaBrowser';
 export default function MediaItemBrowser({source, ...props}: PagedBrowserProps<MediaItem>) {
     return (
         <div className="panel media-item-browser">
-            return <MediaItemList {...props} unplayable={source.unplayable} />;
+            <MediaItemList {...props} unplayable={source.unplayable} />;
         </div>
     );
 }

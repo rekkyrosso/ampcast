@@ -356,8 +356,16 @@ export default function Icon({name, className = ''}: IconProps) {
         case 'listenbrainz':
             return (
                 <svg className={className} viewBox="0 0 27 30">
-                    <polygon fill="#353070" points="13 1 1 8 1 22 13 29 13 1" />
-                    <polygon fill="#eb743b" points="14 1 26 8 26 22 14 29 14 1" />
+                    <polygon
+                        className="icon-listenbrainz-left"
+                        stroke="none"
+                        points="13 1 1 8 1 22 13 29 13 1"
+                    />
+                    <polygon
+                        className="icon-listenbrainz-right"
+                        stroke="none"
+                        points="14 1 26 8 26 22 14 29 14 1"
+                    />
                 </svg>
             );
 

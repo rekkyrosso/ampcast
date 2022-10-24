@@ -50,7 +50,6 @@ export default function PopupMenu({className = '', children, onClose, x, y}: Bas
                 button = button.parentElement;
             }
             if (button?.value) {
-                event.stopPropagation();
                 onClose(button!.value);
             }
         },

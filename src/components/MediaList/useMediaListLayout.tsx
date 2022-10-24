@@ -50,10 +50,10 @@ export const Genre: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item)
     item.genre?.split(';').join(', ');
 export const Owner: RenderField = (item) => item.owner?.name;
 export const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
-    if (!item.playedOn) {
+    if (!item.playedAt) {
         return '';
     }
-    const elapsedTime = Date.now() - item.playedOn;
+    const elapsedTime = Date.now() - (item.playedAt * 1000);
     const minute = 60_000;
     if (elapsedTime < minute * 2) {
         return 'just now';
@@ -99,23 +99,6 @@ export const Thumbnail: RenderField = (item) => {
         />
     );
 };
-
-// TODO: Revisit this.
-// export function MediaActions<T extends MediaItem>(item: T) {
-//     const save = useCallback(() => localMediaLibrary.add(item), [item]);
-//     const unsave = useCallback(() => localMediaLibrary.remove(item), [item]);
-
-//     return (
-//         <IconButtons>
-//             <IconButton
-//                 className="with-overlay"
-//                 icon={item.addedOn ? 'saved' : 'unsaved'}
-//                 title={`${item.addedOn ? 'Remove from' : 'Add to'} local library`}
-//                 onClick={item.addedOn ? unsave : save}
-//             />
-//         </IconButtons>
-//     );
-// }
 
 // TODO: Improve typing.
 const mediaFields: MediaFields<any> = {

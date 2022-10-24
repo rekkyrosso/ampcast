@@ -28,7 +28,7 @@ export default function AlbumList({
                 case 'play':
                     mediaPlayback.autoplay = true;
                     await playlist.insertAt(album, currentlyPlayingIndex + 1);
-                    mediaPlayback.next();
+                    await playlist.next();
                     break;
 
                 case 'play-next':
@@ -36,7 +36,7 @@ export default function AlbumList({
                     break;
 
                 case 'queue':
-                    playlist.add(album);
+                    await playlist.add(album);
                     break;
 
                 case 'info':
@@ -61,12 +61,12 @@ export default function AlbumList({
             if (!unplayable) {
                 if (!ctrlKey && !shiftKey) {
                     // Queue
-                    playlist.add(album);
+                    await playlist.add(album);
                 } else if (ctrlKey && !shiftKey) {
                     // Play Now
                     mediaPlayback.autoplay = true;
                     await playlist.insertAt(album, currentlyPlayingIndex + 1);
-                    mediaPlayback.next();
+                    await playlist.next();
                 } else if (shiftKey && !ctrlKey) {
                     // Play Next
                     await playlist.insertAt(album, currentlyPlayingIndex + 1);

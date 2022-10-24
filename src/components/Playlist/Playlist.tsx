@@ -61,6 +61,12 @@ export default function Playlist({onSelect, onPlay, ...props}: PlaylistProps) {
         [onPlay]
     );
 
+    const handleInfo = useCallback(([item]: readonly PlaylistItem[]) => {
+        if (item) {
+            showMediaInfoDialog(item);
+        }
+    }, []);
+
     const handleContextMenu = useCallback(
         async (items: readonly PlaylistItem[], x: number, y: number) => {
             const action = await showActionsMenu(items, x, y);
@@ -103,6 +109,7 @@ export default function Playlist({onSelect, onPlay, ...props}: PlaylistProps) {
                 onDoubleClick={handleDoubleClick}
                 onDrop={playlist.insertAt}
                 onEnter={handleEnter}
+                onInfo={handleInfo}
                 onMove={playlist.moveSelection}
                 onSelect={handleSelect}
                 listViewRef={listViewRef}

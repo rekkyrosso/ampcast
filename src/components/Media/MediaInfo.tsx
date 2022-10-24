@@ -93,28 +93,17 @@ export function Artist<T extends MediaItem>({artist}: Pick<T, 'artist'>) {
 }
 
 export function Owner<T extends MediaObject>({src, owner}: Pick<T, 'src' | 'owner'>) {
-    if (!owner) {
+    if (!owner || !owner.name) {
         return null;
     }
 
     const [source] = src.split(':');
-    let label = 'Owner';
-
-    switch (source) {
-        case 'youtube':
-            label = 'Channel';
-            break;
-
-        default:
-            return null;
-    }
+    const label = source === 'youtube' ? 'Channel' : 'Curator';
 
     return (
         <p className="owner">
             {label}:{' '}
-            <a href={owner.url} target={`ampcast-${source}`}>
-                {owner.name}
-            </a>
+            {owner.url ? <ExternalLink href={owner.url}>{owner.name}</ExternalLink> : owner.name}
         </p>
     );
 }

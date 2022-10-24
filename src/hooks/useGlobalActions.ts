@@ -6,6 +6,7 @@ import usePaused from './usePaused';
 export default function useGlobalActions() {
     const paused = usePaused();
 
+    // TODO: This doesn't belong here.
     useEffect(() => {
         document.getElementById('system')!.addEventListener('keydown', stopPropagation);
         document.getElementById('popup')!.addEventListener('keydown', stopPropagation);

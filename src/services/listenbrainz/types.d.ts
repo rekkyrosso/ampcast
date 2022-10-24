@@ -1,37 +1,66 @@
 declare namespace ListenBrainz {
-    type MusicService =
-        | 'spotify.com'
-        | 'bandcamp.com'
-        | 'youtube.com'
-        | 'music.youtube.com'
-        | 'deezer.com'
-        | 'tidal.com'
-        | 'music.apple.com'
-        | 'archive.org'
-        | 'soundcloud.com'
-        | 'jamendo.com'
-        | 'play.google.com'
-        ;
-
     // Timestamps are in Unix time.
+
+    interface ListensSubmission {
+        listen_type: 'single' | 'import';
+        payload: ListenPayload[];
+    }
+
+    interface ListensSubmission {
+        listen_type: 'playing_now';
+        payload: Omit<ListenPayload, 'listened_at'>[];
+    }
+
+    interface ListenPayload {
+        listened_at: number;
+        track_metadata: ListenMetadata;
+    }
+
+    interface ListenMetadata {
+        artist_name: string;
+        track_name: string;
+        release_name?: string;
+        additional_info?: {
+            artist_mbids?: string[];
+            release_group_mbid?: string;
+            release_mbid?: string;
+            recording_mbid?: string;
+            track_mbid?: string;
+            work_mbids?: string[];
+            tracknumber?: number;
+            discnumber?: number;
+            duration?: number;
+            duration_ms?: number;
+            isrc?: string;
+            spotify_id?: string;
+            tags?: string[];
+            media_player?: string;
+            media_player_version?: string;
+            submission_client?: string;
+            submission_client_version?: string;
+            music_service?: string;
+            music_service_name?: string;
+            origin_url?: string;
+        };
+    }
 
     interface TrackMetadata {
         artist_name: string;
         track_name: string;
         release_name?: string;
         additional_info?: {
-            artist_msid: string | null;
+            artist_msid?: string | null;
             artist_names?: string[];
+            tracknumber?: number;
             discnumber?: number;
             duration?: number;
             duration_ms?: number;
             isrc?: string;
-            music_service?: MusicService;
             origin_url?: string;
-            recording_msid: string | null;
+            recording_msid?: string | null;
             release_artist_name?: string;
             release_artist_names?: string[];
-            release_msid: string | null;
+            release_msid?: string | null;
             lastfm_artist_mbid?: string;
             lastfm_release_mbid?: string;
             lastfm_track_mbid?: string;
@@ -39,8 +68,17 @@ declare namespace ListenBrainz {
             spotify_album_id?: string;
             spotify_artist_ids?: string[];
             spotify_id?: string;
+            music_service?: string;
+            music_service_name?: string;
+            media_player?: string;
+            media_player_version?: string;
             submission_client?: string;
-            tracknumber?: number;
+            submission_client_version?: string;
+            brainzplayer_metadata?: {
+                artist_name: string;
+                track_name: string;
+                release_name?: string;
+            };
         };
         mbid_mapping?: {
             artist_mbids: string[];
@@ -77,9 +115,22 @@ declare namespace ListenBrainz {
     }
 
     namespace User {
+        interface ListenCount {
+            payload: {
+                count: number;
+            };
+        }
+
+        interface ListensParams {
+            [key: string]: string | number;
+            count?: number;
+            min_ts?: number;
+            max_ts?: number;
+        }
+
         interface Listens {
             payload: {
-                count: 25;
+                count: number;
                 latest_listen_ts: number;
                 listens: Listen[];
                 user_name: string;

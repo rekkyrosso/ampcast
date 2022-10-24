@@ -3,12 +3,12 @@ import MediaSource from 'types/MediaSource';
 import Input from 'components/Input';
 import './MediaSourceSelector.scss';
 
-export interface MediaSourceSelectorProps {
-    sources: readonly MediaSource[];
-    onSourceChange?: (source: MediaSource) => void;
+export interface MediaSourceSelectorProps<T> {
+    sources: readonly MediaSource<T>[];
+    onSourceChange?: (source: MediaSource<T>) => void;
 }
 
-export default function MediaSourceSelector({sources, onSourceChange}: MediaSourceSelectorProps) {
+export default function MediaSourceSelector<T>({sources, onSourceChange}: MediaSourceSelectorProps<T>) {
     const id = useId();
 
     const handleSourceChange = useCallback(

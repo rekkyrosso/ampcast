@@ -30,7 +30,6 @@ import {observeAccessToken, refreshToken} from './spotifyAuth';
 interface LoadError {
     readonly src: string;
     readonly error: unknown;
-    readonly timeStamp: number;
 }
 
 const logger = new Logger('SpotifyPlayer');
@@ -89,7 +88,7 @@ export class SpotifyPlayer implements Player<string> {
                             catchError((error) => {
                                 this.loadedSrc = '';
                                 this.currentTrackSrc = '';
-                                this.loadError = {src, error, timeStamp: Date.now()};
+                                this.loadError = {src, error};
                                 this.error$.next(error);
                                 return EMPTY;
                             }),
@@ -102,12 +101,13 @@ export class SpotifyPlayer implements Player<string> {
             )
             .subscribe(logger);
 
-        // Synchronize player states.
+        // currentTrack
         this.observeState()
             .pipe(
                 tap((state) => {
-                    if (this.src === this.loadedSrc && state.track_window.current_track) {
-                        this.currentTrackSrc = state.track_window.current_track.uri;
+                    const currentTrack = state.track_window.current_track;
+                    if (this.src === this.loadedSrc && currentTrack) {
+                        this.currentTrackSrc = currentTrack.uri;
                     }
                 })
             )
@@ -119,7 +119,6 @@ export class SpotifyPlayer implements Player<string> {
                 tap((isLoggedIn) => {
                     this.isLoggedIn = isLoggedIn;
                     if (!isLoggedIn && !this.paused) {
-                        this.stop();
                         this.error$.next(Error(ERR_NOT_CONNECTED));
                     }
                 })

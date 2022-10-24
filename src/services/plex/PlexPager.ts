@@ -9,7 +9,6 @@ import MediaType from 'types/MediaType';
 import Pager, {Page} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import OffsetPager from 'services/OffsetPager';
-import {createEmptyMediaObject} from 'utils';
 import plexSettings from './plexSettings';
 import plexApi from './plexApi';
 
@@ -101,11 +100,11 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         const albumTitle = track.parentTitle === '[Unknown Album]' ? '' : track.parentTitle || '';
 
         return {
-            ...createEmptyMediaObject(ItemType.Media),
+            itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             src: `plex:audio:${part.key}`,
             title: track.title,
-            addedOn: track.addedAt,
+            addedAt: track.addedAt,
             artist: track.grandparentTitle,
             albumArtist: albumTitle ? track.grandparentTitle : undefined,
             album: albumTitle,
@@ -113,7 +112,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             track: albumTitle ? track.index : undefined,
             rating: track.userRating,
             year: track.parentYear,
-            playedOn: track.lastViewedAt ? track.lastViewedAt * 1000 : undefined,
+            playedAt: track.lastViewedAt || 0,
             playCount: track.viewCount,
             plex: {
                 ratingKey: track.ratingKey,
@@ -124,14 +123,14 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
 
     private createMediaAlbum(album: plex.Album): MediaAlbum {
         return {
-            ...createEmptyMediaObject(ItemType.Album),
+            itemType: ItemType.Album,
             src: `plex:album:${album.ratingKey}`,
             title: album.title || '',
-            addedOn: album.addedAt,
+            addedAt: album.addedAt,
             artist: album.parentTitle,
             rating: album.userRating,
             year: album.year,
-            playedOn: album.lastViewedAt ? album.lastViewedAt * 1000 : undefined,
+            playedAt: album.lastViewedAt,
             playCount: album.viewCount,
             genre: album.Genre?.map((genre) => genre.tag).join(';'),
             plex: {
@@ -144,10 +143,10 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
 
     private createMediaArtist(artist: plex.Artist): MediaArtist {
         return {
-            ...createEmptyMediaObject(ItemType.Artist),
+            itemType: ItemType.Artist,
             src: `plex:album:${artist.ratingKey}`,
             title: artist.title,
-            addedOn: artist.addedAt,
+            addedAt: artist.addedAt,
             rating: artist.userRating,
             genre: artist.Genre?.map((genre) => genre.tag).join(';'),
             plex: {
@@ -163,14 +162,14 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         const [part] = media.Part;
 
         return {
-            ...createEmptyMediaObject(ItemType.Media),
+            itemType: ItemType.Media,
             mediaType: MediaType.Video,
             src: `plex:video:${part.key}`,
             title: video.title || 'Video',
-            addedOn: video.addedAt,
+            addedAt: video.addedAt,
             artist: video.grandparentTitle,
             duration: video.duration / 1000,
-            playedOn: video.lastViewedAt ? video.lastViewedAt * 1000 : undefined,
+            playedAt: video.lastViewedAt || 0,
             playCount: video.viewCount,
             plex: {
                 ratingKey: video.ratingKey,
@@ -181,12 +180,12 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
 
     private createMediaPlaylist(playlist: plex.Playlist): MediaPlaylist {
         return {
-            ...createEmptyMediaObject(ItemType.Playlist),
+            itemType: ItemType.Playlist,
             src: `plex:playlist:${playlist.key}`,
             title: playlist.title,
-            addedOn: playlist.addedAt,
+            addedAt: playlist.addedAt,
             duration: playlist.duration / 1000,
-            playedOn: playlist.lastViewedAt ? playlist.lastViewedAt * 1000 : undefined,
+            playedAt: playlist.lastViewedAt,
             playCount: playlist.viewCount,
             trackCount: playlist.leafCount,
             plex: {

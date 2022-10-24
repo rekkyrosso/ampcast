@@ -9,20 +9,23 @@ import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import SequentialPager from 'services/SequentialPager';
-import {lf_api_key} from 'services/credentials';
-import {createEmptyMediaObject, exists} from 'utils';
+import {exists} from 'utils';
+import lastfmApi from './lastfmApi';
 import lastfmSettings from './lastfmSettings';
 
-const lastfmApi = `https://ws.audioscrobbler.com/2.0`;
 const lastfmPlaceholderImage = '2a96cbd8b46e442fc41c2b86b821562f.png';
 
-type LastFmTrack = any; // No last.fm types yet
+type LastFmTrack = any; // TODO: No last.fm types yet
 type LastFmAlbum = any;
 type LastFmArtist = any;
 type LastFmItem = LastFmTrack | LastFmAlbum | LastFmArtist;
 
 export interface LastFmPage extends Page<LastFmItem> {
     readonly itemType: ItemType;
+}
+
+export interface LastFmPagerConfig extends PagerConfig {
+    readonly playCountName?: 'playcount' | 'userplaycount';
 }
 
 export default class LastFmPager<T extends MediaObject> implements Pager<T> {
@@ -36,25 +39,22 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
         pageSize: 50,
     };
     private pageNumber = 1;
+    private readonly playCountName: 'playcount' | 'userplaycount' = 'playcount';
 
     constructor(
-        path: string,
+        params: Record<string, string | number>,
         map: (response: LastFmItem) => LastFmPage,
-        options?: Partial<PagerConfig>,
-        private readonly playCountName: 'playcount' | 'userplaycount' = 'playcount'
+        options?: LastFmPagerConfig
     ) {
         const config = {...this.defaultConfig, ...options};
 
+        this.playCountName = config.playCountName || 'playcount';
+
         this.pager = new SequentialPager<T>(
             async (limit = this.defaultConfig.pageSize): Promise<Page<T>> => {
-                const response = await fetch(
-                    `${lastfmApi}?${path}&page=${this.pageNumber}&limit=${limit}`
-                );
+                const page = this.pageNumber;
+                const result = await lastfmApi.get({...params, page, limit});
                 this.pageNumber++;
-                if (!response.ok) {
-                    throw response;
-                }
-                const result = await response.json();
                 const {items, total, atEnd, itemType} = map(result);
                 return {
                     items: this.createMediaObjects(itemType, items),
@@ -114,11 +114,11 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
         return {
             ...(this.createMediaObject(ItemType.Media, track) as MediaItem),
             mediaType: MediaType.Audio,
-            src: `lastfm:track:${nanoid()}`, // can't do anything with the source
+            src: `lastfm:track:${nanoid()}`,
             artist: track.artist?.name,
             album: track.album?.['#text'],
             duration: Number(track.duration) || 0,
-            playedOn: track.date ? track.date.uts * 1000 : undefined,
+            playedAt: track.date ? track.date.uts : 0,
             unplayable: true,
         };
     }
@@ -146,7 +146,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
 
     private createMediaObject(itemType: ItemType, item: LastFmItem): Partial<MediaObject> {
         return {
-            ...createEmptyMediaObject(itemType),
+            itemType: itemType,
             title: item.name,
             rating: Number(item.loved) || 0,
             playCount: Number(item[this.playCountName]) || undefined,
@@ -181,9 +181,10 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
 
     private createArtistAlbumsPager(artist: LastFmArtist): Pager<MediaAlbum> {
         return new LastFmPager(
-            `method=artist.getTopAlbums&artist=${encodeURIComponent(
-                artist.name
-            )}&api_key=${lf_api_key}&format=json`,
+            {
+                method: 'artist.getTopAlbums',
+                artist: artist.name,
+            },
             ({topalbums}: any) => {
                 const attr = topalbums['@attr'];
                 const items = topalbums.album;
@@ -191,18 +192,18 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
                 const atEnd = attr.page === attr.totalPages;
                 return {items, total, atEnd, itemType: ItemType.Album};
             },
-            {maxSize: 100},
-            'userplaycount'
+            {maxSize: 100, playCountName: 'userplaycount'}
         );
     }
 
     private createAlbumPager(album: LastFmAlbum): Pager<MediaItem> {
         return new LastFmPager(
-            `method=album.getInfo&album=${encodeURIComponent(
-                album.name
-            )}&artist=${encodeURIComponent(album.artist.name)}&api_key=${lf_api_key}&user=${
-                lastfmSettings.userId
-            }&format=json`,
+            {
+                method: 'album.getInfo',
+                album: album.name,
+                artist: album.artist.name,
+                user: lastfmSettings.userId,
+            },
             ({album}: any) => {
                 if (album.tracks) {
                     const items = album.tracks.track;
@@ -213,8 +214,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
                     throw Error('No track info');
                 }
             },
-            undefined,
-            'userplaycount'
+            {playCountName: 'userplaycount'}
         );
     }
 }

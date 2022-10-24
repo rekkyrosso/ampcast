@@ -4,13 +4,8 @@ import {distinctUntilChanged, filter, map, pairwise, take, tap} from 'rxjs/opera
 import {Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
-import Pager, {PagerConfig} from 'types/Pager';
+import Pager, {PageFetch, PagerConfig} from 'types/Pager';
 import {Logger} from 'utils';
-
-interface Fetch {
-    readonly index: number;
-    readonly length: number;
-}
 
 const UNINITIALIZED: any[] = [];
 
@@ -23,7 +18,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
     protected readonly size$ = new ReplaySubject<number>(1);
     protected readonly maxSize$ = new ReplaySubject<number>(1);
     protected readonly error$ = new ReplaySubject<unknown>(1);
-    protected readonly fetches$ = new BehaviorSubject<Fetch>({index: 0, length: 0});
+    protected readonly fetches$ = new BehaviorSubject<PageFetch>({index: 0, length: 0});
     protected subscriptions?: Subscription;
     protected disconnected = false;
     protected config: PagerConfig;
@@ -74,14 +69,14 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
         }
     }
 
-    fetchAt(index: number, length: number): void {
+    fetchAt(index: number, length = 50): void {
         if (this.disconnected) {
             logger.warn('disconnected');
             return;
         }
 
         if (!this.subscriptions) {
-            this.createSubscriptions();
+            this.connect();
 
             if (this.config.calculatePageSize) {
                 const {minPageSize = 10, maxPageSize = 100} = this.config;
@@ -104,7 +99,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
         return this.config?.maxSize ?? Infinity;
     }
 
-    protected createSubscriptions(): void {
+    protected connect(): void {
         if (!this.subscriptions) {
             logger.log(`Pager connected. connected pagers=${++pagerCount}`);
 

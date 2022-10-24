@@ -14,7 +14,6 @@ import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import SequentialPager from 'services/SequentialPager';
-import {createEmptyMediaObject} from 'utils';
 import {youtubeHost} from './youtube';
 
 type YouTubeVideo = gapi.client.youtube.Video;
@@ -134,7 +133,7 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
 
     private createMediaPlaylist(playlist: YouTubePlaylist): MediaPlaylist {
         return {
-            ...createEmptyMediaObject(ItemType.Playlist),
+            itemType: ItemType.Playlist,
             src: `youtube:playlist:${playlist.id}`,
             externalUrl: `${youtubeHost}/playlist?list=${playlist.id}`,
             title: playlist.snippet?.title || playlist.id!,
@@ -147,7 +146,7 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
 
     private createMediaItem(video: YouTubeVideo): MediaItem {
         return {
-            ...createEmptyMediaObject(ItemType.Media),
+            itemType: ItemType.Media,
             mediaType: MediaType.Video,
             src: `youtube:video:${video.id}`,
             externalUrl: `${youtubeHost}/watch?v=${video.id}`,
@@ -157,6 +156,7 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
             owner: this.createOwner(video.snippet!),
             globalRating: this.parseNumber(video.statistics?.likeCount),
             globalPlayCount: this.parseNumber(video.statistics?.viewCount),
+            playedAt: 0,
         };
     }
 

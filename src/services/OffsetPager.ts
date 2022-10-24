@@ -24,9 +24,9 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
         super(options);
     }
 
-    protected createSubscriptions(): void {
+    protected connect(): void {
         if (!this.subscriptions) {
-            super.createSubscriptions();
+            super.connect();
 
             this.subscriptions!.add(
                 this.fetches$

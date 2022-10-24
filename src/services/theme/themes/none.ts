@@ -13,8 +13,8 @@ const theme: Theme = {
     selectedBackgroundColor: null,
     selectedTextColor: null,
     evenRowBackgroundColor: null,
-    spacing: 0.375,
-    roundness: 0.25,
+    spacing: 0,
+    roundness: 0,
     flat: false,
 };
 

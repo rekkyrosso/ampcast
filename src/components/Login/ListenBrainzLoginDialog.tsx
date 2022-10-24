@@ -1,9 +1,11 @@
 import React, {useCallback, useRef} from 'react';
-import listenbrainzApi from 'services/listenbrainz/listenbrainzApi';
 import listenbrainzSettings from 'services/listenbrainz/listenbrainzSettings';
 import Dialog, {showDialog, DialogProps} from 'components/Dialog';
 import Button from 'components/Button';
+import ExternalLink from 'components/ExternalLink';
+import Icon from 'components/Icon';
 import Input from 'components/Input';
+import './ListenBrainzLoginDialog.scss';
 
 export async function showListenBrainzLoginDialog(): Promise<string> {
     return showDialog(ListenBrainzLoginDialog, true);
@@ -14,6 +16,7 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
     const userNameRef = useRef<HTMLInputElement>(null);
     const tokenRef = useRef<HTMLInputElement>(null);
     const submitRef = useRef<HTMLButtonElement>(null);
+    const profileUrl = 'https://listenbrainz.org/profile/';
 
     const login = useCallback(async () => {
         try {
@@ -22,7 +25,7 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
 
             listenbrainzSettings.userId = userId;
 
-            const response = await fetch(`${listenbrainzApi.host}/1/validate-token`, {
+            const response = await fetch(`https://api.listenbrainz.org/1/validate-token`, {
                 headers: {
                     'Content-Type': 'application/json',
                     Authorization: `Token ${token}`,
@@ -71,7 +74,7 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
         <Dialog
             {...props}
             className="listenbrainz-login-dialog"
-            title="Login to listenbrainz"
+            title="Login to ListenBrainz"
             ref={dialogRef}
         >
             <form method="dialog" onKeyDown={handleKeyDown} onSubmit={handleSubmit}>
@@ -89,9 +92,15 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
                     </p>
                     <p>
                         <label htmlFor="listenbrainz-token">Token:</label>
-                        <Input type="password" id="listenbrainz-token" ref={tokenRef} required />
+                        <Input type="password" id="listenbrainz-token" required ref={tokenRef} />
                     </p>
                 </div>
+                <p className="listenbrainz-link">
+                    <ExternalLink href={profileUrl}>
+                        <Icon name="listenbrainz" />
+                        {profileUrl}
+                    </ExternalLink>
+                </p>
                 <footer className="dialog-buttons">
                     <Button value="#cancel">Cancel</Button>
                     <Button ref={submitRef}>Login</Button>

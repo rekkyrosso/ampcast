@@ -1,5 +1,6 @@
 declare const __app_name__: string;
 declare const __app_version__: string;
+declare const __app_contact__: string;
 declare const __dev__: boolean;
 
 declare const __am_dev_token__: string;

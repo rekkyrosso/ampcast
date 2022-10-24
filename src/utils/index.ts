@@ -1,13 +1,24 @@
-import BaseMediaObject from 'types/BaseMediaObject';
-import Thumbnail from 'types/Thumbnail';
+import {take, takeUntil} from 'rxjs/operators';
 import pixel from 'assets/pixel.png.base64';
-import ItemType from 'types/ItemType';
+import Thumbnail from 'types/Thumbnail';
+import Pager from 'types/Pager';
 export {default as LiteStorage} from './LiteStorage';
 export {default as Logger} from './Logger';
 export {default as browser} from './browser';
 
 export function exists<T>(value: T): value is NonNullable<T> {
     return value != null;
+}
+
+export function fetchFirstPage<T>(pager: Pager<T>): Promise<readonly T[]> {
+    return new Promise((resolve, reject) => {
+        const complete = () => pager.disconnect();
+        const items$ = pager.observeItems();
+        const error$ = pager.observeError();
+        items$.pipe(takeUntil(error$), take(1)).subscribe({next: resolve, complete});
+        error$.pipe(takeUntil(items$), take(1)).subscribe({next: reject, complete});
+        pager.fetchAt(0);
+    });
 }
 
 const loadedScripts: {[src: string]: true | undefined} = {};
@@ -95,10 +106,6 @@ export function preventDefault(event: Event | React.SyntheticEvent): void {
 
 export function stopPropagation(event: Event | React.SyntheticEvent): void {
     event.stopPropagation();
-}
-
-export function createEmptyMediaObject<T extends ItemType>(itemType: T): BaseMediaObject<T> {
-    return {itemType, src: '', title: ''};
 }
 
 export function getRandomValue<T>(values: readonly T[], previousValue?: T): T {

@@ -8,7 +8,6 @@ import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import SimplePager from 'services/SimplePager';
-import {createEmptyMediaObject} from 'utils';
 import {observeIsLoggedIn, login, logout} from './youtubeAuth';
 import YouTubePager from './YouTubePager';
 
@@ -68,7 +67,7 @@ export async function getYouTubeVideoInfo(videoId: string): Promise<MediaItem> {
     const video = await response.json();
 
     return {
-        ...createEmptyMediaObject(ItemType.Media),
+        itemType: ItemType.Media,
         mediaType: MediaType.Video,
         src: `youtube:video:${videoId}`,
         externalUrl: url,
@@ -87,6 +86,7 @@ export async function getYouTubeVideoInfo(videoId: string): Promise<MediaItem> {
             name: video.author_name,
             url: video.author_url,
         },
+        playedAt: 0,
     };
 }
 

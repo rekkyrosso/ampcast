@@ -7,6 +7,44 @@ export default class LiteStorage implements BasicStorage {
         this.id = `ampcast/${id}`;
     }
 
+    getBoolean(key: string, defaultValue = false): boolean {
+        return Boolean(this.getItem(key) ?? defaultValue);
+    }
+
+    setBoolean(key: string, value: boolean): void {
+        this.setItem(key, String(!!value));
+    }
+
+    getJson<T>(key: string, defaultValue: T | null = null): T | null {
+        const json = this.getItem(key);
+        return json ? JSON.parse(json) : defaultValue;
+    }
+
+    setJson<T>(key: string, value: T): void {
+        if (value == null) {
+            this.removeItem(key);
+        } else {
+            this.setItem(key, JSON.stringify(value));
+        }
+    }
+
+    getNumber(key: string, defaultValue = 0): number {
+        const value = Number(this.getItem(key) ?? defaultValue);
+        return isNaN(value) ? defaultValue : value;
+    }
+
+    setNumber(key: string, value: number): void {
+        this.setItem(key, String(Number(value) || 0));
+    }
+
+    getString(key: string, defaultValue = ''): string {
+        return String(this.getItem(key) ?? defaultValue);
+    }
+
+    setString(key: string, value: string): void {
+        this.setItem(key, value);
+    }
+
     getItem(key: string): string | null {
         return this.storage.getItem(`${this.id}/${key}`);
     }

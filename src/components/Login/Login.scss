@@ -1,0 +1,38 @@
+.login {
+    button.branded {
+        .apple-browser & {
+            background: #d60017;
+            color: white;
+        }
+
+        .jellyfin-browser & {
+            background: linear-gradient(135deg, #aa5cc3, #00a4dc);
+            color: white;
+        }
+
+        .lastfm-browser & {
+            background: #b90000;
+            color: white;
+        }
+
+        .listenbrainz-browser & {
+            background: #353070;
+            color: white;
+        }
+
+        .plex-browser & {
+            background: #282a2c;
+            color: #e49f0d;
+        }
+
+        .spotify-browser & {
+            background: rgb(29, 185, 84);
+            color: white;
+        }
+
+        .youtube-browser & {
+            background: red;
+            color: white;
+        }
+    }
+}

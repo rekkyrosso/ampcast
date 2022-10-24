@@ -6,7 +6,7 @@ export default interface Pager<T> {
     observeSize(): Observable<number>;
     observeMaxSize(): Observable<number>;
     observeError(): Observable<unknown>;
-    fetchAt(index: number, length: number): void;
+    fetchAt(index: number, length?: number): void;
     disconnect(): void;
 }
 
@@ -18,6 +18,11 @@ export interface PagerConfig {
     // The following only apply if `calculatePageSize` is set.
     readonly minPageSize?: number;
     readonly maxPageSize?: number;
+}
+
+export interface PageFetch {
+    readonly index: number;
+    readonly length: number;
 }
 
 export interface Page<T> {

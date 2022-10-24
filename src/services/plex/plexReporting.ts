@@ -1,5 +1,5 @@
 import {EMPTY} from 'rxjs';
-import {distinctUntilChanged, filter, skip, switchMap, takeUntil, tap} from 'rxjs/operators';
+import {distinctUntilChanged, filter, mergeMap, skip, switchMap, takeUntil} from 'rxjs/operators';
 import PlaybackState from 'types/PlaybackState';
 import {
     observePlaybackStart,
@@ -8,6 +8,7 @@ import {
     observePlaybackState,
 } from 'services/mediaPlayback';
 import Logger from 'utils/Logger';
+import {observeIsLoggedIn} from './plexAuth';
 import {reportStart, reportStop, reportProgress} from './plexPlayback';
 
 console.log('module::plexReporting');
@@ -17,31 +18,35 @@ const logger = new Logger('plexReporting');
 const isPlexItem = (state: PlaybackState): boolean =>
     state.currentItem?.src.startsWith('plex:') || false;
 
-observePlaybackStart()
+observeIsLoggedIn()
     .pipe(
+        switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackStart() : EMPTY)),
         filter(isPlexItem),
-        tap(({currentItem}) => reportStart(currentItem!))
+        mergeMap(({currentItem}) => reportStart(currentItem!))
     )
     .subscribe(logger);
 
-observePlaybackEnd()
+observeIsLoggedIn()
     .pipe(
+        switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackEnd() : EMPTY)),
         filter(isPlexItem),
-        tap(({currentItem}) => reportStop(currentItem!))
+        mergeMap(({currentItem}) => reportStop(currentItem!))
     )
     .subscribe(logger);
 
-observePlaybackProgress(10_000)
+observeIsLoggedIn()
     .pipe(
+        switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackProgress(10_000) : EMPTY)),
         filter(isPlexItem),
-        tap(({currentItem, currentTime, paused}) =>
+        mergeMap(({currentItem, currentTime, paused}) =>
             reportProgress(currentItem!, currentTime, paused ? 'paused' : 'playing')
         )
     )
     .subscribe(logger);
 
-observePlaybackStart()
+observeIsLoggedIn()
     .pipe(
+        switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackStart() : EMPTY)),
         switchMap((state) =>
             isPlexItem(state)
                 ? observePlaybackState().pipe(
@@ -51,7 +56,7 @@ observePlaybackStart()
                   )
                 : EMPTY
         ),
-        tap(({currentItem, currentTime, paused}) =>
+        mergeMap(({currentItem, currentTime, paused}) =>
             reportProgress(currentItem!, currentTime, paused ? 'paused' : 'playing')
         )
     )

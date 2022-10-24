@@ -8,7 +8,6 @@ import MediaType from 'types/MediaType';
 import Pager, {Page} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import OffsetPager from 'services/OffsetPager';
-import {createEmptyMediaObject} from 'utils';
 import jellyfinSettings from './jellyfinSettings';
 import jellyfinApi from './jellyfinApi';
 import MediaAlbum from 'types/MediaAlbum';
@@ -101,7 +100,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     private createMediaArtist(artist: BaseItemDto): MediaArtist {
         console.log('createMediaItemFromArtist', artist);
         return {
-            ...createEmptyMediaObject(ItemType.Artist),
+            itemType: ItemType.Artist,
             src: `jellyfin:album:${artist.Id}`,
             title: artist.Name || '',
             genre: artist.Genres?.join(';'),
@@ -113,12 +112,12 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     private createMediaAlbum(album: BaseItemDto): MediaAlbum {
         console.log('createMediaItemFromAlbum', album);
         return {
-            ...createEmptyMediaObject(ItemType.Album),
+            itemType: ItemType.Album,
             src: `jellyfin:album:${album.Id}`,
             title: album.Name || '',
             duration: album.RunTimeTicks ? album.RunTimeTicks / 10_000_000 : 0,
-            playedOn: album.UserData?.LastPlayedDate
-                ? new Date(album.UserData.LastPlayedDate).getTime()
+            playedAt: album.UserData?.LastPlayedDate
+                ? Math.floor(new Date(album.UserData.LastPlayedDate).getTime() / 1000)
                 : undefined,
             playCount: album.UserData?.PlayCount || undefined,
             genre: album.Genres?.join(';'),
@@ -132,12 +131,12 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
 
     private createMediaPlaylist(playlist: BaseItemDto): MediaPlaylist {
         return {
-            ...createEmptyMediaObject(ItemType.Playlist),
+            itemType: ItemType.Playlist,
             src: `jellyfin:playlist:${playlist.Id}`,
             title: playlist.Name || '',
             duration: playlist.RunTimeTicks ? playlist.RunTimeTicks / 10_000_000 : 0,
-            playedOn: playlist.UserData?.LastPlayedDate
-                ? new Date(playlist.UserData.LastPlayedDate).getTime()
+            playedAt: playlist.UserData?.LastPlayedDate
+                ? Math.floor(new Date(playlist.UserData.LastPlayedDate).getTime() / 1000)
                 : undefined,
             playCount: playlist.UserData?.PlayCount || undefined,
             genre: playlist.Genres?.join(';'),
@@ -151,15 +150,15 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         const thumbnailId = track.ImageTags?.Primary ? track.Id : track.AlbumId;
 
         return {
-            ...createEmptyMediaObject(ItemType.Media),
+            itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             src: `jellyfin:audio:${track.Id}`,
             title: track.Name || '',
             duration: track.RunTimeTicks ? track.RunTimeTicks / 10_000_000 : 0,
             year: track.ProductionYear || undefined,
-            playedOn: track.UserData?.LastPlayedDate
-                ? new Date(track.UserData.LastPlayedDate).getTime()
-                : undefined,
+            playedAt: track.UserData?.LastPlayedDate
+                ? Math.floor(new Date(track.UserData.LastPlayedDate).getTime() / 1000)
+                : 0,
             playCount: track.UserData?.PlayCount || undefined,
             genre: track.Genres?.join(';'),
             thumbnails: this.createThumbnails(thumbnailId),

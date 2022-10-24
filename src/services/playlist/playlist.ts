@@ -1,16 +1,15 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
-import {distinctUntilChanged, map, take, takeUntil, withLatestFrom} from 'rxjs/operators';
+import {distinctUntilChanged, map, withLatestFrom} from 'rxjs/operators';
 import {get as dbRead, set as dbWrite, createStore} from 'idb-keyval';
-import {parseBlob, IAudioMetadata} from 'music-metadata-browser';
 import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
-import MediaType from 'types/MediaType';
 import Playlist from 'types/Playlist';
 import PlaylistItem from 'types/PlaylistItem';
-import {createEmptyMediaObject, exists} from 'utils';
+import {createMediaItemFromFile} from 'services/file';
+import {exists, fetchFirstPage} from 'utils';
 import settings from './playlistSettings';
 
 console.log('module::playlist');
@@ -143,10 +142,7 @@ export async function get(id: string): Promise<PlaylistItem | null> {
     return items.find((item) => item.id === id) ?? null;
 }
 
-export async function insertAt(
-    items: PlaylistSource,
-    index: number
-): Promise<void> {
+export async function insertAt(items: PlaylistSource, index: number): Promise<void> {
     const all = await getAll();
     const allowDuplicates = settings.get().allowDuplicates;
     let additions = await createMediaItems(items);
@@ -228,12 +224,10 @@ export async function shuffle(): Promise<void> {
     await setAll(items);
 }
 
-async function createMediaItems(
-    source: PlaylistSource
-): Promise<readonly MediaItem[]> {
+async function createMediaItems(source: PlaylistSource): Promise<readonly MediaItem[]> {
     const isAlbum = (album: PlaylistSource): album is MediaAlbum => {
         return 'itemType' in album && album.itemType === ItemType.Album;
-    }
+    };
     let items: readonly (MediaItem | null)[] = [];
     if (Array.isArray(source)) {
         if (isAlbum(source[0])) {
@@ -257,13 +251,7 @@ async function createMediaItems(
 }
 
 async function createMediaItemsFromAlbum(album: MediaAlbum): Promise<readonly MediaItem[]> {
-    return new Promise((resolve, reject) => {
-        const items$ = album.pager.observeItems();
-        const error$ = album.pager.observeError();
-        items$.pipe(takeUntil(error$), take(1)).subscribe(resolve);
-        error$.pipe(takeUntil(items$), take(1)).subscribe(reject);
-        album.pager.fetchAt(0, 1000);
-    });
+    return fetchFirstPage(album.pager);
 }
 
 async function createMediaItem(item: File | MediaItem): Promise<MediaItem | null> {
@@ -276,65 +264,6 @@ async function createMediaItem(item: File | MediaItem): Promise<MediaItem | null
     } else {
         return item;
     }
-}
-
-async function createMediaItemFromFile(file: File): Promise<MediaItem> {
-    let metadata: IAudioMetadata;
-
-    try {
-        metadata = await parseBlob(file, {duration: true, skipCovers: true});
-    } catch (err) {
-        console.log(`Error parsing file: ${file.name}`);
-        console.log(`music-metadata says: ${err}`);
-        metadata = {format: {}, common: {}} as IAudioMetadata;
-    }
-
-    const {common, format} = metadata;
-    const isVideo = file.type.startsWith('video');
-    const duration = format.duration || (await getDuration(file));
-
-    const floor = (value: number | null = 0) => Math.floor(Number(value)) || 0;
-
-    return {
-        ...createEmptyMediaObject(ItemType.Media),
-        mediaType: isVideo ? MediaType.Video : MediaType.Audio,
-        src: `blob:${nanoid()}`,
-        title: common.title || file.name.replace(/\.\w+$/, ''),
-        artist: common.artist || common.artists?.join(';') || '',
-        albumArtist: common.album ? common.albumartist || '' : '',
-        album: common.album || '',
-        genre: common.genre?.join(';') || '',
-        duration: duration ? Number(duration.toFixed(3)) : 0,
-        track: floor(common.track?.no),
-        disc: floor(common.disk?.no),
-        bpm: floor(common.bpm),
-        year: floor(common.year),
-        mood: common.mood || '',
-        rating: Number(common.rating) || 0,
-        blob: file,
-    };
-}
-
-async function getDuration(file: File): Promise<number> {
-    return new Promise((resolve) => {
-        const isVideo = file.type.startsWith('video');
-        const media = document.createElement(isVideo ? 'video' : 'audio');
-        const url = URL.createObjectURL(file);
-        const handleEvent = () => {
-            const duration = media.error ? 0 : media.duration;
-            media.ondurationchange = null;
-            media.onerror = null;
-            media.src = '';
-            media.removeAttribute('src');
-            URL.revokeObjectURL(url);
-            resolve(duration);
-        };
-        media.ondurationchange = handleEvent;
-        media.onerror = handleEvent;
-        media.onended = handleEvent;
-        media.muted = true;
-        media.src = url;
-    });
 }
 
 const playlist: Playlist = {

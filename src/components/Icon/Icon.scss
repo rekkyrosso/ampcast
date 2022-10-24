@@ -5,6 +5,7 @@
     fill: currentColor;
     stroke: currentColor;
     pointer-events: none;
+    vertical-align: middle;
 
     &-muted,
     &-volume {
@@ -72,6 +73,31 @@
 
                 &-outer {
                     fill: #b90000;
+                }
+            }
+        }
+    }
+
+    &-listenbrainz {
+        &-left {
+            fill: currentColor;
+        }
+
+        &-right {
+            fill: currentColor;
+            opacity: 0.5;
+        }
+
+        .listenbrainz-connected &,
+        &:not(.show-connectivity) {
+            .icon-listenbrainz {
+                &-left {
+                    fill: #353070;
+                }
+
+                &-right {
+                    fill: #eb743b;
+                    opacity: 1;
                 }
             }
         }

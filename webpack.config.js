@@ -58,6 +58,7 @@ module.exports = (env) => {
                 __dev__,
                 __app_name__: JSON.stringify(packageJson.name),
                 __app_version__: JSON.stringify(packageJson.version),
+                __app_contact__: JSON.stringify(packageJson.author.email),
                 __am_dev_token__: JSON.stringify(require(`${credentials}/am_dev_token.json`)),
                 __lf_api_key__: JSON.stringify(require(`${credentials}/lf_api_key.json`)),
                 __lf_api_secret__: JSON.stringify(require(`${credentials}/lf_api_secret.json`)),

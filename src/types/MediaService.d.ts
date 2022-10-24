@@ -8,4 +8,5 @@ export default interface MediaService extends Auth {
     readonly url: string;
     readonly sources: readonly MediaSource[];
     readonly searches: readonly MediaSource[];
+    readonly scrobbler?: boolean;
 }

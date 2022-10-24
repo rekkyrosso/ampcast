@@ -27,6 +27,14 @@ export default {
         storage.setItem(`sessionKey`, sessionKey);
     },
 
+    get removeDuplicates(): boolean {
+        return storage.getItem(`removeDuplicates`) === 'true';
+    },
+
+    set removeDuplicates(removeDuplicates: boolean) {
+        storage.setItem(`removeDuplicates`, String(removeDuplicates));
+    },
+
     clear(): void {
         storage.clear();
     },

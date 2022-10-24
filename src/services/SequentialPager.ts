@@ -19,9 +19,9 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
         super(options);
     }
 
-    protected createSubscriptions(): void {
+    protected connect(): void {
         if (!this.subscriptions) {
-            super.createSubscriptions();
+            super.connect();
 
             // TODO: better error handling.
             this.subscriptions!.add(
@@ -46,7 +46,7 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
 
     private observeShouldFetch(): Observable<void> {
         const shouldFetch$ = combineLatest([this.fetches$, this.items$]).pipe(
-            map(([{index, length}, items]) => index + 2 * length > items.length),
+            map(([{index, length}, items]) => index + 2 * length >= items.length),
             filter((shouldFetch) => shouldFetch),
             map(() => undefined),
             take(1)
@@ -58,7 +58,7 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
         const newItems = (page.items || []).filter(exists);
         const items = uniqBy(this.items.concat(newItems), 'src');
         if (items.length === this.items.length) {
-            // Nothing got added
+            // Nothing got added.
             this.emptyCount++;
         }
         items.length = Math.min(items.length, this.maxSize);

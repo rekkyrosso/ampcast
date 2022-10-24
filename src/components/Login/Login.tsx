@@ -1,6 +1,8 @@
 import React from 'react';
 import MediaService from 'types/MediaService';
 import Button from 'components/Button';
+import ExternalLink from 'components/ExternalLink';
+import Icon from 'components/Icon';
 import SpotifyLogin from './SpotifyLogin';
 import YouTubeLogin from './YouTubeLogin';
 import './Login.scss';
@@ -28,10 +30,10 @@ export default function Login({service}: LoginProps) {
                             </Button>
                         </p>
                         <p>
-                            {/* eslint-disable-next-line react/jsx-no-target-blank */}
-                            <a href={service.url} target="_blank" rel="noopener">
+                            <ExternalLink href={service.url}>
+                                <Icon name={service.icon} />
                                 {service.url}
-                            </a>
+                            </ExternalLink>
                         </p>
                     </div>
                 </div>

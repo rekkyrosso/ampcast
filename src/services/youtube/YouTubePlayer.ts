@@ -264,7 +264,7 @@ export default class YouTubePlayer implements Player<string> {
     }
 
     load(src: string): void {
-        this.logger.log('load');
+        this.logger.log('load', {src});
         if (this.autoplay && this.player && src === this.src) {
             this.player.playVideo();
         } else {

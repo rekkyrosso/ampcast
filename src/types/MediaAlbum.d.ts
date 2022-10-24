@@ -9,6 +9,6 @@ export default interface MediaAlbum extends BaseMediaObject<ItemType.Album> {
     readonly year?: number;
     readonly trackCount?: number;
     readonly duration?: number;
-    readonly playedOn?: number;
+    readonly playedAt?: number; // UTC
     readonly unplayable?: boolean;
 }

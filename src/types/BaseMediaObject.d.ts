@@ -5,8 +5,7 @@ export default interface BaseMediaObject<T extends ItemType> {
     readonly itemType: T;
     readonly src: string;
     readonly title: string;
-    readonly addedOn?: number;
-    readonly modifiedOn?: number;
+    readonly addedAt?: number; // UTC
     readonly genre?: string;
     readonly mood?: string;
     readonly rating?: number;
@@ -15,13 +14,12 @@ export default interface BaseMediaObject<T extends ItemType> {
     readonly globalPlayCount?: number;
     readonly externalUrl?: string;
     readonly thumbnails?: Thumbnail[];
-    readonly mbid?: string; // MusicBrainz ID
+    readonly recording_mbid?: string; // MusicBrainz ID
+    readonly artist_mbids?: string[];
+    readonly release_mbid?: string;
     readonly owner?: {
         readonly name: string;
         readonly url: string;
-    };
-    readonly apple?: {
-        readonly href?: string;
     };
     readonly plex?: {
         readonly ratingKey: string;

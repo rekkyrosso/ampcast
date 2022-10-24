@@ -7,9 +7,9 @@ import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
-import {lf_api_key} from 'services/credentials';
 import {observeIsLoggedIn, login, logout} from './lastfmAuth';
 import LastFmPager from './LastFmPager';
+import LastFmHistoryPager from './LastFmHistoryPager';
 import lastfmSettings from './lastfmSettings';
 import './lastfmScrobbler';
 
@@ -40,22 +40,6 @@ const artistLayout: MediaSourceLayout<MediaAlbum> = {
     fields: ['Thumbnail', 'Title', 'PlayCount'],
 };
 
-function getTop<T extends MediaObject>(method: string, itemType: ItemType): Pager<T> {
-    return new LastFmPager(
-        `method=${method}&user=${lastfmSettings.userId}&api_key=${lf_api_key}&format=json`,
-        (response: any) => {
-            const [, topType] = method.toLowerCase().split('.');
-            const result = response[topType.slice(3)];
-            const attr = result['@attr'];
-            const resultType = topType.slice(6, -1);
-            const items = result[resultType];
-            const total = Number(attr.total) || undefined;
-            const atEnd = attr.page === attr.totalPages;
-            return {items, total, atEnd, itemType};
-        }
-    );
-}
-
 const lastfmRecentlyPlayed: MediaSource<MediaItem> = {
     id: 'lastfm/recently-played',
     title: 'Recently Played',
@@ -65,20 +49,7 @@ const lastfmRecentlyPlayed: MediaSource<MediaItem> = {
     unplayable: true,
 
     search(): Pager<MediaItem> {
-        return new LastFmPager(
-            `method=user.getRecentTracks&user=${lastfmSettings.userId}&api_key=${lf_api_key}&extended=1&format=json`,
-            ({recenttracks}: any) => {
-                const attr = recenttracks['@attr'];
-                const items = recenttracks.track;
-                const containsNowPlaying = items[0]?.['@attr']?.['nowplaying'] === 'true';
-                const total = Number(attr.total) + (containsNowPlaying ? 1 : 0);
-                const atEnd = attr.page === attr.totalPages;
-                if (containsNowPlaying && attr.page !== '1') {
-                    items.shift();
-                }
-                return {items, total, atEnd, itemType: ItemType.Media};
-            }
-        );
+        return new LastFmHistoryPager();
     },
 };
 
@@ -87,6 +58,7 @@ const lastfm: MediaService = {
     title: 'last.fm',
     icon: 'lastfm',
     url: 'https://www.last.fm/',
+    scrobbler: true,
     sources: [lastfmRecentlyPlayed],
     searches: [
         createTopView('user.getTopTracks', {
@@ -126,7 +98,22 @@ function createTopView<T extends MediaObject>(
         unplayable: true,
 
         search(): Pager<T> {
-            return getTop(method, props.itemType);
+            return new LastFmPager(
+                {
+                    method,
+                    user: lastfmSettings.userId,
+                },
+                (response: any) => {
+                    const [, topType] = method.toLowerCase().split('.');
+                    const result = response[topType.slice(3)];
+                    const attr = result['@attr'];
+                    const resultType = topType.slice(6, -1);
+                    const items = result[resultType];
+                    const total = Number(attr.total) || undefined;
+                    const atEnd = attr.page === attr.totalPages;
+                    return {items, total, atEnd, itemType: props.itemType};
+                }
+            );
         },
     };
 }

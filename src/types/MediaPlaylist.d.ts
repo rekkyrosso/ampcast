@@ -7,6 +7,6 @@ export default interface MediaPlaylist extends BaseMediaObject<ItemType.Playlist
     readonly pager: Pager<MediaItem>;
     readonly trackCount?: number;
     readonly duration?: number;
-    readonly playedOn?: number;
+    readonly playedAt?: number; // UTC
     readonly unplayable?: boolean;
 }

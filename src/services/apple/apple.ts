@@ -10,7 +10,7 @@ import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
 import SimplePager from 'services/SimplePager';
 import {observeIsLoggedIn, login, logout} from './appleAuth';
-import MusicKitPager from './MusicKitPager';
+import MusicKitPager, {MusicKitPage} from './MusicKitPager';
 
 console.log('module::apple');
 
@@ -25,18 +25,15 @@ function search<T extends MediaObject>(
     config?: Partial<PagerConfig>
 ): Pager<T> {
     if (q) {
-        const pathname = `/v1/catalog/{{storefrontId}}/search`;
-        const search = new URLSearchParams({term: q, types: type});
-        const href = `${pathname}?${search}`;
-
         return new MusicKitPager(
-            href,
-            (response: any) => {
+            `/v1/catalog/{{storefrontId}}/search`,
+            (response: any): MusicKitPage => {
                 const result = response.results[type] || {data: []};
                 const nextPageUrl = result.next;
                 const total = response.meta?.total;
                 return {items: result.data, total, nextPageUrl};
             },
+            {term: q, types: type},
             {maxSize: 250, pageSize: 25, ...config}
         );
     } else {
@@ -70,14 +67,7 @@ const appleMusicVideos: MediaSource<MediaItem> = {
 
 //     search(): Pager<MediaItem> {
 //         return new MusicKitPager(
-//             `/v1/me/library/recently-added`,
-//             (response: any) => {
-//                 const items = response.data;
-//                 const nextPageUrl = response.next;
-//                 const total = response.meta?.total;
-//                 return {items, total, nextPageUrl};
-//             },
-//             {pageSizeDeterminedBy: 'response', sequential: true}
+//             `/v1/me/library/recently-added`, toPage, {pageSizeDeterminedBy: 'response', sequential: true}
 //         );
 //     },
 // };
@@ -93,16 +83,7 @@ const appleRecentlyPlayed: MediaSource<MediaItem> = {
     },
 
     search(): Pager<MediaItem> {
-        return new MusicKitPager(
-            `/v1/me/recent/played/tracks`,
-            (response: any) => {
-                const items = response.data;
-                const nextPageUrl = response.next;
-                const total = response.meta?.total;
-                return {items, total, nextPageUrl};
-            },
-            {pageSize: 30}
-        );
+        return new MusicKitPager(`/v1/me/recent/played/tracks`, toPage, undefined, {pageSize: 30});
     },
 };
 
@@ -114,11 +95,9 @@ const appleLikedSongs: MediaSource<MediaItem> = {
     layout: defaultLayout,
 
     search(): Pager<MediaItem> {
-        return new MusicKitPager(`/v1/me/library/songs`, (response: any) => {
-            const items = response.data;
-            const nextPageUrl = response.next;
-            const total = response.meta?.total;
-            return {items, total, nextPageUrl};
+        return new MusicKitPager(`/v1/me/library/songs`, toPage, {
+            'include[library-songs]': 'catalog',
+            'fields[library-songs]': 'playParams,name,artistName,albumName,artwork',
         });
     },
 };
@@ -130,11 +109,9 @@ const appleLikedAlbums: MediaSource<MediaAlbum> = {
     itemType: ItemType.Album,
 
     search(): Pager<MediaAlbum> {
-        return new MusicKitPager(`/v1/me/library/albums`, (response: any) => {
-            const items = response.data;
-            const nextPageUrl = response.next;
-            const total = response.meta?.total;
-            return {items, total, nextPageUrl};
+        return new MusicKitPager(`/v1/me/library/albums`, toPage, {
+            'include[library-albums]': 'catalog',
+            'fields[library-albums]': 'playParams,name,artistName,artwork',
         });
     },
 };
@@ -146,15 +123,13 @@ const applePlaylists: MediaSource<MediaPlaylist> = {
     itemType: ItemType.Playlist,
     layout: {
         view: 'card compact',
-        fields: ['Thumbnail', 'Title', 'TrackCount'],
+        fields: ['Thumbnail', 'Title', 'Owner', 'TrackCount'],
     },
 
     search(): Pager<MediaPlaylist> {
-        return new MusicKitPager(`/v1/me/library/playlists`, (response: any) => {
-            const items = response.data;
-            const nextPageUrl = response.next;
-            const total = response.meta?.total;
-            return {items, total, nextPageUrl};
+        return new MusicKitPager(`/v1/me/library/playlists`, toPage, {
+            'include[library-playlists]': 'catalog',
+            'fields[library-playlists]': 'playParams,name,artwork',
         });
     },
 };
@@ -165,10 +140,10 @@ const apple: MediaService = {
     icon: 'apple',
     url: 'https://music.apple.com/',
     searches: [
-        createSearch('songs', {title: 'Songs', itemType: ItemType.Media, layout: defaultLayout}),
-        createSearch('albums', {title: 'Albums', itemType: ItemType.Album}),
-        createSearch('artists', {title: 'Artists', itemType: ItemType.Artist}),
-        createSearch('playlists', {title: 'Playlists', itemType: ItemType.Playlist}),
+        appleSearch('songs', {title: 'Songs', itemType: ItemType.Media, layout: defaultLayout}),
+        appleSearch('albums', {title: 'Albums', itemType: ItemType.Album}),
+        appleSearch('artists', {title: 'Artists', itemType: ItemType.Artist}),
+        appleSearch('playlists', {title: 'Playlists', itemType: ItemType.Playlist}),
     ],
     sources: [
         appleMusicVideos,
@@ -184,7 +159,7 @@ const apple: MediaService = {
     logout,
 };
 
-function createSearch<T extends MediaObject>(
+function appleSearch<T extends MediaObject>(
     searchType: string,
     props: Except<MediaSource<T>, 'id' | 'icon' | 'search'>
 ): MediaSource<T> {
@@ -198,6 +173,13 @@ function createSearch<T extends MediaObject>(
             return search(q, searchType);
         },
     };
+}
+
+function toPage(response: any): MusicKitPage {
+    const items = response.data;
+    const nextPageUrl = response.next;
+    const total = response.meta?.total;
+    return {items, total, nextPageUrl};
 }
 
 export default apple;

@@ -45,7 +45,7 @@ export default function MediaBrowserAuth<T extends MediaObject>({
 }
 
 function MediaBrowser<T extends MediaObject>({sources}: MediaBrowserProps<T>) {
-    const [source, setSource] = useState<MediaSource>(() => sources[0]);
+    const [source, setSource] = useState<MediaSource<T>>(() => sources[0]);
     const [query, setQuery] = useState('');
     const pager = useSearch(source, query);
     const searchable = !!source.searchable;

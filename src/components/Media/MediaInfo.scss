@@ -60,7 +60,12 @@
     .external-view {
         margin: 1.25em 0.25em;
 
-        .icon {
+        a {
+            display: inline-block;
+            max-width: 30em;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
             vertical-align: middle;
         }
     }

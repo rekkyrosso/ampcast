@@ -111,28 +111,34 @@ observeIsLoggedIn()
                 });
             };
 
-            const resources = await fetchResources();
-            const servers = resources.filter((resource) => resource.provides === 'server');
+            try {
+                const resources = await fetchResources();
 
-            for (const server of servers) {
-                const attempts = await Promise.all([
-                    ...server.connections.map((connection) =>
-                        testConnection(connection, server.accessToken)
-                    ),
-                ]);
-                const connections = attempts.filter(exists);
-                if (connections.length) {
-                    const connection =
-                        connections.find((connection) => connection.local) || connections[0];
-                    plexSettings.server = server;
-                    plexSettings.connection = connection;
-                    logger.log(`Using ${connection.local ? 'local' : 'public'} connection.`);
-                    isConnected$.next(true);
-                    return;
+                const servers = resources.filter((resource) => resource.provides === 'server');
+
+                for (const server of servers) {
+                    const attempts = await Promise.all([
+                        ...server.connections.map((connection) =>
+                            testConnection(connection, server.accessToken)
+                        ),
+                    ]);
+                    const connections = attempts.filter(exists);
+                    if (connections.length) {
+                        const connection =
+                            connections.find((connection) => connection.local) || connections[0];
+                        plexSettings.server = server;
+                        plexSettings.connection = connection;
+                        logger.log(`Using ${connection.local ? 'local' : 'public'} connection.`);
+                        isConnected$.next(true);
+                        return;
+                    }
                 }
-            }
 
-            logger.log(`Could not establish a connection.`);
+                logger.log(`Could not establish a connection.`);
+            } catch (err) {
+                logger.log(err);
+                setAccessToken('');
+            }
         })
     )
     .subscribe(logger);
@@ -210,7 +216,9 @@ async function obtainAccessToken(): Promise<{id: string; authToken: string}> {
 
         const params = `clientID=${plexSettings.clientId}&code=${
             pin.code
-        }&forwardUrl=${encodeURIComponent(forwardUrl)}&context%5Bdevice%5D%5Bproduct%5D=${__app_name__}`;
+        }&forwardUrl=${encodeURIComponent(
+            forwardUrl
+        )}&context%5Bdevice%5D%5Bproduct%5D=${__app_name__}`;
 
         authWindow = window.open(`${plexAuthHost}#?${params}`, `Plex`, `popup`);
 
