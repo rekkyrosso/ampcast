@@ -135,7 +135,7 @@ const jellyfin: MediaService = {
             itemType: ItemType.Artist,
             searchable: true,
 
-            search(q: string): Pager<MediaArtist> {
+            search({q = ''}: {q?: string} = {}): Pager<MediaArtist> {
                 if (q) {
                     return new JellyfinPager(`Artists`, {
                         searchTerm: q,
@@ -170,7 +170,7 @@ function createSearch<T extends MediaObject>(
         icon: '',
         searchable: true,
 
-        search(q: string): Pager<T> {
+        search({q = ''}: {q?: string} = {}): Pager<T> {
             return search(q, searchType);
         },
     };

@@ -12,5 +12,5 @@ export default interface MediaSource<T> {
     readonly tertiaryLayout?: MediaSourceLayout;
     readonly searchable?: boolean;
     readonly unplayable?: boolean;
-    search(q: string): Pager<T>;
+    search(params?: Record<string, unknown>): Pager<T>;
 }

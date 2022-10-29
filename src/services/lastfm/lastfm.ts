@@ -37,7 +37,7 @@ const albumTrackLayout: MediaSourceLayout<MediaItem> = {
 
 const artistLayout: MediaSourceLayout<MediaAlbum> = {
     view: 'card minimal',
-    fields: ['Thumbnail', 'Title', 'PlayCount'],
+    fields: ['ArtistThumbnail', 'Title', 'PlayCount'],
 };
 
 const lastfmRecentlyPlayed: MediaSource<MediaItem> = {
@@ -59,8 +59,7 @@ const lastfm: MediaService = {
     icon: 'lastfm',
     url: 'https://www.last.fm/',
     scrobbler: true,
-    sources: [lastfmRecentlyPlayed],
-    searches: [
+    sources: [
         createTopView('user.getTopTracks', {
             title: 'Top Tracks',
             itemType: ItemType.Media,
@@ -80,6 +79,7 @@ const lastfm: MediaService = {
             tertiaryLayout: albumTrackLayout,
         }),
     ],
+    searches: [lastfmRecentlyPlayed],
 
     observeIsLoggedIn,
     login,
@@ -92,15 +92,16 @@ function createTopView<T extends MediaObject>(
 ): MediaSource<T> {
     return {
         ...props,
-        id: method,
-        icon: '',
+        id: `lastfm/top/${method}`,
+        icon: 'star',
         searchable: false,
         unplayable: true,
 
-        search(): Pager<T> {
+        search({period = 'overall'}: {period: string}): Pager<T> {
             return new LastFmPager(
                 {
                     method,
+                    period,
                     user: lastfmSettings.userId,
                 },
                 (response: any) => {

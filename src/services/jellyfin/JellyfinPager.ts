@@ -1,6 +1,8 @@
 import type {Observable} from 'rxjs';
 import type {BaseItemDto} from '@jellyfin/client-axios/dist/models';
 import ItemType from 'types/ItemType';
+import MediaAlbum from 'types/MediaAlbum';
+import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
@@ -10,8 +12,6 @@ import Thumbnail from 'types/Thumbnail';
 import OffsetPager from 'services/OffsetPager';
 import jellyfinSettings from './jellyfinSettings';
 import jellyfinApi from './jellyfinApi';
-import MediaAlbum from 'types/MediaAlbum';
-import MediaArtist from 'types/MediaArtist';
 
 export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     static minPageSize = 100;
@@ -98,7 +98,6 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaArtist(artist: BaseItemDto): MediaArtist {
-        console.log('createMediaItemFromArtist', artist);
         return {
             itemType: ItemType.Artist,
             src: `jellyfin:album:${artist.Id}`,
@@ -110,7 +109,6 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaAlbum(album: BaseItemDto): MediaAlbum {
-        console.log('createMediaItemFromAlbum', album);
         return {
             itemType: ItemType.Album,
             src: `jellyfin:album:${album.Id}`,

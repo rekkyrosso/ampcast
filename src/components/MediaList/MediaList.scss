@@ -36,6 +36,12 @@
                 .themed.light & {
                     background-color: rgba(0, 0, 0, 0.1);
                 }
+
+                &.icon {
+                    width: auto;
+                    height: auto;
+                    color: var(--grey2-color);
+                }
             }
         }
 

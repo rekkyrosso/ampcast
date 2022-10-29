@@ -1,5 +1,5 @@
-import Auth from 'types/Auth';
-import MediaSource from 'types/MediaSource';
+import Auth from './Auth';
+import MediaSource from './MediaSource';
 
 export default interface MediaService extends Auth {
     readonly id: string;

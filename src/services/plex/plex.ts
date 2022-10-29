@@ -32,7 +32,7 @@ const plexMusicVideo: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
     searchable: true,
 
-    search(q: string): Pager<MediaItem> {
+    search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
         return new PlexPager(`/library/sections/${plexSettings.libraryId}/extras/all`, {
             title: q,
             type: '8', // artist
@@ -132,7 +132,7 @@ function plexSearch<T extends MediaObject>(
         icon: '',
         searchable: true,
 
-        search(q: string): Pager<T> {
+        search({q = ''}: {q?: string} = {}): Pager<T> {
             return search(q, searchType);
         },
     };

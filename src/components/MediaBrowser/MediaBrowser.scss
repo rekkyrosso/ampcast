@@ -47,4 +47,19 @@
     .artist-browser .album-items {
         left: var(--gutter-width);
     }
+
+    .options {
+        ul {
+            display: block;
+            text-align: center;
+        }
+
+        li {
+            display: inline-block;
+            vertical-align: middle;
+            margin: 0 0.5em;
+        }
+
+        margin-bottom: calc(var(--gutter-width) / 2);
+    }
 }

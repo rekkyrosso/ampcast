@@ -4,6 +4,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSourceLayout, {Field} from 'types/MediaSourceLayout';
+import Icon from 'components/Icon';
 import {ColumnSpec, ListViewLayout} from 'components/ListView';
 import Time from 'components/Time';
 import {findBestThumbnail} from 'utils';
@@ -53,7 +54,7 @@ export const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
     if (!item.playedAt) {
         return '';
     }
-    const elapsedTime = Date.now() - (item.playedAt * 1000);
+    const elapsedTime = Date.now() - item.playedAt * 1000;
     const minute = 60_000;
     if (elapsedTime < minute * 2) {
         return 'just now';
@@ -82,12 +83,12 @@ export const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
         return `1 year ago`;
     }
     return `${Math.floor(elapsedTime / year)} years ago`;
-}
+};
 
 export const AlbumAndYear: RenderField<MediaItem> = (item) =>
     item.album ? (item.year ? `${item.album} (${item.year})` : item.album) : item.year || '';
 
-export const Thumbnail: RenderField = (item) => {
+export const Thumbnail = (item: MediaObject) => {
     const thumbnail = findBestThumbnail(item.thumbnails);
 
     return (
@@ -97,6 +98,14 @@ export const Thumbnail: RenderField = (item) => {
                 backgroundImage: `url(${thumbnail.url})`,
             }}
         />
+    );
+};
+
+export const ArtistThumbnail: RenderField = (item) => {
+    return item.thumbnails?.length ? (
+        Thumbnail(item)
+    ) : (
+        <Icon className="thumbnail-img" name="person" />
     );
 };
 
@@ -128,4 +137,5 @@ const mediaFields: MediaFields<any> = {
     Owner: {title: 'Owner', render: Owner, className: 'owner'},
     LastPlayed: {title: 'Last Played', render: LastPlayed, className: 'played-on'},
     Thumbnail: {title: 'Thumbnail', render: Thumbnail, className: 'thumbnail'},
+    ArtistThumbnail: {title: 'Thumbnail', render: ArtistThumbnail, className: 'thumbnail'},
 };

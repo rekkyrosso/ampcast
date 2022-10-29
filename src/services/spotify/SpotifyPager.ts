@@ -130,7 +130,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             thumbnails: episode.images as Thumbnail[],
             unplayable: episode.is_playable === false,
             playedAt: episode.played_at
-                ? Math.floor(new Date(episode.played_at).getTime() || 0 / 1000)
+                ? Math.floor((new Date(episode.played_at).getTime() || 0) / 1000)
                 : 0,
         };
     }
@@ -190,7 +190,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             album: album?.name,
             duration: track.duration_ms / 1000,
             playedAt: track.played_at
-                ? Math.floor(new Date(track.played_at).getTime() || 0 / 1000)
+                ? Math.floor((new Date(track.played_at).getTime() || 0) / 1000)
                 : 0,
             genre: (track.album as any)?.genres?.join(';'),
             disc: album ? track.disc_number : undefined,

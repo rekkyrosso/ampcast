@@ -15,7 +15,8 @@ export type Field =
     | 'Genre'
     | 'Owner'
     | 'LastPlayed'
-    | 'Thumbnail';
+    | 'Thumbnail'
+    | 'ArtistThumbnail';
 
 export default interface MediaSourceLayout<T extends MediaObject> {
     readonly view: ListViewLayout<T>['view'];

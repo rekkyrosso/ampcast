@@ -171,7 +171,7 @@ const spotify: MediaService = {
             layout: defaultLayout,
             searchable: true,
 
-            search(q: string): Pager<MediaItem> {
+            search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
                 if (q) {
                     const market = getMarket();
                     return new SpotifyPager(
@@ -195,7 +195,7 @@ const spotify: MediaService = {
             itemType: ItemType.Album,
             searchable: true,
 
-            search(q: string): Pager<MediaAlbum> {
+            search({q = ''}: {q?: string} = {}): Pager<MediaAlbum> {
                 if (q) {
                     const market = getMarket();
                     return new SpotifyPager(
@@ -219,7 +219,7 @@ const spotify: MediaService = {
             itemType: ItemType.Artist,
             searchable: true,
 
-            search(q: string): Pager<MediaArtist> {
+            search({q = ''}: {q?: string} = {}): Pager<MediaArtist> {
                 if (q) {
                     const market = getMarket();
                     return new SpotifyPager(
@@ -243,7 +243,7 @@ const spotify: MediaService = {
             itemType: ItemType.Playlist,
             searchable: true,
 
-            search(q: string): Pager<MediaPlaylist> {
+            search({q = ''}: {q?: string} = {}): Pager<MediaPlaylist> {
                 if (q) {
                     const market = getMarket();
                     return new SpotifyPager(

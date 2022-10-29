@@ -169,5 +169,7 @@ declare namespace ListenBrainz {
                 total_recording_count: number;
             };
         }
+
+        type Response = Artists | Releases | Recordings;
     }
 }

@@ -8,7 +8,7 @@ export default function SpotifyLogin() {
     return (
         <div className="panel">
             <div className="page login">
-                <p>You need to be logged in to play music from Spotify*.</p>
+                <p>You need to be logged in to play music from Spotify.*</p>
                 <p>
                     <Button className="branded login" onClick={login}>
                         Log in to Spotify

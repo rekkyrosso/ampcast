@@ -10,6 +10,8 @@ import MediaSource from 'types/MediaSource';
 import Login from 'components/Login';
 import SearchBar from 'components/SearchBar';
 import {MediaListProps} from 'components/MediaList';
+import LastFmTopBrowser from 'components/services/lastfm/LastFmTopBrowser';
+import ListenBrainzTopBrowser from 'components/services/listenbrainz/ListenBrainzTopBrowser';
 import useObservable from 'hooks/useObservable';
 import useSearch from 'hooks/useSearch';
 import AlbumBrowser from './AlbumBrowser';
@@ -35,13 +37,24 @@ export default function MediaBrowserAuth<T extends MediaObject>({
         <div className={`media-browser ${service.id}-browser`} key={key}>
             {isLoggedIn ? (
                 sources.length === 0 ? null : (
-                    <MediaBrowser service={service} sources={sources} />
+                    <Router service={service} sources={sources} />
                 )
             ) : (
                 <Login service={service} />
             )}
         </div>
     );
+}
+
+function Router<T extends MediaObject>({service, sources}: MediaBrowserProps<T>) {
+    const source = sources.length === 1 ? sources[0] : null;
+    if (source?.id.startsWith('lastfm/top')) {
+        return <LastFmTopBrowser source={source} />;
+    } else if (source?.id.startsWith('listenbrainz/top')) {
+        return <ListenBrainzTopBrowser source={source} />;
+    } else {
+        return <MediaBrowser service={service} sources={sources} />;
+    }
 }
 
 function MediaBrowser<T extends MediaObject>({sources}: MediaBrowserProps<T>) {
@@ -70,7 +83,7 @@ export interface PagedBrowserProps<T extends MediaObject> extends MediaListProps
     source: MediaSource<T>;
 }
 
-function PagedBrowser<T extends MediaObject>(props: PagedBrowserProps<T>) {
+export function PagedBrowser<T extends MediaObject>(props: PagedBrowserProps<T>) {
     switch (props.source.itemType) {
         case ItemType.Artist:
             return <ArtistBrowser {...(props as unknown as PagedBrowserProps<MediaArtist>)} />;

@@ -105,7 +105,7 @@ const youtube: MediaService = {
             layout: defaultLayout,
             searchable: true,
 
-            search<T extends MediaObject>(q: string): Pager<T> {
+            search<T extends MediaObject>({q = ''}: {q?: string} = {}): Pager<T> {
                 if (q) {
                     return new YouTubePager(
                         '/search',

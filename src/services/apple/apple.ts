@@ -49,7 +49,7 @@ const appleMusicVideos: MediaSource<MediaItem> = {
     searchable: true,
     layout: defaultLayout,
 
-    search(q: string): Pager<MediaItem> {
+    search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
         if (q) {
             return search(q, 'music-videos', {maxSize: 100});
         } else {
@@ -169,7 +169,7 @@ function appleSearch<T extends MediaObject>(
         icon: '',
         searchable: true,
 
-        search(q: string): Pager<T> {
+        search({q = ''}: {q?: string} = {}): Pager<T> {
             return search(q, searchType);
         },
     };
