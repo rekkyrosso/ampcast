@@ -51,6 +51,7 @@ declare namespace ListenBrainz {
         additional_info?: {
             artist_msid?: string | null;
             artist_names?: string[];
+            track_number?: number;
             tracknumber?: number;
             discnumber?: number;
             duration?: number;

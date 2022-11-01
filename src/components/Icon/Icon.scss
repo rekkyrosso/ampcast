@@ -103,6 +103,16 @@
         }
     }
 
+    &-musicbrainz {
+        &-left {
+            fill: #ba478f;
+        }
+
+        &-right {
+            fill: #eb743b;
+        }
+    }
+
     &-plex {
         &-inner {
             fill: var(--background-color);

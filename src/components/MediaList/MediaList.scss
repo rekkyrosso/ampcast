@@ -12,10 +12,6 @@
         color: var(--grey1-color);
     }
 
-    /*.list-view-row:hover .actions {
-        visibility: visible;
-    }*/
-
     &-card {
         .thumbnail {
             left: 0;
@@ -26,21 +22,9 @@
             &-img {
                 position: absolute;
                 inset: 0.25em;
-                background-size: cover;
-                background-position: center;
-                background-repeat: no-repeat;
-                background-color: rgba(255, 255, 255, 0.1);
-                border: 1px solid var(--black);
-                border-radius: var(--app-border-radius);
 
-                .themed.light & {
-                    background-color: rgba(0, 0, 0, 0.1);
-                }
-
-                &.icon {
-                    width: auto;
-                    height: auto;
-                    color: var(--grey2-color);
+                .artists & {
+                    border-radius: 50%;
                 }
             }
         }
@@ -74,7 +58,7 @@
         .duration,
         .track-count,
         .play-count,
-        .played-on {
+        .played-at {
             left: auto;
             top: 0.25em;
             right: 0.25em;
@@ -88,7 +72,7 @@
             }
         }
 
-        .played-on {
+        .played-at {
             font-size: 0.75em;
             font-style: italic;
             background-color: transparent;
@@ -144,7 +128,6 @@
 
                 &-img {
                     inset: 0.125em;
-                    border-radius: 50%;
                 }
             }
 
@@ -171,7 +154,7 @@
                 .duration,
                 .track-count,
                 .play-count,
-                .played-on {
+                .played-at {
                     right: calc(100% - 7.375em);
                     top: 0.625em;
                     font-size: 0.75em;
@@ -184,7 +167,7 @@
                 .duration,
                 .track-count,
                 .play-count,
-                .played-on {
+                .played-at {
                     right: calc(100% - 4.75em);
                     top: 0.625em;
                 }

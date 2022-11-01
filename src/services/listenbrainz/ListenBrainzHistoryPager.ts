@@ -4,6 +4,8 @@ import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import Pager, {Page} from 'types/Pager';
+import Thumbnail from 'types/Thumbnail';
+import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import SequentialPager from 'services/SequentialPager';
 import listenbrainzApi from './listenbrainzApi';
 import listenbrainzSettings from './listenbrainzSettings';
@@ -17,19 +19,28 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
         const pageSize = 50;
         this.pager = new SequentialPager<MediaItem>(
             async (count = pageSize): Promise<Page<MediaItem>> => {
-                const {payload} = await listenbrainzApi.get<ListenBrainz.User.Listens>(
-                    `user/${listenbrainzSettings.userId}/listens`,
-                    {
-                        ...params,
-                        count,
-                        ...this.nextPageParams,
+                try {
+                    const {payload} = await listenbrainzApi.get<ListenBrainz.User.Listens>(
+                        `user/${listenbrainzSettings.userId}/listens`,
+                        {
+                            ...params,
+                            count,
+                            ...this.nextPageParams,
+                        }
+                    );
+                    const listens = payload.listens;
+                    const items = this.createItems(listens);
+                    const atEnd = items.length < count;
+                    this.nextPageParams = atEnd
+                        ? undefined
+                        : {max_ts: listens.at(-1)!.listened_at - 1};
+                    return {items, atEnd};
+                } catch (err) {
+                    if (this.isNoContentError(err)) {
+                        return {items: [], atEnd: true};
                     }
-                );
-                const listens = payload.listens;
-                const items = this.createItems(listens);
-                const atEnd = items.length < count;
-                this.nextPageParams = atEnd ? undefined : {min_ts: listens.at(-1)!.listened_at - 1};
-                return {items, atEnd};
+                    throw err;
+                }
             },
             {pageSize}
         );
@@ -71,6 +82,9 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
         const data = item.track_metadata;
         const info = data.additional_info;
 
+        // listening_from: "Plex/lastfm/jellyfin/Rhythmbox"
+        // origin_url: "https://magdalenabay.bandcamp.com/album/mini-mix-vol-1?from=fanpub_fnb_merch"
+
         return {
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
@@ -82,13 +96,57 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             album: data.release_name,
             duration:
                 info?.duration || (info?.duration_ms ? Math.round(info.duration_ms / 1000) : 0),
-            track: info?.tracknumber,
+            track: info?.tracknumber || info?.track_number,
             disc: info?.discnumber,
             isrc: info?.isrc,
             recording_mbid: data.mbid_mapping?.recording_mbid,
             release_mbid: data.mbid_mapping?.release_mbid,
             externalUrl: info?.origin_url,
             playedAt: item.listened_at,
+            thumbnails: this.createThumbnails(data.mbid_mapping?.release_mbid),
+            playableSrc: this.getPlayableSrc(info),
         };
+    }
+
+    private createThumbnails(mbid: string | undefined): Thumbnail[] | undefined {
+        return mbid ? [musicbrainzApi.getAlbumCover(mbid)] : undefined;
+    }
+
+    private getPlayableSrc(
+        info: ListenBrainz.TrackMetadata['additional_info']
+    ): string | undefined {
+        if (info) {
+            if (info.spotify_id) {
+                return this.getSpotifySrc(info?.spotify_id);
+            }
+            if (info.origin_url?.includes('spotify.com')) {
+                return this.getSpotifySrc(info.origin_url);
+            }
+            if (info.origin_url?.includes('apple.com')) {
+                return this.getAppleSrc(info.origin_url);
+            }
+        }
+    }
+
+    private getSpotifySrc(href: string): string | undefined {
+        if (href) {
+            const id = href.split('/').pop();
+            if (id) {
+                return `spotify:track:${id}`;
+            }
+        }
+    }
+
+    private getAppleSrc(href: string): string | undefined {
+        if (href) {
+            const id = href.split('i=').pop();
+            if (id) {
+                return `apple:song:${id}`;
+            }
+        }
+    }
+
+    private isNoContentError(err: any): boolean {
+        return err?.status === 204;
     }
 }

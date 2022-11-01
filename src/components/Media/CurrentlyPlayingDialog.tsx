@@ -16,7 +16,11 @@ export default function CurrentlyPlayingDialog(props: DialogProps) {
     const visualizer = useFirstValue(currentVisualizer);
 
     return (
-        <Dialog {...props} className="currently-playing-dialog" title="Media Info">
+        <Dialog
+            {...props}
+            className="currently-playing-dialog media-info-dialog"
+            title="Media Info"
+        >
             <form method="dialog">
                 {item ? <MediaInfo item={item} /> : <p>The playlist is empty.</p>}
                 {item && item.mediaType !== MediaType.Video ? (

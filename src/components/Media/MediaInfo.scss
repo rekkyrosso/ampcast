@@ -6,6 +6,7 @@
     &-main {
         padding-left: 7em;
         min-height: 6em;
+        margin-bottom: 1em;
     }
 
     .thumbnail {
@@ -18,16 +19,6 @@
         &-img {
             position: absolute;
             inset: 0;
-            background-size: cover;
-            background-position: center;
-            background-repeat: no-repeat;
-            background-color: rgba(255, 255, 255, 0.1);
-            border: 1px solid var(--black);
-            border-radius: 0.25em;
-
-            .themed.light & {
-                background-color: rgba(0, 0, 0, 0.1);
-            }
         }
     }
 
@@ -54,19 +45,6 @@
 
         &:empty {
             visibility: hidden;
-        }
-    }
-
-    .external-view {
-        margin: 1.25em 0.25em;
-
-        a {
-            display: inline-block;
-            max-width: 30em;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            vertical-align: middle;
         }
     }
 }

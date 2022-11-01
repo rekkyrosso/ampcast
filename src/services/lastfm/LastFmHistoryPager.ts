@@ -20,7 +20,8 @@ export default class LastFmHistoryPager extends LastFmPager<MediaItem> {
             },
             ({recenttracks}: any) => {
                 const attr = recenttracks['@attr'] || {};
-                const items = recenttracks.track || [];
+                const track = recenttracks.track;
+                const items = track ? (Array.isArray(track) ? track : [track]) : [];
                 const containsNowPlaying = items[0]?.['@attr']?.['nowplaying'] === 'true';
                 const total = Number(attr.total) || undefined;
                 const atEnd = attr.page === attr.totalPages;

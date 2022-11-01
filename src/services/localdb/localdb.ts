@@ -20,9 +20,7 @@ export class LocalDB extends Dexie {
             listens: `&playedAt, src, lastfmScrobbledAt, listenbrainzScrobbledAt`,
         });
 
-        liveQuery(() => this.listens.orderBy('playedAt').reverse().toArray()).subscribe(
-            this.listens$
-        );
+        this.initListens();
     }
 
     observeListens(): Observable<readonly Listen[]> {
@@ -57,12 +55,39 @@ export class LocalDB extends Dexie {
     }
 
     async updateListens(listens: Listen[]): Promise<void> {
-        logger.log('updateListens', {listens});
         try {
-            await this.listens.bulkPut(listens);
+            if (listens.length > 0) {
+                logger.log('updateListens', {listens});
+                await this.listens.bulkPut(listens);
+            }
         } catch (err) {
             logger.error(err);
         }
+    }
+
+    private async initListens(): Promise<void> {
+        try {
+            await this.markExpired('lastfm');
+            await this.markExpired('listenbrainz');
+        } catch (err) {
+            logger.error(err);
+        }
+
+        liveQuery(() => this.listens.orderBy('playedAt').reverse().toArray()).subscribe(
+            this.listens$
+        );
+    }
+
+    private async markExpired(serviceName: string): Promise<void> {
+        const scrobbledAt = `${serviceName}ScrobbledAt`;
+        const twoWeeks = 2 * 7 * 24 * 60 * 60;
+        const twoWeeksAgo = Math.floor(Date.now() / 1000) - twoWeeks;
+        const unscrobbled = await this.listens.where(scrobbledAt).equals(0).toArray();
+        await this.updateListens(
+            unscrobbled
+                .filter((item) => item.playedAt < twoWeeksAgo)
+                .map((item) => ({...item, [scrobbledAt]: -1}))
+        );
     }
 }
 

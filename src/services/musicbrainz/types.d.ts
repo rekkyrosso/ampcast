@@ -9,6 +9,29 @@ declare namespace MusicBrainz {
         isrcs?: string[];
     }
 
+    interface Media {
+        title: string;
+        tracks?: Track[];
+        'track-count': number;
+        position: number;
+    }
+
+    interface Release {
+        id: string;
+        title: string;
+        date?: string; // year
+        media?: Media[];
+    }
+
+    interface Track {
+        id: string;
+        position: number;
+        recording: Recording;
+        number: string; // numeric
+        length: number;
+        title: string;
+    }
+
     namespace isrc {
         interface Response {
             recordings: Recording[];

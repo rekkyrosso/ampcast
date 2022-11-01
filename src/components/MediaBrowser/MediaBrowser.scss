@@ -19,7 +19,7 @@
 
     .splitter-columns > .layout-splitter {
         top: 0;
-        height: calc(100% - 3 * var(--gutter-width));
+        height: calc(100% - var(--gutter-width));
     }
 
     .panel {

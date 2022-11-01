@@ -135,7 +135,7 @@ const mediaFields: MediaFields<any> = {
     Year: {title: 'Year', render: Year, align: 'right', width: 120, className: 'year'},
     Genre: {title: 'Genre', render: Genre, className: 'genre'},
     Owner: {title: 'Owner', render: Owner, className: 'owner'},
-    LastPlayed: {title: 'Last Played', render: LastPlayed, className: 'played-on'},
+    LastPlayed: {title: 'Last Played', render: LastPlayed, className: 'played-at'},
     Thumbnail: {title: 'Thumbnail', render: Thumbnail, className: 'thumbnail'},
     ArtistThumbnail: {title: 'Thumbnail', render: ArtistThumbnail, className: 'thumbnail'},
 };

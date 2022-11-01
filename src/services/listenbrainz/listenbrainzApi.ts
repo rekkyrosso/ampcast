@@ -31,14 +31,16 @@ export class ListenBrainzApi {
     }
 
     async scrobble(items: Listen[]): Promise<void> {
-        logger.log('scrobble', {items});
-        // await this.post(`submit-listens`, {
-        //     listen_type: 'single',
-        //     payload: items.map((item) => ({
-        //         listened_at: item.playedAt,
-        //         track_metadata: this.getScrobbleParams(item),
-        //     })),
-        // });
+        if (items.length > 0) {
+            logger.log('scrobble', {items});
+            await this.post(`submit-listens`, {
+                listen_type: items.length === 1 ? 'single' : 'import',
+                payload: items.map((item) => ({
+                    listened_at: item.playedAt,
+                    track_metadata: this.getScrobbleParams(item),
+                })),
+            });
+        }
     }
 
     async updateNowPlaying(item: MediaItem): Promise<void> {
@@ -64,8 +66,10 @@ export class ListenBrainzApi {
             path = `${path}?${new URLSearchParams(params)}`;
         }
         const response = await this.fetch(path, {method: 'GET'}, signed);
-        const data = await response.json();
-        return data;
+        if (!response.ok || response.status === 204) {
+            throw response;
+        }
+        return response.json();
     }
 
     async post(path: string, params: any): Promise<Response> {

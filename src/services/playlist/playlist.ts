@@ -247,7 +247,20 @@ async function createMediaItems(source: PlaylistSource): Promise<readonly MediaI
             items = [await createMediaItem(source as File | MediaItem)];
         }
     }
-    return items.filter(exists);
+    return items.filter(exists).map(createPlayableMediaItem);
+}
+
+function createPlayableMediaItem(item: MediaItem): MediaItem {
+    const [source] = item.src.split(':');
+    switch (source) {
+        case 'lastfm':
+        case 'listenbrainz':
+        case 'musicbrainz':
+            if (item.playableSrc) {
+                return {...item, src: item.playableSrc};
+            }
+    }
+    return item;
 }
 
 async function createMediaItemsFromAlbum(album: MediaAlbum): Promise<readonly MediaItem[]> {

@@ -5,7 +5,7 @@ export default interface BaseMediaObject<T extends ItemType> {
     readonly itemType: T;
     readonly src: string;
     readonly title: string;
-    readonly addedAt?: number; // UTC
+    readonly addedAt?: number; // unix
     readonly genre?: string;
     readonly mood?: string;
     readonly rating?: number;

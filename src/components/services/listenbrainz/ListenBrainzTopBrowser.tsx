@@ -6,8 +6,8 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import Input from 'components/Input';
 import {PagedBrowserProps} from 'components/MediaBrowser';
+import AlbumBrowser from 'components/MediaBrowser/AlbumBrowser';
 import MediaItemBrowser from 'components/MediaBrowser/MediaItemBrowser';
-import AlbumList from 'components/MediaList/AlbumList';
 import ArtistList from 'components/MediaList/ArtistList';
 import useRange from './useRange';
 
@@ -79,11 +79,7 @@ function PagedBrowser<T extends MediaObject>(props: PagedBrowserProps<T>) {
             );
 
         case ItemType.Album:
-            return (
-                <div className="panel album-browser">
-                    <AlbumList {...(props as unknown as PagedBrowserProps<MediaAlbum>)} />
-                </div>
-            );
+            return <AlbumBrowser {...(props as unknown as PagedBrowserProps<MediaAlbum>)} />;
 
         default:
             return <MediaItemBrowser {...(props as unknown as PagedBrowserProps<MediaItem>)} />;

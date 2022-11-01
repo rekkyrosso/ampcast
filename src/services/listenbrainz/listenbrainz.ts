@@ -41,8 +41,7 @@ const topTracks: MediaSource<MediaItem> = {
     search(params: {range: string}): Pager<MediaItem> {
         return new ListenBrainzStatsPager(
             `stats/user/${listenbrainzSettings.userId}/recordings`,
-            params,
-            {pageSize: 50}
+            params
         );
     },
 };
@@ -53,15 +52,14 @@ const topAlbums: MediaSource<MediaAlbum> = {
     icon: 'star',
     itemType: ItemType.Album,
     layout: {
-        view: 'card',
+        view: 'card compact',
         fields: ['Thumbnail', 'Title', 'Artist', 'PlayCount'],
     },
 
     search(params: {range: string}): Pager<MediaAlbum> {
         return new ListenBrainzStatsPager(
             `stats/user/${listenbrainzSettings.userId}/releases`,
-            params,
-            {pageSize: 50}
+            params
         );
     },
 };
@@ -79,8 +77,7 @@ const topArtists: MediaSource<MediaArtist> = {
     search(params: {range: string}): Pager<MediaArtist> {
         return new ListenBrainzStatsPager(
             `stats/user/${listenbrainzSettings.userId}/artists`,
-            params,
-            {pageSize: 50}
+            params
         );
     },
 };

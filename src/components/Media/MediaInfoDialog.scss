@@ -1,4 +1,11 @@
 .media-info-dialog {
     min-width: 30em;
     max-width: 50em;
+
+    .external-view {
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        max-width: 30rem;
+    }
 }

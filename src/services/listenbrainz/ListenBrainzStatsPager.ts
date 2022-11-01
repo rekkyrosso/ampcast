@@ -1,34 +1,45 @@
 import {nanoid} from 'nanoid';
 import type {Observable} from 'rxjs';
+import {Except} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
-import Pager, {Page, PagerConfig} from 'types/Pager';
+import Pager, {Page} from 'types/Pager';
+import Thumbnail from 'types/Thumbnail';
+import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
+import MusicBrainzAlbumPager from 'services/musicbrainz/MusicBrainzAlbumPager';
 import SequentialPager from 'services/SequentialPager';
 import SimplePager from 'services/SimplePager';
 import listenbrainzApi from './listenbrainzApi';
 
 export default class ListenBrainzStatsPager<T extends MediaObject> implements Pager<T> {
     private readonly pager: Pager<T>;
-    private readonly defaultConfig: PagerConfig = {
-        pageSize: 50,
-    };
 
-    constructor(path: string, params?: Record<string, string | number>, options?: PagerConfig) {
-        const config = {...this.defaultConfig, ...options};
+    constructor(path: string, params?: Record<string, string | number>) {
+        const pageSize = 50;
         let offset = 0;
-        this.pager = new SequentialPager<T>(async (count = config.pageSize!): Promise<Page<T>> => {
-            const response = await listenbrainzApi.get<ListenBrainz.Stats.Response>(path, {
-                ...params,
-                offset,
-                count,
-            });
-            offset += count;
-            return this.createPage(response);
-        }, config);
+        this.pager = new SequentialPager<T>(
+            async (count = pageSize): Promise<Page<T>> => {
+                try {
+                    const response = await listenbrainzApi.get<ListenBrainz.Stats.Response>(path, {
+                        ...params,
+                        offset,
+                        count,
+                    });
+                    offset += count;
+                    return this.createPage(response);
+                } catch (err) {
+                    if (this.isNoContentError(err)) {
+                        return {items: [], atEnd: true};
+                    }
+                    throw err;
+                }
+            },
+            {pageSize}
+        );
     }
 
     observeComplete(): Observable<readonly T[]> {
@@ -95,16 +106,18 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
     }
 
     private createMediaAlbum(item: ListenBrainz.Release): MediaAlbum {
-        return {
+        const mbid = item.release_mbid || undefined;
+        const album: Except<MediaAlbum, 'pager'> = {
             itemType: ItemType.Album,
             src: `listenbrainz:album:${nanoid()}`,
             title: item.release_name,
             artist: item.artist_name,
-            release_mbid: item.release_mbid,
+            release_mbid: mbid,
             artist_mbids: item.artist_mbids,
             playCount: item.listen_count,
-            pager: new SimplePager(),
+            thumbnails: this.createThumbnails(item.release_mbid),
         };
+        return {...album, pager: mbid ? new MusicBrainzAlbumPager(mbid, album) : new SimplePager()};
     }
 
     private createMediaItem(item: ListenBrainz.Recording): MediaItem {
@@ -121,7 +134,12 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
             artist_mbids: item.artist_mbids,
             playCount: item.listen_count,
             playedAt: 0,
+            thumbnails: this.createThumbnails(item.release_mbid),
         };
+    }
+
+    private createThumbnails(mbid: string | undefined): Thumbnail[] | undefined {
+        return mbid ? [musicbrainzApi.getAlbumCover(mbid)] : undefined;
     }
 
     private isRecordingsResponse(
@@ -140,5 +158,9 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
         response: ListenBrainz.Stats.Response
     ): response is ListenBrainz.Stats.Artists {
         return 'total_artist_count' in response.payload;
+    }
+
+    private isNoContentError(err: any): boolean {
+        return err?.status === 204;
     }
 }

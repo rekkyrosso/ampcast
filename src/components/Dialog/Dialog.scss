@@ -64,7 +64,11 @@
         flex: initial;
         margin: 0 0.375em 0.375em 0.375em;
         padding: 1em;
-        border-radius: 0 0 var(--app-border-radius) var(--app-border-radius);
+        border-radius:
+            calc(var(--app-border-radius) / 2)
+            calc(var(--app-border-radius) / 2)
+            var(--app-border-radius)
+            var(--app-border-radius);
 
         .system & {
             border-radius: 0 0 0.5em 0.5em;

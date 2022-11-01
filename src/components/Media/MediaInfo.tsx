@@ -63,7 +63,7 @@ function ArtistInfo({item: artist}: MediaInfoProps<MediaArtist>) {
     return (
         <article className="media-info artist-info">
             <div className="media-info-main">
-                <Thumbnail thumbnails={artist.thumbnails} />
+                <ArtistThumbnail thumbnails={artist.thumbnails} />
                 <Title title={artist.title} />
             </div>
             <ExternalView url={artist.externalUrl} src={artist.src} />
@@ -187,6 +187,16 @@ export function Thumbnail<T extends MediaItem>({thumbnails}: Pick<T, 'thumbnails
                     backgroundImage: `url(${thumbnail.url})`,
                 }}
             />
+        </div>
+    );
+}
+
+export function ArtistThumbnail<T extends MediaItem>({thumbnails}: Pick<T, 'thumbnails'>) {
+    return thumbnails?.length ? (
+        <Thumbnail thumbnails={thumbnails} />
+    ) : (
+        <div className="thumbnail">
+            <Icon className="thumbnail-img" name="person" />
         </div>
     );
 }

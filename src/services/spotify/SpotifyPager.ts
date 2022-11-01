@@ -195,7 +195,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             genre: (track.album as any)?.genres?.join(';'),
             disc: album ? track.disc_number : undefined,
             track: album ? track.track_number : undefined,
-            year: track.album ? new Date(track.album.release_date).getFullYear() : undefined,
+            year: track.album ? new Date(track.album.release_date).getUTCFullYear() || undefined : undefined,
             isrc: track.external_ids?.isrc,
             thumbnails: track.album?.images as Thumbnail[],
             unplayable: track.is_playable === false,

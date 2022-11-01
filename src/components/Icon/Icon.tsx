@@ -40,7 +40,8 @@ export type IconName =
     | 'jellyfin'
     | 'plex'
     | 'lastfm'
-    | 'listenbrainz';
+    | 'listenbrainz'
+    | 'musicbrainz';
 
 export type MediaSourceIconName = Extract<
     IconName,
@@ -224,7 +225,10 @@ export default function Icon({name, className = ''}: IconProps) {
         case 'person':
             return (
                 <svg className={className} viewBox="0 0 16 16">
-                    <path d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z" />
+                    <path
+                        stroke="none"
+                        d="M3 14s-1 0-1-1 1-4 6-4 6 3 6 4-1 1-1 1H3zm5-6a3 3 0 1 0 0-6 3 3 0 0 0 0 6z"
+                    />
                 </svg>
             );
 
@@ -232,11 +236,7 @@ export default function Icon({name, className = ''}: IconProps) {
             return (
                 <svg className={className} viewBox="0 0 384 512">
                     <path d="M369.9 97.9L286 14C277 5 264.8-.1 252.1-.1H48C21.5 0 0 21.5 0 48v416c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48V131.9c0-12.7-5.1-25-14.1-34zM332.1 128H256V51.9l76.1 76.1zM48 464V48h160v104c0 13.3 10.7 24 24 24h104v288H48z" />
-                    <polygon
-                        points="130,250 270,325 130,400"
-                        strokeWidth="30"
-                        strokeLinejoin="round"
-                    />
+                    <polygon points="130,250 270,325 130,400" stroke="none" />
                 </svg>
             );
 
@@ -362,15 +362,16 @@ export default function Icon({name, className = ''}: IconProps) {
             );
 
         case 'listenbrainz':
+        case 'musicbrainz':
             return (
                 <svg className={className} viewBox="0 0 27 30">
                     <polygon
-                        className="icon-listenbrainz-left"
+                        className={`icon-${name}-left`}
                         stroke="none"
                         points="13 1 1 8 1 22 13 29 13 1"
                     />
                     <polygon
-                        className="icon-listenbrainz-right"
+                        className={`icon-${name}-right`}
                         stroke="none"
                         points="14 1 26 8 26 22 14 29 14 1"
                     />
