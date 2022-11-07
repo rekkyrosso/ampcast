@@ -1,8 +1,7 @@
 import {EMPTY} from 'rxjs';
 import {debounceTime, map, mergeMap, switchMap} from 'rxjs/operators';
 import Listen from 'types/Listen';
-import MediaItem from 'types/MediaItem';
-import localdb from 'services/localdb';
+import {getListenId, findScrobble, observeListens, updateListens} from 'services/localdb/listens';
 import {observePlaybackStart} from 'services/mediaPlayback';
 import {fetchFirstPage, Logger, partition} from 'utils';
 import listenbrainzApi from './listenbrainzApi';
@@ -25,7 +24,7 @@ observeIsLoggedIn()
 
 observeIsLoggedIn()
     .pipe(
-        switchMap((isLoggedIn) => (isLoggedIn ? localdb.observeListens() : EMPTY)),
+        switchMap((isLoggedIn) => (isLoggedIn ? observeListens() : EMPTY)),
         map((items) => items.filter((item) => !item.listenbrainzScrobbledAt)),
         debounceTime(10_000),
         mergeMap(scrobble)
@@ -45,43 +44,22 @@ async function scrobble(items: Listen[]): Promise<void> {
             count: ListenBrainzHistoryPager.maxPageSize,
         });
         const history = await fetchFirstPage(pager);
-        const historyIds = history.map(getListenId);
+        const historyIds = history.map((item) => getListenId(item, timeFuzziness));
         const [scrobbled, unscrobbled] = partition(
             items,
-            (item) => historyIds.includes(getListenId(item)) || findListen(history, item)
+            (item) =>
+                historyIds.includes(getListenId(item, timeFuzziness)) ||
+                !!findScrobble(history, item)
         );
-        await localdb.updateListens(
-            scrobbled.map((item) => ({...item, listenbrainzScrobbledAt: -1}))
-        );
+        await updateListens(scrobbled.map((item) => ({...item, listenbrainzScrobbledAt: -1})));
         if (unscrobbled.length > 0) {
             unscrobbled.reverse();
             unscrobbled.length = Math.min(unscrobbled.length, maxScrobbles);
             await listenbrainzApi.scrobble(unscrobbled);
             const listenbrainzScrobbledAt = Math.floor(Date.now() / 1000);
-            await localdb.updateListens(
-                unscrobbled.map((item) => ({...item, listenbrainzScrobbledAt}))
-            );
+            await updateListens(unscrobbled.map((item) => ({...item, listenbrainzScrobbledAt})));
         }
     } catch (err) {
         logger.error(err);
     }
-}
-
-function getListenId(item: MediaItem): number {
-    return Math.round(item.playedAt / timeFuzziness);
-}
-
-function findListen(history: readonly MediaItem[], listen: MediaItem): boolean {
-    const playedAt = listen.playedAt;
-    const startTime = playedAt - timeFuzziness;
-    const endTime = playedAt + listen.duration + timeFuzziness;
-    for (const item of history) {
-        if (item.playedAt < startTime) {
-            return false;
-        }
-        if (item.playedAt > startTime && item.playedAt < endTime && item.title === listen.title) {
-            return true;
-        }
-    }
-    return false;
 }

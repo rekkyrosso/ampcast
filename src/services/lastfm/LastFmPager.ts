@@ -8,6 +8,7 @@ import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
+import {enhanceWithListenData} from 'services/localdb/listens';
 import SequentialPager from 'services/SequentialPager';
 import {exists} from 'utils';
 import lastfmApi from './lastfmApi';
@@ -111,16 +112,15 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaItem(track: LastFmTrack): MediaItem {
-        return {
+        return enhanceWithListenData({
             ...(this.createMediaObject(ItemType.Media, track) as MediaItem),
             mediaType: MediaType.Audio,
             src: `lastfm:track:${nanoid()}`,
             artist: track.artist?.name,
             album: track.album?.['#text'],
             duration: Number(track.duration) || 0,
-            playedAt: track.date ? track.date.uts : 0,
-            unplayable: true,
-        };
+            playedAt: track.date ? Number(track.date.uts) || 0 : 0,
+        });
     }
 
     private createMediaAlbum(album: LastFmAlbum): MediaAlbum {
@@ -132,7 +132,6 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
                 ? new Date(album.wiki.published).getFullYear() || undefined
                 : undefined,
             pager: this.createAlbumPager(album),
-            unplayable: true,
         };
     }
 
@@ -160,14 +159,16 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createThumbnails(thumbs: any[]): Thumbnail[] | undefined {
-        return thumbs
+        const result = thumbs
             ? [
                   this.createThumbnail(thumbs[0], 34),
                   this.createThumbnail(thumbs[1], 64),
                   this.createThumbnail(thumbs[2], 174),
                   this.createThumbnail(thumbs[3], 300),
               ].filter(exists)
-            : undefined;
+            : [];
+
+        return result.length === 0 ? undefined : result;
     }
 
     private createThumbnail(thumb: any, width: number, height = width): Thumbnail | undefined {
@@ -206,7 +207,11 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
             },
             ({album}: any) => {
                 if (album.tracks) {
-                    const items = album.tracks.track;
+                    const items = (album.tracks.track || []).map((item: LastFmItem) => ({
+                        ...item,
+                        album: {'#text': album.name},
+                        image: item.image || album.image,
+                    }));
                     const total = items.length;
                     const atEnd = true;
                     return {items, total, atEnd, itemType: ItemType.Media};

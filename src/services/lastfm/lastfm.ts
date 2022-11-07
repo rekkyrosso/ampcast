@@ -46,7 +46,6 @@ const lastfmRecentlyPlayed: MediaSource<MediaItem> = {
     icon: 'clock',
     itemType: ItemType.Media,
     layout: recentTracksLayout,
-    unplayable: true,
 
     search(): Pager<MediaItem> {
         return new LastFmHistoryPager();

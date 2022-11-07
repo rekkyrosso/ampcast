@@ -5,6 +5,7 @@ import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import Pager, {Page} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
+import {enhanceWithListenData} from 'services/localdb/listens';
 import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import SequentialPager from 'services/SequentialPager';
 import listenbrainzApi from './listenbrainzApi';
@@ -85,7 +86,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
         // listening_from: "Plex/lastfm/jellyfin/Rhythmbox"
         // origin_url: "https://magdalenabay.bandcamp.com/album/mini-mix-vol-1?from=fanpub_fnb_merch"
 
-        return {
+        return enhanceWithListenData({
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             src: `listenbrainz:listen:${nanoid()}`,
@@ -105,7 +106,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             playedAt: item.listened_at,
             thumbnails: this.createThumbnails(data.mbid_mapping?.release_mbid),
             playableSrc: this.getPlayableSrc(info),
-        };
+        });
     }
 
     private createThumbnails(mbid: string | undefined): Thumbnail[] | undefined {

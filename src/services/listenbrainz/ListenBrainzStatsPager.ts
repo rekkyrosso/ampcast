@@ -9,6 +9,7 @@ import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import Pager, {Page} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
+import {enhanceWithListenData} from 'services/localdb/listens';
 import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import MusicBrainzAlbumPager from 'services/musicbrainz/MusicBrainzAlbumPager';
 import SequentialPager from 'services/SequentialPager';
@@ -121,7 +122,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
     }
 
     private createMediaItem(item: ListenBrainz.Recording): MediaItem {
-        return {
+        return enhanceWithListenData({
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             src: `listenbrainz:track:${nanoid()}`,
@@ -135,7 +136,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
             playCount: item.listen_count,
             playedAt: 0,
             thumbnails: this.createThumbnails(item.release_mbid),
-        };
+        });
     }
 
     private createThumbnails(mbid: string | undefined): Thumbnail[] | undefined {

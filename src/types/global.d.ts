@@ -14,3 +14,7 @@ declare module '*.frag' {
     const value: string;
     export = value;
 }
+
+declare module 'string-score' {
+    export default 'string-score' as (target: string, query: string, fuzziness?: number) => number;
+}

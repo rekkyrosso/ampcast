@@ -177,7 +177,9 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaItemFromTrack(track: SpotifyTrack): MediaItem {
-        const album = /album|compilation/i.test(track.album?.album_type || '') ? track.album : null;
+        const album = /album|compilation/i.test(track.album?.album_type || '')
+            ? track.album
+            : undefined;
 
         return {
             itemType: ItemType.Media,
@@ -195,7 +197,9 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             genre: (track.album as any)?.genres?.join(';'),
             disc: album ? track.disc_number : undefined,
             track: album ? track.track_number : undefined,
-            year: track.album ? new Date(track.album.release_date).getUTCFullYear() || undefined : undefined,
+            year: track.album
+                ? new Date(track.album.release_date).getUTCFullYear() || undefined
+                : undefined,
             isrc: track.external_ids?.isrc,
             thumbnails: track.album?.images as Thumbnail[],
             unplayable: track.is_playable === false,
@@ -217,18 +221,39 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
     private createAlbumPager(album: SpotifyAlbum): Pager<MediaItem> {
         const tracks = album.tracks?.items;
         if (tracks && tracks.length === album.total_tracks) {
-            return new SimplePager(tracks.map((track) => this.createMediaItemFromTrack(track)));
+            const tracks = album.tracks?.items;
+            return new SimplePager(
+                tracks.map((track) =>
+                    this.createMediaItemFromTrack({
+                        ...track,
+                        album: album as SpotifyApi.AlbumObjectSimplified,
+                    })
+                )
+            );
         } else {
             const market = this.getMarket();
             return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
-                const result = await spotifyApi.getAlbumTracks(album.id, {
+                const {items, total, next} = await spotifyApi.getAlbumTracks(album.id, {
                     offset,
                     limit,
                     market,
                 });
-                return result;
+                return {
+                    items: items.map((item) => ({
+                        ...item,
+                        album: album as SpotifyApi.AlbumObjectSimplified,
+                    })),
+                    total,
+                    next,
+                };
             });
         }
+    }
+
+    private isFullAlbum(
+        album: SpotifyApi.AlbumObjectSimplified | SpotifyAlbum
+    ): album is SpotifyAlbum {
+        return 'tracks' in album && album.tracks.items.length === album.total_tracks;
     }
 
     private createPlaylistPager(playlist: SpotifyPlaylist): Pager<MediaItem> {

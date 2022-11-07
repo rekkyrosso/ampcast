@@ -1,6 +1,6 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
-import {distinctUntilChanged, map, withLatestFrom} from 'rxjs/operators';
+import {distinctUntilChanged, filter, map, withLatestFrom} from 'rxjs/operators';
 import {get as dbRead, set as dbWrite, createStore} from 'idb-keyval';
 import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
@@ -51,7 +51,7 @@ async function setAll(items: PlaylistItem[]): Promise<void> {
 }
 
 export function observe(): Observable<PlaylistItem[]> {
-    return items$;
+    return items$.pipe(filter((items) => items !== UNINITIALIZED));
 }
 
 function getCurrentItemId(): string {

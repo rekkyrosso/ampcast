@@ -53,7 +53,7 @@ const topAlbums: MediaSource<MediaAlbum> = {
     itemType: ItemType.Album,
     layout: {
         view: 'card compact',
-        fields: ['Thumbnail', 'Title', 'Artist', 'PlayCount'],
+        fields: ['Thumbnail', 'Title', 'Artist', 'Year', 'PlayCount'],
     },
 
     search(params: {range: string}): Pager<MediaAlbum> {

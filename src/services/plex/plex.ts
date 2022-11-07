@@ -54,7 +54,7 @@ const plexRecentlyPlayed: MediaSource<MediaItem> = {
     search(): Pager<MediaItem> {
         return new PlexPager(`/library/sections/${plexSettings.libraryId}/all`, {
             type: '10', // track
-            'lastViewedAt>': '-3mon',
+            'lastViewedAt>': '0',
             sort: 'lastViewedAt:desc',
         });
     },

@@ -1,13 +1,18 @@
 import {take, takeUntil} from 'rxjs/operators';
+import score from 'string-score';
 import pixel from 'assets/pixel.png.base64';
-import Thumbnail from 'types/Thumbnail';
 import Pager from 'types/Pager';
+import Thumbnail from 'types/Thumbnail';
 export {default as LiteStorage} from './LiteStorage';
 export {default as Logger} from './Logger';
 export {default as browser} from './browser';
 
 export function exists<T>(value: T): value is NonNullable<T> {
     return value != null;
+}
+
+export function matchString(string1: string, string2: string, tolerance = 0.9): boolean {
+    return score(string1, string2) >= tolerance || score(string2, string1) >= tolerance;
 }
 
 export function fetchFirstPage<T>(pager: Pager<T>): Promise<readonly T[]> {

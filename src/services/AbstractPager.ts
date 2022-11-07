@@ -107,7 +107,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
 
             this.subscriptions.add(
                 this.observeAdditions()
-                    .pipe(tap((items) => this.addPagerDecorations(items)))
+                    .pipe(tap((items) => this.addMissingTrackCounts(items)))
                     .subscribe(logger)
             );
         }
@@ -124,7 +124,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
         );
     }
 
-    private addPagerDecorations(items: readonly T[]): void {
+    private addMissingTrackCounts(items: readonly T[]): void {
         items.forEach((item) => {
             if (item.itemType === ItemType.Playlist && !item.trackCount && item.pager) {
                 const src = item.src;

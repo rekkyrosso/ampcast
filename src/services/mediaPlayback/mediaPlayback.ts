@@ -13,7 +13,7 @@ import {
 import MediaPlayback from 'types/MediaPlayback';
 import PlaybackState from 'types/PlaybackState';
 import PlaylistItem from 'types/PlaylistItem';
-import localdb from 'services/localdb';
+import {addListen} from 'services/localdb/listens';
 import playlist from 'services/playlist';
 import visualizerPlayer from 'services/visualizer/player';
 import {LiteStorage, Logger} from 'utils';
@@ -297,9 +297,7 @@ loadingLocked$
     )
     .subscribe(load);
 
-observePlaybackEnd()
-    .pipe(mergeMap((state) => localdb.addListen(state)))
-    .subscribe(logger);
+observePlaybackEnd().pipe(mergeMap(addListen)).subscribe(logger);
 
 fromEvent(window, 'pagehide').subscribe(kill);
 
