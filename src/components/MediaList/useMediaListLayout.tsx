@@ -4,10 +4,9 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSourceLayout, {Field} from 'types/MediaSourceLayout';
-import Icon from 'components/Icon';
 import {ColumnSpec, ListViewLayout} from 'components/ListView';
+import ThumbnailImage from 'components/ThumbnailImage';
 import Time from 'components/Time';
-import {findBestThumbnail} from 'utils';
 
 const defaultLayout: MediaSourceLayout<MediaObject> = {
     view: 'details',
@@ -88,25 +87,12 @@ export const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
 export const AlbumAndYear: RenderField<MediaItem> = (item) =>
     item.album ? (item.year ? `${item.album} (${item.year})` : item.album) : item.year || '';
 
-export const Thumbnail = (item: MediaObject) => {
-    const thumbnail = findBestThumbnail(item.thumbnails);
-
-    return (
-        <div
-            className="thumbnail-img"
-            style={{
-                backgroundImage: `url(${thumbnail.url})`,
-            }}
-        />
-    );
+export const Thumbnail: RenderField = (item) => {
+    return <ThumbnailImage thumbnails={item.thumbnails} />;
 };
 
 export const ArtistThumbnail: RenderField = (item) => {
-    return item.thumbnails?.length ? (
-        Thumbnail(item)
-    ) : (
-        <Icon className="thumbnail-img" name="person" />
-    );
+    return <ThumbnailImage thumbnails={item.thumbnails} fallbackIcon="person" />;
 };
 
 // TODO: Improve typing.

@@ -75,8 +75,8 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
         );
     }
 
-    observeComplete(): Observable<readonly T[]> {
-        return this.pager.observeComplete();
+    get maxSize(): number | undefined {
+        return this.pager.maxSize;
     }
 
     observeItems(): Observable<readonly T[]> {
@@ -85,10 +85,6 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
 
     observeSize(): Observable<number> {
         return this.pager.observeSize();
-    }
-
-    observeMaxSize(): Observable<number> {
-        return this.pager.observeMaxSize();
     }
 
     observeError(): Observable<unknown> {

@@ -72,8 +72,8 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         );
     }
 
-    observeComplete(): Observable<readonly T[]> {
-        return this.pager.observeComplete();
+    get maxSize(): number | undefined {
+        return this.pager.maxSize;
     }
 
     observeItems(): Observable<readonly T[]> {
@@ -82,10 +82,6 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
 
     observeSize(): Observable<number> {
         return this.pager.observeSize();
-    }
-
-    observeMaxSize(): Observable<number> {
-        return this.pager.observeMaxSize();
     }
 
     observeError(): Observable<unknown> {
@@ -248,12 +244,6 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                 };
             });
         }
-    }
-
-    private isFullAlbum(
-        album: SpotifyApi.AlbumObjectSimplified | SpotifyAlbum
-    ): album is SpotifyAlbum {
-        return 'tracks' in album && album.tracks.items.length === album.total_tracks;
     }
 
     private createPlaylistPager(playlist: SpotifyPlaylist): Pager<MediaItem> {

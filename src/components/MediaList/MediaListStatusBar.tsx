@@ -8,7 +8,7 @@ export interface MediaListStatusBarProps {
     maxSize?: number;
     error?: unknown;
     loading?: boolean;
-    loadingText?: string;
+    loadingText?: string; // e.g. "Loading", "Searching"
     selectedCount?: number;
     itemName?: string;
     itemNamePlural?: string;

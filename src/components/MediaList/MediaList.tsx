@@ -29,11 +29,14 @@ export default function MediaList<T extends MediaObject>({
     unplayable,
     ...props
 }: MediaListProps<T>) {
+    const [key, setKey] = useState(0);
     const layout = useMediaListLayout(props.layout);
     const [rowIndex, setRowIndex] = useState(0);
     const [pageSize, setPageSize] = useState(0);
     const [{items, loaded, error, size, maxSize}, fetchAt] = usePager(pager, keepAlive);
     const [selectedCount, setSelectedCount] = useState(0);
+
+    useEffect(() => setKey((key) => key + 1), [pager]);
 
     useEffect(() => {
         if (rowIndex >= 0 && pageSize > 0) {
@@ -65,6 +68,7 @@ export default function MediaList<T extends MediaObject>({
                 onPageSizeChange={setPageSize}
                 onScrollIndexChange={setRowIndex}
                 onSelect={handleSelect}
+                key={key} // reset selection
             />
             {statusBar ? (
                 <MediaListStatusBar

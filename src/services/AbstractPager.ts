@@ -16,26 +16,15 @@ let pagerCount = 0;
 export default abstract class AbstractPager<T extends MediaObject> implements Pager<T> {
     protected readonly items$ = new BehaviorSubject<readonly T[]>(UNINITIALIZED);
     protected readonly size$ = new ReplaySubject<number>(1);
-    protected readonly maxSize$ = new ReplaySubject<number>(1);
     protected readonly error$ = new ReplaySubject<unknown>(1);
     protected readonly fetches$ = new BehaviorSubject<PageFetch>({index: 0, length: 0});
     protected subscriptions?: Subscription;
     protected disconnected = false;
-    protected config: PagerConfig;
 
-    constructor(options?: PagerConfig) {
-        this.config = {...options};
-        if (options?.maxSize) {
-            this.maxSize$.next(options?.maxSize);
-        }
-    }
+    constructor(protected config: PagerConfig = {}) {}
 
-    observeComplete(): Observable<readonly T[]> {
-        return combineLatest([this.observeItems(), this.observeSize()]).pipe(
-            filter(([items, size]) => items.reduce((total) => (total += 1), 0) === size),
-            map(([items]) => items),
-            take(1)
-        );
+    get maxSize(): number | undefined {
+        return this.config.maxSize;
     }
 
     observeItems(): Observable<readonly T[]> {
@@ -44,10 +33,6 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
 
     observeSize(): Observable<number> {
         return this.size$.pipe(distinctUntilChanged());
-    }
-
-    observeMaxSize(): Observable<number> {
-        return this.maxSize$.pipe(distinctUntilChanged());
     }
 
     observeError(): Observable<unknown> {
@@ -64,7 +49,6 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
             this.items.forEach((item) => (item as any).pager?.disconnect());
             this.items$.complete();
             this.size$.complete();
-            this.maxSize$.complete();
             this.error$.complete();
         }
     }
@@ -95,8 +79,12 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
         return this.items$.getValue();
     }
 
-    protected get maxSize(): number {
-        return this.config?.maxSize ?? Infinity;
+    protected observeComplete(): Observable<readonly T[]> {
+        return combineLatest([this.observeItems(), this.observeSize()]).pipe(
+            filter(([items, size]) => items.reduce((total) => (total += 1), 0) === size),
+            map(([items]) => items),
+            take(1)
+        );
     }
 
     protected connect(): void {

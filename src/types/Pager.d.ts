@@ -1,10 +1,9 @@
 import type {Observable} from 'rxjs';
 
 export default interface Pager<T> {
-    observeComplete(): Observable<readonly T[]>;
+    readonly maxSize: number | undefined;
     observeItems(): Observable<readonly T[]>;
     observeSize(): Observable<number>;
-    observeMaxSize(): Observable<number>;
     observeError(): Observable<unknown>;
     fetchAt(index: number, length?: number): void;
     disconnect(): void;

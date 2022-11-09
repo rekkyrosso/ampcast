@@ -54,16 +54,12 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         }, options);
     }
 
-    observeComplete(): Observable<readonly T[]> {
-        return this.pager.observeComplete();
+    get maxSize(): number | undefined {
+        return this.pager.maxSize;
     }
 
     observeItems(): Observable<readonly T[]> {
         return this.pager.observeItems();
-    }
-
-    observeMaxSize(): Observable<number> {
-        return this.pager.observeMaxSize();
     }
 
     observeSize(): Observable<number> {
@@ -148,7 +144,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             externalUrl: item.url,
             title: item.name,
             thumbnails: this.createThumbnails(artist),
-            genre: item.genreNames.join(';'),
+            genre: this.getGenre(item),
             pager: this.createPager(
                 artist.relationships?.albums.href ||
                     `/v1/catalog/{{storefrontId}}/artists/${artist.id}/albums`
@@ -168,7 +164,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             thumbnails: this.createThumbnails(album),
             artist: item.artistName,
             trackCount: item.trackCount,
-            genre: item.genreNames.join(';'),
+            genre: this.getGenre(item),
             year: new Date(item.releaseDate).getFullYear() || 0,
             pager: this.createPager(album.href!, {
                 'include[library-songs]': 'catalog',
@@ -196,7 +192,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             albumArtist: item.albumName ? item.artistName : undefined,
             album: item.albumName,
             duration: item.durationInMillis / 1000,
-            genre: item.genreNames.join(';'),
+            genre: this.getGenre(item),
             disc: item.discNumber,
             track: item.trackNumber,
             year: new Date(item.releaseDate).getFullYear() || undefined,
@@ -211,7 +207,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         return {...catalog?.attributes, ...item.attributes};
     }
 
-    private createThumbnails(item: MusicKitItem): Thumbnail[] {
+    private createThumbnails(item: MusicKitItem): Thumbnail[] | undefined {
         const artwork: MusicKit.Artwork | undefined = (item.attributes as any)
             ?.artwork as unknown as MusicKit.Artwork;
 
@@ -222,7 +218,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
                   this.createThumbnail(artwork, 240),
                   this.createThumbnail(artwork, 480),
               ]
-            : [];
+            : undefined;
     }
 
     private createThumbnail(artwork: MusicKit.Artwork, size: number): Thumbnail {
@@ -250,5 +246,9 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             params,
             options
         );
+    }
+
+    private getGenre({genreNames = []}: {genreNames: string[]}): string | undefined {
+        return genreNames.filter((name) => name !== 'Music').join(';') || undefined;
     }
 }

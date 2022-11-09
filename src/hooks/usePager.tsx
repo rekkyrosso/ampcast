@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
-import {asapScheduler, concat, EMPTY, merge, of, Subscription} from 'rxjs';
-import {delay, map, take} from 'rxjs/operators';
+import {merge, Subscription} from 'rxjs';
+import {map, take} from 'rxjs/operators';
 import Pager from 'types/Pager';
 import useSubject from './useSubject';
 
@@ -46,32 +46,27 @@ export default function usePager<T>(pager: Pager<T> | null, keepAlive = false) {
 
         const items$ = pager.observeItems();
         const size$ = pager.observeSize();
-        const maxSize$ = pager.observeMaxSize();
         const error$ = pager.observeError();
         const loaded$ = merge(items$, error$).pipe(
             take(1),
             map(() => true)
         );
-        // Make sure we emit an empty array whenever we change pager.
-        // TODO:  Try to get rid of this.
-        const flush$ = concat(of([]), EMPTY.pipe(delay(0, asapScheduler)));
 
         const subscription = new Subscription();
 
-        subscription.add(concat(flush$, items$).subscribe(setItems));
+        subscription.add(items$.subscribe(setItems));
         subscription.add(size$.subscribe(setSize));
-        subscription.add(maxSize$.subscribe(setMaxSize));
         subscription.add(error$.subscribe(setError));
         subscription.add(loaded$.subscribe(setLoaded));
         subscription.add(fetch$.subscribe(([index, length]) => pager.fetchAt(index, length)));
 
-        // Disconnecting a pager will cancel any ongoing HTTP requests and stop background monitoring
-        // of updates.
         // If you keep the pager alive then you are responsible for disconnecting it yourself
         // when you teardown the parent component.
         if (!keepAlive) {
             subscription.add(() => pager.disconnect());
         }
+
+        setMaxSize(pager.maxSize);
 
         return () => subscription.unsubscribe();
     }, [pager, fetch$, keepAlive]);

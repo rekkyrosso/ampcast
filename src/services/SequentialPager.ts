@@ -10,6 +10,7 @@ const logger = new Logger('SequentialPager');
 
 export default class SequentialPager<T extends MediaObject> extends AbstractPager<T> {
     protected readonly fetching$ = new BehaviorSubject(false);
+    protected maxEmptyCount = 2;
     private emptyCount = 0;
 
     constructor(
@@ -61,8 +62,9 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
             // Nothing got added.
             this.emptyCount++;
         }
-        items.length = Math.min(items.length, this.maxSize);
-        const atEnd = page.atEnd || items.length === this.maxSize || this.emptyCount > 2;
+        items.length = Math.min(items.length, this.maxSize ?? Infinity);
+        const atEnd =
+            page.atEnd || items.length === this.maxSize || this.emptyCount > this.maxEmptyCount;
         const size = atEnd ? items.length : page.total;
         if (size !== undefined) {
             this.size$.next(size);

@@ -134,7 +134,7 @@ export default function ListView<T>({
     const [dragIndex, setDragIndex] = useState(-1);
     const [dragStartIndex, setDragStartIndex] = useState(-1);
     const isEmpty = size === 0;
-    const wasEmpty = usePrevious(isEmpty);
+    const wasEmpty = usePrevious(isEmpty) ?? true;
     const isDragging = dragStartIndex !== -1;
     const scrollIndex = rowHeight ? Math.floor(scrollTop / rowHeight) : 0;
     const keyboardBusy = useKeyboardBusy();

@@ -47,8 +47,8 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
         );
     }
 
-    observeComplete(): Observable<readonly MediaItem[]> {
-        return this.pager.observeComplete();
+    get maxSize(): number | undefined {
+        return this.pager.maxSize;
     }
 
     observeItems(): Observable<readonly MediaItem[]> {
@@ -57,10 +57,6 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
 
     observeSize(): Observable<number> {
         return this.pager.observeSize();
-    }
-
-    observeMaxSize(): Observable<number> {
-        return this.pager.observeMaxSize();
     }
 
     observeError(): Observable<unknown> {

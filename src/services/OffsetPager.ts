@@ -73,7 +73,7 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
 
     private insertPage(pageNumber: number, page: Page<T>): void {
         const items = this.items.slice(); // copy
-        const size = Math.min(page.total!, this.maxSize);
+        const size = Math.min(page.total!, this.maxSize ?? Infinity);
 
         const pageCount = Math.ceil(size / this.pageSize);
         const offset = (pageNumber - 1) * this.pageSize;

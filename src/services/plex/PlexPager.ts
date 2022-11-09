@@ -29,8 +29,8 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         });
     }
 
-    observeComplete(): Observable<readonly T[]> {
-        return this.pager.observeComplete();
+    get maxSize(): number | undefined {
+        return this.pager.maxSize;
     }
 
     observeItems(): Observable<readonly T[]> {
@@ -39,10 +39,6 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
 
     observeSize(): Observable<number> {
         return this.pager.observeSize();
-    }
-
-    observeMaxSize(): Observable<number> {
-        return this.pager.observeMaxSize();
     }
 
     observeError(): Observable<unknown> {
@@ -210,9 +206,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     private createThumbnail(thumb: string, width: number, height = width): Thumbnail {
         const url = `${plexSettings.host}/photo/:/transcode?url=${encodeURIComponent(
             thumb
-        )}&width=${width}&height=${height}&minSize=1&upscale=1&X-Plex-Token=${
-            plexSettings.serverToken
-        }`;
+        )}&width=${width}&height=${height}&minSize=1&upscale=1&X-Plex-Token={plex-token}`;
         return {url, width, height};
     }
 

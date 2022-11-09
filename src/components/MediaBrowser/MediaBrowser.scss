@@ -62,4 +62,16 @@
 
         margin-bottom: calc(var(--gutter-width) / 2);
     }
+
+    &.lastfm-browser,
+    &.listenbrainz-browser {
+        .album-browser {
+            .title,
+            .artist,
+            .owner,
+            .album {
+                right: 4em;
+            }
+        }
+    }
 }

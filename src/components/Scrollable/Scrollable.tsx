@@ -78,12 +78,20 @@ export default function Scrollable({
     }, [scrollableRef]);
 
     useLayoutEffect(() => {
-        setOverflowX(scrollWidth - clientWidth > 1);
-    }, [clientWidth, scrollWidth]);
+        if (scrollWidth && clientWidth) {
+            setOverflowX(scrollWidth - clientWidth > 1);
+        } else {
+            setOverflowY(false);
+        }
+    }, [scrollWidth, clientWidth]);
 
     useLayoutEffect(() => {
-        setOverflowY(scrollHeight - clientHeight > 1);
-    }, [clientHeight, scrollHeight]);
+        if (scrollHeight && clientHeight) {
+            setOverflowY(scrollHeight - clientHeight > 1);
+        } else {
+            setOverflowY(false);
+        }
+    }, [scrollHeight, clientHeight]);
 
     useLayoutEffect(() => {
         containerRef.current!.classList.toggle('overflow-x', overflowX);

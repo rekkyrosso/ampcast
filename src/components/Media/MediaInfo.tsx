@@ -5,9 +5,10 @@ import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import {findBestThumbnail, formatTime} from 'utils';
+import {formatTime} from 'utils';
 import ExternalLink from 'components/ExternalLink';
 import Icon, {MediaSourceIconName} from 'components/Icon';
+import ThumbnailImage, {ThumbnailImageProps} from 'components/ThumbnailImage';
 import './MediaInfo.scss';
 
 export interface MediaInfoProps<T extends MediaObject> {
@@ -63,7 +64,7 @@ function ArtistInfo({item: artist}: MediaInfoProps<MediaArtist>) {
     return (
         <article className="media-info artist-info">
             <div className="media-info-main">
-                <ArtistThumbnail thumbnails={artist.thumbnails} />
+                <Thumbnail thumbnails={artist.thumbnails} fallbackIcon="person" />
                 <Title title={artist.title} />
             </div>
             <ExternalView url={artist.externalUrl} src={artist.src} />
@@ -176,27 +177,10 @@ export function Duration<T extends MediaItem>({duration}: Pick<T, 'duration'>) {
     return <time className="duration">{formatTime(duration)}</time>;
 }
 
-export function Thumbnail<T extends MediaItem>({thumbnails}: Pick<T, 'thumbnails'>) {
-    const thumbnail = findBestThumbnail(thumbnails);
-
+export function Thumbnail(props: ThumbnailImageProps) {
     return (
         <div className="thumbnail">
-            <div
-                className="thumbnail-img"
-                style={{
-                    backgroundImage: `url(${thumbnail.url})`,
-                }}
-            />
-        </div>
-    );
-}
-
-export function ArtistThumbnail<T extends MediaItem>({thumbnails}: Pick<T, 'thumbnails'>) {
-    return thumbnails?.length ? (
-        <Thumbnail thumbnails={thumbnails} />
-    ) : (
-        <div className="thumbnail">
-            <Icon className="thumbnail-img" name="person" />
+            <ThumbnailImage {...props} />
         </div>
     );
 }

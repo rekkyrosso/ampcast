@@ -19,7 +19,7 @@ export default function MediaLibrary() {
         <div className="media-library">
             <header className="media-library-head">
                 <h1>
-                    Ampcast <span className="version">{__app_version__}</span>
+                    {__app_name__} <span className="version">{__app_version__}</span>
                 </h1>
                 <IconButton
                     icon="settings"

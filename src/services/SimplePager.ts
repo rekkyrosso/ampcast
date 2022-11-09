@@ -5,12 +5,8 @@ import Pager from 'types/Pager';
 export default class SimplePager<T> implements Pager<T> {
     constructor(private items: T[] = []) {}
 
-    get size(): number {
-        return this.items.length;
-    }
-
-    observeComplete(): Observable<readonly T[]> {
-        return of(this.items);
+    get maxSize(): number | undefined {
+        return undefined;
     }
 
     observeItems(): Observable<readonly T[]> {
@@ -18,10 +14,6 @@ export default class SimplePager<T> implements Pager<T> {
     }
 
     observeSize(): Observable<number> {
-        return of(this.items.length);
-    }
-
-    observeMaxSize(): Observable<number> {
         return of(this.items.length);
     }
 
