@@ -1,13 +1,6 @@
 @import 'styles/mixins.scss';
 
 .scrollbar {
-    --scrollbar-size: 1.5rem;
-    --scrollbar-color: hsl(
-        var(--button-color-h),
-        var(--button-color-s),
-        calc(var(--button-color-l) - var(--button-color-l) * 0.5)
-    );
-
     position: absolute;
     background: var(--scrollbar-color);
     border-radius: var(--app-border-radius);

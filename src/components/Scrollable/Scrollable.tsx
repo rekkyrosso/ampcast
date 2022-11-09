@@ -59,8 +59,8 @@ export default function Scrollable({
     const [overflowX, setOverflowX] = useState(false);
     const [overflowY, setOverflowY] = useState(false);
     const [dragOver, setDragOver] = useState(0);
-    const clientWidth = innerWidth - (overflowY ? vScrollbarSize : 0);
-    const clientHeight = innerHeight - (overflowX ? hScrollbarSize : 0);
+    const clientWidth = Math.max(innerWidth - (overflowY ? vScrollbarSize : 0), 0);
+    const clientHeight = Math.max(innerHeight - (overflowX ? hScrollbarSize : 0), 0);
 
     useEffect(() => {
         if (scrollableRef) {

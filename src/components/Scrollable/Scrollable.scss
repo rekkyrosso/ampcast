@@ -1,4 +1,11 @@
 .scrollable {
+    --scrollbar-size: 1.5rem;
+    --scrollbar-color: hsl(
+        var(--button-color-h),
+        var(--button-color-s),
+        calc(var(--button-color-l) - var(--button-color-l) * 0.5)
+    );
+
     overflow: hidden;
     border-radius: inherit;
 
@@ -12,6 +19,8 @@
         isolation: isolate;
         display: flex;
         flex-direction: column;
+        min-width: calc(2 * var(--scrollbar-size));
+        min-height: calc(2 * var(--scrollbar-size));
     }
 
     &-head {
