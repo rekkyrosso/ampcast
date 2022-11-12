@@ -7,7 +7,7 @@ import showActionsMenu from './showActionsMenu';
 
 const defaultLayout: MediaSourceLayout<MediaArtist> = {
     view: 'card minimal',
-    fields: ['ArtistThumbnail', 'Title'],
+    fields: ['Thumbnail', 'Title'],
 };
 
 export default function ArtistList({

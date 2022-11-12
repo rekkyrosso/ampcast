@@ -21,9 +21,7 @@ export default function SpotifyLogin() {
                     </ExternalLink>
                 </p>
                 <p>
-                    <small>
-                        <em>*Spotify Premium required.</em>
-                    </small>
+                    <small>*Spotify Premium required.</small>
                 </p>
             </div>
         </div>

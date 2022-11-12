@@ -18,13 +18,10 @@ const listenbrainzHistory: MediaSource<MediaItem> = {
     title: 'History',
     icon: 'clock',
     itemType: ItemType.Media,
-    layout: {
-        view: 'card',
-        fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'LastPlayed'],
-    },
 
-    search(): Pager<MediaItem> {
-        return new ListenBrainzHistoryPager();
+    search({startAt: max_ts = 0}: {startAt?: number} = {}): Pager<MediaItem> {
+        console.log('search/listenbrainz/history', {max_ts});
+        return new ListenBrainzHistoryPager(max_ts ? {max_ts} : undefined);
     },
 };
 
@@ -71,7 +68,7 @@ const topArtists: MediaSource<MediaArtist> = {
     itemType: ItemType.Artist,
     layout: {
         view: 'card minimal',
-        fields: ['ArtistThumbnail', 'Title', 'PlayCount'],
+        fields: ['Thumbnail', 'Title', 'PlayCount'],
     },
 
     search(params: {range: string}): Pager<MediaArtist> {

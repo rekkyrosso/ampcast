@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
@@ -60,7 +61,7 @@ export const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
     }
     const hour = 60 * minute;
     if (elapsedTime < hour * 1.5) {
-        return `${Math.round(elapsedTime / minute)} minutes ago`;
+        return `${Math.round(elapsedTime / minute)} mins ago`;
     }
     const day = 24 * hour;
     if (elapsedTime < day * 1.5) {
@@ -84,15 +85,23 @@ export const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
     return `${Math.floor(elapsedTime / year)} years ago`;
 };
 
+export const ListenDate: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
+    if (!item.playedAt) {
+        return '';
+    }
+    return new Date(item.playedAt * 1000).toLocaleDateString();
+};
+
 export const AlbumAndYear: RenderField<MediaItem> = (item) =>
     item.album ? (item.year ? `${item.album} (${item.year})` : item.album) : item.year || '';
 
 export const Thumbnail: RenderField = (item) => {
-    return <ThumbnailImage thumbnails={item.thumbnails} />;
-};
-
-export const ArtistThumbnail: RenderField = (item) => {
-    return <ThumbnailImage thumbnails={item.thumbnails} fallbackIcon="person" />;
+    return (
+        <ThumbnailImage
+            thumbnails={item.thumbnails}
+            fallbackIcon={item.itemType === ItemType.Artist ? 'person' : undefined}
+        />
+    );
 };
 
 // TODO: Improve typing.
@@ -121,7 +130,7 @@ const mediaFields: MediaFields<any> = {
     Year: {title: 'Year', render: Year, align: 'right', width: 120, className: 'year'},
     Genre: {title: 'Genre', render: Genre, className: 'genre'},
     Owner: {title: 'Owner', render: Owner, className: 'owner'},
-    LastPlayed: {title: 'Last Played', render: LastPlayed, className: 'played-at'},
+    LastPlayed: {title: 'Last played', render: LastPlayed, className: 'played-at'},
+    ListenDate: {title: 'Played On', render: ListenDate, className: 'played-at'},
     Thumbnail: {title: 'Thumbnail', render: Thumbnail, className: 'thumbnail'},
-    ArtistThumbnail: {title: 'Thumbnail', render: ArtistThumbnail, className: 'thumbnail'},
 };

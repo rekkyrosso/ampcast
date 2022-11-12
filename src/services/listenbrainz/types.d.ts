@@ -123,7 +123,6 @@ declare namespace ListenBrainz {
         }
 
         interface ListensParams {
-            [key: string]: string | number;
             count?: number;
             min_ts?: number;
             max_ts?: number;

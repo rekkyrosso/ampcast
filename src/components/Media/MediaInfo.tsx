@@ -133,6 +133,10 @@ export function ExternalView({src, url}: {src: string; url: string | undefined})
         case 'lastfm':
             name = 'last.fm';
             break;
+
+        case 'listenbrainz':
+            name = 'ListenBrainz';
+            break;
     }
 
     return (

@@ -28,6 +28,7 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
         if (!this.subscriptions) {
             super.connect();
 
+            // TODO: better error handling.
             this.subscriptions!.add(
                 this.fetches$
                     .pipe(

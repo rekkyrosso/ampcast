@@ -16,6 +16,7 @@ import useObservable from 'hooks/useObservable';
 import useSearch from 'hooks/useSearch';
 import AlbumBrowser from './AlbumBrowser';
 import ArtistBrowser from './ArtistBrowser';
+import HistoryBrowser from './HistoryBrowser';
 import MediaItemBrowser from './MediaItemBrowser';
 import MediaSourceSelector from './MediaSourceSelector';
 import PlaylistBrowser from './PlaylistBrowser';
@@ -48,10 +49,13 @@ export default function MediaBrowserAuth<T extends MediaObject>({
 
 function Router<T extends MediaObject>({service, sources}: MediaBrowserProps<T>) {
     const source = sources.length === 1 ? sources[0] : null;
-    if (source?.id.startsWith('lastfm/top')) {
-        return <LastFmTopBrowser source={source} />;
-    } else if (source?.id.startsWith('listenbrainz/top')) {
-        return <ListenBrainzTopBrowser source={source} />;
+    const id = source ? source.id : '';
+    if (id.startsWith('lastfm/top')) {
+        return <LastFmTopBrowser source={source!} />;
+    } else if (id.startsWith('listenbrainz/top')) {
+        return <ListenBrainzTopBrowser source={source!} />;
+    } else if (id === 'lastfm/history' || id === 'listenbrainz/history') {
+        return <HistoryBrowser source={source as MediaSource<MediaItem>} />;
     } else {
         return <MediaBrowser service={service} sources={sources} />;
     }

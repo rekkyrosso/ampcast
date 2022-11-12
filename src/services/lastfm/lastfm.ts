@@ -20,11 +20,6 @@ const topTracksLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Thumbnail', 'Title', 'Artist', 'PlayCount'],
 };
 
-const recentTracksLayout: MediaSourceLayout<MediaItem> = {
-    view: 'card',
-    fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'LastPlayed'],
-};
-
 const albumLayout: MediaSourceLayout<MediaAlbum> = {
     view: 'card compact',
     fields: ['Thumbnail', 'Title', 'Artist', 'Year', 'PlayCount'],
@@ -37,18 +32,18 @@ const albumTrackLayout: MediaSourceLayout<MediaItem> = {
 
 const artistLayout: MediaSourceLayout<MediaAlbum> = {
     view: 'card minimal',
-    fields: ['ArtistThumbnail', 'Title', 'PlayCount'],
+    fields: ['Thumbnail', 'Title', 'PlayCount'],
 };
 
 const lastfmRecentlyPlayed: MediaSource<MediaItem> = {
-    id: 'lastfm/recently-played',
-    title: 'Recently Played',
+    id: 'lastfm/history',
+    title: 'History',
     icon: 'clock',
     itemType: ItemType.Media,
-    layout: recentTracksLayout,
 
-    search(): Pager<MediaItem> {
-        return new LastFmHistoryPager();
+    search({startAt: to = 0}: {startAt?: number} = {}): Pager<MediaItem> {
+        console.log('search/lastfm/history', {to});
+        return new LastFmHistoryPager(to ? {to} : undefined);
     },
 };
 
@@ -96,7 +91,7 @@ function createTopView<T extends MediaObject>(
         searchable: false,
         unplayable: true,
 
-        search({period = 'overall'}: {period: string}): Pager<T> {
+        search({period = 'overall'}: {period?: string} = {}): Pager<T> {
             return new LastFmPager(
                 {
                     method,

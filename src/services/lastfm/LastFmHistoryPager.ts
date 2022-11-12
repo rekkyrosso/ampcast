@@ -3,7 +3,7 @@ import MediaItem from 'types/MediaItem';
 import lastfmSettings from './lastfmSettings';
 import LastFmPager, {LastFmPagerConfig} from './LastFmPager';
 
-interface LastFmHistoryPagerParams {
+export interface LastFmHistoryPagerParams {
     from?: number;
     to?: number;
     limit?: number;
