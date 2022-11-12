@@ -1,4 +1,5 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
+import {ErrorBoundary, FallbackProps} from 'react-error-boundary';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -7,6 +8,8 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
+import Button from 'components/Button';
+import ErrorScreen from 'components/ErrorScreen';
 import Login from 'components/Login';
 import SearchBar from 'components/SearchBar';
 import {MediaListProps} from 'components/MediaList';
@@ -34,11 +37,25 @@ export default function MediaBrowserAuth<T extends MediaObject>({
     const isLoggedIn = useObservable(service.observeIsLoggedIn, false);
     const key = String(sources.map((source) => source.id));
 
+    const MediaBrowserError = useMemo(() => {
+        return function MediaBrowserError({error}: FallbackProps) {
+            return (
+                <ErrorScreen error={error}>
+                    <Button className="disconnect" onClick={service.logout}>
+                        Disconnect from {service.title}
+                    </Button>
+                </ErrorScreen>
+            );
+        };
+    }, [service]);
+
     return (
         <div className={`media-browser ${service.id}-browser`} key={key}>
             {isLoggedIn ? (
                 sources.length === 0 ? null : (
-                    <Router service={service} sources={sources} />
+                    <ErrorBoundary fallbackRender={MediaBrowserError}>
+                        <Router service={service} sources={sources} />
+                    </ErrorBoundary>
                 )
             ) : (
                 <Login service={service} />

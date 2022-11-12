@@ -1,6 +1,6 @@
 {
     "name": "ampcast",
-    "version": "0.4.33",
+    "version": "0.4.34",
     "description": "Ampcast music player",
     "author": {
         "name": "rekkyrosso",
@@ -31,6 +31,7 @@
         "nanoid": "^4.0.0",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
+        "react-error-boundary": "^3.1.4",
         "rxjs": "^7.5.6",
         "spotify-web-api-js": "^1.5.2",
         "string-score": "^1.0.1",

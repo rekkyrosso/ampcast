@@ -1,0 +1,17 @@
+@import 'styles/mixins.scss';
+
+.error-screen {
+    display: flex;
+    flex-direction: column;
+    flex: auto;
+
+    &-content {
+        @include inset;
+        flex: auto;
+        padding: var(--gutter-width);
+    }
+
+    pre {
+        white-space: pre-wrap;
+    }
+}
