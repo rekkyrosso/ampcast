@@ -2,13 +2,15 @@ const {resolve} = require('path');
 const webpack = require('webpack');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const devKeys = require('../credentials/keys-dev.json');
+const prodKeys = require('../credentials/keys-prod.json');
 const packageJson = require('./package.json');
 
 module.exports = (env) => {
     const mode = env.mode || 'production';
     const __dev__ = mode === 'development';
-    const credentials = resolve(__dirname, `../credentials`);
     const wwwDir = resolve(__dirname, __dev__ ? 'www-dev' : 'www');
+    const keys = __dev__ ? devKeys : prodKeys;
 
     return {
         entry: './src/index.tsx',
@@ -59,12 +61,12 @@ module.exports = (env) => {
                 __app_name__: JSON.stringify(packageJson.name),
                 __app_version__: JSON.stringify(packageJson.version),
                 __app_contact__: JSON.stringify(packageJson.author.email),
-                __am_dev_token__: JSON.stringify(require(`${credentials}/am_dev_token.json`)),
-                __lf_api_key__: JSON.stringify(require(`${credentials}/lf_api_key.json`)),
-                __lf_api_secret__: JSON.stringify(require(`${credentials}/lf_api_secret.json`)),
-                __sp_client_id__: JSON.stringify(require(`${credentials}/sp_client_id.json`)),
-                __yt_api_key__: JSON.stringify(require(`${credentials}/yt_api_key.json`)),
-                __yt_client_id__: JSON.stringify(require(`${credentials}/yt_client_id.json`)),
+                __am_dev_token__: JSON.stringify(keys.am_dev_token),
+                __lf_api_key__: JSON.stringify(keys.lf_api_key),
+                __lf_api_secret__: JSON.stringify(keys.lf_api_secret),
+                __sp_client_id__: JSON.stringify(keys.sp_client_id),
+                __yt_api_key__: JSON.stringify(keys.yt_api_key),
+                __yt_client_id__: JSON.stringify(keys.yt_client_id),
             }),
         ],
         resolve: {
