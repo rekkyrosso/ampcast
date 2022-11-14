@@ -68,11 +68,6 @@ const sources: TreeNode<React.ReactNode>[] = [
         value: <PlaylistSettings />,
     },
     {
-        id: 'playback',
-        label: 'Playback',
-        value: <div />,
-    },
-    {
         id: 'appearance',
         label: 'Appearance',
         value: <AppearanceSettings />,

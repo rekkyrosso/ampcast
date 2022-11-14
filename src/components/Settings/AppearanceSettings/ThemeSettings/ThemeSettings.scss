@@ -2,4 +2,12 @@
     input[type=color] {
         width: 25%;
     }
+
+    .font-size {
+        margin-top: 1em;
+
+        label {
+            white-space: nowrap;
+        }
+    }
 }

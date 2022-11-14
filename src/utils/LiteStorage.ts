@@ -1,10 +1,27 @@
-type BasicStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem' | 'clear'>;
+import memoryStorage from './memoryStorage';
 
-export default class LiteStorage implements BasicStorage {
+type BasicStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem' | 'clear' | 'key' | 'length'>;
+
+export default class LiteStorage {
     public readonly id: string;
+    private readonly storage: BasicStorage;
 
-    constructor(id: string, private readonly storage: Storage = localStorage) {
+    constructor(id: string, storage: 'local' | 'session' | 'memory' = 'local') {
         this.id = `ampcast/${id}`;
+
+        switch (storage) {
+            case 'local':
+                this.storage = localStorage;
+                break;
+
+            case 'session':
+                this.storage = sessionStorage;
+                break;
+
+            case 'memory':
+                this.storage = memoryStorage;
+                break;
+        }
     }
 
     getBoolean(key: string, defaultValue = false): boolean {

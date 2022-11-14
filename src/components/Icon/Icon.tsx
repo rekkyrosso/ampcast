@@ -5,6 +5,7 @@ import './Icon.scss';
 // and https://mui.com/components/material-icons
 
 export type IconName =
+    | 'ampcast'
     | 'play'
     | 'pause'
     | 'stop'
@@ -57,6 +58,14 @@ export default function Icon({name, className = ''}: IconProps) {
     className = `icon icon-${name} ${className}`;
 
     switch (name) {
+        case 'ampcast':
+            return (
+                <svg className={className} viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="8" strokeWidth="4" stroke="orange" fill="black" />
+                    <circle cx="12" cy="12" r="2" strokeWidth="none" fill="white" />
+                </svg>
+            );
+
         case 'play':
             return (
                 <svg className={className} viewBox="0 0 448 512">

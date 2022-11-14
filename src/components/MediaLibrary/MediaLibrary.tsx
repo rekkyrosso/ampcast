@@ -3,6 +3,7 @@ import Splitter from 'components/Splitter';
 import MediaSources from 'components/MediaSources';
 import {SettingsDialog} from 'components/Settings';
 import {showDialog} from 'components/Dialog';
+import Icon from 'components/Icon';
 import IconButton from 'components/Button/IconButton';
 import './MediaLibrary.scss';
 
@@ -18,8 +19,10 @@ export default function MediaLibrary() {
     return (
         <div className="media-library">
             <header className="media-library-head">
-                <h1>
-                    {__app_name__} <span className="version">{__app_version__}</span>
+                <h1 className="media-library-title">
+                    <Icon className="app-icon" name="ampcast" />
+                    <span className="app-name">{__app_name__}</span>
+                    <span className="app-version">{__app_version__}</span>
                 </h1>
                 <IconButton
                     icon="settings"

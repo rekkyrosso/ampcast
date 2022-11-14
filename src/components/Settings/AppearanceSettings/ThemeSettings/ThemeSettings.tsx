@@ -18,7 +18,7 @@ export default function ThemeSettings() {
         return () => {
             theme.restore();
             systemStyle.removeProperty('--font-size');
-        }
+        };
     }, []);
 
     const handleSubmit = useCallback(() => theme.save(), []);
@@ -130,19 +130,21 @@ export default function ThemeSettings() {
                     </Button>
                 </p>
             </fieldset>
-            <p>
-                <label htmlFor="theme-fontSize">Font Size:</label>
-                <Input
-                    type="range"
-                    id="theme-fontSize"
-                    min={12}
-                    max={32}
-                    step={1}
-                    defaultValue={initialFontSize}
-                    onChange={handleFontSizeChange}
-                    key={initialFontSize}
-                />
-            </p>
+            <div className="table-layout font-size">
+                <p>
+                    <label htmlFor="theme-fontSize">Font Size:</label>
+                    <Input
+                        type="range"
+                        id="theme-fontSize"
+                        min={12}
+                        max={32}
+                        step={1}
+                        defaultValue={initialFontSize}
+                        onChange={handleFontSizeChange}
+                        key={initialFontSize}
+                    />
+                </p>
+            </div>
             <footer className="dialog-buttons">
                 <Button value="#cancel">Cancel</Button>
                 <Button>Confirm</Button>

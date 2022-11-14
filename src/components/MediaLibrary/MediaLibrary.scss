@@ -22,6 +22,25 @@
         }
     }
 
+    &-title {
+        font-size: 1.125rem;
+
+        .app {
+            &-icon {
+                margin-right: 0.125em;
+            }
+
+            &-version {
+                margin-left: 1em;
+                padding: 0.125em 0.5em;
+                font-size: 0.5em;
+                background-color: var(--button-color);
+                border-radius: var(--app-border-radius);
+                vertical-align: super;
+            }
+        }
+    }
+
     &-body {
         flex: auto;
         position: relative;

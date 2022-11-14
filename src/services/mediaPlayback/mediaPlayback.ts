@@ -25,7 +25,7 @@ console.log('module::mediaPlayback');
 const logger = new Logger('mediaPlayback');
 
 const appSettings = new LiteStorage('mediaPlayback');
-const sessionSettings = new LiteStorage('mediaPlayback', sessionStorage);
+const sessionSettings = new LiteStorage('mediaPlayback', 'session');
 
 const loadingLocked$ = new BehaviorSubject(false);
 const killed$ = new Subject<void>();
