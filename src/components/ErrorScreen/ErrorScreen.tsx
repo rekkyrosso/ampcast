@@ -12,7 +12,7 @@ export default function ErrorScreen({error, children}: ErrorScreenProps) {
         <div className="panel error-screen">
             <div className="error-screen-content">
                 <h2>Error</h2>
-                <pre className="note">{error?.message || String(error)}</pre>
+                <pre className="note error">{error?.message || String(error)}</pre>
                 {children}
             </div>
         </div>

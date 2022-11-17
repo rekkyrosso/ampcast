@@ -5,11 +5,11 @@ const storage = new LiteStorage('jellyfin');
 
 export default {
     get host(): string {
-        return storage.getItem(`host`) || '';
+        return storage.getString('host');
     },
 
     set host(host: string) {
-        storage.setItem(`host`, host);
+        storage.setString('host', host);
     },
 
     get device(): string {
@@ -17,32 +17,32 @@ export default {
     },
 
     get deviceId(): string {
-        let deviceId = storage.getItem(`deviceId`);
+        let deviceId = storage.getString('deviceId');
         if (!deviceId) {
             deviceId = nanoid();
-            storage.setItem(`deviceId`, deviceId);
+            storage.setString('deviceId', deviceId);
         }
         return deviceId;
     },
 
     get token(): string {
-        return storage.getItem(`token`) || '';
+        return storage.getString('token');
     },
 
     set token(token: string) {
-        storage.setItem(`token`, token);
+        storage.setString('token', token);
     },
 
     get userId(): string {
-        return storage.getItem(`userId`) || '';
+        return storage.getString('userId');
     },
 
     set userId(userId: string) {
-        storage.setItem(`userId`, userId);
+        storage.setString('userId', userId);
     },
 
     clear(): void {
-        storage.removeItem(`userId`);
-        storage.removeItem(`token`);
+        storage.removeItem('userId');
+        storage.removeItem('token');
     },
 };

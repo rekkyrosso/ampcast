@@ -1,4 +1,4 @@
-const values = new Map<string, string | null>();
+const values = new Map<string, string>();
 
 export default {
     get length(): number {
@@ -17,8 +17,8 @@ export default {
         return values.get(String(key)) ?? null;
     },
 
-    setItem(key: string, value: string | null): void {
-        values.set(String(key), value === null ? null : String(value));
+    setItem(key: string, value: string): void {
+        values.set(String(key), String(value));
     },
 
     removeItem(key: string): void {

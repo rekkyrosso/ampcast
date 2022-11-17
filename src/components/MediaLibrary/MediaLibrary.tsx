@@ -20,8 +20,10 @@ export default function MediaLibrary() {
         <div className="media-library">
             <header className="media-library-head">
                 <h1 className="media-library-title">
-                    <Icon className="app-icon" name="ampcast" />
-                    <span className="app-name">{__app_name__}</span>
+                    <span className="app-name">
+                        <Icon className="app-icon" name="ampcast" />
+                        <span className="app-text">{__app_name__}</span>
+                    </span>
                     <span className="app-version">{__app_version__}</span>
                 </h1>
                 <IconButton

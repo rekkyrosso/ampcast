@@ -13,7 +13,7 @@ import './listenbrainzScrobbler';
 
 console.log('module::listenbrainz');
 
-const listenbrainzHistory: MediaSource<MediaItem> = {
+export const listenbrainzHistory: MediaSource<MediaItem> = {
     id: 'listenbrainz/history',
     title: 'History',
     icon: 'clock',
@@ -31,8 +31,8 @@ const topTracks: MediaSource<MediaItem> = {
     icon: 'star',
     itemType: ItemType.Media,
     layout: {
-        view: 'card',
-        fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'PlayCount'],
+        view: 'card compact',
+        fields: ['Thumbnail', 'Title', 'Artist', 'PlayCount'],
     },
 
     search(params: {range: string}): Pager<MediaItem> {

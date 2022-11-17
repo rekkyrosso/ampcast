@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useReducer, useState} from 'react';
 import MediaItem from 'types/MediaItem';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
@@ -18,17 +18,26 @@ const dateLayout: MediaSourceLayout<MediaItem> = {
 };
 
 export interface HistoryBrowserProps extends PagedBrowserProps<MediaItem> {
-    minDate?: string; // yyyy-mm-dd
+    minDate?: number; // JS time
 }
 
 export default function HistoryBrowser({
     source,
-    minDate = '2002-11-20',
+    minDate = Date.UTC(2010, 0, 1),
     ...props
 }: HistoryBrowserProps) {
     const [startAt, setStartAt] = useState(0);
-    const pager = useStartAt(source, startAt);
+    const startNow = startAt === 0;
+    const pager = usePager(source, startAt);
     const layout = source.layout || (startAt ? dateLayout : defaultLayout);
+    const [, forceUpdate] = useReducer((i) => i + 1, 0);
+
+    useEffect(() => {
+        if (startNow) {
+            const id = setInterval(forceUpdate, 60_000);
+            return () => clearInterval(id);
+        }
+    }, [startNow]);
 
     const handleDateChange = useCallback((value: number) => {
         const today = new Date();
@@ -58,8 +67,8 @@ export default function HistoryBrowser({
     );
 }
 
-function useStartAt(source: MediaSource<MediaItem> | null, startAt = 0) {
-    const [params, setParams] = useState<Record<string, number>>();
+function usePager(source: MediaSource<MediaItem> | null, startAt = 0) {
+    const [params, setParams] = useState<{startAt: number}>();
     const pager = useSource(source, params);
     useEffect(() => setParams({startAt}), [startAt]);
     return pager;

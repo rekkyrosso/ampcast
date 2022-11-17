@@ -112,8 +112,8 @@ export default class HTML5Player implements Player<string> {
     play(): void {
         this.logger.log('play');
         try {
-            const mediaSource = this.getMediaSource(this.src);
             if (this.src !== this.loadedSrc) {
+                const mediaSource = this.getMediaSource(this.src);
                 this.loadedSrc = this.src;
                 this.element.setAttribute('src', mediaSource);
             }

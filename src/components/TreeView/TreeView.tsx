@@ -216,6 +216,7 @@ export default function TreeView<T>({
                             rowHeight={rowHeight}
                             nodeIndex={nodeIndex}
                             setSize={roots.length}
+                            emptyMarker={true}
                             onSelect={setSelectedId}
                             onToggle={toggle}
                             key={id}

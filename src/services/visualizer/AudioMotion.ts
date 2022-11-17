@@ -1,8 +1,8 @@
 import type {Observable} from 'rxjs';
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import {AudioMotionVisualizer} from 'types/Visualizer';
+import {Logger} from 'utils';
 import AbstractVisualizer from './AbstractVisualizer';
-import Logger from 'utils/Logger';
 
 const logger = new Logger('AudioMotion');
 

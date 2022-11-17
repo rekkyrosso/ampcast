@@ -8,6 +8,7 @@ export interface TreeViewNodeProps<T> extends TreeNode<T> {
     rowHeight: number;
     nodeIndex: number;
     setSize: number;
+    emptyMarker?: boolean;
     onSelect?: (id: string) => void;
     onToggle?: (id: string) => void;
 }
@@ -22,6 +23,7 @@ export default function TreeViewNode<T>({
     rowHeight,
     nodeIndex,
     setSize,
+    emptyMarker,
     onSelect,
     onToggle,
 }: TreeViewNodeProps<T>) {
@@ -83,7 +85,7 @@ export default function TreeViewNode<T>({
                     height: `${rowHeight}px`,
                 }}
             >
-                {expandable && (
+                {expandable ? (
                     <svg
                         className="tree-view-node-marker"
                         viewBox={`0 0 ${expanded ? 320 : 256} 512`}
@@ -96,6 +98,16 @@ export default function TreeViewNode<T>({
                             <path d="M224.3 273l-136 136c-9.4 9.4-24.6 9.4-33.9 0l-22.6-22.6c-9.4-9.4-9.4-24.6 0-33.9l96.4-96.4-96.4-96.4c-9.4-9.4-9.4-24.6 0-33.9L54.3 103c9.4-9.4 24.6-9.4 33.9 0l136 136c9.5 9.4 9.5 24.6.1 34z" />
                         )}
                     </svg>
+                ) : (
+                    emptyMarker && (
+                        <svg
+                            className="tree-view-node-marker"
+                            viewBox="0 0 24 24"
+                            onMouseDown={stopPropagation}
+                        >
+                            <circle cx="12" cy="12" r="4" />
+                        </svg>
+                    )
                 )}
                 <span className="tree-view-node-label" id={`tree-view-node-label-${id}`}>
                     {label}

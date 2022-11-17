@@ -34,6 +34,10 @@
         &.empty &-label {
             margin-left: 1.125em;
         }
+
+        &.empty &-marker + &-label {
+            margin-left: 0;
+        }
     }
 
     &-row {

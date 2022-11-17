@@ -98,7 +98,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             isrc: info?.isrc,
             recording_mbid: data.mbid_mapping?.recording_mbid,
             release_mbid: data.mbid_mapping?.release_mbid,
-            externalUrl: info?.origin_url,
+            playableUrl: info?.origin_url,
             playedAt: item.listened_at,
             thumbnails: this.createThumbnails(data.mbid_mapping?.release_mbid),
             playableSrc: this.getPlayableSrc(info),

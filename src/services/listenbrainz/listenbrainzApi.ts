@@ -1,6 +1,6 @@
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
-import Logger from 'utils/Logger';
+import {Logger} from 'utils';
 import listenbrainzSettings from './listenbrainzSettings';
 
 console.log('module::listenbrainzApi');
@@ -11,6 +11,20 @@ export class ListenBrainzApi {
     private readonly host = `https://api.listenbrainz.org/1`;
     private rateLimitRemainingCalls = 2;
     private rateLimitResetTime = 0;
+
+    async getListeningActivity({
+        range = 'all_time',
+    }: ListenBrainz.Stats.ListeningActivityParams = {}): Promise<
+        readonly ListenBrainz.Stats.ListeningActivity[]
+    > {
+        const {
+            payload: {listening_activity},
+        } = await this.get<ListenBrainz.Stats.ListeningActivityResponse>(
+            `stats/user/${listenbrainzSettings.userId}/listening-activity`,
+            {range}
+        );
+        return listening_activity;
+    }
 
     async getListenCount(): Promise<number> {
         const {

@@ -259,6 +259,6 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
     }
 
     private getMarket(): string {
-        return authSettings.getItem('market') || '';
+        return authSettings.getString('market');
     }
 }

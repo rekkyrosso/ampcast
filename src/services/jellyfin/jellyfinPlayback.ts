@@ -1,5 +1,5 @@
 import MediaItem from 'types/MediaItem';
-import Logger from 'utils/Logger';
+import {Logger} from 'utils';
 import jellyfinApi from './jellyfinApi';
 
 console.log('module::jellyfinPlayback');

@@ -15,7 +15,7 @@ import PlaybackState from 'types/PlaybackState';
 import PlaylistItem from 'types/PlaylistItem';
 import {addListen} from 'services/localdb/listens';
 import playlist from 'services/playlist';
-import visualizerPlayer from 'services/visualizer/player';
+import visualizerPlayer from 'services/visualizer/player'; // TODO: get rid
 import {LiteStorage, Logger} from 'utils';
 import mediaPlayer from './mediaPlayer';
 import playback from './playback';
@@ -195,7 +195,7 @@ const mediaPlayback: MediaPlayback = {
         return mediaPlayer.muted;
     },
     set muted(muted: boolean) {
-        sessionSettings.setItem('muted', String(muted));
+        sessionSettings.setBoolean('muted', muted);
         mediaPlayer.muted = muted;
     },
     get paused(): boolean {
@@ -205,7 +205,7 @@ const mediaPlayback: MediaPlayback = {
         return mediaPlayer.volume;
     },
     set volume(volume: number) {
-        appSettings.setItem('volume', String(volume));
+        appSettings.setNumber('volume', volume);
         mediaPlayer.volume = volume;
     },
     observeCurrentItem,
@@ -233,8 +233,8 @@ const mediaPlayback: MediaPlayback = {
 
 export default mediaPlayback;
 
-mediaPlayback.muted = sessionSettings.getItem('muted') === 'true';
-mediaPlayback.volume = Number(appSettings.getItem('volume')) || 1; // TODO - zero, lol
+mediaPlayback.muted = sessionSettings.getBoolean('muted');
+mediaPlayback.volume = appSettings.getNumber('volume', 1);
 
 mediaPlayer.observeCurrentTime().subscribe((time) => playback.setCurrentTime(time));
 mediaPlayer.observeDuration().subscribe((duration) => playback.setDuration(duration));

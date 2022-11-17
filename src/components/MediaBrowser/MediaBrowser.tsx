@@ -1,5 +1,5 @@
-import React, {useMemo, useState} from 'react';
-import {ErrorBoundary, FallbackProps} from 'react-error-boundary';
+import React, {useState} from 'react';
+import {ErrorBoundary} from 'react-error-boundary';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -8,21 +8,21 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
-import Button from 'components/Button';
-import ErrorScreen from 'components/ErrorScreen';
 import Login from 'components/Login';
 import SearchBar from 'components/SearchBar';
 import {MediaListProps} from 'components/MediaList';
+import LastFmHistoryBrowser from 'components/services/lastfm/LastFmHistoryBrowser';
 import LastFmTopBrowser from 'components/services/lastfm/LastFmTopBrowser';
+import ListenBrainzHistoryBrowser from 'components/services/listenbrainz/ListenBrainzHistoryBrowser';
 import ListenBrainzTopBrowser from 'components/services/listenbrainz/ListenBrainzTopBrowser';
 import useObservable from 'hooks/useObservable';
 import useSearch from 'hooks/useSearch';
 import AlbumBrowser from './AlbumBrowser';
 import ArtistBrowser from './ArtistBrowser';
-import HistoryBrowser from './HistoryBrowser';
 import MediaItemBrowser from './MediaItemBrowser';
 import MediaSourceSelector from './MediaSourceSelector';
 import PlaylistBrowser from './PlaylistBrowser';
+import useErrorScreen from './useErrorScreen';
 import './MediaBrowser.scss';
 
 export interface MediaBrowserProps<T extends MediaObject> {
@@ -30,33 +30,20 @@ export interface MediaBrowserProps<T extends MediaObject> {
     sources: readonly MediaSource<T>[];
 }
 
-export default function MediaBrowserAuth<T extends MediaObject>({
+export default function MediaBrowser<T extends MediaObject>({
     service,
     sources,
 }: MediaBrowserProps<T>) {
     const isLoggedIn = useObservable(service.observeIsLoggedIn, false);
+    const renderError = useErrorScreen(service);
     const key = String(sources.map((source) => source.id));
-
-    const MediaBrowserError = useMemo(() => {
-        return function MediaBrowserError({error}: FallbackProps) {
-            return (
-                <ErrorScreen error={error}>
-                    <Button className="disconnect" onClick={service.logout}>
-                        Disconnect from {service.title}
-                    </Button>
-                </ErrorScreen>
-            );
-        };
-    }, [service]);
 
     return (
         <div className={`media-browser ${service.id}-browser`} key={key}>
             {isLoggedIn ? (
-                sources.length === 0 ? null : (
-                    <ErrorBoundary fallbackRender={MediaBrowserError}>
-                        <Router service={service} sources={sources} />
-                    </ErrorBoundary>
-                )
+                <ErrorBoundary fallbackRender={renderError}>
+                    <Router service={service} sources={sources} />
+                </ErrorBoundary>
             ) : (
                 <Login service={service} />
             )}
@@ -67,18 +54,21 @@ export default function MediaBrowserAuth<T extends MediaObject>({
 function Router<T extends MediaObject>({service, sources}: MediaBrowserProps<T>) {
     const source = sources.length === 1 ? sources[0] : null;
     const id = source ? source.id : '';
+
     if (id.startsWith('lastfm/top')) {
         return <LastFmTopBrowser source={source!} />;
     } else if (id.startsWith('listenbrainz/top')) {
         return <ListenBrainzTopBrowser source={source!} />;
-    } else if (id === 'lastfm/history' || id === 'listenbrainz/history') {
-        return <HistoryBrowser source={source as MediaSource<MediaItem>} />;
+    } else if (id === 'lastfm/history') {
+        return <LastFmHistoryBrowser />;
+    } else if (id === 'listenbrainz/history') {
+        return <ListenBrainzHistoryBrowser />;
     } else {
-        return <MediaBrowser service={service} sources={sources} />;
+        return <DefaultBrowser service={service} sources={sources} />;
     }
 }
 
-function MediaBrowser<T extends MediaObject>({sources}: MediaBrowserProps<T>) {
+function DefaultBrowser<T extends MediaObject>({sources}: MediaBrowserProps<T>) {
     const [source, setSource] = useState<MediaSource<T>>(() => sources[0]);
     const [query, setQuery] = useState('');
     const pager = useSearch(source, query);

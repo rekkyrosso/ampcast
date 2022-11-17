@@ -71,7 +71,7 @@ function getAllSources(serviceId: string): readonly string[] {
 }
 
 function setAll(ids: readonly string[]): void {
-    storage.setItem('all', String(ids));
+    storage.setString('all', String(ids));
     sources$.next(ids);
 }
 

@@ -5,24 +5,20 @@ const storage = new LiteStorage('plex');
 
 export default {
     get clientId(): string {
-        let clientId = storage.getItem(`clientId`);
+        let clientId = storage.getString('clientId');
         if (!clientId) {
             clientId = nanoid();
-            storage.setItem(`clientId`, clientId);
+            storage.setString('clientId', clientId);
         }
         return clientId;
     },
 
     get connection(): plex.Connection | null {
-        const json = storage.getItem(`connection`);
-        if (json) {
-            return JSON.parse(json);
-        }
-        return null;
+        return storage.getJson('connection');
     },
 
     set connection(connection: plex.Connection | null) {
-        storage.setItem(`connection`, JSON.stringify(connection));
+        storage.setJson('connection', connection);
     },
 
     get host(): string {
@@ -30,23 +26,19 @@ export default {
     },
 
     get libraryId(): string {
-        return storage.getItem(`libraryId`) || '';
+        return storage.getString('libraryId');
     },
 
     set libraryId(libraryId: string) {
-        storage.setItem(`libraryId`, libraryId);
+        storage.setString('libraryId', libraryId);
     },
 
     get server(): plex.Device | null {
-        const json = storage.getItem(`server`);
-        if (json) {
-            return JSON.parse(json);
-        }
-        return null;
+        return storage.getJson('server');
     },
 
     set server(server: plex.Device | null) {
-        storage.setItem(`server`, JSON.stringify(server));
+        storage.setJson('server', server);
     },
 
     get serverToken(): string {
@@ -54,26 +46,26 @@ export default {
     },
 
     get userToken(): string {
-        return storage.getItem(`userToken`) || '';
+        return storage.getString('userToken');
     },
 
     set userToken(token: string) {
-        storage.setItem(`userToken`, token);
+        storage.setString('userToken', token);
     },
 
     get userId(): string {
-        return storage.getItem(`userId`) || '';
+        return storage.getString('userId');
     },
 
     set userId(userId: string) {
-        storage.setItem(`userId`, userId);
+        storage.setString('userId', userId);
     },
 
     clear(): void {
         const clientId = this.clientId;
         storage.clear();
         if (clientId) {
-            storage.setItem(`clientId`, clientId);
+            storage.setString('clientId', clientId);
         }
     },
 };

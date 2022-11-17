@@ -129,17 +129,17 @@ export function enhanceWithListenData<T extends MediaObject>(item: T): T {
                 listens.find(
                     (listen) =>
                         item.playableSrc === listen.src ||
+                        (item.playableUrl && item.playableUrl === listen.externalUrl) ||
                         (item.isrc && item.isrc === listen.isrc) ||
                         (item.recording_mbid && item.recording_mbid === listen.recording_mbid) ||
-                        (item.externalUrl && item.externalUrl === listen.externalUrl) ||
                         (matchArtist(item, listen) && matchTitle(item, listen))
                 ) || findListen(item);
             if (listen) {
                 return {
                     ...item,
                     playableSrc: listen.src,
+                    playableUrl: listen.externalUrl,
                     duration: listen.duration,
-                    externalUrl: item.externalUrl || listen.externalUrl,
                     thumbnails: listen.thumbnails || item.thumbnails,
                 };
             }

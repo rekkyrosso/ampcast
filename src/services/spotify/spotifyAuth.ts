@@ -68,7 +68,7 @@ async function obtainAccessToken(): Promise<TokenResponse> {
     const code_verifier = generateRandomString(64);
     const code_challenge = await generateCodeChallenge(code_verifier);
 
-    authSettings.setItem('code_verifier', code_verifier);
+    authSettings.setString('code_verifier', code_verifier);
 
     return new Promise((resolve, reject) => {
         let authWindow: Window | null = null;
@@ -152,7 +152,7 @@ async function generateCodeChallenge(codeVerifier: string): Promise<string> {
 }
 
 async function exchangeToken(code: string): Promise<TokenResponse> {
-    const code_verifier = authSettings.getItem('code_verifier')!;
+    const code_verifier = authSettings.getString('code_verifier');
 
     const response = await fetch(`${spotifyAccounts}/api/token`, {
         method: 'POST',
@@ -208,12 +208,12 @@ function storeAccessToken(token: TokenResponse): void {
     const {access_token, refresh_token, expires_in} = token;
     const now = new Date();
     const expires_at = new Date(now.setSeconds(now.getSeconds() + expires_in)).toISOString();
-    authSettings.setItem('token', JSON.stringify({access_token, refresh_token, expires_at}));
+    authSettings.setJson('token', {access_token, refresh_token, expires_at});
     nextAccessToken(access_token);
 }
 
 function retrieveAccessToken(): TokenStore | null {
-    const token: TokenStore | null = JSON.parse(authSettings.getItem('token') || 'null');
+    const token = authSettings.getJson<TokenStore>('token');
     if (token) {
         token.expires_at = new Date(token.expires_at);
     }

@@ -4,11 +4,11 @@ const storage = new LiteStorage('apple');
 
 export default {
     get useMusicKitBeta(): boolean {
-        return storage.getItem(`useMusicKitBeta`) === 'true';
+        return storage.getBoolean('useMusicKitBeta');
     },
 
     set useMusicKitBeta(beta: boolean) {
-        storage.setItem(`useMusicKitBeta`, String(beta));
+        storage.setBoolean('useMusicKitBeta', beta);
     },
 
     clear(): void {

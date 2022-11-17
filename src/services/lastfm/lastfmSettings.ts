@@ -4,35 +4,43 @@ const storage = new LiteStorage('lastfm');
 
 export default {
     get token(): string {
-        return storage.getItem(`token`) || '';
+        return storage.getString('token');
     },
 
     set token(token: string) {
-        storage.setItem(`token`, token);
+        storage.setString('token', token);
     },
 
     get userId(): string {
-        return storage.getItem(`userId`) || '';
+        return storage.getString('userId');
     },
 
     set userId(userId: string) {
-        storage.setItem(`userId`, userId);
+        storage.setString('userId', userId);
     },
 
     get sessionKey(): string {
-        return storage.getItem(`sessionKey`) || '';
+        return storage.getString('sessionKey');
     },
 
     set sessionKey(sessionKey: string) {
-        storage.setItem(`sessionKey`, sessionKey);
+        storage.setString('sessionKey', sessionKey);
+    },
+
+    get firstScrobbledAt(): number {
+        return storage.getNumber('firstScrobbledAt');
+    },
+
+    set firstScrobbledAt(time: number) {
+        storage.setNumber('firstScrobbledAt', time);
     },
 
     get removeDuplicates(): boolean {
-        return storage.getItem(`removeDuplicates`) === 'true';
+        return storage.getBoolean('removeDuplicates');
     },
 
     set removeDuplicates(removeDuplicates: boolean) {
-        storage.setItem(`removeDuplicates`, String(removeDuplicates));
+        storage.setBoolean('removeDuplicates', removeDuplicates);
     },
 
     clear(): void {

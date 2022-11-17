@@ -1,7 +1,7 @@
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import {lf_api_key} from 'services/credentials';
-import Logger from 'utils/Logger';
+import {Logger} from 'utils';
 import {getApiSignature} from './lastfmAuth';
 import lastfmSettings from './lastfmSettings';
 
@@ -49,6 +49,13 @@ export class LastFmApi {
             logger.log('Failed to update "now playing":', {item});
             logger.error(err);
         }
+    }
+
+    async getUserInfo(): Promise<LastFm.User.Info> {
+        return this.get({
+            method: 'user.getInfo',
+            user: lastfmSettings.userId,
+        });
     }
 
     async get<T>(params: any): Promise<T> {

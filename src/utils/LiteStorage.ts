@@ -1,13 +1,19 @@
 import memoryStorage from './memoryStorage';
+import Logger from './Logger';
 
-type BasicStorage = Pick<Storage, 'getItem' | 'setItem' | 'removeItem' | 'clear' | 'key' | 'length'>;
+const logger = new Logger('LiteStorage');
+
+type BasicStorage = Pick<
+    Storage,
+    'getItem' | 'setItem' | 'removeItem' | 'clear' | 'key' | 'length'
+>;
 
 export default class LiteStorage {
     public readonly id: string;
     private readonly storage: BasicStorage;
 
     constructor(id: string, storage: 'local' | 'session' | 'memory' = 'local') {
-        this.id = `ampcast/${id}`;
+        this.id = `${__app_name__}/${id}`;
 
         switch (storage) {
             case 'local':
@@ -24,24 +30,32 @@ export default class LiteStorage {
         }
     }
 
-    getBoolean(key: string, defaultValue = false): boolean {
-        return Boolean(this.getItem(key) ?? defaultValue);
+    getBoolean(key: string): boolean {
+        const value = this.getItem(key);
+        return !!value && value !== 'false';
     }
 
     setBoolean(key: string, value: boolean): void {
         this.setItem(key, String(!!value));
     }
 
+    getJson<T>(key: string): T | null;
+    getJson<T>(key: string, defaultValue: T): T;
     getJson<T>(key: string, defaultValue: T | null = null): T | null {
         const json = this.getItem(key);
-        return json ? JSON.parse(json) : defaultValue;
+        try {
+            return json ? JSON.parse(json) : defaultValue;
+        } catch (err) {
+            logger.error(err);
+            return defaultValue;
+        }
     }
 
     setJson<T>(key: string, value: T): void {
-        if (value == null) {
-            this.removeItem(key);
-        } else {
+        try {
             this.setItem(key, JSON.stringify(value));
+        } catch (err) {
+            logger.error(err);
         }
     }
 
@@ -75,10 +89,11 @@ export default class LiteStorage {
     }
 
     clear(): void {
+        const id = `${this.id}/`;
         const keys: string[] = [];
         for (let i = 0; i < this.storage.length; i++) {
-            const key = this.storage.key(i);
-            if (key?.startsWith(`${this.id}/`)) {
+            const key = this.storage.key(i)!;
+            if (key.startsWith(id)) {
                 keys.push(key);
             }
         }

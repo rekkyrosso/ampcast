@@ -1,5 +1,5 @@
 import MediaItem from 'types/MediaItem';
-import Logger from 'utils/Logger';
+import {Logger} from 'utils';
 import plexSettings from './plexSettings';
 import plexApi from './plexApi';
 

@@ -35,7 +35,7 @@ const artistLayout: MediaSourceLayout<MediaAlbum> = {
     fields: ['Thumbnail', 'Title', 'PlayCount'],
 };
 
-const lastfmRecentlyPlayed: MediaSource<MediaItem> = {
+export const lastfmHistory: MediaSource<MediaItem> = {
     id: 'lastfm/history',
     title: 'History',
     icon: 'clock',
@@ -53,6 +53,7 @@ const lastfm: MediaService = {
     icon: 'lastfm',
     url: 'https://www.last.fm/',
     scrobbler: true,
+
     sources: [
         createTopView('user.getTopTracks', {
             title: 'Top Tracks',
@@ -73,7 +74,7 @@ const lastfm: MediaService = {
             tertiaryLayout: albumTrackLayout,
         }),
     ],
-    searches: [lastfmRecentlyPlayed],
+    searches: [lastfmHistory],
 
     observeIsLoggedIn,
     login,
@@ -104,8 +105,10 @@ function createTopView<T extends MediaObject>(
                     const attr = result['@attr'];
                     const resultType = topType.slice(6, -1);
                     const items = result[resultType];
+                    const page = Number(attr.page) || 1;
+                    const totalPages = Number(attr.totalPages) || 1;
+                    const atEnd = totalPages === 1 || page === totalPages;
                     const total = Number(attr.total) || undefined;
-                    const atEnd = attr.page === attr.totalPages;
                     return {items, total, atEnd, itemType: props.itemType};
                 }
             );

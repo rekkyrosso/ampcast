@@ -43,7 +43,7 @@ const defaultLayout: MediaSourceLayout<MediaItem> = {
 };
 
 function getMarket(): string {
-    return authSettings.getItem('market') || '';
+    return authSettings.getString('market');
 }
 
 const spotifyRecentlyPlayed: MediaSource<MediaItem> = {
@@ -276,7 +276,7 @@ if (!getMarket()) {
         .pipe(
             skipWhile((token) => !token),
             mergeMap(() => spotifyApi.getMe()),
-            tap((me) => authSettings.setItem('market', me.country)),
+            tap((me) => authSettings.setString('market', me.country)),
             take(1)
         )
         .subscribe(logger);

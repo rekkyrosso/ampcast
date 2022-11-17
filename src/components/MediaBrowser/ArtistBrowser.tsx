@@ -1,12 +1,12 @@
 import React, {useCallback, useState} from 'react';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
+import MediaSourceLayout from 'types/MediaSourceLayout';
 import Splitter from 'components/Splitter';
 import MediaItemList from 'components/MediaList/MediaItemList';
 import AlbumList from 'components/MediaList/AlbumList';
 import ArtistList from 'components/MediaList/ArtistList';
 import {PagedBrowserProps} from './MediaBrowser';
-import MediaSourceLayout from 'types/MediaSourceLayout';
 
 const defaultAlbumsLayout: MediaSourceLayout<MediaAlbum> = {
     view: 'card compact',

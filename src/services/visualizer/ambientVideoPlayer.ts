@@ -29,7 +29,7 @@ function loadPlayer(player: Player<string>, visualizer: AmbientVideoVisualizer) 
     const src = visualizer.src;
     if (src.startsWith('youtube:')) {
         const [, , videoId] = src.split(':');
-        const startTime = storage.getItem(videoId) || '120';
+        const startTime = storage.getNumber(videoId, 120);
         player.load(`${src}:${startTime}`);
     } else {
         player.load(src);
@@ -52,7 +52,7 @@ youtubePlayer
         map(Math.round),
         filter((time) => time > 120 && time % 30 === 0),
         withLatestFrom(youtubePlayer.observeVideoId()),
-        tap(([time, videoId]) => storage.setItem(videoId, String(time)))
+        tap(([time, videoId]) => storage.setNumber(videoId, time))
     )
     .subscribe(logger);
 

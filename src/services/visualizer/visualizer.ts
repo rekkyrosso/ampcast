@@ -98,7 +98,7 @@ function setLocked(locked: boolean): void {
     if (!!prevLocked !== locked) {
         const currentVisualizer = currentVisualizer$.getValue();
         const newSettings = locked ? {...prevSettings, locked: currentVisualizer} : prevSettings;
-        storage.setItem('settings', JSON.stringify(newSettings));
+        storage.setJson('settings', newSettings);
         settings$.next(newSettings);
     }
 }
@@ -107,7 +107,7 @@ export function setProvider(provider: VisualizerProvider | ''): void {
     const {provider: prevProvider, ...settings} = settings$.getValue();
     if (provider !== prevProvider) {
         const newSettings = provider ? {...settings, provider} : settings;
-        storage.setItem('settings', JSON.stringify(newSettings));
+        storage.setJson('settings', newSettings);
         settings$.next(newSettings);
     }
 }
@@ -123,15 +123,7 @@ export default {
     setProvider,
 };
 
-(() => {
-    try {
-        const settings = storage.getItem('settings') || '{}';
-        settings$.next(JSON.parse(settings));
-    } catch (err) {
-        logger.error(err);
-    }
-})();
-
+settings$.next(storage.getJson('settings', {}));
 empty$.subscribe(() => player.stop());
 audio$.subscribe(() => (player.hidden = false));
 video$.subscribe(() => {

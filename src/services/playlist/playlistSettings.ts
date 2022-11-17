@@ -1,6 +1,6 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
-import LiteStorage from 'utils/LiteStorage';
+import {LiteStorage} from 'utils';
 
 const storage = new LiteStorage('playlist');
 
@@ -18,18 +18,9 @@ const defaultSettings: PlaylistSettings = {
     showSourceIcons: true,
 };
 
-function getSavedSettings(): PlaylistSettings {
-    try {
-        const json = storage.getItem('settings');
-        const settings = json ? JSON.parse(json) : defaultSettings;
-        return settings;
-    } catch (err) {
-        console.error(err);
-        return defaultSettings;
-    }
-}
-
-const settings$ = new BehaviorSubject<PlaylistSettings>(getSavedSettings());
+const settings$ = new BehaviorSubject<PlaylistSettings>(
+    storage.getJson('settings', defaultSettings)
+);
 
 function observe(): Observable<PlaylistSettings> {
     return settings$;
@@ -40,7 +31,7 @@ function get(): PlaylistSettings {
 }
 
 function set(settings: PlaylistSettings): void {
-    storage.setItem('settings', JSON.stringify(settings));
+    storage.setJson('settings', settings);
     settings$.next(settings);
 }
 

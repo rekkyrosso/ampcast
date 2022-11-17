@@ -10,11 +10,11 @@
         align-items: center;
         margin: var(--gutter-width) 0 0 var(--gutter-width);
         color: var(--frame-text-color);
-        font-size: 0.75rem;
 
         .icon-button {
             flex: initial;
             margin: 0 calc(var(--gutter-width) + 0.25rem) 0 auto;
+            font-size: 0.875rem;
 
             &:hover {
                 opacity: 1;
@@ -23,8 +23,6 @@
     }
 
     &-title {
-        font-size: 1.125rem;
-
         .app {
             &-icon {
                 margin-right: 0.125em;
@@ -33,7 +31,7 @@
             &-version {
                 margin-left: 1em;
                 padding: 0.125em 0.5em;
-                font-size: 0.5em;
+                font-size: 0.5625em;
                 background-color: var(--button-color);
                 border-radius: var(--app-border-radius);
                 vertical-align: super;

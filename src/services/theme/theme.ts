@@ -5,19 +5,18 @@ import {Writable} from 'type-fest';
 import Theme from 'types/Theme';
 import presets from 'services/theme/themes/presets';
 import none from 'services/theme/themes/none';
-import LiteStorage from 'utils/LiteStorage';
-
-const storage = new LiteStorage('theme');
+import {LiteStorage} from 'utils';
 
 class MainTheme implements Theme {
-    private sheet: CSSStyleSheet;
-    private rootStyle: CSSStyleDeclaration;
-    private appStyle: CSSStyleDeclaration;
-    private playheadStyle: CSSStyleDeclaration;
-    private app = document.getElementById('app') as HTMLElement;
-    private popup = document.getElementById('popup') as HTMLElement;
-    private system = document.getElementById('system') as HTMLElement;
-    private theme$ = new BehaviorSubject<Theme>(none);
+    private readonly storage = new LiteStorage('theme');
+    private readonly sheet: CSSStyleSheet;
+    private readonly rootStyle: CSSStyleDeclaration;
+    private readonly appStyle: CSSStyleDeclaration;
+    private readonly playheadStyle: CSSStyleDeclaration;
+    private readonly app = document.getElementById('app') as HTMLElement;
+    private readonly popup = document.getElementById('popup') as HTMLElement;
+    private readonly system = document.getElementById('system') as HTMLElement;
+    private readonly theme$ = new BehaviorSubject<Theme>(none);
 
     constructor() {
         const style = document.createElement('style');
@@ -221,10 +220,9 @@ class MainTheme implements Theme {
     }
 
     restore(): void {
-        const current = this.retrieve('current');
-        const theme = current ? JSON.parse(current) : none;
+        const theme = this.storage.getJson('current', none);
         Object.assign(this, this.applyDefaults(theme));
-        this.fontSize = Number(this.retrieve('fontSize')) || 16;
+        this.fontSize = this.storage.getNumber('fontSize', 16);
         this.app.classList.toggle('dark', this.isDark);
         this.app.classList.toggle('light', this.isLight);
         this.app.classList.toggle('frame-light', this.isFrameLight);
@@ -239,8 +237,8 @@ class MainTheme implements Theme {
     }
 
     save(): void {
-        this.store('fontSize', this.fontSize);
-        this.store('current', JSON.stringify(this.current));
+        this.storage.setNumber('fontSize', this.fontSize);
+        this.storage.setJson('current', this.current);
         this.system.classList.toggle('dark', this.isDark);
         this.system.classList.toggle('light', this.isLight);
     }
@@ -322,14 +320,6 @@ class MainTheme implements Theme {
     private createBase64SVG(width: number, height: number, svgContent: string): string {
         const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}'>${svgContent}</svg>`;
         return `url("data:image/svg+xml;utf8,${svg}")`;
-    }
-
-    private retrieve(key: string): string | null {
-        return storage.getItem(key);
-    }
-
-    private store(key: string, value: string | number | boolean): void {
-        storage.setItem(key, String(value));
     }
 
     private toDashName(text: string): string {

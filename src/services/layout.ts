@@ -1,14 +1,13 @@
-import LiteStorage from 'utils/LiteStorage';
+import {LiteStorage} from 'utils';
 
 const storage = new LiteStorage('layout');
 
 export default {
     get(id: string, defaultValue = 0): number {
-        const value = storage.getItem(id);
-        return Number(value) || defaultValue;
+        return storage.getNumber(id, defaultValue);
     },
 
     set(id: string, value: number): void {
-        storage.setItem(id, String(Number(value) || 0));
+        storage.setNumber(id, value);
     },
 };

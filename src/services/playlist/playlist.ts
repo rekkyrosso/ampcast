@@ -257,7 +257,8 @@ function createPlayableMediaItem(item: MediaItem): MediaItem {
         case 'listenbrainz':
         case 'musicbrainz':
             if (item.playableSrc) {
-                return {...item, src: item.playableSrc};
+                const {playableSrc: src, playableUrl: externalUrl, ...rest} = item;
+                return {...rest, src, externalUrl};
             }
     }
     return item;

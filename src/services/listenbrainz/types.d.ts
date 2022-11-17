@@ -139,7 +139,7 @@ declare namespace ListenBrainz {
     }
 
     namespace Stats {
-        interface BasePayload {
+        interface MediaPayload {
             count: number;
             from_ts: number;
             last_updated: number;
@@ -150,26 +150,48 @@ declare namespace ListenBrainz {
         }
 
         interface Artists {
-            payload: BasePayload & {
+            payload: MediaPayload & {
                 artists: Artist[];
                 total_artist_count: number;
             };
         }
 
         interface Releases {
-            payload: BasePayload & {
+            payload: MediaPayload & {
                 releases: Release[];
                 total_release_count: number;
             };
         }
 
         interface Recordings {
-            payload: BasePayload & {
+            payload: MediaPayload & {
                 recordings: Recording[];
                 total_recording_count: number;
             };
         }
 
         type Response = Artists | Releases | Recordings;
+
+        interface ListeningActivity {
+            listen_count: number;
+            time_range: string;
+            from_ts: number;
+            to_ts: number;
+        }
+
+        interface ListeningActivityParams {
+            range?: string;
+        }
+
+        interface ListeningActivityResponse {
+            payload: {
+                from_ts: number;
+                last_updated: number;
+                listening_activity: ListeningActivity[];
+                range: string;
+                to_ts: number;
+                user_id: string;
+            };
+        }
     }
 }

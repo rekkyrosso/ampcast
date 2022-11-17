@@ -2,9 +2,9 @@ import React, {useCallback, useEffect, useState} from 'react';
 import './DatePicker.scss';
 
 export interface DatePickerProps {
-    value?: number | string;
-    min?: number | string;
-    max?: number | string;
+    value?: number;
+    min?: number;
+    max?: number;
     onSelect?: (value: number) => void;
 }
 
@@ -16,7 +16,7 @@ interface DatePickerOption {
 
 export default function DatePicker({
     min = 0,
-    max = Date.now(),
+    max = getMaxDate(),
     value = max,
     onSelect,
 }: DatePickerProps) {
@@ -28,8 +28,9 @@ export default function DatePicker({
     const days = useDays(month, year, min, max);
 
     useEffect(() => {
-        onSelect?.(new Date(year, month, day).valueOf());
-    }, [year, month, day, onSelect]);
+        const time = new Date(year, month, day).valueOf();
+        onSelect?.(Math.min(Math.max(time, min), max));
+    }, [onSelect, year, month, day, min, max]);
 
     const handleYearChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
         setYear(Number(event.target.value));
@@ -139,4 +140,9 @@ function useDays(
     }, [month, year, min, max]);
 
     return days;
+}
+
+function getMaxDate(): number {
+    const today = new Date();
+    return new Date(today.getFullYear(), today.getMonth(), today.getDate()).valueOf();
 }

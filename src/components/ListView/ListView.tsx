@@ -568,7 +568,7 @@ export default function ListView<T>({
                 <div
                     className="list-view-cursor"
                     style={{
-                        width: sizeable ? `${width}px` : undefined,
+                        width: sizeable ? `${Math.min(clientWidth, width)}px` : undefined,
                         transform: `translateY(${rowIndex * rowHeight}px)`,
                     }}
                     ref={cursorRef}

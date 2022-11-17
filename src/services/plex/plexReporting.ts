@@ -7,7 +7,7 @@ import {
     observePlaybackProgress,
     observePlaybackState,
 } from 'services/mediaPlayback';
-import Logger from 'utils/Logger';
+import {Logger} from 'utils';
 import {observeIsLoggedIn} from './plexAuth';
 import {reportStart, reportStop, reportProgress} from './plexPlayback';
 
