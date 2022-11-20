@@ -27,12 +27,12 @@ export default {
         storage.setString('sessionKey', sessionKey);
     },
 
-    get firstScrobbledAt(): number {
-        return storage.getNumber('firstScrobbledAt');
+    get firstScrobbledAt(): string {
+        return storage.getString('firstScrobbledAt');
     },
 
-    set firstScrobbledAt(time: number) {
-        storage.setNumber('firstScrobbledAt', time);
+    set firstScrobbledAt(time: string) {
+        storage.setString('firstScrobbledAt', time);
     },
 
     get removeDuplicates(): boolean {

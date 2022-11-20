@@ -1,13 +1,14 @@
 @import 'styles/mixins.scss';
 
 .list-view {
+    @include inset;
     position: relative;
     isolation: isolate;
     display: flex;
     flex: auto;
-    @include inset;
     border-radius: var(--app-border-radius);
     user-select: none;
+    cursor: default;
 
     &-head {
         background: var(--frame-color);

@@ -1,6 +1,6 @@
 {
     "name": "ampcast",
-    "version": "0.5.2",
+    "version": "0.5.3",
     "description": "Ampcast music player",
     "author": {
         "name": "rekkyrosso",
@@ -24,6 +24,7 @@
         "detect-browser": "^5.3.0",
         "dexie": "^3.2.2",
         "dialog-polyfill": "^0.5.6",
+        "fullscreen-api-polyfill": "^1.1.2",
         "get-youtube-id": "^1.0.1",
         "idb-keyval": "^6.2.0",
         "md5": "^2.3.0",
@@ -60,6 +61,7 @@
         "@types/youtube-player": "^5.5.6",
         "@typescript-eslint/eslint-plugin": "^5.36.2",
         "@typescript-eslint/parser": "^5.36.2",
+        "autoprefixer": "^10.4.13",
         "css-loader": "^6.7.1",
         "eslint": "^8.23.0",
         "eslint-plugin-react": "^7.31.8",
@@ -68,6 +70,8 @@
         "express": "^4.18.1",
         "mini-css-extract-plugin": "^2.6.1",
         "musickit-typescript": "^1.2.4",
+        "postcss": "^8.4.19",
+        "postcss-loader": "^7.0.1",
         "process": "^0.11.10",
         "sass": "^1.54.9",
         "sass-loader": "^13.0.2",
@@ -76,5 +80,8 @@
         "typescript": "^4.8.3",
         "webpack": "^5.74.0",
         "webpack-cli": "^4.10.0"
-    }
+    },
+    "browserslist": [
+        "> 2%"
+    ]
 }

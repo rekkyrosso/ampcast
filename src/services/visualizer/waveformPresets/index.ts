@@ -53,7 +53,7 @@ const presets: WaveformVisualizer[] = [
                 context2D.clearRect(0, 0, width, height);
                 context2D.fillStyle = getThemeColor();
                 const barWidth = (width - gapWidth * (barCount - 1)) / barCount;
-                const heightFactor = height * 0.005;
+                const heightFactor = height * 0.0075;
                 const chunkSize = bufferSize / barCount;
                 let barHeight;
                 let x = 0;

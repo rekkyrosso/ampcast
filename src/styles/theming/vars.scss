@@ -21,6 +21,10 @@
     --frame-text-color-s: 0%;
     --frame-text-color-l: 92.2%;
 
+    --link-color: #9e9eff;
+    --link-visited-color: #d0adf0;
+    --link-active-color: #ff9e9e;
+
     --spacing: 0.375;
     --roundness: 0.25;
 }
@@ -38,33 +42,13 @@
         var(--text-color-l)
     );
 
-    --grey1-color: hsl(
-        var(--text-color-h),
-        calc(var(--text-color-s) * 0.5),
-        calc(var(--text-color-l) + (100% - var(--text-color-l)) * 0.45)
-    );
-
-    &.dark {
-        --grey1-color: hsl(
-            var(--text-color-h),
+    --grey1-color: hsl(var(--text-color-h),
             calc(var(--text-color-s) * 0.5),
-            calc(var(--text-color-l) * 0.5)
-        );
-    }
+            calc(var(--text-color-l) * 0.5));
 
-    --grey2-color: hsl(
-        var(--text-color-h),
-        calc(var(--text-color-s) * 0.5),
-        calc(var(--text-color-l) + (100% - var(--text-color-l)) * 0.25)
-    );
-
-    &.dark {
-        --grey2-color: hsl(
-            var(--text-color-h),
+    --grey2-color: hsl(var(--text-color-h),
             calc(var(--text-color-s) * 0.5),
-            calc(var(--text-color-l) * 0.75)
-        );
-    }
+            calc(var(--text-color-l) * 0.75));
 
     --frame-color: hsl(
         var(--frame-color-h),
@@ -178,6 +162,20 @@
     --gutter-width: calc(var(--spacing) * 1rem);
     --app-border-radius: calc(var(--roundness) * var(--roundness) * 0.75rem);
 
+}
+
+.themed.light {
+    --grey1-color: hsl(var(--text-color-h),
+        calc(var(--text-color-s) * 0.5),
+        calc(var(--text-color-l) + (100% - var(--text-color-l)) * 0.45));
+
+    --grey2-color: hsl(var(--text-color-h),
+        calc(var(--text-color-s) * 0.5),
+        calc(var(--text-color-l) + (100% - var(--text-color-l)) * 0.25));
+
+    --link-color: #0000ee;
+    --link-visited-color: #551a8b;
+    --link-active-color: #ff0000;
 }
 
 .app,

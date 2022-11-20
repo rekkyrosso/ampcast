@@ -83,7 +83,6 @@ function Tab({id, item, index, selected, onSelect}: TabProps) {
         <Button
             className="tab"
             id={`${id}-tab-${index}`}
-            tabIndex={selected ? 0 : -1}
             role="tab"
             aria-selected={selected}
             aria-controls={`${id}-panel-${index}`}

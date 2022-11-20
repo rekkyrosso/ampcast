@@ -2,13 +2,14 @@
 
 .tree-view {
     @include inset;
-    flex: auto;
     position: relative;
     isolation: isolate;
-    user-select: none;
+    display: flex;
+    flex: auto;
     border-radius: var(--app-border-radius);
+    user-select: none;
+    cursor: default;
 
-    &,
     &-node,
     &-node-children {
         display: block;

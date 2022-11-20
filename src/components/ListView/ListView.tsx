@@ -3,6 +3,7 @@ import {ConditionalKeys} from 'type-fest';
 import pixel from 'assets/pixel.png.base64';
 import SortOrder from 'types/SortOrder';
 import globalDrag from 'services/globalDrag';
+import {browser} from 'utils';
 import Scrollable, {
     ScrollableClient,
     ScrollableHandle,
@@ -182,7 +183,7 @@ export default function ListView<T>({
                 case 'Enter':
                     event.stopPropagation();
                     if (!event.repeat) {
-                        onEnter?.(selectedItems, event.ctrlKey, event.shiftKey);
+                        onEnter?.(selectedItems, event[browser.ctrlKey], event.shiftKey);
                     }
                     break;
 
@@ -193,7 +194,7 @@ export default function ListView<T>({
 
                 case 'i':
                     event.stopPropagation();
-                    if (event.ctrlKey && !event.repeat) {
+                    if (event[browser.ctrlKey] && !event.repeat) {
                         onInfo?.(selectedItems);
                         break;
                     }
@@ -208,7 +209,7 @@ export default function ListView<T>({
                     break;
 
                 case 'a':
-                    if (event.ctrlKey) {
+                    if (event[browser.ctrlKey]) {
                         event.preventDefault();
                         event.stopPropagation();
                         if (!event.repeat) {
@@ -226,7 +227,7 @@ export default function ListView<T>({
                 case ' ': // Space
                     event.preventDefault();
                     if (!event.repeat) {
-                        if (event.ctrlKey) {
+                        if (event[browser.ctrlKey]) {
                             event.stopPropagation();
                             toggleSelectionAt(rowIndex); // toggle selected state
                         } else if (!selectedItems.includes(items[rowIndex])) {
@@ -265,7 +266,7 @@ export default function ListView<T>({
                         }
                         if (multiSelect && event.shiftKey && rangeSelectionStart !== -1) {
                             selectRange(rangeSelectionStart, nextIndex);
-                        } else if (!event.ctrlKey) {
+                        } else if (!event[browser.ctrlKey]) {
                             selectAt(nextIndex);
                         }
                     }
@@ -298,7 +299,7 @@ export default function ListView<T>({
             const newRowIndex = getRowIndexFromMouseEvent(event);
             if (newRowIndex !== -1) {
                 setRowIndex(newRowIndex);
-                if (multiSelect && event.ctrlKey) {
+                if (multiSelect && event[browser.ctrlKey]) {
                     toggleSelectionAt(newRowIndex);
                 } else if (multiSelect && event.shiftKey) {
                     if (rangeSelectionStart === -1) {
@@ -319,7 +320,7 @@ export default function ListView<T>({
             if (event.button === 0) {
                 const rowIndex = getRowIndexFromMouseEvent(event);
                 if (rowIndex !== -1) {
-                    if (multiSelect && !event.ctrlKey && !event.shiftKey) {
+                    if (multiSelect && !event[browser.ctrlKey] && !event.shiftKey) {
                         selectAt(rowIndex);
                     }
                 }
@@ -409,15 +410,16 @@ export default function ListView<T>({
         (event: React.DragEvent) => {
             const dataTransfer = event.dataTransfer;
             if (draggable || reorderable) {
-                globalDrag.set(event, selectedItems);
                 dataTransfer.setDragImage(dragImageRef.current!, -10, -10);
+                let effect: DataTransfer['effectAllowed'] = 'none';
                 if (draggable && reorderable) {
-                    dataTransfer.effectAllowed = 'copyMove';
+                    effect = 'copyMove';
                 } else if (draggable) {
-                    dataTransfer.effectAllowed = 'copy';
+                    effect = 'copy';
                 } else {
-                    dataTransfer.effectAllowed = 'move';
+                    effect = 'move';
                 }
+                globalDrag.set(event, selectedItems, effect);
                 setDragStartIndex(rowIndex);
             } else {
                 dataTransfer.effectAllowed = 'none';
@@ -428,6 +430,8 @@ export default function ListView<T>({
 
     const handleDragOver = useCallback(
         (event: React.DragEvent) => {
+            event.preventDefault();
+            event.stopPropagation();
             const dataTransfer = event.dataTransfer;
             if (droppable || reorderable) {
                 const hasItems = dataTransfer.types.includes('text/plain');
@@ -461,8 +465,6 @@ export default function ListView<T>({
                 dataTransfer.dropEffect = 'none';
                 setDragIndex(-1);
             }
-            event.preventDefault();
-            event.stopPropagation();
         },
         [size, isDragging, droppable, droppableTypes, reorderable]
     );
@@ -475,12 +477,13 @@ export default function ListView<T>({
                 if (rowIndex === -1) {
                     rowIndex = size;
                 }
-                if (dataTransfer.effectAllowed === 'copy') {
-                    const items: T[] | null = globalDrag.get(event);
+                const effect = globalDrag.getEffect(event);
+                if (effect === 'copy') {
+                    const items: T[] | null = globalDrag.getData(event);
                     if (items) {
                         onDrop?.(items, rowIndex);
                     }
-                } else if (dataTransfer.effectAllowed === 'move') {
+                } else if (effect === 'move') {
                     const offset = dragStartIndex < rowIndex ? -1 : 0;
                     onMove?.(selectedItems, rowIndex);
                     setRowIndex(rowIndex + offset);

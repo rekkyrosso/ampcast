@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {fromEvent, merge} from 'rxjs';
+import {fromEvent, merge, switchMap} from 'rxjs';
 import './PopupMenu.scss';
 
 export interface PopupMenuProps {
@@ -35,7 +35,9 @@ export default function PopupMenu({className = '', children, onClose, x, y}: Bas
 
     useEffect(() => {
         const subscription = merge(
-            fromEvent(document, 'click'),
+            fromEvent(document, 'mousedown').pipe(
+                switchMap(() => fromEvent(document, 'click'))
+            ),
             fromEvent(document, 'keydown', {capture: true}),
             fromEvent(document, 'contextmenu', {capture: true}),
             fromEvent(window, 'blur')

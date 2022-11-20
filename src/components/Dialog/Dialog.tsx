@@ -7,11 +7,11 @@ import React, {
     useState,
 } from 'react';
 import {Except} from 'type-fest';
-import dialogPolyfill from 'dialog-polyfill';
-import 'dialog-polyfill/dialog-polyfill.css';
 import {stopPropagation} from 'utils';
 import Button from 'components/Button';
 import Icon from 'components/Icon';
+import dialogPolyfill from 'dialog-polyfill';
+import 'dialog-polyfill/dialog-polyfill.css';
 import './Dialog.scss';
 
 export interface DialogProps

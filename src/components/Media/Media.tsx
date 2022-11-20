@@ -10,6 +10,7 @@ import useObservable from 'hooks/useObservable';
 import useOnResize from 'hooks/useOnResize';
 import VisualizerControls from './VisualizerControls';
 import Interstitial from './Interstitial';
+import 'fullscreen-api-polyfill';
 import './Media.scss';
 
 console.log('component::Media');

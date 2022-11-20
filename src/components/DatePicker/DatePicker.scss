@@ -1,14 +1,4 @@
 .date-picker {
-    margin-bottom: var(--gutter-width);
-
-    &-year {
-        min-width: 4em;
-    }
-
-    &-month {
-        min-width: 4.25em;
-    }
-
     &-day {
         min-width: 2em;
     }

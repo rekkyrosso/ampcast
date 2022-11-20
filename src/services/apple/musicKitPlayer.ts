@@ -89,7 +89,7 @@ export class MusicKitPlayer implements Player<string> {
                             mergeMap(() => {
                                 this.loadedSrc = src;
                                 if (this.autoplay) {
-                                    return this.player!.play();
+                                    return this.safePlay();
                                 } else {
                                     return EMPTY;
                                 }

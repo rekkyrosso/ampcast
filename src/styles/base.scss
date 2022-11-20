@@ -21,6 +21,18 @@ textarea {
     line-height: 1.5;
 }
 
+a:any-link {
+    color: var(--link-color);
+
+    &:visited {
+        color: var(--link-visited-color);
+    }
+
+    &:active {
+        color: var(--link-active-color);
+    }
+}
+
 .panel,
 .page {
     position: absolute;

@@ -7,10 +7,14 @@ const displayName = /^edge/.test(name)
     : name.replace(/^\w/, (char) => char.toUpperCase());
 const version = browser?.version || '0';
 const os = browser?.os || 'unknown';
+const ctrlKey: keyof KeyboardEvent = os === 'Mac OS' ? 'metaKey' : 'ctrlKey';
+const ctrlKeyStr = os === 'Mac OS' ? '⌘' : 'Ctrl';
 
 export default {
     name,
     displayName,
     version,
     os,
+    ctrlKey,
+    ctrlKeyStr,
 };

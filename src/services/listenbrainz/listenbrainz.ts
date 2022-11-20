@@ -25,6 +25,18 @@ export const listenbrainzHistory: MediaSource<MediaItem> = {
     },
 };
 
+const listenbrainzRecentlyPlayed: MediaSource<MediaItem> = {
+    id: 'listenbrainz/recently-played',
+    title: 'Recently Played',
+    icon: 'clock',
+    itemType: ItemType.Media,
+
+    search(): Pager<MediaItem> {
+        console.log('search/listenbrainz/history');
+        return new ListenBrainzHistoryPager();
+    },
+};
+
 const topTracks: MediaSource<MediaItem> = {
     id: 'listenbrainz/top/tracks',
     title: 'Top Tracks',
@@ -85,8 +97,8 @@ const listenbrainz: MediaService = {
     icon: 'listenbrainz',
     url: 'https://listenbrainz.org/',
     scrobbler: true,
-    sources: [topTracks, topAlbums, topArtists],
-    searches: [listenbrainzHistory],
+    sources: [topTracks, topAlbums, topArtists, listenbrainzHistory],
+    searches: [listenbrainzRecentlyPlayed],
 
     observeIsLoggedIn,
     login,

@@ -22,6 +22,7 @@ import ArtistBrowser from './ArtistBrowser';
 import MediaItemBrowser from './MediaItemBrowser';
 import MediaSourceSelector from './MediaSourceSelector';
 import PlaylistBrowser from './PlaylistBrowser';
+import RecentlyPlayedBrowser from './RecentlyPlayedBrowser';
 import useErrorScreen from './useErrorScreen';
 import './MediaBrowser.scss';
 
@@ -53,18 +54,30 @@ export default function MediaBrowser<T extends MediaObject>({
 
 function Router<T extends MediaObject>({service, sources}: MediaBrowserProps<T>) {
     const source = sources.length === 1 ? sources[0] : null;
-    const id = source ? source.id : '';
 
-    if (id.startsWith('lastfm/top')) {
-        return <LastFmTopBrowser source={source!} />;
-    } else if (id.startsWith('listenbrainz/top')) {
-        return <ListenBrainzTopBrowser source={source!} />;
-    } else if (id === 'lastfm/history') {
-        return <LastFmHistoryBrowser />;
-    } else if (id === 'listenbrainz/history') {
-        return <ListenBrainzHistoryBrowser />;
-    } else {
-        return <DefaultBrowser service={service} sources={sources} />;
+    switch (source?.id) {
+        case 'lastfm/top/tracks':
+        case 'lastfm/top/albums':
+        case 'lastfm/top/artists':
+            return <LastFmTopBrowser source={source!} />;
+
+        case 'listenbrainz/top/tracks':
+        case 'listenbrainz/top/albums':
+        case 'listenbrainz/top/artists':
+            return <ListenBrainzTopBrowser source={source!} />;
+
+        case 'lastfm/history':
+            return <LastFmHistoryBrowser />;
+
+        case 'listenbrainz/history':
+            return <ListenBrainzHistoryBrowser />;
+
+        case 'lastfm/recently-played':
+        case 'listenbrainz/recently-played':
+            return <RecentlyPlayedBrowser source={source as MediaSource<MediaItem>} />;
+
+        default:
+            return <DefaultBrowser service={service} sources={sources} />;
     }
 }
 

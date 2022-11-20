@@ -1,6 +1,7 @@
 import React from 'react';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
+import {browser} from 'utils';
 import PopupMenu, {PopupMenuItem, PopupMenuProps, showPopupMenu} from 'components/PopupMenu';
 
 export default async function showActionsMenu<T extends MediaObject>(
@@ -47,7 +48,7 @@ function ActionsMenu<T extends MediaObject>({items, unplayable, ...props}: Actio
                         <PopupMenuItem
                             label="Play now"
                             action="play"
-                            acceleratorKey="Ctrl+Enter"
+                            acceleratorKey={`${browser.ctrlKeyStr}+Enter`}
                             key="play"
                         />
                     </>
@@ -56,7 +57,7 @@ function ActionsMenu<T extends MediaObject>({items, unplayable, ...props}: Actio
                     <PopupMenuItem
                         label="Info..."
                         action="info"
-                        acceleratorKey="Ctrl+I"
+                        acceleratorKey={`${browser.ctrlKeyStr}+I`}
                         key="info"
                     />
                 ) : null}

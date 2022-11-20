@@ -231,6 +231,7 @@ declare namespace plex {
     interface Pin {
         readonly id: number;
         readonly code: string;
+        readonly expiresIn: number;
     }
 
     interface TokenResponse {

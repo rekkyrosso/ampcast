@@ -1,131 +1,77 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {formatDate, formatMonth} from 'utils';
+import MonthPicker from './MonthPicker';
 import './DatePicker.scss';
 
 export interface DatePickerProps {
-    value?: number;
-    min?: number;
-    max?: number;
-    onSelect?: (value: number) => void;
-}
-
-interface DatePickerOption {
-    value: number;
-    text: string | number;
-    disabled?: boolean;
+    value?: number | string | Date;
+    min?: number | string | Date;
+    max?: number | string | Date;
+    onSelect?: (value: string) => void;
 }
 
 export default function DatePicker({
-    min = 0,
-    max = getMaxDate(),
+    min = '1970-01-01',
+    max = formatDate(),
     value = max,
     onSelect,
 }: DatePickerProps) {
-    const [year, setYear] = useState(() => new Date(value).getFullYear());
-    const [month, setMonth] = useState(() => new Date(value).getMonth());
-    const [day, setDay] = useState(() => new Date(value).getDate());
-    const years = useYears(min, max);
-    const months = useMonths(year, min, max);
-    const days = useDays(month, year, min, max);
+    const ref = useRef<HTMLSelectElement>(null);
+    const [month, setMonth] = useState(() => formatMonth(value));
+    const [date, setDate] = useState(() => new Date(value).getDate());
+    const dates = useDates(month, min, max);
+
+    useLayoutEffect(() => {
+        const date = dates[0];
+        if (date) {
+            ref.current!.value = String(date);
+            setDate(date);
+        }
+    }, [dates]);
 
     useEffect(() => {
-        const time = new Date(year, month, day).valueOf();
-        onSelect?.(Math.min(Math.max(time, min), max));
-    }, [onSelect, year, month, day, min, max]);
+        if (date) {
+            onSelect?.(`${month}-${String(date).padStart(2, '0')}`);
+        }
+    }, [onSelect, month, date]);
 
-    const handleYearChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-        setYear(Number(event.target.value));
+    const handleMonthSelect = useCallback((month: string) => {
+        setDate(0);
+        setMonth(month);
     }, []);
 
-    const handleMonthChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-        setMonth(Number(event.target.value));
-    }, []);
-
-    const handleDayChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-        setDay(Number(event.target.value));
+    const handleDateChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
+        setDate(Number(event.target.value));
     }, []);
 
     return (
-        <div className="date-picker">
-            <select className="date-picker-year" onChange={handleYearChange}>
-                {years.map(({value, text}) => (
-                    <option value={value} key={value}>
-                        {text}
+        <span className="date-picker">
+            <MonthPicker min={min} max={max} value={month} onSelect={handleMonthSelect} />
+            <select defaultValue={date} onChange={handleDateChange} key={month} ref={ref}>
+                {dates.map((date) => (
+                    <option value={date} key={date}>
+                        {date}
                     </option>
                 ))}
             </select>
-            <select className="date-picker-month" onChange={handleMonthChange}>
-                {months.map(({value, text, disabled}) => (
-                    <option value={value} disabled={disabled} key={`${year}-${value}`}>
-                        {text}
-                    </option>
-                ))}
-            </select>
-            <select className="date-picker-day" onChange={handleDayChange}>
-                {days.map(({value, text, disabled}) => (
-                    <option value={value} disabled={disabled} key={`${year}-${month}-${value}`}>
-                        {text}
-                    </option>
-                ))}
-            </select>
-        </div>
+        </span>
     );
 }
 
-function useYears(min: number | string, max: number | string): DatePickerOption[] {
-    const [years, setYears] = useState<DatePickerOption[]>([]);
+function useDates(
+    monthValue: string,
+    min: number | string | Date,
+    max: number | string | Date
+): number[] {
+    const [dates, setDates] = useState<number[]>([]);
 
-    useEffect(() => {
-        const years: DatePickerOption[] = [];
+    useLayoutEffect(() => {
+        const dates: number[] = [];
         const minDate = new Date(min);
         const maxDate = new Date(max);
-        const minYear = minDate.getFullYear();
-        let year = maxDate.getFullYear();
-        while (year >= minYear) {
-            years.push({value: year, text: year});
-            year--;
-        }
-        setYears(years);
-    }, [min, max]);
-
-    return years;
-}
-
-const monthNames = (() => {
-    const applyFormat = new Intl.DateTimeFormat(navigator.language, {month: 'short'}).format;
-    return [...Array(12).keys()].map((month) => applyFormat(new Date(2022, month, 2)));
-})();
-
-function useMonths(year: number, min: number | string, max: number | string): DatePickerOption[] {
-    const [months, setMonths] = useState<DatePickerOption[]>([]);
-
-    useEffect(() => {
-        const months: DatePickerOption[] = [];
-        const minDate = new Date(min);
-        const maxDate = new Date(max);
-        const minMonth = year === minDate.getFullYear() ? minDate.getMonth() : 0;
-        let month = year === maxDate.getFullYear() ? maxDate.getMonth() : 11;
-        while (month >= minMonth) {
-            months.push({value: month, text: monthNames[month]});
-            month--;
-        }
-        setMonths(months);
-    }, [year, min, max]);
-
-    return months;
-}
-
-function useDays(
-    month: number,
-    year: number,
-    min: number | string,
-    max: number | string
-): DatePickerOption[] {
-    const [days, setDays] = useState<DatePickerOption[]>([]);
-
-    useEffect(() => {
-        const days: DatePickerOption[] = [];
-        const minDate = new Date(min);
-        const maxDate = new Date(max);
+        const parts = monthValue.split('-').map(Number);
+        const year = parts[0];
+        const month = parts[1] - 1;
         const minDay =
             year === minDate.getFullYear() && month === minDate.getMonth() ? minDate.getDate() : 1;
         let day =
@@ -133,16 +79,11 @@ function useDays(
                 ? maxDate.getDate()
                 : new Date(year, month + 1, 0).getDate();
         while (day >= minDay) {
-            days.push({value: day, text: day});
+            dates.push(day);
             day--;
         }
-        setDays(days);
-    }, [month, year, min, max]);
+        setDates(dates);
+    }, [monthValue, min, max]);
 
-    return days;
-}
-
-function getMaxDate(): number {
-    const today = new Date();
-    return new Date(today.getFullYear(), today.getMonth(), today.getDate()).valueOf();
+    return dates;
 }

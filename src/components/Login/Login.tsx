@@ -1,8 +1,7 @@
 import React from 'react';
 import MediaService from 'types/MediaService';
-import Button from 'components/Button';
-import ExternalLink from 'components/ExternalLink';
-import Icon from 'components/Icon';
+import DefaultLogin from './DefaultLogin';
+import PlexLogin from './PlexLogin';
 import SpotifyLogin from './SpotifyLogin';
 import YouTubeLogin from './YouTubeLogin';
 import './Login.scss';
@@ -13,6 +12,9 @@ export interface LoginProps {
 
 export default function Login({service}: LoginProps) {
     switch (service.id) {
+        case 'plex':
+            return <PlexLogin />;
+
         case 'spotify':
             return <SpotifyLogin />;
 
@@ -20,23 +22,6 @@ export default function Login({service}: LoginProps) {
             return <YouTubeLogin />;
 
         default:
-            return (
-                <div className="panel">
-                    <div className="page login">
-                        <p>You need to be logged in to play music from {service.title}.</p>
-                        <p>
-                            <Button className="branded login" onClick={service.login}>
-                                Log in to {service.title}
-                            </Button>
-                        </p>
-                        <p>
-                            <ExternalLink href={service.url}>
-                                <Icon name={service.icon} />
-                                {service.url}
-                            </ExternalLink>
-                        </p>
-                    </div>
-                </div>
-            );
+            return <DefaultLogin service={service} />;
     }
 }

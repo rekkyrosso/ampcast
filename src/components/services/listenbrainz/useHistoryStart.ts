@@ -3,13 +3,13 @@ import {from} from 'rxjs';
 import {filter, map, tap, take} from 'rxjs/operators';
 import listenbrainzApi from 'services/listenbrainz/listenbrainzApi';
 import listenbrainzSettings from 'services/listenbrainz/listenbrainzSettings';
-import {exists} from 'utils';
+import {exists, formatDate} from 'utils';
 
-const serviceStartDate = Date.UTC(2015, 8, 17);
+const serviceStartDate = '2015-09-17';
 
 export default function useHistoryStart() {
     const [startedAt, setStartedAt] = useState(listenbrainzSettings.firstScrobbledAt);
-    const noStartDate = startedAt === 0 || startedAt === serviceStartDate;
+    const noStartDate = startedAt === '' || startedAt === serviceStartDate;
 
     useEffect(() => {
         if (noStartDate) {
@@ -19,7 +19,7 @@ export default function useHistoryStart() {
                     map((activities) => activities.find((activity) => activity.listen_count > 0)),
                     filter(exists),
                     // TODO: This just gets the first year.
-                    map((activity) => Number(activity.from_ts) * 1000),
+                    map((activity) => formatDate(Number(activity.from_ts) * 1000)),
                     tap(
                         (firstScrobbledAt) =>
                             (listenbrainzSettings.firstScrobbledAt = firstScrobbledAt)

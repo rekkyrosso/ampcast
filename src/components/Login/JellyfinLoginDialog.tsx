@@ -21,7 +21,7 @@ export default function JellyfinLoginDialog(props: DialogProps) {
             const userName = userNameRef.current!.value;
             const password = passwordRef.current!.value;
 
-            jellyfinSettings.host = hostRef.current!.value;
+            jellyfinSettings.host = hostRef.current!.value.replace(/\/+$/, '');
 
             const {device, deviceId} = jellyfinSettings;
             const authorization = `MediaBrowser Client="${__app_name__}", Version="${__app_version__}", Device="${device}", DeviceId="${deviceId}"`;

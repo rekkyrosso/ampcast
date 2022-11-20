@@ -14,6 +14,17 @@ const apiHost = `https://plex.tv/api/v2`;
 const accessToken$ = new BehaviorSubject('');
 const isConnected$ = new BehaviorSubject(false);
 
+let pin: plex.Pin;
+export async function refreshPin(): Promise<plex.Pin> {
+    pin = await plexApi.fetchJSON<plex.Pin>({
+        host: apiHost,
+        path: `/pins`,
+        method: 'POST',
+        params: {strong: 'true'},
+    });
+    return pin;
+}
+
 export function observeAccessToken(): Observable<string> {
     return accessToken$.pipe(distinctUntilChanged());
 }
@@ -160,13 +171,6 @@ isConnected$
     .subscribe(logger);
 
 async function obtainAccessToken(): Promise<{id: string; authToken: string}> {
-    const pin = await plexApi.fetchJSON<plex.Pin>({
-        host: apiHost,
-        path: `/pins`,
-        method: 'POST',
-        params: {strong: 'true'},
-    });
-
     return new Promise((resolve, reject) => {
         const host = location.hostname;
         const base = host === 'localhost' ? `http://${host}:${location.port}` : `https://${host}`;
@@ -220,7 +224,7 @@ async function obtainAccessToken(): Promise<{id: string; authToken: string}> {
             forwardUrl
         )}&context%5Bdevice%5D%5Bproduct%5D=${__app_name__}`;
 
-        authWindow = window.open(`${plexAuthHost}#?${params}`, `Plex`, `popup`);
+        authWindow = window.open(`${plexAuthHost}#?${params}`, 'Plex', 'popup');
 
         const pollAuthWindowClosed = setInterval(() => {
             if (authWindow?.closed) {

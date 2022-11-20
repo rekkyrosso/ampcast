@@ -16,6 +16,8 @@ const base = host === 'localhost' ? `http://${host}:${location.port}` : `https:/
 const redirect_uri = `${base}/auth/spotify/callback/`;
 const spotifyAccounts = `https://accounts.spotify.com`;
 
+let code_challenge: string;
+
 interface TokenResponse {
     access_token: string;
     expires_in: number; // seconds
@@ -65,11 +67,6 @@ export async function logout(): Promise<void> {
 // From: https://github.com/JMPerez/spotify-dedup/blob/master/dedup/oauthManager.ts
 
 async function obtainAccessToken(): Promise<TokenResponse> {
-    const code_verifier = generateRandomString(64);
-    const code_challenge = await generateCodeChallenge(code_verifier);
-
-    authSettings.setString('code_verifier', code_verifier);
-
     return new Promise((resolve, reject) => {
         let authWindow: Window | null = null;
 
@@ -119,7 +116,7 @@ async function obtainAccessToken(): Promise<TokenResponse> {
             code_challenge,
         });
 
-        authWindow = window.open(`${spotifyAccounts}/authorize?${params}`, `Spotify`, `popup`);
+        authWindow = window.open(`${spotifyAccounts}/authorize?${params}`, 'Spotify', 'popup');
 
         const pollAuthWindowClosed = setInterval(() => {
             if (authWindow?.closed) {
@@ -237,6 +234,12 @@ const spotifyAuth: Auth = {
 };
 
 export default spotifyAuth;
+
+(async function (): Promise<void> {
+    const code_verifier = generateRandomString(64);
+    authSettings.setString('code_verifier', code_verifier);
+    code_challenge = await generateCodeChallenge(code_verifier);
+})();
 
 (async function (): Promise<void> {
     const token = retrieveAccessToken();

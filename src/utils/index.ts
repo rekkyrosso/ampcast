@@ -69,6 +69,17 @@ export function uniqBy<T>(values: readonly T[], key: keyof T): T[] {
     return values.filter((a, index, self) => index === self.findIndex((b) => a[key] === b[key]));
 }
 
+export function formatDate(date: number | string | Date = Date.now()): string {
+    date = new Date(date);
+    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
+        date.getDate()
+    ).padStart(2, '0')}`;
+}
+
+export function formatMonth(date?: number | string | Date): string {
+    return formatDate(date).slice(0, 7);
+}
+
 export function formatTime(time: number): string {
     return new Date(Math.round((time || 0) * 1000))
         .toISOString()

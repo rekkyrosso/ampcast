@@ -47,6 +47,17 @@ export const lastfmHistory: MediaSource<MediaItem> = {
     },
 };
 
+const lastfmRecentlyPlayed: MediaSource<MediaItem> = {
+    id: 'lastfm/recently-played',
+    title: 'Recently Played',
+    icon: 'clock',
+    itemType: ItemType.Media,
+
+    search(): Pager<MediaItem> {
+        return new LastFmHistoryPager();
+    },
+};
+
 const lastfm: MediaService = {
     id: 'lastfm',
     title: 'last.fm',
@@ -73,8 +84,9 @@ const lastfm: MediaService = {
             secondaryLayout: albumLayout,
             tertiaryLayout: albumTrackLayout,
         }),
+        lastfmHistory,
     ],
-    searches: [lastfmHistory],
+    searches: [lastfmRecentlyPlayed],
 
     observeIsLoggedIn,
     login,
@@ -87,7 +99,7 @@ function createTopView<T extends MediaObject>(
 ): MediaSource<T> {
     return {
         ...props,
-        id: `lastfm/top/${method}`,
+        id: `lastfm/top/${method.slice(11).toLowerCase()}`,
         icon: 'star',
         searchable: false,
         unplayable: true,

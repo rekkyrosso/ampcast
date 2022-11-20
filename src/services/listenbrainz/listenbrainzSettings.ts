@@ -19,12 +19,12 @@ export default {
         storage.setString('userId', userId);
     },
 
-    get firstScrobbledAt(): number {
-        return storage.getNumber('firstScrobbledAt');
+    get firstScrobbledAt(): string {
+        return storage.getString('firstScrobbledAt');
     },
 
-    set firstScrobbledAt(time: number) {
-        storage.setNumber('firstScrobbledAt', time);
+    set firstScrobbledAt(time: string) {
+        storage.setString('firstScrobbledAt', time);
     },
 
     clear(): void {

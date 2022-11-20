@@ -85,8 +85,8 @@ async function obtainAccessToken(): Promise<string> {
 
         authWindow = window.open(
             `${lastfmApiAuth}?api_key=${lf_api_key}&cb=${callback}`,
-            `last.fm`,
-            `popup`
+            'last.fm',
+            'popup'
         );
 
         const pollAuthWindowClosed = setInterval(() => {
