@@ -16,7 +16,7 @@ console.log('module::plexReporting');
 const logger = new Logger('plexReporting');
 
 const isPlexItem = (state: PlaybackState): boolean =>
-    state.currentItem?.src.startsWith('plex:') || false;
+    !!state.currentItem?.src.startsWith('plex:');
 
 observeIsLoggedIn()
     .pipe(

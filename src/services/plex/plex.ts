@@ -109,13 +109,13 @@ const plex: MediaService = {
     title: 'Plex',
     icon: 'plex',
     url: 'https://www.plex.tv/',
-    sources: [plexMusicVideo, plexMostPlayed, plexRecentlyPlayed, plexTopRated, plexPlaylists],
-    searches: [
+    roots: [
         plexSearch('10', {title: 'Songs', itemType: ItemType.Media}),
         plexSearch('9', {title: 'Albums', itemType: ItemType.Album}),
         plexSearch('8', {title: 'Artists', itemType: ItemType.Artist}),
         plexSearch('15', {title: 'Playlists', itemType: ItemType.Playlist}),
     ],
+    sources: [plexMusicVideo, plexMostPlayed, plexRecentlyPlayed, plexTopRated, plexPlaylists],
 
     observeIsLoggedIn,
     login,

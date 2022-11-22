@@ -64,7 +64,7 @@ const lastfm: MediaService = {
     icon: 'lastfm',
     url: 'https://www.last.fm/',
     scrobbler: true,
-
+    roots: [lastfmRecentlyPlayed],
     sources: [
         createTopView('user.getTopTracks', {
             title: 'Top Tracks',
@@ -86,7 +86,6 @@ const lastfm: MediaService = {
         }),
         lastfmHistory,
     ],
-    searches: [lastfmRecentlyPlayed],
 
     observeIsLoggedIn,
     login,

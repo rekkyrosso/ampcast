@@ -593,7 +593,7 @@ function getRowIndexFromMouseEvent(event: React.MouseEvent): number {
 
 function isRowSelectedFromMouseEvent(event: React.MouseEvent): boolean {
     const row = getRowFromMouseEvent(event);
-    return row?.classList.contains('selected') || false;
+    return !!row?.classList.contains('selected');
 }
 
 function getRowFromMouseEvent(event: React.MouseEvent): HTMLElement | null {

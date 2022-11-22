@@ -155,14 +155,7 @@ const spotify: MediaService = {
     title: 'Spotify',
     icon: 'spotify',
     url: 'https://www.spotify.com/',
-    sources: [
-        spotifyRecentlyPlayed,
-        spotifyTopTracks,
-        spotifyLikedSongs,
-        spotifyLikedAlbums,
-        spotifyPlaylists,
-    ],
-    searches: [
+    roots: [
         {
             id: 'spotify/search/songs',
             title: 'Songs',
@@ -260,6 +253,13 @@ const spotify: MediaService = {
                 }
             },
         },
+    ],
+    sources: [
+        spotifyRecentlyPlayed,
+        spotifyTopTracks,
+        spotifyLikedSongs,
+        spotifyLikedAlbums,
+        spotifyPlaylists,
     ],
 
     observeIsLoggedIn,

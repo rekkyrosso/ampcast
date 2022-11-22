@@ -1,4 +1,6 @@
 import React from 'react';
+import MediaService from 'types/MediaService';
+import mediaServices from 'services/mediaServices';
 import {TreeNode} from 'components/TreeView';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import AppearanceSettings from './AppearanceSettings';
@@ -19,43 +21,11 @@ const sources: TreeNode<React.ReactNode>[] = [
         label: 'Media Services',
         value: <MediaLibrarySettings />,
         startExpanded: true,
-        children: [
-            {
-                id: 'apple',
-                label: <MediaSourceLabel icon="apple" text="Apple Music" />,
-                value: <AppleMusicSettings />,
-            },
-            {
-                id: 'spotify',
-                label: <MediaSourceLabel icon="spotify" text="Spotify" />,
-                value: <SpotifySettings />,
-            },
-            {
-                id: 'youtube',
-                label: <MediaSourceLabel icon="youtube" text="YouTube" />,
-                value: <YouTubeSettings />,
-            },
-            {
-                id: 'plex',
-                label: <MediaSourceLabel icon="plex" text="Plex" />,
-                value: <PlexSettings />,
-            },
-            {
-                id: 'jellyfin',
-                label: <MediaSourceLabel icon="jellyfin" text="Jellyfin" />,
-                value: <JellyfinSettings />,
-            },
-            {
-                id: 'lastfm',
-                label: <MediaSourceLabel icon="lastfm" text="last.fm" />,
-                value: <LastFmSettings />,
-            },
-            {
-                id: 'listenbrainz',
-                label: <MediaSourceLabel icon="listenbrainz" text="ListenBrainz" />,
-                value: <ListenBrainzSettings />,
-            },
-        ],
+        children: mediaServices.all.map((service) => ({
+            id: service.id,
+            label: <MediaSourceLabel icon={service.icon} text={service.title} />,
+            value: <ServiceRouter service={service} />,
+        })),
     },
     {
         id: 'visualizer',
@@ -74,6 +44,23 @@ const sources: TreeNode<React.ReactNode>[] = [
     },
 ];
 
-export default function useSettingsSources(): TreeNode<React.ReactNode>[] {
-    return sources;
+export default (): TreeNode<React.ReactNode>[] => sources;
+
+function ServiceRouter({service}: {service: MediaService}) {
+    switch (service.id) {
+        case 'apple':
+            return <AppleMusicSettings />;
+        case 'spotify':
+            return <SpotifySettings />;
+        case 'youtube':
+            return <YouTubeSettings />;
+        case 'plex':
+            return <PlexSettings />;
+        case 'jellyfin':
+            return <JellyfinSettings />;
+        case 'lastfm':
+            return <LastFmSettings />;
+        case 'listenbrainz':
+            return <ListenBrainzSettings />;
+    }
 }

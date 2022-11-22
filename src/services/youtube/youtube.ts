@@ -26,6 +26,7 @@ const youtubeLikes: MediaSource<MediaItem> = {
     icon: 'thumbs-up',
     itemType: ItemType.Media,
     layout: defaultLayout,
+    defaultHidden: true,
 
     search(): Pager<MediaItem> {
         return new YouTubePager('/videos', {
@@ -95,8 +96,8 @@ const youtube: MediaService = {
     title: 'YouTube',
     icon: 'youtube',
     url: 'https://www.youtube.com/',
-    sources: [youtubeLikes, youtubePlaylists],
-    searches: [
+    defaultNoScrobble: true,
+    roots: [
         {
             id: 'youtube/search/video',
             title: 'Video',
@@ -124,6 +125,7 @@ const youtube: MediaService = {
             },
         },
     ],
+    sources: [youtubeLikes, youtubePlaylists],
 
     observeIsLoggedIn,
     login,

@@ -1,18 +1,26 @@
+import Logger from '../Logger';
 import memoryStorage from './memoryStorage';
-import Logger from './Logger';
 
 const logger = new Logger('LiteStorage');
 
-type BasicStorage = Pick<
+export type BasicStorage = Pick<
     Storage,
     'getItem' | 'setItem' | 'removeItem' | 'clear' | 'key' | 'length'
 >;
 
 export default class LiteStorage {
-    public readonly id: string;
+    private static readonly ids: string[] = [];
+    readonly id: string;
     private readonly storage: BasicStorage;
 
     constructor(id: string, storage: 'local' | 'session' | 'memory' = 'local') {
+        const storageId = `${storage}-${id}`;
+        if (LiteStorage.ids.includes(storageId)) {
+            throw Error(`Duplicate storageId: ${storageId}`);
+        } else {
+            LiteStorage.ids.push(storageId);
+        }
+
         this.id = `${__app_name__}/${id}`;
 
         switch (storage) {

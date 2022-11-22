@@ -58,6 +58,7 @@ export class ListenBrainzApi {
     }
 
     async updateNowPlaying(item: MediaItem): Promise<void> {
+        logger.log('updateNowPlaying', {item});
         try {
             if (this.canScrobble(item)) {
                 await this.post(`submit-listens`, {

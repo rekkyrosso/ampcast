@@ -1,12 +1,16 @@
 import {EMPTY} from 'rxjs';
-import {debounceTime, map, mergeMap, switchMap} from 'rxjs/operators';
+import {debounceTime, filter, map, mergeMap, switchMap} from 'rxjs/operators';
 import Listen from 'types/Listen';
+import MediaItem from 'types/MediaItem';
 import {getListenId, findScrobble, observeListens, updateListens} from 'services/localdb/listens';
 import {observePlaybackStart} from 'services/mediaPlayback';
-import {fetchFirstPage, Logger, partition} from 'utils';
+import mediaServices from 'services/mediaServices';
+import scrobbleSettings from 'services/scrobbleSettings';
+import {exists, fetchFirstPage, Logger, partition} from 'utils';
 import lastfmApi from './lastfmApi';
 import {observeIsLoggedIn} from './lastfmAuth';
 import LastFmHistoryPager from './LastFmHistoryPager';
+import lastfm from './lastfm';
 
 console.log('module::lastfmScrobbler');
 
@@ -18,7 +22,11 @@ const maxScrobbles = 50;
 observeIsLoggedIn()
     .pipe(
         switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackStart() : EMPTY)),
-        mergeMap(({currentItem}) => lastfmApi.updateNowPlaying(currentItem!))
+        filter(() => scrobbleSettings.canUpdateNowPlaying(lastfm)),
+        map(({currentItem}) => currentItem),
+        filter(exists),
+        filter((item) => canScrobble(item)),
+        mergeMap((item) => lastfmApi.updateNowPlaying(item))
     )
     .subscribe(logger);
 
@@ -45,13 +53,14 @@ async function scrobble(items: Listen[]): Promise<void> {
         });
         const history = await fetchFirstPage(pager);
         const historyIds = history.map((item) => getListenId(item, timeFuzziness));
-        const [scrobbled, unscrobbled] = partition(
+        const [ignore, unscrobbled] = partition(
             items,
             (item) =>
+                !canScrobble(item) ||
                 historyIds.includes(getListenId(item, timeFuzziness)) ||
                 !!findScrobble(history, item)
         );
-        await updateListens(scrobbled.map((item) => ({...item, lastfmScrobbledAt: -1})));
+        await updateListens(ignore.map((item) => ({...item, lastfmScrobbledAt: -1})));
         if (unscrobbled.length > 0) {
             unscrobbled.reverse();
             unscrobbled.length = Math.min(unscrobbled.length, maxScrobbles);
@@ -62,4 +71,11 @@ async function scrobble(items: Listen[]): Promise<void> {
     } catch (err) {
         logger.error(err);
     }
+}
+
+function canScrobble(item: MediaItem): boolean {
+    const [serviceId] = item.src.split(':');
+    const service = mediaServices.get(serviceId);
+    // `serviceId` might be "blob" or "file" so we'll attempt to scrobble.
+    return service ? scrobbleSettings.canScrobble(lastfm, service) : true;
 }

@@ -93,6 +93,7 @@ const appleLikedSongs: MediaSource<MediaItem> = {
     icon: 'heart',
     itemType: ItemType.Media,
     layout: defaultLayout,
+    defaultHidden: true,
 
     search(): Pager<MediaItem> {
         return new MusicKitPager(`/v1/me/library/songs`, toPage, {
@@ -139,7 +140,7 @@ const apple: MediaService = {
     title: 'Apple Music',
     icon: 'apple',
     url: 'https://music.apple.com/',
-    searches: [
+    roots: [
         appleSearch('songs', {title: 'Songs', itemType: ItemType.Media, layout: defaultLayout}),
         appleSearch('albums', {title: 'Albums', itemType: ItemType.Album}),
         appleSearch('artists', {title: 'Artists', itemType: ItemType.Artist}),

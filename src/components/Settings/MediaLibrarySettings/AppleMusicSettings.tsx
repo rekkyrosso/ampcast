@@ -4,7 +4,7 @@ import appleSettings from 'services/apple/appleSettings';
 import Button from 'components/Button';
 import Input from 'components/Input';
 import TabList, {TabItem} from 'components/TabList';
-import {MediaServiceGeneralSettings} from './MediaServiceSettings';
+import MediaServiceGeneralSettings from './MediaServiceGeneralSettings';
 
 export default function AppleMusicSettings() {
     const tabs: TabItem[] = useMemo(
@@ -32,11 +32,7 @@ export function AppleMusicBetaSettings() {
     }, []);
 
     return (
-        <form
-            className="apple-beta-settings"
-            method="dialog"
-            onSubmit={handleSubmit}
-        >
+        <form className="apple-beta-settings" method="dialog" onSubmit={handleSubmit}>
             <fieldset>
                 <legend>MusicKit</legend>
                 <p>

@@ -1,6 +1,8 @@
+import {BasicStorage} from './LiteStorage';
+
 const values = new Map<string, string>();
 
-export default {
+const memoryStorage: BasicStorage = {
     get length(): number {
         return values.size;
     },
@@ -14,14 +16,16 @@ export default {
     },
 
     getItem(key: string): string | null {
-        return values.get(String(key)) ?? null;
+        return values.get(key) ?? null;
     },
 
     setItem(key: string, value: string): void {
-        values.set(String(key), String(value));
+        values.set(key, String(value));
     },
 
     removeItem(key: string): void {
-        values.delete(String(key));
+        values.delete(key);
     },
 };
+
+export default memoryStorage;

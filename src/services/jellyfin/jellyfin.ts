@@ -125,7 +125,7 @@ const jellyfin: MediaService = {
     title: 'Jellyfin',
     icon: 'jellyfin',
     url: 'https://jellyfin.org/',
-    searches: [
+    roots: [
         createSearch('Audio', {title: 'Songs', itemType: ItemType.Media}),
         createSearch('MusicAlbum', {title: 'Albums', itemType: ItemType.Album}),
         {

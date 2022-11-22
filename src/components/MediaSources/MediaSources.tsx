@@ -1,10 +1,12 @@
 import React from 'react';
-import {storage} from 'services/mediaSources';
+import {LiteStorage} from 'utils';
 import TreeView from 'components/TreeView';
 import useMediaSources from './useMediaSources';
 import './MediaSources.scss';
 
 console.log('component::MediaSources');
+
+export const storage = new LiteStorage('sources');
 
 export interface MediaSourcesProps {
     onSelect?: (source: React.ReactNode) => void;

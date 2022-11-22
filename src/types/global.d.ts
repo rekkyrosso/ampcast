@@ -18,3 +18,7 @@ declare module '*.frag' {
 declare module 'string-score' {
     export default 'string-score' as (target: string, query: string, fuzziness?: number) => number;
 }
+
+type HTMLInputElements = {
+    [Symbol.iterator](): Iterator<HTMLInputElement>;
+};

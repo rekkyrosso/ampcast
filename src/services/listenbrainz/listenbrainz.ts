@@ -97,8 +97,8 @@ const listenbrainz: MediaService = {
     icon: 'listenbrainz',
     url: 'https://listenbrainz.org/',
     scrobbler: true,
+    roots: [listenbrainzRecentlyPlayed],
     sources: [topTracks, topAlbums, topArtists, listenbrainzHistory],
-    searches: [listenbrainzRecentlyPlayed],
 
     observeIsLoggedIn,
     login,

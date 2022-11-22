@@ -16,7 +16,7 @@ console.log('module::jellyfinReporting');
 const logger = new Logger('jellyfinReporting');
 
 const isJellyfinItem = (state: PlaybackState): boolean =>
-    state.currentItem?.src.startsWith('jellyfin:') || false;
+    !!state.currentItem?.src.startsWith('jellyfin:');
 
 observeIsLoggedIn()
     .pipe(

@@ -34,9 +34,17 @@ export interface TreeViewProps<T> {
 
 export const defaultRowHeight = 24;
 
-export default function TreeView<T>({
+export default function TreeView<T>({roots, className = '', ...props}: TreeViewProps<T>) {
+    if (roots.length === 0) {
+        return <div className={`tree-view ${className}`} tabIndex={0} />;
+    } else {
+        return <Tree {...props} className={className} roots={roots} />;
+    }
+}
+
+function Tree<T>({
     roots,
-    className = '',
+    className,
     storeId,
     onContextMenu,
     onDelete,
