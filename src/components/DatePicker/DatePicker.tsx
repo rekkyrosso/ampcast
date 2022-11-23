@@ -4,9 +4,9 @@ import MonthPicker from './MonthPicker';
 import './DatePicker.scss';
 
 export interface DatePickerProps {
-    value?: number | string | Date;
-    min?: number | string | Date;
-    max?: number | string | Date;
+    value?: number | string;
+    min?: number | string;
+    max?: number | string;
     onSelect?: (value: string) => void;
 }
 
@@ -58,11 +58,7 @@ export default function DatePicker({
     );
 }
 
-function useDates(
-    monthValue: string,
-    min: number | string | Date,
-    max: number | string | Date
-): number[] {
+function useDates(monthValue: string, min: number | string, max: number | string): number[] {
     const [dates, setDates] = useState<number[]>([]);
 
     useLayoutEffect(() => {

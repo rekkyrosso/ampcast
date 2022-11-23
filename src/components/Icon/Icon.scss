@@ -7,11 +7,6 @@
     pointer-events: none;
     vertical-align: middle;
 
-    &-muted,
-    &-volume {
-        stroke: none;
-    }
-
     &-volume {
         .medium {
             .volume-low & {

@@ -29,16 +29,25 @@ export interface TreeViewProps<T> {
     onDelete?: (item: T) => void;
     onEnter?: (item: T) => void;
     onInfo?: (item: T) => void;
-    onSelect?: (item: T) => void;
+    onSelect?: (item: T | null) => void;
 }
 
 export const defaultRowHeight = 24;
 
-export default function TreeView<T>({roots, className = '', ...props}: TreeViewProps<T>) {
-    if (roots.length === 0) {
+// TODO: This wrapper only exists because the underlying component can't handle empty states.
+export default function TreeView<T>({roots, className = '', onSelect, ...props}: TreeViewProps<T>) {
+    const isEmpty = roots.length === 0;
+
+    useEffect(() => {
+        if (isEmpty) {
+            onSelect?.(null);
+        }
+    }, [isEmpty, onSelect]);
+
+    if (isEmpty) {
         return <div className={`tree-view ${className}`} tabIndex={0} />;
     } else {
-        return <Tree {...props} className={className} roots={roots} />;
+        return <Tree {...props} className={className} roots={roots} onSelect={onSelect} />;
     }
 }
 
@@ -76,7 +85,7 @@ function Tree<T>({
     useLayoutEffect(() => {
         if (!hasSelectedNode(roots, selectedId)) {
             const parentNode =
-                roots.find((root) => selectedId.startsWith(`${root.id}/`)) || roots[0];
+                roots.find((root) => selectedId?.startsWith(`${root.id}/`)) || roots[0];
             setSelectedId(parentNode?.id);
         }
     }, [roots, selectedId]);

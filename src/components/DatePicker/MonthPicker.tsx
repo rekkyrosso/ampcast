@@ -57,11 +57,7 @@ export default function MonthPicker({
     );
 }
 
-function useMonths(
-    year: string,
-    min: number | string | Date,
-    max: number | string | Date
-): number[] {
+function useMonths(year: string, min: number | string, max: number | string): number[] {
     const [months, setMonths] = useState<number[]>([]);
 
     useLayoutEffect(() => {

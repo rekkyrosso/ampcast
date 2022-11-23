@@ -6,6 +6,7 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSourceLayout, {Field} from 'types/MediaSourceLayout';
 import {ColumnSpec, ListViewLayout} from 'components/ListView';
+import SunClock from 'components/SunClock';
 import ThumbnailImage from 'components/ThumbnailImage';
 import Time from 'components/Time';
 
@@ -89,7 +90,13 @@ export const ListenDate: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
     if (!item.playedAt) {
         return '';
     }
-    return new Date(item.playedAt * 1000).toLocaleDateString();
+    const time = item.playedAt * 1000;
+    return (
+        <>
+            <SunClock time={time} />
+            <span className="text">{new Date(time).toLocaleDateString()}</span>
+        </>
+    );
 };
 
 export const AlbumAndYear: RenderField<MediaItem> = (item) =>

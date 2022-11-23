@@ -1,0 +1,7 @@
+@import 'styles/mixins.scss';
+
+.empty-screen {
+    @include inset;
+    flex: auto;
+    padding: var(--gutter-width);
+}

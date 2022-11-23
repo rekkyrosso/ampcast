@@ -5,6 +5,7 @@ import {SettingsDialog} from 'components/Settings';
 import {showDialog} from 'components/Dialog';
 import Icon from 'components/Icon';
 import IconButton from 'components/Button/IconButton';
+import EmptyScreen from 'components/EmptyScreen';
 import './MediaLibrary.scss';
 
 console.log('component::MediaLibrary');
@@ -36,7 +37,7 @@ export default function MediaLibrary() {
             <div className="media-library-body">
                 <Splitter id="media-library-layout" arrange="columns" primaryIndex={1}>
                     <MediaSources onSelect={setSource} />
-                    {source}
+                    {source || <EmptyScreen />}
                 </Splitter>
             </div>
         </div>

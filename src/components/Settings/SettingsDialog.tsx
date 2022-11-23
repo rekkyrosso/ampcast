@@ -6,11 +6,11 @@ import './SettingsDialog.scss';
 
 export default function SettingsDialog(props: DialogProps) {
     const sources = useSettingsSources();
-    const [source, setSource] = useState<React.ReactNode>(<div />);
+    const [source, setSource] = useState<React.ReactNode>(null);
 
     return (
         <Dialog {...props} className="settings-dialog" title="Settings">
-            <TreeView
+            <TreeView<React.ReactNode>
                 className="settings-dialog-sources"
                 roots={sources}
                 storeId="settings-dialog-sources"

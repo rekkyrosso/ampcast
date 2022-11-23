@@ -1,0 +1,20 @@
+.sun-clock {
+    --sun-color: var(--text-color-h), var(--text-color-s), var(--text-color-l);
+    --am-alpha: 0%;
+    --pm-alpha: 0%;
+    --am-color: hsla(var(--sun-color), var(--am-alpha));
+    --pm-color: hsla(var(--sun-color), var(--pm-alpha));
+
+    display: inline-block;
+    width: 1em;
+    height: 1em;
+    margin-right: 0.25em;
+    background-image: linear-gradient(180deg, var(--am-color) 50%, var(--pm-color) 50%);
+    border-radius: 50%;
+    border: 0.125em solid currentColor;
+
+    &,
+    & + .text {
+        vertical-align: middle;
+    }
+}

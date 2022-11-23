@@ -82,6 +82,7 @@ const topArtists: MediaSource<MediaArtist> = {
         view: 'card minimal',
         fields: ['Thumbnail', 'Title', 'PlayCount'],
     },
+    defaultHidden: true,
 
     search(params: {range: string}): Pager<MediaArtist> {
         return new ListenBrainzStatsPager(

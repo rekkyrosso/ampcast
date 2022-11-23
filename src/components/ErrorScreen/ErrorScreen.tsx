@@ -3,7 +3,7 @@ import './ErrorScreen.scss';
 
 export interface ErrorScreenProps {
     error: Error;
-    children: React.ReactNode;
+    children?: React.ReactNode;
     resetErrorBoundary?: (...args: Array<unknown>) => void;
 }
 

@@ -32,7 +32,7 @@ export default function YearPicker({
     );
 }
 
-function useYears(min: number | string | Date, max: number | string | Date): number[] {
+function useYears(min: number | string, max: number | string): number[] {
     const [years, setYears] = useState<number[]>([]);
 
     useLayoutEffect(() => {
