@@ -1,28 +1,22 @@
 import {useEffect} from 'react';
 import mediaPlayback from 'services/mediaPlayback';
 import {stopPropagation} from 'utils';
-import usePaused from './usePaused';
 
 export default function useGlobalActions() {
-    const paused = usePaused();
-
-    // TODO: This doesn't belong here.
     useEffect(() => {
         document.getElementById('system')!.addEventListener('keydown', stopPropagation);
         document.getElementById('popup')!.addEventListener('keydown', stopPropagation);
-    }, []);
 
-    useEffect(() => {
-        document.body.addEventListener('keydown', (event) => handleKeyDown(event, paused));
-    }, [paused]);
+        document.body.addEventListener('keydown', handleKeyDown);
+    }, []);
 }
 
-function handleKeyDown(event: KeyboardEvent, paused: boolean) {
+function handleKeyDown(event: KeyboardEvent) {
     switch (event.key) {
         case ' ':
         case 'MediaPlayPause':
             event.preventDefault();
-            if (paused) {
+            if (mediaPlayback.paused) {
                 mediaPlayback.play();
             } else {
                 mediaPlayback.pause();
@@ -42,11 +36,6 @@ function handleKeyDown(event: KeyboardEvent, paused: boolean) {
         case 'MediaTrackNext':
             event.preventDefault();
             mediaPlayback.next();
-            break;
-
-        case 'AudioVolumeMute':
-            event.preventDefault();
-            mediaPlayback.muted = true;
             break;
     }
 }

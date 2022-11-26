@@ -19,11 +19,6 @@ export interface PagerConfig {
     readonly maxPageSize?: number;
 }
 
-export interface PageFetch {
-    readonly index: number;
-    readonly length: number;
-}
-
 export interface Page<T> {
     readonly items: readonly T[];
     readonly total?: number;

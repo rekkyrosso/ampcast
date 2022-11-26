@@ -9,7 +9,7 @@ import MediaItem from 'types/MediaItem';
 
 const defaultPlaylistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
-    fields: ['Index', 'Artist', 'Title', 'Album', 'Duration', 'Genre', 'PlayCount'],
+    fields: ['Index', 'Artist', 'Title', 'Album', 'Duration', 'Genre'],
 };
 
 export default function PlaylistBrowser({source, ...props}: PagedBrowserProps<MediaPlaylist>) {

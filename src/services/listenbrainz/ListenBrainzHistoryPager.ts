@@ -7,7 +7,7 @@ import Pager, {Page} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import {enhanceWithListenData} from 'services/localdb/listens';
 import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
-import SequentialPager from 'services/SequentialPager';
+import SequentialPager from 'services/pagers/SequentialPager';
 import listenbrainzApi from './listenbrainzApi';
 import listenbrainzSettings from './listenbrainzSettings';
 

@@ -1,3 +1,4 @@
+import type {IconName} from 'components/Icon';
 import Auth from './Auth';
 import MediaServiceId from './MediaServiceId';
 import MediaSource from './MediaSource';

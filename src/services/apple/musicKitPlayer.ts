@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {EMPTY, BehaviorSubject, Subject, combineLatest, from} from 'rxjs';
+import {EMPTY, BehaviorSubject, Subject, from} from 'rxjs';
 import {
     catchError,
     distinctUntilChanged,
@@ -28,6 +28,7 @@ export class MusicKitPlayer implements Player<string> {
     private readonly playing$ = new Subject<void>();
     private readonly error$ = new Subject<unknown>();
     private readonly playerReady$ = new Subject<void>();
+    private readonly activated$ = new BehaviorSubject(false);
     private readonly playbackState$ = new BehaviorSubject<MusicKit.PlaybackStates>(0);
     private readonly element: HTMLElement;
     private readonly src$ = new BehaviorSubject('');
@@ -77,9 +78,10 @@ export class MusicKitPlayer implements Player<string> {
 
         this.observeReady()
             .pipe(
-                mergeMap(() => combineLatest([this.observeSrc(), this.observeIsLoggedIn()])),
-                switchMap(([src, isLoggedIn]) => {
-                    if (isLoggedIn && src && src !== this.loadedSrc) {
+                switchMap(() => this.observeIsLoggedIn()),
+                switchMap((isLoggedIn) => (isLoggedIn ? this.observeSrc() : EMPTY)),
+                switchMap((src) => {
+                    if (src && src !== this.loadedSrc) {
                         if (!this.canPlay(src)) {
                             this.error$.next(Error(ERR_VIDEO_PLAYBACK_NOT_SUPPORTED));
                             return EMPTY;
@@ -179,6 +181,9 @@ export class MusicKitPlayer implements Player<string> {
 
     load(src: string): void {
         logger.log('load');
+        if (this.autoplay) {
+            this.activated$.next(true);
+        }
         this.src$.next(src);
         if (this.player && this.isLoggedIn) {
             if (this.autoplay) {
@@ -195,6 +200,7 @@ export class MusicKitPlayer implements Player<string> {
 
     play(): void {
         logger.log('play');
+        this.activated$.next(true);
         if (this.player && this.isLoggedIn) {
             if (this.src === this.loadedSrc) {
                 this.safePlay();
@@ -239,6 +245,8 @@ export class MusicKitPlayer implements Player<string> {
 
     private observeReady(): Observable<void> {
         return this.playerReady$.pipe(
+            switchMap(() => this.activated$),
+            filter((activated) => activated),
             map(() => undefined),
             take(1)
         );

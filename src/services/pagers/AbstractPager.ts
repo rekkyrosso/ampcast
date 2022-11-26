@@ -4,8 +4,13 @@ import {distinctUntilChanged, filter, map, pairwise, take, tap} from 'rxjs/opera
 import {Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
-import Pager, {PageFetch, PagerConfig} from 'types/Pager';
+import Pager, {PagerConfig} from 'types/Pager';
 import {Logger} from 'utils';
+
+interface PageFetch {
+    readonly index: number;
+    readonly length: number;
+}
 
 const UNINITIALIZED: any[] = [];
 

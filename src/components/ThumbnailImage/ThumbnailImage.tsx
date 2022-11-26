@@ -37,7 +37,7 @@ export default function ThumbnailImage({
 
 function Image({thumbnails, maxSize, className = ''}: ThumbnailImageProps) {
     const thumbnail = findBestThumbnail(thumbnails, maxSize);
-    const url = thumbnail.url.replace('{plex-token}', plexSettings.serverToken);
+    const url = getThumbnailUrl(thumbnail);
 
     return (
         <div
@@ -75,4 +75,8 @@ export function findBestThumbnail(thumbnails: Thumbnail[] = [], maxSize = 360, a
         return smallEnough[0];
     }
     return tooBig[tooBig.length - 1] || defaultThumbnail;
+}
+
+export function getThumbnailUrl(thumbnail: Thumbnail): string {
+    return thumbnail.url.replace('{plex-token}', plexSettings.serverToken);
 }

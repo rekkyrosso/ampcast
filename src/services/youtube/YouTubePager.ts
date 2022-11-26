@@ -13,7 +13,7 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
-import SequentialPager from 'services/SequentialPager';
+import SequentialPager from 'services/pagers/SequentialPager';
 import {youtubeHost} from './youtube';
 
 type YouTubeVideo = gapi.client.youtube.Video;

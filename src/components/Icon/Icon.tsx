@@ -3,6 +3,7 @@ import './Icon.scss';
 
 // Icons from https://fontawesome.com/
 // and https://mui.com/components/material-icons
+// and https://icons.getbootstrap.com/
 
 export type IconName =
     | 'ampcast'
@@ -15,6 +16,7 @@ export type IconName =
     | 'next'
     | 'left'
     | 'right'
+    | 'album'
     | 'locked'
     | 'unlocked'
     | 'info'
@@ -33,6 +35,7 @@ export type IconName =
     | 'recently-added'
     | 'playlists'
     | 'clock'
+    | 'search'
     | 'file'
     | 'blob'
     | 'apple'
@@ -62,7 +65,7 @@ export default function Icon({name, className = ''}: IconProps) {
             return (
                 <svg className={className} viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="8" strokeWidth="4" stroke="orange" fill="black" />
-                    <circle cx="12" cy="12" r="2" strokeWidth="none" fill="white" />
+                    <circle cx="12" cy="12" r="2" stroke="none" fill="white" />
                 </svg>
             );
 
@@ -145,6 +148,14 @@ export default function Icon({name, className = ''}: IconProps) {
                 </svg>
             );
 
+        case 'album':
+            return (
+                <svg className={className} viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="8.5" strokeWidth="6.5" fill="none" />
+                    <circle cx="12" cy="12" r="2" stroke="none" />
+                </svg>
+            );
+
         case 'locked':
             return (
                 <svg className={className} viewBox="0 0 448 512" transform="scale(0.95)">
@@ -203,8 +214,11 @@ export default function Icon({name, className = ''}: IconProps) {
 
         case 'video':
             return (
-                <svg className={className} viewBox="0 0 384 512">
-                    <path d="M369.941 97.941l-83.882-83.882A48 48 0 0 0 252.118 0H48C21.49 0 0 21.49 0 48v416c0 26.51 21.49 48 48 48h288c26.51 0 48-21.49 48-48V131.882a48 48 0 0 0-14.059-33.941zM332.118 128H256V51.882L332.118 128zM48 464V48h160v104c0 13.255 10.745 24 24 24h104v288H48zm228.687-211.303L224 305.374V268c0-11.046-8.954-20-20-20H100c-11.046 0-20 8.954-20 20v104c0 11.046 8.954 20 20 20h104c11.046 0 20-8.954 20-20v-37.374l52.687 52.674C286.704 397.318 304 390.28 304 375.986V264.011c0-14.311-17.309-21.319-27.313-11.314z" />
+                <svg className={className} viewBox="0 0 16 16">
+                    <path
+                        fillRule="evenodd"
+                        d="M0 5a2 2 0 0 1 2-2h7.5a2 2 0 0 1 1.983 1.738l3.11-1.382A1 1 0 0 1 16 4.269v7.462a1 1 0 0 1-1.406.913l-3.111-1.382A2 2 0 0 1 9.5 13H2a2 2 0 0 1-2-2V5zm11.5 5.175 3.5 1.556V4.269l-3.5 1.556v4.35zM2 4a1 1 0 0 0-1 1v6a1 1 0 0 0 1 1h7.5a1 1 0 0 0 1-1V5a1 1 0 0 0-1-1H2z"
+                    />
                 </svg>
             );
 
@@ -251,9 +265,15 @@ export default function Icon({name, className = ''}: IconProps) {
 
         case 'most-played':
             return (
-                <svg className={className} viewBox="0 0 384 512">
-                    <path d="M369.9 97.9L286 14C277 5 264.8-.1 252.1-.1H48C21.5 0 0 21.5 0 48v416c0 26.5 21.5 48 48 48h288c26.5 0 48-21.5 48-48V131.9c0-12.7-5.1-25-14.1-34zM332.1 128H256V51.9l76.1 76.1zM48 464V48h160v104c0 13.3 10.7 24 24 24h104v288H48z" />
-                    <polygon points="130,250 270,325 130,400" stroke="none" />
+                <svg className={className} viewBox="0 0 16 16">
+                    <path
+                        stroke="none"
+                        d="M2 3a.5.5 0 0 0 .5.5h11a.5.5 0 0 0 0-1h-11A.5.5 0 0 0 2 3zm2-2a.5.5 0 0 0 .5.5h7a.5.5 0 0 0 0-1h-7A.5.5 0 0 0 4 1zm2.765 5.576A.5.5 0 0 0 6 7v5a.5.5 0 0 0 .765.424l4-2.5a.5.5 0 0 0 0-.848l-4-2.5z"
+                    />
+                    <path
+                        stroke="none"
+                        d="M1.5 14.5A1.5 1.5 0 0 1 0 13V6a1.5 1.5 0 0 1 1.5-1.5h13A1.5 1.5 0 0 1 16 6v7a1.5 1.5 0 0 1-1.5 1.5h-13zm13-1a.5.5 0 0 0 .5-.5V6a.5.5 0 0 0-.5-.5h-13A.5.5 0 0 0 1 6v7a.5.5 0 0 0 .5.5h13z"
+                    />
                 </svg>
             );
 
@@ -261,6 +281,16 @@ export default function Icon({name, className = ''}: IconProps) {
             return (
                 <svg className={className} viewBox="0 0 512 512">
                     <path d="M256 8C119 8 8 119 8 256s111 248 248 248 248-111 248-248S393 8 256 8zm0 448c-110.5 0-200-89.5-200-200S145.5 56 256 56s200 89.5 200 200-89.5 200-200 200zm61.8-104.4l-84.9-61.7c-3.1-2.3-4.9-5.9-4.9-9.7V116c0-6.6 5.4-12 12-12h32c6.6 0 12 5.4 12 12v141.7l66.8 48.6c5.4 3.9 6.5 11.4 2.6 16.8L334.6 349c-3.9 5.3-11.4 6.5-16.8 2.6z" />
+                </svg>
+            );
+
+        case 'search':
+            return (
+                <svg className={className} viewBox="0 0 16 16">
+                    <path
+                        stroke="none"
+                        d="M15.504 13.616l-3.79-3.223c-0.392-0.353-0.811-0.514-1.149-0.499 0.895-1.048 1.435-2.407 1.435-3.893 0-3.314-2.686-6-6-6s-6 2.686-6 6 2.686 6 6 6c1.486 0 2.845-0.54 3.893-1.435-0.016 0.338 0.146 0.757 0.499 1.149l3.223 3.79c0.552 0.613 1.453 0.665 2.003 0.115s0.498-1.452-0.115-2.003zM6 10c-2.209 0-4-1.791-4-4s1.791-4 4-4 4 1.791 4 4-1.791 4-4 4z"
+                    />
                 </svg>
             );
 

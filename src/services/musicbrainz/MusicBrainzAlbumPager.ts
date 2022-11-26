@@ -6,7 +6,7 @@ import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import Pager, {Page} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
-import SequentialPager from 'services/SequentialPager';
+import SequentialPager from 'services/pagers/SequentialPager';
 import musicbrainzApi from './musicbrainzApi';
 
 export default class MusicBrainzAlbumPager implements Pager<MediaItem> {

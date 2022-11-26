@@ -2,7 +2,7 @@ import {AmbientVideoVisualizer} from 'types/Visualizer';
 
 // Some sample ambient videos to get us started.
 const presets: AmbientVideoVisualizer[] = `
-mo2re_RX3Bs blXien2Jh_o etiatMRgFcM DYsMJiwiZSI _MZ7UZ5frCI 33XT9PQUfVU HCx1Z92PjJE dIP7wWY4Znw
+mo2re_RX3Bs blXien2Jh_o etiatMRgFcM DYsMJiwiZSI _MZ7UZ5frCI HCx1Z92PjJE dIP7wWY4Znw gW4nffCscYs
 A1m0SEqmmbE 9uZ8CCa0t4Y MXlFDpaQ1ec wz_ItcoR0-c jS4-FmNEDKo Tz77vqH_LJw K73lfmxDVR0 W8ayfyRWUrg
 cbuldALGsaQ AJZon2grzmA H5ASEM9dMiA GE2YEq7vaLc MYGOdJNAzrI Oszl95YWfbs b0-IkxXyhmY hoYPURX2RuE
 AgpGXSAS7Cs p-OUNPqRzII XaTxLSPh_Is 1n3ezT1cvAM CWU1pZVw0xM ry1Q7KaQdxM VlC5LSTvoj0 7DUhv7lTAuk
@@ -62,7 +62,7 @@ SH4f_DnPIto v-A03t6-Kss 5rf_gOfa7O4 MYG6FeY4SKg AVzdfRpE9Q0 1UxoHtG2qas o7XgU4ut
 oPetbPLA8dM F41dgN-mwrE tpRBHKAJ_tU sTy4stPcD0E p4jroQX6Hwk y2Zl-KXvdSk zffchwaq6KE jv7hNnJEWPU
 DN-BxbMH264 mWaC_VSncEg 8x5Yzxi3LhA YtWub0hsSbQ McT_FUPZR5k H6Xy97CD9Hs vHf4WQtJvdI nAMkwo2eSbY
 SqMzG8xsynw P0MbbslO62E Bur1ChHBNsQ 1bClbVe4QyI 0Txa_T4pHY4 9Wm8Ij8rHIE 88jpBZdsrT8 MPch_urCew8
-hf3r9TNSsyY gW4nffCscYs
+hf3r9TNSsyY
 `
     .match(/\S+/g)!
     .map((videoId) => ({

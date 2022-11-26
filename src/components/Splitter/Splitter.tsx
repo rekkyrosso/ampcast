@@ -1,5 +1,5 @@
 import React, {Children, useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import layout from 'services/layout';
+import layoutSettings from 'services/layoutSettings';
 import useFontSize from 'hooks/useFontSize';
 import useOnResize from 'hooks/useOnResize';
 import LayoutPane from './LayoutPane';
@@ -28,7 +28,7 @@ export default function Splitter({
     const [primaryMinSize, setPrimaryMinSize] = useState(0);
     const [secondaryMinSize, setSecondaryMinSize] = useState(0);
     const [splitterSize, setSplitterSize] = useState(0);
-    const [secondaryPaneSize, setSecondaryPaneSize] = useState(() => (id ? layout.get(id) : 0));
+    const [secondaryPaneSize, setSecondaryPaneSize] = useState(() => (id ? layoutSettings.get(id) : 0));
     const [dragStartPos, setDragStartPos] = useState(-1);
     const [dragStartSize, setDragStartSize] = useState(0);
     const dragging = dragStartPos !== -1;
@@ -37,7 +37,7 @@ export default function Splitter({
 
     useEffect(() => {
         if (id) {
-            layout.set(id, secondaryPaneSize);
+            layoutSettings.set(id, secondaryPaneSize);
         }
     }, [id, secondaryPaneSize]);
 

@@ -9,7 +9,7 @@ import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
-import SimplePager from 'services/SimplePager';
+import SimplePager from 'services/pagers/SimplePager';
 import {observeAccessToken, observeIsLoggedIn, login, logout, authSettings} from './spotifyAuth';
 import SpotifyPager, {SpotifyPage} from './SpotifyPager';
 import {Logger} from 'utils';
@@ -85,6 +85,20 @@ const spotifyTopTracks: MediaSource<MediaItem> = {
     search(): Pager<MediaItem> {
         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
             return spotifyApi.getMyTopTracks({offset, limit});
+        });
+    },
+};
+
+const spotifyTopArtists: MediaSource<MediaArtist> = {
+    id: 'spotify/top-artists',
+    title: 'Top Artists',
+    icon: 'star',
+    itemType: ItemType.Artist,
+    defaultHidden: true,
+
+    search(): Pager<MediaArtist> {
+        return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
+            return spotifyApi.getMyTopArtists({offset, limit});
         });
     },
 };
@@ -257,6 +271,7 @@ const spotify: MediaService = {
     sources: [
         spotifyRecentlyPlayed,
         spotifyTopTracks,
+        spotifyTopArtists,
         spotifyLikedSongs,
         spotifyLikedAlbums,
         spotifyPlaylists,

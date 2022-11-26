@@ -8,10 +8,12 @@ import {LiteStorage, Logger} from 'utils';
 
 const logger = new Logger('ambientVideoPlayer');
 
+type ProgressRecord = Record<string, number | undefined>;
+
 const html5Player = new HTML5Player('video');
 const youtubePlayer = new YouTubePlayer('ambient');
 const players = [html5Player, youtubePlayer];
-const storage = new LiteStorage('ambientVideoPlayer/progress');
+const storage = new LiteStorage('ambientVideoPlayer');
 
 function selectPlayer(visualizer: AmbientVideoVisualizer) {
     if (visualizer) {
@@ -29,7 +31,8 @@ function loadPlayer(player: Player<string>, visualizer: AmbientVideoVisualizer) 
     const src = visualizer.src;
     if (src.startsWith('youtube:')) {
         const [, , videoId] = src.split(':');
-        const startTime = storage.getNumber(videoId, 120);
+        const progress = storage.getJson<ProgressRecord>('progress', {});
+        const startTime = progress[videoId] || 120;
         player.load(`${src}:${startTime}`);
     } else {
         player.load(src);
@@ -52,7 +55,11 @@ youtubePlayer
         map(Math.round),
         filter((time) => time > 120 && time % 30 === 0),
         withLatestFrom(youtubePlayer.observeVideoId()),
-        tap(([time, videoId]) => storage.setNumber(videoId, time))
+        tap(([time, videoId]) => {
+            const progress = storage.getJson<ProgressRecord>('progress', {});
+            progress[videoId] = time;
+            storage.setJson('progress', progress);
+        })
     )
     .subscribe(logger);
 

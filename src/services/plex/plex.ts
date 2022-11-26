@@ -6,7 +6,7 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import Pager from 'types/Pager';
-import SimplePager from 'services/SimplePager';
+import SimplePager from 'services/pagers/SimplePager';
 import plexSettings from './plexSettings';
 import {observeIsLoggedIn, login, logout} from './plexAuth';
 import PlexPager from './PlexPager';
@@ -129,7 +129,7 @@ function plexSearch<T extends MediaObject>(
     return {
         ...props,
         id: searchType,
-        icon: '',
+        icon: 'search',
         searchable: true,
 
         search({q = ''}: {q?: string} = {}): Pager<T> {

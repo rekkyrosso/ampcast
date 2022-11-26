@@ -7,7 +7,7 @@ import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
-import SimplePager from 'services/SimplePager';
+import SimplePager from 'services/pagers/SimplePager';
 import {observeIsLoggedIn, login, logout} from './youtubeAuth';
 import YouTubePager from './YouTubePager';
 

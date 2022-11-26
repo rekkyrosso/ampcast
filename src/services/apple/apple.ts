@@ -8,7 +8,7 @@ import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
-import SimplePager from 'services/SimplePager';
+import SimplePager from 'services/pagers/SimplePager';
 import {observeIsLoggedIn, login, logout} from './appleAuth';
 import MusicKitPager, {MusicKitPage} from './MusicKitPager';
 
@@ -58,19 +58,30 @@ const appleMusicVideos: MediaSource<MediaItem> = {
     },
 };
 
-// const appleRecentlyAdded: MediaSource<MediaItem> = {
-//     id: 'apple/recently-added',
-//     title: 'Recently Added',
-//     icon: 'recently-added',
-//     itemType: ItemType.Media,
-//     layout: defaultLayout,
+const appleRecommendations: MediaSource<MediaPlaylist> = {
+    id: 'apple/recommendations',
+    title: 'Recommended',
+    icon: 'playlists',
+    itemType: ItemType.Playlist,
+    defaultHidden: true,
 
-//     search(): Pager<MediaItem> {
-//         return new MusicKitPager(
-//             `/v1/me/library/recently-added`, toPage, {pageSizeDeterminedBy: 'response', sequential: true}
-//         );
-//     },
-// };
+    search(): Pager<MediaPlaylist> {
+        return new MusicKitPager(
+            `/v1/me/recommendations`,
+            ({data = [], next: nextPageUrl, meta}: any): MusicKitPage => {
+                const items = data
+                    .map((data: any) =>
+                        data.relationships.contents.data.filter(
+                            (data: any) => data.type === 'playlists'
+                        )
+                    )
+                    .flat();
+                const total = meta?.total;
+                return {items, total, nextPageUrl};
+            }
+        );
+    },
+};
 
 const appleRecentlyPlayed: MediaSource<MediaItem> = {
     id: 'apple/recently-played',
@@ -87,10 +98,10 @@ const appleRecentlyPlayed: MediaSource<MediaItem> = {
     },
 };
 
-const appleLikedSongs: MediaSource<MediaItem> = {
-    id: 'apple/liked-songs',
-    title: 'Liked Songs',
-    icon: 'heart',
+const appleLibrarySongs: MediaSource<MediaItem> = {
+    id: 'apple/library-songs',
+    title: 'My Songs',
+    icon: 'note',
     itemType: ItemType.Media,
     layout: defaultLayout,
     defaultHidden: true,
@@ -103,10 +114,10 @@ const appleLikedSongs: MediaSource<MediaItem> = {
     },
 };
 
-const appleLikedAlbums: MediaSource<MediaAlbum> = {
-    id: 'apple/liked-albums',
-    title: 'Liked Albums',
-    icon: 'heart',
+const appleLibraryAlbums: MediaSource<MediaAlbum> = {
+    id: 'apple/library-albums',
+    title: 'My Albums',
+    icon: 'album',
     itemType: ItemType.Album,
 
     search(): Pager<MediaAlbum> {
@@ -117,9 +128,9 @@ const appleLikedAlbums: MediaSource<MediaAlbum> = {
     },
 };
 
-const applePlaylists: MediaSource<MediaPlaylist> = {
+const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
     id: 'apple/playlists',
-    title: 'Playlists',
+    title: 'My Playlists',
     icon: 'playlists',
     itemType: ItemType.Playlist,
     layout: {
@@ -148,11 +159,11 @@ const apple: MediaService = {
     ],
     sources: [
         appleMusicVideos,
-        // appleRecentlyAdded,
         appleRecentlyPlayed,
-        appleLikedSongs,
-        appleLikedAlbums,
-        applePlaylists,
+        appleLibrarySongs,
+        appleLibraryAlbums,
+        appleLibraryPlaylists,
+        appleRecommendations,
     ],
 
     observeIsLoggedIn,
@@ -167,7 +178,7 @@ function appleSearch<T extends MediaObject>(
     return {
         ...props,
         id: `apple/search/${searchType}`,
-        icon: '',
+        icon: 'search',
         searchable: true,
 
         search({q = ''}: {q?: string} = {}): Pager<T> {
@@ -176,10 +187,8 @@ function appleSearch<T extends MediaObject>(
     };
 }
 
-function toPage(response: any): MusicKitPage {
-    const items = response.data;
-    const nextPageUrl = response.next;
-    const total = response.meta?.total;
+function toPage({data: items = [], next: nextPageUrl, meta}: any): MusicKitPage {
+    const total = meta?.total;
     return {items, total, nextPageUrl};
 }
 

@@ -8,8 +8,9 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
-import SequentialPager from 'services/SequentialPager';
-import SimplePager from 'services/SimplePager';
+import DualPager from 'services/pagers/DualPager';
+import SequentialPager from 'services/pagers/SequentialPager';
+import SimplePager from 'services/pagers/SimplePager';
 import {
     SpotifyAlbum,
     spotifyApi,
@@ -156,6 +157,17 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         };
     }
 
+    private createArtistTopTracks(artist: SpotifyArtist): MediaAlbum {
+        return {
+            itemType: ItemType.Album,
+            src: `spotify:top-tracks:${artist.id}`,
+            title: 'Top Tracks',
+            artist: artist.name,
+            thumbnails: artist.images as Thumbnail[],
+            pager: this.createTopTracksPager(artist),
+        };
+    }
+
     private createMediaPlaylist(playlist: SpotifyPlaylist): MediaPlaylist {
         return {
             itemType: ItemType.Playlist,
@@ -204,13 +216,31 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
 
     private createArtistAlbumsPager(artist: SpotifyArtist): Pager<MediaAlbum> {
         const market = this.getMarket();
+        const topTracks = this.createArtistTopTracks(artist);
+        const topTracksPager = new SimplePager([topTracks]);
+        const albumsPager = new SpotifyPager<MediaAlbum>(
+            async (offset: number, limit: number): Promise<SpotifyPage> => {
+                const {items, total, next} = await spotifyApi.getArtistAlbums(artist.id, {
+                    offset,
+                    limit,
+                    market,
+                    include_groups: 'album,compilation,single',
+                });
+                return {items: items as SpotifyAlbum[], total, next};
+            }
+        );
+        return new DualPager(topTracksPager, albumsPager);
+    }
+
+    private createTopTracksPager(artist: SpotifyArtist): Pager<MediaItem> {
+        const market = this.getMarket();
         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
-            const {items, total, next} = await spotifyApi.getArtistAlbums(artist.id, {
+            const {tracks} = await spotifyApi.getArtistTopTracks(artist.id, market, {
                 offset,
                 limit,
                 market,
             });
-            return {items: items as SpotifyAlbum[], total, next};
+            return {items: tracks as SpotifyTrack[], next: ''};
         });
     }
 

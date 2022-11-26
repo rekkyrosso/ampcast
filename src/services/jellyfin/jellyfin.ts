@@ -9,7 +9,7 @@ import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
-import SimplePager from 'services/SimplePager';
+import SimplePager from 'services/pagers/SimplePager';
 import JellyfinPager from './JellyfinPager';
 import jellyfinSettings from './jellyfinSettings';
 import {observeIsLoggedIn, login, logout} from './jellyfinAuth';
@@ -167,7 +167,7 @@ function createSearch<T extends MediaObject>(
     return {
         ...props,
         id: searchType,
-        icon: '',
+        icon: 'search',
         searchable: true,
 
         search({q = ''}: {q?: string} = {}): Pager<T> {

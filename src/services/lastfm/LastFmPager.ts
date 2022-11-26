@@ -9,7 +9,9 @@ import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import {enhanceWithListenData} from 'services/localdb/listens';
-import SequentialPager from 'services/SequentialPager';
+import DualPager from 'services/pagers/DualPager';
+import SequentialPager from 'services/pagers/SequentialPager';
+import SimplePager from 'services/pagers/SimplePager';
 import {exists} from 'utils';
 import lastfmApi from './lastfmApi';
 import lastfmSettings from './lastfmSettings';
@@ -139,6 +141,17 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
         };
     }
 
+    private createArtistTopTracks(artist: LastFmArtist): MediaAlbum {
+        return {
+            itemType: ItemType.Album,
+            title: 'Top Tracks',
+            thumbnails: this.createThumbnails(artist.image),
+            src: `lastfm:top-tracks:${nanoid()}`,
+            artist: artist.name,
+            pager: this.createTopTracksPager(artist),
+        };
+    }
+
     private createMediaObject(itemType: ItemType, item: LastFmItem): Partial<MediaObject> {
         return {
             itemType: itemType,
@@ -177,7 +190,9 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createArtistAlbumsPager(artist: LastFmArtist): Pager<MediaAlbum> {
-        return new LastFmPager(
+        const topTracks = this.createArtistTopTracks(artist);
+        const topTracksPager = new SimplePager([topTracks]);
+        const albumsPager = new LastFmPager<MediaAlbum>(
             {
                 method: 'artist.getTopAlbums',
                 artist: artist.name,
@@ -191,6 +206,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
             },
             {maxSize: 100, playCountName: 'userplaycount'}
         );
+        return new DualPager(topTracksPager, albumsPager);
     }
 
     private createAlbumPager(album: LastFmAlbum): Pager<MediaItem> {
@@ -216,6 +232,23 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
                 }
             },
             {playCountName: 'userplaycount'}
+        );
+    }
+
+    private createTopTracksPager(artist: LastFmArtist): Pager<MediaItem> {
+        return new LastFmPager(
+            {
+                method: 'artist.getTopTracks',
+                artist: artist.name,
+            },
+            ({toptracks}: any) => {
+                const attr = toptracks['@attr'];
+                const items = toptracks.track;
+                const total = Number(attr.total) || undefined;
+                const atEnd = attr.page === attr.totalPages;
+                return {items, total, atEnd, itemType: ItemType.Media};
+            },
+            {maxSize: 20}
         );
     }
 }

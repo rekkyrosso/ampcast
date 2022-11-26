@@ -8,7 +8,7 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
-import OffsetPager from 'services/OffsetPager';
+import OffsetPager from 'services/pagers/OffsetPager';
 import plexSettings from './plexSettings';
 import plexApi from './plexApi';
 

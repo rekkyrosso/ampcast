@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {map} from 'rxjs/operators';
 import mediaServices from 'services/mediaServices';
 import {isVisible, observeUpdates} from 'services/servicesSettings';
+import {MediaSourceIconName} from 'components/Icon';
 import MediaBrowser from 'components/MediaBrowser';
 import {TreeNode} from 'components/TreeView';
 import MediaSourceLabel from './MediaSourceLabel';
@@ -17,7 +18,7 @@ export default function useMediaSources(): TreeNode<React.ReactNode>[] {
                         id: service.id,
                         label: (
                             <MediaSourceLabel
-                                icon={service.icon}
+                                icon={service.icon as MediaSourceIconName}
                                 text={service.title}
                                 showConnectivity
                             />

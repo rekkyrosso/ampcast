@@ -8,7 +8,9 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
-import SequentialPager from 'services/SequentialPager';
+import DualPager from 'services/pagers/DualPager';
+import SequentialPager from 'services/pagers/SequentialPager';
+import SimplePager from 'services/pagers/SimplePager';
 
 type LibrarySong = Omit<AppleMusicApi.Song, 'type'> & {type: 'library-songs'};
 type LibraryMusicVideo = Omit<AppleMusicApi.Song, 'type'> & {type: 'music-videos'};
@@ -145,10 +147,20 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             title: item.name,
             thumbnails: this.createThumbnails(artist),
             genre: this.getGenre(item),
-            pager: this.createPager(
-                artist.relationships?.albums.href ||
-                    `/v1/catalog/{{storefrontId}}/artists/${artist.id}/albums`
-            ),
+            pager: this.createArtistAlbumsPager(artist),
+        };
+    }
+
+    private createArtistTopTracks(artist: AppleMusicApi.Artist | LibraryArtist): MediaAlbum {
+        const item = this.createFromLibrary<AppleMusicApi.Artist['attributes']>(artist);
+        return {
+            itemType: ItemType.Album,
+            src: `apple:top-tracks:${artist.id}`,
+            title: 'Top Tracks',
+            thumbnails: this.createThumbnails(artist),
+            artist: item.name,
+            genre: this.getGenre(item),
+            pager: this.createTopTracksPager(artist),
         };
     }
 
@@ -227,6 +239,36 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             width: size,
             height: size,
         };
+    }
+
+    private createArtistAlbumsPager(
+        artist: AppleMusicApi.Artist | LibraryArtist
+    ): Pager<MediaAlbum> {
+        const topTracks = this.createArtistTopTracks(artist);
+        const topTracksPager = new SimplePager([topTracks]);
+        const albumsPager = this.createPager<MediaAlbum>(
+            artist.relationships?.albums.href ||
+                `/v1/catalog/{{storefrontId}}/artists/${artist.id}/albums`
+        );
+        return new DualPager(topTracksPager, albumsPager);
+    }
+
+    private createTopTracksPager(artist: AppleMusicApi.Artist | LibraryArtist): Pager<MediaItem> {
+        return new MusicKitPager(
+            artist.href!,
+            (response: any) => {
+                const result = response.data[0]?.views?.['top-songs'] || response;
+                const items = result.data || [];
+                const nextPageUrl = result.next;
+                const total = result.meta?.total;
+                return {items, total, nextPageUrl};
+            },
+            {
+                'limit[artists:top-songs]': '20',
+                views: 'top-songs',
+            },
+            {maxSize: 20}
+        );
     }
 
     private createPager<T extends MediaObject>(

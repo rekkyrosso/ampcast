@@ -12,8 +12,8 @@ import Thumbnail from 'types/Thumbnail';
 import {enhanceWithListenData} from 'services/localdb/listens';
 import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import MusicBrainzAlbumPager from 'services/musicbrainz/MusicBrainzAlbumPager';
-import SequentialPager from 'services/SequentialPager';
-import SimplePager from 'services/SimplePager';
+import SequentialPager from 'services/pagers/SequentialPager';
+import SimplePager from 'services/pagers/SimplePager';
 import listenbrainzApi from './listenbrainzApi';
 
 export default class ListenBrainzStatsPager<T extends MediaObject> implements Pager<T> {
