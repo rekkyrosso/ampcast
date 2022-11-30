@@ -152,6 +152,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             src: artist.uri,
             externalUrl: artist.external_urls.spotify,
             title: artist.name,
+            genre: artist.genres.join(';'),
             thumbnails: artist.images as Thumbnail[],
             pager: this.createArtistAlbumsPager(artist),
         };

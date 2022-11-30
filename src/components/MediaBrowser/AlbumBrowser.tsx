@@ -1,12 +1,13 @@
 import React, {useCallback, useState} from 'react';
 import MediaAlbum from 'types/MediaAlbum';
+import MediaItem from 'types/MediaItem';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Splitter from 'components/Splitter';
 import AlbumList from 'components/MediaList/AlbumList';
 import MediaItemList from 'components/MediaList/MediaItemList';
 import {PagedBrowserProps} from './MediaBrowser';
 
-const defaultAlbumTracksLayout: MediaSourceLayout<MediaAlbum> = {
+const defaultAlbumTracksLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
     fields: ['Index', 'Title', 'Artist', 'Duration'],
 };

@@ -16,7 +16,7 @@ import PlaylistItem from 'types/PlaylistItem';
 import {addListen} from 'services/localdb/listens';
 import playlist from 'services/playlist';
 import visualizerPlayer from 'services/visualizer/player'; // TODO: get rid
-import {LiteStorage, Logger} from 'utils';
+import {formatTime, LiteStorage, Logger} from 'utils';
 import mediaPlayer from './mediaPlayer';
 import playback from './playback';
 
@@ -109,7 +109,7 @@ export function pause(): void {
 }
 
 export function seek(time: number): void {
-    logger.log('seek', {time});
+    logger.log('seek', {time: formatTime(time)});
     mediaPlayer.seek(time);
 }
 
@@ -302,9 +302,12 @@ observePlaybackEnd().pipe(mergeMap(addListen)).subscribe(logger);
 fromEvent(window, 'pagehide').subscribe(kill);
 
 // logging
-observeDuration().subscribe(logger.all('duration'));
+observeDuration().pipe(map(formatTime), distinctUntilChanged()).subscribe(logger.all('duration'));
 observeCurrentTime()
-    .pipe(filter((time) => Math.round(time) % 10 === 0))
+    .pipe(
+        filter((time) => Math.round(time) % 10 === 0),
+        map(formatTime)
+    )
     .subscribe(logger.all('currentTime'));
 observePlaying().subscribe(logger.all('playing'));
 observeEnded().subscribe(logger.all('ended'));

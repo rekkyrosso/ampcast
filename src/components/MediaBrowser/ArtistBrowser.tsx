@@ -1,6 +1,7 @@
 import React, {useCallback, useState} from 'react';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
+import MediaItem from 'types/MediaItem';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Splitter from 'components/Splitter';
 import MediaItemList from 'components/MediaList/MediaItemList';
@@ -13,14 +14,21 @@ const defaultAlbumsLayout: MediaSourceLayout<MediaAlbum> = {
     fields: ['Thumbnail', 'Title', 'Year'],
 };
 
-const defaultAlbumTracksLayout: MediaSourceLayout<MediaAlbum> = {
+const defaultAlbumTracksLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
     fields: ['Index', 'Title', 'Artist', 'Duration'],
+};
+
+const defaultTopTracksLayout: MediaSourceLayout<MediaItem> = {
+    view: 'details',
+    fields: ['Index', 'Title', 'Artist', 'Duration', 'Album', 'Year'],
 };
 
 export default function ArtistBrowser({source, ...props}: PagedBrowserProps<MediaArtist>) {
     const [selectedArtist, setSelectedArtist] = useState<MediaArtist | null>(null);
     const [selectedAlbum, setSelectedAlbum] = useState<MediaAlbum | null>(null);
+    const [defaultTracksLayout, setDefaultTracksLayout] =
+        useState<MediaSourceLayout<MediaItem>>(defaultAlbumTracksLayout);
 
     const handleArtistSelect = useCallback(([artist]: readonly MediaArtist[]) => {
         setSelectedArtist(artist || null);
@@ -28,6 +36,9 @@ export default function ArtistBrowser({source, ...props}: PagedBrowserProps<Medi
 
     const handleAlbumSelect = useCallback(([album]: readonly MediaAlbum[]) => {
         setSelectedAlbum(album || null);
+        setDefaultTracksLayout(
+            /^\w+:top-tracks/.test(album?.src) ? defaultTopTracksLayout : defaultAlbumTracksLayout
+        );
     }, []);
 
     return (
@@ -51,7 +62,7 @@ export default function ArtistBrowser({source, ...props}: PagedBrowserProps<Medi
                         className="album-items"
                         pager={selectedAlbum?.pager}
                         keepAlive={true}
-                        layout={source.tertiaryLayout || defaultAlbumTracksLayout}
+                        layout={source.tertiaryLayout || defaultTracksLayout}
                         unplayable={source.unplayable}
                     />
                 </Splitter>

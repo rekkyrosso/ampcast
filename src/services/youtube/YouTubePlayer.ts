@@ -58,7 +58,8 @@ export default class YouTubePlayer implements Player<string> {
     private readonly size$ = new BehaviorSubject<Size>({width: 0, height: 0});
     private readonly error$ = new Subject<unknown>();
     private readonly ready$ = new Subject<void>();
-    private readonly state$ = new BehaviorSubject<PlayerState>(PlayerState.UNSTARTED);
+    private readonly state$ = new Subject<PlayerState>();
+    private readonly videoId$ = new BehaviorSubject('');
     private readonly element: HTMLElement;
     private readonly targetId: string;
     public autoplay = false;
@@ -136,6 +137,13 @@ export default class YouTubePlayer implements Player<string> {
             )
             .subscribe(logger);
 
+        this.observeState()
+            .pipe(
+                map(() => this.getVideoId(this.player?.getVideoUrl() || '')),
+                tap((videoId) => this.videoId$.next(videoId))
+            )
+            .subscribe(logger);
+
         this.observeError().subscribe(logger.error);
     }
 
@@ -194,7 +202,7 @@ export default class YouTubePlayer implements Player<string> {
                           250
                       ).pipe(
                           map(() => this.player!.getCurrentTime()),
-                          takeUntil(this.observeState().pipe(skip(1)))
+                          takeUntil(this.observeState())
                       )
                     : of(this.player?.getCurrentTime() || 0)
             )
@@ -227,12 +235,8 @@ export default class YouTubePlayer implements Player<string> {
         );
     }
 
-    // Loaded
     observeVideoId(): Observable<string> {
-        return this.observeState().pipe(
-            map(() => this.getVideoId(this.player?.getVideoUrl() || '')),
-            distinctUntilChanged()
-        );
+        return this.videoId$.pipe(distinctUntilChanged());
     }
 
     appendTo(parentElement: HTMLElement): void {

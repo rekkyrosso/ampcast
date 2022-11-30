@@ -17,11 +17,11 @@ export default function PlaylistList({
     ...props
 }: MediaListProps<MediaPlaylist>) {
     const onContextMenu = useCallback(
-        async ([item]: readonly MediaPlaylist[], x: number, y: number) => {
-            const action = await showActionsMenu([item], x, y, unplayable);
+        async ([playlist]: readonly MediaPlaylist[], x: number, y: number) => {
+            const action = await showActionsMenu([playlist], x, y, unplayable);
             switch (action) {
                 case 'info':
-                    showMediaInfoDialog(item);
+                    showMediaInfoDialog(playlist);
                     break;
             }
         },

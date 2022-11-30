@@ -8,7 +8,7 @@ export default function YearPicker({
     value = max,
     onSelect,
 }: DatePickerProps) {
-    const [year, setYear] = useState(String(new Date(value).getFullYear()));
+    const [year, setYear] = useState(() => String(new Date(value).getFullYear()));
     const years = useYears(min, max);
 
     useEffect(() => {

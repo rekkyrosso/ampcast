@@ -110,14 +110,16 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaItem(track: LastFmTrack): MediaItem {
+        const playedAt = track.date ? Number(track.date.uts) || 0 : 0;
+
         return enhanceWithListenData({
             ...(this.createMediaObject(ItemType.Media, track) as MediaItem),
             mediaType: MediaType.Audio,
-            src: `lastfm:track:${nanoid()}`,
+            src: playedAt ? `lastfm:listen:${playedAt}` : `lastfm:track:${nanoid()}`,
             artist: track.artist?.name,
             album: track.album?.['#text'],
             duration: Number(track.duration) || 0,
-            playedAt: track.date ? Number(track.date.uts) || 0 : 0,
+            playedAt,
         });
     }
 

@@ -81,7 +81,7 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
 
     observeDuration(): Observable<number> {
         return this.observeCurrentPlayer().pipe(
-            switchMap((player) => (player ? player.observeDuration() : of(0))),
+            switchMap((player) => (player ? player.observeDuration() : EMPTY)),
             distinctUntilChanged()
         );
     }

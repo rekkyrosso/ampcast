@@ -32,9 +32,14 @@
         .title,
         .artist,
         .owner,
+        .genre,
         .album {
             left: 6em;
             right: 4em;
+
+            .artists & {
+                margin-top: 0.25em;
+            }
         }
 
         .title {
@@ -44,6 +49,7 @@
         }
 
         .artist,
+        .genre,
         .owner {
             top: 1.5em;
             color: var(--grey2-color);
@@ -94,6 +100,7 @@
             .title,
             .artist,
             .owner,
+            .genre,
             .album {
                 left: 4em;
             }
@@ -111,6 +118,7 @@
             }
 
             .artist,
+            .genre,
             .owner {
                 top: 1.25em;
             }
@@ -144,6 +152,7 @@
             .title,
             .artist,
             .owner,
+            .genre,
             .album {
                 right: 0;
             }

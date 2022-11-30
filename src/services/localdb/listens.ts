@@ -35,7 +35,6 @@ export function observeListens(): Observable<readonly Listen[]> {
 }
 
 export async function addListen(state: PlaybackState): Promise<void> {
-    logger.log('addListen', {state});
     try {
         const item = state.currentItem;
         if (!item || !state.startedAt || !state.endedAt) {
@@ -48,14 +47,17 @@ export async function addListen(state: PlaybackState): Promise<void> {
             const playTime = endedAt - startedAt;
             const minTime = 4 * 60;
             if (playTime > minTime || playTime > item.duration / 2) {
+                logger.log('add', {state});
                 await store.items.add({
                     ...item,
                     playedAt: startedAt,
                     lastfmScrobbledAt: 0,
                     listenbrainzScrobbledAt: 0,
                 });
+                return;
             }
         }
+        logger.log('rejected', {state});
     } catch (err) {
         logger.error(err);
     }

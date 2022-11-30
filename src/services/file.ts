@@ -3,6 +3,9 @@ import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
 import MediaType from 'types/MediaType';
 import PlaylistItem from 'types/PlaylistItem';
+import {Logger} from 'utils';
+
+const logger = new Logger('file');
 
 export async function createMediaItemFromFile(file: File): Promise<PlaylistItem> {
     let metadata: IAudioMetadata;
@@ -10,8 +13,8 @@ export async function createMediaItemFromFile(file: File): Promise<PlaylistItem>
     try {
         metadata = await parseBlob(file, {duration: true, skipCovers: true});
     } catch (err) {
-        console.log(`Error parsing file: ${file.name}`);
-        console.log(`music-metadata says: ${err}`);
+        logger.log(`Error parsing file: ${file.name}`);
+        logger.error(err);
         metadata = {format: {}, common: {}} as IAudioMetadata;
     }
 

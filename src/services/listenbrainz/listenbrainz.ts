@@ -20,19 +20,17 @@ export const listenbrainzHistory: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
 
     search({startAt: max_ts = 0}: {startAt?: number} = {}): Pager<MediaItem> {
-        console.log('search/listenbrainz/history', {max_ts});
         return new ListenBrainzHistoryPager(max_ts ? {max_ts} : undefined);
     },
 };
 
-const listenbrainzRecentlyPlayed: MediaSource<MediaItem> = {
+export const listenbrainzRecentlyPlayed: MediaSource<MediaItem> = {
     id: 'listenbrainz/recently-played',
     title: 'Recently Played',
     icon: 'clock',
     itemType: ItemType.Media,
 
     search(): Pager<MediaItem> {
-        console.log('search/listenbrainz/history');
         return new ListenBrainzHistoryPager();
     },
 };

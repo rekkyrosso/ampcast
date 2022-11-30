@@ -27,7 +27,7 @@ export default function MediaSourceSelector<T>({sources, onSourceChange}: MediaS
                         <Input
                             id={`${id}-${source.id}`}
                             type="radio"
-                            name="search-type"
+                            name={id}
                             value={index}
                             defaultChecked={index === 0}
                             onChange={handleSourceChange}

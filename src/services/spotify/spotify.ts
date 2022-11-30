@@ -42,6 +42,11 @@ const defaultLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
 };
 
+const defaultArtistLayout: MediaSourceLayout<MediaArtist> = {
+    view: 'card compact',
+    fields: ['Thumbnail', 'Title', 'Genre'],
+};
+
 function getMarket(): string {
     return authSettings.getString('market');
 }
@@ -94,6 +99,7 @@ const spotifyTopArtists: MediaSource<MediaArtist> = {
     title: 'Top Artists',
     icon: 'star',
     itemType: ItemType.Artist,
+    layout: defaultArtistLayout,
     defaultHidden: true,
 
     search(): Pager<MediaArtist> {
@@ -225,6 +231,7 @@ const spotify: MediaService = {
             icon: '',
             itemType: ItemType.Artist,
             searchable: true,
+            layout: defaultArtistLayout,
 
             search({q = ''}: {q?: string} = {}): Pager<MediaArtist> {
                 if (q) {

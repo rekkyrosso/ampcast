@@ -26,6 +26,6 @@ export default class SimplePager<T> implements Pager<T> {
     }
 
     disconnect(): void {
-        // do nothing
+        this.items.forEach((item) => (item as any).pager?.disconnect());
     }
 }

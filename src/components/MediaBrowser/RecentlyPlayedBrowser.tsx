@@ -1,7 +1,6 @@
 import React, {useEffect, useReducer} from 'react';
 import MediaItem from 'types/MediaItem';
 import MediaSourceLayout from 'types/MediaSourceLayout';
-import useSource from 'hooks/useSource';
 import {PagedBrowserProps} from './MediaBrowser';
 import MediaItemBrowser from './MediaItemBrowser';
 
@@ -10,11 +9,7 @@ const defaultLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'LastPlayed'],
 };
 
-export default function RecentlyPlayedBrowser({
-    source,
-    ...props
-}: PagedBrowserProps<MediaItem>) {
-    const pager = useSource(source);
+export default function RecentlyPlayedBrowser({source, ...props}: PagedBrowserProps<MediaItem>) {
     const [, forceUpdate] = useReducer((i) => i + 1, 0);
 
     useEffect(() => {
@@ -27,7 +22,6 @@ export default function RecentlyPlayedBrowser({
             {...props}
             className="recently-played-browser"
             source={source}
-            pager={pager}
             layout={source.layout || defaultLayout}
         />
     );

@@ -67,7 +67,7 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
             page.atEnd || items.length === this.maxSize || this.emptyCount > this.maxEmptyCount;
         const size = atEnd ? items.length : page.total;
         if (size !== undefined) {
-            this.size$.next(size);
+            this.size$.next(Math.min(size, this.maxSize ?? Infinity));
         }
         this.items$.next(items);
     }

@@ -42,12 +42,11 @@ export const lastfmHistory: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
 
     search({startAt: to = 0}: {startAt?: number} = {}): Pager<MediaItem> {
-        console.log('search/lastfm/history', {to});
         return new LastFmHistoryPager(to ? {to} : undefined);
     },
 };
 
-const lastfmRecentlyPlayed: MediaSource<MediaItem> = {
+export const lastfmRecentlyPlayed: MediaSource<MediaItem> = {
     id: 'lastfm/recently-played',
     title: 'Recently Played',
     icon: 'clock',

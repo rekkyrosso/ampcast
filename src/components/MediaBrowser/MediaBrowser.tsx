@@ -12,8 +12,10 @@ import Login from 'components/Login';
 import SearchBar from 'components/SearchBar';
 import {MediaListProps} from 'components/MediaList';
 import LastFmHistoryBrowser from 'components/services/lastfm/LastFmHistoryBrowser';
+import LastFmRecentlyPlayedBrowser from 'components/services/lastfm/LastFmRecentlyPlayedBrowser';
 import LastFmTopBrowser from 'components/services/lastfm/LastFmTopBrowser';
 import ListenBrainzHistoryBrowser from 'components/services/listenbrainz/ListenBrainzHistoryBrowser';
+import ListenBrainzRecentlyPlayedBrowser from 'components/services/listenbrainz/ListenBrainzRecentlyPlayedBrowser';
 import ListenBrainzTopBrowser from 'components/services/listenbrainz/ListenBrainzTopBrowser';
 import useObservable from 'hooks/useObservable';
 import useSearch from 'hooks/useSearch';
@@ -22,7 +24,6 @@ import ArtistBrowser from './ArtistBrowser';
 import MediaItemBrowser from './MediaItemBrowser';
 import MediaSourceSelector from './MediaSourceSelector';
 import PlaylistBrowser from './PlaylistBrowser';
-import RecentlyPlayedBrowser from './RecentlyPlayedBrowser';
 import useErrorScreen from './useErrorScreen';
 import './MediaBrowser.scss';
 
@@ -73,8 +74,10 @@ function Router<T extends MediaObject>({service, sources}: MediaBrowserProps<T>)
             return <ListenBrainzHistoryBrowser />;
 
         case 'lastfm/recently-played':
+            return <LastFmRecentlyPlayedBrowser />;
+
         case 'listenbrainz/recently-played':
-            return <RecentlyPlayedBrowser source={source as MediaSource<MediaItem>} />;
+            return <ListenBrainzRecentlyPlayedBrowser />;
 
         default:
             return <DefaultBrowser service={service} sources={sources} />;

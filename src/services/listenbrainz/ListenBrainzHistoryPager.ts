@@ -1,4 +1,3 @@
-import {nanoid} from 'nanoid';
 import type {Observable} from 'rxjs';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
@@ -79,13 +78,14 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
         const data = item.track_metadata;
         const info = data.additional_info;
 
+        // examples:
         // listening_from: "Plex/lastfm/jellyfin/Rhythmbox"
-        // origin_url: "https://magdalenabay.bandcamp.com/album/mini-mix-vol-1?from=fanpub_fnb_merch"
+        // origin_url: "https://anyband.bandcamp.com/album/..."
 
         return enhanceWithListenData({
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
-            src: `listenbrainz:listen:${nanoid()}`,
+            src: `listenbrainz:listen:${item.listened_at}`,
             title: data.track_name,
             addedAt: item.inserted_at,
             artist: data.artist_name,

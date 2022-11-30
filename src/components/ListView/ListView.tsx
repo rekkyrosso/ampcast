@@ -142,6 +142,7 @@ export default function ListView<T>({
     const atStart = rowIndex === 0;
     const atEnd = rowIndex === size - 1;
     const busy = keyboardBusy && !(atStart || atEnd);
+    const prevItems = usePrevious(items);
     const [debouncedSelectedItems, setDebouncedSelectedItems] = useState<readonly T[]>(
         () => selectedItems
     );
@@ -161,6 +162,20 @@ export default function ListView<T>({
     useLayoutEffect(() => onSelect?.(debouncedSelectedItems), [debouncedSelectedItems, onSelect]);
 
     useEffect(() => setRowIndex(Math.min(size - 1, rowIndex)), [size, rowIndex]);
+
+    useEffect(() => {
+        if (prevItems && items.length !== prevItems.length) {
+            const prevItem = prevItems[rowIndex];
+            if (prevItem) {
+                const index = items.findIndex(
+                    (item) => item && item[itemKey] === prevItem[itemKey]
+                );
+                if (index !== -1) {
+                    setRowIndex(index);
+                }
+            }
+        }
+    }, [items, prevItems, rowIndex, itemKey]);
 
     useEffect(() => {
         if (!busy) {

@@ -13,9 +13,9 @@ interface PageFetch {
 const logger = new Logger('DualPager');
 
 export default class DualPager<T extends MediaObject> implements Pager<T> {
-    protected readonly fetches$ = new BehaviorSubject<PageFetch>({index: 0});
-    protected subscriptions?: Subscription;
-    protected disconnected = false;
+    private readonly fetches$ = new BehaviorSubject<PageFetch>({index: 0});
+    private subscriptions?: Subscription;
+    private disconnected = false;
 
     constructor(private readonly topPager: Pager<T>, private readonly mainPager: Pager<T>) {}
 
@@ -59,16 +59,16 @@ export default class DualPager<T extends MediaObject> implements Pager<T> {
         this.fetches$.next({index, length});
     }
 
-    protected connect(): void {
+    private connect(): void {
         if (!this.subscriptions) {
             this.subscriptions = new Subscription();
 
             this.subscriptions.add(
                 combineLatest([this.topPager.observeSize(), this.fetches$])
                     .pipe(
-                        tap(([size, fetch]) =>
-                            this.mainPager.fetchAt(Math.min(fetch.index - size, 0), fetch.length)
-                        )
+                        tap(([topSize, fetch]) =>
+                            this.mainPager.fetchAt(Math.max(fetch.index - topSize, 0), fetch.length)
+                        ),
                     )
                     .subscribe(logger)
             );

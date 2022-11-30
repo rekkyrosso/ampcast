@@ -80,8 +80,8 @@ export function formatMonth(date?: number | string | Date): string {
     return formatDate(date).slice(0, 7);
 }
 
-export function formatTime(time: number): string {
-    return new Date(Math.round((time || 0) * 1000))
+export function formatTime(seconds: number): string {
+    return new Date(Math.round((seconds || 0) * 1000))
         .toISOString()
         .slice(11, 19) // time portion of: YYYY-MM-DDTHH:mm:ss.sssZ
         .replace(/^[0:]+(.{4,})$/, '$1'); // remove leading zeroes
