@@ -35,6 +35,14 @@ export default {
         storage.setString('firstScrobbledAt', time);
     },
 
+    get playCount(): number {
+        return storage.getNumber('playCount');
+    },
+
+    set playCount(count: number) {
+        storage.setNumber('playCount', count);
+    },
+
     get removeDuplicates(): boolean {
         return storage.getBoolean('removeDuplicates');
     },

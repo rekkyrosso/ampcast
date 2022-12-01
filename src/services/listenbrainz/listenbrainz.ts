@@ -18,6 +18,7 @@ export const listenbrainzHistory: MediaSource<MediaItem> = {
     title: 'History',
     icon: 'clock',
     itemType: ItemType.Media,
+    defaultHidden: true,
 
     search({startAt: max_ts = 0}: {startAt?: number} = {}): Pager<MediaItem> {
         return new ListenBrainzHistoryPager(max_ts ? {max_ts} : undefined);

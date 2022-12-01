@@ -51,7 +51,7 @@ export class LastFmApi {
         }
     }
 
-    async getUserInfo(): Promise<LastFm.User.Info> {
+    async getUserInfo(): Promise<LastFm.UserInfo> {
         return this.get({
             method: 'user.getInfo',
             user: lastfmSettings.userId,

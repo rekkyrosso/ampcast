@@ -20,6 +20,11 @@ const topTracksLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Thumbnail', 'Title', 'Artist', 'PlayCount'],
 };
 
+const lovedTracksLayout: MediaSourceLayout<MediaItem> = {
+    view: 'card',
+    fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear'],
+};
+
 const albumLayout: MediaSourceLayout<MediaAlbum> = {
     view: 'card compact',
     fields: ['Thumbnail', 'Title', 'Artist', 'Year', 'PlayCount'],
@@ -40,6 +45,7 @@ export const lastfmHistory: MediaSource<MediaItem> = {
     title: 'History',
     icon: 'clock',
     itemType: ItemType.Media,
+    defaultHidden: true,
 
     search({startAt: to = 0}: {startAt?: number} = {}): Pager<MediaItem> {
         return new LastFmHistoryPager(to ? {to} : undefined);
@@ -54,6 +60,34 @@ export const lastfmRecentlyPlayed: MediaSource<MediaItem> = {
 
     search(): Pager<MediaItem> {
         return new LastFmHistoryPager();
+    },
+};
+
+const lastfmLovedTracks: MediaSource<MediaItem> = {
+    id: 'lastfm/loved-tracks',
+    title: 'Loved Tracks',
+    icon: 'heart',
+    itemType: ItemType.Media,
+    layout: lovedTracksLayout,
+    defaultHidden: true,
+
+    search(): Pager<MediaItem> {
+        return new LastFmPager(
+            {
+                method: 'user.getLovedTracks',
+                user: lastfmSettings.userId,
+            },
+            ({lovedtracks}: any) => {
+                const attr = lovedtracks['@attr'] || {};
+                const track = lovedtracks.track;
+                const items = track ? (Array.isArray(track) ? track : [track]) : [];
+                const page = Number(attr.page) || 1;
+                const totalPages = Number(attr.totalPages) || 1;
+                const atEnd = totalPages === 1 || page === totalPages;
+                const total = Number(attr.total) || undefined;
+                return {items, total, atEnd, itemType: ItemType.Media};
+            }
+        );
     },
 };
 
@@ -84,6 +118,7 @@ const lastfm: MediaService = {
             tertiaryLayout: albumTrackLayout,
         }),
         lastfmHistory,
+        lastfmLovedTracks,
     ],
 
     observeIsLoggedIn,

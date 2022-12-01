@@ -7,6 +7,7 @@ export interface LastFmHistoryPagerParams {
     from?: number;
     to?: number;
     limit?: number;
+    page?: number;
 }
 
 export default class LastFmHistoryPager extends LastFmPager<MediaItem> {

@@ -18,12 +18,7 @@ import lastfmSettings from './lastfmSettings';
 
 const lastfmPlaceholderImage = '2a96cbd8b46e442fc41c2b86b821562f.png';
 
-type LastFmTrack = any; // TODO: No last.fm types yet
-type LastFmAlbum = any;
-type LastFmArtist = any;
-type LastFmItem = LastFmTrack | LastFmAlbum | LastFmArtist;
-
-export interface LastFmPage extends Page<LastFmItem> {
+export interface LastFmPage extends Page<LastFm.MediaObject> {
     readonly itemType: ItemType;
 }
 
@@ -45,11 +40,14 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
     private readonly playCountName: 'playcount' | 'userplaycount' = 'playcount';
 
     constructor(
-        params: Record<string, string | number>,
-        map: (response: LastFmItem) => LastFmPage,
+        initialParams: Record<string, string | number>,
+        map: (response: any) => LastFmPage,
         options?: LastFmPagerConfig
     ) {
         const config = {...this.defaultConfig, ...options};
+
+        const {page, ...params} = initialParams;
+        this.pageNumber = Number(page) || 1;
 
         this.playCountName = config.playCountName || 'playcount';
 
@@ -93,23 +91,26 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
         this.pager.fetchAt(index, length);
     }
 
-    private createMediaObjects(itemType: ItemType, items: LastFmItem): readonly T[] {
+    private createMediaObjects(
+        itemType: ItemType,
+        items: readonly LastFm.MediaObject[]
+    ): readonly T[] {
         switch (itemType) {
             case ItemType.Artist:
-                return items.map((item: LastFmArtist) => this.createMediaArtist(item));
+                return items.map((item) => this.createMediaArtist(item as LastFm.Artist) as T);
 
             case ItemType.Album:
-                return items.map((item: LastFmAlbum) => this.createMediaAlbum(item));
+                return items.map((item) => this.createMediaAlbum(item as LastFm.Album) as T);
 
             case ItemType.Media:
-                return items.map((item: LastFmItem) => this.createMediaItem(item));
+                return items.map((item) => this.createMediaItem(item as LastFm.Track) as T);
 
             case ItemType.Playlist:
                 return [];
         }
     }
 
-    private createMediaItem(track: LastFmTrack): MediaItem {
+    private createMediaItem(track: LastFm.Track): MediaItem {
         const playedAt = track.date ? Number(track.date.uts) || 0 : 0;
 
         return enhanceWithListenData({
@@ -123,7 +124,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
         });
     }
 
-    private createMediaAlbum(album: LastFmAlbum): MediaAlbum {
+    private createMediaAlbum(album: LastFm.Album): MediaAlbum {
         return {
             ...(this.createMediaObject(ItemType.Album, album) as MediaAlbum),
             src: `lastfm:album:${nanoid()}`,
@@ -135,7 +136,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
         };
     }
 
-    private createMediaArtist(artist: LastFmArtist): MediaArtist {
+    private createMediaArtist(artist: LastFm.Artist): MediaArtist {
         return {
             ...(this.createMediaObject(ItemType.Artist, artist) as MediaArtist),
             src: `lastfm:artist:${nanoid()}`,
@@ -143,7 +144,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
         };
     }
 
-    private createArtistTopTracks(artist: LastFmArtist): MediaAlbum {
+    private createArtistTopTracks(artist: LastFm.Artist): MediaAlbum {
         return {
             itemType: ItemType.Album,
             title: 'Top Tracks',
@@ -154,11 +155,11 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
         };
     }
 
-    private createMediaObject(itemType: ItemType, item: LastFmItem): Partial<MediaObject> {
+    private createMediaObject(itemType: ItemType, item: LastFm.MediaObject): Partial<MediaObject> {
         return {
             itemType: itemType,
             title: item.name,
-            rating: Number(item.loved) || 0,
+            rating: 'loved' in item ? Number(item.loved) || 0 : undefined,
             playCount: Number(item[this.playCountName]) || undefined,
             globalPlayCount:
                 this.playCountName === 'userplaycount'
@@ -169,7 +170,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
         };
     }
 
-    private createThumbnails(thumbs: any[]): Thumbnail[] | undefined {
+    private createThumbnails(thumbs: readonly LastFm.Thumbnail[]): Thumbnail[] | undefined {
         const result = thumbs
             ? [
                   this.createThumbnail(thumbs[0], 34),
@@ -182,7 +183,11 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
         return result.length === 0 ? undefined : result;
     }
 
-    private createThumbnail(thumb: any, width: number, height = width): Thumbnail | undefined {
+    private createThumbnail(
+        thumb: LastFm.Thumbnail,
+        width: number,
+        height = width
+    ): Thumbnail | undefined {
         if (thumb) {
             const url = thumb['#text'] as string;
             if (url && !url.endsWith(lastfmPlaceholderImage)) {
@@ -191,7 +196,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
         }
     }
 
-    private createArtistAlbumsPager(artist: LastFmArtist): Pager<MediaAlbum> {
+    private createArtistAlbumsPager(artist: LastFm.Artist): Pager<MediaAlbum> {
         const topTracks = this.createArtistTopTracks(artist);
         const topTracksPager = new SimplePager([topTracks]);
         const albumsPager = new LastFmPager<MediaAlbum>(
@@ -211,7 +216,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
         return new DualPager(topTracksPager, albumsPager);
     }
 
-    private createAlbumPager(album: LastFmAlbum): Pager<MediaItem> {
+    private createAlbumPager(album: LastFm.Album): Pager<MediaItem> {
         return new LastFmPager(
             {
                 method: 'album.getInfo',
@@ -221,7 +226,9 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
             },
             ({album}: any) => {
                 if (album.tracks) {
-                    const items = (album.tracks.track || []).map((item: LastFmItem) => ({
+                    const track = album.tracks.track;
+                    const tracks = track ? (Array.isArray(track) ? track : [track]) : [];
+                    const items = tracks.map((item: LastFm.Track) => ({
                         ...item,
                         album: {'#text': album.name},
                         image: item.image || album.image,
@@ -237,7 +244,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
         );
     }
 
-    private createTopTracksPager(artist: LastFmArtist): Pager<MediaItem> {
+    private createTopTracksPager(artist: LastFm.Artist): Pager<MediaItem> {
         return new LastFmPager(
             {
                 method: 'artist.getTopTracks',
