@@ -16,7 +16,7 @@ const logger = new Logger('localdb/listens');
 const UNINITIALIZED: Listen[] = [];
 const listens$ = new BehaviorSubject<readonly Listen[]>(UNINITIALIZED);
 
-class Listens extends Dexie {
+class ListensStore extends Dexie {
     readonly items!: Dexie.Table<Listen, string>;
 
     constructor() {
@@ -28,7 +28,7 @@ class Listens extends Dexie {
     }
 }
 
-const store = new Listens();
+const store = new ListensStore();
 
 export function observeListens(): Observable<readonly Listen[]> {
     return listens$.pipe(filter((items) => items !== UNINITIALIZED));

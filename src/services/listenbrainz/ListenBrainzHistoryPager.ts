@@ -3,9 +3,7 @@ import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import Pager, {Page} from 'types/Pager';
-import Thumbnail from 'types/Thumbnail';
 import {enhanceWithListenData} from 'services/localdb/listens';
-import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import SequentialPager from 'services/pagers/SequentialPager';
 import listenbrainzApi from './listenbrainzApi';
 import listenbrainzSettings from './listenbrainzSettings';
@@ -77,6 +75,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
     private createItem(item: ListenBrainz.Listen): MediaItem {
         const data = item.track_metadata;
         const info = data.additional_info;
+        const mbid = data.mbid_mapping?.recording_mbid || undefined;
 
         // examples:
         // listening_from: "Plex/lastfm/jellyfin/Rhythmbox"
@@ -96,17 +95,13 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             track: info?.tracknumber || info?.track_number,
             disc: info?.discnumber,
             isrc: info?.isrc,
-            recording_mbid: data.mbid_mapping?.recording_mbid,
+            recording_mbid: mbid,
             release_mbid: data.mbid_mapping?.release_mbid,
             playableUrl: info?.origin_url,
             playedAt: item.listened_at,
-            thumbnails: this.createThumbnails(data.mbid_mapping?.release_mbid),
             playableSrc: this.getPlayableSrc(info),
+            externalUrl: mbid ? `https://musicbrainz.org/recording/${mbid}` : undefined,
         });
-    }
-
-    private createThumbnails(mbid: string | undefined): Thumbnail[] | undefined {
-        return mbid ? [musicbrainzApi.getAlbumCover(mbid)] : undefined;
     }
 
     private getPlayableSrc(

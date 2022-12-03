@@ -40,7 +40,8 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         href: string,
         map: (response: any) => MusicKitPage,
         params?: Record<string, string>,
-        options?: Partial<PagerConfig>
+        options?: Partial<PagerConfig>,
+        private readonly album?: AppleMusicApi.Album['attributes']
     ) {
         this.pager = new SequentialPager<T>(async (limit?: number): Promise<Page<T>> => {
             const response = await this.fetchNext(
@@ -178,10 +179,15 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             trackCount: item.trackCount,
             genre: this.getGenre(item),
             year: new Date(item.releaseDate).getFullYear() || 0,
-            pager: this.createPager(album.href!, {
-                'include[library-songs]': 'catalog',
-                'fields[library-songs]': 'playParams,name,artistName,albumName,artwork',
-            }),
+            pager: this.createPager(
+                album.href!,
+                {
+                    'include[library-songs]': 'catalog',
+                    'fields[library-songs]': 'playParams,name,artistName,albumName,artwork',
+                },
+                undefined,
+                item
+            ),
             unplayable: !item.playParams,
         };
     }
@@ -201,7 +207,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             title: item.name,
             thumbnails: this.createThumbnails(song),
             artist: item.artistName,
-            albumArtist: item.albumName ? item.artistName : undefined,
+            albumArtist: this.album ? this.album.artistName : undefined,
             album: item.albumName,
             duration: item.durationInMillis / 1000,
             genre: this.getGenre(item),
@@ -274,7 +280,8 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
     private createPager<T extends MediaObject>(
         href: string,
         params?: Record<string, string>,
-        options?: Partial<PagerConfig>
+        options?: Partial<PagerConfig>,
+        album?: AppleMusicApi.Album['attributes']
     ): Pager<T> {
         return new MusicKitPager(
             href,
@@ -286,7 +293,8 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
                 return {items, total, nextPageUrl};
             },
             params,
-            options
+            options,
+            album
         );
     }
 

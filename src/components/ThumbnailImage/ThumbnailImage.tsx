@@ -1,64 +1,68 @@
-import React from 'react';
-import {SetRequired} from 'type-fest';
+import React, {useEffect, useState} from 'react';
+import {from} from 'rxjs';
+import MediaObject from 'types/MediaObject';
+import ItemType from 'types/ItemType';
 import Thumbnail from 'types/Thumbnail';
-import pixel from 'assets/pixel.png.base64';
+import {getCoverArtThumbnails} from 'services/localdb/coverart';
 import plexSettings from 'services/plex/plexSettings';
 import Icon, {IconName} from 'components/Icon';
 import {partition} from 'utils';
 import './ThumbnailImage.scss';
 
-const defaultThumbnail: Thumbnail = {
-    url: pixel,
-    width: 1,
-    height: 1,
-};
-
 export interface ThumbnailImageProps {
     className?: string;
-    thumbnails?: Thumbnail[];
+    item: MediaObject;
     maxSize?: number;
-    fallbackIcon?: IconName;
 }
 
-export default function ThumbnailImage({
-    thumbnails,
-    maxSize,
-    className = '',
-    fallbackIcon,
-}: ThumbnailImageProps) {
-    return thumbnails?.length ? (
+export default function ThumbnailImage({item, maxSize, className = ''}: ThumbnailImageProps) {
+    const [thumbnails, setThumbnails] = useState(() => item.thumbnails);
+    const hasThumbnails = !!thumbnails?.length;
+
+    useEffect(() => {
+        if (!hasThumbnails) {
+            const subscription = from(getCoverArtThumbnails(item)).subscribe(setThumbnails);
+            return () => subscription.unsubscribe();
+        }
+    }, [hasThumbnails, item]);
+
+    return hasThumbnails ? (
         <Image className={className} thumbnails={thumbnails} maxSize={maxSize} />
-    ) : fallbackIcon ? (
-        <FallbackIcon className={className} fallbackIcon={fallbackIcon} />
+    ) : (
+        <FallbackIcon className={className} item={item} />
+    );
+}
+
+interface ImageProps {
+    className?: string;
+    thumbnails: Thumbnail[];
+    maxSize?: number;
+}
+
+function Image({thumbnails, maxSize, className = ''}: ImageProps) {
+    const thumbnail = findBestThumbnail(thumbnails, maxSize);
+    const backgroundImage = thumbnail ? `url(${getThumbnailUrl(thumbnail)}` : 'none';
+
+    return <div className={`thumbnail-image ${className}`} style={{backgroundImage}} />;
+}
+
+function FallbackIcon({item, className = ''}: ThumbnailImageProps) {
+    const fallbackIcon = getFallbackIcon(item.itemType);
+
+    return fallbackIcon ? (
+        <Icon className={`thumbnail-image ${className}`} name={fallbackIcon} />
     ) : (
         <div className={`thumbnail-image ${className}`} />
     );
 }
 
-function Image({thumbnails, maxSize, className = ''}: ThumbnailImageProps) {
-    const thumbnail = findBestThumbnail(thumbnails, maxSize);
-    const url = getThumbnailUrl(thumbnail);
-
-    return (
-        <div
-            className={`thumbnail-image ${className}`}
-            style={{
-                backgroundImage: `url(${url})`,
-            }}
-        />
-    );
-}
-
-function FallbackIcon({
-    fallbackIcon,
-    className = '',
-}: SetRequired<ThumbnailImageProps, 'fallbackIcon'>) {
-    return <Icon className={`thumbnail-image ${className}`} name={fallbackIcon} />;
-}
-
-export function findBestThumbnail(thumbnails: Thumbnail[] = [], maxSize = 360, aspectRatio = 1) {
+export function findBestThumbnail(
+    thumbnails: Thumbnail[] = [],
+    maxSize = 360,
+    aspectRatio = 1
+): Thumbnail | undefined {
     if (thumbnails.length === 0) {
-        return defaultThumbnail;
+        return;
     }
     thumbnails.sort((a, b) => b.width * b.height - a.width * a.height); // permanent sort
     const isNotTooBig = (thumbnail: Thumbnail) =>
@@ -74,9 +78,22 @@ export function findBestThumbnail(thumbnails: Thumbnail[] = [], maxSize = 360, a
         });
         return smallEnough[0];
     }
-    return tooBig[tooBig.length - 1] || defaultThumbnail;
+    return tooBig[tooBig.length - 1];
 }
 
 export function getThumbnailUrl(thumbnail: Thumbnail): string {
     return thumbnail.url.replace('{plex-token}', plexSettings.serverToken);
+}
+
+function getFallbackIcon(type: ItemType): IconName | undefined {
+    switch (type) {
+        case ItemType.Artist:
+            return 'person';
+
+        case ItemType.Album:
+            return 'album';
+
+        case ItemType.Media:
+            return 'note';
+    }
 }

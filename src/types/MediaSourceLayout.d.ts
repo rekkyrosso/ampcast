@@ -6,6 +6,7 @@ export type Field =
     | 'Artist'
     | 'Title'
     | 'Album'
+    | 'AlbumArtist'
     | 'AlbumAndYear'
     | 'Track'
     | 'Duration'

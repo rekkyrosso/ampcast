@@ -5,7 +5,6 @@ import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import Pager, {Page} from 'types/Pager';
-import Thumbnail from 'types/Thumbnail';
 import SequentialPager from 'services/pagers/SequentialPager';
 import musicbrainzApi from './musicbrainzApi';
 
@@ -55,6 +54,7 @@ export default class MusicBrainzAlbumPager implements Pager<MediaItem> {
 
     private createItem(track: MusicBrainz.Track, album?: Except<MediaAlbum, 'pager'>): MediaItem {
         const recording = track.recording;
+        const mbid = recording.id || undefined;
 
         return {
             itemType: ItemType.Media,
@@ -66,18 +66,14 @@ export default class MusicBrainzAlbumPager implements Pager<MediaItem> {
             album: album?.title,
             duration: track.length / 1000 || 0,
             track: track.number ? Number(track.number) : undefined,
-            recording_mbid: recording.id,
+            recording_mbid: mbid,
             release_mbid: this.mbid,
             year:
                 album?.year ||
                 new Date(recording['first-release-date']).getUTCFullYear() ||
                 undefined,
             playedAt: 0,
-            thumbnails: album?.thumbnails || this.createThumbnails(),
+            externalUrl: mbid ? `https://musicbrainz.org/recording/${mbid}` : undefined,
         };
-    }
-
-    private createThumbnails(): Thumbnail[] {
-        return [musicbrainzApi.getAlbumCover(this.mbid)];
     }
 }

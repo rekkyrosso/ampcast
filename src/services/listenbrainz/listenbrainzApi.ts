@@ -142,6 +142,12 @@ export class ListenBrainzApi {
         if (item.track) {
             info.tracknumber = item.track;
         }
+        if (item.artist_mbids) {
+            info.artist_mbids = item.artist_mbids;
+        }
+        if (item.release_mbid) {
+            info.release_mbid = item.release_mbid;
+        }
         if (item.recording_mbid) {
             info.recording_mbid = item.recording_mbid;
         }

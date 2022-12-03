@@ -35,7 +35,7 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
     return (
         <article className="media-info media-item-info">
             <div className="media-info-main">
-                <Thumbnail thumbnails={item.thumbnails} />
+                <Thumbnail item={item} />
                 <Title title={item.title} />
                 <Artist artist={item.artist} />
                 <AlbumAndYear album={item.album} year={item.year} />
@@ -50,7 +50,7 @@ function AlbumInfo({item: album}: MediaInfoProps<MediaAlbum>) {
     return (
         <article className="media-info album-info">
             <div className="media-info-main">
-                <Thumbnail thumbnails={album.thumbnails} />
+                <Thumbnail item={album} />
                 <Title title={album.title} />
                 <Artist artist={album.artist} />
                 <Year year={album.year} />
@@ -64,7 +64,7 @@ function ArtistInfo({item: artist}: MediaInfoProps<MediaArtist>) {
     return (
         <article className="media-info artist-info">
             <div className="media-info-main">
-                <Thumbnail thumbnails={artist.thumbnails} fallbackIcon="person" />
+                <Thumbnail item={artist} />
                 <Title title={artist.title} />
             </div>
             <ExternalView url={artist.externalUrl} src={artist.src} />
@@ -76,7 +76,7 @@ function PlaylistInfo({item}: MediaInfoProps<MediaPlaylist>) {
     return (
         <article className="media-info playlist-info">
             <div className="media-info-main">
-                <Thumbnail thumbnails={item.thumbnails} />
+                <Thumbnail item={item} />
                 <Title title={item.title} />
                 <Owner owner={item.owner} src={item.src} />
             </div>
@@ -114,7 +114,7 @@ export function ExternalView({src, url}: {src: string; url: string | undefined})
         return null;
     }
 
-    const [source] = src.split(':');
+    let [source] = src.split(':');
     let name = '';
 
     switch (source) {
@@ -134,8 +134,17 @@ export function ExternalView({src, url}: {src: string; url: string | undefined})
             name = 'last.fm';
             break;
 
+        case 'musicbrainz':
+            name = 'MusicBrainz';
+            break;
+
         case 'listenbrainz':
-            name = 'ListenBrainz';
+            if (/musicbrainz/.test(url)) {
+                name = 'MusicBrainz';
+                source = 'musicbrainz';
+            } else {
+                name = 'ListenBrainz';
+            }
             break;
     }
 

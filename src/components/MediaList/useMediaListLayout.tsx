@@ -1,5 +1,4 @@
 import React, {useMemo} from 'react';
-import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
@@ -40,13 +39,19 @@ export const Index: RenderField = (_, rowIndex) => rowIndex + 1;
 export const Title: RenderField = (item) => item.title;
 export const Track: RenderField<MediaItem> = (item) => item.track || '-';
 export const Artist: RenderField<MediaAlbum | MediaItem> = (item) => item.artist;
+export const AlbumArtist: RenderField<MediaItem> = (item) => item.albumArtist;
 export const Album: RenderField<MediaItem> = (item) => item.album;
 export const Duration: RenderField<MediaPlaylist | MediaItem> = (item) => (
     <Time time={item.duration || 0} />
 );
-export const PlayCount: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) =>
-    item.playCount || '';
-export const TrackCount: RenderField<MediaPlaylist | MediaAlbum> = (item) => item.trackCount || '';
+export const PlayCount: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
+    const playCount = Number(item.playCount) || 0;
+    return playCount ? playCount.toLocaleString() : '';
+};
+export const TrackCount: RenderField<MediaPlaylist | MediaAlbum> = (item) => {
+    const trackCount = Number(item.trackCount) || 0;
+    return trackCount ? trackCount.toLocaleString() : '';
+};
 export const Year: RenderField<MediaAlbum | MediaItem> = (item) => item.year || '';
 export const Genre: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) =>
     item.genre?.split(';').join(', ');
@@ -103,18 +108,14 @@ export const AlbumAndYear: RenderField<MediaItem> = (item) =>
     item.album ? (item.year ? `${item.album} (${item.year})` : item.album) : item.year || '';
 
 export const Thumbnail: RenderField = (item) => {
-    return (
-        <ThumbnailImage
-            thumbnails={item.thumbnails}
-            fallbackIcon={item.itemType === ItemType.Artist ? 'person' : undefined}
-        />
-    );
+    return <ThumbnailImage item={item} />;
 };
 
 // TODO: Improve typing.
 const mediaFields: MediaFields<any> = {
     Index: {title: '#', render: Index, className: 'index', align: 'right', width: 60},
     Artist: {title: 'Artist', render: Artist, className: 'artist'},
+    AlbumArtist: {title: 'AlbumArtist', render: AlbumArtist, className: 'artist'},
     Title: {title: 'Title', render: Title, className: 'title'},
     Album: {title: 'Album', render: Album, className: 'album'},
     AlbumAndYear: {title: 'Album', render: AlbumAndYear, className: 'album'},

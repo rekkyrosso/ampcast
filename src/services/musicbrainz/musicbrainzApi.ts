@@ -1,5 +1,3 @@
-import Thumbnail from 'types/Thumbnail';
-
 console.log('module::musicbrainzApi');
 
 export class MusicBrainzApi {
@@ -17,14 +15,6 @@ export class MusicBrainzApi {
     async getRecordingByISRC(isrc: string): Promise<MusicBrainz.Recording | null> {
         const response = await this.get<MusicBrainz.isrc.Response>(`/isrc/${isrc}`);
         return response.recordings[0] || null;
-    }
-
-    getAlbumCover(mbid: string): Thumbnail {
-        return {
-            url: `https://coverartarchive.org/release/${mbid}/front-250`,
-            width: 250,
-            height: 250,
-        };
     }
 
     async get<T>(path: string, params: any = {}): Promise<T> {
