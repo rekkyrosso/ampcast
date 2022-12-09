@@ -14,9 +14,6 @@ export default interface BaseMediaObject<T extends ItemType> {
     readonly globalPlayCount?: number;
     readonly externalUrl?: string;
     readonly thumbnails?: Thumbnail[];
-    readonly recording_mbid?: string; // MusicBrainz ID
-    readonly artist_mbids?: string[];
-    readonly release_mbid?: string;
     readonly owner?: {
         readonly name: string;
         readonly url: string;

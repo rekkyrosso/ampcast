@@ -15,7 +15,7 @@ const youtubePlayer = new YouTubePlayer('main');
 
 const players = [html5AudioPlayer, html5VideoPlayer, youtubePlayer, musicKitPlayer, spotifyPlayer];
 
-function selectPlayer(item: PlaylistItem | null) {
+function selectPlayer(item: PlaylistItem | null): Player<string> | null {
     if (item) {
         if (item.src.startsWith('youtube:')) {
             return youtubePlayer;
@@ -33,7 +33,7 @@ function selectPlayer(item: PlaylistItem | null) {
     }
 }
 
-function loadPlayer(player: Player<string>, item: PlaylistItem | null) {
+function loadPlayer(player: Player<string>, item: PlaylistItem | null): void {
     if (item?.unplayable) {
         throw Error('Unplayable.');
     } else {

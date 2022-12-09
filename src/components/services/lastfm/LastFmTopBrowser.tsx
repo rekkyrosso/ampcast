@@ -13,9 +13,9 @@ interface LastFMPeriodOption {
 
 const options: LastFMPeriodOption[] = [
     {value: 'overall', text: 'All time'},
-    {value: '12month', text: 'Past year'},
-    {value: '1month', text: 'Past month'},
-    {value: '7day', text: 'Past week'},
+    {value: '12month', text: 'Year'},
+    {value: '1month', text: 'Month'},
+    {value: '7day', text: 'Week'},
 ];
 
 export default function LastFmTopBrowser<T extends MediaObject>({

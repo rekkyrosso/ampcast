@@ -3,7 +3,6 @@ import {BehaviorSubject} from 'rxjs';
 import {distinctUntilChanged, map} from 'rxjs/operators';
 import Auth from 'types/Auth';
 import {Logger} from 'utils';
-import settings from './jellyfinSettings';
 import {showJellyfinLoginDialog} from 'components/Login/JellyfinLoginDialog';
 import jellyfinSettings from './jellyfinSettings';
 
@@ -38,7 +37,7 @@ export async function login(): Promise<void> {
             const returnValue = await showJellyfinLoginDialog();
             if (returnValue) {
                 const {userId, token} = JSON.parse(returnValue);
-                settings.userId = userId;
+                jellyfinSettings.userId = userId;
                 setAccessToken(token);
             }
         } catch (err) {
@@ -54,7 +53,7 @@ export async function logout(): Promise<void> {
 }
 
 function setAccessToken(token: string): void {
-    settings.token = token;
+    jellyfinSettings.token = token;
     if (token) {
         logger.log('Access token successfully obtained.');
     }
@@ -69,4 +68,4 @@ const jellyfinAuth: Auth = {
 
 export default jellyfinAuth;
 
-setAccessToken(settings.token);
+setAccessToken(jellyfinSettings.token);

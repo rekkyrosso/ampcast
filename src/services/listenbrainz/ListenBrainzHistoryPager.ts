@@ -78,7 +78,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
         const mbid = data.mbid_mapping?.recording_mbid || undefined;
 
         // examples:
-        // listening_from: "Plex/lastfm/jellyfin/Rhythmbox"
+        // listening_from: "Plex/lastfm/jellyfin/Rhythmbox/..."
         // origin_url: "https://anyband.bandcamp.com/album/..."
 
         return enhanceWithListenData({
@@ -95,12 +95,12 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             track: info?.tracknumber || info?.track_number,
             disc: info?.discnumber,
             isrc: info?.isrc,
+            externalUrl: mbid ? `https://musicbrainz.org/recording/${mbid}` : undefined,
             recording_mbid: mbid,
             release_mbid: data.mbid_mapping?.release_mbid,
-            playableUrl: info?.origin_url,
             playedAt: item.listened_at,
             playableSrc: this.getPlayableSrc(info),
-            externalUrl: mbid ? `https://musicbrainz.org/recording/${mbid}` : undefined,
+            playableUrl: info?.origin_url,
         });
     }
 
@@ -109,13 +109,20 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
     ): string | undefined {
         if (info) {
             if (info.spotify_id) {
-                return this.getSpotifySrc(info?.spotify_id);
+                return this.getSpotifySrc(info.spotify_id);
             }
             if (info.origin_url?.includes('spotify.com')) {
                 return this.getSpotifySrc(info.origin_url);
             }
             if (info.origin_url?.includes('apple.com')) {
                 return this.getAppleSrc(info.origin_url);
+            }
+            const musicServiceName = info.music_service_name?.toLowerCase() || '';
+            const serviceIds = 'jellyfin|spotify|youtube|apple|plex'.split('|');
+            for (const serviceId of serviceIds) {
+                if (musicServiceName.includes(serviceId)) {
+                    return `${serviceId}:`;
+                }
             }
         }
     }

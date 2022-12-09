@@ -23,7 +23,7 @@ const waveform = new Waveform(simpleAnalyser);
 
 const visualizers = [ampshader, audioMotion, milkdrop, spotifyViz, waveform, ambientVideoPlayer];
 
-function selectVisualizer(visualizer: Visualizer) {
+function selectVisualizer(visualizer: Visualizer): Player<Visualizer> | null {
     switch (visualizer.provider) {
         case 'ambient-video':
             return ambientVideoPlayer;
@@ -48,7 +48,7 @@ function selectVisualizer(visualizer: Visualizer) {
     }
 }
 
-function loadVisualizer(player: Player<Visualizer>, visualizer: Visualizer) {
+function loadVisualizer(player: Player<Visualizer>, visualizer: Visualizer): void {
     player.load(visualizer);
 }
 

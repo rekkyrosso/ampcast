@@ -15,6 +15,7 @@ export default function MediaPlayback() {
     const paused = usePaused();
 
     const handlePlay = useCallback(async (item: PlaylistItem) => {
+        mediaPlayback.stop();
         mediaPlayback.autoplay = true;
         await playlist.setCurrentItem(item);
         mediaPlayback.play();

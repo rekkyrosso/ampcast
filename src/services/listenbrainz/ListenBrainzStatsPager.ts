@@ -97,7 +97,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
             itemType: ItemType.Artist,
             src: `listenbrainz:artist:${nanoid()}`,
             title: item.artist_name,
-            artist_mbids: item.artist_mbids,
+            artist_mbid: mbid,
             playCount: item.listen_count,
             pager: new SimplePager(),
             externalUrl: mbid ? `${musicBrainzHost}/artist/${mbid}` : undefined,

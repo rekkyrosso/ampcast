@@ -54,6 +54,7 @@ const appleMusicVideos: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
     searchable: true,
     layout: defaultLayout,
+    defaultHidden: true,
 
     search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
         if (q) {
@@ -107,7 +108,7 @@ const appleRecentlyPlayed: MediaSource<MediaItem> = {
 const appleLibrarySongs: MediaSource<MediaItem> = {
     id: 'apple/library-songs',
     title: 'My Songs',
-    icon: 'note',
+    icon: 'heart',
     itemType: ItemType.Media,
     layout: defaultLayout,
     defaultHidden: true,
@@ -123,7 +124,7 @@ const appleLibrarySongs: MediaSource<MediaItem> = {
 const appleLibraryAlbums: MediaSource<MediaAlbum> = {
     id: 'apple/library-albums',
     title: 'My Albums',
-    icon: 'album',
+    icon: 'heart',
     itemType: ItemType.Album,
 
     search(): Pager<MediaAlbum> {
@@ -136,7 +137,7 @@ const appleLibraryAlbums: MediaSource<MediaAlbum> = {
 
 const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
     id: 'apple/playlists',
-    title: 'My Playlists',
+    title: 'Playlists',
     icon: 'playlists',
     itemType: ItemType.Playlist,
     layout: {

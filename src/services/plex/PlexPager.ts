@@ -6,7 +6,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
-import Pager, {Page} from 'types/Pager';
+import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import OffsetPager from 'services/pagers/OffsetPager';
 import plexSettings from './plexSettings';
@@ -15,17 +15,24 @@ import plexApi from './plexApi';
 type PlexMediaObject = plex.Track | plex.MusicVideo | plex.Album | plex.Artist | plex.Playlist;
 
 export default class PlexPager<T extends MediaObject> implements Pager<T> {
-    static minPageSize = 100;
+    static minPageSize = 10;
     static maxPageSize = 1000;
 
     private readonly pager: Pager<T>;
-    private readonly pageSize = plexSettings.connection?.local
-        ? PlexPager.maxPageSize
-        : PlexPager.minPageSize;
+    private readonly pageSize: number;
 
-    constructor(private readonly path: string, private readonly params?: Record<string, string>) {
+    constructor(
+        private readonly path: string,
+        private readonly params?: Record<string, string>,
+        options?: Partial<PagerConfig>
+    ) {
+        this.pageSize =
+            options?.pageSize || plexSettings.connection?.local
+                ? PlexPager.maxPageSize
+                : 100;
         this.pager = new OffsetPager<T>((pageNumber) => this.fetch(pageNumber), {
             pageSize: this.pageSize,
+            ...options,
         });
     }
 

@@ -58,10 +58,14 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
         }
     }
 
-    fetchAt(index: number, length = 50): void {
+    fetchAt(index: number, length = this.config.pageSize): void {
         if (this.disconnected) {
             logger.warn('disconnected');
             return;
+        }
+
+        if (!length) {
+            length = 50;
         }
 
         if (!this.subscriptions) {

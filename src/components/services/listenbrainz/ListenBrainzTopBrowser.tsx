@@ -29,9 +29,9 @@ interface ListenBrainzRangeOption {
 
 const options: ListenBrainzRangeOption[] = [
     {value: 'all_time', text: 'All time'},
-    {value: 'this_year', text: 'This year'},
-    {value: 'this_month', text: 'This month'},
-    {value: 'this_week', text: 'This week'},
+    {value: 'this_year', text: 'Year'},
+    {value: 'month', text: 'Month'},
+    {value: 'week', text: 'Week'},
 ];
 
 export default function ListenBrainzTopBrowser<T extends MediaObject>({

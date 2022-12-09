@@ -1,4 +1,4 @@
-import type {Observable} from 'rxjs';
+import {Observable, of} from 'rxjs';
 import {EMPTY, BehaviorSubject, Subject, combineLatest, fromEvent} from 'rxjs';
 import {
     debounceTime,
@@ -14,6 +14,7 @@ import MediaPlayback from 'types/MediaPlayback';
 import PlaybackState from 'types/PlaybackState';
 import PlaylistItem from 'types/PlaylistItem';
 import {addListen} from 'services/localdb/listens';
+import lookup from 'services/lookup';
 import playlist from 'services/playlist';
 import visualizerPlayer from 'services/visualizer/player'; // TODO: get rid
 import {formatTime, LiteStorage, Logger} from 'utils';
@@ -69,7 +70,7 @@ export function observePlaybackProgress(interval: number): Observable<PlaybackSt
 }
 
 export function observePlaybackState(): Observable<PlaybackState> {
-    return playback.observeState();
+    return playback.observePlaybackState();
 }
 
 export function observePlaying(): Observable<void> {
@@ -84,7 +85,7 @@ export function appendTo(parentElement: HTMLElement): void {
 }
 
 export function load(item: PlaylistItem | null): void {
-    logger.log('load', item?.title);
+    logger.log('load', {item});
     mediaPlayer.load(item);
     if (mediaPlayer.autoplay) {
         playback.play();
@@ -175,6 +176,14 @@ function unlockLoading(): void {
 function kill(): void {
     killed$.next(undefined);
     stop();
+}
+
+async function getPlayableItem(item: PlaylistItem): Promise<PlaylistItem> {
+    const lookupItem = await lookup(item);
+    if (lookupItem) {
+        return {...item, ...lookupItem} as PlaylistItem;
+    }
+    return item;
 }
 
 const mediaPlayback: MediaPlayback = {
@@ -293,7 +302,8 @@ loadingLocked$
 loadingLocked$
     .pipe(
         distinctUntilChanged(),
-        switchMap((locked) => (locked ? EMPTY : observeCurrentItem()))
+        switchMap((locked) => (locked ? EMPTY : observeCurrentItem())),
+        switchMap((item) => (item ? getPlayableItem(item) : of(null)))
     )
     .subscribe(load);
 

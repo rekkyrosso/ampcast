@@ -15,7 +15,7 @@ const youtubePlayer = new YouTubePlayer('ambient');
 const players = [html5Player, youtubePlayer];
 const storage = new LiteStorage('ambientVideoPlayer');
 
-function selectPlayer(visualizer: AmbientVideoVisualizer) {
+function selectPlayer(visualizer: AmbientVideoVisualizer): Player<string> | null {
     if (visualizer) {
         if (visualizer.src.startsWith('youtube:')) {
             return youtubePlayer;
@@ -27,7 +27,7 @@ function selectPlayer(visualizer: AmbientVideoVisualizer) {
     }
 }
 
-function loadPlayer(player: Player<string>, visualizer: AmbientVideoVisualizer) {
+function loadPlayer(player: Player<string>, visualizer: AmbientVideoVisualizer): void {
     const src = visualizer.src;
     if (src.startsWith('youtube:')) {
         const [, , videoId] = src.split(':');

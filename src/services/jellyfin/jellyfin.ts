@@ -8,7 +8,7 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
-import Pager from 'types/Pager';
+import Pager, {PagerConfig} from 'types/Pager';
 import SimplePager from 'services/pagers/SimplePager';
 import JellyfinPager from './JellyfinPager';
 import jellyfinSettings from './jellyfinSettings';
@@ -22,12 +22,19 @@ const defaultLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Artist', 'Title', 'Album', 'Track', 'Duration', 'Genre', 'PlayCount'],
 };
 
-function search<T extends MediaObject>(q: string, type = 'Audio'): Pager<T> {
+export function jellyfinSearch<T extends MediaObject>(
+    q: string,
+    type = 'Audio',
+    options?: Partial<PagerConfig>
+): Pager<T> {
     if (q) {
-        return createJellyfinItemsPager({
-            SearchTerm: q,
-            IncludeItemTypes: type,
-        });
+        return createJellyfinItemsPager(
+            {
+                SearchTerm: q,
+                IncludeItemTypes: type,
+            },
+            options
+        );
     } else {
         return new SimplePager<T>();
     }
@@ -116,8 +123,11 @@ const jellyfinPlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
-function createJellyfinItemsPager<T extends MediaObject>(params: Record<string, string>): Pager<T> {
-    return new JellyfinPager(`Users/${jellyfinSettings.userId}/Items`, params);
+function createJellyfinItemsPager<T extends MediaObject>(
+    params: Record<string, string>,
+    options?: Partial<PagerConfig>
+): Pager<T> {
+    return new JellyfinPager(`Users/${jellyfinSettings.userId}/Items`, params, options);
 }
 
 const jellyfin: MediaService = {
@@ -162,7 +172,8 @@ const jellyfin: MediaService = {
 
 function createSearch<T extends MediaObject>(
     searchType: string,
-    props: Except<MediaSource<T>, 'id' | 'icon' | 'search'>
+    props: Except<MediaSource<T>, 'id' | 'icon' | 'search'>,
+    options?: Partial<PagerConfig>
 ): MediaSource<T> {
     return {
         ...props,
@@ -171,7 +182,7 @@ function createSearch<T extends MediaObject>(
         searchable: true,
 
         search({q = ''}: {q?: string} = {}): Pager<T> {
-            return search(q, searchType);
+            return jellyfinSearch(q, searchType, options);
         },
     };
 }

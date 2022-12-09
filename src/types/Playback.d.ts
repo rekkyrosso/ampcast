@@ -3,7 +3,7 @@ import PlaybackState from './PlaybackState';
 
 export default interface Playback {
     paused: boolean;
-    observeState(): Observable<PlaybackState>;
+    observePlaybackState(): Observable<PlaybackState>;
     observePlaybackStart(): Observable<PlaybackState>;
     observePlaybackEnd(): Observable<PlaybackState>;
     observePlaybackProgress(interval: number): Observable<PlaybackState>;

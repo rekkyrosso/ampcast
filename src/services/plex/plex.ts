@@ -5,7 +5,7 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
-import Pager from 'types/Pager';
+import Pager, {PagerConfig} from 'types/Pager';
 import SimplePager from 'services/pagers/SimplePager';
 import plexSettings from './plexSettings';
 import {observeIsLoggedIn, login, logout} from './plexAuth';
@@ -14,12 +14,20 @@ import './plexReporting';
 
 console.log('module::plex');
 
-function search<T extends MediaObject>(q: string, mediaType: string): Pager<T> {
+export function plexSearch<T extends MediaObject>(
+    q: string,
+    mediaType = '10',
+    options?: Partial<PagerConfig>
+): Pager<T> {
     if (q) {
-        return new PlexPager<T>(`/library/sections/${plexSettings.libraryId}/all`, {
-            title: q,
-            type: mediaType,
-        });
+        return new PlexPager<T>(
+            `/library/sections/${plexSettings.libraryId}/all`,
+            {
+                title: q,
+                type: mediaType,
+            },
+            options
+        );
     } else {
         return new SimplePager<T>();
     }
@@ -110,10 +118,10 @@ const plex: MediaService = {
     icon: 'plex',
     url: 'https://www.plex.tv/',
     roots: [
-        plexSearch('10', {title: 'Songs', itemType: ItemType.Media}),
-        plexSearch('9', {title: 'Albums', itemType: ItemType.Album}),
-        plexSearch('8', {title: 'Artists', itemType: ItemType.Artist}),
-        plexSearch('15', {title: 'Playlists', itemType: ItemType.Playlist}),
+        createSearch('10', {title: 'Songs', itemType: ItemType.Media}),
+        createSearch('9', {title: 'Albums', itemType: ItemType.Album}),
+        createSearch('8', {title: 'Artists', itemType: ItemType.Artist}),
+        createSearch('15', {title: 'Playlists', itemType: ItemType.Playlist}),
     ],
     sources: [plexMusicVideo, plexMostPlayed, plexRecentlyPlayed, plexTopRated, plexPlaylists],
 
@@ -122,9 +130,9 @@ const plex: MediaService = {
     logout,
 };
 
-function plexSearch<T extends MediaObject>(
+function createSearch<T extends MediaObject>(
     searchType: string,
-    props: Except<MediaSource<T>, 'id' | 'icon' | 'search'>,
+    props: Except<MediaSource<T>, 'id' | 'icon' | 'search'>
 ): MediaSource<T> {
     return {
         ...props,
@@ -133,7 +141,7 @@ function plexSearch<T extends MediaObject>(
         searchable: true,
 
         search({q = ''}: {q?: string} = {}): Pager<T> {
-            return search(q, searchType);
+            return plexSearch(q, searchType);
         },
     };
 }

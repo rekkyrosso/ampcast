@@ -105,7 +105,7 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
         const startIndex = Math.max(index - proximity, 0);
         const lastIndex = Math.min(
             index + proximity + length - 1,
-            size === 0 ? Infinity : size - 1
+            size === 0 ? (this.maxSize ? this.maxSize - 1 : Infinity) : size - 1
         );
         const firstPageNumber = this.getPageNumberFromIndex(startIndex);
         const lastPageNumber = this.getPageNumberFromIndex(lastIndex);

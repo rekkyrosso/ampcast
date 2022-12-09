@@ -115,7 +115,7 @@ export const Thumbnail: RenderField = (item) => {
 const mediaFields: MediaFields<any> = {
     Index: {title: '#', render: Index, className: 'index', align: 'right', width: 60},
     Artist: {title: 'Artist', render: Artist, className: 'artist'},
-    AlbumArtist: {title: 'AlbumArtist', render: AlbumArtist, className: 'artist'},
+    AlbumArtist: {title: 'Album Artist', render: AlbumArtist, className: 'artist'},
     Title: {title: 'Title', render: Title, className: 'title'},
     Album: {title: 'Album', render: Album, className: 'album'},
     AlbumAndYear: {title: 'Album', render: AlbumAndYear, className: 'album'},

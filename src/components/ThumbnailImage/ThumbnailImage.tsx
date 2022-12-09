@@ -3,7 +3,7 @@ import {from} from 'rxjs';
 import MediaObject from 'types/MediaObject';
 import ItemType from 'types/ItemType';
 import Thumbnail from 'types/Thumbnail';
-import {getCoverArtThumbnails} from 'services/localdb/coverart';
+import {getCoverArtThumbnails} from 'services/musicbrainz/coverart';
 import plexSettings from 'services/plex/plexSettings';
 import Icon, {IconName} from 'components/Icon';
 import {partition} from 'utils';
@@ -29,7 +29,7 @@ export default function ThumbnailImage({item, maxSize, className = ''}: Thumbnai
     return hasThumbnails ? (
         <Image className={className} thumbnails={thumbnails} maxSize={maxSize} />
     ) : (
-        <FallbackIcon className={className} item={item} />
+        <Placeholder className={className} item={item} />
     );
 }
 
@@ -46,7 +46,7 @@ function Image({thumbnails, maxSize, className = ''}: ImageProps) {
     return <div className={`thumbnail-image ${className}`} style={{backgroundImage}} />;
 }
 
-function FallbackIcon({item, className = ''}: ThumbnailImageProps) {
+function Placeholder({item, className = ''}: ThumbnailImageProps) {
     const fallbackIcon = getFallbackIcon(item.itemType);
 
     return fallbackIcon ? (

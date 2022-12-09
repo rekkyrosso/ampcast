@@ -7,25 +7,28 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
-import Pager, {Page} from 'types/Pager';
+import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import OffsetPager from 'services/pagers/OffsetPager';
 import jellyfinSettings from './jellyfinSettings';
 import jellyfinApi from './jellyfinApi';
 
 export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
-    static minPageSize = 100;
+    static minPageSize = 10;
     static maxPageSize = 1000;
 
     private readonly pager: Pager<T>;
-    private readonly pageSize = JellyfinPager.minPageSize;
+    private readonly pageSize: number;
 
     constructor(
         private readonly path: string,
-        private readonly params: Record<string, string> = {}
+        private readonly params: Record<string, string> = {},
+        options?: Partial<PagerConfig>
     ) {
+        this.pageSize = options?.pageSize || 100;
         this.pager = new OffsetPager<T>((pageNumber) => this.fetch(pageNumber), {
             pageSize: this.pageSize,
+            ...options,
         });
     }
 

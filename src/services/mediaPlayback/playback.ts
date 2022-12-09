@@ -25,19 +25,19 @@ export const defaultPlaybackState: PlaybackState = {
 
 const playbackState$ = new BehaviorSubject<PlaybackState>(defaultPlaybackState);
 
-export function observeState(): Observable<PlaybackState> {
+export function observePlaybackState(): Observable<PlaybackState> {
     return playbackState$;
 }
 
 export function observePlaybackStart(): Observable<PlaybackState> {
-    return observeState().pipe(
+    return observePlaybackState().pipe(
         filter((state) => state.startedAt !== 0),
         distinctUntilChanged((a, b) => a.startedAt === b.startedAt)
     );
 }
 
 export function observePlaybackEnd(): Observable<PlaybackState> {
-    return observeState().pipe(
+    return observePlaybackState().pipe(
         filter((state) => state.endedAt !== 0),
         distinctUntilChanged((a, b) => a.endedAt === b.endedAt)
     );
@@ -46,7 +46,7 @@ export function observePlaybackEnd(): Observable<PlaybackState> {
 export function observePlaybackProgress(interval = 10_000): Observable<PlaybackState> {
     return observePlaybackStart().pipe(
         switchMap(() =>
-            observeState().pipe(
+            observePlaybackState().pipe(
                 throttleTime(interval, undefined, {trailing: true}),
                 takeUntil(observePlaybackEnd())
             )
@@ -55,21 +55,21 @@ export function observePlaybackProgress(interval = 10_000): Observable<PlaybackS
 }
 
 export function observeCurrentTime(): Observable<number> {
-    return observeState().pipe(
+    return observePlaybackState().pipe(
         map((state) => state.currentTime),
         distinctUntilChanged()
     );
 }
 
 export function observeDuration(): Observable<number> {
-    return observeState().pipe(
+    return observePlaybackState().pipe(
         map((state) => state.duration),
         distinctUntilChanged()
     );
 }
 
 export function observePaused(): Observable<boolean> {
-    return observeState().pipe(
+    return observePlaybackState().pipe(
         map((state) => state.paused),
         distinctUntilChanged()
     );
@@ -170,7 +170,7 @@ const playback: Playback = {
     get paused(): boolean {
         return playbackState$.getValue().paused;
     },
-    observeState,
+    observePlaybackState,
     observePlaybackStart,
     observePlaybackEnd,
     observePlaybackProgress,
