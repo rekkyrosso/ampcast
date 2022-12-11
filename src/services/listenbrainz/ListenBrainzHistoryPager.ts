@@ -99,8 +99,10 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             recording_mbid: mbid,
             release_mbid: data.mbid_mapping?.release_mbid,
             playedAt: item.listened_at,
-            playableSrc: this.getPlayableSrc(info),
-            playableUrl: info?.origin_url,
+            link: {
+                src: this.getPlayableSrc(info) || '',
+                externalUrl: info?.origin_url,
+            },
         });
     }
 

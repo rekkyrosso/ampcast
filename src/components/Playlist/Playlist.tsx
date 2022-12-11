@@ -17,9 +17,10 @@ type NotRequired = 'items' | 'itemKey' | 'layout' | 'sortable' | 'droppableTypes
 
 export interface PlaylistProps extends Except<ListViewProps<PlaylistItem>, NotRequired> {
     onPlay?: (item: PlaylistItem) => void;
+    onEject?: () => void;
 }
 
-export default function Playlist({onSelect, onPlay, ...props}: PlaylistProps) {
+export default function Playlist({onSelect, onPlay, onEject, ...props}: PlaylistProps) {
     const listViewRef = useRef<ListViewHandle>(null);
     const items = useObservable(playlist.observe, []);
     const size = items.length;
@@ -59,6 +60,17 @@ export default function Playlist({onSelect, onPlay, ...props}: PlaylistProps) {
             }
         },
         [onPlay]
+    );
+
+    const handleDelete = useCallback(
+        (items: readonly PlaylistItem[]) => {
+            if (items.length === 1 && items[0] === currentlyPlaying) {
+                onEject?.();
+            } else {
+                playlist.remove(items);
+            }
+        },
+        [onEject, currentlyPlaying]
     );
 
     const handleInfo = useCallback(([item]: readonly PlaylistItem[]) => {
@@ -105,7 +117,7 @@ export default function Playlist({onSelect, onPlay, ...props}: PlaylistProps) {
                 multiSelect={true}
                 reorderable={true}
                 onContextMenu={handleContextMenu}
-                onDelete={playlist.remove}
+                onDelete={handleDelete}
                 onDoubleClick={handleDoubleClick}
                 onDrop={playlist.insertAt}
                 onEnter={handleEnter}

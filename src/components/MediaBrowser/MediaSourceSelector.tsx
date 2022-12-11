@@ -1,13 +1,17 @@
 import React, {useCallback, useId} from 'react';
+import MediaObject from 'types/MediaObject';
 import MediaSource from 'types/MediaSource';
 import Input from 'components/Input';
 
-export interface MediaSourceSelectorProps<T> {
+export interface MediaSourceSelectorProps<T extends MediaObject> {
     sources: readonly MediaSource<T>[];
     onSourceChange?: (source: MediaSource<T>) => void;
 }
 
-export default function MediaSourceSelector<T>({sources, onSourceChange}: MediaSourceSelectorProps<T>) {
+export default function MediaSourceSelector<T extends MediaObject>({
+    sources,
+    onSourceChange,
+}: MediaSourceSelectorProps<T>) {
     const id = useId();
 
     const handleSourceChange = useCallback(

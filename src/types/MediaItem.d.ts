@@ -16,9 +16,11 @@ export default interface MediaItem extends BaseMediaObject<ItemType.Media> {
     readonly aspectRatio?: number;
     readonly unplayable?: boolean;
     readonly isrc?: string;
-    readonly playableSrc?: string;
-    readonly playableUrl?: string;
     readonly recording_mbid?: string; // MusicBrainz ID
     readonly release_mbid?: string;
     readonly artist_mbids?: string[];
+    readonly link?: {
+        readonly src: string;
+        readonly externalUrl?: string;
+    };
 }

@@ -40,7 +40,7 @@ export default function MediaItemList({
                 case 'play':
                     mediaPlayback.autoplay = true;
                     await playlist.insertAt(items, currentlyPlayingIndex + 1);
-                    await playlist.next();
+                    playlist.next();
                     break;
 
                 case 'play-next':
@@ -78,7 +78,7 @@ export default function MediaItemList({
                     // Play Now
                     mediaPlayback.autoplay = true;
                     await playlist.insertAt(items, currentlyPlayingIndex + 1);
-                    await playlist.next();
+                    playlist.next();
                 } else if (shiftKey && !ctrlKey) {
                     // Play Next
                     await playlist.insertAt(items, currentlyPlayingIndex + 1);

@@ -1,6 +1,7 @@
 import {Except} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
+import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaService from 'types/MediaService';
@@ -35,7 +36,7 @@ const albumTrackLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Index', 'Title', 'Artist'],
 };
 
-const artistLayout: MediaSourceLayout<MediaAlbum> = {
+const artistLayout: MediaSourceLayout<MediaArtist> = {
     view: 'card minimal',
     fields: ['Thumbnail', 'Title', 'PlayCount'],
 };

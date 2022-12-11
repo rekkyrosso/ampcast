@@ -2,10 +2,8 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import {filter} from 'rxjs/operators';
 import Dexie, {liveQuery} from 'dexie';
-import ItemType from 'types/ItemType';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
-import MediaObject from 'types/MediaObject';
 import PlaybackState from 'types/PlaybackState';
 import {Logger, matchString} from 'utils';
 
@@ -123,29 +121,27 @@ export function findListen(item: MediaItem, timeFuzziness = 5): Listen | undefin
     }
 }
 
-export function enhanceWithListenData<T extends MediaObject>(item: T): T {
-    switch (item.itemType) {
-        case ItemType.Media: {
-            const listens = getListens();
-            const listen =
-                listens.find(
-                    (listen) =>
-                        item.playableSrc === listen.src ||
-                        (item.playableUrl && item.playableUrl === listen.externalUrl) ||
-                        (item.isrc && item.isrc === listen.isrc) ||
-                        (item.recording_mbid && item.recording_mbid === listen.recording_mbid) ||
-                        (matchArtist(item, listen) && matchTitle(item, listen))
-                ) || findListen(item);
-            if (listen) {
-                return {
-                    ...item,
-                    playableSrc: listen.src,
-                    playableUrl: listen.externalUrl,
-                    duration: listen.duration,
-                    thumbnails: listen.thumbnails || item.thumbnails,
-                };
-            }
-        }
+export function enhanceWithListenData(item: MediaItem): MediaItem {
+    const listen =
+        findListen(item) ||
+        getListens().find(
+            (listen) =>
+                item.link?.src === listen.src ||
+                (item.link?.externalUrl && item.link.externalUrl === listen.externalUrl) ||
+                (item.isrc && item.isrc === listen.isrc) ||
+                (item.recording_mbid && item.recording_mbid === listen.recording_mbid) ||
+                (matchArtist(item, listen) && matchTitle(item, listen))
+        );
+    if (listen) {
+        return {
+            ...item,
+            duration: listen.duration,
+            thumbnails: listen.thumbnails || item.thumbnails,
+            link: {
+                src: listen.src,
+                externalUrl: listen.externalUrl,
+            },
+        };
     }
     return item;
 }

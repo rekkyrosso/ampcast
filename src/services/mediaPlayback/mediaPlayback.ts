@@ -8,6 +8,7 @@ import {
     mergeMap,
     switchMap,
     takeUntil,
+    tap,
     withLatestFrom,
 } from 'rxjs/operators';
 import MediaPlayback from 'types/MediaPlayback';
@@ -140,6 +141,11 @@ export function next(): void {
         lockLoading();
         playlist.next();
     }
+}
+
+export function eject(): void {
+    lockLoading();
+    playlist.eject();
 }
 
 export function shuffle(): void {
@@ -303,7 +309,9 @@ loadingLocked$
     .pipe(
         distinctUntilChanged(),
         switchMap((locked) => (locked ? EMPTY : observeCurrentItem())),
-        switchMap((item) => (item ? getPlayableItem(item) : of(null)))
+        tap(logger.all('currentItem')),
+        switchMap((item) => (item ? getPlayableItem(item) : of(null))),
+        tap(logger.all('playableItem'))
     )
     .subscribe(load);
 

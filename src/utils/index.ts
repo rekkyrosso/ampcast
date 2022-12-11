@@ -1,5 +1,5 @@
 import {take, takeUntil} from 'rxjs/operators';
-import score from 'string-score';
+import stringScore from 'string-score';
 import Pager from 'types/Pager';
 export {default as LiteStorage} from './LiteStorage';
 export {default as Logger} from './Logger';
@@ -10,7 +10,7 @@ export function exists<T>(value: T): value is NonNullable<T> {
 }
 
 export function matchString(string1: string, string2: string, tolerance = 0.9): boolean {
-    return score(string1, string2) >= tolerance || score(string2, string1) >= tolerance;
+    return stringScore(string1, string2) >= tolerance || stringScore(string2, string1) >= tolerance;
 }
 
 export function fetchFirstPage<T>(pager: Pager<T>): Promise<readonly T[]> {

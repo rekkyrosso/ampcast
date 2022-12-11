@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import PlaylistItem from 'types/PlaylistItem';
-import mediaPlayback from 'services/mediaPlayback';
+import mediaPlayback, {eject} from 'services/mediaPlayback';
 import playlist from 'services/playlist';
 import Media from 'components/Media';
 import MediaPlaybackBar from 'components/MediaPlaybackBar';
@@ -14,10 +14,10 @@ console.log('component::MediaPlayback');
 export default function MediaPlayback() {
     const paused = usePaused();
 
-    const handlePlay = useCallback(async (item: PlaylistItem) => {
+    const handlePlay = useCallback((item: PlaylistItem) => {
         mediaPlayback.stop();
         mediaPlayback.autoplay = true;
-        await playlist.setCurrentItem(item);
+        playlist.setCurrentItem(item);
         mediaPlayback.play();
     }, []);
 
@@ -26,7 +26,7 @@ export default function MediaPlayback() {
             <Splitter id="media-playback-layout" arrange="rows">
                 <div className="panel playback">
                     <MediaPlaybackBar />
-                    <Playlist onPlay={handlePlay} />
+                    <Playlist onPlay={handlePlay} onEject={eject} />
                 </div>
                 <Media />
             </Splitter>

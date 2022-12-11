@@ -28,7 +28,7 @@ export default function AlbumList({
                 case 'play':
                     mediaPlayback.autoplay = true;
                     await playlist.insertAt(album, currentlyPlayingIndex + 1);
-                    await playlist.next();
+                    playlist.next();
                     break;
 
                 case 'play-next':
@@ -66,7 +66,7 @@ export default function AlbumList({
                     // Play Now
                     mediaPlayback.autoplay = true;
                     await playlist.insertAt(album, currentlyPlayingIndex + 1);
-                    await playlist.next();
+                    playlist.next();
                 } else if (shiftKey && !ctrlKey) {
                     // Play Next
                     await playlist.insertAt(album, currentlyPlayingIndex + 1);

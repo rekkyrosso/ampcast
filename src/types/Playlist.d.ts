@@ -10,15 +10,16 @@ export default interface Playlist {
     observeCurrentIndex(): Observable<number>;
     observeCurrentItem(): Observable<PlaylistItem | null>;
     observeSize(): Observable<number>;
-    getCurrentItem(): Promise<PlaylistItem | null>;
-    setCurrentItem(item: PlaylistItem): Promise<void>;
+    getCurrentItem(): PlaylistItem | null;
+    setCurrentItem(item: PlaylistItem): void;
     add(album: MediaAlbum): Promise<void>;
     add(item: MediaItem): Promise<void>;
     add(items: readonly MediaItem[]): Promise<void>;
     add(file: File): Promise<void>;
     add(files: readonly File[]): Promise<void>;
     add(files: FileList): Promise<void>;
-    clear(): Promise<void>;
+    clear(): void;
+    eject(): void;
     insertAt(album: MediaAlbum, index: number): Promise<void>;
     insertAt(item: MediaItem, index: number): Promise<void>;
     insertAt(items: MediaItem[], index: number): Promise<void>;
@@ -26,11 +27,11 @@ export default interface Playlist {
     insertAt(files: readonly File[], index: number): Promise<void>;
     insertAt(files: FileList, index: number): Promise<void>;
     insertAt(items: readonly MediaItem[] | FileList, index: number): Promise<void>;
-    moveSelection(selection: readonly PlaylistItem[], toIndex: number): Promise<void>;
-    remove(item: PlaylistItem): Promise<void>;
-    remove(items: readonly PlaylistItem[]): Promise<void>;
-    next(): Promise<void>;
-    prev(): Promise<void>;
-    removeAt(index: number): Promise<void>;
-    shuffle(): Promise<void>;
+    moveSelection(selection: readonly PlaylistItem[], toIndex: number): void;
+    remove(item: PlaylistItem): void;
+    remove(items: readonly PlaylistItem[]): void;
+    removeAt(index: number): void;
+    next(): void;
+    prev(): void;
+    shuffle(): void;
 }
