@@ -1,6 +1,7 @@
 import MediaItem from 'types/MediaItem';
 import {jellyfinSearch} from 'services/jellyfin';
 import {plexSearch} from 'services/plex';
+import {hasPlayableSrc} from 'services/mediaServices';
 import {fetchFirstPage, Logger} from 'utils';
 import lookupStore from './lookupStore';
 import {dispatchLookupEvent} from './lookupEvents';
@@ -11,16 +12,16 @@ export default async function lookup(item: MediaItem): Promise<MediaItem | undef
     if (!item) {
         return;
     }
-    const {src, title, artist} = item;
-    const [source, , id] = src.split(':');
-    if (id) {
+    if (hasPlayableSrc(item)) {
         return item;
     }
-    if (!title || !artist) {
+    const {link, artist, title} = item;
+    if (!artist || !title) {
         return;
     }
     try {
-        const lookup = await lookupStore.get(source, title, artist);
+        const [service = ''] = link?.src.split(':') || [];
+        const lookup = await lookupStore.get(service, artist, title);
         if (lookup) {
             const foundItem = lookup.item;
             if (foundItem) {
@@ -29,10 +30,11 @@ export default async function lookup(item: MediaItem): Promise<MediaItem | undef
             return foundItem;
         }
         let foundItem: MediaItem | undefined;
-        if (source) {
-            foundItem = await sourceLookup(source, item);
+        if (service) {
+            foundItem = await serviceLookup(service, item);
+            // TODO: Move this later...
+            await lookupStore.add(service, artist, title, foundItem);
         }
-        await lookupStore.add(source, title, artist, foundItem);
         if (foundItem) {
             dispatchLookupEvent(item, foundItem);
         }
@@ -42,8 +44,8 @@ export default async function lookup(item: MediaItem): Promise<MediaItem | undef
     }
 }
 
-async function sourceLookup(source: string, item: MediaItem): Promise<MediaItem | undefined> {
-    switch (source) {
+async function serviceLookup(service: string, item: MediaItem): Promise<MediaItem | undefined> {
+    switch (service) {
         case 'jellyfin':
             return jellyfinLookup(item);
 

@@ -61,12 +61,12 @@ function RowNumber(rowIndex: number, numberOfDigits = 0) {
 }
 
 function RowIcon({src}: PlaylistItem) {
-    const [source] = src.split(':');
+    const [service] = src.split(':');
     return (
         <Icon
-            name={source as MediaSourceIconName}
+            name={service as MediaSourceIconName}
             // YouTube is always playable.
-            className={source === 'youtube' ? '' : 'show-connectivity'}
+            className={service === 'youtube' ? '' : 'show-connectivity'}
         />
     );
 }

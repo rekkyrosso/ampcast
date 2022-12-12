@@ -95,13 +95,13 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             track: info?.tracknumber || info?.track_number,
             disc: info?.discnumber,
             isrc: info?.isrc,
-            externalUrl: mbid ? `https://musicbrainz.org/recording/${mbid}` : undefined,
+            externalUrl: mbid ? `https://musicbrainz.org/recording/${mbid}` : '',
             recording_mbid: mbid,
             release_mbid: data.mbid_mapping?.release_mbid,
             playedAt: item.listened_at,
             link: {
                 src: this.getPlayableSrc(info) || '',
-                externalUrl: info?.origin_url,
+                externalUrl: info?.origin_url || '',
             },
         });
     }

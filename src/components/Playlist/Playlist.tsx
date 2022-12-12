@@ -30,10 +30,10 @@ export default function Playlist({onSelect, onPlay, onEject, ...props}: Playlist
 
     const itemClassName = useCallback(
         (item: PlaylistItem) => {
-            const [source] = item.src.split(':');
+            const [service] = item.src.split(':');
             const playing = item.id === currentlyPlaying?.id ? 'playing' : '';
             const unplayable = item.unplayable ? 'unplayable' : '';
-            return `source-${source} ${playing} ${unplayable}`;
+            return `source-${service} ${playing} ${unplayable}`;
         },
         [currentlyPlaying]
     );

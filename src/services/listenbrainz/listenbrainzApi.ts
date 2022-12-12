@@ -157,8 +157,8 @@ export class ListenBrainzApi {
         if (item.externalUrl) {
             info.origin_url = item.externalUrl;
         }
-        const [source] = item.src.split(':');
-        switch (source) {
+        const [service] = item.src.split(':');
+        switch (service) {
             case 'spotify':
                 if (item.externalUrl) {
                     info.spotify_id = item.externalUrl;

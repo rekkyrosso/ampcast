@@ -162,6 +162,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Album,
             src: `spotify:top-tracks:${artist.id}`,
+            externalUrl: '',
             title: 'Top Tracks',
             artist: artist.name,
             thumbnails: artist.images as Thumbnail[],

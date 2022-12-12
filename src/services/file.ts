@@ -29,6 +29,7 @@ export async function createMediaItemFromFile(file: File): Promise<PlaylistItem>
         itemType: ItemType.Media,
         mediaType: isVideo ? MediaType.Video : MediaType.Audio,
         src: `blob:${nanoid()}`,
+        externalUrl: '',
         title: common.title || file.name.replace(/\.\w+$/, ''),
         artist: common.artist || common.artists?.join(';') || '',
         albumArtist: common.album ? common.albumartist || '' : '',

@@ -1,6 +1,6 @@
 import React from 'react';
 import MediaService from 'types/MediaService';
-import mediaServices from 'services/mediaServices';
+import {getAllServices} from 'services/mediaServices';
 import {TreeNode} from 'components/TreeView';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import AppearanceSettings from './AppearanceSettings';
@@ -21,7 +21,7 @@ const sources: TreeNode<React.ReactNode>[] = [
         label: 'Media Services',
         value: <MediaLibrarySettings />,
         startExpanded: true,
-        children: mediaServices.all.map((service) => ({
+        children: getAllServices().map((service) => ({
             id: service.id,
             label: <MediaSourceLabel icon={service.icon} text={service.title} />,
             value: <ServiceRouter service={service} />,

@@ -12,7 +12,6 @@ import {observeIsLoggedIn, login, logout} from './lastfmAuth';
 import LastFmPager from './LastFmPager';
 import LastFmHistoryPager from './LastFmHistoryPager';
 import lastfmSettings from './lastfmSettings';
-import './lastfmScrobbler';
 
 console.log('module::lastfm');
 

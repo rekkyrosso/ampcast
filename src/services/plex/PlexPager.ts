@@ -106,6 +106,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             src: `plex:audio:${part.key}`,
+            externalUrl: '',
             title: track.title,
             addedAt: track.addedAt,
             artist: track.grandparentTitle,
@@ -128,6 +129,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Album,
             src: `plex:album:${album.ratingKey}`,
+            externalUrl: '',
             title: album.title || '',
             addedAt: album.addedAt,
             artist: album.parentTitle,
@@ -148,6 +150,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Artist,
             src: `plex:album:${artist.ratingKey}`,
+            externalUrl: '',
             title: artist.title,
             addedAt: artist.addedAt,
             rating: artist.userRating,
@@ -168,6 +171,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             itemType: ItemType.Media,
             mediaType: MediaType.Video,
             src: `plex:video:${part.key}`,
+            externalUrl: '',
             title: video.title || 'Video',
             addedAt: video.addedAt,
             artist: video.grandparentTitle,
@@ -185,6 +189,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Playlist,
             src: `plex:playlist:${playlist.key}`,
+            externalUrl: '',
             title: playlist.title,
             addedAt: playlist.addedAt,
             duration: playlist.duration / 1000,

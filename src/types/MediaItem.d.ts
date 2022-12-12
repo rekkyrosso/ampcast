@@ -21,6 +21,6 @@ export default interface MediaItem extends BaseMediaObject<ItemType.Media> {
     readonly artist_mbids?: string[];
     readonly link?: {
         readonly src: string;
-        readonly externalUrl?: string;
+        readonly externalUrl: string;
     };
 }

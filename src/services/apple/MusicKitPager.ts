@@ -157,6 +157,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Album,
             src: `apple:top-tracks:${artist.id}`,
+            externalUrl: '',
             title: 'Top Tracks',
             thumbnails: this.createThumbnails(artist),
             artist: item.name,

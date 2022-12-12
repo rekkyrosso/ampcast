@@ -100,6 +100,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Artist,
             src: `jellyfin:album:${artist.Id}`,
+            externalUrl: '',
             title: artist.Name || '',
             genre: artist.Genres?.join(';'),
             thumbnails: this.createThumbnails(artist.Id),
@@ -111,6 +112,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Album,
             src: `jellyfin:album:${album.Id}`,
+            externalUrl: '',
             title: album.Name || '',
             duration: album.RunTimeTicks ? album.RunTimeTicks / 10_000_000 : 0,
             playedAt: album.UserData?.LastPlayedDate
@@ -130,6 +132,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Playlist,
             src: `jellyfin:playlist:${playlist.Id}`,
+            externalUrl: '',
             title: playlist.Name || '',
             duration: playlist.RunTimeTicks ? playlist.RunTimeTicks / 10_000_000 : 0,
             playedAt: playlist.UserData?.LastPlayedDate
@@ -150,6 +153,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             src: `jellyfin:audio:${track.Id}`,
+            externalUrl: '',
             title: track.Name || '',
             duration: track.RunTimeTicks ? track.RunTimeTicks / 10_000_000 : 0,
             year: track.ProductionYear || undefined,

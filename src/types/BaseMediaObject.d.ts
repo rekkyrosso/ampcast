@@ -5,6 +5,7 @@ export default interface BaseMediaObject<T extends ItemType> {
     readonly itemType: T;
     readonly src: string;
     readonly title: string;
+    readonly externalUrl: string;
     readonly addedAt?: number; // unix
     readonly genre?: string;
     readonly mood?: string;
@@ -12,7 +13,6 @@ export default interface BaseMediaObject<T extends ItemType> {
     readonly globalRating?: number;
     readonly playCount?: number;
     readonly globalPlayCount?: number;
-    readonly externalUrl?: string;
     readonly thumbnails?: Thumbnail[];
     readonly owner?: {
         readonly name: string;

@@ -19,6 +19,7 @@ import Playlist from 'types/Playlist';
 import PlaylistItem from 'types/PlaylistItem';
 import {createMediaItemFromFile} from 'services/file';
 import {LookupEvent, observeLookupEvents} from 'services/lookup/lookupEvents';
+import {hasPlayableSrc} from 'services/mediaServices';
 import {exists, fetchFirstPage, Logger} from 'utils';
 import settings from './playlistSettings';
 
@@ -266,15 +267,13 @@ async function createMediaItems(source: PlaylistSource): Promise<readonly MediaI
 }
 
 function createPlayableItem(item: MediaItem): MediaItem {
-    if ('link' in item) {
-        const {link, src, externalUrl, ...rest} = item;
-        if (link && link.src) {
+    if (!hasPlayableSrc(item)) {
+        const {link, ...rest} = item;
+        if (link && hasPlayableSrc(link)) {
             return {
                 ...rest,
-                // Swap `link` properties.
                 src: link.src,
                 externalUrl: link.externalUrl,
-                link: {src, externalUrl},
             };
         }
     }
@@ -297,11 +296,11 @@ async function createMediaItem(item: File | MediaItem): Promise<MediaItem | null
     }
 }
 
-function handleLookupEvent({item, found}: LookupEvent): void {
+function handleLookupEvent({item, bestOf}: LookupEvent): void {
     const items = getItems();
     const index = items.indexOf(item as PlaylistItem);
     if (index !== -1) {
-        items[index] = {...item, ...found} as PlaylistItem;
+        items[index] = {...item, ...bestOf} as PlaylistItem;
         setItems(items);
     }
 }

@@ -3,8 +3,8 @@ import {debounceTime, filter, map, mergeMap, switchMap} from 'rxjs/operators';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import {getListenId, findScrobble, observeListens, updateListens} from 'services/localdb/listens';
-import {observePlaybackStart} from 'services/mediaPlayback';
-import mediaServices from 'services/mediaServices';
+import {observePlaybackStart} from 'services/mediaPlayback/playback';
+import {getService} from 'services/mediaServices';
 import scrobbleSettings from 'services/scrobbleSettings';
 import {exists, fetchFirstPage, Logger, partition} from 'utils';
 import listenbrainzApi from './listenbrainzApi';
@@ -75,7 +75,7 @@ async function scrobble(items: Listen[]): Promise<void> {
 
 function canScrobble(item: MediaItem): boolean {
     const [serviceId] = item.src.split(':');
-    const service = mediaServices.get(serviceId);
+    const service = getService(serviceId);
     // `serviceId` might be "blob" or "file" so we'll attempt to scrobble.
     return service ? scrobbleSettings.canScrobble(listenbrainz, service) : true;
 }

@@ -96,11 +96,11 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
         return {
             itemType: ItemType.Artist,
             src: `listenbrainz:artist:${nanoid()}`,
+            externalUrl: mbid ? `${musicBrainzHost}/artist/${mbid}` : '',
             title: item.artist_name,
             artist_mbid: mbid,
             playCount: item.listen_count,
             pager: new SimplePager(),
-            externalUrl: mbid ? `${musicBrainzHost}/artist/${mbid}` : undefined,
         };
     }
 
@@ -109,12 +109,12 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
         const album: Except<MediaAlbum, 'pager'> = {
             itemType: ItemType.Album,
             src: `listenbrainz:album:${nanoid()}`,
+            externalUrl: mbid ? `${musicBrainzHost}/release/${mbid}` : '',
             title: item.release_name,
             artist: item.artist_name,
             release_mbid: mbid,
             artist_mbids: item.artist_mbids || undefined,
             playCount: item.listen_count,
-            externalUrl: mbid ? `${musicBrainzHost}/release/${mbid}` : undefined,
         };
         return {...album, pager: mbid ? new MusicBrainzAlbumPager(mbid, album) : new SimplePager()};
     }
@@ -125,6 +125,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             src: `listenbrainz:track:${nanoid()}`,
+            externalUrl: mbid ? `${musicBrainzHost}/recording/${mbid}` : '',
             title: item.track_name,
             artist: item.artist_name,
             album: item.release_name,
@@ -134,7 +135,6 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
             artist_mbids: item.artist_mbids || undefined,
             playCount: item.listen_count,
             playedAt: 0,
-            externalUrl: mbid ? `${musicBrainzHost}/recording/${mbid}` : undefined,
         });
     }
 

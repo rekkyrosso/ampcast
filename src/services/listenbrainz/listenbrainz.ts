@@ -9,7 +9,6 @@ import {observeIsLoggedIn, login, logout} from './listenbrainzAuth';
 import ListenBrainzHistoryPager from './ListenBrainzHistoryPager';
 import listenbrainzSettings from './listenbrainzSettings';
 import ListenBrainzStatsPager from './ListenBrainzStatsPager';
-import './listenbrainzScrobbler';
 
 console.log('module::listenbrainz');
 

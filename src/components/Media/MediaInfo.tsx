@@ -98,8 +98,8 @@ export function Owner<T extends MediaObject>({src, owner}: Pick<T, 'src' | 'owne
         return null;
     }
 
-    const [source] = src.split(':');
-    const label = source === 'youtube' ? 'Channel' : 'Curator';
+    const [service] = src.split(':');
+    const label = service === 'youtube' ? 'Channel' : 'Curator';
 
     return (
         <p className="owner">
@@ -114,10 +114,10 @@ export function ExternalView({src, url}: {src: string; url: string | undefined})
         return null;
     }
 
-    let [source] = src.split(':');
+    let [service] = src.split(':');
     let name = '';
 
-    switch (source) {
+    switch (service) {
         case 'apple':
             name = 'Apple Music';
             break;
@@ -141,7 +141,7 @@ export function ExternalView({src, url}: {src: string; url: string | undefined})
         case 'listenbrainz':
             if (/musicbrainz/.test(url)) {
                 name = 'MusicBrainz';
-                source = 'musicbrainz';
+                service = 'musicbrainz';
             } else {
                 name = 'ListenBrainz';
             }
@@ -152,7 +152,7 @@ export function ExternalView({src, url}: {src: string; url: string | undefined})
         <p className="external-view">
             {name ? (
                 <>
-                    View on {name}: <Icon name={source as MediaSourceIconName} />{' '}
+                    View on {name}: <Icon name={service as MediaSourceIconName} />{' '}
                 </>
             ) : (
                 <>Url: </>

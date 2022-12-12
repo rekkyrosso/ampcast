@@ -14,6 +14,7 @@ console.log('component::MediaPlayback');
 export default function MediaPlayback() {
     const paused = usePaused();
 
+    // Caused by interaction with the playlist.
     const handlePlay = useCallback((item: PlaylistItem) => {
         mediaPlayback.stop();
         mediaPlayback.autoplay = true;

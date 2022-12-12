@@ -8,7 +8,6 @@ import {
     mergeMap,
     switchMap,
     takeUntil,
-    tap,
     withLatestFrom,
 } from 'rxjs/operators';
 import MediaPlayback from 'types/MediaPlayback';
@@ -21,6 +20,7 @@ import visualizerPlayer from 'services/visualizer/player'; // TODO: get rid
 import {formatTime, LiteStorage, Logger} from 'utils';
 import mediaPlayer from './mediaPlayer';
 import playback from './playback';
+import './scrobbler';
 
 console.log('module::mediaPlayback');
 
@@ -295,6 +295,11 @@ playlist
     )
     .subscribe(stop);
 
+// Unlock loading after 250ms.
+// `mediaPlayer` won't actually load anything until then.
+// This avoids spamming media services with play requests that will soon be skipped over.
+// This can happen if you click the prev/next buttons quickly or you rapidly
+// delete the currently playing item (eject).
 loadingLocked$
     .pipe(
         debounceTime(250),
@@ -309,9 +314,8 @@ loadingLocked$
     .pipe(
         distinctUntilChanged(),
         switchMap((locked) => (locked ? EMPTY : observeCurrentItem())),
-        tap(logger.all('currentItem')),
         switchMap((item) => (item ? getPlayableItem(item) : of(null))),
-        tap(logger.all('playableItem'))
+        distinctUntilChanged((a, b) => a?.id === b?.id)
     )
     .subscribe(load);
 
@@ -323,7 +327,7 @@ fromEvent(window, 'pagehide').subscribe(kill);
 observeDuration().pipe(map(formatTime), distinctUntilChanged()).subscribe(logger.all('duration'));
 observeCurrentTime()
     .pipe(
-        filter((time) => Math.round(time) % 10 === 0),
+        filter((time) => Math.round(time) % 30 === 0),
         map(formatTime)
     )
     .subscribe(logger.all('currentTime'));

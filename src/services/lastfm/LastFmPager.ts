@@ -150,6 +150,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
             title: 'Top Tracks',
             thumbnails: this.createThumbnails(artist.image),
             src: `lastfm:top-tracks:${nanoid()}`,
+            externalUrl: '',
             artist: artist.name,
             pager: this.createTopTracksPager(artist),
         };
@@ -166,7 +167,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
                     ? Number(item.playcount) || undefined
                     : undefined,
             thumbnails: this.createThumbnails(item.image),
-            externalUrl: item.url,
+            externalUrl: item.url || '',
         };
     }
 

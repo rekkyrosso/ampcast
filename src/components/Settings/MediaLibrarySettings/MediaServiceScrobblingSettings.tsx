@@ -1,5 +1,5 @@
 import React, {useCallback, useId, useMemo, useRef} from 'react';
-import mediaServices from 'services/mediaServices';
+import {getAllServices} from 'services/mediaServices';
 import {
     ScrobblingOptions,
     canScrobble,
@@ -17,7 +17,7 @@ export default function MediaServiceScrobblingSettings({
     const id = useId();
     const scrobbleRef = useRef<HTMLFieldSetElement>(null);
     const optionsRef = useRef<HTMLFieldSetElement>(null);
-    const services = useMemo(() => mediaServices.all.filter((service) => !service.scrobbler), []);
+    const services = useMemo(() => getAllServices().filter((service) => !service.scrobbler), []);
 
     const handleSubmit = useCallback(() => {
         const scrobbleInputs = scrobbleRef.current!.elements as HTMLInputElements;

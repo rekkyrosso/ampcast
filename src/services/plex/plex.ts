@@ -10,7 +10,6 @@ import SimplePager from 'services/pagers/SimplePager';
 import plexSettings from './plexSettings';
 import {observeIsLoggedIn, login, logout} from './plexAuth';
 import PlexPager from './PlexPager';
-import './plexReporting';
 
 console.log('module::plex');
 

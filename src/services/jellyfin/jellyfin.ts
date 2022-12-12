@@ -13,7 +13,6 @@ import SimplePager from 'services/pagers/SimplePager';
 import JellyfinPager from './JellyfinPager';
 import jellyfinSettings from './jellyfinSettings';
 import {observeIsLoggedIn, login, logout} from './jellyfinAuth';
-import './jellyfinReporting';
 
 console.log('module::jellyfin');
 

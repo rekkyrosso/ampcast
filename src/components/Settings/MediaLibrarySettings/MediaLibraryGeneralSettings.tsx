@@ -1,5 +1,5 @@
 import React, {useCallback, useId, useRef} from 'react';
-import mediaServices from 'services/mediaServices';
+import {getAllServices} from 'services/mediaServices';
 import {isVisible, setHidden} from 'services/servicesSettings';
 import Input from 'components/Input';
 import Button from 'components/Button';
@@ -22,7 +22,7 @@ export default function MediaLibraryGeneralSettings() {
             <fieldset ref={ref}>
                 <legend>Display</legend>
                 <ul>
-                    {mediaServices.all.map((service) => (
+                    {getAllServices().map((service) => (
                         <li key={service.id}>
                             <Input
                                 id={`${id}-${service.id}`}

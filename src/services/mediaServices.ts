@@ -16,12 +16,23 @@ const mediaServicesMap = new Map<string, MediaService>(
 
 const mediaServicesArray: readonly MediaService[] = [...mediaServicesMap.values()];
 
-export default {
-    get all(): readonly MediaService[] {
-        return mediaServicesArray;
-    },
+export function getAllServices(): readonly MediaService[] {
+    return mediaServicesArray;
+}
 
-    get(id: string): MediaService | undefined {
-        return mediaServicesMap.get(id);
-    },
-};
+export function getService(id: string): MediaService | undefined {
+    return mediaServicesMap.get(id);
+}
+
+export function isPlayableService(id: string): boolean {
+    const service = getService(id);
+    return service ? !service.scrobbler : false;
+}
+
+export function hasPlayableSrc(item: {src: string}): boolean {
+    if (item) {
+        const [serviceId, type, id] = item.src.split(':');
+        return !!id && !!type && isPlayableService(serviceId);
+    }
+    return false;
+}
