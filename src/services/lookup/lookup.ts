@@ -19,7 +19,8 @@ export default async function lookup(item: MediaItem): Promise<MediaItem | undef
         if (hasPlayableSrc(item)) {
             return item;
         }
-        const {link, artist, title} = item;
+        const {link, artists, title} = item;
+        const artist = artists?.[0];
         if (!artist || !title) {
             return;
         }
@@ -58,7 +59,7 @@ async function serviceLookup(
             const pager = service.lookup(artist, title, {pageSize: 10, maxSize: 10});
             const matches = await fetchFirstPage(pager, 2000);
             const item = matches.find(
-                (match) => compareString(title, match.title) && compareArtist(artist, match.artist)
+                (match) => compareString(title, match.title) && compareArtist(artist, match.artists)
             );
             await lookupStore.add(service.id, artist, title, item);
             return item;
@@ -96,14 +97,10 @@ function compareString(a: string, b = ''): boolean {
     return a.localeCompare(b, undefined, {sensitivity: 'accent'}) === 0;
 }
 
-function compareArtist(artist: string, matchedArtist = ''): boolean {
-    if (compareString(artist, matchedArtist)) {
-        return true;
-    }
-    const matches = matchedArtist.split('|');
-    if (matches.length > 1) {
-        for (const match of matches) {
-            if (compareString(artist, match)) {
+function compareArtist(artist: string, matchedArtists: readonly string[] | undefined): boolean {
+    if (matchedArtists) {
+        for (const matchedArtist of matchedArtists) {
+            if (compareString(artist, matchedArtist)) {
                 return true;
             }
         }

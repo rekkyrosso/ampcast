@@ -1,63 +1,63 @@
-import {EMPTY} from 'rxjs';
-import {distinctUntilChanged, filter, mergeMap, skip, switchMap, takeUntil} from 'rxjs/operators';
-import PlaybackState from 'types/PlaybackState';
-import {
-    observePlaybackStart,
-    observePlaybackEnd,
-    observePlaybackProgress,
-    observePlaybackState,
-} from 'services/mediaPlayback/playback';
+import MediaItem from 'types/MediaItem';
 import {Logger} from 'utils';
-import {observeIsLoggedIn} from './jellyfinAuth';
-import {reportStart, reportStop, reportProgress} from './jellyfinPlayback';
+import jellyfinApi from './jellyfinApi';
 
 console.log('module::jellyfinReporting');
 
 const logger = new Logger('jellyfinReporting');
 
-const isJellyfinItem = (state: PlaybackState): boolean =>
-    !!state.currentItem?.src.startsWith('jellyfin:');
+export async function reportStart(item: MediaItem): Promise<void> {
+    try {
+        const [, , ItemId] = item.src.split(':');
+        await jellyfinApi.post('Sessions/Playing', {
+            ItemId,
+            IsPaused: false,
+            PositionTicks: 0,
+            PlayMethod: 'Transcode',
+        });
+    } catch (err) {
+        logger.error(err);
+    }
+}
 
-observeIsLoggedIn()
-    .pipe(
-        switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackStart() : EMPTY)),
-        filter(isJellyfinItem),
-        mergeMap(({currentItem}) => reportStart(currentItem!))
-    )
-    .subscribe(logger);
+export async function reportStop(item: MediaItem, currentTime: number): Promise<void> {
+    try {
+        const [, , ItemId] = item.src.split(':');
+        await jellyfinApi.post('Sessions/Playing/Stopped', {
+            ItemId,
+            IsPaused: false,
+            PositionTicks: Math.floor(currentTime * 10_000_000),
+            PlayMethod: 'Transcode',
+        });
+    } catch (err) {
+        logger.error(err);
+    }
+}
 
-observeIsLoggedIn()
-    .pipe(
-        switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackEnd() : EMPTY)),
-        filter(isJellyfinItem),
-        mergeMap(({currentItem, currentTime}) => reportStop(currentItem!, currentTime))
-    )
-    .subscribe(logger);
+export async function reportProgress(
+    item: MediaItem,
+    currentTime: number,
+    paused: boolean,
+    eventName: 'pause' | 'unpause' | 'timeupdate'
+): Promise<void> {
+    try {
+        const [, , ItemId] = item.src.split(':');
+        await jellyfinApi.post('Sessions/Playing/Progress', {
+            ItemId,
+            IsPaused: paused,
+            PositionTicks: Math.floor(currentTime * 10_000_000),
+            PlayMethod: 'Transcode',
+            EventName: eventName,
+        });
+    } catch (err) {
+        logger.error(err);
+    }
+}
 
-observeIsLoggedIn()
-    .pipe(
-        switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackProgress(10_000) : EMPTY)),
-        filter(isJellyfinItem),
-        mergeMap(({currentItem, currentTime, paused}) =>
-            reportProgress(currentItem!, currentTime, paused, 'timeupdate')
-        )
-    )
-    .subscribe(logger);
+const jellyfinReporting = {
+    reportStart,
+    reportStop,
+    reportProgress,
+};
 
-observeIsLoggedIn()
-    .pipe(
-        switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackStart() : EMPTY)),
-        switchMap((state) =>
-            isJellyfinItem(state)
-                ? observePlaybackState().pipe(
-                      distinctUntilChanged((a, b) => a.paused === b.paused),
-                      skip(1),
-                      takeUntil(observePlaybackEnd())
-                  )
-                : EMPTY
-        ),
-        mergeMap(({currentItem, currentTime, paused}) =>
-            reportProgress(currentItem!, currentTime, paused, paused ? 'pause' : 'unpause')
-        )
-    )
-    .subscribe(logger);
+export default jellyfinReporting;

@@ -9,7 +9,6 @@ import {formatTime} from 'utils';
 import ExternalLink from 'components/ExternalLink';
 import Icon, {MediaSourceIconName} from 'components/Icon';
 import ThumbnailImage, {ThumbnailImageProps} from 'components/ThumbnailImage';
-import {formatStringList} from 'utils';
 import './MediaInfo.scss';
 
 export interface MediaInfoProps<T extends MediaObject> {
@@ -38,7 +37,7 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
             <div className="media-info-main">
                 <Thumbnail item={item} />
                 <Title title={item.title} />
-                <Artist artist={item.artist} />
+                <Artist artist={item.artists?.join(', ')} />
                 <AlbumAndYear album={item.album} year={item.year} />
                 <Owner owner={item.owner} src={item.src} />
             </div>
@@ -90,8 +89,8 @@ export function Title<T extends MediaObject>({title}: Pick<T, 'title'>) {
     return <h3 className="title">{title || '(no title)'}</h3>;
 }
 
-export function Artist<T extends MediaItem>({artist}: Pick<T, 'artist'>) {
-    return artist ? <h4 className="artist">By: {formatStringList(artist)}</h4> : null;
+export function Artist<T extends MediaAlbum>({artist}: Pick<T, 'artist'>) {
+    return artist ? <h4 className="artist">By: {artist}</h4> : null;
 }
 
 export function Owner<T extends MediaObject>({src, owner}: Pick<T, 'src' | 'owner'>) {

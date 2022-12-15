@@ -1,7 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import MediaItem from 'types/MediaItem';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
-import {formatStringList} from 'utils';
 import './Interstitial.scss';
 
 export default function Interstitial() {
@@ -29,10 +28,10 @@ function CurrentlyPlaying({item}: CurrentlyPlayingProps) {
     return (
         <div className="currently-playing">
             <h3>{item.title}</h3>
-            {item.artist ? (
+            {item.artists ? (
                 <>
                     <span className="by">by</span>
-                    <h4>{formatStringList(item.artist)}</h4>
+                    <h4>{item.artists.join(', ')}</h4>
                 </>
             ) : null}
         </div>

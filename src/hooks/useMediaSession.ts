@@ -41,10 +41,10 @@ export default function useMediaSession() {
         mediaSession.metadata = item
             ? new MediaMetadata({
                   title: item.title,
-                  artist: item.artist,
+                  artist: item.artists?.join(', '),
                   // Windows 10 seems to favour `album` over `artist`.
                   // So suppress `album` if `artist` is available.
-                  album: item.artist ? '' : item.album,
+                  album: item.artists ? '' : item.album,
                   artwork:
                       item.thumbnails?.map((thumbnail) => ({
                           src: getThumbnailUrl(thumbnail),

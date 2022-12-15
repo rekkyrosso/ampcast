@@ -127,7 +127,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
             src: `listenbrainz:track:${nanoid()}`,
             externalUrl: mbid ? `${musicBrainzHost}/recording/${mbid}` : '',
             title: item.track_name,
-            artist: item.artist_name,
+            artists: item.artist_name ? [item.artist_name] : undefined,
             album: item.release_name,
             duration: 0,
             recording_mbid: mbid,

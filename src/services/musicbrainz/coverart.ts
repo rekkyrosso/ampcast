@@ -49,7 +49,7 @@ export async function getCoverArtThumbnails(item: MediaObject): Promise<Thumbnai
         artist = item.artist;
     } else {
         album = item.album;
-        artist = item.albumArtist || item.artist;
+        artist = item.albumArtist || item.artists?.[0];
     }
     if (album && artist) {
         const item = await store.items.get({album, artist});

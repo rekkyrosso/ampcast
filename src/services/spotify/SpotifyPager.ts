@@ -138,7 +138,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             src: album.uri,
             externalUrl: album.external_urls.spotify,
             title: album.name,
-            artist: album.artists.map((artist) => artist.name).join('|'),
+            artist: album.artists.map((artist) => artist.name).join(', '),
             year: new Date(album.release_date).getFullYear(),
             thumbnails: album.images as Thumbnail[],
             trackCount: album.tracks?.total,
@@ -152,7 +152,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             src: artist.uri,
             externalUrl: artist.external_urls.spotify,
             title: artist.name,
-            genre: artist.genres.join('|'),
+            genres: artist.genres,
             thumbnails: artist.images as Thumbnail[],
             pager: this.createArtistAlbumsPager(artist),
         };
@@ -197,14 +197,14 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             src: track.uri,
             externalUrl: track.external_urls.spotify,
             title: track.name,
-            artist: track.artists.map((artist) => artist.name).join('|'),
-            albumArtist: album?.artists[0]?.name,
+            artists: track.artists?.map((artist) => artist.name),
+            albumArtist: album?.artists.join(', '),
             album: album?.name,
             duration: track.duration_ms / 1000,
             playedAt: track.played_at
                 ? Math.floor((new Date(track.played_at).getTime() || 0) / 1000)
                 : 0,
-            genre: (track.album as any)?.genres?.join('|'),
+            genres: (track.album as any)?.genres,
             disc: album ? track.disc_number : undefined,
             track: album ? track.track_number : undefined,
             year: track.album

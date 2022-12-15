@@ -39,7 +39,7 @@ export async function addListen(state: PlaybackState): Promise<void> {
             throw Error('Invalid PlaybackState.');
         }
         // These rules seem to apply for both last.fm and ListenBrainz.
-        if (item.title && item.artist && item.duration > 30) {
+        if (item.title && item.artists?.[0] && item.duration > 30) {
             const startedAt = Math.floor(state.startedAt / 1000);
             const endedAt = Math.floor(state.endedAt / 1000);
             const playTime = endedAt - startedAt;
@@ -91,8 +91,6 @@ export function findScrobble(
             if (matchTitle(listen, item, 0.75)) {
                 return item;
             }
-            // logger.log('MISS', score(item.title, listen.title), item.title, listen.title);
-            // logger.log('MISS', score(listen.title, item.title), listen.title, item.title);
         }
     }
 }
@@ -115,8 +113,6 @@ export function findListen(item: MediaItem, timeFuzziness = 5): Listen | undefin
             if (matchTitle(listen, item, 0.75)) {
                 return listen;
             }
-            // logger.log('MISS', score(item.title, listen.title), item.title, listen.title);
-            // logger.log('MISS', score(listen.title, item.title), listen.title, item.title);
         }
     }
 }
@@ -130,7 +126,7 @@ export function enhanceWithListenData(item: MediaItem): MediaItem {
                 (item.link?.externalUrl && item.link.externalUrl === listen.externalUrl) ||
                 (item.isrc && item.isrc === listen.isrc) ||
                 (item.recording_mbid && item.recording_mbid === listen.recording_mbid) ||
-                (matchArtist(item, listen) && matchTitle(item, listen))
+                (matchTitle(item, listen) && matchArtist(item, listen))
         );
     if (listen) {
         return {
@@ -150,14 +146,20 @@ function getListens(): readonly Listen[] {
     return listens$.getValue();
 }
 
-function matchArtist(item1: MediaItem, item2: MediaItem, tolerance?: number): boolean {
-    return item1.artist && item2.artist
-        ? matchString(item1.artist, item2.artist, tolerance)
-        : false;
+function matchArtist(item: MediaItem, listen: MediaItem, tolerance?: number): boolean {
+    const artist = item.artists?.[0]
+    if (artist && listen.artists) {
+        for (const listenArtist of listen.artists) {
+            if (matchString(artist, listenArtist, tolerance)) {
+                return true;
+            }
+        }
+    }
+    return false;
 }
 
-function matchTitle(item1: MediaItem, item2: MediaItem, tolerance?: number): boolean {
-    return matchString(item1.title, item2.title, tolerance);
+function matchTitle(item: MediaItem, listen: MediaItem, tolerance?: number): boolean {
+    return matchString(item.title, listen.title, tolerance);
 }
 
 (async () => {

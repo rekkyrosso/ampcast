@@ -87,7 +87,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             src: `listenbrainz:listen:${item.listened_at}`,
             title: data.track_name,
             addedAt: item.inserted_at,
-            artist: data.artist_name,
+            artists: data.artist_name ? [data.artist_name] : undefined,
             albumArtist: info?.release_artist_name,
             album: data.release_name,
             duration:

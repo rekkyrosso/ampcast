@@ -187,10 +187,9 @@ export class ListenBrainzApi {
                 info.music_service_name = 'Local file';
                 break;
         }
-        const [artist] = item.artist!.split('|');
         const params: ListenBrainz.ListenMetadata = {
             track_name: item.title,
-            artist_name: artist,
+            artist_name: item.artists![0],
             additional_info: info,
         };
         if (item.album) {
@@ -200,7 +199,7 @@ export class ListenBrainzApi {
     }
 
     private canScrobble(item: MediaItem | null): boolean {
-        return !!item && !!item.title && !!item.artist && item.duration > 30;
+        return !!item && !!item.title && !!item.artists?.[0] && item.duration > 30;
     }
 
     private applyRateLimiting(): Promise<void> {

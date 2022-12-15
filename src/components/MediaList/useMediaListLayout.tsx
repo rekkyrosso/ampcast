@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
@@ -8,7 +9,6 @@ import {ColumnSpec, ListViewLayout} from 'components/ListView';
 import SunClock from 'components/SunClock';
 import ThumbnailImage from 'components/ThumbnailImage';
 import Time from 'components/Time';
-import {formatStringList} from 'utils';
 
 const defaultLayout: MediaSourceLayout<MediaObject> = {
     view: 'details',
@@ -39,7 +39,8 @@ type RenderField<T extends MediaObject = MediaObject> = ColumnSpec<T>['render'];
 export const Index: RenderField = (_, rowIndex) => rowIndex + 1;
 export const Title: RenderField = (item) => item.title;
 export const Track: RenderField<MediaItem> = (item) => item.track || '-';
-export const Artist: RenderField<MediaAlbum | MediaItem> = (item) => formatStringList(item.artist);
+export const Artist: RenderField<MediaAlbum | MediaItem> = (item) =>
+    item.itemType === ItemType.Media ? item.artists?.join(', ') : item.artist;
 export const AlbumArtist: RenderField<MediaItem> = (item) => item.albumArtist;
 export const Album: RenderField<MediaItem> = (item) => item.album;
 export const Duration: RenderField<MediaPlaylist | MediaItem> = (item) => (
@@ -55,7 +56,7 @@ export const TrackCount: RenderField<MediaPlaylist | MediaAlbum> = (item) => {
 };
 export const Year: RenderField<MediaAlbum | MediaItem> = (item) => item.year || '';
 export const Genre: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) =>
-    formatStringList(item.genre);
+    item.genres?.join(', ');
 export const Owner: RenderField = (item) => item.owner?.name;
 export const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
     if (!item.playedAt) {

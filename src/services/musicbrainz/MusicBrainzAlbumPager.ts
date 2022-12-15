@@ -61,7 +61,7 @@ export default class MusicBrainzAlbumPager implements Pager<MediaItem> {
             mediaType: MediaType.Audio,
             src: `musicbrainz:track:${recording.id}`,
             title: track.title,
-            artist: album?.artist,
+            artists: album?.artist ? [album.artist] : undefined,
             albumArtist: album?.artist,
             album: album?.title,
             duration: track.length / 1000 || 0,

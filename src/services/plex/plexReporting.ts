@@ -1,63 +1,87 @@
-import {EMPTY} from 'rxjs';
-import {distinctUntilChanged, filter, mergeMap, skip, switchMap, takeUntil} from 'rxjs/operators';
-import PlaybackState from 'types/PlaybackState';
-import {
-    observePlaybackStart,
-    observePlaybackEnd,
-    observePlaybackProgress,
-    observePlaybackState,
-} from 'services/mediaPlayback/playback';
+import MediaItem from 'types/MediaItem';
 import {Logger} from 'utils';
-import {observeIsLoggedIn} from './plexAuth';
-import {reportStart, reportStop, reportProgress} from './plexPlayback';
+import plexSettings from './plexSettings';
+import plexApi from './plexApi';
 
 console.log('module::plexReporting');
 
 const logger = new Logger('plexReporting');
 
-const isPlexItem = (state: PlaybackState): boolean =>
-    !!state.currentItem?.src.startsWith('plex:');
+let playQueue: plex.PlayQueue | null = null; // TODO: Do this better.
 
-observeIsLoggedIn()
-    .pipe(
-        switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackStart() : EMPTY)),
-        filter(isPlexItem),
-        mergeMap(({currentItem}) => reportStart(currentItem!))
-    )
-    .subscribe(logger);
+export async function reportStart(item: MediaItem): Promise<void> {
+    try {
+        const [, , key] = item.src.split(':');
+        playQueue = await createPlayQueue(key);
+        await reportState(item, 0, 'playing');
+    } catch (err) {
+        logger.error(err);
+    }
+}
 
-observeIsLoggedIn()
-    .pipe(
-        switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackEnd() : EMPTY)),
-        filter(isPlexItem),
-        mergeMap(({currentItem}) => reportStop(currentItem!))
-    )
-    .subscribe(logger);
+export async function reportStop(item: MediaItem): Promise<void> {
+    try {
+        await reportState(item, 0, 'stopped', true);
+    } catch (err) {
+        logger.error(err);
+    }
+}
 
-observeIsLoggedIn()
-    .pipe(
-        switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackProgress(10_000) : EMPTY)),
-        filter(isPlexItem),
-        mergeMap(({currentItem, currentTime, paused}) =>
-            reportProgress(currentItem!, currentTime, paused ? 'paused' : 'playing')
-        )
-    )
-    .subscribe(logger);
+export async function reportProgress(
+    item: MediaItem,
+    currentTime: number,
+    state: 'paused' | 'playing'
+): Promise<void> {
+    try {
+        await reportState(item, currentTime, state);
+    } catch (err) {
+        logger.error(err);
+    }
+}
 
-observeIsLoggedIn()
-    .pipe(
-        switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackStart() : EMPTY)),
-        switchMap((state) =>
-            isPlexItem(state)
-                ? observePlaybackState().pipe(
-                      distinctUntilChanged((a, b) => a.paused === b.paused),
-                      skip(1),
-                      takeUntil(observePlaybackEnd())
-                  )
-                : EMPTY
-        ),
-        mergeMap(({currentItem, currentTime, paused}) =>
-            reportProgress(currentItem!, currentTime, paused ? 'paused' : 'playing')
-        )
-    )
-    .subscribe(logger);
+async function reportState(
+    item: MediaItem,
+    currentTime: number,
+    state: 'stopped' | 'paused' | 'playing' | 'buffering' | 'error',
+    keepalive?: boolean
+): Promise<void> {
+    const [, , key] = item.src.split(':');
+    await plexApi.fetch({
+        path: '/:/timeline',
+        params: {
+            key,
+            ratingKey: item.plex!.ratingKey,
+            playQueueItemID: String(playQueue!.playQueueSelectedItemID),
+            state,
+            hasMDE: '1', // No idea what this does
+            time: String(Math.floor(currentTime * 1000)),
+            duration: String(Math.floor(item.duration * 1000)),
+        },
+        keepalive,
+    });
+}
+
+async function createPlayQueue(key: string): Promise<any> {
+    return plexApi.fetchJSON({
+        path: '/playQueues',
+        method: 'POST',
+        params: {
+            type: 'music',
+            continuous: '0',
+            uri: `server://${
+                plexSettings.server!.clientIdentifier
+            }/com.plexapp.plugins.library/${key}`,
+            repeat: '0',
+            own: '1',
+            includeExternalMedia: '1',
+        },
+    });
+}
+
+const plexReporting = {
+    reportStart,
+    reportStop,
+    reportProgress,
+};
+
+export default plexReporting;

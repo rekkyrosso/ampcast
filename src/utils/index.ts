@@ -74,10 +74,6 @@ export function formatTime(seconds: number): string {
         .replace(/^[0:]+(.{4,})$/, '$1'); // remove leading zeroes
 }
 
-export function formatStringList(list = '', join = ', '): string {
-    return list.split('|').join(join);
-}
-
 export function preventDefault(event: Event | React.SyntheticEvent): void {
     event.preventDefault();
 }

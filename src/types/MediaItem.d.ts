@@ -6,7 +6,7 @@ export default interface MediaItem extends BaseMediaObject<ItemType.Media> {
     readonly mediaType: MediaType;
     readonly duration: number;
     readonly playedAt: number; // UTC
-    readonly artist?: string;
+    readonly artists?: readonly string[];
     readonly albumArtist?: string;
     readonly album?: string;
     readonly track?: number;

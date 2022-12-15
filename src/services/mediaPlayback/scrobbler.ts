@@ -1,4 +1,4 @@
-import 'services/jellyfin/jellyfinReporting';
+import 'services/jellyfin/jellyfinScrobbler';
 import 'services/lastfm/lastfmScrobbler';
 import 'services/listenbrainz/listenbrainzScrobbler';
-import 'services/plex/plexReporting';
+import 'services/plex/plexScrobbler';

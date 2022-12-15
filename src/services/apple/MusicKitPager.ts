@@ -147,7 +147,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             externalUrl: item.url,
             title: item.name,
             thumbnails: this.createThumbnails(artist),
-            genre: this.getGenre(item),
+            genres: this.getGenres(item),
             pager: this.createArtistAlbumsPager(artist),
         };
     }
@@ -161,7 +161,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             title: 'Top Tracks',
             thumbnails: this.createThumbnails(artist),
             artist: item.name,
-            genre: this.getGenre(item),
+            genres: this.getGenres(item),
             pager: this.createTopTracksPager(artist),
         };
     }
@@ -178,7 +178,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             thumbnails: this.createThumbnails(album),
             artist: item.artistName,
             trackCount: item.trackCount,
-            genre: this.getGenre(item),
+            genres: this.getGenres(item),
             year: new Date(item.releaseDate).getFullYear() || 0,
             pager: this.createPager(
                 album.href!,
@@ -207,11 +207,11 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             externalUrl: item.url,
             title: item.name,
             thumbnails: this.createThumbnails(song),
-            artist: item.artistName,
+            artists: [item.artistName],
             albumArtist: this.album ? this.album.artistName : undefined,
             album: item.albumName,
             duration: item.durationInMillis / 1000,
-            genre: this.getGenre(item),
+            genres: this.getGenres(item),
             disc: item.discNumber,
             track: item.trackNumber,
             year: new Date(item.releaseDate).getFullYear() || undefined,
@@ -299,7 +299,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         );
     }
 
-    private getGenre({genreNames = []}: {genreNames: string[]}): string | undefined {
-        return genreNames.filter((name) => name !== 'Music').join('|') || undefined;
+    private getGenres({genreNames = []}: {genreNames: string[]}): readonly string[] | undefined {
+        return genreNames.filter((name) => name !== 'Music');
     }
 }
