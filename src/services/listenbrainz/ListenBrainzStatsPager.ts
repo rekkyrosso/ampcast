@@ -113,7 +113,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
             title: item.release_name,
             artist: item.artist_name,
             release_mbid: mbid,
-            artist_mbids: item.artist_mbids || undefined,
+            artist_mbids: item.artist_mbids,
             playCount: item.listen_count,
         };
         return {...album, pager: mbid ? new MusicBrainzAlbumPager(mbid, album) : new SimplePager()};
@@ -132,7 +132,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
             duration: 0,
             recording_mbid: mbid,
             release_mbid: item.release_mbid || undefined,
-            artist_mbids: item.artist_mbids || undefined,
+            artist_mbids: item.artist_mbids,
             playCount: item.listen_count,
             playedAt: 0,
         });

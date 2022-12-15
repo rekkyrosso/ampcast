@@ -7,8 +7,10 @@ import {lastfmRecentlyPlayed} from 'services/lastfm';
 import LastFmHistoryPager from 'services/lastfm/LastFmHistoryPager';
 import DualPager from 'services/pagers/DualPager';
 import SubjectPager from 'services/pagers/SubjectPager';
+import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {observeListens} from 'services/localdb/listens';
-import {fetchFirstPage, Logger} from 'utils';
+
+import {Logger} from 'utils';
 import RecentlyPlayedBrowser from 'components/MediaBrowser/RecentlyPlayedBrowser';
 
 const logger = new Logger('LastFmRecentlyPlayedBrowser');

@@ -1,39 +1,39 @@
+import {from, merge} from 'rxjs';
+import {filter, take} from 'rxjs/operators';
 import MediaItem from 'types/MediaItem';
-import {jellyfinSearch} from 'services/jellyfin';
-import {plexSearch} from 'services/plex';
+import MediaService from 'types/MediaService';
+import {getService, getLookupServices} from 'services/mediaServices';
 import {hasPlayableSrc} from 'services/mediaServices';
-import {fetchFirstPage, Logger} from 'utils';
+import fetchFirstPage from 'services/pagers/fetchFirstPage';
+import {exists, Logger} from 'utils';
 import lookupStore from './lookupStore';
 import {dispatchLookupEvent} from './lookupEvents';
 
 const logger = new Logger('lookup');
 
 export default async function lookup(item: MediaItem): Promise<MediaItem | undefined> {
-    if (!item) {
-        return;
-    }
-    if (hasPlayableSrc(item)) {
-        return item;
-    }
-    const {link, artist, title} = item;
-    if (!artist || !title) {
-        return;
-    }
     try {
-        const [service = ''] = link?.src.split(':') || [];
-        const lookup = await lookupStore.get(service, artist, title);
-        if (lookup) {
-            const foundItem = lookup.item;
-            if (foundItem) {
-                dispatchLookupEvent(item, foundItem);
-            }
-            return foundItem;
+        if (!item) {
+            return;
+        }
+        if (hasPlayableSrc(item)) {
+            return item;
+        }
+        const {link, artist, title} = item;
+        if (!artist || !title) {
+            return;
         }
         let foundItem: MediaItem | undefined;
+        const [serviceId] = link?.src.split(':') || [];
+        const service = getService(serviceId);
         if (service) {
-            foundItem = await serviceLookup(service, item);
-            // TODO: Move this later...
-            await lookupStore.add(service, artist, title, foundItem);
+            foundItem = await serviceLookup(service, artist, title);
+        }
+        if (!foundItem) {
+            foundItem = await multiLookup(artist, title, true, service);
+        }
+        if (!foundItem) {
+            foundItem = await multiLookup(artist, title, false, service);
         }
         if (foundItem) {
             dispatchLookupEvent(item, foundItem);
@@ -44,61 +44,69 @@ export default async function lookup(item: MediaItem): Promise<MediaItem | undef
     }
 }
 
-async function serviceLookup(service: string, item: MediaItem): Promise<MediaItem | undefined> {
-    switch (service) {
-        case 'jellyfin':
-            return jellyfinLookup(item);
-
-        case 'plex':
-            return plexLookup(item);
-
-        case 'apple':
-            return appleLookup(item);
-
-        case 'spotify':
-            return spotifyLookup(item);
-
-        case 'youtube':
-            return youtubeLookup(item);
-    }
-}
-
-async function jellyfinLookup(item: MediaItem): Promise<MediaItem | undefined> {
-    logger.log('jellyfinLookup', {item});
+async function serviceLookup(
+    service: MediaService,
+    artist: string,
+    title: string
+): Promise<MediaItem | undefined> {
     try {
-        const pager = jellyfinSearch<MediaItem>(item.title, undefined, {
-            pageSize: 100,
-            maxSize: 100,
-        });
-        const matches = await fetchFirstPage(pager);
-        return matches.find((match) => match.title === item.title && match.artist === item.artist);
+        const lookup = await lookupStore.get(service.id, artist, title);
+        if (lookup) {
+            return lookup.item;
+        }
+        if (service.lookup && service.isLoggedIn()) {
+            const pager = service.lookup(artist, title, {pageSize: 10, maxSize: 10});
+            const matches = await fetchFirstPage(pager, 2000);
+            const item = matches.find(
+                (match) => compareString(title, match.title) && compareArtist(artist, match.artist)
+            );
+            await lookupStore.add(service.id, artist, title, item);
+            return item;
+        }
     } catch (err) {
-        logger.id('jellyfin').error(err);
+        logger.error(err);
     }
 }
 
-async function plexLookup(item: MediaItem): Promise<MediaItem | undefined> {
-    logger.log('plexLookup', {item});
-    try {
-        const pager = plexSearch<MediaItem>(item.title, undefined, {pageSize: 100, maxSize: 100});
-        const matches = await fetchFirstPage(pager);
-        return matches.find((match) => match.title === item.title && match.artist === item.artist);
-    } catch (err) {
-        logger.id('plex').error(err);
+async function multiLookup(
+    artist: string,
+    title: string,
+    isLoggedIn: boolean,
+    excludedService?: MediaService
+): Promise<MediaItem | undefined> {
+    return new Promise((resolve, reject) => {
+        const services = getLookupServices().filter(
+            (service) => service !== excludedService && service.isLoggedIn() === isLoggedIn
+        );
+        if (services.length === 0) {
+            resolve(undefined);
+        } else {
+            merge(...services.map((service) => from(serviceLookup(service, artist, title))))
+                .pipe(take(services.length), filter(exists), take(1))
+                .subscribe({
+                    next: resolve,
+                    complete: () => resolve(undefined),
+                    error: reject,
+                });
+        }
+    });
+}
+
+function compareString(a: string, b = ''): boolean {
+    return a.localeCompare(b, undefined, {sensitivity: 'accent'}) === 0;
+}
+
+function compareArtist(artist: string, matchedArtist = ''): boolean {
+    if (compareString(artist, matchedArtist)) {
+        return true;
     }
-}
-
-async function appleLookup(item: MediaItem): Promise<MediaItem | undefined> {
-    logger.log('appleLookup', {item});
-    return;
-}
-
-async function spotifyLookup(item: MediaItem): Promise<MediaItem | undefined> {
-    logger.log('spotifyLookup', {item});
-    return;
-}
-
-async function youtubeLookup(item: MediaItem): Promise<MediaItem | undefined> {
-    logger.log('youtubeLookup', {item});
-    return;
+    const matches = matchedArtist.split('|');
+    if (matches.length > 1) {
+        for (const match of matches) {
+            if (compareString(artist, match)) {
+                return true;
+            }
+        }
+    }
+    return false;
 }

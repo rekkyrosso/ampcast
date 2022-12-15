@@ -1,3 +1,3 @@
 export {default} from './jellyfin';
 export * from './jellyfin';
-export {observeIsLoggedIn, login, logout} from './jellyfinAuth';
+export {observeIsLoggedIn, isLoggedIn, login, logout} from './jellyfinAuth';

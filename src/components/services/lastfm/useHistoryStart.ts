@@ -4,7 +4,8 @@ import {filter, map, tap, mergeMap} from 'rxjs/operators';
 import lastfmApi from 'services/lastfm/lastfmApi';
 import LastFmHistoryPager from 'services/lastfm/LastFmHistoryPager';
 import lastfmSettings from 'services/lastfm/lastfmSettings';
-import {exists, fetchFirstPage, formatDate, Logger} from 'utils';
+import fetchFirstPage from 'services/pagers/fetchFirstPage';
+import {exists, formatDate, Logger} from 'utils';
 
 const serviceStartDate = '2002-11-20';
 

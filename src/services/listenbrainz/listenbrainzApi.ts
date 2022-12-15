@@ -187,9 +187,10 @@ export class ListenBrainzApi {
                 info.music_service_name = 'Local file';
                 break;
         }
+        const [artist] = item.artist!.split('|');
         const params: ListenBrainz.ListenMetadata = {
             track_name: item.title,
-            artist_name: item.artist!,
+            artist_name: artist,
             additional_info: info,
         };
         if (item.album) {

@@ -8,29 +8,10 @@ import MediaSource from 'types/MediaSource';
 import Pager, {PagerConfig} from 'types/Pager';
 import SimplePager from 'services/pagers/SimplePager';
 import plexSettings from './plexSettings';
-import {observeIsLoggedIn, login, logout} from './plexAuth';
+import {observeIsLoggedIn, isLoggedIn, login, logout} from './plexAuth';
 import PlexPager from './PlexPager';
 
 console.log('module::plex');
-
-export function plexSearch<T extends MediaObject>(
-    q: string,
-    mediaType = '10',
-    options?: Partial<PagerConfig>
-): Pager<T> {
-    if (q) {
-        return new PlexPager<T>(
-            `/library/sections/${plexSettings.libraryId}/all`,
-            {
-                title: q,
-                type: mediaType,
-            },
-            options
-        );
-    } else {
-        return new SimplePager<T>();
-    }
-}
 
 const plexMusicVideo: MediaSource<MediaItem> = {
     id: 'plex/video',
@@ -116,33 +97,78 @@ const plex: MediaService = {
     title: 'Plex',
     icon: 'plex',
     url: 'https://www.plex.tv/',
+    lookup: createLookupPager,
     roots: [
-        createSearch('10', {title: 'Songs', itemType: ItemType.Media}),
-        createSearch('9', {title: 'Albums', itemType: ItemType.Album}),
-        createSearch('8', {title: 'Artists', itemType: ItemType.Artist}),
-        createSearch('15', {title: 'Playlists', itemType: ItemType.Playlist}),
+        createRoot(ItemType.Media, {title: 'Songs'}),
+        createRoot(ItemType.Album, {title: 'Albums'}),
+        createRoot(ItemType.Artist, {title: 'Artists'}),
+        createRoot(ItemType.Playlist, {title: 'Playlists'}),
     ],
     sources: [plexMusicVideo, plexMostPlayed, plexRecentlyPlayed, plexTopRated, plexPlaylists],
 
     observeIsLoggedIn,
+    isLoggedIn,
     login,
     logout,
 };
 
-function createSearch<T extends MediaObject>(
-    searchType: string,
-    props: Except<MediaSource<T>, 'id' | 'icon' | 'search'>
+function createRoot<T extends MediaObject>(
+    itemType: ItemType,
+    props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
 ): MediaSource<T> {
     return {
         ...props,
-        id: searchType,
+        itemType,
+        id: String(itemType),
         icon: 'search',
         searchable: true,
 
         search({q = ''}: {q?: string} = {}): Pager<T> {
-            return plexSearch(q, searchType);
+            return createSearchPager(itemType, q);
         },
     };
+}
+
+function createLookupPager(
+    artist: string,
+    title: string,
+    options?: Partial<PagerConfig>
+): Pager<MediaItem> {
+    if (!artist || !title) {
+        new SimplePager();
+    }
+    return createSearchPager(ItemType.Media, title, {'artist.title': artist}, options);
+}
+
+function createSearchPager<T extends MediaObject>(
+    itemType: T['itemType'],
+    q: string,
+    filters?: Record<string, string>,
+    options?: Partial<PagerConfig>
+): Pager<T> {
+    if (q) {
+        const params: Record<string, string> = {...filters, title: q};
+        switch (itemType) {
+            case ItemType.Media:
+                params.type = '10';
+                break;
+
+            case ItemType.Album:
+                params.type = '9';
+                break;
+
+            case ItemType.Artist:
+                params.type = '8';
+                break;
+
+            case ItemType.Playlist:
+                params.type = '15';
+                break;
+        }
+        return new PlexPager<T>(`/library/sections/${plexSettings.libraryId}/all`, params, options);
+    } else {
+        return new SimplePager<T>();
+    }
 }
 
 export default plex;

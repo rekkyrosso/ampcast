@@ -5,6 +5,7 @@ import {ListViewLayout} from 'components/ListView';
 import {Duration} from 'components/MediaList/useMediaListLayout';
 import Icon, {MediaSourceIconName} from 'components/Icon';
 import useObservable from 'hooks/useObservable';
+import {formatStringList} from 'utils';
 
 const playlistLayout: ListViewLayout<PlaylistItem> = {
     view: 'details',
@@ -75,7 +76,7 @@ function RowTitle({title, artist}: PlaylistItem) {
     if (artist) {
         return (
             <>
-                <span className="artist-text">{artist}</span>
+                <span className="artist-text">{formatStringList(artist, '/')}</span>
                 <span role="separator">-</span>
                 <span className="title-text">{title}</span>
             </>

@@ -36,7 +36,7 @@ export function observeAccessToken(): Observable<string> {
     return accessToken$.pipe(distinctUntilChanged());
 }
 
-function isLoggedIn(): boolean {
+export function isLoggedIn(): boolean {
     return accessToken$.getValue() !== '';
 }
 
@@ -229,6 +229,7 @@ function clearAccessToken(): void {
 
 const spotifyAuth: Auth = {
     observeIsLoggedIn,
+    isLoggedIn,
     login,
     logout,
 };

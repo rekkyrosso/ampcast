@@ -9,6 +9,7 @@ import {formatTime} from 'utils';
 import ExternalLink from 'components/ExternalLink';
 import Icon, {MediaSourceIconName} from 'components/Icon';
 import ThumbnailImage, {ThumbnailImageProps} from 'components/ThumbnailImage';
+import {formatStringList} from 'utils';
 import './MediaInfo.scss';
 
 export interface MediaInfoProps<T extends MediaObject> {
@@ -90,7 +91,7 @@ export function Title<T extends MediaObject>({title}: Pick<T, 'title'>) {
 }
 
 export function Artist<T extends MediaItem>({artist}: Pick<T, 'artist'>) {
-    return artist ? <h4 className="artist">By: {artist}</h4> : null;
+    return artist ? <h4 className="artist">By: {formatStringList(artist)}</h4> : null;
 }
 
 export function Owner<T extends MediaObject>({src, owner}: Pick<T, 'src' | 'owner'>) {

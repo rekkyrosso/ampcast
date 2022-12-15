@@ -9,6 +9,7 @@ export default interface Playlist {
     observe(): Observable<readonly PlaylistItem[]>;
     observeCurrentIndex(): Observable<number>;
     observeCurrentItem(): Observable<PlaylistItem | null>;
+    observeNextItem(): Observable<PlaylistItem | null>;
     observeSize(): Observable<number>;
     getCurrentItem(): PlaylistItem | null;
     setCurrentItem(item: PlaylistItem): void;

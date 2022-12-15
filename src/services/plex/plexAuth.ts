@@ -29,7 +29,7 @@ export function observeAccessToken(): Observable<string> {
     return accessToken$.pipe(distinctUntilChanged());
 }
 
-function isLoggedIn(): boolean {
+export function isLoggedIn(): boolean {
     return accessToken$.getValue() !== '';
 }
 
@@ -69,6 +69,7 @@ function setAccessToken(token: string): void {
 
 const plexAuth: Auth = {
     observeIsLoggedIn,
+    isLoggedIn,
     login,
     logout,
 };

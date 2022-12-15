@@ -10,7 +10,7 @@ import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
 import SimplePager from 'services/pagers/SimplePager';
-import {observeIsLoggedIn, login, logout} from './appleAuth';
+import {observeIsLoggedIn, isLoggedIn, login, logout} from './appleAuth';
 import MusicKitPager, {MusicKitPage} from './MusicKitPager';
 
 console.log('module::apple');
@@ -25,28 +25,6 @@ const defaultArtistLayout: MediaSourceLayout<MediaArtist> = {
     fields: ['Thumbnail', 'Title', 'Genre'],
 };
 
-function search<T extends MediaObject>(
-    q: string,
-    type = 'songs',
-    config?: Partial<PagerConfig>
-): Pager<T> {
-    if (q) {
-        return new MusicKitPager(
-            `/v1/catalog/{{storefrontId}}/search`,
-            (response: any): MusicKitPage => {
-                const result = response.results[type] || {data: []};
-                const nextPageUrl = result.next;
-                const total = response.meta?.total;
-                return {items: result.data, total, nextPageUrl};
-            },
-            {term: q, types: type},
-            {maxSize: 250, pageSize: 25, ...config}
-        );
-    } else {
-        return new SimplePager<T>();
-    }
-}
-
 const appleMusicVideos: MediaSource<MediaItem> = {
     id: 'apple/video',
     title: 'Music Video',
@@ -58,7 +36,7 @@ const appleMusicVideos: MediaSource<MediaItem> = {
 
     search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
         if (q) {
-            return search(q, 'music-videos', {maxSize: 100});
+            return createSearchPager(ItemType.Media, q, {types: 'music-videos'}, {maxSize: 100});
         } else {
             return new SimplePager();
         }
@@ -158,15 +136,12 @@ const apple: MediaService = {
     title: 'Apple Music',
     icon: 'apple',
     url: 'https://music.apple.com/',
+    lookup: createLookupPager,
     roots: [
-        appleSearch('songs', {title: 'Songs', itemType: ItemType.Media, layout: defaultLayout}),
-        appleSearch('albums', {title: 'Albums', itemType: ItemType.Album}),
-        appleSearch('artists', {
-            title: 'Artists',
-            itemType: ItemType.Artist,
-            layout: defaultArtistLayout,
-        }),
-        appleSearch('playlists', {title: 'Playlists', itemType: ItemType.Playlist}),
+        createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
+        createRoot(ItemType.Album, {title: 'Albums'}),
+        createRoot(ItemType.Artist, {title: 'Artists', layout: defaultArtistLayout}),
+        createRoot(ItemType.Playlist, {title: 'Playlists'}),
     ],
     sources: [
         appleMusicVideos,
@@ -178,24 +153,81 @@ const apple: MediaService = {
     ],
 
     observeIsLoggedIn,
+    isLoggedIn,
     login,
     logout,
 };
 
-function appleSearch<T extends MediaObject>(
-    searchType: string,
-    props: Except<MediaSource<T>, 'id' | 'icon' | 'search'>
+function createRoot<T extends MediaObject>(
+    itemType: ItemType,
+    props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
 ): MediaSource<T> {
     return {
         ...props,
-        id: `apple/search/${searchType}`,
+        itemType,
+        id: String(itemType),
         icon: 'search',
         searchable: true,
 
         search({q = ''}: {q?: string} = {}): Pager<T> {
-            return search(q, searchType);
+            return createSearchPager(itemType, q);
         },
     };
+}
+
+function createLookupPager(
+    artist: string,
+    title: string,
+    options?: Partial<PagerConfig>
+): Pager<MediaItem> {
+    if (!artist || !title) {
+        new SimplePager();
+    }
+    return createSearchPager(ItemType.Media, `${artist} ${title}`, undefined, options);
+}
+
+function createSearchPager<T extends MediaObject>(
+    itemType: T['itemType'],
+    q: string,
+    filters?: Record<string, string>,
+    options?: Partial<PagerConfig>
+): Pager<T> {
+    if (q) {
+        const params: Record<string, string> = {...filters, term: q};
+        if (!params.types) {
+            switch (itemType) {
+                case ItemType.Media:
+                    params.types = 'songs';
+                    break;
+
+                case ItemType.Album:
+                    params.types = 'albums';
+                    break;
+
+                case ItemType.Artist:
+                    params.types = 'artists';
+                    break;
+
+                case ItemType.Playlist:
+                    params.types = 'playlists';
+                    break;
+            }
+        }
+        const type = params.types;
+        return new MusicKitPager(
+            `/v1/catalog/{{storefrontId}}/search`,
+            (response: any): MusicKitPage => {
+                const result = response.results[type] || {data: []};
+                const nextPageUrl = result.next;
+                const total = response.meta?.total;
+                return {items: result.data, total, nextPageUrl};
+            },
+            params,
+            {maxSize: 250, pageSize: 25, ...options}
+        );
+    } else {
+        return new SimplePager<T>();
+    }
 }
 
 function toPage({data: items = [], next: nextPageUrl, meta}: any): MusicKitPage {

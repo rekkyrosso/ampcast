@@ -24,7 +24,7 @@ export function observeSessionKey(): Observable<string> {
     return sessionKey$.pipe(distinctUntilChanged());
 }
 
-function isLoggedIn(): boolean {
+export function isLoggedIn(): boolean {
     return accessToken$.getValue() !== '';
 }
 
@@ -129,6 +129,7 @@ export function getApiSignature(params: Record<string, string>): string {
 
 const lastfmAuth: Auth = {
     observeIsLoggedIn,
+    isLoggedIn,
     login,
     logout,
 };

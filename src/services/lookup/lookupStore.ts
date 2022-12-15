@@ -28,16 +28,12 @@ class LookupStore extends Dexie {
         title: string,
         item: MediaItem | undefined
     ): Promise<void> {
-        artist = artist.toLowerCase();
-        title = title.toLowerCase();
-        logger.log('add', {service, artist, title, item});
         try {
-            await this.items.put({service, artist, title, item});
-            if (service && item) {
-                const lookup = await this.get('', artist, title); // no service
-                if (!lookup || !lookup.item) {
-                    await this.items.put({service: '', artist, title, item});
-                }
+            if (service) {
+                logger.log('add', {service, artist, title, item});
+                artist = artist.toLowerCase();
+                title = title.toLowerCase();
+                await this.items.put({service, artist, title, item});
             }
         } catch (err) {
             logger.error(err);

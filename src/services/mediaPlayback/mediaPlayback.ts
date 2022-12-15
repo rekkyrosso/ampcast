@@ -8,6 +8,7 @@ import {
     mergeMap,
     switchMap,
     takeUntil,
+    tap,
     withLatestFrom,
 } from 'rxjs/operators';
 import MediaPlayback from 'types/MediaPlayback';
@@ -16,6 +17,7 @@ import PlaylistItem from 'types/PlaylistItem';
 import {addListen} from 'services/localdb/listens';
 import lookup from 'services/lookup';
 import playlist from 'services/playlist';
+import {hasPlayableSrc} from 'services/mediaServices';
 import visualizerPlayer from 'services/visualizer/player'; // TODO: get rid
 import {formatTime, LiteStorage, Logger} from 'utils';
 import mediaPlayer from './mediaPlayer';
@@ -36,6 +38,10 @@ let direction: 'backward' | 'forward' = 'forward';
 
 export function observeCurrentItem(): Observable<PlaylistItem | null> {
     return playlist.observeCurrentItem();
+}
+
+export function observeNextItem(): Observable<PlaylistItem | null> {
+    return playlist.observeNextItem();
 }
 
 export function observeCurrentTime(): Observable<number> {
@@ -185,6 +191,9 @@ function kill(): void {
 }
 
 async function getPlayableItem(item: PlaylistItem): Promise<PlaylistItem> {
+    if (hasPlayableSrc(item)) {
+        return item;
+    }
     const lookupItem = await lookup(item);
     if (lookupItem) {
         return {...item, ...lookupItem} as PlaylistItem;
@@ -315,9 +324,19 @@ loadingLocked$
         distinctUntilChanged(),
         switchMap((locked) => (locked ? EMPTY : observeCurrentItem())),
         switchMap((item) => (item ? getPlayableItem(item) : of(null))),
-        distinctUntilChanged((a, b) => a?.id === b?.id)
+        distinctUntilChanged((a, b) => a?.id === b?.id),
+        tap(load)
     )
-    .subscribe(load);
+    .subscribe(logger);
+
+loadingLocked$
+    .pipe(
+        distinctUntilChanged(),
+        switchMap((locked) => (locked ? EMPTY : observeNextItem())),
+        debounceTime(5000),
+        switchMap((item) => (item ? getPlayableItem(item) : of(null)))
+    )
+    .subscribe(logger);
 
 observePlaybackEnd().pipe(mergeMap(addListen)).subscribe(logger);
 

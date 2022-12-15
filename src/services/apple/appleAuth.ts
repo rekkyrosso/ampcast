@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import {distinctUntilChanged, map} from 'rxjs/operators';
+import Auth from 'types/Auth';
 import {am_dev_token} from 'services/credentials';
 import {loadScript, Logger} from 'utils';
 import appleSettings from './appleSettings';
@@ -16,7 +17,7 @@ export function observeAccessToken(): Observable<string> {
     return accessToken$.pipe(distinctUntilChanged());
 }
 
-function isLoggedIn(): boolean {
+export function isLoggedIn(): boolean {
     return getAccessToken() !== '';
 }
 
@@ -84,11 +85,14 @@ async function getMusicKit(): Promise<MusicKit.MusicKitInstance> {
     }
 }
 
-export default {
+const appleAuth: Auth = {
     observeIsLoggedIn,
+    isLoggedIn,
     login,
     logout,
 };
+
+export default appleAuth;
 
 (async function (): Promise<void> {
     const musicKit = await getMusicKit();

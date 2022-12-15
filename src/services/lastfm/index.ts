@@ -1,3 +1,3 @@
 export {default} from './lastfm';
 export * from './lastfm';
-export {observeIsLoggedIn, login, logout} from './lastfmAuth';
+export {observeIsLoggedIn, isLoggedIn, login, logout} from './lastfmAuth';

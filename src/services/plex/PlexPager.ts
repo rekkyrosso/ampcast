@@ -27,9 +27,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         options?: Partial<PagerConfig>
     ) {
         this.pageSize =
-            options?.pageSize || plexSettings.connection?.local
-                ? PlexPager.maxPageSize
-                : 100;
+            options?.pageSize || plexSettings.connection?.local ? PlexPager.maxPageSize : 100;
         this.pager = new OffsetPager<T>((pageNumber) => this.fetch(pageNumber), {
             pageSize: this.pageSize,
             ...options,
@@ -137,7 +135,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             year: album.year,
             playedAt: album.lastViewedAt,
             playCount: album.viewCount,
-            genre: album.Genre?.map((genre) => genre.tag).join(';'),
+            genre: album.Genre?.map((genre) => genre.tag).join('|'),
             plex: {
                 ratingKey: album.ratingKey,
             },
@@ -154,7 +152,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             title: artist.title,
             addedAt: artist.addedAt,
             rating: artist.userRating,
-            genre: artist.Genre?.map((genre) => genre.tag).join(';'),
+            genre: artist.Genre?.map((genre) => genre.tag).join('|'),
             plex: {
                 ratingKey: artist.ratingKey,
             },
@@ -222,7 +220,10 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         return {url, width, height};
     }
 
-    private createPager<T extends MediaObject>(key: string): Pager<T> {
-        return new PlexPager<T>(key);
+    private createPager<T extends MediaObject>(
+        key: string,
+        params?: Record<string, string>
+    ): Pager<T> {
+        return new PlexPager<T>(key, params);
     }
 }

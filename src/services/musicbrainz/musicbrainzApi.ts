@@ -4,27 +4,26 @@ export class MusicBrainzApi {
     private readonly host = `https://musicbrainz.org/ws/2`;
     private lastCall = 0;
 
-    async getISRC(mbid: string): Promise<string> {
-        const recording = await this.get<MusicBrainz.Recording>(`/recording/${mbid}`, {
+    async getISRCs(recording_mbid: string): Promise<readonly string[]> {
+        const recording = await this.get<MusicBrainz.Recording>(`/recording/${recording_mbid}`, {
             inc: 'isrcs',
         });
         // TODO: find best `isrc`.
-        return recording.isrcs?.[0] || '';
+        return recording.isrcs || [];
     }
 
-    async getRecordingByISRC(isrc: string): Promise<MusicBrainz.Recording | null> {
+    async getRecordingsByISRC(isrc: string): Promise<readonly MusicBrainz.Recording[]> {
         const response = await this.get<MusicBrainz.isrc.Response>(`/isrc/${isrc}`);
-        return response.recordings[0] || null;
+        return response.recordings || [];
     }
 
     async get<T>(path: string, params: any = {}): Promise<T> {
-        await this.applyRateLimiting();
-
         if (path.startsWith('/')) {
             path = path.slice(1);
         }
         params.fmt = 'json';
         path = `${path}?${new URLSearchParams(params)}`;
+        await this.applyRateLimiting();
         this.lastCall = Date.now();
         const response = await fetch(`${this.host}/${path}`, {
             method: 'GET',

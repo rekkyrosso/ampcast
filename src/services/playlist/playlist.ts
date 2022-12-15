@@ -1,15 +1,6 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, combineLatest} from 'rxjs';
-import {
-    debounceTime,
-    distinctUntilChanged,
-    filter,
-    map,
-    mergeMap,
-    skip,
-    tap,
-    withLatestFrom,
-} from 'rxjs/operators';
+import {debounceTime, distinctUntilChanged, filter, map, mergeMap, skip, tap} from 'rxjs/operators';
 import {get as dbRead, set as dbWrite, createStore} from 'idb-keyval';
 import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
@@ -20,7 +11,8 @@ import PlaylistItem from 'types/PlaylistItem';
 import {createMediaItemFromFile} from 'services/file';
 import {LookupEvent, observeLookupEvents} from 'services/lookup/lookupEvents';
 import {hasPlayableSrc} from 'services/mediaServices';
-import {exists, fetchFirstPage, Logger} from 'utils';
+import fetchFirstPage from 'services/pagers/fetchFirstPage';
+import {exists, Logger} from 'utils';
 import settings from './playlistSettings';
 
 console.log('module::playlist');
@@ -93,10 +85,22 @@ export function observeCurrentItem(): Observable<PlaylistItem | null> {
     );
 }
 
+export function observeNextItem(): Observable<PlaylistItem | null> {
+    return combineLatest([items$, currentItemId$]).pipe(
+        map(([items, id]) => {
+            const index = items.findIndex((item) => item.id === id);
+            if (index === -1) {
+                return null;
+            }
+            return items[index + 1] || null;
+        }),
+        distinctUntilChanged()
+    );
+}
+
 export function observeCurrentIndex(): Observable<number> {
-    return currentItemId$.pipe(
-        withLatestFrom(items$),
-        map(([id, items]) => items.findIndex((item) => item.id === id)),
+    return combineLatest([items$, currentItemId$]).pipe(
+        map(([items, id]) => items.findIndex((item) => item.id === id)),
         distinctUntilChanged()
     );
 }
@@ -313,8 +317,9 @@ const playlist: Playlist = {
         return getSize() === 0 || getCurrentIndex() === 0;
     },
     observe,
-    observeCurrentItem,
     observeCurrentIndex,
+    observeCurrentItem,
+    observeNextItem,
     observeSize,
     getCurrentItem,
     setCurrentItem,

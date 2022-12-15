@@ -11,9 +11,9 @@ import musicbrainzApi from './musicbrainzApi';
 export default class MusicBrainzAlbumPager implements Pager<MediaItem> {
     private readonly pager: Pager<MediaItem>;
 
-    constructor(private readonly mbid: string, album?: Except<MediaAlbum, 'pager'>) {
+    constructor(private readonly release_mbid: string, album?: Except<MediaAlbum, 'pager'>) {
         this.pager = new SequentialPager<MediaItem>(async (): Promise<Page<MediaItem>> => {
-            const {media = []} = await musicbrainzApi.get<MusicBrainz.Release>(`release/${mbid}`, {
+            const {media = []} = await musicbrainzApi.get<MusicBrainz.Release>(`release/${release_mbid}`, {
                 inc: 'recordings',
             });
             const items = this.createItems(media[0]?.tracks || [], album);
@@ -67,7 +67,7 @@ export default class MusicBrainzAlbumPager implements Pager<MediaItem> {
             duration: track.length / 1000 || 0,
             track: track.number ? Number(track.number) : undefined,
             recording_mbid: mbid,
-            release_mbid: this.mbid,
+            release_mbid: this.release_mbid,
             year:
                 album?.year ||
                 new Date(recording['first-release-date']).getUTCFullYear() ||

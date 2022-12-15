@@ -1,43 +1,27 @@
 import {Except} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
-import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaService from 'types/MediaService';
+import MediaServiceId from 'types/MediaServiceId';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
 import SimplePager from 'services/pagers/SimplePager';
 import JellyfinPager from './JellyfinPager';
 import jellyfinSettings from './jellyfinSettings';
-import {observeIsLoggedIn, login, logout} from './jellyfinAuth';
+import {observeIsLoggedIn, isLoggedIn, login, logout} from './jellyfinAuth';
 
 console.log('module::jellyfin');
+
+const serviceId: MediaServiceId = 'jellyfin';
 
 const defaultLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
     fields: ['Artist', 'Title', 'Album', 'Track', 'Duration', 'Genre', 'PlayCount'],
 };
-
-export function jellyfinSearch<T extends MediaObject>(
-    q: string,
-    type = 'Audio',
-    options?: Partial<PagerConfig>
-): Pager<T> {
-    if (q) {
-        return createJellyfinItemsPager(
-            {
-                SearchTerm: q,
-                IncludeItemTypes: type,
-            },
-            options
-        );
-    } else {
-        return new SimplePager<T>();
-    }
-}
 
 const jellyfinLikedSongs: MediaSource<MediaItem> = {
     id: 'jellyfin/liked-songs',
@@ -47,7 +31,7 @@ const jellyfinLikedSongs: MediaSource<MediaItem> = {
     layout: defaultLayout,
 
     search(): Pager<MediaItem> {
-        return createJellyfinItemsPager({
+        return createItemsPager({
             Filters: 'IsFavorite',
         });
     },
@@ -60,7 +44,7 @@ const jellyfinLikedAlbums: MediaSource<MediaAlbum> = {
     itemType: ItemType.Album,
 
     search(): Pager<MediaAlbum> {
-        return createJellyfinItemsPager({
+        return createItemsPager({
             Filters: 'IsFavorite',
             IncludeItemTypes: 'MusicAlbum',
         });
@@ -78,7 +62,7 @@ const jellyfinRecentlyPlayed: MediaSource<MediaItem> = {
     },
 
     search(): Pager<MediaItem> {
-        return createJellyfinItemsPager({
+        return createItemsPager({
             SortBy: 'DatePlayed',
             SortOrder: 'Descending',
             Filters: 'IsPlayed',
@@ -94,7 +78,7 @@ const jellyfinMostPlayed: MediaSource<MediaItem> = {
     layout: defaultLayout,
 
     search(): Pager<MediaItem> {
-        return createJellyfinItemsPager({
+        return createItemsPager({
             SortBy: 'PlayCount,DatePlayed',
             SortOrder: 'Descending',
             Filters: 'IsPlayed',
@@ -114,7 +98,7 @@ const jellyfinPlaylists: MediaSource<MediaPlaylist> = {
     secondaryLayout: defaultLayout,
 
     search(): Pager<MediaPlaylist> {
-        return createJellyfinItemsPager({
+        return createItemsPager({
             SortBy: 'SortName',
             SortOrder: 'Ascending',
             IncludeItemTypes: 'Playlist',
@@ -122,39 +106,17 @@ const jellyfinPlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
-function createJellyfinItemsPager<T extends MediaObject>(
-    params: Record<string, string>,
-    options?: Partial<PagerConfig>
-): Pager<T> {
-    return new JellyfinPager(`Users/${jellyfinSettings.userId}/Items`, params, options);
-}
-
 const jellyfin: MediaService = {
-    id: 'jellyfin',
+    id: serviceId,
+    icon: serviceId,
     title: 'Jellyfin',
-    icon: 'jellyfin',
     url: 'https://jellyfin.org/',
+    lookup: createLookupPager,
     roots: [
-        createSearch('Audio', {title: 'Songs', itemType: ItemType.Media}),
-        createSearch('MusicAlbum', {title: 'Albums', itemType: ItemType.Album}),
-        {
-            id: 'Artist',
-            title: 'Artists',
-            icon: '',
-            itemType: ItemType.Artist,
-            searchable: true,
-
-            search({q = ''}: {q?: string} = {}): Pager<MediaArtist> {
-                if (q) {
-                    return new JellyfinPager(`Artists`, {
-                        searchTerm: q,
-                    });
-                } else {
-                    return new SimplePager<MediaArtist>();
-                }
-            },
-        },
-        createSearch('Playlist', {title: 'Playlists', itemType: ItemType.Playlist}),
+        createRoot(ItemType.Media, {title: 'Songs'}),
+        createRoot(ItemType.Album, {title: 'Albums'}),
+        createRoot(ItemType.Artist, {title: 'Artists'}),
+        createRoot(ItemType.Playlist, {title: 'Playlists'}),
     ],
     sources: [
         jellyfinMostPlayed,
@@ -165,25 +127,75 @@ const jellyfin: MediaService = {
     ],
 
     observeIsLoggedIn,
+    isLoggedIn,
     login,
     logout,
 };
 
-function createSearch<T extends MediaObject>(
-    searchType: string,
-    props: Except<MediaSource<T>, 'id' | 'icon' | 'search'>,
-    options?: Partial<PagerConfig>
+function createRoot<T extends MediaObject>(
+    itemType: ItemType,
+    props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
 ): MediaSource<T> {
     return {
         ...props,
-        id: searchType,
+        itemType,
+        id: String(itemType),
         icon: 'search',
         searchable: true,
 
         search({q = ''}: {q?: string} = {}): Pager<T> {
-            return jellyfinSearch(q, searchType, options);
+            return createSearchPager(itemType, q);
         },
     };
+}
+
+function createLookupPager(
+    artist: string,
+    title: string,
+    options?: Partial<PagerConfig>
+): Pager<MediaItem> {
+    if (!artist || !title) {
+        new SimplePager();
+    }
+    return createSearchPager(ItemType.Media, title, {Artists: artist}, options);
+}
+
+function createSearchPager<T extends MediaObject>(
+    itemType: T['itemType'],
+    q: string,
+    filters?: Record<string, string>,
+    options?: Partial<PagerConfig>
+): Pager<T> {
+    if (q) {
+        const params: Record<string, string> = {...filters, SearchTerm: q};
+        if (itemType === ItemType.Artist) {
+            return new JellyfinPager('Artists', params, options);
+        } else {
+            switch (itemType) {
+                case ItemType.Media:
+                    params.IncludeItemTypes = 'Audio';
+                    break;
+
+                case ItemType.Album:
+                    params.IncludeItemTypes = 'MusicAlbum';
+                    break;
+
+                case ItemType.Playlist:
+                    params.IncludeItemTypes = 'Playlist';
+                    break;
+            }
+            return createItemsPager(params, options);
+        }
+    } else {
+        return new SimplePager<T>();
+    }
+}
+
+function createItemsPager<T extends MediaObject>(
+    params: Record<string, string>,
+    options?: Partial<PagerConfig>
+): Pager<T> {
+    return new JellyfinPager(`Users/${jellyfinSettings.userId}/Items`, params, options);
 }
 
 export default jellyfin;

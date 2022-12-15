@@ -8,8 +8,9 @@ import ListenBrainzHistoryPager from 'services/listenbrainz/ListenBrainzHistoryP
 import DualPager from 'services/pagers/DualPager';
 import SubjectPager from 'services/pagers/SubjectPager';
 import {observeListens} from 'services/localdb/listens';
-import {fetchFirstPage, Logger} from 'utils';
+import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import RecentlyPlayedBrowser from 'components/MediaBrowser/RecentlyPlayedBrowser';
+import {Logger} from 'utils';
 
 const logger = new Logger('ListenBrainzRecentlyPlayedBrowser');
 

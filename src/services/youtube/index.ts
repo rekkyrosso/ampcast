@@ -1,3 +1,3 @@
 export {default} from './youtube';
 export * from './youtube';
-export {observeIsLoggedIn, login, logout} from './youtubeAuth';
+export {observeIsLoggedIn, isLoggedIn, login, logout} from './youtubeAuth';

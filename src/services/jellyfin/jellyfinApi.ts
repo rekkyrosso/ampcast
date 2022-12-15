@@ -14,6 +14,9 @@ async function post(path: string, params: any): Promise<Response> {
 
 async function fetch(path: string, init: RequestInit): Promise<Response> {
     const {device, deviceId, token} = jellyfinSettings;
+    if (!token) {
+        throw Error('No access token.')
+    }
     init.headers = {
         ...init.headers,
         'X-Emby-Authorization': `MediaBrowser Client="${__app_name__}", Version="${__app_version__}", Device="${device}", DeviceId="${deviceId}", Token="${token}"`,
@@ -31,7 +34,8 @@ export function getPlayableUrlFromSrc(src: string): string {
             MaxSampleRate: '48000',
             TranscodingProtocol: 'hls',
             TranscodingContainer: 'ts',
-            Container: 'opus,webm|opus,mp3,aac,m4a|aac,m4b|aac,flac,webma,webm|webma,wav,ogg',
+            Container:
+                'opus,webm|opus,mp3,aac,m4a|aac,m4a|alac,m4b|aac,flac,webma,webm|webma,wav,ogg',
             AudioCodec: 'aac',
             static: 'true',
             UserId: userId,

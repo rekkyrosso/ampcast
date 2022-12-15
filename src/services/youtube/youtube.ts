@@ -8,7 +8,7 @@ import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import SimplePager from 'services/pagers/SimplePager';
-import {observeIsLoggedIn, login, logout} from './youtubeAuth';
+import {observeIsLoggedIn, isLoggedIn, login, logout} from './youtubeAuth';
 import YouTubePager from './YouTubePager';
 
 console.log('module::youtube');
@@ -128,6 +128,7 @@ const youtube: MediaService = {
     sources: [youtubeLikes, youtubePlaylists],
 
     observeIsLoggedIn,
+    isLoggedIn,
     login,
     logout,
 };

@@ -20,6 +20,10 @@ export function getAllServices(): readonly MediaService[] {
     return mediaServicesArray;
 }
 
+export function getLookupServices(): readonly MediaService[] {
+    return mediaServicesArray.filter((service) => !!service.lookup);
+}
+
 export function getService(id: string): MediaService | undefined {
     return mediaServicesMap.get(id);
 }

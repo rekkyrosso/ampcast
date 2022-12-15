@@ -300,6 +300,6 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
     }
 
     private getGenre({genreNames = []}: {genreNames: string[]}): string | undefined {
-        return genreNames.filter((name) => name !== 'Music').join(';') || undefined;
+        return genreNames.filter((name) => name !== 'Music').join('|') || undefined;
     }
 }

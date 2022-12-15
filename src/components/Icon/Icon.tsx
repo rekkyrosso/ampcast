@@ -1,11 +1,16 @@
 import React from 'react';
+import MediaServiceId from 'types/MediaServiceId';
 import './Icon.scss';
 
 // Icons from https://fontawesome.com/
 // and https://mui.com/components/material-icons
 // and https://icons.getbootstrap.com/
 
+export type ExternalSourceIconName = 'musicbrainz' | 'file' | 'blob';
+export type MediaSourceIconName = MediaServiceId | ExternalSourceIconName;
+
 export type IconName =
+    | MediaSourceIconName
     | 'ampcast'
     | 'play'
     | 'pause'
@@ -35,22 +40,7 @@ export type IconName =
     | 'recently-added'
     | 'playlists'
     | 'clock'
-    | 'search'
-    | 'file'
-    | 'blob'
-    | 'apple'
-    | 'spotify'
-    | 'youtube'
-    | 'jellyfin'
-    | 'plex'
-    | 'lastfm'
-    | 'listenbrainz'
-    | 'musicbrainz';
-
-export type MediaSourceIconName = Extract<
-    IconName,
-    'file' | 'blob' | 'apple' | 'spotify' | 'youtube' | 'jellyfin' | 'plex' | 'lastfm'
->;
+    | 'search';
 
 export interface IconProps {
     name: IconName;

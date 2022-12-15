@@ -22,7 +22,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
 
     constructor(
         private readonly path: string,
-        private readonly params: Record<string, string> = {},
+        private readonly params: Record<string, unknown> = {},
         options?: Partial<PagerConfig>
     ) {
         this.pageSize = options?.pageSize || 100;
@@ -102,7 +102,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             src: `jellyfin:album:${artist.Id}`,
             externalUrl: '',
             title: artist.Name || '',
-            genre: artist.Genres?.join(';'),
+            genre: artist.Genres?.join('|'),
             thumbnails: this.createThumbnails(artist.Id),
             pager: this.createAlbumsPager(artist),
         };
@@ -119,7 +119,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                 ? Math.floor(new Date(album.UserData.LastPlayedDate).getTime() / 1000)
                 : undefined,
             playCount: album.UserData?.PlayCount || undefined,
-            genre: album.Genres?.join(';'),
+            genre: album.Genres?.join('|'),
             thumbnails: this.createThumbnails(album.Id),
             trackCount: album.ChildCount || undefined,
             pager: this.createAlbumPager(album),
@@ -139,7 +139,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                 ? Math.floor(new Date(playlist.UserData.LastPlayedDate).getTime() / 1000)
                 : undefined,
             playCount: playlist.UserData?.PlayCount || undefined,
-            genre: playlist.Genres?.join(';'),
+            genre: playlist.Genres?.join('|'),
             thumbnails: this.createThumbnails(playlist.Id),
             trackCount: playlist.ChildCount || undefined,
             pager: this.createPlaylistPager(playlist),
@@ -161,9 +161,9 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                 ? Math.floor(new Date(track.UserData.LastPlayedDate).getTime() / 1000)
                 : 0,
             playCount: track.UserData?.PlayCount || undefined,
-            genre: track.Genres?.join(';'),
+            genre: track.Genres?.join('|'),
             thumbnails: this.createThumbnails(thumbnailId),
-            artist: track.Artists?.join('/') || track.AlbumArtist || undefined,
+            artist: track.Artists?.join('|') || track.AlbumArtist || undefined,
             albumArtist: track.AlbumArtist || undefined,
             album: track.Album || undefined,
             track: track.Album ? track.IndexNumber || 0 : 0,

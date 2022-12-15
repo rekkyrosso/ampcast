@@ -8,7 +8,7 @@ import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
-import {observeIsLoggedIn, login, logout} from './lastfmAuth';
+import {observeIsLoggedIn, isLoggedIn, login, logout} from './lastfmAuth';
 import LastFmPager from './LastFmPager';
 import LastFmHistoryPager from './LastFmHistoryPager';
 import lastfmSettings from './lastfmSettings';
@@ -122,6 +122,7 @@ const lastfm: MediaService = {
     ],
 
     observeIsLoggedIn,
+    isLoggedIn,
     login,
     logout,
 };
@@ -135,7 +136,6 @@ function createTopView<T extends MediaObject>(
         id: `lastfm/top/${method.slice(11).toLowerCase()}`,
         icon: 'star',
         searchable: false,
-        unplayable: true,
 
         search({period = 'overall'}: {period?: string} = {}): Pager<T> {
             return new LastFmPager(

@@ -1,6 +1,4 @@
-import {take, takeUntil} from 'rxjs/operators';
 import stringScore from 'string-score';
-import Pager from 'types/Pager';
 export {default as LiteStorage} from './LiteStorage';
 export {default as Logger} from './Logger';
 export {default as browser} from './browser';
@@ -11,17 +9,6 @@ export function exists<T>(value: T): value is NonNullable<T> {
 
 export function matchString(string1: string, string2: string, tolerance = 0.9): boolean {
     return stringScore(string1, string2) >= tolerance || stringScore(string2, string1) >= tolerance;
-}
-
-export function fetchFirstPage<T>(pager: Pager<T>): Promise<readonly T[]> {
-    return new Promise((resolve, reject) => {
-        const complete = () => pager.disconnect();
-        const items$ = pager.observeItems();
-        const error$ = pager.observeError();
-        items$.pipe(takeUntil(error$), take(1)).subscribe({next: resolve, complete});
-        error$.pipe(takeUntil(items$), take(1)).subscribe({next: reject, complete});
-        pager.fetchAt(0);
-    });
 }
 
 const loadedScripts: {[src: string]: true | undefined} = {};
@@ -85,6 +72,10 @@ export function formatTime(seconds: number): string {
         .toISOString()
         .slice(11, 19) // time portion of: YYYY-MM-DDTHH:mm:ss.sssZ
         .replace(/^[0:]+(.{4,})$/, '$1'); // remove leading zeroes
+}
+
+export function formatStringList(list = '', join = ', '): string {
+    return list.split('|').join(join);
 }
 
 export function preventDefault(event: Event | React.SyntheticEvent): void {

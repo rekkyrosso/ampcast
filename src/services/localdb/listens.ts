@@ -45,7 +45,7 @@ export async function addListen(state: PlaybackState): Promise<void> {
             const playTime = endedAt - startedAt;
             const minTime = 4 * 60;
             if (playTime > minTime || playTime > item.duration / 2) {
-                logger.log('add', {state});
+                logger.log('add', {item});
                 await store.items.add({
                     ...item,
                     playedAt: startedAt,

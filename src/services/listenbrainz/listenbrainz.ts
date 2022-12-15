@@ -5,7 +5,7 @@ import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import Pager from 'types/Pager';
-import {observeIsLoggedIn, login, logout} from './listenbrainzAuth';
+import {observeIsLoggedIn, isLoggedIn, login, logout} from './listenbrainzAuth';
 import ListenBrainzHistoryPager from './ListenBrainzHistoryPager';
 import listenbrainzSettings from './listenbrainzSettings';
 import ListenBrainzStatsPager from './ListenBrainzStatsPager';
@@ -100,6 +100,7 @@ const listenbrainz: MediaService = {
     sources: [topTracks, topAlbums, topArtists, listenbrainzHistory],
 
     observeIsLoggedIn,
+    isLoggedIn,
     login,
     logout,
 };

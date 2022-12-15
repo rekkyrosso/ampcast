@@ -8,6 +8,7 @@ import {ColumnSpec, ListViewLayout} from 'components/ListView';
 import SunClock from 'components/SunClock';
 import ThumbnailImage from 'components/ThumbnailImage';
 import Time from 'components/Time';
+import {formatStringList} from 'utils';
 
 const defaultLayout: MediaSourceLayout<MediaObject> = {
     view: 'details',
@@ -38,7 +39,7 @@ type RenderField<T extends MediaObject = MediaObject> = ColumnSpec<T>['render'];
 export const Index: RenderField = (_, rowIndex) => rowIndex + 1;
 export const Title: RenderField = (item) => item.title;
 export const Track: RenderField<MediaItem> = (item) => item.track || '-';
-export const Artist: RenderField<MediaAlbum | MediaItem> = (item) => item.artist;
+export const Artist: RenderField<MediaAlbum | MediaItem> = (item) => formatStringList(item.artist);
 export const AlbumArtist: RenderField<MediaItem> = (item) => item.albumArtist;
 export const Album: RenderField<MediaItem> = (item) => item.album;
 export const Duration: RenderField<MediaPlaylist | MediaItem> = (item) => (
@@ -54,13 +55,19 @@ export const TrackCount: RenderField<MediaPlaylist | MediaAlbum> = (item) => {
 };
 export const Year: RenderField<MediaAlbum | MediaItem> = (item) => item.year || '';
 export const Genre: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) =>
-    item.genre?.split(';').join(', ');
+    formatStringList(item.genre);
 export const Owner: RenderField = (item) => item.owner?.name;
 export const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
     if (!item.playedAt) {
         return '';
     }
-    const elapsedTime = Date.now() - item.playedAt * 1000;
+    const date = new Date(item.playedAt * 1000);
+    const elapsedTime = getElapsedTimeText(date.valueOf());
+    return <time title={date.toLocaleDateString()}>{elapsedTime}</time>;
+};
+
+function getElapsedTimeText(playedAt: number): string {
+    const elapsedTime = Date.now() - playedAt;
     const minute = 60_000;
     if (elapsedTime < minute * 2) {
         return 'just now';
@@ -89,7 +96,7 @@ export const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
         return `1 year ago`;
     }
     return `${Math.floor(elapsedTime / year)} years ago`;
-};
+}
 
 export const ListenDate: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
     if (!item.playedAt) {

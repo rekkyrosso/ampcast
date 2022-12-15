@@ -36,7 +36,7 @@ export default function MediaListStatusBar({
             const message =
                 itemCount === size
                     ? `${size.toLocaleString()} ${size === 1 ? itemName : itemNamePlural}`
-                    : `Loaded ${itemCount}/${
+                    : `Loaded ${itemCount} of ${
                           size === undefined
                               ? maxSize || `${items.length}+`
                               : maxSize

@@ -83,8 +83,9 @@ export class LastFmApi {
 
     private getScrobbleParams(item: MediaItem): Record<string, string> {
         const params: Record<string, string> = {};
+        const [artist] = item.artist!.split('|');
         params.track = item.title;
-        params.artist = item.artist!;
+        params.artist = artist;
         if (item.album) {
             params.album = item.album;
         }
