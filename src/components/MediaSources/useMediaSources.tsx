@@ -21,7 +21,7 @@ export default function useMediaSources(): TreeNode<React.ReactNode>[] {
                             label: (
                                 <MediaSourceLabel
                                     icon={service.icon as MediaSourceIconName}
-                                    text={service.title}
+                                    text={service.name}
                                     showConnectivity
                                 />
                             ),

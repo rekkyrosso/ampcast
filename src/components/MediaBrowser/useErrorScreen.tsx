@@ -12,7 +12,7 @@ export default function useErrorScreen(service: MediaService) {
                     {service && (
                         <p>
                             <Button className="disconnect" onClick={service.logout}>
-                                Reconnect to {service.title}...
+                                Reconnect to {service.name}...
                             </Button>
                         </p>
                     )}

@@ -21,7 +21,7 @@ export default function AppleMusicSettings() {
         []
     );
 
-    return <TabList items={tabs} label={apple.title} />;
+    return <TabList items={tabs} label={apple.name} />;
 }
 
 export function AppleMusicBetaSettings() {

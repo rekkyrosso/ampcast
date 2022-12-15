@@ -198,7 +198,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             externalUrl: track.external_urls.spotify,
             title: track.name,
             artists: track.artists?.map((artist) => artist.name),
-            albumArtist: album?.artists.join(', '),
+            albumArtist: album?.artists.map((artist) => artist.name).join(', '),
             album: album?.name,
             duration: track.duration_ms / 1000,
             playedAt: track.played_at

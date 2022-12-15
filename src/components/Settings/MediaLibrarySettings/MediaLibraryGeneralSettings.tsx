@@ -30,7 +30,7 @@ export default function MediaLibraryGeneralSettings() {
                                 value={service.id}
                                 defaultChecked={isVisible(service)}
                             />
-                            <label htmlFor={`${id}-${service.id}`}>{service.title}</label>
+                            <label htmlFor={`${id}-${service.id}`}>{service.name}</label>
                         </li>
                     ))}
                 </ul>

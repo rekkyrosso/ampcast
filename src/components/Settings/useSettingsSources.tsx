@@ -23,7 +23,7 @@ const sources: TreeNode<React.ReactNode>[] = [
         startExpanded: true,
         children: getAllServices().map((service) => ({
             id: service.id,
-            label: <MediaSourceLabel icon={service.icon} text={service.title} />,
+            label: <MediaSourceLabel icon={service.icon} text={service.name} />,
             value: <ServiceRouter service={service} />,
         })),
     },

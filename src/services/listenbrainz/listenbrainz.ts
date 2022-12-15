@@ -92,7 +92,7 @@ const topArtists: MediaSource<MediaArtist> = {
 
 const listenbrainz: MediaService = {
     id: 'listenbrainz',
-    title: 'ListenBrainz',
+    name: 'ListenBrainz',
     icon: 'listenbrainz',
     url: 'https://listenbrainz.org/',
     scrobbler: true,

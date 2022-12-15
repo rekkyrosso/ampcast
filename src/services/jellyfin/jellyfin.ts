@@ -109,7 +109,7 @@ const jellyfinPlaylists: MediaSource<MediaPlaylist> = {
 const jellyfin: MediaService = {
     id: serviceId,
     icon: serviceId,
-    title: 'Jellyfin',
+    name: 'Jellyfin',
     url: 'https://jellyfin.org/',
     lookup: createLookupPager,
     roots: [

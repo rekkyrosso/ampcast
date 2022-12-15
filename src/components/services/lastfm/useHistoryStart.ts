@@ -27,7 +27,7 @@ export default function useHistoryStart() {
                     ),
                     map((playCount) => Math.floor(playCount / pageSize)),
                     map((page) => new LastFmHistoryPager({page}, {pageSize})),
-                    mergeMap(fetchFirstPage),
+                    mergeMap((pager) => fetchFirstPage(pager)),
                     map((items) => items.at(-1)),
                     filter(exists),
                     map((track) => new Date(track.playedAt * 1000)),

@@ -51,8 +51,9 @@ export default function MediaServiceScrobblingSettings({
                                 type="checkbox"
                                 value={service.id}
                                 defaultChecked={canScrobble(scrobbler, service)}
+                                disabled={service.id === 'youtube'}
                             />
-                            <label htmlFor={`${id}-${service.id}`}>{service.title}</label>
+                            <label htmlFor={`${id}-${service.id}`}>{service.name}</label>
                         </li>
                     ))}
                 </ul>

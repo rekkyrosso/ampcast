@@ -196,7 +196,7 @@ const spotifyPlaylists: MediaSource<MediaPlaylist> = {
 
 const spotify: MediaService = {
     id: 'spotify',
-    title: 'Spotify',
+    name: 'Spotify',
     icon: 'spotify',
     url: 'https://www.spotify.com/',
     lookup: createLookupPager,

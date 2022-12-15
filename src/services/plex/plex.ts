@@ -94,7 +94,7 @@ const plexPlaylists: MediaSource<MediaPlaylist> = {
 
 const plex: MediaService = {
     id: 'plex',
-    title: 'Plex',
+    name: 'Plex',
     icon: 'plex',
     url: 'https://www.plex.tv/',
     lookup: createLookupPager,

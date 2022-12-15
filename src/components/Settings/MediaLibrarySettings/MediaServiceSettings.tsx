@@ -25,5 +25,5 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
         return tabs;
     }, [service]);
 
-    return <TabList items={tabs} label={service.title} />;
+    return <TabList items={tabs} label={service.name} />;
 }

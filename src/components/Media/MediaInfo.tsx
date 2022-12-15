@@ -5,10 +5,11 @@ import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import {formatTime} from 'utils';
+import {getService} from 'services/mediaServices';
 import ExternalLink from 'components/ExternalLink';
 import Icon, {MediaSourceIconName} from 'components/Icon';
 import ThumbnailImage, {ThumbnailImageProps} from 'components/ThumbnailImage';
+import {formatTime} from 'utils';
 import './MediaInfo.scss';
 
 export interface MediaInfoProps<T extends MediaObject> {
@@ -114,45 +115,36 @@ export function ExternalView({src, url}: {src: string; url: string | undefined})
         return null;
     }
 
-    let [service] = src.split(':');
-    let name = '';
+    let [serviceId] = src.split(':');
+    let serviceName = '';
 
-    switch (service) {
-        case 'apple':
-            name = 'Apple Music';
-            break;
-
-        case 'spotify':
-            name = 'Spotify';
-            break;
-
-        case 'youtube':
-            name = 'YouTube';
-            break;
-
-        case 'lastfm':
-            name = 'last.fm';
-            break;
-
+    switch (serviceId) {
         case 'musicbrainz':
-            name = 'MusicBrainz';
+            serviceName = 'MusicBrainz';
             break;
 
         case 'listenbrainz':
             if (/musicbrainz/.test(url)) {
-                name = 'MusicBrainz';
-                service = 'musicbrainz';
+                serviceName = 'MusicBrainz';
+                serviceId = 'musicbrainz';
             } else {
-                name = 'ListenBrainz';
+                serviceName = 'ListenBrainz';
             }
             break;
+
+        default: {
+            const service = getService(serviceId);
+            if (service) {
+                serviceName = service.name;
+            }
+        }
     }
 
     return (
         <p className="external-view">
-            {name ? (
+            {serviceName ? (
                 <>
-                    View on {name}: <Icon name={service as MediaSourceIconName} />{' '}
+                    View on {serviceName}: <Icon name={serviceId as MediaSourceIconName} />{' '}
                 </>
             ) : (
                 <>Url: </>

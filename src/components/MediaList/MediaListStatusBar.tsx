@@ -32,16 +32,18 @@ export default function MediaListStatusBar({
     } else {
         if (items.length > 0) {
             const itemCount = getArrayCount(items);
-            const selection = <span className="selected">({selectedCount} selected)</span>;
+            const selection = (
+                <span className="selected">({formatNumber(selectedCount)} selected)</span>
+            );
             const message =
                 itemCount === size
                     ? `${size.toLocaleString()} ${size === 1 ? itemName : itemNamePlural}`
-                    : `Loaded ${itemCount} of ${
+                    : `Loaded ${formatNumber(itemCount)} of ${
                           size === undefined
-                              ? maxSize || `${items.length}+`
+                              ? maxSize || `${formatNumber(items.length)}+`
                               : maxSize
-                              ? Math.min(size, maxSize)
-                              : size
+                              ? formatNumber(Math.min(size, maxSize))
+                              : formatNumber(size)
                       } ${itemNamePlural}`;
             statusText = (
                 <span className="message">
@@ -62,4 +64,13 @@ export default function MediaListStatusBar({
 function getArrayCount(array: readonly any[]): number {
     // Counts items in a sparse array.
     return array.reduce((total) => (total += 1), 0);
+}
+
+function formatNumber(value = 0): string {
+    value = Number(value);
+    if (value < 10_000) {
+        return String(value);
+    } else {
+        return value.toLocaleString();
+    }
 }

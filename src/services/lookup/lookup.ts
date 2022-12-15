@@ -51,18 +51,25 @@ async function serviceLookup(
     title: string
 ): Promise<MediaItem | undefined> {
     try {
+        if (!service.lookup) {
+            return;
+        }
         const lookup = await lookupStore.get(service.id, artist, title);
         if (lookup) {
             return lookup.item;
         }
-        if (service.lookup && service.isLoggedIn()) {
-            const pager = service.lookup(artist, title, {pageSize: 10, maxSize: 10});
+        if (service.isLoggedIn()) {
+            const pager = service.lookup(artist, removeFeaturedArtists(title), {
+                pageSize: 10,
+                maxSize: 10,
+            });
             const matches = await fetchFirstPage(pager, 2000);
-            const item = matches.find(
-                (match) => compareString(title, match.title) && compareArtist(artist, match.artists)
-            );
-            await lookupStore.add(service.id, artist, title, item);
-            return item;
+            let foundItem = matches.find((match) => compare(artist, title, match, true));
+            if (!foundItem) {
+                foundItem = matches.find((match) => compare(artist, title, match, false));
+            }
+            await lookupStore.add(service.id, artist, title, foundItem);
+            return foundItem;
         }
     } catch (err) {
         logger.error(err);
@@ -93,17 +100,78 @@ async function multiLookup(
     });
 }
 
-function compareString(a: string, b = ''): boolean {
-    return a.localeCompare(b, undefined, {sensitivity: 'accent'}) === 0;
+function compare(artist: string, title: string, match: MediaItem, strict: boolean): boolean {
+    return compareTitle(title, match, strict) && compareArtists(artist, match, strict);
 }
 
-function compareArtist(artist: string, matchedArtists: readonly string[] | undefined): boolean {
+function compareArtists(artist: string, match: MediaItem, strict: boolean): boolean {
+    const matchedArtists = match.artists;
     if (matchedArtists) {
         for (const matchedArtist of matchedArtists) {
+            if (compareString(artist, matchedArtist)) {
+                return true;
+            }
+            if (strict) {
+                return false;
+            }
+        }
+    }
+    if (strict) {
+        return false;
+    }
+    if (compareString(artist, match.albumArtist)) {
+        return true;
+    }
+    const joiners = ',;&|/'
+        .split('')
+        .map((j) => [j, `${j} `, ` ${j} `])
+        .flat();
+    if (matchedArtists && matchedArtists.length > 1) {
+        for (const joiner of joiners) {
+            const matchedArtist = matchedArtists.join(joiner);
             if (compareString(artist, matchedArtist)) {
                 return true;
             }
         }
     }
     return false;
+}
+
+function compareTitle(title: string, match: MediaItem, strict: boolean): boolean {
+    if (compareString(title, match.title)) {
+        return true;
+    }
+    const [, ...artists] = match.artists || [];
+    if (artists.length > 0) {
+        // Apple sometimes append `(feat. Artist1, Artist2 & Artist3)` to titles.
+        const lastArtist = artists.length > 1 ? ` & ${artists.pop()}` : '';
+        const matchedTitleWithArtists = `${match.title} (feat. ${artists.join(', ')}${lastArtist})`;
+        if (compareString(matchedTitleWithArtists, title)) {
+            return true;
+        }
+    }
+    if (strict) {
+        return false;
+    }
+    if (title.includes('(feat')) {
+        const titleWithoutArtists = removeFeaturedArtists(title);
+        if (compareString(titleWithoutArtists, match.title)) {
+            return true;
+        }
+    }
+    if (match.title.includes('(feat')) {
+        const matchedTitleWithoutArtists = removeFeaturedArtists(match.title);
+        if (compareString(title, matchedTitleWithoutArtists)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+function compareString(a: string, b = ''): boolean {
+    return a.localeCompare(b, undefined, {sensitivity: 'accent'}) === 0;
+}
+
+function removeFeaturedArtists(title: string): string {
+    return title.replace(/\s*[([]feat.*$/i, '');
 }

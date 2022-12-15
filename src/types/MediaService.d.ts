@@ -6,7 +6,7 @@ import Pager, {PagerConfig} from './Pager';
 
 export default interface MediaService extends Auth {
     readonly id: MediaServiceId;
-    readonly title: string;
+    readonly name: string;
     readonly icon: MediaServiceId;
     readonly url: string;
     readonly roots: readonly MediaSource[];

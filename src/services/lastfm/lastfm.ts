@@ -93,7 +93,7 @@ const lastfmLovedTracks: MediaSource<MediaItem> = {
 
 const lastfm: MediaService = {
     id: 'lastfm',
-    title: 'last.fm',
+    name: 'last.fm',
     icon: 'lastfm',
     url: 'https://www.last.fm/',
     scrobbler: true,

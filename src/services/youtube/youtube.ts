@@ -93,7 +93,7 @@ export async function getYouTubeVideoInfo(videoId: string): Promise<MediaItem> {
 
 const youtube: MediaService = {
     id: 'youtube',
-    title: 'YouTube',
+    name: 'YouTube',
     icon: 'youtube',
     url: 'https://www.youtube.com/',
     defaultNoScrobble: true,

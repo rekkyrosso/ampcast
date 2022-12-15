@@ -133,7 +133,7 @@ const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
 
 const apple: MediaService = {
     id: 'apple',
-    title: 'Apple Music',
+    name: 'Apple Music',
     icon: 'apple',
     url: 'https://music.apple.com/',
     lookup: createLookupPager,
