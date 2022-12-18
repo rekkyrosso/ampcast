@@ -8,8 +8,14 @@ import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import Playlist from 'types/Playlist';
 import PlaylistItem from 'types/PlaylistItem';
+import LookupStatus from 'types/LookupStatus';
 import {createMediaItemFromFile} from 'services/file';
-import {LookupEvent, observeLookupEvents} from 'services/lookup/lookupEvents';
+import {
+    LookupStartEvent,
+    LookupEndEvent,
+    observeLookupStartEvents,
+    observeLookupEndEvents,
+} from 'services/lookup';
 import {hasPlayableSrc} from 'services/mediaServices';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {exists, Logger} from 'utils';
@@ -43,9 +49,11 @@ function getItems(): PlaylistItem[] {
 function setItems(items: PlaylistItem[]): void {
     items = items.concat(); // make sure we get a new array
     items$.next(items);
-    if (items.length !== 0) {
-        const currentItemId = getCurrentItemId();
-        if (!currentItemId) {
+    if (items.length === 0) {
+        setCurrentItemId('');
+    } else {
+        const currentItem = getCurrentItem();
+        if (!currentItem) {
             // make sure something is selected.
             setCurrentItemId(items[0].id);
         }
@@ -65,13 +73,9 @@ function setCurrentItemId(id: string): void {
 }
 
 export function getCurrentItem(): PlaylistItem | null {
+    const items = getItems();
     const currentItemId = getCurrentItemId();
-    if (currentItemId) {
-        const items = getItems();
-        const item = items.find((item) => item.id === currentItemId);
-        return item || null;
-    }
-    return null;
+    return items.find((item) => item.id === currentItemId) || null;
 }
 
 export function setCurrentItem(item: PlaylistItem): void {
@@ -166,7 +170,11 @@ export async function insertAt(items: PlaylistSource, index: number): Promise<vo
         });
     }
     if (additions.length > 0) {
-        const newItems = additions.map((item) => ({...item, id: nanoid()}));
+        const newItems = additions.map((item) => ({
+            ...item,
+            id: nanoid(),
+            lookupStatus: undefined,
+        }));
         if (index >= 0 && index < all.length) {
             // insert
             all.splice(index, 0, ...newItems);
@@ -300,15 +308,6 @@ async function createMediaItem(item: File | MediaItem): Promise<MediaItem | null
     }
 }
 
-function handleLookupEvent({item, bestOf}: LookupEvent): void {
-    const items = getItems();
-    const index = items.indexOf(item as PlaylistItem);
-    if (index !== -1) {
-        items[index] = {...item, ...bestOf} as PlaylistItem;
-        setItems(items);
-    }
-}
-
 const playlist: Playlist = {
     get atEnd(): boolean {
         return getCurrentIndex() === getSize() - 1;
@@ -339,8 +338,8 @@ export default playlist;
 
 (async () => {
     const items = (await dbRead<PlaylistItem[]>('items', store)) ?? [];
-    items$.next(items);
     const id = (await dbRead('currently-playing-id', store)) ?? '';
+    items$.next(items);
     currentItemId$.next(id);
 })();
 
@@ -348,7 +347,15 @@ items$
     .pipe(
         skip(2),
         debounceTime(delayWriteTime),
-        mergeMap((items) => dbWrite('items', items, store))
+        mergeMap((items: PlaylistItem[]) => {
+            items = items.map((item) => {
+                if (item.lookupStatus) {
+                    return {...item, lookupStatus: undefined};
+                }
+                return item;
+            });
+            return dbWrite('items', items, store);
+        })
     )
     .subscribe(logger);
 
@@ -360,4 +367,32 @@ currentItemId$
     )
     .subscribe(logger);
 
-observeLookupEvents().pipe(tap(handleLookupEvent)).subscribe(logger);
+observeLookupStartEvents()
+    .pipe(
+        tap(({lookupItem}: LookupStartEvent) => {
+            const items = getItems();
+            const index = items.findIndex((item) => item.id === (lookupItem as PlaylistItem).id);
+            if (index !== -1) {
+                const item = items[index];
+                items[index] = {...item, lookupStatus: LookupStatus.Looking};
+                setItems(items);
+            }
+        })
+    )
+    .subscribe(logger);
+
+observeLookupEndEvents()
+    .pipe(
+        tap(({lookupItem, foundItem}: LookupEndEvent) => {
+            const items = getItems();
+            const index = items.findIndex((item) => item.id === (lookupItem as PlaylistItem).id);
+            if (index !== -1) {
+                const item = items[index];
+                items[index] = foundItem
+                    ? {...foundItem, id: item.id, lookupStatus: undefined}
+                    : {...item, lookupStatus: LookupStatus.NotFound};
+                setItems(items);
+            }
+        })
+    )
+    .subscribe(logger);

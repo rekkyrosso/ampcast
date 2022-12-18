@@ -7,25 +7,16 @@ import plex from 'services/plex';
 import spotify from 'services/spotify';
 import youtube from 'services/youtube';
 
-const mediaServicesMap = new Map<string, MediaService>(
-    [apple, spotify, youtube, plex, jellyfin, lastfm, listenbrainz].map((service) => [
-        service.id,
-        service,
-    ])
-);
-
-const mediaServicesArray: readonly MediaService[] = [...mediaServicesMap.values()];
-
 export function getAllServices(): readonly MediaService[] {
-    return mediaServicesArray;
+    return [apple, spotify, youtube, plex, jellyfin, lastfm, listenbrainz];
 }
 
 export function getLookupServices(): readonly MediaService[] {
-    return mediaServicesArray.filter((service) => !!service.lookup);
+    return getAllServices().filter((service) => !!service.lookup);
 }
 
 export function getService(id: string): MediaService | undefined {
-    return mediaServicesMap.get(id);
+    return getAllServices().find((service) => service.id === id);
 }
 
 export function isPlayableService(id: string): boolean {
@@ -36,6 +27,9 @@ export function isPlayableService(id: string): boolean {
 export function hasPlayableSrc(item: {src: string}): boolean {
     if (item) {
         const [serviceId, type, id] = item.src.split(':');
+        if (serviceId === 'blob' || serviceId === 'file') {
+            return true;
+        }
         return !!id && !!type && isPlayableService(serviceId);
     }
     return false;

@@ -3,50 +3,74 @@ import type {Observer} from 'rxjs';
 type AnyObserver = Partial<Observer<any>>;
 type BasicConsole = Pick<Console, 'log' | 'warn' | 'error'>;
 
+console.log('module:Logger');
+
 export default class Logger implements BasicConsole, AnyObserver {
-    private static only = '';
-    readonly log: BasicConsole['log'];
-    readonly warn: BasicConsole['warn'];
-    readonly error: BasicConsole['error'];
-    readonly id: (id: string) => Logger;
-    readonly all: (id?: string) => Logger;
-    readonly next?: () => void;
-    readonly complete?: () => void;
-    readonly only: () => this;
+    private static only?: Logger;
+    #id = '';
+    #rx = false;
 
-    constructor(id = '', all = false, console: BasicConsole = window.console) {
-        const prefix = id ? ` ${id}:` : '';
-        const createId = (oldId: string, newId?: string) =>
-            oldId && newId ? `${oldId}/${newId}` : newId || oldId;
+    next?: (...args: any[]) => void;
+    complete?: () => void;
 
-        const log = (...args: any[]) => {
-            if (id.startsWith(Logger.only)) {
-                console.log(...args);
-            }
-        };
-
-        this.log = (...args: any[]) => log(`##${prefix}`, ...args);
-        this.warn = (...args: any[]) => log(`###${prefix}`, ...args);
-        this.error = (err: unknown) => {
-            if (id.startsWith(Logger.only)) {
-                log(`####${prefix} ERROR`);
-                console.error(err);
-            }
-        };
-
-        // For RxJS debugging
-        if (all) {
+    constructor(id = '', rx = false, private readonly console: BasicConsole = window.console) {
+        this.#id = String(id);
+        this.#rx = __dev__ && rx;
+        if (this.#rx) {
             this.next = this.log;
-            this.complete = () => this.log('***complete***');
+            this.complete = this._complete;
         }
+    }
 
-        // For cloning
-        this.id = (newId: string) => new Logger(createId(id, newId), all, console);
-        this.all = (newId?: string) => new Logger(createId(id, newId), true, console);
+    log(...args: any[]): void {
+        this._log(1, ...args);
+    }
 
-        this.only = () => {
-            Logger.only = id;
-            return this;
-        };
+    warn(...args: any[]): void {
+        this._log(2, ...args);
+    }
+
+    error(err: unknown): void {
+        if (this._canLog) {
+            this._log(3, 'ERROR');
+            this.console.error(err);
+        }
+    }
+
+    id(id: string): Logger {
+        return this._clone(id);
+    }
+
+    rx(id?: string): Logger {
+        return this._clone(id, true);
+    }
+
+    only(): this {
+        if (__dev__) {
+            Logger.only = this;
+        }
+        return this;
+    }
+
+    private get _canLog(): boolean {
+        return !Logger.only || Logger.only === this;
+    }
+
+    private _clone(id = '', rx = this.#rx): Logger {
+        const newId = id ? `${this.#id}/${id}` : this.#id;
+        return new Logger(newId, rx, this.console);
+    }
+
+    private _complete(): void {
+        this.log('***complete***');
+    }
+
+    private _log(level: 1 | 2 | 3, ...args: any[]): void {
+        if (this._canLog) {
+            this.console.log(
+                `${'####'.slice(3 - level)}${this.#id ? ` ${this.#id}:` : ''}`,
+                ...args
+            );
+        }
     }
 }

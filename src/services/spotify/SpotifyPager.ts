@@ -205,7 +205,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                 ? Math.floor((new Date(track.played_at).getTime() || 0) / 1000)
                 : 0,
             genres: (track.album as any)?.genres,
-            disc: album ? track.disc_number : undefined,
+            // disc: album ? track.disc_number : undefined,
             track: album ? track.track_number : undefined,
             year: track.album
                 ? new Date(track.album.release_date).getUTCFullYear() || undefined

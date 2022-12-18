@@ -1,13 +1,13 @@
 import {IAudioMetadata, parseBlob} from 'music-metadata-browser';
 import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
+import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
-import PlaylistItem from 'types/PlaylistItem';
 import {Logger} from 'utils';
 
 const logger = new Logger('file');
 
-export async function createMediaItemFromFile(file: File): Promise<PlaylistItem> {
+export async function createMediaItemFromFile(file: File): Promise<MediaItem> {
     let metadata: IAudioMetadata;
 
     try {
@@ -25,7 +25,6 @@ export async function createMediaItemFromFile(file: File): Promise<PlaylistItem>
     const floor = (value: number | null = 0) => Math.floor(Number(value)) || 0;
 
     return {
-        id: '',
         itemType: ItemType.Media,
         mediaType: isVideo ? MediaType.Video : MediaType.Audio,
         src: `blob:${nanoid()}`,
@@ -37,8 +36,8 @@ export async function createMediaItemFromFile(file: File): Promise<PlaylistItem>
         genres: common.genre,
         duration: duration ? Number(duration.toFixed(3)) : 0,
         track: floor(common.track?.no),
-        disc: floor(common.disk?.no),
-        bpm: floor(common.bpm),
+        // disc: floor(common.disk?.no),
+        // bpm: floor(common.bpm),
         year: floor(common.year),
         mood: common.mood || '',
         rating: Number(common.rating) || 0,

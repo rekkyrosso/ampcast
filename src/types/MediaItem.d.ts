@@ -10,8 +10,6 @@ export default interface MediaItem extends BaseMediaObject<ItemType.Media> {
     readonly albumArtist?: string;
     readonly album?: string;
     readonly track?: number;
-    readonly disc?: number;
-    readonly bpm?: number;
     readonly year?: number;
     readonly aspectRatio?: number;
     readonly unplayable?: boolean;
@@ -23,4 +21,5 @@ export default interface MediaItem extends BaseMediaObject<ItemType.Media> {
         readonly src: string;
         readonly externalUrl: string;
     };
+    readonly blob?: Blob;
 }

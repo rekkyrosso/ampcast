@@ -5,7 +5,6 @@ import {
     distinctUntilChanged,
     filter,
     map,
-    mergeMap,
     switchMap,
     takeUntil,
     tap,
@@ -14,11 +13,10 @@ import {
 import MediaPlayback from 'types/MediaPlayback';
 import PlaybackState from 'types/PlaybackState';
 import PlaylistItem from 'types/PlaylistItem';
-import {addListen} from 'services/localdb/listens';
 import lookup from 'services/lookup';
-import playlist from 'services/playlist';
 import {hasPlayableSrc} from 'services/mediaServices';
-import visualizerPlayer from 'services/visualizer/player'; // TODO: get rid
+import playlist from 'services/playlist';
+import visualizerPlayer from 'services/visualizer/player';
 import {formatTime, LiteStorage, Logger} from 'utils';
 import mediaPlayer from './mediaPlayer';
 import playback from './playback';
@@ -191,12 +189,11 @@ function kill(): void {
 }
 
 async function getPlayableItem(item: PlaylistItem): Promise<PlaylistItem> {
-    if (hasPlayableSrc(item)) {
-        return item;
-    }
-    const lookupItem = await lookup(item);
-    if (lookupItem) {
-        return {...item, ...lookupItem} as PlaylistItem;
+    if (!hasPlayableSrc(item)) {
+        const foundItem = await lookup(item);
+        if (foundItem) {
+            return {...item, ...foundItem} as PlaylistItem;
+        }
     }
     return item;
 }
@@ -323,8 +320,8 @@ loadingLocked$
     .pipe(
         distinctUntilChanged(),
         switchMap((locked) => (locked ? EMPTY : observeCurrentItem())),
-        switchMap((item) => (item ? getPlayableItem(item) : of(null))),
         distinctUntilChanged((a, b) => a?.id === b?.id),
+        switchMap((item) => (item ? getPlayableItem(item) : of(null))),
         tap(load)
     )
     .subscribe(logger);
@@ -333,24 +330,23 @@ loadingLocked$
     .pipe(
         distinctUntilChanged(),
         switchMap((locked) => (locked ? EMPTY : observeNextItem())),
-        debounceTime(5000),
-        switchMap((item) => (item ? getPlayableItem(item) : of(null)))
+        distinctUntilChanged((a, b) => a?.id === b?.id),
+        debounceTime(10_000),
+        switchMap((item) => (item ? getPlayableItem(item) : EMPTY))
     )
     .subscribe(logger);
-
-observePlaybackEnd().pipe(mergeMap(addListen)).subscribe(logger);
 
 fromEvent(window, 'pagehide').subscribe(kill);
 
 // logging
-observeDuration().pipe(map(formatTime), distinctUntilChanged()).subscribe(logger.all('duration'));
+observeDuration().pipe(map(formatTime), distinctUntilChanged()).subscribe(logger.rx('duration'));
 observeCurrentTime()
     .pipe(
         filter((time) => Math.round(time) % 30 === 0),
         map(formatTime)
     )
-    .subscribe(logger.all('currentTime'));
-observePlaying().subscribe(logger.all('playing'));
-observeEnded().subscribe(logger.all('ended'));
-observePlaybackStart().subscribe(logger.all('playbackStart'));
-observePlaybackEnd().subscribe(logger.all('playbackEnd'));
+    .subscribe(logger.rx('currentTime'));
+observePlaying().subscribe(logger.rx('playing'));
+observeEnded().subscribe(logger.rx('ended'));
+observePlaybackStart().subscribe(logger.rx('playbackStart'));
+observePlaybackEnd().subscribe(logger.rx('playbackEnd'));

@@ -1,5 +1,6 @@
 import React, {useCallback, useRef, useState} from 'react';
 import {Except} from 'type-fest';
+import LookupStatus from 'types/LookupStatus';
 import PlaylistItem from 'types/PlaylistItem';
 import playlist from 'services/playlist';
 import ListView, {ListViewHandle, ListViewProps} from 'components/ListView';
@@ -31,9 +32,11 @@ export default function Playlist({onSelect, onPlay, onEject, ...props}: Playlist
     const itemClassName = useCallback(
         (item: PlaylistItem) => {
             const [service] = item.src.split(':');
-            const playing = item.id === currentlyPlaying?.id ? 'playing' : '';
-            const unplayable = item.unplayable ? 'unplayable' : '';
-            return `source-${service} ${playing} ${unplayable}`;
+            const playing = item.id === currentlyPlaying?.id;
+            const unplayable = item.unplayable || item.lookupStatus === LookupStatus.NotFound;
+            return `source-${service} ${playing ? 'playing' : ''} ${
+                unplayable ? 'unplayable' : ''
+            }`;
         },
         [currentlyPlaying]
     );

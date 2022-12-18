@@ -1,4 +1,3 @@
-import stringScore from 'string-score';
 export {default as LiteStorage} from './LiteStorage';
 export {default as Logger} from './Logger';
 export {default as browser} from './browser';
@@ -7,25 +6,21 @@ export function exists<T>(value: T): value is NonNullable<T> {
     return value != null;
 }
 
-export function matchString(string1: string, string2: string, tolerance = 0.9): boolean {
-    return stringScore(string1, string2) >= tolerance || stringScore(string2, string1) >= tolerance;
-}
-
-const loadedScripts: {[src: string]: true | undefined} = {};
-
 export async function loadScript(src: string): Promise<void> {
-    if (loadedScripts[src]) {
-        return;
-    }
     return new Promise((resolve, reject) => {
+        const loadedAttribute = 'ampcast-loaded';
         let script: HTMLScriptElement | null = document.querySelector(`script[src="${src}"]`);
+        if (script?.hasAttribute(loadedAttribute)) {
+            resolve();
+            return;
+        }
         if (!script) {
             script = document.createElement('script');
             script.async = true;
             script.src = src;
         }
-        script.addEventListener('load', () => {
-            loadedScripts[src] = true;
+        script.addEventListener('load', function () {
+            this.setAttribute(loadedAttribute, '');
             resolve();
         });
         script.addEventListener('error', () => reject(`Failed to load script: '${src}'`));
@@ -91,4 +86,16 @@ export function getRandomValue<T>(values: readonly T[], previousValue?: T): T {
     }
     const index = Math.floor(Math.random() * values.length);
     return values[index];
+}
+
+export function bestOf<T extends object>(a: T, b: T): T {
+    const keys = uniq(Object.keys(a).concat(Object.keys(b))) as (keyof T)[];
+    return keys.reduce<T>((result: T, key: keyof T) => {
+        if (a[key] !== undefined) {
+            result[key] = a[key];
+        } else if (b[key] !== undefined) {
+            result[key] = b[key];
+        }
+        return result;
+    }, {} as unknown as T);
 }

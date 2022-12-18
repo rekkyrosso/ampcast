@@ -161,4 +161,20 @@
             }
         }
     }
+
+    &-lookup {
+        color: var(--grey2-color);
+
+        &-not-found {
+            color: rgba(255, 0, 0, 0.5);
+        }
+
+        &-outer {
+            fill: rgba(238, 238, 238, 0.2);
+
+            .themed.light & {
+                fill: rgba(16, 16, 16, 0.4);
+            }
+        }
+    }
 }

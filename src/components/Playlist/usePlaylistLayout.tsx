@@ -1,9 +1,11 @@
 import React, {useMemo} from 'react';
 import PlaylistItem from 'types/PlaylistItem';
+import LookupStatus from 'types/LookupStatus';
+import {isPlayableService} from 'services/mediaServices';
 import playlistSettings from 'services/playlist/playlistSettings';
 import {ListViewLayout} from 'components/ListView';
 import {Duration} from 'components/MediaList/useMediaListLayout';
-import Icon, {MediaSourceIconName} from 'components/Icon';
+import Icon, {IconName} from 'components/Icon';
 import useObservable from 'hooks/useObservable';
 
 const playlistLayout: ListViewLayout<PlaylistItem> = {
@@ -60,13 +62,32 @@ function RowNumber(rowIndex: number, numberOfDigits = 0) {
     return String(rowIndex + 1).padStart(numberOfDigits, '0');
 }
 
-function RowIcon({src}: PlaylistItem) {
-    const [service] = src.split(':');
+function RowIcon({src, lookupStatus}: PlaylistItem) {
+    const [serviceId] = src.split(':');
+    let iconName: IconName;
+
+    switch (lookupStatus) {
+        case LookupStatus.Looking:
+            iconName = 'lookup-looking';
+            break;
+
+        case LookupStatus.NotFound:
+            iconName = 'lookup-not-found';
+            break;
+
+        default:
+            if (isPlayableService(serviceId)) {
+                iconName = serviceId as IconName;
+            } else {
+                iconName = 'lookup-pending';
+            }
+    }
+
     return (
         <Icon
-            name={service as MediaSourceIconName}
+            name={iconName}
             // YouTube is always playable.
-            className={service === 'youtube' ? '' : 'show-connectivity'}
+            className={serviceId === 'youtube' ? '' : 'show-connectivity'}
         />
     );
 }

@@ -93,7 +93,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             duration:
                 info?.duration || (info?.duration_ms ? Math.round(info.duration_ms / 1000) : 0),
             track: info?.tracknumber || info?.track_number,
-            disc: info?.discnumber,
+            // disc: info?.discnumber,
             isrc: info?.isrc,
             externalUrl: mbid ? `https://musicbrainz.org/recording/${mbid}` : '',
             recording_mbid: mbid,

@@ -2,10 +2,12 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import {filter} from 'rxjs/operators';
 import Dexie, {liveQuery} from 'dexie';
+import stringScore from 'string-score';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import PlaybackState from 'types/PlaybackState';
-import {Logger, matchString} from 'utils';
+import {findBestMatch} from 'services/lookup';
+import {bestOf, Logger} from 'utils';
 
 console.log('module:localdb/listens');
 
@@ -45,9 +47,11 @@ export async function addListen(state: PlaybackState): Promise<void> {
             const playTime = endedAt - startedAt;
             const minTime = 4 * 60;
             if (playTime > minTime || playTime > item.duration / 2) {
-                logger.log('add', {item});
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const {id, lookupStatus, ...listen} = item;
+                logger.log('add', {listen});
                 await store.items.add({
-                    ...item,
+                    ...listen,
                     playedAt: startedAt,
                     lastfmScrobbledAt: 0,
                     listenbrainzScrobbledAt: 0,
@@ -118,21 +122,12 @@ export function findListen(item: MediaItem, timeFuzziness = 5): Listen | undefin
 }
 
 export function enhanceWithListenData(item: MediaItem): MediaItem {
+    const listens = getListens();
     const listen =
-        findListen(item) ||
-        getListens().find(
-            (listen) =>
-                item.link?.src === listen.src ||
-                (item.link?.externalUrl && item.link.externalUrl === listen.externalUrl) ||
-                (item.isrc && item.isrc === listen.isrc) ||
-                (item.recording_mbid && item.recording_mbid === listen.recording_mbid) ||
-                (matchTitle(item, listen) && matchArtist(item, listen))
-        );
+        findListen(item) || findListenByUniqueId(listens, item) || findBestMatch(listens, item);
     if (listen) {
         return {
-            ...item,
-            duration: listen.duration,
-            thumbnails: listen.thumbnails || item.thumbnails,
+            ...bestOf(listen, item),
             link: {
                 src: listen.src,
                 externalUrl: listen.externalUrl,
@@ -142,24 +137,29 @@ export function enhanceWithListenData(item: MediaItem): MediaItem {
     return item;
 }
 
+function findListenByUniqueId(listens: readonly Listen[], item: MediaItem): Listen | undefined {
+    return listens.find(
+        (listen) =>
+            item.link?.src === listen.src ||
+            (item.link?.externalUrl && item.link.externalUrl === listen.externalUrl) ||
+            (item.isrc && item.isrc === listen.isrc) ||
+            (item.recording_mbid && item.recording_mbid === listen.recording_mbid)
+    );
+}
+
 function getListens(): readonly Listen[] {
     return listens$.getValue();
 }
 
-function matchArtist(item: MediaItem, listen: MediaItem, tolerance?: number): boolean {
-    const artist = item.artists?.[0]
-    if (artist && listen.artists) {
-        for (const listenArtist of listen.artists) {
-            if (matchString(artist, listenArtist, tolerance)) {
-                return true;
-            }
-        }
-    }
-    return false;
-}
-
 function matchTitle(item: MediaItem, listen: MediaItem, tolerance?: number): boolean {
     return matchString(item.title, listen.title, tolerance);
+}
+
+function matchString(string1: string, string2: string, tolerance = 0.9): boolean {
+    return (
+        Math.max(stringScore(string1, string2, 0.99), stringScore(string2, string1, 0.99)) >=
+        tolerance
+    );
 }
 
 (async () => {

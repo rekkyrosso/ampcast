@@ -2,7 +2,7 @@ import React from 'react';
 import MediaServiceId from 'types/MediaServiceId';
 import './Icon.scss';
 
-// Icons from https://fontawesome.com/
+// Icons adapted from https://fontawesome.com/
 // and https://mui.com/components/material-icons
 // and https://icons.getbootstrap.com/
 
@@ -40,7 +40,10 @@ export type IconName =
     | 'recently-added'
     | 'playlists'
     | 'clock'
-    | 'search';
+    | 'search'
+    | 'lookup-pending'
+    | 'lookup-looking'
+    | 'lookup-not-found';
 
 export interface IconProps {
     name: IconName;
@@ -422,6 +425,54 @@ export default function Icon({name, className = ''}: IconProps) {
                     <path
                         className="icon-youtube-outer"
                         d="M549.655 124.083c-6.281-23.65-24.787-42.276-48.284-48.597C458.781 64 288 64 288 64S117.22 64 74.629 75.486c-23.497 6.322-42.003 24.947-48.284 48.597-11.412 42.867-11.412 132.305-11.412 132.305s0 89.438 11.412 132.305c6.281 23.65 24.787 41.5 48.284 47.821C117.22 448 288 448 288 448s170.78 0 213.371-11.486c23.497-6.321 42.003-24.171 48.284-47.821 11.412-42.867 11.412-132.305 11.412-132.305s0-89.438-11.412-132.305zm-317.51 213.508V175.185l142.739 81.205-142.739 81.201z"
+                    />
+                </svg>
+            );
+
+        case 'lookup-pending':
+            return (
+                <svg className={`${className} icon-lookup`} viewBox="0 0 16 16">
+                    <circle className="icon-lookup-outer" cx="8" cy="8" r="8" stroke="none" />
+                    <path
+                        className="icon-lookup-inner"
+                        d="M5.255 5.786a.237.237 0 0 0 .241.247h.825c.138 0 .248-.113.266-.25.09-.656.54-1.134 1.342-1.134.686 0 1.314.343 1.314 1.168 0 .635-.374.927-.965 1.371-.673.489-1.206 1.06-1.168 1.987l.003.217a.25.25 0 0 0 .25.246h.811a.25.25 0 0 0 .25-.25v-.105c0-.718.273-.927 1.01-1.486.609-.463 1.244-.977 1.244-2.056 0-1.511-1.276-2.241-2.673-2.241-1.267 0-2.655.59-2.75 2.286zm1.557 5.763c0 .533.425.927 1.01.927.609 0 1.028-.394 1.028-.927 0-.552-.42-.94-1.029-.94-.584 0-1.009.388-1.009.94z"
+                    />
+                </svg>
+            );
+
+        // From: https://codepen.io/nikhil8krishnan/pen/rVoXJa
+        case 'lookup-looking':
+            return (
+                <svg className={`${className} icon-lookup`} viewBox="0 0 100 100">
+                    <circle className="icon-lookup-outer" cx="50" cy="50" r="50" stroke="none" />
+                    <path
+                        className="icon-lookup-inner"
+                        d="M73,50c0-12.7-10.3-23-23-23S27,37.3,27,50 M30.9,50c0-10.5,8.5-19.1,19.1-19.1S69.1,39.5,69.1,50"
+                    >
+                        <animateTransform
+                            attributeName="transform"
+                            attributeType="XML"
+                            type="rotate"
+                            dur="1s"
+                            from="0 50 50"
+                            to="360 50 50"
+                            repeatCount="indefinite"
+                        />
+                    </path>
+                </svg>
+            );
+
+        case 'lookup-not-found':
+            return (
+                <svg
+                    className={`${className} icon-lookup`}
+                    viewBox="0 0 16 16"
+                    transform="rotate(45)"
+                >
+                    <circle className="icon-lookup-outer" cx="8" cy="8" r="8" stroke="none" />
+                    <path
+                        className="icon-lookup-inner"
+                        d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"
                     />
                 </svg>
             );

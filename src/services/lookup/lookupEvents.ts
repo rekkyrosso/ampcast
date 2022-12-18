@@ -1,31 +1,38 @@
-import {delay, Observable, Subject} from 'rxjs';
+import type {Observable} from 'rxjs';
+import {Subject} from 'rxjs';
 import MediaItem from 'types/MediaItem';
-import {uniq} from 'utils';
+import {bestOf} from 'utils';
 
-export interface LookupEvent {
-    item: MediaItem;
-    found: MediaItem;
-    bestOf: MediaItem;
+export interface LookupStartEvent {
+    lookupItem: MediaItem;
 }
 
-const lookupEvent$ = new Subject<LookupEvent>();
-
-export function observeLookupEvents(): Observable<LookupEvent> {
-    return lookupEvent$.pipe(delay(1));
+export interface LookupEndEvent {
+    lookupItem: MediaItem;
+    foundItem: MediaItem | undefined;
 }
 
-export function dispatchLookupEvent(item: MediaItem, found: MediaItem): void {
-    lookupEvent$.next({item, found, bestOf: bestOf(found, item)});
+const lookupStartEvent$ = new Subject<LookupStartEvent>();
+const lookupEndEvent$ = new Subject<LookupEndEvent>();
+
+export function observeLookupStartEvents(): Observable<LookupStartEvent> {
+    return lookupStartEvent$;
 }
 
-function bestOf<T extends object>(a: T, b: T): T {
-    const keys = uniq(Object.keys(a).concat(Object.keys(b))) as (keyof T)[];
-    return keys.reduce<T>((result: T, key: keyof T) => {
-        if (a[key] !== undefined) {
-            result[key] = a[key];
-        } else if (b[key] !== undefined) {
-            result[key] = b[key];
-        }
-        return result;
-    }, {} as unknown as T);
+export function observeLookupEndEvents(): Observable<LookupEndEvent> {
+    return lookupEndEvent$;
+}
+
+export function dispatchLookupStartEvent(lookupItem: MediaItem): void {
+    lookupStartEvent$.next({lookupItem});
+}
+
+export function dispatchLookupEndEvent(
+    lookupItem: MediaItem,
+    foundItem: MediaItem | undefined
+): void {
+    lookupEndEvent$.next({
+        lookupItem,
+        foundItem: foundItem ? bestOf(foundItem, lookupItem) : undefined,
+    });
 }

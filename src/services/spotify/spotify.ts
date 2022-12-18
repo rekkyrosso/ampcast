@@ -312,7 +312,8 @@ function createLookupPager(
     if (!artist || !title) {
         new SimplePager();
     }
-    return spotifySearch(`${title} artist:${artist}`, options);
+    const safeString = (s: string) => s.replace(/['"]/g, ' ');
+    return spotifySearch(`${safeString(title)} artist:${safeString(artist)}`, options);
 }
 
 observeAccessToken().subscribe((token) => spotifyApi.setAccessToken(token));
