@@ -5,16 +5,16 @@ import {SetReturnType} from 'type-fest';
 import Player from 'types/Player';
 
 export default class OmniPlayer<T, S = T> implements Player<T> {
-    private readonly player$ = new BehaviorSubject<Player<S> | null>(null);
+    private readonly player$ = new BehaviorSubject<Player<S> | null>(this.nullPlayer);
     private readonly error$ = new Subject<unknown>();
-    #autoplay = false;
     #hidden = false;
     #muted = false;
 
     constructor(
         private readonly players: Player<S>[],
         private readonly selectPlayer: SetReturnType<Player<T>['load'], Player<S> | null>,
-        private readonly loadPlayer: (player: Player<S>, src: T) => void
+        private readonly loadPlayer: (player: Player<S>, src: T) => void,
+        private readonly nullPlayer: Player<any> | null = null
     ) {
         players.forEach((player) => {
             player.autoplay = false;
@@ -35,14 +35,11 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
     }
 
     get autoplay(): boolean {
-        return this.#autoplay;
+        return this.players[0].autoplay;
     }
 
     set autoplay(autoplay: boolean) {
-        this.#autoplay = autoplay;
-        if (this.currentPlayer) {
-            this.currentPlayer.autoplay = autoplay;
-        }
+        this.players.forEach((player) => (player.autoplay = autoplay));
     }
 
     get loop(): boolean {
@@ -112,7 +109,7 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
         const prevPlayer = this.currentPlayer;
         const nextPlayer = this.selectPlayer(src);
 
-        this.player$.next(null); // turn off event streams
+        this.player$.next(this.nullPlayer); // turn off event streams
 
         if (prevPlayer && prevPlayer !== nextPlayer) {
             prevPlayer.muted = true;
@@ -124,7 +121,6 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
 
         if (nextPlayer) {
             try {
-                nextPlayer.autoplay = this.autoplay;
                 this.loadPlayer(nextPlayer, src);
                 nextPlayer.muted = this.muted;
                 nextPlayer.hidden = this.hidden;

@@ -17,6 +17,7 @@ import {
     filter,
     map,
     mergeMap,
+    skip,
     skipWhile,
     switchMap,
     take,
@@ -46,17 +47,17 @@ export class SpotifyPlayer implements Player<string> {
     private player: Spotify.Player | null = null;
     private readonly paused$ = new BehaviorSubject(true);
     private readonly src$ = new BehaviorSubject('');
+    private readonly currentTrackSrc$ = new BehaviorSubject(''); // https://developer.spotify.com/documentation/general/guides/track-relinking-guide/
     private readonly error$ = new Subject<unknown>();
     private readonly playerReady$ = new BehaviorSubject(false);
     private readonly playerStarted$ = new BehaviorSubject(false);
     private readonly state$ = new BehaviorSubject<Spotify.PlaybackState | null>(null);
     private loadedSrc = '';
-    private currentTrackSrc = ''; // https://developer.spotify.com/documentation/general/guides/track-relinking-guide/
     private loadError?: LoadError;
     private isLoggedIn = false;
     private deviceId = '';
-    public hidden = true;
-    public loop = false;
+    hidden = true;
+    loop = false;
     #autoplay = false;
     #muted = true;
     #volume = 1;
@@ -81,15 +82,15 @@ export class SpotifyPlayer implements Player<string> {
                 switchMap(([src, token]) => {
                     if (src && src !== this.loadedSrc) {
                         return of(undefined).pipe(
-                            mergeMap(() =>
+                            switchMap(() =>
                                 this.loadError ? this.reconnect(token) : of(undefined)
                             ),
                             mergeMap(() => this.addToQueue(src, token)),
                             catchError((error) => {
                                 this.loadedSrc = '';
-                                this.currentTrackSrc = '';
                                 this.loadError = {src, error};
                                 this.error$.next(error);
+                                this.currentTrackSrc$.next('');
                                 return EMPTY;
                             }),
                             take(1)
@@ -105,11 +106,28 @@ export class SpotifyPlayer implements Player<string> {
         this.observeState()
             .pipe(
                 tap((state) => {
-                    const currentTrack = state.track_window.current_track;
-                    if (this.src === this.loadedSrc && currentTrack) {
-                        this.currentTrackSrc = currentTrack.uri;
+                    const currentTrack = state.track_window?.current_track?.uri;
+                    if (currentTrack && this.loadedSrc === this.src) {
+                        if (this.currentTrackSrc !== currentTrack) {
+                            this.currentTrackSrc$.next(currentTrack);
+                        }
                     }
                 })
+            )
+            .subscribe(logger);
+
+        this.currentTrackSrc$
+            .pipe(
+                filter((currentTrackSrc) => !!currentTrackSrc),
+                switchMap(() =>
+                    this.observeCurrentTrackState().pipe(
+                        skip(2),
+                        mergeMap((state) =>
+                            !state.paused && this.paused ? this.safePause() : of(undefined)
+                        ),
+                        take(1)
+                    )
+                )
             )
             .subscribe(logger);
 
@@ -216,8 +234,7 @@ export class SpotifyPlayer implements Player<string> {
 
     observeCurrentTrackState(): Observable<Spotify.PlaybackState> {
         return this.observeState().pipe(
-            filter((state) => state.track_window?.current_track?.uri === this.currentTrackSrc),
-            map((state) => state)
+            filter((state) => state.track_window?.current_track?.uri === this.currentTrackSrc)
         );
     }
 
@@ -228,12 +245,12 @@ export class SpotifyPlayer implements Player<string> {
     load(src: string): void {
         logger.log('load');
         this.src$.next(src);
+        if (this.autoplay) {
+            this.paused$.next(false);
+        }
         if (this.player && this.isLoggedIn) {
-            if (this.autoplay) {
-                this.paused$.next(false);
-                if (src === this.loadedSrc) {
-                    this.safePlay();
-                }
+            if (this.autoplay && src === this.loadedSrc) {
+                this.safePlay();
             }
         } else if (this.autoplay) {
             this.error$.next(Error(ERR_NOT_CONNECTED));
@@ -274,8 +291,8 @@ export class SpotifyPlayer implements Player<string> {
         // not visible
     }
 
-    getCurrentState(): Promise<Spotify.PlaybackState | null> {
-        return this.player ? this.player.getCurrentState() : Promise.resolve(null);
+    async getCurrentState(): Promise<Spotify.PlaybackState | null> {
+        return this.player?.getCurrentState() || null;
     }
 
     private get paused(): boolean {
@@ -284,6 +301,10 @@ export class SpotifyPlayer implements Player<string> {
 
     private get src(): string {
         return this.src$.getValue();
+    }
+
+    private get currentTrackSrc(): string {
+        return this.currentTrackSrc$.getValue();
     }
 
     private observeAccessToken(): Observable<string> {
@@ -352,7 +373,8 @@ export class SpotifyPlayer implements Player<string> {
                     }
 
                     case 404:
-                    case 502: {
+                    case 502:
+                    case 503: {
                         await this.reconnect(token);
                         return this.addToQueue(src, token, --retryCount);
                     }
@@ -406,7 +428,7 @@ export class SpotifyPlayer implements Player<string> {
 
     private async disconnect(): Promise<void> {
         this.loadedSrc = '';
-        this.currentTrackSrc = '';
+        this.currentTrackSrc$.next('');
         this.loadError = undefined;
         const player = this.player;
         if (player) {
@@ -417,9 +439,8 @@ export class SpotifyPlayer implements Player<string> {
             player.removeListener('player_state_changed');
             player.removeListener('not_ready');
             player.removeListener('ready');
-            return this.safePause().then(() => player.disconnect());
-        } else {
-            return Promise.resolve();
+            await this.safePause();
+            player.disconnect();
         }
     }
 

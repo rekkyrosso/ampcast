@@ -6,21 +6,29 @@ import Media from 'components/Media';
 import MediaControls from 'components/MediaControls';
 import Playlist from 'components/Playlist';
 import Splitter from 'components/Splitter';
+import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import usePaused from 'hooks/usePaused';
 import './MediaPlayback.scss';
 
 console.log('component::MediaPlayback');
 
 export default function MediaPlayback() {
+    const currentlyPlaying = useCurrentlyPlaying();
     const paused = usePaused();
 
     // Caused by interaction with the playlist.
-    const handlePlay = useCallback((item: PlaylistItem) => {
-        mediaPlayback.stop();
-        mediaPlayback.autoplay = true;
-        playlist.setCurrentItem(item);
-        mediaPlayback.play();
-    }, []);
+    const handlePlay = useCallback(
+        (item: PlaylistItem) => {
+            if (item === currentlyPlaying) {
+                mediaPlayback.play();
+            } else {
+                mediaPlayback.load(null);
+                mediaPlayback.autoplay = true;
+                playlist.setCurrentItem(item);
+            }
+        },
+        [currentlyPlaying]
+    );
 
     return (
         <div className={`media-playback ${paused ? 'paused' : ''}`}>

@@ -2,8 +2,8 @@ import {filter, map, tap, withLatestFrom} from 'rxjs/operators';
 import Player from 'types/Player';
 import {AmbientVideoVisualizer} from 'types/Visualizer';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
-import HTML5Player from 'services/HTML5Player';
-import OmniPlayer from 'services/OmniPlayer';
+import HTML5Player from 'services/players/HTML5Player';
+import OmniPlayer from 'services/players/OmniPlayer';
 import {LiteStorage, Logger} from 'utils';
 
 const logger = new Logger('ambientVideoPlayer');

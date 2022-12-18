@@ -20,7 +20,7 @@ export default function VolumeControl() {
     const handleVolumeChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         const volume = event.target.valueAsNumber;
         setVolume(volume);
-        setMuted((muted) => muted || volume === 0);
+        setMuted(volume === 0);
     }, []);
 
     const handleMuteClick = useCallback(() => {

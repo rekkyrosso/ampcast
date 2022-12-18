@@ -9,7 +9,7 @@ import {
     prev,
     next,
 } from 'services/mediaPlayback';
-import {getThumbnailUrl} from 'components/ThumbnailImage';
+import {getThumbnailUrl} from 'components/CoverArt';
 import useCurrentlyPlaying from './useCurrentlyPlaying';
 import useObservable from './useObservable';
 

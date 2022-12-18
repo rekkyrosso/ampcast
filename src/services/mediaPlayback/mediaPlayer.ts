@@ -4,8 +4,9 @@ import PlaylistItem from 'types/PlaylistItem';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
 import musicKitPlayer from 'services/apple/musicKitPlayer';
 import spotifyPlayer from 'services/spotify/spotifyPlayer';
-import OmniPlayer from 'services/OmniPlayer';
-import HTML5Player from 'services/HTML5Player';
+import OmniPlayer from 'services/players/OmniPlayer';
+import HTML5Player from 'services/players/HTML5Player';
+import silentPlayer from 'services/players/silentPlayer';
 
 console.log('module::mediaPlayer');
 
@@ -51,6 +52,11 @@ function getMediaSource(item: PlaylistItem | null): string {
     }
 }
 
-const mediaPlayer = new OmniPlayer<PlaylistItem | null, string>(players, selectPlayer, loadPlayer);
+const mediaPlayer = new OmniPlayer<PlaylistItem | null, string>(
+    players,
+    selectPlayer,
+    loadPlayer,
+    silentPlayer
+);
 
 export default mediaPlayer;

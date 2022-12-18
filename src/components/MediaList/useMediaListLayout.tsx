@@ -6,8 +6,8 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSourceLayout, {Field} from 'types/MediaSourceLayout';
 import {ColumnSpec, ListViewLayout} from 'components/ListView';
+import CoverArt from 'components/CoverArt';
 import SunClock from 'components/SunClock';
-import ThumbnailImage from 'components/ThumbnailImage';
 import Time from 'components/Time';
 
 const defaultLayout: MediaSourceLayout<MediaObject> = {
@@ -116,7 +116,7 @@ export const AlbumAndYear: RenderField<MediaItem> = (item) =>
     item.album ? (item.year ? `${item.album} (${item.year})` : item.album) : item.year || '';
 
 export const Thumbnail: RenderField = (item) => {
-    return <ThumbnailImage item={item} />;
+    return <CoverArt item={item} />;
 };
 
 // TODO: Improve typing.

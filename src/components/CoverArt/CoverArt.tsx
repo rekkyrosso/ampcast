@@ -1,23 +1,26 @@
 import React, {useEffect, useState} from 'react';
 import {from} from 'rxjs';
-import MediaObject from 'types/MediaObject';
 import ItemType from 'types/ItemType';
+import MediaObject from 'types/MediaObject';
 import Thumbnail from 'types/Thumbnail';
 import {getCoverArtThumbnails} from 'services/musicbrainz/coverart';
 import plexSettings from 'services/plex/plexSettings';
 import Icon, {IconName} from 'components/Icon';
 import {partition} from 'utils';
-import './ThumbnailImage.scss';
+import './CoverArt.scss';
 
-export interface ThumbnailImageProps {
+export interface CoverArtProps {
     className?: string;
     item: MediaObject;
     maxSize?: number;
 }
 
-export default function ThumbnailImage({item, maxSize, className = ''}: ThumbnailImageProps) {
+export default function CoverArt({item, maxSize, className = ''}: CoverArtProps) {
     const [thumbnails, setThumbnails] = useState(() => item.thumbnails);
     const hasThumbnails = !!thumbnails?.length;
+    const thumbnail = hasThumbnails ? findBestThumbnail(thumbnails, maxSize) : undefined;
+    const src = thumbnail ? getThumbnailUrl(thumbnail) : '';
+    const fallback = getFallbackIcon(item.itemType);
 
     useEffect(() => {
         if (!hasThumbnails) {
@@ -26,44 +29,18 @@ export default function ThumbnailImage({item, maxSize, className = ''}: Thumbnai
         }
     }, [hasThumbnails, item]);
 
-    return hasThumbnails ? (
-        <Image className={className} thumbnails={thumbnails} maxSize={maxSize} />
-    ) : (
-        <Placeholder className={className} item={item} />
+    return (
+        <figure className={`cover-art ${className}`}>
+            {src ? (
+                <img className="cover-art-image" src={src} />
+            ) : fallback ? (
+                <Icon className="cover-art-image" name={fallback} />
+            ) : null}
+        </figure>
     );
 }
 
-interface ImageProps {
-    className?: string;
-    thumbnails: Thumbnail[];
-    maxSize?: number;
-}
-
-function Image({thumbnails, maxSize, className = ''}: ImageProps) {
-    const thumbnail = findBestThumbnail(thumbnails, maxSize);
-    const backgroundImage = thumbnail ? `url(${getThumbnailUrl(thumbnail)}` : 'none';
-
-    return <div className={`thumbnail-image ${className}`} style={{backgroundImage}} />;
-}
-
-function Placeholder({item, className = ''}: ThumbnailImageProps) {
-    const fallbackIcon = getFallbackIcon(item.itemType);
-
-    return fallbackIcon ? (
-        <Icon className={`thumbnail-image ${className}`} name={fallbackIcon} />
-    ) : (
-        <div className={`thumbnail-image ${className}`} />
-    );
-}
-
-export function findBestThumbnail(
-    thumbnails: Thumbnail[] = [],
-    maxSize = 360,
-    aspectRatio = 1
-): Thumbnail | undefined {
-    if (thumbnails.length === 0) {
-        return;
-    }
+function findBestThumbnail(thumbnails: Thumbnail[], maxSize = 360, aspectRatio = 1): Thumbnail {
     thumbnails.sort((a, b) => b.width * b.height - a.width * a.height); // permanent sort
     const isNotTooBig = (thumbnail: Thumbnail) =>
         thumbnail.width <= maxSize && thumbnail.height <= maxSize;

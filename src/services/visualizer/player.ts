@@ -1,7 +1,7 @@
 import Player from 'types/Player';
 import Visualizer from 'types/Visualizer';
 import {analyser, audioContext, observeAudioSourceNode, simpleAnalyser} from 'services/audio';
-import OmniPlayer from 'services/OmniPlayer';
+import OmniPlayer from 'services/players/OmniPlayer';
 import spotifyAudioAnalyser from 'services/spotify/spotifyAudioAnalyser';
 import {Logger} from 'utils';
 import ambientVideoPlayer from './ambientVideoPlayer';

@@ -7,12 +7,11 @@ import plexApi from 'services/plex/plexApi';
 import {Logger} from 'utils';
 
 export default class HTML5Player implements Player<string> {
-    private readonly logger: Logger;
-    private readonly element: HTMLMediaElement;
-    private readonly error$ = new Subject<unknown>();
+    protected readonly logger: Logger;
+    protected readonly element: HTMLMediaElement;
+    protected readonly error$ = new Subject<unknown>();
     private src = '';
-    private loadedSrc = '';
-    public autoplay = false;
+    autoplay = false;
 
     constructor(type: 'audio' | 'video') {
         const player = (this.element = document.createElement(type));
@@ -99,10 +98,9 @@ export default class HTML5Player implements Player<string> {
         this.src = src;
         try {
             const mediaSource = this.getMediaSource(this.src);
-            this.loadedSrc = src;
             this.element.setAttribute('src', mediaSource);
             if (this.autoplay) {
-                this.element.play().then(undefined, (err) => this.error$.next(err));
+                this.safePlay();
             }
         } catch (err) {
             this.error$.next(err);
@@ -112,12 +110,11 @@ export default class HTML5Player implements Player<string> {
     play(): void {
         this.logger.log('play');
         try {
-            if (this.src !== this.loadedSrc) {
-                const mediaSource = this.getMediaSource(this.src);
-                this.loadedSrc = this.src;
+            const mediaSource = this.getMediaSource(this.src);
+            if (this.element.getAttribute('src') !== mediaSource) {
                 this.element.setAttribute('src', mediaSource);
             }
-            this.element.play().then(undefined, (err) => this.error$.next(err));
+            this.safePlay();
         } catch (err) {
             this.error$.next(err);
         }
@@ -150,6 +147,14 @@ export default class HTML5Player implements Player<string> {
             return plexApi.getPlayableUrlFromSrc(src);
         } else {
             return src;
+        }
+    }
+
+    private async safePlay(): Promise<void> {
+        try {
+            await this.element.play();
+        } catch (err) {
+            this.error$.next(err);
         }
     }
 }

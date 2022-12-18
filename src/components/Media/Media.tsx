@@ -18,7 +18,7 @@ console.log('component::Media');
 export default function Media() {
     const ref = useRef<HTMLDivElement>(null);
     const [fullScreen, setFullScreen] = useState(false);
-    const busy = useMouseBusy(ref.current, 10_000);
+    const busy = useMouseBusy(ref.current, 3_000);
     const currentlyPlaying = useCurrentlyPlaying();
     const playingVideo = currentlyPlaying?.mediaType === MediaType.Video;
     const visualizerProvider = useObservable(observeProvider, 'none');

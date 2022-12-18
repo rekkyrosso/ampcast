@@ -5,7 +5,6 @@ import {
     distinctUntilChanged,
     filter,
     map,
-    mergeMap,
     skipWhile,
     switchMap,
     take,
@@ -22,6 +21,7 @@ const ERR_VIDEO_PLAYBACK_NOT_SUPPORTED = 'Video playback not supported.';
 
 export class MusicKitPlayer implements Player<string> {
     private player?: MusicKit.MusicKitInstance;
+    private readonly paused$ = new BehaviorSubject(true);
     private readonly duration$ = new Subject<number>();
     private readonly currentTime$ = new Subject<number>();
     private readonly ended$ = new Subject<void>();
@@ -29,7 +29,6 @@ export class MusicKitPlayer implements Player<string> {
     private readonly error$ = new Subject<unknown>();
     private readonly playerReady$ = new Subject<void>();
     private readonly activated$ = new BehaviorSubject(false);
-    private readonly playbackState$ = new BehaviorSubject<MusicKit.PlaybackStates>(0);
     private readonly element: HTMLElement;
     private readonly src$ = new BehaviorSubject('');
     private loadedSrc = '';
@@ -79,7 +78,8 @@ export class MusicKitPlayer implements Player<string> {
         this.observeReady()
             .pipe(
                 switchMap(() => this.observeIsLoggedIn()),
-                switchMap((isLoggedIn) => (isLoggedIn ? this.observeSrc() : EMPTY)),
+                switchMap((isLoggedIn) => (isLoggedIn ? this.observePaused() : EMPTY)),
+                switchMap((paused) => (paused ? EMPTY : this.observeSrc())),
                 switchMap((src) => {
                     if (src && src !== this.loadedSrc) {
                         if (!this.canPlay(src)) {
@@ -88,7 +88,7 @@ export class MusicKitPlayer implements Player<string> {
                         }
                         const [, kind, id] = src.split(':');
                         return from(this.player!.setQueue({[kind]: id})).pipe(
-                            mergeMap(() => {
+                            switchMap(() => {
                                 this.loadedSrc = src;
                                 if (this.autoplay) {
                                     return this.safePlay();
@@ -97,6 +97,7 @@ export class MusicKitPlayer implements Player<string> {
                                 }
                             }),
                             catchError((err) => {
+                                this.loadedSrc = '';
                                 this.error$.next(err);
                                 return EMPTY;
                             })
@@ -185,6 +186,9 @@ export class MusicKitPlayer implements Player<string> {
             this.activated$.next(true);
         }
         this.src$.next(src);
+        if (this.autoplay) {
+            this.paused$.next(false);
+        }
         if (this.player && this.isLoggedIn) {
             if (this.autoplay) {
                 if (src === this.loadedSrc) {
@@ -201,6 +205,7 @@ export class MusicKitPlayer implements Player<string> {
     play(): void {
         logger.log('play');
         this.activated$.next(true);
+        this.paused$.next(false);
         if (this.player && this.isLoggedIn) {
             if (this.src === this.loadedSrc) {
                 this.safePlay();
@@ -214,6 +219,7 @@ export class MusicKitPlayer implements Player<string> {
 
     pause(): void {
         logger.log('pause');
+        this.paused$.next(true);
         if (this.player?.isPlaying) {
             this.player.pause();
         }
@@ -221,6 +227,7 @@ export class MusicKitPlayer implements Player<string> {
 
     stop(): void {
         logger.log('stop');
+        this.paused$.next(true);
         if (this.hasPlayed) {
             this.player!.stop();
         }
@@ -235,12 +242,20 @@ export class MusicKitPlayer implements Player<string> {
         this.element.style.height = `${height}px`;
     }
 
+    private get paused(): boolean {
+        return this.paused$.getValue();
+    }
+
     private get src(): string {
         return this.src$.getValue();
     }
 
     private observeIsLoggedIn(): Observable<boolean> {
         return this.isLoggedIn$;
+    }
+
+    private observePaused(): Observable<boolean> {
+        return this.paused$.pipe(distinctUntilChanged());
     }
 
     private observeReady(): Observable<void> {
@@ -260,33 +275,38 @@ export class MusicKitPlayer implements Player<string> {
         return this.player?.version.startsWith('1') ? !/musicVideo/.test(src) : true;
     }
 
-    private safePlay(): Promise<void> {
-        return this.player
-            ? this.player.play().then(
-                  () => {
-                      this.hasPlayed = true;
-                  },
-                  (err) => this.error$.next(err)
-              )
-            : Promise.resolve();
+    private async safePlay(): Promise<void> {
+        try {
+            if (this.player?.isPlaying === false) {
+                await this.player.play();
+                this.hasPlayed = true;
+            }
+        } catch (err) {
+            this.error$.next(err);
+        }
     }
 
     // The MusicKit typings for these callbacks are a bit lacking so they are all `any` for now.
 
     private readonly onPlaybackStateChange: any = ({state}: {state: MusicKit.PlaybackStates}) => {
-        this.playbackState$.next(state);
-        if (state === MusicKit.PlaybackStates.ended) {
-            this.ended$.next(undefined);
-        } else if (state === MusicKit.PlaybackStates.playing) {
-            const [, , id] = this.src.split(':');
-            const nowPlayingItem = this.player!.nowPlayingItem;
-            if (nowPlayingItem?.isPlayable === false && nowPlayingItem?.id === id) {
-                // Apple Music plays silence for unplayable tracks.
-                this.error$.next(Error('Unplayable'));
-                this.player!.stop();
-            } else {
-                this.playing$.next(undefined);
+        switch (state) {
+            case MusicKit.PlaybackStates.playing: {
+                const [, , id] = this.src.split(':');
+                const nowPlayingItem = this.player!.nowPlayingItem;
+                if (nowPlayingItem?.isPlayable === false && nowPlayingItem?.id === id) {
+                    // Apple Music plays silence for unplayable tracks.
+                    this.error$.next(Error('Unplayable'));
+                    this.stop();
+                } else if (this.paused) {
+                    this.pause();
+                } else {
+                    this.playing$.next(undefined);
+                }
+                break;
             }
+            case MusicKit.PlaybackStates.ended:
+                this.ended$.next(undefined);
+                break;
         }
     };
 

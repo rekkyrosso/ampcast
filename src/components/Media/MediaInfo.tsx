@@ -6,9 +6,9 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {getService} from 'services/mediaServices';
+import CoverArt, {CoverArtProps} from 'components/CoverArt';
 import ExternalLink from 'components/ExternalLink';
 import Icon, {MediaSourceIconName} from 'components/Icon';
-import ThumbnailImage, {ThumbnailImageProps} from 'components/ThumbnailImage';
 import {formatTime} from 'utils';
 import './MediaInfo.scss';
 
@@ -182,10 +182,10 @@ export function Duration<T extends MediaItem>({duration}: Pick<T, 'duration'>) {
     return <time className="duration">{formatTime(duration)}</time>;
 }
 
-export function Thumbnail(props: ThumbnailImageProps) {
+export function Thumbnail(props: CoverArtProps) {
     return (
         <div className="thumbnail">
-            <ThumbnailImage {...props} />
+            <CoverArt {...props} />
         </div>
     );
 }

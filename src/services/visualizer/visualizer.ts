@@ -158,10 +158,10 @@ butterchurnPresets
         skipWhile((presets) => presets.length === 0),
         withLatestFrom(observeCurrentVisualizer()),
         tap(([, currentVisualizer]) => {
+            logger.log('Butterchurn presets:', butterchurnPresets.size);
             if (currentVisualizer === defaultVisualizer) {
                 nextVisualizer();
             }
-            logger.log('Butterchurn presets:', butterchurnPresets.size);
         }),
         take(2)
     )
