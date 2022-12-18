@@ -3,7 +3,7 @@ import {BehaviorSubject} from 'rxjs';
 import {distinctUntilChanged, map} from 'rxjs/operators';
 import Auth from 'types/Auth';
 import {Logger} from 'utils';
-import {showJellyfinLoginDialog} from 'components/Login/JellyfinLoginDialog';
+import {showJellyfinLoginDialog} from './components/JellyfinLoginDialog';
 import jellyfinSettings from './jellyfinSettings';
 
 console.log('module::jellyfinAuth');

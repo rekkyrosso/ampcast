@@ -1,8 +1,8 @@
 import React from 'react';
-import spotify from 'services/spotify';
-import DevMode from './DevMode';
-import LoginButton from './LoginButton';
-import ServiceLink from './ServiceLink';
+import DevMode from 'components/Login/DevMode';
+import LoginButton from 'components/Login/LoginButton';
+import ServiceLink from 'components/Login/ServiceLink';
+import spotify from '../spotify';
 
 export default function SpotifyLogin() {
     return (

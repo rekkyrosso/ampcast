@@ -3,7 +3,7 @@ import PlaylistItem from 'types/PlaylistItem';
 import mediaPlayback, {eject} from 'services/mediaPlayback';
 import playlist from 'services/playlist';
 import Media from 'components/Media';
-import MediaPlaybackBar from 'components/MediaPlaybackBar';
+import MediaControls from 'components/MediaControls';
 import Playlist from 'components/Playlist';
 import Splitter from 'components/Splitter';
 import usePaused from 'hooks/usePaused';
@@ -26,7 +26,7 @@ export default function MediaPlayback() {
         <div className={`media-playback ${paused ? 'paused' : ''}`}>
             <Splitter id="media-playback-layout" arrange="rows">
                 <div className="panel playback">
-                    <MediaPlaybackBar />
+                    <MediaControls />
                     <Playlist onPlay={handlePlay} onEject={eject} />
                 </div>
                 <Media />

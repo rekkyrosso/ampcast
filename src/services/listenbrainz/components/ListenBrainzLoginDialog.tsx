@@ -1,10 +1,10 @@
 import React, {useCallback, useRef} from 'react';
-import listenbrainzSettings from 'services/listenbrainz/listenbrainzSettings';
 import Dialog, {showDialog, DialogProps} from 'components/Dialog';
 import Button from 'components/Button';
 import ExternalLink from 'components/ExternalLink';
 import Icon from 'components/Icon';
 import Input from 'components/Input';
+import listenbrainzSettings from '../listenbrainzSettings';
 import './ListenBrainzLoginDialog.scss';
 
 export async function showListenBrainzLoginDialog(): Promise<string> {

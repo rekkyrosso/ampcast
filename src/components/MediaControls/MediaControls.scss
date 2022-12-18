@@ -1,27 +1,23 @@
 @import 'styles/mixins.scss';
 
-.media-playback-bar {
-    &-current-time,
-    &-controls,
-    &-volume,
-    &-buttons,
-    &-more {
+.media-controls {
+    .current-time-control,
+    .playback-control,
+    .volume-control,
+    .media-buttons,
+    .media-buttons-more {
         display: flex;
         flex-direction: row;
         align-items: center;
     }
 
-    &-current-time,
-    &-controls {
+    .current-time-control,
+    .playback-control {
         margin-bottom: var(--gutter-width);
     }
 
     input[type=range] {
-        display: flex;
-        flex: auto;
-        min-width: 4rem;
         color: var(--frame-text-color);
-        margin-left: 0.25rem;
 
         @mixin media-thumb {
             background-color: var(--media-button-color);
@@ -47,25 +43,7 @@
         }
     }
 
-    &-volume {
-        flex: auto;
-        min-width: 4.25rem;
-        max-width: 6.25rem;
-        margin-right: 0.25em;
-
-        .icon-button {
-            flex: initial;
-        }
-
-        input[type=range] {
-            --track-height: 0.15em;
-            --thumb-size: .875em;
-            min-width: 3rem;
-            max-width: 5rem;
-        }
-    }
-
-    &-buttons {
+    .media-buttons {
         flex: auto;
         margin-left: 0.25rem;
         margin-right: 0.25rem;
@@ -82,6 +60,11 @@
     }
 
     #playhead {
+        display: flex;
+        flex: auto;
+        min-width: 4rem;
+        margin-left: 0.25rem;
+
         @mixin smiley-thumb {
             background-repeat: no-repeat;
             background-position: center;

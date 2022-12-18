@@ -1,19 +1,19 @@
 import React from 'react';
 import MediaService from 'types/MediaService';
 import {getAllServices} from 'services/mediaServices';
+import AppleSettings from 'services/apple/components/AppleSettings';
+import JellyfinSettings from 'services/jellyfin/components/JellyfinSettings';
+import LastFmSettings from 'services/lastfm/components/LastFmSettings';
+import ListenBrainzSettings from 'services/listenbrainz/components/ListenBrainzSettings';
+import PlexSettings from 'services/plex/components/PlexSettings';
+import SpotifySettings from 'services/spotify/components/SpotifySettings';
+import YouTubeSettings from 'services/youtube/components/YouTubeSettings';
 import {TreeNode} from 'components/TreeView';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import AppearanceSettings from './AppearanceSettings';
 import PlaylistSettings from './PlaylistSettings';
 import VisualizerSettings from './VisualizerSettings';
 import MediaLibrarySettings from './MediaLibrarySettings';
-import AppleMusicSettings from './MediaLibrarySettings/AppleMusicSettings';
-import JellyfinSettings from './MediaLibrarySettings/JellyfinSettings';
-import LastFmSettings from './MediaLibrarySettings/LastFmSettings';
-import ListenBrainzSettings from './MediaLibrarySettings/ListenBrainzSettings';
-import PlexSettings from './MediaLibrarySettings/PlexSettings';
-import SpotifySettings from './MediaLibrarySettings/SpotifySettings';
-import YouTubeSettings from './MediaLibrarySettings/YouTubeSettings';
 
 const sources: TreeNode<React.ReactNode>[] = [
     {
@@ -49,17 +49,23 @@ export default (): TreeNode<React.ReactNode>[] => sources;
 function ServiceRouter({service}: {service: MediaService}) {
     switch (service.id) {
         case 'apple':
-            return <AppleMusicSettings />;
+            return <AppleSettings />;
+
         case 'spotify':
             return <SpotifySettings />;
+
         case 'youtube':
             return <YouTubeSettings />;
+
         case 'plex':
             return <PlexSettings />;
+
         case 'jellyfin':
             return <JellyfinSettings />;
+
         case 'lastfm':
             return <LastFmSettings />;
+
         case 'listenbrainz':
             return <ListenBrainzSettings />;
     }

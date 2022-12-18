@@ -17,9 +17,9 @@ import Time from 'components/Time';
 import useObservable from 'hooks/useObservable';
 import MediaButton from './MediaButton';
 import VolumeControl from './VolumeControl';
-import './MediaPlaybackBar.scss';
+import './MediaControls.scss';
 
-export default function MediaPlaybackBar() {
+export default function MediaControls() {
     const currentTime = useObservable(observeCurrentTime, 0);
     const duration = useObservable(observeDuration, 0);
     const paused = useObservable(observePaused, true);
@@ -29,8 +29,8 @@ export default function MediaPlaybackBar() {
     }, []);
 
     return (
-        <div className="media-playback-bar">
-            <div className="media-playback-bar-current-time">
+        <div className="media-controls">
+            <div className="current-time-control">
                 <Time time={currentTime} />
                 <Input
                     id="playhead"
@@ -43,15 +43,15 @@ export default function MediaPlaybackBar() {
                     onChange={handleSeekChange}
                 />
             </div>
-            <div className="media-playback-bar-controls">
+            <div className="playback-control">
                 <VolumeControl />
-                <div className="media-playback-bar-buttons">
+                <div className="media-buttons">
                     <MediaButton icon="prev" onClick={prev} />
                     <MediaButton icon={paused ? 'play' : 'pause'} onClick={paused ? play : pause} />
                     <MediaButton icon="stop" onClick={stop} />
                     <MediaButton icon="next" onClick={next} />
                 </div>
-                <div className="media-playback-bar-more">
+                <div className="media-buttons-more">
                     <Button className="media-button media-button-shuffle" onClick={shuffle}>
                         Shuffle
                     </Button>

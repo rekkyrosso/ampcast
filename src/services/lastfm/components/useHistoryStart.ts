@@ -1,11 +1,11 @@
 import {useEffect, useState} from 'react';
 import {from, of, throwError} from 'rxjs';
 import {filter, map, tap, mergeMap} from 'rxjs/operators';
-import lastfmApi from 'services/lastfm/lastfmApi';
-import LastFmHistoryPager from 'services/lastfm/LastFmHistoryPager';
-import lastfmSettings from 'services/lastfm/lastfmSettings';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {exists, formatDate, Logger} from 'utils';
+import lastfmApi from '../lastfmApi';
+import LastFmHistoryPager from '../LastFmHistoryPager';
+import lastfmSettings from '../lastfmSettings';
 
 const serviceStartDate = '2002-11-20';
 

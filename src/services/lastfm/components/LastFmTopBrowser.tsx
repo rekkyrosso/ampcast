@@ -1,8 +1,8 @@
 import React, {useCallback, useState} from 'react';
 import MediaObject from 'types/MediaObject';
 import {PagedBrowser, PagedBrowserProps} from 'components/MediaBrowser';
-import usePeriod from './usePeriod';
 import Input from 'components/Input';
+import usePeriod from './usePeriod';
 
 export type LastFMPeriod = 'overall' | '7day' | '1month' | '3month' | '6month' | '12month';
 

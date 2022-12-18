@@ -1,30 +1,9 @@
-import React, {useCallback, useMemo, useRef} from 'react';
-import apple from 'services/apple';
-import appleSettings from 'services/apple/appleSettings';
+import React, {useCallback, useRef} from 'react';
 import Button from 'components/Button';
 import Input from 'components/Input';
-import TabList, {TabItem} from 'components/TabList';
-import MediaServiceGeneralSettings from './MediaServiceGeneralSettings';
+import appleSettings from '../appleSettings';
 
-export default function AppleMusicSettings() {
-    const tabs: TabItem[] = useMemo(
-        () => [
-            {
-                tab: 'General',
-                panel: <MediaServiceGeneralSettings service={apple} />,
-            },
-            {
-                tab: 'Beta',
-                panel: <AppleMusicBetaSettings />,
-            },
-        ],
-        []
-    );
-
-    return <TabList items={tabs} label={apple.name} />;
-}
-
-export function AppleMusicBetaSettings() {
+export default function AppleBetaSettings() {
     const betaRef = useRef<HTMLInputElement>(null);
 
     const handleSubmit = useCallback(() => {
@@ -61,8 +40,6 @@ export function AppleMusicBetaSettings() {
                     However, this release of MusicKit is still undergoing changes and may be
                     unstable. If you experience any problems then use the stable release.
                 </p>
-            </div>
-            <div className="note">
                 <p>You will need to refresh the page for changes to take effect.</p>
             </div>
             <footer className="dialog-buttons">

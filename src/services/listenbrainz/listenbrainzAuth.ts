@@ -3,7 +3,7 @@ import {BehaviorSubject} from 'rxjs';
 import {distinctUntilChanged, map} from 'rxjs/operators';
 import Auth from 'types/Auth';
 import {Logger} from 'utils';
-import {showListenBrainzLoginDialog} from 'components/Login/ListenBrainzLoginDialog';
+import {showListenBrainzLoginDialog} from './components/ListenBrainzLoginDialog';
 import listenbrainzSettings from './listenbrainzSettings';
 
 console.log('module::listenbrainzAuth');

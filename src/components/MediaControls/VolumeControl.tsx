@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import mediaPlayback from 'services/mediaPlayback';
 import IconButton from 'components/Button/IconButton';
 import Input from 'components/Input';
+import './VolumeControl.scss';
 
 export default function VolumeControl() {
     const [muted, setMuted] = useState(() => mediaPlayback.muted);
@@ -28,7 +29,7 @@ export default function VolumeControl() {
     }, [muted]);
 
     return (
-        <div className={`media-playback-bar-volume volume-${volumeLabel}`}>
+        <div className={`volume-control volume-${volumeLabel}`}>
             <IconButton
                 icon={muted ? 'muted' : 'volume'}
                 className="in-frame"

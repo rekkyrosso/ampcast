@@ -1,9 +1,9 @@
 import React from 'react';
 import MediaService from 'types/MediaService';
+import PlexLogin from 'services/plex/components/PlexLogin';
+import SpotifyLogin from 'services/spotify/components/SpotifyLogin';
+import YouTubeLogin from 'services/youtube/components/YouTubeLogin';
 import DefaultLogin from './DefaultLogin';
-import PlexLogin from './PlexLogin';
-import SpotifyLogin from './SpotifyLogin';
-import YouTubeLogin from './YouTubeLogin';
 import './Login.scss';
 
 export interface LoginProps {

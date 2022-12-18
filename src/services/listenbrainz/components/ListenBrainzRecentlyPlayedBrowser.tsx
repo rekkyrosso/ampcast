@@ -3,14 +3,14 @@ import {interval, merge} from 'rxjs';
 import {delay, map, mergeMap, skip, skipWhile, switchMap, take, tap} from 'rxjs/operators';
 import MediaItem from 'types/MediaItem';
 import Pager from 'types/Pager';
-import {listenbrainzRecentlyPlayed} from 'services/listenbrainz';
-import ListenBrainzHistoryPager from 'services/listenbrainz/ListenBrainzHistoryPager';
 import DualPager from 'services/pagers/DualPager';
 import SubjectPager from 'services/pagers/SubjectPager';
 import {observeListens} from 'services/localdb/listens';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import RecentlyPlayedBrowser from 'components/MediaBrowser/RecentlyPlayedBrowser';
 import {Logger} from 'utils';
+import {listenbrainzRecentlyPlayed} from '../listenbrainz';
+import ListenBrainzHistoryPager from '../ListenBrainzHistoryPager';
 
 const logger = new Logger('ListenBrainzRecentlyPlayedBrowser');
 

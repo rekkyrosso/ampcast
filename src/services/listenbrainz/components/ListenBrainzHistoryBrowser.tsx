@@ -1,6 +1,6 @@
 import React from 'react';
-import {listenbrainzHistory} from 'services/listenbrainz';
 import HistoryBrowser from 'components/MediaBrowser/HistoryBrowser';
+import {listenbrainzHistory} from '../listenbrainz';
 import useHistoryStart from './useHistoryStart';
 
 export default function ListenBrainzHistoryBrowser() {

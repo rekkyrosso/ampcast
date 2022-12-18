@@ -1,9 +1,9 @@
 import React, {useEffect} from 'react';
 import {Subject, timer} from 'rxjs';
 import {map, mergeMap, tap} from 'rxjs/operators';
-import plex from 'services/plex';
-import {refreshPin} from 'services/plex/plexAuth';
-import DefaultLogin from './DefaultLogin';
+import DefaultLogin from 'components/Login/DefaultLogin';
+import {refreshPin} from '../plexAuth';
+import plex from '../plex';
 
 export default function PlexLogin() {
     usePinRefresher();

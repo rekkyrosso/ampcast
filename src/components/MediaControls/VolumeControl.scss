@@ -1,0 +1,18 @@
+.volume-control {
+    display: flex;
+    flex: auto;
+    min-width: 4.25rem;
+    max-width: 6.25rem;
+    margin-right: 0.25em;
+
+    .icon-button {
+        flex: initial;
+    }
+
+    input[type=range] {
+        --track-height: 0.15em;
+        --thumb-size: .875em;
+        min-width: 3rem;
+        max-width: 5rem;
+    }
+}

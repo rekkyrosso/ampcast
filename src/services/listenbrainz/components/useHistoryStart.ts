@@ -1,9 +1,9 @@
 import {useEffect, useState} from 'react';
 import {from} from 'rxjs';
 import {filter, map, tap, take} from 'rxjs/operators';
-import listenbrainzApi from 'services/listenbrainz/listenbrainzApi';
-import listenbrainzSettings from 'services/listenbrainz/listenbrainzSettings';
 import {exists, formatDate} from 'utils';
+import listenbrainzApi from '../listenbrainzApi';
+import listenbrainzSettings from '../listenbrainzSettings';
 
 const serviceStartDate = '2015-09-17';
 
