@@ -1,5 +1,6 @@
 import React from 'react';
 import youtube from 'services/youtube';
+import DevMode from './DevMode';
 import LoginButton from './LoginButton';
 import ServiceLink from './ServiceLink';
 
@@ -7,6 +8,7 @@ export default function YouTubeLogin() {
     return (
         <div className="panel">
             <div className="page login">
+                <DevMode service={youtube} />
                 <p>
                     You can still play YouTube videos without being logged in.
                     <br />

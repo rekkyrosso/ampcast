@@ -358,19 +358,9 @@ export default class YouTubePlayer implements Player<string> {
             map(({aspectRatio}) => aspectRatio || defaultAspectRatio),
             catchError((error) => {
                 this.logger.log(
-                    `Could not obtain oembed info: videoId='${videoId}' (status=${error.status})`
+                    `Could not obtain oembed info (videoId=${videoId}): ${error.message}`
                 );
-                if (error.status >= 400) {
-                    if (error.status === 401) {
-                        this.error$.next(Error(`Embedding prevented by channel owner.`));
-                    } else if (error.status === 403) {
-                        this.error$.next(Error(`Private video.`));
-                    } else if (error.status === 404) {
-                        this.error$.next(Error(`Video does not exist.`));
-                    } else {
-                        this.error$.next(`Error: ${error.statusText} (${error.status})`);
-                    }
-                }
+                this.error$.next(error);
                 return of(defaultAspectRatio);
             })
         );

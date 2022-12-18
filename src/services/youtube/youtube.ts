@@ -62,7 +62,19 @@ export async function getYouTubeVideoInfo(videoId: string): Promise<MediaItem> {
     const response = await fetch(`${youtubeHost}/oembed?url=${url}&format=json`);
 
     if (!response.ok) {
-        throw response;
+        switch (response.status) {
+            case 401:
+                throw Error('Embedding prevented by channel owner.');
+
+            case 403:
+                throw Error('Private video.');
+
+            case 404:
+                throw Error('Video does not exist.');
+
+            default:
+                throw Error(`${response.statusText} (${response.status})`);
+        }
     }
 
     const video = await response.json();

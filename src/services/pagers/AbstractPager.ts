@@ -101,7 +101,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
         if (!this.subscriptions) {
             pagerCount++;
             // logger.log(`Pager connected. Connected pagers=${pagerCount}.`);
-            if (pagerCount >  100) {
+            if (pagerCount > 100) {
                 logger.warn(`Too many pagers? Connected pagers=${pagerCount}.`);
             }
 
@@ -129,12 +129,12 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
     private addMissingTrackCounts(items: readonly T[]): void {
         items.forEach((item) => {
             if (item.itemType === ItemType.Playlist && !item.trackCount && item.pager) {
-                const src = item.src;
                 this.subscriptions!.add(
                     item.pager
                         .observeSize()
                         .pipe(
                             tap((size) => {
+                                const src = item.src;
                                 const index = this.items.findIndex((item) => item.src === src);
                                 if (index !== -1) {
                                     const items = this.items.slice();

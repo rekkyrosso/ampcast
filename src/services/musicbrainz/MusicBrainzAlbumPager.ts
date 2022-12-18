@@ -1,4 +1,5 @@
 import type {Observable} from 'rxjs';
+import {nanoid} from 'nanoid';
 import {Except} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
@@ -13,9 +14,10 @@ export default class MusicBrainzAlbumPager implements Pager<MediaItem> {
 
     constructor(private readonly release_mbid: string, album?: Except<MediaAlbum, 'pager'>) {
         this.pager = new SequentialPager<MediaItem>(async (): Promise<Page<MediaItem>> => {
-            const {media = []} = await musicbrainzApi.get<MusicBrainz.Release>(`release/${release_mbid}`, {
-                inc: 'recordings',
-            });
+            const {media = []} = await musicbrainzApi.get<MusicBrainz.Release>(
+                `release/${release_mbid}`,
+                {inc: 'recordings'}
+            );
             const items = this.createItems(media[0]?.tracks || [], album);
             return {items, atEnd: true};
         });
@@ -59,7 +61,7 @@ export default class MusicBrainzAlbumPager implements Pager<MediaItem> {
         return {
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
-            src: `musicbrainz:track:${recording.id}`,
+            src: `musicbrainz:track:${mbid || nanoid()}`,
             title: track.title,
             artists: album?.artist ? [album.artist] : undefined,
             albumArtist: album?.artist,

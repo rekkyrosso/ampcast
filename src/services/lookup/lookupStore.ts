@@ -8,7 +8,7 @@ export interface Lookup {
     service: string;
     artist: string;
     title: string;
-    item?: MediaItem;
+    items: readonly MediaItem[];
 }
 
 class LookupStore extends Dexie {
@@ -26,14 +26,14 @@ class LookupStore extends Dexie {
         service: string,
         artist: string,
         title: string,
-        item: MediaItem | undefined
+        items: readonly MediaItem[]
     ): Promise<void> {
         try {
             if (service) {
-                logger.log('add', {service, artist, title, item});
+                logger.log('add', {service, artist, title, items});
                 artist = artist.toLowerCase();
                 title = title.toLowerCase();
-                await this.items.put({service, artist, title, item});
+                await this.items.put({service, artist, title, items});
             }
         } catch (err) {
             logger.error(err);

@@ -73,7 +73,7 @@ async function getMusicKit(): Promise<MusicKit.MusicKitInstance> {
                             name: __app_name__,
                             build: __app_version__,
                         },
-                        sourceType: 8, // not sure where this number came from
+                        sourceType: 8, // "WEBPLAYER"
                         suppressErrorDialog: true,
                     } as any);
                     resolve(instance);

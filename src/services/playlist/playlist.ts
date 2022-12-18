@@ -25,7 +25,7 @@ console.log('module::playlist');
 
 const logger = new Logger('playlist');
 
-type PlaylistSource =
+type PlayableType =
     | MediaAlbum
     | MediaItem
     | File
@@ -36,7 +36,7 @@ type PlaylistSource =
 
 const delayWriteTime = 200;
 
-const store = createStore('ampcast/playlist', 'keyval');
+const playlistStore = createStore('ampcast/playlist', 'keyval');
 
 const UNINITIALIZED: PlaylistItem[] = [];
 const items$ = new BehaviorSubject<PlaylistItem[]>(UNINITIALIZED);
@@ -140,7 +140,7 @@ function moveCurrentIndexBy(amount: -1 | 1): void {
     }
 }
 
-export async function add(items: PlaylistSource): Promise<void> {
+export async function add(items: PlayableType): Promise<void> {
     await insertAt(items, -1);
 }
 
@@ -160,7 +160,7 @@ function getAt(index: number): PlaylistItem | null {
     return items[index] ?? null;
 }
 
-export async function insertAt(items: PlaylistSource, index: number): Promise<void> {
+export async function insertAt(items: PlayableType, index: number): Promise<void> {
     const all = getItems();
     const allowDuplicates = settings.get().allowDuplicates;
     let additions = await createMediaItems(items);
@@ -252,30 +252,34 @@ export function shuffle(): void {
     setItems(items);
 }
 
-async function createMediaItems(source: PlaylistSource): Promise<readonly MediaItem[]> {
-    const isAlbum = (album: PlaylistSource): album is MediaAlbum => {
+async function createMediaItems(source: PlayableType): Promise<readonly MediaItem[]> {
+    const isAlbum = (album: PlayableType): album is MediaAlbum => {
         return 'itemType' in album && album.itemType === ItemType.Album;
     };
     let items: readonly (MediaItem | null)[] = [];
     if (Array.isArray(source)) {
         if (isAlbum(source[0])) {
-            const albums = await Promise.all(source.map(createMediaItemsFromAlbum));
+            const albums = await Promise.all(
+                source.map((album) => createMediaItemsFromAlbum(album))
+            );
             for (const album of albums) {
                 items = items.concat(album);
             }
         } else {
-            items = await Promise.all(source.map(createMediaItem));
+            items = await Promise.all(source.map((item) => createMediaItem(item)));
         }
     } else if (isAlbum(source)) {
         items = await createMediaItemsFromAlbum(source);
     } else {
         if (source instanceof FileList) {
-            items = await Promise.all(Array.from(source).map(createMediaItemFromFile));
+            items = await Promise.all(
+                Array.from(source).map((file) => createMediaItemFromFile(file))
+            );
         } else {
             items = [await createMediaItem(source as File | MediaItem)];
         }
     }
-    return items.filter(exists).map(createPlayableItem);
+    return items.filter(exists).map((item) => createPlayableItem(item));
 }
 
 function createPlayableItem(item: MediaItem): MediaItem {
@@ -337,8 +341,8 @@ const playlist: Playlist = {
 export default playlist;
 
 (async () => {
-    const items = (await dbRead<PlaylistItem[]>('items', store)) ?? [];
-    const id = (await dbRead('currently-playing-id', store)) ?? '';
+    const items = (await dbRead<PlaylistItem[]>('items', playlistStore)) ?? [];
+    const id = (await dbRead('currently-playing-id', playlistStore)) ?? '';
     items$.next(items);
     currentItemId$.next(id);
 })();
@@ -354,7 +358,7 @@ items$
                 }
                 return item;
             });
-            return dbWrite('items', items, store);
+            return dbWrite('items', items, playlistStore);
         })
     )
     .subscribe(logger);
@@ -363,7 +367,7 @@ currentItemId$
     .pipe(
         skip(2),
         debounceTime(delayWriteTime),
-        mergeMap((id) => dbWrite('currently-playing-id', id, store))
+        mergeMap((id) => dbWrite('currently-playing-id', id, playlistStore))
     )
     .subscribe(logger);
 
@@ -371,7 +375,7 @@ observeLookupStartEvents()
     .pipe(
         tap(({lookupItem}: LookupStartEvent) => {
             const items = getItems();
-            const index = items.findIndex((item) => item.id === (lookupItem as PlaylistItem).id);
+            const index = items.findIndex((item) => item.src === lookupItem.src);
             if (index !== -1) {
                 const item = items[index];
                 items[index] = {...item, lookupStatus: LookupStatus.Looking};
@@ -385,7 +389,7 @@ observeLookupEndEvents()
     .pipe(
         tap(({lookupItem, foundItem}: LookupEndEvent) => {
             const items = getItems();
-            const index = items.findIndex((item) => item.id === (lookupItem as PlaylistItem).id);
+            const index = items.findIndex((item) => item.src === lookupItem.src);
             if (index !== -1) {
                 const item = items[index];
                 items[index] = foundItem
