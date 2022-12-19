@@ -5,7 +5,7 @@ import {SetReturnType} from 'type-fest';
 import Player from 'types/Player';
 
 export default class OmniPlayer<T, S = T> implements Player<T> {
-    private readonly player$ = new BehaviorSubject<Player<S> | null>(this.nullPlayer);
+    private readonly player$ = new BehaviorSubject<Player<S> | null>(null);
     private readonly error$ = new Subject<unknown>();
     #hidden = false;
     #muted = false;
@@ -13,8 +13,7 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
     constructor(
         private readonly players: Player<S>[],
         private readonly selectPlayer: SetReturnType<Player<T>['load'], Player<S> | null>,
-        private readonly loadPlayer: (player: Player<S>, src: T) => void,
-        private readonly nullPlayer: Player<any> | null = null
+        private readonly loadPlayer: (player: Player<S>, src: T) => void
     ) {
         players.forEach((player) => {
             player.autoplay = false;
@@ -109,7 +108,7 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
         const prevPlayer = this.currentPlayer;
         const nextPlayer = this.selectPlayer(src);
 
-        this.player$.next(this.nullPlayer); // turn off event streams
+        this.player$.next(null); // turn off event streams
 
         if (prevPlayer && prevPlayer !== nextPlayer) {
             prevPlayer.muted = true;

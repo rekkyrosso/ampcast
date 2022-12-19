@@ -10,9 +10,8 @@ const logger = new Logger('ambientVideoPlayer');
 
 type ProgressRecord = Record<string, number | undefined>;
 
-const html5Player = new HTML5Player('video');
+const html5Player = new HTML5Player('video', 'ambient');
 const youtubePlayer = new YouTubePlayer('ambient');
-const players = [html5Player, youtubePlayer];
 const storage = new LiteStorage('ambientVideoPlayer');
 
 function selectPlayer(visualizer: AmbientVideoVisualizer): Player<string> | null {
@@ -40,7 +39,7 @@ function loadPlayer(player: Player<string>, visualizer: AmbientVideoVisualizer):
 }
 
 const ambientVideoPlayer = new OmniPlayer<AmbientVideoVisualizer, string>(
-    players,
+    [html5Player, youtubePlayer],
     selectPlayer,
     loadPlayer
 );

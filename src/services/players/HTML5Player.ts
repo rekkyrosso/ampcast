@@ -13,20 +13,20 @@ export default class HTML5Player implements Player<string> {
     private src = '';
     autoplay = false;
 
-    constructor(type: 'audio' | 'video') {
-        const player = (this.element = document.createElement(type));
+    constructor(type: 'audio' | 'video', id: string) {
+        const element = (this.element = document.createElement(type));
 
-        player.hidden = true;
-        player.muted = true;
-        player.autoplay = false;
-        player.className = `html5-${type}`;
-        player.crossOrigin = 'anonymous';
+        element.hidden = true;
+        element.muted = true;
+        element.autoplay = false;
+        element.className = `html5-${type} html5-${type}-${id}`;
+        element.crossOrigin = 'anonymous';
 
-        fromEvent(player, 'error')
-            .pipe(map(() => player.error))
+        fromEvent(element, 'error')
+            .pipe(map(() => element.error))
             .subscribe(this.error$);
 
-        const logger = (this.logger = new Logger(`HTML5Player(${type})`));
+        const logger = (this.logger = new Logger(`HTML5Player/${type}/${id}`));
 
         this.observeError().subscribe(logger.error);
     }

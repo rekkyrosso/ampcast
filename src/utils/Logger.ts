@@ -52,19 +52,19 @@ export default class Logger implements BasicConsole, AnyObserver {
         return new Logger(newId, rx, this.console);
     }
 
+    private _error(err: unknown): void {
+        if (this._canLog) {
+            this._log(3, 'ERROR');
+            this.console.error(err);
+        }
+    }
+
     private _log(level: 1 | 2 | 3, ...args: any[]): void {
         if (this._canLog) {
             this.console.log(
                 `${'####'.slice(3 - level)}${this.#id ? ` ${this.#id}:` : ''}`,
                 ...args
             );
-        }
-    }
-
-    _error(err: unknown): void {
-        if (this._canLog) {
-            this._log(3, 'ERROR');
-            this.console.error(err);
         }
     }
 }

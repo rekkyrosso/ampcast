@@ -59,7 +59,6 @@ export async function addListen(state: PlaybackState): Promise<void> {
                 return;
             }
         }
-        logger.log('rejected', {state});
     } catch (err) {
         logger.error(err);
     }

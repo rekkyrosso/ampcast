@@ -1,32 +1,41 @@
-import React, {useEffect, useState} from 'react';
+import React, {memo, useEffect, useState} from 'react';
 import MediaItem from 'types/MediaItem';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
+import usePaused from 'hooks/usePaused';
+import useInterstitialState, {InterstitialState} from './useInterstitialState';
 import './Interstitial.scss';
 
-export default function Interstitial() {
+function Interstitial() {
     const item = useCurrentlyPlaying();
+    const state = useInterstitialState();
     const [isRecent, setIsRecent] = useState(false);
+    const playlistItemId = item?.id;
 
     useEffect(() => {
-        const timerId = setTimeout(() => setIsRecent(false), 5000);
         setIsRecent(true);
+        const timerId = setTimeout(() => setIsRecent(false), 5000);
         return () => clearTimeout(timerId);
-    }, [item]);
+    }, [playlistItemId]);
 
     return (
-        <div className={`interstitial ${isRecent ? 'is-recent' : ''}`}>
-            {item ? <CurrentlyPlaying item={item} /> : <p>The playlist is empty.</p>}
+        <div className={`interstitial ${state} ${isRecent ? 'is-recent' : ''}`}>
+            {item ? <CurrentlyPlaying item={item} state={state} /> : <EmptyPlaylist />}
         </div>
     );
 }
 
+export default memo(Interstitial);
+
 interface CurrentlyPlayingProps {
     item: MediaItem;
+    state: InterstitialState;
 }
 
-function CurrentlyPlaying({item}: CurrentlyPlayingProps) {
+function CurrentlyPlaying({item, state}: CurrentlyPlayingProps) {
+    const paused = usePaused();
+
     return (
-        <div className="currently-playing">
+        <>
             <h3>{item.title}</h3>
             {item.artists ? (
                 <>
@@ -34,6 +43,13 @@ function CurrentlyPlaying({item}: CurrentlyPlayingProps) {
                     <h4>{item.artists.join(', ')}</h4>
                 </>
             ) : null}
-        </div>
+            <span className="interstitial-state">
+                {paused ? '' : `${state === 'ready' ? 'playing' : state}...`}
+            </span>
+        </>
     );
+}
+
+function EmptyPlaylist() {
+    return <p>The playlist is empty.</p>;
 }

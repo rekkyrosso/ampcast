@@ -6,15 +6,12 @@ import musicKitPlayer from 'services/apple/musicKitPlayer';
 import spotifyPlayer from 'services/spotify/spotifyPlayer';
 import OmniPlayer from 'services/players/OmniPlayer';
 import HTML5Player from 'services/players/HTML5Player';
-import silentPlayer from 'services/players/silentPlayer';
 
 console.log('module::mediaPlayer');
 
-const html5AudioPlayer = new HTML5Player('audio');
-const html5VideoPlayer = new HTML5Player('video');
+const html5AudioPlayer = new HTML5Player('audio', 'main');
+const html5VideoPlayer = new HTML5Player('video', 'main');
 const youtubePlayer = new YouTubePlayer('main');
-
-const players = [html5AudioPlayer, html5VideoPlayer, youtubePlayer, musicKitPlayer, spotifyPlayer];
 
 function selectPlayer(item: PlaylistItem | null): Player<string> | null {
     if (item) {
@@ -53,10 +50,9 @@ function getMediaSource(item: PlaylistItem | null): string {
 }
 
 const mediaPlayer = new OmniPlayer<PlaylistItem | null, string>(
-    players,
+    [html5AudioPlayer, html5VideoPlayer, youtubePlayer, musicKitPlayer, spotifyPlayer],
     selectPlayer,
-    loadPlayer,
-    silentPlayer
+    loadPlayer
 );
 
 export default mediaPlayer;

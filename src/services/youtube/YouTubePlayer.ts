@@ -71,7 +71,7 @@ export default class YouTubePlayer implements Player<string> {
         const element = (this.element = document.createElement('div'));
         const wrapper = document.createElement('div');
         const target = document.createElement('div');
-        const logger = (this.logger = new Logger(`YouTubePlayer(${id})`));
+        const logger = (this.logger = new Logger(`YouTubePlayer/${id}`));
 
         this.targetId = `youtube-iframe-${id}`;
 

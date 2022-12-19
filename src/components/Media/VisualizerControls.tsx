@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {memo, useCallback} from 'react';
 import {observeLocked, lock, unlock, nextVisualizer} from 'services/visualizer';
 import Icon from 'components/Icon';
 import IconButton from 'components/Button/IconButton';
@@ -10,7 +10,7 @@ import CurrentlyPlayingDialog from './CurrentlyPlayingDialog';
 import useVideoSourceIcon from './useVideoSourceIcon';
 import './Visualizer.scss';
 
-export default function VisualizerControls() {
+function VisualizerControls() {
     const locked = useObservable(observeLocked, false);
     const videoIcon = useVideoSourceIcon();
 
@@ -62,3 +62,5 @@ export default function VisualizerControls() {
         </div>
     );
 }
+
+export default memo(VisualizerControls);
