@@ -1,7 +1,6 @@
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import mediaPlayback from 'services/mediaPlayback';
 import IconButton from 'components/Button/IconButton';
-import Input from 'components/Input';
 import './VolumeControl.scss';
 
 function VolumeControl() {
@@ -33,11 +32,13 @@ function VolumeControl() {
             <IconButton
                 icon={muted ? 'muted' : 'volume'}
                 className="in-frame"
+                aria-label={muted ? 'Unmute' : 'Mute'}
                 title={muted ? 'unmute' : 'mute'}
                 onClick={handleMuteClick}
             />
-            <Input
+            <input
                 type="range"
+                aria-label="Volume"
                 min={0}
                 max={1}
                 step={0.01}

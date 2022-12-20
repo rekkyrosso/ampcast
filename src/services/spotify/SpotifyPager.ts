@@ -139,6 +139,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             externalUrl: album.external_urls.spotify,
             title: album.name,
             artist: album.artists.map((artist) => artist.name).join(', '),
+            // genres: album.genres, // always an empty array
             year: new Date(album.release_date).getFullYear(),
             thumbnails: album.images as Thumbnail[],
             trackCount: album.tracks?.total,
@@ -176,6 +177,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             src: playlist.uri,
             externalUrl: playlist.external_urls.spotify,
             title: playlist.name,
+            description: playlist.description || undefined,
             thumbnails: playlist.images as Thumbnail[],
             trackCount: playlist.tracks.total,
             pager: this.createPlaylistPager(playlist),

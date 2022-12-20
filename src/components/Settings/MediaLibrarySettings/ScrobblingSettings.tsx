@@ -7,13 +7,9 @@ import {
     setNoScrobble,
     updateOptions,
 } from 'services/scrobbleSettings';
-import Input from 'components/Input';
-import Button from 'components/Button';
 import {MediaServiceSettingsProps} from './MediaServiceSettings';
 
-export default function MediaServiceScrobblingSettings({
-    service: scrobbler,
-}: MediaServiceSettingsProps) {
+export default function ScrobblingSettings({service: scrobbler}: MediaServiceSettingsProps) {
     const id = useId();
     const scrobbleRef = useRef<HTMLFieldSetElement>(null);
     const optionsRef = useRef<HTMLFieldSetElement>(null);
@@ -36,17 +32,13 @@ export default function MediaServiceScrobblingSettings({
     }, [scrobbler]);
 
     return (
-        <form
-            className={`media-library-settings ${scrobbler.id}-settings scrobble-settings`}
-            method="dialog"
-            onSubmit={handleSubmit}
-        >
+        <form className="scrobbling-settings" method="dialog" onSubmit={handleSubmit}>
             <fieldset ref={scrobbleRef}>
                 <legend>Scrobble</legend>
                 <ul>
                     {services.map((service) => (
                         <li key={service.id}>
-                            <Input
+                            <input
                                 id={`${id}-${service.id}`}
                                 type="checkbox"
                                 value={service.id}
@@ -62,7 +54,7 @@ export default function MediaServiceScrobblingSettings({
                 <legend>Options</legend>
                 <ul>
                     <li>
-                        <Input
+                        <input
                             id={`${id}-scrobbling-options`}
                             type="checkbox"
                             value="updateNowPlaying"
@@ -75,8 +67,8 @@ export default function MediaServiceScrobblingSettings({
                 </ul>
             </fieldset>
             <footer className="dialog-buttons">
-                <Button value="#cancel">Cancel</Button>
-                <Button>Confirm</Button>
+                <button value="#cancel">Cancel</button>
+                <button>Confirm</button>
             </footer>
         </form>
     );

@@ -1,6 +1,4 @@
 import React, {useCallback, useRef} from 'react';
-import Button from 'components/Button';
-import Input from 'components/Input';
 import appleSettings from '../appleSettings';
 
 export default function AppleBetaSettings() {
@@ -15,7 +13,7 @@ export default function AppleBetaSettings() {
             <fieldset>
                 <legend>MusicKit</legend>
                 <p>
-                    <Input
+                    <input
                         type="radio"
                         name="use-musickit"
                         id="use-musickit-stable"
@@ -24,7 +22,7 @@ export default function AppleBetaSettings() {
                     <label htmlFor="use-musickit-stable">Stable version</label>
                 </p>
                 <p>
-                    <Input
+                    <input
                         type="radio"
                         name="use-musickit"
                         id="use-musickit-beta"
@@ -43,8 +41,8 @@ export default function AppleBetaSettings() {
                 <p>You will need to refresh the page for changes to take effect.</p>
             </div>
             <footer className="dialog-buttons">
-                <Button value="#cancel">Cancel</Button>
-                <Button>Confirm</Button>
+                <button value="#cancel">Cancel</button>
+                <button>Confirm</button>
             </footer>
         </form>
     );

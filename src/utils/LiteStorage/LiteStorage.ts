@@ -61,7 +61,11 @@ export default class LiteStorage {
 
     setJson<T>(key: string, value: T): void {
         try {
-            this.setItem(key, JSON.stringify(value));
+            if (value == null) {
+                this.removeItem(key);
+            } else {
+                this.setItem(key, JSON.stringify(value));
+            }
         } catch (err) {
             logger.error(err);
         }
@@ -76,11 +80,11 @@ export default class LiteStorage {
         this.setItem(key, String(Number(value) || 0));
     }
 
-    getString(key: string, defaultValue = ''): string {
-        return String(this.getItem(key) ?? defaultValue);
+    getString<T extends string | ''>(key: string, defaultValue: T | '' = ''): T {
+        return String(this.getItem(key) ?? defaultValue) as T;
     }
 
-    setString(key: string, value: string): void {
+    setString<T extends string>(key: string, value: T): void {
         this.setItem(key, value);
     }
 
@@ -88,8 +92,13 @@ export default class LiteStorage {
         return this.storage.getItem(`${this.id}/${key}`);
     }
 
-    setItem(key: string, value: string): void {
-        this.storage.setItem(`${this.id}/${key}`, value ?? '');
+    setItem(key: string, value: string | null): void {
+        key = `${this.id}/${key}`;
+        if (value == null) {
+            this.storage.removeItem(key);
+        } else {
+            this.storage.setItem(key, value);
+        }
     }
 
     removeItem(key: string): void {

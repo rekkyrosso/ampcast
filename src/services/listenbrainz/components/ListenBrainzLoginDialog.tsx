@@ -1,9 +1,7 @@
 import React, {useCallback, useRef} from 'react';
 import Dialog, {showDialog, DialogProps} from 'components/Dialog';
-import Button from 'components/Button';
 import ExternalLink from 'components/ExternalLink';
 import Icon from 'components/Icon';
-import Input from 'components/Input';
 import listenbrainzSettings from '../listenbrainzSettings';
 import './ListenBrainzLoginDialog.scss';
 
@@ -81,7 +79,7 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
                 <div className="table-layout">
                     <p>
                         <label htmlFor="listenbrainz-username">User:</label>
-                        <Input
+                        <input
                             type="text"
                             id="listenbrainz-username"
                             autoFocus
@@ -92,7 +90,7 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
                     </p>
                     <p>
                         <label htmlFor="listenbrainz-token">Token:</label>
-                        <Input type="password" id="listenbrainz-token" required ref={tokenRef} />
+                        <input type="password" id="listenbrainz-token" required ref={tokenRef} />
                     </p>
                 </div>
                 <p className="listenbrainz-link">
@@ -102,8 +100,8 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
                     </ExternalLink>
                 </p>
                 <footer className="dialog-buttons">
-                    <Button value="#cancel">Cancel</Button>
-                    <Button ref={submitRef}>Login</Button>
+                    <button value="#cancel">Cancel</button>
+                    <button ref={submitRef}>Login</button>
                 </footer>
             </form>
         </Dialog>

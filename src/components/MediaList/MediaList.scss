@@ -33,6 +33,7 @@
         .artist,
         .owner,
         .genre,
+        .blurb,
         .album {
             left: 6em;
             right: 4em;
@@ -56,6 +57,7 @@
         }
 
         .album,
+        .blurb,
         .year {
             top: 3.25em;
             color: var(--grey2-color);
@@ -101,6 +103,7 @@
             .artist,
             .owner,
             .genre,
+            .blurb,
             .album {
                 left: 4em;
             }
@@ -124,6 +127,7 @@
             }
 
             .album,
+            .blurb,
             .year {
                 top: 2.5em;
             }
@@ -153,6 +157,7 @@
             .artist,
             .owner,
             .genre,
+            .blurb,
             .album {
                 right: 0;
             }

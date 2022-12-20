@@ -1,7 +1,6 @@
 import React, {useCallback, useId} from 'react';
 import MediaObject from 'types/MediaObject';
 import MediaSource from 'types/MediaSource';
-import Input from 'components/Input';
 
 export interface MediaSourceSelectorProps<T extends MediaObject> {
     sources: readonly MediaSource<T>[];
@@ -28,7 +27,7 @@ export default function MediaSourceSelector<T extends MediaObject>({
             <ul className="media-sources">
                 {sources.map((source, index) => (
                     <li className="media-source" key={source.id}>
-                        <Input
+                        <input
                             id={`${id}-${source.id}`}
                             type="radio"
                             name={id}

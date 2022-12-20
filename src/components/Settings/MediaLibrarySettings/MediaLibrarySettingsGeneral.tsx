@@ -1,10 +1,8 @@
 import React, {useCallback, useId, useRef} from 'react';
 import {getAllServices} from 'services/mediaServices';
 import {isVisible, setHidden} from 'services/servicesSettings';
-import Input from 'components/Input';
-import Button from 'components/Button';
 
-export default function MediaLibraryGeneralSettings() {
+export default function MediaLibrarySettingsGeneral() {
     const id = useId();
     const ref = useRef<HTMLFieldSetElement>(null);
 
@@ -18,13 +16,13 @@ export default function MediaLibraryGeneralSettings() {
     }, []);
 
     return (
-        <form className="media-library-general-settings" method="dialog" onSubmit={handleSubmit}>
+        <form className="media-library-settings-general" method="dialog" onSubmit={handleSubmit}>
             <fieldset ref={ref}>
                 <legend>Display</legend>
                 <ul>
                     {getAllServices().map((service) => (
                         <li key={service.id}>
-                            <Input
+                            <input
                                 id={`${id}-${service.id}`}
                                 type="checkbox"
                                 value={service.id}
@@ -36,8 +34,8 @@ export default function MediaLibraryGeneralSettings() {
                 </ul>
             </fieldset>
             <footer className="dialog-buttons">
-                <Button value="#cancel">Cancel</Button>
-                <Button>Confirm</Button>
+                <button value="#cancel">Cancel</button>
+                <button>Confirm</button>
             </footer>
         </form>
     );

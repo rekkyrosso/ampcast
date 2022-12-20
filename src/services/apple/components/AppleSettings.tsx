@@ -1,6 +1,6 @@
 import React, {useMemo} from 'react';
 import TabList, {TabItem} from 'components/TabList';
-import MediaServiceGeneralSettings from 'components/Settings/MediaLibrarySettings/MediaServiceGeneralSettings';
+import MediaServiceSettingsGeneral from 'components/Settings/MediaLibrarySettings/MediaServiceSettingsGeneral';
 import AppleBetaSettings from './AppleBetaSettings';
 import apple from '../apple';
 
@@ -9,7 +9,7 @@ export default function AppleSettings() {
         () => [
             {
                 tab: 'General',
-                panel: <MediaServiceGeneralSettings service={apple} />,
+                panel: <MediaServiceSettingsGeneral service={apple} />,
             },
             {
                 tab: 'Beta',

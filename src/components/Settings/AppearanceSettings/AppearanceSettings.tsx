@@ -10,5 +10,5 @@ const tabs: TabItem[] = [
 ];
 
 export default function AppearanceSettings() {
-    return <TabList items={tabs} label="Appearance" />;
+    return <TabList className="appearance-settings" items={tabs} label="Appearance" />;
 }

@@ -1,19 +1,19 @@
 import React, {useCallback, useRef} from 'react';
 import VisualizerProvider from 'types/VisualizerProvider';
-import {observeProvider, setProvider} from 'services/visualizer';
-import Button from 'components/Button';
+import visualizerSettings, {observeLocked} from 'services/visualizer/visualizerSettings';
 import useObservable from 'hooks/useObservable';
 
-export default function VisualizerGeneralSettings() {
+export default function VisualizerSettingsGeneral() {
     const selectRef = useRef<HTMLSelectElement>(null);
-    const provider = useObservable(observeProvider, '');
+    const provider = visualizerSettings.provider;
+    const locked = useObservable(observeLocked, false);
 
     const handleSubmit = useCallback(() => {
-        setProvider(selectRef.current!.value as VisualizerProvider);
+        visualizerSettings.provider = selectRef.current!.value as VisualizerProvider;
     }, []);
 
     return (
-        <form className="visualizer-general-settings" method="dialog" onSubmit={handleSubmit}>
+        <form className="visualizer-settings-general" method="dialog" onSubmit={handleSubmit}>
             <p>
                 <label htmlFor="visualizer-provider">Provider:</label>
                 <select
@@ -32,9 +32,16 @@ export default function VisualizerGeneralSettings() {
                     <option value="waveform">Waveform</option>
                 </select>
             </p>
+            <p className="lock-status">
+                {locked ? (
+                    <small>
+                        You need to unlock the current visualizer before changes take effect.
+                    </small>
+                ) : null}
+            </p>
             <footer className="dialog-buttons">
-                <Button value="#cancel">Cancel</Button>
-                <Button>Confirm</Button>
+                <button value="#cancel">Cancel</button>
+                <button>Confirm</button>
             </footer>
         </form>
     );

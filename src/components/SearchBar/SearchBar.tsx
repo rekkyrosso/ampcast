@@ -1,6 +1,4 @@
 import React, {useCallback, useRef} from 'react';
-import Button from 'components/Button';
-import Input from 'components/Input';
 import './SearchBar.scss';
 
 export interface SearchBarProps {
@@ -22,14 +20,14 @@ export default function SearchBar({onSubmit}: SearchBarProps) {
     return (
         <form className="search-bar" onSubmit={handleSubmit}>
             <p className="search-bar-input">
-                <Input
+                <input
                     type="search"
                     spellCheck={false}
                     autoComplete="off"
                     autoCapitalize="off"
                     ref={inputRef}
                 />
-                <Button type="submit">Search</Button>
+                <button type="submit">Search</button>
             </p>
         </form>
     );

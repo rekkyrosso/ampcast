@@ -1,8 +1,6 @@
 import React, {useCallback, useLayoutEffect, useMemo} from 'react';
 import theme from 'services/theme';
 import presets from 'services/theme/themes/presets';
-import Button from 'components/Button';
-import Input from 'components/Input';
 import ThemeColorPicker from './ThemeColorPicker';
 import useCurrentTheme from './useCurrentTheme';
 import './ThemeSettings.scss';
@@ -92,7 +90,7 @@ export default function ThemeSettings() {
                     </p>
                     <p>
                         <label htmlFor="theme-spacing">Spacing:</label>
-                        <Input
+                        <input
                             type="range"
                             id="theme-spacing"
                             min={0}
@@ -104,7 +102,7 @@ export default function ThemeSettings() {
                     </p>
                     <p>
                         <label htmlFor="theme-roundness">Roundness:</label>
-                        <Input
+                        <input
                             type="range"
                             id="theme-roundness"
                             min={0}
@@ -116,7 +114,7 @@ export default function ThemeSettings() {
                     </p>
                     <p>
                         <label htmlFor="theme-flat">Flat:</label>
-                        <Input
+                        <input
                             type="checkbox"
                             id="theme-flat"
                             checked={currentTheme.flat}
@@ -125,20 +123,20 @@ export default function ThemeSettings() {
                     </p>
                 </div>
                 <p className="dialog-buttons">
-                    <Button className="small" type="button" disabled>
+                    <button className="small" type="button" disabled>
                         Save…
-                    </Button>
+                    </button>
                 </p>
             </fieldset>
             <div className="table-layout font-size">
                 <p>
                     <label htmlFor="theme-fontSize">Font Size:</label>
-                    <Input
+                    <input
                         type="range"
                         id="theme-fontSize"
                         min={12}
                         max={32}
-                        step={1}
+                        step={0.4}
                         defaultValue={initialFontSize}
                         onChange={handleFontSizeChange}
                         key={initialFontSize}
@@ -146,8 +144,8 @@ export default function ThemeSettings() {
                 </p>
             </div>
             <footer className="dialog-buttons">
-                <Button value="#cancel">Cancel</Button>
-                <Button>Confirm</Button>
+                <button value="#cancel">Cancel</button>
+                <button>Confirm</button>
             </footer>
         </form>
     );

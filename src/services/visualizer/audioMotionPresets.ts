@@ -1,5 +1,7 @@
 import { AudioMotionVisualizer } from 'types/Visualizer';
 
+const externalUrl = 'https://audiomotion.dev/';
+
 // From: https://audiomotion.dev/demo/fluid.js
 const presets: AudioMotionVisualizer[] = [
     {
@@ -20,6 +22,7 @@ const presets: AudioMotionVisualizer[] = [
             lineWidth: 2,
             fillAlpha: 0.2,
         },
+        externalUrl,
     },
     {
         provider: 'audiomotion',
@@ -35,6 +38,7 @@ const presets: AudioMotionVisualizer[] = [
             reflexRatio: 0,
             showPeaks: true,
         },
+        externalUrl,
     },
     {
         provider: 'audiomotion',
@@ -52,6 +56,7 @@ const presets: AudioMotionVisualizer[] = [
             reflexRatio: 0.5,
             showPeaks: false,
         },
+        externalUrl,
     },
     {
         provider: 'audiomotion',
@@ -66,6 +71,7 @@ const presets: AudioMotionVisualizer[] = [
             showPeaks: true,
             spinSpeed: 1,
         },
+        externalUrl,
     },
     {
         provider: 'audiomotion',
@@ -84,6 +90,7 @@ const presets: AudioMotionVisualizer[] = [
             ledBars: false,
             showPeaks: true,
         },
+        externalUrl,
     },
 ];
 

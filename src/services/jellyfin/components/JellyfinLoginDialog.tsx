@@ -1,7 +1,5 @@
 import React, {useCallback, useRef} from 'react';
 import Dialog, {showDialog, DialogProps} from 'components/Dialog';
-import Button from 'components/Button';
-import Input from 'components/Input';
 import jellyfinSettings from '../jellyfinSettings';
 import './JellyfinLoginDialog.scss';
 
@@ -80,7 +78,7 @@ export default function JellyfinLoginDialog(props: DialogProps) {
                 <div className="table-layout">
                     <p>
                         <label htmlFor="jellyfin-host">Host:</label>
-                        <Input
+                        <input
                             type="url"
                             id="jellyfin-host"
                             defaultValue={jellyfinSettings.host}
@@ -91,7 +89,7 @@ export default function JellyfinLoginDialog(props: DialogProps) {
                     </p>
                     <p>
                         <label htmlFor="jellyfin-username">User:</label>
-                        <Input
+                        <input
                             type="text"
                             id="jellyfin-username"
                             autoFocus
@@ -101,12 +99,12 @@ export default function JellyfinLoginDialog(props: DialogProps) {
                     </p>
                     <p>
                         <label htmlFor="jellyfin-password">Password:</label>
-                        <Input type="password" id="jellyfin-password" ref={passwordRef} required />
+                        <input type="password" id="jellyfin-password" ref={passwordRef} required />
                     </p>
                 </div>
                 <footer className="dialog-buttons">
-                    <Button value="#cancel">Cancel</Button>
-                    <Button ref={submitRef}>Login</Button>
+                    <button value="#cancel">Cancel</button>
+                    <button ref={submitRef}>Login</button>
                 </footer>
             </form>
         </Dialog>

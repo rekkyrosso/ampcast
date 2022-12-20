@@ -16,7 +16,7 @@ import Visualizer, {NoVisualizer} from 'types/Visualizer';
 import VisualizerProvider from 'types/VisualizerProvider';
 import {observeCurrentItem} from 'services/playlist';
 import {observePaused} from 'services/mediaPlayback/playback';
-import {exists, getRandomValue, LiteStorage, Logger} from 'utils';
+import {exists, getRandomValue, Logger} from 'utils';
 import ambientVideoPresets from './ambientVideoPresets';
 import ampshaderPresets from './ampshaderPresets';
 import audioMotionPresets from './audioMotionPresets';
@@ -24,16 +24,17 @@ import butterchurnPresets from './butterchurnPresets';
 import spotifyVizPresets from './spotifyVizPresets';
 import waveformPresets from './waveformPresets';
 import player from './player';
+import visualizerSettings, {
+    observeLocked,
+    observeProvider,
+    observeSettings,
+    VisualizerSettings,
+} from './visualizerSettings';
+export {observeLocked, observeProvider, observeSettings} from './visualizerSettings';
 
 console.log('module::visualizer');
 
 const logger = new Logger('visualizer');
-const storage = new LiteStorage('visualizer');
-
-export interface VisualizerSettings {
-    readonly provider?: VisualizerProvider;
-    readonly locked?: Pick<Visualizer, 'provider' | 'name'>;
-}
 
 const defaultVisualizer: NoVisualizer = {
     provider: 'none',
@@ -41,7 +42,6 @@ const defaultVisualizer: NoVisualizer = {
 };
 
 const currentVisualizer$ = new BehaviorSubject<Visualizer>(defaultVisualizer);
-const settings$ = new BehaviorSubject<VisualizerSettings>({});
 const next$ = new Subject<'next'>();
 const empty$ = observeCurrentItem().pipe(filter((item) => item == null));
 const media$ = observeCurrentItem().pipe(filter(exists));
@@ -67,50 +67,20 @@ export function observeCurrentVisualizer(): Observable<Visualizer> {
     return currentVisualizer$;
 }
 
-export function observeLocked(): Observable<boolean> {
-    return observeSettings().pipe(map((settings) => !!settings.locked));
-}
-
-export function observeProvider(): Observable<VisualizerProvider | ''> {
-    return observeSettings().pipe(
-        map((settings) => settings.provider || ''),
-        distinctUntilChanged()
-    );
-}
-
-export function observeSettings(): Observable<VisualizerSettings> {
-    return settings$;
-}
-
 export function nextVisualizer(): void {
     next$.next('next');
 }
 
 export function lock(): void {
-    setLocked(true);
+    visualizerSettings.lockedVisualizer = currentVisualizer$.getValue();
 }
 
 export function unlock(): void {
-    setLocked(false);
+    visualizerSettings.lockedVisualizer = undefined;
 }
 
-function setLocked(locked: boolean): void {
-    const {locked: prevLocked, ...prevSettings} = settings$.getValue();
-    if (!!prevLocked !== locked) {
-        const currentVisualizer = currentVisualizer$.getValue();
-        const newSettings = locked ? {...prevSettings, locked: currentVisualizer} : prevSettings;
-        storage.setJson('settings', newSettings);
-        settings$.next(newSettings);
-    }
-}
-
-export function setProvider(provider: VisualizerProvider | ''): void {
-    const {provider: prevProvider, ...settings} = settings$.getValue();
-    if (provider !== prevProvider) {
-        const newSettings = provider ? {...settings, provider} : settings;
-        storage.setJson('settings', newSettings);
-        settings$.next(newSettings);
-    }
+export function setProvider(provider: VisualizerProvider): void {
+    visualizerSettings.provider = provider;
 }
 
 export default {
@@ -124,7 +94,6 @@ export default {
     setProvider,
 };
 
-settings$.next(storage.getJson('settings', {}));
 empty$.subscribe(() => player.stop());
 audio$.subscribe(() => (player.hidden = false));
 video$.subscribe(() => {
@@ -172,8 +141,9 @@ function getNextVisualizer(
     settings: VisualizerSettings,
     next?: boolean
 ): Visualizer {
-    if (settings.locked) {
-        return findVisualizer(settings.locked);
+    const lockedVisualizer = visualizerSettings.lockedVisualizer;
+    if (lockedVisualizer) {
+        return findVisualizer(lockedVisualizer.provider, lockedVisualizer.name);
     }
     const currentVisualizer = currentVisualizer$.getValue();
     let provider = settings.provider;
@@ -189,7 +159,7 @@ function getNextVisualizer(
     return getRandomValue(presets, currentVisualizer) || defaultVisualizer;
 }
 
-function findVisualizer({provider, name}: Pick<Visualizer, 'provider' | 'name'>): Visualizer {
+function findVisualizer(provider: VisualizerProvider, name: string): Visualizer {
     const presets = getPresets(provider);
     return presets.find((preset) => preset.name === name) || defaultVisualizer;
 }

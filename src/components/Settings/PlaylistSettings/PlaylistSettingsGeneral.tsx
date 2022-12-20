@@ -1,10 +1,8 @@
 import useObservable from 'hooks/useObservable';
 import React, {useCallback, useMemo, useRef} from 'react';
 import playlistSettings, {PlaylistSettings} from 'services/playlist/playlistSettings';
-import Button from 'components/Button';
-import Input from 'components/Input';
 
-export default function PlaylistGeneralSettings() {
+export default function PlaylistSettingsGeneral() {
     const originalSettings: PlaylistSettings = useMemo(() => playlistSettings.get(), []);
     const settings = useObservable(playlistSettings.observe, originalSettings);
     const allowDuplicatesRef = useRef<HTMLInputElement>(null);
@@ -26,11 +24,11 @@ export default function PlaylistGeneralSettings() {
     }, []);
 
     return (
-        <form className="playlist-general-settings" method="dialog">
+        <form className="playlist-settings-general" method="dialog">
             <fieldset>
                 <legend>Content</legend>
                 <p>
-                    <Input
+                    <input
                         id="playlist-allow-duplicates"
                         type="checkbox"
                         checked={settings.allowDuplicates}
@@ -43,7 +41,7 @@ export default function PlaylistGeneralSettings() {
             <fieldset>
                 <legend>Display</legend>
                 <p>
-                    <Input
+                    <input
                         id="playlist-item-numbers"
                         type="checkbox"
                         checked={settings.showLineNumbers}
@@ -53,7 +51,7 @@ export default function PlaylistGeneralSettings() {
                     <label htmlFor="playlist-item-numbers">Show playlist line numbers</label>
                 </p>
                 <p>
-                    <Input
+                    <input
                         id="playlist-zero-pad"
                         type="checkbox"
                         checked={settings.zeroPadLineNumbers}
@@ -64,7 +62,7 @@ export default function PlaylistGeneralSettings() {
                     <label htmlFor="playlist-zero-pad">Zero pad line numbers</label>
                 </p>
                 <p>
-                    <Input
+                    <input
                         id="playlist-source-icons"
                         type="checkbox"
                         checked={settings.showSourceIcons}
@@ -75,10 +73,10 @@ export default function PlaylistGeneralSettings() {
                 </p>
             </fieldset>
             <footer className="dialog-buttons">
-                <Button value="#cancel" onClick={handleCancel}>
+                <button value="#cancel" onClick={handleCancel}>
                     Cancel
-                </Button>
-                <Button>Confirm</Button>
+                </button>
+                <button>Confirm</button>
             </footer>
         </form>
     );

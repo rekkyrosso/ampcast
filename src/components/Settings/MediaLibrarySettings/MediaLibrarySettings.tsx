@@ -1,18 +1,17 @@
 import React, {useMemo} from 'react';
 import TabList, {TabItem} from 'components/TabList';
-import MediaLibraryGeneralSettings from './MediaLibraryGeneralSettings';
-import './MediaLibrarySettings.scss';
+import MediaLibrarySettingsGeneral from './MediaLibrarySettingsGeneral';
 
 export default function MediaLibrarySettings() {
     const tabs: TabItem[] = useMemo(
         () => [
             {
                 tab: 'General',
-                panel: <MediaLibraryGeneralSettings />,
+                panel: <MediaLibrarySettingsGeneral />,
             },
         ],
         []
     );
 
-    return <TabList items={tabs} label="Media Services" />;
+    return <TabList className="media-library-settings" items={tabs} label="Media Services" />;
 }

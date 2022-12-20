@@ -33,6 +33,11 @@ a:any-link {
     }
 }
 
+small {
+    font-style: italic;
+    line-height: 1.2;
+}
+
 .panel,
 .page {
     position: absolute;
@@ -91,8 +96,16 @@ a:any-link {
 
 body.dragging {
     cursor: inherit !important;
-    pointer-events: none !important;
     user-select: none !important;
+
+    > * {
+        pointer-events: none;
+    }
+}
+
+.text-box {
+    line-height: 1.5;
+    overflow-y: auto;
 }
 
 .note {
@@ -112,4 +125,10 @@ body.dragging {
         background-color: rgba(255, 0, 0, 0.1);
         border-color: red;
     }
+}
+
+.cv {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
 }

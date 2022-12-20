@@ -1,5 +1,4 @@
 import React from 'react';
-import Button from 'components/Button';
 
 export interface PopupMenuItemProps {
     label: string;
@@ -10,10 +9,10 @@ export interface PopupMenuItemProps {
 export default function PopupMenuItem({label, acceleratorKey = '', action}: PopupMenuItemProps) {
     return (
         <li className="popup-menu-item">
-            <Button value={action}>
+            <button value={action}>
                 <span className="popup-menu-item-label">{label}</span>
                 <span className="popup-menu-item-accelerator-key">{acceleratorKey}</span>
-            </Button>
+            </button>
         </li>
     );
 }

@@ -4,7 +4,6 @@ import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
-import Input from 'components/Input';
 import {PagedBrowserProps} from 'components/MediaBrowser';
 import AlbumBrowser from 'components/MediaBrowser/AlbumBrowser';
 import MediaItemBrowser from 'components/MediaBrowser/MediaItemBrowser';
@@ -51,7 +50,7 @@ export default function ListenBrainzTopBrowser<T extends MediaObject>({
                 <ul className="listenbrainz-ranges">
                     {options.map(({value, text}) => (
                         <li className="listenbrainz-range" key={value}>
-                            <Input
+                            <input
                                 id={`listenbrainz-range-${value}`}
                                 type="radio"
                                 name="listenbrainz-range"

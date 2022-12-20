@@ -118,10 +118,6 @@ const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
     title: 'Playlists',
     icon: 'playlists',
     itemType: ItemType.Playlist,
-    layout: {
-        view: 'card compact',
-        fields: ['Thumbnail', 'Title', 'Owner', 'TrackCount'],
-    },
 
     search(): Pager<MediaPlaylist> {
         return new MusicKitPager(`/v1/me/library/playlists`, toPage, {

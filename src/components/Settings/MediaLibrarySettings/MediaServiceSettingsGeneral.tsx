@@ -1,11 +1,9 @@
 import React, {useCallback, useId, useRef} from 'react';
 import {isVisible, setHidden} from 'services/servicesSettings';
-import Input from 'components/Input';
-import Button from 'components/Button';
 import useObservable from 'hooks/useObservable';
 import {MediaServiceSettingsProps} from './MediaServiceSettings';
 
-export default function MediaServiceGeneralSettings({service}: MediaServiceSettingsProps) {
+export default function MediaServiceSettingsGeneral({service}: MediaServiceSettingsProps) {
     const id = useId();
     const ref = useRef<HTMLFieldSetElement>(null);
     const connected = useObservable(service.observeIsLoggedIn, false);
@@ -20,22 +18,18 @@ export default function MediaServiceGeneralSettings({service}: MediaServiceSetti
     }, []);
 
     return (
-        <form
-            className={`media-library-settings ${service.id}-settings general-settings`}
-            method="dialog"
-            onSubmit={handleSubmit}
-        >
+        <form className="media-service-settings-general" method="dialog" onSubmit={handleSubmit}>
             <p>
-                <Button className="disconnect" onClick={service.logout} disabled={!connected}>
+                <button className="disconnect" onClick={service.logout} disabled={!connected}>
                     {connected ? 'Disconnect...' : 'Not connected'}
-                </Button>
+                </button>
             </p>
             <fieldset ref={ref}>
                 <legend>Display</legend>
                 <ul>
                     {service.sources.map((source) => (
                         <li key={source.id}>
-                            <Input
+                            <input
                                 id={`${id}-${source.id}`}
                                 type="checkbox"
                                 value={source.id}
@@ -47,8 +41,8 @@ export default function MediaServiceGeneralSettings({service}: MediaServiceSetti
                 </ul>
             </fieldset>
             <footer className="dialog-buttons">
-                <Button value="#cancel">Cancel</Button>
-                <Button>Confirm</Button>
+                <button value="#cancel">Cancel</button>
+                <button>Confirm</button>
             </footer>
         </form>
     );

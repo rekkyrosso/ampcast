@@ -157,10 +157,6 @@ const spotifyPlaylists: MediaSource<MediaPlaylist> = {
     title: 'Playlists',
     icon: 'playlists',
     itemType: ItemType.Playlist,
-    layout: {
-        view: 'card compact',
-        fields: ['Thumbnail', 'Title', 'TrackCount', 'Owner'],
-    },
 
     search(): Pager<MediaPlaylist> {
         const market = getMarket();

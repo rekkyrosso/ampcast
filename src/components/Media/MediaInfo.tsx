@@ -82,12 +82,21 @@ function PlaylistInfo({item}: MediaInfoProps<MediaPlaylist>) {
                 <Owner owner={item.owner} src={item.src} />
             </div>
             <ExternalView url={item.externalUrl} src={item.src} />
+            <Blurb description={item.description} />
         </article>
     );
 }
 
 export function Title<T extends MediaObject>({title}: Pick<T, 'title'>) {
     return <h3 className="title">{title || '(no title)'}</h3>;
+}
+
+export function Blurb<T extends MediaPlaylist>({description}: Pick<T, 'description'>) {
+    return description ? (
+        <div className="blurb text-box">
+            <p>{description}</p>
+        </div>
+    ) : null;
 }
 
 export function Artist<T extends MediaAlbum>({artist}: Pick<T, 'artist'>) {

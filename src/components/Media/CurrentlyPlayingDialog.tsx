@@ -1,6 +1,5 @@
 import React from 'react';
 import MediaType from 'types/MediaType';
-import Button from 'components/Button';
 import Dialog, {DialogProps} from 'components/Dialog';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
@@ -27,7 +26,7 @@ export default function CurrentlyPlayingDialog(props: DialogProps) {
                     <VisualizerInfo visualizer={visualizer} />
                 ) : null}
                 <footer className="dialog-buttons">
-                    <Button>Close</Button>
+                    <button>Close</button>
                 </footer>
             </form>
         </Dialog>

@@ -62,10 +62,14 @@ async function serviceLookup(
             return lookup.items;
         }
         if (service.isLoggedIn()) {
-            const pager = service.lookup(artist, removeFeaturedArtists(title), {
-                pageSize: 10,
-                maxSize: 10,
-            });
+            const pager = service.lookup(
+                removeFeaturedArtists(artist),
+                removeFeaturedArtists(title),
+                {
+                    pageSize: 10,
+                    maxSize: 10,
+                }
+            );
             const matches = await fetchFirstPage(pager, 2000);
             const foundItems = findMatches(matches, artist, title);
             await lookupStore.add(service.id, artist, title, foundItems);
@@ -118,22 +122,31 @@ function findMatches<T extends MediaItem>(
     return foundItems;
 }
 
+const regFeaturedArtists = /\s*(feat\.|[([]?\s?feat[\s.]).*$/i;
+
 function compare(match: MediaItem, artist: string, title: string, strict: boolean): boolean {
     return compareTitle(match, title, strict) && compareArtist(match, artist, strict);
 }
 
 function compareArtist(match: MediaItem, artist: string, strict: boolean): boolean {
     const matchedArtists = match.artists;
-    if (!matchedArtists?.[0]) {
+    if (!matchedArtists) {
         return false;
     }
-    if (compareString(artist, matchedArtists[0])) {
+    const matchedArtist = matchedArtists[0];
+    if (!matchedArtist) {
+        return false;
+    }
+    if (compareString(artist, matchedArtist)) {
         return true;
     }
     if (strict) {
         return false;
     }
-    if (compareString(artist, match.albumArtist)) {
+    if (compareString(removeFeaturedArtists(artist), removeFeaturedArtists(matchedArtist))) {
+        return true;
+    }
+    if (compareString(removeFeaturedArtists(artist), match.albumArtist)) {
         return true;
     }
     const joiners = ',;&|/'
@@ -166,7 +179,6 @@ function compareTitle(match: MediaItem, title: string, strict: boolean): boolean
     }
     const [, ...matchedArtists] = match.artists || [];
     if (matchedArtists.length > 0) {
-        // Featured artists: `(feat. Artist1, Artist2 & Artist3)`.
         const lastMatchedArtist = matchedArtists.length > 1 ? ` & ${matchedArtists.pop()}` : '';
         const matchedTitleWithArtists = `${matchedTitle} (feat. ${matchedArtists.join(
             ', '
@@ -175,13 +187,13 @@ function compareTitle(match: MediaItem, title: string, strict: boolean): boolean
             return true;
         }
     }
-    if (title.includes('(feat')) {
+    if (regFeaturedArtists.test(title)) {
         const titleWithoutArtists = removeFeaturedArtists(title);
         if (compareString(titleWithoutArtists, matchedTitle)) {
             return true;
         }
     }
-    if (match.title.includes('(feat')) {
+    if (regFeaturedArtists.test(match.title)) {
         const matchedTitleWithoutArtists = removeFeaturedArtists(matchedTitle);
         if (compareString(title, matchedTitleWithoutArtists)) {
             return true;
@@ -202,7 +214,8 @@ function compareString(a: string, b = ''): boolean {
 }
 
 function removeFeaturedArtists(title: string): string {
-    return title.replace(/\s*[([]feat.*$/i, '');
+    // Featured artists: `(feat. Artist1, Artist2 & Artist3)`.
+    return title.replace(regFeaturedArtists, '');
 }
 
 function normalize(string: string): string {

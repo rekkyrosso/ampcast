@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {from} from 'rxjs';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
@@ -29,10 +29,14 @@ export default function CoverArt({item, maxSize, className = ''}: CoverArtProps)
         }
     }, [hasThumbnails, item]);
 
+    const handleError = useCallback((event: React.SyntheticEvent) => {
+        (event.target as HTMLElement).removeAttribute('src');
+    }, []);
+
     return (
         <figure className={`cover-art ${className}`}>
             {src ? (
-                <img className="cover-art-image" src={src} />
+                <img className="cover-art-image" src={src} onError={handleError} />
             ) : fallback ? (
                 <Icon className="cover-art-image" name={fallback} />
             ) : null}

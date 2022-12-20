@@ -56,7 +56,7 @@ function getProviderName(visualizer: Visualizer | null): string {
             return 'Ampshader';
 
         case 'audiomotion':
-            return 'AudioMotion';
+            return 'audioMotion-analyzer';
 
         case 'milkdrop':
             return 'Milkdrop';

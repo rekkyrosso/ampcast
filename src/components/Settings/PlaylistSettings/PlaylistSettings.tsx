@@ -1,14 +1,14 @@
 import React from 'react';
 import TabList, {TabItem} from 'components/TabList';
-import PlaylistGeneralSettings from './PlaylistGeneralSettings';
+import PlaylistSettingsGeneral from './PlaylistSettingsGeneral';
 
 const tabs: TabItem[] = [
     {
         tab: 'General',
-        panel: <PlaylistGeneralSettings />,
+        panel: <PlaylistSettingsGeneral />,
     },
 ];
 
 export default function PlaylistSettings() {
-    return <TabList items={tabs} label="Playlist Settings" />;
+    return <TabList className="playlist-settings" items={tabs} label="Playlist Settings" />;
 }

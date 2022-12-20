@@ -1,14 +1,20 @@
 import React from 'react';
 import TabList, {TabItem} from 'components/TabList';
-import VisualizerGeneralSettings from './VisualizerGeneralSettings';
+import VisualizerSettingsGeneral from './VisualizerSettingsGeneral';
+import AmbientVideoSettings from './AmbientVideoSettings';
+import './VisualizerSettings.scss';
 
 const tabs: TabItem[] = [
     {
         tab: 'General',
-        panel: <VisualizerGeneralSettings />,
+        panel: <VisualizerSettingsGeneral />,
+    },
+    {
+        tab: 'Ambient Video',
+        panel: <AmbientVideoSettings />,
     },
 ];
 
 export default function VisualizerSettings() {
-    return <TabList items={tabs} label="Visualizers" />;
+    return <TabList className="visualizer-settings" items={tabs} label="Visualizers" />;
 }

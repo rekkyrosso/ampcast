@@ -1,5 +1,4 @@
 import React, {useCallback} from 'react';
-import Button from 'components/Button';
 import {TabItem} from './TabList';
 
 export interface TabProps {
@@ -14,7 +13,7 @@ export default function Tab({id, item, index, selected, onSelect}: TabProps) {
     const handleFocus = useCallback(() => onSelect(index), [index, onSelect]);
 
     return (
-        <Button
+        <button
             className="tab"
             id={`${id}-tab-${index}`}
             role="tab"
@@ -23,6 +22,6 @@ export default function Tab({id, item, index, selected, onSelect}: TabProps) {
             onFocus={handleFocus}
         >
             {item.tab}
-        </Button>
+        </button>
     );
 }

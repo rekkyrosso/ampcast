@@ -1,7 +1,6 @@
 import React, {useCallback, useState} from 'react';
 import MediaObject from 'types/MediaObject';
 import {PagedBrowser, PagedBrowserProps} from 'components/MediaBrowser';
-import Input from 'components/Input';
 import usePeriod from './usePeriod';
 
 export type LastFMPeriod = 'overall' | '7day' | '1month' | '3month' | '6month' | '12month';
@@ -35,7 +34,7 @@ export default function LastFmTopBrowser<T extends MediaObject>({
                 <ul className="lastfm-periods">
                     {options.map(({value, text}) => (
                         <li className="lastfm-period" key={value}>
-                            <Input
+                            <input
                                 id={`lastfm-period-${value}`}
                                 type="radio"
                                 name="lastfm-period"

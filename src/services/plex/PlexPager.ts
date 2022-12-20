@@ -189,6 +189,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             src: `plex:playlist:${playlist.key}`,
             externalUrl: '',
             title: playlist.title,
+            description: playlist.summary,
             addedAt: playlist.addedAt,
             duration: playlist.duration / 1000,
             playedAt: playlist.lastViewedAt,

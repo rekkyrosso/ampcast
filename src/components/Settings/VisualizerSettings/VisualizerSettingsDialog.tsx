@@ -4,7 +4,11 @@ import VisualizerSettings from './VisualizerSettings';
 
 export default function VisualizerSettingsDialog(props: DialogProps) {
     return (
-        <Dialog {...props} className="visualizer-settings-dialog" title="Visualizer Settings">
+        <Dialog
+            {...props}
+            className="settings-dialog visualizer-settings-dialog"
+            title="Visualizer Settings"
+        >
             <VisualizerSettings />
         </Dialog>
     );

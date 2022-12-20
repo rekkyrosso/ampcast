@@ -1,8 +1,8 @@
 import React, {useState} from 'react';
 import Dialog, {DialogProps} from 'components/Dialog';
 import TreeView from 'components/TreeView';
+import './SettingsDialog.scss'; // Needs to be above the file below.
 import useSettingsSources from './useSettingsSources';
-import './SettingsDialog.scss';
 
 export default function SettingsDialog(props: DialogProps) {
     const sources = useSettingsSources();

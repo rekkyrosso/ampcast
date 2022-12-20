@@ -2,14 +2,13 @@ import React from 'react';
 import {createRoot} from 'react-dom/client';
 import {PopupMenuProps} from './PopupMenu';
 
-const popupRoot = document.getElementById('popup')!;
-
 export default async function showPopupMenu(
     PopupMenu: React.FC<PopupMenuProps>,
     x: number,
     y: number
 ): Promise<string> {
     return new Promise((resolve, reject) => {
+        const popupRoot = document.getElementById('popup')!;
         const rootElement = document.createElement('div');
         const root = createRoot(rootElement);
         try {

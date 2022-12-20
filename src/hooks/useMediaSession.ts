@@ -31,7 +31,6 @@ export default function useMediaSession() {
 }
 
 function updateSession(item: MediaItem | null = null): void {
-    console.log('updateSession', item);
     const mediaSession = navigator.mediaSession;
     if (item) {
         mediaSession.metadata = new MediaMetadata({

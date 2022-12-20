@@ -11,8 +11,6 @@ import {
     observeDuration,
     observePaused,
 } from 'services/mediaPlayback';
-import Button from 'components/Button';
-import Input from 'components/Input';
 import Time from 'components/Time';
 import useObservable from 'hooks/useObservable';
 import MediaButton from './MediaButton';
@@ -32,9 +30,10 @@ export default function MediaControls() {
         <div className="media-controls">
             <div className="current-time-control">
                 <Time time={currentTime} />
-                <Input
+                <input
                     id="playhead"
                     type="range"
+                    aria-label="Seek"
                     min={0}
                     max={duration}
                     step={1}
@@ -46,15 +45,23 @@ export default function MediaControls() {
             <div className="playback-control">
                 <VolumeControl />
                 <div className="media-buttons">
-                    <MediaButton icon="prev" onClick={prev} />
-                    <MediaButton icon={paused ? 'play' : 'pause'} onClick={paused ? play : pause} />
-                    <MediaButton icon="stop" onClick={stop} />
-                    <MediaButton icon="next" onClick={next} />
+                    <MediaButton aria-label="Previous track" icon="prev" onClick={prev} />
+                    <MediaButton
+                        aria-label={paused ? 'Play' : 'Pause'}
+                        icon={paused ? 'play' : 'pause'}
+                        onClick={paused ? play : pause}
+                    />
+                    <MediaButton aria-label="Stop" icon="stop" onClick={stop} />
+                    <MediaButton aria-label="Next track" icon="next" onClick={next} />
                 </div>
                 <div className="media-buttons-more">
-                    <Button className="media-button media-button-shuffle" onClick={shuffle}>
+                    <button
+                        className="media-button media-button-shuffle"
+                        aria-label="Shuffle"
+                        onClick={shuffle}
+                    >
                         Shuffle
-                    </Button>
+                    </button>
                 </div>
             </div>
         </div>

@@ -118,6 +118,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         const item = this.createFromLibrary<AppleMusicApi.Playlist['attributes']>(playlist);
         const {id, kind} = item.playParams || {id: playlist.id, kind: 'playlist'};
         const isLibrary = playlist.href?.startsWith('/v1/me/library/');
+        const description = item.description;
 
         return {
             itemType: ItemType.Playlist,
@@ -125,11 +126,13 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             externalUrl:
                 item.url || (isLibrary ? `https://music.apple.com/library/playlist/${id}` : ''),
             title: item.name,
+            description: description?.standard || description?.short,
             thumbnails: this.createThumbnails(playlist),
             owner: {
                 name: item.curatorName || '',
                 url: '',
             },
+            modifiedAt: Math.floor(new Date(item.lastModifiedDate).valueOf() / 1000) || undefined,
             pager: this.createPager(`${playlist.href}`, {
                 include: 'tracks,catalog',
                 'fields[library-playlists]': 'playParams,name,artwork,url,tracks',

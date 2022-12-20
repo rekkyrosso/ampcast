@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {memo} from 'react';
 import './SunClock.scss';
 
 /**
@@ -9,11 +9,11 @@ import './SunClock.scss';
  */
 
 export interface SunClockProps {
-    time?: number | string;
+    time: number | string;
 }
 
-export default function SunClock({time = 0}: SunClockProps) {
-    const date = useMemo(() => new Date(time), [time]);
+export default memo(function SunClock({time}: SunClockProps) {
+    const date = new Date(time);
     const unit = 100 / 6;
     let hour = date.getHours() + date.getMinutes() / 60;
     let am = Math.min(hour, 6);
@@ -25,6 +25,7 @@ export default function SunClock({time = 0}: SunClockProps) {
     }
     return (
         <span
+            role="presentation"
             className="sun-clock"
             title={date.toLocaleTimeString()}
             style={
@@ -35,4 +36,4 @@ export default function SunClock({time = 0}: SunClockProps) {
             }
         />
     );
-}
+});

@@ -2,14 +2,13 @@ import React from 'react';
 import {createRoot} from 'react-dom/client';
 import {DialogProps} from './Dialog';
 
-const popupRoot = document.getElementById('popup')!;
-const systemRoot = document.getElementById('system')!;
-
 export default async function showDialog(
     Dialog: React.FC<DialogProps>,
     system = false
 ): Promise<string> {
     return new Promise((resolve, reject) => {
+        const popupRoot = document.getElementById('popup')!;
+        const systemRoot = document.getElementById('system')!;
         const rootElement = document.createElement('div');
         const root = createRoot(rootElement);
         try {

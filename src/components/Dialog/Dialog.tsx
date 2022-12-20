@@ -8,7 +8,6 @@ import React, {
 } from 'react';
 import {Except} from 'type-fest';
 import {stopPropagation} from 'utils';
-import Button from 'components/Button';
 import Icon from 'components/Icon';
 import dialogPolyfill from 'dialog-polyfill';
 import 'dialog-polyfill/dialog-polyfill.css';
@@ -130,9 +129,9 @@ function Dialog(
         >
             <header className="dialog-head" onMouseDown={handleMouseDown}>
                 <h2>{title}</h2>
-                <Button onClick={close} onMouseDown={stopPropagation}>
+                <button onClick={close} onMouseDown={stopPropagation}>
                     <Icon name="close" />
-                </Button>
+                </button>
             </header>
             <div className="dialog-body" onClick={handleBodyClick}>
                 {children}
