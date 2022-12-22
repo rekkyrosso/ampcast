@@ -1,6 +1,11 @@
 .theme-settings {
     input[type=color] {
         width: 25%;
+        height: 2em;
+
+        .browser-firefox & {
+            height: 1.5em;
+        }
     }
 
     .font-size {

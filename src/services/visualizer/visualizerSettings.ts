@@ -10,6 +10,7 @@ type VisualizerKeys = Pick<Visualizer, 'provider' | 'name'>;
 export interface VisualizerSettings {
     ambientVideoEnabled?: boolean;
     ambientVideoSource?: string;
+    useAmbientVideoSource?: boolean;
     provider?: VisualizerProvider;
     lockedVisualizer?: VisualizerKeys;
 }
@@ -35,6 +36,17 @@ const visualizerSettings: VisualizerSettings = {
     set ambientVideoSource(ambientVideoSource: string) {
         if (ambientVideoSource !== this.ambientVideoSource) {
             storage.setString('ambientVideoSource', ambientVideoSource);
+            settings$.next(this);
+        }
+    },
+
+    get useAmbientVideoSource(): boolean {
+        return storage.getBoolean('useAmbientVideoSource');
+    },
+
+    set useAmbientVideoSource(useAmbientVideoSource: boolean) {
+        if (useAmbientVideoSource !== this.useAmbientVideoSource) {
+            storage.setBoolean('useAmbientVideoSource', useAmbientVideoSource);
             settings$.next(this);
         }
     },

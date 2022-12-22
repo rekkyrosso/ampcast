@@ -14,13 +14,15 @@ export default function useGlobalActions() {
 function handleKeyDown(event: KeyboardEvent) {
     switch (event.key) {
         case ' ':
+            if (event.target && !('form' in event.target)) {
+                event.preventDefault();
+                togglePlayPause();
+            }
+            break;
+
         case 'MediaPlayPause':
             event.preventDefault();
-            if (mediaPlayback.paused) {
-                mediaPlayback.play();
-            } else {
-                mediaPlayback.pause();
-            }
+            togglePlayPause();
             break;
 
         case 'MediaStop':
@@ -37,5 +39,13 @@ function handleKeyDown(event: KeyboardEvent) {
             event.preventDefault();
             mediaPlayback.next();
             break;
+    }
+}
+
+function togglePlayPause(): void {
+    if (mediaPlayback.paused) {
+        mediaPlayback.play();
+    } else {
+        mediaPlayback.pause();
     }
 }

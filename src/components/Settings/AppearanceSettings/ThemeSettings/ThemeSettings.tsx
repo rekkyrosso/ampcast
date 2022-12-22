@@ -67,12 +67,12 @@ export default function ThemeSettings() {
                             id="frameColor"
                             colorName="frameColor"
                             value={currentTheme.frameColor}
-                            title="Frame background"
+                            title="Frame background color"
                         />
                         <ThemeColorPicker
                             colorName="frameTextColor"
                             value={currentTheme.frameTextColor}
-                            title="Frame text"
+                            title="Frame text color"
                         />
                     </p>
                     <p>
@@ -80,12 +80,12 @@ export default function ThemeSettings() {
                         <ThemeColorPicker
                             colorName="backgroundColor"
                             value={currentTheme.backgroundColor}
-                            title="Content background"
+                            title="Content background color"
                         />
                         <ThemeColorPicker
                             colorName="textColor"
                             value={currentTheme.textColor}
-                            title="Content text"
+                            title="Content text color"
                         />
                     </p>
                     <p>
@@ -95,7 +95,7 @@ export default function ThemeSettings() {
                             id="theme-spacing"
                             min={0}
                             max={1}
-                            step={0.03125}
+                            step={0.01}
                             value={currentTheme.spacing}
                             onChange={handleSpacingChange}
                         />
@@ -107,7 +107,7 @@ export default function ThemeSettings() {
                             id="theme-roundness"
                             min={0}
                             max={1}
-                            step={0.03125}
+                            step={0.01}
                             value={currentTheme.roundness}
                             onChange={handleRoundingChange}
                         />
@@ -135,7 +135,7 @@ export default function ThemeSettings() {
                         type="range"
                         id="theme-fontSize"
                         min={12}
-                        max={32}
+                        max={28}
                         step={0.4}
                         defaultValue={initialFontSize}
                         onChange={handleFontSizeChange}

@@ -1,3 +1,4 @@
+import getYouTubeID from 'get-youtube-id';
 import MediaItem from 'types/MediaItem';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
@@ -56,6 +57,24 @@ const youtubePlaylists: MediaSource<MediaPlaylist> = {
         });
     },
 };
+
+export function getYouTubeSrc(url = ''): string {
+    if (url.startsWith('youtube:')) {
+        return url;
+    }
+    const videoId = getYouTubeID(url);
+    if (videoId) {
+        return `youtube:video:${videoId}`;
+    }
+    if (/youtu\.?be/.test(url)) {
+        const params = new URLSearchParams(new URL(url).search);
+        const playlistId = params.get('list') || '';
+        if (playlistId) {
+            return `youtube:playlist:${playlistId}`;
+        }
+    }
+    return '';
+}
 
 export async function getYouTubeVideoInfo(videoId: string): Promise<MediaItem> {
     const url = `${youtubeHost}/watch?v=${videoId}`;

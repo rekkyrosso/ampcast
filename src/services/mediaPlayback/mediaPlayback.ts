@@ -16,7 +16,7 @@ import PlaylistItem from 'types/PlaylistItem';
 import lookup from 'services/lookup';
 import {hasPlayableSrc} from 'services/mediaServices';
 import playlist from 'services/playlist';
-import visualizerPlayer from 'services/visualizer/player';
+import visualizerPlayer from 'services/visualizer/visualizerPlayer';
 import {formatTime, LiteStorage, Logger} from 'utils';
 import mediaPlayer from './mediaPlayer';
 import playback from './playback';

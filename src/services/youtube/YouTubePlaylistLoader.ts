@@ -3,8 +3,6 @@ import {EMPTY, lastValueFrom} from 'rxjs';
 import {map, filter, take, skipWhile} from 'rxjs/operators';
 import YouTubePlayer, {PlayerState} from './YouTubePlayer';
 
-// NOT CURRENTLY USED.
-
 export class YouTubePlaylistLoader extends YouTubePlayer {
     constructor() {
         super('loader');
@@ -15,9 +13,8 @@ export class YouTubePlaylistLoader extends YouTubePlayer {
         return EMPTY;
     }
 
-    async loadPlaylist(playlistId: string): Promise<string[]> {
-        this.load(`youtube:playlist:${playlistId}`);
-
+    async loadPlaylist(src: string): Promise<string[]> {
+        this.load(src);
         return lastValueFrom(
             this.observeState().pipe(
                 skipWhile((state) => state !== PlayerState.UNSTARTED),
@@ -29,14 +26,9 @@ export class YouTubePlaylistLoader extends YouTubePlayer {
     }
 }
 
-export async function loadPlaylist(url: string): Promise<string[]> {
-    if (/youtu\.?be/.test(url)) {
-        const params = new URLSearchParams(new URL(url).search);
-        const playlistId = params.get('list') || '';
-        const playlistLoader = new YouTubePlaylistLoader();
-        const playlist = await playlistLoader.loadPlaylist(playlistId);
-        playlistLoader.destroy();
-        return playlist;
-    }
-    return [];
+export async function loadPlaylist(src: string): Promise<string[]> {
+    const playlistLoader = new YouTubePlaylistLoader();
+    const playlist = await playlistLoader.loadPlaylist(src);
+    playlistLoader.destroy();
+    return playlist;
 }

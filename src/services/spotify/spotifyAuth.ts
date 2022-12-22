@@ -61,7 +61,7 @@ export async function login(): Promise<void> {
 
 export async function logout(): Promise<void> {
     clearAccessToken();
-    authSettings.clear();
+    await createCodeVerifier();
 }
 
 // From: https://github.com/JMPerez/spotify-dedup/blob/master/dedup/oauthManager.ts
@@ -237,19 +237,25 @@ const spotifyAuth: Auth = {
 export default spotifyAuth;
 
 (async function (): Promise<void> {
+    try {
+        const token = retrieveAccessToken();
+        if (token) {
+            const expiresIn = token.expires_at.getTime() - Date.now();
+            if (expiresIn <= 0) {
+                await refreshToken();
+            } else {
+                nextAccessToken(token.access_token);
+            }
+            return;
+        }
+    } catch (err) {
+        logger.error(err);
+    }
+    await createCodeVerifier();
+})();
+
+async function createCodeVerifier(): Promise<void> {
     const code_verifier = generateRandomString(64);
     authSettings.setString('code_verifier', code_verifier);
     code_challenge = await generateCodeChallenge(code_verifier);
-})();
-
-(async function (): Promise<void> {
-    const token = retrieveAccessToken();
-    if (token) {
-        const expiresIn = token.expires_at.getTime() - Date.now();
-        if (expiresIn <= 0) {
-            await refreshToken();
-        } else {
-            nextAccessToken(token.access_token);
-        }
-    }
-})();
+}

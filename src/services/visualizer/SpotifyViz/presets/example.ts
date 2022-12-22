@@ -1,5 +1,5 @@
 import {interpolateRgb, interpolateBasis} from 'd3-interpolate';
-import {SpotifyVizConfig, SpotifyVizPaintData} from '../SpotifyViz';
+import {SpotifyVizConfig, SpotifyVizPaintData} from '..';
 
 // From: https://github.com/zachwinter/spotify-viz/blob/master/client/example.js
 

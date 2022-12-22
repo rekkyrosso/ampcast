@@ -62,10 +62,10 @@ export default class YouTubePlayer implements Player<string> {
     private readonly videoId$ = new BehaviorSubject('');
     private readonly element: HTMLElement;
     private readonly targetId: string;
-    public autoplay = false;
-    public loop = false;
     #muted = true;
     #volume = 1;
+    autoplay = false;
+    loop = false;
 
     constructor(id: string) {
         const element = (this.element = document.createElement('div'));
@@ -379,8 +379,9 @@ export default class YouTubePlayer implements Player<string> {
     }
 
     protected getVideoId(src: string): string {
-        if (src.startsWith('youtube:')) {
-            return src.replace('youtube:video:', '');
+        if (src.startsWith('youtube:video')) {
+            const [, , videoId] = src.split(':');
+            return videoId;
         } else {
             return getYouTubeID(src) || '';
         }

@@ -1,12 +1,11 @@
 import React, {useCallback, useRef} from 'react';
 import VisualizerProvider from 'types/VisualizerProvider';
-import visualizerSettings, {observeLocked} from 'services/visualizer/visualizerSettings';
-import useObservable from 'hooks/useObservable';
+import visualizerSettings from 'services/visualizer/visualizerSettings';
 
 export default function VisualizerSettingsGeneral() {
     const selectRef = useRef<HTMLSelectElement>(null);
     const provider = visualizerSettings.provider;
-    const locked = useObservable(observeLocked, false);
+    const locked = !!visualizerSettings.lockedVisualizer;
 
     const handleSubmit = useCallback(() => {
         visualizerSettings.provider = selectRef.current!.value as VisualizerProvider;
@@ -16,15 +15,12 @@ export default function VisualizerSettingsGeneral() {
         <form className="visualizer-settings-general" method="dialog" onSubmit={handleSubmit}>
             <p>
                 <label htmlFor="visualizer-provider">Provider:</label>
-                <select
-                    id="visualizer-provider"
-                    defaultValue={provider}
-                    key={provider}
-                    ref={selectRef}
-                >
+                <select id="visualizer-provider" defaultValue={provider} ref={selectRef}>
                     <option value="none">(none)</option>
                     <option value="">(random)</option>
-                    <option value="ambient-video">Ambient Video</option>
+                    {visualizerSettings.ambientVideoEnabled ? (
+                        <option value="ambient-video">Ambient Video</option>
+                    ) : null}
                     <option value="ampshader">Ampshader</option>
                     <option value="audiomotion">AudioMotion</option>
                     <option value="milkdrop">Milkdrop</option>

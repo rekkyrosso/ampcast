@@ -1,14 +1,14 @@
 .interstitial {
     position: absolute;
     inset: 0;
-    padding: calc(var(--gutter-width) * 4);
+    padding: 2em;
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     background: var(--black);
     color: var(--soft-white);
-    text-shadow: 1px 1px 0 rgba(16, 16, 16, 0.6);
+    text-shadow: 0.125em 0.125em 0 rgba(16, 16, 16, 0.6);
     text-align: center;
     opacity: 0;
     transition: opacity 4s linear;

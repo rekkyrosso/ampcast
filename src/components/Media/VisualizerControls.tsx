@@ -52,7 +52,7 @@ function VisualizerControls() {
                     <IconButton
                         className="with-overlay"
                         icon="right"
-                        title="Next visualizer"
+                        title="Change the visualizer"
                         tabIndex={-1}
                         onClick={nextVisualizer}
                     />

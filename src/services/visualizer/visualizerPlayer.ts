@@ -52,16 +52,16 @@ function loadVisualizer(player: Player<Visualizer>, visualizer: Visualizer): voi
     player.load(visualizer);
 }
 
-const player = new OmniPlayer<Visualizer>(
+const visualizerPlayer = new OmniPlayer<Visualizer>(
     visualizers,
     selectVisualizer,
     loadVisualizer
 );
 
-player.loop = true;
-player.muted = true;
-player.volume = 0.07;
+visualizerPlayer.loop = true;
+visualizerPlayer.muted = true;
+visualizerPlayer.volume = 0.07;
 
-player.observeError().subscribe(logger.error);
+visualizerPlayer.observeError().subscribe(logger.error);
 
-export default player;
+export default visualizerPlayer;
