@@ -2,9 +2,9 @@ import type {Observable} from 'rxjs';
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import {AudioMotionVisualizer} from 'types/Visualizer';
 import {Logger} from 'utils';
-import AbstractVisualizer from './AbstractVisualizer';
+import AbstractVisualizer from '../../AbstractVisualizer';
 
-const logger = new Logger('AudioMotion');
+const logger = new Logger('AudioMotionPlayer');
 
 // const myGradient: GradientOptions = {
 //     bgColor: '#ffffff', // background color (optional) - defaults to '#111'
@@ -17,7 +17,7 @@ const logger = new Logger('AudioMotion');
 //     ],
 // };
 
-export default class AudioMotion extends AbstractVisualizer<AudioMotionVisualizer> {
+export default class AudioMotionPlayer extends AbstractVisualizer<AudioMotionVisualizer> {
     private readonly element: HTMLElement;
     private readonly visualizer: AudioMotionAnalyzer;
     private audioSourceNode: AudioNode;

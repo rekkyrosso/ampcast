@@ -5,7 +5,7 @@ import YouTubePlayer from 'services/youtube/YouTubePlayer';
 import HTML5Player from 'services/players/HTML5Player';
 import OmniPlayer from 'services/players/OmniPlayer';
 import {LiteStorage, Logger} from 'utils';
-import visualizerSettings from './visualizerSettings';
+import visualizerSettings from '../../visualizerSettings';
 
 const logger = new Logger('ambientVideoPlayer');
 

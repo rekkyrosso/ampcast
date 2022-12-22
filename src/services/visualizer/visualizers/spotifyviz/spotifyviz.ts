@@ -1,3 +1,4 @@
+import {of} from 'rxjs';
 import VisualizerProvider from 'types/VisualizerProvider';
 import {SpotifyVizVisualizer} from 'types/Visualizer';
 import spotifyAudioAnalyser from 'services/spotify/spotifyAudioAnalyser';
@@ -12,6 +13,7 @@ const spotifyviz: VisualizerProvider<SpotifyVizVisualizer> = {
     url: 'https://github.com/zachwinter/spotify-viz/',
     player: spotifyVizPlayer,
     visualizers: presets,
+    observeVisualizers: () => of(presets),
 };
 
 export default spotifyviz;

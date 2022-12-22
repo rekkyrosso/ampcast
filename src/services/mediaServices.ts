@@ -15,12 +15,12 @@ export function getLookupServices(): readonly MediaService[] {
     return getAllServices().filter((service) => !!service.lookup);
 }
 
-export function getService(id: string): MediaService | undefined {
-    return getAllServices().find((service) => service.id === id);
+export function getService(serviceId: string): MediaService | undefined {
+    return getAllServices().find((service) => service.id === serviceId);
 }
 
-export function isPlayableService(id: string): boolean {
-    const service = getService(id);
+export function isPlayableService(serviceId: string): boolean {
+    const service = getService(serviceId);
     return service ? !service.scrobbler : false;
 }
 

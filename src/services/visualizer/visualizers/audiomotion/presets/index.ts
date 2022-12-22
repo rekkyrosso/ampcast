@@ -1,4 +1,4 @@
-import { AudioMotionVisualizer } from 'types/Visualizer';
+import {AudioMotionVisualizer} from 'types/Visualizer';
 
 const externalUrl = 'https://audiomotion.dev/';
 

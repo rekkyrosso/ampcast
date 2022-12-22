@@ -1,5 +1,6 @@
 import React, {useCallback, useRef} from 'react';
 import VisualizerProviderId from 'types/VisualizerProviderId';
+import {getAllProviders} from 'services/visualizer/visualizerProviders';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
 
 export default function VisualizerSettingsGeneral() {
@@ -18,14 +19,17 @@ export default function VisualizerSettingsGeneral() {
                 <select id="visualizer-provider" defaultValue={provider} ref={selectRef}>
                     <option value="none">(none)</option>
                     <option value="">(random)</option>
-                    {visualizerSettings.ambientVideoEnabled ? (
-                        <option value="ambientvideo">Ambient Video</option>
-                    ) : null}
-                    <option value="ampshader">Ampshader</option>
-                    <option value="audiomotion">AudioMotion</option>
-                    <option value="milkdrop">Milkdrop</option>
-                    <option value="spotifyviz">SpotifyViz</option>
-                    <option value="waveform">Waveform</option>
+                    {getAllProviders()
+                        .filter(
+                            (provider) =>
+                                provider.id !== 'ambientvideo' ||
+                                visualizerSettings.ambientVideoEnabled
+                        )
+                        .map((provider) => (
+                            <option value={provider.id} key={provider.id}>
+                                {provider.name}
+                            </option>
+                        ))}
                 </select>
             </p>
             <p className="lock-status">

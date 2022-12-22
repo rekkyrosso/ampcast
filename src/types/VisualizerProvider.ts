@@ -1,3 +1,4 @@
+import type {Observable} from 'rxjs';
 import Visualizer from './Visualizer';
 import Player from './Player';
 
@@ -8,4 +9,5 @@ export default interface VisualizerProvider<T extends Visualizer> {
     readonly visualizers: readonly T[];
     readonly url?: string;
     readonly defaultHidden?: boolean;
+    observeVisualizers(): Observable<readonly T[]>;
 }
