@@ -23,7 +23,7 @@ function VisualizerProvider({visualizer}: VisualizerInfoProps) {
 
 function VisualizerPreset({visualizer}: VisualizerInfoProps) {
     const isYouTubeVideo =
-        visualizer?.provider === 'ambient-video' && visualizer.src.startsWith('youtube:');
+        visualizer?.providerId === 'ambientvideo' && visualizer.src.startsWith('youtube:');
 
     return isYouTubeVideo ? (
         <YouTubeVideoInfo visualizer={visualizer} />
@@ -48,8 +48,8 @@ function YouTubeVideoInfo({visualizer}: {visualizer: AmbientVideoVisualizer}) {
 }
 
 function getProviderName(visualizer: Visualizer | null): string {
-    switch (visualizer?.provider) {
-        case 'ambient-video':
+    switch (visualizer?.providerId) {
+        case 'ambientvideo':
             return 'Ambient Video';
 
         case 'ampshader':
@@ -61,7 +61,7 @@ function getProviderName(visualizer: Visualizer | null): string {
         case 'milkdrop':
             return 'Milkdrop';
 
-        case 'spotify-viz':
+        case 'spotifyviz':
             return 'SpotifyViz';
 
         case 'waveform':

@@ -1,5 +1,5 @@
 import React, {useCallback, useRef} from 'react';
-import VisualizerProvider from 'types/VisualizerProvider';
+import VisualizerProviderId from 'types/VisualizerProviderId';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
 
 export default function VisualizerSettingsGeneral() {
@@ -8,7 +8,7 @@ export default function VisualizerSettingsGeneral() {
     const locked = !!visualizerSettings.lockedVisualizer;
 
     const handleSubmit = useCallback(() => {
-        visualizerSettings.provider = selectRef.current!.value as VisualizerProvider;
+        visualizerSettings.provider = selectRef.current!.value as VisualizerProviderId;
     }, []);
 
     return (
@@ -19,12 +19,12 @@ export default function VisualizerSettingsGeneral() {
                     <option value="none">(none)</option>
                     <option value="">(random)</option>
                     {visualizerSettings.ambientVideoEnabled ? (
-                        <option value="ambient-video">Ambient Video</option>
+                        <option value="ambientvideo">Ambient Video</option>
                     ) : null}
                     <option value="ampshader">Ampshader</option>
                     <option value="audiomotion">AudioMotion</option>
                     <option value="milkdrop">Milkdrop</option>
-                    <option value="spotify-viz">SpotifyViz</option>
+                    <option value="spotifyviz">SpotifyViz</option>
                     <option value="waveform">Waveform</option>
                 </select>
             </p>

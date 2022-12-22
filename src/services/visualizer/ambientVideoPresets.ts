@@ -65,7 +65,7 @@ SqMzG8xsynw P0MbbslO62E Bur1ChHBNsQ 1bClbVe4QyI 0Txa_T4pHY4 9Wm8Ij8rHIE
 `
     .match(/\S+/g)!
     .map((videoId) => ({
-        provider: 'ambient-video',
+        providerId: 'ambientvideo',
         name: videoId,
         src: `youtube:video:${videoId}`,
     }));

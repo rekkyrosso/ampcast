@@ -1,4 +1,4 @@
-import {AmpshaderVisualizer} from 'types/Visualizer';
+import {AmpShaderVisualizer} from 'types/Visualizer';
 import header from './_header.frag';
 import ambilight from './ambilight.frag';
 import audioVisualizer from './audioVisualizer.frag';
@@ -19,95 +19,95 @@ import soapBubble from './soapBubble.frag';
 
 const shaderToy = `https://www.shadertoy.com/view`;
 
-const provider = 'ampshader';
+const providerId = 'ampshader';
 
-const presets: AmpshaderVisualizer[] = [
+const presets: AmpShaderVisualizer[] = [
     {
-        provider,
+        providerId,
         name: 'Creation by Silexars',
         externalUrl: `${shaderToy}/XsXXDn`,
         shader: `${header}${creation}`,
     },
     {
-        provider,
+        providerId,
         name: 'Nautilus by weyland',
         externalUrl: `${shaderToy}/MdXGz4`,
         shader: `${header}${nautilus}`,
     },
     {
-        provider,
+        providerId,
         name: 'Quasicrystal by Ebanflo',
         externalUrl: `${shaderToy}/4sXfzj`,
         shader: `${header}${quasicrystal}`,
     },
     {
-        provider,
+        providerId,
         name: 'Rainbow by avin',
         externalUrl: `${shaderToy}/ttfGzH`,
         shader: `${header}${rainbow}`,
     },
     {
-        provider,
+        providerId,
         name: 'Audio-Visualizer by CoolerZ',
         externalUrl: `${shaderToy}/wd3XzS`,
         shader: `${header}${audioVisualizer}`,
     },
     {
-        provider,
+        providerId,
         name: 'Radiant by TekF',
         externalUrl: `${shaderToy}/4sVBWy`,
         shader: `${header}${radiant}`,
     },
     {
-        provider,
+        providerId,
         name: 'ambilight 2.0 by MillhausVKodi',
         externalUrl: `${shaderToy}/ltc3WH`,
         shader: `${header}${ambilight}`,
     },
     {
-        provider,
+        providerId,
         name: 'dot grid thing by laney',
         externalUrl: `${shaderToy}/Xd2cRG`,
         shader: `${header}${dotGridThing}`,
     },
     {
-        provider,
+        providerId,
         name: 'Bubbles by liyouvane',
         externalUrl: `${shaderToy}/llXBWB`,
         shader: `${header}${bubbles}`,
     },
     {
-        provider,
+        providerId,
         name: 'Soap Bubble by Ruzzyr',
         externalUrl: `${shaderToy}/XtVSDt`,
         shader: `${header}${soapBubble}`,
     },
     {
-        provider,
+        providerId,
         name: 'Fractal Land by Kali',
         externalUrl: `${shaderToy}/XsBXWt`,
         shader: `${header}${fractalLand}`,
     },
     {
-        provider,
+        providerId,
         name: 'Music MandelBox Colour by pixelbeast',
         externalUrl: `${shaderToy}/4s33Rj`,
         shader: `${header}${musicMandelBoxColour}`,
     },
     {
-        provider,
+        providerId,
         name: 'FFT-IFS by nshelton',
         externalUrl: `${shaderToy}/4lyXWW`,
         shader: `${header}${fftIfs}`,
     },
     {
-        provider,
+        providerId,
         name: 'I/O by movAX13h',
         externalUrl: `${shaderToy}/XsfGDS`,
         shader: `${header}${io}`,
     },
     {
-        provider,
+        providerId,
         name: 'Otherworldy by lherm',
         externalUrl: `${shaderToy}/MlySWd`,
         shader: `${header}${otherworldy}`,

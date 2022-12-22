@@ -1,2 +1,2 @@
-export {default} from './SpotifyViz';
-export * from './SpotifyViz';
+export {default} from './spotifyviz';
+export * from './spotifyviz';

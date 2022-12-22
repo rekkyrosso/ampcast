@@ -5,7 +5,7 @@ const externalUrl = 'https://audiomotion.dev/';
 // From: https://audiomotion.dev/demo/fluid.js
 const presets: AudioMotionVisualizer[] = [
     {
-        provider: 'audiomotion',
+        providerId: 'audiomotion',
         name: 'Anemone',
         options: {
             radial: true,
@@ -25,7 +25,7 @@ const presets: AudioMotionVisualizer[] = [
         externalUrl,
     },
     {
-        provider: 'audiomotion',
+        providerId: 'audiomotion',
         name: 'Classic LEDs',
         options: {
             mode: 7,
@@ -41,7 +41,7 @@ const presets: AudioMotionVisualizer[] = [
         externalUrl,
     },
     {
-        provider: 'audiomotion',
+        providerId: 'audiomotion',
         name: 'Mirror wave',
         options: {
             mode: 10,
@@ -59,7 +59,7 @@ const presets: AudioMotionVisualizer[] = [
         externalUrl,
     },
     {
-        provider: 'audiomotion',
+        providerId: 'audiomotion',
         name: 'Radial overlay',
         options: {
             mode: 5,
@@ -74,7 +74,7 @@ const presets: AudioMotionVisualizer[] = [
         externalUrl,
     },
     {
-        provider: 'audiomotion',
+        providerId: 'audiomotion',
         name: 'Reflex Bars',
         options: {
             mode: 5,

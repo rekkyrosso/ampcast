@@ -15,17 +15,17 @@ import {
 import MediaType from 'types/MediaType';
 import PlaylistItem from 'types/PlaylistItem';
 import Visualizer, {AmbientVideoVisualizer, NoVisualizer} from 'types/Visualizer';
-import VisualizerProvider from 'types/VisualizerProvider';
+import VisualizerProviderId from 'types/VisualizerProviderId';
 import {observeCurrentItem} from 'services/playlist';
 import {observePaused} from 'services/mediaPlayback/playback';
 import {getYouTubeSrc} from 'services/youtube';
 import {loadPlaylist} from 'services/youtube/YouTubePlaylistLoader';
 import {exists, getRandomValue, Logger} from 'utils';
 import ambientVideoPresets from './ambientVideoPresets';
-import ampshaderPresets from './AmpShader/presets';
+import ampshader from './ampshader';
 import audioMotionPresets from './audioMotionPresets';
 import butterchurnPresets from './butterchurnPresets';
-import spotifyVizPresets from './SpotifyViz/presets';
+import spotifyviz from './spotifyviz';
 import waveformPresets from './Waveform/presets';
 import visualizerPlayer from './visualizerPlayer';
 import visualizerSettings, {
@@ -41,7 +41,7 @@ console.log('module::visualizer');
 const logger = new Logger('visualizer');
 
 const defaultVisualizer: NoVisualizer = {
-    provider: 'none',
+    providerId: 'none',
     name: '',
 };
 
@@ -53,18 +53,18 @@ const media$ = observeCurrentItem().pipe(filter(exists));
 const [audio$, video$] = partition(media$, (item) => item.mediaType === MediaType.Audio);
 const [paused$, playing$] = partition(observePaused(), Boolean);
 
-const randomProviders: VisualizerProvider[] = [
+const randomProviders: VisualizerProviderId[] = [
     ...Array(79).fill('milkdrop'), // most of the time use this one
     ...Array(6).fill('audiomotion'),
     ...Array(4).fill('ampshader'),
     ...Array(1).fill('waveform'),
 ];
 
-const randomVideo: VisualizerProvider[] = Array(10).fill('ambient-video');
-const spotifyRandomVideo: VisualizerProvider[] = randomVideo.concat(randomVideo);
+const randomVideo: VisualizerProviderId[] = Array(10).fill('ambientvideo');
+const spotifyRandomVideo: VisualizerProviderId[] = randomVideo.concat(randomVideo);
 
-const spotifyRandomProviders: VisualizerProvider[] = [
-    ...Array(59).fill('spotify-viz'), // most of the time use this one
+const spotifyRandomProviders: VisualizerProviderId[] = [
+    ...Array(59).fill('spotifyviz'), // most of the time use this one
     ...Array(20).fill('ampshader'),
     ...Array(1).fill('waveform'),
 ];
@@ -89,7 +89,7 @@ export function unlock(): void {
     visualizerSettings.lockedVisualizer = undefined;
 }
 
-export function setProvider(provider: VisualizerProvider): void {
+export function setProvider(provider: VisualizerProviderId): void {
     visualizerSettings.provider = provider;
 }
 
@@ -118,7 +118,7 @@ merge(
     next$,
     observeProvider().pipe(
         withLatestFrom(observeCurrentVisualizer()),
-        filter(([provider, visualizer]) => !!provider && provider !== visualizer.provider)
+        filter(([provider, visualizer]) => !!provider && provider !== visualizer.providerId)
     ),
     visualizerPlayer.observeError()
 )
@@ -137,7 +137,7 @@ observeCurrentVisualizer()
 audio$.pipe(switchMap(() => playing$)).subscribe(() => visualizerPlayer.play());
 
 logger.log('Ambient videos:', ambientVideoPresets.length);
-logger.log('Ampshader presets:', ampshaderPresets.length);
+logger.log('Ampshader presets:', ampshader.visualizers.length);
 logger.log('AudioMotion presets:', audioMotionPresets.length);
 
 butterchurnPresets
@@ -162,7 +162,7 @@ function getNextVisualizer(
 ): Visualizer {
     const lockedVisualizer = settings.lockedVisualizer;
     if (lockedVisualizer) {
-        return findVisualizer(lockedVisualizer.provider, lockedVisualizer.name);
+        return findVisualizer(lockedVisualizer.providerId, lockedVisualizer.name);
     }
     const currentVisualizer = currentVisualizer$.getValue();
     let provider = settings.provider;
@@ -174,26 +174,26 @@ function getNextVisualizer(
             providers = providers.concat(isSpotify ? spotifyRandomVideo : randomVideo);
         }
         provider = getRandomValue(providers);
-        if (next && provider === currentVisualizer.provider && getPresets(provider).length === 1) {
+        if (next && provider === currentVisualizer.providerId && getVisualizers(provider).length === 1) {
             provider = getRandomValue(providers, provider);
         }
     }
-    const presets = getPresets(provider);
+    const presets = getVisualizers(provider);
     return getRandomValue(presets, currentVisualizer) || defaultVisualizer;
 }
 
-function findVisualizer(provider: VisualizerProvider, name: string): Visualizer {
-    const presets = getPresets(provider);
+function findVisualizer(provider: VisualizerProviderId, name: string): Visualizer {
+    const presets = getVisualizers(provider);
     return presets.find((preset) => preset.name === name) || defaultVisualizer;
 }
 
-function getPresets(provider: VisualizerProvider): readonly Visualizer[] {
+function getVisualizers(provider: VisualizerProviderId): readonly Visualizer[] {
     switch (provider) {
-        case 'ambient-video':
+        case 'ambientvideo':
             return getAmbientVideos();
 
         case 'ampshader':
-            return ampshaderPresets;
+            return ampshader.visualizers;
 
         case 'audiomotion':
             return audioMotionPresets;
@@ -201,8 +201,8 @@ function getPresets(provider: VisualizerProvider): readonly Visualizer[] {
         case 'milkdrop':
             return butterchurnPresets.get();
 
-        case 'spotify-viz':
-            return spotifyVizPresets;
+        case 'spotifyviz':
+            return spotifyviz.visualizers;
 
         case 'waveform':
             return waveformPresets;
@@ -227,7 +227,7 @@ observeSettings()
 
 observeProvider()
     .pipe(
-        switchMap((provider) => (provider === 'ambient-video' ? ambientVideos$ : EMPTY)),
+        switchMap((provider) => (provider === 'ambientvideo' ? ambientVideos$ : EMPTY)),
         tap(nextVisualizer)
     )
     .subscribe(logger);
@@ -240,7 +240,7 @@ async function getUserAmbientVideos(url = ''): Promise<AmbientVideoVisualizer[]>
         videoIds = await loadPlaylist(src);
     }
     return videoIds.map((videoId) => ({
-        provider: 'ambient-video',
+        providerId: 'ambientvideo',
         name: videoId,
         src: `youtube:video:${videoId}`,
     }));

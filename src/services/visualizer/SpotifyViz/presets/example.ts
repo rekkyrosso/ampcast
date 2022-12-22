@@ -1,5 +1,5 @@
 import {interpolateRgb, interpolateBasis} from 'd3-interpolate';
-import {SpotifyVizConfig, SpotifyVizPaintData} from '..';
+import {SpotifyVizConfig, SpotifyVizPaintData} from '../SpotifyVizPlayer';
 
 // From: https://github.com/zachwinter/spotify-viz/blob/master/client/example.js
 
@@ -7,7 +7,7 @@ const colors = ['#18FF2A', '#7718FF', '#06C5FE', '#FF4242', '#18FF2A'];
 let prevColor = '';
 let nextColor = '';
 
-const sample: SpotifyVizConfig = {
+const example: SpotifyVizConfig = {
     volumeSmoothing: 10,
 
     onBar() {
@@ -33,7 +33,7 @@ const sample: SpotifyVizConfig = {
     },
 };
 
-export default sample;
+export default example;
 
 function getRandomColor(arr: string[]): string {
     const index = Math.floor(Math.random() * arr.length);

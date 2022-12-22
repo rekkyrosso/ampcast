@@ -1,2 +1,2 @@
-export {default} from './AmpShader';
-export * from './AmpShader';
+export {default} from './ampshader';
+export * from './ampshader';

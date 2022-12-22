@@ -1,8 +1,8 @@
 import Thumbnail from './Thumbnail';
-import VisualizerProvider from './VisualizerProvider';
+import VisualizerProviderId from './VisualizerProviderId';
 
-export default interface BaseVisualizer<T extends VisualizerProvider> {
-    readonly provider: T;
+export default interface BaseVisualizer<T extends VisualizerProviderId> {
+    readonly providerId: T;
     readonly name: string;
     readonly rating?: number;
     readonly externalUrl?: string;

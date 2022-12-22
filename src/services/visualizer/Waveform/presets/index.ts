@@ -10,7 +10,7 @@ function getThemeColor(): string {
 
 const presets: WaveformVisualizer[] = [
     {
-        provider: 'waveform',
+        providerId: 'waveform',
         name: 'wave',
         externalUrl: `${mdn}#creating_a_waveformoscilloscope`,
         config: {
@@ -40,7 +40,7 @@ const presets: WaveformVisualizer[] = [
         },
     },
     {
-        provider: 'waveform',
+        providerId: 'waveform',
         name: 'bars',
         externalUrl: `${mdn}#creating_a_frequency_bar_graph`,
         config: {

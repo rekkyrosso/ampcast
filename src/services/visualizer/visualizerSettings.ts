@@ -2,16 +2,16 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import {distinctUntilChanged, map} from 'rxjs/operators';
 import Visualizer from 'types/Visualizer';
-import VisualizerProvider from 'types/VisualizerProvider';
+import VisualizerProviderId from 'types/VisualizerProviderId';
 import {LiteStorage} from 'utils';
 
-type VisualizerKeys = Pick<Visualizer, 'provider' | 'name'>;
+type VisualizerKeys = Pick<Visualizer, 'providerId' | 'name'>;
 
 export interface VisualizerSettings {
     ambientVideoEnabled?: boolean;
     ambientVideoSource?: string;
     useAmbientVideoSource?: boolean;
-    provider?: VisualizerProvider;
+    provider?: VisualizerProviderId;
     lockedVisualizer?: VisualizerKeys;
 }
 
@@ -57,7 +57,7 @@ const visualizerSettings: VisualizerSettings = {
 
     set lockedVisualizer(lockedVisualizer: VisualizerKeys | undefined) {
         if (lockedVisualizer) {
-            const {provider, name} = lockedVisualizer;
+            const {providerId: provider, name} = lockedVisualizer;
             storage.setJson('lockedVisualizer', {provider, name});
         } else {
             storage.removeItem('lockedVisualizer');
@@ -65,11 +65,11 @@ const visualizerSettings: VisualizerSettings = {
         settings$.next(this);
     },
 
-    get provider(): VisualizerProvider {
+    get provider(): VisualizerProviderId {
         return storage.getString('provider');
     },
 
-    set provider(provider: VisualizerProvider) {
+    set provider(provider: VisualizerProviderId) {
         if (provider !== this.provider) {
             storage.setString('provider', provider);
             settings$.next(this);
@@ -92,7 +92,7 @@ export function observeLocked(): Observable<boolean> {
     );
 }
 
-export function observeProvider(): Observable<VisualizerProvider | ''> {
+export function observeProvider(): Observable<VisualizerProviderId | ''> {
     return observeSettings().pipe(
         map((settings) => settings.provider || ''),
         distinctUntilChanged()

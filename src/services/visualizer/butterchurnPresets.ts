@@ -7,12 +7,12 @@ const presets$ = new BehaviorSubject<MilkdropVisualizer[]>([]);
 
 setTimeout(async () => {
     await loadScript('./lib/butterchurn-presets-base.min.js');
-    const provider = 'milkdrop';
+    const providerId = 'milkdrop';
     const presets = window.butterchurnPresets;
     if (presets) {
         presets$.next(
             Object.keys(presets).map((name) => {
-                return {provider, name, data: presets[name]};
+                return {providerId, name, data: presets[name]};
             })
         );
         setTimeout(async () => {
@@ -22,7 +22,7 @@ setTimeout(async () => {
                 presets$.next(
                     presets$.getValue().concat(
                         Object.keys(presets).map((name) => {
-                            return {provider, name, data: presets[name]};
+                            return {providerId, name, data: presets[name]};
                         })
                     )
                 );

@@ -2,34 +2,38 @@ import Player from 'types/Player';
 import Visualizer from 'types/Visualizer';
 import {analyser, audioContext, observeAudioSourceNode, simpleAnalyser} from 'services/audio';
 import OmniPlayer from 'services/players/OmniPlayer';
-import spotifyAudioAnalyser from 'services/spotify/spotifyAudioAnalyser';
 import {Logger} from 'utils';
 import ambientVideoPlayer from './ambientVideoPlayer';
-import AmpShader from './AmpShader';
+import ampshader from './ampshader';
 import AudioMotion from './AudioMotion';
 import Milkdrop from './Milkdrop';
-import SpotifyViz from './SpotifyViz';
+import spotifyviz from './spotifyviz';
 import Waveform from './Waveform';
 
 console.log('module::visualizer/player');
 
 const logger = new Logger('visualizer/player');
 
-const ampshader = new AmpShader(simpleAnalyser);
 const audioMotion = new AudioMotion(audioContext, observeAudioSourceNode());
 const milkdrop = new Milkdrop(analyser);
-const spotifyViz = new SpotifyViz(spotifyAudioAnalyser);
 const waveform = new Waveform(simpleAnalyser);
 
-const visualizers = [ampshader, audioMotion, milkdrop, spotifyViz, waveform, ambientVideoPlayer];
+const visualizers = [
+    ampshader.player,
+    audioMotion,
+    milkdrop,
+    spotifyviz.player,
+    waveform,
+    ambientVideoPlayer,
+];
 
 function selectVisualizer(visualizer: Visualizer): Player<Visualizer> | null {
-    switch (visualizer.provider) {
-        case 'ambient-video':
+    switch (visualizer.providerId) {
+        case 'ambientvideo':
             return ambientVideoPlayer;
 
         case 'ampshader':
-            return ampshader;
+            return ampshader.player;
 
         case 'audiomotion':
             return audioMotion;
@@ -37,8 +41,8 @@ function selectVisualizer(visualizer: Visualizer): Player<Visualizer> | null {
         case 'milkdrop':
             return milkdrop;
 
-        case 'spotify-viz':
-            return spotifyViz;
+        case 'spotifyviz':
+            return spotifyviz.player;
 
         case 'waveform':
             return waveform;
@@ -52,11 +56,7 @@ function loadVisualizer(player: Player<Visualizer>, visualizer: Visualizer): voi
     player.load(visualizer);
 }
 
-const visualizerPlayer = new OmniPlayer<Visualizer>(
-    visualizers,
-    selectVisualizer,
-    loadVisualizer
-);
+const visualizerPlayer = new OmniPlayer<Visualizer>(visualizers, selectVisualizer, loadVisualizer);
 
 visualizerPlayer.loop = true;
 visualizerPlayer.muted = true;
