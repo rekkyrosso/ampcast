@@ -25,6 +25,9 @@ const visualizerSettings: VisualizerSettings = {
     set ambientVideoEnabled(ambientVideoEnabled: boolean) {
         if (ambientVideoEnabled !== this.ambientVideoEnabled) {
             storage.setBoolean('ambientVideoEnabled', ambientVideoEnabled);
+            if (!ambientVideoEnabled && this.provider === 'ambientvideo') {
+                storage.setString('provider', '');
+            }
             settings$.next(this);
         }
     },
@@ -88,13 +91,6 @@ export function observeSettings(): Observable<VisualizerSettings> {
 export function observeLocked(): Observable<boolean> {
     return observeSettings().pipe(
         map((settings) => !!settings.lockedVisualizer),
-        distinctUntilChanged()
-    );
-}
-
-export function observeProvider(): Observable<VisualizerProviderId | ''> {
-    return observeSettings().pipe(
-        map((settings) => settings.provider || ''),
         distinctUntilChanged()
     );
 }

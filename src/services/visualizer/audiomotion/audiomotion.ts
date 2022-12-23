@@ -5,9 +5,9 @@ import {audioContext, observeAudioSourceNode} from 'services/audio';
 import AudioMotionPlayer from './AudioMotionPlayer';
 import presets from './presets';
 
-const audiomotionPlayer = new AudioMotionPlayer(audioContext, observeAudioSourceNode());
-
 console.log('AudioMotion presets:', presets.length);
+
+const audiomotionPlayer = new AudioMotionPlayer(audioContext, observeAudioSourceNode());
 
 const audiomotion: VisualizerProvider<AudioMotionVisualizer> = {
     id: 'audiomotion',

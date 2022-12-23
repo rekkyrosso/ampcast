@@ -5,9 +5,9 @@ import {simpleAnalyser} from 'services/audio';
 import AmpShaderPlayer from './AmpShaderPlayer';
 import presets from './presets';
 
-const ampShaderPlayer = new AmpShaderPlayer(simpleAnalyser);
-
 console.log('ampshader presets:', presets.length);
+
+const ampShaderPlayer = new AmpShaderPlayer(simpleAnalyser);
 
 const ampshader: VisualizerProvider<AmpShaderVisualizer> = {
     id: 'ampshader',

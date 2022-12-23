@@ -1,3 +1,4 @@
+import type {Observable} from 'rxjs';
 import {
     BehaviorSubject,
     catchError,
@@ -6,7 +7,6 @@ import {
     map,
     of,
     switchMap,
-    tap,
 } from 'rxjs';
 import VisualizerProvider from 'types/VisualizerProvider';
 import {AmbientVideoVisualizer} from 'types/Visualizer';
@@ -17,13 +17,16 @@ import {Logger} from 'utils';
 import ambientVideoPlayer from './ambientVideoPlayer';
 import presets from './presets';
 
+console.log('Ambient videos:', presets.length);
+
 const logger = new Logger('ambientvideo');
 
-const ambientVideos$ = new BehaviorSubject<readonly AmbientVideoVisualizer[]>(presets);
+const ambientVideos$ = new BehaviorSubject<readonly AmbientVideoVisualizer[]>([]);
 
 const ambientvideo: VisualizerProvider<AmbientVideoVisualizer> = {
     id: 'ambientvideo',
     name: 'Ambient Video',
+    defaultHidden: true,
     player: ambientVideoPlayer,
     get visualizers() {
         return ambientVideos$.getValue();
@@ -36,18 +39,35 @@ export default ambientvideo;
 observeSettings()
     .pipe(
         debounceTime(1),
-        map((settings) => (settings.useAmbientVideoSource ? settings.ambientVideoSource : '')),
+        map((settings) => !!settings.ambientVideoEnabled),
         distinctUntilChanged(),
-        switchMap((url) => (url ? getUserAmbientVideos(url) : of(presets))),
+        switchMap((ambientVideoEnabled) => (ambientVideoEnabled ? observeAmbientVideos() : of([]))),
         catchError((err) => {
             logger.error(err);
             return of([]);
-        }),
-        tap((videos) => console.log('Ambient videos:', videos.length))
+        })
     )
     .subscribe(ambientVideos$);
 
-async function getUserAmbientVideos(url = ''): Promise<AmbientVideoVisualizer[]> {
+function observeAmbientVideos(): Observable<readonly AmbientVideoVisualizer[]> {
+    return observeSettings().pipe(
+        map((settings) => !!settings.useAmbientVideoSource),
+        distinctUntilChanged(),
+        switchMap((useAmbientVideoSource) =>
+            useAmbientVideoSource ? observeUserAmbientVideos() : of(presets)
+        )
+    );
+}
+
+function observeUserAmbientVideos(): Observable<readonly AmbientVideoVisualizer[]> {
+    return observeSettings().pipe(
+        map((settings) => settings.ambientVideoSource || ''),
+        distinctUntilChanged(),
+        switchMap((url) => (url ? getUserAmbientVideos(url) : of([])))
+    );
+}
+
+async function getUserAmbientVideos(url: string): Promise<AmbientVideoVisualizer[]> {
     const src = getYouTubeSrc(url);
     const [, type, id] = src.split(':');
     let videoIds = [id];

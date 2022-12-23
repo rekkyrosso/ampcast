@@ -9,7 +9,7 @@ console.log('module::visualizerPlayer');
 const logger = new Logger('visualizerPlayer');
 
 function selectPlayer(visualizer: Visualizer): Player<Visualizer> | null {
-    return getVisualizerPlayer(visualizer.providerId);
+    return getVisualizerPlayer(visualizer.providerId) || null;
 }
 
 function loadVisualizer(player: Player<Visualizer>, visualizer: Visualizer): void {

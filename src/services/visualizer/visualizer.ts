@@ -4,6 +4,7 @@ import {
     distinctUntilChanged,
     filter,
     map,
+    skip,
     skipWhile,
     switchMap,
     take,
@@ -21,11 +22,11 @@ import {getVisualizerProvider, getVisualizer, getVisualizers} from './visualizer
 import visualizerPlayer from './visualizerPlayer';
 import visualizerSettings, {
     observeLocked,
-    observeProvider,
     observeSettings,
     VisualizerSettings,
 } from './visualizerSettings';
-export {observeLocked, observeProvider, observeSettings} from './visualizerSettings';
+import VisualizerProvider from 'types/VisualizerProvider';
+export {observeLocked, observeSettings} from './visualizerSettings';
 
 console.log('module::visualizer');
 
@@ -78,7 +79,6 @@ export function unlock(): void {
 export default {
     observeCurrentVisualizer,
     observeLocked,
-    observeProvider,
     observeSettings,
     nextVisualizer,
     lock,
@@ -99,13 +99,12 @@ merge(
     next$,
     observeProvider().pipe(
         withLatestFrom(observeCurrentVisualizer()),
-        filter(([provider, visualizer]) => !!provider && provider !== visualizer.providerId)
+        filter(([provider, visualizer]) => provider?.id !== visualizer.providerId)
     ),
     visualizerPlayer.observeError()
 )
     .pipe(
         withLatestFrom(audio$, observeSettings()),
-        tap(logger.rx('getNextVisualizer')),
         map(([reason, item, settings]) => getNextVisualizer(item, settings, reason === 'next')),
         distinctUntilChanged()
     )
@@ -119,23 +118,39 @@ audio$.pipe(switchMap(() => playing$)).subscribe(() => visualizerPlayer.play());
 
 observeProvider()
     .pipe(
-        map((id) => getVisualizerProvider(id)),
-        switchMap((provider) =>
-            provider
-                ? provider.observeVisualizers().pipe(
-                      skipWhile((presets) => presets.length === 0),
-                      withLatestFrom(observeCurrentVisualizer()),
-                      tap(([, currentVisualizer]) => {
-                          if (currentVisualizer === defaultVisualizer) {
-                              nextVisualizer();
-                          }
-                      }),
-                      take(provider.id === 'milkdrop' ? 2 : 1)
-                  )
-                : EMPTY
-        )
+        switchMap((provider) => (provider ? provider.observeVisualizers() : EMPTY)),
+        skip(1),
+        tap(nextVisualizer)
     )
     .subscribe(logger);
+
+getVisualizerProvider('milkdrop')
+    ?.observeVisualizers()
+    .pipe(
+        skipWhile((presets) => presets.length === 0),
+        withLatestFrom(observeCurrentVisualizer()),
+        tap(([, currentVisualizer]) => {
+            if (currentVisualizer === defaultVisualizer) {
+                nextVisualizer();
+            }
+        }),
+        take(2)
+    )
+    .subscribe(logger);
+
+function observeProvider(): Observable<VisualizerProvider<Visualizer> | undefined> {
+    return observeProviderId().pipe(
+        map((id) => getVisualizerProvider(id)),
+        distinctUntilChanged()
+    );
+}
+
+function observeProviderId(): Observable<VisualizerProviderId | ''> {
+    return observeSettings().pipe(
+        map((settings) => settings.provider || ''),
+        distinctUntilChanged()
+    );
+}
 
 function getNextVisualizer(
     item: PlaylistItem,
@@ -144,7 +159,9 @@ function getNextVisualizer(
 ): Visualizer {
     const lockedVisualizer = settings.lockedVisualizer;
     if (lockedVisualizer) {
-        return getVisualizer(lockedVisualizer.providerId, lockedVisualizer.name) || defaultVisualizer;
+        return (
+            getVisualizer(lockedVisualizer.providerId, lockedVisualizer.name) || defaultVisualizer
+        );
     }
     const currentVisualizer = currentVisualizer$.getValue();
     let provider = settings.provider;
@@ -167,3 +184,5 @@ function getNextVisualizer(
     const presets = getVisualizers(provider);
     return getRandomValue(presets, currentVisualizer) || defaultVisualizer;
 }
+
+observeSettings().subscribe(logger.rx('settings'));

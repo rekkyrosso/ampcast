@@ -20,13 +20,10 @@ export function getVisualizers(providerId: string): readonly Visualizer[] {
     return getVisualizerProvider(providerId)?.visualizers || [];
 }
 
-export function getVisualizer(providerId: string, name: string): Visualizer | null {
-    return (
-        getVisualizers(providerId).find((visualizer) => visualizer.name === name) ||
-        null
-    );
+export function getVisualizer(providerId: string, name: string): Visualizer | undefined {
+    return getVisualizers(providerId).find((visualizer) => visualizer.name === name);
 }
 
-export function getVisualizerPlayer(providerId: string): Player<Visualizer> | null {
-    return getVisualizerProvider(providerId)?.player || null;
+export function getVisualizerPlayer(providerId: string): Player<Visualizer> | undefined {
+    return getVisualizerProvider(providerId)?.player;
 }

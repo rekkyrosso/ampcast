@@ -3,10 +3,9 @@ import {fromEvent} from 'rxjs';
 import {map} from 'rxjs/operators';
 import MediaType from 'types/MediaType';
 import mediaPlayback from 'services/mediaPlayback';
-import {observeProvider} from 'services/visualizer';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
+import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
 import useMouseBusy from 'hooks/useMouseBusy';
-import useObservable from 'hooks/useObservable';
 import useOnResize from 'hooks/useOnResize';
 import VisualizerControls from './VisualizerControls';
 import Interstitial from './Interstitial';
@@ -21,8 +20,8 @@ function Media() {
     const mouseBusy = useMouseBusy(ref.current, 4_000);
     const currentlyPlaying = useCurrentlyPlaying();
     const playingVideo = currentlyPlaying?.mediaType === MediaType.Video;
-    const visualizerProvider = useObservable(observeProvider, 'none');
-    const noVisualizer = visualizerProvider === 'none';
+    const visualizer = useCurrentVisualizer();
+    const noVisualizer = !visualizer || visualizer.providerId === 'none';
 
     useLayoutEffect(() => {
         mediaPlayback.appendTo(ref.current!);
