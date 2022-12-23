@@ -2,7 +2,7 @@ import type {Observable} from 'rxjs';
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import {AudioMotionVisualizer} from 'types/Visualizer';
 import {Logger} from 'utils';
-import AbstractVisualizer from '../../AbstractVisualizer';
+import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 
 const logger = new Logger('AudioMotionPlayer');
 
@@ -17,7 +17,7 @@ const logger = new Logger('AudioMotionPlayer');
 //     ],
 // };
 
-export default class AudioMotionPlayer extends AbstractVisualizer<AudioMotionVisualizer> {
+export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMotionVisualizer> {
     private readonly element: HTMLElement;
     private readonly visualizer: AudioMotionAnalyzer;
     private audioSourceNode: AudioNode;

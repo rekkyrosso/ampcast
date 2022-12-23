@@ -1,23 +1,23 @@
 import Player from 'types/Player';
 import Visualizer from 'types/Visualizer';
 import VisualizerProvider from 'types/VisualizerProvider';
-import ambientvideo from './visualizers/ambientvideo';
-import ampshader from './visualizers/ampshader';
-import audiomotion from './visualizers/audiomotion';
-import milkdrop from './visualizers/milkdrop';
-import spotifyviz from './visualizers/spotifyviz';
-import waveform from './visualizers/waveform';
+import ambientvideo from './ambientvideo';
+import ampshader from './ampshader';
+import audiomotion from './audiomotion';
+import milkdrop from './milkdrop';
+import spotifyviz from './spotifyviz';
+import waveform from './waveform';
 
-export function getAllProviders(): readonly VisualizerProvider<Visualizer>[] {
+export function getAllVisualizerProviders(): readonly VisualizerProvider<Visualizer>[] {
     return [ambientvideo, ampshader, audiomotion, milkdrop, spotifyviz, waveform];
 }
 
-export function getProvider(providerId: string): VisualizerProvider<Visualizer> | undefined {
-    return getAllProviders().find((provider) => provider.id === providerId);
+export function getVisualizerProvider(providerId: string): VisualizerProvider<Visualizer> | undefined {
+    return getAllVisualizerProviders().find((provider) => provider.id === providerId);
 }
 
 export function getVisualizers(providerId: string): readonly Visualizer[] {
-    return getProvider(providerId)?.visualizers || [];
+    return getVisualizerProvider(providerId)?.visualizers || [];
 }
 
 export function getVisualizer(providerId: string, name: string): Visualizer | null {
@@ -27,6 +27,6 @@ export function getVisualizer(providerId: string, name: string): Visualizer | nu
     );
 }
 
-export function getPlayer(providerId: string): Player<Visualizer> | null {
-    return getProvider(providerId)?.player || null;
+export function getVisualizerPlayer(providerId: string): Player<Visualizer> | null {
+    return getVisualizerProvider(providerId)?.player || null;
 }

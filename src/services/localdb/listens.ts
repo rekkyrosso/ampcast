@@ -42,11 +42,11 @@ export async function addListen(state: PlaybackState): Promise<void> {
         }
         // These rules seem to apply for both last.fm and ListenBrainz.
         if (item.title && item.artists?.[0] && item.duration > 30) {
+            const minPlayTime = Math.min(item.duration / 2, 4 * 60);
             const startedAt = Math.floor(state.startedAt / 1000);
             const endedAt = Math.floor(state.endedAt / 1000);
             const playTime = endedAt - startedAt;
-            const minTime = 4 * 60;
-            if (playTime > minTime || playTime > item.duration / 2) {
+            if (playTime > minPlayTime) {
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const {id, lookupStatus, ...listen} = item;
                 logger.log('add', {listen});
@@ -56,7 +56,6 @@ export async function addListen(state: PlaybackState): Promise<void> {
                     lastfmScrobbledAt: 0,
                     listenbrainzScrobbledAt: 0,
                 });
-                return;
             }
         }
     } catch (err) {
@@ -127,6 +126,9 @@ export function enhanceWithListenData(item: MediaItem): MediaItem {
     if (listen) {
         return {
             ...bestOf(listen, item),
+            src: item.src,
+            externalUrl: item.externalUrl,
+            playedAt: item.playedAt,
             link: {
                 src: listen.src,
                 externalUrl: listen.externalUrl,

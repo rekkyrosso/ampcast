@@ -1,6 +1,6 @@
 import React from 'react';
 import Visualizer, {AmbientVideoVisualizer} from 'types/Visualizer';
-import {getProvider} from 'services/visualizer/visualizerProviders';
+import {getVisualizerProvider} from 'services/visualizer/visualizerProviders';
 import useYouTubeVideoInfo from 'hooks/useYouTubeVideoInfo';
 import {ExternalView, Owner} from './MediaInfo';
 import './VisualizerInfo.scss';
@@ -50,7 +50,7 @@ function YouTubeVideoInfo({visualizer}: {visualizer: AmbientVideoVisualizer}) {
 
 function getProviderName(visualizer: Visualizer | null): string {
     if (visualizer) {
-        const provider = getProvider(visualizer.providerId);
+        const provider = getVisualizerProvider(visualizer.providerId);
         if (provider) {
             return provider.name;
         }

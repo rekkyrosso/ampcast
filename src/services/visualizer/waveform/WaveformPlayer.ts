@@ -1,58 +1,32 @@
-import {SpotifyVizVisualizer} from 'types/Visualizer';
-import {ActiveIntervals, SpotifyAudioAnalyser} from 'services/spotify/spotifyAudioAnalyser';
-import AbstractVisualizer from '../../AbstractVisualizer';
+import SimpleAudioAnalyser from 'types/SimpleAudioAnalyser';
+import {WaveformVisualizer} from 'types/Visualizer';
+import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 import {Logger} from 'utils';
 
-const logger = new Logger('SpotifyVizPlayer');
+const logger = new Logger('WaveformPlayer');
 
-export interface SpotifyVizConfig {
-    volumeSmoothing?: number;
-    onPaint?: (data: SpotifyVizPaintData) => void;
-    onBar?: (bar: ActiveIntervals['bars']) => void;
-    onBeat?: (beat: ActiveIntervals['beats']) => void;
-    onSection?: (section: ActiveIntervals['sections']) => void;
-    onSegment?: (segment: ActiveIntervals['segments']) => void;
-    onTatum?: (tatum: ActiveIntervals['tatums']) => void;
+export interface WaveformConfig {
+    onPaint: (data: WaveformPaintData) => void;
 }
 
-export interface SpotifyVizPaintData {
+export interface WaveformPaintData {
     readonly context2D: CanvasRenderingContext2D;
     readonly width: number;
     readonly height: number;
     readonly now: number;
-    readonly analyser: Readonly<SpotifyAudioAnalyser>;
+    readonly analyser: Readonly<SimpleAudioAnalyser>;
 }
 
-export default class SpotifyVizPlayer extends AbstractVisualizer<SpotifyVizVisualizer> {
+export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVisualizer> {
     private readonly canvas = document.createElement('canvas');
     private readonly context2D = this.canvas.getContext('2d')!;
-    private config?: SpotifyVizConfig;
+    private config?: WaveformConfig;
     private animationFrameId = 0;
 
-    constructor(private readonly analyser: SpotifyAudioAnalyser) {
+    constructor(private readonly analyser: SimpleAudioAnalyser) {
         super();
         this.canvas.hidden = true;
-        this.canvas.className = `visualizer visualizer-spotifyviz`;
-
-        analyser.observeBar().subscribe((bar: ActiveIntervals['bars']) => {
-            this.config?.onBar?.(bar);
-        });
-
-        analyser.observeBeat().subscribe((beat: ActiveIntervals['beats']) => {
-            this.config?.onBeat?.(beat);
-        });
-
-        analyser.observeSection().subscribe((section: ActiveIntervals['sections']) => {
-            this.config?.onSection?.(section);
-        });
-
-        analyser.observeSegment().subscribe((segment: ActiveIntervals['segments']) => {
-            this.config?.onSegment?.(segment);
-        });
-
-        analyser.observeTatum().subscribe((tatum: ActiveIntervals['tatums']) => {
-            this.config?.onTatum?.(tatum);
-        });
+        this.canvas.className = `visualizer visualizer-waveform`;
     }
 
     get hidden(): boolean {
@@ -72,12 +46,11 @@ export default class SpotifyVizPlayer extends AbstractVisualizer<SpotifyVizVisua
         parentElement.append(this.canvas);
     }
 
-    load(visualizer: SpotifyVizVisualizer): void {
+    load(visualizer: WaveformVisualizer): void {
         logger.log('load');
         if (visualizer) {
-            logger.log(`Using SpotifyViz preset: ${visualizer.name}`);
+            logger.log(`Using Waveform preset: ${visualizer.name}`);
             this.config = visualizer.config;
-            this.analyser.volumeSmoothing = visualizer.config?.volumeSmoothing ?? 100;
         }
         if (this.autoplay) {
             this.play();

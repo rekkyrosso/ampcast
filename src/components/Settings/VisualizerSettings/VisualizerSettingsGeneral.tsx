@@ -1,6 +1,6 @@
 import React, {useCallback, useRef} from 'react';
 import VisualizerProviderId from 'types/VisualizerProviderId';
-import {getAllProviders} from 'services/visualizer/visualizerProviders';
+import {getAllVisualizerProviders} from 'services/visualizer/visualizerProviders';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
 
 export default function VisualizerSettingsGeneral() {
@@ -19,7 +19,7 @@ export default function VisualizerSettingsGeneral() {
                 <select id="visualizer-provider" defaultValue={provider} ref={selectRef}>
                     <option value="none">(none)</option>
                     <option value="">(random)</option>
-                    {getAllProviders()
+                    {getAllVisualizerProviders()
                         .filter(
                             (provider) =>
                                 provider.id !== 'ambientvideo' ||

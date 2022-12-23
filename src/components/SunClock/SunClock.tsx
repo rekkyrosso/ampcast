@@ -13,8 +13,8 @@ export interface SunClockProps {
 }
 
 export default memo(function SunClock({time}: SunClockProps) {
-    const date = new Date(time);
     const unit = 100 / 6;
+    const date = new Date(time);
     let hour = date.getHours() + date.getMinutes() / 60;
     let am = Math.min(hour, 6);
     let pm = hour - am;

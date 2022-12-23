@@ -28,7 +28,7 @@ const ambientvideo: VisualizerProvider<AmbientVideoVisualizer> = {
     get visualizers() {
         return ambientVideos$.getValue();
     },
-    observeVisualizers: () => of(presets),
+    observeVisualizers: () => ambientVideos$,
 };
 
 export default ambientvideo;

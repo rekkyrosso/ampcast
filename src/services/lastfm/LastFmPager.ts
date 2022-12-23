@@ -116,7 +116,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
         return enhanceWithListenData({
             ...(this.createMediaObject(ItemType.Media, track) as MediaItem),
             mediaType: MediaType.Audio,
-            src: playedAt ? `lastfm:listen:${playedAt}` : `lastfm:track:${track.mbid || nanoid()}`,
+            src: playedAt ? `lastfm:listen:${playedAt}` : `lastfm:track:${nanoid()}`,
             artists: track.artist ? [track.artist.name] : undefined,
             album: track.album?.['#text'],
             duration: Number(track.duration) || 0,
@@ -139,7 +139,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
     private createMediaArtist(artist: LastFm.Artist): MediaArtist {
         return {
             ...(this.createMediaObject(ItemType.Artist, artist) as MediaArtist),
-            src: `lastfm:artist:${artist.mbid || nanoid()}`,
+            src: `lastfm:artist:${nanoid()}`,
             pager: this.createArtistAlbumsPager(artist),
         };
     }
@@ -149,7 +149,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
             itemType: ItemType.Album,
             title: 'Top Tracks',
             thumbnails: this.createThumbnails(artist.image),
-            src: `lastfm:top-tracks:${artist.mbid || nanoid()}`,
+            src: `lastfm:top-tracks:${nanoid()}`,
             externalUrl: '',
             artist: artist.name,
             pager: this.createTopTracksPager(artist),

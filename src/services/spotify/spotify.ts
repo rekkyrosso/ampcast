@@ -181,7 +181,13 @@ const spotify: MediaService = {
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
         createRoot(ItemType.Artist, {title: 'Artists', layout: defaultArtistLayout}),
-        createRoot(ItemType.Playlist, {title: 'Playlists'}),
+        createRoot(ItemType.Playlist, {
+            title: 'Playlists',
+            secondaryLayout: {
+                view: 'details',
+                fields: ['Index', 'Artist', 'Title', 'Album', 'Duration'],
+            },
+        }),
     ],
     sources: [
         spotifyRecentlyPlayed,

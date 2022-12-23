@@ -1,11 +1,11 @@
 import butterchurn from 'butterchurn';
 import {MilkdropVisualizer} from 'types/Visualizer';
-import AbstractVisualizer from '../../AbstractVisualizer';
+import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 import {Logger} from 'utils';
 
 const logger = new Logger('MilkdropPlayer');
 
-export default class MilkdropPlayer extends AbstractVisualizer<MilkdropVisualizer> {
+export default class MilkdropPlayer extends AbstractVisualizerPlayer<MilkdropVisualizer> {
     private readonly canvas = document.createElement('canvas');
     private readonly context2D = this.canvas.getContext('2d')!;
     private readonly visualizer: ButterchurnVisualizer;

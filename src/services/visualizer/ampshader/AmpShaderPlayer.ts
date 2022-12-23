@@ -1,13 +1,13 @@
 import SimpleAudioAnalyser from 'types/SimpleAudioAnalyser';
 import {AmpShaderVisualizer} from 'types/Visualizer';
-import AbstractVisualizer from '../../AbstractVisualizer';
+import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 import {Logger} from 'utils';
 
 const logger = new Logger('AmpShaderPlayer');
 
 // Based on: https://noisehack.com/build-music-visualizer-web-audio-api/
 
-export default class AmpShaderPlayer extends AbstractVisualizer<AmpShaderVisualizer> {
+export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderVisualizer> {
     private readonly canvas = document.createElement('canvas');
     private readonly gl = this.canvas.getContext('webgl')!;
     private animationFrameId = 0;

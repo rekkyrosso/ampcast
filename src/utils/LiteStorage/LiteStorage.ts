@@ -55,8 +55,8 @@ export default class LiteStorage {
             return json ? JSON.parse(json) : defaultValue;
         } catch (err) {
             logger.error(err);
-            return defaultValue;
         }
+        return defaultValue ?? null;
     }
 
     setJson<T>(key: string, value: T): void {

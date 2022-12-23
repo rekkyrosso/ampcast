@@ -17,7 +17,7 @@ import VisualizerProviderId from 'types/VisualizerProviderId';
 import {observeCurrentItem} from 'services/playlist';
 import {observePaused} from 'services/mediaPlayback/playback';
 import {exists, getRandomValue, Logger} from 'utils';
-import {getProvider, getVisualizer, getVisualizers} from './visualizerProviders';
+import {getVisualizerProvider, getVisualizer, getVisualizers} from './visualizerProviders';
 import visualizerPlayer from './visualizerPlayer';
 import visualizerSettings, {
     observeLocked,
@@ -119,7 +119,7 @@ audio$.pipe(switchMap(() => playing$)).subscribe(() => visualizerPlayer.play());
 
 observeProvider()
     .pipe(
-        map((id) => getProvider(id)),
+        map((id) => getVisualizerProvider(id)),
         switchMap((provider) =>
             provider
                 ? provider.observeVisualizers().pipe(

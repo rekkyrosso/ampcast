@@ -2,7 +2,7 @@ import type {Observable} from 'rxjs';
 import {EMPTY} from 'rxjs';
 import Player from 'types/Player';
 
-export default abstract class AbstractVisualizer<T> implements Player<T> {
+export default abstract class AbstractVisualizerPlayer<T> implements Player<T> {
     public autoplay = false;
     public loop = true;
     public muted = true;

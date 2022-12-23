@@ -2,14 +2,14 @@ import Player from 'types/Player';
 import Visualizer from 'types/Visualizer';
 import OmniPlayer from 'services/players/OmniPlayer';
 import {Logger} from 'utils';
-import {getAllProviders, getPlayer} from './visualizerProviders';
+import {getAllVisualizerProviders, getVisualizerPlayer} from './visualizerProviders';
 
 console.log('module::visualizerPlayer');
 
 const logger = new Logger('visualizerPlayer');
 
 function selectPlayer(visualizer: Visualizer): Player<Visualizer> | null {
-    return getPlayer(visualizer.providerId);
+    return getVisualizerPlayer(visualizer.providerId);
 }
 
 function loadVisualizer(player: Player<Visualizer>, visualizer: Visualizer): void {
@@ -17,7 +17,7 @@ function loadVisualizer(player: Player<Visualizer>, visualizer: Visualizer): voi
 }
 
 const visualizerPlayer = new OmniPlayer<Visualizer>(
-    getAllProviders().map((provider) => provider.player),
+    getAllVisualizerProviders().map((provider) => provider.player),
     selectPlayer,
     loadVisualizer
 );
