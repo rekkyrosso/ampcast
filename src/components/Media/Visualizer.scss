@@ -46,6 +46,10 @@
             &.icon-apple {
                 fill: white !important;
             }
+
+            .media-playback.paused & {
+                display: none;
+            }
         }
 
         &-settings {
@@ -57,7 +61,7 @@
             left: 0.25em;
             bottom: 0.25em;
 
-            .no-visualizer & {
+            .media-playback.paused & {
                 display: none;
             }
         }

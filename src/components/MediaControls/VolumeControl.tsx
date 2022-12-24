@@ -3,7 +3,7 @@ import mediaPlayback from 'services/mediaPlayback';
 import IconButton from 'components/Button/IconButton';
 import './VolumeControl.scss';
 
-function VolumeControl() {
+export default memo(function VolumeControl() {
     const [muted, setMuted] = useState(() => mediaPlayback.muted);
     const [volume, setVolume] = useState(() => mediaPlayback.volume);
     const volumeLabel = volume <= 0.33 ? 'low' : volume <= 0.67 ? 'medium' : 'high';
@@ -47,6 +47,4 @@ function VolumeControl() {
             />
         </div>
     );
-}
-
-export default memo(VolumeControl);
+});

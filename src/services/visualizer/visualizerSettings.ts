@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
-import {distinctUntilChanged, map} from 'rxjs/operators';
 import Visualizer from 'types/Visualizer';
 import VisualizerProviderId from 'types/VisualizerProviderId';
 import {LiteStorage} from 'utils';
@@ -8,14 +7,14 @@ import {LiteStorage} from 'utils';
 type VisualizerKeys = Pick<Visualizer, 'providerId' | 'name'>;
 
 export interface VisualizerSettings {
-    ambientVideoEnabled?: boolean;
-    ambientVideoSource?: string;
-    useAmbientVideoSource?: boolean;
-    provider?: VisualizerProviderId;
-    lockedVisualizer?: VisualizerKeys;
+    provider: VisualizerProviderId | '';
+    ambientVideoEnabled: boolean;
+    ambientVideoSource: string;
+    useAmbientVideoSource: boolean;
+    lockedVisualizer: VisualizerKeys | null;
 }
 
-const storage = new LiteStorage('visualizerSettings');
+const storage = new LiteStorage('visualizer/settings');
 
 const visualizerSettings: VisualizerSettings = {
     get ambientVideoEnabled(): boolean {
@@ -25,8 +24,13 @@ const visualizerSettings: VisualizerSettings = {
     set ambientVideoEnabled(ambientVideoEnabled: boolean) {
         if (ambientVideoEnabled !== this.ambientVideoEnabled) {
             storage.setBoolean('ambientVideoEnabled', ambientVideoEnabled);
-            if (!ambientVideoEnabled && this.provider === 'ambientvideo') {
-                storage.setString('provider', '');
+            if (!ambientVideoEnabled) {
+                if (this.provider === 'ambientvideo') {
+                    storage.setString('provider', '');
+                }
+                if (this.lockedVisualizer?.providerId === 'ambientvideo') {
+                    storage.removeItem('lockedVisualizer');
+                }
             }
             settings$.next(this);
         }
@@ -39,6 +43,9 @@ const visualizerSettings: VisualizerSettings = {
     set ambientVideoSource(ambientVideoSource: string) {
         if (ambientVideoSource !== this.ambientVideoSource) {
             storage.setString('ambientVideoSource', ambientVideoSource);
+            if (this.lockedVisualizer?.providerId === 'ambientvideo') {
+                storage.removeItem('lockedVisualizer');
+            }
             settings$.next(this);
         }
     },
@@ -50,18 +57,21 @@ const visualizerSettings: VisualizerSettings = {
     set useAmbientVideoSource(useAmbientVideoSource: boolean) {
         if (useAmbientVideoSource !== this.useAmbientVideoSource) {
             storage.setBoolean('useAmbientVideoSource', useAmbientVideoSource);
+            if (this.lockedVisualizer?.providerId === 'ambientvideo') {
+                storage.removeItem('lockedVisualizer');
+            }
             settings$.next(this);
         }
     },
 
-    get lockedVisualizer(): VisualizerKeys | undefined {
-        return storage.getJson('lockedVisualizer') || undefined;
+    get lockedVisualizer(): VisualizerKeys | null {
+        return storage.getJson('lockedVisualizer');
     },
 
-    set lockedVisualizer(lockedVisualizer: VisualizerKeys | undefined) {
+    set lockedVisualizer(lockedVisualizer: VisualizerKeys | null) {
         if (lockedVisualizer) {
-            const {providerId: provider, name} = lockedVisualizer;
-            storage.setJson('lockedVisualizer', {provider, name});
+            const {providerId, name} = lockedVisualizer;
+            storage.setJson<VisualizerKeys>('lockedVisualizer', {providerId, name});
         } else {
             storage.removeItem('lockedVisualizer');
         }
@@ -75,6 +85,9 @@ const visualizerSettings: VisualizerSettings = {
     set provider(provider: VisualizerProviderId) {
         if (provider !== this.provider) {
             storage.setString('provider', provider);
+            if (provider && this.lockedVisualizer?.providerId !== provider) {
+                storage.removeItem('lockedVisualizer');
+            }
             settings$.next(this);
         }
     },
@@ -84,13 +97,6 @@ const settings$ = new BehaviorSubject<VisualizerSettings>(visualizerSettings);
 
 export default visualizerSettings;
 
-export function observeSettings(): Observable<VisualizerSettings> {
+export function observeVisualizerSettings(): Observable<VisualizerSettings> {
     return settings$;
-}
-
-export function observeLocked(): Observable<boolean> {
-    return observeSettings().pipe(
-        map((settings) => !!settings.lockedVisualizer),
-        distinctUntilChanged()
-    );
 }

@@ -16,6 +16,10 @@
         background: radial-gradient(rgba(0, 0, 0, 0.6) 50%, rgba(0, 0, 0, 0.6), transparent);
         box-shadow: 0px 0px 2px 1px rgba(0, 0, 0, 0.3);
         color: var(--soft-white);
+
+        &:hover {
+            background: radial-gradient(rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.8), transparent);
+        }
     }
 
     & + & {

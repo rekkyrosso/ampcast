@@ -14,12 +14,12 @@ import './Media.scss';
 
 console.log('component::Media');
 
-function Media() {
+export default memo(function Media() {
     const ref = useRef<HTMLDivElement>(null);
     const [fullScreen, setFullScreen] = useState(false);
-    const mouseBusy = useMouseBusy(ref.current, 4_000);
+    const mouseBusy = useMouseBusy(ref.current, 4000);
     const currentlyPlaying = useCurrentlyPlaying();
-    const playingVideo = currentlyPlaying?.mediaType === MediaType.Video;
+    const isPlayingVideo = currentlyPlaying?.mediaType === MediaType.Video;
     const visualizer = useCurrentVisualizer();
     const noVisualizer = !visualizer || visualizer.providerId === 'none';
 
@@ -52,7 +52,7 @@ function Media() {
 
     return (
         <div
-            className={`panel media ${playingVideo ? 'playing-video' : ''} ${
+            className={`panel media ${isPlayingVideo ? 'is-playing-video' : ''} ${
                 noVisualizer ? 'no-visualizer' : ''
             }  ${mouseBusy ? '' : 'idle'}`}
             onDoubleClick={toggleFullScreen}
@@ -64,6 +64,4 @@ function Media() {
             <VisualizerControls />
         </div>
     );
-}
-
-export default memo(Media);
+});

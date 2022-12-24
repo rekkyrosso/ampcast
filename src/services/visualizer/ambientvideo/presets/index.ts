@@ -5,10 +5,10 @@ const presets: AmbientVideoVisualizer[] = `
 mo2re_RX3Bs blXien2Jh_o etiatMRgFcM DYsMJiwiZSI _MZ7UZ5frCI HCx1Z92PjJE dIP7wWY4Znw gW4nffCscYs
 A1m0SEqmmbE 9uZ8CCa0t4Y MXlFDpaQ1ec wz_ItcoR0-c jS4-FmNEDKo Tz77vqH_LJw K73lfmxDVR0 W8ayfyRWUrg
 cbuldALGsaQ AJZon2grzmA H5ASEM9dMiA GE2YEq7vaLc MYGOdJNAzrI Oszl95YWfbs b0-IkxXyhmY hoYPURX2RuE
-AgpGXSAS7Cs p-OUNPqRzII XaTxLSPh_Is 1n3ezT1cvAM CWU1pZVw0xM ry1Q7KaQdxM VlC5LSTvoj0 7DUhv7lTAuk
-g5yQtQc3K-0 f6OZ01vvmko o4jE24WixcI BIej9P2LrzM dxw91a7C5BQ jmh_usvhHLw VVkZKzTbWQs vXCB1zGGFiY
+AgpGXSAS7Cs p-OUNPqRzII XaTxLSPh_Is 1n3ezT1cvAM CWU1pZVw0xM ry1Q7KaQdxM VlC5LSTvoj0 5hcd2VNOqTQ
+1bClbVe4QyI f6OZ01vvmko o4jE24WixcI BIej9P2LrzM dxw91a7C5BQ jmh_usvhHLw VVkZKzTbWQs vXCB1zGGFiY
 JHARFKMl8dU KSB1AZ0-I74 IGqfU6cJJc8 8zg22-ZCUfE WMlR8eJRS3I l4D6bnIdehk A5pbF_YBulo dRFRsKobN9I
-tlN0LoTv3c0 IlDvBTDGanI Az3UNGBKRX8 mOmwk3WyYnw im2eWwIiTOc lxQS58t39_U yk076o8NF3k oggiHfuV4m8
+Bur1ChHBNsQ IlDvBTDGanI SqMzG8xsynw mOmwk3WyYnw im2eWwIiTOc lxQS58t39_U yk076o8NF3k oggiHfuV4m8
 p_GnUkm-G1M xVMsAgHy_IY VdZkfef44JI ZxOd8tmdsIM fszuqfJWKxc 0LGL_lx9XcA i_hU5eUrVIs qtwWkv9OdF0
 uZjCNtOeZG4 ZpXnEvW0XD0 -C8TYbhnVTU WzxSiEWK3cg ZE8vuq4aqNA 7HMw3bcIgRE ZJiCEDweLl8 lyh2kAjcmSY
 vFwqZ4qAUkE QLbPYQcUcgM xwf7EssFnXU FvNFuSTDPuk vvm8b2jAfv0 XkRFSnxXQ_w Ee0Qh_nIoHw 78rppSvbh7A
@@ -36,7 +36,7 @@ ORHIVufNfRM YiezM4raRrY H3GL5jO53NU acTsYqhq-AA vp2yiZnjK0w eR5vsN1Lq4E D_l0pBDH
 44ih4WRTyGg W5BmjLsEsB0 JkNlFaei_k8 2ttB1FzBpZ4 k3Q1vse7In8 7xltSb3VBJQ ojbiGfhnjTU _Qb7TJ-T1HM
 gvT3gIDSwq8 4X95pykbYTY BPDznHIgVMA OIA5xQWkk2U 2uQ58Xwx1V4 UVjCFpYMR6A -uww0BzTb7g EqWBy5i8LyQ
 szErNcJMCdA 5k1DGpr_qDw YNEkjkh0bYo jmjrpHYegzc Eye8xYrjm24 rVLOQB5kGGw F8MN0o6RS9o viim_l9gbF8
-sBtYWK817-0 cFRcqnCpqoo y7vz1qQGUd8 -0ewPjoBBNI S1emxk9UWBE 1muEwEFDKgk nnDBkUfVU1Y MPEvXbw3hYA
+sBtYWK817-0 cFRcqnCpqoo y7vz1qQGUd8 -0ewPjoBBNI S1emxk9UWBE 1muEwEFDKgk P0MbbslO62E MPEvXbw3hYA
 wwXpkTd1CaQ W2A_PcIhUVM ZIb8u6uJwBo TWjid2dVjMk gdJjc6l6iII n3Dru5y3ROc OOf4Z7tyLVM iDXDrTKJehk
 wYhliE9O_3k nw0uvJZonBc cK7x6lUUsYo XPjkpBDEs2U e2AUzM6QgGs 3cxyYOXiJss AsD5u6k6dKI d_hx39kXDUg
 hlvfDL3nSoo 6L2xYzu724E URy2Ak-WRpE V-ntXk-4TPo yttvb9ByOtY ctqujFKaFZQ NWF3dNJ-EhQ WUkwH9WmmBA
@@ -48,7 +48,7 @@ ubmUJcwor3k CGslieDL-04 w7ljU-lmaK4 I0B21LjeSUQ PyFN_FYwqvc vlyVzeLzNe8 ahmrb5EY
 DNR1zyr5Go4 eyPhudLTuis aPWXL4ahxdY JB0A8Me8EKk dGy_6qyyY7c rxrDLgt5YFA uhcocK-td5E 4Z5FLeh7P18
 VB0zDS9ITmk VukLV0AoeFA CouF-tNHV3g lTvYjERVAnY S27YOjpgaaE 24uCC_-zaaE DslTxXsDLsw xilGAQPx5Xw
 zlHISDs2HtQ tdi8B0YzxHg R1OHRQoJOP0 fbqmVbEj9fg asL1AN3hifU rUkLoqxFOTw 3ma3yXXc3V8 1U1We59en3s
-iNm7PPqO6rM CLRk8SgtVS4 VYO8Biwffns -imG6CNF9kI ZMOC332wC7A doORhRob3Qg E2sSvVCRI4s nPQ4BpTfK1Q
+iNm7PPqO6rM CLRk8SgtVS4 VYO8Biwffns 9Wm8Ij8rHIE ZMOC332wC7A doORhRob3Qg E2sSvVCRI4s nPQ4BpTfK1Q
 E6Ww7lpuZ2k Ueqm3PQKYPk eFiKAcbp2MY dAfMgDBeqwU Wuq5NHJPXyQ LAFK1EvwulU rU07g1g-PIY L_mlofcsRaA
 eZe4Q_58UTU NXObT_Fl-xI t6jlhqNxRYk _WkkH31sTMI ALJcKvnOjHM 85Y1N8avsXs NCY42RnUpCE 2QSukL7dl5o
 0Tpq2mLtXDc Zp1Oajc7VQw WGi4XiEGe8M b6L40CEYVyM Mw9qiV7XlFs UgHKb_7884o mvIYmMo906E 2RakvEQhTTA
@@ -60,8 +60,8 @@ qqC80mXlOKo MS2asGj1-_M BizH494DmJI IahW6hJ1-SM 9MIJm1NeUpE 2qzbMPpgtDw H3UY2gQf
 5zUCClmhjF0 88jpBZdsrT8 e18IjYKZnTA MAFdQs_yWvg xkAUTCdoteI X0IEHj4PhCc JX19TZp8gDQ 7TML_MTQdg4
 SH4f_DnPIto v-A03t6-Kss 5rf_gOfa7O4 MYG6FeY4SKg AVzdfRpE9Q0 1UxoHtG2qas o7XgU4ut6jQ IcOYM87wTRc
 oPetbPLA8dM F41dgN-mwrE tpRBHKAJ_tU sTy4stPcD0E p4jroQX6Hwk y2Zl-KXvdSk zffchwaq6KE jv7hNnJEWPU
-DN-BxbMH264 mWaC_VSncEg 8x5Yzxi3LhA YtWub0hsSbQ McT_FUPZR5k H6Xy97CD9Hs vHf4WQtJvdI nAMkwo2eSbY
-SqMzG8xsynw P0MbbslO62E Bur1ChHBNsQ 1bClbVe4QyI 0Txa_T4pHY4 9Wm8Ij8rHIE
+DN-BxbMH264 mWaC_VSncEg 8x5Yzxi3LhA 0Txa_T4pHY4 McT_FUPZR5k H6Xy97CD9Hs vHf4WQtJvdI nAMkwo2eSbY
+X_M2DNPp9a8 epD5ixtaID0
 `
     .match(/\S+/g)!
     .map((videoId) => ({
@@ -69,7 +69,5 @@ SqMzG8xsynw P0MbbslO62E Bur1ChHBNsQ 1bClbVe4QyI 0Txa_T4pHY4 9Wm8Ij8rHIE
         name: videoId,
         src: `youtube:video:${videoId}`,
     }));
-
-// const playlists = [`youtube:playlist:PLcwpmmLk1lWLzND2664ij2OgvmT9rN_0n`];
 
 export default presets;

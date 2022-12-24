@@ -10,7 +10,7 @@ import {
 } from 'rxjs';
 import VisualizerProvider from 'types/VisualizerProvider';
 import {AmbientVideoVisualizer} from 'types/Visualizer';
-import {observeSettings} from 'services/visualizer/visualizerSettings';
+import {observeVisualizerSettings} from 'services/visualizer/visualizerSettings';
 import {getYouTubeSrc} from 'services/youtube';
 import {loadPlaylist} from 'services/youtube/YouTubePlaylistLoader';
 import {Logger} from 'utils';
@@ -36,7 +36,7 @@ const ambientvideo: VisualizerProvider<AmbientVideoVisualizer> = {
 
 export default ambientvideo;
 
-observeSettings()
+observeVisualizerSettings()
     .pipe(
         debounceTime(1),
         map((settings) => !!settings.ambientVideoEnabled),
@@ -50,7 +50,7 @@ observeSettings()
     .subscribe(ambientVideos$);
 
 function observeAmbientVideos(): Observable<readonly AmbientVideoVisualizer[]> {
-    return observeSettings().pipe(
+    return observeVisualizerSettings().pipe(
         map((settings) => !!settings.useAmbientVideoSource),
         distinctUntilChanged(),
         switchMap((useAmbientVideoSource) =>
@@ -60,7 +60,7 @@ function observeAmbientVideos(): Observable<readonly AmbientVideoVisualizer[]> {
 }
 
 function observeUserAmbientVideos(): Observable<readonly AmbientVideoVisualizer[]> {
-    return observeSettings().pipe(
+    return observeVisualizerSettings().pipe(
         map((settings) => settings.ambientVideoSource || ''),
         distinctUntilChanged(),
         switchMap((url) => (url ? getUserAmbientVideos(url) : of([])))

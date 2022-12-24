@@ -7,9 +7,16 @@ import audiomotion from './audiomotion';
 import milkdrop from './milkdrop';
 import spotifyviz from './spotifyviz';
 import waveform from './waveform';
+import visualizerSettings from './visualizerSettings';
 
 export function getAllVisualizerProviders(): readonly VisualizerProvider<Visualizer>[] {
     return [ambientvideo, ampshader, audiomotion, milkdrop, spotifyviz, waveform];
+}
+
+export function getEnabledVisualizerProviders(): readonly VisualizerProvider<Visualizer>[] {
+    return getAllVisualizerProviders().filter(
+        (provider) => provider.id !== 'ambientvideo' || visualizerSettings.ambientVideoEnabled
+    );
 }
 
 export function getVisualizerProvider(providerId: string): VisualizerProvider<Visualizer> | undefined {

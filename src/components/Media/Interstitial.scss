@@ -13,7 +13,7 @@
     opacity: 0;
     transition: opacity 4s linear;
 
-    .no-visualizer:not(.playing-video) &,
+    .no-visualizer:not(.is-playing-video) &,
     .media-playback.paused &,
     &:not(.ready),
     &:not(.ready) &-state {

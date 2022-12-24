@@ -5,7 +5,7 @@ import usePaused from 'hooks/usePaused';
 import useInterstitialState, {InterstitialState} from './useInterstitialState';
 import './Interstitial.scss';
 
-function Interstitial() {
+export default memo(function Interstitial() {
     const item = useCurrentlyPlaying();
     const state = useInterstitialState();
     const [isRecent, setIsRecent] = useState(false);
@@ -22,9 +22,7 @@ function Interstitial() {
             {item ? <CurrentlyPlaying item={item} state={state} /> : <EmptyPlaylist />}
         </div>
     );
-}
-
-export default memo(Interstitial);
+});
 
 interface CurrentlyPlayingProps {
     item: MediaItem;

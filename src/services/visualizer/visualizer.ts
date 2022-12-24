@@ -1,10 +1,10 @@
 import type {Observable} from 'rxjs';
-import {EMPTY, Subject, BehaviorSubject, merge, partition} from 'rxjs';
+import {Subject, BehaviorSubject, of, partition} from 'rxjs';
 import {
+    debounceTime,
     distinctUntilChanged,
     filter,
     map,
-    skip,
     skipWhile,
     switchMap,
     take,
@@ -21,16 +21,17 @@ import {exists, getRandomValue, Logger} from 'utils';
 import {getVisualizerProvider, getVisualizer, getVisualizers} from './visualizerProviders';
 import visualizerPlayer from './visualizerPlayer';
 import visualizerSettings, {
-    observeLocked,
-    observeSettings,
+    observeVisualizerSettings,
     VisualizerSettings,
 } from './visualizerSettings';
 import VisualizerProvider from 'types/VisualizerProvider';
-export {observeLocked, observeSettings} from './visualizerSettings';
+export {observeVisualizerSettings} from './visualizerSettings';
 
 console.log('module::visualizer');
 
 const logger = new Logger('visualizer');
+
+type NextReason = 'click' | 'item' | 'provider' | 'sync' | 'error';
 
 const defaultVisualizer: NoVisualizer = {
     providerId: 'none',
@@ -38,7 +39,7 @@ const defaultVisualizer: NoVisualizer = {
 };
 
 const currentVisualizer$ = new BehaviorSubject<Visualizer>(defaultVisualizer);
-const next$ = new Subject<'next'>();
+const next$ = new Subject<NextReason>();
 const empty$ = observeCurrentItem().pipe(filter((item) => item == null));
 const media$ = observeCurrentItem().pipe(filter(exists));
 const [audio$, video$] = partition(media$, (item) => item.mediaType === MediaType.Audio);
@@ -64,8 +65,40 @@ export function observeCurrentVisualizer(): Observable<Visualizer> {
     return currentVisualizer$;
 }
 
-export function nextVisualizer(): void {
-    next$.next('next');
+export function observeCurrentVisualizers(): Observable<readonly Visualizer[]> {
+    return observeProviderId().pipe(
+        map((id) => getVisualizerProvider(id)),
+        switchMap((provider) => (provider ? provider.observeVisualizers() : of([])))
+    );
+}
+
+export function observeLocked(): Observable<boolean> {
+    return observeVisualizerSettings().pipe(
+        map((settings) => !!settings.lockedVisualizer),
+        distinctUntilChanged()
+    );
+}
+
+export function observeProvider(): Observable<VisualizerProvider<Visualizer> | undefined> {
+    return observeProviderId().pipe(
+        map((id) => getVisualizerProvider(id)),
+        distinctUntilChanged()
+    );
+}
+
+export function observeProviderId(): Observable<VisualizerProviderId | ''> {
+    return observeVisualizerSettings().pipe(
+        map((settings) => settings.provider || ''),
+        distinctUntilChanged()
+    );
+}
+
+export function nextVisualizer(reason: NextReason): void {
+    next$.next(reason);
+}
+
+export function observeNextVisualizerReason(): Observable<NextReason> {
+    return next$;
 }
 
 export function lock(): void {
@@ -73,17 +106,8 @@ export function lock(): void {
 }
 
 export function unlock(): void {
-    visualizerSettings.lockedVisualizer = undefined;
+    visualizerSettings.lockedVisualizer = null;
 }
-
-export default {
-    observeCurrentVisualizer,
-    observeLocked,
-    observeSettings,
-    nextVisualizer,
-    lock,
-    unlock,
-};
 
 empty$.subscribe(() => visualizerPlayer.stop());
 audio$.subscribe(() => (visualizerPlayer.hidden = false));
@@ -94,18 +118,14 @@ video$.subscribe(() => {
 
 paused$.subscribe(() => visualizerPlayer.pause());
 
-merge(
-    audio$,
-    next$,
-    observeProvider().pipe(
-        withLatestFrom(observeCurrentVisualizer()),
-        filter(([provider, visualizer]) => provider?.id !== visualizer.providerId)
-    ),
-    visualizerPlayer.observeError()
-)
+audio$.pipe(debounceTime(200)).subscribe(() => nextVisualizer('item'));
+visualizerPlayer.observeError().subscribe(() => nextVisualizer('error'));
+observeCurrentVisualizers().subscribe(() => nextVisualizer('provider'));
+
+observeNextVisualizerReason()
     .pipe(
-        withLatestFrom(audio$, observeSettings()),
-        map(([reason, item, settings]) => getNextVisualizer(item, settings, reason === 'next')),
+        withLatestFrom(audio$, observeVisualizerSettings()),
+        map(([reason, item, settings]) => getNextVisualizer(item, settings, reason)),
         distinctUntilChanged()
     )
     .subscribe(currentVisualizer$);
@@ -116,14 +136,6 @@ observeCurrentVisualizer()
 
 audio$.pipe(switchMap(() => playing$)).subscribe(() => visualizerPlayer.play());
 
-observeProvider()
-    .pipe(
-        switchMap((provider) => (provider ? provider.observeVisualizers() : EMPTY)),
-        skip(1),
-        tap(nextVisualizer)
-    )
-    .subscribe(logger);
-
 getVisualizerProvider('milkdrop')
     ?.observeVisualizers()
     .pipe(
@@ -131,31 +143,17 @@ getVisualizerProvider('milkdrop')
         withLatestFrom(observeCurrentVisualizer()),
         tap(([, currentVisualizer]) => {
             if (currentVisualizer === defaultVisualizer) {
-                nextVisualizer();
+                nextVisualizer('sync');
             }
         }),
         take(2)
     )
     .subscribe(logger);
 
-function observeProvider(): Observable<VisualizerProvider<Visualizer> | undefined> {
-    return observeProviderId().pipe(
-        map((id) => getVisualizerProvider(id)),
-        distinctUntilChanged()
-    );
-}
-
-function observeProviderId(): Observable<VisualizerProviderId | ''> {
-    return observeSettings().pipe(
-        map((settings) => settings.provider || ''),
-        distinctUntilChanged()
-    );
-}
-
 function getNextVisualizer(
     item: PlaylistItem,
     settings: VisualizerSettings,
-    next?: boolean
+    reason: NextReason
 ): Visualizer {
     const lockedVisualizer = settings.lockedVisualizer;
     if (lockedVisualizer) {
@@ -163,26 +161,42 @@ function getNextVisualizer(
             getVisualizer(lockedVisualizer.providerId, lockedVisualizer.name) || defaultVisualizer
         );
     }
+    const isSpotify = item.src.startsWith('spotify:');
     const currentVisualizer = currentVisualizer$.getValue();
     let provider = settings.provider;
-    if (!provider) {
-        // Random provider.
-        const isSpotify = item.src.startsWith('spotify:');
-        let providers = isSpotify ? spotifyRandomProviders : randomProviders;
-        if (settings.ambientVideoEnabled) {
-            providers = providers.concat(isSpotify ? spotifyRandomVideo : randomVideo);
-        }
-        provider = getRandomValue(providers);
-        if (
-            next &&
-            provider === currentVisualizer.providerId &&
-            getVisualizers(provider).length === 1
-        ) {
-            provider = getRandomValue(providers, provider);
+    switch (provider) {
+        case 'spotifyviz':
+            if (!isSpotify) {
+                return defaultVisualizer;
+            }
+            break;
+
+        case 'audiomotion':
+        case 'milkdrop':
+            if (isSpotify) {
+                return defaultVisualizer;
+            }
+            break;
+
+        case 'none':
+            return defaultVisualizer;
+
+        case '': {
+            // Random provider.
+            let providers = isSpotify ? spotifyRandomProviders : randomProviders;
+            if (settings.ambientVideoEnabled) {
+                providers = providers.concat(isSpotify ? spotifyRandomVideo : randomVideo);
+            }
+            provider = getRandomValue(providers);
+            if (
+                reason === 'click' &&
+                provider === currentVisualizer.providerId &&
+                getVisualizers(provider).length === 1
+            ) {
+                provider = getRandomValue(providers, provider);
+            }
         }
     }
     const presets = getVisualizers(provider);
     return getRandomValue(presets, currentVisualizer) || defaultVisualizer;
 }
-
-observeSettings().subscribe(logger.rx('settings'));
