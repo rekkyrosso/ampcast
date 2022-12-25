@@ -7,7 +7,7 @@ import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import PlaybackState from 'types/PlaybackState';
 import {findBestMatch} from 'services/lookup';
-import {bestOf, Logger} from 'utils';
+import {Logger} from 'utils';
 
 console.log('module:localdb/listens');
 
@@ -97,12 +97,24 @@ export function findScrobble(
     }
 }
 
-export function findListen(item: MediaItem, timeFuzziness = 5): Listen | undefined {
+export function findListen(item: MediaItem, timeFuzziness?: number): MediaItem | undefined {
+    const listens = getListens();
+    return (
+        findListenByPlayedAt(listens, item, timeFuzziness) ||
+        findListenByUniqueId(listens, item) ||
+        findBestMatch(listens, item)
+    );
+}
+
+function findListenByPlayedAt(
+    listens: readonly Listen[],
+    item: MediaItem,
+    timeFuzziness = 5
+): Listen | undefined {
     const playedAt = item.playedAt;
     if (!playedAt) {
         return undefined;
     }
-    const listens = getListens();
     for (let i = 0; i < listens.length; i++) {
         const prevListen = listens[i - 1];
         if (prevListen && prevListen.playedAt < playedAt) {
@@ -119,30 +131,11 @@ export function findListen(item: MediaItem, timeFuzziness = 5): Listen | undefin
     }
 }
 
-export function enhanceWithListenData(item: MediaItem): MediaItem {
-    const listens = getListens();
-    const listen =
-        findListen(item) || findListenByUniqueId(listens, item) || findBestMatch(listens, item);
-    if (listen) {
-        return {
-            ...bestOf(listen, item),
-            src: item.src,
-            externalUrl: item.externalUrl,
-            playedAt: item.playedAt,
-            link: {
-                src: listen.src,
-                externalUrl: listen.externalUrl,
-            },
-        };
-    }
-    return item;
-}
-
 function findListenByUniqueId(listens: readonly Listen[], item: MediaItem): Listen | undefined {
     return listens.find(
         (listen) =>
-            item.link?.src === listen.src ||
-            (item.link?.externalUrl && item.link.externalUrl === listen.externalUrl) ||
+            item.src === listen.src ||
+            (item.externalUrl && item.externalUrl === listen.externalUrl) ||
             (item.isrc && item.isrc === listen.isrc) ||
             (item.recording_mbid && item.recording_mbid === listen.recording_mbid)
     );

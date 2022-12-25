@@ -107,8 +107,12 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             externalUrl: '',
             title: track.title,
             addedAt: track.addedAt,
-            artists: track.grandparentTitle ? [track.grandparentTitle] : undefined,
-            albumArtist: albumTitle ? track.grandparentTitle : undefined,
+            artists: track.originalTitle
+                ? [track.originalTitle]
+                : track.grandparentTitle
+                ? [track.grandparentTitle]
+                : undefined,
+            albumArtist: albumTitle && !track.originalTitle ? track.grandparentTitle : undefined,
             album: albumTitle,
             duration: track.duration / 1000,
             track: albumTitle ? track.index : undefined,

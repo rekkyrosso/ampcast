@@ -24,13 +24,17 @@ export function isPlayableService(serviceId: string): boolean {
     return service ? !service.scrobbler : false;
 }
 
-export function hasPlayableSrc(item: {src: string}): boolean {
-    if (item) {
-        const [serviceId, type, id] = item.src.split(':');
+export function isPlayableSrc(src: string): boolean {
+    if (src) {
+        const [serviceId, type, id] = src.split(':');
         if (serviceId === 'blob' || serviceId === 'file') {
             return true;
         }
         return !!id && !!type && isPlayableService(serviceId);
     }
     return false;
+}
+
+export function hasPlayableSrc(item: {src: string}): boolean {
+    return item ? isPlayableSrc(item.src) : false;
 }

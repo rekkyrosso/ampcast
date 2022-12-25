@@ -61,7 +61,8 @@
             left: 0.25em;
             bottom: 0.25em;
 
-            .media-playback.paused & {
+            .media-playback.paused &,
+            .media.is-playing-video & {
                 display: none;
             }
         }

@@ -1,5 +1,6 @@
 import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
+import {findListen} from 'services/localdb/listens';
 import {getService, getLookupServices, hasPlayableSrc} from 'services/mediaServices';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {Logger} from 'utils';
@@ -26,7 +27,15 @@ export default async function lookup(item: MediaItem): Promise<MediaItem | undef
 }
 
 async function lookupMediaItem(item: MediaItem): Promise<MediaItem | undefined> {
-    const {link, artists = [], title} = item;
+    const listen = findListen(item);
+    if (listen) {
+        return listen;
+    }
+    const {link, ...rest} = item;
+    if (link && hasPlayableSrc(link)) {
+        return {...rest, ...link};
+    }
+    const {artists = [], title} = rest;
     const artist = artists[0];
     if (!artist || !title) {
         return;

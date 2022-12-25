@@ -54,11 +54,14 @@ youtubePlayer
     .pipe(
         map(Math.round),
         filter((time) => time > 120 && time % 30 === 0),
-        withLatestFrom(youtubePlayer.observeVideoId()),
-        tap(([time, videoId]) => {
-            const progress = storage.getJson<ProgressRecord>('progress', {});
-            progress[videoId] = time;
-            storage.setJson('progress', progress);
+        withLatestFrom(youtubePlayer.observeDuration(), youtubePlayer.observeVideoId()),
+        tap(([time, duration, videoId]) => {
+            // Longer than ten minutes.
+            if (duration > 600) {
+                const progress = storage.getJson<ProgressRecord>('progress', {});
+                progress[videoId] = time;
+                storage.setJson('progress', progress);
+            }
         })
     )
     .subscribe(logger);

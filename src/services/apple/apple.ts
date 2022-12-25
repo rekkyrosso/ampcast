@@ -25,7 +25,7 @@ const defaultArtistLayout: MediaSourceLayout<MediaArtist> = {
     fields: ['Thumbnail', 'Title', 'Genre'],
 };
 
-const appleMusicVideos: MediaSource<MediaItem> = {
+export const appleMusicVideos: MediaSource<MediaItem> = {
     id: 'apple/video',
     title: 'Music Video',
     icon: 'video',

@@ -8,7 +8,6 @@ import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
-import {enhanceWithListenData} from 'services/localdb/listens';
 import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
@@ -113,7 +112,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
     private createMediaItem(track: LastFm.Track): MediaItem {
         const playedAt = track.date ? Number(track.date.uts) || 0 : 0;
 
-        return enhanceWithListenData({
+        return {
             ...(this.createMediaObject(ItemType.Media, track) as MediaItem),
             mediaType: MediaType.Audio,
             src: playedAt ? `lastfm:listen:${playedAt}` : `lastfm:track:${nanoid()}`,
@@ -121,7 +120,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
             album: track.album?.['#text'],
             duration: Number(track.duration) || 0,
             playedAt,
-        });
+        };
     }
 
     private createMediaAlbum(album: LastFm.Album): MediaAlbum {

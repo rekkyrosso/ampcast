@@ -1,8 +1,9 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useLayoutEffect, useState} from 'react';
 import {from} from 'rxjs';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import Thumbnail from 'types/Thumbnail';
+import {findListen} from 'services/localdb/listens';
 import {getCoverArtThumbnails} from 'services/musicbrainz/coverart';
 import plexSettings from 'services/plex/plexSettings';
 import Icon, {IconName} from 'components/Icon';
@@ -22,8 +23,15 @@ export default function CoverArt({item, maxSize, className = ''}: CoverArtProps)
     const src = thumbnail ? getThumbnailUrl(thumbnail) : '';
     const fallback = getFallbackIcon(item.itemType);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         if (!hasThumbnails) {
+            if (item.itemType === ItemType.Media) {
+                const listen = findListen(item);
+                if (listen && listen.thumbnails) {
+                    setThumbnails(listen.thumbnails);
+                    return;
+                }
+            }
             const subscription = from(getCoverArtThumbnails(item)).subscribe(setThumbnails);
             return () => subscription.unsubscribe();
         }

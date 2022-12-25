@@ -16,7 +16,6 @@ import {
     observeLookupStartEvents,
     observeLookupEndEvents,
 } from 'services/lookup';
-import {hasPlayableSrc} from 'services/mediaServices';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {exists, Logger} from 'utils';
 import settings from './playlistSettings';
@@ -279,21 +278,7 @@ async function createMediaItems(source: PlayableType): Promise<readonly MediaIte
             items = [await createMediaItem(source as File | MediaItem)];
         }
     }
-    return items.filter(exists).map((item) => createPlayableItem(item));
-}
-
-function createPlayableItem(item: MediaItem): MediaItem {
-    if (!hasPlayableSrc(item)) {
-        const {link, ...rest} = item;
-        if (link && hasPlayableSrc(link)) {
-            return {
-                ...rest,
-                src: link.src,
-                externalUrl: link.externalUrl,
-            };
-        }
-    }
-    return item;
+    return items.filter(exists);
 }
 
 async function createMediaItemsFromAlbum(album: MediaAlbum): Promise<readonly MediaItem[]> {

@@ -5,6 +5,7 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
+import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
 import SimplePager from 'services/pagers/SimplePager';
 import plexSettings from './plexSettings';
@@ -13,12 +14,18 @@ import PlexPager from './PlexPager';
 
 console.log('module::plex');
 
+const defaultLayout: MediaSourceLayout<MediaItem> = {
+    view: 'details',
+    fields: ['Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount'],
+};
+
 const plexMusicVideo: MediaSource<MediaItem> = {
     id: 'plex/video',
     title: 'Music Video',
     icon: 'video',
     itemType: ItemType.Media,
     searchable: true,
+    layout: defaultLayout,
 
     search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
         return new PlexPager(`/library/sections/${plexSettings.libraryId}/extras/all`, {
@@ -53,6 +60,7 @@ const plexMostPlayed: MediaSource<MediaItem> = {
     title: 'Most Played',
     icon: 'most-played',
     itemType: ItemType.Media,
+    layout: defaultLayout,
 
     search(): Pager<MediaItem> {
         return new PlexPager(`/library/sections/${plexSettings.libraryId}/all`, {
@@ -68,6 +76,7 @@ const plexTopRated: MediaSource<MediaItem> = {
     title: 'Top Rated',
     icon: 'star',
     itemType: ItemType.Media,
+    layout: defaultLayout,
 
     search(): Pager<MediaItem> {
         return new PlexPager(`/library/sections/${plexSettings.libraryId}/all`, {
@@ -83,6 +92,7 @@ const plexPlaylists: MediaSource<MediaPlaylist> = {
     title: 'Playlists',
     icon: 'playlists',
     itemType: ItemType.Playlist,
+    secondaryLayout: defaultLayout,
 
     search(): Pager<MediaPlaylist> {
         return new PlexPager(`/playlists/all`, {
@@ -99,10 +109,10 @@ const plex: MediaService = {
     url: 'https://www.plex.tv/',
     lookup: createLookupPager,
     roots: [
-        createRoot(ItemType.Media, {title: 'Songs'}),
+        createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
         createRoot(ItemType.Artist, {title: 'Artists'}),
-        createRoot(ItemType.Playlist, {title: 'Playlists'}),
+        createRoot(ItemType.Playlist, {title: 'Playlists', secondaryLayout: defaultLayout}),
     ],
     sources: [plexMusicVideo, plexMostPlayed, plexRecentlyPlayed, plexTopRated, plexPlaylists],
 

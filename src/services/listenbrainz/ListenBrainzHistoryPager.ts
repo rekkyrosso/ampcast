@@ -3,7 +3,6 @@ import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import Pager, {Page} from 'types/Pager';
-import {enhanceWithListenData} from 'services/localdb/listens';
 import SequentialPager from 'services/pagers/SequentialPager';
 import listenbrainzApi from './listenbrainzApi';
 import listenbrainzSettings from './listenbrainzSettings';
@@ -81,7 +80,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
         // listening_from: "Plex/lastfm/jellyfin/Rhythmbox/..."
         // origin_url: "https://anyband.bandcamp.com/album/..."
 
-        return enhanceWithListenData({
+        return {
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             src: `listenbrainz:listen:${item.listened_at}`,
@@ -103,7 +102,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
                 src: this.getPlayableSrc(info) || '',
                 externalUrl: info?.origin_url || '',
             },
-        });
+        };
     }
 
     private getPlayableSrc(

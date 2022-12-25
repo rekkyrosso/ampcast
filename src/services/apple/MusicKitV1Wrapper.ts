@@ -5,6 +5,10 @@ export default class MusicKitV1Wrapper {
 
     constructor(private readonly MusicKit: MusicKitType) {}
 
+    get version() {
+        return this.MusicKit.version;
+    }
+
     get Events() {
         return this.MusicKit.Events;
     }

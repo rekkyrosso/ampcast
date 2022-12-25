@@ -11,6 +11,7 @@ import MediaSource from 'types/MediaSource';
 import Login from 'components/Login';
 import SearchBar from 'components/SearchBar';
 import {MediaListProps} from 'components/MediaList';
+import AppleMusicVideo from 'services/apple/components/AppleMusicVideo';
 import LastFmHistoryBrowser from 'services/lastfm/components/LastFmHistoryBrowser';
 import LastFmRecentlyPlayedBrowser from 'services/lastfm/components/LastFmRecentlyPlayedBrowser';
 import LastFmTopBrowser from 'services/lastfm/components/LastFmTopBrowser';
@@ -57,6 +58,9 @@ function Router<T extends MediaObject>({service, sources}: MediaBrowserProps<T>)
     const source = sources.length === 1 ? sources[0] : null;
 
     switch (source?.id) {
+        case 'apple/video':
+            return <AppleMusicVideo />;
+
         case 'lastfm/top/tracks':
         case 'lastfm/top/albums':
         case 'lastfm/top/artists':

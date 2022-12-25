@@ -6,13 +6,11 @@ import {
     unlock,
     nextVisualizer,
     observeProviderId,
-    observeNextVisualizerReason,
     observeCurrentVisualizers,
 } from 'services/visualizer';
 import Icon from 'components/Icon';
 import IconButton from 'components/Button/IconButton';
 import IconButtons from 'components/Button/IconButtons';
-import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
 import useObservable from 'hooks/useObservable';
 import {showDialog} from 'components/Dialog';
 import {VisualizerSettingsDialog} from 'components/Settings';
@@ -22,16 +20,14 @@ import useVideoSourceIcon from './useVideoSourceIcon';
 import './Visualizer.scss';
 
 export default memo(function VisualizerControls() {
-    const currentVisualizer = useCurrentVisualizer();
     const currentVisualizers = useObservable(observeCurrentVisualizers, []);
-    const reason = useObservable(observeNextVisualizerReason, 'sync');
     const locked = useObservable(observeLocked, false);
     const providerId = useObservable(observeProviderId, undefined);
     const hasVisualizers = providerId !== 'none';
     const isRandom = !providerId;
     const hasNext = !locked && (isRandom || currentVisualizers.length > 1);
     const videoIcon = useVideoSourceIcon();
-    const [showStatic, setShowStatic] = useState(0);
+    const [nextClicked, setNextClicked] = useState(0);
 
     const openInfoDialog = useCallback(() => {
         showDialog(CurrentlyPlayingDialog);
@@ -42,28 +38,22 @@ export default memo(function VisualizerControls() {
     }, []);
 
     const handleNextClick = useCallback(() => {
-        if (showStatic === 0) {
+        if (nextClicked === 0) {
             nextVisualizer('click');
         }
-        setShowStatic(showStatic + 1);
-    }, [showStatic]);
+        setNextClicked(nextClicked + 1);
+    }, [nextClicked]);
 
     useEffect(() => {
-        if (showStatic) {
-            const subscription = timer(500).subscribe(() => setShowStatic(0));
+        if (nextClicked) {
+            const subscription = timer(500).subscribe(() => setNextClicked(0));
             return () => subscription.unsubscribe();
         }
-    }, [showStatic]);
-
-    useEffect(() => {
-        if (reason === 'provider') {
-            setShowStatic(1);
-        }
-    }, [currentVisualizer, reason]);
+    }, [nextClicked]);
 
     return (
         <div className="visualizer-controls">
-            {hasVisualizers && showStatic ? <Static /> : null}
+            {hasVisualizers && nextClicked ? <Static /> : null}
             <IconButtons className="visualizer-controls-settings">
                 <IconButton
                     className="with-overlay"
