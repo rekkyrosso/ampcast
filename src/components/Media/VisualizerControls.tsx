@@ -83,7 +83,7 @@ export default memo(function VisualizerControls() {
                         <IconButton
                             className="with-overlay"
                             icon="right"
-                            title="Change the visualizer"
+                            title="Next visualizer"
                             tabIndex={-1}
                             onClick={handleNextClick}
                         />

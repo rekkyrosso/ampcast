@@ -9,6 +9,7 @@ import MediaServiceId from 'types/MediaServiceId';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
+import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import JellyfinPager from './JellyfinPager';
 import jellyfinSettings from './jellyfinSettings';
@@ -21,6 +22,11 @@ const serviceId: MediaServiceId = 'jellyfin';
 const defaultLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
     fields: ['Artist', 'Title', 'Album', 'Track', 'Duration', 'Genre', 'PlayCount'],
+};
+
+const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
+    view: 'details',
+    fields: ['Index', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount'],
 };
 
 const jellyfinLikedSongs: MediaSource<MediaItem> = {
@@ -95,7 +101,7 @@ const jellyfinPlaylists: MediaSource<MediaPlaylist> = {
         view: 'card compact',
         fields: ['Thumbnail', 'Title', 'TrackCount'],
     },
-    secondaryLayout: defaultLayout,
+    secondaryLayout: playlistItemsLayout,
 
     search(): Pager<MediaPlaylist> {
         return createItemsPager({
@@ -111,12 +117,12 @@ const jellyfin: MediaService = {
     icon: serviceId,
     name: 'Jellyfin',
     url: 'https://jellyfin.org/',
-    lookup: createLookupPager,
+    lookup: jellyfinLookup,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs'}),
         createRoot(ItemType.Album, {title: 'Albums'}),
         createRoot(ItemType.Artist, {title: 'Artists'}),
-        createRoot(ItemType.Playlist, {title: 'Playlists'}),
+        createRoot(ItemType.Playlist, {title: 'Playlists', secondaryLayout: playlistItemsLayout}),
     ],
     sources: [
         jellyfinMostPlayed,
@@ -131,6 +137,20 @@ const jellyfin: MediaService = {
     login,
     logout,
 };
+
+export async function jellyfinLookup(
+    artist: string,
+    title: string,
+    limit = 10,
+    timeout?: number
+): Promise<readonly MediaItem[]> {
+    if (!artist || !title) {
+        return [];
+    }
+    const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit};
+    const pager = createSearchPager<MediaItem>(ItemType.Media, title, {Artists: artist}, options);
+    return fetchFirstPage(pager, timeout);
+}
 
 function createRoot<T extends MediaObject>(
     itemType: ItemType,
@@ -147,17 +167,6 @@ function createRoot<T extends MediaObject>(
             return createSearchPager(itemType, q);
         },
     };
-}
-
-function createLookupPager(
-    artist: string,
-    title: string,
-    options?: Partial<PagerConfig>
-): Pager<MediaItem> {
-    if (!artist || !title) {
-        new SimplePager();
-    }
-    return createSearchPager(ItemType.Media, title, {Artists: artist}, options);
 }
 
 function createSearchPager<T extends MediaObject>(

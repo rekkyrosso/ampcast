@@ -7,7 +7,9 @@ import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
+import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
+import {uniqBy} from 'utils/index';
 import plexSettings from './plexSettings';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './plexAuth';
 import PlexPager from './PlexPager';
@@ -17,6 +19,11 @@ console.log('module::plex');
 const defaultLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
     fields: ['Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount'],
+};
+
+const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
+    view: 'details',
+    fields: ['Index', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount'],
 };
 
 const plexMusicVideo: MediaSource<MediaItem> = {
@@ -92,10 +99,10 @@ const plexPlaylists: MediaSource<MediaPlaylist> = {
     title: 'Playlists',
     icon: 'playlists',
     itemType: ItemType.Playlist,
-    secondaryLayout: defaultLayout,
+    secondaryLayout: playlistItemsLayout,
 
     search(): Pager<MediaPlaylist> {
-        return new PlexPager(`/playlists/all`, {
+        return new PlexPager('/playlists/all', {
             type: '15', // playlist
             playlistType: 'audio',
         });
@@ -107,12 +114,12 @@ const plex: MediaService = {
     name: 'Plex',
     icon: 'plex',
     url: 'https://www.plex.tv/',
-    lookup: createLookupPager,
+    lookup: plexLookup,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
         createRoot(ItemType.Artist, {title: 'Artists'}),
-        createRoot(ItemType.Playlist, {title: 'Playlists', secondaryLayout: defaultLayout}),
+        createRoot(ItemType.Playlist, {title: 'Playlists', secondaryLayout: playlistItemsLayout}),
     ],
     sources: [plexMusicVideo, plexMostPlayed, plexRecentlyPlayed, plexTopRated, plexPlaylists],
 
@@ -121,6 +128,25 @@ const plex: MediaService = {
     login,
     logout,
 };
+
+export async function plexLookup(
+    artist: string,
+    title: string,
+    limit = 10,
+    timeout?: number
+): Promise<readonly MediaItem[]> {
+    if (!artist || !title) {
+        return [];
+    }
+    const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit};
+    const lookup = async (filter: Record<string, string>): Promise<readonly MediaItem[]> =>
+        fetchFirstPage(createSearchPager(ItemType.Media, title, filter, options), timeout);
+    const results = await Promise.all([
+        lookup({'artist.title': artist}),
+        lookup({originalTitle: artist}),
+    ]);
+    return uniqBy(results.flat(), 'src');
+}
 
 function createRoot<T extends MediaObject>(
     itemType: ItemType,
@@ -139,17 +165,6 @@ function createRoot<T extends MediaObject>(
     };
 }
 
-function createLookupPager(
-    artist: string,
-    title: string,
-    options?: Partial<PagerConfig>
-): Pager<MediaItem> {
-    if (!artist || !title) {
-        new SimplePager();
-    }
-    return createSearchPager(ItemType.Media, title, {'artist.title': artist}, options);
-}
-
 function createSearchPager<T extends MediaObject>(
     itemType: T['itemType'],
     q: string,
@@ -157,6 +172,10 @@ function createSearchPager<T extends MediaObject>(
     options?: Partial<PagerConfig>
 ): Pager<T> {
     if (q) {
+        const path =
+            itemType === ItemType.Playlist
+                ? '/playlists/all'
+                : `/library/sections/${plexSettings.libraryId}/all`;
         const params: Record<string, string> = {...filters, title: q};
         switch (itemType) {
             case ItemType.Media:
@@ -172,10 +191,11 @@ function createSearchPager<T extends MediaObject>(
                 break;
 
             case ItemType.Playlist:
+                params.playlistType = 'audio';
                 params.type = '15';
                 break;
         }
-        return new PlexPager<T>(`/library/sections/${plexSettings.libraryId}/all`, params, options);
+        return new PlexPager<T>(path, params, options);
     } else {
         return new SimplePager<T>();
     }

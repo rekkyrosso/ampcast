@@ -33,12 +33,12 @@ const logger = new Logger('visualizer');
 
 type NextReason = 'click' | 'item' | 'provider' | 'sync' | 'error';
 
-const defaultVisualizer: NoVisualizer = {
+const noVisualizer: NoVisualizer = {
     providerId: 'none',
     name: '',
 };
 
-const currentVisualizer$ = new BehaviorSubject<Visualizer>(defaultVisualizer);
+const currentVisualizer$ = new BehaviorSubject<Visualizer>(noVisualizer);
 const next$ = new Subject<NextReason>();
 const empty$ = observeCurrentItem().pipe(filter((item) => item == null));
 const media$ = observeCurrentItem().pipe(filter(exists));
@@ -52,14 +52,14 @@ const randomProviders: VisualizerProviderId[] = [
     ...Array(1).fill('waveform'),
 ];
 
-const randomVideo: VisualizerProviderId[] = Array(10).fill('ambientvideo');
-const spotifyRandomVideo: VisualizerProviderId[] = randomVideo.concat(randomVideo);
-
 const spotifyRandomProviders: VisualizerProviderId[] = [
     ...Array(59).fill('spotifyviz'), // most of the time use this one
     ...Array(20).fill('ampshader'),
     ...Array(1).fill('waveform'),
 ];
+
+const randomVideo: VisualizerProviderId[] = Array(10).fill('ambientvideo');
+const spotifyRandomVideo: VisualizerProviderId[] = randomVideo.concat(randomVideo);
 
 export function observeCurrentVisualizer(): Observable<Visualizer> {
     return currentVisualizer$;
@@ -142,7 +142,7 @@ getVisualizerProvider('milkdrop')
         skipWhile((presets) => presets.length === 0),
         withLatestFrom(observeCurrentVisualizer()),
         tap(([, currentVisualizer]) => {
-            if (currentVisualizer === defaultVisualizer) {
+            if (currentVisualizer === noVisualizer) {
                 nextVisualizer('sync');
             }
         }),
@@ -155,48 +155,46 @@ function getNextVisualizer(
     settings: VisualizerSettings,
     reason: NextReason
 ): Visualizer {
-    const lockedVisualizer = settings.lockedVisualizer;
-    if (lockedVisualizer) {
-        return (
-            getVisualizer(lockedVisualizer.providerId, lockedVisualizer.name) || defaultVisualizer
-        );
-    }
     const isSpotify = item.src.startsWith('spotify:');
-    const currentVisualizer = currentVisualizer$.getValue();
-    let provider = settings.provider;
+    const lockedVisualizer = settings.lockedVisualizer;
+    let provider = lockedVisualizer?.providerId || settings.provider;
     switch (provider) {
         case 'spotifyviz':
             if (!isSpotify) {
-                return defaultVisualizer;
+                return noVisualizer;
             }
             break;
 
         case 'audiomotion':
         case 'milkdrop':
             if (isSpotify) {
-                return defaultVisualizer;
+                return noVisualizer;
             }
             break;
 
         case 'none':
-            return defaultVisualizer;
-
-        case '': {
-            // Random provider.
-            let providers = isSpotify ? spotifyRandomProviders : randomProviders;
-            if (settings.ambientVideoEnabled) {
-                providers = providers.concat(isSpotify ? spotifyRandomVideo : randomVideo);
-            }
-            provider = getRandomValue(providers);
-            if (
-                reason === 'click' &&
-                provider === currentVisualizer.providerId &&
-                getVisualizers(provider).length === 1
-            ) {
-                provider = getRandomValue(providers, provider);
-            }
+            return noVisualizer;
+    }
+    if (lockedVisualizer) {
+        return getVisualizer(lockedVisualizer.providerId, lockedVisualizer.name) || noVisualizer;
+    }
+    const currentVisualizer = currentVisualizer$.getValue();
+    provider = settings.provider;
+    if (!provider) {
+        // Random provider.
+        let providers = isSpotify ? spotifyRandomProviders : randomProviders;
+        if (settings.ambientVideoEnabled) {
+            providers = providers.concat(isSpotify ? spotifyRandomVideo : randomVideo);
+        }
+        provider = getRandomValue(providers);
+        if (
+            reason === 'click' &&
+            provider === currentVisualizer.providerId &&
+            getVisualizers(provider).length === 1
+        ) {
+            provider = getRandomValue(providers, provider);
         }
     }
     const presets = getVisualizers(provider);
-    return getRandomValue(presets, currentVisualizer) || defaultVisualizer;
+    return getRandomValue(presets, currentVisualizer) || noVisualizer;
 }

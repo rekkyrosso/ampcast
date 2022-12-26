@@ -9,6 +9,7 @@ import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
+import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './appleAuth';
 import MusicKitPager, {MusicKitPage} from './MusicKitPager';
@@ -132,7 +133,7 @@ const apple: MediaService = {
     name: 'Apple Music',
     icon: 'apple',
     url: 'https://music.apple.com/',
-    lookup: createLookupPager,
+    lookup: appleLookup,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -154,6 +155,25 @@ const apple: MediaService = {
     logout,
 };
 
+export async function appleLookup(
+    artist: string,
+    title: string,
+    limit = 10,
+    timeout?: number
+): Promise<readonly MediaItem[]> {
+    if (!artist || !title) {
+        return [];
+    }
+    const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit};
+    const pager = createSearchPager<MediaItem>(
+        ItemType.Media,
+        `${artist} ${title}`,
+        undefined,
+        options
+    );
+    return fetchFirstPage(pager, timeout);
+}
+
 function createRoot<T extends MediaObject>(
     itemType: ItemType,
     props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
@@ -169,17 +189,6 @@ function createRoot<T extends MediaObject>(
             return createSearchPager(itemType, q);
         },
     };
-}
-
-function createLookupPager(
-    artist: string,
-    title: string,
-    options?: Partial<PagerConfig>
-): Pager<MediaItem> {
-    if (!artist || !title) {
-        new SimplePager();
-    }
-    return createSearchPager(ItemType.Media, `${artist} ${title}`, undefined, options);
 }
 
 function createSearchPager<T extends MediaObject>(

@@ -2,7 +2,6 @@ import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
 import {findListen} from 'services/localdb/listens';
 import {getService, getLookupServices, hasPlayableSrc} from 'services/mediaServices';
-import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {Logger} from 'utils';
 import {dispatchLookupStartEvent, dispatchLookupEndEvent} from './lookupEvents';
 import lookupStore from './lookupStore';
@@ -71,15 +70,12 @@ async function serviceLookup(
             return lookup.items;
         }
         if (service.isLoggedIn()) {
-            const pager = service.lookup(
+            const matches = await service.lookup(
                 removeFeaturedArtists(artist),
                 removeFeaturedArtists(title),
-                {
-                    pageSize: 10,
-                    maxSize: 10,
-                }
+                10,
+                2000
             );
-            const matches = await fetchFirstPage(pager, 2000);
             const foundItems = findMatches(matches, artist, title);
             await lookupStore.add(service.id, artist, title, foundItems);
             return foundItems;

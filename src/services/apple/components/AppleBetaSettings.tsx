@@ -40,6 +40,12 @@ export default function AppleBetaSettings() {
                 </p>
                 <p>You will need to refresh the page for changes to take effect.</p>
             </div>
+            <p>
+                <small>
+                    MusicKit is a JavaScript library supplied by Apple that provides access to Apple
+                    Music services and playback.
+                </small>
+            </p>
             <footer className="dialog-buttons">
                 <button value="#cancel">Cancel</button>
                 <button>Confirm</button>

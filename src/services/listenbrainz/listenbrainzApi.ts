@@ -122,10 +122,12 @@ export class ListenBrainzApi {
                 Date.now() + (Number(headers.get('x-ratelimit-reset-in')) || 1) * 1000;
         }
 
-        logger.log({
-            rateLimitRemaining: this.rateLimitRemainingCalls,
-            rateLimitReset: new Date(this.rateLimitResetTime).toISOString(),
-        });
+        if (this.rateLimitRemainingCalls < 5) {
+            logger.log({
+                rateLimitRemainingCalls: this.rateLimitRemainingCalls,
+                rateLimitReset: new Date(this.rateLimitResetTime).toISOString(),
+            });
+        }
 
         return response;
     }

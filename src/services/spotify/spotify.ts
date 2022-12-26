@@ -11,6 +11,7 @@ import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
+import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import {Logger} from 'utils';
 import {
@@ -51,6 +52,11 @@ const defaultLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
 };
 
+const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
+    view: 'details',
+    fields: ['Index', 'Artist', 'Title', 'Album', 'Track', 'Duration'],
+};
+
 const defaultArtistLayout: MediaSourceLayout<MediaArtist> = {
     view: 'card compact',
     fields: ['Thumbnail', 'Title', 'Genre'],
@@ -61,6 +67,7 @@ const spotifyRecentlyPlayed: MediaSource<MediaItem> = {
     title: 'Recently Played',
     icon: 'clock',
     itemType: ItemType.Media,
+    defaultHidden: true,
     layout: {
         view: 'card',
         fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'LastPlayed'],
@@ -157,6 +164,7 @@ const spotifyPlaylists: MediaSource<MediaPlaylist> = {
     title: 'Playlists',
     icon: 'playlists',
     itemType: ItemType.Playlist,
+    secondaryLayout: playlistItemsLayout,
 
     search(): Pager<MediaPlaylist> {
         const market = getMarket();
@@ -171,22 +179,63 @@ const spotifyPlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
+const spotifyFeaturedPlaylists: MediaSource<MediaPlaylist> = {
+    id: 'spotify/featured-playlists',
+    title: 'Featured Playlists',
+    icon: 'playlists',
+    itemType: ItemType.Playlist,
+    defaultHidden: true,
+    secondaryLayout: playlistItemsLayout,
+
+    search(): Pager<MediaPlaylist> {
+        const market = getMarket();
+        return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
+            const {
+                playlists: {items, total, next},
+            } = await spotifyApi.getFeaturedPlaylists({
+                offset,
+                limit,
+                market,
+            });
+            return {items: items as SpotifyPlaylist[], total, next};
+        });
+    },
+};
+
+// const spotifyCategories: MediaSource<MediaPlaylist> = {
+//     id: 'spotify/categories',
+//     title: 'Categories',
+//     icon: 'playlists',
+//     itemType: ItemType.Playlist,
+
+//     search(): Pager<MediaPlaylist> {
+//         const market = getMarket();
+//         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
+//             const {
+//                 categories: {items, total, next},
+//             } = await spotifyApi.getCategories({
+//                 offset,
+//                 limit,
+//                 market,
+//             });
+//             return {items: items as SpotifyPlaylist[], total, next};
+//         });
+//     },
+// };
+
 const spotify: MediaService = {
     id: 'spotify',
     name: 'Spotify',
     icon: 'spotify',
     url: 'https://www.spotify.com/',
-    lookup: createLookupPager,
+    lookup: appleLookup,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
         createRoot(ItemType.Artist, {title: 'Artists', layout: defaultArtistLayout}),
         createRoot(ItemType.Playlist, {
             title: 'Playlists',
-            secondaryLayout: {
-                view: 'details',
-                fields: ['Index', 'Artist', 'Title', 'Album', 'Duration'],
-            },
+            secondaryLayout: playlistItemsLayout,
         }),
     ],
     sources: [
@@ -196,6 +245,7 @@ const spotify: MediaService = {
         spotifyLikedSongs,
         spotifyLikedAlbums,
         spotifyPlaylists,
+        spotifyFeaturedPlaylists,
     ],
 
     observeIsLoggedIn,
@@ -206,17 +256,23 @@ const spotify: MediaService = {
 
 export default spotify;
 
-observeAccessToken().subscribe((token) => spotifyApi.setAccessToken(token));
-
-if (!getMarket()) {
-    observeAccessToken()
-        .pipe(
-            skipWhile((token) => !token),
-            mergeMap(() => spotifyApi.getMe()),
-            tap((me) => authSettings.setString('market', me.country)),
-            take(1)
-        )
-        .subscribe(logger);
+export async function appleLookup(
+    artist: string,
+    title: string,
+    limit = 10,
+    timeout?: number
+): Promise<readonly MediaItem[]> {
+    if (!artist || !title) {
+        return [];
+    }
+    const safeString = (s: string) => s.replace(/['"]/g, ' ');
+    const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit};
+    const pager = createSearchPager<MediaItem>(
+        ItemType.Media,
+        `${safeString(title)} artist:${safeString(artist)}`,
+        options
+    );
+    return fetchFirstPage(pager, timeout);
 }
 
 function createRoot<T extends MediaObject>(
@@ -234,22 +290,6 @@ function createRoot<T extends MediaObject>(
             return createSearchPager(itemType, q);
         },
     };
-}
-
-function createLookupPager(
-    artist: string,
-    title: string,
-    options?: Partial<PagerConfig>
-): Pager<MediaItem> {
-    if (!artist || !title) {
-        new SimplePager();
-    }
-    const safeString = (s: string) => s.replace(/['"]/g, ' ');
-    return createSearchPager(
-        ItemType.Media,
-        `${safeString(title)} artist:${safeString(artist)}`,
-        options
-    );
 }
 
 function createSearchPager<T extends MediaObject>(
@@ -306,4 +346,17 @@ function getFetch(
 
 function getMarket(): string {
     return authSettings.getString('market');
+}
+
+observeAccessToken().subscribe((token) => spotifyApi.setAccessToken(token));
+
+if (!getMarket()) {
+    observeAccessToken()
+        .pipe(
+            skipWhile((token) => !token),
+            mergeMap(() => spotifyApi.getMe()),
+            tap((me) => authSettings.setString('market', me.country)),
+            take(1)
+        )
+        .subscribe(logger);
 }

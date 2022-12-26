@@ -11,12 +11,13 @@ export default function AppleMusicVideo() {
 function BetaWarning() {
     return (
         <EmptyScreen>
-            <div className="note">
-                <p>
-                    You need to enable MusicKit beta from the settings to watch videos from Apple
-                    Music.
-                </p>
-            </div>
+            <p>
+                <strong>Apple MusicKit beta required.</strong>
+            </p>
+            <p>
+                You need to enable <strong>MusicKit beta</strong> from the settings to watch videos
+                from Apple Music.
+            </p>
         </EmptyScreen>
     );
 }
