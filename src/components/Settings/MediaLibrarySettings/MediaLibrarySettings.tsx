@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import TabList, {TabItem} from 'components/TabList';
 import MediaLibrarySettingsGeneral from './MediaLibrarySettingsGeneral';
+import LookupSettings from './LookupSettings';
 
 export default function MediaLibrarySettings() {
     const tabs: TabItem[] = useMemo(
@@ -8,6 +9,10 @@ export default function MediaLibrarySettings() {
             {
                 tab: 'General',
                 panel: <MediaLibrarySettingsGeneral />,
+            },
+            {
+                tab: 'Lookup',
+                panel: <LookupSettings />,
             },
         ],
         []

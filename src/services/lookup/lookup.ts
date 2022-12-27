@@ -1,14 +1,18 @@
+import unidecode from 'unidecode';
 import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
 import {findListen} from 'services/localdb/listens';
 import {getService, getLookupServices, hasPlayableSrc} from 'services/mediaServices';
-import {Logger} from 'utils';
+import {filterNotEmpty, fuzzyCompare, Logger} from 'utils';
 import {dispatchLookupStartEvent, dispatchLookupEndEvent} from './lookupEvents';
+import lookupSettings from './lookupSettings';
 import lookupStore from './lookupStore';
 
 const logger = new Logger('lookup');
 
-export default async function lookup(item: MediaItem): Promise<MediaItem | undefined> {
+let lastFoundService = '';
+
+export default async function lookup<T extends MediaItem>(item: T): Promise<MediaItem | undefined> {
     try {
         if (!item) {
             return;
@@ -18,6 +22,9 @@ export default async function lookup(item: MediaItem): Promise<MediaItem | undef
         }
         dispatchLookupStartEvent(item);
         const foundItem = await lookupMediaItem(item);
+        if (foundItem) {
+            [lastFoundService] = foundItem.src.split(':');
+        }
         dispatchLookupEndEvent(item, foundItem);
         return foundItem;
     } catch (err) {
@@ -25,7 +32,7 @@ export default async function lookup(item: MediaItem): Promise<MediaItem | undef
     }
 }
 
-async function lookupMediaItem(item: MediaItem): Promise<MediaItem | undefined> {
+async function lookupMediaItem<T extends MediaItem>(item: T): Promise<MediaItem | undefined> {
     const listen = findListen(item);
     if (listen) {
         return listen;
@@ -34,8 +41,7 @@ async function lookupMediaItem(item: MediaItem): Promise<MediaItem | undefined> 
     if (link && hasPlayableSrc(link)) {
         return {...rest, ...link};
     }
-    const {artists = [], title} = rest;
-    const artist = artists[0];
+    const {artist, title} = getArtistAndTitle(item);
     if (!artist || !title) {
         return;
     }
@@ -43,40 +49,46 @@ async function lookupMediaItem(item: MediaItem): Promise<MediaItem | undefined> 
     const [serviceId] = link?.src.split(':') || [];
     const service = getService(serviceId);
     if (service) {
-        matches = await serviceLookup(service, artist, title);
+        matches = await serviceLookup(service, item);
     }
     if (matches.length === 0) {
         // Search logged in services first.
-        matches = await multiLookup(artist, title, true, service);
+        matches = await multiLookup(item, true, service);
     }
     if (matches.length === 0) {
         // See if we have anything stored for not logged in services.
-        matches = await multiLookup(artist, title, false, service);
+        matches = await multiLookup(item, false, service);
     }
     return findBestMatch(matches, item);
 }
 
-async function serviceLookup(
+async function serviceLookup<T extends MediaItem>(
     service: MediaService,
-    artist: string,
-    title: string
+    item: T
 ): Promise<readonly MediaItem[]> {
     try {
         if (!service.lookup) {
             return [];
         }
+        const {artist, title} = getArtistAndTitle(item);
         const lookup = await lookupStore.get(service.id, artist, title);
         if (lookup) {
             return lookup.items;
         }
         if (service.isLoggedIn()) {
+            const searchString = (q: string): string =>
+                normalize(q)
+                    .replace(/[([].*$/, '')
+                    .replace(/['"]/g, ' ')
+                    .replace(/\s\s+/g, ' ');
+
             const matches = await service.lookup(
-                removeFeaturedArtists(artist),
-                removeFeaturedArtists(title),
+                searchString(item.albumArtist || removeFeaturedArtists(artist)),
+                searchString(removeFeaturedArtists(title)),
                 10,
                 2000
             );
-            const foundItems = findMatches(matches, artist, title);
+            const foundItems = findMatches(matches, item);
             await lookupStore.add(service.id, artist, title, foundItems);
             return foundItems;
         }
@@ -86,9 +98,8 @@ async function serviceLookup(
     return [];
 }
 
-async function multiLookup(
-    artist: string,
-    title: string,
+async function multiLookup<T extends MediaItem>(
+    item: T,
     isLoggedIn: boolean,
     excludedService?: MediaService
 ): Promise<readonly MediaItem[]> {
@@ -99,38 +110,48 @@ async function multiLookup(
         return [];
     } else {
         const matches = await Promise.all([
-            ...services.map((service) => serviceLookup(service, artist, title)),
+            ...services.map((service) => serviceLookup(service, item)),
         ]);
         return matches.flat();
     }
 }
 
-export function findBestMatch<T extends MediaItem>(matches: readonly T[], item: T): T | undefined {
-    const {artists = [], title, album = ''} = item;
-    const artist = artists[0];
+export function findBestMatch<T extends MediaItem>(
+    items: readonly MediaItem[],
+    item: T
+): MediaItem | undefined {
+    const {artist, title} = getArtistAndTitle(item);
     if (!artist || !title) {
         return;
     }
-    const foundItems = findMatches(matches, artist, title);
-    return foundItems.find((item) => compareAlbum(item, album)) || foundItems[0];
+    const preferredService = lookupSettings.preferredService || lastFoundService;
+    let matches = findMatches(items, item);
+    matches = filterNotEmpty(matches, (match) => compareAlbum(match, item));
+    if (preferredService) {
+        matches = filterNotEmpty(matches, (match) => match.src.startsWith(preferredService));
+    }
+    return matches[0];
 }
 
 function findMatches<T extends MediaItem>(
-    matches: readonly T[],
-    artist: string,
-    title: string
-): readonly T[] {
-    let foundItems = matches.filter((match) => compare(match, artist, title, true));
+    matches: readonly MediaItem[],
+    item: T
+): readonly MediaItem[] {
+    let foundItems = matches.filter((match) => compare(match, item, true));
     if (foundItems.length === 0) {
-        foundItems = matches.filter((match) => compare(match, artist, title, false));
+        foundItems = matches.filter((match) => compare(match, item, false));
     }
     return foundItems;
 }
 
 const regFeaturedArtists = /\s*(feat\.|[([]?\s?feat[\s.]).*$/i;
 
-function compare(match: MediaItem, artist: string, title: string, strict: boolean): boolean {
-    return compareTitle(match, title, strict) && compareArtist(match, artist, strict);
+function compare<T extends MediaItem>(match: MediaItem, item: T, strict: boolean): boolean {
+    const {artist, title} = getArtistAndTitle(item);
+    return (
+        (compareTitle(match, title, strict) || compareAlbumTrack(match, item)) &&
+        compareArtist(match, artist, strict)
+    );
 }
 
 function compareArtist(match: MediaItem, artist: string, strict: boolean): boolean {
@@ -173,6 +194,21 @@ function compareArtist(match: MediaItem, artist: string, strict: boolean): boole
     return false;
 }
 
+function compareAlbumTrack<T extends MediaItem>(match: MediaItem, item: T): boolean {
+    if (!compareAlbum(match, item)) {
+        return false;
+    }
+    if (match.track !== item.track) {
+        return false;
+    }
+    const a = normalize(match.title);
+    const b = normalize(item.title);
+    if (a.startsWith(b) || b.startsWith(a)) {
+        return true;
+    }
+    return fuzzyCompare(a, b, 0.75);
+}
+
 function compareTitle(match: MediaItem, title: string, strict: boolean): boolean {
     const matchedTitle = normalize(match.title);
     title = normalize(title);
@@ -207,22 +243,27 @@ function compareTitle(match: MediaItem, title: string, strict: boolean): boolean
     return false;
 }
 
-function compareAlbum(match: MediaItem, album: string): boolean {
-    if (!album || !match.album) {
+function compareAlbum<T extends MediaItem>(match: MediaItem, item: T): boolean {
+    if (!match.album || !item.album) {
         return false;
     }
-    return compareString(normalize(album), normalize(match.album));
+    return compareString(normalize(item.album), normalize(match.album));
 }
 
 function compareString(a: string, b = ''): boolean {
     return a.localeCompare(b, undefined, {sensitivity: 'accent'}) === 0;
 }
 
+function normalize(string: string): string {
+    return unidecode(string).replace(/\s\s+/g, ' ');
+}
+
+function getArtistAndTitle<T extends MediaItem>(item: T): {artist: string; title: string} {
+    const artist = item.artists ? item.artists[0] || '' : '';
+    return {artist, title: item.title};
+}
+
 function removeFeaturedArtists(title: string): string {
     // Featured artists: `(feat. Artist1, Artist2 & Artist3)`.
     return title.replace(regFeaturedArtists, '');
-}
-
-function normalize(string: string): string {
-    return string.replace(/’/g, `'`);
 }

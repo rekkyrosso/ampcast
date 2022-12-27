@@ -39,7 +39,7 @@ export default function MediaBrowser<T extends MediaObject>({
 }: MediaBrowserProps<T>) {
     const isLoggedIn = useObservable(service.observeIsLoggedIn, false);
     const renderError = useErrorScreen(service);
-    const key = String(sources.map((source) => source.id));
+    const key = `${service.id}/${sources.map((source) => source.id)}`;
 
     return (
         <div className={`media-browser ${service.id}-browser`} key={key}>

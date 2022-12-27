@@ -1,3 +1,4 @@
+import stringScore from 'string-score';
 export {default as LiteStorage} from './LiteStorage';
 export {default as Logger} from './Logger';
 export {default as browser} from './browser';
@@ -98,4 +99,17 @@ export function bestOf<T extends object>(a: T, b: Partial<T> = {}): T {
         }
         return result;
     }, {} as unknown as T);
+}
+
+export function filterNotEmpty<T>(
+    values: readonly T[],
+    predicate: (value: T, index: number, array: readonly T[]) => unknown,
+    thisArg?: any
+): readonly T[] {
+    const newValues = values.filter(predicate, thisArg);
+    return newValues.length === 0 ? values : newValues;
+}
+
+export function fuzzyCompare(a: string, b: string, tolerance = 0.9): boolean {
+    return Math.max(stringScore(a, b, 0.99), stringScore(b, a, 0.99)) >= tolerance;
 }

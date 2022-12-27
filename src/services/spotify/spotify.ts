@@ -228,7 +228,7 @@ const spotify: MediaService = {
     name: 'Spotify',
     icon: 'spotify',
     url: 'https://www.spotify.com/',
-    lookup: appleLookup,
+    lookup: spotifyLookup,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -256,7 +256,7 @@ const spotify: MediaService = {
 
 export default spotify;
 
-export async function appleLookup(
+export async function spotifyLookup(
     artist: string,
     title: string,
     limit = 10,
@@ -269,7 +269,7 @@ export async function appleLookup(
     const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit};
     const pager = createSearchPager<MediaItem>(
         ItemType.Media,
-        `${safeString(title)} artist:${safeString(artist)}`,
+        `${safeString(artist)} ${safeString(title)}`,
         options
     );
     return fetchFirstPage(pager, timeout);

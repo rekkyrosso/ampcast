@@ -41,7 +41,8 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
     constructor(
         initialParams: Record<string, string | number>,
         map: (response: any) => LastFmPage,
-        options?: LastFmPagerConfig
+        options?: LastFmPagerConfig,
+        private readonly album?: LastFm.Album
     ) {
         const config = {...this.defaultConfig, ...options};
 
@@ -56,11 +57,13 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
                 const result = await lastfmApi.get({...params, page, limit});
                 this.pageNumber++;
                 const {items, total, atEnd, itemType} = map(result);
-                return {
+                const test = {
                     items: this.createMediaObjects(itemType, items),
                     total,
                     atEnd,
                 };
+                console.log({test});
+                return test;
             },
             config
         );
@@ -111,14 +114,18 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
 
     private createMediaItem(track: LastFm.Track): MediaItem {
         const playedAt = track.date ? Number(track.date.uts) || 0 : 0;
+        const rank = track['@attr']?.rank;
 
         return {
             ...(this.createMediaObject(ItemType.Media, track) as MediaItem),
             mediaType: MediaType.Audio,
             src: playedAt ? `lastfm:listen:${playedAt}` : `lastfm:track:${nanoid()}`,
             artists: track.artist ? [track.artist.name] : undefined,
-            album: track.album?.['#text'],
+            album: this.album?.name || track.album?.['#text'],
+            albumArtist: this.album?.artist.name,
+            release_mbid: this.album?.mbid || track.album?.mbid,
             duration: Number(track.duration) || 0,
+            track: rank ? Number(rank) || undefined : undefined,
             playedAt,
         };
     }
@@ -240,7 +247,8 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
                     throw Error('No track info');
                 }
             },
-            {playCountName: 'userplaycount'}
+            {playCountName: 'userplaycount'},
+            album
         );
     }
 

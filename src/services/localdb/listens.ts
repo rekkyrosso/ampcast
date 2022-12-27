@@ -2,12 +2,11 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import {filter} from 'rxjs/operators';
 import Dexie, {liveQuery} from 'dexie';
-import stringScore from 'string-score';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import PlaybackState from 'types/PlaybackState';
 import {findBestMatch} from 'services/lookup';
-import {Logger} from 'utils';
+import {fuzzyCompare, Logger} from 'utils';
 
 console.log('module:localdb/listens');
 
@@ -146,14 +145,7 @@ function getListens(): readonly Listen[] {
 }
 
 function matchTitle(item: MediaItem, listen: MediaItem, tolerance?: number): boolean {
-    return matchString(item.title, listen.title, tolerance);
-}
-
-function matchString(string1: string, string2: string, tolerance = 0.9): boolean {
-    return (
-        Math.max(stringScore(string1, string2, 0.99), stringScore(string2, string1, 0.99)) >=
-        tolerance
-    );
+    return fuzzyCompare(item.title, listen.title, tolerance);
 }
 
 (async () => {

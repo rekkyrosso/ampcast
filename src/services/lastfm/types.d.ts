@@ -90,6 +90,9 @@ declare namespace LastFm {
             mbid?: string;
         };
         loved?: '0' | '1';
+        '@attr'?: {
+            rank?: string | number;
+        }
     }
 
     type MediaObject = Artist | Album | Track;

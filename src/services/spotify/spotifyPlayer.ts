@@ -103,6 +103,8 @@ export class SpotifyPlayer implements Player<string> {
             .subscribe(logger);
 
         // currentTrack
+        this.observeSrc().subscribe(() => this.currentTrackSrc$.next(''));
+
         this.observeState()
             .pipe(
                 tap((state) => {
@@ -194,7 +196,11 @@ export class SpotifyPlayer implements Player<string> {
                 )
             )
         ).pipe(
-            map((state) => (state ? state.position / 1000 : 0)),
+            map((state) =>
+                state?.track_window?.current_track?.uri === this.currentTrackSrc
+                    ? state.position / 1000
+                    : 0
+            ),
             distinctUntilChanged()
         );
     }

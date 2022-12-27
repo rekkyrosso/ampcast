@@ -40,6 +40,7 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
                 <Title title={item.title} />
                 <Artist artist={item.artists?.join(', ')} />
                 <AlbumAndYear album={item.album} year={item.year} />
+                <Track album={item.album} track={item.track} />
                 <Owner owner={item.owner} src={item.src} />
             </div>
             <ExternalView url={item.externalUrl} src={item.src} />
@@ -177,6 +178,17 @@ export function AlbumAndYear<T extends MediaItem>({album, year}: Pick<T, 'album'
     } else {
         return null;
     }
+}
+
+export function Track<T extends MediaItem>({album, track}: Pick<T, 'album' | 'track'>) {
+    if (album && track) {
+        return (
+            <p className="track">
+                Track: #{track}
+            </p>
+        );
+    }
+    return null;
 }
 
 export function Year<T extends MediaItem>({year}: Pick<T, 'year'>) {
