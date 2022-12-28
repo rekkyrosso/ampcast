@@ -1,7 +1,7 @@
 import React, {useMemo} from 'react';
 import PlaylistItem from 'types/PlaylistItem';
 import LookupStatus from 'types/LookupStatus';
-import {isPlayableService} from 'services/mediaServices';
+import {isPlayableSrc} from 'services/mediaServices';
 import playlistSettings from 'services/playlist/playlistSettings';
 import {ListViewLayout} from 'components/ListView';
 import {Duration} from 'components/MediaList/useMediaListLayout';
@@ -76,7 +76,7 @@ function RowIcon({src, lookupStatus}: PlaylistItem) {
             break;
 
         default:
-            if (isPlayableService(serviceId)) {
+            if (isPlayableSrc(src)) {
                 iconName = serviceId as IconName;
             } else {
                 iconName = 'lookup-pending';

@@ -11,13 +11,15 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "build:dev": "webpack --env=mode=development",
         "build:prod": "webpack --env=mode=production",
-        "start": "node server.js"
+        "start:dev": "node server.js",
+        "start:prod": "node server.js --prod"
     },
     "license": "ISC",
     "dependencies": {
         "@ctrl/tinycolor": "^3.4.1",
         "audiomotion-analyzer": "^3.6.0",
         "butterchurn": "^3.0.0-beta.4",
+        "butterchurn-presets": "3.0.0-beta.4",
         "d3-array": "^3.2.0",
         "d3-interpolate": "^3.0.1",
         "d3-scale": "^4.0.2",

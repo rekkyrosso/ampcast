@@ -1,0 +1,30 @@
+/*!
+ * Determine if an object is a Buffer
+ *
+ * @author   Feross Aboukhadijeh <https://feross.org>
+ * @license  MIT
+ */
+
+/**
+ * @license React
+ * react.production.min.js
+ *
+ * Copyright (c) Facebook, Inc. and its affiliates.
+ *
+ * This source code is licensed under the MIT license found in the
+ * LICENSE file in the root directory of this source tree.
+ */
+
+/**
+* @link https://github.com/gajus/sister for the canonical source repository
+* @license https://github.com/gajus/sister/blob/master/LICENSE BSD 3-Clause
+*/
+
+/**!
+ * audioMotion-analyzer
+ * High-resolution real-time graphic audio spectrum analyzer JS module
+ *
+ * @version 3.6.1
+ * @author  Henrique Avila Vianna <hvianna@gmail.com> <https://henriquevianna.com>
+ * @license AGPL-3.0-or-later
+ */

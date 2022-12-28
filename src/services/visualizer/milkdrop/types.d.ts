@@ -10,6 +10,10 @@ declare module 'butterchurn-presets' {
     export default 'butterchurn-presets' as Record<string, MilkdropRawData>;
 }
 
+declare module 'butterchurn-presets/dist/extra' {
+    export default 'butterchurn-presets' as Record<string, MilkdropRawData>;
+}
+
 interface ButterchurnVisualizer {
     connectAudio(node: AnalyserNode): void;
     disconnectAudio(node: AnalyserNode): void;

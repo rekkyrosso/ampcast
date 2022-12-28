@@ -1,4 +1,4 @@
-import {IAudioMetadata, parseBlob} from 'music-metadata-browser';
+import type {IAudioMetadata} from 'music-metadata-browser';
 import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
@@ -8,6 +8,12 @@ import {Logger} from 'utils';
 const logger = new Logger('file');
 
 export async function createMediaItemFromFile(file: File): Promise<MediaItem> {
+    const {parseBlob} = await import(
+        /* webpackChunkName: "music-metadata-browser" */
+        /* webpackMode: "lazy-once" */
+        'music-metadata-browser'
+    );
+
     let metadata: IAudioMetadata;
 
     try {

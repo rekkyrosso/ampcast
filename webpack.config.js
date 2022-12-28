@@ -13,10 +13,31 @@ module.exports = (env) => {
     const keys = __dev__ ? devKeys : prodKeys;
 
     return {
-        entry: './src/index.tsx',
+        entry: {
+            'lib/vendors': [
+                'dexie',
+                'audiomotion-analyzer',
+                'detect-browser',
+                'dialog-polyfill',
+                'fullscreen-api-polyfill',
+                'md5',
+                'react-error-boundary',
+                'spotify-web-api-js',
+                'youtube-player',
+            ],
+            'lib/unidecode': 'unidecode',
+            'lib/butterchurn': 'butterchurn',
+            bundle: {
+                import: './src/index.tsx',
+                dependOn: ['lib/butterchurn', 'lib/unidecode', 'lib/vendors'],
+            },
+        },
         output: {
-            filename: 'bundle.js',
+            chunkFilename: 'lib/[name].js',
             path: wwwDir,
+        },
+        optimization: {
+            runtimeChunk: 'single',
         },
         module: {
             rules: [

@@ -34,7 +34,7 @@ function updateSession(item: MediaItem | null = null): void {
     const mediaSession = navigator.mediaSession;
     if (item) {
         mediaSession.metadata = new MediaMetadata({
-            title: 'item.title',
+            title: item.title,
             artist: item.artists?.join(', '),
             // Windows 10 seems to favour `album` over `artist`.
             // So suppress `album` if `artist` is available.
