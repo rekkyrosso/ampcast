@@ -1,21 +1,21 @@
 import butterchurn from 'butterchurn';
-import {MilkdropVisualizer} from 'types/Visualizer';
+import {ButterchurnVisualizer} from 'types/Visualizer';
 import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 import {Logger} from 'utils';
 
-const logger = new Logger('MilkdropPlayer');
+const logger = new Logger('ButterchurnPlayer');
 
-export default class MilkdropPlayer extends AbstractVisualizerPlayer<MilkdropVisualizer> {
+export default class ButterchurnPlayer extends AbstractVisualizerPlayer<ButterchurnVisualizer> {
     private readonly canvas = document.createElement('canvas');
     private readonly context2D = this.canvas.getContext('2d')!;
-    private readonly visualizer: ButterchurnVisualizer;
+    private readonly visualizer: butterchurn.Visualizer;
     private animationFrameId = 0;
 
     constructor(private readonly analyser: AnalyserNode) {
         super();
 
         this.canvas.hidden = true;
-        this.canvas.className = `visualizer visualizer-milkdrop`;
+        this.canvas.className = `visualizer visualizer-butterchurn`;
 
         const visualizer = (this.visualizer = butterchurn.createVisualizer(
             analyser.context,
@@ -48,7 +48,7 @@ export default class MilkdropPlayer extends AbstractVisualizerPlayer<MilkdropVis
         parentElement.append(this.canvas);
     }
 
-    load(visualizer: MilkdropVisualizer): void {
+    load(visualizer: ButterchurnVisualizer): void {
         if (visualizer) {
             logger.log(`Using Butterchurn visualizer: ${visualizer.name}`);
             this.visualizer.loadPreset(visualizer.data, 0.5);

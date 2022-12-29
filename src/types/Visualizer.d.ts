@@ -17,7 +17,7 @@ export interface AudioMotionVisualizer extends BaseVisualizer<'audiomotion'> {
     options: AudioMotionOptions;
 }
 
-export interface MilkdropVisualizer extends BaseVisualizer<'milkdrop'> {
+export interface ButterchurnVisualizer extends BaseVisualizer<'butterchurn'> {
     data: MilkdropRawData;
 }
 
@@ -34,7 +34,7 @@ type Visualizer =
     | AmbientVideoVisualizer
     | AmpShaderVisualizer
     | AudioMotionVisualizer
-    | MilkdropVisualizer
+    | ButterchurnVisualizer
     | SpotifyVizVisualizer
     | WaveformVisualizer;
 

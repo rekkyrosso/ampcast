@@ -4,13 +4,13 @@ import VisualizerProvider from 'types/VisualizerProvider';
 import ambientvideo from './ambientvideo';
 import ampshader from './ampshader';
 import audiomotion from './audiomotion';
-import milkdrop from './milkdrop';
+import butterchurn from './butterchurn';
 import spotifyviz from './spotifyviz';
 import waveform from './waveform';
 import visualizerSettings from './visualizerSettings';
 
 export function getAllVisualizerProviders(): readonly VisualizerProvider<Visualizer>[] {
-    return [ambientvideo, ampshader, audiomotion, milkdrop, spotifyviz, waveform];
+    return [ambientvideo, ampshader, audiomotion, butterchurn, spotifyviz, waveform];
 }
 
 export function getEnabledVisualizerProviders(): readonly VisualizerProvider<Visualizer>[] {

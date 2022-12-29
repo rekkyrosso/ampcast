@@ -46,7 +46,7 @@ const [audio$, video$] = partition(media$, (item) => item.mediaType === MediaTyp
 const [paused$, playing$] = partition(observePaused(), Boolean);
 
 const randomProviders: VisualizerProviderId[] = [
-    ...Array(79).fill('milkdrop'), // most of the time use this one
+    ...Array(79).fill('butterchurn'), // most of the time use this one
     ...Array(6).fill('audiomotion'),
     ...Array(4).fill('ampshader'),
     ...Array(1).fill('waveform'),
@@ -136,7 +136,7 @@ observeCurrentVisualizer()
 
 audio$.pipe(switchMap(() => playing$)).subscribe(() => visualizerPlayer.play());
 
-getVisualizerProvider('milkdrop')
+getVisualizerProvider('butterchurn')
     ?.observeVisualizers()
     .pipe(
         skipWhile((visualizers) => visualizers.length === 0),
@@ -166,7 +166,7 @@ function getNextVisualizer(
             break;
 
         case 'audiomotion':
-        case 'milkdrop':
+        case 'butterchurn':
             if (isSpotify) {
                 return noVisualizer;
             }

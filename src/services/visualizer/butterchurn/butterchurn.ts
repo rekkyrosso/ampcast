@@ -1,20 +1,20 @@
 import VisualizerProvider from 'types/VisualizerProvider';
-import {MilkdropVisualizer} from 'types/Visualizer';
+import {ButterchurnVisualizer} from 'types/Visualizer';
 import {analyser} from 'services/audio';
-import MilkdropPlayer from './MilkdropPlayer';
+import ButterchurnPlayer from './ButterchurnPlayer';
 import {getVisualizers, observeVisualizers} from './visualizers';
 
-const milkdropPlayer = new MilkdropPlayer(analyser);
+const butterchurnPlayer = new ButterchurnPlayer(analyser);
 
-const milkdrop: VisualizerProvider<MilkdropVisualizer> = {
-    id: 'milkdrop',
+const butterchurn: VisualizerProvider<ButterchurnVisualizer> = {
+    id: 'butterchurn',
     name: 'Butterchurn (Milkdrop)',
     externalUrl: 'https://butterchurnviz.com/',
-    player: milkdropPlayer,
+    player: butterchurnPlayer,
     get visualizers() {
         return getVisualizers();
     },
     observeVisualizers,
 };
 
-export default milkdrop;
+export default butterchurn;

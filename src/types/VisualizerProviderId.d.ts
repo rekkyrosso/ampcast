@@ -3,7 +3,7 @@ type VisualizerProviderId =
     | 'ambientvideo'
     | 'ampshader'
     | 'audiomotion'
-    | 'milkdrop'
+    | 'butterchurn'
     | 'spotifyviz'
     | 'waveform'
     ;

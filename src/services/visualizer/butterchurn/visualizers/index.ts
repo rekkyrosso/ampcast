@@ -1,19 +1,19 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, map, skipWhile, take, tap} from 'rxjs';
-import {MilkdropVisualizer} from 'types/Visualizer';
+import {ButterchurnVisualizer} from 'types/Visualizer';
 
-const visualizers$ = new BehaviorSubject<readonly MilkdropVisualizer[]>([]);
+const visualizers$ = new BehaviorSubject<readonly ButterchurnVisualizer[]>([]);
 
-export function getVisualizers(): readonly MilkdropVisualizer[] {
+export function getVisualizers(): readonly ButterchurnVisualizer[] {
     return visualizers$.getValue();
 }
 
-export function observeVisualizers(): Observable<readonly MilkdropVisualizer[]> {
+export function observeVisualizers(): Observable<readonly ButterchurnVisualizer[]> {
     return visualizers$;
 }
 
 setTimeout(async () => {
-    const providerId = 'milkdrop';
+    const providerId = 'butterchurn';
     const {default: presets} = await import(
         /* webpackChunkName: "butterchurn-presets" */
         /* webpackMode: "lazy-once" */
