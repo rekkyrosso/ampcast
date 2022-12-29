@@ -351,7 +351,7 @@ export default class YouTubePlayer implements Player<string> {
         );
     }
 
-    protected getAspectRatio(videoId: string): Observable<number> {
+    private getAspectRatio(videoId: string): Observable<number> {
         return from(getYouTubeVideoInfo(videoId)).pipe(
             takeUntil(timer(3000)),
             takeUntil(this.observeVideoId().pipe(skip(1))),

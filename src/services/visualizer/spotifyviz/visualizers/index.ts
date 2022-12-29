@@ -1,7 +1,7 @@
 import {SpotifyVizVisualizer} from 'types/Visualizer';
 import example from './example';
 
-const presets: SpotifyVizVisualizer[] = [
+const visualizers: SpotifyVizVisualizer[] = [
     {
         providerId: 'spotifyviz',
         name: 'example by zachwinter',
@@ -10,4 +10,6 @@ const presets: SpotifyVizVisualizer[] = [
     },
 ];
 
-export default presets;
+export default visualizers;
+
+console.log('spotify-viz visualizers:', visualizers.length);

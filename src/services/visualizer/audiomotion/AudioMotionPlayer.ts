@@ -73,7 +73,7 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
     load(visualizer: AudioMotionVisualizer): void {
         logger.log('load');
         if (visualizer) {
-            logger.log(`Using AudioMotion preset: ${visualizer.name}`);
+            logger.log(`Using AudioMotion visualizer: ${visualizer.name}`);
             this.visualizer.setOptions(visualizer.options);
         }
         if (this.autoplay) {

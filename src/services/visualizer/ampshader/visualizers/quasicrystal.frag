@@ -21,13 +21,13 @@ float wavething(int n, float x) {
 
 void main(void) {
     gl_FragColor = vec4(0.0);
-    float scale = exp2(-fract(time / period));
+    float scale = exp2(-fract(iTime / period));
     float sum1 = 0.0;
     for(int n = 0; n < int(numFreqs); n++){
         sum1 += wavething(n, scale + 0.5*float(n));
     }
     vec2 xy = pi2 * numStripes
-        * ((2.0 * gl_FragCoord.xy - resolution.xy) / resolution.y);
+        * ((2.0 * gl_FragCoord.xy - iResolution.xy) / iResolution.y);
 
     float sum2 = 0.0;
     for(int n = 0; n < numWaves; n++){
@@ -41,9 +41,9 @@ void main(void) {
     gl_FragColor += vec4(1.0 - sum2 / sum1);
     xy /= pi2 * numStripes;
     float r = length(xy);
-    gl_FragColor.x *= texture2D(spectrum, vec2(.161616 * r, .2)).x;
-    gl_FragColor.y *= texture2D(spectrum, vec2(.161616 * r + .161616, .2)).x;
-    gl_FragColor.z *= texture2D(spectrum, vec2(.161616 * r + .333333, .2)).x;
+    gl_FragColor.x *= texture(iChannel0, vec2(.161616 * r, .2)).x;
+    gl_FragColor.y *= texture(iChannel0, vec2(.161616 * r + .161616, .2)).x;
+    gl_FragColor.z *= texture(iChannel0, vec2(.161616 * r + .333333, .2)).x;
     gl_FragColor = 1.0 - gl_FragColor;
     gl_FragColor = 1.0 - (r + 1.0) * gl_FragColor;
     if(length(gl_FragColor) > 3.0) gl_FragColor = vec4(0.0);

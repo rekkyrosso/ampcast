@@ -1,18 +1,14 @@
 import {WaveformVisualizer} from 'types/Visualizer';
 import theme from 'services/theme';
 
-const mdn =
-    'https://developer.mozilla.org/en-US/docs/Web/API/Web_Audio_API/Visualizations_with_Web_Audio_API';
-
 function getThemeColor(): string {
     return theme.isLight && theme.isFrameLight ? theme.frameColor : theme.textColor;
 }
 
-const presets: WaveformVisualizer[] = [
+const visualizers: WaveformVisualizer[] = [
     {
         providerId: 'waveform',
         name: 'wave',
-        externalUrl: `${mdn}#creating_a_waveformoscilloscope`,
         config: {
             onPaint: ({context2D, width, height, analyser}) => {
                 const bufferSize = analyser.frequencyBinCount;
@@ -42,7 +38,6 @@ const presets: WaveformVisualizer[] = [
     {
         providerId: 'waveform',
         name: 'bars',
-        externalUrl: `${mdn}#creating_a_frequency_bar_graph`,
         config: {
             onPaint: ({context2D, width, height, analyser}) => {
                 const barCount = 16;
@@ -71,4 +66,6 @@ const presets: WaveformVisualizer[] = [
     },
 ];
 
-export default presets;
+export default visualizers;
+
+console.log('Waveform visualizers:', visualizers.length);

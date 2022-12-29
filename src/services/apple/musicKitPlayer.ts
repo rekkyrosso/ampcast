@@ -181,7 +181,7 @@ export class MusicKitPlayer implements Player<string> {
     }
 
     load(src: string): void {
-        logger.log('load');
+        logger.log('load', {src});
         if (this.autoplay) {
             this.activated$.next(true);
         }

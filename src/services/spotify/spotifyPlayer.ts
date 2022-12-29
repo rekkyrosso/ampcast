@@ -249,7 +249,7 @@ export class SpotifyPlayer implements Player<string> {
     }
 
     load(src: string): void {
-        logger.log('load');
+        logger.log('load', {src});
         this.src$.next(src);
         if (this.autoplay) {
             this.paused$.next(false);

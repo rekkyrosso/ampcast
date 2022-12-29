@@ -13,7 +13,7 @@ export default function VisualizerInfo({visualizer}: VisualizerInfoProps) {
     return (
         <article className="visualizer-info">
             <VisualizerProvider visualizer={visualizer} />
-            <VisualizerPreset visualizer={visualizer} />
+            <VisualizerDetail visualizer={visualizer} />
         </article>
     );
 }
@@ -22,16 +22,19 @@ function VisualizerProvider({visualizer}: VisualizerInfoProps) {
     return <h3>Visualizer: {getProviderName(visualizer)}</h3>;
 }
 
-function VisualizerPreset({visualizer}: VisualizerInfoProps) {
+function VisualizerDetail({visualizer}: VisualizerInfoProps) {
     const isYouTubeVideo =
         visualizer?.providerId === 'ambientvideo' && visualizer.src.startsWith('youtube:');
+    const externalUrl = visualizer
+        ? visualizer.externalUrl || getVisualizerProvider(visualizer.providerId)?.externalUrl
+        : undefined;
 
     return isYouTubeVideo ? (
         <YouTubeVideoInfo visualizer={visualizer} />
     ) : visualizer?.name ? (
         <>
             <h4>Name: {visualizer.name}</h4>
-            <ExternalView url={visualizer.externalUrl} src="" />
+            <ExternalView url={externalUrl} src="" />
         </>
     ) : null;
 }

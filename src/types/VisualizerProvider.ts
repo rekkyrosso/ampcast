@@ -7,7 +7,7 @@ export default interface VisualizerProvider<T extends Visualizer> {
     readonly name: string;
     readonly player: Player<T>;
     readonly visualizers: readonly T[];
-    readonly url?: string;
+    readonly externalUrl?: string;
     readonly defaultHidden?: boolean;
     observeVisualizers(): Observable<readonly T[]>;
 }

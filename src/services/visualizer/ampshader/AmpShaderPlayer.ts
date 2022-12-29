@@ -56,7 +56,7 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     load(visualizer: AmpShaderVisualizer): void {
         logger.log('load');
         if (visualizer) {
-            logger.log(`Using Ampshader preset: ${visualizer.name}`);
+            logger.log(`Using Ampshader visualizer: ${visualizer.name}`);
             this.createShader(visualizer.shader);
         }
         // A bit weird but `autoplay` controls looping.
@@ -92,7 +92,7 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
         gl.viewport(0, 0, width, height);
 
         if (this.shader) {
-            const fragResolution = gl.getUniformLocation(this.shader, 'resolution');
+            const fragResolution = gl.getUniformLocation(this.shader, 'iResolution');
             gl.uniform2f(fragResolution, canvas.width, canvas.height);
             this.renderFrame();
         }
@@ -133,10 +133,10 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
         const position = gl.getAttribLocation(shader, 'position');
         gl.enableVertexAttribArray(position);
 
-        this.fragTime = gl.getUniformLocation(shader, 'time')!;
+        this.fragTime = gl.getUniformLocation(shader, 'iTime')!;
         gl.uniform1f(this.fragTime, this.currentTime);
 
-        const fragResolution = gl.getUniformLocation(shader, 'resolution');
+        const fragResolution = gl.getUniformLocation(shader, 'iResolution');
         gl.uniform2f(fragResolution, this.canvas.width, this.canvas.height);
 
         this.shader = shader;
@@ -152,16 +152,16 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     private renderFrame(): void {
         if (this.shader) {
             const gl = this.gl;
-            const spectrum = new Uint8Array(this.analyser.frequencyBinCount);
-            const fragSpectrumArray = new Uint8Array(4 * spectrum.length);
+            const iChannel0 = new Uint8Array(this.analyser.frequencyBinCount);
+            const fragSpectrumArray = new Uint8Array(4 * iChannel0.length);
 
-            this.analyser.getByteFrequencyData(spectrum);
+            this.analyser.getByteFrequencyData(iChannel0);
             gl.uniform1f(this.fragTime, this.currentTime);
 
-            for (let i = 0; i < spectrum.length; i++) {
-                fragSpectrumArray[4 * i + 0] = spectrum[i]; // R
-                fragSpectrumArray[4 * i + 1] = spectrum[i]; // G
-                fragSpectrumArray[4 * i + 2] = spectrum[i]; // B
+            for (let i = 0; i < iChannel0.length; i++) {
+                fragSpectrumArray[4 * i + 0] = iChannel0[i]; // R
+                fragSpectrumArray[4 * i + 1] = iChannel0[i]; // G
+                fragSpectrumArray[4 * i + 2] = iChannel0[i]; // B
                 fragSpectrumArray[4 * i + 3] = 255; // A
             }
 
@@ -169,7 +169,7 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
                 gl.TEXTURE_2D,
                 0,
                 gl.RGBA,
-                spectrum.length,
+                iChannel0.length,
                 1,
                 0,
                 gl.RGBA,

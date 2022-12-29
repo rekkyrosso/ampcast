@@ -3,19 +3,17 @@ import VisualizerProvider from 'types/VisualizerProvider';
 import {AudioMotionVisualizer} from 'types/Visualizer';
 import {audioContext, observeAudioSourceNode} from 'services/audio';
 import AudioMotionPlayer from './AudioMotionPlayer';
-import presets from './presets';
-
-console.log('AudioMotion presets:', presets.length);
+import visualizers from './visualizers';
 
 const audiomotionPlayer = new AudioMotionPlayer(audioContext, observeAudioSourceNode());
 
 const audiomotion: VisualizerProvider<AudioMotionVisualizer> = {
     id: 'audiomotion',
     name: 'audioMotion-analyzer',
-    url: 'https://audiomotion.dev/',
+    externalUrl: 'https://audiomotion.dev/',
     player: audiomotionPlayer,
-    visualizers: presets,
-    observeVisualizers: () => of(presets),
+    visualizers,
+    observeVisualizers: () => of(visualizers),
 };
 
 export default audiomotion;

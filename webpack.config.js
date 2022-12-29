@@ -14,19 +14,21 @@ module.exports = (env) => {
 
     return {
         entry: {
+            'lib/butterchurn': 'butterchurn',
+            'lib/unidecode': 'unidecode',
             'lib/vendors': [
-                'dexie',
                 'audiomotion-analyzer',
                 'detect-browser',
+                'dexie',
                 'dialog-polyfill',
                 'fullscreen-api-polyfill',
                 'md5',
+                'react',
+                'react-dom',
                 'react-error-boundary',
                 'spotify-web-api-js',
                 'youtube-player',
             ],
-            'lib/unidecode': 'unidecode',
-            'lib/butterchurn': 'butterchurn',
             bundle: {
                 import: './src/index.tsx',
                 dependOn: ['lib/butterchurn', 'lib/unidecode', 'lib/vendors'],

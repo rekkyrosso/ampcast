@@ -49,7 +49,7 @@ export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVis
     load(visualizer: WaveformVisualizer): void {
         logger.log('load');
         if (visualizer) {
-            logger.log(`Using Waveform preset: ${visualizer.name}`);
+            logger.log(`Using Waveform visualizer: ${visualizer.name}`);
             this.config = visualizer.config;
         }
         if (this.autoplay) {

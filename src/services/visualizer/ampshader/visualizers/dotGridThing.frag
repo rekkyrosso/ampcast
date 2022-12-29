@@ -7,8 +7,8 @@ float circle(vec2 p, float radius) {
 }
 
 vec2 dist(vec2 p, vec2 ns, vec2 split, float totalSquares) {
- 	float amp1 = texture2D(spectrum, vec2((ns.x + ns.y*split.x)/totalSquares, 0.25)).x;
-    float amp2 = texture2D(spectrum, vec2(mod(ns.x + ns.y*split.x +1., totalSquares)/totalSquares, 0.25)).x;
+ 	float amp1 = texture(iChannel0, vec2((ns.x + ns.y*split.x)/totalSquares, 0.25)).x;
+    float amp2 = texture(iChannel0, vec2(mod(ns.x + ns.y*split.x +1., totalSquares)/totalSquares, 0.25)).x;
  	return vec2(circle(p, 0.5 + 0.9*amp1), circle(p, 0.40 + 0.60*amp2));
 }
 
@@ -20,8 +20,8 @@ float smin( float a, float b, float k ) {
 const float ySplit = 10.0;
 
 void main(void) {
-	vec2 uv = gl_FragCoord.xy / resolution.xy;
-    vec2 aspect = vec2(resolution.x/resolution.y, 1.0);
+	vec2 uv = gl_FragCoord.xy / iResolution.xy;
+    vec2 aspect = vec2(iResolution.x/iResolution.y, 1.0);
     vec2 split = vec2(floor(aspect*vec2(ySplit)));
     float totalSquares = split.x*split.y;
 	vec2 ns = floor(uv*split);

@@ -139,7 +139,7 @@ audio$.pipe(switchMap(() => playing$)).subscribe(() => visualizerPlayer.play());
 getVisualizerProvider('milkdrop')
     ?.observeVisualizers()
     .pipe(
-        skipWhile((presets) => presets.length === 0),
+        skipWhile((visualizers) => visualizers.length === 0),
         withLatestFrom(observeCurrentVisualizer()),
         tap(([, currentVisualizer]) => {
             if (currentVisualizer === noVisualizer) {
@@ -195,6 +195,6 @@ function getNextVisualizer(
             provider = getRandomValue(providers, provider);
         }
     }
-    const presets = getVisualizers(provider);
-    return getRandomValue(presets, currentVisualizer) || noVisualizer;
+    const visualizers = getVisualizers(provider);
+    return getRandomValue(visualizers, currentVisualizer) || noVisualizer;
 }

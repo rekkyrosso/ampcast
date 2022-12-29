@@ -8,20 +8,33 @@ import dotGridThing from './dotGridThing.frag';
 import fftIfs from './fft-ifs.frag';
 import fractalLand from './fractalLand.frag';
 import io from './io.frag';
-import nautilus from './nautilus.frag';
+import mandelKoch from './mandelKoch.frag';
 import musicMandelBoxColour from './musicMandelBoxColour.frag';
+import nautilus from './nautilus.frag';
 import otherworldy from './otherworldy.frag';
 import quasicrystal from './quasicrystal.frag';
 import radiant from './radiant.frag';
 import rainbow from './rainbow.frag';
+import revision2015 from './revision2015.frag';
 import soapBubble from './soapBubble.frag';
-// import gameboy from './gameboy.frag';
 
 const shaderToy = `https://www.shadertoy.com/view`;
 
 const providerId = 'ampshader';
 
-const presets: AmpShaderVisualizer[] = [
+const visualizers: AmpShaderVisualizer[] = [
+    {
+        providerId,
+        name: 'MandelKoch - Music Visualiser by Pelegefen',
+        externalUrl: `${shaderToy}/sslXzX`,
+        shader: `${header}${mandelKoch}`,
+    },
+    {
+        providerId,
+        name: 'Revision 2015 Livecoding Round 1 by mu6k',
+        externalUrl: `${shaderToy}/ltj3W1`,
+        shader: `${header}${revision2015}`,
+    },
     {
         providerId,
         name: 'Creation by Silexars',
@@ -112,12 +125,8 @@ const presets: AmpShaderVisualizer[] = [
         externalUrl: `${shaderToy}/MlySWd`,
         shader: `${header}${otherworldy}`,
     },
-    // {
-    //     provider,
-    //     name: 'gameboy by Gameboy by Inigo Quilez',
-    //     externalUrl: `${shaderToy}/XdlGzr`,
-    //     shader: `${header}${gameboy}`,
-    // },
 ];
 
-export default presets;
+console.log('ampshader visualizers:', visualizers.length);
+
+export default visualizers;

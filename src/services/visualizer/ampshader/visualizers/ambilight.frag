@@ -15,7 +15,7 @@ vec3 hsv2rgb(vec3 c) {
 
 void main(void) {
     // middle = (0/0)
-    vec2 k=(gl_FragCoord.xy-.5*resolution.xy)/(max(resolution.x,resolution.y));
+    vec2 k=(gl_FragCoord.xy-.5*iResolution.xy)/(max(iResolution.x,iResolution.y));
     //distance from the middle
     float dis = distance(k , vec2(0));
     //and approximated by "leds"
@@ -26,9 +26,9 @@ void main(void) {
     //and approximated by "bands"
     float degA = floor(deg*bands)/bands;
     //colorwheel, dark in the middle, changing colors over time
-    vec3 color = hsv2rgb(  vec3( degA*colorRange + time*0.07 , 1.0 , smoothstep(0.0, 0.6, disA) )  );
+    vec3 color = hsv2rgb(  vec3( degA*colorRange + iTime*0.07 , 1.0 , smoothstep(0.0, 0.6, disA) )  );
 	//brightness of a band by fourier (degree to frequency / magnitude to brightness)
-    float bandBrightness = texture2D(spectrum, vec2(degA,0.25)).x;
+    float bandBrightness = texture(iChannel0, vec2(degA,0.25)).x;
     //more blinky blinky x^2
     color*=bandBrightness*bandBrightness;
     //brighter

@@ -57,13 +57,11 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
                 const result = await lastfmApi.get({...params, page, limit});
                 this.pageNumber++;
                 const {items, total, atEnd, itemType} = map(result);
-                const test = {
+                return {
                     items: this.createMediaObjects(itemType, items),
                     total,
                     atEnd,
                 };
-                console.log({test});
-                return test;
             },
             config
         );

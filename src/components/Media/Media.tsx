@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useLayoutEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {fromEvent} from 'rxjs';
 import {map} from 'rxjs/operators';
 import MediaType from 'types/MediaType';
@@ -17,9 +17,9 @@ console.log('component::Media');
 export default memo(function Media() {
     const ref = useRef<HTMLDivElement>(null);
     const [fullScreen, setFullScreen] = useState(false);
-    const mouseBusy = useMouseBusy(ref.current, 4000);
     const currentlyPlaying = useCurrentlyPlaying();
     const isPlayingVideo = currentlyPlaying?.mediaType === MediaType.Video;
+    const isMouseBusy = useMouseBusy(ref.current, 4000);
     const visualizer = useCurrentVisualizer();
     const noVisualizer = !visualizer || visualizer.providerId === 'none';
 
@@ -27,7 +27,7 @@ export default memo(function Media() {
         mediaPlayback.appendTo(ref.current!);
     }, []);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         const subscription = fromEvent(document, 'fullscreenchange')
             .pipe(map(() => document.fullscreenElement === ref.current))
             .subscribe(setFullScreen);
@@ -54,7 +54,7 @@ export default memo(function Media() {
         <div
             className={`panel media ${isPlayingVideo ? 'is-playing-video' : ''} ${
                 noVisualizer ? 'no-visualizer' : ''
-            }  ${mouseBusy ? '' : 'idle'}`}
+            }  ${isMouseBusy ? '' : 'idle'}`}
             onDoubleClick={toggleFullScreen}
             ref={ref}
         >

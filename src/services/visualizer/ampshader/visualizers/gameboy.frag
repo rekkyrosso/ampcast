@@ -2,6 +2,9 @@
 // https://www.shadertoy.com/view/XdlGzr
 
 
+/* NOT CURRENTLY USED */
+
+
 // Created by inigo quilez - iq/2013
 // https://www.youtube.com/c/InigoQuilez
 // https://iquilezles.org
@@ -9,7 +12,7 @@
 float text( vec2 p )
 {
     // trick for encoding fonts from CPU
-	p.x += 0.2*floor(10.0*(0.5+0.5*sin(time)))/10.0;
+	p.x += 0.2*floor(10.0*(0.5+0.5*sin(iTime)))/10.0;
 
 	float x = floor( p.x*100.0 ) - 23.0;
 	float y = floor( p.y*100.0 ) - 82.0;
@@ -47,10 +50,10 @@ float text( vec2 p )
 }
 
 void main(void) {
-	vec2 uv = gl_FragCoord.xy / resolution.xy;
+	vec2 uv = gl_FragCoord.xy / iResolution.xy;
     vec2 uvo = uv;
 
-	vec2 res = floor( 60.0*vec2(1.0,resolution.y/resolution.x) );
+	vec2 res = floor( 60.0*vec2(1.0,iResolution.y/iResolution.x) );
 
 	vec3 col = vec3(131.0, 145.0, 0.0);
 	if( uv.x>0.03 && uv.x<0.97 )
@@ -62,7 +65,7 @@ void main(void) {
         float f = 1.0-abs(-1.0+2.0*fract( uv.x * res.x ));
         float g = 1.0-abs(-1.0+2.0*fract( uv.y * res.y ));
 
-    	float fft = texture2D( spectrum, vec2(iuv.x,0.25) ).x;
+    	float fft = texture( iChannel0, vec2(iuv.x,0.25) ).x;
 		fft = 0.8*fft*fft;
         if( iuv.y<fft )
         {
@@ -71,7 +74,7 @@ void main(void) {
         }
 
 
-        float wave = texture2D( spectrum, vec2(iuv.x*0.5,0.75) ).x;
+        float wave = texture( iChannel0, vec2(iuv.x*0.5,0.75) ).x;
         if( abs(iuv.y-wave)<=(1.0/res.y) )
         {
 	        col = vec3(185.0, 200.0, 90.0);

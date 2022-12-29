@@ -1,11 +1,11 @@
 import {AudioMotionVisualizer} from 'types/Visualizer';
 
-const externalUrl = 'https://audiomotion.dev/';
+const providerId = 'audiomotion'
 
 // From: https://audiomotion.dev/demo/fluid.js
-const presets: AudioMotionVisualizer[] = [
+const visualizers: AudioMotionVisualizer[] = [
     {
-        providerId: 'audiomotion',
+        providerId,
         name: 'Anemone',
         options: {
             radial: true,
@@ -22,10 +22,9 @@ const presets: AudioMotionVisualizer[] = [
             lineWidth: 2,
             fillAlpha: 0.2,
         },
-        externalUrl,
     },
     {
-        providerId: 'audiomotion',
+        providerId,
         name: 'Classic LEDs',
         options: {
             mode: 7,
@@ -38,10 +37,9 @@ const presets: AudioMotionVisualizer[] = [
             reflexRatio: 0,
             showPeaks: true,
         },
-        externalUrl,
     },
     {
-        providerId: 'audiomotion',
+        providerId,
         name: 'Mirror wave',
         options: {
             mode: 10,
@@ -56,10 +54,9 @@ const presets: AudioMotionVisualizer[] = [
             reflexRatio: 0.5,
             showPeaks: false,
         },
-        externalUrl,
     },
     {
-        providerId: 'audiomotion',
+        providerId,
         name: 'Radial overlay',
         options: {
             mode: 5,
@@ -71,10 +68,9 @@ const presets: AudioMotionVisualizer[] = [
             showPeaks: true,
             spinSpeed: 1,
         },
-        externalUrl,
     },
     {
-        providerId: 'audiomotion',
+        providerId,
         name: 'Reflex Bars',
         options: {
             mode: 5,
@@ -90,8 +86,9 @@ const presets: AudioMotionVisualizer[] = [
             ledBars: false,
             showPeaks: true,
         },
-        externalUrl,
     },
 ];
 
-export default presets;
+console.log('audioMotion-analyzer visualizers:', visualizers.length);
+
+export default visualizers;

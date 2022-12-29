@@ -1,3 +1,4 @@
+import {EMPTY} from 'rxjs';
 import {
     distinctUntilChanged,
     filter,
@@ -14,7 +15,6 @@ import HTML5Player from 'services/players/HTML5Player';
 import OmniPlayer from 'services/players/OmniPlayer';
 import {LiteStorage, Logger} from 'utils';
 import visualizerSettings, {observeVisualizerSettings} from '../visualizerSettings';
-import {EMPTY} from 'rxjs';
 
 const logger = new Logger('ambientVideoPlayer');
 
@@ -63,6 +63,8 @@ ambientVideoPlayer.loop = true;
 ambientVideoPlayer.volume = 0;
 ambientVideoPlayer.hidden = true;
 
+export default ambientVideoPlayer;
+
 youtubePlayer
     .observeVideoId()
     .pipe(
@@ -94,5 +96,3 @@ observeVisualizerSettings()
         tap(() => storage.removeItem('user-progress'))
     )
     .subscribe(logger);
-
-export default ambientVideoPlayer;

@@ -71,10 +71,10 @@ float box(vec2 p, vec2 b, float r) {
 
 float sampleMusic() {
 	return 0.5 * (
-//		texture2D( spectrum, vec2( 0.01, 0.25 ) ).x +
-//		texture2D( spectrum, vec2( 0.07, 0.25 ) ).x +
-		texture2D( spectrum, vec2( 0.15, 0.25 ) ).x +
-		texture2D( spectrum, vec2( 0.30, 0.25 ) ).x);
+//		texture( iChannel0, vec2( 0.01, 0.25 ) ).x +
+//		texture( iChannel0, vec2( 0.07, 0.25 ) ).x +
+		texture( iChannel0, vec2( 0.15, 0.25 ) ).x +
+		texture( iChannel0, vec2( 0.30, 0.25 ) ).x);
 }
 
 void main(void) {
@@ -84,8 +84,8 @@ void main(void) {
 	const int numBubbles = 50;
 	float pulse = sampleMusic();
 
-	vec2 uv = gl_FragCoord.xy / resolution.xy - 0.5;
-	float aspect = resolution.x / resolution.y;
+	vec2 uv = gl_FragCoord.xy / iResolution.xy - 0.5;
+	float aspect = iResolution.x / iResolution.y;
 	vec3 baseColor = uv.x > 0.0 ? vec3(0.0,0.3, 0.3) : vec3(0.3, 0.0, 0.3);
 
 	vec3 color = 5. * pulse*baseColor*0.5*(0.9-cos(uv.x*8.0));
@@ -93,7 +93,7 @@ void main(void) {
 
 	for (int i = 0; i < numBubbles; i++) {
 		float z = 1.0-0.7*rand(float(i)*1.4333); // 0=far, 1=near
-		float tickTime = time*z*speed + float(i)*1.23753;
+		float tickTime = iTime*z*speed + float(i)*1.23753;
 		float tick = floor(tickTime);
 
 		vec2 pos = vec2(0.6*aspect*(rand(tick)-0.5), -abs(sign(uv.x))*ySpread*(0.5-fract(tickTime)));
@@ -112,7 +112,7 @@ void main(void) {
     baseColor = vec3(0.1, 0.3, 0.0);
     for (int i = 0; i < numBlocks; i++) {
 		float z = 1.0-0.7*rand(float(i)*1.4333); // 0=far, 1=near
-		float tickTime = time*z*speed + float(i)*1.23753;
+		float tickTime = iTime*z*speed + float(i)*1.23753;
 		float tick = floor(tickTime);
 
 		vec2 pos = vec2(0.6*aspect*(rand(tick)-0.5), -abs(sign(uv.x))*ySpread*(0.5-fract(tickTime)));

@@ -27,10 +27,10 @@ float DE(vec3 p)
 	vec3 p_o = p;
     float d = 1e10;
 
-    float s = 1.; //sin(time /60.0) / 10.0 + 0.6;
-    vec3 t = vec3(0.1 + 0.2 * resolution.xy/resolution.xy, 0.1 + 0.1 * sin(time/200.));
+    float s = 1.; //sin(iTime /60.0) / 10.0 + 0.6;
+    vec3 t = vec3(0.1 + 0.2 * iResolution.xy/iResolution.xy, 0.1 + 0.1 * sin(iTime/200.));
 
-    float fftVal = texture2D(spectrum,vec2(length(p/5.), 0.2)).x *0.1;
+    float fftVal = texture(iChannel0,vec2(length(p/5.), 0.2)).x *0.1;
     vec3 dim = vec3( fftVal, 0.9, fftVal);
 
     for ( int i = 0; i < 6; i ++)
@@ -44,7 +44,7 @@ float DE(vec3 p)
 
 
 
-        float circleSize = fftVal + 0.03 * (sin(time + length(p_o) * 5.) )
+        float circleSize = fftVal + 0.03 * (sin(iTime + length(p_o) * 5.) )
             + 0.01;
         d = min(d, length(p - t) - circleSize/s);
         s *= s;
@@ -107,12 +107,12 @@ vec3 applyFog( in vec3  rgb,      // original color of the pixel
 
 
 void main(void) {
-	vec2 uv = gl_FragCoord.xy / resolution.xy;
+	vec2 uv = gl_FragCoord.xy / iResolution.xy;
     uv -= 0.5;
-    float aspect = resolution.x/resolution.y;
+    float aspect = iResolution.x/iResolution.y;
     uv.x *= aspect;
 
-    vec3 cam = vec3(0,0, - sin(time /32. ) - 2.0);
+    vec3 cam = vec3(0,0, - sin(iTime /32. ) - 2.0);
     vec3 ray = normalize( vec3(uv, 1.0));
 
     vec3 color = vec3(0.1, 0.1, 0.2);
@@ -124,9 +124,9 @@ void main(void) {
     float fog = 0.0;
     vec3 sun = normalize( vec3(1,1,1));
 
-    ir = rotationMatrix(normalize(vec3(sin(time/50.0),sin(time/100.0),sin(time/150.0))), 1.5 + time/30.0);
+    ir = rotationMatrix(normalize(vec3(sin(iTime/50.0),sin(iTime/100.0),sin(iTime/150.0))), 1.5 + iTime/30.0);
 
-    mat3 mv = rotationMatrix(vec3(0,1,0), time/10.0);
+    mat3 mv = rotationMatrix(vec3(0,1,0), iTime/10.0);
 
     cam = mv * cam;
     ray = mv * ray;

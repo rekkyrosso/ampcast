@@ -50,7 +50,7 @@ export default class MilkdropPlayer extends AbstractVisualizerPlayer<MilkdropVis
 
     load(visualizer: MilkdropVisualizer): void {
         if (visualizer) {
-            logger.log(`Using butterchurn preset: ${visualizer.name}`);
+            logger.log(`Using Butterchurn visualizer: ${visualizer.name}`);
             this.visualizer.loadPreset(visualizer.data, 0.5);
         }
         this.play();

@@ -75,7 +75,7 @@ export default class SpotifyVizPlayer extends AbstractVisualizerPlayer<SpotifyVi
     load(visualizer: SpotifyVizVisualizer): void {
         logger.log('load');
         if (visualizer) {
-            logger.log(`Using SpotifyViz preset: ${visualizer.name}`);
+            logger.log(`Using SpotifyViz visualizer: ${visualizer.name}`);
             this.config = visualizer.config;
             this.analyser.volumeSmoothing = visualizer.config?.volumeSmoothing ?? 100;
         }

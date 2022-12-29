@@ -19,7 +19,7 @@
 
 
 #define detail .001
-#define t time*.5
+#define t iTime*.5
 
 
 const vec3 origin=vec3(-1.,.7,0.);
@@ -137,8 +137,8 @@ vec3 raymarch(in vec3 from, in vec3 dir)
 #endif
 	totdist=clamp(totdist,0.,26.);
 	dir.y-=.02;
-	float sunsize=7.-max(0.,texture2D(spectrum,vec2(.6,.2)).x)*5.; // responsive sun size
-	float an=atan(dir.x,dir.y)+time*1.5; // angle for drawing and rotating sun
+	float sunsize=7.-max(0.,texture(iChannel0,vec2(.6,.2)).x)*5.; // responsive sun size
+	float an=atan(dir.x,dir.y)+iTime*1.5; // angle for drawing and rotating sun
 	float s=pow(clamp(1.0-length(dir.xy)*sunsize-abs(.2-mod(an,.4)),0.,1.),.1); // sun
 	float sb=pow(clamp(1.0-length(dir.xy)*(sunsize-.2)-abs(.2-mod(an,.4)),0.,1.),.1); // sun border
 	float sg=pow(clamp(1.0-length(dir.xy)*(sunsize-4.5)-.5*abs(.2-mod(an,.4)),0.,1.),3.); // sun rays
@@ -178,10 +178,10 @@ vec3 move(inout vec3 dir) {
 
 void main(void)
 {
-	vec2 uv = gl_FragCoord.xy / resolution.xy*2.-1.;
+	vec2 uv = gl_FragCoord.xy / iResolution.xy*2.-1.;
 	vec2 oriuv=uv;
-	uv.y*=resolution.y/resolution.x;
-	float fov=.9-max(0.,.7-time*.3);
+	uv.y*=iResolution.y/iResolution.x;
+	float fov=.9-max(0.,.7-iTime*.3);
 	vec3 dir=normalize(vec3(uv*fov,1.));
 	vec3 from=origin+move(dir);
 	vec3 color=raymarch(from,dir);

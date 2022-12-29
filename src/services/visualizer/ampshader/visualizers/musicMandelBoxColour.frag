@@ -41,7 +41,7 @@ float mandel3D(vec3 z,float fft) {
 
 vec2 map( in vec3 pos ) {
     float d = length(pos);
-    float fft = 0.8*texture2D(spectrum, vec2((d/32.0),0.3) )[0];
+    float fft = 0.8*texture(iChannel0, vec2((d/32.0),0.3) )[0];
 	return vec2(mandel3D(pos*1.5,fft),fft);
 }
 
@@ -112,10 +112,10 @@ vec3 render( in vec3 ro, in vec3 rd ) {
 }
 
 void main(void) {
-	vec2 q = gl_FragCoord.xy/resolution.xy;
+	vec2 q = gl_FragCoord.xy/iResolution.xy;
     vec2 p = -1.0+2.0*q;
-	p.x *= resolution.x/resolution.y;
-    vec2 mo = resolution.xy/resolution.xy;
+	p.x *= iResolution.x/iResolution.y;
+    vec2 mo = iResolution.xy/iResolution.xy;
 
 	float time = -55.0; //+ time;
 

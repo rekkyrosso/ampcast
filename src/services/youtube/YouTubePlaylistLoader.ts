@@ -3,7 +3,7 @@ import {EMPTY, lastValueFrom} from 'rxjs';
 import {map, filter, take, skipWhile} from 'rxjs/operators';
 import YouTubePlayer, {PlayerState} from './YouTubePlayer';
 
-export class YouTubePlaylistLoader extends YouTubePlayer {
+class YouTubePlaylistLoader extends YouTubePlayer {
     constructor() {
         super('loader');
         this.appendTo(document.body);
@@ -26,7 +26,7 @@ export class YouTubePlaylistLoader extends YouTubePlayer {
     }
 }
 
-export async function loadPlaylist(src: string): Promise<string[]> {
+export async function loadYouTubePlaylist(src: string): Promise<string[]> {
     const playlistLoader = new YouTubePlaylistLoader();
     const playlist = await playlistLoader.loadPlaylist(src);
     playlistLoader.destroy();

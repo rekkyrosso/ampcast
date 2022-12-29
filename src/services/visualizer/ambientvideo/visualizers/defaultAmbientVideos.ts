@@ -1,7 +1,7 @@
 import {AmbientVideoVisualizer} from 'types/Visualizer';
 
 // Some sample ambient videos to get us started.
-const presets: AmbientVideoVisualizer[] = `
+const defaultAmbientVideos: AmbientVideoVisualizer[] = `
 mo2re_RX3Bs blXien2Jh_o etiatMRgFcM DYsMJiwiZSI _MZ7UZ5frCI HCx1Z92PjJE dIP7wWY4Znw gW4nffCscYs
 A1m0SEqmmbE 9uZ8CCa0t4Y MXlFDpaQ1ec wz_ItcoR0-c jS4-FmNEDKo Tz77vqH_LJw K73lfmxDVR0 W8ayfyRWUrg
 cbuldALGsaQ AJZon2grzmA H5ASEM9dMiA GE2YEq7vaLc MYGOdJNAzrI Oszl95YWfbs b0-IkxXyhmY hoYPURX2RuE
@@ -70,4 +70,4 @@ X_M2DNPp9a8 epD5ixtaID0
         src: `youtube:video:${videoId}`,
     }));
 
-export default presets;
+export default defaultAmbientVideos;
