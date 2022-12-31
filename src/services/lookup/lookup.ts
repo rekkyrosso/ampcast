@@ -169,6 +169,9 @@ function compareArtist(match: MediaItem, artist: string, strict: boolean): boole
     if (strict) {
         return false;
     }
+    if (compareString(normalize(artist), normalize(matchedArtist))) {
+        return true;
+    }
     if (compareString(removeFeaturedArtists(artist), removeFeaturedArtists(matchedArtist))) {
         return true;
     }
@@ -210,13 +213,16 @@ function compareAlbumTrack<T extends MediaItem>(match: MediaItem, item: T): bool
 }
 
 function compareTitle(match: MediaItem, title: string, strict: boolean): boolean {
-    const matchedTitle = normalize(match.title);
-    title = normalize(title);
-    if (compareString(title, matchedTitle)) {
+    if (compareString(title, match.title)) {
         return true;
     }
     if (strict) {
         return false;
+    }
+    const matchedTitle = normalize(match.title);
+    title = normalize(title);
+    if (compareString(title, matchedTitle)) {
+        return true;
     }
     const [, ...matchedArtists] = match.artists || [];
     if (matchedArtists.length > 0) {

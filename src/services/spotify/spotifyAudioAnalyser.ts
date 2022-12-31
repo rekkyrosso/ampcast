@@ -1,7 +1,6 @@
 import type {Observable} from 'rxjs';
 import {distinctUntilChanged, EMPTY, filter, map, switchMap} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
-import {interpolateBasis} from 'd3-interpolate';
 import {min} from 'd3-array';
 import {scaleLog} from 'd3-scale';
 import SimpleAudioAnalyser from 'types/SimpleAudioAnalyser';
@@ -9,8 +8,7 @@ import {observePaused} from 'services/mediaPlayback/playback';
 // import {Logger} from 'utils';
 import spotifyPlayer, {SpotifyPlayer} from './spotifyPlayer';
 import {spotifyApi} from './spotify';
-
-// const logger = new Logger('spotifyAudioAnalyser');
+import {samplePitches} from './samplePitches';
 
 // Based on: https://github.com/zachwinter/spotify-viz/blob/master/client/classes/sync.js
 
@@ -29,28 +27,6 @@ export interface ActiveIntervals {
     segments: SpotifyApi.AudioAnalysisSegment & ActiveInterval;
     tatums: SpotifyApi.AudioAnalysisIntervalObject & ActiveInterval;
 }
-
-const frequencyTable = [
-    [16.35],
-    [17.32],
-    [18.35],
-    [19.45],
-    [20.6],
-    [21.83],
-    [23.12],
-    [24.5],
-    [25.96],
-    [27.5],
-    [29.14],
-    [30.87],
-];
-
-frequencyTable.forEach((range) => {
-    const note = range[0];
-    for (let i = 1; i < 12; i++) {
-        range[i] = note * 2 ** i;
-    }
-});
 
 export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
     private readonly intervalTypes: IntervalType[] = [
@@ -185,52 +161,34 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
 
     getByteFrequencyData(array: Uint8Array): void {
         if (!this.active) {
+            array.fill(0);
             return;
         }
 
         const pitches = this.segment.pitches;
 
+        // This isn't real!
+        // This is an attempt to get data suitable for visualizers.
+        // It's based on some completely made up Maths. :)
+
         if (pitches) {
-            const beat = interpolateBasis([0, this.volume, 0])(this.beat.progress);
+            const brightness = this.segment.timbre[1];
+            const centre = (brightness - 180) / 360;
             const bufferSize = this.frequencyBinCount;
             for (let i = 0; i < bufferSize; i++) {
-                const sample = this.samplePitches(pitches, i);
-                // logger.log({i, sample});
-                array[i] = sample * beat * 256;
-            }
-        }
-
-        // if (pitches) {
-        //     const beat = interpolateBasis([0, this.volume, 0])(this.beat.progress);
-        //     const brightness = this.segment.timbre[1];
-        //     const centre = brightness / 360;
-        //     const bufferSize = this.frequencyBinCount;
-        //     // logger.log({beat, brightness});
-        //     for (let i = 0; i < bufferSize; i++) {
-        //         let radian = (i - bufferSize / 2 - centre * bufferSize) / bufferSize + 1;
-        //         if (radian < 0 || radian > 2) {
-        //             radian = 0;
-        //         }
-        //         array[i] = 255 * Math.sin(radian * (Math.PI / 2)) * beat;
-        //     }
-        // }
-    }
-
-    private samplePitches(pitches: number[], sample: number): number {
-        const sampleSize = this.sampleSize;
-        const min = sample * sampleSize;
-        const max = min + sampleSize;
-        let total = 0;
-        for (let i = 0; i < 12; i++) {
-            for (let j = 0; j < 12; j++) {
-                const frequency = frequencyTable[i][j];
-                if (frequency >= min && frequency < max) {
-                    total += pitches[i];
-                    break;
+                const sample = samplePitches(pitches, i, this.sampleSize);
+                let radian = (i - bufferSize / 2 - centre * bufferSize) / bufferSize + 1;
+                if (radian < 0 || radian > 2) {
+                    radian = 0;
                 }
+                array[i] =
+                    Math.sin(radian * (Math.PI / 2)) *
+                    sample *
+                    this.volume *
+                    this.beat.progress *
+                    255;
             }
         }
-        return total;
     }
 
     getByteTimeDomainData(array: Uint8Array): void {
@@ -338,7 +296,7 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
 
     private start(): void {
         if (!this.animationFrameId) {
-            this.animationFrameId = requestAnimationFrame(this.tick.bind(this));
+            this.animationFrameId = requestAnimationFrame((now) => this.tick(now));
         }
     }
 
@@ -350,7 +308,7 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
     }
 
     private tick(now: number): void {
-        this.animationFrameId = requestAnimationFrame(this.tick.bind(this));
+        this.animationFrameId = requestAnimationFrame((now) => this.tick(now));
         if (!this.active) {
             return;
         }
@@ -390,7 +348,7 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
 
         /** Average the beat queue, then pass it to our size scale. */
         const beat = average(queues.beat);
-        this.#volume = sizeScale(beat);
+        this.#volume = sizeScale(beat) || 0;
     }
 
     private interpolate(a: number, b: number): (t: number) => number {
