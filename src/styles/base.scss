@@ -38,6 +38,15 @@ small {
     line-height: 1.2;
 }
 
+.selected-text {
+    color: var(--selected-text-color);
+    background-color: var(--selected-background-color-blurred);
+}
+
+.focus .selected-text {
+    background-color: var(--selected-background-color);
+}
+
 .panel,
 .page {
     position: absolute;

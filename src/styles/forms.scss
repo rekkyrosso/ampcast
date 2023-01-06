@@ -169,7 +169,7 @@ button {
     }
 
     &.small {
-        padding: calc(0.125em - 1px) 0.5em;
+        padding: calc(0.25em - 1px) 0.875em;
         font-size: 0.75em;
     }
 }
@@ -190,6 +190,7 @@ button {
         & > label {
             display: table-cell;
             width: 10%;
+            white-space: nowrap;
 
             &:first-child {
                 text-align: right;

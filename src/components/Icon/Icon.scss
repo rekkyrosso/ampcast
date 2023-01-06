@@ -30,13 +30,16 @@
         }
 
         .apple-connected &,
-        &:not(.show-connectivity) {
+        &:not(.show-connectivity),
+        .themed.selection-dark .selected-text &:not(.show-connectivity) {
             stroke: none;
             fill: white;
         }
 
         .apple-connected .app.light &,
-        .themed.light &:not(.show-connectivity) {
+        .apple-connected .selection-light .selected-text &,
+        .themed.light &:not(.show-connectivity),
+        .themed.selection-light .selected-text &:not(.show-connectivity) {
             fill: black;
         }
 

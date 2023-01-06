@@ -200,7 +200,7 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
     }
 
     private get sampleSize(): number {
-        return 24_000 / this.frequencyBinCount;
+        return 22_050 / this.frequencyBinCount;
     }
 
     private observeActiveIntervals(): Observable<ActiveIntervals> {

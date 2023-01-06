@@ -1,4 +1,4 @@
-import React, {useCallback, useLayoutEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {from} from 'rxjs';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
@@ -23,7 +23,7 @@ export default function CoverArt({item, maxSize, className = ''}: CoverArtProps)
     const src = thumbnail ? getThumbnailUrl(thumbnail) : '';
     const fallback = getFallbackIcon(item.itemType);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         if (!hasThumbnails) {
             if (item.itemType === ItemType.Media) {
                 const listen = findListen(item);

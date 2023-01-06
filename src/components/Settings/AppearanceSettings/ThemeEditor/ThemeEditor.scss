@@ -1,4 +1,8 @@
-.theme-settings {
+.theme-editor {
+    .theme-name input {
+        width: 16em;
+    }
+
     input[type=color] {
         width: 25%;
         height: 2em;
@@ -8,11 +12,7 @@
         }
     }
 
-    .font-size {
-        margin-top: 1em;
-
-        label {
-            white-space: nowrap;
-        }
+    button.small {
+        margin-left: 0.5em;
     }
 }

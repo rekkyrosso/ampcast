@@ -237,7 +237,7 @@
         --pm-color: hsla(var(--sun-color), calc(100% - var(--pm-alpha)));
     }
 
-    &:not(:focus) + .status-bar .selected {
+    &:not(.focus) + .status-bar .selected {
         display: none;
     }
 }

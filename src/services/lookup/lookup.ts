@@ -134,27 +134,30 @@ export function findBestMatch<T extends MediaItem>(
 }
 
 function findMatches<T extends MediaItem>(
-    matches: readonly MediaItem[],
+    items: readonly MediaItem[],
     item: T
 ): readonly MediaItem[] {
-    let foundItems = matches.filter((match) => compare(match, item, true));
-    if (foundItems.length === 0) {
-        foundItems = matches.filter((match) => compare(match, item, false));
+    let matches = items.filter((match) => compare(match, item, true));
+    if (matches.length === 0) {
+        matches = items.filter((match) => compare(match, item, false));
     }
-    return foundItems;
+    return matches;
 }
 
 const regFeaturedArtists = /\s*(feat\.|[([]?\s?feat[\s.]).*$/i;
 
 function compare<T extends MediaItem>(match: MediaItem, item: T, strict: boolean): boolean {
-    const {artist, title} = getArtistAndTitle(item);
     return (
-        (compareTitle(match, title, strict) || compareAlbumTrack(match, item)) &&
-        compareArtist(match, artist, strict)
+        (compareTitle(match, item, strict) || compareAlbumTrack(match, item)) &&
+        compareArtist(match, item, strict)
     );
 }
 
-function compareArtist(match: MediaItem, artist: string, strict: boolean): boolean {
+function compareArtist<T extends MediaItem>(match: MediaItem, item: T, strict: boolean): boolean {
+    const artist = item.artists?.[0];
+    if (!artist) {
+        return false;
+    }
     const matchedArtists = match.artists;
     if (!matchedArtists) {
         return false;
@@ -173,6 +176,10 @@ function compareArtist(match: MediaItem, artist: string, strict: boolean): boole
         return true;
     }
     if (compareString(removeFeaturedArtists(artist), removeFeaturedArtists(matchedArtist))) {
+        return true;
+    }
+    const albumArtist = item.albumArtist;
+    if (albumArtist && compareString(normalize(albumArtist), normalize(matchedArtist))) {
         return true;
     }
     if (compareString(removeFeaturedArtists(artist), match.albumArtist)) {
@@ -212,7 +219,11 @@ function compareAlbumTrack<T extends MediaItem>(match: MediaItem, item: T): bool
     return fuzzyCompare(a, b, 0.75);
 }
 
-function compareTitle(match: MediaItem, title: string, strict: boolean): boolean {
+function compareTitle<T extends MediaItem>(match: MediaItem, item: T, strict: boolean): boolean {
+    let title = item.title;
+    if (!title) {
+        return false;
+    }
     if (compareString(title, match.title)) {
         return true;
     }

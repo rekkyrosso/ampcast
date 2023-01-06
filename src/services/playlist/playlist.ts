@@ -17,7 +17,7 @@ import {
     observeLookupEndEvents,
 } from 'services/lookup';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
-import {exists, Logger} from 'utils';
+import {exists, shuffle as shuffleArray, Logger} from 'utils';
 import settings from './playlistSettings';
 
 console.log('module::playlist');
@@ -238,17 +238,7 @@ export function removeAt(index: number): void {
 }
 
 export function shuffle(): void {
-    // https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array#6274398
-    const items = getItems();
-    let counter = items.length;
-    while (counter > 0) {
-        const index = Math.floor(Math.random() * counter);
-        counter--;
-        const item = items[counter];
-        items[counter] = items[index];
-        items[index] = item;
-    }
-    setItems(items);
+    setItems(shuffleArray(getItems()));
 }
 
 async function createMediaItems(source: PlayableType): Promise<readonly MediaItem[]> {

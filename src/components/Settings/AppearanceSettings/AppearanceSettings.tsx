@@ -1,11 +1,16 @@
 import React from 'react';
 import TabList, {TabItem} from 'components/TabList';
-import ThemeSettings from './ThemeSettings';
+import AppearanceSettingsGeneral from './AppearanceSettingsGeneral';
+import ThemeEditor from './ThemeEditor';
 
 const tabs: TabItem[] = [
     {
-        tab: 'Theme',
-        panel: <ThemeSettings />,
+        tab: 'General',
+        panel: <AppearanceSettingsGeneral />,
+    },
+    {
+        tab: 'Theme Editor',
+        panel: <ThemeEditor />,
     },
 ];
 

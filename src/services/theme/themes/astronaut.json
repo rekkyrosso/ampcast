@@ -1,0 +1,17 @@
+{
+    "name": "Astronaut",
+    "backgroundColor": "#000000",
+    "textColor": "#95a5d6",
+    "frameColor": "#141415",
+    "frameTextColor": "#b1bdcd",
+    "buttonColor": "",
+    "buttonTextColor": "",
+    "mediaButtonColor": "",
+    "mediaButtonTextColor": "",
+    "selectedBackgroundColor": "#414141",
+    "selectedTextColor": "#ffffff",
+    "evenRowBackgroundColor": "",
+    "spacing": 0.72,
+    "roundness": 0.57,
+    "flat": false
+}

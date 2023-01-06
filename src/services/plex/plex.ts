@@ -32,7 +32,10 @@ const plexMusicVideo: MediaSource<MediaItem> = {
     icon: 'video',
     itemType: ItemType.Media,
     searchable: true,
-    layout: defaultLayout,
+    layout: {
+        view: 'details',
+        fields: ['Index', 'Artist', 'Title', 'Duration', 'PlayCount'],
+    },
 
     search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
         return new PlexPager(`/library/sections/${plexSettings.libraryId}/extras/all`, {

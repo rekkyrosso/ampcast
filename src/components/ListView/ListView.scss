@@ -37,7 +37,7 @@
         }
     }
 
-    &:focus &-row.selected {
+    &.focus &-row.selected {
         background-color: var(--selected-background-color);
     }
 

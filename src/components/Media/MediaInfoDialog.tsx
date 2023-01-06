@@ -1,9 +1,9 @@
 import React from 'react';
+import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import Dialog, {DialogProps, showDialog} from 'components/Dialog';
 import MediaInfo from './MediaInfo';
 import './MediaInfoDialog.scss';
-import ItemType from 'types/ItemType';
 
 export interface MediaInfoDialogProps<T extends MediaObject = MediaObject> extends DialogProps {
     item: T;
@@ -14,7 +14,7 @@ export function showMediaInfoDialog<T extends MediaObject>(item: T): void {
 }
 
 export default function MediaInfoDialog<T extends MediaObject>({item, ...props}: MediaInfoDialogProps<T>) {
-    const title = getTitle(item);
+    const title = useTitle(item);
 
     return (
         <Dialog {...props} className="media-info-dialog" title={title}>
@@ -28,7 +28,7 @@ export default function MediaInfoDialog<T extends MediaObject>({item, ...props}:
     );
 }
 
-function getTitle(item: MediaObject): string {
+function useTitle(item: MediaObject): string {
     switch (item.itemType) {
         case ItemType.Playlist:
             return 'Playlist info';
@@ -42,5 +42,4 @@ function getTitle(item: MediaObject): string {
         default:
             return 'Media info';
     }
-
 }

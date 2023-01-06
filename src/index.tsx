@@ -6,6 +6,7 @@ import MediaPlayback from 'components/MediaPlayback';
 import Splitter from 'components/Splitter';
 import useBrowser from 'hooks/useBrowser';
 import useConnectivity from 'hooks/useConnectivity';
+import useFocusClass from 'hooks/useFocusClass';
 import usePreventDrop from 'hooks/usePreventDrop';
 import useMediaSession from 'hooks/useMediaSession';
 import useGlobalActions from 'hooks/useGlobalActions';
@@ -17,6 +18,7 @@ console.log('module::App');
 function App() {
     useBrowser();
     useConnectivity();
+    useFocusClass();
     usePreventDrop();
     useMediaSession();
     useGlobalActions();

@@ -1,11 +1,11 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import {TinyColor, mostReadable} from '@ctrl/tinycolor';
-import {Writable} from 'type-fest';
+import {ConditionalKeys, Writable} from 'type-fest';
 import Theme from 'types/Theme';
-import presets from 'services/theme/themes/presets';
-import none from 'services/theme/themes/none';
 import {LiteStorage} from 'utils';
+import themes from './themes';
+import defaultTheme from './themes/default.json';
 
 class MainTheme implements Theme {
     private readonly storage = new LiteStorage('theme');
@@ -16,7 +16,7 @@ class MainTheme implements Theme {
     private readonly app = document.getElementById('app') as HTMLElement;
     private readonly popup = document.getElementById('popup') as HTMLElement;
     private readonly system = document.getElementById('system') as HTMLElement;
-    private readonly theme$ = new BehaviorSubject<Theme>(none);
+    private readonly theme$ = new BehaviorSubject<Theme>(defaultTheme);
 
     constructor() {
         const style = document.createElement('style');
@@ -25,6 +25,7 @@ class MainTheme implements Theme {
         this.rootStyle = this.createStyle(':root');
         this.appStyle = this.createStyle('.app');
         this.playheadStyle = this.createStyle('#playhead');
+        this.system.classList.toggle('selection-dark', true);
         this.restore();
     }
 
@@ -44,19 +45,19 @@ class MainTheme implements Theme {
         this.popup.classList.toggle('light', this.isLight);
     }
 
-    get buttonColor(): string | null {
+    get buttonColor(): string {
         return this.current.buttonColor;
     }
 
-    set buttonColor(color: string | null) {
+    set buttonColor(color: string) {
         this.setColor('buttonColor', color);
     }
 
-    get buttonTextColor(): string | null {
+    get buttonTextColor(): string {
         return this.current.buttonTextColor;
     }
 
-    set buttonTextColor(color: string | null) {
+    set buttonTextColor(color: string) {
         this.setColor('buttonTextColor', color);
     }
 
@@ -64,11 +65,11 @@ class MainTheme implements Theme {
         return this.theme$.value;
     }
 
-    get evenRowBackgroundColor(): string | null {
+    get evenRowBackgroundColor(): string {
         return this.current.evenRowBackgroundColor;
     }
 
-    set evenRowBackgroundColor(color: string | null) {
+    set evenRowBackgroundColor(color: string) {
         this.setColor('evenRowBackgroundColor', color);
     }
 
@@ -112,19 +113,19 @@ class MainTheme implements Theme {
         this.setColor('frameTextColor', color);
     }
 
-    get mediaButtonColor(): string | null {
+    get mediaButtonColor(): string {
         return this.current.mediaButtonColor;
     }
 
-    set mediaButtonColor(color: string | null) {
+    set mediaButtonColor(color: string) {
         this.setColor('mediaButtonColor', color);
     }
 
-    get mediaButtonTextColor(): string | null {
+    get mediaButtonTextColor(): string {
         return this.current.mediaButtonTextColor;
     }
 
-    set mediaButtonTextColor(color: string | null) {
+    set mediaButtonTextColor(color: string) {
         this.setColor('mediaButtonTextColor', color);
     }
 
@@ -145,32 +146,28 @@ class MainTheme implements Theme {
         this.theme$.next({...this.current, roundness});
     }
 
-    get selectedBackgroundColor(): string | null {
-        return this.current.selectedBackgroundColor ?? null;
+    get selectedBackgroundColor(): string {
+        return this.current.selectedBackgroundColor;
     }
 
-    set selectedBackgroundColor(color: string | null) {
+    set selectedBackgroundColor(color: string) {
         this.setColor('selectedBackgroundColor', color);
         if (this.selectedBackgroundColor) {
             const backgroundColor = new TinyColor(this.selectedBackgroundColor);
-            let backgroundColorBlurred = backgroundColor.desaturate(40);
-            if (backgroundColorBlurred.isLight()) {
-                backgroundColorBlurred = backgroundColorBlurred.tint(25);
-            } else {
-                backgroundColorBlurred = backgroundColorBlurred.shade(25);
-            }
             this.setProperty(
                 'selected-background-color-blurred',
-                backgroundColorBlurred.toHexString()
+                backgroundColor.desaturate().setAlpha(0.5).toRgbString()
             );
+            this.app.classList.toggle('selection-dark', this.isSelectionDark);
+            this.app.classList.toggle('selection-light', this.isSelectionLight);
         }
     }
 
-    get selectedTextColor(): string | null {
+    get selectedTextColor(): string {
         return this.current.selectedTextColor;
     }
 
-    set selectedTextColor(color: string | null) {
+    set selectedTextColor(color: string) {
         this.setColor('selectedTextColor', color);
     }
 
@@ -207,10 +204,18 @@ class MainTheme implements Theme {
         return new TinyColor(this.frameColor).isLight();
     }
 
+    get isSelectionDark(): boolean {
+        return new TinyColor(this.selectedBackgroundColor).isDark();
+    }
+
+    get isSelectionLight(): boolean {
+        return new TinyColor(this.selectedBackgroundColor).isLight();
+    }
+
     load(preset: Theme | string): void {
         let theme: Theme | undefined;
         if (typeof preset === 'string') {
-            theme = presets.find((theme) => theme.name === preset);
+            theme = themes.find((theme) => theme.name === preset);
         } else {
             theme = preset;
         }
@@ -220,17 +225,11 @@ class MainTheme implements Theme {
     }
 
     restore(): void {
-        const theme = this.storage.getJson('current', none);
+        const theme = this.storage.getJson('current', defaultTheme);
         Object.assign(this, this.applyDefaults(theme));
         this.fontSize = this.storage.getNumber('fontSize', 16);
-        this.app.classList.toggle('dark', this.isDark);
-        this.app.classList.toggle('light', this.isLight);
-        this.app.classList.toggle('frame-light', this.isFrameLight);
-        this.app.classList.toggle('frame-dark', this.isFrameDark);
-        this.popup.classList.toggle('dark', this.isDark);
-        this.popup.classList.toggle('light', this.isLight);
-        this.popup.classList.toggle('frame-light', this.isFrameLight);
-        this.popup.classList.toggle('frame-dark', this.isFrameDark);
+        this.toggleClasses(this.app);
+        this.toggleClasses(this.popup);
         this.system.classList.toggle('dark', this.isDark);
         this.system.classList.toggle('light', this.isLight);
         this.createPlayheadSmiley();
@@ -241,6 +240,15 @@ class MainTheme implements Theme {
         this.storage.setJson('current', this.current);
         this.system.classList.toggle('dark', this.isDark);
         this.system.classList.toggle('light', this.isLight);
+    }
+
+    private toggleClasses(root: HTMLElement): void {
+        root.classList.toggle('dark', this.isDark);
+        root.classList.toggle('light', this.isLight);
+        root.classList.toggle('frame-dark', this.isFrameDark);
+        root.classList.toggle('frame-light', this.isFrameLight);
+        root.classList.toggle('selection-dark', this.isSelectionDark);
+        root.classList.toggle('selection-light', this.isSelectionLight);
     }
 
     private applyDefaults(theme: Writable<Theme>): Theme {
@@ -265,16 +273,26 @@ class MainTheme implements Theme {
         return theme;
     }
 
-    private setColor(colorName: string, color: TinyColor | string | null): void {
-        if (typeof color === 'string') {
-            color = new TinyColor(color);
-        }
-        const hsl = color?.toHsl();
+    private setColor(
+        colorName: ConditionalKeys<Theme, string>,
+        color: TinyColor | string | null
+    ): void {
         const hslColorName = this.toDashName(colorName);
-        this.setProperty(`${hslColorName}-h`, hsl ? String(hsl.h) : null);
-        this.setProperty(`${hslColorName}-s`, hsl ? `${hsl.s * 100}%` : null);
-        this.setProperty(`${hslColorName}-l`, hsl ? `${hsl.l * 100}%` : null);
-        this.theme$.next({...this.current, [colorName]: color ? color.toHexString() : null});
+        if (color) {
+            if (typeof color === 'string') {
+                color = new TinyColor(color);
+            }
+            const hsl = color.toHsl();
+            this.setProperty(`${hslColorName}-h`, String(hsl.h));
+            this.setProperty(`${hslColorName}-s`, `${hsl.s * 100}%`);
+            this.setProperty(`${hslColorName}-l`, `${hsl.l * 100}%`);
+            this.theme$.next({...this.current, [colorName]: color.toHexString()});
+        } else {
+            this.setProperty(`${hslColorName}-h`, null);
+            this.setProperty(`${hslColorName}-s`, null);
+            this.setProperty(`${hslColorName}-l`, null);
+            this.theme$.next({...this.current, [colorName]: ''});
+        }
     }
 
     private setProperty(propertyName: string, value: string | number | boolean | null): void {

@@ -48,14 +48,16 @@
         padding-left: 0.125em;
     }
 
+    /*
     &-node.selected > &-row {
         color: var(--selected-text-color);
         background-color: var(--selected-background-color-blurred);
     }
 
-    &:focus &-node.selected > &-row {
+    &.focus &-node.selected > &-row {
         background-color: var(--selected-background-color);
     }
+    */
 
     &-cursor {
         position: absolute;

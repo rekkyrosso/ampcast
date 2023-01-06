@@ -52,6 +52,19 @@ export function uniqBy<T>(values: readonly T[], key: keyof T): T[] {
     return values.filter((a, index, self) => index === self.findIndex((b) => a[key] === b[key]));
 }
 
+export function shuffle<T>(items: T[]): T[] {
+    // https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array#6274398
+    let counter = items.length;
+    while (counter > 0) {
+        const index = Math.floor(Math.random() * counter);
+        counter--;
+        const item = items[counter];
+        items[counter] = items[index];
+        items[index] = item;
+    }
+    return items;
+}
+
 export function formatDate(date: number | string | Date = Date.now()): string {
     date = new Date(date);
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(
@@ -112,4 +125,11 @@ export function filterNotEmpty<T>(
 
 export function fuzzyCompare(a: string, b: string, tolerance = 0.9): boolean {
     return Math.max(stringScore(a, b, 0.99), stringScore(b, a, 0.99)) >= tolerance;
+}
+
+const dummyElement = document.createElement('p');
+
+export function getTextFromHtml(html: string): string {
+    dummyElement.innerHTML = html;
+    return dummyElement.textContent || '';
 }

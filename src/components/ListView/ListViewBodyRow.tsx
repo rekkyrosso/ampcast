@@ -23,7 +23,7 @@ export default function ListViewRow<T>({
     setSize,
     dragIndex,
 }: ListViewRowProps<T>) {
-    const classNames = `${className} ${selected ? 'selected' : ''} ${
+    const classNames = `${className} ${selected ? 'selected selected-text' : ''} ${
         dragIndex === setSize
             ? rowIndex === setSize - 1
                 ? 'drag-over-last'

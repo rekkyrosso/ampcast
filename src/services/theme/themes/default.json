@@ -1,0 +1,17 @@
+{
+    "name": "",
+    "backgroundColor": "#0d0f12",
+    "textColor": "#8facbc",
+    "frameColor": "#32312f",
+    "frameTextColor": "#d1d1d1",
+    "buttonColor": "",
+    "buttonTextColor": "",
+    "mediaButtonColor": "",
+    "mediaButtonTextColor": "",
+    "selectedBackgroundColor": "#163d5a",
+    "selectedTextColor": "",
+    "evenRowBackgroundColor": "",
+    "spacing": 0.38,
+    "roundness": 0.48,
+    "flat": false
+}

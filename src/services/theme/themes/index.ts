@@ -1,11 +1,13 @@
 import Theme from 'types/Theme';
+import astronaut from './astronaut.json';
 import blackgold from './blackgold.json';
-import boringSkyblue from './boring-skyblue.json';
+import defaultTheme from './default.json';
 import greygreen from './greygreen.json';
 import indigo from './indigo.json';
 import lemon from './lemon.json';
 import lilac from './lilac.json';
 import moodyblue from './moodyblue.json';
+import none from './none.json';
 import oliveoil from './oliveoil.json';
 import palepink from './palepink.json';
 import purplelicious from './purplelicious.json';
@@ -15,12 +17,12 @@ import tangerine from './tangerine.json';
 import winampAmber from './winamp-amber.json';
 import winampClassic from './winamp-classic.json';
 import winampClassicModern from './winamp-classic-modern.json';
-import none from './none';
 
-const presets: Theme[] = [
+const themes: readonly Theme[] = [
+    defaultTheme,
     none,
+    astronaut,
     blackgold,
-    boringSkyblue,
     greygreen,
     indigo,
     lemon,
@@ -37,4 +39,4 @@ const presets: Theme[] = [
     winampClassicModern,
 ];
 
-export default presets;
+export default themes;
