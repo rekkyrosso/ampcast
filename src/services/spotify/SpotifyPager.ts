@@ -47,7 +47,6 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
 
         this.pager = new SequentialPager<T>(
             async (limit = this.defaultConfig.pageSize!): Promise<Page<T>> => {
-                console.log('fetchNext1');
                 const offset = (this.pageNumber - 1) * limit;
                 const fetchPage = async () => {
                     const {items, total, next} = await fetch(offset, limit);

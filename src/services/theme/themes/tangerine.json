@@ -8,10 +8,10 @@
     "buttonTextColor": "",
     "mediaButtonColor": "",
     "mediaButtonTextColor": "",
-    "selectedBackgroundColor": "#adaaaa",
+    "selectedBackgroundColor": "#e87102",
     "selectedTextColor": "#000000",
     "evenRowBackgroundColor": "",
     "spacing": 0.46875,
     "roundness": 1,
-    "flat": false
+    "flat": true
 }

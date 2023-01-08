@@ -16,7 +16,7 @@ export default function AppearanceSettingsGeneral() {
 
     const handleSubmit = useCallback(() => theme.save(), []);
 
-    const handlePresetChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
+    const handleThemeChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
         theme.load(event.target.value);
     }, []);
 
@@ -29,7 +29,7 @@ export default function AppearanceSettingsGeneral() {
             <div className="table-layout">
                 <p>
                     <label htmlFor="theme-name">Theme:</label>
-                    <select id="theme-name" onChange={handlePresetChange} defaultValue={theme.name}>
+                    <select id="theme-name" onChange={handleThemeChange} defaultValue={theme.name}>
                         {themes.map(({name}) => (
                             <option value={name} key={name}>
                                 {name || '(boring default)'}

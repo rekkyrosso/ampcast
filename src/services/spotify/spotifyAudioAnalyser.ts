@@ -5,7 +5,6 @@ import {min} from 'd3-array';
 import {scaleLog} from 'd3-scale';
 import SimpleAudioAnalyser from 'types/SimpleAudioAnalyser';
 import {observePaused} from 'services/mediaPlayback/playback';
-// import {Logger} from 'utils';
 import spotifyPlayer, {SpotifyPlayer} from './spotifyPlayer';
 import {spotifyApi} from './spotify';
 import {samplePitches} from './samplePitches';
@@ -188,7 +187,10 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
                     this.beat.progress *
                     255;
             }
+            return;
         }
+
+        array.fill(0);
     }
 
     getByteTimeDomainData(array: Uint8Array): void {

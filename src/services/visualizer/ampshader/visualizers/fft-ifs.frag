@@ -28,7 +28,7 @@ float DE(vec3 p)
     float d = 1e10;
 
     float s = 1.; //sin(iTime /60.0) / 10.0 + 0.6;
-    vec3 t = vec3(0.1 + 0.2 * iResolution.xy/iResolution.xy, 0.1 + 0.1 * sin(iTime/200.));
+    vec3 t = vec3(0.1 + 0.2 * iMouse.xy/iResolution.xy, 0.1 + 0.1 * sin(iTime/200.));
 
     float fftVal = texture(iChannel0,vec2(length(p/5.), 0.2)).x *0.1;
     vec3 dim = vec3( fftVal, 0.9, fftVal);

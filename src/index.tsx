@@ -12,6 +12,7 @@ import useMediaSession from 'hooks/useMediaSession';
 import useGlobalActions from 'hooks/useGlobalActions';
 import useStoragePersistence from 'hooks/useStoragePersistence';
 import 'styles/layout.scss';
+import DesktopWarning from 'components/DesktopWarning';
 
 console.log('module::App');
 
@@ -30,6 +31,7 @@ function App() {
                 <MediaLibrary />
                 <MediaPlayback />
             </Splitter>
+            <DesktopWarning />
         </main>
     );
 }

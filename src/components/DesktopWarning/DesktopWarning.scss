@@ -1,0 +1,26 @@
+.desktop-warning {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 2rem;
+    background-color: var(--background-color);
+    color: var(--text-color);
+    font-size: 1.5rem;
+
+    &[hidden] {
+        display: none;
+    }
+
+    h1 {
+        margin-bottom: 4rem;
+        font-size: 1rem;
+    }
+
+    p + p {
+        margin-top: 5rem;
+    }
+}

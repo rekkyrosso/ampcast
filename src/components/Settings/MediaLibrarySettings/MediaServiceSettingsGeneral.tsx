@@ -20,7 +20,7 @@ export default function MediaServiceSettingsGeneral({service}: MediaServiceSetti
     return (
         <form className="media-service-settings-general" method="dialog" onSubmit={handleSubmit}>
             <p>
-                <button className="disconnect" onClick={service.logout} disabled={!connected}>
+                <button type="button" className="disconnect" onClick={service.logout} disabled={!connected}>
                     {connected ? 'Disconnect...' : 'Not connected'}
                 </button>
             </p>
