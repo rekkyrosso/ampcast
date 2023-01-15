@@ -76,8 +76,13 @@ export function getYouTubeSrc(url = ''): string {
     return '';
 }
 
+
+export function getYouTubeUrl(videoId: string): string {
+    return `${youtubeHost}/watch?v=${videoId}`;
+}
+
 export async function getYouTubeVideoInfo(videoId: string): Promise<MediaItem> {
-    const url = `${youtubeHost}/watch?v=${videoId}`;
+    const url = getYouTubeUrl(videoId);
     const response = await fetch(`${youtubeHost}/oembed?url=${url}&format=json`);
 
     if (!response.ok) {

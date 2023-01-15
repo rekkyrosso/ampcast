@@ -5,6 +5,7 @@
     button.branded {
         text-shadow: 1px 1px 0 rgba(16, 16, 16, 0.6);
         box-shadow: 1px 1px 0 rgba(16, 16, 16, 0.25);
+        white-space: normal;
 
         .apple-browser & {
             background: #d60017;

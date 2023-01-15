@@ -1,11 +1,13 @@
 import React from 'react';
-import MediaItemBrowser from 'components/MediaBrowser/MediaItemBrowser';
 import EmptyScreen from 'components/EmptyScreen';
-import {appleMusicVideos} from '../apple';
+import {DefaultBrowser} from 'components/MediaBrowser';
+import apple, {appleMusicVideos} from '../apple';
+
+const sources = [appleMusicVideos];
 
 export default function AppleMusicVideo() {
     const isBeta = window.MusicKit?.version.startsWith('3');
-    return isBeta ? <MediaItemBrowser source={appleMusicVideos} /> : <BetaWarning />;
+    return isBeta ? <DefaultBrowser service={apple} sources={sources} /> : <BetaWarning />;
 }
 
 function BetaWarning() {

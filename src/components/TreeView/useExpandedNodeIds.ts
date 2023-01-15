@@ -3,8 +3,8 @@ import useNodeIds from './useNodeIds';
 import {TreeNode} from './TreeView';
 import useTreeViewState from './useTreeViewState';
 
-export default function useExpandedNodeIds(nodes: TreeNode<any>[], storeId?: string) {
-    const {storeExpandedState, retrieveExpandedState} = useTreeViewState(storeId);
+export default function useExpandedNodeIds(nodes: TreeNode<any>[], storageId?: string) {
+    const {storeExpandedState, retrieveExpandedState} = useTreeViewState(storageId);
     const allIds = useNodeIds(nodes);
     const [expandedIds, setExpandedIds] = useState<string[]>(() => {
         return getInitialExpandedNodeIds(nodes, retrieveExpandedState);

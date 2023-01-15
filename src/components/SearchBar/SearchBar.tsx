@@ -19,7 +19,7 @@ export default function SearchBar({onSubmit}: SearchBarProps) {
 
     return (
         <form className="search-bar" onSubmit={handleSubmit}>
-            <p className="search-bar-input">
+            <p className="text-with-button">
                 <input
                     type="search"
                     spellCheck={false}

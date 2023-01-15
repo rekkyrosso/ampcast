@@ -16,17 +16,14 @@
 
     &-panels {
         flex: auto;
-        border: 1px solid var(--text-color);
-        border-top-right-radius: calc(var(--roundness) * 1.5em);
+        border: 1px solid #444;
+        border-top-right-radius: calc(var(--roundness) * 1em);
         margin-top: -1px;
     }
 
     .tab {
-        background-image:
-            linear-gradient(to bottom, var(--button-color-hi), transparent 0.125rem),
-            linear-gradient(to right, var(--button-color-hi), transparent 0.125rem),
-            linear-gradient(to left, var(--button-color-lo), transparent 0.125rem);
-        border-color: var(--text-color);
+        background-image: none;
+        border-color: #444;
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
 

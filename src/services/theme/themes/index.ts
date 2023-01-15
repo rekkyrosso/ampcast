@@ -16,7 +16,7 @@ import submarine from './submarine.json';
 import tangerine from './tangerine.json';
 import winampAmber from './winamp-amber.json';
 import winampClassic from './winamp-classic.json';
-import winampClassicModern from './winamp-classic-modern.json';
+import winampModern from './winamp-modern.json';
 
 const themes: readonly Theme[] = [
     defaultTheme,
@@ -36,7 +36,7 @@ const themes: readonly Theme[] = [
     tangerine,
     winampAmber,
     winampClassic,
-    winampClassicModern,
+    winampModern,
 ];
 
 export default themes;

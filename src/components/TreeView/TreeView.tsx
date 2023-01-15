@@ -24,7 +24,7 @@ export interface TreeNode<T> {
 export interface TreeViewProps<T> {
     roots: TreeNode<T>[];
     className?: string;
-    storeId?: string;
+    storageId?: string;
     onContextMenu?: (item: T, x: number, y: number) => void;
     onDelete?: (item: T) => void;
     onEnter?: (item: T) => void;
@@ -54,7 +54,7 @@ export default function TreeView<T>({roots, className = '', onSelect, ...props}:
 function Tree<T>({
     roots,
     className,
-    storeId,
+    storageId,
     onContextMenu,
     onDelete,
     onEnter,
@@ -64,11 +64,11 @@ function Tree<T>({
     const containerRef = useRef<HTMLDivElement>(null);
     const scrollableRef = useRef<ScrollableHandle>(null);
     const cursorRef = useRef<HTMLDivElement>(null);
-    const {storeSelectedNodeId, retrieveSelectedNodeId} = useTreeViewState(storeId);
+    const {storeSelectedNodeId, retrieveSelectedNodeId} = useTreeViewState(storageId);
     const [selectedId, setSelectedId] = useState<string>(() =>
         retrieveSelectedNodeId(roots[0]?.id)
     );
-    const {expandedIds, toggle} = useExpandedNodeIds(roots, storeId);
+    const {expandedIds, toggle} = useExpandedNodeIds(roots, storageId);
     const visibleIds = useVisibleNodeIds(roots, expandedIds);
     const rowIndex = visibleIds.indexOf(selectedId);
     const [height, setHeight] = useState(0);

@@ -1,11 +1,11 @@
 .media-list.list-view {
-    .list-view-row.selected .list-view-cell {
-        color: var(--selected-text-color);
-    }
-
     .list-view-row.playing .list-view-cell {
         font-style: italic;
         color: var(--currently-playing-color);
+    }
+
+    .list-view-row.selected .list-view-cell {
+        color: var(--selected-text-color);
     }
 
     &.playable .unplayable:not(.selected):not(.playing) .list-view-cell {

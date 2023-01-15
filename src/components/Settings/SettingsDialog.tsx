@@ -1,8 +1,11 @@
 import React, {useState} from 'react';
+import {LiteStorage} from 'utils';
 import Dialog, {DialogProps} from 'components/Dialog';
 import TreeView from 'components/TreeView';
 import './SettingsDialog.scss'; // Needs to be above the file below.
 import useSettingsSources from './useSettingsSources';
+
+export const storage = new LiteStorage('settings-sources');
 
 export default function SettingsDialog(props: DialogProps) {
     const sources = useSettingsSources();
@@ -13,7 +16,7 @@ export default function SettingsDialog(props: DialogProps) {
             <TreeView<React.ReactNode>
                 className="settings-dialog-sources"
                 roots={sources}
-                storeId="settings-dialog-sources"
+                storageId={storage.id}
                 onSelect={setSource}
             />
             <div className="settings-dialog-source">{source}</div>

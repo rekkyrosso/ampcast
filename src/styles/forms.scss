@@ -5,10 +5,17 @@ fieldset {
     padding: 0.5em 1em 1em 1em;
     color: var(--text-color);
     border-radius: 0.25em;
+    border: 0.125em solid var(--grey2-color);
 
     & + & {
         margin-top: 1em;
     }
+}
+
+legend {
+    text-align: left;
+    padding: 0 0.375em;
+    white-space: nowrap;
 }
 
 label,
@@ -23,6 +30,7 @@ textarea {
     font-size: 1em;
     padding: 0.125em 0.25em;
     border: 0;
+    border-radius: calc(var(--roundness) * 1em);
 }
 
 input,
@@ -36,7 +44,6 @@ input {
 
 select {
     border: 1px solid;
-    border-radius: 0.25em;
 
     legend & {
         max-width: 20em;
@@ -177,6 +184,28 @@ button {
 .buttons {
     text-align: right;
     margin-top: 1em;
+}
+
+.text-with-button {
+    display: flex;
+    flex: initial;
+    flex-direction: row;
+    align-items: center;
+
+    input {
+        flex: auto;
+        min-width: 4em;
+        text-indent: calc(var(--roundness) * 0.5em);
+
+        &::-webkit-search-cancel-button {
+            display: none;
+        }
+    }
+
+    button {
+        flex: initial;
+        margin-left: var(--gutter-width);
+    }
 }
 
 .table-layout {

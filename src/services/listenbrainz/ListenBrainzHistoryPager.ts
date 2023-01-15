@@ -1,9 +1,11 @@
 import type {Observable} from 'rxjs';
+import getYouTubeID from 'get-youtube-id';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import Pager, {Page} from 'types/Pager';
 import SequentialPager from 'services/pagers/SequentialPager';
+import {getYouTubeSrc, getYouTubeUrl} from 'services/youtube';
 import listenbrainzApi from './listenbrainzApi';
 import listenbrainzSettings from './listenbrainzSettings';
 
@@ -100,9 +102,21 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             playedAt: item.listened_at,
             link: {
                 src: this.getPlayableSrc(info) || '',
-                externalUrl: info?.origin_url || '',
+                externalUrl: this.getExternalUrl(info?.origin_url),
             },
         };
+    }
+
+    private getExternalUrl(url: string | undefined): string {
+        if (url) {
+            if (/youtu\.?be/.test(url)) {
+                const videoId = getYouTubeID(url);
+                if (videoId) {
+                    return getYouTubeUrl(videoId);
+                }
+            }
+        }
+        return url || '';
     }
 
     private getPlayableSrc(
@@ -112,11 +126,17 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             if (info.spotify_id) {
                 return this.getSpotifySrc(info.spotify_id);
             }
-            if (info.origin_url?.includes('spotify.com')) {
-                return this.getSpotifySrc(info.origin_url);
-            }
-            if (info.origin_url?.includes('apple.com')) {
-                return this.getAppleSrc(info.origin_url);
+            const url = info.origin_url;
+            if (url) {
+                if (url.includes('apple.com')) {
+                    return this.getAppleSrc(url);
+                }
+                if (url.includes('spotify.com')) {
+                    return this.getSpotifySrc(url);
+                }
+                if (/youtu\.?be/.test(url)) {
+                    return getYouTubeSrc(url);
+                }
             }
             const musicServiceName = info.music_service_name?.toLowerCase() || '';
             const serviceIds = 'jellyfin|spotify|youtube|apple|plex'.split('|');
@@ -128,20 +148,20 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
         }
     }
 
-    private getSpotifySrc(href: string): string | undefined {
-        if (href) {
-            const id = href.split('/').pop();
+    private getAppleSrc(url: string): string | undefined {
+        if (url) {
+            const id = url.split('i=').pop();
             if (id) {
-                return `spotify:track:${id}`;
+                return `apple:song:${id}`;
             }
         }
     }
 
-    private getAppleSrc(href: string): string | undefined {
-        if (href) {
-            const id = href.split('i=').pop();
+    private getSpotifySrc(url: string): string | undefined {
+        if (url) {
+            const id = url.split('/').pop();
             if (id) {
-                return `apple:song:${id}`;
+                return `spotify:track:${id}`;
             }
         }
     }

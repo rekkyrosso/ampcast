@@ -8,9 +8,13 @@
 }
 
 #media-playback-layout > .layout-pane-secondary {
-    min-height: 8rem;
+    min-height: 12rem;
 }
 
 #main-layout > .layout-pane-primary {
     min-width: calc(10rem + var(--layout-pane-min-size) + var(--layout-splitter-size));
+}
+
+#main-layout > .layout-pane-secondary {
+    min-width: 20rem;
 }

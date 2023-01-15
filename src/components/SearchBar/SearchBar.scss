@@ -1,26 +1,3 @@
 .search-bar {
-    &-input {
-        display: flex;
-        flex: initial;
-        flex-direction: row;
-        align-items: center;
-
-        input {
-            flex: auto;
-            min-width: 4em;
-            border-radius: calc(var(--roundness) * 1em);
-            text-indent: calc(var(--roundness) * 0.5em);
-
-            &::-webkit-search-cancel-button {
-                display: none;
-            }
-        }
-
-        button {
-            flex: initial;
-            margin-left: var(--gutter-width);
-        }
-    }
-
     margin-bottom: calc(var(--gutter-width) / 2);
 }

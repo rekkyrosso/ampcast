@@ -12,7 +12,7 @@ import {
 import {AmbientVideoVisualizer} from 'types/Visualizer';
 import {observeVisualizerSettings} from 'services/visualizer/visualizerSettings';
 import {getYouTubeSrc} from 'services/youtube';
-import {loadYouTubePlaylist} from 'services/youtube/YouTubePlaylistLoader';
+import {loadYouTubePlaylist} from 'services/youtube/YouTubeLoader';
 import {Logger} from 'utils';
 import defaultAmbientVideos from './defaultAmbientVideos';
 

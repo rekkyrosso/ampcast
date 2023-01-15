@@ -14,7 +14,7 @@ import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import SequentialPager from 'services/pagers/SequentialPager';
-import {youtubeHost} from './youtube';
+import {getYouTubeUrl, youtubeHost} from './youtube';
 
 type YouTubeVideo = gapi.client.youtube.Video;
 type YouTubePlaylist = gapi.client.youtube.Playlist;
@@ -145,7 +145,7 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
             itemType: ItemType.Media,
             mediaType: MediaType.Video,
             src: `youtube:video:${video.id}`,
-            externalUrl: `${youtubeHost}/watch?v=${video.id}`,
+            externalUrl: getYouTubeUrl(video.id!),
             title: video.snippet?.title || video.id!,
             duration: this.parseDuration(video.contentDetails?.duration),
             thumbnails: this.mapThumbnails(video.snippet?.thumbnails),

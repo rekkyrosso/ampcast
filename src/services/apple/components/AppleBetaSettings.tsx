@@ -43,7 +43,7 @@ export default function AppleBetaSettings() {
             <p>
                 <small>
                     MusicKit is a JavaScript library supplied by Apple that provides access to Apple
-                    Music services and playback.
+                    Music services and media playback.
                 </small>
             </p>
             <footer className="dialog-buttons">

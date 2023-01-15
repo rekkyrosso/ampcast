@@ -16,7 +16,7 @@
     background-color: var(--button-color);
     background-image: var(--button-background);
     border: 1px solid var(--button-border-color);
-    border-radius: calc(var(--roundness) * 1.5em);
+    border-radius: calc(var(--roundness) * 1em);
 }
 
 @mixin pressable-button {

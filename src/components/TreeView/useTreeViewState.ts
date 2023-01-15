@@ -1,43 +1,43 @@
 import {useCallback} from 'react';
 
-export default function useTreeViewState(storeId?: string) {
+export default function useTreeViewState(storageId?: string) {
     const storeExpandedState = useCallback(
         (nodeId: string, expanded: boolean): void => {
-            if (storeId) {
-                localStorage.setItem(`${storeId}/${nodeId}`, String(!!expanded));
+            if (storageId) {
+                localStorage.setItem(`${storageId}/${nodeId}`, String(!!expanded));
             }
         },
-        [storeId]
+        [storageId]
     );
 
     const retrieveExpandedState = useCallback(
         (nodeId: string, defaultExpanded = false): boolean => {
-            if (storeId) {
-                const expanded = localStorage.getItem(`${storeId}/${nodeId}`);
+            if (storageId) {
+                const expanded = localStorage.getItem(`${storageId}/${nodeId}`);
                 return typeof expanded === 'string' ? expanded === 'true' : defaultExpanded;
             }
             return defaultExpanded;
         },
-        [storeId]
+        [storageId]
     );
 
     const storeSelectedNodeId = useCallback(
         (nodeId: string): void => {
-            if (storeId) {
-                localStorage.setItem(`${storeId}/selectedId`, nodeId);
+            if (storageId) {
+                localStorage.setItem(`${storageId}/selectedId`, nodeId);
             }
         },
-        [storeId]
+        [storageId]
     );
 
     const retrieveSelectedNodeId = useCallback(
         (defaultId: string): string => {
-            if (storeId) {
-                return localStorage.getItem(`${storeId}/selectedId`) || defaultId;
+            if (storageId) {
+                return localStorage.getItem(`${storageId}/selectedId`) || defaultId;
             }
             return defaultId;
         },
-        [storeId]
+        [storageId]
     );
 
     return {storeExpandedState, retrieveExpandedState, storeSelectedNodeId, retrieveSelectedNodeId};

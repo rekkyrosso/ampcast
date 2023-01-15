@@ -19,6 +19,11 @@ import Player from 'types/Player';
 import {Logger} from 'utils';
 import {getYouTubeVideoInfo} from './youtube';
 
+interface LoadError {
+    readonly src: string;
+    readonly error: unknown;
+}
+
 interface Size {
     readonly width: number;
     readonly height: number;
@@ -52,8 +57,8 @@ export const enum PlayerState {
 }
 
 export default class YouTubePlayer implements Player<string> {
-    private readonly logger: Logger;
-    private readonly player: YT.Player | null = null;
+    protected readonly logger: Logger;
+    protected readonly player: YT.Player | null = null;
     private readonly src$ = new BehaviorSubject('');
     private readonly size$ = new BehaviorSubject<Size>({width: 0, height: 0});
     private readonly error$ = new Subject<unknown>();
@@ -62,6 +67,7 @@ export default class YouTubePlayer implements Player<string> {
     private readonly videoId$ = new BehaviorSubject('');
     private readonly element: HTMLElement;
     private readonly targetId: string;
+    private loadError?: LoadError;
     #muted = true;
     #volume = 1;
     autoplay = false;
@@ -109,6 +115,7 @@ export default class YouTubePlayer implements Player<string> {
                                 player.cueVideoById(id, offset);
                             }
                         }
+                        this.loadError = undefined;
                     } else {
                         player.stopVideo();
                     }
@@ -261,8 +268,9 @@ export default class YouTubePlayer implements Player<string> {
                 this.state$.next(state);
             });
 
-            youtube.on('error', (err) => {
-                this.error$.next(err);
+            youtube.on('error', (error) => {
+                this.loadError = {src: this.src, error};
+                this.error$.next(error);
             });
         }
     }
@@ -279,7 +287,11 @@ export default class YouTubePlayer implements Player<string> {
     play(): void {
         this.logger.log('play');
         if (this.player) {
-            this.player.playVideo();
+            if (this.src === this.loadError?.src) {
+                this.error$.next(this.loadError.error);
+            } else {
+                this.player.playVideo();
+            }
         } else {
             this.error$.next(Error('YouTube player not loaded.'));
         }
@@ -360,6 +372,7 @@ export default class YouTubePlayer implements Player<string> {
                 this.logger.log(
                     `Could not obtain oembed info (videoId=${videoId}): ${error.message}`
                 );
+                this.loadError = {src: this.src, error};
                 this.error$.next(error);
                 return of(defaultAspectRatio);
             })
@@ -372,10 +385,6 @@ export default class YouTubePlayer implements Player<string> {
         } else {
             return PlayerState.UNSTARTED;
         }
-    }
-
-    protected getPlaylist(): string[] {
-        return this.player?.getPlaylist() || [];
     }
 
     protected getVideoId(src: string): string {

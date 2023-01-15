@@ -17,7 +17,7 @@ export default function MediaSources({onSelect}: MediaSourcesProps) {
 
     return (
         <div className="panel media-sources">
-            <TreeView<React.ReactNode> roots={sources} onSelect={onSelect} storeId={storage.id} />
+            <TreeView<React.ReactNode> roots={sources} onSelect={onSelect} storageId={storage.id} />
         </div>
     );
 }

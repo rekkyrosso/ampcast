@@ -88,7 +88,7 @@ function Router<T extends MediaObject>({service, sources}: MediaBrowserProps<T>)
     }
 }
 
-function DefaultBrowser<T extends MediaObject>({sources}: MediaBrowserProps<T>) {
+export function DefaultBrowser<T extends MediaObject>({sources}: MediaBrowserProps<T>) {
     const [source, setSource] = useState<MediaSource<T>>(() => sources[0]);
     const [query, setQuery] = useState('');
     const pager = useSearch(source, query);

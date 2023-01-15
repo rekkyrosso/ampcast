@@ -120,8 +120,8 @@ body.dragging {
 .note {
     padding: 1em;
     margin: 1em 0;
-    background-color: rgba(32, 32, 32, 0.4);
-    border: 1px solid rgb(32, 32, 32);
+    background-color: rgba(64, 128, 128, 0.1);
+    border: 1px solid var(--grey2-color);
     border-radius: 0.25em;
     font-size: 0.75rem;
 
