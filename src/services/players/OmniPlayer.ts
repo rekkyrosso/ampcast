@@ -5,21 +5,26 @@ import {SetReturnType} from 'type-fest';
 import Player from 'types/Player';
 
 export default class OmniPlayer<T, S = T> implements Player<T> {
+    private readonly element: HTMLElement;
     private readonly player$ = new BehaviorSubject<Player<S> | null>(null);
     private readonly error$ = new Subject<unknown>();
     #autoplay = false;
-    #hidden = false;
     #muted = false;
 
     constructor(
+        className: string,
         private readonly players: Player<S>[],
         private readonly selectPlayer: SetReturnType<Player<T>['load'], Player<S> | null>,
         private readonly loadPlayer: (player: Player<S>, src: T) => void
     ) {
+        const element = (this.element = document.createElement('div'));
+        element.className = className;
+
         players.forEach((player) => {
             player.autoplay = false;
             player.muted = true;
             player.hidden = true;
+            player.appendTo(element);
         });
     }
 
@@ -35,11 +40,11 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
     }
 
     get hidden(): boolean {
-        return this.#hidden;
+        return this.element.hidden;
     }
 
     set hidden(hidden: boolean) {
-        this.#hidden = hidden;
+        this.element.hidden = hidden;
         if (this.currentPlayer) {
             this.currentPlayer.hidden = hidden;
         }
@@ -105,7 +110,7 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
     }
 
     appendTo(parentElement: HTMLElement): void {
-        this.players.forEach((player) => player.appendTo(parentElement));
+        parentElement.appendChild(this.element);
     }
 
     load(src: T): void {

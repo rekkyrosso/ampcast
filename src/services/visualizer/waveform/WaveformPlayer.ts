@@ -1,6 +1,6 @@
 import SimpleAudioAnalyser from 'types/SimpleAudioAnalyser';
 import {WaveformVisualizer} from 'types/Visualizer';
-import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
+import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
 import {Logger} from 'utils';
 
 const logger = new Logger('WaveformPlayer');
@@ -65,6 +65,7 @@ export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVis
     }
 
     pause(): void {
+        logger.log('pause');
         if (this.animationFrameId) {
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = 0;
@@ -72,6 +73,7 @@ export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVis
     }
 
     stop(): void {
+        logger.log('stop');
         this.pause();
         this.clear();
     }
@@ -90,7 +92,7 @@ export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVis
 
     private render(now: number): void {
         this.renderFrame(now);
-        if (this.autoplay && !this.canvas.hidden) {
+        if (this.autoplay && !this.hidden) {
             this.animationFrameId = requestAnimationFrame((now) => this.render(now));
         }
     }

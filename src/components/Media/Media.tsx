@@ -58,8 +58,7 @@ export default memo(function Media() {
             onDoubleClick={toggleFullScreen}
             ref={ref}
         >
-            <div id="players" />
-            <div id="visualizers" />
+            <div id="playback" />
             <Interstitial />
             <VisualizerControls />
         </div>

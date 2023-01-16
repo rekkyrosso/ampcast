@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
 import {distinctUntilChanged, EMPTY, filter, map, switchMap} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
+import {interpolateBasis} from 'd3-interpolate';
 import {min} from 'd3-array';
 import {scaleLog} from 'd3-scale';
 import SimpleAudioAnalyser from 'types/SimpleAudioAnalyser';
@@ -174,18 +175,14 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
             const brightness = this.segment.timbre[1];
             const centre = (brightness - 180) / 360;
             const bufferSize = this.frequencyBinCount;
+            const beat = interpolateBasis([64, this.volume * 255, 64])(this.beat.progress);
             for (let i = 0; i < bufferSize; i++) {
                 const sample = samplePitches(pitches, i, this.sampleSize);
                 let radian = (i - bufferSize / 2 - centre * bufferSize) / bufferSize + 1;
                 if (radian < 0 || radian > 2) {
                     radian = 0;
                 }
-                array[i] =
-                    Math.sin(radian * (Math.PI / 2)) *
-                    sample *
-                    this.volume *
-                    this.beat.progress *
-                    255;
+                array[i] = Math.sin(radian * (Math.PI / 2)) * sample * beat;
             }
             return;
         }
@@ -237,11 +234,6 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
     private setActiveIntervals(): void {
         const activeIntervals = this.activeIntervals;
 
-        const easeOutQuart = (t: number): number => {
-            t = Math.min(Math.max(0, t), 1);
-            return 1 - --t * t * t * t;
-        };
-
         const determineInterval = (type: IntervalType): number => {
             const analysis = this.trackAnalysis[type];
             const progress = this.trackProgress;
@@ -267,7 +259,7 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
             const {start, duration} = activeIntervals[type];
             const elapsed = this.trackProgress - start;
             activeIntervals[type].elapsed = elapsed;
-            activeIntervals[type].progress = easeOutQuart(elapsed / duration);
+            activeIntervals[type].progress = this.easeOutQuart(elapsed / duration);
         });
 
         this.activeIntervals$.next(activeIntervals);
@@ -359,6 +351,11 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
 
     private isSegment(segment: any): segment is SpotifyApi.AudioAnalysisSegment {
         return 'loudness_max_time' in segment;
+    }
+
+    private easeOutQuart(t: number): number {
+        t = Math.min(Math.max(0, t), 1);
+        return 1 - --t * t * t * t;
     }
 }
 

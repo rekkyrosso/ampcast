@@ -248,35 +248,14 @@ export default class YouTubePlayer implements Player<string> {
 
     appendTo(parentElement: HTMLElement): void {
         parentElement.appendChild(this.element);
-
-        if (!this.player) {
-            const youtube = YouTubeFactory(this.targetId, {playerVars} as any);
-
-            youtube.on('ready', ({target}: any) => {
-                (this as any).player = target;
-
-                target.setVolume(this.volume * 100);
-
-                if (this.muted || this.volume === 0) {
-                    target.mute();
-                }
-
-                this.ready$.next(undefined);
-            });
-
-            youtube.on('stateChange', ({data: state}: {data: PlayerState}) => {
-                this.state$.next(state);
-            });
-
-            youtube.on('error', (error) => {
-                this.loadError = {src: this.src, error};
-                this.error$.next(error);
-            });
-        }
+        this.createPlayer();
     }
 
     load(src: string): void {
         this.logger.log('load', {src});
+        if (!this.player) {
+            this.createPlayer();
+        }
         if (this.autoplay && this.player && src === this.src) {
             this.player.playVideo();
         } else {
@@ -361,6 +340,33 @@ export default class YouTubePlayer implements Player<string> {
             }),
             distinctUntilChanged(compareSize)
         );
+    }
+
+    private createPlayer(): void {
+        if (!this.player && this.element.isConnected) {
+            const youtube = YouTubeFactory(this.targetId, {playerVars} as any);
+
+            youtube.on('ready', ({target}: any) => {
+                (this as any).player = target;
+
+                target.setVolume(this.volume * 100);
+
+                if (this.muted || this.volume === 0) {
+                    target.mute();
+                }
+
+                this.ready$.next(undefined);
+            });
+
+            youtube.on('stateChange', ({data: state}: {data: PlayerState}) => {
+                this.state$.next(state);
+            });
+
+            youtube.on('error', (error) => {
+                this.loadError = {src: this.src, error};
+                this.error$.next(error);
+            });
+        }
     }
 
     private getAspectRatio(videoId: string): Observable<number> {

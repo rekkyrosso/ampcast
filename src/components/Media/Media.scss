@@ -45,4 +45,11 @@
         width: inherit;
         height: inherit;
     }
+
+    .ambient-video-player .visualizer-waveform {
+        background: none;
+        inset: auto;
+        bottom: 0.5em;
+        margin: 0 calc(50% - 5em);
+    }
 }

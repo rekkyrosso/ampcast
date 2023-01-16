@@ -12,6 +12,7 @@ export interface VisualizerSettings {
     ambientVideoSource: string;
     useAmbientVideoSource: boolean;
     lockedVisualizer: VisualizerKeys | null;
+    beatsOverlay: boolean;
 }
 
 const storage = new LiteStorage('visualizer/settings');
@@ -46,6 +47,17 @@ const visualizerSettings: VisualizerSettings = {
             if (this.lockedVisualizer?.providerId === 'ambientvideo') {
                 storage.removeItem('lockedVisualizer');
             }
+            settings$.next(this);
+        }
+    },
+
+    get beatsOverlay(): boolean {
+        return storage.getBoolean('beatsOverlay');
+    },
+
+    set beatsOverlay(beatsOverlay: boolean) {
+        if (beatsOverlay !== this.beatsOverlay) {
+            storage.setBoolean('beatsOverlay', beatsOverlay);
             settings$.next(this);
         }
     },

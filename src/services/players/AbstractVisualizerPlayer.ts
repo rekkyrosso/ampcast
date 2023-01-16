@@ -3,18 +3,26 @@ import {EMPTY} from 'rxjs';
 import Player from 'types/Player';
 
 export default abstract class AbstractVisualizerPlayer<T> implements Player<T> {
-    public autoplay = false;
-    public loop = true;
-    public muted = true;
-    public volume = 0;
-    abstract hidden: boolean;
+    #autoplay = false;
+    loop = true;
+    muted = true;
+    volume = 0;
 
+    abstract hidden: boolean;
     abstract appendTo(parentElement: HTMLElement): void;
     abstract load(src: T): void;
     abstract play(): void;
     abstract pause(): void;
     abstract stop(): void;
     abstract resize(width: number, height: number): void;
+
+    get autoplay(): boolean {
+        return this.#autoplay;
+    }
+
+    set autoplay(autoplay: boolean) {
+        this.#autoplay = autoplay;
+    }
 
     observeCurrentTime(): Observable<number> {
         return EMPTY;

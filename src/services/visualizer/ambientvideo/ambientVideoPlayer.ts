@@ -9,12 +9,15 @@ import {
     withLatestFrom,
 } from 'rxjs/operators';
 import Player from 'types/Player';
-import {AmbientVideoVisualizer} from 'types/Visualizer';
-import YouTubePlayer from 'services/youtube/YouTubePlayer';
+import {AmbientVideoVisualizer, WaveformVisualizer} from 'types/Visualizer';
+import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
 import HTML5Player from 'services/players/HTML5Player';
+import YouTubePlayer from 'services/youtube/YouTubePlayer';
 import OmniPlayer from 'services/players/OmniPlayer';
 import {LiteStorage, Logger} from 'utils';
 import visualizerSettings, {observeVisualizerSettings} from '../visualizerSettings';
+import beatsPlayer from './beatsPlayer';
+import theme from 'services/theme';
 
 const logger = new Logger('ambientVideoPlayer');
 
@@ -53,17 +56,88 @@ function getProgressKey(): string {
         : 'progress';
 }
 
-const ambientVideoPlayer = new OmniPlayer<AmbientVideoVisualizer, string>(
-    [html5Player, youtubePlayer],
+const videoPlayer = new OmniPlayer<AmbientVideoVisualizer, string>(
+    'ambient-video-player',
+    [html5Player, youtubePlayer, beatsPlayer as any],
     selectPlayer,
     loadPlayer
 );
 
-ambientVideoPlayer.loop = true;
-ambientVideoPlayer.volume = 0;
-ambientVideoPlayer.hidden = true;
+videoPlayer.loop = true;
+videoPlayer.volume = 0;
+videoPlayer.hidden = true;
 
-export default ambientVideoPlayer;
+export class AmbientVideoPlayer extends AbstractVisualizerPlayer<AmbientVideoVisualizer> {
+    constructor(
+        private readonly videoPlayer: Player<AmbientVideoVisualizer>,
+        private readonly beatsPlayer: Player<WaveformVisualizer>
+    ) {
+        super();
+
+        observeVisualizerSettings()
+            .pipe(
+                map((settings) => settings.beatsOverlay),
+                distinctUntilChanged()
+            )
+            .subscribe((beatsOverlay) => {
+                this.beatsPlayer.hidden = this.hidden || !beatsOverlay;
+            });
+    }
+
+    get autoplay(): boolean {
+        return this.videoPlayer.autoplay;
+    }
+
+    set autoplay(autoplay: boolean) {
+        this.videoPlayer.autoplay = autoplay;
+        this.beatsPlayer.autoplay = autoplay;
+    }
+
+    get hidden(): boolean {
+        return this.videoPlayer.hidden;
+    }
+
+    set hidden(hidden: boolean) {
+        this.videoPlayer.hidden = hidden;
+        this.beatsPlayer.hidden = hidden || !visualizerSettings.beatsOverlay;
+    }
+
+    appendTo(parentElement: HTMLElement): void {
+        this.videoPlayer.appendTo(parentElement);
+    }
+
+    load(visualizer: AmbientVideoVisualizer): void {
+        this.videoPlayer.load(visualizer);
+        if (this.autoplay && visualizerSettings.beatsOverlay) {
+            this.beatsPlayer.play();
+        }
+    }
+
+    play(): void {
+        this.videoPlayer.play();
+        if (visualizerSettings.beatsOverlay) {
+            this.beatsPlayer.play();
+        }
+    }
+
+    pause(): void {
+        this.videoPlayer.pause();
+        this.beatsPlayer.pause();
+    }
+
+    stop(): void {
+        this.videoPlayer.stop();
+        this.beatsPlayer.stop();
+    }
+
+    resize(width: number, height: number): void {
+        this.videoPlayer.resize(width, height);
+        const zoom = document.fullscreenElement ? 20 : 10;
+        this.beatsPlayer.resize(theme.fontSize * zoom, theme.fontSize * zoom * 0.225);
+    }
+}
+
+export default new AmbientVideoPlayer(videoPlayer, beatsPlayer);
 
 youtubePlayer
     .observeVideoId()

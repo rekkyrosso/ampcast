@@ -4,6 +4,7 @@ import visualizerSettings from 'services/visualizer/visualizerSettings';
 
 export default function AmbientVideoSettings() {
     const enabledRef = useRef<HTMLInputElement>(null);
+    const beatsOverlayRef = useRef<HTMLInputElement>(null);
     const sourceRef = useRef<HTMLInputElement>(null);
     const useSourceRef = useRef<HTMLInputElement>(null);
     const submitRef = useRef<HTMLButtonElement>(null);
@@ -13,6 +14,7 @@ export default function AmbientVideoSettings() {
         visualizerSettings.ambientVideoEnabled = enabledRef.current!.checked;
         visualizerSettings.useAmbientVideoSource = useSourceRef.current!.checked;
         visualizerSettings.ambientVideoSource = sourceRef.current!.value;
+        visualizerSettings.beatsOverlay = beatsOverlayRef.current!.checked;
     }, []);
 
     const handleSourceChange = useCallback(() => {
@@ -96,6 +98,15 @@ export default function AmbientVideoSettings() {
                     />
                 </p>
             </fieldset>
+            <p>
+                <input
+                    id="beats-overlay"
+                    type="checkbox"
+                    defaultChecked={visualizerSettings.beatsOverlay}
+                    ref={beatsOverlayRef}
+                />
+                <label htmlFor="beats-overlay">Show &quot;beats&quot; overlay</label>
+            </p>
             <footer className="dialog-buttons">
                 <button value="#cancel">Cancel</button>
                 <button ref={submitRef}>Confirm</button>

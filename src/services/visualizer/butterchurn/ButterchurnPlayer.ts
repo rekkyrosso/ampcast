@@ -1,6 +1,6 @@
 import butterchurn from 'butterchurn';
 import {ButterchurnVisualizer} from 'types/Visualizer';
-import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
+import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
 import {Logger} from 'utils';
 
 const logger = new Logger('ButterchurnPlayer');
@@ -64,6 +64,7 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
     }
 
     pause(): void {
+        logger.log('pause');
         if (this.animationFrameId) {
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = 0;

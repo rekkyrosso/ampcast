@@ -50,6 +50,7 @@ function getMediaSource(item: PlaylistItem | null): string {
 }
 
 const mediaPlayer = new OmniPlayer<PlaylistItem | null, string>(
+    'media-player',
     [html5AudioPlayer, html5VideoPlayer, youtubePlayer, musicKitPlayer, spotifyPlayer],
     selectPlayer,
     loadPlayer

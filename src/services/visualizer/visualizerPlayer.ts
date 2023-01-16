@@ -17,6 +17,7 @@ function loadVisualizer(player: Player<Visualizer>, visualizer: Visualizer): voi
 }
 
 const visualizerPlayer = new OmniPlayer<Visualizer>(
+    'visualizer-player',
     getAllVisualizerProviders().map((provider) => provider.player),
     selectPlayer,
     loadVisualizer

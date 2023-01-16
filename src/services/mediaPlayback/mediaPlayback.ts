@@ -83,10 +83,9 @@ export function observePlaying(): Observable<void> {
 }
 
 export function appendTo(parentElement: HTMLElement): void {
-    const playersContainer = parentElement.querySelector('#players') as HTMLElement;
-    const visualizerContainer = parentElement.querySelector('#visualizers') as HTMLElement;
-    mediaPlayer.appendTo(playersContainer);
-    visualizerPlayer.appendTo(visualizerContainer);
+    const container = parentElement.querySelector('#playback') as HTMLElement;
+    mediaPlayer.appendTo(container);
+    visualizerPlayer.appendTo(container);
 }
 
 export function load(item: PlaylistItem | null): void {
@@ -104,6 +103,7 @@ export function play(): void {
     playback.play();
     if (!playback.paused) {
         mediaPlayer.play();
+        visualizerPlayer.play();
     }
 }
 
@@ -112,6 +112,7 @@ export function pause(): void {
     unlockLoading();
     playback.pause();
     mediaPlayer.pause();
+    visualizerPlayer.pause();
 }
 
 export function seek(time: number): void {
@@ -124,6 +125,7 @@ export function stop(): void {
     unlockLoading();
     playback.stop();
     mediaPlayer.stop();
+    visualizerPlayer.stop();
 }
 
 export function resize(width: number, height: number): void {

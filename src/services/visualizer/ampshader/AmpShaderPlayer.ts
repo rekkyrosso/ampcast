@@ -1,6 +1,6 @@
 import SimpleAudioAnalyser from 'types/SimpleAudioAnalyser';
 import {AmpShaderVisualizer} from 'types/Visualizer';
-import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
+import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
 import {Logger} from 'utils';
 
 const logger = new Logger('AmpShaderPlayer');
