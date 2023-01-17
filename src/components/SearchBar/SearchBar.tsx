@@ -1,4 +1,5 @@
 import React, {useCallback, useRef} from 'react';
+import Icon from 'components/Icon';
 import './SearchBar.scss';
 
 export interface SearchBarProps {
@@ -27,7 +28,9 @@ export default function SearchBar({onSubmit}: SearchBarProps) {
                     autoCapitalize="off"
                     ref={inputRef}
                 />
-                <button type="submit">Search</button>
+                <button type="submit" title="Search">
+                    <Icon name="search" />
+                </button>
             </p>
         </form>
     );

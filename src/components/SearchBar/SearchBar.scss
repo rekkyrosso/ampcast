@@ -1,3 +1,8 @@
 .search-bar {
     margin-bottom: calc(var(--gutter-width) / 2);
+
+    button {
+        overflow: visible;
+        padding: calc(0.125em - 2px) 0.25em;
+    }
 }

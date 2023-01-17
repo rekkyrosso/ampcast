@@ -54,11 +54,27 @@
                 }
             }
 
-            &.track {
-                font-family: monospace;
-                font-style: normal;
+            &.index {
+                position: relative;
+                justify-content: center;
+                flex-direction: column;
+                align-items: center;
+
+                .icon {
+                    position: absolute;
+                    width: 67%;
+                    max-width: 1em;
+                }
+
+                .number {
+                    font-family: monospace;
+                }
             }
         }
+    }
+
+    .playing .index .number {
+        visibility: hidden;
     }
 
     .status-bar {

@@ -101,7 +101,7 @@ export default function TreeViewNode<T>({
                 ) : (
                     emptyMarker && (
                         <svg
-                            className="tree-view-node-marker"
+                            className="tree-view-node-marker empty-marker"
                             viewBox="0 0 24 24"
                             onMouseDown={stopPropagation}
                         >

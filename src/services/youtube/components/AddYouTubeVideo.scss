@@ -4,6 +4,23 @@
     max-width: 30em;
     margin: 1em auto;
 
+    fieldset {
+        min-inline-size: auto;
+    }
+
+    input {
+        border-color: var(--text-color);
+    }
+
+    button {
+        overflow: visible;
+        padding: calc(0.125em - 2px) 0.25em;
+
+        .icon {
+            transform: scale(1.25);
+        }
+    }
+
     output {
         display: block;
         min-height: 1em;

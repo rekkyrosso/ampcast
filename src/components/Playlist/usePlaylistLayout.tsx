@@ -6,13 +6,15 @@ import playlistSettings from 'services/playlist/playlistSettings';
 import {ListViewLayout} from 'components/ListView';
 import {Duration} from 'components/MediaList/useMediaListLayout';
 import Icon, {IconName} from 'components/Icon';
+import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useObservable from 'hooks/useObservable';
+import usePaused from 'hooks/usePaused';
 
 const playlistLayout: ListViewLayout<PlaylistItem> = {
     view: 'details',
     showTitles: false,
     cols: [
-        {title: '#', render: () => null, align: 'right', className: 'track'},
+        {title: '#', render: () => null, align: 'right', className: 'index'},
         {title: 'Source', render: RowIcon, align: 'center', className: 'source'},
         {title: 'Title', render: RowTitle, className: 'title'},
         {title: 'Time', render: Duration, align: 'right', className: 'duration'},
@@ -20,6 +22,8 @@ const playlistLayout: ListViewLayout<PlaylistItem> = {
 };
 
 export default function usePlaylistLayout(size: number): ListViewLayout<PlaylistItem> {
+    const currentlyPlaying = useCurrentlyPlaying();
+    const paused = usePaused();
     const sizeExponent = String(size).length;
     const {zeroPadLineNumbers, showLineNumbers, showSourceIcons} = useObservable(
         playlistSettings.observe,
@@ -32,7 +36,7 @@ export default function usePlaylistLayout(size: number): ListViewLayout<Playlist
             cols: playlistLayout.cols
                 .filter((col) => {
                     switch (col.className) {
-                        case 'track':
+                        case 'index':
                             return showLineNumbers;
 
                         case 'source':
@@ -43,11 +47,24 @@ export default function usePlaylistLayout(size: number): ListViewLayout<Playlist
                     }
                 })
                 .map((col) => {
-                    if (col.className === 'track') {
+                    if (col.className === 'index') {
                         return {
                             ...col,
-                            render: (_, rowIndex) => {
-                                return RowNumber(rowIndex, zeroPadLineNumbers ? sizeExponent : 0);
+                            render: (item: PlaylistItem, rowIndex) => {
+                                const rowNumber = RowNumber(
+                                    rowIndex,
+                                    zeroPadLineNumbers ? sizeExponent : 0
+                                );
+                                if (item.id === currentlyPlaying?.id) {
+                                    return (
+                                        <>
+                                            <Icon name={paused ? 'pause' : 'play'} />
+                                            {rowNumber}
+                                        </>
+                                    );
+                                } else {
+                                    return rowNumber;
+                                }
                             },
                         };
                     } else {
@@ -55,11 +72,18 @@ export default function usePlaylistLayout(size: number): ListViewLayout<Playlist
                     }
                 }),
         };
-    }, [zeroPadLineNumbers, showLineNumbers, showSourceIcons, sizeExponent]);
+    }, [
+        zeroPadLineNumbers,
+        showLineNumbers,
+        showSourceIcons,
+        sizeExponent,
+        currentlyPlaying,
+        paused,
+    ]);
 }
 
 function RowNumber(rowIndex: number, numberOfDigits = 0) {
-    return String(rowIndex + 1).padStart(numberOfDigits, '0');
+    return <span className="number">{String(rowIndex + 1).padStart(numberOfDigits, '0')}</span>;
 }
 
 function RowIcon({src, lookupStatus}: PlaylistItem) {

@@ -1,6 +1,7 @@
 import React, {useCallback, useRef, useState} from 'react';
 import getYouTubeID from 'get-youtube-id';
 import playlist from 'services/playlist';
+import Icon from 'components/Icon';
 import {getYouTubeVideoInfo} from '../youtube';
 import {getYouTubeVideoDuration} from '../YouTubeLoader';
 import './AddYouTubeVideo.scss';
@@ -43,7 +44,9 @@ export default function AddYouTubeVideo() {
                 <legend>Add video from url:</legend>
                 <p className="text-with-button">
                     <input type="url" required onInput={handleSourceInput} ref={ref} />
-                    <button className="small">Queue</button>
+                    <button title="Add to queue">
+                        <Icon name="playlist-add" />
+                    </button>
                 </p>
                 <p>
                     <output>{message}</output>

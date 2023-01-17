@@ -48,7 +48,7 @@ export default function PlaylistSettingsGeneral() {
                         onChange={handleChange}
                         ref={showLineNumbersRef}
                     />
-                    <label htmlFor="playlist-item-numbers">Show playlist line numbers</label>
+                    <label htmlFor="playlist-item-numbers">Show line numbers</label>
                 </p>
                 <p>
                     <input
