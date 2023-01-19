@@ -8,4 +8,16 @@
             }
         }
     }
+
+    .pinned-settings {
+        select {
+            width: 100%;
+            height: 10em;
+            margin: 0;
+        }
+
+        > p + p {
+            text-align: right;
+        }
+    }
 }

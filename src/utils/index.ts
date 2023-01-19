@@ -91,6 +91,11 @@ export function stopPropagation(event: Event | React.SyntheticEvent): void {
     event.stopPropagation();
 }
 
+export function cancelEvent(event: Event | React.SyntheticEvent): void {
+    event.preventDefault();
+    event.stopPropagation();
+}
+
 export function getRandomValue<T>(values: readonly T[], previousValue?: T): T {
     if (values.length === 1) {
         return values[0];

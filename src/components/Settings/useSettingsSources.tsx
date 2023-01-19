@@ -18,7 +18,7 @@ import MediaLibrarySettings from './MediaLibrarySettings';
 const sources: TreeNode<React.ReactNode>[] = [
     {
         id: 'services',
-        label: 'Media Services',
+        label: <MediaSourceLabel text="Media Services" icon="globe" />,
         value: <MediaLibrarySettings />,
         startExpanded: true,
         children: getAllServices().map((service) => ({
@@ -29,17 +29,17 @@ const sources: TreeNode<React.ReactNode>[] = [
     },
     {
         id: 'visualizer',
-        label: 'Visualizer',
+        label: <MediaSourceLabel text="Visualizer" icon="visualizer" />,
         value: <VisualizerSettings />,
     },
     {
         id: 'playlist',
-        label: 'Playlist',
+        label: <MediaSourceLabel text="Playlist" icon="playlist" />,
         value: <PlaylistSettings />,
     },
     {
         id: 'appearance',
-        label: 'Appearance',
+        label: <MediaSourceLabel text="Appearance" icon="palette" />,
         value: <AppearanceSettings />,
     },
 ];

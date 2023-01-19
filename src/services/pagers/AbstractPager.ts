@@ -5,6 +5,8 @@ import {Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import Pager, {PagerConfig} from 'types/Pager';
+import {Pin} from 'types/Pin';
+import pinStore from 'services/pins/pinStore';
 import {Logger} from 'utils';
 
 interface PageFetch {
@@ -112,6 +114,20 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
                     .pipe(tap((items) => this.addMissingTrackCounts(items)))
                     .subscribe(logger)
             );
+
+            this.subscriptions.add(
+                pinStore
+                    .observeAdditions()
+                    .pipe(tap((additions) => this.pin(additions)))
+                    .subscribe(logger)
+            );
+
+            this.subscriptions.add(
+                pinStore
+                    .observeRemovals()
+                    .pipe(tap((removals) => this.unpin(removals)))
+                    .subscribe(logger)
+            );
         }
     }
 
@@ -124,6 +140,38 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
                 )
             )
         );
+    }
+
+    private pin(additions: readonly Pin[]): void {
+        let changed = false;
+        const items = this.items.map((item) => {
+            if (item.itemType === ItemType.Playlist) {
+                if (additions.find((pin) => pin.src === item.src)) {
+                    changed = true;
+                    return {...item, isPinned: true};
+                }
+            }
+            return item;
+        });
+        if (changed) {
+            this.items$.next(items);
+        }
+    }
+
+    private unpin(removals: readonly Pin[]): void {
+        let changed = false;
+        const items = this.items.map((item) => {
+            if (item.itemType === ItemType.Playlist) {
+                if (removals.find((pin) => pin.src === item.src)) {
+                    changed = true;
+                    return {...item, isPinned: false};
+                }
+            }
+            return item;
+        });
+        if (changed) {
+            this.items$.next(items);
+        }
     }
 
     private addMissingTrackCounts(items: readonly T[]): void {

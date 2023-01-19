@@ -7,6 +7,7 @@ import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
+import {Pin} from 'types/Pin';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import {uniqBy} from 'utils/index';
@@ -100,7 +101,7 @@ const plexTopRated: MediaSource<MediaItem> = {
 const plexPlaylists: MediaSource<MediaPlaylist> = {
     id: 'plex/playlists',
     title: 'Playlists',
-    icon: 'playlists',
+    icon: 'playlist',
     itemType: ItemType.Playlist,
     secondaryLayout: playlistItemsLayout,
 
@@ -117,7 +118,8 @@ const plex: MediaService = {
     name: 'Plex',
     icon: 'plex',
     url: 'https://www.plex.tv/',
-    lookup: plexLookup,
+    createSourceFromPin,
+    lookup,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -132,7 +134,23 @@ const plex: MediaService = {
     logout,
 };
 
-export async function plexLookup(
+function createSourceFromPin(pin: Pin): MediaSource<MediaItem> {
+    return {
+        title: pin.title,
+        itemType: ItemType.Media,
+        id: pin.src,
+        icon: 'unpinned',
+        isPin: true,
+        layout: defaultLayout,
+
+        search(): Pager<MediaItem> {
+            const [, , key] = pin.src.split(':');
+            return new PlexPager(key);
+        },
+    };
+}
+
+async function lookup(
     artist: string,
     title: string,
     limit = 10,

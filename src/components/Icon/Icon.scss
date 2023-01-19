@@ -22,6 +22,38 @@
         }
     }
 
+    &-palette {
+        fill: orange;
+
+        .themed.light & {
+            fill: green;
+        }
+    }
+
+    &-globe {
+        fill: skyblue;
+
+        .themed.light & {
+            fill: blue;
+        }
+    }
+
+    &-visualizer {
+        fill: yellow;
+
+        .themed.light & {
+            fill: blue;
+        }
+    }
+
+    &-palette,
+    &-globe,
+    &-visualizer {
+        .tree-view-row.selected-text & {
+            fill: white;
+        }
+    }
+
     &-apple {
         fill: rgba(255, 255, 255, 0.1);
 

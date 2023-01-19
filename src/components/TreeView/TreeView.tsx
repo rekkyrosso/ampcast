@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {IconName} from 'components/Icon';
 import Scrollable, {
     ScrollableClient,
     ScrollableHandle,
@@ -18,7 +19,7 @@ export interface TreeNode<T> {
     readonly value: T;
     readonly children?: TreeNode<T>[];
     readonly startExpanded?: boolean;
-    readonly icon?: string;
+    readonly icon?: IconName;
 }
 
 export interface TreeViewProps<T> {

@@ -250,6 +250,7 @@ export default spotifyAuth;
         }
     } catch (err) {
         logger.error(err);
+        clearAccessToken();
     }
     await createCodeVerifier();
 })();

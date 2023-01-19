@@ -18,6 +18,7 @@ export type Field =
     | 'Owner'
     | 'LastPlayed'
     | 'ListenDate'
+    | 'Badges'
     | 'Thumbnail';
 
 export default interface MediaSourceLayout<T extends MediaObject> {

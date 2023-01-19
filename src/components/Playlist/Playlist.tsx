@@ -83,27 +83,34 @@ export default function Playlist({onSelect, onPlay, onEject, ...props}: Playlist
     }, []);
 
     const handleContextMenu = useCallback(
-        async (items: readonly PlaylistItem[], x: number, y: number) => {
-            const action = await showActionsMenu(items, x, y);
+        async (selectedItems: readonly PlaylistItem[], x: number, y: number, rowIndex: number) => {
+            if (items.length === 0) {
+                return;
+            }
+            const action = await showActionsMenu(items, selectedItems, x, y, rowIndex);
             switch (action) {
                 case 'play':
-                    onPlay?.(items[0]);
+                    onPlay?.(selectedItems[0]);
                     break;
 
                 case 'remove':
-                    playlist.remove(items);
+                    playlist.remove(selectedItems);
                     break;
 
                 case 'info':
-                    showMediaInfoDialog(items[0]);
+                    showMediaInfoDialog(selectedItems[0]);
                     break;
 
                 case 'select-all':
                     listViewRef.current!.selectAll();
                     break;
+
+                case 'clear':
+                    playlist.clear();
+                    break;
             }
         },
-        [onPlay]
+        [onPlay, items]
     );
 
     return (

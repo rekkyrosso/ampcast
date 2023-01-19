@@ -9,6 +9,7 @@ import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import OffsetPager from 'services/pagers/OffsetPager';
+import pinStore from 'services/pins/pinStore';
 import plexSettings from './plexSettings';
 import plexApi from './plexApi';
 
@@ -188,6 +189,8 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaPlaylist(playlist: plex.Playlist): MediaPlaylist {
+        const src= `plex:playlist:${playlist.key}`;
+
         return {
             itemType: ItemType.Playlist,
             src: `plex:playlist:${playlist.key}`,
@@ -204,6 +207,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             },
             pager: this.createPager(playlist.key),
             thumbnails: this.createThumbnails(playlist.composite),
+            isPinned: pinStore.isPinned(src),
         };
     }
 

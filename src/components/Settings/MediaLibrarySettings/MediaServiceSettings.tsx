@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import MediaService from 'types/MediaService';
 import TabList, {TabItem} from 'components/TabList';
 import MediaServiceSettingsGeneral from './MediaServiceSettingsGeneral';
+import PinnedSettings from './PinnedSettings';
 import ScrobblingSettings from './ScrobblingSettings';
 import './MediaServiceSettings.scss';
 
@@ -17,6 +18,12 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
                 panel: <MediaServiceSettingsGeneral service={service} />,
             },
         ];
+        if (service.createSourceFromPin) {
+            tabs.push({
+                tab: 'Pinned',
+                panel: <PinnedSettings service={service} />,
+            });
+        }
         if (service.scrobbler) {
             tabs.push({
                 tab: 'Scrobbling',

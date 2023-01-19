@@ -68,7 +68,7 @@ export interface ListViewProps<T> {
     className?: string;
     onClick?: (item: T, rowIndex: number) => void;
     onDoubleClick?: (item: T, rowIndex: number) => void;
-    onContextMenu?: (items: readonly T[], x: number, y: number) => void;
+    onContextMenu?: (items: readonly T[], x: number, y: number, rowIndex: number) => void;
     onDrop?: (items: readonly T[] | FileList, atIndex: number) => void;
     onMove?: (items: readonly T[], toIndex: number) => void;
     onDelete?: (items: readonly T[]) => void;
@@ -384,10 +384,12 @@ export default function ListView<T>({
     const handleContextMenu = useCallback(
         (event: React.MouseEvent) => {
             event.preventDefault();
-            const rowIndex = getRowIndexFromMouseEvent(event);
-            if (rowIndex !== -1) {
-                onContextMenu?.(selectedItems, event.pageX, event.pageY);
-            }
+            onContextMenu?.(
+                selectedItems,
+                event.pageX,
+                event.pageY,
+                getRowIndexFromMouseEvent(event)
+            );
         },
         [selectedItems, onContextMenu]
     );

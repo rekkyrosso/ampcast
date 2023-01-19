@@ -14,6 +14,7 @@ import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import SequentialPager from 'services/pagers/SequentialPager';
+import pinStore from 'services/pins/pinStore';
 import {getYouTubeUrl, youtubeHost} from './youtube';
 
 type YouTubeVideo = gapi.client.youtube.Video;
@@ -128,15 +129,18 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaPlaylist(playlist: YouTubePlaylist): MediaPlaylist {
+        const src = `youtube:playlist:${playlist.id}`;
+
         return {
+            src,
             itemType: ItemType.Playlist,
-            src: `youtube:playlist:${playlist.id}`,
             externalUrl: `${youtubeHost}/playlist?list=${playlist.id}`,
             title: playlist.snippet?.title || playlist.id!,
             thumbnails: this.mapThumbnails(playlist.snippet?.thumbnails),
             trackCount: playlist.contentDetails?.itemCount,
             owner: this.createOwner(playlist.snippet!),
             pager: this.createPlaylistPager(playlist.id!),
+            isPinned: pinStore.isPinned(src),
         };
     }
 

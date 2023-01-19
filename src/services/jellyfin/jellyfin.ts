@@ -9,6 +9,7 @@ import MediaServiceId from 'types/MediaServiceId';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
+import {Pin} from 'types/Pin';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import JellyfinPager from './JellyfinPager';
@@ -95,12 +96,8 @@ const jellyfinMostPlayed: MediaSource<MediaItem> = {
 const jellyfinPlaylists: MediaSource<MediaPlaylist> = {
     id: 'jellyfin/playlists',
     title: 'Playlists',
-    icon: 'playlists',
+    icon: 'playlist',
     itemType: ItemType.Playlist,
-    layout: {
-        view: 'card compact',
-        fields: ['Thumbnail', 'Title', 'TrackCount'],
-    },
     secondaryLayout: playlistItemsLayout,
 
     search(): Pager<MediaPlaylist> {
@@ -117,7 +114,8 @@ const jellyfin: MediaService = {
     icon: serviceId,
     name: 'Jellyfin',
     url: 'https://jellyfin.org/',
-    lookup: jellyfinLookup,
+    createSourceFromPin,
+    lookup,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs'}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -138,7 +136,27 @@ const jellyfin: MediaService = {
     logout,
 };
 
-export async function jellyfinLookup(
+function createSourceFromPin(pin: Pin): MediaSource<MediaItem> {
+    return {
+        title: pin.title,
+        itemType: ItemType.Media,
+        id: pin.src,
+        icon: 'unpinned',
+        isPin: true,
+        layout: defaultLayout,
+
+        search(): Pager<MediaItem> {
+            const [, , id] = pin.src.split(':');
+            return new JellyfinPager(`Playlists/${id}/Items`, {
+                UserId: jellyfinSettings.userId,
+                MediaType: 'Audio',
+                Fields: 'ChildCount',
+            });
+        },
+    };
+}
+
+async function lookup(
     artist: string,
     title: string,
     limit = 10,

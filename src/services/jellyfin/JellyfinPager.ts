@@ -10,6 +10,7 @@ import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import OffsetPager from 'services/pagers/OffsetPager';
+import pinStore from 'services/pins/pinStore';
 import jellyfinSettings from './jellyfinSettings';
 import jellyfinApi from './jellyfinApi';
 
@@ -129,9 +130,10 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaPlaylist(playlist: BaseItemDto): MediaPlaylist {
+        const src = `jellyfin:playlist:${playlist.Id}`;
         return {
+            src,
             itemType: ItemType.Playlist,
-            src: `jellyfin:playlist:${playlist.Id}`,
             externalUrl: '',
             title: playlist.Name || '',
             duration: playlist.RunTimeTicks ? playlist.RunTimeTicks / 10_000_000 : 0,
@@ -143,6 +145,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             thumbnails: this.createThumbnails(playlist.Id),
             trackCount: playlist.ChildCount || undefined,
             pager: this.createPlaylistPager(playlist),
+            isPinned: pinStore.isPinned(src),
         };
     }
 

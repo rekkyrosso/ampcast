@@ -40,7 +40,7 @@ export default function AlbumList({
                     break;
 
                 case 'info':
-                    showMediaInfoDialog(album);
+                    await showMediaInfoDialog(album);
                     break;
             }
         },

@@ -2,6 +2,7 @@ import Auth from './Auth';
 import MediaItem from './MediaItem';
 import MediaServiceId from './MediaServiceId';
 import MediaSource from './MediaSource';
+import {Pin} from './Pin';
 
 export default interface MediaService extends Auth {
     readonly id: MediaServiceId;
@@ -13,6 +14,7 @@ export default interface MediaService extends Auth {
     readonly scrobbler?: boolean;
     readonly defaultHidden?: boolean;
     readonly defaultNoScrobble?: boolean;
+    createSourceFromPin?: (pin: Pin) => MediaSource<MediaItem>;
     lookup?: (
         artist: string,
         title: string,

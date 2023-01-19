@@ -1,12 +1,14 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSourceLayout, {Field} from 'types/MediaSourceLayout';
+import pinStore from 'services/pins/pinStore';
 import {ColumnSpec, ListViewLayout} from 'components/ListView';
 import CoverArt from 'components/CoverArt';
+import IconButton from 'components/Button/IconButton';
 import SunClock from 'components/SunClock';
 import Time from 'components/Time';
 
@@ -37,24 +39,37 @@ type MediaFields<T extends MediaObject = MediaObject> = Record<Field, ColumnSpec
 type RenderField<T extends MediaObject = MediaObject> = ColumnSpec<T>['render'];
 
 export const Index: RenderField = (_, rowIndex) => rowIndex + 1;
+
 export const Title: RenderField = (item) => item.title;
+
 export const Blurb: RenderField<MediaPlaylist> = (item) => item.description;
+
 export const Track: RenderField<MediaItem> = (item) => item.track || '-';
+
 export const Artist: RenderField<MediaAlbum | MediaItem> = (item) =>
     item.itemType === ItemType.Media ? item.artists?.join(', ') : item.artist;
+
 export const AlbumArtist: RenderField<MediaItem> = (item) => item.albumArtist;
+
 export const Album: RenderField<MediaItem> = (item) => item.album;
+
 export const Duration: RenderField<MediaPlaylist | MediaItem> = (item) => (
     <Time time={item.duration || 0} />
 );
+
 export const PlayCount: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) =>
     getCount(item.playCount);
+
 export const TrackCount: RenderField<MediaPlaylist | MediaAlbum> = (item) =>
     getCount(item.trackCount);
+
 export const Year: RenderField<MediaAlbum | MediaItem> = (item) => item.year || '';
+
 export const Genre: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) =>
     item.genres?.join(', ');
+
 export const Owner: RenderField = (item) => item.owner?.name;
+
 export const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
     if (!item.playedAt) {
         return '';
@@ -63,6 +78,7 @@ export const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
     const elapsedTime = getElapsedTimeText(date.valueOf());
     return <time title={date.toLocaleDateString()}>{elapsedTime}</time>;
 };
+
 export const ListenDate: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
     if (!item.playedAt) {
         return '';
@@ -75,8 +91,30 @@ export const ListenDate: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
         </time>
     );
 };
+
 export const AlbumAndYear: RenderField<MediaItem> = (item) =>
     item.album ? (item.year ? `${item.album} (${item.year})` : item.album) : item.year || '';
+
+export const Badges: RenderField = (item) => {
+    const togglePin = useCallback(async () => {
+        if (item.itemType === ItemType.Playlist) {
+            if (item.isPinned) {
+                await pinStore.unpin(item);
+            } else {
+                await pinStore.pin(item);
+            }
+        }
+    }, [item]);
+
+    return item.itemType === ItemType.Playlist ? (
+        <IconButton
+            icon={item.isPinned ? 'pinned' : 'unpinned'}
+            title={item.isPinned ? 'Unpin' : 'Pin'}
+            onClick={togglePin}
+        />
+    ) : null;
+};
+
 export const Thumbnail: RenderField = (item) => {
     return <CoverArt item={item} />;
 };
@@ -111,6 +149,7 @@ const mediaFields: MediaFields<any> = {
     Owner: {title: 'Owner', render: Owner, className: 'owner'},
     LastPlayed: {title: 'Last played', render: LastPlayed, className: 'played-at'},
     ListenDate: {title: 'Played On', render: ListenDate, className: 'played-at'},
+    Badges: {title: 'Badges', render: Badges, className: 'badges'},
     Thumbnail: {title: 'Thumbnail', render: Thumbnail, className: 'thumbnail'},
 };
 

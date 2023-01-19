@@ -11,6 +11,7 @@ import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
+import {Pin} from 'types/Pin';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import {Logger} from 'utils';
@@ -162,7 +163,7 @@ const spotifyLikedAlbums: MediaSource<MediaAlbum> = {
 const spotifyPlaylists: MediaSource<MediaPlaylist> = {
     id: 'spotify/playlists',
     title: 'Playlists',
-    icon: 'playlists',
+    icon: 'playlist',
     itemType: ItemType.Playlist,
     secondaryLayout: playlistItemsLayout,
 
@@ -182,7 +183,7 @@ const spotifyPlaylists: MediaSource<MediaPlaylist> = {
 const spotifyFeaturedPlaylists: MediaSource<MediaPlaylist> = {
     id: 'spotify/featured-playlists',
     title: 'Featured Playlists',
-    icon: 'playlists',
+    icon: 'playlist',
     itemType: ItemType.Playlist,
     defaultHidden: true,
     secondaryLayout: playlistItemsLayout,
@@ -228,7 +229,8 @@ const spotify: MediaService = {
     name: 'Spotify',
     icon: 'spotify',
     url: 'https://www.spotify.com/',
-    lookup: spotifyLookup,
+    createSourceFromPin,
+    lookup,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -256,7 +258,31 @@ const spotify: MediaService = {
 
 export default spotify;
 
-export async function spotifyLookup(
+function createSourceFromPin(pin: Pin): MediaSource<MediaItem> {
+    return {
+        title: pin.title,
+        itemType: ItemType.Media,
+        id: pin.src,
+        icon: 'unpinned',
+        isPin: true,
+        layout: {...defaultLayout, view: 'card compact'},
+
+        search(): Pager<MediaItem> {
+            const [, , id] = pin.src.split(':');
+            const market = getMarket();
+            return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
+                const {items, total, next} = await spotifyApi.getPlaylistTracks(id, {
+                    offset,
+                    limit,
+                    market,
+                });
+                return {items: items.map((item) => item.track), total, next};
+            });
+        },
+    };
+}
+
+export async function lookup(
     artist: string,
     title: string,
     limit = 10,

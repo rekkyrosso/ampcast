@@ -8,6 +8,7 @@ import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
+import {Pin} from 'types/Pin';
 import SimplePager from 'services/pagers/SimplePager';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './youtubeAuth';
 import YouTubePager from './YouTubePager';
@@ -41,12 +42,8 @@ const youtubeLikes: MediaSource<MediaItem> = {
 const youtubePlaylists: MediaSource<MediaPlaylist> = {
     id: 'youtube/playlists',
     title: 'Playlists',
-    icon: 'playlists',
+    icon: 'playlist',
     itemType: ItemType.Playlist,
-    layout: {
-        view: 'card compact',
-        fields: ['Thumbnail', 'Title', 'TrackCount', 'Owner'],
-    },
     secondaryLayout: defaultLayout,
 
     search(): Pager<MediaPlaylist> {
@@ -75,7 +72,6 @@ export function getYouTubeSrc(url = ''): string {
     }
     return '';
 }
-
 
 export function getYouTubeUrl(videoId: string): string {
     return `${youtubeHost}/watch?v=${videoId}`;
@@ -133,6 +129,7 @@ const youtube: MediaService = {
     icon: 'youtube',
     url: 'https://www.youtube.com/',
     defaultNoScrobble: true,
+    createSourceFromPin,
     roots: [
         {
             id: 'youtube/search/video',
@@ -170,3 +167,23 @@ const youtube: MediaService = {
 };
 
 export default youtube;
+
+function createSourceFromPin(pin: Pin): MediaSource<MediaItem> {
+    return {
+        title: pin.title,
+        itemType: ItemType.Media,
+        id: pin.src,
+        icon: 'unpinned',
+        isPin: true,
+        layout: defaultLayout,
+
+        search(): Pager<MediaItem> {
+            const [, , playlistId] = pin.src.split(':');
+            return new YouTubePager('/playlistItems', {
+                playlistId,
+                part: 'contentDetails',
+                fields: 'items(contentDetails(videoId))',
+            });
+        },
+    };
+}

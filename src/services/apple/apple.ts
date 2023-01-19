@@ -9,6 +9,7 @@ import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
+import {Pin} from 'types/Pin';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './appleAuth';
@@ -47,7 +48,7 @@ export const appleMusicVideos: MediaSource<MediaItem> = {
 const appleRecommendations: MediaSource<MediaPlaylist> = {
     id: 'apple/recommendations',
     title: 'Recommended',
-    icon: 'playlists',
+    icon: 'playlist',
     itemType: ItemType.Playlist,
     defaultHidden: true,
 
@@ -74,10 +75,7 @@ const appleRecentlyPlayed: MediaSource<MediaItem> = {
     title: 'Recently Played',
     icon: 'clock',
     itemType: ItemType.Media,
-    layout: {
-        view: 'card',
-        fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'LastPlayed'],
-    },
+    layout: defaultLayout,
 
     search(): Pager<MediaItem> {
         return new MusicKitPager(`/v1/me/recent/played/tracks`, toPage, undefined, {pageSize: 30});
@@ -117,7 +115,7 @@ const appleLibraryAlbums: MediaSource<MediaAlbum> = {
 const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
     id: 'apple/playlists',
     title: 'Playlists',
-    icon: 'playlists',
+    icon: 'playlist',
     itemType: ItemType.Playlist,
 
     search(): Pager<MediaPlaylist> {
@@ -133,7 +131,8 @@ const apple: MediaService = {
     name: 'Apple Music',
     icon: 'apple',
     url: 'https://music.apple.com/',
-    lookup: appleLookup,
+    createSourceFromPin,
+    lookup,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -155,7 +154,26 @@ const apple: MediaService = {
     logout,
 };
 
-export async function appleLookup(
+function createSourceFromPin(pin: Pin): MediaSource<MediaItem> {
+    return {
+        title: pin.title,
+        itemType: ItemType.Media,
+        id: pin.src,
+        icon: 'unpinned',
+        isPin: true,
+        layout: {...defaultLayout, view: 'card compact'},
+
+        search(): Pager<MediaItem> {
+            const [, , id] = pin.src.split(':');
+            return MusicKitPager.create<MediaItem>(`/v1/me/library/playlists/${id}`, {
+                include: 'tracks,catalog',
+                'fields[library-playlists]': 'playParams,name,artwork,url,tracks',
+            });
+        },
+    };
+}
+
+async function lookup(
     artist: string,
     title: string,
     limit = 10,

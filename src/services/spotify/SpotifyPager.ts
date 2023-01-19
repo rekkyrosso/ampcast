@@ -11,6 +11,7 @@ import Thumbnail from 'types/Thumbnail';
 import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
+import pinStore from 'services/pins/pinStore';
 import {getTextFromHtml} from 'utils';
 import {
     SpotifyAlbum,
@@ -186,6 +187,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                 name: playlist.owner.display_name || '',
                 url: playlist.owner.external_urls.spotify,
             },
+            isPinned: pinStore.isPinned(playlist.uri),
         };
     }
 

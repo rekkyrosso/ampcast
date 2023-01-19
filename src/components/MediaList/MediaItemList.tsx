@@ -52,7 +52,7 @@ export default function MediaItemList({
                     break;
 
                 case 'info':
-                    showMediaInfoDialog(items[0]);
+                    await showMediaInfoDialog(items[0]);
                     break;
             }
         },

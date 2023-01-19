@@ -53,6 +53,13 @@ function ActionsMenu<T extends MediaObject>({items, unplayable, ...props}: Actio
                         />
                     </>
                 ) : null}
+                {isSingleItem && items[0].itemType === ItemType.Playlist ? (
+                    <PopupMenuItem
+                        label={items[0].isPinned ? 'Unpin' : 'Pin'}
+                        action={items[0].isPinned ? 'unpin' : 'pin'}
+                        key="pin"
+                    />
+                ) : null}
                 {isSingleItem ? (
                     <PopupMenuItem
                         label="Info..."

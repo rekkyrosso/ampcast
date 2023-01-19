@@ -20,7 +20,7 @@ export default function ArtistList({
             const action = await showActionsMenu([artist], x, y);
             switch (action) {
                 case 'info':
-                    showMediaInfoDialog(artist);
+                    await showMediaInfoDialog(artist);
                     break;
             }
         },

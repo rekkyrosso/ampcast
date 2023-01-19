@@ -11,6 +11,7 @@ import Thumbnail from 'types/Thumbnail';
 import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
+import pinStore from 'services/pins/pinStore';
 
 type LibrarySong = Omit<AppleMusicApi.Song, 'type'> & {type: 'library-songs'};
 type LibraryMusicVideo = Omit<AppleMusicApi.Song, 'type'> & {type: 'music-videos'};
@@ -35,6 +36,27 @@ export interface MusicKitPage extends Page<MusicKitItem> {
 export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
     private readonly pager: Pager<T>;
     private nextPageUrl: string | undefined = undefined;
+
+    static create<T extends MediaObject>(
+        href: string,
+        params?: Record<string, string>,
+        options?: Partial<PagerConfig>,
+        album?: AppleMusicApi.Album['attributes']
+    ): Pager<T> {
+        return new MusicKitPager(
+            href,
+            (response: any) => {
+                const result = response.data[0]?.relationships?.tracks || response;
+                const items = result.data || [];
+                const nextPageUrl = result.next;
+                const total = result.meta?.total;
+                return {items, total, nextPageUrl};
+            },
+            params,
+            options,
+            album
+        );
+    }
 
     constructor(
         href: string,
@@ -119,10 +141,11 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         const {id, kind} = item.playParams || {id: playlist.id, kind: 'playlist'};
         const isLibrary = playlist.href?.startsWith('/v1/me/library/');
         const description = item.description;
+        const src = `apple:${kind}:${id}`;
 
         return {
+            src,
             itemType: ItemType.Playlist,
-            src: `apple:${kind}:${id}`,
             externalUrl:
                 item.url || (isLibrary ? `https://music.apple.com/library/playlist/${id}` : ''),
             title: item.name,
@@ -133,11 +156,12 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
                 url: '',
             },
             modifiedAt: Math.floor(new Date(item.lastModifiedDate).valueOf() / 1000) || undefined,
-            pager: this.createPager(`${playlist.href}`, {
+            pager: MusicKitPager.create(`${playlist.href}`, {
                 include: 'tracks,catalog',
                 'fields[library-playlists]': 'playParams,name,artwork,url,tracks',
             }),
             unplayable: !item.playParams,
+            isPinned: pinStore.isPinned(src),
         };
     }
 
@@ -183,7 +207,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             trackCount: item.trackCount,
             genres: this.getGenres(item),
             year: new Date(item.releaseDate).getFullYear() || 0,
-            pager: this.createPager(
+            pager: MusicKitPager.create(
                 album.href!,
                 {
                     'include[library-songs]': 'catalog',
@@ -256,7 +280,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
     ): Pager<MediaAlbum> {
         const topTracks = this.createArtistTopTracks(artist);
         const topTracksPager = new SimplePager([topTracks]);
-        const albumsPager = this.createPager<MediaAlbum>(
+        const albumsPager = MusicKitPager.create<MediaAlbum>(
             artist.relationships?.albums.href ||
                 `/v1/catalog/{{storefrontId}}/artists/${artist.id}/albums`
         );
@@ -278,27 +302,6 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
                 views: 'top-songs',
             },
             {maxSize: 20}
-        );
-    }
-
-    private createPager<T extends MediaObject>(
-        href: string,
-        params?: Record<string, string>,
-        options?: Partial<PagerConfig>,
-        album?: AppleMusicApi.Album['attributes']
-    ): Pager<T> {
-        return new MusicKitPager(
-            href,
-            (response: any) => {
-                const result = response.data[0]?.relationships?.tracks || response;
-                const items = result.data || [];
-                const nextPageUrl = result.next;
-                const total = result.meta?.total;
-                return {items, total, nextPageUrl};
-            },
-            params,
-            options,
-            album
         );
     }
 

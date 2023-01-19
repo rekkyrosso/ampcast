@@ -8,6 +8,14 @@
         color: var(--selected-text-color);
     }
 
+    .icon-button-unpinned {
+        visibility: hidden;
+
+        .list-view-row:hover & {
+            visibility: inherit;
+        }
+    }
+
     &.playable .unplayable:not(.selected):not(.playing) .list-view-cell {
         color: var(--grey1-color);
     }
@@ -76,7 +84,7 @@
             border-radius: calc(var(--roundness) * var(--roundness) * 0.75em);
 
             &:empty {
-                visibility: hidden;
+                display: none;
             }
         }
 
@@ -87,10 +95,10 @@
             color: var(--grey2-color);
         }
 
-        .actions {
+        .badges {
             right: 0.25em;
             bottom: 0.25em;
-            visibility: hidden;
+            padding: 0;
         }
 
         &.compact {

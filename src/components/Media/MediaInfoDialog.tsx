@@ -9,11 +9,14 @@ export interface MediaInfoDialogProps<T extends MediaObject = MediaObject> exten
     item: T;
 }
 
-export function showMediaInfoDialog<T extends MediaObject>(item: T): void {
-    showDialog((props: DialogProps) => <MediaInfoDialog {...props} item={item} />);
+export async function showMediaInfoDialog<T extends MediaObject>(item: T): Promise<void> {
+    await showDialog((props: DialogProps) => <MediaInfoDialog {...props} item={item} />);
 }
 
-export default function MediaInfoDialog<T extends MediaObject>({item, ...props}: MediaInfoDialogProps<T>) {
+export default function MediaInfoDialog<T extends MediaObject>({
+    item,
+    ...props
+}: MediaInfoDialogProps<T>) {
     const title = useTitle(item);
 
     return (
