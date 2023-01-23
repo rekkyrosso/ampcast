@@ -21,7 +21,7 @@ import useSelectedItems from './useSelectedItems';
 import './ListView.scss';
 
 export interface ColumnSpec<T> {
-    readonly title: string;
+    readonly title: React.ReactNode;
     readonly className?: string;
     readonly align?: 'left' | 'right' | 'center';
     readonly sortOrder?: SortOrder;
@@ -588,7 +588,7 @@ export default function ListView<T>({
                 <div
                     className="list-view-cursor"
                     style={{
-                        width: sizeable ? `${Math.min(clientWidth, width)}px` : undefined,
+                        width: sizeable ? `${width}px` : undefined,
                         transform: `translateY(${rowIndex * rowHeight}px)`,
                     }}
                     ref={cursorRef}

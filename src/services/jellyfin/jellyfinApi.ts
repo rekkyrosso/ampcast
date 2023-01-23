@@ -1,12 +1,17 @@
+import {Primitive} from 'type-fest';
 import jellyfinSettings from './jellyfinSettings';
 
 console.log('module::jellyfinApi');
 
-async function get(path: string, params: Record<string, string>): Promise<Response> {
-    return fetch(`${path}?${new URLSearchParams(params)}`, {method: 'GET'});
+async function del(path: string, params: Record<string, Primitive> = {}): Promise<Response> {
+    return fetch(`${path}?${new URLSearchParams(params as any)}`, {method: 'DELETE'});
 }
 
-async function post(path: string, params: any): Promise<Response> {
+async function get(path: string, params: Record<string, Primitive> = {}): Promise<Response> {
+    return fetch(`${path}?${new URLSearchParams(params as any)}`, {method: 'GET'});
+}
+
+async function post(path: string, params: Record<string, Primitive> = {}): Promise<Response> {
     const headers = {'Content-Type': 'application/json'};
     const body = JSON.stringify(params);
     return fetch(path, {method: 'POST', headers, body});
@@ -15,7 +20,7 @@ async function post(path: string, params: any): Promise<Response> {
 async function fetch(path: string, init: RequestInit): Promise<Response> {
     const {device, deviceId, token} = jellyfinSettings;
     if (!token) {
-        throw Error('No access token.')
+        throw Error('No access token.');
     }
     init.headers = {
         ...init.headers,
@@ -49,6 +54,7 @@ export function getPlayableUrlFromSrc(src: string): string {
 }
 
 const jellyfinApi = {
+    delete: del,
     get,
     post,
     getPlayableUrlFromSrc,

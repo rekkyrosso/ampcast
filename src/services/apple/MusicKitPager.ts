@@ -139,15 +139,15 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
     private createMediaPlaylist(playlist: AppleMusicApi.Playlist | LibraryPlaylist): MediaPlaylist {
         const item = this.createFromLibrary<AppleMusicApi.Playlist['attributes']>(playlist);
         const {id, kind} = item.playParams || {id: playlist.id, kind: 'playlist'};
-        const isLibrary = playlist.href?.startsWith('/v1/me/library/');
         const description = item.description;
         const src = `apple:${kind}:${id}`;
+        const isLibraryItem = playlist.type.startsWith('library-');
 
         return {
             src,
             itemType: ItemType.Playlist,
             externalUrl:
-                item.url || (isLibrary ? `https://music.apple.com/library/playlist/${id}` : ''),
+                item.url || (isLibraryItem ? `https://music.apple.com/library/playlist/${id}` : ''),
             title: item.name,
             description: description?.standard || description?.short,
             thumbnails: this.createThumbnails(playlist),
@@ -162,11 +162,13 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             }),
             unplayable: !item.playParams,
             isPinned: pinStore.isPinned(src),
+            isLibraryItem,
         };
     }
 
     private createMediaArtist(artist: AppleMusicApi.Artist | LibraryArtist): MediaArtist {
         const item = this.createFromLibrary<AppleMusicApi.Artist['attributes']>(artist);
+        const isLibraryItem = artist.type.startsWith('library-');
 
         return {
             itemType: ItemType.Artist,
@@ -176,11 +178,13 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             thumbnails: this.createThumbnails(artist),
             genres: this.getGenres(item),
             pager: this.createArtistAlbumsPager(artist),
+            isLibraryItem,
         };
     }
 
     private createArtistTopTracks(artist: AppleMusicApi.Artist | LibraryArtist): MediaAlbum {
         const item = this.createFromLibrary<AppleMusicApi.Artist['attributes']>(artist);
+
         return {
             itemType: ItemType.Album,
             src: `apple:top-tracks:${artist.id}`,
@@ -196,6 +200,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
     private createMediaAlbum(album: AppleMusicApi.Album | LibraryAlbum): MediaAlbum {
         const item = this.createFromLibrary<AppleMusicApi.Album['attributes']>(album);
         const {id, kind} = item.playParams || {id: album.id, kind: 'album'};
+        const isLibraryItem = album.type.startsWith('library-');
 
         return {
             itemType: ItemType.Album,
@@ -217,6 +222,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
                 item
             ),
             unplayable: !item.playParams,
+            isLibraryItem,
         };
     }
 
@@ -226,6 +232,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             id: song.id,
             kind: song.type === 'music-videos' ? 'musicVideo' : 'song',
         };
+        const isLibraryItem = song.type.startsWith('library-');
 
         return {
             itemType: ItemType.Media,
@@ -245,6 +252,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             isrc: item.isrc,
             unplayable: !item.playParams,
             playedAt: 0,
+            isLibraryItem,
         };
     }
 

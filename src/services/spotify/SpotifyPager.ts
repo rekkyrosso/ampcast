@@ -1,4 +1,6 @@
 import type {Observable} from 'rxjs';
+import {Subscription} from 'rxjs';
+import {filter, map, mergeMap, pairwise, startWith} from 'rxjs/operators';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -8,11 +10,12 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
+import {dispatchRatingChanges, RatingChange} from 'services/actions';
 import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
 import pinStore from 'services/pins/pinStore';
-import {getTextFromHtml} from 'utils';
+import {getTextFromHtml, Logger} from 'utils';
 import {
     SpotifyAlbum,
     spotifyApi,
@@ -23,6 +26,8 @@ import {
     SpotifyTrack,
 } from './spotify';
 import {authSettings, refreshToken} from './spotifyAuth';
+
+const logger = new Logger('SpotifyPager');
 
 export interface SpotifyPage extends Page<SpotifyItem> {
     readonly next?: string | undefined;
@@ -38,13 +43,15 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         maxPageSize: SpotifyPager.maxPageSize,
         pageSize: SpotifyPager.maxPageSize,
     };
+    private readonly config: PagerConfig;
     private pageNumber = 1;
+    private subscriptions?: Subscription;
 
     constructor(
         fetch: (offset: number, limit: number) => Promise<SpotifyPage>,
         options?: Partial<PagerConfig>
     ) {
-        const config = {...this.defaultConfig, ...options};
+        this.config = {...this.defaultConfig, ...options};
 
         this.pager = new SequentialPager<T>(
             async (limit = this.defaultConfig.pageSize!): Promise<Page<T>> => {
@@ -71,7 +78,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                     }
                 }
             },
-            config
+            this.config
         );
     }
 
@@ -93,10 +100,63 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
 
     disconnect(): void {
         this.pager.disconnect();
+        this.subscriptions?.unsubscribe();
     }
 
     fetchAt(index: number, length: number): void {
+        if (!this.subscriptions) {
+            this.connect();
+        }
+
         this.pager.fetchAt(index, length);
+    }
+
+    private connect(): void {
+        if (!this.subscriptions) {
+            this.subscriptions = new Subscription();
+
+            if (!this.config.lookup) {
+                this.subscriptions!.add(
+                    this.observeAdditions()
+                        .pipe(mergeMap((items) => this.addRating(items)))
+                        .subscribe(logger)
+                );
+            }
+        }
+    }
+
+    private observeAdditions(): Observable<readonly T[]> {
+        return this.observeItems().pipe(
+            startWith([]),
+            pairwise(),
+            map(([oldItems, newItems]) =>
+                newItems.filter(
+                    (newItem) => !oldItems.find((oldItem) => oldItem.src === newItem.src)
+                )
+            ),
+            filter((additions) => additions.length > 0),
+        );
+    }
+
+    private async addRating(items: readonly T[]): Promise<void> {
+        const itemType = items[0]?.itemType;
+        if (itemType === ItemType.Album || itemType === ItemType.Media) {
+            const ids = items.map((item) => {
+                const [, , id] = item.src.split(':');
+                return id;
+            });
+            let ratings: boolean[] = [];
+            if (itemType === ItemType.Album) {
+                ratings = await spotifyApi.containsMySavedAlbums(ids);
+            } else {
+                ratings = await spotifyApi.containsMySavedTracks(ids);
+            }
+            const changes: RatingChange[] = [];
+            items.forEach((item, index) =>
+                changes.push({src: item.src, rating: ratings[index] ? 1 : 0})
+            );
+            dispatchRatingChanges(changes);
+        }
     }
 
     private createMediaObject(item: SpotifyItem): T {

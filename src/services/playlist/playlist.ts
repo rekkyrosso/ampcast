@@ -159,6 +159,10 @@ function getAt(index: number): PlaylistItem | null {
     return items[index] ?? null;
 }
 
+export async function insert(items: PlayableType): Promise<void> {
+    return insertAt(items, getCurrentIndex() + 1);
+}
+
 export async function insertAt(items: PlayableType, index: number): Promise<void> {
     const all = getItems();
     const allowDuplicates = settings.get().allowDuplicates;
@@ -304,6 +308,7 @@ const playlist: Playlist = {
     add,
     clear,
     eject,
+    insert,
     insertAt,
     moveSelection,
     next,

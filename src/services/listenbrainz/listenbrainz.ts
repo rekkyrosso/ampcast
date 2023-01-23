@@ -99,6 +99,7 @@ const listenbrainz: MediaService = {
     roots: [listenbrainzRecentlyPlayed],
     sources: [topTracks, topAlbums, topArtists, listenbrainzHistory],
 
+    canRate: () => false,
     observeIsLoggedIn,
     isLoggedIn,
     login,

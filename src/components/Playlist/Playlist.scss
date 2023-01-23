@@ -25,6 +25,15 @@
                     color: var(--grey1-color);
                 }
             }
+
+            .apple-connected &.source-apple,
+            .jellyfin-connected &.source-jellyfin,
+            .plex-connected &.source-plex,
+            .spotify-connected &.source-spotify {
+                &.unplayable .icon.show-connectivity {
+                    opacity: 0.5;
+                }
+            }
         }
 
         &-cell {
@@ -63,7 +72,7 @@
                 .icon {
                     position: absolute;
                     width: 67%;
-                    max-width: 1em;
+                    max-width: 0.75em;
                 }
 
                 .number {

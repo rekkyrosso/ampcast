@@ -1,5 +1,12 @@
 @import 'styles/mixins.scss';
 
+dialog {
+    border: 0;
+    padding: 0;
+    background: transparent;
+    color: inherit;
+}
+
 .dialog {
     @include button;
     display: flex;

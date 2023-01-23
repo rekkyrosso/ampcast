@@ -1,13 +1,8 @@
 import React, {useCallback} from 'react';
 import MediaItem from 'types/MediaItem';
 import MediaSourceLayout from 'types/MediaSourceLayout';
-import mediaPlayback from 'services/mediaPlayback';
-import playlist from 'services/playlist';
-import {showMediaInfoDialog} from 'components/Media/MediaInfoDialog';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
-import useObservable from 'hooks/useObservable';
 import MediaList, {MediaListProps} from './MediaList';
-import showActionsMenu from './showActionsMenu';
 
 const defaultLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
@@ -17,11 +12,9 @@ const defaultLayout: MediaSourceLayout<MediaItem> = {
 export default function MediaItemList({
     className = '',
     layout = defaultLayout,
-    unplayable,
     ...props
 }: MediaListProps<MediaItem>) {
     const currentlyPlaying = useCurrentlyPlaying();
-    const currentlyPlayingIndex = useObservable(playlist.observeCurrentIndex, -1);
 
     const itemClassName = useCallback(
         (item: MediaItem) => {
@@ -33,67 +26,6 @@ export default function MediaItemList({
         [currentlyPlaying]
     );
 
-    const onContextMenu = useCallback(
-        async (items: readonly MediaItem[], x: number, y: number) => {
-            const action = await showActionsMenu(items, x, y, unplayable);
-            switch (action) {
-                case 'play':
-                    mediaPlayback.autoplay = true;
-                    await playlist.insertAt(items, currentlyPlayingIndex + 1);
-                    playlist.next();
-                    break;
-
-                case 'play-next':
-                    await playlist.insertAt(items, currentlyPlayingIndex + 1);
-                    break;
-
-                case 'queue':
-                    await playlist.add(items);
-                    break;
-
-                case 'info':
-                    await showMediaInfoDialog(items[0]);
-                    break;
-            }
-        },
-        [currentlyPlayingIndex, unplayable]
-    );
-
-    const onDoubleClick = useCallback(
-        (item: MediaItem) => {
-            if (!unplayable) {
-                playlist.add(item);
-            }
-        },
-        [unplayable]
-    );
-
-    const onEnter = useCallback(
-        async (items: readonly MediaItem[], ctrlKey: boolean, shiftKey: boolean) => {
-            if (!unplayable) {
-                if (!ctrlKey && !shiftKey) {
-                    // Queue
-                    await playlist.add(items);
-                } else if (ctrlKey && !shiftKey) {
-                    // Play Now
-                    mediaPlayback.autoplay = true;
-                    await playlist.insertAt(items, currentlyPlayingIndex + 1);
-                    playlist.next();
-                } else if (shiftKey && !ctrlKey) {
-                    // Play Next
-                    await playlist.insertAt(items, currentlyPlayingIndex + 1);
-                }
-            }
-        },
-        [currentlyPlayingIndex, unplayable]
-    );
-
-    const onInfo = useCallback(([item]: readonly MediaItem[]) => {
-        if (item) {
-            showMediaInfoDialog(item);
-        }
-    }, []);
-
     return (
         <MediaList
             {...props}
@@ -101,12 +33,7 @@ export default function MediaItemList({
             itemClassName={itemClassName}
             layout={layout}
             multiSelect={true}
-            draggable={!unplayable}
-            unplayable={unplayable}
-            onContextMenu={onContextMenu}
-            onDoubleClick={onDoubleClick}
-            onEnter={onEnter}
-            onInfo={onInfo}
+            draggable={true}
         />
     );
 }

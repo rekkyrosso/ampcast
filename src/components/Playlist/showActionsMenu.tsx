@@ -1,5 +1,6 @@
 import React from 'react';
 import PlaylistItem from 'types/PlaylistItem';
+import {browser} from 'utils';
 import PopupMenu, {
     PopupMenuItem,
     PopupMenuProps,
@@ -13,7 +14,7 @@ export default async function showActionsMenu(
     x: number,
     y: number,
     rowIndex: number
-): Promise<string> {
+): Promise<string | undefined> {
     return showPopupMenu(
         (props: PopupMenuProps) => (
             <ActionsMenu
@@ -62,7 +63,7 @@ function ActionsMenu({items, selectedItems, rowIndex, ...props}: ActionsMenuProp
                             <PopupMenuItem
                                 label="Info..."
                                 action="info"
-                                acceleratorKey="Ctrl+I"
+                                acceleratorKey={`${browser.ctrlKeyStr}+I`}
                                 key="info"
                             />
                         ) : null}
@@ -74,7 +75,7 @@ function ActionsMenu({items, selectedItems, rowIndex, ...props}: ActionsMenuProp
                         <PopupMenuItem
                             label="Select all"
                             action="select-all"
-                            acceleratorKey="Ctrl+A"
+                            acceleratorKey={`${browser.ctrlKeyStr}+A`}
                             key="select-all"
                         />
                     </>

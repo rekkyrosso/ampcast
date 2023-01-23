@@ -11,7 +11,7 @@ const logger = new Logger('pinStore');
 const UNINITIALIZED: Pin[] = [];
 
 class PinStore extends Dexie {
-    private readonly pins!: Dexie.Table<Pin, [string]>;
+    private readonly pins!: Dexie.Table<Pin, string>;
     private readonly pins$ = new BehaviorSubject<readonly Pin[]>(UNINITIALIZED);
     private readonly additions$ = new Subject<readonly Pin[]>();
     private readonly removals$ = new Subject<readonly Pin[]>();
@@ -24,10 +24,6 @@ class PinStore extends Dexie {
         });
 
         liveQuery(() => this.pins.toArray()).subscribe(this.pins$);
-
-        this.observe().subscribe(logger.rx('pins'));
-        this.observeAdditions().subscribe(logger.rx('additions'));
-        this.observeRemovals().subscribe(logger.rx('removals'));
     }
 
     async pin(playlist: MediaPlaylist): Promise<void>;

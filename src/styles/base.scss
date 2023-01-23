@@ -35,7 +35,11 @@ a:any-link {
 
 small {
     font-style: italic;
-    line-height: 1.2;
+
+    p > &:only-child {
+        display: block;
+        line-height: 1.2;
+    }
 }
 
 .selected-text {

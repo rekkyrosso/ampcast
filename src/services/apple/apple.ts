@@ -131,8 +131,6 @@ const apple: MediaService = {
     name: 'Apple Music',
     icon: 'apple',
     url: 'https://music.apple.com/',
-    createSourceFromPin,
-    lookup,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -148,6 +146,10 @@ const apple: MediaService = {
         appleRecommendations,
     ],
 
+    canRate,
+    createSourceFromPin,
+    lookup,
+    rate,
     observeIsLoggedIn,
     isLoggedIn,
     login,
@@ -159,18 +161,27 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaItem> {
         title: pin.title,
         itemType: ItemType.Media,
         id: pin.src,
-        icon: 'unpinned',
+        icon: 'pin',
         isPin: true,
         layout: {...defaultLayout, view: 'card compact'},
 
         search(): Pager<MediaItem> {
             const [, , id] = pin.src.split(':');
-            return MusicKitPager.create<MediaItem>(`/v1/me/library/playlists/${id}`, {
+            const path = pin.isLibraryItem ? `/v1/me/library` : `/v1/catalog/{{storefrontId}}`;
+            return MusicKitPager.create<MediaItem>(`${path}/playlists/${id}`, {
                 include: 'tracks,catalog',
                 'fields[library-playlists]': 'playParams,name,artwork,url,tracks',
             });
         },
     };
+}
+
+async function rate(): Promise<void> {
+    throw Error('Not implemented.');
+}
+
+function canRate(): boolean {
+    return false;
 }
 
 async function lookup(
@@ -182,7 +193,7 @@ async function lookup(
     if (!artist || !title) {
         return [];
     }
-    const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit};
+    const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit, lookup: true};
     const pager = createSearchPager<MediaItem>(
         ItemType.Media,
         `${artist} ${title}`,

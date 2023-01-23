@@ -46,7 +46,7 @@ export default function ListViewRow<T>({
             }}
         >
             {cols.map((col) => (
-                <ListViewBodyCell rowIndex={rowIndex} col={col} item={item} key={col.title} />
+                <ListViewBodyCell rowIndex={rowIndex} col={col} item={item} key={col.index} />
             ))}
         </li>
     );

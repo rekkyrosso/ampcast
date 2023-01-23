@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useState} from 'react';
 import {mostReadable, TinyColor} from '@ctrl/tinycolor';
-import {shuffle, uniq} from 'utils/index';
+import {shuffle, uniq} from 'utils';
 
 type SuggestedColors = [string, string][];
 

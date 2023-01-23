@@ -229,8 +229,6 @@ const spotify: MediaService = {
     name: 'Spotify',
     icon: 'spotify',
     url: 'https://www.spotify.com/',
-    createSourceFromPin,
-    lookup,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -250,6 +248,10 @@ const spotify: MediaService = {
         spotifyFeaturedPlaylists,
     ],
 
+    canRate,
+    createSourceFromPin,
+    lookup,
+    rate,
     observeIsLoggedIn,
     isLoggedIn,
     login,
@@ -263,7 +265,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaItem> {
         title: pin.title,
         itemType: ItemType.Media,
         id: pin.src,
-        icon: 'unpinned',
+        icon: 'pin',
         isPin: true,
         layout: {...defaultLayout, view: 'card compact'},
 
@@ -282,7 +284,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaItem> {
     };
 }
 
-export async function lookup(
+async function lookup(
     artist: string,
     title: string,
     limit = 10,
@@ -292,13 +294,57 @@ export async function lookup(
         return [];
     }
     const safeString = (s: string) => s.replace(/['"]/g, ' ');
-    const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit};
+    const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit, lookup: true};
     const pager = createSearchPager<MediaItem>(
         ItemType.Media,
         `${safeString(artist)} ${safeString(title)}`,
         options
     );
     return fetchFirstPage(pager, timeout);
+}
+
+async function rate(item: MediaObject, rating: number): Promise<void> {
+    const [, , id] = item.src.split(':');
+
+    switch (item.itemType) {
+        case ItemType.Album:
+            if (rating) {
+                await spotifyApi.addToMySavedAlbums([id]);
+            } else {
+                await spotifyApi.removeFromMySavedAlbums([id]);
+            }
+            break;
+
+        case ItemType.Media:
+            if (rating) {
+                await spotifyApi.addToMySavedTracks([id]);
+            } else {
+                await spotifyApi.removeFromMySavedTracks([id]);
+            }
+            break;
+
+        case ItemType.Playlist:
+            if (rating) {
+                await spotifyApi.followPlaylist(id);
+            } else {
+                await spotifyApi.unfollowPlaylist(id);
+            }
+            break;
+    }
+}
+
+function canRate<T extends MediaObject>(item: T | ItemType, inline?: boolean): boolean {
+    switch (typeof item === 'number' ? item : item.itemType) {
+        case ItemType.Album:
+        case ItemType.Media:
+            return true;
+
+        case ItemType.Playlist:
+            return !inline;
+
+        default:
+            return false;
+    }
 }
 
 function createRoot<T extends MediaObject>(

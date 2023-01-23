@@ -3,7 +3,7 @@ import {EMPTY, of} from 'rxjs';
 import Pager from 'types/Pager';
 
 export default class SimplePager<T> implements Pager<T> {
-    constructor(private items: T[] = []) {}
+    constructor(private readonly items: readonly T[] = []) {}
 
     get maxSize(): number | undefined {
         return undefined;

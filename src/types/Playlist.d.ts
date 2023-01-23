@@ -21,9 +21,15 @@ export default interface Playlist {
     add(files: FileList): Promise<void>;
     clear(): void;
     eject(): void;
+    insert(album: MediaAlbum): Promise<void>;
+    insert(item: MediaItem): Promise<void>;
+    insert(items: readonly MediaItem[]): Promise<void>;
+    insert(file: File): Promise<void>;
+    insert(files: readonly File[]): Promise<void>;
+    insert(files: FileList): Promise<void>;
     insertAt(album: MediaAlbum, index: number): Promise<void>;
     insertAt(item: MediaItem, index: number): Promise<void>;
-    insertAt(items: MediaItem[], index: number): Promise<void>;
+    insertAt(items: readonly MediaItem[], index: number): Promise<void>;
     insertAt(file: File, index: number): Promise<void>;
     insertAt(files: readonly File[], index: number): Promise<void>;
     insertAt(files: FileList, index: number): Promise<void>;

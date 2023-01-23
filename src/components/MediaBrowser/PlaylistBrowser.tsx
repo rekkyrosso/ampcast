@@ -1,11 +1,11 @@
 import React, {useCallback, useState} from 'react';
+import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Splitter from 'components/Splitter';
 import MediaItemList from 'components/MediaList/MediaItemList';
 import PlaylistList from 'components/MediaList/PlaylistList';
-import {PagedBrowserProps} from './MediaBrowser'
-import MediaItem from 'types/MediaItem';
+import {PagedBrowserProps} from './MediaBrowser';
 
 const defaultPlaylistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
@@ -22,13 +22,12 @@ export default function PlaylistBrowser({source, ...props}: PagedBrowserProps<Me
     return (
         <div className="panel playlist-browser">
             <Splitter id="playlist-browser-layout" arrange="rows" primaryIndex={1}>
-                <PlaylistList {...props} unplayable={source.unplayable} onSelect={handleSelect} />
+                <PlaylistList {...props} onSelect={handleSelect} />
                 <MediaItemList
                     className="playlist-items"
                     pager={selectedPlaylist?.pager}
                     keepAlive={true}
                     layout={source.secondaryLayout || defaultPlaylistItemsLayout}
-                    unplayable={source.unplayable}
                 />
             </Splitter>
         </div>

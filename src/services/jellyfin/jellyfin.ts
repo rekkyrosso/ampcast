@@ -12,9 +12,10 @@ import Pager, {PagerConfig} from 'types/Pager';
 import {Pin} from 'types/Pin';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
+import jellyfinApi from './jellyfinApi';
+import {observeIsLoggedIn, isLoggedIn, login, logout} from './jellyfinAuth';
 import JellyfinPager from './JellyfinPager';
 import jellyfinSettings from './jellyfinSettings';
-import {observeIsLoggedIn, isLoggedIn, login, logout} from './jellyfinAuth';
 
 console.log('module::jellyfin');
 
@@ -114,8 +115,6 @@ const jellyfin: MediaService = {
     icon: serviceId,
     name: 'Jellyfin',
     url: 'https://jellyfin.org/',
-    createSourceFromPin,
-    lookup,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs'}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -130,6 +129,10 @@ const jellyfin: MediaService = {
         jellyfinPlaylists,
     ],
 
+    canRate: () => true,
+    createSourceFromPin,
+    lookup,
+    rate,
     observeIsLoggedIn,
     isLoggedIn,
     login,
@@ -141,7 +144,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaItem> {
         title: pin.title,
         itemType: ItemType.Media,
         id: pin.src,
-        icon: 'unpinned',
+        icon: 'pin',
         isPin: true,
         layout: defaultLayout,
 
@@ -165,9 +168,19 @@ async function lookup(
     if (!artist || !title) {
         return [];
     }
-    const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit};
+    const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit, lookup: true};
     const pager = createSearchPager<MediaItem>(ItemType.Media, title, {Artists: artist}, options);
     return fetchFirstPage(pager, timeout);
+}
+
+async function rate(item: MediaObject, rating: number): Promise<void> {
+    const [, , id] = item.src.split(':');
+    const path = `Users/${jellyfinSettings.userId}/FavoriteItems/${id}`;
+    if (rating) {
+        jellyfinApi.post(path);
+    } else {
+        jellyfinApi.delete(path);
+    }
 }
 
 function createRoot<T extends MediaObject>(

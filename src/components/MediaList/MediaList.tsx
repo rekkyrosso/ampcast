@@ -1,12 +1,15 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {Except} from 'type-fest';
+import Action from 'types/Action';
 import MediaObject from 'types/MediaObject';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
+import {performAction} from 'services/actions';
 import ListView, {ListViewProps} from 'components/ListView';
 import usePager from 'hooks/usePager';
 import MediaListStatusBar from './MediaListStatusBar';
 import useMediaListLayout from './useMediaListLayout';
+import showActionsMenu from './showActionsMenu';
 import './MediaList.scss';
 
 export interface MediaListProps<T extends MediaObject>
@@ -16,7 +19,6 @@ export interface MediaListProps<T extends MediaObject>
     layout?: MediaSourceLayout<T>;
     statusBar?: boolean;
     loadingText?: string;
-    unplayable?: boolean;
 }
 
 export default function MediaList<T extends MediaObject>({
@@ -26,7 +28,6 @@ export default function MediaList<T extends MediaObject>({
     statusBar = true,
     loadingText,
     onSelect,
-    unplayable,
     ...props
 }: MediaListProps<T>) {
     const [key, setKey] = useState(0);
@@ -57,14 +58,49 @@ export default function MediaList<T extends MediaObject>({
         [onSelect]
     );
 
+    const handleContextMenu = useCallback(async (items: readonly T[], x: number, y: number) => {
+        if (items.length === 0) {
+            return;
+        }
+        const action = await showActionsMenu(items, x, y);
+        if (action) {
+            await performAction(action, items);
+        }
+    }, []);
+
+    const onDoubleClick = useCallback(async (item: T) => {
+        await performAction(Action.Queue, [item]);
+    }, []);
+
+    const onEnter = useCallback(
+        async (items: readonly T[], ctrlKey: boolean, shiftKey: boolean) => {
+            if (!ctrlKey && !shiftKey) {
+                await performAction(Action.Queue, items);
+            } else if (ctrlKey && !shiftKey) {
+                await performAction(Action.PlayNow, items);
+            } else if (shiftKey && !ctrlKey) {
+                await performAction(Action.PlayNext, items);
+            }
+        },
+        []
+    );
+
+    const onInfo = useCallback(async (items: readonly T[]) => {
+        await performAction(Action.Info, items);
+    }, []);
+
     return (
         <div className={`panel ${className}`}>
             <ListView
                 {...props}
-                className={`media-list ${unplayable ? '' : 'playable'}`}
+                className="media-list"
                 layout={layout}
                 items={items}
                 itemKey={'src' as any} // TODO: remove cast
+                onContextMenu={handleContextMenu}
+                onDoubleClick={onDoubleClick}
+                onEnter={onEnter}
+                onInfo={onInfo}
                 onPageSizeChange={setPageSize}
                 onScrollIndexChange={setRowIndex}
                 onSelect={handleSelect}

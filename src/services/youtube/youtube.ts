@@ -129,7 +129,6 @@ const youtube: MediaService = {
     icon: 'youtube',
     url: 'https://www.youtube.com/',
     defaultNoScrobble: true,
-    createSourceFromPin,
     roots: [
         {
             id: 'youtube/search/video',
@@ -160,6 +159,8 @@ const youtube: MediaService = {
     ],
     sources: [youtubeLikes, youtubePlaylists],
 
+    canRate: () => false,
+    createSourceFromPin,
     observeIsLoggedIn,
     isLoggedIn,
     login,
@@ -173,7 +174,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaItem> {
         title: pin.title,
         itemType: ItemType.Media,
         id: pin.src,
-        icon: 'unpinned',
+        icon: 'pin',
         isPin: true,
         layout: defaultLayout,
 

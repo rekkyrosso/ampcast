@@ -1,12 +1,16 @@
 import React from 'react';
 
-export interface PopupMenuItemProps {
+export interface PopupMenuItemProps<T extends string> {
     label: string;
-    action: string;
+    action: T;
     acceleratorKey?: string;
 }
 
-export default function PopupMenuItem({label, acceleratorKey = '', action}: PopupMenuItemProps) {
+export default function PopupMenuItem<T extends string>({
+    label,
+    acceleratorKey = '',
+    action,
+}: PopupMenuItemProps<T>) {
     return (
         <li className="popup-menu-item">
             <button value={action}>

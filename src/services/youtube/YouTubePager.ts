@@ -1,11 +1,4 @@
 import type {Observable} from 'rxjs';
-import {
-    get as dbRead,
-    set as dbWrite,
-    entries as dbEntries,
-    delMany as dbDeleteMany,
-    createStore,
-} from 'idb-keyval';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
@@ -16,6 +9,7 @@ import Thumbnail from 'types/Thumbnail';
 import SequentialPager from 'services/pagers/SequentialPager';
 import pinStore from 'services/pins/pinStore';
 import {getYouTubeUrl, youtubeHost} from './youtube';
+import youtubeCache from './youtubeCache';
 
 type YouTubeVideo = gapi.client.youtube.Video;
 type YouTubePlaylist = gapi.client.youtube.Playlist;
@@ -23,7 +17,7 @@ type YouTubePlaylistItem = gapi.client.youtube.PlaylistItem;
 type YouTubeSearchResult = gapi.client.youtube.SearchResult;
 type YouTubeItem = YouTubeVideo | YouTubePlaylist | YouTubePlaylistItem | YouTubeSearchResult;
 
-interface YouTubeCacheable<T extends YouTubeItem = YouTubeItem> {
+export interface YouTubeCacheable<T extends YouTubeItem = YouTubeItem> {
     readonly etag?: string;
     readonly kind?: string;
     readonly items?: readonly T[];
@@ -35,23 +29,6 @@ interface YouTubePage<T extends YouTubeItem = YouTubeItem> extends YouTubeCachea
 }
 
 const apiHost = `https://www.googleapis.com/youtube/v3`;
-
-const cache = createStore('ampcast/youtube-cache', 'keyval');
-
-(async function (): Promise<void> {
-    const entries = await dbEntries(cache);
-    const keys: IDBValidKey[] = [];
-    const week = 7 * 24 * 60 * 60_000;
-    const now = Date.now();
-    for (const [key, result] of entries) {
-        if (now - result.cachedAt > week) {
-            keys.push(key);
-        }
-    }
-    if (keys.length > 0) {
-        await dbDeleteMany(keys, cache);
-    }
-})();
 
 export default class YouTubePager<T extends MediaObject> implements Pager<T> {
     static minPageSize = 5;
@@ -248,7 +225,7 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
     private async fetch<T extends YouTubeCacheable>(
         path: string,
         params: Record<string, unknown>,
-        cachedResult?: T | null
+        cachedResult?: T | undefined
     ): Promise<T> {
         const headers = cachedResult?.etag ? {'If-None-Match': cachedResult.etag} : undefined;
         const request = gapi.client.request({
@@ -269,14 +246,13 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
         });
     }
 
-    private async getFromCache<T>(key: string): Promise<T | null> {
-        const data = await dbRead(key, cache);
-        return data ?? null;
+    private async getFromCache<T extends YouTubeCacheable>(key: string): Promise<T | undefined> {
+        return youtubeCache.fetch(key) as unknown as T;
     }
 
-    private async saveToCache<T>(key: string, result: T): Promise<void> {
+    private async saveToCache<T extends YouTubeCacheable>(key: string, result: T): Promise<void> {
         if (!this.config.noCache) {
-            await dbWrite(key, {...result, cachedAt: Date.now()}, cache);
+            await youtubeCache.store(key, result);
         }
     }
 

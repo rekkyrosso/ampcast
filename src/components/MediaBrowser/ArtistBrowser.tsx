@@ -44,18 +44,13 @@ export default function ArtistBrowser({source, ...props}: PagedBrowserProps<Medi
     return (
         <div className="panel artist-browser">
             <Splitter id="artist-browser-layout" arrange="columns" primaryIndex={0}>
-                <ArtistList
-                    {...props}
-                    unplayable={source.unplayable}
-                    onSelect={handleArtistSelect}
-                />
+                <ArtistList {...props} onSelect={handleArtistSelect} />
                 <Splitter id="artist-album-browser-layout" arrange="rows" primaryIndex={1}>
                     <AlbumList
                         className="artist-albums"
                         pager={selectedArtist?.pager}
                         keepAlive={true}
                         layout={source.secondaryLayout || defaultAlbumsLayout}
-                        unplayable={source.unplayable}
                         onSelect={handleAlbumSelect}
                     />
                     <MediaItemList
@@ -63,7 +58,6 @@ export default function ArtistBrowser({source, ...props}: PagedBrowserProps<Medi
                         pager={selectedAlbum?.pager}
                         keepAlive={true}
                         layout={source.tertiaryLayout || defaultTracksLayout}
-                        unplayable={source.unplayable}
                     />
                 </Splitter>
             </Splitter>

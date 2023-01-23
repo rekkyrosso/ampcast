@@ -1,71 +1,81 @@
 import React from 'react';
+import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import {browser} from 'utils';
 import PopupMenu, {PopupMenuItem, PopupMenuProps, showPopupMenu} from 'components/PopupMenu';
+import {getService} from 'services/mediaServices';
 
 export default async function showActionsMenu<T extends MediaObject>(
     items: readonly T[],
     x: number,
-    y: number,
-    unplayable?: boolean
-): Promise<string> {
+    y: number
+): Promise<Action | undefined> {
     return showPopupMenu(
-        (props: PopupMenuProps) => <ActionsMenu {...props} items={items} unplayable={unplayable} />,
+        (props: PopupMenuProps<Action>) => <ActionsMenu {...props} items={items} />,
         x,
         y
     );
 }
 
-interface ActionsMenuProps<T extends MediaObject> extends PopupMenuProps {
+interface ActionsMenuProps<T extends MediaObject> extends PopupMenuProps<Action> {
     items: readonly T[];
-    unplayable?: boolean;
 }
 
-function ActionsMenu<T extends MediaObject>({items, unplayable, ...props}: ActionsMenuProps<T>) {
-    const isSingleItem = items.length === 1;
-    const isPlayable =
-        !unplayable &&
-        items.every((item) => item.itemType === ItemType.Media || item.itemType === ItemType.Album);
+function ActionsMenu<T extends MediaObject>({items, ...props}: ActionsMenuProps<T>) {
+    const item = items[0];
+    const isSingleItem = items.length === 1 && !!item;
+    const [serviceId] = item?.src.split(':') || [];
+    const service = getService(serviceId);
+    const isPlayable = items.every(
+        (item) => item.itemType === ItemType.Media || item.itemType === ItemType.Album
+    );
 
     return (
         <PopupMenu {...props} className="actions">
             <ul className="actions-menu-items">
                 {isPlayable ? (
                     <>
-                        <PopupMenuItem
+                        <PopupMenuItem<Action>
                             label="Queue"
-                            action="queue"
+                            action={Action.Queue}
                             acceleratorKey="Enter"
-                            key="queue"
+                            key={Action.Queue}
                         />
-                        <PopupMenuItem
+                        <PopupMenuItem<Action>
                             label="Play next"
-                            action="play-next"
+                            action={Action.PlayNext}
                             acceleratorKey="Shift+Enter"
-                            key="play-next"
+                            key={Action.PlayNext}
                         />
-                        <PopupMenuItem
+                        <PopupMenuItem<Action>
                             label="Play now"
-                            action="play"
+                            action={Action.PlayNow}
                             acceleratorKey={`${browser.ctrlKeyStr}+Enter`}
-                            key="play"
+                            key={Action.PlayNow}
                         />
                     </>
                 ) : null}
-                {isSingleItem && items[0].itemType === ItemType.Playlist ? (
-                    <PopupMenuItem
-                        label={items[0].isPinned ? 'Unpin' : 'Pin'}
-                        action={items[0].isPinned ? 'unpin' : 'pin'}
-                        key="pin"
+                {isSingleItem && service?.canRate(item, true) ? (
+                    <PopupMenuItem<Action>
+                        label={item.rating ? 'Unlike' : 'Like'}
+                        action={item.rating ? Action.Unlike : Action.Like}
+                        key={item.rating ? Action.Unlike : Action.Like}
+                    />
+                ) : null}
+                {isSingleItem && item.itemType === ItemType.Playlist ? (
+                    <PopupMenuItem<Action>
+                        label={item.isPinned ? 'Unpin' : 'Pin'}
+                        action={item.isPinned ? Action.Unpin : Action.Pin}
+                        key={item.isPinned ? Action.Unpin : Action.Pin}
                     />
                 ) : null}
                 {isSingleItem ? (
-                    <PopupMenuItem
+                    <PopupMenuItem<Action>
                         label="Info..."
-                        action="info"
+                        action={Action.Info}
                         acceleratorKey={`${browser.ctrlKeyStr}+I`}
-                        key="info"
+                        key={Action.Info}
                     />
                 ) : null}
             </ul>

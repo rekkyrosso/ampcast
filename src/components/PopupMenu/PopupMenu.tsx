@@ -2,18 +2,24 @@ import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from '
 import {filter, fromEvent, merge, switchMap, timer} from 'rxjs';
 import './PopupMenu.scss';
 
-export interface PopupMenuProps {
-    onClose: (action: string) => void;
+export interface PopupMenuProps<T extends string = string> {
+    onClose: (action?: T) => void;
     x: number;
     y: number;
 }
 
-export interface BasePopupMenuProps extends PopupMenuProps {
+export interface BasePopupMenuProps<T extends string> extends PopupMenuProps<T> {
     className?: string;
     children: React.ReactNode;
 }
 
-export default function PopupMenu({className = '', children, onClose, x, y}: BasePopupMenuProps) {
+export default function PopupMenu<T extends string>({
+    className = '',
+    children,
+    onClose,
+    x,
+    y,
+}: BasePopupMenuProps<T>) {
     const popupRef = useRef<HTMLDivElement>(null);
     const [style, setStyle] = useState<React.CSSProperties>({visibility: 'hidden'});
 
@@ -37,7 +43,7 @@ export default function PopupMenu({className = '', children, onClose, x, y}: Bas
         const subscription = merge(
             timer(0).pipe(
                 switchMap(() =>
-                    fromEvent(document, 'mousedown').pipe(
+                    fromEvent(document, 'mousedown', {capture: true}).pipe(
                         filter((event) => !popupRef.current!.contains(event.target as HTMLElement))
                     )
                 )
@@ -45,7 +51,7 @@ export default function PopupMenu({className = '', children, onClose, x, y}: Bas
             fromEvent(document, 'keydown', {capture: true}),
             fromEvent(document, 'contextmenu', {capture: true}),
             fromEvent(window, 'blur')
-        ).subscribe(() => onClose(''));
+        ).subscribe(() => onClose());
         return () => subscription.unsubscribe();
     }, [onClose]);
 

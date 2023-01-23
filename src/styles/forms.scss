@@ -5,7 +5,7 @@ fieldset {
     padding: 0.5em 1em 1em 1em;
     color: var(--text-color);
     border-radius: 0.25em;
-    border: 0.125em solid var(--grey2-color);
+    border: 0.125em solid var(--grey1-color);
 
     & + & {
         margin-top: 1em;
@@ -44,10 +44,6 @@ input {
 
 select {
     border: 1px solid;
-
-    legend & {
-        max-width: 20em;
-    }
 }
 
 input[type="checkbox"],

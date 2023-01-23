@@ -12,7 +12,6 @@ export default interface MediaSource<T extends MediaObject> {
     readonly secondaryLayout?: MediaSourceLayout<MediaObject>;
     readonly tertiaryLayout?: MediaSourceLayout<MediaObject>;
     readonly searchable?: boolean;
-    readonly unplayable?: boolean;
     readonly defaultHidden?: boolean;
     readonly isPin?: boolean;
     search(params?: Record<string, unknown>): Pager<T>;

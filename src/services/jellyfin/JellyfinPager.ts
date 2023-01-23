@@ -120,6 +120,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                 ? Math.floor(new Date(album.UserData.LastPlayedDate).getTime() / 1000)
                 : undefined,
             playCount: album.UserData?.PlayCount || undefined,
+            rating: album.UserData?.IsFavorite ? 1 : 0,
             genres: album.Genres || undefined,
             thumbnails: this.createThumbnails(album.Id),
             trackCount: album.ChildCount || undefined,
@@ -141,6 +142,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                 ? Math.floor(new Date(playlist.UserData.LastPlayedDate).getTime() / 1000)
                 : undefined,
             playCount: playlist.UserData?.PlayCount || undefined,
+            rating: playlist.UserData?.IsFavorite ? 1 : 0,
             genres: playlist.Genres || undefined,
             thumbnails: this.createThumbnails(playlist.Id),
             trackCount: playlist.ChildCount || undefined,
@@ -164,6 +166,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                 ? Math.floor(new Date(track.UserData.LastPlayedDate).getTime() / 1000)
                 : 0,
             playCount: track.UserData?.PlayCount || undefined,
+            rating: track.UserData?.IsFavorite ? 1 : 0,
             genres: track.Genres || undefined,
             thumbnails: this.createThumbnails(thumbnailId),
             artists: track.Artists || (track.AlbumArtist ? [track.AlbumArtist] : undefined),

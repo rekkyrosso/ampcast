@@ -10,7 +10,7 @@ import Pager, {PagerConfig} from 'types/Pager';
 import {Pin} from 'types/Pin';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
-import {uniqBy} from 'utils/index';
+import {uniqBy} from 'utils';
 import plexSettings from './plexSettings';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './plexAuth';
 import PlexPager from './PlexPager';
@@ -118,8 +118,6 @@ const plex: MediaService = {
     name: 'Plex',
     icon: 'plex',
     url: 'https://www.plex.tv/',
-    createSourceFromPin,
-    lookup,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -128,18 +126,25 @@ const plex: MediaService = {
     ],
     sources: [plexMusicVideo, plexMostPlayed, plexRecentlyPlayed, plexTopRated, plexPlaylists],
 
+    canRate,
+    createSourceFromPin,
+    lookup,
     observeIsLoggedIn,
     isLoggedIn,
     login,
     logout,
 };
 
+function canRate(): boolean {
+    return false;
+}
+
 function createSourceFromPin(pin: Pin): MediaSource<MediaItem> {
     return {
         title: pin.title,
         itemType: ItemType.Media,
         id: pin.src,
-        icon: 'unpinned',
+        icon: 'pin',
         isPin: true,
         layout: defaultLayout,
 
@@ -159,7 +164,7 @@ async function lookup(
     if (!artist || !title) {
         return [];
     }
-    const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit};
+    const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit, lookup: true};
     const lookup = async (filter: Record<string, string>): Promise<readonly MediaItem[]> =>
         fetchFirstPage(createSearchPager(ItemType.Media, title, filter, options), timeout);
     const results = await Promise.all([

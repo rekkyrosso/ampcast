@@ -156,7 +156,7 @@ class MainTheme implements Theme {
             const backgroundColor = new TinyColor(this.selectedBackgroundColor);
             this.setProperty(
                 'selected-background-color-blurred',
-                backgroundColor.greyscale().setAlpha(0.9).toRgbString()
+                backgroundColor.desaturate(50).setAlpha(0.5).toRgbString()
             );
             this.app.classList.toggle('selection-dark', this.isSelectionDark);
             this.app.classList.toggle('selection-light', this.isSelectionLight);

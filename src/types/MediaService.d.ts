@@ -1,5 +1,7 @@
 import Auth from './Auth';
+import ItemType from './ItemType';
 import MediaItem from './MediaItem';
+import MediaObject from './MediaObject';
 import MediaServiceId from './MediaServiceId';
 import MediaSource from './MediaSource';
 import {Pin} from './Pin';
@@ -21,4 +23,6 @@ export default interface MediaService extends Auth {
         limit?: number,
         timeout?: number
     ) => Promise<readonly MediaItem[]>;
+    rate?: (item: MediaObject, rating: number) => Promise<void>;
+    canRate: (item: MediaObject | ItemType, inline?: boolean) => boolean;
 }

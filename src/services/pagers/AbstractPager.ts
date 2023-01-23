@@ -6,6 +6,7 @@ import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import Pager, {PagerConfig} from 'types/Pager';
 import {Pin} from 'types/Pin';
+import {observeRatingChanges, RatingChange} from 'services/actions';
 import pinStore from 'services/pins/pinStore';
 import {Logger} from 'utils';
 
@@ -109,6 +110,10 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
 
             this.subscriptions = new Subscription();
 
+            if (this.config.lookup) {
+                return;
+            }
+
             this.subscriptions.add(
                 this.observeAdditions()
                     .pipe(tap((items) => this.addMissingTrackCounts(items)))
@@ -128,6 +133,12 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
                     .pipe(tap((removals) => this.unpin(removals)))
                     .subscribe(logger)
             );
+
+            this.subscriptions.add(
+                observeRatingChanges()
+                    .pipe(tap((changes) => this.updateRating(changes)))
+                    .subscribe(logger)
+            );
         }
     }
 
@@ -138,7 +149,8 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
                 newItems.filter(
                     (newItem) => !oldItems.find((oldItem) => oldItem.src === newItem.src)
                 )
-            )
+            ),
+            filter((additions) => additions.length > 0)
         );
     }
 
@@ -166,6 +178,21 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
                     changed = true;
                     return {...item, isPinned: false};
                 }
+            }
+            return item;
+        });
+        if (changed) {
+            this.items$.next(items);
+        }
+    }
+
+    private updateRating(changes: readonly RatingChange[]): void {
+        let changed = false;
+        const items = this.items.map((item) => {
+            const change = changes.find((change) => change.src === item.src);
+            if (change) {
+                changed = true;
+                return {...item, rating: change.rating};
             }
             return item;
         });

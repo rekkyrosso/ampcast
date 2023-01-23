@@ -17,6 +17,7 @@ export interface PagerConfig {
     // The following only apply if `calculatePageSize` is set.
     readonly minPageSize?: number;
     readonly maxPageSize?: number;
+    readonly lookup?: boolean; // lookup only
 }
 
 export interface Page<T> {

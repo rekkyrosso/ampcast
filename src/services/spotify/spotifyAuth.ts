@@ -105,6 +105,7 @@ async function obtainAccessToken(): Promise<TokenResponse> {
             'playlist-read-private',
             // Library
             'user-library-read',
+            'user-library-modify',
         ];
 
         const params = new URLSearchParams({

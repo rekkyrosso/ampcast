@@ -8,16 +8,33 @@
         color: var(--selected-text-color);
     }
 
-    .icon-button-unpinned {
-        visibility: hidden;
-
-        .list-view-row:hover & {
-            visibility: inherit;
-        }
+    .icon-buttons {
+        justify-content: right;
     }
 
-    &.playable .unplayable:not(.selected):not(.playing) .list-view-cell {
+    .icon-button-heart,
+    .icon-button-info,
+    .icon-button-menu,
+    .icon-button-pin {
+        visibility: hidden;
+    }
+
+    .list-view-row:hover .icon-button-heart,
+    .list-view-row:hover .icon-button-info,
+    .list-view-row:hover .icon-button-menu,
+    .list-view-row:hover .icon-button-pin {
+        visibility: inherit;
+    }
+
+    .unplayable:not(.selected):not(.playing) .list-view-cell {
         color: var(--grey1-color);
+    }
+
+    &-details {
+        .actions,
+        .icon-buttons {
+            height: inherit;
+        }
     }
 
     &-card {
@@ -80,8 +97,12 @@
             right: 0.25em;
             padding: 0 0.25em;
             color: var(--text-color);
-            background-color: rgba(0, 0, 0, 0.25);
             border-radius: calc(var(--roundness) * var(--roundness) * 0.75em);
+            background-color: rgba(255, 255, 255, 0.1);
+
+            .themed.light & {
+                background-color: rgba(0, 0, 0, 0.1);
+            }
 
             &:empty {
                 display: none;
@@ -95,7 +116,7 @@
             color: var(--grey2-color);
         }
 
-        .badges {
+        .actions {
             right: 0.25em;
             bottom: 0.25em;
             padding: 0;
@@ -156,6 +177,10 @@
                 left: 2em;
                 right: 0;
                 font-size: 1em;
+            }
+
+            .actions {
+                display: none;
             }
         }
 
@@ -225,7 +250,7 @@
             }
         }
 
-        &.playable .unplayable:not(.selected) {
+        .unplayable:not(.selected) {
             .list-view-cell {
                 color: var(--grey1-color);
             }

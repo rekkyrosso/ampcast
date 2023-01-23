@@ -117,7 +117,7 @@ export default function Playlist({onSelect, onPlay, onEject, ...props}: Playlist
         <div className="playlist">
             <ListView
                 {...props}
-                className="media-list playable"
+                className="media-list"
                 layout={layout}
                 items={items}
                 itemKey="id"

@@ -121,6 +121,7 @@ const lastfm: MediaService = {
         lastfmLovedTracks,
     ],
 
+    canRate: () => false,
     observeIsLoggedIn,
     isLoggedIn,
     login,

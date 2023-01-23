@@ -40,11 +40,11 @@ export default function ListViewHead<T>({
                 }}
             >
                 {cols.map((col) => (
-                    <ListViewHeadCell {...col} key={col.title} />
+                    <ListViewHeadCell {...col} key={col.index} />
                 ))}{' '}
                 {sizeable &&
                     cols.map((col) => (
-                        <ColumnResizer col={col} onResize={handleResize} key={col.title} />
+                        <ColumnResizer col={col} onResize={handleResize} key={col.index} />
                     ))}
             </div>
         </header>

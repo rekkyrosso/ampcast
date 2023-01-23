@@ -74,10 +74,6 @@
         .themed.selection-light .selected-text &:not(.show-connectivity) {
             fill: black;
         }
-
-        .apple-connected .unplayable & {
-            fill: currentColor;
-        }
     }
 
     &-jellyfin {
@@ -171,10 +167,6 @@
         .spotify-connected &,
         &:not(.show-connectivity) {
             fill: #1ed760;
-        }
-
-        .spotify-connected .unplayable & {
-            fill: currentColor;
         }
     }
 

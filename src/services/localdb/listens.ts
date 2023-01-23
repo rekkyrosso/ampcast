@@ -16,7 +16,7 @@ const UNINITIALIZED: Listen[] = [];
 const listens$ = new BehaviorSubject<readonly Listen[]>(UNINITIALIZED);
 
 class ListensStore extends Dexie {
-    readonly items!: Dexie.Table<Listen, string>;
+    readonly items!: Dexie.Table<Listen, number>;
 
     constructor() {
         super('ampcast/listens');

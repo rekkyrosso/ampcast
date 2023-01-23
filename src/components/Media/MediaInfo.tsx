@@ -184,7 +184,7 @@ export function Track<T extends MediaItem>({album, track}: Pick<T, 'album' | 'tr
     if (album && track) {
         return (
             <p className="track">
-                Track: #{track}
+                Track: {track}
             </p>
         );
     }

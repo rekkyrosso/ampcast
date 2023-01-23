@@ -22,13 +22,12 @@ export default function AlbumBrowser({source, ...props}: PagedBrowserProps<Media
     return (
         <div className="panel album-browser">
             <Splitter id="album-browser-layout" arrange="rows" primaryIndex={1}>
-                <AlbumList {...props} unplayable={source.unplayable} onSelect={handleSelect} />
+                <AlbumList {...props} onSelect={handleSelect} />
                 <MediaItemList
                     className="album-items"
                     pager={selectedAlbum?.pager}
                     keepAlive={true}
                     layout={source.secondaryLayout || defaultAlbumTracksLayout}
-                    unplayable={source.unplayable}
                 />
             </Splitter>
         </div>
