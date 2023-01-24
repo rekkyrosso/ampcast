@@ -166,7 +166,7 @@ async function lookup(
     }
     const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit, lookup: true};
     const lookup = async (filter: Record<string, string>): Promise<readonly MediaItem[]> =>
-        fetchFirstPage(createSearchPager(ItemType.Media, title, filter, options), timeout);
+        fetchFirstPage(createSearchPager(ItemType.Media, title, filter, options), {timeout});
     const results = await Promise.all([
         lookup({'artist.title': artist}),
         lookup({originalTitle: artist}),

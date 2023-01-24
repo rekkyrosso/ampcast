@@ -200,7 +200,7 @@ async function lookup(
         undefined,
         options
     );
-    return fetchFirstPage(pager, timeout);
+    return fetchFirstPage(pager, {timeout});
 }
 
 function createRoot<T extends MediaObject>(

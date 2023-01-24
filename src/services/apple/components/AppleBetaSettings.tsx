@@ -11,7 +11,7 @@ export default function AppleBetaSettings() {
     return (
         <form className="apple-beta-settings" method="dialog" onSubmit={handleSubmit}>
             <fieldset>
-                <legend>MusicKit</legend>
+                <legend>MusicKit*</legend>
                 <p>
                     <input
                         type="radio"
@@ -42,7 +42,7 @@ export default function AppleBetaSettings() {
             </div>
             <p>
                 <small>
-                    MusicKit is a JavaScript library supplied by Apple that provides access to Apple
+                    *MusicKit is a JavaScript library supplied by Apple that provides access to Apple
                     Music services and media playback.
                 </small>
             </p>

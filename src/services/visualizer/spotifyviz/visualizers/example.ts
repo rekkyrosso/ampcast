@@ -1,9 +1,10 @@
+import {TinyColor} from '@ctrl/tinycolor';
 import {interpolateRgb, interpolateBasis} from 'd3-interpolate';
+import theme from 'services/theme';
 import {SpotifyVizConfig, SpotifyVizPaintData} from '../SpotifyVizPlayer';
 
 // From: https://github.com/zachwinter/spotify-viz/blob/master/client/example.js
 
-const colors = ['#18FF2A', '#7718FF', '#06C5FE', '#FF4242', '#18FF2A'];
 let prevColor = '';
 let nextColor = '';
 
@@ -11,6 +12,13 @@ const example: SpotifyVizConfig = {
     volumeSmoothing: 10,
 
     onBar() {
+        // const colors = ['#18FF2A', '#7718FF', '#06C5FE', '#FF4242', '#18FF2A'];
+        const colors = [
+            theme.textColor,
+            ...getButtonColor()
+                .tetrad()
+                .map((color) => color.toRgbString()),
+        ];
         prevColor = nextColor || getRandomColor(colors);
         nextColor = getRandomColor(colors.filter((color) => color !== nextColor));
     },
@@ -18,13 +26,13 @@ const example: SpotifyVizConfig = {
     onPaint({context2D, height, width, now, analyser}: SpotifyVizPaintData) {
         const bar = interpolateBasis([0, analyser.volume * 10, 0])(analyser.bar.progress);
         const beat = interpolateBasis([0, analyser.volume * 300, 0])(analyser.beat.progress);
-        context2D.fillStyle = 'rgba(0, 0, 0, .08)';
+        context2D.fillStyle = 'rgba(0, 0, 0, 0.08)';
         context2D.fillRect(0, 0, width, height);
         context2D.lineWidth = bar;
         context2D.strokeStyle = interpolateRgb(prevColor, nextColor)(analyser.bar.progress);
         sin(context2D, now / 50, height / 2, analyser.volume * 50, 100);
         context2D.stroke();
-        context2D.fillStyle = 'rgba(0, 0, 0, 1)';
+        context2D.fillStyle = 'rgb(0, 0, 0)';
         context2D.beginPath();
         context2D.lineWidth = beat;
         circle(context2D, width / 2, height / 2, (analyser.volume * height) / 5 + beat / 10);
@@ -34,6 +42,15 @@ const example: SpotifyVizConfig = {
 };
 
 export default example;
+
+function getButtonColor(): TinyColor {
+    const {h, s, l} = new TinyColor(theme.frameColor).toHsl();
+    return new TinyColor({
+        h,
+        s: s + (1 - s) * 0.33,
+        l: l + (1 - l) * 0.5,
+    });
+}
 
 function getRandomColor(arr: string[]): string {
     const index = Math.floor(Math.random() * arr.length);

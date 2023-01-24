@@ -10,7 +10,7 @@ export interface TabProps {
 }
 
 export default function Tab({id, item, index, selected, onSelect}: TabProps) {
-    const handleFocus = useCallback(() => onSelect(index), [index, onSelect]);
+    const select = useCallback(() => onSelect(index), [index, onSelect]);
 
     return (
         <button
@@ -19,7 +19,8 @@ export default function Tab({id, item, index, selected, onSelect}: TabProps) {
             role="tab"
             aria-selected={selected}
             aria-controls={`${id}-panel-${index}`}
-            onFocus={handleFocus}
+            onClick={select}
+            onFocus={select}
         >
             {item.tab}
         </button>

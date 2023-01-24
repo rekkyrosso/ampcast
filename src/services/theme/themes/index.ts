@@ -12,6 +12,7 @@ import oliveoil from './oliveoil.json';
 import palepink from './palepink.json';
 import purplelicious from './purplelicious.json';
 import saddle from './saddle.json';
+import sphinx from './sphinx.json';
 import submarine from './submarine.json';
 import tangerine from './tangerine.json';
 import winampAmber from './winamp-amber.json';
@@ -32,6 +33,7 @@ const themes: readonly Theme[] = [
     palepink,
     purplelicious,
     saddle,
+    sphinx,
     submarine,
     tangerine,
     winampAmber,

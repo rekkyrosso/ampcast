@@ -1,6 +1,6 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {filter, map} from 'rxjs/operators';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import {LiteStorage} from 'utils';
@@ -8,10 +8,14 @@ import {LiteStorage} from 'utils';
 type HiddenSettings = Record<string, boolean | undefined>;
 
 const storage = new LiteStorage('services');
-const hidden$ = new BehaviorSubject<HiddenSettings>(storage.getJson('hidden', {}));
+const initialHiddenSettings = storage.getJson('hidden', {});
+const hidden$ = new BehaviorSubject<HiddenSettings>(initialHiddenSettings);
 
-export function observeUpdates(): Observable<void> {
-    return hidden$.pipe(map(() => undefined));
+export function observeHiddenServiceChanges(): Observable<void> {
+    return hidden$.pipe(
+        filter((settings) => settings !== initialHiddenSettings),
+        map(() => undefined)
+    );
 }
 
 export function isHidden(source: MediaService | MediaSource<any>): boolean {
@@ -31,7 +35,7 @@ export function setHidden(updates: Record<string, boolean>): void {
 }
 
 export default {
-    observeUpdates,
+    observeHiddenServiceChanges,
     isHidden,
     setHidden,
 };

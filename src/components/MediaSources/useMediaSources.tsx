@@ -3,7 +3,7 @@ import {merge} from 'rxjs';
 import {map} from 'rxjs/operators';
 import {getAllServices} from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
-import {isVisible, observeUpdates} from 'services/servicesSettings';
+import {isVisible, observeHiddenServiceChanges} from 'services/servicesSettings';
 import {MediaSourceIconName} from 'components/Icon';
 import MediaBrowser from 'components/MediaBrowser';
 import {TreeNode} from 'components/TreeView';
@@ -14,7 +14,7 @@ export default function useMediaSources(): TreeNode<React.ReactNode>[] {
     const [sources, setSources] = useState<TreeNode<React.ReactNode>[]>([]);
 
     useEffect(() => {
-        const subscription = merge(observeUpdates(), pinStore.observe())
+        const subscription = merge(observeHiddenServiceChanges(), pinStore.observe())
             .pipe(
                 map(() => {
                     return getAllServices()

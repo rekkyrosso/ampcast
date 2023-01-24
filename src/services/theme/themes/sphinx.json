@@ -1,0 +1,17 @@
+{
+    "name": "Sphinx",
+    "backgroundColor": "#0b090a",
+    "textColor": "#c4aa64",
+    "frameColor": "#81620e",
+    "frameTextColor": "#000000",
+    "buttonColor": "",
+    "buttonTextColor": "",
+    "mediaButtonColor": "",
+    "mediaButtonTextColor": "",
+    "selectedBackgroundColor": "#0e2d81",
+    "selectedTextColor": "#ffffff",
+    "evenRowBackgroundColor": "",
+    "spacing": 0.51,
+    "roundness": 0.62,
+    "flat": false
+}

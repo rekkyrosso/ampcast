@@ -170,7 +170,7 @@ async function lookup(
     }
     const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit, lookup: true};
     const pager = createSearchPager<MediaItem>(ItemType.Media, title, {Artists: artist}, options);
-    return fetchFirstPage(pager, timeout);
+    return fetchFirstPage(pager, {timeout});
 }
 
 async function rate(item: MediaObject, rating: number): Promise<void> {

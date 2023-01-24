@@ -276,7 +276,7 @@ async function createMediaItems(source: PlayableType): Promise<readonly MediaIte
 }
 
 async function createMediaItemsFromAlbum(album: MediaAlbum): Promise<readonly MediaItem[]> {
-    return fetchFirstPage(album.pager);
+    return fetchFirstPage(album.pager, {keepAlive: true});
 }
 
 async function createMediaItem(item: File | MediaItem): Promise<MediaItem | null> {

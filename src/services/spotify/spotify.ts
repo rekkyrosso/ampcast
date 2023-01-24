@@ -300,7 +300,7 @@ async function lookup(
         `${safeString(artist)} ${safeString(title)}`,
         options
     );
-    return fetchFirstPage(pager, timeout);
+    return fetchFirstPage(pager, {timeout});
 }
 
 async function rate(item: MediaObject, rating: number): Promise<void> {
