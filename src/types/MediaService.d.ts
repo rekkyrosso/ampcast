@@ -16,6 +16,8 @@ export default interface MediaService extends Auth {
     readonly scrobbler?: boolean;
     readonly defaultHidden?: boolean;
     readonly defaultNoScrobble?: boolean;
+    canRate: (item: MediaObject | ItemType, inline?: boolean) => boolean;
+    canStore: (item: MediaObject | ItemType, inline?: boolean) => boolean;
     createSourceFromPin?: (pin: Pin) => MediaSource<MediaItem>;
     lookup?: (
         artist: string,
@@ -24,5 +26,5 @@ export default interface MediaService extends Auth {
         timeout?: number
     ) => Promise<readonly MediaItem[]>;
     rate?: (item: MediaObject, rating: number) => Promise<void>;
-    canRate: (item: MediaObject | ItemType, inline?: boolean) => boolean;
+    store?: (item: MediaObject, stored: boolean) => Promise<void>;
 }

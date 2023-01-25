@@ -1,7 +1,7 @@
 import React from 'react';
 import {Except} from 'type-fest';
-import {preventDefault} from 'utils';
 import Icon, {IconName} from 'components/Icon';
+import {preventDefault} from 'utils';
 import './IconButton.scss';
 
 export interface IconButtonProps

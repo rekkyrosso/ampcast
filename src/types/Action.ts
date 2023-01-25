@@ -5,6 +5,8 @@ const enum Action {
     Unlike = 'unlike',
     Rate = 'rate',
     Info = 'info',
+    AddToLibrary = 'library-add',
+    RemoveFromLibrary = 'library-remove',
     PlayNow = 'play-now',
     PlayNext = 'play-next',
     Queue = 'queue',

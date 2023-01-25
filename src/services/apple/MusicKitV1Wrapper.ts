@@ -37,7 +37,14 @@ export default class MusicKitV1Wrapper {
         });
         Object.defineProperties(instance.api, {
             music: {
-                get: () => (href: string) => this.music(href),
+                get:
+                    () =>
+                    (
+                        href: string,
+                        params?: MusicKit.QueryParameters,
+                        options?: {fetchOptions: RequestInit | undefined}
+                    ) =>
+                        this.music(href, params, options),
             },
         });
         return this.instance;
@@ -49,7 +56,14 @@ export default class MusicKitV1Wrapper {
             if (!instance.api.music) {
                 Object.defineProperties(instance.api, {
                     music: {
-                        get: () => (href: string) => this.music(href),
+                        get:
+                            () =>
+                            (
+                                href: string,
+                                params?: MusicKit.QueryParameters,
+                                options?: {fetchOptions: RequestInit | undefined}
+                            ) =>
+                                this.music(href, params, options),
                     },
                 });
             }
@@ -63,15 +77,26 @@ export default class MusicKitV1Wrapper {
         return this.MusicKit.formatArtworkURL(artwork, width, height);
     }
 
-    private async music(href: string): Promise<any> {
+    private async music(
+        href: string,
+        params?: MusicKit.QueryParameters,
+        options?: {fetchOptions: RequestInit | undefined}
+    ): Promise<any> {
         const musicKit = this.getInstance();
+        if (params) {
+            href = `${href}${href.includes('?') ? '&' : '?'}${new URLSearchParams(params)}`;
+        }
         href = href.replace('{{storefrontId}}', musicKit.storefrontId);
-        const response = await fetch(`https://api.music.apple.com${href}`, {
-            headers: {
-                authorization: `Bearer ${musicKit.developerToken}`,
-                'music-user-token': musicKit.musicUserToken,
-            },
-        });
+        const init = options?.fetchOptions || {};
+        if (!init.headers) {
+            init.headers = {};
+        }
+        init.headers = {
+            ...init.headers,
+            authorization: `Bearer ${musicKit.developerToken}`,
+            'music-user-token': musicKit.musicUserToken,
+        };
+        const response = await fetch(`https://api.music.apple.com${href}`, init);
         if (!response.ok) {
             throw response;
         }

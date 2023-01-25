@@ -85,7 +85,7 @@ const appleRecentlyPlayed: MediaSource<MediaItem> = {
 const appleLibrarySongs: MediaSource<MediaItem> = {
     id: 'apple/library-songs',
     title: 'My Songs',
-    icon: 'heart',
+    icon: 'in-library',
     itemType: ItemType.Media,
     layout: defaultLayout,
     defaultHidden: true,
@@ -101,7 +101,7 @@ const appleLibrarySongs: MediaSource<MediaItem> = {
 const appleLibraryAlbums: MediaSource<MediaAlbum> = {
     id: 'apple/library-albums',
     title: 'My Albums',
-    icon: 'heart',
+    icon: 'in-library',
     itemType: ItemType.Album,
 
     search(): Pager<MediaAlbum> {
@@ -147,9 +147,11 @@ const apple: MediaService = {
     ],
 
     canRate,
+    canStore,
     createSourceFromPin,
     lookup,
     rate,
+    store,
     observeIsLoggedIn,
     isLoggedIn,
     login,
@@ -166,8 +168,9 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaItem> {
         layout: {...defaultLayout, view: 'card compact'},
 
         search(): Pager<MediaItem> {
-            const [, , id] = pin.src.split(':');
-            const path = pin.isLibraryItem ? `/v1/me/library` : `/v1/catalog/{{storefrontId}}`;
+            const [, type, id] = pin.src.split(':');
+            const isLibraryItem = type.startsWith('library-');
+            const path = isLibraryItem ? `/v1/me/library` : `/v1/catalog/{{storefrontId}}`;
             return MusicKitPager.create<MediaItem>(`${path}/playlists/${id}`, {
                 include: 'tracks,catalog',
                 'fields[library-playlists]': 'playParams,name,artwork,url,tracks',
@@ -176,12 +179,30 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaItem> {
     };
 }
 
-async function rate(): Promise<void> {
-    throw Error('Not implemented.');
+function canRate<T extends MediaObject>(item: T | ItemType, inline?: boolean): boolean {
+    switch (typeof item === 'number' ? item : item.itemType) {
+        case ItemType.Album:
+        case ItemType.Media:
+        case ItemType.Playlist:
+            return !inline;
+
+        default:
+            return false;
+    }
 }
 
-function canRate(): boolean {
-    return false;
+function canStore<T extends MediaObject>(item: T | ItemType, inline?: boolean): boolean {
+    switch (typeof item === 'number' ? item : item.itemType) {
+        case ItemType.Album:
+        case ItemType.Playlist:
+            return true;
+
+        case ItemType.Media:
+            return !inline;
+
+        default:
+            return false;
+    }
 }
 
 async function lookup(
@@ -201,6 +222,46 @@ async function lookup(
         options
     );
     return fetchFirstPage(pager, {timeout});
+}
+
+async function rate(item: MediaObject, rating: number): Promise<void> {
+    const musicKit = MusicKit.getInstance();
+    const [, type, id] = item.src.split(':');
+    const path = `/v1/me/ratings/${type}/${id}`;
+
+    if (rating) {
+        return musicKit.api.music(path, undefined, {
+            fetchOptions: {
+                method: 'PUT',
+                body: JSON.stringify({
+                    type: 'rating',
+                    attributes: {
+                        value: rating,
+                    },
+                }),
+            },
+        });
+    } else {
+        return musicKit.api.music(path, undefined, {fetchOptions: {method: 'DELETE'}});
+    }
+}
+
+async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
+    const musicKit = MusicKit.getInstance();
+    const [, type, id] = item.src.split(':');
+    const path = `/v1/me/library`;
+    const kind = type.replace('library-', '');
+
+    if (inLibrary) {
+        const key = `ids[${kind}]`;
+        return musicKit.api.music(path, {[key]: id}, {fetchOptions: {method: 'POST'}});
+    } else {
+        // This doesn't currently work.
+        // https://developer.apple.com/forums/thread/107807
+        return musicKit.api.music(`${path}/${kind}/${id}`, undefined, {
+            fetchOptions: {method: 'DELETE'},
+        });
+    }
 }
 
 function createRoot<T extends MediaObject>(
@@ -223,11 +284,11 @@ function createRoot<T extends MediaObject>(
 function createSearchPager<T extends MediaObject>(
     itemType: T['itemType'],
     q: string,
-    filters?: Record<string, string>,
+    filters?: MusicKit.QueryParameters,
     options?: Partial<PagerConfig>
 ): Pager<T> {
     if (q) {
-        const params: Record<string, string> = {...filters, term: q};
+        const params: MusicKit.QueryParameters = {...filters, term: q};
         if (!params.types) {
             switch (itemType) {
                 case ItemType.Media:

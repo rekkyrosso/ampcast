@@ -118,44 +118,10 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             if (!this.config.lookup) {
                 this.subscriptions!.add(
                     this.observeAdditions()
-                        .pipe(mergeMap((items) => this.addRating(items)))
+                        .pipe(mergeMap((items) => this.addRatings(items)))
                         .subscribe(logger)
                 );
             }
-        }
-    }
-
-    private observeAdditions(): Observable<readonly T[]> {
-        return this.observeItems().pipe(
-            startWith([]),
-            pairwise(),
-            map(([oldItems, newItems]) =>
-                newItems.filter(
-                    (newItem) => !oldItems.find((oldItem) => oldItem.src === newItem.src)
-                )
-            ),
-            filter((additions) => additions.length > 0),
-        );
-    }
-
-    private async addRating(items: readonly T[]): Promise<void> {
-        const itemType = items[0]?.itemType;
-        if (itemType === ItemType.Album || itemType === ItemType.Media) {
-            const ids = items.map((item) => {
-                const [, , id] = item.src.split(':');
-                return id;
-            });
-            let ratings: boolean[] = [];
-            if (itemType === ItemType.Album) {
-                ratings = await spotifyApi.containsMySavedAlbums(ids);
-            } else {
-                ratings = await spotifyApi.containsMySavedTracks(ids);
-            }
-            const changes: RatingChange[] = [];
-            items.forEach((item, index) =>
-                changes.push({src: item.src, rating: ratings[index] ? 1 : 0})
-            );
-            dispatchRatingChanges(changes);
         }
     }
 
@@ -357,5 +323,39 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
 
     private getMarket(): string {
         return authSettings.getString('market');
+    }
+
+    private observeAdditions(): Observable<readonly T[]> {
+        return this.observeItems().pipe(
+            startWith([]),
+            pairwise(),
+            map(([oldItems, newItems]) =>
+                newItems.filter(
+                    (newItem) => !oldItems.find((oldItem) => oldItem.src === newItem.src)
+                )
+            ),
+            filter((additions) => additions.length > 0)
+        );
+    }
+
+    private async addRatings(items: readonly T[]): Promise<void> {
+        const itemType = items[0]?.itemType;
+        if (itemType === ItemType.Album || itemType === ItemType.Media) {
+            const ids = items.map((item) => {
+                const [, , id] = item.src.split(':');
+                return id;
+            });
+            let ratings: boolean[] = [];
+            if (itemType === ItemType.Album) {
+                ratings = await spotifyApi.containsMySavedAlbums(ids);
+            } else {
+                ratings = await spotifyApi.containsMySavedTracks(ids);
+            }
+            const changes: RatingChange[] = [];
+            items.forEach((item, index) =>
+                changes.push({src: item.src, rating: ratings[index] ? 1 : 0})
+            );
+            dispatchRatingChanges(changes);
+        }
     }
 }

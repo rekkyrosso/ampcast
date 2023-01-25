@@ -6,7 +6,12 @@ import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import Pager, {PagerConfig} from 'types/Pager';
 import {Pin} from 'types/Pin';
-import {observeRatingChanges, RatingChange} from 'services/actions';
+import {
+    observeRatingChanges,
+    RatingChange,
+    observeLibraryChanges,
+    LibraryChange,
+} from 'services/actions';
 import pinStore from 'services/pins/pinStore';
 import {Logger} from 'utils';
 
@@ -139,6 +144,12 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
                     .pipe(tap((changes) => this.updateRating(changes)))
                     .subscribe(logger)
             );
+
+            this.subscriptions.add(
+                observeLibraryChanges()
+                    .pipe(tap((changes) => this.updateInLibrary(changes)))
+                    .subscribe(logger)
+            );
         }
     }
 
@@ -193,6 +204,21 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
             if (change) {
                 changed = true;
                 return {...item, rating: change.rating};
+            }
+            return item;
+        });
+        if (changed) {
+            this.items$.next(items);
+        }
+    }
+
+    private updateInLibrary(changes: readonly LibraryChange[]): void {
+        let changed = false;
+        const items = this.items.map((item) => {
+            const change = changes.find((change) => change.src === item.src);
+            if (change) {
+                changed = true;
+                return {...item, inLibrary: change.inLibrary};
             }
             return item;
         });

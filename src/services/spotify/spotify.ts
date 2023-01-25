@@ -124,7 +124,7 @@ const spotifyTopArtists: MediaSource<MediaArtist> = {
 
 const spotifyLikedSongs: MediaSource<MediaItem> = {
     id: 'spotify/liked-songs',
-    title: 'Liked Songs',
+    title: 'My Songs',
     icon: 'heart',
     itemType: ItemType.Media,
     layout: defaultLayout,
@@ -140,7 +140,7 @@ const spotifyLikedSongs: MediaSource<MediaItem> = {
 
 const spotifyLikedAlbums: MediaSource<MediaAlbum> = {
     id: 'spotify/liked-albums',
-    title: 'Liked Albums',
+    title: 'My Albums',
     icon: 'heart',
     itemType: ItemType.Album,
 
@@ -249,6 +249,7 @@ const spotify: MediaService = {
     ],
 
     canRate,
+    canStore: () => false,
     createSourceFromPin,
     lookup,
     rate,

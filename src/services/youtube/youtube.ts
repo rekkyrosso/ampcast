@@ -160,6 +160,7 @@ const youtube: MediaService = {
     sources: [youtubeLikes, youtubePlaylists],
 
     canRate: () => false,
+    canStore: () => false,
     createSourceFromPin,
     observeIsLoggedIn,
     isLoggedIn,

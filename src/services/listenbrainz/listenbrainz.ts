@@ -100,6 +100,7 @@ const listenbrainz: MediaService = {
     sources: [topTracks, topAlbums, topArtists, listenbrainzHistory],
 
     canRate: () => false,
+    canStore: () => false,
     observeIsLoggedIn,
     isLoggedIn,
     login,

@@ -15,7 +15,11 @@ declare namespace MusicKit {
     }
 
     interface API {
-        music(href: string): Promise<any>;
+        music(
+            href: string,
+            parameters?: MusicKit.QueryParameters | undefined,
+            options?: {fetchOptions: RequestInit | undefined} | undefined
+        ): Promise<any>;
     }
 
     interface SetQueueOptions {

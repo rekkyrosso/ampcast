@@ -86,7 +86,11 @@ export class MusicKitPlayer implements Player<string> {
                             this.error$.next(Error(ERR_VIDEO_PLAYBACK_NOT_SUPPORTED));
                             return EMPTY;
                         }
-                        const [, kind, id] = src.split(':');
+                        const [, type, id] = src.split(':');
+                        const kind = type
+                            .replace('library-', '')
+                            .replace(/s$/, '')
+                            .replace(/-([a-z])/g, (_, char) => char.toUpperCase());
                         return from(this.player!.setQueue({[kind]: id})).pipe(
                             switchMap(() => {
                                 this.loadedSrc = src;

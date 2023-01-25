@@ -126,7 +126,8 @@ const plex: MediaService = {
     ],
     sources: [plexMusicVideo, plexMostPlayed, plexRecentlyPlayed, plexTopRated, plexPlaylists],
 
-    canRate,
+    canRate: () => false,
+    canStore: () => false,
     createSourceFromPin,
     lookup,
     observeIsLoggedIn,
@@ -134,10 +135,6 @@ const plex: MediaService = {
     login,
     logout,
 };
-
-function canRate(): boolean {
-    return false;
-}
 
 function createSourceFromPin(pin: Pin): MediaSource<MediaItem> {
     return {

@@ -130,6 +130,7 @@ const jellyfin: MediaService = {
     ],
 
     canRate: () => true,
+    canStore: () => false,
     createSourceFromPin,
     lookup,
     rate,

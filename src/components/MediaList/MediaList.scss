@@ -133,7 +133,8 @@
             .owner,
             .genre,
             .blurb,
-            .album {
+            .album,
+            .year {
                 left: 4em;
             }
 
@@ -189,14 +190,22 @@
             .title,
             .artist,
             .owner,
-            .genre,
-            .blurb,
-            .album {
+            .genre {
                 right: 0;
+            }
+
+            .blurb,
+            .album,
+            .year {
+                right: 1em;
             }
         }
 
         &.thin {
+            .icon-button:not(.icon-button-menu) {
+                display: none;
+            }
+
             &:not(.minimal) {
                 .duration,
                 .track-count,

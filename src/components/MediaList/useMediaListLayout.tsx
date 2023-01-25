@@ -1,21 +1,16 @@
-import React, {useCallback, useMemo} from 'react';
-import Action from 'types/Action';
+import React, {useMemo} from 'react';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSourceLayout, {Field} from 'types/MediaSourceLayout';
-import {performAction} from 'services/actions';
-import {getService} from 'services/mediaServices';
-import {stopPropagation} from 'utils';
 import {ColumnSpec, ListViewLayout} from 'components/ListView';
+import Actions from 'components/Actions';
 import CoverArt from 'components/CoverArt';
 import Icon from 'components/Icon';
-import IconButton from 'components/Button/IconButton';
 import SunClock from 'components/SunClock';
 import Time from 'components/Time';
-import showActionsMenu from './showActionsMenu';
 
 const defaultLayout: MediaSourceLayout<MediaObject> = {
     view: 'details',
@@ -107,61 +102,6 @@ export const ListenDate: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
 export const AlbumAndYear: RenderField<MediaItem> = (item) =>
     item.album ? (item.year ? `${item.album} (${item.year})` : item.album) : item.year || '';
 
-export function Actions({item}: {item: MediaObject}) {
-    const [serviceId] = item.src.split(':');
-    const service = getService(serviceId);
-
-    const togglePin = useCallback(async () => {
-        if (item.itemType === ItemType.Playlist) {
-            if (item.isPinned) {
-                await performAction(Action.Unpin, [item]);
-            } else {
-                await performAction(Action.Pin, [item]);
-            }
-        }
-    }, [item]);
-
-    const toggleLike = useCallback(async () => {
-        if (item.rating) {
-            await performAction(Action.Unlike, [item]);
-        } else {
-            await performAction(Action.Like, [item]);
-        }
-    }, [item]);
-
-    const showContextMenu = useCallback(
-        async (event: React.MouseEvent) => {
-            const action = await showActionsMenu([item], event.pageX, event.pageY);
-            if (action) {
-                await performAction(action, [item]);
-            }
-        },
-        [item]
-    );
-
-    return (
-        <div className="icon-buttons" onMouseDown={stopPropagation} onMouseUp={stopPropagation}>
-            <IconButton icon="menu" title="More..." onClick={showContextMenu} key="menu" />
-            {item.itemType === ItemType.Playlist ? (
-                <IconButton
-                    icon={item.isPinned ? 'pin-fill' : 'pin'}
-                    title={item.isPinned ? 'Unpin' : 'Pin'}
-                    onClick={togglePin}
-                    key="pin"
-                />
-            ) : null}
-            {service?.canRate(item, true) ? (
-                <IconButton
-                    icon={item.rating ? 'heart-fill' : 'heart'}
-                    title={item.rating ? 'Unlike' : 'Like'}
-                    onClick={toggleLike}
-                    key="like"
-                />
-            ) : null}
-        </div>
-    );
-}
-
 export const Thumbnail: RenderField = (item) => {
     return <CoverArt item={item} />;
 };
@@ -191,7 +131,7 @@ const mediaFields: MediaFields<any> = {
         width: 120,
         className: 'track-count',
     },
-    Year: {title: 'Year', render: Year, align: 'right', width: 120, className: 'year'},
+    Year: {title: 'Year', render: Year, width: 120, className: 'year'},
     Genre: {title: 'Genre', render: Genre, className: 'genre'},
     Owner: {title: 'Owner', render: Owner, className: 'owner'},
     LastPlayed: {title: 'Last played', render: LastPlayed, className: 'played-at'},

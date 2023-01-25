@@ -1,4 +1,6 @@
 import type {Observable} from 'rxjs';
+import {Subscription} from 'rxjs';
+import {filter, map, mergeMap, pairwise, startWith} from 'rxjs/operators';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -8,19 +10,25 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
+import {dispatchRatingChanges, dispatchLibraryChanges} from 'services/actions';
 import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
 import pinStore from 'services/pins/pinStore';
+import {getTextFromHtml, Logger} from 'utils';
+
+const logger = new Logger('MusicKitPager');
 
 type LibrarySong = Omit<AppleMusicApi.Song, 'type'> & {type: 'library-songs'};
-type LibraryMusicVideo = Omit<AppleMusicApi.Song, 'type'> & {type: 'music-videos'};
+type MusicVideo = Omit<AppleMusicApi.Song, 'type'> & {type: 'music-videos'};
+type LibraryMusicVideo = Omit<AppleMusicApi.Song, 'type'> & {type: 'library-music-videos'};
 type LibraryArtist = Omit<AppleMusicApi.Artist, 'type'> & {type: 'library-artists'};
 type LibraryAlbum = Omit<AppleMusicApi.Album, 'type'> & {type: 'library-albums'};
 type LibraryPlaylist = Omit<AppleMusicApi.Playlist, 'type'> & {type: 'library-playlists'};
 type MusicKitItem =
     | AppleMusicApi.Song
     | LibrarySong
+    | MusicVideo
     | LibraryMusicVideo
     | AppleMusicApi.Artist
     | LibraryArtist
@@ -36,10 +44,11 @@ export interface MusicKitPage extends Page<MusicKitItem> {
 export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
     private readonly pager: Pager<T>;
     private nextPageUrl: string | undefined = undefined;
+    private subscriptions?: Subscription;
 
     static create<T extends MediaObject>(
         href: string,
-        params?: Record<string, string>,
+        params?: MusicKit.QueryParameters,
         options?: Partial<PagerConfig>,
         album?: AppleMusicApi.Album['attributes']
     ): Pager<T> {
@@ -61,8 +70,8 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
     constructor(
         href: string,
         map: (response: any) => MusicKitPage,
-        params?: Record<string, string>,
-        options?: Partial<PagerConfig>,
+        params?: MusicKit.QueryParameters,
+        private readonly options?: Partial<PagerConfig>,
         private readonly album?: AppleMusicApi.Album['attributes']
     ) {
         this.pager = new SequentialPager<T>(async (limit?: number): Promise<Page<T>> => {
@@ -97,18 +106,39 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
 
     disconnect(): void {
         this.pager.disconnect();
+        this.subscriptions?.unsubscribe();
     }
 
     fetchAt(index: number, length: number): void {
+        if (!this.subscriptions) {
+            this.connect();
+        }
+
         this.pager.fetchAt(index, length);
     }
 
-    private async fetchNext(href: string, params?: Record<string, string | number>): Promise<any> {
-        const musicKit = MusicKit.getInstance();
-        if (params) {
-            href = `${href}${href.includes('?') ? '&' : '?'}${new URLSearchParams(params as any)}`;
+    private connect(): void {
+        if (!this.subscriptions) {
+            this.subscriptions = new Subscription();
+
+            if (!this.options?.lookup) {
+                this.subscriptions!.add(
+                    this.observeAdditions()
+                        .pipe(mergeMap((items) => this.addRatings(items)))
+                        .subscribe(logger)
+                );
+
+                this.subscriptions!.add(
+                    this.observeAdditions()
+                        .pipe(mergeMap((items) => this.addInLibrary(items)))
+                        .subscribe(logger)
+                );
+            }
         }
-        return musicKit.api.music(href);
+    }
+
+    private async fetchNext(href: string, params?: MusicKit.QueryParameters): Promise<any> {
+        return MusicKit.getInstance().api.music(href, params);
     }
 
     private createItems(items: readonly MusicKitItem[]): T[] {
@@ -132,24 +162,25 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             case 'songs':
             case 'library-songs':
             case 'music-videos':
+            case 'library-music-videos':
                 return this.createMediaItem(item) as T;
         }
     }
 
     private createMediaPlaylist(playlist: AppleMusicApi.Playlist | LibraryPlaylist): MediaPlaylist {
         const item = this.createFromLibrary<AppleMusicApi.Playlist['attributes']>(playlist);
-        const {id, kind} = item.playParams || {id: playlist.id, kind: 'playlist'};
-        const description = item.description;
-        const src = `apple:${kind}:${id}`;
-        const isLibraryItem = playlist.type.startsWith('library-');
+        const description = item.description?.standard || item.description?.short;
+        const src = `apple:${playlist.type}:${playlist.id}`;
+        const inLibrary = playlist.type.startsWith('library-') || undefined;
 
         return {
             src,
             itemType: ItemType.Playlist,
             externalUrl:
-                item.url || (isLibraryItem ? `https://music.apple.com/library/playlist/${id}` : ''),
+                item.url ||
+                (inLibrary ? `https://music.apple.com/library/playlist/${playlist.id}` : ''),
             title: item.name,
-            description: description?.standard || description?.short,
+            description: description ? getTextFromHtml(description) : undefined,
             thumbnails: this.createThumbnails(playlist),
             owner: {
                 name: item.curatorName || '',
@@ -162,23 +193,21 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             }),
             unplayable: !item.playParams,
             isPinned: pinStore.isPinned(src),
-            isLibraryItem,
+            inLibrary,
         };
     }
 
     private createMediaArtist(artist: AppleMusicApi.Artist | LibraryArtist): MediaArtist {
         const item = this.createFromLibrary<AppleMusicApi.Artist['attributes']>(artist);
-        const isLibraryItem = artist.type.startsWith('library-');
 
         return {
             itemType: ItemType.Artist,
-            src: `apple:artist:${artist.id}`,
+            src: `apple:${artist.type}:${artist.id}`,
             externalUrl: item.url,
             title: item.name,
             thumbnails: this.createThumbnails(artist),
             genres: this.getGenres(item),
             pager: this.createArtistAlbumsPager(artist),
-            isLibraryItem,
         };
     }
 
@@ -199,12 +228,10 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
 
     private createMediaAlbum(album: AppleMusicApi.Album | LibraryAlbum): MediaAlbum {
         const item = this.createFromLibrary<AppleMusicApi.Album['attributes']>(album);
-        const {id, kind} = item.playParams || {id: album.id, kind: 'album'};
-        const isLibraryItem = album.type.startsWith('library-');
 
         return {
             itemType: ItemType.Album,
-            src: `apple:${kind}:${id}`,
+            src: `apple:${album.type}:${album.id}`,
             externalUrl: item.url,
             title: item.name,
             thumbnails: this.createThumbnails(album),
@@ -222,22 +249,23 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
                 item
             ),
             unplayable: !item.playParams,
-            isLibraryItem,
+            inLibrary: album.type.startsWith('library-') || undefined,
         };
     }
 
-    private createMediaItem(song: AppleMusicApi.Song | LibrarySong | LibraryMusicVideo): MediaItem {
+    private createMediaItem(
+        song: AppleMusicApi.Song | LibrarySong | MusicVideo | LibraryMusicVideo
+    ): MediaItem {
         const item = this.createFromLibrary<AppleMusicApi.Song['attributes']>(song);
         const {id, kind} = item.playParams || {
             id: song.id,
             kind: song.type === 'music-videos' ? 'musicVideo' : 'song',
         };
-        const isLibraryItem = song.type.startsWith('library-');
 
         return {
             itemType: ItemType.Media,
             mediaType: kind === 'musicVideo' ? MediaType.Video : MediaType.Audio,
-            src: `apple:${kind}:${id}`,
+            src: `apple:${song.type}:${id}`,
             externalUrl: item.url,
             title: item.name,
             thumbnails: this.createThumbnails(song),
@@ -252,7 +280,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             isrc: item.isrc,
             unplayable: !item.playParams,
             playedAt: 0,
-            isLibraryItem,
+            inLibrary: song.type.startsWith('library-') || undefined,
         };
     }
 
@@ -315,5 +343,80 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
 
     private getGenres({genreNames = []}: {genreNames: string[]}): readonly string[] | undefined {
         return genreNames.filter((name) => name !== 'Music');
+    }
+
+    private observeAdditions(): Observable<readonly T[]> {
+        return this.observeItems().pipe(
+            startWith([]),
+            pairwise(),
+            map(([oldItems, newItems]) =>
+                newItems.filter(
+                    (newItem) => !oldItems.find((oldItem) => oldItem.src === newItem.src)
+                )
+            ),
+            filter((additions) => additions.length > 0)
+        );
+    }
+
+    private async addRatings(items: readonly T[]): Promise<void> {
+        const itemType = items[0]?.itemType;
+        if (itemType !== ItemType.Artist) {
+            const musicKit = MusicKit.getInstance();
+            const [, type] = items[0].src.split(':');
+            const ids = items.map((item) => {
+                const [, , id] = item.src.split(':');
+                return id;
+            });
+            const {
+                data: {data},
+            } = await musicKit.api.music(`/v1/me/ratings/${type}`, {ids});
+            const ratings = new Map<string, number>(
+                data.map((data: any) => [data.id, data.attributes.value])
+            );
+
+            dispatchRatingChanges(
+                ids.map((id) => ({
+                    src: `apple:${type}:${id}`,
+                    rating: ratings.get(id) || 0,
+                }))
+            );
+        }
+    }
+
+    private async addInLibrary(items: readonly T[]): Promise<void> {
+        const item = items[0];
+        if (item && item.inLibrary === undefined && item.itemType !== ItemType.Artist) {
+            const [, type] = items[0].src.split(':');
+            if (!type.startsWith('library-')) {
+                const musicKit = MusicKit.getInstance();
+                const ids = items.map((item) => {
+                    const [, , id] = item.src.split(':');
+                    return id;
+                });
+                const key = `ids[${type}]`;
+                const fields = `fields[${type}]`;
+                const {
+                    data: {resources},
+                } = await musicKit.api.music(`/v1/catalog/{{storefrontId}}`, {
+                    [fields]: 'inLibrary',
+                    'format[resources]': 'map',
+                    [key]: ids,
+                    'omit[resource]': 'autos',
+                });
+                const data = resources[type];
+                if (data) {
+                    const inLibrary = new Map<string, boolean>(
+                        Object.keys(data).map((key) => [key, data[key].attributes.inLibrary])
+                    );
+
+                    dispatchLibraryChanges(
+                        ids.map((id) => ({
+                            src: `apple:${type}:${id}`,
+                            inLibrary: inLibrary.get(id) || false,
+                        }))
+                    );
+                }
+            }
+        }
     }
 }
