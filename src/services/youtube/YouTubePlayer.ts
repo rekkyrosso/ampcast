@@ -94,14 +94,14 @@ export default class YouTubePlayer implements Player<string> {
                 skipWhile((src) => !src),
                 tap((src) => {
                     const player = this.player!;
-                    const [, type, id, startTime = '0'] = src.split(':');
-                    const offset = Number(startTime) || 0;
+                    const [, type, id, offset = '0'] = src.split(':');
+                    const startAt = Number(offset) || 0;
                     if (id) {
                         if (type === 'playlist') {
                             const args: YT.IPlaylistSettings = {
                                 list: id,
                                 listType: type,
-                                startSeconds: offset,
+                                index: startAt,
                             };
                             if (this.autoplay) {
                                 player.loadPlaylist(args);
@@ -110,9 +110,9 @@ export default class YouTubePlayer implements Player<string> {
                             }
                         } else {
                             if (this.autoplay) {
-                                player.loadVideoById(id, offset);
+                                player.loadVideoById(id, startAt);
                             } else {
-                                player.cueVideoById(id, offset);
+                                player.cueVideoById(id, startAt);
                             }
                         }
                         this.loadError = undefined;

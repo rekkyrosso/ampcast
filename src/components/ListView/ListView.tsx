@@ -65,6 +65,7 @@ export interface ListViewProps<T> {
     droppableTypes?: string[]; // mime types for file drops
     multiSelect?: boolean;
     reorderable?: boolean;
+    disabled?: boolean;
     className?: string;
     onClick?: (item: T, rowIndex: number) => void;
     onDoubleClick?: (item: T, rowIndex: number) => void;
@@ -81,6 +82,7 @@ export interface ListViewProps<T> {
     listViewRef?: React.MutableRefObject<ListViewHandle | null>;
 }
 
+const emptyArray: any[] = [];
 const emptyString = () => '';
 const dragImage = new Image(0, 0);
 dragImage.src = pixel;
@@ -96,6 +98,7 @@ export default function ListView<T>({
     droppableTypes = [],
     multiSelect,
     reorderable,
+    disabled,
     onClick,
     onDoubleClick,
     onContextMenu,
@@ -536,7 +539,7 @@ export default function ListView<T>({
     return (
         <div
             className={`list-view list-view-${layout.view} ${className}`}
-            tabIndex={0}
+            tabIndex={disabled ? undefined : 0}
             onClick={handleClick}
             onContextMenu={handleContextMenu}
             onDoubleClick={handleDoubleClick}
@@ -581,9 +584,9 @@ export default function ListView<T>({
                     itemKey={itemKey}
                     itemClassName={itemClassName}
                     scrollTop={scrollTop}
-                    selection={selectedItems}
+                    selection={disabled ? emptyArray : selectedItems}
                     dragIndex={dragIndex}
-                    draggable={draggable || reorderable}
+                    draggable={disabled ? false : draggable || reorderable}
                 />
                 <div
                     className="list-view-cursor"

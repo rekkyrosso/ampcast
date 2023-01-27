@@ -13,19 +13,20 @@ import Thumbnail from 'types/Thumbnail';
 import {dispatchRatingChanges, RatingChange} from 'services/actions';
 import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
-import SimplePager from 'services/pagers/SimplePager';
+import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import pinStore from 'services/pins/pinStore';
 import {getTextFromHtml, Logger} from 'utils';
-import {
+import spotify, {
     SpotifyAlbum,
     spotifyApi,
     SpotifyArtist,
     SpotifyEpisode,
     SpotifyItem,
     SpotifyPlaylist,
+    spotifySettings,
     SpotifyTrack,
 } from './spotify';
-import {authSettings, refreshToken} from './spotifyAuth';
+import {refreshToken} from './spotifyAuth';
 
 const logger = new Logger('SpotifyPager');
 
@@ -200,6 +201,8 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaPlaylist(playlist: SpotifyPlaylist): MediaPlaylist {
+        const isOwn = playlist.owner.id === spotifySettings.getString('userId');
+
         return {
             itemType: ItemType.Playlist,
             src: playlist.uri,
@@ -209,11 +212,13 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             thumbnails: playlist.images as Thumbnail[],
             trackCount: playlist.tracks.total,
             pager: this.createPlaylistPager(playlist),
+            rating: isOwn ? 0 : 1,
             owner: {
                 name: playlist.owner.display_name || '',
                 url: playlist.owner.external_urls.spotify,
             },
             isPinned: pinStore.isPinned(playlist.uri),
+            isOwn,
         };
     }
 
@@ -250,7 +255,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
     private createArtistAlbumsPager(artist: SpotifyArtist): Pager<MediaAlbum> {
         const market = this.getMarket();
         const topTracks = this.createArtistTopTracks(artist);
-        const topTracksPager = new SimplePager([topTracks]);
+        const topTracksPager = new SimpleMediaPager([topTracks]);
         const albumsPager = new SpotifyPager<MediaAlbum>(
             async (offset: number, limit: number): Promise<SpotifyPage> => {
                 const {items, total, next} = await spotifyApi.getArtistAlbums(artist.id, {
@@ -280,15 +285,15 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
     private createAlbumPager(album: SpotifyAlbum): Pager<MediaItem> {
         const tracks = album.tracks?.items;
         if (tracks && tracks.length === album.total_tracks) {
-            const tracks = album.tracks?.items;
-            return new SimplePager(
-                tracks.map((track) =>
-                    this.createMediaItemFromTrack({
-                        ...track,
-                        album: album as SpotifyApi.AlbumObjectSimplified,
-                    })
-                )
+            const items = tracks.map((track) =>
+                this.createMediaItemFromTrack({
+                    ...track,
+                    album: album as SpotifyApi.AlbumObjectSimplified,
+                })
             );
+            const pager = new SimpleMediaPager(items);
+            this.addRatings(items);
+            return pager;
         } else {
             const market = this.getMarket();
             return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
@@ -310,19 +315,29 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createPlaylistPager(playlist: SpotifyPlaylist): Pager<MediaItem> {
-        const market = this.getMarket();
-        return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
-            const {items, total, next} = await spotifyApi.getPlaylistTracks(playlist.id, {
-                offset,
-                limit,
-                market,
+        const tracks = playlist.tracks?.items;
+        if (tracks && tracks.length === playlist.tracks.total) {
+            const items = tracks.map((item) =>
+                this.createMediaItemFromTrack(item.track as SpotifyTrack)
+            );
+            const pager = new SimpleMediaPager(items);
+            this.addRatings(items);
+            return pager;
+        } else {
+            const market = this.getMarket();
+            return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
+                const {items, total, next} = await spotifyApi.getPlaylistTracks(playlist.id, {
+                    offset,
+                    limit,
+                    market,
+                });
+                return {items: items.map((item) => item.track), total, next};
             });
-            return {items: items.map((item) => item.track), total, next};
-        });
+        }
     }
 
     private getMarket(): string {
-        return authSettings.getString('market');
+        return spotifySettings.getString('market');
     }
 
     private observeAdditions(): Observable<readonly T[]> {
@@ -338,15 +353,15 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         );
     }
 
-    private async addRatings(items: readonly T[]): Promise<void> {
-        const itemType = items[0]?.itemType;
-        if (itemType === ItemType.Album || itemType === ItemType.Media) {
+    private async addRatings<T extends MediaObject>(items: readonly T[]): Promise<void> {
+        const item = items[0];
+        if (item && spotify.canRate(item) && item.itemType !== ItemType.Playlist) {
             const ids = items.map((item) => {
                 const [, , id] = item.src.split(':');
                 return id;
             });
             let ratings: boolean[] = [];
-            if (itemType === ItemType.Album) {
+            if (item.itemType === ItemType.Album) {
                 ratings = await spotifyApi.containsMySavedAlbums(ids);
             } else {
                 ratings = await spotifyApi.containsMySavedTracks(ids);

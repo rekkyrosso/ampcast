@@ -103,6 +103,8 @@ async function obtainAccessToken(): Promise<TokenResponse> {
             'user-read-private',
             // Playlists
             'playlist-read-private',
+            'playlist-modify-private',
+            'playlist-modify-public',
             // Library
             'user-library-read',
             'user-library-modify',

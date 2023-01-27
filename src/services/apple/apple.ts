@@ -158,22 +158,24 @@ const apple: MediaService = {
     logout,
 };
 
-function createSourceFromPin(pin: Pin): MediaSource<MediaItem> {
+function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     return {
         title: pin.title,
-        itemType: ItemType.Media,
+        itemType: ItemType.Playlist,
         id: pin.src,
         icon: 'pin',
         isPin: true,
-        layout: {...defaultLayout, view: 'card compact'},
 
-        search(): Pager<MediaItem> {
+        search(): Pager<MediaPlaylist> {
             const [, type, id] = pin.src.split(':');
             const isLibraryItem = type.startsWith('library-');
             const path = isLibraryItem ? `/v1/me/library` : `/v1/catalog/{{storefrontId}}`;
-            return MusicKitPager.create<MediaItem>(`${path}/playlists/${id}`, {
-                include: 'tracks,catalog',
-                'fields[library-playlists]': 'playParams,name,artwork,url,tracks',
+            return new MusicKitPager(`${path}/playlists`, toPage, {
+                'include[library-songs]': 'catalog',
+                'fields[library-songs]': 'playParams,name,artwork',
+                'include[library-playlists]': 'catalog',
+                'fields[library-playlists]': 'playParams,name,artwork',
+                ids: [id],
             });
         },
     };
@@ -191,14 +193,14 @@ function canRate<T extends MediaObject>(item: T | ItemType, inline?: boolean): b
     }
 }
 
-function canStore<T extends MediaObject>(item: T | ItemType, inline?: boolean): boolean {
+function canStore<T extends MediaObject>(item: T | ItemType): boolean {
     switch (typeof item === 'number' ? item : item.itemType) {
         case ItemType.Album:
         case ItemType.Playlist:
             return true;
 
         case ItemType.Media:
-            return !inline;
+            return true;
 
         default:
             return false;

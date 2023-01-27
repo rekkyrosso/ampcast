@@ -14,6 +14,7 @@ export default function IconButton({icon, className = '', ...props}: IconButtonP
         <button
             {...props}
             className={`icon-button icon-button-${icon} ${className}`}
+            type="button"
             onMouseDown={preventDefault}
         >
             <Icon name={icon} />

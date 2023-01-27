@@ -14,20 +14,15 @@ import Pager, {PagerConfig} from 'types/Pager';
 import {Pin} from 'types/Pin';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
-import {Logger} from 'utils';
-import {
-    observeAccessToken,
-    observeIsLoggedIn,
-    isLoggedIn,
-    login,
-    logout,
-    authSettings,
-} from './spotifyAuth';
+import {LiteStorage, Logger} from 'utils';
+import {observeAccessToken, observeIsLoggedIn, isLoggedIn, login, logout} from './spotifyAuth';
 import SpotifyPager, {SpotifyPage} from './SpotifyPager';
 
 console.log('module::spotify');
 
 const logger = new Logger('spotify');
+
+export const spotifySettings = new LiteStorage('spotify');
 
 export const spotifyApi = new SpotifyWebApi();
 
@@ -261,25 +256,20 @@ const spotify: MediaService = {
 
 export default spotify;
 
-function createSourceFromPin(pin: Pin): MediaSource<MediaItem> {
+function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     return {
         title: pin.title,
-        itemType: ItemType.Media,
+        itemType: ItemType.Playlist,
         id: pin.src,
         icon: 'pin',
         isPin: true,
-        layout: {...defaultLayout, view: 'card compact'},
 
-        search(): Pager<MediaItem> {
+        search(): Pager<MediaPlaylist> {
             const [, , id] = pin.src.split(':');
             const market = getMarket();
-            return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
-                const {items, total, next} = await spotifyApi.getPlaylistTracks(id, {
-                    offset,
-                    limit,
-                    market,
-                });
-                return {items: items.map((item) => item.track), total, next};
+            return new SpotifyPager(async (): Promise<SpotifyPage> => {
+                const playlist = await spotifyApi.getPlaylist(id, {market});
+                return {items: [playlist], total: 1};
             });
         },
     };
@@ -334,14 +324,14 @@ async function rate(item: MediaObject, rating: number): Promise<void> {
     }
 }
 
-function canRate<T extends MediaObject>(item: T | ItemType, inline?: boolean): boolean {
-    switch (typeof item === 'number' ? item : item.itemType) {
+function canRate<T extends MediaObject>(item: T): boolean {
+    switch (item.itemType) {
         case ItemType.Album:
         case ItemType.Media:
             return true;
 
         case ItemType.Playlist:
-            return !inline;
+            return !item.isOwn;
 
         default:
             return false;
@@ -418,7 +408,7 @@ function getFetch(
 }
 
 function getMarket(): string {
-    return authSettings.getString('market');
+    return spotifySettings.getString('market');
 }
 
 observeAccessToken().subscribe((token) => spotifyApi.setAccessToken(token));
@@ -428,7 +418,10 @@ if (!getMarket()) {
         .pipe(
             skipWhile((token) => !token),
             mergeMap(() => spotifyApi.getMe()),
-            tap((me) => authSettings.setString('market', me.country)),
+            tap((me) => {
+                spotifySettings.setString('userId', me.id);
+                spotifySettings.setString('market', me.country);
+            }),
             take(1)
         )
         .subscribe(logger);

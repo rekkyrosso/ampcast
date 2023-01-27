@@ -39,9 +39,7 @@ const jellyfinLikedSongs: MediaSource<MediaItem> = {
     layout: defaultLayout,
 
     search(): Pager<MediaItem> {
-        return createItemsPager({
-            Filters: 'IsFavorite',
-        });
+        return createItemsPager({Filters: 'IsFavorite'});
     },
 };
 
@@ -140,21 +138,19 @@ const jellyfin: MediaService = {
     logout,
 };
 
-function createSourceFromPin(pin: Pin): MediaSource<MediaItem> {
+function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     return {
         title: pin.title,
-        itemType: ItemType.Media,
+        itemType: ItemType.Playlist,
         id: pin.src,
         icon: 'pin',
         isPin: true,
-        layout: defaultLayout,
 
-        search(): Pager<MediaItem> {
+        search(): Pager<MediaPlaylist> {
             const [, , id] = pin.src.split(':');
-            return new JellyfinPager(`Playlists/${id}/Items`, {
-                UserId: jellyfinSettings.userId,
-                MediaType: 'Audio',
-                Fields: 'ChildCount',
+            return createItemsPager({
+                ids: id,
+                IncludeItemTypes: 'Playlist',
             });
         },
     };

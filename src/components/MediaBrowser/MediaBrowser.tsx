@@ -20,13 +20,14 @@ import ListenBrainzRecentlyPlayedBrowser from 'services/listenbrainz/components/
 import ListenBrainzTopBrowser from 'services/listenbrainz/components/ListenBrainzTopBrowser';
 import useObservable from 'hooks/useObservable';
 import useSearch from 'hooks/useSearch';
+import './MediaBrowser.scss';
 import AlbumBrowser from './AlbumBrowser';
 import ArtistBrowser from './ArtistBrowser';
 import MediaItemBrowser from './MediaItemBrowser';
 import MediaSourceSelector from './MediaSourceSelector';
 import PlaylistBrowser from './PlaylistBrowser';
+import PinnedPlaylistBrowser from './PinnedPlaylistBrowser';
 import useErrorScreen from './useErrorScreen';
-import './MediaBrowser.scss';
 
 export interface MediaBrowserProps<T extends MediaObject> {
     service: MediaService;
@@ -123,7 +124,17 @@ export function PagedBrowser<T extends MediaObject>(props: PagedBrowserProps<T>)
             return <AlbumBrowser {...(props as unknown as PagedBrowserProps<MediaAlbum>)} />;
 
         case ItemType.Playlist:
-            return <PlaylistBrowser {...(props as unknown as PagedBrowserProps<MediaPlaylist>)} />;
+            if (props.source.isPin) {
+                return (
+                    <PinnedPlaylistBrowser
+                        {...(props as unknown as PagedBrowserProps<MediaPlaylist>)}
+                    />
+                );
+            } else {
+                return (
+                    <PlaylistBrowser {...(props as unknown as PagedBrowserProps<MediaPlaylist>)} />
+                );
+            }
 
         default:
             return <MediaItemBrowser {...(props as unknown as PagedBrowserProps<MediaItem>)} />;

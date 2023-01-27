@@ -30,7 +30,7 @@ function createMediaListLayout<T extends MediaObject = MediaObject>(
     const cols = fields.map((field) => mediaFields[field]);
     cols.push({
         title: <Icon name="menu" />,
-        render: (item: T) => <Actions item={item} />,
+        render: (item: T) => <Actions item={item} inline />,
         className: 'actions',
         align: 'right',
         width: 80,

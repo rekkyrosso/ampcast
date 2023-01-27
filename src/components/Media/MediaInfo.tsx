@@ -6,17 +6,21 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {getService} from 'services/mediaServices';
+import Actions from 'components/Actions';
 import CoverArt, {CoverArtProps} from 'components/CoverArt';
 import ExternalLink from 'components/ExternalLink';
 import Icon, {MediaSourceIconName} from 'components/Icon';
 import {formatTime} from 'utils';
+import useCurrentItem from './useCurrentItem';
 import './MediaInfo.scss';
 
 export interface MediaInfoProps<T extends MediaObject> {
     item: T;
 }
 
-export default function MediaInfo<T extends MediaObject>({item}: MediaInfoProps<T>) {
+export default function MediaInfo<T extends MediaObject>(props: MediaInfoProps<T>) {
+    const item = useCurrentItem(props.item);
+
     switch (item.itemType) {
         case ItemType.Media:
             return <MediaItemInfo item={item} />;
@@ -42,6 +46,7 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
                 <AlbumAndYear album={item.album} year={item.year} />
                 <Track album={item.album} track={item.track} />
                 <Owner owner={item.owner} src={item.src} />
+                <Actions item={item} />
             </div>
             <ExternalView url={item.externalUrl} src={item.src} />
         </article>
@@ -56,6 +61,7 @@ function AlbumInfo({item: album}: MediaInfoProps<MediaAlbum>) {
                 <Title title={album.title} />
                 <Artist artist={album.artist} />
                 <Year year={album.year} />
+                <Actions item={album} />
             </div>
             <ExternalView url={album.externalUrl} src={album.src} />
         </article>
@@ -68,22 +74,24 @@ function ArtistInfo({item: artist}: MediaInfoProps<MediaArtist>) {
             <div className="media-info-main">
                 <Thumbnail item={artist} />
                 <Title title={artist.title} />
+                <Actions item={artist} />
             </div>
             <ExternalView url={artist.externalUrl} src={artist.src} />
         </article>
     );
 }
 
-function PlaylistInfo({item}: MediaInfoProps<MediaPlaylist>) {
+function PlaylistInfo({item: playlist}: MediaInfoProps<MediaPlaylist>) {
     return (
         <article className="media-info playlist-info">
             <div className="media-info-main">
-                <Thumbnail item={item} />
-                <Title title={item.title} />
-                <Owner owner={item.owner} src={item.src} />
+                <Thumbnail item={playlist} />
+                <Title title={playlist.title} />
+                <Owner owner={playlist.owner} src={playlist.src} />
+                <Actions item={playlist} />
             </div>
-            <ExternalView url={item.externalUrl} src={item.src} />
-            <Blurb description={item.description} />
+            <ExternalView url={playlist.externalUrl} src={playlist.src} />
+            <Blurb description={playlist.description} />
         </article>
     );
 }
@@ -182,11 +190,7 @@ export function AlbumAndYear<T extends MediaItem>({album, year}: Pick<T, 'album'
 
 export function Track<T extends MediaItem>({album, track}: Pick<T, 'album' | 'track'>) {
     if (album && track) {
-        return (
-            <p className="track">
-                Track: {track}
-            </p>
-        );
+        return <p className="track">Track: {track}</p>;
     }
     return null;
 }

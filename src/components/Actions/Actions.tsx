@@ -10,11 +10,11 @@ import showActionsMenu from 'components/MediaList/showActionsMenu';
 import {stopPropagation} from 'utils';
 
 export interface ActionsProps {
-    className?: string;
     item: MediaObject;
+    inline?: boolean;
 }
 
-export default function Actions({className = '', item}: ActionsProps) {
+export default function Actions({item, inline}: ActionsProps) {
     const [serviceId] = item.src.split(':');
     const service = getService(serviceId);
 
@@ -55,12 +55,11 @@ export default function Actions({className = '', item}: ActionsProps) {
     );
 
     return (
-        <IconButtons
-            className={className}
-            onMouseDown={stopPropagation}
-            onMouseUp={stopPropagation}
-        >
-            <IconButton icon="menu" title="More..." onClick={showContextMenu} key="menu" />
+        <IconButtons onMouseDown={stopPropagation} onMouseUp={stopPropagation}>
+            {inline ? (
+                <IconButton icon="menu" title="More..." onClick={showContextMenu} key="menu" />
+            ) : null}
+
             {item.itemType === ItemType.Playlist ? (
                 <IconButton
                     icon={item.isPinned ? 'pin-fill' : 'pin'}
@@ -69,15 +68,18 @@ export default function Actions({className = '', item}: ActionsProps) {
                     key="pin"
                 />
             ) : null}
-            {service?.canStore(item, true) ? (
+
+            {service?.canStore(item, inline) ? (
                 <IconButton
                     icon={item.inLibrary ? 'library-remove' : 'library-add'}
-                    title={item.inLibrary ? 'Remove from library' : 'Add to library'}
+                    title={item.inLibrary ? 'In library' : 'Add to library'}
+                    disabled={item.inLibrary} // remove doesn't work (https://developer.apple.com/forums/thread/107807)
                     onClick={toggleInLibrary}
                     key="inLibrary"
                 />
             ) : null}
-            {service?.canRate(item, true) ? (
+
+            {service?.canRate(item, inline) ? (
                 <IconButton
                     icon={item.rating ? 'heart-fill' : 'heart'}
                     title={item.rating ? 'Unlike' : 'Like'}

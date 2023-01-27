@@ -13,6 +13,7 @@ export default function RecentlyPlayedBrowser({source, ...props}: PagedBrowserPr
     const [, forceUpdate] = useReducer((i) => i + 1, 0);
 
     useEffect(() => {
+        // Make sure the "last played" fields are updated.
         const id = setInterval(forceUpdate, 60_000);
         return () => clearInterval(id);
     }, []);

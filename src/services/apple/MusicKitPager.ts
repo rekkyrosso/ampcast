@@ -13,9 +13,10 @@ import Thumbnail from 'types/Thumbnail';
 import {dispatchRatingChanges, dispatchLibraryChanges} from 'services/actions';
 import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
-import SimplePager from 'services/pagers/SimplePager';
+import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import pinStore from 'services/pins/pinStore';
 import {getTextFromHtml, Logger} from 'utils';
+import apple from './apple';
 
 const logger = new Logger('MusicKitPager');
 
@@ -280,13 +281,16 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             isrc: item.isrc,
             unplayable: !item.playParams,
             playedAt: 0,
-            inLibrary: song.type.startsWith('library-') || undefined,
         };
     }
 
     private createFromLibrary<T>(item: any): NonNullable<T> {
-        const catalog = item.relationships?.catalog?.data?.[0];
+        const catalog = this.getCatalog(item);
         return {...catalog?.attributes, ...item.attributes};
+    }
+
+    private getCatalog<T extends MusicKitItem>(item: any): T {
+        return item.relationships?.catalog?.data?.[0];
     }
 
     private createThumbnails(item: MusicKitItem): Thumbnail[] | undefined {
@@ -315,7 +319,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         artist: AppleMusicApi.Artist | LibraryArtist
     ): Pager<MediaAlbum> {
         const topTracks = this.createArtistTopTracks(artist);
-        const topTracksPager = new SimplePager([topTracks]);
+        const topTracksPager = new SimpleMediaPager([topTracks]);
         const albumsPager = MusicKitPager.create<MediaAlbum>(
             artist.relationships?.albums.href ||
                 `/v1/catalog/{{storefrontId}}/artists/${artist.id}/albums`
@@ -359,8 +363,8 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
     }
 
     private async addRatings(items: readonly T[]): Promise<void> {
-        const itemType = items[0]?.itemType;
-        if (itemType !== ItemType.Artist) {
+        const item = items[0];
+        if (apple.canRate(item)) {
             const musicKit = MusicKit.getInstance();
             const [, type] = items[0].src.split(':');
             const ids = items.map((item) => {
@@ -385,8 +389,8 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
 
     private async addInLibrary(items: readonly T[]): Promise<void> {
         const item = items[0];
-        if (item && item.inLibrary === undefined && item.itemType !== ItemType.Artist) {
-            const [, type] = items[0].src.split(':');
+        if (item && item.inLibrary === undefined && apple.canStore(item)) {
+            const [, type] = item.src.split(':');
             if (!type.startsWith('library-')) {
                 const musicKit = MusicKit.getInstance();
                 const ids = items.map((item) => {

@@ -7,8 +7,11 @@
     text-align: center;
     width: 1em;
     height: 1em;
-    cursor: pointer;
     filter: brightness(0.75);
+
+    &:enabled {
+        cursor: pointer;
+    }
 
     &.with-overlay {
         padding: 0.25em;

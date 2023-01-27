@@ -4,6 +4,7 @@
     line-height: 1;
 
     &-main {
+        position: relative;
         padding-left: 7em;
         min-height: 6em;
         margin-bottom: 1em;
@@ -48,9 +49,25 @@
         }
     }
 
+    .external-view {
+        margin-top: 2em;
+    }
+
     .blurb {
-        margin-top: 3em;
+        margin-top: 1em;
         font-size: 0.75em;
-        max-height: 10em;
+        max-height: 14em;
+    }
+
+    .icon-buttons {
+        position: absolute;
+        bottom: 0;
+        right: 0;
+        justify-content: right;
+        font-size: 1.375em;
+    }
+
+    .media-item-info .icon-button-library-add {
+        display: none;
     }
 }

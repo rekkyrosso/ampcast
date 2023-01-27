@@ -136,18 +136,19 @@ const plex: MediaService = {
     logout,
 };
 
-function createSourceFromPin(pin: Pin): MediaSource<MediaItem> {
+function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     return {
         title: pin.title,
-        itemType: ItemType.Media,
+        itemType: ItemType.Playlist,
         id: pin.src,
         icon: 'pin',
         isPin: true,
-        layout: defaultLayout,
 
-        search(): Pager<MediaItem> {
-            const [, , key] = pin.src.split(':');
-            return new PlexPager(key);
+        search(): Pager<MediaPlaylist> {
+            return new PlexPager(`/playlists/${pin.plex!.ratingKey}`, {
+                type: '15', // playlist
+                playlistType: 'audio',
+            });
         },
     };
 }

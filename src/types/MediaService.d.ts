@@ -1,7 +1,7 @@
 import Auth from './Auth';
-import ItemType from './ItemType';
 import MediaItem from './MediaItem';
 import MediaObject from './MediaObject';
+import MediaPlaylist from './MediaPlaylist';
 import MediaServiceId from './MediaServiceId';
 import MediaSource from './MediaSource';
 import {Pin} from './Pin';
@@ -16,9 +16,9 @@ export default interface MediaService extends Auth {
     readonly scrobbler?: boolean;
     readonly defaultHidden?: boolean;
     readonly defaultNoScrobble?: boolean;
-    canRate: (item: MediaObject | ItemType, inline?: boolean) => boolean;
-    canStore: (item: MediaObject | ItemType, inline?: boolean) => boolean;
-    createSourceFromPin?: (pin: Pin) => MediaSource<MediaItem>;
+    canRate: (item: MediaObject, inline?: boolean) => boolean;
+    canStore: (item: MediaObject, inline?: boolean) => boolean;
+    createSourceFromPin?: (pin: Pin) => MediaSource<MediaPlaylist>;
     lookup?: (
         artist: string,
         title: string,

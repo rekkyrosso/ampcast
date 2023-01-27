@@ -10,7 +10,7 @@ import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
-import SimplePager from 'services/pagers/SimplePager';
+import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import {exists} from 'utils';
 import lastfmApi from './lastfmApi';
 import lastfmSettings from './lastfmSettings';
@@ -203,7 +203,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
 
     private createArtistAlbumsPager(artist: LastFm.Artist): Pager<MediaAlbum> {
         const topTracks = this.createArtistTopTracks(artist);
-        const topTracksPager = new SimplePager([topTracks]);
+        const topTracksPager = new SimpleMediaPager([topTracks]);
         const albumsPager = new LastFmPager<MediaAlbum>(
             {
                 method: 'artist.getTopAlbums',

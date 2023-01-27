@@ -1,0 +1,10 @@
+.pinned-playlist-browser {
+    .playlists {
+        bottom: auto;
+        height: 6.25em;
+    }
+
+    .playlist-items {
+        top: calc(var(--gutter-width) + 6.25em);
+    }
+}

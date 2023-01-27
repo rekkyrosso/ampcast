@@ -1,27 +1,31 @@
 import type {Observable} from 'rxjs';
-import {merge, timer} from 'rxjs';
-import {map, filter, take, skipWhile, takeUntil} from 'rxjs/operators';
+import {EMPTY, merge, timer} from 'rxjs';
+import {map, filter, take, takeUntil} from 'rxjs/operators';
 import YouTubePlayer, {PlayerState} from './YouTubePlayer';
 
 let loaderId = 0;
 
 class YouTubeLoader extends YouTubePlayer {
-    constructor() {
+    constructor(src: string) {
         super(`loader-${loaderId++}`);
-        this.appendTo(document.body);
+        this.load(src);
     }
 
-    async loadPlaylist(src: string): Promise<string[]> {
-        await this.cue(src);
+    async loadPlaylist(): Promise<string[]> {
+        await this.cue();
         return this.player!.getPlaylist() || [];
     }
 
-    async getDuration(src: string): Promise<number> {
-        await this.cue(src);
+    protected observeVideoSize(): Observable<never> {
+        return EMPTY;
+    }
+
+    async loadDuration(): Promise<number> {
+        await this.cue();
         return this.player!.getDuration() || 0;
     }
 
-    private cue(src: string): Promise<void> {
+    private cue(): Promise<void> {
         return new Promise((resolve, reject) => {
             const cued$ = this.observeCued();
             const error$ = merge(
@@ -30,13 +34,12 @@ class YouTubeLoader extends YouTubePlayer {
             );
             cued$.pipe(takeUntil(error$), take(1)).subscribe({next: resolve});
             error$.pipe(takeUntil(cued$), take(1)).subscribe({next: reject});
-            this.load(src);
+            setTimeout(() => this.appendTo(document.body));
         });
     }
 
     private observeCued(): Observable<void> {
         return this.observeState().pipe(
-            skipWhile((state) => state !== PlayerState.UNSTARTED),
             filter((state) => state === PlayerState.CUED),
             map(() => undefined),
             take(1)
@@ -45,9 +48,9 @@ class YouTubeLoader extends YouTubePlayer {
 }
 
 export async function loadYouTubePlaylist(src: string): Promise<string[]> {
-    const loader = new YouTubeLoader();
+    const loader = new YouTubeLoader(src);
     try {
-        const playlist = await loader.loadPlaylist(src);
+        const playlist = await loader.loadPlaylist();
         return playlist;
     } finally {
         loader.destroy();
@@ -55,9 +58,9 @@ export async function loadYouTubePlaylist(src: string): Promise<string[]> {
 }
 
 export async function getYouTubeVideoDuration(src: string): Promise<number> {
-    const loader = new YouTubeLoader();
+    const loader = new YouTubeLoader(src);
     try {
-        const duration = await loader.getDuration(src);
+        const duration = await loader.loadDuration();
         return duration;
     } finally {
         loader.destroy();

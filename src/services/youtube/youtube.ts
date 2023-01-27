@@ -170,21 +170,21 @@ const youtube: MediaService = {
 
 export default youtube;
 
-function createSourceFromPin(pin: Pin): MediaSource<MediaItem> {
+function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     return {
         title: pin.title,
-        itemType: ItemType.Media,
+        itemType: ItemType.Playlist,
         id: pin.src,
         icon: 'pin',
         isPin: true,
-        layout: defaultLayout,
+        layout: {...defaultLayout, view: 'card compact'},
 
-        search(): Pager<MediaItem> {
+        search(): Pager<MediaPlaylist> {
             const [, , playlistId] = pin.src.split(':');
-            return new YouTubePager('/playlistItems', {
-                playlistId,
-                part: 'contentDetails',
-                fields: 'items(contentDetails(videoId))',
+            return new YouTubePager('/playlists', {
+                id: playlistId,
+                part: 'snippet,contentDetails',
+                fields: YouTubePager.playlistFields,
             });
         },
     };

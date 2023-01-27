@@ -161,7 +161,7 @@ button {
         }
     }
 
-    &[disabled] {
+    &:disabled {
         filter: grayscale(0.5);
         background-image: none;
         opacity: 0.75;
