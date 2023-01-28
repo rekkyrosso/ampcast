@@ -90,8 +90,8 @@ function PlaylistInfo({item: playlist}: MediaInfoProps<MediaPlaylist>) {
                 <Owner owner={playlist.owner} src={playlist.src} />
                 <Actions item={playlist} />
             </div>
-            <ExternalView url={playlist.externalUrl} src={playlist.src} />
             <Blurb description={playlist.description} />
+            <ExternalView url={playlist.externalUrl} src={playlist.src} />
         </article>
     );
 }

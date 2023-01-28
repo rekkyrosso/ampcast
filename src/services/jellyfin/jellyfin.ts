@@ -127,7 +127,7 @@ const jellyfin: MediaService = {
         jellyfinPlaylists,
     ],
 
-    canRate: () => true,
+    canRate,
     canStore: () => false,
     createSourceFromPin,
     lookup,
@@ -137,6 +137,10 @@ const jellyfin: MediaService = {
     login,
     logout,
 };
+
+function canRate<T extends MediaObject>(item: T): boolean {
+    return item.itemType === ItemType.Album ? !item.synthetic : true;
+}
 
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     return {

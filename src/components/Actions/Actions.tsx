@@ -69,6 +69,15 @@ export default function Actions({item, inline}: ActionsProps) {
                 />
             ) : null}
 
+            {service?.canRate(item, inline) ? (
+                <IconButton
+                    icon={item.rating ? 'heart-fill' : 'heart'}
+                    title={item.rating ? 'Unlike' : 'Like'}
+                    onClick={toggleLike}
+                    key="like"
+                />
+            ) : null}
+
             {service?.canStore(item, inline) ? (
                 <IconButton
                     icon={item.inLibrary ? 'library-remove' : 'library-add'}
@@ -76,15 +85,6 @@ export default function Actions({item, inline}: ActionsProps) {
                     disabled={item.inLibrary} // remove doesn't work (https://developer.apple.com/forums/thread/107807)
                     onClick={toggleInLibrary}
                     key="inLibrary"
-                />
-            ) : null}
-
-            {service?.canRate(item, inline) ? (
-                <IconButton
-                    icon={item.rating ? 'heart-fill' : 'heart'}
-                    title={item.rating ? 'Unlike' : 'Like'}
-                    onClick={toggleLike}
-                    key="like"
                 />
             ) : null}
         </IconButtons>

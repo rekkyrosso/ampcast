@@ -157,6 +157,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
             externalUrl: '',
             artist: artist.name,
             pager: this.createTopTracksPager(artist),
+            synthetic: true,
         };
     }
 
@@ -203,7 +204,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
 
     private createArtistAlbumsPager(artist: LastFm.Artist): Pager<MediaAlbum> {
         const topTracks = this.createArtistTopTracks(artist);
-        const topTracksPager = new SimpleMediaPager([topTracks]);
+        const topTracksPager = new SimpleMediaPager(() => [topTracks]);
         const albumsPager = new LastFmPager<MediaAlbum>(
             {
                 method: 'artist.getTopAlbums',

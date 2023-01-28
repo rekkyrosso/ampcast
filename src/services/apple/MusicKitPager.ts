@@ -224,6 +224,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             artist: item.name,
             genres: this.getGenres(item),
             pager: this.createTopTracksPager(artist),
+            synthetic: true,
         };
     }
 
@@ -319,7 +320,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         artist: AppleMusicApi.Artist | LibraryArtist
     ): Pager<MediaAlbum> {
         const topTracks = this.createArtistTopTracks(artist);
-        const topTracksPager = new SimpleMediaPager([topTracks]);
+        const topTracksPager = new SimpleMediaPager(() => [topTracks]);
         const albumsPager = MusicKitPager.create<MediaAlbum>(
             artist.relationships?.albums.href ||
                 `/v1/catalog/{{storefrontId}}/artists/${artist.id}/albums`

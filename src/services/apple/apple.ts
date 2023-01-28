@@ -181,9 +181,11 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     };
 }
 
-function canRate<T extends MediaObject>(item: T | ItemType, inline?: boolean): boolean {
-    switch (typeof item === 'number' ? item : item.itemType) {
+function canRate<T extends MediaObject>(item: T, inline?: boolean): boolean {
+    switch (item.itemType) {
         case ItemType.Album:
+            return !inline && !item.synthetic;
+
         case ItemType.Media:
         case ItemType.Playlist:
             return !inline;
@@ -193,9 +195,11 @@ function canRate<T extends MediaObject>(item: T | ItemType, inline?: boolean): b
     }
 }
 
-function canStore<T extends MediaObject>(item: T | ItemType): boolean {
-    switch (typeof item === 'number' ? item : item.itemType) {
+function canStore<T extends MediaObject>(item: T): boolean {
+    switch (item.itemType) {
         case ItemType.Album:
+            return !item.synthetic;
+
         case ItemType.Playlist:
             return true;
 

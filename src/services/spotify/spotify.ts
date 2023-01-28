@@ -327,6 +327,8 @@ async function rate(item: MediaObject, rating: number): Promise<void> {
 function canRate<T extends MediaObject>(item: T): boolean {
     switch (item.itemType) {
         case ItemType.Album:
+            return !item.synthetic;
+
         case ItemType.Media:
             return true;
 

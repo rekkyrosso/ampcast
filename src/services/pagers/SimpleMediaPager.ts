@@ -1,29 +1,17 @@
-import type {Observable} from 'rxjs';
-import {EMPTY, of} from 'rxjs';
 import MediaObject from 'types/MediaObject';
 import AbstractPager from './AbstractPager';
 
 export default class SimpleMediaPager<T extends MediaObject> extends AbstractPager<T> {
-    constructor(items: readonly T[] = []) {
+    constructor(private readonly fetch: (index: number) => readonly T[]) {
         super();
-        this.items$.next(items);
     }
 
-    get maxSize(): number | undefined {
-        return undefined;
-    }
-
-    observeSize(): Observable<number> {
-        return of(this.items.length);
-    }
-
-    observeError(): Observable<unknown> {
-        return EMPTY;
-    }
-
-    fetchAt(): void {
+    fetchAt(index: number): void {
         if (!this.subscriptions) {
             this.connect();
+            const items = this.fetch(index);
+            this.size$.next(items.length);
+            this.items$.next(items);
         }
     }
 

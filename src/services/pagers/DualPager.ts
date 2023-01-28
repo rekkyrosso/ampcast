@@ -55,6 +55,7 @@ export default class DualPager<T extends MediaObject> implements Pager<T> {
         }
         if (!this.subscriptions) {
             this.connect();
+            this.topPager.fetchAt(0);
         }
         this.fetches$.next({index, length});
     }

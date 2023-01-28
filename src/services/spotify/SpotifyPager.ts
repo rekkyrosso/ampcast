@@ -197,6 +197,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             artist: artist.name,
             thumbnails: artist.images as Thumbnail[],
             pager: this.createTopTracksPager(artist),
+            synthetic: true,
         };
     }
 
@@ -255,7 +256,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
     private createArtistAlbumsPager(artist: SpotifyArtist): Pager<MediaAlbum> {
         const market = this.getMarket();
         const topTracks = this.createArtistTopTracks(artist);
-        const topTracksPager = new SimpleMediaPager([topTracks]);
+        const topTracksPager = new SimpleMediaPager(() => [topTracks]);
         const albumsPager = new SpotifyPager<MediaAlbum>(
             async (offset: number, limit: number): Promise<SpotifyPage> => {
                 const {items, total, next} = await spotifyApi.getArtistAlbums(artist.id, {
@@ -285,15 +286,16 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
     private createAlbumPager(album: SpotifyAlbum): Pager<MediaItem> {
         const tracks = album.tracks?.items;
         if (tracks && tracks.length === album.total_tracks) {
-            const items = tracks.map((track) =>
-                this.createMediaItemFromTrack({
-                    ...track,
-                    album: album as SpotifyApi.AlbumObjectSimplified,
-                })
-            );
-            const pager = new SimpleMediaPager(items);
-            this.addRatings(items);
-            return pager;
+            return new SimpleMediaPager(() => {
+                const items = tracks.map((track) =>
+                    this.createMediaItemFromTrack({
+                        ...track,
+                        album: album as SpotifyApi.AlbumObjectSimplified,
+                    })
+                );
+                this.addRatings(items);
+                return items;
+            });
         } else {
             const market = this.getMarket();
             return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
@@ -317,12 +319,13 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
     private createPlaylistPager(playlist: SpotifyPlaylist): Pager<MediaItem> {
         const tracks = playlist.tracks?.items;
         if (tracks && tracks.length === playlist.tracks.total) {
-            const items = tracks.map((item) =>
-                this.createMediaItemFromTrack(item.track as SpotifyTrack)
-            );
-            const pager = new SimpleMediaPager(items);
-            this.addRatings(items);
-            return pager;
+            return new SimpleMediaPager(() => {
+                const items = tracks.map((item) =>
+                    this.createMediaItemFromTrack(item.track as SpotifyTrack)
+                );
+                this.addRatings(items);
+                return items;
+            });
         } else {
             const market = this.getMarket();
             return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
