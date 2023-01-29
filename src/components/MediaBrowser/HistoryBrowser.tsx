@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import MediaItem from 'types/MediaItem';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
@@ -53,8 +53,7 @@ export default function HistoryBrowser({
 }
 
 function usePager(source: MediaSource<MediaItem> | null, startAt = 0) {
-    const [params, setParams] = useState<{startAt: number}>();
+    const params = useMemo(() => ({startAt}), [startAt]);
     const pager = useSource(source, params);
-    useEffect(() => setParams({startAt}), [startAt]);
     return pager;
 }

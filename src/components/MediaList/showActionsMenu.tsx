@@ -3,7 +3,12 @@ import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import {browser} from 'utils';
-import PopupMenu, {PopupMenuItem, PopupMenuProps, showPopupMenu} from 'components/PopupMenu';
+import PopupMenu, {
+    PopupMenuItem,
+    PopupMenuProps,
+    PopupMenuSeparator,
+    showPopupMenu,
+} from 'components/PopupMenu';
 import {getService} from 'services/mediaServices';
 
 export default async function showActionsMenu<T extends MediaObject>(
@@ -56,13 +61,7 @@ function ActionsMenu<T extends MediaObject>({items, ...props}: ActionsMenuProps<
                         />
                     </>
                 ) : null}
-                {isSingleItem && service?.canRate(item, true) ? (
-                    <PopupMenuItem<Action>
-                        label={item.rating ? 'Unlike' : 'Like'}
-                        action={item.rating ? Action.Unlike : Action.Like}
-                        key={item.rating ? Action.Unlike : Action.Like}
-                    />
-                ) : null}
+                <PopupMenuSeparator />
                 {isSingleItem && item.itemType === ItemType.Playlist ? (
                     <PopupMenuItem<Action>
                         label={item.isPinned ? 'Unpin' : 'Pin'}
@@ -70,6 +69,21 @@ function ActionsMenu<T extends MediaObject>({items, ...props}: ActionsMenuProps<
                         key={item.isPinned ? Action.Unpin : Action.Pin}
                     />
                 ) : null}
+                {isSingleItem && item.rating !== undefined && service?.canRate(item, true) ? (
+                    <PopupMenuItem<Action>
+                        label={item.rating ? 'Unlike' : 'Like'}
+                        action={item.rating ? Action.Unlike : Action.Like}
+                        key={item.rating ? Action.Unlike : Action.Like}
+                    />
+                ) : null}
+                {isSingleItem && item.inLibrary === false && service?.canStore(item, true) ? (
+                    <PopupMenuItem<Action>
+                        label="Add to library"
+                        action={Action.AddToLibrary}
+                        key={Action.AddToLibrary}
+                    />
+                ) : null}
+                <PopupMenuSeparator />
                 {isSingleItem ? (
                     <PopupMenuItem<Action>
                         label="Info..."

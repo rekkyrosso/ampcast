@@ -19,7 +19,7 @@ export const youtubeHost = `https://www.youtube.com`;
 
 const defaultLayout: MediaSourceLayout<MediaItem> = {
     view: 'card',
-    fields: ['Thumbnail', 'Title', 'Duration', 'Owner'],
+    fields: ['Thumbnail', 'Title', 'Duration', 'Owner', 'Views'],
 };
 
 const youtubeLikes: MediaSource<MediaItem> = {
@@ -177,7 +177,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
         id: pin.src,
         icon: 'pin',
         isPin: true,
-        layout: {...defaultLayout, view: 'card compact'},
+        secondaryLayout: {...defaultLayout, view: 'card compact'},
 
         search(): Pager<MediaPlaylist> {
             const [, , playlistId] = pin.src.split(':');

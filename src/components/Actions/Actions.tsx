@@ -69,7 +69,7 @@ export default function Actions({item, inline}: ActionsProps) {
                 />
             ) : null}
 
-            {service?.canRate(item, inline) ? (
+            {item.rating !== undefined && service?.canRate(item, inline) ? (
                 <IconButton
                     icon={item.rating ? 'heart-fill' : 'heart'}
                     title={item.rating ? 'Unlike' : 'Like'}
@@ -78,7 +78,7 @@ export default function Actions({item, inline}: ActionsProps) {
                 />
             ) : null}
 
-            {service?.canStore(item, inline) ? (
+            {item.inLibrary !== undefined && service?.canStore(item, inline) ? (
                 <IconButton
                     icon={item.inLibrary ? 'library-remove' : 'library-add'}
                     title={item.inLibrary ? 'In library' : 'Add to library'}

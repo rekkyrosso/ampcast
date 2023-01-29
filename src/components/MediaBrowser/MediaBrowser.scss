@@ -65,13 +65,26 @@
 
     &.lastfm-browser,
     &.listenbrainz-browser {
-        .album-browser {
+        .albums {
             .title,
             .artist,
             .owner,
             .genre,
             .album {
                 right: 4em;
+            }
+        }
+    }
+
+    &.apple-browser,
+    &.spotify-browser {
+        .artists {
+            .title,
+            .artist,
+            .owner,
+            .genre,
+            .album {
+                right: 0;
             }
         }
     }

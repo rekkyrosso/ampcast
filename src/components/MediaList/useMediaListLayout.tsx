@@ -5,6 +5,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSourceLayout, {Field} from 'types/MediaSourceLayout';
+import MediaType from 'types/MediaType';
 import {ColumnSpec, ListViewLayout} from 'components/ListView';
 import Actions from 'components/Actions';
 import CoverArt from 'components/CoverArt';
@@ -47,35 +48,52 @@ type RenderField<T extends MediaObject = MediaObject> = ColumnSpec<T>['render'];
 
 export const Index: RenderField = (_, rowIndex) => rowIndex + 1;
 
-export const Title: RenderField = (item) => item.title;
+export const Title: RenderField = (item) => <Text value={item.title} />;
 
-export const Blurb: RenderField<MediaPlaylist> = (item) => item.description;
+export const Blurb: RenderField<MediaPlaylist> = (item) => <Text value={item.description} />;
 
-export const Track: RenderField<MediaItem> = (item) => item.track || '-';
+export const Track: RenderField<MediaItem> = (item) => <Text value={item.track || '-'} />;
 
-export const Artist: RenderField<MediaAlbum | MediaItem> = (item) =>
-    item.itemType === ItemType.Media ? item.artists?.join(', ') : item.artist;
-
-export const AlbumArtist: RenderField<MediaItem> = (item) => item.albumArtist;
-
-export const Album: RenderField<MediaItem> = (item) => item.album;
-
-export const Duration: RenderField<MediaPlaylist | MediaItem> = (item) => (
-    <Time time={item.duration || 0} />
+export const Artist: RenderField<MediaAlbum | MediaItem> = (item) => (
+    <Text value={item.itemType === ItemType.Media ? item.artists?.join(', ') : item.artist} />
 );
 
-export const PlayCount: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) =>
-    getCount(item.playCount);
+export const AlbumArtist: RenderField<MediaItem> = (item) => <Text value={item.albumArtist} />;
 
-export const TrackCount: RenderField<MediaPlaylist | MediaAlbum> = (item) =>
-    getCount(item.trackCount);
+export const Album: RenderField<MediaItem> = (item) => <Text value={item.album} />;
 
-export const Year: RenderField<MediaAlbum | MediaItem> = (item) => item.year || '';
+export const Duration: RenderField<MediaPlaylist | MediaItem> = (item) => (
+    <Time className="text" time={item.duration || 0} />
+);
 
-export const Genre: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) =>
-    item.genres?.join(', ');
+export const PlayCount: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => (
+    <Text value={getCount(item.playCount)} />
+);
 
-export const Owner: RenderField = (item) => item.owner?.name;
+export const TrackCount: RenderField<MediaPlaylist | MediaAlbum> = (item) => (
+    <Text value={getCount(item.trackCount)} />
+);
+
+export const Year: RenderField<MediaAlbum | MediaItem> = (item) => <Text value={item.year} />;
+
+export const Genre: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => (
+    <Text value={item.genres?.join(', ')} />
+);
+
+export const Owner: RenderField = (item) => <Text value={item.owner?.name} />;
+
+export const Views: RenderField = (item) => {
+    if (item.globalPlayCount === undefined) {
+        return null;
+    }
+    if (item.itemType !== ItemType.Media) {
+        return null;
+    }
+    if (item.mediaType !== MediaType.Video) {
+        return null;
+    }
+    return <Text value={getGlobalPlayCount(item.globalPlayCount, 'view')} />;
+};
 
 export const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
     if (!item.playedAt) {
@@ -83,7 +101,11 @@ export const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
     }
     const date = new Date(item.playedAt * 1000);
     const elapsedTime = getElapsedTimeText(date.valueOf());
-    return <time title={date.toLocaleDateString()}>{elapsedTime}</time>;
+    return (
+        <time className="text" title={date.toLocaleDateString()}>
+            {elapsedTime}
+        </time>
+    );
 };
 
 export const ListenDate: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
@@ -92,19 +114,26 @@ export const ListenDate: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
     }
     const time = item.playedAt * 1000;
     return (
-        <time className="cv">
+        <time className="cv text">
             <SunClock time={time} />
             {new Date(time).toLocaleDateString()}
         </time>
     );
 };
 
-export const AlbumAndYear: RenderField<MediaItem> = (item) =>
-    item.album ? (item.year ? `${item.album} (${item.year})` : item.album) : item.year || '';
+export const AlbumAndYear: RenderField<MediaItem> = (item) => (
+    <Text
+        value={item.album ? (item.year ? `${item.album} (${item.year})` : item.album) : item.year}
+    />
+);
 
 export const Thumbnail: RenderField = (item) => {
     return <CoverArt item={item} />;
 };
+
+function Text({value = ''}: {value?: string | number}) {
+    return value === '' ? null : <span className="text">{value}</span>;
+}
 
 // TODO: Improve typing.
 const mediaFields: MediaFields<any> = {
@@ -132,6 +161,7 @@ const mediaFields: MediaFields<any> = {
         className: 'track-count',
     },
     Year: {title: 'Year', render: Year, width: 120, className: 'year'},
+    Views: {title: 'Views', render: Views, className: 'views'},
     Genre: {title: 'Genre', render: Genre, className: 'genre'},
     Owner: {title: 'Owner', render: Owner, className: 'owner'},
     LastPlayed: {title: 'Last played', render: LastPlayed, className: 'played-at'},
@@ -177,4 +207,28 @@ function getElapsedTimeText(playedAt: number): string {
         return `1 year ago`;
     }
     return `${Math.floor(elapsedTime / year)} years ago`;
+}
+
+function getGlobalPlayCount(
+    globalPlayCount = 0,
+    countName = 'listen',
+    countNamePlural = countName + 's'
+): string {
+    if (globalPlayCount === 1) {
+        return `1 ${countName}`;
+    } else if (globalPlayCount < 1_000) {
+        return `${globalPlayCount} ${countNamePlural}`;
+    } else if (globalPlayCount < 100_000) {
+        return `${(globalPlayCount / 1000).toFixed(1).replace('.0', '')}K  ${countNamePlural}`;
+    } else if (globalPlayCount < 1_000_000) {
+        return `${Math.round(globalPlayCount / 1000)}K  ${countNamePlural}`;
+    } else if (globalPlayCount < 100_000_000) {
+        return `${(globalPlayCount / 1_000_000).toFixed(1).replace('.0', '')}M  ${countNamePlural}`;
+    } else if (globalPlayCount < 1_000_000_000) {
+        return `${Math.round(globalPlayCount / 1_000_000)}M  ${countNamePlural}`;
+    } else {
+        return `${(globalPlayCount / 1_000_000_000)
+            .toFixed(1)
+            .replace('.0', '')}M  ${countNamePlural}`;
+    }
 }

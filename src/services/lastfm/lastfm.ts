@@ -8,6 +8,7 @@ import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
+import lastfmApi from './lastfmApi';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './lastfmAuth';
 import LastFmPager from './LastFmPager';
 import LastFmHistoryPager from './LastFmHistoryPager';
@@ -121,13 +122,35 @@ const lastfm: MediaService = {
         lastfmLovedTracks,
     ],
 
-    canRate: () => false,
+    canRate,
     canStore: () => false,
+    rate,
     observeIsLoggedIn,
     isLoggedIn,
     login,
     logout,
 };
+
+function canRate<T extends MediaObject>(item: T): boolean {
+    return item.itemType === ItemType.Media && !!item.title && !!item.artists?.[0];
+}
+
+async function rate(item: MediaObject, rating: number): Promise<void> {
+    if (item.itemType === ItemType.Media) {
+        const {title: track, artists = []} = item;
+        const artist = artists[0];
+        if (track && artist) {
+            const response = await lastfmApi.post({
+                method: rating ? 'track.love' : 'track.unlove',
+                track,
+                artist,
+            });
+            if (!response.ok) {
+                throw response;
+            }
+        }
+    }
+}
 
 function createTopView<T extends MediaObject>(
     method: string,

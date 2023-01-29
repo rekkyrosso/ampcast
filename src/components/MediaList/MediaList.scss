@@ -30,10 +30,18 @@
         color: var(--grey1-color);
     }
 
+    .unplayable .thumbnail img {
+        filter: brightness(0.25) grayscale(1);
+    }
+
     &-details {
         .actions,
         .icon-buttons {
             height: inherit;
+        }
+
+        .actions {
+            padding-right: 0.45em;
         }
     }
 
@@ -59,7 +67,9 @@
         .owner,
         .genre,
         .blurb,
-        .album {
+        .album,
+        .year,
+        .views {
             left: 6em;
             right: 4em;
 
@@ -77,13 +87,14 @@
         .artist,
         .genre,
         .owner {
-            top: 1.5em;
+            top: 1.625em;
             color: var(--grey2-color);
         }
 
         .album,
         .blurb,
-        .year {
+        .year,
+        .views {
             top: 3.25em;
             color: var(--grey2-color);
         }
@@ -99,6 +110,7 @@
             color: var(--text-color);
             border-radius: calc(var(--roundness) * var(--roundness) * 0.75em);
             background-color: rgba(255, 255, 255, 0.1);
+            line-height: 1.25;
 
             .themed.light & {
                 background-color: rgba(0, 0, 0, 0.1);
@@ -116,9 +128,15 @@
             color: var(--grey2-color);
         }
 
+        .genre .text,
+        .owner .text,
+        .views .text {
+            font-size: 0.75em;
+        }
+
         .actions {
             right: 0.25em;
-            bottom: 0.25em;
+            bottom: 0.5em;
             padding: 0;
         }
 
@@ -134,16 +152,9 @@
             .genre,
             .blurb,
             .album,
-            .year {
+            .year,
+            .views {
                 left: 4em;
-            }
-
-            .year {
-                left: 4em;
-
-                .artist-albums & {
-                    top: 1.25em;
-                }
             }
 
             .title {
@@ -156,10 +167,42 @@
                 top: 1.25em;
             }
 
+            .duration,
+            .track-count,
+            .play-count,
+            .played-at {
+                .text {
+                    font-size: 0.875em;
+                }
+            }
+
+            .artist .text {
+                font-size: 0.875em;
+            }
+
             .album,
             .blurb,
-            .year {
+            .year,
+            .views {
                 top: 2.5em;
+
+                .text {
+                    font-size: 0.75em;
+                }
+            }
+
+            .year {
+                .artist-albums & {
+                    top: 1.25em;
+
+                    .text {
+                        font-size: 0.875em;
+                    }
+                }
+            }
+
+            .actions {
+                font-size: 0.875em;
             }
         }
 
@@ -196,7 +239,8 @@
 
             .blurb,
             .album,
-            .year {
+            .year,
+            .views {
                 right: 1em;
             }
         }

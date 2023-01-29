@@ -33,6 +33,7 @@ const plexMusicVideo: MediaSource<MediaItem> = {
     icon: 'video',
     itemType: ItemType.Media,
     searchable: true,
+    defaultHidden: true,
     layout: {
         view: 'details',
         fields: ['Index', 'Artist', 'Title', 'Duration', 'PlayCount'],

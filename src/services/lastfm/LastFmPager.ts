@@ -37,6 +37,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
     };
     private pageNumber = 1;
     private readonly playCountName: 'playcount' | 'userplaycount' = 'playcount';
+    private readonly method: string;
 
     constructor(
         initialParams: Record<string, string | number>,
@@ -48,6 +49,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
 
         const {page, ...params} = initialParams;
         this.pageNumber = Number(page) || 1;
+        this.method = initialParams.method as string;
 
         this.playCountName = config.playCountName || 'playcount';
 
@@ -124,6 +126,12 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
             release_mbid: this.album?.mbid || track.album?.mbid,
             duration: Number(track.duration) || 0,
             track: rank ? Number(rank) || undefined : undefined,
+            rating:
+                'loved' in track
+                    ? Number(track.loved) || 0
+                    : this.method === 'user.getLovedTracks'
+                    ? 1
+                    : undefined,
             playedAt,
         };
     }
@@ -165,7 +173,6 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: itemType,
             title: item.name,
-            rating: 'loved' in item ? Number(item.loved) || 0 : undefined,
             playCount: Number(item[this.playCountName]) || undefined,
             globalPlayCount:
                 this.playCountName === 'userplaycount'

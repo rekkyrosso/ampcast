@@ -13,6 +13,7 @@ export type Field =
     | 'Duration'
     | 'PlayCount'
     | 'TrackCount'
+    | 'Views'
     | 'Year'
     | 'Genre'
     | 'Owner'

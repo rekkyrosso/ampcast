@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useMemo} from 'react';
 import MediaObject from 'types/MediaObject';
 import MediaSource from 'types/MediaSource';
 import useSource from 'hooks/useSource';
@@ -8,8 +8,7 @@ export default function useRange<T extends MediaObject>(
     source: MediaSource<T> | null,
     range: ListenBrainzRange = 'all_time'
 ) {
-    const [params, setParams] = useState<Record<string, ListenBrainzRange>>();
+    const params = useMemo(() => ({range}), [range]);
     const pager = useSource(source, params);
-    useEffect(() => setParams({range}), [range]);
     return pager;
 }

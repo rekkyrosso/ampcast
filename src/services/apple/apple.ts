@@ -78,7 +78,10 @@ const appleRecentlyPlayed: MediaSource<MediaItem> = {
     layout: defaultLayout,
 
     search(): Pager<MediaItem> {
-        return new MusicKitPager(`/v1/me/recent/played/tracks`, toPage, undefined, {pageSize: 30});
+        return new MusicKitPager(`/v1/me/recent/played/tracks`, toPage, undefined, {
+            pageSize: 30,
+            maxSize: 200,
+        });
     },
 };
 

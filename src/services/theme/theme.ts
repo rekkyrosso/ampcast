@@ -17,6 +17,7 @@ class MainTheme implements Theme {
     private readonly popup = document.getElementById('popup') as HTMLElement;
     private readonly system = document.getElementById('system') as HTMLElement;
     private readonly theme$ = new BehaviorSubject<Theme>(defaultTheme);
+    private readonly defaultFontSize = 17.2;
 
     constructor() {
         const style = document.createElement('style');
@@ -84,7 +85,7 @@ class MainTheme implements Theme {
     }
 
     get fontSize(): number {
-        return Number(this.rootStyle.getPropertyValue('--font-size')) || 16;
+        return Number(this.rootStyle.getPropertyValue('--font-size')) || this.defaultFontSize;
     }
 
     set fontSize(fontSize: number) {
@@ -227,7 +228,7 @@ class MainTheme implements Theme {
     restore(): void {
         const theme = this.storage.getJson('current', defaultTheme);
         Object.assign(this, this.applyDefaults(theme));
-        this.fontSize = this.storage.getNumber('fontSize', 16);
+        this.fontSize = this.storage.getNumber('fontSize', this.defaultFontSize);
         this.toggleClasses(this.app);
         this.toggleClasses(this.popup);
         this.system.classList.toggle('dark', this.isDark);
