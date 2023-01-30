@@ -151,6 +151,7 @@ const apple: MediaService = {
 
     canRate,
     canStore,
+    compareForRating,
     createSourceFromPin,
     lookup,
     rate,
@@ -160,6 +161,10 @@ const apple: MediaService = {
     login,
     logout,
 };
+
+function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
+    return a.src === b.src;
+}
 
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     return {

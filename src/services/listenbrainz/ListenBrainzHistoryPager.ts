@@ -1,18 +1,25 @@
 import type {Observable} from 'rxjs';
+import {Subscription} from 'rxjs';
+import {mergeMap} from 'rxjs/operators';
 import getYouTubeID from 'get-youtube-id';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import Pager, {Page} from 'types/Pager';
+import {musicBrainzHost} from 'services/musicbrainz';
 import SequentialPager from 'services/pagers/SequentialPager';
 import {getYouTubeSrc, getYouTubeUrl} from 'services/youtube';
+import {Logger} from 'utils';
 import listenbrainzApi from './listenbrainzApi';
 import listenbrainzSettings from './listenbrainzSettings';
 
+const logger = new Logger('ListenBrainzHistoryPager');
+
 export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
     static maxPageSize = 100;
-    private readonly pager: Pager<MediaItem>;
+    private readonly pager: SequentialPager<MediaItem>;
     private nextPageParams: Record<string, string | number> | undefined = undefined;
+    private subscriptions?: Subscription;
 
     constructor(params?: ListenBrainz.User.ListensParams) {
         const pageSize = 50;
@@ -63,10 +70,28 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
 
     disconnect(): void {
         this.pager.disconnect();
+        this.subscriptions?.unsubscribe();
     }
 
     fetchAt(index: number, length: number): void {
+        if (!this.subscriptions) {
+            this.connect();
+        }
+
         this.pager.fetchAt(index, length);
+    }
+
+    private connect(): void {
+        if (!this.subscriptions) {
+            this.subscriptions = new Subscription();
+
+            this.subscriptions.add(
+                this.pager
+                    .observeAdditions()
+                    .pipe(mergeMap((items) => listenbrainzApi.addRatings(items)))
+                    .subscribe(logger)
+            );
+        }
     }
 
     private createItems(items: readonly ListenBrainz.Listen[]): MediaItem[] {
@@ -96,9 +121,11 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             track: info?.tracknumber || info?.track_number,
             // disc: info?.discnumber,
             isrc: info?.isrc,
-            externalUrl: mbid ? `https://musicbrainz.org/recording/${mbid}` : '',
+            externalUrl: mbid ? `${musicBrainzHost}/recording/${mbid}` : '',
             recording_mbid: mbid,
+            recording_msid: item.recording_msid || undefined,
             release_mbid: data.mbid_mapping?.release_mbid,
+            artist_mbids: data.mbid_mapping?.artist_mbids,
             playedAt: item.listened_at,
             link: {
                 src: this.getPlayableSrc(info) || '',

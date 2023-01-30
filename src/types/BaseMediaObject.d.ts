@@ -1,8 +1,8 @@
 import ItemType from './ItemType';
 import Thumbnail from './Thumbnail';
 
-export default interface BaseMediaObject<T extends ItemType> {
-    readonly itemType: T;
+export default interface BaseMediaObject {
+    readonly itemType: ItemType;
     readonly src: string;
     readonly title: string;
     readonly externalUrl: string;

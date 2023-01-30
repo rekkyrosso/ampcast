@@ -245,6 +245,7 @@ const spotify: MediaService = {
 
     canRate,
     canStore: () => false,
+    compareForRating,
     createSourceFromPin,
     lookup,
     rate,
@@ -255,6 +256,10 @@ const spotify: MediaService = {
 };
 
 export default spotify;
+
+function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
+    return a.src === b.src;
+}
 
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     return {
@@ -324,7 +329,7 @@ async function rate(item: MediaObject, rating: number): Promise<void> {
     }
 }
 
-function canRate<T extends MediaObject>(item: T): boolean {
+function canRate<T extends MediaObject>(item: T, inline?: boolean): boolean {
     switch (item.itemType) {
         case ItemType.Album:
             return !item.synthetic;
@@ -333,7 +338,7 @@ function canRate<T extends MediaObject>(item: T): boolean {
             return true;
 
         case ItemType.Playlist:
-            return !item.isOwn;
+            return !item.isOwn && !inline;
 
         default:
             return false;

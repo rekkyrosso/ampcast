@@ -140,7 +140,7 @@ function getNextVisualizer(
     settings: VisualizerSettings,
     reason: NextReason
 ): Visualizer {
-    if (!item || item.mediaType === MediaType.Video) {
+    if (!item || item.mediaType === MediaType.Video || item.duration < 31) {
         return noVisualizer;
     }
     const isSpotify = item.src.startsWith('spotify:');

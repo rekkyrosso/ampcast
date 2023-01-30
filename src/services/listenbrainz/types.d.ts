@@ -136,6 +136,27 @@ declare namespace ListenBrainz {
                 user_name: string;
             };
         }
+
+        interface Feedback {
+            created: number; // timestamp (UNIX)
+            recording_mbid: string;
+            recording_msid: string;
+            score: number;
+            track_metadata: TrackMetadata;
+            user_id: string;
+        }
+
+        interface UserFeedbackResponse {
+            count: number;
+            feedback: readonly Feedback[];
+            offset: number;
+            total_count: number;
+        }
+
+        interface UserRecordingsFeedbackResponse {
+            feedback: readonly Feedback[];
+            user_name: string;
+        }
     }
 
     namespace Stats {

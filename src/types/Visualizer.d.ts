@@ -3,29 +3,37 @@ import {SpotifyVizConfig} from 'services/visualizer/spotifyviz/SpotifyVizPlayer'
 import {WaveformConfig} from 'services/visualizer/waveform/WaveformPlayer';
 import BaseVisualizer from './BaseVisualizer';
 
-export type NoVisualizer = BaseVisualizer<'none'>;
+export interface NoVisualizer extends BaseVisualizer {
+    providerId: 'none';
+}
 
-export interface AmbientVideoVisualizer extends BaseVisualizer<'ambientvideo'> {
+export interface AmbientVideoVisualizer extends BaseVisualizer {
+    providerId: 'ambientvideo';
     src: string;
 }
 
-export interface AmpShaderVisualizer extends BaseVisualizer<'ampshader'> {
+export interface AmpShaderVisualizer extends BaseVisualizer {
+    providerId: 'ampshader';
     shader: string;
 }
 
-export interface AudioMotionVisualizer extends BaseVisualizer<'audiomotion'> {
+export interface AudioMotionVisualizer extends BaseVisualizer {
+    providerId: 'audiomotion';
     options: AudioMotionOptions;
 }
 
-export interface ButterchurnVisualizer extends BaseVisualizer<'butterchurn'> {
+export interface ButterchurnVisualizer extends BaseVisualizer {
+    providerId: 'butterchurn';
     data: MilkdropRawData;
 }
 
-export interface SpotifyVizVisualizer extends BaseVisualizer<'spotifyviz'> {
+export interface SpotifyVizVisualizer extends BaseVisualizer {
+    providerId: 'spotifyviz';
     config: SpotifyVizConfig;
 }
 
-export interface WaveformVisualizer extends BaseVisualizer<'waveform'> {
+export interface WaveformVisualizer extends BaseVisualizer {
+    providerId: 'waveform';
     config: WaveformConfig;
 }
 

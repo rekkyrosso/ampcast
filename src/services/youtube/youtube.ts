@@ -161,6 +161,7 @@ const youtube: MediaService = {
 
     canRate: () => false,
     canStore: () => false,
+    compareForRating: () => false,
     createSourceFromPin,
     observeIsLoggedIn,
     isLoggedIn,

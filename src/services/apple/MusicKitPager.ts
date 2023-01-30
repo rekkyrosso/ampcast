@@ -1,6 +1,6 @@
 import type {Observable} from 'rxjs';
 import {Subscription} from 'rxjs';
-import {filter, map, mergeMap, pairwise, startWith} from 'rxjs/operators';
+import {mergeMap} from 'rxjs/operators';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -10,7 +10,7 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
-import {dispatchRatingChanges, dispatchLibraryChanges} from 'services/actions';
+import mediaObjectChanges from 'services/mediaObjectChanges';
 import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
@@ -43,7 +43,7 @@ export interface MusicKitPage extends Page<MusicKitItem> {
 }
 
 export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
-    private readonly pager: Pager<T>;
+    private readonly pager: SequentialPager<T>;
     private nextPageUrl: string | undefined = undefined;
     private subscriptions?: Subscription;
 
@@ -123,14 +123,16 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             this.subscriptions = new Subscription();
 
             if (!this.options?.lookup) {
-                this.subscriptions!.add(
-                    this.observeAdditions()
+                this.subscriptions.add(
+                    this.pager
+                        .observeAdditions()
                         .pipe(mergeMap((items) => this.addRatings(items)))
                         .subscribe(logger)
                 );
 
-                this.subscriptions!.add(
-                    this.observeAdditions()
+                this.subscriptions.add(
+                    this.pager
+                        .observeAdditions()
                         .pipe(mergeMap((items) => this.addInLibrary(items)))
                         .subscribe(logger)
                 );
@@ -350,22 +352,9 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         return genreNames.filter((name) => name !== 'Music');
     }
 
-    private observeAdditions(): Observable<readonly T[]> {
-        return this.observeItems().pipe(
-            startWith([]),
-            pairwise(),
-            map(([oldItems, newItems]) =>
-                newItems.filter(
-                    (newItem) => !oldItems.find((oldItem) => oldItem.src === newItem.src)
-                )
-            ),
-            filter((additions) => additions.length > 0)
-        );
-    }
-
     private async addRatings(items: readonly T[]): Promise<void> {
         const item = items[0];
-        if (apple.canRate(item)) {
+        if (apple.canRate(item, true)) {
             const musicKit = MusicKit.getInstance();
             const [, type] = items[0].src.split(':');
             const ids = items.map((item) => {
@@ -379,10 +368,10 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
                 data.map((data: any) => [data.id, data.attributes.value])
             );
 
-            dispatchRatingChanges(
+            mediaObjectChanges.dispatch<MediaObject>(
                 ids.map((id) => ({
-                    src: `apple:${type}:${id}`,
-                    rating: ratings.get(id) || 0,
+                    match: (object: MediaObject) => object.src === `apple:${type}:${id}`,
+                    values: {rating: ratings.get(id) || 0},
                 }))
             );
         }
@@ -414,10 +403,10 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
                         Object.keys(data).map((key) => [key, data[key].attributes.inLibrary])
                     );
 
-                    dispatchLibraryChanges(
+                    mediaObjectChanges.dispatch<MediaObject>(
                         ids.map((id) => ({
-                            src: `apple:${type}:${id}`,
-                            inLibrary: inLibrary.get(id) || false,
+                            match: (object: MediaObject) => object.src === `apple:${type}:${id}`,
+                            values: {inLibrary: inLibrary.get(id) || false},
                         }))
                     );
                 }

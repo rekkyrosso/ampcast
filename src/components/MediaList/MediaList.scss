@@ -126,6 +126,17 @@
             font-style: italic;
             background-color: transparent;
             color: var(--grey2-color);
+
+            .listen-date {
+                display: flex;
+                flex-direction: row;
+                justify-content: center;
+                align-items: center;
+            }
+
+            .sun-clock + span {
+                height: 1.125em;
+            }
         }
 
         .genre .text,

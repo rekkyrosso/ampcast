@@ -3,7 +3,8 @@ import ItemType from './ItemType';
 import MediaItem from './MediaItem';
 import Pager from './Pager';
 
-export default interface MediaPlaylist extends BaseMediaObject<ItemType.Playlist> {
+export default interface MediaPlaylist extends BaseMediaObject {
+    readonly itemType: ItemType.Playlist;
     readonly pager: Pager<MediaItem>;
     readonly trackCount?: number;
     readonly duration?: number;

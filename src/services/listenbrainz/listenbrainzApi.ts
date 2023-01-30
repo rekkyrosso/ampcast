@@ -1,6 +1,9 @@
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
-import {Logger} from 'utils';
+import MediaObject from 'types/MediaObject';
+import mediaObjectChanges from 'services/mediaObjectChanges';
+import {Logger, partition} from 'utils';
+import {compareForRating} from './listenbrainz';
 import listenbrainzSettings from './listenbrainzSettings';
 
 console.log('module::listenbrainzApi');
@@ -11,6 +14,68 @@ export class ListenBrainzApi {
     private readonly host = `https://api.listenbrainz.org/1`;
     private rateLimitRemainingCalls = 2;
     private rateLimitResetTime = 0;
+
+    async rate(item: MediaItem, score: number): Promise<void> {
+        if (item.recording_msid || item.recording_mbid) {
+            const path = `feedback/recording-feedback`;
+            const params: any = {score};
+            if (item.recording_msid) {
+                params.recording_msid = item.recording_msid;
+            }
+            if (item.recording_mbid) {
+                params.recording_mbid = item.recording_mbid;
+            }
+            const response = await this.post(path, params);
+            if (!response.ok) {
+                throw response;
+            }
+        }
+    }
+
+    async addRatings(items: readonly MediaItem[]): Promise<void> {
+        items = items.filter((item) => !!item.recording_msid || !!item.recording_mbid);
+        if (items.length > 0) {
+            const ratings = await this.getRatings(items);
+
+            mediaObjectChanges.dispatch<MediaItem>(
+                items.map((item, index) => ({
+                    match: (object: MediaObject) => compareForRating(object, item),
+                    values: {rating: ratings[index]},
+                }))
+            );
+        }
+    }
+
+    async getRatings(items: readonly MediaItem[]): Promise<readonly number[]> {
+        items = items.filter((item) => !!item.recording_msid || !!item.recording_mbid);
+        if (items.length > 0) {
+            const [mbids, msids] = partition(items, (item) => !!item.recording_mbid);
+            const recording_mbids = mbids.map((item) => item.recording_mbid);
+            const recording_msids = msids.map((item) => item.recording_msid);
+            const params: any = {};
+            if (recording_mbids.length > 0) {
+                params.recording_mbids = recording_mbids;
+            }
+            if (recording_msids.length > 0) {
+                params.recording_msids = recording_msids;
+            }
+            const {feedback} = await this.get<ListenBrainz.User.UserRecordingsFeedbackResponse>(
+                `feedback/user/${listenbrainzSettings.userId}/get-feedback-for-recordings`,
+                params
+            );
+            return items.map((item) =>
+                feedback.find(
+                    (feedback) =>
+                        (!!item.recording_mbid &&
+                            item.recording_mbid === feedback.recording_mbid) ||
+                        (!!item.recording_msid && item.recording_msid === feedback.recording_msid)
+                )?.score === 1
+                    ? 1
+                    : 0
+            );
+        }
+        return [];
+    }
 
     async getListeningActivity({
         range = 'all_time',
@@ -36,7 +101,6 @@ export class ListenBrainzApi {
     }
 
     async getListens(params?: ListenBrainz.User.ListensParams): Promise<ListenBrainz.User.Listens> {
-        logger.log('getListens', {params});
         const result = await this.get<ListenBrainz.User.Listens>(
             `user/${listenbrainzSettings.userId}/listens`,
             params

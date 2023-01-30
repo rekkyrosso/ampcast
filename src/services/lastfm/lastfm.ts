@@ -124,6 +124,7 @@ const lastfm: MediaService = {
 
     canRate,
     canStore: () => false,
+    compareForRating,
     rate,
     observeIsLoggedIn,
     isLoggedIn,
@@ -133,6 +134,26 @@ const lastfm: MediaService = {
 
 function canRate<T extends MediaObject>(item: T): boolean {
     return item.itemType === ItemType.Media && !!item.title && !!item.artists?.[0];
+}
+
+function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
+    switch (a.itemType) {
+        case ItemType.Media:
+            return (
+                a.itemType === b.itemType &&
+                !!a.title &&
+                !!a.artists?.[0] &&
+                compareString(a.title, b.title) &&
+                compareString(a.artists?.[0], b.artists?.[0])
+            );
+
+        default:
+            return false;
+    }
+}
+
+function compareString(a: string, b = ''): boolean {
+    return a.localeCompare(b, undefined, {sensitivity: 'accent'}) === 0;
 }
 
 async function rate(item: MediaObject, rating: number): Promise<void> {

@@ -1,6 +1,6 @@
 import type {Observable} from 'rxjs';
 import {Subscription} from 'rxjs';
-import {filter, map, mergeMap, pairwise, startWith} from 'rxjs/operators';
+import {mergeMap} from 'rxjs/operators';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -10,7 +10,7 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
-import {dispatchRatingChanges, RatingChange} from 'services/actions';
+import mediaObjectChanges from 'services/mediaObjectChanges';
 import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
@@ -38,7 +38,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
     static minPageSize = 10;
     static maxPageSize = 50;
 
-    private readonly pager: Pager<T>;
+    private readonly pager: SequentialPager<T>;
     private readonly defaultConfig: PagerConfig = {
         minPageSize: SpotifyPager.minPageSize,
         maxPageSize: SpotifyPager.maxPageSize,
@@ -117,8 +117,9 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             this.subscriptions = new Subscription();
 
             if (!this.config.lookup) {
-                this.subscriptions!.add(
-                    this.observeAdditions()
+                this.subscriptions.add(
+                    this.pager
+                        .observeAdditions()
                         .pipe(mergeMap((items) => this.addRatings(items)))
                         .subscribe(logger)
                 );
@@ -343,22 +344,9 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         return spotifySettings.getString('market');
     }
 
-    private observeAdditions(): Observable<readonly T[]> {
-        return this.observeItems().pipe(
-            startWith([]),
-            pairwise(),
-            map(([oldItems, newItems]) =>
-                newItems.filter(
-                    (newItem) => !oldItems.find((oldItem) => oldItem.src === newItem.src)
-                )
-            ),
-            filter((additions) => additions.length > 0)
-        );
-    }
-
     private async addRatings<T extends MediaObject>(items: readonly T[]): Promise<void> {
         const item = items[0];
-        if (item && spotify.canRate(item) && item.itemType !== ItemType.Playlist) {
+        if (item && spotify.canRate(item, true)) {
             const ids = items.map((item) => {
                 const [, , id] = item.src.split(':');
                 return id;
@@ -369,11 +357,13 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             } else {
                 ratings = await spotifyApi.containsMySavedTracks(ids);
             }
-            const changes: RatingChange[] = [];
-            items.forEach((item, index) =>
-                changes.push({src: item.src, rating: ratings[index] ? 1 : 0})
+
+            mediaObjectChanges.dispatch<MediaObject>(
+                items.map(({src}, index) => ({
+                    match: (item: MediaObject) => item.src === src,
+                    values: {rating: ratings[index] ? 1 : 0},
+                }))
             );
-            dispatchRatingChanges(changes);
         }
     }
 }

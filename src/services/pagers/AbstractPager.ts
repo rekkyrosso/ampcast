@@ -4,15 +4,9 @@ import {distinctUntilChanged, filter, map, pairwise, take, tap} from 'rxjs/opera
 import {Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
+import MediaObjectChange from 'types/MediaObjectChange';
 import Pager, {PagerConfig} from 'types/Pager';
-import {Pin} from 'types/Pin';
-import {
-    observeRatingChanges,
-    RatingChange,
-    observeLibraryChanges,
-    LibraryChange,
-} from 'services/actions';
-import pinStore from 'services/pins/pinStore';
+import mediaObjectChanges from 'services/mediaObjectChanges';
 import {Logger} from 'utils';
 
 interface PageFetch {
@@ -38,6 +32,18 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
 
     get maxSize(): number | undefined {
         return this.config.maxSize;
+    }
+
+    observeAdditions(): Observable<readonly T[]> {
+        return this.items$.pipe(
+            pairwise(),
+            map(([oldItems, newItems]) =>
+                newItems.filter(
+                    (newItem) => !oldItems.find((oldItem) => oldItem.src === newItem.src)
+                )
+            ),
+            filter((additions) => additions.length > 0)
+        );
     }
 
     observeItems(): Observable<readonly T[]> {
@@ -115,110 +121,35 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
 
             this.subscriptions = new Subscription();
 
-            if (this.config.lookup) {
-                return;
+            if (!this.config.lookup) {
+                this.subscriptions.add(
+                    this.observeAdditions()
+                        .pipe(tap((items) => this.addMissingTrackCounts(items)))
+                        .subscribe(logger)
+                );
+
+                this.subscriptions.add(
+                    mediaObjectChanges
+                        .observe<T>()
+                        .pipe(
+                            tap((changes) => {
+                                this.applyChanges(changes);
+                            })
+                        )
+                        .subscribe(logger)
+                );
             }
-
-            this.subscriptions.add(
-                this.observeAdditions()
-                    .pipe(tap((items) => this.addMissingTrackCounts(items)))
-                    .subscribe(logger)
-            );
-
-            this.subscriptions.add(
-                pinStore
-                    .observeAdditions()
-                    .pipe(tap((additions) => this.pin(additions)))
-                    .subscribe(logger)
-            );
-
-            this.subscriptions.add(
-                pinStore
-                    .observeRemovals()
-                    .pipe(tap((removals) => this.unpin(removals)))
-                    .subscribe(logger)
-            );
-
-            this.subscriptions.add(
-                observeRatingChanges()
-                    .pipe(tap((changes) => this.updateRating(changes)))
-                    .subscribe(logger)
-            );
-
-            this.subscriptions.add(
-                observeLibraryChanges()
-                    .pipe(tap((changes) => this.updateInLibrary(changes)))
-                    .subscribe(logger)
-            );
         }
     }
 
-    private observeAdditions(): Observable<readonly T[]> {
-        return this.items$.pipe(
-            pairwise(),
-            map(([oldItems, newItems]) =>
-                newItems.filter(
-                    (newItem) => !oldItems.find((oldItem) => oldItem.src === newItem.src)
-                )
-            ),
-            filter((additions) => additions.length > 0)
-        );
-    }
-
-    private pin(additions: readonly Pin[]): void {
+    private applyChanges(changes: readonly MediaObjectChange<T>[]): void {
         let changed = false;
         const items = this.items.map((item) => {
-            if (item.itemType === ItemType.Playlist) {
-                if (additions.find((pin) => pin.src === item.src)) {
+            for (const {match, values} of changes) {
+                if (match(item)) {
                     changed = true;
-                    return {...item, isPinned: true};
+                    return {...item, ...values};
                 }
-            }
-            return item;
-        });
-        if (changed) {
-            this.items$.next(items);
-        }
-    }
-
-    private unpin(removals: readonly Pin[]): void {
-        let changed = false;
-        const items = this.items.map((item) => {
-            if (item.itemType === ItemType.Playlist) {
-                if (removals.find((pin) => pin.src === item.src)) {
-                    changed = true;
-                    return {...item, isPinned: false};
-                }
-            }
-            return item;
-        });
-        if (changed) {
-            this.items$.next(items);
-        }
-    }
-
-    private updateRating(changes: readonly RatingChange[]): void {
-        let changed = false;
-        const items = this.items.map((item) => {
-            const change = changes.find((change) => change.src === item.src);
-            if (change) {
-                changed = true;
-                return {...item, rating: change.rating};
-            }
-            return item;
-        });
-        if (changed) {
-            this.items$.next(items);
-        }
-    }
-
-    private updateInLibrary(changes: readonly LibraryChange[]): void {
-        let changed = false;
-        const items = this.items.map((item) => {
-            const change = changes.find((change) => change.src === item.src);
-            if (change) {
-                changed = true;
-                return {...item, inLibrary: change.inLibrary};
             }
             return item;
         });

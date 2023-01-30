@@ -102,7 +102,7 @@ export const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
     const date = new Date(item.playedAt * 1000);
     const elapsedTime = getElapsedTimeText(date.valueOf());
     return (
-        <time className="text" title={date.toLocaleDateString()}>
+        <time className="text last-played" title={date.toLocaleDateString()}>
             {elapsedTime}
         </time>
     );
@@ -114,9 +114,9 @@ export const ListenDate: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
     }
     const time = item.playedAt * 1000;
     return (
-        <time className="cv text">
+        <time className="text listen-date">
             <SunClock time={time} />
-            {new Date(time).toLocaleDateString()}
+            <span>{new Date(time).toLocaleDateString()}</span>
         </time>
     );
 };

@@ -3,7 +3,8 @@ import ItemType from './ItemType';
 import MediaItem from './MediaItem';
 import Pager from './Pager';
 
-export default interface MediaAlbum extends BaseMediaObject<ItemType.Album> {
+export default interface MediaAlbum extends BaseMediaObject {
+    readonly itemType: ItemType.Album;
     readonly pager: Pager<MediaItem>;
     readonly artist?: string;
     readonly year?: number;

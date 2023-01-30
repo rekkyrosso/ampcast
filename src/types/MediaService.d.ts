@@ -18,6 +18,7 @@ export default interface MediaService extends Auth {
     readonly defaultNoScrobble?: boolean;
     canRate: (item: MediaObject, inline?: boolean) => boolean;
     canStore: (item: MediaObject, inline?: boolean) => boolean;
+    compareForRating: <T extends MediaObject>(a: T, b: T) => boolean;
     createSourceFromPin?: (pin: Pin) => MediaSource<MediaPlaylist>;
     lookup?: (
         artist: string,

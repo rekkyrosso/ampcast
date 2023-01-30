@@ -1,11 +1,10 @@
-import type {Observable} from 'rxjs';
-import {Subject} from 'rxjs';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
+import mediaObjectChanges from 'services/mediaObjectChanges';
 import mediaPlayback from 'services/mediaPlayback';
 import {getService} from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
@@ -14,35 +13,6 @@ import {showMediaInfoDialog} from 'components/Media/MediaInfoDialog';
 import {Logger} from 'utils';
 
 const logger = new Logger('ampcast/actions');
-
-export interface LibraryChange {
-    readonly src: string;
-    readonly inLibrary: boolean;
-}
-
-export interface RatingChange {
-    readonly src: string;
-    readonly rating: number;
-}
-
-const inLibraryChange$ = new Subject<readonly LibraryChange[]>();
-const ratingChange$ = new Subject<readonly RatingChange[]>();
-
-export function observeLibraryChanges(): Observable<readonly LibraryChange[]> {
-    return inLibraryChange$;
-}
-
-export function observeRatingChanges(): Observable<readonly RatingChange[]> {
-    return ratingChange$;
-}
-
-export function dispatchLibraryChanges(changes: readonly LibraryChange[]): void {
-    inLibraryChange$.next(changes);
-}
-
-export function dispatchRatingChanges(changes: readonly RatingChange[]): void {
-    ratingChange$.next(changes);
-}
 
 export async function performAction<T extends MediaObject>(
     action: Action,
@@ -141,24 +111,30 @@ async function rate<T extends MediaObject>(item: T, rating: number): Promise<voi
     if (service) {
         if (service.rate) {
             await service.rate(item, rating);
-            dispatchRatingChanges([{src: item.src, rating}]);
+            mediaObjectChanges.dispatch<MediaObject>({
+                match: (object: MediaObject) => service.compareForRating(object, item),
+                values: {rating},
+            });
         } else {
-            throw Error(`'rate' not supported by ${serviceId}.`);
+            throw Error(`\`rate\` not supported by ${serviceId}.`);
         }
     } else {
         throw Error(`Service not found '${serviceId}'.`);
     }
 }
 
-async function store<T extends MediaObject>(item: T, inLibrary: boolean): Promise<void> {
+async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
     const [serviceId] = item.src.split(':');
     const service = getService(serviceId);
     if (service) {
         if (service.store) {
             await service.store(item, inLibrary);
-            dispatchLibraryChanges([{src: item.src, inLibrary}]);
+            mediaObjectChanges.dispatch<MediaObject>({
+                match: (object: MediaObject) => object.src === item.src,
+                values: {inLibrary},
+            });
         } else {
-            throw Error(`'store' not supported by ${serviceId}.`);
+            throw Error(`\`store\` not supported by ${serviceId}.`);
         }
     } else {
         throw Error(`Service not found '${serviceId}'.`);

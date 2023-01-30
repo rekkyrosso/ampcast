@@ -129,6 +129,7 @@ const plex: MediaService = {
 
     canRate: () => false,
     canStore: () => false,
+    compareForRating,
     createSourceFromPin,
     lookup,
     observeIsLoggedIn,
@@ -136,6 +137,10 @@ const plex: MediaService = {
     login,
     logout,
 };
+
+function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
+    return a.plex!.ratingKey === b.plex!.ratingKey;
+}
 
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     return {
