@@ -13,7 +13,7 @@ export default function ScrobblingSettings({service: scrobbler}: MediaServiceSet
     const id = useId();
     const scrobbleRef = useRef<HTMLFieldSetElement>(null);
     const optionsRef = useRef<HTMLFieldSetElement>(null);
-    const services = useMemo(() => getAllServices().filter((service) => !service.scrobbler), []);
+    const services = useMemo(() => getAllServices().filter((service) => !service.isScrobbler), []);
 
     const handleSubmit = useCallback(() => {
         const scrobbleInputs = scrobbleRef.current!.elements as HTMLInputElements;

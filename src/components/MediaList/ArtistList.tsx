@@ -4,8 +4,8 @@ import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaList, {MediaListProps} from './MediaList';
 
 const defaultLayout: MediaSourceLayout<MediaArtist> = {
-    view: 'card minimal',
-    fields: ['Thumbnail', 'Title'],
+    view: 'card compact',
+    fields: ['Thumbnail', 'Title', 'Genre'],
 };
 
 export default function ArtistList({

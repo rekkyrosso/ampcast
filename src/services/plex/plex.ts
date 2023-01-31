@@ -1,5 +1,7 @@
 import {Except} from 'type-fest';
 import ItemType from 'types/ItemType';
+import MediaAlbum from 'types/MediaAlbum';
+import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
@@ -20,6 +22,11 @@ console.log('module::plex');
 const defaultLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
     fields: ['Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount'],
+};
+
+const albumTracksLayout: MediaSourceLayout<MediaItem> = {
+    view: 'details',
+    fields: ['Index', 'Artist', 'Title', 'Duration', 'PlayCount'],
 };
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
@@ -72,7 +79,10 @@ const plexMostPlayed: MediaSource<MediaItem> = {
     title: 'Most Played',
     icon: 'most-played',
     itemType: ItemType.Media,
-    layout: defaultLayout,
+    layout: {
+        view: 'details',
+        fields: ['Index', 'PlayCount', 'Artist', 'Title', 'Album', 'Track', 'Duration'],
+    },
 
     search(): Pager<MediaItem> {
         return new PlexPager(`/library/sections/${plexSettings.libraryId}/all`, {
@@ -83,9 +93,9 @@ const plexMostPlayed: MediaSource<MediaItem> = {
     },
 };
 
-const plexTopRated: MediaSource<MediaItem> = {
-    id: 'plex/top-rated',
-    title: 'Top Rated',
+const plexTopTracks: MediaSource<MediaItem> = {
+    id: 'plex/top-tracks',
+    title: 'Top Tracks',
     icon: 'star',
     itemType: ItemType.Media,
     layout: defaultLayout,
@@ -95,6 +105,38 @@ const plexTopRated: MediaSource<MediaItem> = {
             type: '10', // track
             'track.userRating>': '1',
             sort: 'track.userRating:desc,viewCount:desc,lastViewedAt:desc',
+        });
+    },
+};
+
+const plexTopAlbums: MediaSource<MediaAlbum> = {
+    id: 'plex/top-albums',
+    title: 'Top Albums',
+    icon: 'star',
+    itemType: ItemType.Album,
+    secondaryLayout: albumTracksLayout,
+
+    search(): Pager<MediaAlbum> {
+        return new PlexPager(`/library/sections/${plexSettings.libraryId}/all`, {
+            type: '9', // album
+            'album.userRating>': '1',
+            sort: 'album.userRating:desc,viewCount:desc,lastViewedAt:desc',
+        });
+    },
+};
+
+const plexTopArtists: MediaSource<MediaArtist> = {
+    id: 'plex/top-artists',
+    title: 'Top Artists',
+    icon: 'star',
+    itemType: ItemType.Artist,
+    defaultHidden: true,
+
+    search(): Pager<MediaArtist> {
+        return new PlexPager(`/library/sections/${plexSettings.libraryId}/all`, {
+            type: '8', // artist
+            'artist.userRating>': '1',
+            sort: 'artist.userRating:desc,viewCount:desc,lastViewedAt:desc',
         });
     },
 };
@@ -125,7 +167,15 @@ const plex: MediaService = {
         createRoot(ItemType.Artist, {title: 'Artists'}),
         createRoot(ItemType.Playlist, {title: 'Playlists', secondaryLayout: playlistItemsLayout}),
     ],
-    sources: [plexMusicVideo, plexMostPlayed, plexRecentlyPlayed, plexTopRated, plexPlaylists],
+    sources: [
+        plexMusicVideo,
+        plexMostPlayed,
+        plexRecentlyPlayed,
+        plexTopTracks,
+        plexTopAlbums,
+        plexTopArtists,
+        plexPlaylists,
+    ],
 
     canRate: () => false,
     canStore: () => false,

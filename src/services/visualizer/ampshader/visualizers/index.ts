@@ -15,10 +15,9 @@ import otherworldy from './otherworldy.frag';
 import quasicrystal from './quasicrystal.frag';
 import radiant from './radiant.frag';
 import rainbow from './rainbow.frag';
-import revision2015 from './revision2015.frag';
 import soapBubble from './soapBubble.frag';
 
-const shaderToy = `https://www.shadertoy.com/view`;
+const shaderToyView = `https://www.shadertoy.com/view`;
 
 const providerId = 'ampshader';
 
@@ -26,103 +25,97 @@ const visualizers: AmpShaderVisualizer[] = [
     {
         providerId,
         name: 'MandelKoch - Music Visualiser by Pelegefen',
-        externalUrl: `${shaderToy}/sslXzX`,
+        externalUrl: `${shaderToyView}/sslXzX`,
         shader: `${header}${mandelKoch}`,
     },
     {
         providerId,
-        name: 'Revision 2015 Livecoding Round 1 by mu6k',
-        externalUrl: `${shaderToy}/ltj3W1`,
-        shader: `${header}${revision2015}`,
-    },
-    {
-        providerId,
         name: 'Creation by Silexars',
-        externalUrl: `${shaderToy}/XsXXDn`,
+        externalUrl: `${shaderToyView}/XsXXDn`,
         shader: `${header}${creation}`,
     },
     {
         providerId,
         name: 'Nautilus by weyland',
-        externalUrl: `${shaderToy}/MdXGz4`,
+        externalUrl: `${shaderToyView}/MdXGz4`,
         shader: `${header}${nautilus}`,
     },
     {
         providerId,
         name: 'Quasicrystal by Ebanflo',
-        externalUrl: `${shaderToy}/4sXfzj`,
+        externalUrl: `${shaderToyView}/4sXfzj`,
         shader: `${header}${quasicrystal}`,
     },
     {
         providerId,
         name: 'Rainbow by avin',
-        externalUrl: `${shaderToy}/ttfGzH`,
+        externalUrl: `${shaderToyView}/ttfGzH`,
         shader: `${header}${rainbow}`,
     },
     {
         providerId,
         name: 'Audio-Visualizer by CoolerZ',
-        externalUrl: `${shaderToy}/wd3XzS`,
+        externalUrl: `${shaderToyView}/wd3XzS`,
         shader: `${header}${audioVisualizer}`,
     },
     {
         providerId,
         name: 'Radiant by TekF',
-        externalUrl: `${shaderToy}/4sVBWy`,
+        externalUrl: `${shaderToyView}/4sVBWy`,
         shader: `${header}${radiant}`,
     },
     {
         providerId,
         name: 'ambilight 2.0 by MillhausVKodi',
-        externalUrl: `${shaderToy}/ltc3WH`,
+        externalUrl: `${shaderToyView}/ltc3WH`,
         shader: `${header}${ambilight}`,
     },
     {
         providerId,
         name: 'dot grid thing by laney',
-        externalUrl: `${shaderToy}/Xd2cRG`,
+        externalUrl: `${shaderToyView}/Xd2cRG`,
         shader: `${header}${dotGridThing}`,
     },
     {
         providerId,
         name: 'Bubbles by liyouvane',
-        externalUrl: `${shaderToy}/llXBWB`,
+        externalUrl: `${shaderToyView}/llXBWB`,
         shader: `${header}${bubbles}`,
     },
     {
         providerId,
         name: 'Soap Bubble by Ruzzyr',
-        externalUrl: `${shaderToy}/XtVSDt`,
+        externalUrl: `${shaderToyView}/XtVSDt`,
         shader: `${header}${soapBubble}`,
     },
     {
         providerId,
         name: 'Fractal Land by Kali',
-        externalUrl: `${shaderToy}/XsBXWt`,
+        externalUrl: `${shaderToyView}/XsBXWt`,
         shader: `${header}${fractalLand}`,
     },
     {
         providerId,
         name: 'Music MandelBox Colour by pixelbeast',
-        externalUrl: `${shaderToy}/4s33Rj`,
+        externalUrl: `${shaderToyView}/4s33Rj`,
         shader: `${header}${musicMandelBoxColour}`,
     },
     {
         providerId,
         name: 'FFT-IFS by nshelton',
-        externalUrl: `${shaderToy}/4lyXWW`,
+        externalUrl: `${shaderToyView}/4lyXWW`,
         shader: `${header}${fftIfs}`,
     },
     {
         providerId,
         name: 'I/O by movAX13h',
-        externalUrl: `${shaderToy}/XsfGDS`,
+        externalUrl: `${shaderToyView}/XsfGDS`,
         shader: `${header}${io}`,
     },
     {
         providerId,
         name: 'Otherworldy by lherm',
-        externalUrl: `${shaderToy}/MlySWd`,
+        externalUrl: `${shaderToyView}/MlySWd`,
         shader: `${header}${otherworldy}`,
     },
 ];

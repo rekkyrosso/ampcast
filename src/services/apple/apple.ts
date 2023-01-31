@@ -1,7 +1,6 @@
 import {Except} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
-import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
@@ -20,11 +19,6 @@ console.log('module::apple');
 const defaultLayout: MediaSourceLayout<MediaItem> = {
     view: 'card',
     fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
-};
-
-const defaultArtistLayout: MediaSourceLayout<MediaArtist> = {
-    view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'Genre'],
 };
 
 export const appleMusicVideos: MediaSource<MediaItem> = {
@@ -137,7 +131,7 @@ const apple: MediaService = {
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
-        createRoot(ItemType.Artist, {title: 'Artists', layout: defaultArtistLayout}),
+        createRoot(ItemType.Artist, {title: 'Artists'}),
         createRoot(ItemType.Playlist, {title: 'Playlists'}),
     ],
     sources: [

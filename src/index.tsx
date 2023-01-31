@@ -1,6 +1,7 @@
 import 'styles/index.scss';
 import React from 'react';
 import {createRoot} from 'react-dom/client';
+import DesktopWarning from 'components/DesktopWarning';
 import MediaLibrary from 'components/MediaLibrary';
 import MediaPlayback from 'components/MediaPlayback';
 import Splitter from 'components/Splitter';
@@ -12,7 +13,6 @@ import useMediaSession from 'hooks/useMediaSession';
 import useGlobalActions from 'hooks/useGlobalActions';
 import useStoragePersistence from 'hooks/useStoragePersistence';
 import 'styles/layout.scss';
-import DesktopWarning from 'components/DesktopWarning';
 
 console.log('module::App');
 

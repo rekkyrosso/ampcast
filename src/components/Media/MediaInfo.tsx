@@ -48,6 +48,7 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
                 <Owner owner={item.owner} src={item.src} />
                 <Actions item={item} />
             </div>
+            <Blurb description={item.description} />
             <ExternalView url={item.externalUrl} src={item.src} />
         </article>
     );
@@ -63,6 +64,7 @@ function AlbumInfo({item: album}: MediaInfoProps<MediaAlbum>) {
                 <Year year={album.year} />
                 <Actions item={album} />
             </div>
+            <Blurb description={album.description} />
             <ExternalView url={album.externalUrl} src={album.src} />
         </article>
     );
@@ -74,8 +76,11 @@ function ArtistInfo({item: artist}: MediaInfoProps<MediaArtist>) {
             <div className="media-info-main">
                 <Thumbnail item={artist} />
                 <Title title={artist.title} />
+                <Genre genres={artist.genres} />
+                <Country country={artist.country} />
                 <Actions item={artist} />
             </div>
+            <Blurb description={artist.description} />
             <ExternalView url={artist.externalUrl} src={artist.src} />
         </article>
     );
@@ -88,6 +93,7 @@ function PlaylistInfo({item: playlist}: MediaInfoProps<MediaPlaylist>) {
                 <Thumbnail item={playlist} />
                 <Title title={playlist.title} />
                 <Owner owner={playlist.owner} src={playlist.src} />
+                <Genre genres={playlist.genres} />
                 <Actions item={playlist} />
             </div>
             <Blurb description={playlist.description} />
@@ -205,6 +211,22 @@ export function Year<T extends MediaItem>({year}: Pick<T, 'year'>) {
 
 export function Duration<T extends MediaItem>({duration}: Pick<T, 'duration'>) {
     return <time className="duration">{formatTime(duration)}</time>;
+}
+
+export function Genre<T extends MediaItem>({genres}: Pick<T, 'genres'>) {
+    if (genres) {
+        return <p className="genre">Genre: {genres.join(', ')}</p>;
+    } else {
+        return null;
+    }
+}
+
+export function Country<T extends MediaArtist>({country}: Pick<T, 'country'>) {
+    if (country) {
+        return <p className="country">Country: {country}</p>;
+    } else {
+        return null;
+    }
 }
 
 export function Thumbnail(props: CoverArtProps) {

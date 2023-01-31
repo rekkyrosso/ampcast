@@ -1,6 +1,7 @@
 import {Except} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
+import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
@@ -53,6 +54,21 @@ const jellyfinLikedAlbums: MediaSource<MediaAlbum> = {
         return createItemsPager({
             Filters: 'IsFavorite',
             IncludeItemTypes: 'MusicAlbum',
+        });
+    },
+};
+
+const jellyfinLikedArtists: MediaSource<MediaArtist> = {
+    id: 'jellyfin/liked-artists',
+    title: 'Liked Artists',
+    icon: 'heart',
+    itemType: ItemType.Artist,
+    defaultHidden: true,
+
+    search(): Pager<MediaArtist> {
+        return new JellyfinPager('Artists/AlbumArtists', {
+            isFavorite: true,
+            UserId: jellyfinSettings.userId,
         });
     },
 };
@@ -124,6 +140,7 @@ const jellyfin: MediaService = {
         jellyfinRecentlyPlayed,
         jellyfinLikedSongs,
         jellyfinLikedAlbums,
+        jellyfinLikedArtists,
         jellyfinPlaylists,
     ],
 
@@ -215,7 +232,11 @@ function createSearchPager<T extends MediaObject>(
     if (q) {
         const params: Record<string, string> = {...filters, SearchTerm: q};
         if (itemType === ItemType.Artist) {
-            return new JellyfinPager('Artists', params, options);
+            return new JellyfinPager(
+                'Artists/AlbumArtists',
+                {...params, UserId: jellyfinSettings.userId},
+                options
+            );
         } else {
             switch (itemType) {
                 case ItemType.Media:

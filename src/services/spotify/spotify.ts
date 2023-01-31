@@ -53,11 +53,6 @@ const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Index', 'Artist', 'Title', 'Album', 'Track', 'Duration'],
 };
 
-const defaultArtistLayout: MediaSourceLayout<MediaArtist> = {
-    view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'Genre'],
-};
-
 const spotifyRecentlyPlayed: MediaSource<MediaItem> = {
     id: 'spotify/recently-played',
     title: 'Recently Played',
@@ -107,7 +102,6 @@ const spotifyTopArtists: MediaSource<MediaArtist> = {
     title: 'Top Artists',
     icon: 'star',
     itemType: ItemType.Artist,
-    layout: defaultArtistLayout,
     defaultHidden: true,
 
     search(): Pager<MediaArtist> {
@@ -227,7 +221,7 @@ const spotify: MediaService = {
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
-        createRoot(ItemType.Artist, {title: 'Artists', layout: defaultArtistLayout}),
+        createRoot(ItemType.Artist, {title: 'Artists'}),
         createRoot(ItemType.Playlist, {
             title: 'Playlists',
             secondaryLayout: playlistItemsLayout,

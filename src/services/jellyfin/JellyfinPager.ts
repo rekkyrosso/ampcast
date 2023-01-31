@@ -61,8 +61,8 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         const params = {
             IncludeItemTypes: 'Audio',
             Fields: 'AudioInfo,Genres',
-            Recursive: 'true',
-            ImageTypeLimit: '1',
+            Recursive: true,
+            ImageTypeLimit: 1,
             EnableImageTypes: 'Primary',
             ...this.params,
             Limit: String(this.pageSize),
@@ -103,6 +103,8 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             src: `jellyfin:album:${artist.Id}`,
             externalUrl: '',
             title: artist.Name || '',
+            playCount: artist.UserData?.PlayCount || undefined,
+            rating: artist.UserData?.IsFavorite ? 1 : 0,
             genres: artist.Genres || undefined,
             thumbnails: this.createThumbnails(artist.Id),
             pager: this.createAlbumsPager(artist),
@@ -179,9 +181,9 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     private createThumbnails(thumbnailId: string | null | undefined): Thumbnail[] | undefined {
         return thumbnailId
             ? [
-                  this.createThumbnail(thumbnailId, 60),
                   this.createThumbnail(thumbnailId, 120),
                   this.createThumbnail(thumbnailId, 240),
+                  this.createThumbnail(thumbnailId, 360),
                   this.createThumbnail(thumbnailId, 480),
               ]
             : undefined;

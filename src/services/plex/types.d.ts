@@ -26,7 +26,7 @@ declare namespace plex {
 
     interface MusicObject {
         readonly Genre: readonly Tag[];
-        readonly country: readonly Tag[];
+        readonly Country: readonly Tag[];
         readonly popularTracks: readonly Track[];
         readonly addedAt: number; // Date
         readonly art: string;

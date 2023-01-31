@@ -13,7 +13,7 @@ export default interface MediaService extends Auth {
     readonly url: string;
     readonly roots: readonly MediaSource[];
     readonly sources: readonly MediaSource[];
-    readonly scrobbler?: boolean;
+    readonly isScrobbler?: boolean;
     readonly defaultHidden?: boolean;
     readonly defaultNoScrobble?: boolean;
     canRate: (item: MediaObject, inline?: boolean) => boolean;

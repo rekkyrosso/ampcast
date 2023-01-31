@@ -15,6 +15,7 @@ export default interface BaseMediaObject {
     readonly globalPlayCount?: number;
     readonly thumbnails?: Thumbnail[];
     readonly inLibrary?: boolean;
+    readonly description?: string;
     readonly owner?: {
         readonly name: string;
         readonly url: string;

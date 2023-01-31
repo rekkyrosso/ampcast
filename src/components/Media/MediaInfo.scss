@@ -56,7 +56,7 @@
     .blurb {
         margin-top: 1em;
         font-size: 0.75em;
-        max-height: 14em;
+        max-height: 15em;
     }
 
     .icon-buttons {
@@ -67,7 +67,7 @@
         font-size: 1.375em;
     }
 
-    .media-item-info .icon-button-library-add {
-        display: none;
+    &.artist-info .cover-art {
+        border-radius: 50%;
     }
 }

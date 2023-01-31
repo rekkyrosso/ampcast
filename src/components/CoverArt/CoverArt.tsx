@@ -7,19 +7,18 @@ import {findListen} from 'services/localdb/listens';
 import {getCoverArtThumbnails} from 'services/musicbrainz/coverart';
 import plexSettings from 'services/plex/plexSettings';
 import Icon, {IconName} from 'components/Icon';
-import {partition} from 'utils';
 import './CoverArt.scss';
 
 export interface CoverArtProps {
     className?: string;
     item: MediaObject;
-    maxSize?: number;
+    size?: number;
 }
 
-export default function CoverArt({item, maxSize, className = ''}: CoverArtProps) {
+export default function CoverArt({item, size, className = ''}: CoverArtProps) {
     const [thumbnails, setThumbnails] = useState(() => item.thumbnails);
     const hasThumbnails = !!thumbnails?.length;
-    const thumbnail = hasThumbnails ? findBestThumbnail(thumbnails, maxSize) : undefined;
+    const thumbnail = hasThumbnails ? findBestThumbnail(thumbnails, size) : undefined;
     const src = thumbnail ? getThumbnailUrl(thumbnail) : '';
     const fallback = getFallbackIcon(item.itemType);
 
@@ -37,9 +36,7 @@ export default function CoverArt({item, maxSize, className = ''}: CoverArtProps)
         }
     }, [hasThumbnails, item]);
 
-    const handleError = useCallback((event: React.SyntheticEvent) => {
-        (event.target as HTMLElement).removeAttribute('src');
-    }, []);
+    const handleError = useCallback(() => setThumbnails(undefined), []);
 
     return (
         <figure className={`cover-art ${className}`}>
@@ -52,22 +49,20 @@ export default function CoverArt({item, maxSize, className = ''}: CoverArtProps)
     );
 }
 
-function findBestThumbnail(thumbnails: Thumbnail[], maxSize = 360, aspectRatio = 1): Thumbnail {
-    thumbnails.sort((a, b) => b.width * b.height - a.width * a.height); // permanent sort
-    const isNotTooBig = (thumbnail: Thumbnail) =>
-        thumbnail.width <= maxSize && thumbnail.height <= maxSize;
-    const [smallEnough, tooBig] = partition(thumbnails, isNotTooBig);
-    if (smallEnough.length > 0) {
-        smallEnough.sort((thumbnail1, thumbnail2) => {
-            const aspectRatio1 = thumbnail1.width / thumbnail1.height;
-            const proximity1 = Math.abs(aspectRatio1 - aspectRatio);
-            const aspectRatio2 = thumbnail2.width / thumbnail2.height;
-            const proximity2 = Math.abs(aspectRatio2 - aspectRatio);
-            return proximity1 - proximity2;
-        });
-        return smallEnough[0];
+function findBestThumbnail(thumbnails: Thumbnail[], size = 240): Thumbnail {
+    if (thumbnails.length === 1) {
+        return thumbnails[0];
     }
-    return tooBig[tooBig.length - 1];
+    let matches = thumbnails.filter((thumbnail) => getAspectRatio(thumbnail) < 1.34);
+    if (matches.length === 0) {
+        matches = thumbnails.filter((thumbnail) => getAspectRatio(thumbnail) < 1.5);
+        if (matches.length === 0) {
+            matches = thumbnails;
+        }
+    }
+    size *= window.devicePixelRatio;
+    matches.sort((a, b) => Math.abs(a.height - size) - Math.abs(b.height - size));
+    return matches[0];
 }
 
 export function getThumbnailUrl(thumbnail: Thumbnail): string {
@@ -85,4 +80,8 @@ function getFallbackIcon(type: ItemType): IconName | undefined {
         case ItemType.Media:
             return 'note';
     }
+}
+
+function getAspectRatio({width, height}: Thumbnail): number {
+    return width / height;
 }

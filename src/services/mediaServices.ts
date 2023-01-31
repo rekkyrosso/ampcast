@@ -21,7 +21,7 @@ export function getService(serviceId: string): MediaService | undefined {
 
 export function isPlayableService(serviceId: string): boolean {
     const service = getService(serviceId);
-    return service ? !service.scrobbler : false;
+    return service ? !service.isScrobbler : false;
 }
 
 export function isPlayableSrc(src: string): boolean {

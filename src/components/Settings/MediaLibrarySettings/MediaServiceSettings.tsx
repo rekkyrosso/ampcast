@@ -24,7 +24,7 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
                 panel: <PinnedSettings service={service} />,
             });
         }
-        if (service.scrobbler) {
+        if (service.isScrobbler) {
             tabs.push({
                 tab: 'Scrobbling',
                 panel: <ScrobblingSettings service={service} />,

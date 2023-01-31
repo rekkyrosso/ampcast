@@ -105,7 +105,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             src: `plex:audio:${part.key}`,
-            externalUrl: '',
+            externalUrl: this.getExternalUrl(`/library/metadata/${track.parentRatingKey}`),
             title: track.title,
             addedAt: track.addedAt,
             artists: track.originalTitle
@@ -132,8 +132,9 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Album,
             src: `plex:album:${album.ratingKey}`,
-            externalUrl: '',
+            externalUrl: this.getExternalUrl(`/library/metadata/${album.ratingKey}`),
             title: album.title || '',
+            description: album.summary,
             addedAt: album.addedAt,
             artist: album.parentTitle,
             rating: album.userRating,
@@ -153,8 +154,10 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Artist,
             src: `plex:album:${artist.ratingKey}`,
-            externalUrl: '',
+            externalUrl: this.getExternalUrl(`/library/metadata/${artist.ratingKey}`),
             title: artist.title,
+            description: artist.summary,
+            country: artist.Country?.map((country) => country.tag).join(', '),
             addedAt: artist.addedAt,
             rating: artist.userRating,
             genres: artist.Genre?.map((genre) => genre.tag),
@@ -174,7 +177,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             itemType: ItemType.Media,
             mediaType: MediaType.Video,
             src: `plex:video:${part.key}`,
-            externalUrl: '',
+            externalUrl: video.art ? this.getExternalUrl(video.art.replace(/\/art\/\d+$/, '')) : '',
             title: video.title || 'Video',
             addedAt: video.addedAt,
             artists: video.grandparentTitle ? [video.grandparentTitle] : undefined,
@@ -189,12 +192,12 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaPlaylist(playlist: plex.Playlist): MediaPlaylist {
-        const src= `plex:playlist:${playlist.key}`;
+        const src = `plex:playlist:${playlist.key}`;
 
         return {
             itemType: ItemType.Playlist,
             src: `plex:playlist:${playlist.key}`,
-            externalUrl: '',
+            externalUrl: this.getExternalUrl(`/playlists/${playlist.ratingKey}`, 'playlist'),
             title: playlist.title,
             description: playlist.summary,
             addedAt: playlist.addedAt,
@@ -211,12 +214,22 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         };
     }
 
+    private get webHost(): string {
+        const clientIdentifier = plexSettings.server?.clientIdentifier;
+        return clientIdentifier ? `https://app.plex.tv/desktop/#!/server/${clientIdentifier}` : '';
+    }
+
+    private getExternalUrl(key: string, path = 'details'): string {
+        const webHost = this.webHost;
+        return webHost ? `${webHost}/${path}?key=${encodeURIComponent(key)}` : '';
+    }
+
     private createThumbnails(thumb: string): Thumbnail[] | undefined {
         return thumb
             ? [
-                  this.createThumbnail(thumb, 60),
                   this.createThumbnail(thumb, 120),
                   this.createThumbnail(thumb, 240),
+                  this.createThumbnail(thumb, 360),
                   this.createThumbnail(thumb, 480),
               ]
             : undefined;

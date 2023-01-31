@@ -43,6 +43,7 @@ const listenbrainzLovedTracks: MediaSource<MediaItem> = {
     title: 'Loved Tracks',
     icon: 'heart',
     itemType: ItemType.Media,
+    defaultHidden: true,
     layout: {
         view: 'card',
         fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear'],
@@ -113,7 +114,7 @@ const listenbrainz: MediaService = {
     name: 'ListenBrainz',
     icon: 'listenbrainz',
     url: 'https://listenbrainz.org/',
-    scrobbler: true,
+    isScrobbler: true,
     roots: [listenbrainzRecentlyPlayed],
     sources: [
         listenbrainzTopTracks,
