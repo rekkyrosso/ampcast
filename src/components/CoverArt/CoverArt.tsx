@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useState} from 'react';
 import {from} from 'rxjs';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
+import MediaType from 'types/MediaType';
 import Thumbnail from 'types/Thumbnail';
 import {findListen} from 'services/localdb/listens';
 import {getCoverArtThumbnails} from 'services/musicbrainz/coverart';
@@ -16,11 +17,12 @@ export interface CoverArtProps {
 }
 
 export default function CoverArt({item, size, className = ''}: CoverArtProps) {
+    const [inError, setInError] = useState(false);
     const [thumbnails, setThumbnails] = useState(() => item.thumbnails);
     const hasThumbnails = !!thumbnails?.length;
     const thumbnail = hasThumbnails ? findBestThumbnail(thumbnails, size) : undefined;
     const src = thumbnail ? getThumbnailUrl(thumbnail) : '';
-    const fallback = getFallbackIcon(item.itemType);
+    const fallback = getFallbackIcon(item);
 
     useEffect(() => {
         if (!hasThumbnails) {
@@ -36,11 +38,11 @@ export default function CoverArt({item, size, className = ''}: CoverArtProps) {
         }
     }, [hasThumbnails, item]);
 
-    const handleError = useCallback(() => setThumbnails(undefined), []);
+    const handleError = useCallback(() => setInError(true), []);
 
     return (
         <figure className={`cover-art ${className}`}>
-            {src ? (
+            {src && !inError ? (
                 <img className="cover-art-image" src={src} onError={handleError} />
             ) : fallback ? (
                 <Icon className="cover-art-image" name={fallback} />
@@ -69,16 +71,26 @@ export function getThumbnailUrl(thumbnail: Thumbnail): string {
     return thumbnail.url.replace('{plex-token}', plexSettings.serverToken);
 }
 
-function getFallbackIcon(type: ItemType): IconName | undefined {
-    switch (type) {
+function getFallbackIcon(item: MediaObject): IconName {
+    switch (item.itemType) {
         case ItemType.Artist:
-            return 'person';
+            return 'artist';
 
         case ItemType.Album:
             return 'album';
 
         case ItemType.Media:
-            return 'note';
+            if (item.mediaType === MediaType.Video) {
+                return 'video';
+            } else {
+                return 'audio';
+            }
+
+        case ItemType.Playlist:
+            return 'playlist';
+
+        case ItemType.Folder:
+            return 'folder';
     }
 }
 

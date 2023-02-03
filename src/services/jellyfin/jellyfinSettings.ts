@@ -25,6 +25,14 @@ export default {
         return deviceId;
     },
 
+    get serverId(): string {
+        return storage.getString('serverId');
+    },
+
+    set serverId(serverId: string) {
+        storage.setString('serverId', serverId);
+    },
+
     get token(): string {
         return storage.getString('token');
     },
@@ -42,6 +50,7 @@ export default {
     },
 
     clear(): void {
+        storage.removeItem('serverId');
         storage.removeItem('userId');
         storage.removeItem('token');
     },

@@ -202,12 +202,9 @@ function Tree<T>({
     const handleResize = useCallback(({height}: ScrollableClient) => setHeight(height), []);
     const handleScroll = useCallback(({top}: ScrollablePosition) => setScrollTop(top), []);
 
-    useOnResize(
-        cursorRef,
-        useCallback(() => {
-            setRowHeight(cursorRef.current!.getBoundingClientRect().height);
-        }, [])
-    );
+    useOnResize(cursorRef, () => {
+        setRowHeight(cursorRef.current!.getBoundingClientRect().height);
+    });
 
     return (
         <div

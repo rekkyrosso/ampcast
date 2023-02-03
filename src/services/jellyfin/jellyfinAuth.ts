@@ -36,7 +36,8 @@ export async function login(): Promise<void> {
         try {
             const returnValue = await showJellyfinLoginDialog();
             if (returnValue) {
-                const {userId, token} = JSON.parse(returnValue);
+                const {serverId, userId, token} = JSON.parse(returnValue);
+                jellyfinSettings.serverId = serverId;
                 jellyfinSettings.userId = userId;
                 setAccessToken(token);
             }

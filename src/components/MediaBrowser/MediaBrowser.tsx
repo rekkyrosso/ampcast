@@ -3,6 +3,7 @@ import {ErrorBoundary} from 'react-error-boundary';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
+import MediaFolderItem from 'types/MediaFolderItem';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
@@ -23,6 +24,7 @@ import useSearch from 'hooks/useSearch';
 import './MediaBrowser.scss';
 import AlbumBrowser from './AlbumBrowser';
 import ArtistBrowser from './ArtistBrowser';
+import FolderItemBrowser from './FolderItemBrowser';
 import MediaItemBrowser from './MediaItemBrowser';
 import MediaSourceSelector from './MediaSourceSelector';
 import PlaylistBrowser from './PlaylistBrowser';
@@ -135,6 +137,11 @@ export function PagedBrowser<T extends MediaObject>(props: PagedBrowserProps<T>)
                     <PlaylistBrowser {...(props as unknown as PagedBrowserProps<MediaPlaylist>)} />
                 );
             }
+
+        case ItemType.Folder:
+            return (
+                <FolderItemBrowser {...(props as unknown as PagedBrowserProps<MediaFolderItem>)} />
+            );
 
         default:
             return <MediaItemBrowser {...(props as unknown as PagedBrowserProps<MediaItem>)} />;

@@ -1,4 +1,4 @@
-import type {ListViewLayout} from 'components/ListView'
+import type {ListViewLayout} from 'components/ListView';
 import MediaObject from './MediaObject';
 
 export type Field =
@@ -11,6 +11,8 @@ export type Field =
     | 'AlbumAndYear'
     | 'Track'
     | 'Duration'
+    | 'FileIcon'
+    | 'FileName'
     | 'PlayCount'
     | 'TrackCount'
     | 'Views'

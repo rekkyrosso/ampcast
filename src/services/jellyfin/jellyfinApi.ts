@@ -22,6 +22,9 @@ async function fetch(path: string, init: RequestInit): Promise<Response> {
     if (!token) {
         throw Error('No access token.');
     }
+    if (path.startsWith('/')) {
+        path = path.slice(1);
+    }
     init.headers = {
         ...init.headers,
         'X-Emby-Authorization': `MediaBrowser Client="${__app_name__}", Version="${__app_version__}", Device="${device}", DeviceId="${deviceId}", Token="${token}"`,
@@ -30,7 +33,7 @@ async function fetch(path: string, init: RequestInit): Promise<Response> {
     return window.fetch(`${jellyfinSettings.host}/${path}`, init);
 }
 
-export function getPlayableUrlFromSrc(src: string): string {
+function getPlayableUrlFromSrc(src: string): string {
     const {host, userId, token, deviceId} = jellyfinSettings;
     if (host && userId && token && deviceId) {
         const [, , trackId] = src.split(':');

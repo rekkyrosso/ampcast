@@ -85,11 +85,11 @@ export class LastFmApi {
         const params: Record<string, string> = {};
         params.track = item.title;
         params.artist = item.artists![0];
-        if (item.album) {
+        if (item.album && item.album !== '[Unknown Album]') {
             params.album = item.album;
-        }
-        if (item.albumArtist) {
-            params.albumArtist = item.albumArtist;
+            if (item.albumArtist) {
+                params.albumArtist = item.albumArtist;
+            }
         }
         if (item.duration) {
             params.duration = String(Math.round(item.duration));

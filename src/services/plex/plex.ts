@@ -1,7 +1,9 @@
-import {Except} from 'type-fest';
+import {Except, SetOptional, Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
+import MediaFolder from 'types/MediaFolder';
+import MediaFolderItem from 'types/MediaFolderItem';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
@@ -9,7 +11,7 @@ import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
-import {Pin} from 'types/Pin';
+import Pin from 'types/Pin';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import {uniqBy} from 'utils';
@@ -156,6 +158,36 @@ const plexPlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
+const plexFolders: MediaSource<MediaFolderItem> = {
+    id: 'plex/folders',
+    title: 'Folders',
+    icon: 'folder',
+    itemType: ItemType.Folder,
+    defaultHidden: true,
+
+    search({
+        key = `library/sections/${plexSettings.libraryId}/folder`,
+    }: {key?: string} = {}): Pager<MediaFolderItem> {
+        const root: Writable<SetOptional<MediaFolder, 'pager'>> = {
+            itemType: ItemType.Folder,
+            src: '',
+            externalUrl: '',
+            title: 'Folders',
+            fileName: 'Folders',
+            parent: null,
+        };
+
+        root.pager = new PlexPager<MediaFolderItem>(
+            key,
+            {includeCollections: '1'},
+            undefined,
+            root as MediaFolder
+        );
+
+        return root.pager;
+    },
+};
+
 const plex: MediaService = {
     id: 'plex',
     name: 'Plex',
@@ -175,6 +207,7 @@ const plex: MediaService = {
         plexTopAlbums,
         plexTopArtists,
         plexPlaylists,
+        plexFolders,
     ],
 
     canRate: () => false,

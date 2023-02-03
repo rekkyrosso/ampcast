@@ -10,6 +10,7 @@ export default interface MediaItem extends BaseMediaObject {
     readonly artists?: readonly string[];
     readonly albumArtist?: string;
     readonly album?: string;
+    readonly disc?: number;
     readonly track?: number;
     readonly year?: number;
     readonly aspectRatio?: number;
@@ -19,6 +20,7 @@ export default interface MediaItem extends BaseMediaObject {
     readonly recording_msid?: string; // MusicBrainz ID
     readonly release_mbid?: string;
     readonly artist_mbids?: string[];
+    readonly fileName?: string;
     readonly link?: {
         readonly src: string;
         readonly externalUrl: string;

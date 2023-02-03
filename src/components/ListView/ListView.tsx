@@ -51,6 +51,7 @@ export interface ListViewCardLayout<T> {
 export type ListViewLayout<T> = ListViewDetailsLayout<T> | ListViewCardLayout<T>;
 
 export interface ListViewHandle {
+    focus: () => void;
     selectAll: () => void;
 }
 
@@ -154,6 +155,7 @@ export default function ListView<T>({
     useEffect(() => {
         if (listViewRef) {
             listViewRef.current = {
+                focus: () => containerRef.current!.focus(),
                 selectAll,
             };
         }
@@ -194,6 +196,12 @@ export default function ListView<T>({
             selectAt(0);
         }
     }, [isEmpty, wasEmpty, selectAt]);
+
+    useLayoutEffect(() => {
+        if (!multiSelect && selectedItems.length > 1) {
+            selectAt(rowIndex);
+        }
+    }, [multiSelect, rowIndex, selectedItems, selectAt]);
 
     const handleKeyDown = useCallback(
         (event: React.KeyboardEvent) => {
@@ -362,13 +370,11 @@ export default function ListView<T>({
         setScrollTop(top);
     }, []);
 
-    useOnResize(
-        cursorRef,
-        useCallback(() => {
-            setRowHeight(cursorRef.current!.getBoundingClientRect().height);
-        }, [])
-    );
+    useOnResize(cursorRef, () => {
+        setRowHeight(cursorRef.current!.getBoundingClientRect().height);
+    });
 
+    // TODO: This should probably be on `MediaList`.
     useLayoutEffect(() => {
         containerRef.current!.classList.toggle('thin', fontSize * 20 > clientWidth);
     }, [fontSize, clientWidth]);

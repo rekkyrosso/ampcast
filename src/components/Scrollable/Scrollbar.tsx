@@ -52,22 +52,16 @@ function Scrollbar({
     useLayoutEffect(() => onChange?.(position), [position, onChange]);
     useLayoutEffect(() => onResize?.(size), [size, onResize]);
 
-    useOnResize(
-        trackRef,
-        useCallback(() => {
-            const rect = trackRef.current!.getBoundingClientRect();
-            setTrackSize(vertical ? rect.height : rect.width);
-            setSize(vertical ? rect.width : rect.height);
-        }, [vertical])
-    );
+    useOnResize(trackRef, () => {
+        const rect = trackRef.current!.getBoundingClientRect();
+        setTrackSize(vertical ? rect.height : rect.width);
+        setSize(vertical ? rect.width : rect.height);
+    });
 
-    useOnResize(
-        thumbRef,
-        useCallback(() => {
-            const rect = thumbRef.current!.getBoundingClientRect();
-            setThumbSize(vertical ? rect.height : rect.width);
-        }, [vertical])
-    );
+    useOnResize(thumbRef, () => {
+        const rect = thumbRef.current!.getBoundingClientRect();
+        setThumbSize(vertical ? rect.height : rect.width);
+    });
 
     const startScroll = useCallback(
         (target: HTMLElement, scrollBy: number) => {

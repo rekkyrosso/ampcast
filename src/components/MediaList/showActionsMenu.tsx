@@ -32,14 +32,14 @@ function ActionsMenu<T extends MediaObject>({items, ...props}: ActionsMenuProps<
     const isSingleItem = items.length === 1 && !!item;
     const [serviceId] = item?.src.split(':') || [];
     const service = getService(serviceId);
-    const isPlayable = items.every(
+    const allPlayable = items.every(
         (item) => item.itemType === ItemType.Media || item.itemType === ItemType.Album
     );
 
     return (
         <PopupMenu {...props} className="actions">
             <ul className="actions-menu-items">
-                {isPlayable ? (
+                {allPlayable ? (
                     <>
                         <PopupMenuItem<Action>
                             label="Queue"
@@ -59,9 +59,9 @@ function ActionsMenu<T extends MediaObject>({items, ...props}: ActionsMenuProps<
                             acceleratorKey={`${browser.ctrlKeyStr}+Enter`}
                             key={Action.PlayNow}
                         />
+                        <PopupMenuSeparator />
                     </>
                 ) : null}
-                <PopupMenuSeparator />
                 {isSingleItem && item.itemType === ItemType.Playlist ? (
                     <PopupMenuItem<Action>
                         label={item.isPinned ? 'Unpin' : 'Pin'}
@@ -83,14 +83,16 @@ function ActionsMenu<T extends MediaObject>({items, ...props}: ActionsMenuProps<
                         key={Action.AddToLibrary}
                     />
                 ) : null}
-                <PopupMenuSeparator />
                 {isSingleItem ? (
-                    <PopupMenuItem<Action>
-                        label="Info..."
-                        action={Action.Info}
-                        acceleratorKey={`${browser.ctrlKeyStr}+I`}
-                        key={Action.Info}
-                    />
+                    <>
+                        <PopupMenuSeparator />
+                        <PopupMenuItem<Action>
+                            label="Info..."
+                            action={Action.Info}
+                            acceleratorKey={`${browser.ctrlKeyStr}+I`}
+                            key={Action.Info}
+                        />
+                    </>
                 ) : null}
             </ul>
         </PopupMenu>

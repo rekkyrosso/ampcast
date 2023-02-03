@@ -1,16 +1,23 @@
 import type {Observable} from 'rxjs';
+import {map} from 'rxjs';
+import {SetOptional, Writable} from 'type-fest';
 import type {BaseItemDto} from '@jellyfin/client-axios/dist/models';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
+import MediaFolder from 'types/MediaFolder';
+import MediaFolderItem from 'types/MediaFolderItem';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
+import DualPager from 'services/pagers/DualPager';
 import OffsetPager from 'services/pagers/OffsetPager';
+import SimplePager from 'services/pagers/SimplePager';
 import pinStore from 'services/pins/pinStore';
+import {ParentOf} from 'utils';
 import jellyfinSettings from './jellyfinSettings';
 import jellyfinApi from './jellyfinApi';
 
@@ -24,7 +31,8 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     constructor(
         private readonly path: string,
         private readonly params: Record<string, unknown> = {},
-        options?: Partial<PagerConfig>
+        options?: Partial<PagerConfig>,
+        private readonly parent?: ParentOf<T>
     ) {
         this.pageSize = options?.pageSize || 100;
         this.pager = new OffsetPager<T>((pageNumber) => this.fetch(pageNumber), {
@@ -38,7 +46,20 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     }
 
     observeItems(): Observable<readonly T[]> {
-        return this.pager.observeItems();
+        return this.pager.observeItems().pipe(
+            map((items) =>
+                this.parent?.itemType === ItemType.Folder
+                    ? ((items as unknown as MediaFolderItem[]).sort((a, b) => {
+                          if (a.itemType === b.itemType) {
+                              return 0;
+                          } else if (a.itemType === ItemType.Folder) {
+                              return -1;
+                          }
+                          return 1;
+                      }) as unknown as readonly T[])
+                    : items
+            )
+        );
     }
 
     observeSize(): Observable<number> {
@@ -60,7 +81,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     private async fetch(pageNumber: number): Promise<Page<T>> {
         const params = {
             IncludeItemTypes: 'Audio',
-            Fields: 'AudioInfo,Genres',
+            Fields: 'AudioInfo,Genres,Path',
             Recursive: true,
             ImageTypeLimit: 1,
             EnableImageTypes: 'Primary',
@@ -72,7 +93,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         const response = await jellyfinApi.get(this.path, params);
 
         if (!response.ok) {
-            throw Error(`${response.status}: ${response.statusText}`);
+            throw response;
         }
 
         const {Items: tracks, TotalRecordCount: total} = await response.json();
@@ -82,18 +103,22 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createItem(item: BaseItemDto): T {
-        switch (item.Type) {
-            case 'MusicArtist':
-                return this.createMediaArtist(item) as T;
+        if (this.parent?.itemType === ItemType.Folder && item.IsFolder) {
+            return this.createMediaFolder(item) as T;
+        } else {
+            switch (item.Type) {
+                case 'MusicArtist':
+                    return this.createMediaArtist(item) as T;
 
-            case 'MusicAlbum':
-                return this.createMediaAlbum(item) as T;
+                case 'MusicAlbum':
+                    return this.createMediaAlbum(item) as T;
 
-            case 'Playlist':
-                return this.createMediaPlaylist(item) as T;
+                case 'Playlist':
+                    return this.createMediaPlaylist(item) as T;
 
-            default:
-                return this.createMediaItemFromTrack(item) as T;
+                default:
+                    return this.createMediaItemFromTrack(item) as T;
+            }
         }
     }
 
@@ -101,7 +126,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Artist,
             src: `jellyfin:album:${artist.Id}`,
-            externalUrl: '',
+            externalUrl: this.getExternalUrl(artist),
             title: artist.Name || '',
             playCount: artist.UserData?.PlayCount || undefined,
             rating: artist.UserData?.IsFavorite ? 1 : 0,
@@ -115,7 +140,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Album,
             src: `jellyfin:album:${album.Id}`,
-            externalUrl: '',
+            externalUrl: this.getExternalUrl(album),
             title: album.Name || '',
             duration: album.RunTimeTicks ? album.RunTimeTicks / 10_000_000 : 0,
             playedAt: album.UserData?.LastPlayedDate
@@ -137,7 +162,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         return {
             src,
             itemType: ItemType.Playlist,
-            externalUrl: '',
+            externalUrl: this.getExternalUrl(playlist),
             title: playlist.Name || '',
             duration: playlist.RunTimeTicks ? playlist.RunTimeTicks / 10_000_000 : 0,
             playedAt: playlist.UserData?.LastPlayedDate
@@ -153,6 +178,19 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         };
     }
 
+    private createMediaFolder(folder: BaseItemDto): MediaFolder {
+        const mediaFolder: Writable<SetOptional<MediaFolder, 'pager'>> = {
+            itemType: ItemType.Folder,
+            src: `jellyfin:folder:${folder.Id}`,
+            title: folder.Name || '[unknown]',
+            fileName: this.getFileName(folder.Path || '') || folder.Name || '[unknown]',
+            externalUrl: '',
+            parent: (this.parent as ParentOf<MediaFolder>) || null,
+        };
+        mediaFolder.pager = this.createFolderPager(mediaFolder as MediaFolder);
+        return mediaFolder as MediaFolder;
+    }
+
     private createMediaItemFromTrack(track: BaseItemDto): MediaItem {
         const thumbnailId = track.ImageTags?.Primary ? track.Id : track.AlbumId;
 
@@ -160,7 +198,8 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             src: `jellyfin:audio:${track.Id}`,
-            externalUrl: '',
+            externalUrl: this.getExternalUrl(track),
+            fileName: this.getFileName(track.Path || '') || track.Name || '[unknown]',
             title: track.Name || '',
             duration: track.RunTimeTicks ? track.RunTimeTicks / 10_000_000 : 0,
             year: track.ProductionYear || undefined,
@@ -174,6 +213,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             artists: track.Artists || (track.AlbumArtist ? [track.AlbumArtist] : undefined),
             albumArtist: track.AlbumArtist || undefined,
             album: track.Album || undefined,
+            disc: track.Album ? track.ParentIndexNumber || undefined : undefined,
             track: track.Album ? track.IndexNumber || 0 : 0,
         };
     }
@@ -216,5 +256,40 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             MediaType: 'Audio',
             Fields: 'ChildCount',
         });
+    }
+
+    private createFolderPager(folder: MediaFolder): Pager<MediaFolderItem> {
+        const [, , id] = folder.src.split(':');
+        const folderPager = new JellyfinPager<MediaFolderItem>(
+            `Users/${jellyfinSettings.userId}/Items`,
+            {
+                ParentId: id,
+                IncludeItemTypes: 'Folder,MusicAlbum,MusicArtist,Audio',
+                Fields: 'AudioInfo,Genres,UserData,ParentId,Path',
+                Recursive: false,
+                SortBy: 'SortName',
+                SortOrder: 'Ascending',
+            },
+            {pageSize: JellyfinPager.maxPageSize},
+            folder
+        );
+        if (this.parent?.itemType === ItemType.Folder) {
+            const parentFolder: MediaFolderItem = {
+                ...this.parent,
+                fileName: `../${this.parent.fileName}`,
+            };
+            const backPager = new SimplePager([parentFolder]);
+            return new DualPager<MediaFolderItem>(backPager, folderPager);
+        } else {
+            return folderPager;
+        }
+    }
+
+    private getExternalUrl(item: BaseItemDto): string {
+        return `${jellyfinSettings.host}/web/index.html#!/details?id=${item.Id}&serverId=${jellyfinSettings.serverId}`;
+    }
+
+    private getFileName(path: string): string | undefined {
+        return path.split(/[/\\]/).pop();
     }
 }

@@ -258,7 +258,7 @@ export class ListenBrainzApi {
             artist_name: item.artists![0],
             additional_info: info,
         };
-        if (item.album) {
+        if (item.album && item.album !== '[Unknown Album]') {
             params.release_name = item.album;
         }
         return params;

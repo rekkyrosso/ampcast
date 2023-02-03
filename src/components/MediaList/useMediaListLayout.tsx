@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
+import MediaFolderItem from 'types/MediaFolderItem';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
@@ -82,6 +83,8 @@ export const Genre: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item)
 
 export const Owner: RenderField = (item) => <Text value={item.owner?.name} />;
 
+export const FileName: RenderField<MediaFolderItem> = (item) => <Text value={item.fileName} />;
+
 export const Views: RenderField = (item) => {
     if (item.globalPlayCount === undefined) {
         return null;
@@ -127,6 +130,22 @@ export const AlbumAndYear: RenderField<MediaItem> = (item) => (
     />
 );
 
+export const FileIcon: RenderField<MediaFolderItem> = (item: MediaFolderItem, rowIndex: number) => {
+    const icon =
+        item.itemType === ItemType.Media
+            ? item.mediaType === MediaType.Video
+                ? 'file-video'
+                : 'file-audio'
+            : rowIndex === 0 && item.fileName.startsWith('../')
+            ? 'folder-up'
+            : 'folder';
+    return (
+        <figure className="cover-art">
+            <Icon className="cover-art-image" name={icon} />
+        </figure>
+    );
+};
+
 export const Thumbnail: RenderField = (item) => {
     return <CoverArt item={item} />;
 };
@@ -146,6 +165,8 @@ const mediaFields: MediaFields<any> = {
     AlbumAndYear: {title: 'Album', render: AlbumAndYear, className: 'album'},
     Track: {title: 'Track', render: Track, align: 'right', width: 80, className: 'track'},
     Duration: {title: 'Time', render: Duration, align: 'right', width: 120, className: 'duration'},
+    FileIcon: {title: 'Thumbnail', render: FileIcon, className: 'thumbnail'},
+    FileName: {title: 'FileName', render: FileName, className: 'title'},
     PlayCount: {
         title: 'Play Count',
         render: PlayCount,

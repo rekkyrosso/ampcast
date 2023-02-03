@@ -11,7 +11,7 @@ import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
-import {Pin} from 'types/Pin';
+import Pin from 'types/Pin';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import {LiteStorage, Logger} from 'utils';
@@ -405,6 +405,9 @@ function getFetch(
                 } = await spotifyApi.searchPlaylists(q, {offset, limit, market});
                 return {items: items as SpotifyPlaylist[], total, next};
             };
+
+        default:
+            throw TypeError('Fetch not supported for this type of media.');
     }
 }
 

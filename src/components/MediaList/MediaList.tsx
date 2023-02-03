@@ -1,11 +1,13 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {Except} from 'type-fest';
 import Action from 'types/Action';
+import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
 import {performAction} from 'services/actions';
 import ListView, {ListViewProps} from 'components/ListView';
+import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import usePager from 'hooks/usePager';
 import MediaListStatusBar from './MediaListStatusBar';
 import useMediaListLayout from './useMediaListLayout';
@@ -27,17 +29,18 @@ export default function MediaList<T extends MediaObject>({
     keepAlive,
     statusBar = true,
     loadingText,
+    onDoubleClick,
+    onEnter,
     onSelect,
     ...props
 }: MediaListProps<T>) {
-    const [key, setKey] = useState(0);
     const layout = useMediaListLayout(props.layout);
     const [rowIndex, setRowIndex] = useState(0);
     const [pageSize, setPageSize] = useState(0);
     const [{items, loaded, error, size, maxSize}, fetchAt] = usePager(pager, keepAlive);
     const [selectedCount, setSelectedCount] = useState(0);
-
-    useEffect(() => setKey((key) => key + 1), [pager]);
+    const currentlyPlaying = useCurrentlyPlaying();
+    const propsItemClassName = props.itemClassName;
 
     useEffect(() => {
         if (rowIndex >= 0 && pageSize > 0) {
@@ -68,26 +71,53 @@ export default function MediaList<T extends MediaObject>({
         }
     }, []);
 
-    const onDoubleClick = useCallback(async (item: T) => {
-        await performAction(Action.Queue, [item]);
-    }, []);
-
-    const onEnter = useCallback(
-        async (items: readonly T[], ctrlKey: boolean, shiftKey: boolean) => {
-            if (!ctrlKey && !shiftKey) {
-                await performAction(Action.Queue, items);
-            } else if (ctrlKey && !shiftKey) {
-                await performAction(Action.PlayNow, items);
-            } else if (shiftKey && !ctrlKey) {
-                await performAction(Action.PlayNext, items);
+    const handleDoubleClick = useCallback(
+        async (item: T, rowIndex: number) => {
+            if (isPlayable(item)) {
+                await performAction(Action.Queue, [item]);
+            } else {
+                onDoubleClick?.(item, rowIndex);
             }
         },
-        []
+        [onDoubleClick]
     );
 
-    const onInfo = useCallback(async (items: readonly T[]) => {
+    const handleEnter = useCallback(
+        async (items: readonly T[], ctrlKey: boolean, shiftKey: boolean) => {
+            if (items.every(isPlayable)) {
+                if (!ctrlKey && !shiftKey) {
+                    await performAction(Action.Queue, items);
+                } else if (ctrlKey && !shiftKey) {
+                    await performAction(Action.PlayNow, items);
+                } else if (shiftKey && !ctrlKey) {
+                    await performAction(Action.PlayNext, items);
+                }
+            } else {
+                onEnter?.(items, ctrlKey, shiftKey);
+            }
+        },
+        [onEnter]
+    );
+
+    const handleInfo = useCallback(async (items: readonly T[]) => {
         await performAction(Action.Info, items);
     }, []);
+
+    const itemClassName = useCallback(
+        (item: T) => {
+            if (propsItemClassName) {
+                return propsItemClassName(item);
+            } else if (item.itemType === ItemType.Media) {
+                const [source] = item.src.split(':');
+                const playing = item.src === currentlyPlaying?.src ? 'playing' : '';
+                const unplayable = item.unplayable ? 'unplayable' : '';
+                return `source-${source} ${playing} ${unplayable}`;
+            } else {
+                return '';
+            }
+        },
+        [currentlyPlaying, propsItemClassName]
+    );
 
     return (
         <div className={`panel ${className}`}>
@@ -96,15 +126,15 @@ export default function MediaList<T extends MediaObject>({
                 className="media-list"
                 layout={layout}
                 items={items}
+                itemClassName={itemClassName}
                 itemKey={'src' as any} // TODO: remove cast
                 onContextMenu={handleContextMenu}
-                onDoubleClick={onDoubleClick}
-                onEnter={onEnter}
-                onInfo={onInfo}
+                onDoubleClick={handleDoubleClick}
+                onEnter={handleEnter}
+                onInfo={handleInfo}
                 onPageSizeChange={setPageSize}
                 onScrollIndexChange={setRowIndex}
                 onSelect={handleSelect}
-                key={key} // reset selection
             />
             {statusBar ? (
                 <MediaListStatusBar
@@ -119,4 +149,8 @@ export default function MediaList<T extends MediaObject>({
             ) : null}
         </div>
     );
+}
+
+function isPlayable(item: MediaObject): boolean {
+    return item.itemType === ItemType.Media || item.itemType === ItemType.Album;
 }

@@ -7,8 +7,9 @@
         min-width: 1em;
         margin-right: 0.25em;
 
-        &-note {
-            transform: scale(1.25);
+        &-folder,
+        &-folder-up {
+            margin-top: -0.125em;
         }
     }
 

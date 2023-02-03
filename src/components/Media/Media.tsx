@@ -34,13 +34,10 @@ export default memo(function Media() {
         return () => subscription.unsubscribe();
     }, []);
 
-    useOnResize(
-        ref,
-        useCallback(() => {
-            const element = ref.current!;
-            mediaPlayback.resize(element.clientWidth, element.clientHeight);
-        }, [])
-    );
+    useOnResize(ref, () => {
+        const element = ref.current!;
+        mediaPlayback.resize(element.clientWidth, element.clientHeight);
+    });
 
     const toggleFullScreen = useCallback(() => {
         if (fullScreen) {

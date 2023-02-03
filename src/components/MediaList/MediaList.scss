@@ -30,7 +30,7 @@
         color: var(--grey1-color);
     }
 
-    .unplayable .thumbnail img {
+    .unplayable .cover-art img {
         filter: brightness(0.25) grayscale(1);
     }
 
@@ -157,8 +157,8 @@
 
         &.compact {
             .thumbnail {
-                width: 4em;
-                height: 4em;
+                width: 4.25em;
+                height: 4.25em;
             }
 
             .title,
@@ -228,6 +228,10 @@
 
                 .cover-art {
                     inset: 0.125em;
+
+                    .icon {
+                        padding: 0.25em;
+                    }
                 }
             }
 
@@ -326,6 +330,24 @@
             .title {
                 color: var(--grey2-color);
             }
+        }
+    }
+
+    .folder-items & {
+        .cover-art {
+            background: transparent;
+            border: none;
+
+            .icon {
+                color: inherit;
+                height: 1.25em;
+                /* TODO: Fix by adding 'folder-items' class to `ListView` element instead of it's parent. */
+                padding: 0 !important;
+            }
+        }
+
+        .title {
+            margin-left: 1.5em;
         }
     }
 

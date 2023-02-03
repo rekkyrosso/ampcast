@@ -2,6 +2,7 @@ import React from 'react';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
+import MediaFolder from 'types/MediaFolder';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
@@ -33,6 +34,9 @@ export default function MediaInfo<T extends MediaObject>(props: MediaInfoProps<T
 
         case ItemType.Playlist:
             return <PlaylistInfo item={item} />;
+
+        case ItemType.Folder:
+            return <FolderInfo item={item} />;
     }
 }
 
@@ -98,6 +102,17 @@ function PlaylistInfo({item: playlist}: MediaInfoProps<MediaPlaylist>) {
             </div>
             <Blurb description={playlist.description} />
             <ExternalView url={playlist.externalUrl} src={playlist.src} />
+        </article>
+    );
+}
+
+function FolderInfo({item: folder}: MediaInfoProps<MediaFolder>) {
+    return (
+        <article className="media-info folder-info">
+            <div className="media-info-main">
+                <Thumbnail item={folder} />
+                <Title title={folder.title} />
+            </div>
         </article>
     );
 }
@@ -194,9 +209,18 @@ export function AlbumAndYear<T extends MediaItem>({album, year}: Pick<T, 'album'
     }
 }
 
-export function Track<T extends MediaItem>({album, track}: Pick<T, 'album' | 'track'>) {
+export function Track<T extends MediaItem>({
+    album,
+    disc,
+    track,
+}: Pick<T, 'album' | 'disc' | 'track'>) {
     if (album && track) {
-        return <p className="track">Track: {track}</p>;
+        return (
+            <>
+                {disc && <p className="track disc">Disc: {disc}</p>}
+                <p className="track">Track: {track}</p>
+            </>
+        );
     }
     return null;
 }

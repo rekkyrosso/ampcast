@@ -39,7 +39,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
             pairwise(),
             map(([oldItems, newItems]) =>
                 newItems.filter(
-                    (newItem) => !oldItems.find((oldItem) => oldItem.src === newItem.src)
+                    (newItem) => !oldItems.find((oldItem) => oldItem?.src === newItem.src)
                 )
             ),
             filter((additions) => additions.length > 0)
@@ -64,7 +64,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
             if (this.subscriptions) {
                 this.subscriptions.unsubscribe();
                 pagerCount--;
-                // logger.log(`Pager disconnected. Connected pagers=${pagerCount}.`);
+                logger.log(`Pager disconnected. Connected pagers=${pagerCount}.`);
             }
             this.items.forEach((item) => (item as any).pager?.disconnect());
             this.items$.complete();
@@ -114,7 +114,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
     protected connect(): void {
         if (!this.subscriptions) {
             pagerCount++;
-            // logger.log(`Pager connected. Connected pagers=${pagerCount}.`);
+            logger.log(`Pager connected. Connected pagers=${pagerCount}.`);
             if (pagerCount > 100) {
                 logger.warn(`Too many pagers? Connected pagers=${pagerCount}.`);
             }

@@ -107,7 +107,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
             case ItemType.Media:
                 return items.map((item) => this.createMediaItem(item as LastFm.Track) as T);
 
-            case ItemType.Playlist:
+            default:
                 return [];
         }
     }

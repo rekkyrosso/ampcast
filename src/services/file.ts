@@ -42,7 +42,7 @@ export async function createMediaItemFromFile(file: File): Promise<MediaItem> {
         genres: common.genre,
         duration: duration ? Number(duration.toFixed(3)) : 0,
         track: floor(common.track?.no),
-        // disc: floor(common.disk?.no),
+        disc: floor(common.disk?.no),
         // bpm: floor(common.bpm),
         year: floor(common.year),
         mood: common.mood || '',

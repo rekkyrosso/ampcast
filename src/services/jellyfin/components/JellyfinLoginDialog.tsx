@@ -40,10 +40,11 @@ export default function JellyfinLoginDialog(props: DialogProps) {
             }
 
             const auth = await response.json();
+            const serverId = auth.ServerId;
             const userId = auth.User.Id;
             const token = auth.AccessToken;
 
-            dialogRef.current!.close(JSON.stringify({userId, token}));
+            dialogRef.current!.close(JSON.stringify({serverId, userId, token}));
         } catch (err) {
             console.error(err); // TODO: Show error in the UI
         }

@@ -4,7 +4,7 @@ import {filter} from 'rxjs/operators';
 import Dexie, {liveQuery} from 'dexie';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import {Pin} from 'types/Pin';
+import Pin from 'types/Pin';
 import mediaObjectChanges from 'services/mediaObjectChanges';
 import {Logger} from 'utils';
 

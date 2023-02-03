@@ -73,7 +73,7 @@ export async function performAction<T extends MediaObject>(
                 break;
 
             case Action.Info:
-                await showMediaInfoDialog(items[0]);
+                await showMediaInfoDialog(item);
                 break;
 
             case Action.Like:

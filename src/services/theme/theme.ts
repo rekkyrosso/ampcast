@@ -8,6 +8,7 @@ import themes from './themes';
 import defaultTheme from './themes/default.json';
 
 class MainTheme implements Theme {
+    readonly defaultFontSize = 17.2;
     private readonly storage = new LiteStorage('theme');
     private readonly sheet: CSSStyleSheet;
     private readonly rootStyle: CSSStyleDeclaration;
@@ -17,7 +18,6 @@ class MainTheme implements Theme {
     private readonly popup = document.getElementById('popup') as HTMLElement;
     private readonly system = document.getElementById('system') as HTMLElement;
     private readonly theme$ = new BehaviorSubject<Theme>(defaultTheme);
-    private readonly defaultFontSize = 17.2;
 
     constructor() {
         const style = document.createElement('style');

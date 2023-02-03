@@ -1,7 +1,9 @@
-import {Except} from 'type-fest';
+import {Except, SetOptional, Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
+import MediaFolder from 'types/MediaFolder';
+import MediaFolderItem from 'types/MediaFolderItem';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
@@ -10,7 +12,7 @@ import MediaServiceId from 'types/MediaServiceId';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
-import {Pin} from 'types/Pin';
+import Pin from 'types/Pin';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import jellyfinApi from './jellyfinApi';
@@ -124,6 +126,40 @@ const jellyfinPlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
+const jellyfinFolders: MediaSource<MediaFolderItem> = {
+    id: 'jellyfin/folders',
+    title: 'Folders',
+    icon: 'folder',
+    itemType: ItemType.Folder,
+    defaultHidden: true,
+
+    search(): Pager<MediaFolderItem> {
+        const root: Writable<SetOptional<MediaFolder, 'pager'>> = {
+            itemType: ItemType.Folder,
+            src: '',
+            externalUrl: '',
+            title: 'Folders',
+            fileName: 'Folders',
+            parent: null,
+        };
+
+        root.pager = new JellyfinPager<MediaFolderItem>(
+            `Library/MediaFolders`,
+            {
+                IncludeItemTypes: 'Folder,MusicAlbum,MusicArtist,Audio',
+                Fields: 'AudioInfo,Genres,UserData,ParentId,Path',
+                Recursive: false,
+                SortBy: 'SortName',
+                SortOrder: 'Ascending',
+            },
+            {pageSize: JellyfinPager.maxPageSize},
+            root as MediaFolder
+        );
+
+        return root.pager;
+    },
+};
+
 const jellyfin: MediaService = {
     id: serviceId,
     icon: serviceId,
@@ -142,6 +178,7 @@ const jellyfin: MediaService = {
         jellyfinLikedAlbums,
         jellyfinLikedArtists,
         jellyfinPlaylists,
+        jellyfinFolders,
     ],
 
     canRate,
@@ -157,7 +194,16 @@ const jellyfin: MediaService = {
 };
 
 function canRate<T extends MediaObject>(item: T): boolean {
-    return item.itemType === ItemType.Album ? !item.synthetic : true;
+    switch (item.itemType) {
+        case ItemType.Album:
+            return !item.synthetic;
+
+        case ItemType.Folder:
+            return false;
+
+        default:
+            return true;
+    }
 }
 
 function compareForRating<T extends MediaObject>(a: T, b: T): boolean {

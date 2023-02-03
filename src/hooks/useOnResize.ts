@@ -1,4 +1,4 @@
-import {useEffect, useLayoutEffect, useRef} from 'react';
+import {useEffect, useRef} from 'react';
 
 export default function useOnResize<T extends HTMLElement>(
     elementRef: React.MutableRefObject<T | null>,
@@ -10,7 +10,7 @@ export default function useOnResize<T extends HTMLElement>(
         onResizeRef.current = onResize;
     }, [onResize]);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         const element = elementRef.current;
         if (element) {
             const resizeObserver = new ResizeObserver(() => onResizeRef.current());

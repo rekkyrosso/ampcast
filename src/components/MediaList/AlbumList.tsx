@@ -11,9 +11,15 @@ const defaultLayout: MediaSourceLayout<MediaAlbum> = {
 export default function AlbumList({
     className = '',
     layout = defaultLayout,
+    draggable = true,
     ...props
 }: MediaListProps<MediaAlbum>) {
     return (
-        <MediaList {...props} className={`albums ${className}`} layout={layout} draggable={true} />
+        <MediaList
+            {...props}
+            className={`albums ${className}`}
+            layout={layout}
+            draggable={draggable}
+        />
     );
 }

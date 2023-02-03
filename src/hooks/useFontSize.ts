@@ -1,4 +1,5 @@
-import {useCallback, useEffect, useRef, useState} from 'react';
+import {useEffect, useRef, useState} from 'react';
+import theme from 'services/theme';
 import useOnResize from './useOnResize';
 
 const resizer = document.createElement('div');
@@ -22,14 +23,11 @@ export default function useFontSize(): number {
         }
     }, []);
 
-    useOnResize(
-        resizerRef,
-        useCallback(() => setFontSize(getFontSize()), [])
-    );
+    useOnResize(resizerRef, () => setFontSize(getFontSize()));
 
     return fontSize;
 }
 
 function getFontSize(): number {
-    return parseInt(getComputedStyle(resizer).fontSize, 10) || 16;
+    return parseFloat(getComputedStyle(resizer).fontSize) || theme.defaultFontSize;
 }

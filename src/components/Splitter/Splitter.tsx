@@ -28,7 +28,9 @@ export default function Splitter({
     const [primaryMinSize, setPrimaryMinSize] = useState(0);
     const [secondaryMinSize, setSecondaryMinSize] = useState(0);
     const [splitterSize, setSplitterSize] = useState(0);
-    const [secondaryPaneSize, setSecondaryPaneSize] = useState(() => (id ? layoutSettings.get(id) : 0));
+    const [secondaryPaneSize, setSecondaryPaneSize] = useState(() =>
+        id ? layoutSettings.get(id) : 0
+    );
     const [dragStartPos, setDragStartPos] = useState(-1);
     const [dragStartSize, setDragStartSize] = useState(0);
     const dragging = dragStartPos !== -1;
@@ -138,16 +140,13 @@ export default function Splitter({
         }
     }, [vertical, dragging, handleMouseMove, handleMouseUp]);
 
-    useOnResize(
-        containerRef,
-        useCallback(() => {
-            const container = containerRef.current!;
-            setContainerRect({
-                width: container.clientWidth,
-                height: container.clientHeight,
-            });
-        }, [])
-    );
+    useOnResize(containerRef, () => {
+        const container = containerRef.current!;
+        setContainerRect({
+            width: container.clientWidth,
+            height: container.clientHeight,
+        });
+    });
 
     return (
         <div className={`splitter splitter-${arrange}`} id={id} ref={containerRef}>

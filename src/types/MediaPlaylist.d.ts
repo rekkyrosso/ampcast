@@ -11,6 +11,5 @@ export default interface MediaPlaylist extends BaseMediaObject {
     readonly playedAt?: number; // UTC
     readonly modifiedAt?: number; // UTC
     readonly isPinned?: boolean;
-    readonly isOwn?: boolean;
     readonly unplayable?: boolean;
 }

@@ -1,4 +1,4 @@
-import React, {useCallback, useLayoutEffect, useRef} from 'react';
+import React, {useLayoutEffect, useRef} from 'react';
 import useOnResize from 'hooks/useOnResize';
 import './Static.scss';
 
@@ -24,15 +24,12 @@ export default function Static() {
         return () => cancelAnimationFrame(animationFrameId);
     }, []);
 
-    useOnResize(
-        ref,
-        useCallback(() => {
-            const canvas = canvasRef.current!;
-            const rect = ref.current!.getBoundingClientRect();
-            canvas.width = rect.width;
-            canvas.height = rect.height;
-        }, [])
-    );
+    useOnResize(ref, () => {
+        const canvas = canvasRef.current!;
+        const rect = ref.current!.getBoundingClientRect();
+        canvas.width = rect.width;
+        canvas.height = rect.height;
+    });
 
     return (
         <div className="static" ref={ref}>

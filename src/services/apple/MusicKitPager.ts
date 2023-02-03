@@ -278,7 +278,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             album: item.albumName,
             duration: item.durationInMillis / 1000,
             genres: this.getGenres(item),
-            // disc: item.discNumber,
+            disc: item.discNumber,
             track: item.trackNumber,
             year: new Date(item.releaseDate).getFullYear() || undefined,
             isrc: item.isrc,

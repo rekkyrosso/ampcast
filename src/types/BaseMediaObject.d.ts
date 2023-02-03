@@ -6,6 +6,8 @@ export default interface BaseMediaObject {
     readonly src: string;
     readonly title: string;
     readonly externalUrl: string;
+    // Everything below here should be optional
+    readonly description?: string;
     readonly addedAt?: number; // unix
     readonly genres?: readonly string[];
     readonly mood?: string;
@@ -15,7 +17,7 @@ export default interface BaseMediaObject {
     readonly globalPlayCount?: number;
     readonly thumbnails?: Thumbnail[];
     readonly inLibrary?: boolean;
-    readonly description?: string;
+    readonly isOwn?: boolean;
     readonly owner?: {
         readonly name: string;
         readonly url: string;

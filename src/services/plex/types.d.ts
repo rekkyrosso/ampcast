@@ -134,6 +134,11 @@ declare namespace plex {
         readonly tag: string;
     }
 
+    interface Folder {
+        readonly key: string;
+        readonly title: string;
+    }
+
     interface Device {
         readonly id: number;
         readonly connections: readonly Connection[];

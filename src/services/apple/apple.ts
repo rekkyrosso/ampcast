@@ -8,7 +8,7 @@ import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
-import {Pin} from 'types/Pin';
+import Pin from 'types/Pin';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './appleAuth';
@@ -199,14 +199,12 @@ function canRate<T extends MediaObject>(item: T, inline?: boolean): boolean {
 
 function canStore<T extends MediaObject>(item: T): boolean {
     switch (item.itemType) {
-        case ItemType.Album:
-            return !item.synthetic;
-
+        case ItemType.Media:
         case ItemType.Playlist:
             return true;
 
-        case ItemType.Media:
-            return true;
+        case ItemType.Album:
+            return !item.synthetic;
 
         default:
             return false;

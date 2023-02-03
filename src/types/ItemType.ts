@@ -3,6 +3,7 @@ const enum ItemType {
     Album = 1,
     Artist = 2,
     Playlist = 3,
+    Folder = 4,
 }
 
 export default ItemType;
