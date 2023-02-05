@@ -1,4 +1,5 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useMemo} from 'react';
+import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaFolderItem from 'types/MediaFolderItem';
@@ -7,10 +8,12 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSourceLayout, {Field} from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
+import {performAction} from 'services/actions';
 import {ColumnSpec, ListViewLayout} from 'components/ListView';
 import Actions from 'components/Actions';
 import CoverArt from 'components/CoverArt';
 import Icon from 'components/Icon';
+import StarRating from 'components/StarRating';
 import SunClock from 'components/SunClock';
 import Time from 'components/Time';
 
@@ -150,6 +153,16 @@ export const Thumbnail: RenderField = (item) => {
     return <CoverArt item={item} />;
 };
 
+export const Rate: RenderField = (item) => {
+    const rate = useCallback(
+        async (rating: number) => {
+            await performAction(Action.Rate, [item], rating);
+        },
+        [item]
+    );
+    return <StarRating rating={item.rating} onClick={rate} />;
+};
+
 function Text({value = ''}: {value?: string | number}) {
     return value === '' ? null : <span className="text">{value}</span>;
 }
@@ -168,10 +181,10 @@ const mediaFields: MediaFields<any> = {
     FileIcon: {title: 'Thumbnail', render: FileIcon, className: 'thumbnail'},
     FileName: {title: 'FileName', render: FileName, className: 'title'},
     PlayCount: {
-        title: 'Play Count',
+        title: 'Plays',
         render: PlayCount,
         align: 'right',
-        width: 120,
+        width: 80,
         className: 'play-count',
     },
     TrackCount: {
@@ -188,6 +201,7 @@ const mediaFields: MediaFields<any> = {
     LastPlayed: {title: 'Last played', render: LastPlayed, className: 'played-at'},
     ListenDate: {title: 'Played On', render: ListenDate, className: 'played-at'},
     Thumbnail: {title: 'Thumbnail', render: Thumbnail, className: 'thumbnail'},
+    Rate: {title: <StarRating rating={0} />, render: Rate, className: 'rate', width: 120},
 };
 
 function getCount(count?: number): string {

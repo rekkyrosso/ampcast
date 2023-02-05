@@ -10,7 +10,7 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
-import mediaObjectChanges from 'services/mediaObjectChanges';
+import mediaObjectChanges from 'services/actions/mediaObjectChanges';
 import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
@@ -202,12 +202,14 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
 
     private createMediaArtist(artist: AppleMusicApi.Artist | LibraryArtist): MediaArtist {
         const item = this.createFromLibrary<AppleMusicApi.Artist['attributes']>(artist);
+        const description = item.editorialNotes?.standard || item.editorialNotes?.short;
 
         return {
             itemType: ItemType.Artist,
             src: `apple:${artist.type}:${artist.id}`,
             externalUrl: item.url,
             title: item.name,
+            description: description ? getTextFromHtml(description) : undefined,
             thumbnails: this.createThumbnails(artist),
             genres: this.getGenres(item),
             pager: this.createArtistAlbumsPager(artist),
@@ -232,12 +234,14 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
 
     private createMediaAlbum(album: AppleMusicApi.Album | LibraryAlbum): MediaAlbum {
         const item = this.createFromLibrary<AppleMusicApi.Album['attributes']>(album);
+        const description = item.editorialNotes?.standard || item.editorialNotes?.short;
 
         return {
             itemType: ItemType.Album,
             src: `apple:${album.type}:${album.id}`,
             externalUrl: item.url,
             title: item.name,
+            description: description ? getTextFromHtml(description) : undefined,
             thumbnails: this.createThumbnails(album),
             artist: item.artistName,
             trackCount: item.trackCount,
@@ -265,6 +269,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             id: song.id,
             kind: song.type === 'music-videos' ? 'musicVideo' : 'song',
         };
+        const description = item.editorialNotes?.standard || item.editorialNotes?.short;
 
         return {
             itemType: ItemType.Media,
@@ -272,6 +277,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             src: `apple:${song.type}:${id}`,
             externalUrl: item.url,
             title: item.name,
+            description: description ? getTextFromHtml(description) : undefined,
             thumbnails: this.createThumbnails(song),
             artists: [item.artistName],
             albumArtist: this.album ? this.album.artistName : undefined,
@@ -327,6 +333,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             artist.relationships?.albums.href ||
                 `/v1/catalog/{{storefrontId}}/artists/${artist.id}/albums`
         );
+        topTracksPager.fetchAt(0);
         return new DualPager(topTracksPager, albumsPager);
     }
 

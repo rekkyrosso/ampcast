@@ -43,6 +43,21 @@
         .actions {
             padding-right: 0.45em;
         }
+
+        .star-rating {
+            justify-content: left;
+            display: inline-flex;
+        }
+    }
+
+    &-details .list-view-head {
+        .star-rating {
+            pointer-events: none;
+
+            .icon-button {
+                opacity: 1;
+            }
+        }
     }
 
     &-card {
@@ -75,13 +90,16 @@
 
             .artists & {
                 margin-top: 0.25em;
+                right: 0;
             }
         }
 
         .title {
-            left: 5.25em;
             top: 0;
-            font-size: 1.125em;
+
+            .text {
+                font-size: 1.125em;
+            }
         }
 
         .artist,
@@ -122,10 +140,13 @@
         }
 
         .played-at {
-            font-size: 0.75em;
-            font-style: italic;
             background-color: transparent;
             color: var(--grey2-color);
+
+            .text {
+                font-size: 0.75em;
+                font-style: italic;
+            }
 
             .listen-date {
                 display: flex;
@@ -151,6 +172,12 @@
             padding: 0;
         }
 
+        .rate {
+            right: 0.25em;
+            top: 0.25em;
+            padding: 0;
+        }
+
         .genre {
             font-style: italic;
         }
@@ -172,7 +199,7 @@
                 left: 4em;
             }
 
-            .title {
+            .title .text {
                 font-size: 1em;
             }
 
@@ -216,6 +243,14 @@
                 }
             }
 
+            .rate {
+                .artists & {
+                    right: auto;
+                    top: 3.125em;
+                    left: 4.5em;
+                }
+            }
+
             .actions {
                 font-size: 0.875em;
             }
@@ -225,13 +260,13 @@
             .thumbnail {
                 width: 2em;
                 height: 2em;
+            }
 
-                .cover-art {
-                    inset: 0.125em;
+            .cover-art {
+                inset: 0.125em;
 
-                    .icon {
-                        padding: 0.25em;
-                    }
+                .icon {
+                    padding: 0.25em;
                 }
             }
 
@@ -239,9 +274,13 @@
                 top: 0.25em;
                 left: 2em;
                 right: 0;
-                font-size: 1em;
+
+                .text {
+                    font-size: 1em;
+                }
             }
 
+            .rate,
             .actions {
                 display: none;
             }
@@ -265,7 +304,7 @@
         }
 
         &.thin {
-            .icon-button:not(.icon-button-menu) {
+            .actions .icon-button:not(.icon-button-menu) {
                 display: none;
             }
 
@@ -274,11 +313,14 @@
                 .track-count,
                 .play-count,
                 .played-at {
-                    right: calc(100% - 7.375em);
-                    top: 0.625em;
-                    font-size: 0.75em;
+                    right: calc(100% - 5.5em);
+                    top: 0.5em;
                     color: var(--soft-white) !important;
                     background-color: rgba(0, 0, 0, 0.75);
+
+                    .text {
+                        font-size: 0.75em;
+                    }
                 }
             }
 
@@ -287,8 +329,13 @@
                 .track-count,
                 .play-count,
                 .played-at {
-                    right: calc(100% - 4.75em);
-                    top: 0.625em;
+                    right: calc(100% - 3.75em);
+                }
+            }
+
+            .rate {
+                .albums & {
+                    display: none;
                 }
             }
         }
@@ -341,7 +388,6 @@
             .icon {
                 color: inherit;
                 height: 1.25em;
-                /* TODO: Fix by adding 'folder-items' class to `ListView` element instead of it's parent. */
                 padding: 0 !important;
             }
         }

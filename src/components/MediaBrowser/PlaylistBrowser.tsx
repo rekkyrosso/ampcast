@@ -12,7 +12,11 @@ const defaultPlaylistItemsLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Index', 'Artist', 'Title', 'Album', 'Duration', 'Genre'],
 };
 
-export default function PlaylistBrowser({source, ...props}: PagedBrowserProps<MediaPlaylist>) {
+export default function PlaylistBrowser({
+    source,
+    className = '',
+    ...props
+}: PagedBrowserProps<MediaPlaylist>) {
     const [selectedPlaylist, setSelectedPlaylist] = useState<MediaPlaylist | null>(null);
 
     const handleSelect = useCallback(([item]: readonly MediaPlaylist[]) => {
@@ -20,7 +24,7 @@ export default function PlaylistBrowser({source, ...props}: PagedBrowserProps<Me
     }, []);
 
     return (
-        <div className="panel playlist-browser">
+        <div className={`panel playlist-browser ${className}`}>
             <Splitter id="playlist-browser-layout" arrange="rows" primaryIndex={1}>
                 <PlaylistList {...props} onSelect={handleSelect} />
                 <MediaItemList

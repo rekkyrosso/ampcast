@@ -1,4 +1,5 @@
 import {Except} from 'type-fest';
+import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
@@ -135,13 +136,19 @@ const apple: MediaService = {
         createRoot(ItemType.Playlist, {title: 'Playlists'}),
     ],
     sources: [
-        appleMusicVideos,
-        appleRecentlyPlayed,
         appleLibrarySongs,
         appleLibraryAlbums,
+        appleRecentlyPlayed,
         appleLibraryPlaylists,
         appleRecommendations,
+        appleMusicVideos,
     ],
+    labels: {
+        [Action.AddToLibrary]: 'Add to Apple Music Library',
+        [Action.RemoveFromLibrary]: 'Saved to Apple Music Library',
+        [Action.Like]: 'Love on Apple Music',
+        [Action.Unlike]: 'Unlove on Apple Music',
+    },
 
     canRate,
     canStore,
@@ -236,7 +243,7 @@ async function rate(item: MediaObject, rating: number): Promise<void> {
     const path = `/v1/me/ratings/${type}/${id}`;
 
     if (rating) {
-        return musicKit.api.music(path, undefined, {
+        await musicKit.api.music(path, undefined, {
             fetchOptions: {
                 method: 'PUT',
                 body: JSON.stringify({
@@ -248,7 +255,7 @@ async function rate(item: MediaObject, rating: number): Promise<void> {
             },
         });
     } else {
-        return musicKit.api.music(path, undefined, {fetchOptions: {method: 'DELETE'}});
+        await musicKit.api.music(path, undefined, {fetchOptions: {method: 'DELETE'}});
     }
 }
 

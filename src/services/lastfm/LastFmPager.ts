@@ -226,6 +226,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
             },
             {maxSize: 100, playCountName: 'userplaycount'}
         );
+        topTracksPager.fetchAt(0);
         return new DualPager(topTracksPager, albumsPager);
     }
 

@@ -1,3 +1,4 @@
+import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -123,6 +124,10 @@ const listenbrainz: MediaService = {
         listenbrainzHistory,
         listenbrainzLovedTracks,
     ],
+    labels: {
+        [Action.Like]: 'Love on ListenBrainz',
+        [Action.Unlike]: 'Unlove on ListenBrainz',
+    },
 
     canRate,
     canStore: () => false,

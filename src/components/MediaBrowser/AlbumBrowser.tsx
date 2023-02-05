@@ -12,7 +12,11 @@ const defaultAlbumTracksLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Index', 'Title', 'Artist', 'Duration'],
 };
 
-export default function AlbumBrowser({source, ...props}: PagedBrowserProps<MediaAlbum>) {
+export default function AlbumBrowser({
+    source,
+    className = '',
+    ...props
+}: PagedBrowserProps<MediaAlbum>) {
     const [selectedAlbum, setSelectedAlbum] = useState<MediaAlbum | null>(null);
 
     const handleSelect = useCallback(([album]: readonly MediaAlbum[]) => {
@@ -20,7 +24,7 @@ export default function AlbumBrowser({source, ...props}: PagedBrowserProps<Media
     }, []);
 
     return (
-        <div className="panel album-browser">
+        <div className={`panel album-browser ${className}`}>
             <Splitter id="album-browser-layout" arrange="rows" primaryIndex={1}>
                 <AlbumList {...props} onSelect={handleSelect} />
                 <MediaItemList

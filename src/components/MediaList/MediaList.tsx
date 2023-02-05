@@ -35,7 +35,7 @@ export default function MediaList<T extends MediaObject>({
     ...props
 }: MediaListProps<T>) {
     const layout = useMediaListLayout(props.layout);
-    const [rowIndex, setRowIndex] = useState(0);
+    const [scrollIndex, setScrollIndex] = useState(0);
     const [pageSize, setPageSize] = useState(0);
     const [{items, loaded, error, size, maxSize}, fetchAt] = usePager(pager, keepAlive);
     const [selectedCount, setSelectedCount] = useState(0);
@@ -43,15 +43,10 @@ export default function MediaList<T extends MediaObject>({
     const propsItemClassName = props.itemClassName;
 
     useEffect(() => {
-        if (rowIndex >= 0 && pageSize > 0) {
-            fetchAt(rowIndex, pageSize);
+        if (scrollIndex >= 0 && pageSize > 0) {
+            fetchAt(scrollIndex, pageSize);
         }
-    }, [
-        fetchAt,
-        rowIndex,
-        pageSize,
-        pager, // re-fetch on `pager` change
-    ]);
+    }, [fetchAt, scrollIndex, pageSize, pager]);
 
     const handleSelect = useCallback(
         (items: readonly T[]) => {
@@ -133,7 +128,7 @@ export default function MediaList<T extends MediaObject>({
                 onEnter={handleEnter}
                 onInfo={handleInfo}
                 onPageSizeChange={setPageSize}
-                onScrollIndexChange={setRowIndex}
+                onScrollIndexChange={setScrollIndex}
                 onSelect={handleSelect}
             />
             {statusBar ? (

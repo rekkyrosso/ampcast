@@ -10,7 +10,7 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
-import mediaObjectChanges from 'services/mediaObjectChanges';
+import mediaObjectChanges from 'services/actions/mediaObjectChanges';
 import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
@@ -120,7 +120,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                 this.subscriptions.add(
                     this.pager
                         .observeAdditions()
-                        .pipe(mergeMap((items) => this.addRatings(items)))
+                        .pipe(mergeMap((items) => this.addInLibrary(items)))
                         .subscribe(logger)
                 );
             }
@@ -214,7 +214,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             thumbnails: playlist.images as Thumbnail[],
             trackCount: playlist.tracks.total,
             pager: this.createPlaylistPager(playlist),
-            rating: isOwn ? 0 : 1,
+            inLibrary: isOwn ? false : undefined, // TODO
             owner: {
                 name: playlist.owner.display_name || '',
                 url: playlist.owner.external_urls.spotify,
@@ -269,6 +269,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                 return {items: items as SpotifyAlbum[], total, next};
             }
         );
+        topTracksPager.fetchAt(0);
         return new DualPager(topTracksPager, albumsPager);
     }
 
@@ -294,7 +295,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                         album: album as SpotifyApi.AlbumObjectSimplified,
                     })
                 );
-                this.addRatings(items);
+                this.addInLibrary(items);
                 return items;
             });
         } else {
@@ -324,7 +325,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                 const items = tracks.map((item) =>
                     this.createMediaItemFromTrack(item.track as SpotifyTrack)
                 );
-                this.addRatings(items);
+                this.addInLibrary(items);
                 return items;
             });
         } else {
@@ -344,24 +345,24 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         return spotifySettings.getString('market');
     }
 
-    private async addRatings<T extends MediaObject>(items: readonly T[]): Promise<void> {
+    private async addInLibrary<T extends MediaObject>(items: readonly T[]): Promise<void> {
         const item = items[0];
-        if (item && spotify.canRate(item, true)) {
+        if (item && spotify.canStore(item, true)) {
             const ids = items.map((item) => {
                 const [, , id] = item.src.split(':');
                 return id;
             });
-            let ratings: boolean[] = [];
+            let inLibrary: boolean[] = [];
             if (item.itemType === ItemType.Album) {
-                ratings = await spotifyApi.containsMySavedAlbums(ids);
+                inLibrary = await spotifyApi.containsMySavedAlbums(ids);
             } else {
-                ratings = await spotifyApi.containsMySavedTracks(ids);
+                inLibrary = await spotifyApi.containsMySavedTracks(ids);
             }
 
             mediaObjectChanges.dispatch<MediaObject>(
                 items.map(({src}, index) => ({
                     match: (item: MediaObject) => item.src === src,
-                    values: {rating: ratings[index] ? 1 : 0},
+                    values: {inLibrary: inLibrary[index]},
                 }))
             );
         }

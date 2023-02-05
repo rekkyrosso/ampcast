@@ -1,19 +1,15 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, Subscription, combineLatest} from 'rxjs';
-import {map, tap} from 'rxjs/operators';
+import {filter, map, tap} from 'rxjs/operators';
 import MediaObject from 'types/MediaObject';
 import Pager from 'types/Pager';
 import {Logger} from 'utils';
-
-interface PageFetch {
-    readonly index: number;
-    readonly length?: number;
-}
+import {PageFetch} from './AbstractPager';
 
 const logger = new Logger('DualPager');
 
 export default class DualPager<T extends MediaObject> implements Pager<T> {
-    private readonly fetches$ = new BehaviorSubject<PageFetch>({index: 0});
+    private readonly fetches$ = new BehaviorSubject<PageFetch>({index: 0, length: 0});
     private subscriptions?: Subscription;
     private disconnected = false;
 
@@ -48,14 +44,13 @@ export default class DualPager<T extends MediaObject> implements Pager<T> {
         }
     }
 
-    fetchAt(index: number, length?: number): void {
+    fetchAt(index: number, length: number): void {
         if (this.disconnected) {
             logger.warn('disconnected');
             return;
         }
         if (!this.subscriptions) {
             this.connect();
-            this.topPager.fetchAt(0);
         }
         this.fetches$.next({index, length});
     }
@@ -65,14 +60,18 @@ export default class DualPager<T extends MediaObject> implements Pager<T> {
             this.subscriptions = new Subscription();
 
             this.subscriptions.add(
-                combineLatest([this.topPager.observeSize(), this.fetches$])
+                combineLatest([this.topPager.observeSize(), this.observeFetches()])
                     .pipe(
                         tap(([topSize, fetch]) =>
                             this.mainPager.fetchAt(Math.max(fetch.index - topSize, 0), fetch.length)
-                        ),
+                        )
                     )
                     .subscribe(logger)
             );
         }
+    }
+
+    private observeFetches(): Observable<PageFetch> {
+        return this.fetches$.pipe(filter((fetch) => fetch.length > 0));
     }
 }

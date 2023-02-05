@@ -52,8 +52,12 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
         if (visualizer) {
             logger.log(`Using Butterchurn visualizer: ${visualizer.name}`);
             this.visualizer.loadPreset(visualizer.data, 0.5);
+            if (this.animationFrameId) {
+                cancelAnimationFrame(this.animationFrameId);
+                this.animationFrameId = 0;
+            }
+            this.render();
         }
-        this.play();
     }
 
     play(): void {

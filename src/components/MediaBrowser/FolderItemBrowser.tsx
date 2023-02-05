@@ -5,7 +5,11 @@ import Pager from 'types/Pager';
 import FolderItemList from 'components/MediaList/FolderItemList';
 import {PagedBrowserProps} from './MediaBrowser';
 
-export default function FolderItemBrowser({source, ...props}: PagedBrowserProps<MediaFolderItem>) {
+export default function FolderItemBrowser({
+    source,
+    className = '',
+    ...props
+}: PagedBrowserProps<MediaFolderItem>) {
     const [pager, setPager] = useState<Pager<MediaFolderItem> | null>(null);
 
     useEffect(() => {
@@ -21,16 +25,16 @@ export default function FolderItemBrowser({source, ...props}: PagedBrowserProps<
     }, []);
 
     const handleEnter = useCallback(async (items: readonly MediaFolderItem[]) => {
-        const [item, ...rest] = items;
-        if (item && rest.length === 0) {
-            if (item.itemType === ItemType.Folder) {
+        if (items.length === 1) {
+            const item = items[0];
+            if (item?.itemType === ItemType.Folder) {
                 setPager(item.pager);
             }
         }
     }, []);
 
     return (
-        <div className="panel folder-item-browser">
+        <div className={`panel folder-item-browser ${className}`}>
             <FolderItemList
                 {...props}
                 pager={pager}

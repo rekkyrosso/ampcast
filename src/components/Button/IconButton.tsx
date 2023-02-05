@@ -1,7 +1,7 @@
 import React from 'react';
 import {Except} from 'type-fest';
 import Icon, {IconName} from 'components/Icon';
-import {preventDefault} from 'utils';
+import {cancelEvent, stopPropagation} from 'utils';
 import './IconButton.scss';
 
 export interface IconButtonProps
@@ -15,7 +15,8 @@ export default function IconButton({icon, className = '', ...props}: IconButtonP
             {...props}
             className={`icon-button icon-button-${icon} ${className}`}
             type="button"
-            onMouseDown={preventDefault}
+            onMouseDown={cancelEvent}
+            onMouseUp={stopPropagation}
         >
             <Icon name={icon} />
         </button>

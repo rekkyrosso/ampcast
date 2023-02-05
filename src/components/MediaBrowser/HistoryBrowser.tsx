@@ -1,11 +1,10 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import MediaItem from 'types/MediaItem';
-import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import DatePicker from 'components/DatePicker';
-import useSource from 'hooks/useSource';
 import {PagedBrowserProps} from './MediaBrowser';
 import MediaItemBrowser from './MediaItemBrowser';
+import useHistoryPager from './useHistoryPager';
 
 const defaultLayout: MediaSourceLayout<MediaItem> = {
     view: 'card',
@@ -22,7 +21,7 @@ export default function HistoryBrowser({
     ...props
 }: HistoryBrowserProps) {
     const [startAt, setStartAt] = useState(0);
-    const pager = usePager(source, startAt);
+    const pager = useHistoryPager(source, startAt);
 
     const handleDateChange = useCallback((value: string) => {
         const today = new Date();
@@ -50,10 +49,4 @@ export default function HistoryBrowser({
             />
         </>
     );
-}
-
-function usePager(source: MediaSource<MediaItem> | null, startAt = 0) {
-    const params = useMemo(() => ({startAt}), [startAt]);
-    const pager = useSource(source, params);
-    return pager;
 }

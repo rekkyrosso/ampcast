@@ -5,7 +5,7 @@ import useYouTubeVideoInfo from 'hooks/useYouTubeVideoInfo';
 import {ExternalView, Owner} from './MediaInfo';
 import './VisualizerInfo.scss';
 
-interface VisualizerInfoProps {
+export interface VisualizerInfoProps {
     visualizer: Visualizer | null;
 }
 

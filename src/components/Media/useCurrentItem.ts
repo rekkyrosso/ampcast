@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
 import MediaObject from 'types/MediaObject';
-import mediaObjectChanges from 'services/mediaObjectChanges';
+import mediaObjectChanges from 'services/actions/mediaObjectChanges';
 
 export default function useCurrentItem<T extends MediaObject>(item: T): T {
     const [currentItem, setCurrentItem] = useState<T>(() => item);

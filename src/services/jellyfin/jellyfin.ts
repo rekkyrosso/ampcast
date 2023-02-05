@@ -1,4 +1,5 @@
 import {Except, SetOptional, Writable} from 'type-fest';
+import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -36,7 +37,7 @@ const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
 
 const jellyfinLikedSongs: MediaSource<MediaItem> = {
     id: 'jellyfin/liked-songs',
-    title: 'Liked Songs',
+    title: 'My Songs',
     icon: 'heart',
     itemType: ItemType.Media,
     layout: defaultLayout,
@@ -48,7 +49,7 @@ const jellyfinLikedSongs: MediaSource<MediaItem> = {
 
 const jellyfinLikedAlbums: MediaSource<MediaAlbum> = {
     id: 'jellyfin/liked-albums',
-    title: 'Liked Albums',
+    title: 'My Albums',
     icon: 'heart',
     itemType: ItemType.Album,
 
@@ -62,7 +63,7 @@ const jellyfinLikedAlbums: MediaSource<MediaAlbum> = {
 
 const jellyfinLikedArtists: MediaSource<MediaArtist> = {
     id: 'jellyfin/liked-artists',
-    title: 'Liked Artists',
+    title: 'My Artists',
     icon: 'heart',
     itemType: ItemType.Artist,
     defaultHidden: true,
@@ -99,7 +100,10 @@ const jellyfinMostPlayed: MediaSource<MediaItem> = {
     title: 'Most Played',
     icon: 'most-played',
     itemType: ItemType.Media,
-    layout: defaultLayout,
+    layout: {
+        view: 'details',
+        fields: ['PlayCount', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'Genre'],
+    },
 
     search(): Pager<MediaItem> {
         return createItemsPager({
@@ -172,14 +176,18 @@ const jellyfin: MediaService = {
         createRoot(ItemType.Playlist, {title: 'Playlists', secondaryLayout: playlistItemsLayout}),
     ],
     sources: [
-        jellyfinMostPlayed,
-        jellyfinRecentlyPlayed,
         jellyfinLikedSongs,
         jellyfinLikedAlbums,
         jellyfinLikedArtists,
+        jellyfinMostPlayed,
+        jellyfinRecentlyPlayed,
         jellyfinPlaylists,
         jellyfinFolders,
     ],
+    labels: {
+        [Action.Like]: 'Add to Jellyfin Favorites',
+        [Action.Unlike]: 'Remove from Jellyfin Favorites',
+    },
 
     canRate,
     canStore: () => false,

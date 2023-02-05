@@ -51,7 +51,11 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                 this.parent?.itemType === ItemType.Folder
                     ? ((items as unknown as MediaFolderItem[]).sort((a, b) => {
                           if (a.itemType === b.itemType) {
-                              return 0;
+                              if (a.itemType === ItemType.Folder) {
+                                  return a.fileName.localeCompare(b.fileName);
+                              } else {
+                                  return 0;
+                              }
                           } else if (a.itemType === ItemType.Folder) {
                               return -1;
                           }
@@ -82,6 +86,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         const params = {
             IncludeItemTypes: 'Audio',
             Fields: 'AudioInfo,Genres,Path',
+            EnableUserData: true,
             Recursive: true,
             ImageTypeLimit: 1,
             EnableImageTypes: 'Primary',
@@ -266,6 +271,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                 ParentId: id,
                 IncludeItemTypes: 'Folder,MusicAlbum,MusicArtist,Audio',
                 Fields: 'AudioInfo,Genres,UserData,ParentId,Path',
+                EnableUserData: true,
                 Recursive: false,
                 SortBy: 'SortName',
                 SortOrder: 'Ascending',

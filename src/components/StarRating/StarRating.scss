@@ -1,0 +1,52 @@
+.icon-buttons.star-rating {
+    font-size: 0.625em;
+    padding: 0;
+
+    .icon-button~.icon-button {
+        margin-left: 0
+    }
+
+    .icon-button {
+        padding: 0 0.125em;
+
+        &:first-child {
+            padding-left: 0;
+        }
+
+        &:last-child {
+            padding-right: 0;
+        }
+    }
+
+    .checked .icon-star-inner {
+        fill: currentColor;
+    }
+
+    &:hover {
+        .icon-button {
+            opacity: 1;
+
+            &:not(.clicked) {
+                .icon-star-inner {
+                    fill: currentColor;
+                }
+            }
+        }
+    }
+
+    .icon-button:hover {
+        opacity: 1;
+
+        &:not(.clicked) {
+            .icon-star-inner {
+                fill: currentColor;
+            }
+        }
+
+        & ~ .icon-button {
+            .icon-star-inner {
+                fill: none;
+            }
+        }
+    }
+}

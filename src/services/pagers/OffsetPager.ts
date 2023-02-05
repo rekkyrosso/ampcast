@@ -32,7 +32,7 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
             this.subscriptions!.add(
                 this.fetches$
                     .pipe(
-                        filter(({index}) => this.isInRange(index)),
+                        filter(({index, length}) => length > 0 && this.isInRange(index)),
                         map(({index, length}) => this.getPageNumbersFromIndex(index, length)),
                         mergeMap((pageNumbers) => pageNumbers),
                         mergeMap((pageNumber) => this.fetchPage(pageNumber)),

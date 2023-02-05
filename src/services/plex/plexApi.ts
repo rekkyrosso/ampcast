@@ -5,9 +5,9 @@ console.log('module::plexApi');
 
 interface PlexRequest {
     path: string;
-    method?: 'GET' | 'POST' | 'HEAD';
+    method?: 'GET' | 'PUT' | 'POST' | 'HEAD';
     headers?: Record<string, string>;
-    params?: Record<string, string>;
+    params?: Record<string, any>;
     body?: any;
     host?: string;
     token?: string;

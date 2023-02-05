@@ -104,6 +104,7 @@ export function DefaultBrowser<T extends MediaObject>({sources}: MediaBrowserPro
                 <MediaSourceSelector sources={sources} onSourceChange={setSource} />
             ) : null}
             <PagedBrowser
+                className={searchable ? 'search-browser' : ''}
                 source={source}
                 pager={pager}
                 layout={source.layout}

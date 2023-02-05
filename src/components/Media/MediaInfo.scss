@@ -65,6 +65,10 @@
         right: 0;
         justify-content: right;
         font-size: 1.375em;
+
+        &.star-rating {
+            font-size: 1em;
+        }
     }
 
     &.artist-info .cover-art {

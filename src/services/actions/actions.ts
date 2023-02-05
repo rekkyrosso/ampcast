@@ -1,16 +1,18 @@
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
+import LibraryAction from 'types/LibraryAction';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import mediaObjectChanges from 'services/mediaObjectChanges';
+import PlayAction from 'types/PlayAction';
 import mediaPlayback from 'services/mediaPlayback';
 import {getService} from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
 import playlist from 'services/playlist';
 import {showMediaInfoDialog} from 'components/Media/MediaInfoDialog';
 import {Logger} from 'utils';
+import mediaObjectChanges from './mediaObjectChanges';
 
 const logger = new Logger('ampcast/actions');
 
@@ -26,22 +28,61 @@ export async function performAction<T extends MediaObject>(
 
     const itemType = item.itemType;
 
-    try {
+    switch (action) {
+        case Action.PlayNow:
+        case Action.PlayNext:
+        case Action.Queue:
+            performPlayAction(action, items);
+            break;
+
+        case Action.Like:
+        case Action.Unlike:
+        case Action.Rate:
+        case Action.AddToLibrary:
+        case Action.RemoveFromLibrary:
+            performLibraryAction(action, item, payload);
+            break;
+
+        case Action.Pin:
+            if (itemType === ItemType.Playlist) {
+                await pinStore.pin(items as readonly MediaPlaylist[]);
+            }
+            break;
+
+        case Action.Unpin:
+            if (itemType === ItemType.Playlist) {
+                await pinStore.unpin(items as readonly MediaPlaylist[]);
+            }
+            break;
+
+        case Action.Info:
+            await showMediaInfoDialog(item);
+            break;
+    }
+}
+
+export async function performPlayAction<T extends MediaObject>(
+    action: PlayAction,
+    items: readonly T[]
+): Promise<void> {
+    const item = items[0];
+    if (!item) {
+        return;
+    }
+
+    const itemType = item.itemType;
+
+    if (itemType === ItemType.Media || itemType === ItemType.Album) {
         switch (action) {
             case Action.PlayNow:
             case Action.PlayNext:
                 if (action === Action.PlayNow) {
                     mediaPlayback.autoplay = true;
                 }
-                switch (itemType) {
-                    case ItemType.Media:
-                        await playlist.insert(items as readonly MediaItem[]);
-                        break;
-
-                    case ItemType.Album:
-                    case ItemType.Playlist:
-                        await playlist.insert(item as MediaAlbum);
-                        break;
+                if (itemType === ItemType.Media) {
+                    await playlist.insert(items as readonly MediaItem[]);
+                } else {
+                    await playlist.insert(item as MediaAlbum);
                 }
                 if (action === Action.PlayNow) {
                     playlist.next();
@@ -49,33 +90,27 @@ export async function performAction<T extends MediaObject>(
                 break;
 
             case Action.Queue:
-                switch (itemType) {
-                    case ItemType.Media:
-                        await playlist.add(items as readonly MediaItem[]);
-                        break;
-
-                    case ItemType.Album:
-                        await playlist.add(item as MediaAlbum);
-                        break;
+                if (itemType === ItemType.Media) {
+                    await playlist.add(items as readonly MediaItem[]);
+                } else {
+                    await playlist.add(item as MediaAlbum);
                 }
                 break;
+        }
+    }
+}
 
-            case Action.Pin:
-                if (itemType === ItemType.Playlist) {
-                    await pinStore.pin(items as readonly MediaPlaylist[]);
-                }
-                break;
+export async function performLibraryAction<T extends MediaObject>(
+    action: LibraryAction,
+    item: T,
+    payload?: any
+): Promise<void> {
+    if (!item) {
+        return;
+    }
 
-            case Action.Unpin:
-                if (itemType === ItemType.Playlist) {
-                    await pinStore.unpin(items as readonly MediaPlaylist[]);
-                }
-                break;
-
-            case Action.Info:
-                await showMediaInfoDialog(item);
-                break;
-
+    try {
+        switch (action) {
             case Action.Like:
                 await rate(item, 1);
                 break;
@@ -100,7 +135,7 @@ export async function performAction<T extends MediaObject>(
                 break;
         }
     } catch (err) {
-        logger.warn('Failed to perform action:', {action, items, payload});
+        logger.warn('Failed to perform action:', {action, item, payload});
         logger.error(err);
     }
 }
@@ -116,7 +151,7 @@ async function rate<T extends MediaObject>(item: T, rating: number): Promise<voi
                 values: {rating},
             });
         } else {
-            throw Error(`\`rate\` not supported by ${serviceId}.`);
+            throw Error(`rate() not supported by ${serviceId}.`);
         }
     } else {
         throw Error(`Service not found '${serviceId}'.`);
@@ -134,7 +169,7 @@ async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
                 values: {inLibrary},
             });
         } else {
-            throw Error(`\`store\` not supported by ${serviceId}.`);
+            throw Error(`store() not supported by ${serviceId}.`);
         }
     } else {
         throw Error(`Service not found '${serviceId}'.`);

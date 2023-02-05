@@ -1,6 +1,7 @@
 import {mergeMap, skipWhile, take, tap} from 'rxjs';
 import SpotifyWebApi from 'spotify-web-api-js';
 import {Except} from 'type-fest';
+import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -228,21 +229,29 @@ const spotify: MediaService = {
         }),
     ],
     sources: [
+        spotifyLikedSongs,
+        spotifyLikedAlbums,
         spotifyRecentlyPlayed,
         spotifyTopTracks,
         spotifyTopArtists,
-        spotifyLikedSongs,
-        spotifyLikedAlbums,
         spotifyPlaylists,
         spotifyFeaturedPlaylists,
     ],
+    icons: {
+        [Action.AddToLibrary]: 'heart',
+        [Action.RemoveFromLibrary]: 'heart-fill',
+    },
+    labels: {
+        [Action.AddToLibrary]: 'Add to Spotify Library',
+        [Action.RemoveFromLibrary]: 'Remove from Spotify Library',
+    },
 
-    canRate,
-    canStore: () => false,
+    canRate: () => false,
+    canStore,
     compareForRating,
     createSourceFromPin,
     lookup,
-    rate,
+    store,
     observeIsLoggedIn,
     isLoggedIn,
     login,
@@ -293,12 +302,12 @@ async function lookup(
     return fetchFirstPage(pager, {timeout});
 }
 
-async function rate(item: MediaObject, rating: number): Promise<void> {
+async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
     const [, , id] = item.src.split(':');
 
     switch (item.itemType) {
         case ItemType.Album:
-            if (rating) {
+            if (inLibrary) {
                 await spotifyApi.addToMySavedAlbums([id]);
             } else {
                 await spotifyApi.removeFromMySavedAlbums([id]);
@@ -306,7 +315,7 @@ async function rate(item: MediaObject, rating: number): Promise<void> {
             break;
 
         case ItemType.Media:
-            if (rating) {
+            if (inLibrary) {
                 await spotifyApi.addToMySavedTracks([id]);
             } else {
                 await spotifyApi.removeFromMySavedTracks([id]);
@@ -314,7 +323,7 @@ async function rate(item: MediaObject, rating: number): Promise<void> {
             break;
 
         case ItemType.Playlist:
-            if (rating) {
+            if (inLibrary) {
                 await spotifyApi.followPlaylist(id);
             } else {
                 await spotifyApi.unfollowPlaylist(id);
@@ -323,7 +332,7 @@ async function rate(item: MediaObject, rating: number): Promise<void> {
     }
 }
 
-function canRate<T extends MediaObject>(item: T, inline?: boolean): boolean {
+function canStore<T extends MediaObject>(item: T, inline?: boolean): boolean {
     switch (item.itemType) {
         case ItemType.Album:
             return !item.synthetic;

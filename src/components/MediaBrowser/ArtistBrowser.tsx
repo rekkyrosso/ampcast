@@ -24,7 +24,11 @@ const defaultTopTracksLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Index', 'Title', 'Artist', 'Duration', 'Album', 'Year'],
 };
 
-export default function ArtistBrowser({source, ...props}: PagedBrowserProps<MediaArtist>) {
+export default function ArtistBrowser({
+    source,
+    className = '',
+    ...props
+}: PagedBrowserProps<MediaArtist>) {
     const [selectedArtist, setSelectedArtist] = useState<MediaArtist | null>(null);
     const [selectedAlbum, setSelectedAlbum] = useState<MediaAlbum | null>(null);
     const [defaultTracksLayout, setDefaultTracksLayout] =
@@ -42,7 +46,7 @@ export default function ArtistBrowser({source, ...props}: PagedBrowserProps<Medi
     }, []);
 
     return (
-        <div className="panel artist-browser">
+        <div className={`panel artist-browser ${className}`}>
             <Splitter id="artist-browser-layout" arrange="columns" primaryIndex={0}>
                 <ArtistList {...props} onSelect={handleArtistSelect} />
                 <Splitter id="artist-album-browser-layout" arrange="rows" primaryIndex={1}>

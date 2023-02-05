@@ -42,6 +42,9 @@ function useTitle(item: MediaObject): string {
         case ItemType.Artist:
             return 'Artist info';
 
+        case ItemType.Folder:
+            return 'Folder info';
+
         default:
             return 'Media info';
     }

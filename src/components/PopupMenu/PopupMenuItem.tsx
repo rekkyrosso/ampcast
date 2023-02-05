@@ -1,4 +1,5 @@
 import React from 'react';
+import {cancelEvent, stopPropagation} from 'utils';
 
 export interface PopupMenuItemProps<T extends string> {
     label: string;
@@ -13,7 +14,7 @@ export default function PopupMenuItem<T extends string>({
 }: PopupMenuItemProps<T>) {
     return (
         <li className="popup-menu-item">
-            <button value={action}>
+            <button value={action} onMouseDown={cancelEvent} onMouseUp={stopPropagation}>
                 <span className="popup-menu-item-label">{label}</span>
                 <span className="popup-menu-item-accelerator-key">{acceleratorKey}</span>
             </button>

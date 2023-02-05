@@ -1,7 +1,7 @@
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
-import mediaObjectChanges from 'services/mediaObjectChanges';
+import mediaObjectChanges from 'services/actions/mediaObjectChanges';
 import {Logger, partition} from 'utils';
 import {compareForRating} from './listenbrainz';
 import listenbrainzSettings from './listenbrainzSettings';

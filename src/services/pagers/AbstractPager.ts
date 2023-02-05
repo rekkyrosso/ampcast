@@ -6,10 +6,10 @@ import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import MediaObjectChange from 'types/MediaObjectChange';
 import Pager, {PagerConfig} from 'types/Pager';
-import mediaObjectChanges from 'services/mediaObjectChanges';
+import mediaObjectChanges from 'services/actions/mediaObjectChanges';
 import {Logger} from 'utils';
 
-interface PageFetch {
+export interface PageFetch {
     readonly index: number;
     readonly length: number;
 }
@@ -131,11 +131,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
                 this.subscriptions.add(
                     mediaObjectChanges
                         .observe<T>()
-                        .pipe(
-                            tap((changes) => {
-                                this.applyChanges(changes);
-                            })
-                        )
+                        .pipe(tap((changes) => this.applyChanges(changes)))
                         .subscribe(logger)
                 );
             }

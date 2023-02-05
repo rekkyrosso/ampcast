@@ -2,14 +2,15 @@ import React from 'react';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
+import {getService} from 'services/mediaServices';
 import {browser} from 'utils';
+import {getLabelForAction} from 'components/Actions';
 import PopupMenu, {
     PopupMenuItem,
     PopupMenuProps,
     PopupMenuSeparator,
     showPopupMenu,
 } from 'components/PopupMenu';
-import {getService} from 'services/mediaServices';
 
 export default async function showActionsMenu<T extends MediaObject>(
     items: readonly T[],
@@ -71,14 +72,18 @@ function ActionsMenu<T extends MediaObject>({items, ...props}: ActionsMenuProps<
                 ) : null}
                 {isSingleItem && item.rating !== undefined && service?.canRate(item, true) ? (
                     <PopupMenuItem<Action>
-                        label={item.rating ? 'Unlike' : 'Like'}
+                        label={
+                            item.rating
+                                ? getLabelForAction(service, Action.Unlike)
+                                : getLabelForAction(service, Action.Like)
+                        }
                         action={item.rating ? Action.Unlike : Action.Like}
                         key={item.rating ? Action.Unlike : Action.Like}
                     />
                 ) : null}
                 {isSingleItem && item.inLibrary === false && service?.canStore(item, true) ? (
                     <PopupMenuItem<Action>
-                        label="Add to library"
+                        label={getLabelForAction(service, Action.AddToLibrary)}
                         action={Action.AddToLibrary}
                         key={Action.AddToLibrary}
                     />

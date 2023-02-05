@@ -1,5 +1,6 @@
 import {Except} from 'type-fest';
 import ItemType from 'types/ItemType';
+import Action from 'types/Action';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
@@ -121,6 +122,10 @@ const lastfm: MediaService = {
         lastfmHistory,
         lastfmLovedTracks,
     ],
+    labels: {
+        [Action.Like]: 'Love on last.fm',
+        [Action.Unlike]: 'Unlove on last.fm',
+    },
 
     canRate,
     canStore: () => false,

@@ -10,6 +10,7 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
+import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
 import Pin from 'types/Pin';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
@@ -17,23 +18,24 @@ import SimplePager from 'services/pagers/SimplePager';
 import {uniqBy} from 'utils';
 import plexSettings from './plexSettings';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './plexAuth';
+import plexApi from './plexApi';
 import PlexPager from './PlexPager';
 
 console.log('module::plex');
 
-const defaultLayout: MediaSourceLayout<MediaItem> = {
+const tracksLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
-    fields: ['Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount'],
+    fields: ['Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount', 'Rate'],
 };
 
 const albumTracksLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
-    fields: ['Index', 'Artist', 'Title', 'Duration', 'PlayCount'],
+    fields: ['Index', 'Artist', 'Title', 'Duration', 'PlayCount', 'Rate'],
 };
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
-    fields: ['Index', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount'],
+    fields: ['Index', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount', 'Rate'],
 };
 
 const plexMusicVideo: MediaSource<MediaItem> = {
@@ -83,7 +85,7 @@ const plexMostPlayed: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
     layout: {
         view: 'details',
-        fields: ['Index', 'PlayCount', 'Artist', 'Title', 'Album', 'Track', 'Duration'],
+        fields: ['PlayCount', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'Rate'],
     },
 
     search(): Pager<MediaItem> {
@@ -100,7 +102,10 @@ const plexTopTracks: MediaSource<MediaItem> = {
     title: 'Top Tracks',
     icon: 'star',
     itemType: ItemType.Media,
-    layout: defaultLayout,
+    layout: {
+        view: 'details',
+        fields: ['Rate', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount'],
+    },
 
     search(): Pager<MediaItem> {
         return new PlexPager(`/library/sections/${plexSettings.libraryId}/all`, {
@@ -116,6 +121,10 @@ const plexTopAlbums: MediaSource<MediaAlbum> = {
     title: 'Top Albums',
     icon: 'star',
     itemType: ItemType.Album,
+    layout: {
+        view: 'card compact',
+        fields: ['Thumbnail', 'Title', 'Artist', 'Year', 'Rate'],
+    },
     secondaryLayout: albumTracksLayout,
 
     search(): Pager<MediaAlbum> {
@@ -133,6 +142,11 @@ const plexTopArtists: MediaSource<MediaArtist> = {
     icon: 'star',
     itemType: ItemType.Artist,
     defaultHidden: true,
+    layout: {
+        view: 'card compact',
+        fields: ['Thumbnail', 'Title', 'Genre', 'Rate'],
+    },
+    tertiaryLayout: albumTracksLayout,
 
     search(): Pager<MediaArtist> {
         return new PlexPager(`/library/sections/${plexSettings.libraryId}/all`, {
@@ -194,27 +208,28 @@ const plex: MediaService = {
     icon: 'plex',
     url: 'https://www.plex.tv/',
     roots: [
-        createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
+        createRoot(ItemType.Media, {title: 'Songs', layout: tracksLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
         createRoot(ItemType.Artist, {title: 'Artists'}),
         createRoot(ItemType.Playlist, {title: 'Playlists', secondaryLayout: playlistItemsLayout}),
     ],
     sources: [
-        plexMusicVideo,
-        plexMostPlayed,
-        plexRecentlyPlayed,
         plexTopTracks,
         plexTopAlbums,
         plexTopArtists,
+        plexMostPlayed,
+        plexRecentlyPlayed,
         plexPlaylists,
+        plexMusicVideo,
         plexFolders,
     ],
 
-    canRate: () => false,
+    canRate,
     canStore: () => false,
     compareForRating,
     createSourceFromPin,
     lookup,
+    rate,
     observeIsLoggedIn,
     isLoggedIn,
     login,
@@ -223,6 +238,25 @@ const plex: MediaService = {
 
 function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.plex!.ratingKey === b.plex!.ratingKey;
+}
+
+function canRate<T extends MediaObject>(item: T, inline?: boolean): boolean {
+    if (inline) {
+        return false;
+    }
+    switch (item.itemType) {
+        case ItemType.Album:
+            return !item.synthetic;
+
+        case ItemType.Artist:
+            return true;
+
+        case ItemType.Media:
+            return item.mediaType === MediaType.Audio;
+
+        default:
+            return false;
+    }
 }
 
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
@@ -259,6 +293,18 @@ async function lookup(
         lookup({originalTitle: artist}),
     ]);
     return uniqBy(results.flat(), 'src');
+}
+
+async function rate(item: MediaObject, rating: number): Promise<void> {
+    await plexApi.fetch({
+        path: '/:/rate',
+        method: 'PUT',
+        params: {
+            key: item.plex!.ratingKey,
+            identifier: 'com.plexapp.plugins.library',
+            rating: rating || -1,
+        },
+    });
 }
 
 function createRoot<T extends MediaObject>(

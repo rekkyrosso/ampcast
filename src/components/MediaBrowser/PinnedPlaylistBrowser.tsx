@@ -19,6 +19,7 @@ const defaultPlaylistItemsLayout: MediaSourceLayout<MediaItem> = {
 
 export default function PinnedPlaylistBrowser({
     source,
+    className = '',
     ...props
 }: PagedBrowserProps<MediaPlaylist>) {
     const [selectedPlaylist, setSelectedPlaylist] = useState<MediaPlaylist | null>(null);
@@ -28,7 +29,7 @@ export default function PinnedPlaylistBrowser({
     }, []);
 
     return (
-        <div className="panel playlist-browser pinned-playlist-browser">
+        <div className={`panel playlist-browser pinned-playlist-browser ${className}`}>
             <PlaylistList
                 {...props}
                 layout={source.layout || defaultLayout}

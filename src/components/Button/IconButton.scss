@@ -7,10 +7,14 @@
     text-align: center;
     width: 1em;
     height: 1em;
-    filter: brightness(0.75);
+    opacity: 0.75;
 
     &:enabled {
         cursor: pointer;
+
+        &:hover {
+            opacity: 1;
+        }
     }
 
     &.with-overlay {
@@ -20,26 +24,13 @@
         box-shadow: 0px 0px 2px 1px rgba(0, 0, 0, 0.3);
         color: var(--soft-white);
 
-        &:hover {
+        &:enabled:hover {
             background: radial-gradient(rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.8), transparent);
         }
     }
 
-    &:hover {
-        filter: brightness(1);
-    }
-
     &:active {
         transform: none;
-    }
-
-    &.in-frame {
-        filter: none;
-        opacity: 0.75;
-
-        &:hover {
-            opacity: 1;
-        }
     }
 
     .icon {

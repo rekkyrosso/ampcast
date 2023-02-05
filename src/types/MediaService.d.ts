@@ -1,4 +1,6 @@
 import Auth from './Auth';
+import type {IconName} from 'components/Icon';
+import LibraryAction from './LibraryAction';
 import MediaItem from './MediaItem';
 import MediaObject from './MediaObject';
 import MediaPlaylist from './MediaPlaylist';
@@ -16,6 +18,8 @@ export default interface MediaService extends Auth {
     readonly isScrobbler?: boolean;
     readonly defaultHidden?: boolean;
     readonly defaultNoScrobble?: boolean;
+    readonly icons?: Partial<Record<LibraryAction, IconName>>;
+    readonly labels?: Partial<Record<LibraryAction, string>>;
     canRate: (item: MediaObject, inline?: boolean) => boolean;
     canStore: (item: MediaObject, inline?: boolean) => boolean;
     compareForRating: <T extends MediaObject>(a: T, b: T) => boolean;
