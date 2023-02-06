@@ -1,16 +1,40 @@
-import React from 'react';
-import Icon, {IconName} from 'components/Icon';
+import React, {useCallback, useRef} from 'react';
 import './MediaButton.scss';
 
 export interface MediaButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    icon: IconName;
     onClick?: () => void;
 }
 
-export default function MediaButton({icon, onClick, ...props}: MediaButtonProps) {
+export default function MediaButton({
+    children,
+    className = '',
+    onClick,
+    ...props
+}: MediaButtonProps) {
+    const ref = useRef<HTMLButtonElement>(null);
+
+    const handleMouseDown = useCallback((event: React.MouseEvent) => {
+        event.stopPropagation();
+        event.preventDefault();
+        ref.current!.classList.toggle('active', true);
+    }, []);
+
+    const handleMouseUp = useCallback((event: React.MouseEvent) => {
+        event.stopPropagation();
+        ref.current!.classList.toggle('active', false);
+    }, []);
+
     return (
-        <button {...props} className={`media-button media-button-${icon}`} onClick={onClick}>
-            <Icon name={icon} />
+        <button
+            {...props}
+            className={`media-button ${className}`}
+            type="button"
+            onClick={onClick}
+            onMouseDown={handleMouseDown}
+            onMouseUp={handleMouseUp}
+            ref={ref}
+        >
+            {children}
         </button>
     );
 }

@@ -1,13 +1,14 @@
 import React, {memo, useEffect, useState} from 'react';
-import MediaItem from 'types/MediaItem';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import usePaused from 'hooks/usePaused';
-import useInterstitialState, {InterstitialState} from './useInterstitialState';
+import useInterstitialState from './useInterstitialState';
 import './Interstitial.scss';
 
 export default memo(function Interstitial() {
     const item = useCurrentlyPlaying();
+    const paused = usePaused();
     const state = useInterstitialState();
+    const [ready, setReady] = useState(false);
     const [isRecent, setIsRecent] = useState(false);
     const playlistItemId = item?.id;
 
@@ -17,37 +18,38 @@ export default memo(function Interstitial() {
         return () => clearTimeout(timerId);
     }, [playlistItemId]);
 
+    useEffect(() => {
+        setReady(false);
+        if (state === 'loaded') {
+            const timerId = setTimeout(() => setReady(true), 4500);
+            return () => clearTimeout(timerId);
+        }
+    }, [state]);
+
     return (
-        <div className={`interstitial ${state} ${isRecent ? 'is-recent' : ''}`}>
-            {item ? <CurrentlyPlaying item={item} state={state} /> : <EmptyPlaylist />}
+        <div
+            className={`interstitial ${state} ${ready ? 'ready' : ''} ${
+                isRecent ? 'is-recent' : ''
+            }`}
+        >
+            <div className="currently-playing">
+                {item ? (
+                    <>
+                        <h3>{item.title}</h3>
+                        {item.artists ? (
+                            <>
+                                <span className="by">by</span>
+                                <h4>{item.artists.join(', ')}</h4>
+                            </>
+                        ) : null}
+                    </>
+                ) : (
+                    <p>The playlist is empty.</p>
+                )}
+            </div>
+            <p className="interstitial-state">
+                {paused ? '' : `${state === 'loaded' ? 'playing' : state}...`}
+            </p>
         </div>
     );
 });
-
-interface CurrentlyPlayingProps {
-    item: MediaItem;
-    state: InterstitialState;
-}
-
-function CurrentlyPlaying({item, state}: CurrentlyPlayingProps) {
-    const paused = usePaused();
-
-    return (
-        <>
-            <h3>{item.title}</h3>
-            {item.artists ? (
-                <>
-                    <span className="by">by</span>
-                    <h4>{item.artists.join(', ')}</h4>
-                </>
-            ) : null}
-            <span className="interstitial-state">
-                {paused ? '' : `${state === 'ready' ? 'playing' : state}...`}
-            </span>
-        </>
-    );
-}
-
-function EmptyPlaylist() {
-    return <p>The playlist is empty.</p>;
-}

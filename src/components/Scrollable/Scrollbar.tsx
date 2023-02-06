@@ -113,7 +113,7 @@ function Scrollbar({
     const handleTrackMouseDown = useCallback(
         (event: React.MouseEvent) => {
             if (event.button === 0) {
-                event.preventDefault();
+                event.stopPropagation();
                 const position = vertical ? event.nativeEvent.offsetY : event.nativeEvent.offsetX;
                 return startScroll(
                     event.target as HTMLElement,
@@ -127,7 +127,6 @@ function Scrollbar({
     const handleThumbMouseDown = useCallback(
         (event: React.MouseEvent) => {
             if (event.button === 0) {
-                event.preventDefault();
                 event.stopPropagation();
                 setDragStart(vertical ? event.screenY : event.screenX);
                 setDragThumbPosition(thumbPosition);

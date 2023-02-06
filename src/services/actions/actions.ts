@@ -146,8 +146,8 @@ async function rate<T extends MediaObject>(item: T, rating: number): Promise<voi
     if (service) {
         if (service.rate) {
             await service.rate(item, rating);
-            mediaObjectChanges.dispatch<MediaObject>({
-                match: (object: MediaObject) => service.compareForRating(object, item),
+            mediaObjectChanges.dispatch({
+                match: (object) => service.compareForRating(object, item),
                 values: {rating},
             });
         } else {
@@ -164,8 +164,8 @@ async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
     if (service) {
         if (service.store) {
             await service.store(item, inLibrary);
-            mediaObjectChanges.dispatch<MediaObject>({
-                match: (object: MediaObject) => object.src === item.src,
+            mediaObjectChanges.dispatch({
+                match: (object) => object.src === item.src,
                 values: {inLibrary},
             });
         } else {

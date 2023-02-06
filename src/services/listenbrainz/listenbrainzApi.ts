@@ -37,7 +37,7 @@ export class ListenBrainzApi {
         if (items.length > 0) {
             const ratings = await this.getRatings(items);
 
-            mediaObjectChanges.dispatch<MediaItem>(
+            mediaObjectChanges.dispatch(
                 items.map((item, index) => ({
                     match: (object: MediaObject) => compareForRating(object, item),
                     values: {rating: ratings[index]},

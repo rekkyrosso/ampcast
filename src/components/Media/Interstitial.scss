@@ -1,34 +1,10 @@
 .interstitial {
     position: absolute;
     inset: 0;
-    padding: 2em;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: var(--black);
     color: var(--soft-white);
-    text-shadow: 0.125em 0.125em 0 rgba(16, 16, 16, 0.6);
     text-align: center;
-    opacity: 0;
-    transition: opacity 4s linear;
-
-    .no-visualizer:not(.is-playing-video) &,
-    .media-playback.paused &,
-    &:not(.ready),
-    &:not(.ready) &-state {
-        opacity: 1;
-    }
-
-    &.is-recent,
-    &.is-recent &-state,
-    .media-playback.paused & {
-        transition: none;
-    }
-
-    &.is-recent {
-        opacity: 0.85;
-    }
+    background-color: rgba(0, 0, 0, 0);
+    transition: background-color 4s linear;
 
     .by {
         font-size: 0.5em;
@@ -38,14 +14,73 @@
         font-size: 0.75em;
     }
 
+    .currently-playing {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: radial-gradient(rgba(0, 0, 0, 0.6), transparent);
+        text-shadow: 0.125em 0.125em 0 rgba(16, 16, 16, 0.6);
+        opacity: 0;
+        transition: opacity 4.5s linear;
+    }
+
     &-state {
-        display: inline-block;
         position: absolute;
         bottom: 0.4em;
-        margin: 0 auto;
+        width: 100%;
         font-size: 0.75em;
         color: rgba(238, 238, 238, 0.625);
         opacity: 0;
         transition: opacity 1s linear;
     }
+
+    .no-visualizer:not(.is-playing-video) &,
+    .media-playback.paused &,
+    &:not(.loaded) {
+        background-color: rgba(0, 0, 0, 1);
+
+        .currently-playing {
+            opacity: 1;
+        }
+    }
+
+    &:not(.loaded) &-state {
+        opacity: 1;
+    }
+
+    &.is-recent,
+    &.is-recent &-state,
+    .media-playback.paused & {
+        transition: none;
+    }
+
+    &.is-recent .currently-playing {
+        transition: none;
+    }
+
+    .media-playback.paused & .currently-playing {
+        transition-duration: 1s;
+    }
+
+    &.is-recent {
+        background-color: rgba(0, 0, 0, 0.85);
+
+        .currently-playing {
+            opacity: 0.85;
+        }
+    }
+
+    /* Show title/artist on hover */
+    /*
+    &.ready .currently-playing {
+        transition-duration: 100ms;
+
+        .media:hover & {
+            opacity: 1;
+        }
+    }
+    */
 }

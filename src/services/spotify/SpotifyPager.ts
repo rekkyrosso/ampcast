@@ -359,7 +359,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                 inLibrary = await spotifyApi.containsMySavedTracks(ids);
             }
 
-            mediaObjectChanges.dispatch<MediaObject>(
+            mediaObjectChanges.dispatch(
                 items.map(({src}, index) => ({
                     match: (item: MediaObject) => item.src === src,
                     values: {inLibrary: inLibrary[index]},

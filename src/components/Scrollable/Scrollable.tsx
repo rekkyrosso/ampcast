@@ -131,7 +131,7 @@ export default function Scrollable({
             setScrollWidth(content.scrollWidth);
         }
         if (initialScrollHeight === 0) {
-            setScrollHeight(bodyContent.scrollHeight + headRef.current!.clientHeight);
+            setScrollHeight(bodyContent.scrollHeight + (headRef.current?.clientHeight || 0));
         }
         onResize?.({width: content.clientWidth, height: content.clientHeight});
     }, [initialScrollWidth, initialScrollHeight, onResize]);
@@ -195,9 +195,11 @@ export default function Scrollable({
                 }}
                 ref={contentRef}
             >
-                <div className="scrollable-head" ref={headRef}>
-                    {head}
-                </div>
+                {head ? (
+                    <div className="scrollable-head" ref={headRef}>
+                        {head}
+                    </div>
+                ) : null}
                 <div
                     className="scrollable-body"
                     style={{

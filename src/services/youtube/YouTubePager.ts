@@ -262,7 +262,7 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
         pageNumber: number
     ): string {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const {fields: _, ...search} = params;
+        const {fields, ...search} = params;
         return `${path}?${new URLSearchParams(search)}#${pageNumber}`;
     }
 

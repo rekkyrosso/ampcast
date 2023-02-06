@@ -18,6 +18,7 @@ import {
 } from 'services/lookup';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {exists, shuffle as shuffleArray, Logger} from 'utils';
+import {removeUserData} from 'utils/media';
 import settings from './playlistSettings';
 
 console.log('module::playlist');
@@ -174,9 +175,8 @@ export async function insertAt(items: PlayableType, index: number): Promise<void
     }
     if (additions.length > 0) {
         const newItems = additions.map((item) => ({
-            ...item,
+            ...removeUserData(item),
             id: nanoid(),
-            lookupStatus: undefined,
         }));
         if (index >= 0 && index < all.length) {
             // insert
@@ -334,7 +334,9 @@ items$
         mergeMap((items: PlaylistItem[]) => {
             items = items.map((item) => {
                 if (item.lookupStatus) {
-                    return {...item, lookupStatus: undefined};
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    const {lookupStatus, ...rest} = item;
+                    return rest;
                 }
                 return item;
             });

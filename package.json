@@ -1,6 +1,6 @@
 {
     "name": "ampcast",
-    "version": "0.7.14",
+    "version": "0.7.15",
     "description": "Ampcast music player",
     "author": {
         "name": "rekkyrosso",
@@ -70,7 +70,7 @@
         "eslint": "^8.23.0",
         "eslint-plugin-react": "^7.31.8",
         "eslint-plugin-react-hooks": "^4.6.0",
-        "eslint-webpack-plugin": "^3.2.0",
+        "eslint-webpack-plugin": "^4.0.0",
         "express": "^4.18.1",
         "mini-css-extract-plugin": "^2.6.1",
         "musickit-typescript": "^1.2.4",

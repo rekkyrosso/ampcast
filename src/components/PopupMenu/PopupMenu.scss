@@ -22,8 +22,15 @@
         transform: none;
         will-change: filter;
 
-        &:hover {
-            filter: invert(1);
+        &:not(:disabled) {
+            &:hover {
+                filter: invert(1);
+            }
+
+            &:active {
+                filter: invert(1);
+                transform: none;
+            }
         }
     }
 

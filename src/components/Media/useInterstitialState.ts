@@ -5,7 +5,7 @@ import {observePlaying} from 'services/mediaPlayback';
 import {hasPlayableSrc} from 'services/mediaServices';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 
-export type InterstitialState = 'searching' | 'loading' | 'ready';
+export type InterstitialState = 'searching' | 'loading' | 'loaded';
 
 export default function useInterstitialState() {
     const [state, setState] = useState<InterstitialState>('searching');
@@ -21,7 +21,7 @@ export default function useInterstitialState() {
                 break;
 
             case LookupStatus.NotFound:
-                setState('ready');
+                setState('loaded');
                 break;
 
             default:
@@ -30,13 +30,13 @@ export default function useInterstitialState() {
                         setState('loading');
                         const subscription = observePlaying()
                             .pipe(take(1))
-                            .subscribe(() => setState('ready'));
+                            .subscribe(() => setState('loaded'));
                         return () => subscription.unsubscribe();
                     } else {
                         setState('searching');
                     }
                 } else {
-                    setState('ready');
+                    setState('loaded');
                 }
         }
     }, [item]);

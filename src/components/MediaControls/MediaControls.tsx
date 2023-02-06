@@ -14,6 +14,7 @@ import {
 import Time from 'components/Time';
 import useObservable from 'hooks/useObservable';
 import MediaButton from './MediaButton';
+import MediaIconButton from './MediaIconButton';
 import VolumeControl from './VolumeControl';
 import './MediaControls.scss';
 
@@ -45,23 +46,23 @@ export default function MediaControls() {
             <div className="playback-control">
                 <VolumeControl />
                 <div className="media-buttons">
-                    <MediaButton aria-label="Previous track" icon="prev" onClick={prev} />
-                    <MediaButton
+                    <MediaIconButton aria-label="Previous track" icon="prev" onClick={prev} />
+                    <MediaIconButton
                         aria-label={paused ? 'Play' : 'Pause'}
                         icon={paused ? 'play' : 'pause'}
                         onClick={paused ? play : pause}
                     />
-                    <MediaButton aria-label="Stop" icon="stop" onClick={stop} />
-                    <MediaButton aria-label="Next track" icon="next" onClick={next} />
+                    <MediaIconButton aria-label="Stop" icon="stop" onClick={stop} />
+                    <MediaIconButton aria-label="Next track" icon="next" onClick={next} />
                 </div>
                 <div className="media-buttons-more">
-                    <button
-                        className="media-button media-button-shuffle"
+                    <MediaButton
+                        className="media-button-shuffle"
                         aria-label="Shuffle"
                         onClick={shuffle}
                     >
                         Shuffle
-                    </button>
+                    </MediaButton>
                 </div>
             </div>
         </div>

@@ -16,7 +16,14 @@ import Pin from 'types/Pin';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import {LiteStorage, Logger} from 'utils';
-import {observeAccessToken, observeIsLoggedIn, isLoggedIn, login, logout} from './spotifyAuth';
+import {
+    observeAccessToken,
+    observeIsLoggedIn,
+    isLoggedIn,
+    login,
+    logout,
+    refreshToken,
+} from './spotifyAuth';
 import SpotifyPager, {SpotifyPage} from './SpotifyPager';
 
 console.log('module::spotify');
@@ -276,7 +283,10 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
             const [, , id] = pin.src.split(':');
             const market = getMarket();
             return new SpotifyPager(async (): Promise<SpotifyPage> => {
-                const playlist = await spotifyApi.getPlaylist(id, {market});
+                const playlist = await spotifyApi.getPlaylist(id, {
+                    market,
+                    fields: 'id,type,external_urls,name,description,images,owner,uri,tracks.total',
+                });
                 return {items: [playlist], total: 1};
             });
         },
@@ -305,30 +315,43 @@ async function lookup(
 async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
     const [, , id] = item.src.split(':');
 
-    switch (item.itemType) {
-        case ItemType.Album:
-            if (inLibrary) {
-                await spotifyApi.addToMySavedAlbums([id]);
-            } else {
-                await spotifyApi.removeFromMySavedAlbums([id]);
-            }
-            break;
+    const updateLibrary = async () => {
+        switch (item.itemType) {
+            case ItemType.Album:
+                if (inLibrary) {
+                    await spotifyApi.addToMySavedAlbums([id]);
+                } else {
+                    await spotifyApi.removeFromMySavedAlbums([id]);
+                }
+                break;
 
-        case ItemType.Media:
-            if (inLibrary) {
-                await spotifyApi.addToMySavedTracks([id]);
-            } else {
-                await spotifyApi.removeFromMySavedTracks([id]);
-            }
-            break;
+            case ItemType.Media:
+                if (inLibrary) {
+                    await spotifyApi.addToMySavedTracks([id]);
+                } else {
+                    await spotifyApi.removeFromMySavedTracks([id]);
+                }
+                break;
 
-        case ItemType.Playlist:
-            if (inLibrary) {
-                await spotifyApi.followPlaylist(id);
-            } else {
-                await spotifyApi.unfollowPlaylist(id);
-            }
-            break;
+            case ItemType.Playlist:
+                if (inLibrary) {
+                    await spotifyApi.followPlaylist(id);
+                } else {
+                    await spotifyApi.unfollowPlaylist(id);
+                }
+                break;
+        }
+    };
+
+    try {
+        await updateLibrary();
+    } catch (err: any) {
+        if (err.status === 401) {
+            await refreshToken();
+            await updateLibrary();
+        } else {
+            throw err;
+        }
     }
 }
 

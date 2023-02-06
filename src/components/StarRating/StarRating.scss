@@ -2,7 +2,7 @@
     font-size: 0.625em;
     padding: 0;
 
-    .icon-button~.icon-button {
+    .icon-button ~ .icon-button {
         margin-left: 0
     }
 
@@ -15,6 +15,10 @@
 
         &:last-child {
             padding-right: 0;
+        }
+
+        .icon {
+            width: auto;
         }
     }
 

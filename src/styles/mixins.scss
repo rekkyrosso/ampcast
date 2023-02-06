@@ -23,21 +23,15 @@
     @include button;
     transform-origin: bottom right;
 
-    .browser-firefox & {
-        will-change: transform;
-    }
+    &:not(:disabled) {
+        &:hover {
+            filter: brightness(1.1);
+        }
 
-    &:hover {
-        filter: brightness(1.1);
-    }
-
-    &:active {
-        filter: brightness(0.95);
-        transform: scale(0.99);
-    }
-
-    &:disabled {
-        filter: none !important;
-        transform: none !important;
+        &:active,
+        &.active {
+            filter: brightness(0.95);
+            transform: scale(0.99);
+        }
     }
 }

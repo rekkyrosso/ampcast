@@ -1,6 +1,7 @@
 import Dexie from 'dexie';
 import MediaItem from 'types/MediaItem';
 import {Logger} from 'utils';
+import {removeUserData} from 'utils/media';
 
 const logger = new Logger('lookupStore');
 
@@ -33,6 +34,7 @@ class LookupStore extends Dexie {
                 logger.log('add', {service, artist, title, items});
                 artist = artist.toLowerCase();
                 title = title.toLowerCase();
+                items = items.map((item) => removeUserData(item));
                 await this.items.put({service, artist, title, items});
             }
         } catch (err) {

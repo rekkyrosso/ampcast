@@ -375,7 +375,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
                 data.map((data: any) => [data.id, data.attributes.value])
             );
 
-            mediaObjectChanges.dispatch<MediaObject>(
+            mediaObjectChanges.dispatch(
                 ids.map((id) => ({
                     match: (object: MediaObject) => object.src === `apple:${type}:${id}`,
                     values: {rating: ratings.get(id) || 0},
