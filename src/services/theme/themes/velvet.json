@@ -1,0 +1,17 @@
+{
+    "name": "Velvet",
+    "backgroundColor": "#160916",
+    "textColor": "#a7bdd2",
+    "frameColor": "#280b1f",
+    "frameTextColor": "#cdd1d6",
+    "buttonColor": "",
+    "buttonTextColor": "",
+    "mediaButtonColor": "#aa8f00",
+    "mediaButtonTextColor": "",
+    "selectedBackgroundColor": "#412438",
+    "selectedTextColor": "#ebebeb",
+    "evenRowBackgroundColor": "",
+    "spacing": 1,
+    "roundness": 0.15,
+    "flat": true
+}

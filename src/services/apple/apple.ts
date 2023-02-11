@@ -1,7 +1,8 @@
-import {Except} from 'type-fest';
+import {Except, Writable} from 'type-fest';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
+import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
@@ -12,6 +13,7 @@ import Pager, {PagerConfig} from 'types/Pager';
 import Pin from 'types/Pin';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
+import {bestOf} from 'utils';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './appleAuth';
 import MusicKitPager, {MusicKitPage} from './MusicKitPager';
 
@@ -50,6 +52,9 @@ const appleRecommendations: MediaSource<MediaPlaylist> = {
     search(): Pager<MediaPlaylist> {
         return new MusicKitPager(
             `/v1/me/recommendations`,
+            undefined,
+            undefined,
+            undefined,
             ({data = [], next: nextPageUrl, meta}: any): MusicKitPage => {
                 const items = data
                     .map((data: any) =>
@@ -73,7 +78,7 @@ const appleRecentlyPlayed: MediaSource<MediaItem> = {
     layout: defaultLayout,
 
     search(): Pager<MediaItem> {
-        return new MusicKitPager(`/v1/me/recent/played/tracks`, toPage, undefined, {
+        return new MusicKitPager(`/v1/me/recent/played/tracks`, undefined, {
             pageSize: 30,
             maxSize: 200,
         });
@@ -83,29 +88,42 @@ const appleRecentlyPlayed: MediaSource<MediaItem> = {
 const appleLibrarySongs: MediaSource<MediaItem> = {
     id: 'apple/library-songs',
     title: 'My Songs',
-    icon: 'in-library',
+    icon: 'tick',
     itemType: ItemType.Media,
     layout: defaultLayout,
     defaultHidden: true,
 
     search(): Pager<MediaItem> {
-        return new MusicKitPager(`/v1/me/library/songs`, toPage, {
-            'include[library-songs]': 'catalog',
-            'fields[library-songs]': 'playParams,name,artistName,albumName,artwork',
-        });
+        return new MusicKitPager(`/v1/me/library/songs`);
     },
 };
 
 const appleLibraryAlbums: MediaSource<MediaAlbum> = {
     id: 'apple/library-albums',
     title: 'My Albums',
-    icon: 'in-library',
+    icon: 'tick',
     itemType: ItemType.Album,
 
     search(): Pager<MediaAlbum> {
-        return new MusicKitPager(`/v1/me/library/albums`, toPage, {
+        return new MusicKitPager(`/v1/me/library/albums`, {
+            'fields[library-albums]': 'name,artistName,playParams',
             'include[library-albums]': 'catalog',
-            'fields[library-albums]': 'playParams,name,artistName,artwork',
+        });
+    },
+};
+
+const appleLibraryArtists: MediaSource<MediaArtist> = {
+    id: 'apple/library-artists',
+    title: 'My Artists',
+    icon: 'tick',
+    itemType: ItemType.Artist,
+    defaultHidden: true,
+
+    search(): Pager<MediaArtist> {
+        return new MusicKitPager(`/v1/me/library/artists`, {
+            'fields[library-artists]': 'name,playParams',
+            'include[library-artists]': 'catalog',
+            'omit[resource:artists]': 'relationships',
         });
     },
 };
@@ -117,9 +135,9 @@ const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
     itemType: ItemType.Playlist,
 
     search(): Pager<MediaPlaylist> {
-        return new MusicKitPager(`/v1/me/library/playlists`, toPage, {
+        return new MusicKitPager(`/v1/me/library/playlists`, {
+            'fields[library-playlists]': 'name,playParams',
             'include[library-playlists]': 'catalog',
-            'fields[library-playlists]': 'playParams,name,artwork',
         });
     },
 };
@@ -138,6 +156,7 @@ const apple: MediaService = {
     sources: [
         appleLibrarySongs,
         appleLibraryAlbums,
+        appleLibraryArtists,
         appleRecentlyPlayed,
         appleLibraryPlaylists,
         appleRecommendations,
@@ -154,6 +173,7 @@ const apple: MediaService = {
     canStore,
     compareForRating,
     createSourceFromPin,
+    getMetadata,
     lookup,
     rate,
     store,
@@ -165,29 +185,6 @@ const apple: MediaService = {
 
 function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.src === b.src;
-}
-
-function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
-    return {
-        title: pin.title,
-        itemType: ItemType.Playlist,
-        id: pin.src,
-        icon: 'pin',
-        isPin: true,
-
-        search(): Pager<MediaPlaylist> {
-            const [, type, id] = pin.src.split(':');
-            const isLibraryItem = type.startsWith('library-');
-            const path = isLibraryItem ? `/v1/me/library` : `/v1/catalog/{{storefrontId}}`;
-            return new MusicKitPager(`${path}/playlists`, toPage, {
-                'include[library-songs]': 'catalog',
-                'fields[library-songs]': 'playParams,name,artwork',
-                'include[library-playlists]': 'catalog',
-                'fields[library-playlists]': 'playParams,name,artwork',
-                ids: [id],
-            });
-        },
-    };
 }
 
 function canRate<T extends MediaObject>(item: T, inline?: boolean): boolean {
@@ -218,6 +215,54 @@ function canStore<T extends MediaObject>(item: T): boolean {
     }
 }
 
+function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
+    return {
+        title: pin.title,
+        itemType: ItemType.Playlist,
+        id: pin.src,
+        icon: 'pin',
+        isPin: true,
+
+        search(): Pager<MediaPlaylist> {
+            const [, type, id] = pin.src.split(':');
+            const isLibraryItem = type.startsWith('library-');
+            const path = isLibraryItem ? `/v1/me/library` : `/v1/catalog/{{storefrontId}}`;
+            return new MusicKitPager(
+                `${path}/playlists/${id}`,
+                isLibraryItem
+                    ? {
+                          'include[library-playlists]': 'catalog',
+                          'fields[library-playlists]': 'name,playParams',
+                      }
+                    : {
+                          'omit[resource:playlists]': 'relationships',
+                      }
+            );
+        },
+    };
+}
+
+async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
+    const hasMetadata = !!item.externalUrl; // this field is not available on library items
+    if (hasMetadata) {
+        return item;
+    }
+    const [, type, id] = item.src.split(':');
+    const isLibraryItem = type.startsWith('library-');
+    const path = isLibraryItem ? `/v1/me/library` : `/v1/catalog/{{storefrontId}}`;
+    const pager = new MusicKitPager<T>(
+        `${path}/${type.replace('library-', '')}/${id}${isLibraryItem ? '/catalog' : ''}`,
+        isLibraryItem
+            ? undefined
+            : {[`omit[resource:${type.replace('library-', '')}]`]: 'relationships'},
+        {lookup: true}
+    );
+    const items = await fetchFirstPage<T>(pager, {timeout: 2000});
+    const result = bestOf(item, items[0]) as Writable<T>;
+    result.description = items[0]?.description || item.description;
+    return result;
+}
+
 async function lookup(
     artist: string,
     title: string,
@@ -227,13 +272,11 @@ async function lookup(
     if (!artist || !title) {
         return [];
     }
-    const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit, lookup: true};
-    const pager = createSearchPager<MediaItem>(
-        ItemType.Media,
-        `${artist} ${title}`,
-        undefined,
-        options
-    );
+    const pager = createSearchPager<MediaItem>(ItemType.Media, `${artist} ${title}`, undefined, {
+        pageSize: limit,
+        maxSize: limit,
+        lookup: true,
+    });
     return fetchFirstPage(pager, {timeout});
 }
 
@@ -261,9 +304,10 @@ async function rate(item: MediaObject, rating: number): Promise<void> {
 
 async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
     const musicKit = MusicKit.getInstance();
-    const [, type, id] = item.src.split(':');
-    const path = `/v1/me/library`;
+    const [, type] = item.src.split(':');
     const kind = type.replace('library-', '');
+    const id = item.apple?.catalogId;
+    const path = `/v1/me/library`;
 
     if (inLibrary) {
         const key = `ids[${kind}]`;
@@ -320,27 +364,24 @@ function createSearchPager<T extends MediaObject>(
                     params.types = 'playlists';
                     break;
             }
+            params[`omit[resource:${params.types}]`] = 'relationships';
         }
         const type = params.types;
         return new MusicKitPager(
             `/v1/catalog/{{storefrontId}}/search`,
+            params,
+            {maxSize: 250, pageSize: 25, ...options},
+            undefined,
             (response: any): MusicKitPage => {
                 const result = response.results[type] || {data: []};
                 const nextPageUrl = result.next;
                 const total = response.meta?.total;
                 return {items: result.data, total, nextPageUrl};
-            },
-            params,
-            {maxSize: 250, pageSize: 25, ...options}
+            }
         );
     } else {
         return new SimplePager<T>();
     }
-}
-
-function toPage({data: items = [], next: nextPageUrl, meta}: any): MusicKitPage {
-    const total = meta?.total;
-    return {items, total, nextPageUrl};
 }
 
 export default apple;

@@ -189,7 +189,6 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             src: `jellyfin:folder:${folder.Id}`,
             title: folder.Name || '[unknown]',
             fileName: this.getFileName(folder.Path || '') || folder.Name || '[unknown]',
-            externalUrl: '',
             parent: (this.parent as ParentOf<MediaFolder>) || null,
         };
         mediaFolder.pager = this.createFolderPager(mediaFolder as MediaFolder);

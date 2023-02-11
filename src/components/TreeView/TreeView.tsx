@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import {browser} from 'utils';
 import {IconName} from 'components/Icon';
 import Scrollable, {
     ScrollableClient,
@@ -115,7 +116,7 @@ function Tree<T>({
 
     const handleKeyDown = useCallback(
         (event: React.KeyboardEvent) => {
-            switch (event.key) {
+            switch (event.code) {
                 case 'Enter':
                     event.stopPropagation();
                     if (!event.repeat) {
@@ -130,10 +131,9 @@ function Tree<T>({
                     }
                     break;
 
-                case 'Info':
-                case 'i':
+                case 'KeyI':
                     event.stopPropagation();
-                    if (!event.repeat) {
+                    if (event[browser.ctrlKey] && !event.shiftKey && !event.repeat) {
                         onInfo?.(selectedValue);
                     }
                     break;

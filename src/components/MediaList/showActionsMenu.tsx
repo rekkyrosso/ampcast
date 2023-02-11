@@ -81,13 +81,13 @@ function ActionsMenu<T extends MediaObject>({items, ...props}: ActionsMenuProps<
                         key={item.rating ? Action.Unlike : Action.Like}
                     />
                 ) : null}
-                {isSingleItem && item.inLibrary === false && service?.canStore(item, true) ? (
+                {/* {isSingleItem && item.inLibrary === false && service?.canStore(item, true) ? (
                     <PopupMenuItem<Action>
                         label={getLabelForAction(service, Action.AddToLibrary)}
                         action={Action.AddToLibrary}
                         key={Action.AddToLibrary}
                     />
-                ) : null}
+                ) : null} */}
                 {isSingleItem ? (
                     <>
                         <PopupMenuSeparator />

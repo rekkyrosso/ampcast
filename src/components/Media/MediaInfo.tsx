@@ -17,26 +17,31 @@ import './MediaInfo.scss';
 
 export interface MediaInfoProps<T extends MediaObject> {
     item: T;
+    debug?: boolean;
 }
 
 export default function MediaInfo<T extends MediaObject>(props: MediaInfoProps<T>) {
     const item = useCurrentItem(props.item);
 
-    switch (item.itemType) {
-        case ItemType.Media:
-            return <MediaItemInfo item={item} />;
+    if (props.debug) {
+        return <Debug item={item} />;
+    } else {
+        switch (item.itemType) {
+            case ItemType.Media:
+                return <MediaItemInfo item={item} />;
 
-        case ItemType.Artist:
-            return <ArtistInfo item={item} />;
+            case ItemType.Artist:
+                return <ArtistInfo item={item} />;
 
-        case ItemType.Album:
-            return <AlbumInfo item={item} />;
+            case ItemType.Album:
+                return <AlbumInfo item={item} />;
 
-        case ItemType.Playlist:
-            return <PlaylistInfo item={item} />;
+            case ItemType.Playlist:
+                return <PlaylistInfo item={item} />;
 
-        case ItemType.Folder:
-            return <FolderInfo item={item} />;
+            case ItemType.Folder:
+                return <FolderInfo item={item} />;
+        }
     }
 }
 
@@ -149,13 +154,9 @@ export function Owner<T extends MediaObject>({src, owner}: Pick<T, 'src' | 'owne
     );
 }
 
-export function ExternalView({src, url}: {src: string; url: string | undefined}) {
-    if (!url) {
-        return null;
-    }
-
+export function ExternalView({src, url = ''}: {src: string; url: string | undefined}) {
     let [serviceId] = src.split(':');
-    let serviceName = '';
+    let serviceName = serviceId;
 
     switch (serviceId) {
         case 'musicbrainz':
@@ -181,14 +182,12 @@ export function ExternalView({src, url}: {src: string; url: string | undefined})
 
     return (
         <p className="external-view">
-            {serviceName ? (
-                <>
-                    View on {serviceName}: <Icon name={serviceId as MediaSourceIconName} />{' '}
-                </>
+            <Icon name={serviceId as MediaSourceIconName} />
+            {url ? (
+                <ExternalLink href={url}>View on {serviceName}</ExternalLink>
             ) : (
-                <>Url: </>
+                <span className="external-provider">Provided by {serviceName}</span>
             )}
-            <ExternalLink href={url} />
         </p>
     );
 }
@@ -258,5 +257,16 @@ export function Thumbnail(props: CoverArtProps) {
         <div className="thumbnail">
             <CoverArt {...props} />
         </div>
+    );
+}
+
+function Debug(props: MediaInfoProps<MediaObject>) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const {pager, ...item} = props.item as MediaAlbum;
+    return (
+        <article className="media-info debug">
+            <pre>{JSON.stringify(item, undefined, 2)}</pre>
+            <ExternalView url={item.externalUrl} src={item.src} />
+        </article>
     );
 }

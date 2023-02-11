@@ -89,7 +89,7 @@ export default class ListenBrainzLikesPager implements Pager<MediaItem> {
             track: info?.tracknumber || info?.track_number,
             disc: info?.discnumber,
             isrc: info?.isrc,
-            externalUrl: mbid ? `${musicBrainzHost}/recording/${mbid}` : '',
+            externalUrl: mbid ? `${musicBrainzHost}/recording/${mbid}` : undefined,
             recording_mbid: mbid,
             recording_msid: item.recording_msid || undefined,
             release_mbid: data.mbid_mapping?.release_mbid,

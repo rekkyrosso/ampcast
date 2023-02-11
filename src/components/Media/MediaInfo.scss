@@ -8,6 +8,15 @@
         padding-left: 9em;
         min-height: 8em;
         margin-bottom: 1em;
+
+        .external-link {
+            color: inherit;
+            text-decoration: underline;
+
+            .icon-link {
+                color: inherit;
+            }
+        }
     }
 
     .thumbnail {
@@ -23,15 +32,18 @@
         }
     }
 
-    .title,
     .artist,
     .album {
         margin-top: 0.5em;
     }
 
     .title {
-        margin-top: 0;
+        margin-bottom: 0.25em;
         font-size: 1.5em;
+
+        & + .owner {
+            margin-top: 1em;
+        }
     }
 
     .duration,
@@ -45,12 +57,16 @@
         border-radius: 0.25em;
 
         &:empty {
-            visibility: hidden;
+            display: none;
         }
     }
 
     .external-view {
-        margin-top: 2em;
+        margin-top: 1.625em;
+
+        > .icon {
+            font-size: 1.625em;
+        }
     }
 
     .blurb {
@@ -73,5 +89,11 @@
 
     &.artist-info .cover-art {
         border-radius: 50%;
+    }
+
+    &.debug pre {
+        max-height: 15em;
+        font-size: 0.75em;
+        overflow: auto;
     }
 }

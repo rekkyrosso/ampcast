@@ -3,7 +3,6 @@
 dialog {
     border: 0;
     padding: 0;
-    background: transparent;
     color: inherit;
 }
 
@@ -17,6 +16,10 @@ dialog {
     box-shadow: rgba(0, 0, 0, 0.67) 4px 10px 20px;
     isolation: isolate;
     contain: content;
+
+    .app &::backdrop {
+        background: rgba(0, 0, 0, 0.2);
+    }
 
     .system & {
         border-radius: 0.5em;

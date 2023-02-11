@@ -184,7 +184,11 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             plex: {
                 ratingKey: artist.ratingKey,
             },
-            pager: this.createPager(artist.key),
+            pager: this.createPager(`/library/sections/${plexSettings.libraryId}/all`, {
+                'artist.id': artist.ratingKey,
+                type: '9',
+                sort: 'year:desc,originallyAvailableAt:desc,artist.titleSort:desc,album.titleSort,album.index',
+            }),
             thumbnails: this.createThumbnails(artist.thumb),
         };
     }
@@ -241,7 +245,6 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             src: `plex:folder:${folder.key}`,
             title: folder.title,
             fileName: folder.title,
-            externalUrl: '',
             parent: (this.parent as ParentOf<MediaFolder>) || null,
         };
         mediaFolder.pager = this.createFolderPager(mediaFolder as MediaFolder);

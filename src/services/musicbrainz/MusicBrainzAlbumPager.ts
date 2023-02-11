@@ -75,7 +75,7 @@ export default class MusicBrainzAlbumPager implements Pager<MediaItem> {
                 new Date(recording['first-release-date']).getUTCFullYear() ||
                 undefined,
             playedAt: 0,
-            externalUrl: mbid ? `https://musicbrainz.org/recording/${mbid}` : '',
+            externalUrl: mbid ? `https://musicbrainz.org/recording/${mbid}` : undefined,
         };
     }
 }

@@ -121,7 +121,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             track: info?.tracknumber || info?.track_number,
             disc: info?.discnumber,
             isrc: info?.isrc,
-            externalUrl: mbid ? `${musicBrainzHost}/recording/${mbid}` : '',
+            externalUrl: mbid ? `${musicBrainzHost}/recording/${mbid}` : undefined,
             recording_mbid: mbid,
             recording_msid: item.recording_msid || undefined,
             release_mbid: data.mbid_mapping?.release_mbid,
@@ -134,7 +134,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
         };
     }
 
-    private getExternalUrl(url: string | undefined): string {
+    private getExternalUrl(url: string | undefined): string | undefined {
         if (url) {
             if (/youtu\.?be/.test(url)) {
                 const videoId = getYouTubeID(url);
@@ -143,7 +143,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
                 }
             }
         }
-        return url || '';
+        return url || undefined;
     }
 
     private getPlayableSrc(

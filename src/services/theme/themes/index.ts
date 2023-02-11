@@ -15,6 +15,7 @@ import saddle from './saddle.json';
 import sphinx from './sphinx.json';
 import submarine from './submarine.json';
 import tangerine from './tangerine.json';
+import velvet from './velvet.json';
 import winampAmber from './winamp-amber.json';
 import winampClassic from './winamp-classic.json';
 import winampModern from './winamp-modern.json';
@@ -36,6 +37,7 @@ const themes: readonly Theme[] = [
     sphinx,
     submarine,
     tangerine,
+    velvet,
     winampAmber,
     winampClassic,
     winampModern,

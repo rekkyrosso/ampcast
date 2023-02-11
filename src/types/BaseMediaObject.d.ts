@@ -5,8 +5,8 @@ export default interface BaseMediaObject {
     readonly itemType: ItemType;
     readonly src: string;
     readonly title: string;
-    readonly externalUrl: string;
     // Everything below here should be optional
+    readonly externalUrl?: string;
     readonly description?: string;
     readonly addedAt?: number; // unix
     readonly genres?: readonly string[];
@@ -20,7 +20,10 @@ export default interface BaseMediaObject {
     readonly isOwn?: boolean;
     readonly owner?: {
         readonly name: string;
-        readonly url: string;
+        readonly url?: string;
+    };
+    readonly apple?: {
+        readonly catalogId: string;
     };
     readonly plex?: {
         readonly ratingKey: string;

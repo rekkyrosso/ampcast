@@ -1,5 +1,6 @@
 import {useEffect} from 'react';
 import {fromEvent, Subscription} from 'rxjs';
+import {stopPropagation} from 'utils';
 
 const app = document.getElementById('app')!;
 const system = document.getElementById('system')!;
@@ -25,6 +26,7 @@ export default function useFocusClass(): void {
                 }
             })
         );
+        subscription.add(fromEvent(system, 'mousedown').subscribe(stopPropagation));
         subscription.add(subscribe(app));
         subscription.add(subscribe(system));
         return () => subscription.unsubscribe();

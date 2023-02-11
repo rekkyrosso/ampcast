@@ -1,6 +1,6 @@
 .visualizer-info {
     width: 100%;
-    margin-top: 1rem;
+    margin-top: 1.25rem;
     padding-top: 1rem;
     border-top: 1px solid;
     font-size: 0.75rem;
@@ -8,5 +8,28 @@
 
     p {
         margin: 0;
+    }
+
+    .external-view > .icon {
+        margin-right: 0.25em;
+        margin-left: 0.25em;
+    }
+
+    .external-link:any-link {
+        color: inherit;
+        margin-left: 0.25em;
+
+        .icon-link {
+            color: inherit;
+        }
+    }
+
+    .external-link-text {
+        display: inline-block;
+        max-width: 24em;
+        text-overflow: ellipsis;
+        overflow: hidden;
+        vertical-align: middle;
+        text-decoration: underline;
     }
 }

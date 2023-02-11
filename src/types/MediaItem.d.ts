@@ -23,7 +23,7 @@ export default interface MediaItem extends BaseMediaObject {
     readonly fileName?: string;
     readonly link?: {
         readonly src: string;
-        readonly externalUrl: string;
+        readonly externalUrl?: string;
     };
     readonly blob?: Blob;
 }

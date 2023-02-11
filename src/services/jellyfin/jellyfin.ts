@@ -141,7 +141,6 @@ const jellyfinFolders: MediaSource<MediaFolderItem> = {
         const root: Writable<SetOptional<MediaFolder, 'pager'>> = {
             itemType: ItemType.Folder,
             src: '',
-            externalUrl: '',
             title: 'Folders',
             fileName: 'Folders',
             parent: null,

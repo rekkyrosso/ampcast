@@ -205,7 +205,7 @@ export default function ListView<T>({
 
     const handleKeyDown = useCallback(
         (event: React.KeyboardEvent) => {
-            switch (event.key) {
+            switch (event.code) {
                 case 'Enter':
                     event.stopPropagation();
                     if (!event.repeat) {
@@ -218,24 +218,16 @@ export default function ListView<T>({
                     onDelete?.(selectedItems); // let this repeat
                     break;
 
-                case 'i':
+                case 'KeyI':
                     event.stopPropagation();
-                    if (event[browser.ctrlKey] && !event.repeat) {
+                    if (event[browser.ctrlKey] && !event.shiftKey && !event.repeat) {
                         onInfo?.(selectedItems);
                         break;
                     }
                     break;
 
-                case 'Info':
-                    event.preventDefault();
-                    event.stopPropagation();
-                    if (!event.repeat) {
-                        onInfo?.(selectedItems);
-                    }
-                    break;
-
-                case 'a':
-                    if (event[browser.ctrlKey]) {
+                case 'KeyA':
+                    if (event[browser.ctrlKey] && !event.shiftKey) {
                         event.preventDefault();
                         event.stopPropagation();
                         if (!event.repeat) {
@@ -244,13 +236,15 @@ export default function ListView<T>({
                     }
                     break;
 
-                case 'Shift':
+                case 'ShiftLeft':
+                case 'ShiftRight':
+                    // TODO: Should this be here?
                     if (!event.repeat) {
                         setRangeSelectionStart(rowIndex);
                     }
                     break;
 
-                case ' ': // Space
+                case 'Space':
                     event.preventDefault();
                     if (!event.repeat) {
                         if (event[browser.ctrlKey]) {

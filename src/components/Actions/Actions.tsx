@@ -18,8 +18,8 @@ export interface ActionsProps {
 }
 
 export const actionIcons: Record<LibraryAction, IconName> = {
-    [Action.AddToLibrary]: 'library-add',
-    [Action.RemoveFromLibrary]: 'library-remove',
+    [Action.AddToLibrary]: 'plus',
+    [Action.RemoveFromLibrary]: 'tick-fill',
     [Action.Rate]: 'star',
     [Action.Like]: 'heart',
     [Action.Unlike]: 'heart-fill',
@@ -36,6 +36,7 @@ export const actionLabels: Record<LibraryAction, string> = {
 export default function Actions({item, inline}: ActionsProps) {
     const [serviceId] = item.src.split(':');
     const service = getService(serviceId);
+    const tabIndex = inline ? -1 : undefined;
 
     const togglePin = useCallback(async () => {
         if (item.itemType === ItemType.Playlist) {
@@ -83,13 +84,20 @@ export default function Actions({item, inline}: ActionsProps) {
     return (
         <IconButtons>
             {inline ? (
-                <IconButton icon="menu" title="More..." onClick={showContextMenu} key="menu" />
+                <IconButton
+                    icon="menu"
+                    title="More..."
+                    tabIndex={tabIndex}
+                    onClick={showContextMenu}
+                    key="menu"
+                />
             ) : null}
 
             {item.itemType === ItemType.Playlist ? (
                 <IconButton
                     icon={item.isPinned ? 'pin-fill' : 'pin'}
-                    title={item.isPinned ? 'Unpin' : 'Pin'}
+                    title={item.isPinned ? 'Unpin' : 'Pin to sidebar'}
+                    tabIndex={tabIndex}
                     onClick={togglePin}
                     key="pin"
                 />
@@ -112,6 +120,7 @@ export default function Actions({item, inline}: ActionsProps) {
                                         ? getLabelForAction(service, Action.Unlike)
                                         : getLabelForAction(service, Action.Like)
                                 }
+                                tabIndex={tabIndex}
                                 onClick={toggleLike}
                                 key="rate"
                             />
@@ -130,6 +139,7 @@ export default function Actions({item, inline}: ActionsProps) {
                                     ? getLabelForAction(service, Action.RemoveFromLibrary)
                                     : getLabelForAction(service, Action.AddToLibrary)
                             }
+                            tabIndex={tabIndex}
                             disabled={serviceId === 'apple' && item.inLibrary} // remove doesn't work (https://developer.apple.com/forums/thread/107807)
                             onClick={toggleInLibrary}
                             key="store"

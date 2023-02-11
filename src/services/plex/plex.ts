@@ -185,7 +185,6 @@ const plexFolders: MediaSource<MediaFolderItem> = {
         const root: Writable<SetOptional<MediaFolder, 'pager'>> = {
             itemType: ItemType.Folder,
             src: '',
-            externalUrl: '',
             title: 'Folders',
             fileName: 'Folders',
             parent: null,
@@ -335,7 +334,7 @@ function createSearchPager<T extends MediaObject>(
             itemType === ItemType.Playlist
                 ? '/playlists/all'
                 : `/library/sections/${plexSettings.libraryId}/all`;
-        const params: Record<string, string> = {...filters, title: q};
+        const params: Record<string, string> = {...filters, title: q, sort: 'titleSort:asc'};
         switch (itemType) {
             case ItemType.Media:
                 params.type = '10';

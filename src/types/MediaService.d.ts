@@ -24,6 +24,7 @@ export default interface MediaService extends Auth {
     canStore: (item: MediaObject, inline?: boolean) => boolean;
     compareForRating: <T extends MediaObject>(a: T, b: T) => boolean;
     createSourceFromPin?: (pin: Pin) => MediaSource<MediaPlaylist>;
+    getMetadata?: <T extends MediaObject>(item: T) => Promise<T>;
     lookup?: (
         artist: string,
         title: string,

@@ -17,6 +17,12 @@ export default function useSuggestedColors(color: string) {
                 ...tinyColor.splitcomplement(),
                 ...tinyColor.analogous(),
                 ...tinyColor.monochromatic(),
+                tinyColor.lighten(),
+                tinyColor.darken(),
+                tinyColor.saturate(),
+                tinyColor.desaturate(),
+                tinyColor.greyscale(),
+                tinyColor.brighten(),
             ].map((color) => color.toHexString())
         ).map((hex) => new TinyColor(hex));
         const suggestions: [string, string][] = backgrounds.reverse().map((color) => [

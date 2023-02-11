@@ -124,7 +124,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
         return {
             itemType: ItemType.Artist,
             src: `listenbrainz:artist:${nanoid()}`,
-            externalUrl: mbid ? `${musicBrainzHost}/artist/${mbid}` : '',
+            externalUrl: mbid ? `${musicBrainzHost}/artist/${mbid}` : undefined,
             title: item.artist_name,
             artist_mbid: mbid,
             playCount: item.listen_count,
@@ -137,7 +137,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
         const album: Except<MediaAlbum, 'pager'> = {
             itemType: ItemType.Album,
             src: `listenbrainz:album:${nanoid()}`,
-            externalUrl: mbid ? `${musicBrainzHost}/release/${mbid}` : '',
+            externalUrl: mbid ? `${musicBrainzHost}/release/${mbid}` : undefined,
             title: item.release_name,
             artist: item.artist_name,
             release_mbid: mbid,
@@ -153,7 +153,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             src: `listenbrainz:track:${nanoid()}`,
-            externalUrl: mbid ? `${musicBrainzHost}/recording/${mbid}` : '',
+            externalUrl: mbid ? `${musicBrainzHost}/recording/${mbid}` : undefined,
             title: item.track_name,
             artists: item.artist_name ? [item.artist_name] : undefined,
             album: item.release_name,

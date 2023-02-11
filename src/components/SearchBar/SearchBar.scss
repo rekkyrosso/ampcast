@@ -2,7 +2,10 @@
     margin-bottom: calc(var(--gutter-width) / 2);
 
     button {
-        overflow: visible;
-        padding: calc(0.125em - 2px) 0.25em;
+        padding: 0.25em;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
     }
 }

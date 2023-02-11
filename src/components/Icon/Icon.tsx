@@ -37,9 +37,9 @@ export type IconName =
     | 'heart'
     | 'heart-fill'
     | 'thumbs-up'
-    | 'in-library'
-    | 'library-add'
-    | 'library-remove'
+    | 'plus'
+    | 'tick'
+    | 'tick-fill'
     | 'folder'
     | 'folder-up'
     | 'file-audio'
@@ -54,6 +54,7 @@ export type IconName =
     | 'palette'
     | 'pin'
     | 'pin-fill'
+    | 'link'
     | 'search'
     | 'playlist-add'
     | 'lookup-pending'
@@ -282,7 +283,7 @@ export default function Icon({name, className = ''}: IconProps) {
                 </svg>
             );
 
-        case 'in-library':
+        case 'tick':
             return (
                 <svg className={className} viewBox="0 0 16 16">
                     <path
@@ -296,7 +297,7 @@ export default function Icon({name, className = ''}: IconProps) {
                 </svg>
             );
 
-        case 'library-add':
+        case 'plus':
             return (
                 <svg className={className} viewBox="0 0 16 16">
                     <path
@@ -310,7 +311,7 @@ export default function Icon({name, className = ''}: IconProps) {
                 </svg>
             );
 
-        case 'library-remove':
+        case 'tick-fill':
             return (
                 <svg className={className} viewBox="0 0 16 16">
                     <path
@@ -424,27 +425,38 @@ export default function Icon({name, className = ''}: IconProps) {
 
         case 'pin':
             return (
-                <svg className={className} viewBox="0 0 16 16">
+                <svg className={className} viewBox="0 0 24 24" transform="scale(1.125)">
                     <path
                         stroke="none"
-                        d="M4.146.146A.5.5 0 0 1 4.5 0h7a.5.5 0 0 1 .5.5c0 .68-.342 1.174-.646 1.479-.126.125-.25.224-.354.298v4.431l.078.048c.203.127.476.314.751.555C12.36 7.775 13 8.527 13 9.5a.5.5 0 0 1-.5.5h-4v4.5c0 .276-.224 1.5-.5 1.5s-.5-1.224-.5-1.5V10h-4a.5.5 0 0 1-.5-.5c0-.973.64-1.725 1.17-2.189A5.921 5.921 0 0 1 5 6.708V2.277a2.77 2.77 0 0 1-.354-.298C4.342 1.674 4 1.179 4 .5a.5.5 0 0 1 .146-.354zm1.58 1.408-.002-.001.002.001zm-.002-.001.002.001A.5.5 0 0 1 6 2v5a.5.5 0 0 1-.276.447h-.002l-.012.007-.054.03a4.922 4.922 0 0 0-.827.58c-.318.278-.585.596-.725.936h7.792c-.14-.34-.407-.658-.725-.936a4.915 4.915 0 0 0-.881-.61l-.012-.006h-.002A.5.5 0 0 1 10 7V2a.5.5 0 0 1 .295-.458 1.775 1.775 0 0 0 .351-.271c.08-.08.155-.17.214-.271H5.14c.06.1.133.191.214.271a1.78 1.78 0 0 0 .37.282z"
+                        d="M14 4v5c0 1.12.37 2.16 1 3H9c.65-.86 1-1.9 1-3V4h4m3-2H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3V4h1c.55 0 1-.45 1-1s-.45-1-1-1z"
                     />
                 </svg>
             );
 
         case 'pin-fill':
             return (
-                <svg className={className} viewBox="0 0 16 16">
+                <svg className={className} viewBox="0 0 24 24" transform="scale(1.125)">
                     <path
                         stroke="none"
-                        d="M4.146.146A.5.5 0 0 1 4.5 0h7a.5.5 0 0 1 .5.5c0 .68-.342 1.174-.646 1.479-.126.125-.25.224-.354.298v4.431l.078.048c.203.127.476.314.751.555C12.36 7.775 13 8.527 13 9.5a.5.5 0 0 1-.5.5h-4v4.5c0 .276-.224 1.5-.5 1.5s-.5-1.224-.5-1.5V10h-4a.5.5 0 0 1-.5-.5c0-.973.64-1.725 1.17-2.189A5.921 5.921 0 0 1 5 6.708V2.277a2.77 2.77 0 0 1-.354-.298C4.342 1.674 4 1.179 4 .5a.5.5 0 0 1 .146-.354z"
+                        fillRule="evenodd"
+                        d="M16 9V4h1c.55 0 1-.45 1-1s-.45-1-1-1H7c-.55 0-1 .45-1 1s.45 1 1 1h1v5c0 1.66-1.34 3-3 3v2h5.97v7l1 1 1-1v-7H19v-2c-1.66 0-3-1.34-3-3z"
+                    />
+                </svg>
+            );
+
+        case 'link':
+            return (
+                <svg className={className} viewBox="0 0 512 512">
+                    <path
+                        stroke="none"
+                        d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32h82.7L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3V192c0 17.7 14.3 32 32 32s32-14.3 32-32V32c0-17.7-14.3-32-32-32H320zM80 32C35.8 32 0 67.8 0 112V432c0 44.2 35.8 80 80 80H400c44.2 0 80-35.8 80-80V320c0-17.7-14.3-32-32-32s-32 14.3-32 32V432c0 8.8-7.2 16-16 16H80c-8.8 0-16-7.2-16-16V112c0-8.8 7.2-16 16-16H192c17.7 0 32-14.3 32-32s-14.3-32-32-32H80z"
                     />
                 </svg>
             );
 
         case 'search':
             return (
-                <svg className={className} viewBox="0 0 16 16">
+                <svg className={className} viewBox="0 0 16 16" transform="scale(0.875)">
                     <path
                         stroke="none"
                         d="M15.504 13.616l-3.79-3.223c-0.392-0.353-0.811-0.514-1.149-0.499 0.895-1.048 1.435-2.407 1.435-3.893 0-3.314-2.686-6-6-6s-6 2.686-6 6 2.686 6 6 6c1.486 0 2.845-0.54 3.893-1.435-0.016 0.338 0.146 0.757 0.499 1.149l3.223 3.79c0.552 0.613 1.453 0.665 2.003 0.115s0.498-1.452-0.115-2.003zM6 10c-2.209 0-4-1.791-4-4s1.791-4 4-4 4 1.791 4 4-1.791 4-4 4z"

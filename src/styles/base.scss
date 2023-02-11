@@ -22,13 +22,18 @@ textarea {
 }
 
 a:any-link {
-    color: var(--link-color);
+    &,
+    & > .icon {
+        color: var(--link-color);
+    }
 
-    &:visited {
+    &:visited,
+    &:visited > .icon {
         color: var(--link-visited-color);
     }
 
-    &:active {
+    &:active,
+    &:active > .icon {
         color: var(--link-active-color);
     }
 }

@@ -22,7 +22,7 @@ export default function TabList({label, items, className = ''}: TabListProps) {
     const handleKeyDown = useCallback(
         (event: React.KeyboardEvent) => {
             switch (event.key) {
-                case 'left':
+                case 'ArrowLeft':
                     event.preventDefault();
                     if (selectedIndex > 0) {
                         setSelectedIndex(selectedIndex - 1);
@@ -30,7 +30,7 @@ export default function TabList({label, items, className = ''}: TabListProps) {
                     }
                     break;
 
-                case 'right':
+                case 'ArrowRight':
                     event.preventDefault();
                     if (selectedIndex < size - 1) {
                         setSelectedIndex(selectedIndex + 1);

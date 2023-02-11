@@ -1,5 +1,6 @@
 import React, {useState} from 'react';
-import IconButton from 'components/Button/IconButton';
+import {Except} from 'type-fest';
+import IconButton, {IconButtonProps} from 'components/Button/IconButton';
 import IconButtons from 'components/Button/IconButtons';
 import './StarRating.scss';
 
@@ -19,9 +20,9 @@ export default function StarRating({
 
     return (
         <IconButtons className="star-rating">
-            <IconButton
-                icon="star"
-                className={`${rating > 0 ? 'checked' : ''} ${firstStarClicked ? 'clicked' : ''}`}
+            <Star
+                checked={rating > 0}
+                className={firstStarClicked ? 'clicked' : ''}
                 onClick={() => {
                     setFirstStarClicked(true);
                     if (rating === 1) {
@@ -32,26 +33,25 @@ export default function StarRating({
                 }}
                 onMouseLeave={() => setFirstStarClicked(false)}
             />
-            <IconButton
-                icon="star"
-                className={rating > 1 ? 'checked' : ''}
-                onClick={() => (rating === 2 ? onClick(2) : onClick(4))}
-            />
-            <IconButton
-                icon="star"
-                className={rating > 2 ? 'checked' : ''}
-                onClick={() => (rating === 3 ? onClick(4) : onClick(6))}
-            />
-            <IconButton
-                icon="star"
-                className={rating > 3 ? 'checked' : ''}
-                onClick={() => (rating === 4 ? onClick(6) : onClick(8))}
-            />
-            <IconButton
-                icon="star"
-                className={rating > 4 ? 'checked' : ''}
-                onClick={() => (rating === 5 ? onClick(8) : onClick(10))}
-            />
+            <Star checked={rating > 1} onClick={() => (rating === 2 ? onClick(2) : onClick(4))} />
+            <Star checked={rating > 2} onClick={() => (rating === 3 ? onClick(4) : onClick(6))} />
+            <Star checked={rating > 3} onClick={() => (rating === 4 ? onClick(6) : onClick(8))} />
+            <Star checked={rating > 4} onClick={() => (rating === 5 ? onClick(8) : onClick(10))} />
         </IconButtons>
+    );
+}
+
+interface StarProps extends Except<IconButtonProps, 'icon'> {
+    checked?: boolean;
+}
+
+function Star({checked, className = '', ...props}: StarProps) {
+    return (
+        <IconButton
+            {...props}
+            icon="star"
+            className={`${checked ? 'checked' : ''} ${className}`}
+            tabIndex={-1}
+        />
     );
 }

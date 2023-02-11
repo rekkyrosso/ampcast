@@ -21,8 +21,8 @@
     --frame-text-color-s: 0%;
     --frame-text-color-l: 92.2%;
 
-    --link-color: #9e9eff;
-    --link-visited-color: #d0adf0;
+    --link-color: var(--soft-white);
+    --link-visited-color: var(--soft-white);
     --link-active-color: #ff9e9e;
 
     --spacing: 0.375;
@@ -173,8 +173,8 @@
         calc(var(--text-color-s) * 0.5),
         calc(var(--text-color-l) + (100% - var(--text-color-l)) * 0.25));
 
-    --link-color: #0000ee;
-    --link-visited-color: #551a8b;
+    --link-color: #222222;
+    --link-visited-color: #222222;
     --link-active-color: #ff0000;
 }
 
