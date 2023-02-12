@@ -101,10 +101,18 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             throw response;
         }
 
-        const {Items: tracks, TotalRecordCount: total} = await response.json();
-        const items = tracks.map((track: BaseItemDto) => this.createItem(track));
-
-        return {items, total};
+        const data = await response.json();
+        if (data.Type) {
+            return {
+                items: [this.createItem(data)],
+                total: 1,
+            };
+        } else {
+            return {
+                items: data.Items.map((item: BaseItemDto) => this.createItem(item)),
+                total: data.TotalRecordCount,
+            };
+        }
     }
 
     private createItem(item: BaseItemDto): T {
@@ -134,7 +142,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             externalUrl: this.getExternalUrl(artist),
             title: artist.Name || '',
             playCount: artist.UserData?.PlayCount || undefined,
-            rating: artist.UserData?.IsFavorite ? 1 : 0,
+            rating: this.getRating(artist),
             genres: artist.Genres || undefined,
             thumbnails: this.createThumbnails(artist.Id),
             pager: this.createAlbumsPager(artist),
@@ -152,7 +160,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                 ? Math.floor(new Date(album.UserData.LastPlayedDate).getTime() / 1000)
                 : undefined,
             playCount: album.UserData?.PlayCount || undefined,
-            rating: album.UserData?.IsFavorite ? 1 : 0,
+            rating: this.getRating(album),
             genres: album.Genres || undefined,
             thumbnails: this.createThumbnails(album.Id),
             trackCount: album.ChildCount || undefined,
@@ -174,7 +182,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                 ? Math.floor(new Date(playlist.UserData.LastPlayedDate).getTime() / 1000)
                 : undefined,
             playCount: playlist.UserData?.PlayCount || undefined,
-            rating: playlist.UserData?.IsFavorite ? 1 : 0,
+            rating: this.getRating(playlist),
             genres: playlist.Genres || undefined,
             thumbnails: this.createThumbnails(playlist.Id),
             trackCount: playlist.ChildCount || undefined,
@@ -211,7 +219,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                 ? Math.floor(new Date(track.UserData.LastPlayedDate).getTime() / 1000)
                 : 0,
             playCount: track.UserData?.PlayCount || undefined,
-            rating: track.UserData?.IsFavorite ? 1 : 0,
+            rating: this.getRating(track),
             genres: track.Genres || undefined,
             thumbnails: this.createThumbnails(thumbnailId),
             artists: track.Artists || (track.AlbumArtist ? [track.AlbumArtist] : undefined),
@@ -296,5 +304,10 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
 
     private getFileName(path: string): string | undefined {
         return path.split(/[/\\]/).pop();
+    }
+
+    private getRating(item: BaseItemDto): number | undefined {
+        const userData = item.UserData;
+        return userData ? (userData.IsFavorite ? 1 : 0) : undefined;
     }
 }

@@ -51,7 +51,7 @@ export default function MediaListStatusBar({
                 </span>
             );
         } else if (error) {
-            const message = (error as any)?.message;
+            const message = getErrorMessage(error);
             statusText = <span className="error">{message ? `Error: ${message}` : 'Error'}</span>;
         } else {
             statusText = <span className="message">0 {itemNamePlural}</span>;
@@ -74,3 +74,25 @@ function formatNumber(value = 0): string {
         return value.toLocaleString();
     }
 }
+
+function getErrorMessage(err: any): string {
+    if (err.message) {
+        return err.message;
+    } else if (err.statusText) {
+        return err.statusText;
+    } else {
+        return statusCodes[err.status] || err.status || '';
+    }
+}
+
+const statusCodes: Record<number, string> = {
+    401: 'Unauthorized',
+    403: 'Forbidden',
+    404: 'Not found',
+    408: 'Timeout',
+    429: 'Too many requests',
+    500: 'Internal server error',
+    502: 'Bad gateway',
+    503: 'Service unavailable',
+    504: 'Timeout',
+};

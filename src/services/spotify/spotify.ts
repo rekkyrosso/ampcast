@@ -200,27 +200,6 @@ const spotifyFeaturedPlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
-// const spotifyCategories: MediaSource<MediaPlaylist> = {
-//     id: 'spotify/categories',
-//     title: 'Categories',
-//     icon: 'playlists',
-//     itemType: ItemType.Playlist,
-
-//     search(): Pager<MediaPlaylist> {
-//         const market = getMarket();
-//         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
-//             const {
-//                 categories: {items, total, next},
-//             } = await spotifyApi.getCategories({
-//                 offset,
-//                 limit,
-//                 market,
-//             });
-//             return {items: items as SpotifyPlaylist[], total, next};
-//         });
-//     },
-// };
-
 const spotify: MediaService = {
     id: 'spotify',
     name: 'Spotify',
@@ -257,6 +236,7 @@ const spotify: MediaService = {
     canStore,
     compareForRating,
     createSourceFromPin,
+    getMetadata,
     lookup,
     store,
     observeIsLoggedIn,
@@ -291,6 +271,35 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
             });
         },
     };
+}
+
+async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
+    const hasMetadata = item.inLibrary !== undefined;
+    if (hasMetadata || !canStore(item)) {
+        return item;
+    }
+    const [, , id] = item.src.split(':');
+    switch (item.itemType) {
+        case ItemType.Album: {
+            const [inLibrary] = await spotifyApi.containsMySavedAlbums([id]);
+            return {...item, inLibrary};
+        }
+
+        case ItemType.Media: {
+            const [inLibrary] = await spotifyApi.containsMySavedTracks([id]);
+            return {...item, inLibrary};
+        }
+
+        case ItemType.Playlist: {
+            const [inLibrary] = await spotifyApi.areFollowingPlaylist(id, [
+                spotifySettings.getString('userId'),
+            ]);
+            return {...item, inLibrary};
+        }
+
+        default:
+            return item;
+    }
 }
 
 async function lookup(

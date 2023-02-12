@@ -1,4 +1,4 @@
-import {Except} from 'type-fest';
+import {Except, Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import Action from 'types/Action';
 import MediaAlbum from 'types/MediaAlbum';
@@ -130,6 +130,7 @@ const lastfm: MediaService = {
     canRate,
     canStore: () => false,
     compareForRating,
+    getMetadata,
     rate,
     observeIsLoggedIn,
     isLoggedIn,
@@ -161,19 +162,60 @@ function compareString(a: string, b = ''): boolean {
     return a.localeCompare(b, undefined, {sensitivity: 'accent'}) === 0;
 }
 
+async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
+    if (item.itemType !== ItemType.Media) {
+        return item;
+    }
+    const hasMetadata = item.rating !== undefined;
+    if (hasMetadata) {
+        return item;
+    }
+    const params: Record<string, string> = {
+        method: 'track.getInfo',
+        user: lastfmSettings.userId,
+    };
+    if (item.recording_mbid) {
+        params.mbid = item.recording_mbid;
+    } else {
+        const {title, artists = []} = item;
+        params.artist = artists[0];
+        params.track = title;
+        if (!params.artist) {
+            return item;
+        }
+    }
+    const {track} = await lastfmApi.get<LastFm.TrackInfoResponse>(params);
+    if (!track || 'error' in track) {
+        throw Error((track as any)?.message || 'Not found');
+    } else {
+        const albumData: Partial<Writable<MediaItem>> = {};
+        if (track.album) {
+            albumData.album = track.album.title;
+            albumData.albumArtist = track.album.artist;
+            if (!item.thumbnails) {
+                albumData.thumbnails = lastfmApi.createThumbnails(track.album.image);
+            }
+        }
+        return {
+            ...item,
+            ...albumData,
+            rating: Number(track.userloved) || 0,
+            playCount: Number(track.userplaycount) || 0,
+            globalPlayCount: Number(track.playcount) || 0,
+        };
+    }
+}
+
 async function rate(item: MediaObject, rating: number): Promise<void> {
     if (item.itemType === ItemType.Media) {
         const {title: track, artists = []} = item;
         const artist = artists[0];
         if (track && artist) {
-            const response = await lastfmApi.post({
+            await lastfmApi.post({
                 method: rating ? 'track.love' : 'track.unlove',
                 track,
                 artist,
             });
-            if (!response.ok) {
-                throw response;
-            }
         }
     }
 }

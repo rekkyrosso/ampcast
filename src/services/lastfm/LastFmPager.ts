@@ -7,15 +7,11 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
-import Thumbnail from 'types/Thumbnail';
 import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
-import {exists} from 'utils';
 import lastfmApi from './lastfmApi';
 import lastfmSettings from './lastfmSettings';
-
-const lastfmPlaceholderImage = '2a96cbd8b46e442fc41c2b86b821562f.png';
 
 export interface LastFmPage extends Page<LastFm.MediaObject> {
     readonly itemType: ItemType;
@@ -160,7 +156,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Album,
             title: 'Top Tracks',
-            thumbnails: this.createThumbnails(artist.image),
+            thumbnails: lastfmApi.createThumbnails(artist.image),
             src: `lastfm:top-tracks:${nanoid()}`,
             artist: artist.name,
             pager: this.createTopTracksPager(artist),
@@ -177,35 +173,9 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
                 this.playCountName === 'userplaycount'
                     ? Number(item.playcount) || undefined
                     : undefined,
-            thumbnails: this.createThumbnails(item.image),
+            thumbnails: lastfmApi.createThumbnails(item.image),
             externalUrl: item.url || undefined,
         };
-    }
-
-    private createThumbnails(thumbs: readonly LastFm.Thumbnail[]): Thumbnail[] | undefined {
-        const result = thumbs
-            ? [
-                  this.createThumbnail(thumbs[0], 34),
-                  this.createThumbnail(thumbs[1], 64),
-                  this.createThumbnail(thumbs[2], 174),
-                  this.createThumbnail(thumbs[3], 300),
-              ].filter(exists)
-            : [];
-
-        return result.length === 0 ? undefined : result;
-    }
-
-    private createThumbnail(
-        thumb: LastFm.Thumbnail,
-        width: number,
-        height = width
-    ): Thumbnail | undefined {
-        if (thumb) {
-            const url = thumb['#text'] as string;
-            if (url && !url.endsWith(lastfmPlaceholderImage)) {
-                return {url, width, height};
-            }
-        }
     }
 
     private createArtistAlbumsPager(artist: LastFm.Artist): Pager<MediaAlbum> {

@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {memo, useCallback, useState} from 'react';
 import Splitter from 'components/Splitter';
 import MediaSources from 'components/MediaSources';
 import {SettingsDialog} from 'components/Settings';
@@ -10,7 +10,7 @@ import './MediaLibrary.scss';
 
 console.log('component::MediaLibrary');
 
-export default function MediaLibrary() {
+export default memo(function MediaLibrary() {
     const [source, setSource] = useState<React.ReactNode>(null);
 
     const openSettingsDialog = useCallback(() => {
@@ -42,4 +42,4 @@ export default function MediaLibrary() {
             </div>
         </div>
     );
-}
+});

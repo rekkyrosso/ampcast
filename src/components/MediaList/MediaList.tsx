@@ -60,7 +60,7 @@ export default function MediaList<T extends MediaObject>({
         if (items.length === 0) {
             return;
         }
-        const action = await showActionsMenu(items, x, y);
+        const action = await showActionsMenu(items, x, y, true);
         if (action) {
             await performAction(action, items);
         }

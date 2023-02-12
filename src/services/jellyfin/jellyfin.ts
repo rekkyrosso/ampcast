@@ -16,6 +16,7 @@ import Pager, {PagerConfig} from 'types/Pager';
 import Pin from 'types/Pin';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
+import {bestOf} from 'utils';
 import jellyfinApi from './jellyfinApi';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './jellyfinAuth';
 import JellyfinPager from './JellyfinPager';
@@ -192,6 +193,7 @@ const jellyfin: MediaService = {
     canStore: () => false,
     compareForRating,
     createSourceFromPin,
+    getMetadata,
     lookup,
     rate,
     observeIsLoggedIn,
@@ -233,6 +235,20 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
             });
         },
     };
+}
+
+async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
+    const hasMetadata = item.rating !== undefined; // this field is not available on library items
+    if (hasMetadata) {
+        return item;
+    }
+    const [, , id] = item.src.split(':');
+    const pager = new JellyfinPager<T>(`Users/${jellyfinSettings.userId}/Items/${id}`, undefined, {
+        pageSize: 1,
+        maxSize: 1,
+    });
+    const items = await fetchFirstPage<T>(pager, {timeout: 2000});
+    return bestOf(item, items[0]);
 }
 
 async function lookup(

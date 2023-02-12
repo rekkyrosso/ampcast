@@ -11,9 +11,10 @@ import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
 import Pin from 'types/Pin';
+import mediaObjectChanges from 'services/actions/mediaObjectChanges';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
-import {bestOf} from 'utils';
+import {bestOf, ParentOf} from 'utils';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './appleAuth';
 import MusicKitPager, {MusicKitPage} from './MusicKitPager';
 
@@ -183,22 +184,27 @@ const apple: MediaService = {
     logout,
 };
 
+export default apple;
+
 function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.src === b.src;
 }
 
-function canRate<T extends MediaObject>(item: T, inline?: boolean): boolean {
-    switch (item.itemType) {
-        case ItemType.Album:
-            return !inline && !item.synthetic;
+function canRate(): boolean {
+    // Turn this off for now.
+    // It works but I'm not sure how useful it is.
+    return false;
+    // switch (item.itemType) {
+    //     case ItemType.Album:
+    //         return !inline && !item.synthetic;
 
-        case ItemType.Media:
-        case ItemType.Playlist:
-            return !inline;
+    //     case ItemType.Media:
+    //     case ItemType.Playlist:
+    //         return !inline;
 
-        default:
-            return false;
-    }
+    //     default:
+    //         return false;
+    // }
 }
 
 function canStore<T extends MediaObject>(item: T): boolean {
@@ -243,23 +249,29 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
 }
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
+    let result: Writable<T> = item;
     const hasMetadata = !!item.externalUrl; // this field is not available on library items
-    if (hasMetadata) {
-        return item;
+    if (!hasMetadata) {
+        const [, type, id] = item.src.split(':');
+        const isLibraryItem = type.startsWith('library-');
+        const path = isLibraryItem ? `/v1/me/library` : `/v1/catalog/{{storefrontId}}`;
+        const pager = new MusicKitPager<T>(
+            `${path}/${type.replace('library-', '')}/${id}${isLibraryItem ? '/catalog' : ''}`,
+            isLibraryItem
+                ? undefined
+                : {[`omit[resource:${type.replace('library-', '')}]`]: 'relationships'},
+            {lookup: true}
+        );
+        const items = await fetchFirstPage<T>(pager, {timeout: 2000});
+        result = bestOf(item, items[0]);
+        result.description = items[0]?.description || item.description;
     }
-    const [, type, id] = item.src.split(':');
-    const isLibraryItem = type.startsWith('library-');
-    const path = isLibraryItem ? `/v1/me/library` : `/v1/catalog/{{storefrontId}}`;
-    const pager = new MusicKitPager<T>(
-        `${path}/${type.replace('library-', '')}/${id}${isLibraryItem ? '/catalog' : ''}`,
-        isLibraryItem
-            ? undefined
-            : {[`omit[resource:${type.replace('library-', '')}]`]: 'relationships'},
-        {lookup: true}
-    );
-    const items = await fetchFirstPage<T>(pager, {timeout: 2000});
-    const result = bestOf(item, items[0]) as Writable<T>;
-    result.description = items[0]?.description || item.description;
+    if (result.inLibrary === undefined) {
+        addInLibrary([result as T]);
+    }
+    if (result.rating === undefined) {
+        addRatings([result as T]);
+    }
     return result;
 }
 
@@ -384,4 +396,96 @@ function createSearchPager<T extends MediaObject>(
     }
 }
 
-export default apple;
+export async function addRatings<T extends MediaObject>(
+    items: readonly T[],
+    inline = false
+): Promise<void> {
+    const item = items[0];
+    if (!item || !apple.canRate(item, inline)) {
+        return;
+    }
+
+    const ids: string[] = items
+        .filter((item) => item.rating === undefined)
+        .map((item) => {
+            const [, , id] = item.src.split(':');
+            return id;
+        });
+
+    if (ids.length === 0) {
+        return;
+    }
+
+    const [, type] = item.src.split(':');
+    const musicKit = MusicKit.getInstance();
+    const {
+        data: {data},
+    } = await musicKit.api.music(`/v1/me/ratings/${type}`, {ids});
+
+    if (!data) {
+        return;
+    }
+
+    const ratings = new Map<string, number>(
+        data.map((data: any) => [data.id, data.attributes.value])
+    );
+
+    mediaObjectChanges.dispatch(
+        ids.map((id) => ({
+            match: (object: MediaObject) => object.src === `apple:${type}:${id}`,
+            values: {rating: ratings.get(id) || 0},
+        }))
+    );
+}
+
+export async function addInLibrary<T extends MediaObject>(
+    items: readonly T[],
+    inline = false,
+    parent?: ParentOf<T>
+): Promise<void> {
+    const item = items[0];
+    if (!item || !apple.canStore(item, inline)) {
+        return;
+    }
+    const isAlbumTrack = parent?.itemType === ItemType.Album;
+    const ids: string[] = items
+        .filter(
+            (item) =>
+                item.inLibrary === undefined &&
+                !(isAlbumTrack && item.src.startsWith('apple:library-'))
+        )
+        .map((item) => item.apple?.catalogId)
+        .filter((catalogId) => !!catalogId) as string[];
+
+    if (ids.length === 0) {
+        return;
+    }
+
+    let [, type] = item.src.split(':');
+    type = type.replace('library-', '');
+    const musicKit = MusicKit.getInstance();
+    const {
+        data: {resources},
+    } = await musicKit.api.music(`/v1/catalog/{{storefrontId}}`, {
+        [`fields[${type}]`]: 'inLibrary',
+        'format[resources]': 'map',
+        [`ids[${type}]`]: ids,
+        'omit[resource]': 'autos',
+    });
+    const data = resources[type];
+
+    if (!data) {
+        return;
+    }
+
+    const inLibrary = new Map<string, boolean>(
+        Object.keys(data).map((key) => [key, data[key].attributes.inLibrary])
+    );
+
+    mediaObjectChanges.dispatch<MediaObject>(
+        ids.map((id) => ({
+            match: (object: MediaObject) => object.apple?.catalogId === id,
+            values: {inLibrary: inLibrary.get(id) || false},
+        }))
+    );
+}

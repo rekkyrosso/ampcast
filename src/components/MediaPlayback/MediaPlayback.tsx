@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {memo, useCallback} from 'react';
 import PlaylistItem from 'types/PlaylistItem';
 import mediaPlayback, {eject} from 'services/mediaPlayback';
 import playlist from 'services/playlist';
@@ -12,7 +12,7 @@ import './MediaPlayback.scss';
 
 console.log('component::MediaPlayback');
 
-export default function MediaPlayback() {
+export default memo(function MediaPlayback() {
     const currentlyPlaying = useCurrentlyPlaying();
     const paused = usePaused();
 
@@ -41,4 +41,4 @@ export default function MediaPlayback() {
             </Splitter>
         </div>
     );
-}
+});

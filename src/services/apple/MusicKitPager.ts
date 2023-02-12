@@ -11,13 +11,12 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
-import mediaObjectChanges from 'services/actions/mediaObjectChanges';
 import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import pinStore from 'services/pins/pinStore';
 import {bestOf, getTextFromHtml, Logger, ParentOf} from 'utils';
-import apple from './apple';
+import {addInLibrary, addRatings} from './apple';
 
 const logger = new Logger('MusicKitPager');
 
@@ -114,14 +113,14 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
                 this.subscriptions.add(
                     this.pager
                         .observeAdditions()
-                        .pipe(mergeMap((items) => this.addRatings(items)))
+                        .pipe(mergeMap((items) => addRatings(items, true)))
                         .subscribe(logger)
                 );
 
                 this.subscriptions.add(
                     this.pager
                         .observeAdditions()
-                        .pipe(mergeMap((items) => this.addInLibrary(items)))
+                        .pipe(mergeMap((items) => addInLibrary(items, true, this.parent)))
                         .subscribe(logger)
                 );
             }
@@ -396,93 +395,5 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
 
     private getGenres({genreNames = []}: {genreNames: string[]}): readonly string[] | undefined {
         return genreNames.filter((name) => name !== 'Music');
-    }
-
-    private async addRatings(items: readonly T[]): Promise<void> {
-        const item = items[0];
-        if (!item || !apple.canRate(item, true)) {
-            return;
-        }
-
-        const ids: string[] = items
-            .filter((item) => item.rating === undefined)
-            .map((item) => {
-                const [, , id] = item.src.split(':');
-                return id;
-            });
-
-        if (ids.length === 0) {
-            return;
-        }
-
-        const [, type] = item.src.split(':');
-        const musicKit = MusicKit.getInstance();
-        const {
-            data: {data},
-        } = await musicKit.api.music(`/v1/me/ratings/${type}`, {ids});
-
-        if (!data) {
-            return;
-        }
-
-        const ratings = new Map<string, number>(
-            data.map((data: any) => [data.id, data.attributes.value])
-        );
-
-        mediaObjectChanges.dispatch(
-            ids.map((id) => ({
-                match: (object: MediaObject) => object.src === `apple:${type}:${id}`,
-                values: {rating: ratings.get(id) || 0},
-            }))
-        );
-    }
-
-    private async addInLibrary(items: readonly T[]): Promise<void> {
-        const item = items[0];
-        if (!item || !apple.canStore(item, true)) {
-            return;
-        }
-
-        const isAlbumTrack = this.parent?.itemType === ItemType.Album;
-        const ids: string[] = items
-            .filter(
-                (item) =>
-                    item.inLibrary === undefined &&
-                    !(isAlbumTrack && item.src.startsWith('apple:library-'))
-            )
-            .map((item) => item.apple?.catalogId)
-            .filter((catalogId) => !!catalogId) as string[];
-
-        if (ids.length === 0) {
-            return;
-        }
-
-        let [, type] = item.src.split(':');
-        type = type.replace('library-', '');
-        const musicKit = MusicKit.getInstance();
-        const {
-            data: {resources},
-        } = await musicKit.api.music(`/v1/catalog/{{storefrontId}}`, {
-            [`fields[${type}]`]: 'inLibrary',
-            'format[resources]': 'map',
-            [`ids[${type}]`]: ids,
-            'omit[resource]': 'autos',
-        });
-        const data = resources[type];
-
-        if (!data) {
-            return;
-        }
-
-        const inLibrary = new Map<string, boolean>(
-            Object.keys(data).map((key) => [key, data[key].attributes.inLibrary])
-        );
-
-        mediaObjectChanges.dispatch<MediaObject>(
-            ids.map((id) => ({
-                match: (object: MediaObject) => object.apple?.catalogId === id,
-                values: {inLibrary: inLibrary.get(id) || false},
-            }))
-        );
     }
 }

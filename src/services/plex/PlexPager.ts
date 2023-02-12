@@ -35,7 +35,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         private readonly parent?: ParentOf<T>
     ) {
         this.pageSize =
-            options?.pageSize || plexSettings.connection?.local ? PlexPager.maxPageSize : 100;
+            options?.pageSize || (plexSettings.connection?.local ? PlexPager.maxPageSize : 100);
         this.pager = new OffsetPager<T>((pageNumber) => this.fetch(pageNumber), {
             pageSize: this.pageSize,
             ...options,
@@ -77,11 +77,11 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         });
 
         const {
-            MediaContainer: {Metadata: tracks = [], totalSize: total},
+            MediaContainer: {Metadata: tracks = [], size, totalSize},
         } = result;
         const items = tracks.map((track: plex.Track) => this.createItem(track));
 
-        return {items, total};
+        return {items, total: totalSize || size};
     }
 
     private createItem(item: PlexMediaObject): T {

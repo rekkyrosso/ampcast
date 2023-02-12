@@ -1,7 +1,8 @@
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
+import Thumbnail from 'types/Thumbnail';
 import {lf_api_key} from 'services/credentials';
-import {Logger} from 'utils';
+import {Logger, exists} from 'utils';
 import {getApiSignature} from './lastfmAuth';
 import lastfmSettings from './lastfmSettings';
 
@@ -11,6 +12,7 @@ const logger = new Logger('lastfmApi');
 
 export class LastFmApi {
     private readonly host = `https://ws.audioscrobbler.com/2.0`;
+    private readonly placeholderImage = '2a96cbd8b46e442fc41c2b86b821562f.png';
 
     async scrobble(items: Listen[]): Promise<void> {
         logger.log('scrobble', {items});
@@ -58,6 +60,19 @@ export class LastFmApi {
         });
     }
 
+    createThumbnails(thumbs: readonly LastFm.Thumbnail[]): Thumbnail[] | undefined {
+        const result = thumbs
+            ? [
+                  this.createThumbnail(thumbs[0], 34),
+                  this.createThumbnail(thumbs[1], 64),
+                  this.createThumbnail(thumbs[2], 174),
+                  this.createThumbnail(thumbs[3], 300),
+              ].filter(exists)
+            : [];
+
+        return result.length === 0 ? undefined : result;
+    }
+
     async get<T>(params: any): Promise<T> {
         const path = `${this.host}?${new URLSearchParams({
             ...params,
@@ -78,7 +93,11 @@ export class LastFmApi {
         const headers = {'Content-Type': 'application/x-www-form-urlencoded'};
         const api_sig = getApiSignature(params);
         const body = `${new URLSearchParams(params)}&api_sig=${api_sig}`;
-        return fetch(this.host, {method: 'POST', headers, body});
+        const response = await fetch(this.host, {method: 'POST', headers, body});
+        if (!response.ok) {
+            throw response;
+        }
+        return response;
     }
 
     private getScrobbleParams(item: MediaItem): Record<string, string> {
@@ -105,6 +124,19 @@ export class LastFmApi {
 
     private canScrobble(item: MediaItem | null): boolean {
         return !!item && !!item.title && !!item.artists?.[0] && item.duration > 30;
+    }
+
+    private createThumbnail(
+        thumb: LastFm.Thumbnail,
+        width: number,
+        height = width
+    ): Thumbnail | undefined {
+        if (thumb) {
+            const url = thumb['#text'] as string;
+            if (url && !url.endsWith(this.placeholderImage)) {
+                return {url, width, height};
+            }
+        }
     }
 }
 

@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {memo, useCallback} from 'react';
 import {
     pause,
     play,
@@ -18,7 +18,7 @@ import MediaIconButton from './MediaIconButton';
 import VolumeControl from './VolumeControl';
 import './MediaControls.scss';
 
-export default function MediaControls() {
+export default memo(function MediaControls() {
     const currentTime = useObservable(observeCurrentTime, 0);
     const duration = useObservable(observeDuration, 0);
     const paused = useObservable(observePaused, true);
@@ -67,4 +67,4 @@ export default function MediaControls() {
             </div>
         </div>
     );
-}
+});

@@ -24,6 +24,8 @@ export default function CoverArt({item, size, className = ''}: CoverArtProps) {
     const src = thumbnail ? getThumbnailUrl(thumbnail) : '';
     const fallback = getFallbackIcon(item);
 
+    useEffect(() => setThumbnails(item.thumbnails), [item.thumbnails]);
+
     useEffect(() => {
         if (!hasThumbnails) {
             if (item.itemType === ItemType.Media) {

@@ -15,7 +15,7 @@ import Pager, {PagerConfig} from 'types/Pager';
 import Pin from 'types/Pin';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
-import {uniqBy} from 'utils';
+import {bestOf, uniqBy} from 'utils';
 import plexSettings from './plexSettings';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './plexAuth';
 import plexApi from './plexApi';
@@ -227,6 +227,7 @@ const plex: MediaService = {
     canStore: () => false,
     compareForRating,
     createSourceFromPin,
+    getMetadata,
     lookup,
     rate,
     observeIsLoggedIn,
@@ -273,6 +274,23 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
             });
         },
     };
+}
+
+async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
+    const hasMetadata = item.rating !== undefined;
+    if (hasMetadata) {
+        return item;
+    }
+    const path =
+        item.itemType === ItemType.Playlist
+            ? `/playlists/${item.plex!.ratingKey}`
+            : `/library/metadata/${item.plex!.ratingKey}`;
+    const pager = new PlexPager<T>(path, undefined, {
+        pageSize: 1,
+        maxSize: 1,
+    });
+    const items = await fetchFirstPage<T>(pager, {timeout: 2000});
+    return bestOf(item, items[0]);
 }
 
 async function lookup(

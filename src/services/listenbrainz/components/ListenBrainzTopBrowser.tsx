@@ -28,7 +28,7 @@ interface ListenBrainzRangeOption {
 
 const options: ListenBrainzRangeOption[] = [
     {value: 'all_time', text: 'All time'},
-    {value: 'this_year', text: 'Year'},
+    {value: 'year', text: 'Year'},
     {value: 'month', text: 'Month'},
     {value: 'week', text: 'Week'},
 ];
