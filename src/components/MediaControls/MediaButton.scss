@@ -27,16 +27,9 @@
         transform: scale(0.98);
     }
 
-    &-shuffle {
-        width: auto;
-        margin-right: 0;
-        font-weight: 600;
-        font-size: 0.675rem;
-        line-height: 2em;
-        border-radius: calc(var(--roundness) * 2rem);
-    }
-
-    &:not(&-shuffle) {
-        will-change: transform;
+    &-menu {
+        width: 1.25rem;
+        height: 1.25rem;
+        padding: 0;
     }
 }

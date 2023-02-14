@@ -4,7 +4,8 @@ import Player from './Player';
 
 export default interface MediaPlayback extends Player<PlaylistItem | null> {
     readonly paused: boolean;
-    observeCurrentItem(): Observable<PlaylistItem | null>
+    stopAfterCurrent: boolean;
+    observeCurrentItem(): Observable<PlaylistItem | null>;
     observePlaybackStart(): Observable<PlaybackState>;
     observePlaybackEnd(): Observable<PlaybackState>;
     observePlaybackProgress(interval: number): Observable<PlaybackState>;

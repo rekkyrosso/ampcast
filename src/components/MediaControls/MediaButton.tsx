@@ -1,9 +1,7 @@
 import React, {useCallback, useRef} from 'react';
 import './MediaButton.scss';
 
-export interface MediaButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-    onClick?: () => void;
-}
+export type MediaButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
 
 export default function MediaButton({
     children,

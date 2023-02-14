@@ -18,6 +18,7 @@
         flex-direction: row;
         align-items: center;
         justify-content: center;
+        padding-left: 1.25em;
         background-image: none;
         transform: none;
         will-change: filter;
@@ -46,6 +47,12 @@
     }
 
     &-item {
+        &.checked button::before {
+            content: '✓';
+            position: absolute;
+            left: 0.33em;
+        }
+
         &-label {
             flex: auto;
             text-align: left;

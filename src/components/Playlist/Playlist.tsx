@@ -1,4 +1,4 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {Except} from 'type-fest';
 import LookupStatus from 'types/LookupStatus';
 import PlaylistItem from 'types/PlaylistItem';
@@ -19,10 +19,10 @@ type NotRequired = 'items' | 'itemKey' | 'layout' | 'sortable' | 'droppableTypes
 export interface PlaylistProps extends Except<ListViewProps<PlaylistItem>, NotRequired> {
     onPlay?: (item: PlaylistItem) => void;
     onEject?: () => void;
+    playlistRef: React.MutableRefObject<ListViewHandle | null>;
 }
 
-export default function Playlist({onSelect, onPlay, onEject, ...props}: PlaylistProps) {
-    const listViewRef = useRef<ListViewHandle>(null);
+export default function Playlist({onSelect, onPlay, onEject, playlistRef, ...props}: PlaylistProps) {
     const items = useObservable(playlist.observe, []);
     const size = items.length;
     const layout = usePlaylistLayout(size);
@@ -102,7 +102,7 @@ export default function Playlist({onSelect, onPlay, onEject, ...props}: Playlist
                     break;
 
                 case 'select-all':
-                    listViewRef.current!.selectAll();
+                    playlistRef.current!.selectAll();
                     break;
 
                 case 'clear':
@@ -110,7 +110,7 @@ export default function Playlist({onSelect, onPlay, onEject, ...props}: Playlist
                     break;
             }
         },
-        [onPlay, items]
+        [onPlay, items, playlistRef]
     );
 
     return (
@@ -134,7 +134,7 @@ export default function Playlist({onSelect, onPlay, onEject, ...props}: Playlist
                 onInfo={handleInfo}
                 onMove={playlist.moveSelection}
                 onSelect={handleSelect}
-                listViewRef={listViewRef}
+                listViewRef={playlistRef}
             />
             <MediaListStatusBar items={items} size={items.length} selectedCount={selectedCount} />
         </div>

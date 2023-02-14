@@ -109,6 +109,7 @@ export function play(): void {
 
 export function pause(): void {
     logger.log('pause');
+    mediaPlayback.stopAfterCurrent = false;
     unlockLoading();
     playback.pause();
     mediaPlayer.pause();
@@ -122,6 +123,7 @@ export function seek(time: number): void {
 
 export function stop(): void {
     logger.log('stop');
+    mediaPlayback.stopAfterCurrent = false;
     unlockLoading();
     playback.stop();
     mediaPlayer.stop();
@@ -136,6 +138,7 @@ export function resize(width: number, height: number): void {
 export function prev(): void {
     direction = 'backward';
     if (!playlist.atStart) {
+        mediaPlayback.stopAfterCurrent = false;
         lockLoading();
         playlist.prev();
     }
@@ -144,12 +147,14 @@ export function prev(): void {
 export function next(): void {
     direction = 'forward';
     if (!playlist.atEnd) {
+        mediaPlayback.stopAfterCurrent = false;
         lockLoading();
         playlist.next();
     }
 }
 
 export function eject(): void {
+    mediaPlayback.stopAfterCurrent = false;
     lockLoading();
     playlist.eject();
 }
@@ -201,6 +206,7 @@ async function getPlayableItem(item: PlaylistItem): Promise<PlaylistItem> {
 }
 
 const mediaPlayback: MediaPlayback = {
+    stopAfterCurrent: false,
     get autoplay(): boolean {
         return mediaPlayer.autoplay;
     },
@@ -272,7 +278,11 @@ mediaPlayer
         if (atEnd) {
             stop();
         } else {
-            playlist.next();
+            if (mediaPlayback.stopAfterCurrent) {
+                stop();
+            } else {
+                playlist.next();
+            }
         }
     });
 

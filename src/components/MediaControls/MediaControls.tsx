@@ -1,24 +1,30 @@
-import React, {memo, useCallback} from 'react';
-import {
+import React, {useCallback} from 'react';
+import mediaPlayback, {
     pause,
     play,
     seek,
     stop,
     prev,
     next,
-    shuffle,
     observeCurrentTime,
     observeDuration,
     observePaused,
 } from 'services/mediaPlayback';
+import playlist, {observeCurrentIndex} from 'services/playlist';
+import {ListViewHandle} from 'components/ListView';
 import Time from 'components/Time';
 import useObservable from 'hooks/useObservable';
-import MediaButton from './MediaButton';
 import MediaIconButton from './MediaIconButton';
 import VolumeControl from './VolumeControl';
+import showActionsMenu from './showActionsMenu';
 import './MediaControls.scss';
 
-export default memo(function MediaControls() {
+export interface MediaControlsProps {
+    playlistRef: React.MutableRefObject<ListViewHandle | null>;
+}
+
+export default function MediaControls({playlistRef}: MediaControlsProps) {
+    const currentIndex = useObservable(observeCurrentIndex, -1);
     const currentTime = useObservable(observeCurrentTime, 0);
     const duration = useObservable(observeDuration, 0);
     const paused = useObservable(observePaused, true);
@@ -26,6 +32,30 @@ export default memo(function MediaControls() {
     const handleSeekChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         seek(event.target.valueAsNumber);
     }, []);
+
+    const handleMoreClick = useCallback(
+        async (event: React.MouseEvent) => {
+            const action = await showActionsMenu(event.pageX, event.pageY);
+            switch (action) {
+                case 'jump-to-current':
+                    playlistRef.current!.scrollTo(currentIndex);
+                    break;
+
+                case 'stop-after-current':
+                    mediaPlayback.stopAfterCurrent = !mediaPlayback.stopAfterCurrent;
+                    break;
+
+                case 'clear':
+                    playlist.clear();
+                    break;
+
+                case 'shuffle':
+                    playlist.shuffle();
+                    break;
+            }
+        },
+        [playlistRef, currentIndex]
+    );
 
     return (
         <div className="media-controls">
@@ -56,15 +86,9 @@ export default memo(function MediaControls() {
                     <MediaIconButton aria-label="Next track" icon="next" onClick={next} />
                 </div>
                 <div className="media-buttons-more">
-                    <MediaButton
-                        className="media-button-shuffle"
-                        aria-label="Shuffle"
-                        onClick={shuffle}
-                    >
-                        Shuffle
-                    </MediaButton>
+                    <MediaIconButton title="More..." icon="menu" onClick={handleMoreClick} />
                 </div>
             </div>
         </div>
     );
-});
+}

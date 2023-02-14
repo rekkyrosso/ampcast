@@ -53,6 +53,7 @@ export type ListViewLayout<T> = ListViewDetailsLayout<T> | ListViewCardLayout<T>
 export interface ListViewHandle {
     focus: () => void;
     selectAll: () => void;
+    scrollTo: (rowIndex: number) => void;
 }
 
 export interface ListViewProps<T> {
@@ -152,14 +153,37 @@ export default function ListView<T>({
     );
     const [dragItem1, dragItem2, dragItem3, dragItem4] = draggable ? selectedItems : [];
 
+    const scrollTo = useCallback(
+        (rowIndex: number) => {
+            const scrollable = scrollableRef.current!;
+            const topIndex = Math.floor(scrollTop / rowHeight);
+            if (rowIndex >= topIndex + pageSize - 1) {
+                // too far below
+                const scrollHeight = (size + (showTitles ? 1 : 0)) * rowHeight;
+                const lastIndex = size - pageSize - 1;
+                const seekIndex = Math.min(size - 1, rowIndex + 1);
+                const topIndex = seekIndex - pageSize;
+                const top = topIndex === lastIndex ? scrollHeight : topIndex * rowHeight;
+                scrollable.scrollTo({top});
+            } else if (rowIndex <= topIndex) {
+                // too far above
+                const seekIndex = Math.max(0, rowIndex - 1);
+                const top = seekIndex * rowHeight;
+                scrollable.scrollTo({top});
+            }
+        },
+        [scrollTop, rowHeight, pageSize, showTitles, size]
+    );
+
     useEffect(() => {
         if (listViewRef) {
             listViewRef.current = {
                 focus: () => containerRef.current!.focus(),
                 selectAll,
+                scrollTo,
             };
         }
-    }, [listViewRef, selectAll]);
+    }, [listViewRef, selectAll, scrollTo]);
 
     useLayoutEffect(() => onRowIndexChange?.(rowIndex), [rowIndex, onRowIndexChange]);
     useLayoutEffect(() => onScrollIndexChange?.(scrollIndex), [scrollIndex, onScrollIndexChange]);
@@ -265,24 +289,8 @@ export default function ListView<T>({
                         event.preventDefault();
                         if (nextIndex !== rowIndex) {
                             event.stopPropagation();
-                            const scrollable = scrollableRef.current!;
-                            const topIndex = Math.floor(scrollTop / rowHeight);
-                            if (nextIndex >= topIndex + pageSize - 1) {
-                                // too far below
-                                const scrollHeight = (size + (showTitles ? 1 : 0)) * rowHeight;
-                                const lastIndex = size - pageSize - 1;
-                                const seekIndex = Math.min(size - 1, nextIndex + 1);
-                                const topIndex = seekIndex - pageSize;
-                                const top =
-                                    topIndex === lastIndex ? scrollHeight : topIndex * rowHeight;
-                                scrollable.scrollTo({top});
-                            } else if (nextIndex <= topIndex) {
-                                // too far above
-                                const seekIndex = Math.max(0, nextIndex - 1);
-                                const top = seekIndex * rowHeight;
-                                scrollable.scrollTo({top});
-                            }
-                            setRowIndex(nextIndex);
+                            scrollTo(nextIndex);
+                            setRowIndex(rowIndex);
                         }
                         if (multiSelect && event.shiftKey && rangeSelectionStart !== -1) {
                             selectRange(rangeSelectionStart, nextIndex);
@@ -298,8 +306,6 @@ export default function ListView<T>({
             rowIndex, // changes often
             items,
             pageSize,
-            rowHeight,
-            showTitles,
             onEnter,
             onDelete,
             onInfo,
@@ -310,7 +316,7 @@ export default function ListView<T>({
             selectedItems, // changes often
             multiSelect,
             rangeSelectionStart,
-            scrollTop, // changes often
+            scrollTo,
         ]
     );
 

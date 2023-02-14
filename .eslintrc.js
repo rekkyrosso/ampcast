@@ -1,29 +1,25 @@
 module.exports = {
-    "env": {
-        "browser": true,
-        "es2021": true,
-        "node": true
+    env: {
+        browser: true,
+        es2021: true,
+        node: true,
     },
-    "extends": [
-        "eslint:recommended",
-        "plugin:react/recommended",
-        "plugin:@typescript-eslint/recommended"
+    extends: [
+        'eslint:recommended',
+        'plugin:react/recommended',
+        'plugin:@typescript-eslint/recommended',
     ],
-    "parser": "@typescript-eslint/parser",
-    "parserOptions": {
-        "ecmaFeatures": {
-            "jsx": true
+    parser: '@typescript-eslint/parser',
+    parserOptions: {
+        ecmaFeatures: {
+            jsx: true,
         },
-        "ecmaVersion": 12,
-        "sourceType": "module"
+        ecmaVersion: 12,
+        sourceType: 'module',
     },
-    "plugins": [
-        "react",
-        "@typescript-eslint",
-		"react-hooks"
-    ],
-    "rules": {
-        'curly': 'error',
+    plugins: ['react', '@typescript-eslint', 'react-hooks'],
+    rules: {
+        curly: 'error',
         'guard-for-in': 'error',
         'no-unused-labels': 'error',
         'no-duplicate-case': 'error',
@@ -37,21 +33,22 @@ module.exports = {
         'no-throw-literal': 'error',
         'no-fallthrough': 'error',
         'no-template-curly-in-string': 'error',
-        'radix': 'error',
-        'eqeqeq': ['error', 'smart'],
+        radix: 'error',
+        eqeqeq: ['error', 'smart'],
         'no-caller': 'error',
         'no-alert': 'error',
-        'react/no-unknown-property': ['error', { ignore: ['onClose'] }],
+        'react/no-unknown-property': ['error', {ignore: ['onClose']}],
         'react-hooks/rules-of-hooks': 'error',
         'react-hooks/exhaustive-deps': 'error',
+        'react/prop-types': 'off',
 
         'no-redeclare': 'off',
         '@typescript-eslint/no-non-null-assertion': 'off',
         '@typescript-eslint/no-explicit-any': 'off',
     },
-    "settings": {
-        "react": {
-            "version": "detect"
-        }
-    }
+    settings: {
+        react: {
+            version: 'detect',
+        },
+    },
 };

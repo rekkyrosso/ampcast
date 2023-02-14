@@ -23,6 +23,7 @@ export default function SearchBar({onSubmit}: SearchBarProps) {
             <p className="text-with-button">
                 <input
                     type="search"
+                    placeholder="Search"
                     spellCheck={false}
                     autoComplete="off"
                     autoCapitalize="off"
