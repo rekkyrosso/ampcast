@@ -28,6 +28,18 @@ export async function loadScript(src: string): Promise<void> {
     });
 }
 
+export function chunk<T>(values: readonly T[], chunkSize = 1): T[][] {
+    if (chunkSize <= 0) {
+        return [];
+    }
+    const temp = [...values];
+    const cache: T[][] = [];
+    while (temp.length) {
+        cache.push(temp.splice(0, chunkSize));
+    }
+    return cache;
+}
+
 export function partition<T>(values: readonly T[], predicate: (value: T) => boolean): [T[], T[]] {
     const trues: T[] = [];
     const falses: T[] = [];

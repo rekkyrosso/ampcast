@@ -7,6 +7,8 @@ import MediaObject from 'types/MediaObject';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import Pager from 'types/Pager';
+import ViewType from 'types/ViewType';
+import ratingStore from 'services/actions/ratingStore';
 import listenbrainzApi from './listenbrainzApi';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './listenbrainzAuth';
 import ListenBrainzHistoryPager from './ListenBrainzHistoryPager';
@@ -44,6 +46,7 @@ const listenbrainzLovedTracks: MediaSource<MediaItem> = {
     title: 'Loved Tracks',
     icon: 'heart',
     itemType: ItemType.Media,
+    viewType: ViewType.Ratings,
     defaultHidden: true,
     layout: {
         view: 'card',
@@ -114,7 +117,7 @@ const listenbrainz: MediaService = {
     id: 'listenbrainz',
     name: 'ListenBrainz',
     icon: 'listenbrainz',
-    url: 'https://listenbrainz.org/',
+    url: 'https://listenbrainz.org',
     isScrobbler: true,
     roots: [listenbrainzRecentlyPlayed],
     sources: [
@@ -140,6 +143,8 @@ const listenbrainz: MediaService = {
 };
 
 export default listenbrainz;
+
+ratingStore.addObserver(listenbrainz, 5);
 
 function canRate<T extends MediaObject>(item: T): boolean {
     return item.itemType === ItemType.Media && !!(item.recording_mbid || item.recording_msid);

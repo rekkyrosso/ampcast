@@ -11,10 +11,10 @@ export default function SpotifyLogin() {
                 <DevMode service={spotify} />
                 <p>You need to be logged in to play music from Spotify.*</p>
                 <LoginButton service={spotify} />
-                <ServiceLink service={spotify} />
                 <p>
                     <small>*Spotify Premium required.</small>
                 </p>
+                <ServiceLink service={spotify} />
             </div>
         </div>
     );

@@ -2,12 +2,14 @@ import type {IconName} from 'components/Icon';
 import MediaObject from './MediaObject';
 import MediaSourceLayout from './MediaSourceLayout';
 import Pager from './Pager';
+import ViewType from './ViewType';
 
 export default interface MediaSource<T extends MediaObject> {
     readonly id: string;
     readonly title: string;
     readonly icon: IconName;
     readonly itemType: T['itemType'];
+    readonly viewType?: ViewType;
     readonly layout?: MediaSourceLayout<T>;
     readonly secondaryLayout?: MediaSourceLayout<MediaObject>;
     readonly tertiaryLayout?: MediaSourceLayout<MediaObject>;

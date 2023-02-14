@@ -11,6 +11,9 @@ import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
 import Pin from 'types/Pin';
+import ViewType from 'types/ViewType';
+import libraryStore from 'services/actions/libraryStore';
+import ratingStore from 'services/actions/ratingStore';
 import mediaObjectChanges from 'services/actions/mediaObjectChanges';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
@@ -26,7 +29,7 @@ const defaultLayout: MediaSourceLayout<MediaItem> = {
 };
 
 export const appleMusicVideos: MediaSource<MediaItem> = {
-    id: 'apple/video',
+    id: 'apple/videos',
     title: 'Music Video',
     icon: 'video',
     itemType: ItemType.Media,
@@ -36,7 +39,7 @@ export const appleMusicVideos: MediaSource<MediaItem> = {
 
     search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
         if (q) {
-            return createSearchPager(ItemType.Media, q, {types: 'music-videos'}, {maxSize: 100});
+            return createSearchPager(ItemType.Media, q, {types: 'music-videos'}, {maxSize: 250});
         } else {
             return new SimplePager();
         }
@@ -91,6 +94,7 @@ const appleLibrarySongs: MediaSource<MediaItem> = {
     title: 'My Songs',
     icon: 'tick',
     itemType: ItemType.Media,
+    viewType: ViewType.Library,
     layout: defaultLayout,
     defaultHidden: true,
 
@@ -104,6 +108,7 @@ const appleLibraryAlbums: MediaSource<MediaAlbum> = {
     title: 'My Albums',
     icon: 'tick',
     itemType: ItemType.Album,
+    viewType: ViewType.Library,
 
     search(): Pager<MediaAlbum> {
         return new MusicKitPager(`/v1/me/library/albums`, {
@@ -118,6 +123,7 @@ const appleLibraryArtists: MediaSource<MediaArtist> = {
     title: 'My Artists',
     icon: 'tick',
     itemType: ItemType.Artist,
+    viewType: ViewType.Library,
     defaultHidden: true,
 
     search(): Pager<MediaArtist> {
@@ -134,6 +140,7 @@ const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
     title: 'Playlists',
     icon: 'playlist',
     itemType: ItemType.Playlist,
+    viewType: ViewType.Library,
 
     search(): Pager<MediaPlaylist> {
         return new MusicKitPager(`/v1/me/library/playlists`, {
@@ -143,11 +150,25 @@ const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
+const appleLibraryVideos: MediaSource<MediaItem> = {
+    id: 'apple/library-videos',
+    title: 'My Videos',
+    icon: 'tick',
+    itemType: ItemType.Media,
+    viewType: ViewType.Library,
+    layout: defaultLayout,
+    defaultHidden: true,
+
+    search(): Pager<MediaItem> {
+        return new MusicKitPager(`/v1/me/library/music-videos`);
+    },
+};
+
 const apple: MediaService = {
     id: 'apple',
     name: 'Apple Music',
     icon: 'apple',
-    url: 'https://music.apple.com/',
+    url: 'https://music.apple.com',
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -158,6 +179,7 @@ const apple: MediaService = {
         appleLibrarySongs,
         appleLibraryAlbums,
         appleLibraryArtists,
+        appleLibraryVideos,
         appleRecentlyPlayed,
         appleLibraryPlaylists,
         appleRecommendations,
@@ -249,6 +271,9 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
 }
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
+    if (item.itemType === ItemType.Playlist && item.isOwn) {
+        return item;
+    }
     let result: Writable<T> = item;
     const hasMetadata = !!item.externalUrl; // this field is not available on library items
     if (!hasMetadata) {
@@ -266,9 +291,11 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
         result = bestOf(item, items[0]);
         result.description = items[0]?.description || item.description;
     }
+    result.inLibrary = libraryStore.get(result.src, result.inLibrary);
     if (result.inLibrary === undefined) {
         addInLibrary([result as T]);
     }
+    result.rating = ratingStore.get(result as T, result.rating);
     if (result.rating === undefined) {
         addRatings([result as T]);
     }

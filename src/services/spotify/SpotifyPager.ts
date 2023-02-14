@@ -10,6 +10,7 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
+import libraryStore from 'services/actions/libraryStore';
 import mediaObjectChanges from 'services/actions/mediaObjectChanges';
 import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
@@ -50,7 +51,8 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
 
     constructor(
         fetch: (offset: number, limit: number) => Promise<SpotifyPage>,
-        options?: Partial<PagerConfig>
+        options?: Partial<PagerConfig>,
+        inLibrary?: boolean | undefined
     ) {
         this.config = {...this.defaultConfig, ...options};
 
@@ -61,7 +63,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                     const {items, total, next} = await fetch(offset, limit);
                     this.pageNumber++;
                     return {
-                        items: items.map((item) => this.createMediaObject(item)),
+                        items: items.map((item) => this.createMediaObject(item, inLibrary)),
                         total,
                         atEnd: !next,
                     };
@@ -127,7 +129,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         }
     }
 
-    private createMediaObject(item: SpotifyItem): T {
+    private createMediaObject(item: SpotifyItem, inLibrary?: boolean | undefined): T {
         switch (item.type) {
             case 'episode':
                 return this.createMediaItemFromEpisode(item) as T;
@@ -136,13 +138,13 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                 return this.createMediaArtist(item) as T;
 
             case 'album':
-                return this.createMediaAlbum(item) as T;
+                return this.createMediaAlbum(item, inLibrary) as T;
 
             case 'playlist':
-                return this.createMediaPlaylist(item) as T;
+                return this.createMediaPlaylist(item, inLibrary) as T;
 
             case 'track':
-                return this.createMediaItemFromTrack(item) as T;
+                return this.createMediaItemFromTrack(item, inLibrary) as T;
         }
     }
 
@@ -162,7 +164,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         };
     }
 
-    private createMediaAlbum(album: SpotifyAlbum): MediaAlbum {
+    private createMediaAlbum(album: SpotifyAlbum, inLibrary?: boolean | undefined): MediaAlbum {
         return {
             itemType: ItemType.Album,
             src: album.uri,
@@ -174,6 +176,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             thumbnails: album.images as Thumbnail[],
             trackCount: album.tracks?.total,
             pager: this.createAlbumPager(album),
+            inLibrary: libraryStore.get(album.uri, inLibrary),
         };
     }
 
@@ -201,7 +204,10 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         };
     }
 
-    private createMediaPlaylist(playlist: SpotifyPlaylist): MediaPlaylist {
+    private createMediaPlaylist(
+        playlist: SpotifyPlaylist,
+        inLibrary?: boolean | undefined
+    ): MediaPlaylist {
         const isOwn = playlist.owner.id === spotifySettings.getString('userId');
 
         return {
@@ -213,17 +219,20 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             thumbnails: playlist.images as Thumbnail[],
             trackCount: playlist.tracks.total,
             pager: this.createPlaylistPager(playlist),
-            inLibrary: isOwn ? false : undefined, // TODO
             owner: {
                 name: playlist.owner.display_name || '',
                 url: playlist.owner.external_urls.spotify,
             },
             isPinned: pinStore.isPinned(playlist.uri),
             isOwn,
+            inLibrary: isOwn ? false : libraryStore.get(playlist.uri, inLibrary),
         };
     }
 
-    private createMediaItemFromTrack(track: SpotifyTrack): MediaItem {
+    private createMediaItemFromTrack(
+        track: SpotifyTrack,
+        inLibrary?: boolean | undefined
+    ): MediaItem {
         const album = /album|compilation/i.test(track.album?.album_type || '')
             ? track.album
             : undefined;
@@ -250,6 +259,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             isrc: track.external_ids?.isrc,
             thumbnails: track.album?.images as Thumbnail[],
             unplayable: track.is_playable === false,
+            inLibrary: libraryStore.get(track.uri, inLibrary),
         };
     }
 
@@ -346,11 +356,16 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
 
     private async addInLibrary<T extends MediaObject>(items: readonly T[]): Promise<void> {
         const item = items[0];
-        if (item && spotify.canStore(item, true)) {
-            const ids = items.map((item) => {
-                const [, , id] = item.src.split(':');
-                return id;
-            });
+        if (item) {
+            const ids = items
+                .filter((item) => item.inLibrary === undefined && spotify.canStore(item, true))
+                .map((item) => {
+                    const [, , id] = item.src.split(':');
+                    return id;
+                });
+            if (ids.length === 0) {
+                return;
+            }
             let inLibrary: boolean[] = [];
             if (item.itemType === ItemType.Album) {
                 inLibrary = await spotifyApi.containsMySavedAlbums(ids);

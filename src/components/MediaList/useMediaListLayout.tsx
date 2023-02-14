@@ -92,10 +92,7 @@ export const Views: RenderField = (item) => {
     if (item.globalPlayCount === undefined) {
         return null;
     }
-    if (item.itemType !== ItemType.Media) {
-        return null;
-    }
-    if (item.mediaType !== MediaType.Video) {
+    if (item.itemType !== ItemType.Media || item.mediaType !== MediaType.Video) {
         return null;
     }
     return <Text value={getGlobalPlayCount(item.globalPlayCount, 'view')} />;

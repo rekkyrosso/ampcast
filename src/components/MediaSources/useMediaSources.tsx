@@ -28,7 +28,7 @@ export default function useMediaSources(): TreeNode<React.ReactNode>[] {
                                     showConnectivity
                                 />
                             ),
-                            value: <MediaBrowser sources={service.roots} service={service} />,
+                            value: <MediaBrowser service={service} sources={service.roots} />,
                             startExpanded: true,
 
                             children: service.sources
@@ -38,7 +38,7 @@ export default function useMediaSources(): TreeNode<React.ReactNode>[] {
                                     label: (
                                         <MediaSourceLabel icon={source.icon} text={source.title} />
                                     ),
-                                    value: <MediaBrowser sources={[source]} service={service} />,
+                                    value: <MediaBrowser service={service} sources={[source]} />,
                                 }))
                                 .concat(
                                     pinStore
@@ -55,8 +55,8 @@ export default function useMediaSources(): TreeNode<React.ReactNode>[] {
                                             ),
                                             value: (
                                                 <MediaBrowser
-                                                    sources={[source]}
                                                     service={service}
+                                                    sources={[source]}
                                                 />
                                             ),
                                         }))

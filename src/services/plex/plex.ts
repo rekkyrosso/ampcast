@@ -13,7 +13,9 @@ import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
 import Pin from 'types/Pin';
+import ViewType from 'types/ViewType';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
+import ratingStore from 'services/actions/ratingStore';
 import SimplePager from 'services/pagers/SimplePager';
 import {bestOf, uniqBy} from 'utils';
 import plexSettings from './plexSettings';
@@ -102,6 +104,7 @@ const plexTopTracks: MediaSource<MediaItem> = {
     title: 'Top Tracks',
     icon: 'star',
     itemType: ItemType.Media,
+    viewType: ViewType.Ratings,
     layout: {
         view: 'details',
         fields: ['Rate', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount'],
@@ -121,6 +124,7 @@ const plexTopAlbums: MediaSource<MediaAlbum> = {
     title: 'Top Albums',
     icon: 'star',
     itemType: ItemType.Album,
+    viewType: ViewType.Ratings,
     layout: {
         view: 'card compact',
         fields: ['Thumbnail', 'Title', 'Artist', 'Year', 'Rate'],
@@ -141,6 +145,7 @@ const plexTopArtists: MediaSource<MediaArtist> = {
     title: 'Top Artists',
     icon: 'star',
     itemType: ItemType.Artist,
+    viewType: ViewType.Ratings,
     defaultHidden: true,
     layout: {
         view: 'card compact',
@@ -205,7 +210,7 @@ const plex: MediaService = {
     id: 'plex',
     name: 'Plex',
     icon: 'plex',
-    url: 'https://www.plex.tv/',
+    url: 'https://www.plex.tv',
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: tracksLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -235,6 +240,10 @@ const plex: MediaService = {
     login,
     logout,
 };
+
+export default plex;
+
+ratingStore.addObserver(plex);
 
 function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.plex!.ratingKey === b.plex!.ratingKey;
@@ -277,9 +286,12 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
 }
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
-    const hasMetadata = item.rating !== undefined;
-    if (hasMetadata) {
+    if (!canRate(item) || item.rating !== undefined) {
         return item;
+    }
+    const rating = ratingStore.get(item);
+    if (rating !== undefined) {
+        return {...item, rating};
     }
     const path =
         item.itemType === ItemType.Playlist
@@ -376,5 +388,3 @@ function createSearchPager<T extends MediaObject>(
         return new SimplePager<T>();
     }
 }
-
-export default plex;

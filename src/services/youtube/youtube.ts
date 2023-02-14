@@ -9,6 +9,7 @@ import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import Pin from 'types/Pin';
+import ViewType from 'types/ViewType';
 import SimplePager from 'services/pagers/SimplePager';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './youtubeAuth';
 import YouTubePager from './YouTubePager';
@@ -27,6 +28,7 @@ const youtubeLikes: MediaSource<MediaItem> = {
     title: 'Likes',
     icon: 'thumbs-up',
     itemType: ItemType.Media,
+    viewType: ViewType.Ratings,
     layout: defaultLayout,
     defaultHidden: true,
 
@@ -127,7 +129,7 @@ const youtube: MediaService = {
     id: 'youtube',
     name: 'YouTube',
     icon: 'youtube',
-    url: 'https://www.youtube.com/',
+    url: 'https://www.youtube.com',
     defaultNoScrobble: true,
     roots: [
         {

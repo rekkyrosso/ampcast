@@ -11,6 +11,8 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
+import ratingStore from 'services/actions/ratingStore';
+import libraryStore from 'services/actions/libraryStore';
 import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
@@ -163,6 +165,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         const item = this.createFromLibrary<AppleMusicApi.Playlist['attributes']>(playlist);
         const description = item.description?.standard || item.description?.short;
         const src = `apple:${playlist.type}:${playlist.id}`;
+        const catalogId = this.getCatalogId(playlist);
 
         const mediaPlaylist: Writable<SetOptional<SetRequired<MediaPlaylist, 'apple'>, 'pager'>> = {
             src,
@@ -175,11 +178,10 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             modifiedAt: Math.floor(new Date(item.lastModifiedDate).valueOf() / 1000) || undefined,
             unplayable: !item.playParams || undefined,
             isPinned: pinStore.isPinned(src),
-            inLibrary: playlist.type.startsWith('library-') || undefined,
-            apple: {
-                catalogId: this.getCatalogId(playlist),
-            },
+            inLibrary: libraryStore.get(src, playlist.type.startsWith('library-') || undefined),
+            apple: {catalogId},
         };
+        mediaPlaylist.rating = ratingStore.get(mediaPlaylist as MediaPlaylist);
         mediaPlaylist.pager = new MusicKitPager(
             `${playlist.href!}/tracks`,
             undefined,
@@ -194,6 +196,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
     ): SetRequired<MediaArtist, 'apple'> {
         const item = this.createFromLibrary<AppleMusicApi.Artist['attributes']>(artist);
         const description = item.editorialNotes?.standard || item.editorialNotes?.short;
+        const catalogId = this.getCatalogId(artist);
 
         return {
             itemType: ItemType.Artist,
@@ -204,9 +207,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             thumbnails: this.createThumbnails(item as any),
             genres: this.getGenres(item),
             pager: this.createArtistAlbumsPager(artist),
-            apple: {
-                catalogId: this.getCatalogId(artist),
-            },
+            apple: {catalogId},
         };
     }
 
@@ -225,9 +226,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             pager: this.createTopTracksPager(artist),
             synthetic: true,
             inLibrary: false,
-            apple: {
-                catalogId: '',
-            },
+            apple: {catalogId: ''},
         };
     }
 
@@ -235,11 +234,13 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         album: AppleMusicApi.Album | LibraryAlbum
     ): SetRequired<MediaAlbum, 'apple'> {
         const item = this.createFromLibrary<AppleMusicApi.Album['attributes']>(album);
+        const src = `apple:${album.type}:${album.id}`;
         const description = item.editorialNotes?.standard || item.editorialNotes?.short;
+        const catalogId = this.getCatalogId(album);
 
         const mediaAlbum: Writable<SetOptional<SetRequired<MediaAlbum, 'apple'>, 'pager'>> = {
             itemType: ItemType.Album,
-            src: `apple:${album.type}:${album.id}`,
+            src,
             externalUrl: item.url || undefined,
             title: item.name,
             description: description ? getTextFromHtml(description) : undefined,
@@ -249,11 +250,10 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             genres: this.getGenres(item),
             year: new Date(item.releaseDate).getFullYear() || 0,
             unplayable: !item.playParams || undefined,
-            inLibrary: album.type.startsWith('library-') || undefined,
-            apple: {
-                catalogId: this.getCatalogId(album),
-            },
+            inLibrary: libraryStore.get(src, album.type.startsWith('library-') || undefined),
+            apple: {catalogId},
         };
+        mediaAlbum.rating = ratingStore.get(mediaAlbum as MediaAlbum);
         mediaAlbum.pager = new MusicKitPager(
             `${album.href!}/tracks`,
             undefined,
@@ -271,6 +271,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             id: song.id,
             kind: song.type === 'music-videos' ? 'musicVideo' : 'song',
         };
+        const src = `apple:${song.type}:${id}`;
         const description = item.editorialNotes?.standard || item.editorialNotes?.short;
         const isLibraryItem = song.type.startsWith('library-');
         const isPlaylistItem = this.parent?.itemType === ItemType.Playlist;
@@ -285,10 +286,10 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             externalUrl = `${this.parent.externalUrl}?i=${catalogId}`;
         }
 
-        return {
+        const mediaItem: Writable<SetRequired<MediaItem, 'apple'>> = {
             itemType: ItemType.Media,
             mediaType: kind === 'musicVideo' ? MediaType.Video : MediaType.Audio,
-            src: `apple:${song.type}:${id}`,
+            src,
             externalUrl,
             title: item.name,
             description: description ? getTextFromHtml(description) : undefined,
@@ -304,9 +305,11 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             isrc: item.isrc,
             unplayable: !item.playParams || undefined,
             playedAt: 0,
-            inLibrary: (isLibraryItem && !isPlaylistItem) || undefined,
+            inLibrary: libraryStore.get(src, (isLibraryItem && !isPlaylistItem) || undefined),
             apple: {catalogId},
         };
+        mediaItem.rating = ratingStore.get(mediaItem as MediaItem);
+        return mediaItem;
     }
 
     private getCatalogId(item: any): string {
@@ -316,10 +319,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
                     item.type === 'library-playlists' ? 'globalId' : 'catalogId'
                 ];
             if (!catalogId) {
-                catalogId = this.getCatalog(item)?.id || '';
-            }
-            if (!catalogId) {
-                logger.warn('No `catalogId` found for item:', item);
+                catalogId = this.getCatalog(item)?.id;
             }
             return catalogId || '';
         } else {

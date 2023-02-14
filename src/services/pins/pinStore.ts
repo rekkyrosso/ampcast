@@ -1,6 +1,6 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject} from 'rxjs';
-import {filter} from 'rxjs/operators';
+import {BehaviorSubject, combineLatest} from 'rxjs';
+import {filter, map} from 'rxjs/operators';
 import Dexie, {liveQuery} from 'dexie';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
@@ -15,6 +15,7 @@ const UNINITIALIZED: Pin[] = [];
 class PinStore extends Dexie {
     private readonly pins!: Dexie.Table<Pin, string>;
     private readonly pins$ = new BehaviorSubject<readonly Pin[]>(UNINITIALIZED);
+    private readonly lockedPin$ = new BehaviorSubject<Pin | null>(null);
 
     constructor() {
         super('ampcast/pins');
@@ -26,12 +27,20 @@ class PinStore extends Dexie {
         liveQuery(() => this.pins.toArray()).subscribe(this.pins$);
     }
 
+    lock(pin: Pin): void {
+        this.lockedPin$.next(pin);
+    }
+
+    unlock(): void {
+        this.lockedPin$.next(null);
+    }
+
     async pin(playlist: MediaPlaylist): Promise<void>;
     async pin(playlists: readonly MediaPlaylist[]): Promise<void>;
     async pin(playlist: readonly MediaPlaylist[] | MediaPlaylist): Promise<void> {
         try {
             const playlists: MediaPlaylist[] = Array.isArray(playlist) ? playlist : [playlist];
-            logger.log('add', {playlists});
+            logger.log('pin', {playlists});
             await this.pins.bulkPut(
                 playlists.map((playlist) => {
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -39,7 +48,7 @@ class PinStore extends Dexie {
                     return {...pin, isPinned: true};
                 })
             );
-            mediaObjectChanges.dispatch<MediaPlaylist>(
+            mediaObjectChanges.dispatch(
                 playlists.map((playlist) => ({
                     match: (object: MediaObject) => object.src === playlist.src,
                     values: {isPinned: true},
@@ -57,7 +66,7 @@ class PinStore extends Dexie {
             const playlists: Pin[] = Array.isArray(playlist) ? playlist : [playlist];
             logger.log('unpin', {playlists});
             await this.pins.bulkDelete(playlists.map((playlist) => playlist.src));
-            mediaObjectChanges.dispatch<MediaPlaylist>(
+            mediaObjectChanges.dispatch(
                 playlists.map((playlist) => ({
                     match: (object: MediaObject) => object.src === playlist.src,
                     values: {isPinned: false},
@@ -74,11 +83,18 @@ class PinStore extends Dexie {
     }
 
     observe(): Observable<readonly Pin[]> {
-        return this.pins$.pipe(filter((items) => items !== UNINITIALIZED));
+        return combineLatest([this.pins$, this.lockedPin$]).pipe(
+            filter(([pins]) => pins !== UNINITIALIZED),
+            map(([pins]) => pins)
+        );
     }
 
     getPinsForService(service: string): readonly Pin[] {
-        const pins = this.pins$.getValue();
+        const pins = this.pins$.getValue().slice() as Pin[];
+        const lockedPin = this.lockedPin$.getValue();
+        if (lockedPin && !pins.find((pin) => pin.src === lockedPin.src)) {
+            pins.push(lockedPin);
+        }
         return pins
             .filter((pin) => pin.src.startsWith(`${service}:`))
             .sort((a, b) =>

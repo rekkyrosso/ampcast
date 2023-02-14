@@ -1,7 +1,8 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSourceLayout from 'types/MediaSourceLayout';
+import pinStore from 'services/pins/pinStore';
 import MediaItemList from 'components/MediaList/MediaItemList';
 import PlaylistList from 'components/MediaList/PlaylistList';
 import {PagedBrowserProps} from './MediaBrowser';
@@ -23,6 +24,14 @@ export default function PinnedPlaylistBrowser({
     ...props
 }: PagedBrowserProps<MediaPlaylist>) {
     const [selectedPlaylist, setSelectedPlaylist] = useState<MediaPlaylist | null>(null);
+
+    useEffect(() => () => pinStore.unlock(), [source]);
+
+    useEffect(() => {
+        if (selectedPlaylist) {
+            pinStore.lock(selectedPlaylist);
+        }
+    }, [selectedPlaylist]);
 
     const handleSelect = useCallback(([item]: readonly MediaPlaylist[]) => {
         setSelectedPlaylist(item || null);

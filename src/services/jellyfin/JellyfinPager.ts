@@ -16,10 +16,12 @@ import Thumbnail from 'types/Thumbnail';
 import DualPager from 'services/pagers/DualPager';
 import OffsetPager from 'services/pagers/OffsetPager';
 import SimplePager from 'services/pagers/SimplePager';
+import ratingStore from 'services/actions/ratingStore';
 import pinStore from 'services/pins/pinStore';
 import {ParentOf} from 'utils';
 import jellyfinSettings from './jellyfinSettings';
 import jellyfinApi from './jellyfinApi';
+import jellyfin from './jellyfin';
 
 export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     static minPageSize = 10;
@@ -119,19 +121,27 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         if (this.parent?.itemType === ItemType.Folder && item.IsFolder) {
             return this.createMediaFolder(item) as T;
         } else {
+            let mediaObject: T;
             switch (item.Type) {
                 case 'MusicArtist':
-                    return this.createMediaArtist(item) as T;
+                    mediaObject = this.createMediaArtist(item) as T;
+                    break;
 
                 case 'MusicAlbum':
-                    return this.createMediaAlbum(item) as T;
+                    mediaObject = this.createMediaAlbum(item) as T;
+                    break;
 
                 case 'Playlist':
-                    return this.createMediaPlaylist(item) as T;
+                    mediaObject = this.createMediaPlaylist(item) as T;
+                    break;
 
                 default:
-                    return this.createMediaItemFromTrack(item) as T;
+                    mediaObject = this.createMediaItemFromTrack(item) as T;
             }
+            if (jellyfin.canRate(mediaObject)) {
+                (mediaObject as Writable<T>).rating = this.getRating(mediaObject, item);
+            }
+            return mediaObject;
         }
     }
 
@@ -142,7 +152,6 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             externalUrl: this.getExternalUrl(artist),
             title: artist.Name || '',
             playCount: artist.UserData?.PlayCount || undefined,
-            rating: this.getRating(artist),
             genres: artist.Genres || undefined,
             thumbnails: this.createThumbnails(artist.Id),
             pager: this.createAlbumsPager(artist),
@@ -160,7 +169,6 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                 ? Math.floor(new Date(album.UserData.LastPlayedDate).getTime() / 1000)
                 : undefined,
             playCount: album.UserData?.PlayCount || undefined,
-            rating: this.getRating(album),
             genres: album.Genres || undefined,
             thumbnails: this.createThumbnails(album.Id),
             trackCount: album.ChildCount || undefined,
@@ -182,7 +190,6 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                 ? Math.floor(new Date(playlist.UserData.LastPlayedDate).getTime() / 1000)
                 : undefined,
             playCount: playlist.UserData?.PlayCount || undefined,
-            rating: this.getRating(playlist),
             genres: playlist.Genres || undefined,
             thumbnails: this.createThumbnails(playlist.Id),
             trackCount: playlist.ChildCount || undefined,
@@ -219,7 +226,6 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                 ? Math.floor(new Date(track.UserData.LastPlayedDate).getTime() / 1000)
                 : 0,
             playCount: track.UserData?.PlayCount || undefined,
-            rating: this.getRating(track),
             genres: track.Genres || undefined,
             thumbnails: this.createThumbnails(thumbnailId),
             artists: track.Artists || (track.AlbumArtist ? [track.AlbumArtist] : undefined),
@@ -306,8 +312,8 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         return path.split(/[/\\]/).pop();
     }
 
-    private getRating(item: BaseItemDto): number | undefined {
+    private getRating(object: T, item: BaseItemDto): number | undefined {
         const userData = item.UserData;
-        return userData ? (userData.IsFavorite ? 1 : 0) : undefined;
+        return ratingStore.get(object, userData ? (userData.IsFavorite ? 1 : 0) : undefined);
     }
 }

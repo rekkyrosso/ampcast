@@ -9,6 +9,8 @@ import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
+import ViewType from 'types/ViewType';
+import ratingStore from 'services/actions/ratingStore';
 import lastfmApi from './lastfmApi';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './lastfmAuth';
 import LastFmPager from './LastFmPager';
@@ -70,6 +72,7 @@ const lastfmLovedTracks: MediaSource<MediaItem> = {
     title: 'Loved Tracks',
     icon: 'heart',
     itemType: ItemType.Media,
+    viewType: ViewType.Ratings,
     layout: lovedTracksLayout,
     defaultHidden: true,
 
@@ -97,7 +100,7 @@ const lastfm: MediaService = {
     id: 'lastfm',
     name: 'last.fm',
     icon: 'lastfm',
-    url: 'https://www.last.fm/',
+    url: 'https://www.last.fm',
     isScrobbler: true,
     roots: [lastfmRecentlyPlayed],
     sources: [
@@ -138,6 +141,10 @@ const lastfm: MediaService = {
     logout,
 };
 
+export default lastfm;
+
+ratingStore.addObserver(lastfm, 5);
+
 function canRate<T extends MediaObject>(item: T): boolean {
     return item.itemType === ItemType.Media && !!item.title && !!item.artists?.[0];
 }
@@ -163,11 +170,7 @@ function compareString(a: string, b = ''): boolean {
 }
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
-    if (item.itemType !== ItemType.Media) {
-        return item;
-    }
-    const hasMetadata = item.rating !== undefined;
-    if (hasMetadata) {
+    if (item.itemType !== ItemType.Media || item.rating !== undefined) {
         return item;
     }
     const params: Record<string, string> = {
@@ -199,7 +202,7 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
         return {
             ...item,
             ...albumData,
-            rating: Number(track.userloved) || 0,
+            rating: ratingStore.get(item, Number(track.userloved) || 0),
             playCount: Number(track.userplaycount) || 0,
             globalPlayCount: Number(track.playcount) || 0,
         };
@@ -253,5 +256,3 @@ function createTopView<T extends MediaObject>(
         },
     };
 }
-
-export default lastfm;

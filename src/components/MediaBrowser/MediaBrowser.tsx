@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
@@ -9,9 +9,12 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
+import ViewType from 'types/ViewType';
 import Login from 'components/Login';
 import SearchBar from 'components/SearchBar';
 import {MediaListProps} from 'components/MediaList';
+import libraryStore from 'services/actions/libraryStore';
+import ratingStore from 'services/actions/ratingStore';
 import AppleMusicVideo from 'services/apple/components/AppleMusicVideo';
 import LastFmHistoryBrowser from 'services/lastfm/components/LastFmHistoryBrowser';
 import LastFmRecentlyPlayedBrowser from 'services/lastfm/components/LastFmRecentlyPlayedBrowser';
@@ -60,9 +63,33 @@ export default function MediaBrowser<T extends MediaObject>({
 function Router<T extends MediaObject>({service, sources}: MediaBrowserProps<T>) {
     const source = sources.length === 1 ? sources[0] : null;
 
+    useEffect(() => {
+        if (source?.viewType === ViewType.Library) {
+            libraryStore.lock(service.id, source.itemType);
+        } else {
+            libraryStore.unlock();
+        }
+    }, [service, source]);
+
+    useEffect(() => {
+        if (source?.viewType === ViewType.Ratings) {
+            ratingStore.lock(service.id, source.itemType);
+        } else {
+            ratingStore.unlock();
+        }
+    }, [service, source]);
+
+    useEffect(() => {
+        return () => {
+            libraryStore.unlock();
+            ratingStore.unlock();
+        };
+    }, [service]);
+
     switch (source?.id) {
-        case 'apple/video':
-            return <AppleMusicVideo />;
+        case 'apple/videos':
+        case 'apple/library-videos':
+            return <AppleMusicVideo sources={sources as readonly MediaSource<MediaItem>[]} />;
 
         case 'lastfm/top/tracks':
         case 'lastfm/top/albums':

@@ -14,7 +14,9 @@ import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
 import Pin from 'types/Pin';
+import ViewType from 'types/ViewType';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
+import ratingStore from 'services/actions/ratingStore';
 import SimplePager from 'services/pagers/SimplePager';
 import {bestOf} from 'utils';
 import jellyfinApi from './jellyfinApi';
@@ -41,10 +43,14 @@ const jellyfinLikedSongs: MediaSource<MediaItem> = {
     title: 'My Songs',
     icon: 'heart',
     itemType: ItemType.Media,
+    viewType: ViewType.Ratings,
     layout: defaultLayout,
 
     search(): Pager<MediaItem> {
-        return createItemsPager({Filters: 'IsFavorite'});
+        return createItemsPager({
+            Filters: 'IsFavorite',
+            SortBy: 'AlbumArtist,Album,SortName',
+        });
     },
 };
 
@@ -53,11 +59,13 @@ const jellyfinLikedAlbums: MediaSource<MediaAlbum> = {
     title: 'My Albums',
     icon: 'heart',
     itemType: ItemType.Album,
+    viewType: ViewType.Ratings,
 
     search(): Pager<MediaAlbum> {
         return createItemsPager({
             Filters: 'IsFavorite',
             IncludeItemTypes: 'MusicAlbum',
+            SortBy: 'AlbumArtist,SortName',
         });
     },
 };
@@ -67,6 +75,7 @@ const jellyfinLikedArtists: MediaSource<MediaArtist> = {
     title: 'My Artists',
     icon: 'heart',
     itemType: ItemType.Artist,
+    viewType: ViewType.Ratings,
     defaultHidden: true,
 
     search(): Pager<MediaArtist> {
@@ -82,6 +91,7 @@ const jellyfinRecentlyPlayed: MediaSource<MediaItem> = {
     title: 'Recently Played',
     icon: 'clock',
     itemType: ItemType.Media,
+    viewType: ViewType.RecentlyPlayed,
     layout: {
         view: 'card',
         fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'LastPlayed'],
@@ -101,6 +111,7 @@ const jellyfinMostPlayed: MediaSource<MediaItem> = {
     title: 'Most Played',
     icon: 'most-played',
     itemType: ItemType.Media,
+    viewType: ViewType.MostPlayed,
     layout: {
         view: 'details',
         fields: ['PlayCount', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'Genre'],
@@ -168,7 +179,7 @@ const jellyfin: MediaService = {
     id: serviceId,
     icon: serviceId,
     name: 'Jellyfin',
-    url: 'https://jellyfin.org/',
+    url: 'https://jellyfin.org',
     roots: [
         createRoot(ItemType.Media, {title: 'Songs'}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -201,6 +212,10 @@ const jellyfin: MediaService = {
     login,
     logout,
 };
+
+export default jellyfin;
+
+ratingStore.addObserver(jellyfin);
 
 function canRate<T extends MediaObject>(item: T): boolean {
     switch (item.itemType) {
@@ -238,9 +253,12 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
 }
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
-    const hasMetadata = item.rating !== undefined; // this field is not available on library items
-    if (hasMetadata) {
+    if (!canRate(item) || item.rating !== undefined) {
         return item;
+    }
+    const rating = ratingStore.get(item);
+    if (rating !== undefined) {
+        return {...item, rating};
     }
     const [, , id] = item.src.split(':');
     const pager = new JellyfinPager<T>(`Users/${jellyfinSettings.userId}/Items/${id}`, undefined, {
@@ -333,5 +351,3 @@ function createItemsPager<T extends MediaObject>(
 ): Pager<T> {
     return new JellyfinPager(`Users/${jellyfinSettings.userId}/Items`, params, options);
 }
-
-export default jellyfin;

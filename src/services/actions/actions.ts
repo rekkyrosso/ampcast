@@ -7,12 +7,12 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import PlayAction from 'types/PlayAction';
 import mediaPlayback from 'services/mediaPlayback';
-import {getService} from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
 import playlist from 'services/playlist';
 import {showMediaInfoDialog} from 'components/Media/MediaInfoDialog';
 import {Logger} from 'utils';
-import mediaObjectChanges from './mediaObjectChanges';
+import libraryStore from './libraryStore';
+import ratingStore from './ratingStore';
 
 const logger = new Logger('ampcast/actions');
 
@@ -108,70 +108,33 @@ export async function performLibraryAction<T extends MediaObject>(
     if (!item) {
         return;
     }
-
     try {
         switch (action) {
             case Action.Like:
-                await rate(item, 1);
+                await ratingStore.rate(item, 1);
                 break;
 
             case Action.Unlike:
-                await rate(item, 0);
+                await ratingStore.rate(item, 0);
                 break;
 
             case Action.Rate: {
                 if (typeof payload === 'number') {
-                    await rate(item, payload);
+                    await ratingStore.rate(item, payload);
                 }
                 break;
             }
 
             case Action.AddToLibrary:
-                await store(item, true);
+                await libraryStore.store(item, true);
                 break;
 
             case Action.RemoveFromLibrary:
-                await store(item, false);
+                await libraryStore.store(item, false);
                 break;
         }
     } catch (err) {
         logger.warn('Failed to perform action:', {action, item, payload});
         logger.error(err);
-    }
-}
-
-async function rate<T extends MediaObject>(item: T, rating: number): Promise<void> {
-    const [serviceId] = item.src.split(':');
-    const service = getService(serviceId);
-    if (service) {
-        if (service.rate) {
-            await service.rate(item, rating);
-            mediaObjectChanges.dispatch({
-                match: (object) => service.compareForRating(object, item),
-                values: {rating},
-            });
-        } else {
-            throw Error(`rate() not supported by ${serviceId}.`);
-        }
-    } else {
-        throw Error(`Service not found '${serviceId}'.`);
-    }
-}
-
-async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
-    const [serviceId] = item.src.split(':');
-    const service = getService(serviceId);
-    if (service) {
-        if (service.store) {
-            await service.store(item, inLibrary);
-            mediaObjectChanges.dispatch({
-                match: (object) => object.src === item.src,
-                values: {inLibrary},
-            });
-        } else {
-            throw Error(`store() not supported by ${serviceId}.`);
-        }
-    } else {
-        throw Error(`Service not found '${serviceId}'.`);
     }
 }
