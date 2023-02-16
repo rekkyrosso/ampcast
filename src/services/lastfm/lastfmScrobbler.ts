@@ -36,7 +36,7 @@ observeIsLoggedIn()
         switchMap((isLoggedIn) => (isLoggedIn ? observeListens() : EMPTY)),
         map((items) => items.filter((item) => !item.lastfmScrobbledAt)),
         debounceTime(10_000),
-        mergeMap((item) => scrobble(item))
+        mergeMap((items) => scrobble(items))
     )
     .subscribe(logger);
 

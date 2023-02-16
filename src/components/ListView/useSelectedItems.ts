@@ -56,13 +56,16 @@ export default function useSelectedItems<T>(
 
     const toggleSelectionAt = useCallback(
         (index: number, force?: boolean) => {
-            const item = items[index];
-            const hasItem = selectedItems.includes(item);
+            const toggledItem = items[index];
+            const hasItem = selectedItems.includes(toggledItem);
             if (hasItem !== force) {
                 if (hasItem) {
-                    setSelectedItems(selectedItems.filter((selected) => selected !== item));
+                    setSelectedItems(selectedItems.filter((selected) => selected !== toggledItem));
                 } else {
-                    setSelectedItems(selectedItems.concat(item));
+                    // Preserve item order in selected items
+                    setSelectedItems(
+                        items.filter((item) => selectedItems.includes(item) || item === toggledItem)
+                    );
                 }
             }
         },

@@ -5,7 +5,7 @@ import {stopPropagation} from 'utils';
 const app = document.getElementById('app')!;
 const system = document.getElementById('system')!;
 
-export default function useFocusClass(): void {
+export default function usePseudoClasses(): void {
     useEffect(() => {
         const subscription = new Subscription();
         const subscribe = (root: HTMLElement) =>
@@ -17,12 +17,21 @@ export default function useFocusClass(): void {
                 }
             });
         subscription.add(
-            fromEvent<FocusEvent>(document, 'focusout').subscribe((event: FocusEvent) => {
+            fromEvent<FocusEvent>(document, 'focusout').subscribe((event) => {
                 if (!event.relatedTarget) {
                     const activeElements = document.querySelectorAll('.focus');
                     for (const activeElement of activeElements) {
                         activeElement.classList.toggle('focus', false);
                     }
+                }
+            })
+        );
+        subscription.add(
+            fromEvent<MouseEvent>(document, 'mouseup').subscribe(() => {
+                // The `active` classes are set by individual components.
+                const activeElements = document.querySelectorAll('.active');
+                for (const activeElement of activeElements) {
+                    activeElement.classList.toggle('active', false);
                 }
             })
         );

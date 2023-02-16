@@ -10,5 +10,5 @@ export type ParentOf<T extends MediaObject> = T extends MediaItem
     : T extends MediaAlbum
     ? MediaArtist
     : T extends MediaFolder
-    ? MediaFolder | null
+    ? MediaFolder | undefined
     : never;

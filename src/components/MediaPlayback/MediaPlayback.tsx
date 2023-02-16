@@ -14,7 +14,7 @@ import './MediaPlayback.scss';
 console.log('component::MediaPlayback');
 
 export default memo(function MediaPlayback() {
-    const playlistRef = useRef<ListViewHandle>(null);
+    const listViewRef = useRef<ListViewHandle>(null);
     const currentlyPlaying = useCurrentlyPlaying();
     const paused = usePaused();
 
@@ -36,8 +36,8 @@ export default memo(function MediaPlayback() {
         <div className={`media-playback ${paused ? 'paused' : ''}`}>
             <Splitter id="media-playback-layout" arrange="rows">
                 <div className="panel playback">
-                    <MediaControls playlistRef={playlistRef} />
-                    <Playlist onPlay={handlePlay} onEject={eject} playlistRef={playlistRef} />
+                    <MediaControls listViewRef={listViewRef} />
+                    <Playlist onPlay={handlePlay} onEject={eject} listViewRef={listViewRef} />
                 </div>
                 <Media />
             </Splitter>

@@ -19,10 +19,16 @@ type NotRequired = 'items' | 'itemKey' | 'layout' | 'sortable' | 'droppableTypes
 export interface PlaylistProps extends Except<ListViewProps<PlaylistItem>, NotRequired> {
     onPlay?: (item: PlaylistItem) => void;
     onEject?: () => void;
-    playlistRef: React.MutableRefObject<ListViewHandle | null>;
+    listViewRef: React.MutableRefObject<ListViewHandle | null>;
 }
 
-export default function Playlist({onSelect, onPlay, onEject, playlistRef, ...props}: PlaylistProps) {
+export default function Playlist({
+    onSelect,
+    onPlay,
+    onEject,
+    listViewRef,
+    ...props
+}: PlaylistProps) {
     const items = useObservable(playlist.observe, []);
     const size = items.length;
     const layout = usePlaylistLayout(size);
@@ -76,9 +82,9 @@ export default function Playlist({onSelect, onPlay, onEject, playlistRef, ...pro
         [onEject, currentlyPlaying]
     );
 
-    const handleInfo = useCallback(([item]: readonly PlaylistItem[]) => {
+    const handleInfo = useCallback(async ([item]: readonly PlaylistItem[]) => {
         if (item) {
-            showMediaInfoDialog(item);
+            await showMediaInfoDialog(item);
         }
     }, []);
 
@@ -98,19 +104,25 @@ export default function Playlist({onSelect, onPlay, onEject, playlistRef, ...pro
                     break;
 
                 case 'info':
-                    showMediaInfoDialog(selectedItems[0]);
+                    await showMediaInfoDialog(selectedItems[0]);
                     break;
 
                 case 'select-all':
-                    playlistRef.current!.selectAll();
+                    listViewRef.current!.selectAll();
                     break;
+
+                case 'reverse-selection': {
+                    const startIndex = items.findIndex((item) => item === selectedItems[0]);
+                    playlist.reverseAt(startIndex, selectedItems.length);
+                    break;
+                }
 
                 case 'clear':
                     playlist.clear();
                     break;
             }
         },
-        [onPlay, items, playlistRef]
+        [onPlay, items, listViewRef]
     );
 
     return (
@@ -134,7 +146,7 @@ export default function Playlist({onSelect, onPlay, onEject, playlistRef, ...pro
                 onInfo={handleInfo}
                 onMove={playlist.moveSelection}
                 onSelect={handleSelect}
-                listViewRef={playlistRef}
+                listViewRef={listViewRef}
             />
             <MediaListStatusBar items={items} size={items.length} selectedCount={selectedCount} />
         </div>

@@ -245,7 +245,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             src: `plex:folder:${folder.key}`,
             title: folder.title,
             fileName: folder.title,
-            parent: (this.parent as ParentOf<MediaFolder>) || null,
+            parent: this.parent as ParentOf<MediaFolder>,
         };
         mediaFolder.pager = this.createFolderPager(mediaFolder as MediaFolder);
         return mediaFolder as MediaFolder;
@@ -279,7 +279,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     private createThumbnail(thumb: string, width: number, height = width): Thumbnail {
         const url = `${plexSettings.host}/photo/:/transcode?url=${encodeURIComponent(
             thumb
-        )}&width=${width}&height=${height}&minSize=1&upscale=1&X-Plex-Token={plex-token}`;
+        )}&width=${width}&height=${height}&minSize=1&upscale=1&X-Plex-Token={plex-token}`; // not a typo
         return {url, width, height};
     }
 

@@ -23,15 +23,18 @@
     @include button;
     transform-origin: bottom right;
 
-    &:not(:disabled) {
-        &:hover {
-            filter: brightness(1.1);
-        }
+    &:hover {
+        filter: brightness(1.1);
+    }
 
-        &:active,
-        &.active {
-            filter: brightness(0.95);
-            transform: scale(0.99);
-        }
+    &:active,
+    &.active {
+        filter: brightness(0.95);
+        transform: scale(0.99);
+    }
+
+    &:disabled {
+        filter: none;
+        transform: none;
     }
 }

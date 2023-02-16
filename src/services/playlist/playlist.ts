@@ -241,8 +241,27 @@ export function removeAt(index: number): void {
     }
 }
 
-export function shuffle(): void {
-    setItems(shuffleArray(getItems()));
+export function reverseAt(index: number, length: number): void {
+    const items = getItems();
+    const reversals = items.slice(index, index + length).reverse();
+    items.splice(index, length, ...reversals);
+    setItems(items);
+}
+
+export function shuffle(preserveCurrentlyPlaying?: boolean): void {
+    const currentItems = getItems().slice();
+    if (currentItems.length > 0) {
+        const currentItem = getCurrentItem();
+        if (preserveCurrentlyPlaying && currentItem) {
+            const items = shuffleArray(currentItems.filter((item) => item !== currentItem));
+            items.unshift(currentItem);
+            setItems(items);
+        } else {
+            const items = shuffleArray(currentItems);
+            setItems(items);
+            setCurrentItem(items[0]);
+        }
+    }
 }
 
 async function createMediaItems(source: PlayableType): Promise<readonly MediaItem[]> {
@@ -315,6 +334,7 @@ const playlist: Playlist = {
     prev,
     remove,
     removeAt,
+    reverseAt,
     shuffle,
 };
 

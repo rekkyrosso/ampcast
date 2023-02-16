@@ -5,7 +5,7 @@ import mediaObjectChanges from 'services/actions/mediaObjectChanges';
 import {getService} from 'services/mediaServices';
 import {Logger} from 'utils';
 
-const logger = new Logger('useCurrentItem');
+const logger = new Logger('Media/useCurrentItem');
 
 export default function useCurrentItem<T extends MediaObject>(item: T): T {
     const [currentItem, setCurrentItem] = useState<T>(item);
@@ -20,7 +20,6 @@ export default function useCurrentItem<T extends MediaObject>(item: T): T {
                 const subscription = from(service.getMetadata(item))
                     .pipe(
                         tap((data) => {
-                            logger.log({item, data});
                             setMetadataSrc(item.src);
                             setCurrentItem({...item, ...data});
                         })

@@ -41,7 +41,7 @@ function ActionsMenu({items, selectedItems, rowIndex, ...props}: ActionsMenuProp
     const isSingleSelection = selectedItems.length === 1;
 
     return (
-        <PopupMenu {...props} className="actions">
+        <PopupMenu {...props} className="actions-menu">
             <ul className="actions-menu-items">
                 {rowIndex === -1 ? null : (
                     <>
@@ -69,24 +69,33 @@ function ActionsMenu({items, selectedItems, rowIndex, ...props}: ActionsMenuProp
                         ) : null}
                     </>
                 )}
+                <PopupMenuSeparator />
                 {allSelected ? null : (
-                    <>
-                        <PopupMenuSeparator />
-                        <PopupMenuItem
-                            label="Select all"
-                            action="select-all"
-                            acceleratorKey={`${browser.ctrlKeyStr}+A`}
-                            key="select-all"
-                        />
-                    </>
+                    <PopupMenuItem
+                        label="Select all"
+                        action="select-all"
+                        acceleratorKey={`${browser.ctrlKeyStr}+A`}
+                        key="select-all"
+                    />
                 )}
-                {isEmpty ? null : (
-                    <>
-                        <PopupMenuSeparator />
-                        <PopupMenuItem label="Clear" action="clear" key="clear" />
-                    </>
-                )}
+                {!isSingleSelection && isContiguousSelection(items, selectedItems) ? (
+                    <PopupMenuItem
+                        label="Reverse selection"
+                        action="reverse-selection"
+                        key="reverse-selection"
+                    />
+                ) : null}
+                <PopupMenuSeparator />
+                {isEmpty ? null : <PopupMenuItem label="Clear" action="clear" key="clear" />}
             </ul>
         </PopupMenu>
     );
+}
+
+function isContiguousSelection(
+    items: readonly PlaylistItem[],
+    selectedItems: readonly PlaylistItem[]
+): boolean {
+    const startIndex = items.findIndex((item) => item === selectedItems[0]);
+    return selectedItems.every((item, index) => item === items[startIndex + index]);
 }

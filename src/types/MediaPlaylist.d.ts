@@ -6,6 +6,7 @@ import Pager from './Pager';
 export default interface MediaPlaylist extends BaseMediaObject {
     readonly itemType: ItemType.Playlist;
     readonly pager: Pager<MediaItem>;
+    // Everything below here should be optional
     readonly trackCount?: number;
     readonly duration?: number;
     readonly playedAt?: number; // UTC

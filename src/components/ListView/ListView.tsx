@@ -52,8 +52,9 @@ export type ListViewLayout<T> = ListViewDetailsLayout<T> | ListViewCardLayout<T>
 
 export interface ListViewHandle {
     focus: () => void;
-    selectAll: () => void;
+    scrollIntoView: (rowIndex: number) => void;
     scrollTo: (rowIndex: number) => void;
+    selectAll: () => void;
 }
 
 export interface ListViewProps<T> {
@@ -153,6 +154,8 @@ export default function ListView<T>({
     );
     const [dragItem1, dragItem2, dragItem3, dragItem4] = draggable ? selectedItems : [];
 
+    const focus = useCallback(() => containerRef.current!.focus(), []);
+
     const scrollTo = useCallback(
         (rowIndex: number) => {
             const scrollable = scrollableRef.current!;
@@ -175,15 +178,25 @@ export default function ListView<T>({
         [scrollTop, rowHeight, pageSize, showTitles, size]
     );
 
+    const scrollIntoView = useCallback(
+        (rowIndex: number) => {
+            scrollTo(rowIndex);
+            selectAt(rowIndex);
+            setRowIndex(rowIndex);
+        },
+        [scrollTo, selectAt]
+    );
+
     useEffect(() => {
         if (listViewRef) {
             listViewRef.current = {
-                focus: () => containerRef.current!.focus(),
-                selectAll,
+                focus,
+                scrollIntoView,
                 scrollTo,
+                selectAll,
             };
         }
-    }, [listViewRef, selectAll, scrollTo]);
+    }, [listViewRef, focus, scrollIntoView, scrollTo, selectAll]);
 
     useLayoutEffect(() => onRowIndexChange?.(rowIndex), [rowIndex, onRowIndexChange]);
     useLayoutEffect(() => onScrollIndexChange?.(scrollIndex), [scrollIndex, onScrollIndexChange]);
@@ -290,7 +303,7 @@ export default function ListView<T>({
                         if (nextIndex !== rowIndex) {
                             event.stopPropagation();
                             scrollTo(nextIndex);
-                            setRowIndex(rowIndex);
+                            setRowIndex(nextIndex);
                         }
                         if (multiSelect && event.shiftKey && rangeSelectionStart !== -1) {
                             selectRange(rangeSelectionStart, nextIndex);
@@ -309,6 +322,7 @@ export default function ListView<T>({
             onEnter,
             onDelete,
             onInfo,
+            scrollTo,
             selectAll,
             selectAt,
             selectRange,
@@ -316,7 +330,6 @@ export default function ListView<T>({
             selectedItems, // changes often
             multiSelect,
             rangeSelectionStart,
-            scrollTo,
         ]
     );
 

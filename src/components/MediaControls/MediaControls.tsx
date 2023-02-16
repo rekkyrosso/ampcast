@@ -4,8 +4,6 @@ import mediaPlayback, {
     play,
     seek,
     stop,
-    prev,
-    next,
     observeCurrentTime,
     observeDuration,
     observePaused,
@@ -20,10 +18,10 @@ import showActionsMenu from './showActionsMenu';
 import './MediaControls.scss';
 
 export interface MediaControlsProps {
-    playlistRef: React.MutableRefObject<ListViewHandle | null>;
+    listViewRef: React.MutableRefObject<ListViewHandle | null>;
 }
 
-export default function MediaControls({playlistRef}: MediaControlsProps) {
+export default function MediaControls({listViewRef}: MediaControlsProps) {
     const currentIndex = useObservable(observeCurrentIndex, -1);
     const currentTime = useObservable(observeCurrentTime, 0);
     const duration = useObservable(observeDuration, 0);
@@ -35,10 +33,12 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
 
     const handleMoreClick = useCallback(
         async (event: React.MouseEvent) => {
+            const listView = listViewRef.current!;
             const action = await showActionsMenu(event.pageX, event.pageY);
             switch (action) {
                 case 'jump-to-current':
-                    playlistRef.current!.scrollTo(currentIndex);
+                    listView.scrollIntoView(currentIndex);
+                    listView.focus();
                     break;
 
                 case 'stop-after-current':
@@ -50,12 +50,31 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
                     break;
 
                 case 'shuffle':
-                    playlist.shuffle();
+                    playlist.shuffle(!paused);
+                    listView.scrollIntoView(0);
                     break;
             }
         },
-        [playlistRef, currentIndex]
+        [listViewRef, currentIndex, paused]
     );
+
+    const handlePrevClick = useCallback(async () => {
+        if (!playlist.atStart) {
+            mediaPlayback.prev();
+            const listView = listViewRef.current!;
+            listView.scrollIntoView(currentIndex - 1);
+            listView.focus();
+        }
+    }, [listViewRef, currentIndex]);
+
+    const handleNextClick = useCallback(async () => {
+        if (!playlist.atEnd) {
+            mediaPlayback.next();
+            const listView = listViewRef.current!;
+            listView.scrollIntoView(currentIndex + 1);
+            listView.focus();
+        }
+    }, [listViewRef, currentIndex]);
 
     return (
         <div className="media-controls">
@@ -76,14 +95,22 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
             <div className="playback-control">
                 <VolumeControl />
                 <div className="media-buttons">
-                    <MediaIconButton aria-label="Previous track" icon="prev" onClick={prev} />
+                    <MediaIconButton
+                        aria-label="Previous track"
+                        icon="prev"
+                        onClick={handlePrevClick}
+                    />
                     <MediaIconButton
                         aria-label={paused ? 'Play' : 'Pause'}
                         icon={paused ? 'play' : 'pause'}
                         onClick={paused ? play : pause}
                     />
                     <MediaIconButton aria-label="Stop" icon="stop" onClick={stop} />
-                    <MediaIconButton aria-label="Next track" icon="next" onClick={next} />
+                    <MediaIconButton
+                        aria-label="Next track"
+                        icon="next"
+                        onClick={handleNextClick}
+                    />
                 </div>
                 <div className="media-buttons-more">
                     <MediaIconButton title="More..." icon="menu" onClick={handleMoreClick} />

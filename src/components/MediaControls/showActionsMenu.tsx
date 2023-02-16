@@ -19,7 +19,7 @@ function ActionsMenu(props: PopupMenuProps) {
     const paused = usePaused();
 
     return (
-        <PopupMenu {...props} className="actions">
+        <PopupMenu {...props} className="actions-menu">
             <ul className="actions-menu-items">
                 <PopupMenuItem
                     label="Stop after current"

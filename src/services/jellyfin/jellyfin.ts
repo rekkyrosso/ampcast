@@ -155,7 +155,6 @@ const jellyfinFolders: MediaSource<MediaFolderItem> = {
             src: '',
             title: 'Folders',
             fileName: 'Folders',
-            parent: null,
         };
 
         root.pager = new JellyfinPager<MediaFolderItem>(

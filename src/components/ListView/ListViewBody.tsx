@@ -27,7 +27,7 @@ export default function ListViewBody<T>({
     itemKey,
     itemClassName,
     scrollTop,
-    overScan = 20,
+    overScan = 1,
     selection,
     draggable,
     dragIndex,

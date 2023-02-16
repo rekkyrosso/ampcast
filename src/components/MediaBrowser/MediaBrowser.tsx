@@ -118,7 +118,7 @@ function Router<T extends MediaObject>({service, sources}: MediaBrowserProps<T>)
     }
 }
 
-export function DefaultBrowser<T extends MediaObject>({sources}: MediaBrowserProps<T>) {
+export function DefaultBrowser<T extends MediaObject>({service, sources}: MediaBrowserProps<T>) {
     const [source, setSource] = useState<MediaSource<T>>(() => sources[0]);
     const [query, setQuery] = useState('');
     const pager = useSearch(source, query);
@@ -126,7 +126,7 @@ export function DefaultBrowser<T extends MediaObject>({sources}: MediaBrowserPro
 
     return (
         <>
-            {searchable && <SearchBar onSubmit={setQuery} />}
+            {searchable && <SearchBar placeholder={`Search ${service.name}`} onSubmit={setQuery} />}
             {sources.length > 1 ? (
                 <MediaSourceSelector sources={sources} onSourceChange={setSource} />
             ) : null}

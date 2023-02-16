@@ -74,7 +74,7 @@
     }
 
     &.plex-browser {
-        .album-browser:not(.search-browser) .albums {
+        .album-browser:not(.search-browser) .albums .list-view:not(.thin) {
             .title,
             .artist {
                 right: 4em;

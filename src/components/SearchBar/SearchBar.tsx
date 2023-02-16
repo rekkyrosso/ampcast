@@ -3,10 +3,11 @@ import Icon from 'components/Icon';
 import './SearchBar.scss';
 
 export interface SearchBarProps {
+    placeholder?: string;
     onSubmit?: (query: string) => void;
 }
 
-export default function SearchBar({onSubmit}: SearchBarProps) {
+export default function SearchBar({placeholder = 'Search', onSubmit}: SearchBarProps) {
     const inputRef = useRef<HTMLInputElement>(null);
 
     const handleSubmit = useCallback(
@@ -23,7 +24,7 @@ export default function SearchBar({onSubmit}: SearchBarProps) {
             <p className="text-with-button">
                 <input
                     type="search"
-                    placeholder="Search"
+                    placeholder={placeholder}
                     spellCheck={false}
                     autoComplete="off"
                     autoCapitalize="off"

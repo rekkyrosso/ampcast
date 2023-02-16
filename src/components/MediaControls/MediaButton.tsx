@@ -14,12 +14,8 @@ export default function MediaButton({
     const handleMouseDown = useCallback((event: React.MouseEvent) => {
         event.stopPropagation();
         event.preventDefault();
+        // Removed with a global hook.
         ref.current!.classList.toggle('active', true);
-    }, []);
-
-    const handleMouseUp = useCallback((event: React.MouseEvent) => {
-        event.stopPropagation();
-        ref.current!.classList.toggle('active', false);
     }, []);
 
     return (
@@ -29,7 +25,6 @@ export default function MediaButton({
             type="button"
             onClick={onClick}
             onMouseDown={handleMouseDown}
-            onMouseUp={handleMouseUp}
             ref={ref}
         >
             {children}

@@ -40,7 +40,7 @@ function ActionsMenu<T extends MediaObject>({items, isContextMenu, ...props}: Ac
     );
 
     return (
-        <PopupMenu {...props} className="actions">
+        <PopupMenu {...props} className="actions-menu">
             <ul className="actions-menu-items">
                 {allPlayable ? <PlayActions /> : null}
                 <PopupMenuSeparator />

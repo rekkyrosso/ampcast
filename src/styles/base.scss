@@ -67,7 +67,7 @@ small {
 
 .panel {
     isolation: isolate;
-    contain: strict;
+    contain: layout style size;
     inset: var(--gutter-width);
 }
 
@@ -84,7 +84,7 @@ small {
 #app {
     position: absolute;
     isolation: isolate;
-    contain: strict;
+    contain: layout style size;
     inset: 0;
 }
 
@@ -105,7 +105,7 @@ small {
 #system {
     position: absolute;
     isolation: isolate;
-    contain: strict;
+    contain: layout style size;
     font-size: calc(min(max(var(--font-size), 12), 20) * 1px);
 
     &:empty {
