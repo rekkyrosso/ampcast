@@ -20,16 +20,17 @@
         justify-content: center;
         padding-left: 1.25em;
         background-image: none;
-        transform: none;
-        will-change: filter;
 
         &:not(:disabled) {
             &:hover {
-                filter: invert(1);
+                background-color: var(--frame-text-color);
+                color: var(--frame-color);
+                filter: none;
             }
 
             &:active {
                 transform: none;
+                filter: none;
             }
         }
     }

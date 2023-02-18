@@ -9,12 +9,17 @@
         min-height: 8em;
         margin-bottom: 1em;
 
-        .external-link {
+        .external-link:any-link {
             color: inherit;
             text-decoration: underline;
 
             .icon-link {
                 color: inherit;
+            }
+
+            &:active,
+            &:active > .icon {
+                color: var(--link-active-color);
             }
         }
     }
@@ -25,6 +30,7 @@
         width: 8em;
         height: 8em;
         padding: 0;
+        color: var(--grey2-color);
 
         .cover-art {
             position: absolute;

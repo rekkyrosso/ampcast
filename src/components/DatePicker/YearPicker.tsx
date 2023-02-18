@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useLayoutEffect, useState} from 'react';
 import {DatePickerProps} from './DatePicker';
-import './YearPicker.scss';
 
 export default function YearPicker({
     min = '1970',

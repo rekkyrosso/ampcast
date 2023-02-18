@@ -7,7 +7,9 @@ import MediaObject from 'types/MediaObject';
 import {PagedBrowserProps} from 'components/MediaBrowser';
 import AlbumBrowser from 'components/MediaBrowser/AlbumBrowser';
 import MediaItemBrowser from 'components/MediaBrowser/MediaItemBrowser';
+import PageHeader from 'components/MediaBrowser/PageHeader';
 import ArtistList from 'components/MediaList/ArtistList';
+import listenbrainz from '../listenbrainz';
 import useRange from './useRange';
 
 export type ListenBrainzRange =
@@ -46,6 +48,9 @@ export default function ListenBrainzTopBrowser<T extends MediaObject>({
 
     return (
         <>
+            <PageHeader icon={listenbrainz.icon}>
+                {listenbrainz.name}: {source.title}
+            </PageHeader>
             <div className="listenbrainz-range-selector options">
                 <ul className="listenbrainz-ranges">
                     {options.map(({value, text}) => (

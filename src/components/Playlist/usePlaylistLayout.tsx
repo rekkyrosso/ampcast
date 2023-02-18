@@ -89,17 +89,14 @@ function RowNumber(rowIndex: number, numberOfDigits = 0) {
 function RowIcon({src, lookupStatus}: PlaylistItem) {
     const [serviceId] = src.split(':');
     let iconName: IconName;
-    let title: string | undefined;
 
     switch (lookupStatus) {
         case LookupStatus.Looking:
             iconName = 'lookup-looking';
-            title = 'Searching...';
             break;
 
         case LookupStatus.NotFound:
             iconName = 'lookup-not-found';
-            title = 'Not found';
             break;
 
         default:
@@ -107,18 +104,15 @@ function RowIcon({src, lookupStatus}: PlaylistItem) {
                 iconName = serviceId as IconName;
             } else {
                 iconName = 'lookup-pending';
-                title = 'Lookup scheduled';
             }
     }
 
     return (
-        <span title={title}>
-            <Icon
-                name={iconName}
-                // YouTube is always playable.
-                className={serviceId === 'youtube' ? '' : 'show-connectivity'}
-            />
-        </span>
+        <Icon
+            name={iconName}
+            // YouTube is always playable.
+            className={serviceId === 'youtube' ? '' : 'show-connectivity'}
+        />
     );
 }
 

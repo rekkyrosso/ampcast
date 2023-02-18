@@ -112,6 +112,9 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
     }
 
     protected connect(): void {
+        if (this.disconnected) {
+            return;
+        }
         if (!this.subscriptions) {
             pagerCount++;
             // logger.log(`Pager connected. Connected pagers=${pagerCount}.`);

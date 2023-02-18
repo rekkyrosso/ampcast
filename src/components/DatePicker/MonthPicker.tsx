@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from '
 import {formatMonth} from 'utils';
 import {DatePickerProps} from './DatePicker';
 import YearPicker from './YearPicker';
-import './MonthPicker.scss';
 
 const monthNames = (() => {
     const applyFormat = new Intl.DateTimeFormat(navigator.language, {month: 'short'}).format;

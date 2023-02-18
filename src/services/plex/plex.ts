@@ -191,7 +191,8 @@ const plexFolders: MediaSource<MediaFolderItem> = {
             itemType: ItemType.Folder,
             src: '',
             title: 'Folders',
-            fileName: 'Folders',
+            fileName: '',
+            path: ''
         };
 
         root.pager = new PlexPager<MediaFolderItem>(

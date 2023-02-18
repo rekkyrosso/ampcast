@@ -46,6 +46,19 @@ class MainTheme implements Theme {
         this.popup.classList.toggle('light', this.isLight);
     }
 
+    get black(): string {
+        if (this.isLight && this.isFrameLight) {
+            const {h, s, l} = new TinyColor(this.frameColor).toHsl();
+            return new TinyColor({
+                h,
+                s: s + 0.05 - (s + 0.05) * 0.6,
+                l: l + 0.05 - (l + 0.05) * 0.8,
+            }).toHexString();
+        } else {
+            return '#000000';
+        }
+    }
+
     get buttonColor(): string {
         return this.current.buttonColor;
     }
@@ -211,6 +224,19 @@ class MainTheme implements Theme {
 
     get isSelectionLight(): boolean {
         return new TinyColor(this.selectedBackgroundColor).isLight();
+    }
+
+    getVisualizerColors(): readonly string[] {
+        const {h, s, l} = new TinyColor(this.frameColor).toHsl();
+        const mediaButtonColor = new TinyColor({
+            h,
+            s: s + (1 - s) * 0.33,
+            l: l + (1 - l) * 0.5,
+        });
+        return [
+            this.isFrameLight ? this.backgroundColor : this.textColor,
+            ...mediaButtonColor.tetrad().map((color) => color.toRgbString()),
+        ];
     }
 
     load(preset: Theme | string): void {

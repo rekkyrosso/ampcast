@@ -1,6 +1,6 @@
 import type {Observable} from 'rxjs';
-import {Subscription} from 'rxjs';
-import {mergeMap} from 'rxjs/operators';
+import {from, ReplaySubject, Subscription} from 'rxjs';
+import {distinctUntilChanged, mergeMap, tap} from 'rxjs/operators';
 import getYouTubeID from 'get-youtube-id';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
@@ -18,10 +18,14 @@ const logger = new Logger('ListenBrainzHistoryPager');
 export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
     static maxPageSize = 100;
     private readonly pager: SequentialPager<MediaItem>;
+    private readonly size$ = new ReplaySubject<number>(1);
     private nextPageParams: Record<string, string | number> | undefined = undefined;
     private subscriptions?: Subscription;
 
-    constructor(params?: ListenBrainz.User.ListensParams) {
+    constructor(
+        params?: ListenBrainz.User.ListensParams,
+        private readonly fetchListenCount = false
+    ) {
         const pageSize = 50;
         this.pager = new SequentialPager<MediaItem>(
             async (count = pageSize): Promise<Page<MediaItem>> => {
@@ -61,7 +65,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
     }
 
     observeSize(): Observable<number> {
-        return this.pager.observeSize();
+        return this.size$.pipe(distinctUntilChanged());
     }
 
     observeError(): Observable<unknown> {
@@ -91,6 +95,14 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
                     .pipe(mergeMap((items) => listenbrainzApi.addRatings(items)))
                     .subscribe(logger)
             );
+
+            if (this.fetchListenCount) {
+                this.subscriptions.add(
+                    from(listenbrainzApi.getListenCount())
+                        .pipe(tap((total) => this.size$.next(total)))
+                        .subscribe(logger)
+                );
+            }
         }
     }
 

@@ -199,11 +199,14 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaFolder(folder: BaseItemDto): MediaFolder {
+        const fileName = this.getFileName(folder.Path || '') || folder.Name || '[unknown]';
         const mediaFolder: Writable<SetOptional<MediaFolder, 'pager'>> = {
             itemType: ItemType.Folder,
             src: `jellyfin:folder:${folder.Id}`,
             title: folder.Name || '[unknown]',
-            fileName: this.getFileName(folder.Path || '') || folder.Name || '[unknown]',
+            fileName,
+            path:
+                this.parent?.itemType === ItemType.Folder ? `${this.parent.path}/${fileName}` : '/',
             parent: this.parent as ParentOf<MediaFolder>,
         };
         mediaFolder.pager = this.createFolderPager(mediaFolder as MediaFolder);

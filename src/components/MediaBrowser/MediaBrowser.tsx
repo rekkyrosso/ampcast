@@ -30,6 +30,7 @@ import ArtistBrowser from './ArtistBrowser';
 import FolderItemBrowser from './FolderItemBrowser';
 import MediaItemBrowser from './MediaItemBrowser';
 import MediaSourceSelector from './MediaSourceSelector';
+import PageHeader from './PageHeader';
 import PlaylistBrowser from './PlaylistBrowser';
 import PinnedPlaylistBrowser from './PinnedPlaylistBrowser';
 import useErrorScreen from './useErrorScreen';
@@ -113,6 +114,15 @@ function Router<T extends MediaObject>({service, sources}: MediaBrowserProps<T>)
         case 'listenbrainz/recently-played':
             return <ListenBrainzRecentlyPlayedBrowser />;
 
+        case 'jellyfin/folders':
+        case 'plex/folders':
+            return (
+                <FolderItemBrowser
+                    service={service}
+                    source={source as MediaSource<MediaFolderItem>}
+                />
+            );
+
         default:
             return <DefaultBrowser service={service} sources={sources} />;
     }
@@ -123,10 +133,22 @@ export function DefaultBrowser<T extends MediaObject>({service, sources}: MediaB
     const [query, setQuery] = useState('');
     const pager = useSearch(source, query);
     const searchable = !!source.searchable;
+    const showPagerHeader = !searchable && !source.isPin;
 
     return (
         <>
-            {searchable && <SearchBar placeholder={`Search ${service.name}`} onSubmit={setQuery} />}
+            {showPagerHeader ? (
+                <PageHeader icon={service.icon}>
+                    {service.name}: {source.title}
+                </PageHeader>
+            ) : null}
+            {searchable ? (
+                <SearchBar
+                    icon={service.icon}
+                    placeholder={`Search ${service.name}`}
+                    onSubmit={setQuery}
+                />
+            ) : null}
             {sources.length > 1 ? (
                 <MediaSourceSelector sources={sources} onSourceChange={setSource} />
             ) : null}
@@ -165,11 +187,6 @@ export function PagedBrowser<T extends MediaObject>(props: PagedBrowserProps<T>)
                     <PlaylistBrowser {...(props as unknown as PagedBrowserProps<MediaPlaylist>)} />
                 );
             }
-
-        case ItemType.Folder:
-            return (
-                <FolderItemBrowser {...(props as unknown as PagedBrowserProps<MediaFolderItem>)} />
-            );
 
         default:
             return <MediaItemBrowser {...(props as unknown as PagedBrowserProps<MediaItem>)} />;

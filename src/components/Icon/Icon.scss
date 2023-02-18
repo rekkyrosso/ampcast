@@ -195,6 +195,7 @@
 
     &-lookup {
         color: var(--grey2-color);
+        pointer-events: auto;
 
         &-not-found {
             color: rgba(255, 0, 0, 0.5);

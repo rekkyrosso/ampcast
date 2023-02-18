@@ -1,21 +1,12 @@
-import type {Observable} from 'rxjs';
+import {Observable, tap} from 'rxjs';
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
+import {TinyColor} from '@ctrl/tinycolor';
 import {AudioMotionVisualizer} from 'types/Visualizer';
 import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
+import theme from 'services/theme';
 import {Logger} from 'utils';
 
 const logger = new Logger('AudioMotionPlayer');
-
-// const myGradient: GradientOptions = {
-//     bgColor: '#ffffff', // background color (optional) - defaults to '#111'
-//     dir: 'h', // add this property to create a horizontal gradient (optional)
-//     colorStops: [
-//         // list your gradient colors in this array (at least 2 entries are required)
-//         'cyan', // colors may be defined in any valid CSS format
-//         {pos: 0.6, color: 'lime'}, // use an object to adjust the position (0 to 1) of a color
-//         'yellow', // colors may be defined in any valid CSS format
-//     ],
-// };
 
 export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMotionVisualizer> {
     private readonly element: HTMLElement;
@@ -48,7 +39,10 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
             }
         });
 
-        // visualizer.registerGradient('my-grad', myGradient);
+        theme
+            .observe()
+            .pipe(tap(() => this.registerGradients()))
+            .subscribe(logger);
     }
 
     get hidden(): boolean {
@@ -98,5 +92,30 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
     resize(width: number, height: number): void {
         this.element.style.width = `${width}px`;
         this.element.style.height = `${height}px`;
+    }
+
+    private registerGradients(): void {
+        const {h, s, l} = new TinyColor(theme.frameColor).toHsl();
+        const mediaButtonColor = new TinyColor({
+            h,
+            s: s + (1 - s) * 0.33,
+            l: l + (1 - l) * 0.5,
+        });
+        const colors = new TinyColor(mediaButtonColor)
+            .tetrad()
+            .map((color) => color.toRgbString())
+            .slice(1);
+        this.visualizer.registerGradient('ampcast-classic', {
+            bgColor: theme.black,
+            colorStops: [colors[0], {pos: 0.6, color: colors[1]}, colors[2]],
+        });
+        this.visualizer.registerGradient('ampcast-prism', {
+            bgColor: theme.black,
+            colorStops: theme.getVisualizerColors() as any,
+        });
+        this.visualizer.registerGradient('ampcast-rainbow', {
+            bgColor: theme.black,
+            colorStops: mediaButtonColor.analogous().map((color) => color.toRgbString()) as any,
+        });
     }
 }

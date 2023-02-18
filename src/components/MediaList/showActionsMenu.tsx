@@ -119,6 +119,14 @@ function ContextualActions<T extends MediaObject>({item}: ContextualActionsProps
                     key={Action.AddToLibrary}
                 />
             ) : null}
+            {/* remove doesn't work (https://developer.apple.com/forums/thread/107807) */}
+            {serviceId !== 'apple' && item.inLibrary === true && service?.canStore(item, true) ? (
+                <PopupMenuItem<Action>
+                    label={getLabelForAction(service, Action.RemoveFromLibrary)}
+                    action={Action.RemoveFromLibrary}
+                    key={Action.RemoveFromLibrary}
+                />
+            ) : null}
         </>
     );
 }

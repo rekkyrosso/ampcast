@@ -1,6 +1,8 @@
 import React, {useCallback, useState} from 'react';
 import MediaObject from 'types/MediaObject';
 import {PagedBrowser, PagedBrowserProps} from 'components/MediaBrowser';
+import PageHeader from 'components/MediaBrowser/PageHeader';
+import lastfm from '../lastfm';
 import usePeriod from './usePeriod';
 
 export type LastFMPeriod = 'overall' | '7day' | '1month' | '3month' | '6month' | '12month';
@@ -30,6 +32,9 @@ export default function LastFmTopBrowser<T extends MediaObject>({
 
     return (
         <>
+            <PageHeader icon={lastfm.icon}>
+                {lastfm.name}: {source.title}
+            </PageHeader>
             <div className="lastfm-period-selector options">
                 <ul className="lastfm-periods">
                     {options.map(({value, text}) => (

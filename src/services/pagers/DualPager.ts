@@ -21,13 +21,13 @@ export default class DualPager<T extends MediaObject> implements Pager<T> {
 
     observeItems(): Observable<readonly T[]> {
         return combineLatest([this.topPager.observeItems(), this.mainPager.observeItems()]).pipe(
-            map(([topItems, items]) => topItems.concat(items))
+            map(([topItems, mainItems]) => topItems.concat(mainItems))
         );
     }
 
     observeSize(): Observable<number> {
         return combineLatest([this.topPager.observeSize(), this.mainPager.observeSize()]).pipe(
-            map(([topSize, size]) => topSize + size)
+            map(([topSize, mainSize]) => topSize + mainSize)
         );
     }
 

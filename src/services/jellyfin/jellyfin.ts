@@ -154,7 +154,8 @@ const jellyfinFolders: MediaSource<MediaFolderItem> = {
             itemType: ItemType.Folder,
             src: '',
             title: 'Folders',
-            fileName: 'Folders',
+            fileName: '',
+            path: '',
         };
 
         root.pager = new JellyfinPager<MediaFolderItem>(

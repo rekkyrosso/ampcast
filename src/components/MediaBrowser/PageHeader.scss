@@ -1,0 +1,45 @@
+@import 'styles/mixins.scss';
+
+.page-header {
+    background: linear-gradient(
+        to bottom,
+        var(--button-color) 75%,
+        var(--frame-color)
+    );
+    color: var(--button-text-color);
+    border-width: 1px;
+    border-style: solid;
+    border-color:
+        var(--frame-color-hi)
+        var(--frame-color-lo)
+        var(--frame-color-lo)
+        var(--frame-color-hi);
+    padding: calc(0.125em - 2px) 0.25em;
+    margin-bottom: var(--gutter-width);
+    border-radius: calc(var(--roundness) * 1em);
+    text-indent: calc(1.5em + var(--roundness) * 0.25em);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    user-select: none;
+
+    .icon {
+        position: absolute;
+        left: calc(0.375em + var(--roundness) * 0.25em);
+        width: auto;
+        min-width: 1.125em;
+        height: 1.125em;
+        aspect-ratio: 1;
+    }
+
+    .date-picker {
+        margin-left: 0.25em;
+
+        select {
+            background: var(--button-color);
+            color: var(--button-text-color);
+            padding: 0;
+            border: 0;
+        }
+    }
+}

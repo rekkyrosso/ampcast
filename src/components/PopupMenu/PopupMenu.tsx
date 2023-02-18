@@ -61,7 +61,7 @@ export default function PopupMenu<T extends string>({
             while (button && !button.value) {
                 button = button.parentElement;
             }
-            if (button?.value) {
+            if (button?.value && !button.disabled) {
                 onClose(button!.value);
             }
         },

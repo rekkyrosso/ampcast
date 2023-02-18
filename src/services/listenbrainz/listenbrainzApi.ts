@@ -220,23 +220,27 @@ export class ListenBrainzApi {
         if (item.isrc) {
             info.isrc = item.isrc;
         }
-        if (item.externalUrl) {
-            info.origin_url = item.externalUrl;
-        }
         const [service] = item.src.split(':');
         switch (service) {
             case 'spotify':
                 if (item.externalUrl) {
+                    info.origin_url = item.externalUrl;
                     info.spotify_id = item.externalUrl;
                 }
                 info.music_service = 'spotify.com';
                 break;
 
             case 'apple':
+                if (item.externalUrl) {
+                    info.origin_url = item.externalUrl;
+                }
                 info.music_service = 'music.apple.com';
                 break;
 
             case 'youtube':
+                if (item.externalUrl) {
+                    info.origin_url = item.externalUrl;
+                }
                 info.music_service = 'youtube.com';
                 break;
 

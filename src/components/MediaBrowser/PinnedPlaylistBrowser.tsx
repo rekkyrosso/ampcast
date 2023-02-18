@@ -10,7 +10,7 @@ import './PinnedPlaylistBrowser.scss';
 
 const defaultLayout: MediaSourceLayout<MediaPlaylist> = {
     view: 'card',
-    fields: ['Thumbnail', 'Title', 'TrackCount', 'Owner'],
+    fields: ['Thumbnail', 'IconTitle', 'TrackCount', 'Owner'],
 };
 
 const defaultPlaylistItemsLayout: MediaSourceLayout<MediaItem> = {

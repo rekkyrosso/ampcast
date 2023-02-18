@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {formatDate, formatMonth} from 'utils';
 import MonthPicker from './MonthPicker';
-import './DatePicker.scss';
 
 export interface DatePickerProps {
     value?: number | string;

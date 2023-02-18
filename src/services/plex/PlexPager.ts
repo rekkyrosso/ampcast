@@ -245,6 +245,10 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             src: `plex:folder:${folder.key}`,
             title: folder.title,
             fileName: folder.title,
+            path:
+                this.parent?.itemType === ItemType.Folder
+                    ? `${this.parent.path}/${folder.title}`
+                    : '/',
             parent: this.parent as ParentOf<MediaFolder>,
         };
         mediaFolder.pager = this.createFolderPager(mediaFolder as MediaFolder);

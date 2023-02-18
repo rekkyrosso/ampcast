@@ -38,7 +38,7 @@ function VisualizerDetail({visualizer}: VisualizerInfoProps) {
             <h4>Name: {visualizer.name}</h4>
             {externalUrl ? (
                 <p className="external-view">
-                    Url: <ExternalLink href={externalUrl} />
+                    <span>Url:</span> <ExternalLink href={externalUrl} />
                 </p>
             ) : null}
         </>

@@ -2,6 +2,7 @@
     background: var(--black);
     border-radius: calc(var(--roundness) * 1rem);
     user-select: none;
+    contain: strict;
 
     &:fullscreen {
         background: black;

@@ -1,13 +1,14 @@
 import React, {useCallback, useRef} from 'react';
-import Icon from 'components/Icon';
+import Icon, {IconName} from 'components/Icon';
 import './SearchBar.scss';
 
 export interface SearchBarProps {
+    icon?: IconName;
     placeholder?: string;
     onSubmit?: (query: string) => void;
 }
 
-export default function SearchBar({placeholder = 'Search', onSubmit}: SearchBarProps) {
+export default function SearchBar({icon, placeholder = 'Search', onSubmit}: SearchBarProps) {
     const inputRef = useRef<HTMLInputElement>(null);
 
     const handleSubmit = useCallback(
@@ -22,6 +23,7 @@ export default function SearchBar({placeholder = 'Search', onSubmit}: SearchBarP
     return (
         <form className="search-bar" onSubmit={handleSubmit}>
             <p className="text-with-button">
+                {icon ? <Icon name={icon} /> : null}
                 <input
                     type="search"
                     placeholder={placeholder}

@@ -5,12 +5,12 @@ import './MediaSourceLabel.scss';
 export type MediaSourceLabelProps =
     | {
           icon: IconName;
-          text: string;
+          text: React.ReactNode;
           showConnectivity?: never;
       }
     | {
           icon: MediaSourceIconName;
-          text: string;
+          text: React.ReactNode;
           showConnectivity?: boolean;
       };
 

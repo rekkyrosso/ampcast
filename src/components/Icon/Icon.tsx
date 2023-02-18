@@ -619,6 +619,7 @@ export default function Icon({name, className = ''}: IconProps) {
         case 'lookup-pending':
             return (
                 <svg className={`${className} icon-lookup`} viewBox="0 0 16 16">
+                    <title>Lookup scheduled</title>
                     <circle className="icon-lookup-outer" cx="8" cy="8" r="8" stroke="none" />
                     <path
                         className="icon-lookup-inner"
@@ -631,6 +632,7 @@ export default function Icon({name, className = ''}: IconProps) {
         case 'lookup-looking':
             return (
                 <svg className={`${className} icon-lookup`} viewBox="0 0 100 100">
+                    <title>Searching...</title>
                     <circle className="icon-lookup-outer" cx="50" cy="50" r="50" stroke="none" />
                     <path
                         className="icon-lookup-inner"
@@ -656,6 +658,7 @@ export default function Icon({name, className = ''}: IconProps) {
                     viewBox="0 0 16 16"
                     transform="rotate(45)"
                 >
+                    <title>Not found</title>
                     <circle className="icon-lookup-outer" cx="8" cy="8" r="8" stroke="none" />
                     <path
                         className="icon-lookup-inner"

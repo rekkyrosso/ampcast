@@ -2,6 +2,14 @@
     .playlists {
         bottom: auto;
         height: 6.25em;
+
+        .media-source-label {
+            font-size: 1.125em;
+        }
+
+        .track-count .text {
+            font-size: 1em;
+        }
     }
 
     .playlist-items {

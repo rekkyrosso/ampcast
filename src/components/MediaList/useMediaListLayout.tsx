@@ -9,10 +9,12 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSourceLayout, {Field} from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import {performAction} from 'services/actions';
+import {getService} from 'services/mediaServices';
 import {ColumnSpec, ListViewLayout} from 'components/ListView';
 import Actions from 'components/Actions';
 import CoverArt from 'components/CoverArt';
 import Icon from 'components/Icon';
+import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import StarRating from 'components/StarRating';
 import SunClock from 'components/SunClock';
 import Time from 'components/Time';
@@ -54,6 +56,16 @@ export const Index: RenderField = (_, rowIndex) => rowIndex + 1;
 
 export const Title: RenderField = (item) => <Text value={item.title} />;
 
+export const IconTitle: RenderField = (item) => {
+    const [serviceId] = item.src.split(':');
+    const service = getService(serviceId);
+    return service ? (
+        <MediaSourceLabel icon={service.icon} text={item.title} />
+    ) : (
+        <Text value={item.title} />
+    );
+};
+
 export const Blurb: RenderField<MediaPlaylist> = (item) => <Text value={item.description} />;
 
 export const Track: RenderField<MediaItem> = (item) => <Text value={item.track || '-'} />;
@@ -90,9 +102,6 @@ export const FileName: RenderField<MediaFolderItem> = (item) => <Text value={ite
 
 export const Views: RenderField = (item) => {
     if (item.globalPlayCount === undefined) {
-        return null;
-    }
-    if (item.itemType !== ItemType.Media || item.mediaType !== MediaType.Video) {
         return null;
     }
     return <Text value={getGlobalPlayCount(item.globalPlayCount, 'view')} />;
@@ -170,6 +179,7 @@ const mediaFields: MediaFields<any> = {
     Artist: {title: 'Artist', render: Artist, className: 'artist'},
     AlbumArtist: {title: 'Album Artist', render: AlbumArtist, className: 'artist'},
     Title: {title: 'Title', render: Title, className: 'title'},
+    IconTitle: {title: 'Title', render: IconTitle, className: 'title'},
     Blurb: {title: 'Description', render: Blurb, className: 'blurb'},
     Album: {title: 'Album', render: Album, className: 'album'},
     AlbumAndYear: {title: 'Album', render: AlbumAndYear, className: 'album'},

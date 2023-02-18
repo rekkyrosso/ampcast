@@ -7,7 +7,7 @@ export default class SimpleMediaPager<T extends MediaObject> extends AbstractPag
     }
 
     fetchAt(index: number): void {
-        if (!this.subscriptions) {
+        if (!this.disconnected && !this.subscriptions) {
             this.connect();
             const items = this.fetch(index);
             this.size$.next(items.length);
