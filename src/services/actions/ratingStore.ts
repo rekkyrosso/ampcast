@@ -97,7 +97,7 @@ class RatingStore extends Dexie {
                         }
                     } else {
                         if (!removedItem) {
-                            await this.ratingRemovals.put(item);
+                            await this.ratingRemovals.put(this.createRatingObject(item));
                         }
                     }
                 } else {
@@ -157,6 +157,16 @@ class RatingStore extends Dexie {
             return lock.serviceId === serviceId && lock.itemType === item.itemType;
         } else {
             return false;
+        }
+    }
+
+    private createRatingObject<T extends MediaObject>(item: T): RatingObject {
+        if ('pager' in item) {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const {pager, ...ratingObject} = item;
+            return ratingObject;
+        } else {
+            return item;
         }
     }
 }

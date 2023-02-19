@@ -7,14 +7,16 @@ import MediaObject from 'types/MediaObject';
 import {getService} from 'services/mediaServices';
 import mediaObjectChanges from './mediaObjectChanges';
 
+export type LibraryObject = Omit<MediaObject, 'pager'>;
+
 interface Lock {
     serviceId: string;
     itemType: ItemType;
 }
 
 class LibraryStore extends Dexie {
-    private readonly libraryRemovals!: Dexie.Table<MediaObject, string>;
-    private readonly libraryRemovals$ = new BehaviorSubject<readonly MediaObject[]>([]);
+    private readonly libraryRemovals!: Dexie.Table<LibraryObject, string>;
+    private readonly libraryRemovals$ = new BehaviorSubject<readonly LibraryObject[]>([]);
     private readonly lock$ = new BehaviorSubject<Lock | null>(null);
 
     constructor() {
@@ -27,7 +29,7 @@ class LibraryStore extends Dexie {
         liveQuery(() => this.libraryRemovals.toArray()).subscribe(this.libraryRemovals$);
     }
 
-    observeRemovals(serviceId: string): Observable<readonly MediaObject[]> {
+    observeRemovals(serviceId: string): Observable<readonly LibraryObject[]> {
         return combineLatest([this.libraryRemovals$, this.lock$]).pipe(
             filter(([items]) => items.length > 0),
             map(([items]) =>
@@ -59,7 +61,7 @@ class LibraryStore extends Dexie {
                     if (inLibrary) {
                         await this.libraryRemovals.delete(src);
                     } else {
-                        await this.libraryRemovals.put(item);
+                        await this.libraryRemovals.put(this.createLibraryObject(item));
                     }
                 } else {
                     await service.store(item, inLibrary);
@@ -95,13 +97,23 @@ class LibraryStore extends Dexie {
         return this.libraryRemovals$.getValue().findIndex((item) => item.src === src) !== -1;
     }
 
-    private isLocked(item: MediaObject): boolean {
+    private isLocked(item: LibraryObject): boolean {
         const lock = this.lock$.getValue();
         if (lock) {
             const [serviceId] = item.src.split(':');
             return lock.serviceId === serviceId && lock.itemType === item.itemType;
         } else {
             return false;
+        }
+    }
+
+    private createLibraryObject<T extends MediaObject>(item: T): LibraryObject {
+        if ('pager' in item) {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const {pager, ...ratingObject} = item;
+            return ratingObject;
+        } else {
+            return item;
         }
     }
 }

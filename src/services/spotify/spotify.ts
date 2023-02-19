@@ -308,7 +308,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
 }
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
-    if (!canStore(item)|| item.inLibrary !== undefined) {
+    if (!canStore(item) || item.inLibrary !== undefined) {
         return item;
     }
     const inLibrary = libraryStore.get(item.src);
@@ -531,8 +531,8 @@ libraryStore
             }
         }),
         filter((items) => items.length > 0),
-        concatMap((items) => storeAll(items, false).then(() => items)),
-        concatMap((items) => libraryStore.applyRemovals(items)),
+        concatMap((items) => storeAll(items as MediaObject[], false).then(() => items)),
+        concatMap((items) => libraryStore.applyRemovals(items as MediaObject[])),
         catchError((err) => {
             logger.error(err);
             return [];
