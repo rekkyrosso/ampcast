@@ -125,6 +125,10 @@ class MainTheme implements Theme {
 
     set frameTextColor(color: string) {
         this.setColor('frameTextColor', color);
+        this.app.classList.toggle('frame-text-light', this.isFrameTextLight);
+        this.app.classList.toggle('frame-text-dark', this.isFrameTextDark);
+        this.popup.classList.toggle('frame-text-light', this.isFrameTextLight);
+        this.popup.classList.toggle('frame-text-dark', this.isFrameTextDark);
     }
 
     get mediaButtonColor(): string {
@@ -218,6 +222,14 @@ class MainTheme implements Theme {
         return new TinyColor(this.frameColor).isLight();
     }
 
+    get isFrameTextDark(): boolean {
+        return new TinyColor(this.frameTextColor).isDark();
+    }
+
+    get isFrameTextLight(): boolean {
+        return new TinyColor(this.frameTextColor).isLight();
+    }
+
     get isSelectionDark(): boolean {
         return new TinyColor(this.selectedBackgroundColor).isDark();
     }
@@ -274,6 +286,8 @@ class MainTheme implements Theme {
         root.classList.toggle('light', this.isLight);
         root.classList.toggle('frame-dark', this.isFrameDark);
         root.classList.toggle('frame-light', this.isFrameLight);
+        root.classList.toggle('frame-text-dark', this.isFrameTextDark);
+        root.classList.toggle('frame-text-light', this.isFrameTextLight);
         root.classList.toggle('selection-dark', this.isSelectionDark);
         root.classList.toggle('selection-light', this.isSelectionLight);
     }

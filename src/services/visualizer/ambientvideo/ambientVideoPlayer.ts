@@ -1,3 +1,4 @@
+import type {Observable} from 'rxjs';
 import {EMPTY} from 'rxjs';
 import {
     distinctUntilChanged,
@@ -100,6 +101,26 @@ export class AmbientVideoPlayer extends AbstractVisualizerPlayer<AmbientVideoVis
     set hidden(hidden: boolean) {
         this.videoPlayer.hidden = hidden;
         this.beatsPlayer.hidden = hidden || !visualizerSettings.beatsOverlay;
+    }
+
+    observeCurrentTime(): Observable<number> {
+        return this.videoPlayer.observeCurrentTime();
+    }
+
+    observeDuration(): Observable<number> {
+        return this.videoPlayer.observeDuration();
+    }
+
+    observeEnded(): Observable<void> {
+        return this.videoPlayer.observeEnded();
+    }
+
+    observeError(): Observable<unknown> {
+        return this.videoPlayer.observeError();
+    }
+
+    observePlaying(): Observable<void> {
+        return this.videoPlayer.observePlaying();
     }
 
     appendTo(parentElement: HTMLElement): void {

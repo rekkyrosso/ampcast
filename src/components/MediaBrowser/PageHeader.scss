@@ -3,7 +3,7 @@
 .page-header {
     background: linear-gradient(
         to bottom,
-        var(--button-color) 75%,
+        var(--button-color) 80%,
         var(--frame-color)
     );
     color: var(--button-text-color);
@@ -23,6 +23,10 @@
     text-overflow: ellipsis;
     user-select: none;
 
+    .themed.flat & {
+        background: var(--button-color);
+    }
+
     .icon {
         position: absolute;
         left: calc(0.375em + var(--roundness) * 0.25em);
@@ -30,6 +34,14 @@
         min-width: 1.125em;
         height: 1.125em;
         aspect-ratio: 1;
+
+        .themed.frame-text-light &-apple {
+            fill: white;
+        }
+
+        .themed.frame-text-dark &-apple {
+            fill: black;
+        }
     }
 
     .date-picker {
@@ -40,6 +52,11 @@
             color: var(--button-text-color);
             padding: 0;
             border: 0;
+            cursor: pointer;
+
+            &:hover {
+                filter: brightness(1.1);
+            }
         }
     }
 }

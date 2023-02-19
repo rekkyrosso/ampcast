@@ -128,7 +128,9 @@ export const ListenDate: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
     return (
         <time className="text listen-date">
             <SunClock time={time} />
-            <span>{new Date(time).toLocaleDateString()}</span>
+            <span className="date">
+                {new Date(time).toLocaleDateString()}
+            </span>
         </time>
     );
 };

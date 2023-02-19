@@ -139,7 +139,6 @@
 
             .text {
                 font-size: 0.75em;
-                vertical-align: middle;
             }
 
             &:empty {
@@ -148,10 +147,14 @@
         }
 
         .played-at {
-            background-color: transparent;
             color: var(--grey2-color);
+            background-color: transparent;
 
-            .text {
+            .themed.light & {
+                background-color: transparent;
+            }
+
+            .date {
                 font-style: italic;
             }
 
