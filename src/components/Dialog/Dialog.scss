@@ -4,6 +4,11 @@ dialog {
     border: 0;
     padding: 0;
     color: inherit;
+
+    & + .backdrop {
+        /* Turn off shim background. */
+        display: none;
+    }
 }
 
 .dialog {
@@ -17,8 +22,12 @@ dialog {
     isolation: isolate;
     contain: content;
 
-    .app &::backdrop {
-        background: rgba(0, 0, 0, 0.2);
+    &::backdrop {
+        background: rgba(0, 0, 0, 0.1);
+
+        .app & {
+            background: rgba(0, 0, 0, 0.2);
+        }
     }
 
     .system & {
@@ -96,13 +105,5 @@ dialog {
     &-body &-buttons {
         text-align: right;
         margin: 2em 0 0 0;
-    }
-
-    &::backdrop {
-        background: none;
-    }
-
-    & + .backdrop {
-        background: none;
     }
 }

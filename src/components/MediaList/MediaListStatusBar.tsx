@@ -67,7 +67,12 @@ function getArrayCount(array: readonly any[]): number {
 }
 
 function formatNumber(value = 0): string {
-    return (Number(value) || 0).toLocaleString();
+    value = Number(value);
+    if (value < 10_000) {
+        return String(value);
+    } else {
+        return value.toLocaleString();
+    }
 }
 
 function getErrorMessage(err: any): string {

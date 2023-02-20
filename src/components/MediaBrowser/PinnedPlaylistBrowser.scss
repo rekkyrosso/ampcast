@@ -3,12 +3,24 @@
         bottom: auto;
         height: 6.25em;
 
+        .cover-art {
+            inset: 0.25em;
+        }
+
+        .title {
+            top: 0;
+        }
+
         .media-source-label {
             font-size: 1.125em;
         }
 
-        .track-count .text {
-            font-size: 1em;
+        .track-count {
+            top: 0.25em;
+
+            .text {
+                font-size: 1em;
+            }
         }
     }
 

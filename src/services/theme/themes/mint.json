@@ -1,0 +1,17 @@
+{
+    "name": "Mint",
+    "backgroundColor": "#d8e9e9",
+    "textColor": "#01000a",
+    "frameColor": "#36ecb6",
+    "frameTextColor": "#180c06",
+    "buttonColor": "",
+    "buttonTextColor": "",
+    "mediaButtonColor": "",
+    "mediaButtonTextColor": "",
+    "selectedBackgroundColor": "#36ecda",
+    "selectedTextColor": "#000000",
+    "evenRowBackgroundColor": "",
+    "spacing": 0.375,
+    "roundness": 0.24,
+    "flat": true
+}

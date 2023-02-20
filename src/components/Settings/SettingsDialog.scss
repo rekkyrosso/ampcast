@@ -2,6 +2,11 @@
     width: 44em;
     height: 36em;
 
+    &::backdrop {
+        /* This helps with theme editing. */
+        background: none;
+    }
+
     .dialog-body {
         display: flex;
         flex-direction: row;

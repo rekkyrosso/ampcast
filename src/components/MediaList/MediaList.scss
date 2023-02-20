@@ -63,20 +63,24 @@
     }
 
     &-card {
+        .list-view-cell {
+            padding: 0;
+        }
+
         .thumbnail {
             left: 0;
             width: 6em;
             height: 6em;
             padding: 0;
             color: var(--grey2-color);
+        }
 
-            .cover-art {
-                position: absolute;
-                inset: 0.25em;
+        .cover-art {
+            position: absolute;
+            inset: 0.5em;
 
-                .artists & {
-                    border-radius: 50%;
-                }
+            .artists & {
+                border-radius: 50%;
             }
         }
 
@@ -88,7 +92,7 @@
         .album,
         .year,
         .views {
-            left: 6em;
+            left: 6.375em;
             right: 4em;
 
             .artists & {
@@ -98,7 +102,7 @@
         }
 
         .title {
-            top: 0;
+            top: 0.25em;
 
             .text {
                 font-size: 1.125em;
@@ -108,7 +112,7 @@
         .artist,
         .genre,
         .owner {
-            top: 1.625em;
+            top: 1.75em;
             color: var(--grey2-color);
         }
 
@@ -116,7 +120,7 @@
         .blurb,
         .year,
         .views {
-            top: 3.25em;
+            top: 3.375em;
             color: var(--grey2-color);
         }
 
@@ -125,7 +129,7 @@
         .play-count,
         .played-at {
             left: auto;
-            top: 0.25em;
+            top: 0.5em;
             right: 0.25em;
             padding: 0.125em 0.25em;
             color: var(--text-color);
@@ -179,8 +183,8 @@
         }
 
         .rate {
-            right: 0.25em;
-            top: 0.25em;
+            right: 0.5em;
+            top: 0.5em;
             padding: 0;
         }
 
@@ -190,8 +194,12 @@
 
         &.compact {
             .thumbnail {
-                width: 4.25em;
-                height: 4.25em;
+                width: 4.5em;
+                height: 4.5em;
+            }
+
+            .cover-art {
+                inset: 0.375em;
             }
 
             .title,
@@ -202,11 +210,15 @@
             .album,
             .year,
             .views {
-                left: 4em;
+                left: 4.75em;
             }
 
-            .title .text {
-                font-size: 1em;
+            .title {
+                top: 0.125em;
+
+                .text {
+                    font-size: 1em;
+                }
             }
 
             .artist,
@@ -232,7 +244,7 @@
 
             .year {
                 .artist-albums & {
-                    top: 1.25em;
+                    top: 1.375em;
 
                     .text {
                         font-size: 0.875em;
@@ -244,7 +256,7 @@
                 .artists & {
                     right: auto;
                     top: 3.125em;
-                    left: 4.5em;
+                    left: 4.75em;
                 }
             }
 
@@ -260,10 +272,10 @@
             }
 
             .cover-art {
-                inset: 0.125em;
+                inset: 0.25em;
 
                 .icon {
-                    padding: 0.25em;
+                    padding: 0;
                 }
             }
 
@@ -350,7 +362,7 @@
 
             .title {
                 flex: auto;
-                margin-left: 2em;
+                margin-left: 2.5em;
             }
 
             .duration,
@@ -386,7 +398,7 @@
         }
 
         .title {
-            margin-left: 1.5em;
+            margin-left: 2.25em;
         }
     }
 

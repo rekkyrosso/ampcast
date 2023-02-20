@@ -36,7 +36,7 @@ export default function ThemeEditor() {
         theme.flat = event.target.checked;
     }, []);
 
-    const saveAs = useCallback(async () => {
+    const saveTheme = useCallback(async () => {
         const name = await prompt('Name', 'Save As', true);
         console.log({name});
     }, []);
@@ -60,8 +60,8 @@ export default function ThemeEditor() {
                         spellCheck={false}
                         readOnly
                     />
-                    <button className="small" type="button" onClick={saveAs} disabled>
-                        Save As…
+                    <button className="small" type="button" onClick={saveTheme} disabled>
+                        Save…
                     </button>
                 </p>
                 <p>

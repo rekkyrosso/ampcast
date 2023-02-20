@@ -6,6 +6,7 @@ import greygreen from './greygreen.json';
 import indigo from './indigo.json';
 import lemon from './lemon.json';
 import lilac from './lilac.json';
+import mint from './mint.json';
 import moodyblue from './moodyblue.json';
 import none from './none.json';
 import oliveoil from './oliveoil.json';
@@ -29,6 +30,7 @@ const themes: readonly Theme[] = [
     indigo,
     lemon,
     lilac,
+    mint,
     moodyblue,
     oliveoil,
     palepink,
