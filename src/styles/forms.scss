@@ -44,6 +44,7 @@ input {
 
 select {
     border: 1px solid;
+    user-select: none;
 }
 
 input[type="checkbox"],
@@ -62,6 +63,10 @@ input[type="color"] {
     border: none;
     width: 3em;
     padding: 0;
+
+    &::-webkit-color-swatch-wrapper {
+        padding: 0;
+    }
 
     & + & {
         margin-left:  0.5em;
@@ -135,10 +140,16 @@ select,
 textarea {
     background-color: var(--background-color);
     color: var(--text-color);
+
+    &:disabled {
+        color: var(--grey1-color);
+        opacity: 1;
+    }
 }
 
 button {
-    @include pressable-button;
+    @include button;
+    @include pressable;
     -webkit-appearance: none;
     appearance: none;
     padding: calc(0.125em - 1px) 1em;
@@ -229,7 +240,8 @@ button {
         }
 
         & > input,
-        & > select {
+        & > select,
+        & > button {
             vertical-align: middle;
         }
 

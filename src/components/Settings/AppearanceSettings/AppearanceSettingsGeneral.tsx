@@ -1,14 +1,19 @@
-import React, {useCallback, useLayoutEffect, useMemo} from 'react';
+import React, {useCallback, useLayoutEffect, useMemo, useRef} from 'react';
 import theme from 'services/theme';
 import themeStore from 'services/theme/themeStore';
+import useCurrentTheme from './useCurrentTheme';
 import useDefaultThemes from './useDefaultThemes';
 import useUserThemes from './useUserThemes';
 
 export default function AppearanceSettingsGeneral() {
-    const initialTheme = useMemo(() => theme.current.name, []);
+    const currentTheme = useCurrentTheme();
+    const defaultThemesRef = useRef<HTMLSelectElement>(null);
+    const userThemesRef = useRef<HTMLSelectElement>(null);
+    const userThemeRef = useRef<HTMLInputElement>(null);
     const initialFontSize = useMemo(() => theme.fontSize, []);
     const defaultThemes = useDefaultThemes();
     const userThemes = useUserThemes();
+    const userTheme = !!currentTheme.userTheme;
 
     useLayoutEffect(() => {
         // Lock `font-size` for this dialog.
@@ -22,8 +27,13 @@ export default function AppearanceSettingsGeneral() {
 
     const handleSubmit = useCallback(() => theme.save(), []);
 
-    const handleThemeChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-        theme.load(event.target.value);
+    const handleThemeChange = useCallback(() => {
+        const newTheme = userThemeRef.current!.checked
+            ? themeStore.getUserTheme(userThemesRef.current!.value)
+            : themeStore.getDefaultTheme(defaultThemesRef.current!.value);
+        if (newTheme) {
+            theme.apply(newTheme);
+        }
     }, []);
 
     const handleFontSizeChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -40,41 +50,48 @@ export default function AppearanceSettingsGeneral() {
                             type="radio"
                             name="theme-source"
                             id="default-themes"
-                            defaultChecked={themeStore.isDefaultTheme(initialTheme)}
+                            value=""
+                            checked={!userTheme}
+                            onChange={handleThemeChange}
                         />
                         <label htmlFor="default-themes">Default themes:</label>
-                        {defaultThemes.length === 0 ? null : (
-                            <select onChange={handleThemeChange} defaultValue={initialTheme}>
-                                {defaultThemes.map(({name}) => (
-                                    <option value={name} key={name}>
-                                        {name || '(boring default)'}
-                                    </option>
-                                ))}
-                            </select>
-                        )}
+                        <select
+                            value={userTheme ? undefined : currentTheme.name}
+                            disabled={userTheme}
+                            onChange={handleThemeChange}
+                            ref={defaultThemesRef}
+                        >
+                            {defaultThemes.map(({name}) => (
+                                <option value={name} key={name}>
+                                    {name}
+                                </option>
+                            ))}
+                        </select>
                     </p>
                     <p>
                         <input
                             type="radio"
                             name="theme-source"
                             id="user-themes"
-                            defaultChecked={!themeStore.isDefaultTheme(initialTheme)}
+                            value="user"
+                            checked={userTheme}
                             disabled={userThemes.length === 0}
+                            onChange={handleThemeChange}
+                            ref={userThemeRef}
                         />
                         <label htmlFor="user-themes">My themes:</label>
-                        {userThemes.length === 0 ? null : (
-                            <select
-                                onChange={handleThemeChange}
-                                defaultValue={initialTheme}
-                                disabled={userThemes.length === 0}
-                            >
-                                {userThemes.map(({name}) => (
-                                    <option value={name} key={name}>
-                                        {name}
-                                    </option>
-                                ))}
-                            </select>
-                        )}
+                        <select
+                            value={userTheme ? currentTheme.name : undefined}
+                            onChange={handleThemeChange}
+                            disabled={!userTheme}
+                            ref={userThemesRef}
+                        >
+                            {userThemes.map(({name}) => (
+                                <option value={name} key={name}>
+                                    {name}
+                                </option>
+                            ))}
+                        </select>
                     </p>
                 </div>
             </fieldset>
@@ -92,14 +109,15 @@ export default function AppearanceSettingsGeneral() {
                             step={0.4}
                             defaultValue={initialFontSize}
                             onChange={handleFontSizeChange}
-                            key={initialFontSize}
                         />
                     </p>
                 </div>
             </fieldset>
 
             <footer className="dialog-buttons">
-                <button value="#cancel">Cancel</button>
+                <button type="button" value="#cancel">
+                    Cancel
+                </button>
                 <button>Confirm</button>
             </footer>
         </form>

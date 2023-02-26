@@ -1,48 +1,60 @@
 import Theme from 'types/Theme';
 import astronaut from './astronaut.json';
 import blackgold from './blackgold.json';
-import defaultTheme from './default.json';
-import greygreen from './greygreen.json';
+import boringDefault from './boringDefault.json';
+import debug from './debug.json';
+import glacier from './glacier.json';
 import indigo from './indigo.json';
-import lemon from './lemon.json';
-import lilac from './lilac.json';
-import mint from './mint.json';
 import moodyblue from './moodyblue.json';
-import none from './none.json';
-import oliveoil from './oliveoil.json';
 import palepink from './palepink.json';
 import purplelicious from './purplelicious.json';
+import radioactive from './radioactive.json';
 import saddle from './saddle.json';
-import sphinx from './sphinx.json';
-import submarine from './submarine.json';
-import tangerine from './tangerine.json';
 import velvet from './velvet.json';
-import winampAmber from './winamp-amber.json';
 import winampClassic from './winamp-classic.json';
 import winampModern from './winamp-modern.json';
 
+export const emptyTheme: Required<Theme> = {
+    name: '(none)',
+    // basic colours
+    backgroundColor: 'black',
+    textColor: 'white',
+    frameColor: 'black',
+    frameTextColor: 'white',
+    selectedBackgroundColor: 'darkblue',
+    selectedTextColor: 'white',
+    // leave these empty
+    buttonColor: '',
+    buttonTextColor: '',
+    scrollbarColor: '',
+    scrollbarTextColor: '',
+    mediaButtonColor: '',
+    mediaButtonTextColor: '',
+    spacing: 0,
+    roundness: 0,
+    flat: false,
+};
+
+export const defaultTheme: Required<Theme> = {
+    ...emptyTheme,
+    ...boringDefault,
+};
+
 const themes: readonly Theme[] = [
     defaultTheme,
-    none,
     astronaut,
     blackgold,
-    greygreen,
+    glacier,
     indigo,
-    lemon,
-    lilac,
-    mint,
     moodyblue,
-    oliveoil,
     palepink,
     purplelicious,
+    radioactive,
     saddle,
-    sphinx,
-    submarine,
-    tangerine,
     velvet,
-    winampAmber,
     winampClassic,
     winampModern,
+    debug,
 ];
 
 export default themes;

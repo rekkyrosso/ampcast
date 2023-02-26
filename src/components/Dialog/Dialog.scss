@@ -12,11 +12,27 @@ dialog {
 }
 
 .dialog {
-    @include button;
     display: flex;
     flex-direction: column;
     padding: 0;
     overflow: hidden;
+    color: var(--frame-text-color);
+    background-clip: padding-box;
+    background-color: var(--frame-color);
+    background-image:
+        linear-gradient(to bottom,
+            var(--frame-color-hi),
+            transparent 0.125rem),
+        linear-gradient(to right,
+            var(--frame-color-hi),
+            transparent 0.125rem),
+        linear-gradient(to left,
+            var(--frame-color-lo),
+            transparent 0.125rem),
+        linear-gradient(to top,
+            var(--frame-color-lo),
+            transparent 0.125rem);
+    border: 1px solid black;
     border-radius: var(--app-border-radius);
     box-shadow: rgba(0, 0, 0, 0.67) 4px 10px 20px;
     isolation: isolate;
@@ -105,5 +121,11 @@ dialog {
     &-body &-buttons {
         text-align: right;
         margin: 2em 0 0 0;
+
+        .alert-dialog &,
+        .confirm-dialog &,
+        .prompt-dialog & {
+            text-align: center;
+        }
     }
 }

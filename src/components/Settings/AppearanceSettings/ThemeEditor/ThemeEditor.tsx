@@ -1,13 +1,15 @@
 import React, {useCallback, useLayoutEffect} from 'react';
 import theme from 'services/theme';
-import prompt from 'components/Dialog/prompt';
+import ThemeColorPair from './ThemeColorPair';
 import useCurrentTheme from '../useCurrentTheme';
 import useSuggestedColors from './useSuggestedColors';
-import ThemeColorPicker from './ThemeColorPicker';
+import saveTheme from './saveTheme';
 import './ThemeEditor.scss';
 
 export default function ThemeEditor() {
     const currentTheme = useCurrentTheme();
+    const themeName = `${currentTheme.name}${theme.edited ? ' (edited)' : ''}`;
+    const themeKey = `${!!currentTheme.userTheme}/${currentTheme.name}`;
     const [suggestedSelectionColors, nextSuggestedSelectionColors] = useSuggestedColors(
         currentTheme.frameColor
     );
@@ -22,7 +24,13 @@ export default function ThemeEditor() {
         };
     }, []);
 
-    const handleSubmit = useCallback(() => theme.save(), []);
+    const handleSubmit = useCallback(() => {
+        theme.save();
+    }, []);
+
+    const handleSaveAsClick = useCallback(() => {
+        saveTheme(currentTheme.name);
+    }, [currentTheme]);
 
     const handleSpacingChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         theme.spacing = event.target.valueAsNumber;
@@ -36,18 +44,6 @@ export default function ThemeEditor() {
         theme.flat = event.target.checked;
     }, []);
 
-    const saveTheme = useCallback(async () => {
-        const name = await prompt('Name', 'Save As', true);
-        console.log({name});
-    }, []);
-
-    const suggestSelectionColors = useCallback(() => {
-        const [backgroundColor, textColor] = suggestedSelectionColors;
-        theme.selectedBackgroundColor = backgroundColor;
-        theme.selectedTextColor = textColor;
-        nextSuggestedSelectionColors();
-    }, [suggestedSelectionColors, nextSuggestedSelectionColors]);
-
     return (
         <form className="theme-editor" method="dialog" onSubmit={handleSubmit}>
             <div className="table-layout">
@@ -56,63 +52,59 @@ export default function ThemeEditor() {
                     <input
                         type="text"
                         id="theme-name"
-                        defaultValue={currentTheme.name}
+                        value={themeName}
                         spellCheck={false}
                         readOnly
                     />
-                    <button className="small" type="button" onClick={saveTheme} disabled>
-                        Save…
+                    <button className="small" type="button" onClick={handleSaveAsClick}>
+                        Save as…
                     </button>
                 </p>
-                <p>
-                    <label htmlFor="theme-fontFamily">Font:</label>
-                    <select id="theme-fontFamily" disabled>
-                        <option>Arial, sans-serif</option>
-                    </select>
-                </p>
-                <p>
-                    <label>Frame:</label>
-                    <ThemeColorPicker
-                        id="frameColor"
-                        colorName="frameColor"
-                        value={currentTheme.frameColor}
-                        title="Frame background color"
-                    />
-                    <ThemeColorPicker
-                        colorName="frameTextColor"
-                        value={currentTheme.frameTextColor}
-                        title="Frame text color"
-                    />
-                </p>
-                <p>
-                    <label>Content:</label>
-                    <ThemeColorPicker
-                        colorName="backgroundColor"
-                        value={currentTheme.backgroundColor}
-                        title="Content background color"
-                    />
-                    <ThemeColorPicker
-                        colorName="textColor"
-                        value={currentTheme.textColor}
-                        title="Content text color"
-                    />
-                </p>
-                <p>
-                    <label>Selection:</label>
-                    <ThemeColorPicker
-                        colorName="selectedBackgroundColor"
-                        value={currentTheme.selectedBackgroundColor}
-                        title="Selected text background color"
-                    />
-                    <ThemeColorPicker
-                        colorName="selectedTextColor"
-                        value={currentTheme.selectedTextColor}
-                        title="Selected text color"
-                    />
-                    <button className="small" type="button" onClick={suggestSelectionColors}>
-                        Suggest
-                    </button>
-                </p>
+                <ThemeColorPair
+                    label="Frame"
+                    backgroundColorName="frameColor"
+                    textColorName="frameTextColor"
+                    key={`${themeKey}/frame`}
+                />
+                <ThemeColorPair
+                    label="Content"
+                    backgroundColorName="backgroundColor"
+                    textColorName="textColor"
+                    key={`${themeKey}/content`}
+                />
+                <ThemeColorPair
+                    label="Selection"
+                    backgroundColorName="selectedBackgroundColor"
+                    textColorName="selectedTextColor"
+                    suggestedColors={suggestedSelectionColors}
+                    nextSuggestion={nextSuggestedSelectionColors}
+                    key={`${themeKey}/selection`}
+                />
+                <ThemeColorPair
+                    label="Media button"
+                    backgroundColorName="mediaButtonColor"
+                    textColorName="mediaButtonTextColor"
+                    defaultBackgroundColor={theme.defaultMediaButtonColor}
+                    defaultTextColor={theme.defaultMediaButtonTextColor}
+                    key={`${themeKey}/media-button`}
+                />
+                <ThemeColorPair
+                    label="Button"
+                    backgroundColorName="buttonColor"
+                    textColorName="buttonTextColor"
+                    defaultBackgroundColor={theme.defaultButtonColor}
+                    defaultTextColor={theme.defaultButtonTextColor}
+                    key={`${themeKey}/button`}
+                />
+                <ThemeColorPair
+                    label="Scrollbar"
+                    backgroundColorName="scrollbarColor"
+                    textColorName="scrollbarTextColor"
+                    defaultBackgroundColor={theme.defaultScrollbarColor}
+                    defaultTextColor={theme.defaultScrollbarTextColor}
+                    trackingColor="button"
+                    key={`${themeKey}/scrollbar`}
+                />
                 <p>
                     <label htmlFor="theme-spacing">Spacing:</label>
                     <input
@@ -148,7 +140,9 @@ export default function ThemeEditor() {
                 </p>
             </div>
             <footer className="dialog-buttons">
-                <button value="#cancel">Cancel</button>
+                <button type="button" value="#cancel">
+                    Cancel
+                </button>
                 <button>Confirm</button>
             </footer>
         </form>

@@ -11,11 +11,12 @@ import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import usePager from 'hooks/usePager';
 import MediaListStatusBar from './MediaListStatusBar';
 import useMediaListLayout from './useMediaListLayout';
+import useViewClassName from './useViewClassName';
 import showActionsMenu from './showActionsMenu';
 import './MediaList.scss';
 
 export interface MediaListProps<T extends MediaObject>
-    extends Except<ListViewProps<T>, 'items' | 'itemKey' | 'layout'> {
+    extends Except<ListViewProps<T>, 'items' | 'itemKey' | 'itemClassName' | 'layout'> {
     pager?: Pager<T> | null;
     keepAlive?: boolean;
     layout?: MediaSourceLayout<T>;
@@ -40,7 +41,7 @@ export default function MediaList<T extends MediaObject>({
     const [{items, loaded, error, size, maxSize}, fetchAt] = usePager(pager, keepAlive);
     const [selectedCount, setSelectedCount] = useState(0);
     const currentlyPlaying = useCurrentlyPlaying();
-    const propsItemClassName = props.itemClassName;
+    const viewClassName = useViewClassName(layout);
 
     useEffect(() => {
         if (scrollIndex >= 0 && pageSize > 0) {
@@ -100,9 +101,7 @@ export default function MediaList<T extends MediaObject>({
 
     const itemClassName = useCallback(
         (item: T) => {
-            if (propsItemClassName) {
-                return propsItemClassName(item);
-            } else if (item.itemType === ItemType.Media) {
+            if (item.itemType === ItemType.Media) {
                 const [source] = item.src.split(':');
                 const playing = item.src === currentlyPlaying?.src ? 'playing' : '';
                 const unplayable = item.unplayable ? 'unplayable' : '';
@@ -111,11 +110,11 @@ export default function MediaList<T extends MediaObject>({
                 return '';
             }
         },
-        [currentlyPlaying, propsItemClassName]
+        [currentlyPlaying]
     );
 
     return (
-        <div className={`panel ${className}`}>
+        <div className={`panel ${className} ${viewClassName}`}>
             <ListView
                 {...props}
                 className="media-list"

@@ -1,6 +1,6 @@
 .icon-button {
     all: unset;
-    display: flex;
+    display: inline-flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
@@ -8,6 +8,10 @@
     width: 1em;
     height: 1em;
     opacity: 0.75;
+
+    &:disabled {
+        color: var(--grey1-color);
+    }
 
     &:enabled {
         cursor: pointer;

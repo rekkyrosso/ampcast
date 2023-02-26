@@ -1,10 +1,19 @@
 import {useMemo} from 'react';
-import Theme from 'types/Theme';
-import theme from 'services/theme';
-import defaultTheme from 'services/theme/themes/default.json';
+import {merge} from 'rxjs';
+import {map} from 'rxjs/operators';
+import theme, {CurrentTheme} from 'services/theme';
+import themeStore from 'services/theme/themeStore';
 import useObservable from 'hooks/useObservable';
 
-export default function useCurrentTheme(): Theme {
-    const observeTheme = useMemo(() => () => theme.observe(), []);
-    return useObservable(observeTheme, defaultTheme);
+export default function useCurrentTheme(): CurrentTheme {
+    const observeTheme = useMemo(
+        () => () => {
+            // Make sure we get a fresh object.
+            return merge(theme.observe(), themeStore.observeUserThemes()).pipe(
+                map(() => ({...theme.current}))
+            );
+        },
+        []
+    );
+    return useObservable(observeTheme, theme.current);
 }

@@ -1,12 +1,15 @@
 import {useCallback, useEffect, useState} from 'react';
-import {Column, ColumnSpec} from './ListView';
+import {Column, ListViewLayout} from './ListView';
 
-export default function useColumns<T>(specs: ColumnSpec<T>[], sizeable = false) {
+export default function useColumns<T>(layout: ListViewLayout<T>) {
     const [cols, setCols] = useState<Column<T>[]>([]);
+    const sizeable = layout.view === 'details' && layout.sizeable;
 
     useEffect(() => {
+        const isDetailsView = layout.view === 'details';
+        const sizeable = isDetailsView && layout.sizeable;
         setCols(
-            specs.reduce<Column<T>[]>((cols, spec, index) => {
+            layout.cols.reduce<Column<T>[]>((cols, spec, index) => {
                 const prevCol = cols[index - 1];
                 const left = prevCol ? prevCol.left + prevCol.width : 0;
                 const {
@@ -16,16 +19,17 @@ export default function useColumns<T>(specs: ColumnSpec<T>[], sizeable = false) 
                     sortPriority = 0,
                     width = 200,
                 } = spec;
-                const style =
-                    sizeable
-                        ? {
-                              left: `${left}px`,
-                              width: `${width}px`,
-                              textAlign: align,
-                          }
-                        : {
-                              textAlign: align,
-                          };
+                const style = sizeable
+                    ? {
+                          left: `${left}px`,
+                          width: `${width}px`,
+                          textAlign: align,
+                      }
+                    : isDetailsView
+                    ? {
+                          textAlign: align,
+                      }
+                    : {};
                 cols.push({
                     ...spec,
                     className,
@@ -40,7 +44,7 @@ export default function useColumns<T>(specs: ColumnSpec<T>[], sizeable = false) 
                 return cols;
             }, [])
         );
-    }, [specs, sizeable]);
+    }, [layout]);
 
     const handleColumnResize = useCallback(
         (colIndex: number, newWidth: number) => {

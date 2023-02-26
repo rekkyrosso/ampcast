@@ -15,12 +15,11 @@
     background-clip: padding-box;
     background-color: var(--button-color);
     background-image: var(--button-background);
-    border: 1px solid var(--button-border-color);
+    border: 1px solid var(--black);
     border-radius: calc(var(--roundness) * 1em);
 }
 
-@mixin pressable-button {
-    @include button;
+@mixin pressable {
     transform-origin: bottom right;
 
     &:hover {

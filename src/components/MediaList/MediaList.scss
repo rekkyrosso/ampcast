@@ -93,11 +93,18 @@
         .year,
         .views {
             left: 6.375em;
-            right: 4em;
+            right: 0.375em;
+
+            .clip-1 & {
+                right: 4em;
+            }
+
+            .clip-2 & {
+                right: 5.5em;
+            }
 
             .artists & {
                 margin-top: 0.25em;
-                right: 0;
             }
         }
 
@@ -129,13 +136,13 @@
         .play-count,
         .played-at {
             left: auto;
-            top: 0.5em;
-            right: 0.25em;
-            padding: 0.125em 0.25em;
+            top: 0.375em;
+            right: 0.375em;
+            padding: 0 0.375em;
             color: var(--text-color);
             border-radius: calc(var(--roundness) * var(--roundness) * 0.75em);
             background-color: rgba(255, 255, 255, 0.1);
-            line-height: 1;
+            line-height: 1.2;
 
             .themed.light & {
                 background-color: rgba(0, 0, 0, 0.1);
@@ -153,16 +160,24 @@
         .played-at {
             color: var(--grey2-color);
             background-color: transparent;
+            font-style: italic;
+            top: 0.25em;
+            padding: 0;
+
+            &.listen-date {
+                right: 0.625em;
+                top: 0.5em;
+            }
 
             .themed.light & {
                 background-color: transparent;
             }
 
             .date {
-                font-style: italic;
+                line-height: 1.2;
             }
 
-            .listen-date {
+            &.listen-date .text {
                 display: flex;
                 flex-direction: row;
                 justify-content: center;
@@ -177,7 +192,7 @@
         }
 
         .actions {
-            right: 0.25em;
+            right: 0.5em;
             bottom: 0.5em;
             padding: 0;
         }
@@ -282,7 +297,7 @@
             .title {
                 top: 0.25em;
                 left: 2em;
-                right: 0;
+                right: 0.25em;
 
                 .text {
                     font-size: 1em;
@@ -295,13 +310,12 @@
             }
         }
 
-        .albums &,
         &.thin {
             .title,
             .artist,
             .owner,
             .genre {
-                right: 0;
+                right: 0.25em;
             }
 
             .blurb,
@@ -326,6 +340,22 @@
                     top: 0.5em;
                     color: var(--soft-white) !important;
                     background-color: rgba(0, 0, 0, 0.75);
+                    border-bottom-right-radius: 0;
+                    border-top-left-radius: 0;
+                }
+
+                .played-at {
+                    right: auto;
+                    top: 0.5em;
+                    left: 0.5em;
+                    width: 5em;
+                    border-bottom-left-radius: 0;
+                    border-bottom-right-radius: 0;
+                    text-align: center;
+
+                    &.listen-date {
+                        padding: 0.25em 0;
+                    }
                 }
             }
 
@@ -334,7 +364,8 @@
                 .track-count,
                 .play-count,
                 .played-at {
-                    right: calc(100% - 3.75em);
+                    right: calc(100% - 4.125em);
+                    top: 0.375em;
                 }
             }
 
@@ -363,6 +394,7 @@
             .title {
                 flex: auto;
                 margin-left: 2.5em;
+                margin-top: 0;
             }
 
             .duration,

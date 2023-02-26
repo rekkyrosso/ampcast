@@ -27,14 +27,14 @@
     .layout-splitter {
         position: relative;
         flex: none;
-        background-color: var(--button-color);
+        background-color: var(--frame2-color);
         border-width: 1px;
         border-style: solid;
         border-color:
-            var(--button-color-hi)
-            var(--button-color-lo)
-            var(--button-color-lo)
-            var(--button-color-hi);
+            var(--frame2-color-hi)
+            var(--frame2-color-lo)
+            var(--frame2-color-lo)
+            var(--frame2-color-hi);
         border-radius: calc(var(--roundness) * 1.5 * var(--layout-splitter-size));
 
         &:hover {

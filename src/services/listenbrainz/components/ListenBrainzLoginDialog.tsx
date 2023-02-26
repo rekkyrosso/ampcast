@@ -13,7 +13,6 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const userNameRef = useRef<HTMLInputElement>(null);
     const tokenRef = useRef<HTMLInputElement>(null);
-    const submitRef = useRef<HTMLButtonElement>(null);
     const profileUrl = 'https://listenbrainz.org/profile/';
 
     const login = useCallback(async () => {
@@ -50,16 +49,6 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
         }
     }, []);
 
-    const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            event.stopPropagation();
-            if (!event.repeat) {
-                submitRef.current!.click(); // forces form validation
-            }
-        }
-    }, []);
-
     const handleSubmit = useCallback(
         (event: React.FormEvent) => {
             event.preventDefault();
@@ -75,7 +64,7 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
             title="Login to ListenBrainz"
             ref={dialogRef}
         >
-            <form method="dialog" onKeyDown={handleKeyDown} onSubmit={handleSubmit}>
+            <form method="dialog" onSubmit={handleSubmit}>
                 <div className="table-layout">
                     <p>
                         <label htmlFor="listenbrainz-username">User:</label>
@@ -83,9 +72,11 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
                             type="text"
                             id="listenbrainz-username"
                             autoFocus
-                            ref={userNameRef}
                             required
-                            defaultValue={listenbrainzSettings.userId}
+                            spellCheck={false}
+                            autoComplete="off"
+                            autoCapitalize="off"
+                            ref={userNameRef}
                         />
                     </p>
                     <p>
@@ -100,8 +91,10 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
                     </ExternalLink>
                 </p>
                 <footer className="dialog-buttons">
-                    <button value="#cancel">Cancel</button>
-                    <button ref={submitRef}>Login</button>
+                    <button type="button" value="#cancel">
+                        Cancel
+                    </button>
+                    <button>Login</button>
                 </footer>
             </form>
         </Dialog>

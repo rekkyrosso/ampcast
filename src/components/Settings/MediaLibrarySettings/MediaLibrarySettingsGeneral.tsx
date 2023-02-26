@@ -34,7 +34,9 @@ export default function MediaLibrarySettingsGeneral() {
                 </ul>
             </fieldset>
             <footer className="dialog-buttons">
-                <button value="#cancel">Cancel</button>
+                <button type="button" value="#cancel">
+                    Cancel
+                </button>
                 <button>Confirm</button>
             </footer>
         </form>

@@ -50,6 +50,7 @@ function Dialog(
         const dialog = dialogRef.current!;
         dialogPolyfill.registerDialog(dialog);
         dialog.showModal();
+        dialog.querySelector<HTMLElement>('input:read-write:enabled')?.focus();
     }, []);
 
     const close = useCallback(() => {
@@ -62,7 +63,7 @@ function Dialog(
 
     const handleBodyClick = useCallback((event: React.MouseEvent) => {
         let button: any = event.target;
-        while (button && button.type !== 'submit') {
+        while (button && button.nodeName !== 'BUTTON') {
             button = button.parentElement;
         }
         if (button?.value === '#cancel') {

@@ -3,10 +3,10 @@
 .page-header {
     background: linear-gradient(
         to bottom,
-        var(--button-color) 80%,
+        var(--frame2-color) 80%,
         var(--frame-color)
     );
-    color: var(--button-text-color);
+    color: var(--frame-text-color);
     border-width: 1px;
     border-style: solid;
     border-color:
@@ -24,7 +24,7 @@
     user-select: none;
 
     .themed.flat & {
-        background: var(--button-color);
+        background: var(--frame2-color);
     }
 
     .icon {
@@ -48,8 +48,8 @@
         margin-left: 0.25em;
 
         select {
-            background: var(--button-color);
-            color: var(--button-text-color);
+            background: var(--frame2-color);
+            color: var(--frame-text-color);
             padding: 0;
             border: 0;
             cursor: pointer;

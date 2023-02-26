@@ -17,12 +17,12 @@
     }
 
     input[type=range] {
-        color: var(--frame-text-color);
+        color: inherit;
 
         @mixin media-thumb {
             background-color: var(--media-button-color);
             background-image: var(--media-button-background);
-            border: 1px solid var(--media-button-text-color);
+            border: 1px solid var(--black);
             border-radius: calc(var(--roundness) * var(--thumb-size));
 
             &:hover {

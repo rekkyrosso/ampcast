@@ -44,7 +44,7 @@ export default function AddYouTubeVideo() {
                 <legend>Add video from url:</legend>
                 <p className="text-with-button">
                     <input type="url" required onInput={handleSourceInput} ref={ref} />
-                    <button title="Add to queue">
+                    <button title="Add to playlist">
                         <Icon name="playlist-add" />
                     </button>
                 </p>

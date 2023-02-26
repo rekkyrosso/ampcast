@@ -8,9 +8,9 @@
     display: inline-block;
     width: 1em;
     height: 1em;
-    margin-right: 0.25em;
+    margin-right: 0.1875em;
     background-image: linear-gradient(180deg, var(--am-color) 50%, var(--pm-color) 50%);
     border-radius: 50%;
-    border: 0.125em solid var(--text-color);
+    border: 0.125em solid;
     aspect-ratio: 1;
 }

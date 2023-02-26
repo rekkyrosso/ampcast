@@ -10,7 +10,6 @@
     "mediaButtonTextColor": "#111111",
     "selectedBackgroundColor": "#040dae",
     "selectedTextColor": "#d2d2d2",
-    "evenRowBackgroundColor": "",
     "spacing": 0.21875,
     "roundness": 0.09375,
     "flat": false

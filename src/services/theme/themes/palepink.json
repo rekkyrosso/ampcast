@@ -4,13 +4,8 @@
     "textColor": "#120f0c",
     "frameColor": "#cfbdd0",
     "frameTextColor": "#121211",
-    "buttonColor": "",
-    "buttonTextColor": "",
-    "mediaButtonColor": "",
-    "mediaButtonTextColor": "",
     "selectedBackgroundColor": "#b9d8f3",
     "selectedTextColor": "#000000",
-    "evenRowBackgroundColor": "",
     "spacing": 0.375,
     "roundness": 0.53125,
     "flat": true

@@ -7,7 +7,6 @@ export default function AmbientVideoSettings() {
     const sourceRef = useRef<HTMLInputElement>(null);
     const useSourceRef = useRef<HTMLInputElement>(null);
     const beatsOverlayRef = useRef<HTMLInputElement>(null);
-    const submitRef = useRef<HTMLButtonElement>(null);
     const [useSource, setUseSource] = useState(() => !!visualizerSettings.useAmbientVideoSource);
 
     const handleSubmit = useCallback(() => {
@@ -36,23 +35,8 @@ export default function AmbientVideoSettings() {
         sourceRef.current!.setCustomValidity(validityMessage);
     }, []);
 
-    const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            event.stopPropagation();
-            if (!event.repeat) {
-                submitRef.current!.click(); // forces form validation
-            }
-        }
-    }, []);
-
     return (
-        <form
-            className="ambient-video-settings"
-            method="dialog"
-            onKeyDown={handleKeyDown}
-            onSubmit={handleSubmit}
-        >
+        <form className="ambient-video-settings" method="dialog" onSubmit={handleSubmit}>
             <p>
                 <input
                     id="ambient-video-enabled"
@@ -108,8 +92,10 @@ export default function AmbientVideoSettings() {
                 <label htmlFor="show-beats-overlay">Show &quot;beats&quot; overlay</label>
             </p>
             <footer className="dialog-buttons">
-                <button value="#cancel">Cancel</button>
-                <button ref={submitRef}>Confirm</button>
+                <button type="button" value="#cancel">
+                    Cancel
+                </button>
+                <button>Confirm</button>
             </footer>
         </form>
     );

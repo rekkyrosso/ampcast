@@ -1,18 +1,38 @@
 .theme-editor {
-    .theme-name input {
-        width: 16em;
+    .theme-name {
+        label {
+            padding-bottom: 0.33em;
+        }
+
+        input {
+            width: 16em;
+        }
     }
 
     input[type=color] {
         width: 25%;
-        height: 2em;
-
-        .browser-firefox & {
-            height: 1.5em;
-        }
+        height: 1.375em;
     }
 
     button.small {
         margin-left: 0.5em;
+    }
+
+    .color-pair {
+        &.locked label {
+            color: var(--grey1-color);
+        }
+
+        .icon-button {
+            margin:  0 0.5em;
+        }
+    }
+
+    .icon-button-swap {
+        font-size: 0.75em;
+
+        &:disabled {
+            opacity: 0.5;
+        }
     }
 }

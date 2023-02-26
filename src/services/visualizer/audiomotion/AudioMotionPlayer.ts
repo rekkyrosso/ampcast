@@ -95,13 +95,8 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
     }
 
     private registerGradients(): void {
-        const {h, s, l} = new TinyColor(theme.frameColor).toHsl();
-        const mediaButtonColor = new TinyColor({
-            h,
-            s: s + (1 - s) * 0.33,
-            l: l + (1 - l) * 0.5,
-        });
-        const colors = new TinyColor(mediaButtonColor)
+        const brightColor = new TinyColor(theme.defaultMediaButtonColor);
+        const colors = new TinyColor(brightColor)
             .tetrad()
             .map((color) => color.toRgbString())
             .slice(1);
@@ -115,7 +110,7 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
         });
         this.visualizer.registerGradient('ampcast-rainbow', {
             bgColor: theme.black,
-            colorStops: mediaButtonColor.analogous().map((color) => color.toRgbString()) as any,
+            colorStops: brightColor.analogous().map((color) => color.toRgbString()) as any,
         });
     }
 }

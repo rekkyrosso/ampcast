@@ -42,18 +42,28 @@
         var(--text-color-l)
     );
 
-    --grey1-color: hsl(var(--text-color-h),
-            calc(var(--text-color-s) * 0.5),
-            calc(var(--text-color-l) * 0.5));
+    --grey1-color: hsl(
+        var(--text-color-h),
+        calc(var(--text-color-s) * 0.5),
+        calc(var(--text-color-l) * 0.5)
+    );
 
-    --grey2-color: hsl(var(--text-color-h),
-            calc(var(--text-color-s) * 0.5),
-            calc(var(--text-color-l) * 0.75));
+    --grey2-color: hsl(
+        var(--text-color-h),
+        calc(var(--text-color-s) * 0.5),
+        calc(var(--text-color-l) * 0.75)
+    );
 
     --frame-color: hsl(
         var(--frame-color-h),
         var(--frame-color-s),
         var(--frame-color-l)
+    );
+
+    --frame2-color: hsl(
+        var(--frame2-color-h),
+        var(--frame2-color-s),
+        var(--frame2-color-l)
     );
 
     --frame-color-hi: hsl(
@@ -108,7 +118,17 @@
             transparent 0.125rem
         );
 
-    --button-border-color: var(--black);
+    --scrollbar-color: hsl(
+        var(--scrollbar-color-h),
+        var(--scrollbar-color-s),
+        var(--scrollbar-color-l)
+    );
+
+    --scrollbar-text-color: hsl(
+        var(--scrollbar-text-color-h),
+        var(--scrollbar-text-color-s),
+        var(--scrollbar-text-color-l)
+    );
 
     --media-button-color: hsl(
         var(--media-button-color-h),
@@ -180,44 +200,48 @@
 
 .app,
 .system {
-    --button-color-h: var(--frame-color-h);
-    --button-color-s: calc(var(--frame-color-s) + 5%);
-    --button-color-l: calc(var(--frame-color-l) + 5%);
-
-    --button-text-color-h: var(--frame-text-color-h);
-    --button-text-color-s: var(--frame-text-color-s);
-    --button-text-color-l: var(--frame-text-color-l);
+    --frame2-color-h: var(--frame-color-h);
+    --frame2-color-s: calc(var(--frame-color-s) + 5%);
+    --frame2-color-l: calc(var(--frame-color-l) + 5%);
 }
 
 .app.frame-dark,
 .system.dark {
-    --button-color-hi: rgba(255, 255, 255, 0.2);
-    --button-color-lo: rgba(0, 0, 0, 0.4);
+    --frame2-color-hi: rgba(255, 255, 255, 0.2);
+    --frame2-color-lo: rgba(0, 0, 0, 0.4);
+    --button-color-hi: var(--frame2-color-hi);
+    --button-color-lo: var(--frame2-color-lo);
 }
 
 .app.frame-light,
 .system.light {
+    --frame2-color-hi: rgba(255, 255, 255, 0.5);
+    --frame2-color-lo: rgba(0, 0, 0, 0.25);
+    --button-color-hi: var(--frame2-color-hi);
+    --button-color-lo: var(--frame2-color-lo);
+}
+
+.app.button-dark {
+    --button-color-hi: rgba(255, 255, 255, 0.2);
+    --button-color-lo: rgba(0, 0, 0, 0.4);
+}
+
+.app.button-light {
     --button-color-hi: rgba(255, 255, 255, 0.5);
     --button-color-lo: rgba(0, 0, 0, 0.25);
 }
 
+.app.scrollbar-dark {
+    --scrollbar-color-hi: rgba(255, 255, 255, 0.2);
+    --scrollbar-color-lo: rgba(0, 0, 0, 0.4);
+}
+
+.app.scrollbar-light {
+    --scrollbar-color-hi: rgba(255, 255, 255, 0.5);
+    --scrollbar-color-lo: rgba(0, 0, 0, 0.25);
+}
+
 .app {
-    --media-button-color-h: var(--frame-color-h);
-    --media-button-color-s: calc(var(--frame-color-s) + (100% - var(--frame-color-s)) * 0.33);
-    --media-button-color-l: calc(var(--frame-color-l) + (100% - var(--frame-color-l)) * 0.5);
-
-    --media-button-text-color-h: var(--media-button-color-h);
-    --media-button-text-color-s: calc(var(--media-button-color-s) - var(--media-button-color-s) * 0.5);
-    --media-button-text-color-l: calc(var(--media-button-color-l) - var(--media-button-color-l) * 0.9);
-
-    --selected-background-color-h: var(--frame-color-h);
-    --selected-background-color-s: var(--frame-color-s);
-    --selected-background-color-l: var(--frame-color-l);
-
-    --selected-text-color-h: var(--frame-text-color-h);
-    --selected-text-color-s: var(--frame-text-color-s);
-    --selected-text-color-l: var(--frame-text-color-l);
-
     accent-color: var(--frame-text-color);
 }
 
@@ -236,14 +260,18 @@
 .system.dark {
     --background-color-h: 0;
     --background-color-s: 0%;
-    --background-color-l: 4.7%;
+    --background-color-l: 8%;
 
     --text-color: var(--soft-white);
-    --grey1-color: darkgray;
+    --grey1-color: dimgray;
 
     --frame-color-h: 0;
     --frame-color-s: 0%;
-    --frame-color-l: 18.3%;
+    --frame-color-l: 24%;
+
+    --button-color-h: 0;
+    --button-color-s: 2.5%;
+    --button-color-l: 26.5%;
 
     --frame-text-color: var(--soft-white);
     --button-text-color: var(--soft-white);
@@ -261,11 +289,15 @@
     --background-color-l: 100%;
 
     --text-color: black;
-    --grey1-color: silver;
+    --grey1-color: gray;
 
     --frame-color-h: 0;
     --frame-color-s: 0%;
     --frame-color-l: 74%;
+
+    --button-color-h: 0;
+    --button-color-s: 5%;
+    --button-color-l: 79%;
 
     --frame-text-color: black;
     --button-text-color: black;
@@ -275,13 +307,4 @@
 
     accent-color: black;
     color-scheme: light;
-}
-
-.app.light.frame-light {
-    --black: hsl(
-        var(--button-color-h),
-        calc(var(--button-color-s) - var(--button-color-s) * 0.6),
-        calc(var(--button-color-l) - var(--button-color-l) * 0.8)
-    );
-    --soft-white: white;
 }

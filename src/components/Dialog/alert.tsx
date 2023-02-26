@@ -2,6 +2,11 @@ import React from 'react';
 import Dialog, {DialogProps} from './Dialog';
 import showDialog from './showDialog';
 
+export interface AlertOptions {
+    title?: string;
+    message: React.ReactNode;
+}
+
 export default async function alert(
     message: React.ReactNode,
     title?: string,
@@ -16,10 +21,7 @@ export default async function alert(
     );
 }
 
-export interface AlertDialogProps extends DialogProps {
-    title?: string;
-    message: React.ReactNode;
-}
+export type AlertDialogProps = DialogProps & AlertOptions;
 
 export function AlertDialog({message, title = 'Message', ...props}: AlertDialogProps) {
     return (

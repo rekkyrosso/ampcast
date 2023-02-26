@@ -1,16 +1,11 @@
 {
     "name": "Moody Blue",
-    "backgroundColor": "#16141a",
+    "backgroundColor": "#051a23",
     "textColor": "#bec1c0",
     "frameColor": "#125673",
     "frameTextColor": "#d8eee7",
-    "buttonColor": "",
-    "buttonTextColor": "",
-    "mediaButtonColor": "",
-    "mediaButtonTextColor": "",
     "selectedBackgroundColor": "#124373",
     "selectedTextColor": "#ffffff",
-    "evenRowBackgroundColor": "",
     "spacing": 0.53125,
     "roundness": 0.40625,
     "flat": false

@@ -1,15 +1,22 @@
-import Dexie from 'dexie';
+import type {Observable} from 'rxjs';
+import {BehaviorSubject} from 'rxjs';
+import Dexie, {liveQuery} from 'dexie';
 import Theme from 'types/Theme';
 import {Logger} from 'utils';
 import themes from './themes';
 
 const logger = new Logger('themeStore');
 
+export interface UserTheme extends Theme {
+    readonly userTheme: true;
+}
+
 class ThemeStore extends Dexie {
     private readonly defaultThemes = new Map<string, Theme>(
         themes.map((theme) => [theme.name, theme])
     );
-    private readonly themes!: Dexie.Table<Theme, string>;
+    private readonly themes!: Dexie.Table<UserTheme, string>;
+    private readonly themes$ = new BehaviorSubject<readonly UserTheme[]>([]);
 
     constructor() {
         super('ampcast/themes');
@@ -17,46 +24,56 @@ class ThemeStore extends Dexie {
         this.version(1).stores({
             themes: `&name`,
         });
+
+        liveQuery(() => this.themes.toArray()).subscribe(this.themes$);
     }
 
-    isDefaultTheme(theme: string | Theme): boolean {
-        return this.defaultThemes.has(typeof theme === 'string' ? theme : theme.name);
+    observeUserThemes(): Observable<readonly UserTheme[]> {
+        return this.themes$;
     }
 
-    async getDefaultThemes(): Promise<readonly Theme[]> {
+    getDefaultTheme(name: string): Theme | undefined {
+        return this.defaultThemes.get(name);
+    }
+
+    getDefaultThemes(): readonly Theme[] {
         return [...this.defaultThemes.values()];
     }
 
-    async getUserThemes(): Promise<readonly Theme[]> {
-        return this.themes.toArray();
+    getUserTheme(name: string): UserTheme | undefined {
+        return this.getUserThemes().find((theme) => theme.name === name);
     }
 
-    async load(name: string): Promise<Theme | undefined> {
-        if (this.isDefaultTheme(name)) {
-            return this.defaultThemes.get(name);
-        }
-        return this.themes.get(name);
+    getUserThemes(): readonly UserTheme[] {
+        return this.themes$.getValue();
     }
 
     async save(theme: Theme): Promise<void> {
-        if (this.isDefaultTheme(theme)) {
-            throw Error(`Cannot overwrite default theme '${theme.name}'.`);
-        }
         try {
             logger.log('save', {theme});
-            await this.themes.put(theme);
+            await this.themes.put({...theme, userTheme: true});
         } catch (err) {
             logger.error(err);
         }
     }
 
     async remove(name: string): Promise<void> {
-        if (this.defaultThemes.has(name)) {
-            throw Error(`Cannot delete default theme '${name}'.`);
-        }
         try {
             logger.log('remove', {name});
             await this.themes.delete(name);
+        } catch (err) {
+            logger.error(err);
+        }
+    }
+
+    async rename(oldName: string, newName: string): Promise<void> {
+        try {
+            const theme = await this.themes.get(oldName);
+            if (!theme) {
+                throw Error(`Theme '${oldName}' not found.`)
+            }
+            await this.themes.delete(oldName);
+            await this.themes.put({...theme, name: newName, userTheme: true});
         } catch (err) {
             logger.error(err);
         }

@@ -18,16 +18,17 @@ export default function VisualizerSettingsGeneral() {
                 <select id="visualizer-provider" defaultValue={provider} ref={selectRef}>
                     <option value="none">(none)</option>
                     <option value="">(random)</option>
-                    {getEnabledVisualizerProviders()
-                        .map((provider) => (
-                            <option value={provider.id} key={provider.id}>
-                                {provider.name}
-                            </option>
-                        ))}
+                    {getEnabledVisualizerProviders().map((provider) => (
+                        <option value={provider.id} key={provider.id}>
+                            {provider.name}
+                        </option>
+                    ))}
                 </select>
             </p>
             <footer className="dialog-buttons">
-                <button value="#cancel">Cancel</button>
+                <button type="button" value="#cancel">
+                    Cancel
+                </button>
                 <button>Confirm</button>
             </footer>
         </form>

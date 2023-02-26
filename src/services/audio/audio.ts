@@ -1,4 +1,5 @@
-import {BehaviorSubject, Observable} from 'rxjs';
+import type {Observable} from 'rxjs';
+import {BehaviorSubject} from 'rxjs';
 import {distinctUntilChanged, skip} from 'rxjs/operators';
 import {observePlaybackStart} from 'services/mediaPlayback/playback';
 import spotifyAudioAnalyser from 'services/spotify/spotifyAudioAnalyser';

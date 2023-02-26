@@ -126,7 +126,7 @@ export const ListenDate: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
     }
     const time = item.playedAt * 1000;
     return (
-        <time className="text listen-date">
+        <time className="text">
             <SunClock time={time} />
             <span className="date">
                 {new Date(time).toLocaleDateString()}
@@ -208,7 +208,7 @@ const mediaFields: MediaFields<any> = {
     Genre: {title: 'Genre', render: Genre, className: 'genre'},
     Owner: {title: 'Owner', render: Owner, className: 'owner'},
     LastPlayed: {title: 'Last played', render: LastPlayed, className: 'played-at'},
-    ListenDate: {title: 'Played On', render: ListenDate, className: 'played-at'},
+    ListenDate: {title: 'Played On', render: ListenDate, className: 'played-at listen-date'},
     Thumbnail: {title: 'Thumbnail', render: Thumbnail, className: 'thumbnail'},
     Rate: {title: <StarRating rating={0} />, render: Rate, className: 'rate', width: 120},
 };

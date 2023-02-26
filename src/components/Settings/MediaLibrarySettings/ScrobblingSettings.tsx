@@ -67,7 +67,9 @@ export default function ScrobblingSettings({service: scrobbler}: MediaServiceSet
                 </ul>
             </fieldset>
             <footer className="dialog-buttons">
-                <button value="#cancel">Cancel</button>
+                <button type="button" value="#cancel">
+                    Cancel
+                </button>
                 <button>Confirm</button>
             </footer>
         </form>

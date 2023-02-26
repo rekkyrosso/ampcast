@@ -2,6 +2,7 @@ import React from 'react';
 import TabList, {TabItem} from 'components/TabList';
 import AppearanceSettingsGeneral from './AppearanceSettingsGeneral';
 import ThemeEditor from './ThemeEditor';
+import UserThemes from './UserThemes';
 
 const tabs: TabItem[] = [
     {
@@ -11,6 +12,10 @@ const tabs: TabItem[] = [
     {
         tab: 'Theme Editor',
         panel: <ThemeEditor />,
+    },
+    {
+        tab: 'My Themes',
+        panel: <UserThemes />,
     },
 ];
 

@@ -12,7 +12,6 @@ export default function JellyfinLoginDialog(props: DialogProps) {
     const hostRef = useRef<HTMLInputElement>(null);
     const userNameRef = useRef<HTMLInputElement>(null);
     const passwordRef = useRef<HTMLInputElement>(null);
-    const submitRef = useRef<HTMLButtonElement>(null);
 
     const login = useCallback(async () => {
         try {
@@ -50,16 +49,6 @@ export default function JellyfinLoginDialog(props: DialogProps) {
         }
     }, []);
 
-    const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            event.stopPropagation();
-            if (!event.repeat) {
-                submitRef.current!.click(); // forces form validation
-            }
-        }
-    }, []);
-
     const handleSubmit = useCallback(
         (event: React.FormEvent) => {
             event.preventDefault();
@@ -75,7 +64,7 @@ export default function JellyfinLoginDialog(props: DialogProps) {
             title="Login to Jellyfin"
             ref={dialogRef}
         >
-            <form method="dialog" onKeyDown={handleKeyDown} onSubmit={handleSubmit}>
+            <form method="dialog" onSubmit={handleSubmit}>
                 <div className="table-layout">
                     <p>
                         <label htmlFor="jellyfin-host">Host:</label>
@@ -94,6 +83,9 @@ export default function JellyfinLoginDialog(props: DialogProps) {
                             type="text"
                             id="jellyfin-username"
                             autoFocus
+                            spellCheck={false}
+                            autoComplete="off"
+                            autoCapitalize="off"
                             ref={userNameRef}
                             required
                         />
@@ -104,8 +96,10 @@ export default function JellyfinLoginDialog(props: DialogProps) {
                     </p>
                 </div>
                 <footer className="dialog-buttons">
-                    <button value="#cancel">Cancel</button>
-                    <button ref={submitRef}>Login</button>
+                    <button type="button" value="#cancel">
+                        Cancel
+                    </button>
+                    <button>Login</button>
                 </footer>
             </form>
         </Dialog>

@@ -1,6 +1,6 @@
 {
     "name": "ampcast",
-    "version": "0.8.5",
+    "version": "0.8.6",
     "description": "Ampcast music player",
     "author": {
         "name": "rekkyrosso",
@@ -54,8 +54,8 @@
         "@types/gapi.client.youtube": "^3.0.2",
         "@types/md5": "^2.3.2",
         "@types/nanoid": "^3.0.0",
-        "@types/react": "^18.0.21",
-        "@types/react-dom": "^18.0.6",
+        "@types/react": "^18.0.28",
+        "@types/react-dom": "^18.0.11",
         "@types/spotify-api": "^0.0.20",
         "@types/spotify-web-playback-sdk": "^0.1.15",
         "@types/unidecode": "^0.1.1",

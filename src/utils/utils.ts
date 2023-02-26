@@ -147,3 +147,11 @@ export function getTextFromHtml(html: string): string {
     dummyElement.innerHTML = html;
     return dummyElement.textContent || '';
 }
+
+export function saveTextToFile(fileName: string, text: string, type = 'text/json'): void {
+    const link = document.createElement('a');
+    link.href = window.URL.createObjectURL(new Blob([text], {type}));
+    link.download = fileName;
+    link.type = type;
+    link.click();
+}

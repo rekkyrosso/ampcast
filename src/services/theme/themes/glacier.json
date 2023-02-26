@@ -1,0 +1,12 @@
+{
+    "name": "Glacier",
+    "backgroundColor": "#d9e6e8",
+    "textColor": "#0d272b",
+    "frameColor": "#bfd4e8",
+    "frameTextColor": "#1c1c12",
+    "selectedBackgroundColor": "#ffffff",
+    "selectedTextColor": "#04030c",
+    "spacing": 0.65,
+    "roundness": 0.3,
+    "flat": false
+}

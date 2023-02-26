@@ -19,7 +19,10 @@ export default function usePseudoClasses(): void {
         subscription.add(
             fromEvent<FocusEvent>(document, 'focusout').subscribe((event) => {
                 if (!event.relatedTarget) {
-                    const activeElements = document.querySelectorAll('.focus');
+                    const settingsDialog = document.querySelector('.system .settings-dialog');
+                    const activeElements = (settingsDialog ? system : document).querySelectorAll(
+                        '.focus'
+                    );
                     for (const activeElement of activeElements) {
                         activeElement.classList.toggle('focus', false);
                     }

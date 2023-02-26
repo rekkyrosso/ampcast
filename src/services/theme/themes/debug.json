@@ -1,0 +1,18 @@
+{
+    "name": "Debug",
+    "backgroundColor": "#9dceec",
+    "textColor": "#0e0425",
+    "frameColor": "#00af4d",
+    "frameTextColor": "#fbf6ac",
+    "selectedBackgroundColor": "#ffcd03",
+    "selectedTextColor": "#000000",
+    "buttonColor": "#f57d20",
+    "buttonTextColor": "#000000",
+    "scrollbarColor": "#dd1a21",
+    "scrollbarTextColor": "#fff579",
+    "mediaButtonColor": "#f4f4f4",
+    "mediaButtonTextColor": "#181818",
+    "spacing": 0.38,
+    "roundness": 0.48,
+    "flat": false
+}

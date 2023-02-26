@@ -4,8 +4,6 @@
     position: absolute;
     inset: var(--gutter-width);
     bottom: 0;
-    color: var(--frame-text-color);
-    background-color: var(--frame-color);
 
     .splitter-rows > .layout-splitter {
         left: 0;
@@ -61,24 +59,5 @@
         }
 
         margin-bottom: calc(var(--gutter-width) / 2);
-    }
-
-    &.lastfm-browser,
-    &.listenbrainz-browser {
-        .album-browser .albums .list-view:not(.thin) {
-            .title,
-            .artist {
-                right: 4em;
-            }
-        }
-    }
-
-    &.plex-browser {
-        .album-browser:not(.search-browser) .albums .list-view:not(.thin) {
-            .title,
-            .artist {
-                right: 4em;
-            }
-        }
     }
 }

@@ -2,7 +2,7 @@
     background-color: var(--media-button-color);
     background-image: var(--media-button-background);
     color: var(--media-button-text-color);
-    border: 1px solid;
+    border: 1px solid var(--black);
     padding: 0.5rem;
     width: 2rem;
     height: 2rem;
@@ -31,5 +31,6 @@
         width: 1.25rem;
         height: 1.25rem;
         padding: 0;
+        cursor: pointer;
     }
 }

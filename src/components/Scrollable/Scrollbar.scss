@@ -2,7 +2,11 @@
 
 .scrollbar {
     position: absolute;
-    background: var(--scrollbar-color);
+    background: hsl(
+        var(--scrollbar-color-h),
+        var(--scrollbar-color-s),
+        calc(var(--scrollbar-color-l) - var(--scrollbar-color-l) * 0.5)
+    );
     border-radius: var(--app-border-radius);
     display: none;
 
@@ -22,7 +26,25 @@
 
     &-thumb,
     &-button {
-        @include pressable-button;
+        color: var(--scrollbar-text-color);
+        background-clip: padding-box;
+        background-color: var(--scrollbar-color);
+        background-image:
+            linear-gradient(to bottom,
+                var(--scrollbar-color-hi),
+                transparent 0.125rem),
+            linear-gradient(to right,
+                var(--scrollbar-color-hi),
+                transparent 0.125rem),
+            linear-gradient(to left,
+                var(--scrollbar-color-lo),
+                transparent 0.125rem),
+            linear-gradient(to top,
+                var(--scrollbar-color-lo),
+                transparent 0.125rem);
+        border: 1px solid var(--black);
+        border-radius: calc(var(--roundness) * 1em);
+        @include pressable;
         position: absolute;
         width: var(--scrollbar-size);
         height: var(--scrollbar-size);

@@ -1,0 +1,14 @@
+{
+    "name": "Radioactive",
+    "backgroundColor": "#0f0f10",
+    "textColor": "#d1f5d2",
+    "frameColor": "#322724",
+    "frameTextColor": "#c3feca",
+    "selectedBackgroundColor": "#2e2432",
+    "selectedTextColor": "#ffffff",
+    "mediaButtonColor": "#c3feca",
+    "mediaButtonTextColor": "#021c05",
+    "spacing": 0.73,
+    "roundness": 0.86,
+    "flat": false
+}
