@@ -1,11 +1,5 @@
 .pinned-settings {
-    select {
-        width: 100%;
-        height: 10em;
-        margin: 0.5em 0;
-    }
-
-    > p + p {
+    &-buttons {
         text-align: right;
     }
 }

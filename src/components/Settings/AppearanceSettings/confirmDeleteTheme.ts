@@ -4,7 +4,7 @@ export default async function confirmDeleteTheme(name: string): Promise<boolean>
     return confirm({
         title: 'My themes',
         message: `Delete theme '${name}'?`,
-        buttonLabel: 'Delete',
+        okLabel: 'Delete',
         storageId: 'delete-user-theme',
         system: true,
     });

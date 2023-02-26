@@ -11,6 +11,7 @@ import Actions from 'components/Actions';
 import CoverArt, {CoverArtProps} from 'components/CoverArt';
 import ExternalLink from 'components/ExternalLink';
 import Icon, {MediaSourceIconName} from 'components/Icon';
+import TextBox from 'components/TextBox';
 import {formatTime} from 'utils';
 import useCurrentItem from './useCurrentItem';
 import './MediaInfo.scss';
@@ -128,9 +129,9 @@ export function Title<T extends MediaObject>({title}: Pick<T, 'title'>) {
 
 export function Blurb<T extends MediaPlaylist>({description}: Pick<T, 'description'>) {
     return description ? (
-        <div className="blurb text-box">
+        <TextBox className="blurb">
             <p>{description}</p>
-        </div>
+        </TextBox>
     ) : null;
 }
 

@@ -7,11 +7,11 @@ export interface AlertOptions {
     message: React.ReactNode;
 }
 
-export default async function alert(
-    message: React.ReactNode,
-    title?: string,
-    system?: boolean
-): Promise<void> {
+export default async function alert({
+    title,
+    message,
+    system = false,
+}: AlertOptions & {system?: boolean}): Promise<void> {
     if (typeof message === 'string') {
         message = <p>{message}</p>;
     }

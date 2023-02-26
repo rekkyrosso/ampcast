@@ -8,7 +8,7 @@ export default async function confirmOverwriteTheme(name: string): Promise<boole
     return confirm({
         title: 'My themes',
         message: `Overwrite existing theme '${name}'?`,
-        buttonLabel: 'Save',
+        okLabel: 'Save',
         storageId: 'overwrite-user-theme',
         system: true,
     });

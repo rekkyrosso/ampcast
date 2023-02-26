@@ -7,15 +7,15 @@
     flex: auto;
     flex-direction: column;
 
-    li + li {
-        margin-left: 2px;
-    }
-
     &-tabs {
         display: flex;
         flex-direction: row;
         user-select: none;
         z-index: 1;
+
+        > li + li {
+            margin-left: 2px;
+        }
     }
 
     &-panels {

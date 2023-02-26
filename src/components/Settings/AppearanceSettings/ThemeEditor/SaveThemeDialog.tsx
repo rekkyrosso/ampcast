@@ -1,5 +1,7 @@
-import React, {useCallback, useId, useRef, useState} from 'react';
+import React, {useCallback, useId, useMemo, useRef, useState} from 'react';
+import Theme from 'types/Theme';
 import Dialog, {DialogProps} from 'components/Dialog';
+import ListBox from 'components/ListView/ListBox';
 import useUserThemes from '../useUserThemes';
 import confirmOverwriteTheme from '../confirmOverwriteTheme';
 import './SaveThemeDialog.scss';
@@ -10,6 +12,7 @@ export interface SaveThemeDialogProps extends DialogProps {
 
 export default function SaveThemeDialog({suggestedName, ...props}: SaveThemeDialogProps) {
     const id = useId();
+    const renderTheme = useMemo(() => (theme: Theme) => theme.name, []);
     const [value, setValue] = useState(suggestedName);
     const dialogRef = useRef<HTMLDialogElement>(null);
     const inputRef = useRef<HTMLInputElement>(null);
@@ -19,23 +22,28 @@ export default function SaveThemeDialog({suggestedName, ...props}: SaveThemeDial
         setValue(event.target.value);
     }, []);
 
-    const handleSelect = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-        const value = event.target.value;
-        inputRef.current!.value = value;
-        setValue(value);
+    const handleSelect = useCallback(([theme]: readonly Theme[]) => {
+        if (theme) {
+            inputRef.current!.value = theme.name;
+            setValue(theme.name);
+        }
     }, []);
 
-    const submit = useCallback(
+    const submit = useCallback(async () => {
+        if (value) {
+            const confirmed = await confirmOverwriteTheme(value);
+            if (confirmed) {
+                dialogRef.current!.close(value);
+            }
+        }
+    }, [value]);
+
+    const handleSubmitClick = useCallback(
         async (event: React.FormEvent) => {
             event.preventDefault();
-            if (value) {
-                const confirmed = await confirmOverwriteTheme(value);
-                if (confirmed) {
-                    dialogRef.current!.close(value);
-                }
-            }
+            submit();
         },
-        [value]
+        [submit]
     );
 
     return (
@@ -43,7 +51,7 @@ export default function SaveThemeDialog({suggestedName, ...props}: SaveThemeDial
             {...props}
             className="save-theme-dialog"
             title="Save Theme"
-            onSubmit={submit}
+            onSubmit={handleSubmitClick}
             ref={dialogRef}
         >
             <form method="dialog">
@@ -60,15 +68,13 @@ export default function SaveThemeDialog({suggestedName, ...props}: SaveThemeDial
                         ref={inputRef}
                     />
                 </p>
-                <p>
-                    <select onChange={handleSelect} onDoubleClick={submit} size={6}>
-                        {userThemes.map(({name}) => (
-                            <option value={name} key={name}>
-                                {name}
-                            </option>
-                        ))}
-                    </select>
-                </p>
+                <ListBox<Theme>
+                    items={userThemes}
+                    itemKey="name"
+                    renderItem={renderTheme}
+                    onDoubleClick={submit}
+                    onSelect={handleSelect}
+                />
                 <footer className="dialog-buttons">
                     <button type="button" value="#cancel">
                         Cancel

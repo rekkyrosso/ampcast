@@ -9,14 +9,14 @@ const storage = new LiteStorage('confirm');
 export interface ConfirmOptions {
     title?: string;
     message: React.ReactNode;
-    buttonLabel?: React.ReactNode;
+    okLabel?: React.ReactNode;
     storageId?: string;
 }
 
 export default async function confirm({
     title,
     message,
-    buttonLabel,
+    okLabel,
     storageId,
     system = false,
 }: ConfirmOptions & {system?: boolean}): Promise<boolean> {
@@ -32,7 +32,7 @@ export default async function confirm({
                 {...props}
                 title={title}
                 message={message}
-                buttonLabel={buttonLabel}
+                okLabel={okLabel}
                 storageId={storageId}
             />
         ),
@@ -45,8 +45,8 @@ export type ConfirmDialogProps = DialogProps & ConfirmOptions;
 
 export function ConfirmDialog({
     title = 'Confirm',
-    buttonLabel = 'OK',
     message,
+    okLabel = 'OK',
     storageId,
     ...props
 }: ConfirmDialogProps) {
@@ -67,7 +67,7 @@ export function ConfirmDialog({
                     <button type="button" value="#cancel">
                         Cancel
                     </button>
-                    <button value="confirmed">{buttonLabel}</button>
+                    <button value="confirmed">{okLabel}</button>
                 </footer>
                 {storageId ? (
                     <footer className="confirm-dialog-storage">

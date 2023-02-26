@@ -21,7 +21,7 @@ import useSelectedItems from './useSelectedItems';
 import './ListView.scss';
 
 export interface ColumnSpec<T> {
-    readonly title: React.ReactNode;
+    readonly title?: React.ReactNode;
     readonly className?: string;
     readonly align?: 'left' | 'right' | 'center';
     readonly sortOrder?: SortOrder;
@@ -55,6 +55,7 @@ export interface ListViewHandle {
     scrollIntoView: (rowIndex: number) => void;
     scrollTo: (rowIndex: number) => void;
     selectAll: () => void;
+    selectAt: (rowIndex: number) => void;
 }
 
 export interface ListViewProps<T> {
@@ -194,9 +195,10 @@ export default function ListView<T>({
                 scrollIntoView,
                 scrollTo,
                 selectAll,
+                selectAt,
             };
         }
-    }, [listViewRef, focus, scrollIntoView, scrollTo, selectAll]);
+    }, [listViewRef, focus, scrollIntoView, scrollTo, selectAll, selectAt]);
 
     useLayoutEffect(() => onRowIndexChange?.(rowIndex), [rowIndex, onRowIndexChange]);
     useLayoutEffect(() => onScrollIndexChange?.(scrollIndex), [scrollIndex, onScrollIndexChange]);
@@ -374,9 +376,9 @@ export default function ListView<T>({
         }
     }, []);
 
-    const handleResize = useCallback(({width, height}: ScrollableClient) => {
-        setClientWidth(width);
-        setClientHeight(height);
+    const handleResize = useCallback(({clientWidth, clientHeight}: ScrollableClient) => {
+        setClientWidth(clientWidth);
+        setClientHeight(clientHeight);
     }, []);
 
     const handleScroll = useCallback(({top}: ScrollablePosition) => {

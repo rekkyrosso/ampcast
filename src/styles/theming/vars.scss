@@ -275,8 +275,6 @@
 
     --frame-text-color: var(--soft-white);
     --button-text-color: var(--soft-white);
-    --selected-background-color: blue;
-    --selected-background-color-blurred: darkblue;
     --selected-text-color: var(--soft-white);
 
     accent-color: var(--soft-white);
@@ -301,10 +299,19 @@
 
     --frame-text-color: black;
     --button-text-color: black;
-    --selected-background-color: blue;
-    --selected-background-color-blurred: darkblue;
     --selected-text-color: var(--soft-white);
 
     accent-color: black;
     color-scheme: light;
+}
+
+.system {
+    --scrollbar-color-h: var(--button-color-h);
+    --scrollbar-color-s: var(--button-color-s);
+    --scrollbar-color-l: var(--button-color-l);
+    --scrollbar-text-color: var(--button-text-color);
+    --scrollbar-color-hi: var(--button-color-hi);
+    --scrollbar-color-lo: var(--button-color-lo);
+    --selected-background-color: blue;
+    --selected-background-color-blurred: #545454;
 }

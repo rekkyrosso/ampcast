@@ -7,7 +7,7 @@ dialog {
 
     & + .backdrop {
         /* Turn off shim background. */
-        display: none;
+        background: none;
     }
 }
 

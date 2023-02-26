@@ -61,8 +61,8 @@
         justify-content: center;
 
         .icon {
-            width: 0.5rem;
-            height: 0.5rem;
+            width: calc(var(--scrollbar-size) / 3);
+            height: calc(var(--scrollbar-size) / 3);
             pointer-events: none;
         }
     }

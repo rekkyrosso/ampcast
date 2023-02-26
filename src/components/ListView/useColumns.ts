@@ -13,6 +13,7 @@ export default function useColumns<T>(layout: ListViewLayout<T>) {
                 const prevCol = cols[index - 1];
                 const left = prevCol ? prevCol.left + prevCol.width : 0;
                 const {
+                    title = '',
                     className = '',
                     align = 'left',
                     sortOrder = 'none',
@@ -32,6 +33,7 @@ export default function useColumns<T>(layout: ListViewLayout<T>) {
                     : {};
                 cols.push({
                     ...spec,
+                    title,
                     className,
                     align,
                     index,

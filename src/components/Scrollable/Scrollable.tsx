@@ -12,8 +12,10 @@ export interface ScrollablePosition {
 }
 
 export interface ScrollableClient {
-    width: number;
-    height: number;
+    clientWidth: number;
+    clientHeight: number;
+    scrollWidth: number;
+    scrollHeight: number;
 }
 
 export interface ScrollableHandle {
@@ -133,7 +135,9 @@ export default function Scrollable({
         if (initialScrollHeight === 0) {
             setScrollHeight(bodyContent.scrollHeight + (headRef.current?.clientHeight || 0));
         }
-        onResize?.({width: content.clientWidth, height: content.clientHeight});
+        const {clientWidth, clientHeight} = content;
+        const {scrollWidth, scrollHeight} = bodyContent;
+        onResize?.({clientWidth, clientHeight, scrollWidth, scrollHeight});
     }, [initialScrollWidth, initialScrollHeight, onResize]);
 
     useOnResize(containerRef, onContainerResize);

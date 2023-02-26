@@ -5,33 +5,41 @@ import {alert, prompt} from 'components/Dialog';
 import confirmOverwriteTheme from './confirmOverwriteTheme';
 
 export default async function importThemeFromFile(file: File): Promise<void> {
+    const title = 'Import theme';
+    const system = true;
     try {
-        if (file) {
-            const data = await file.text();
-            const importedTheme: Theme = JSON.parse(data);
-            if (!theme.validate(importedTheme)) {
-                await alert('Not a valid theme.');
-                return;
-            }
-            let name = importedTheme.name;
-            let confirmed = false;
-            while (name && !confirmed) {
-                name = await prompt({
-                    title: 'Import theme',
-                    value: name,
-                    buttonLabel: 'Import',
-                    system: true,
-                });
-                if (name) {
-                    confirmed = await confirmOverwriteTheme(name);
-                    if (confirmed) {
-                        await themeStore.save({...importedTheme, name});
-                    }
+        const data = await file.text();
+        const importedTheme: Theme = JSON.parse(data);
+        if (!theme.validate(importedTheme)) {
+            await alert({
+                title,
+                message: 'Not a valid theme.',
+                system,
+            });
+            return;
+        }
+        let name = importedTheme.name;
+        let confirmed = false;
+        while (name && !confirmed) {
+            name = await prompt({
+                title,
+                suggestedValue: name,
+                okLabel: 'Import',
+                system,
+            });
+            if (name) {
+                confirmed = await confirmOverwriteTheme(name);
+                if (confirmed) {
+                    await themeStore.save({...importedTheme, name});
                 }
             }
         }
     } catch (err) {
         console.error(err);
-        alert('Could not load theme.');
+        await alert({
+            title,
+            message: 'Could not load theme.',
+            system,
+        });
     }
 }

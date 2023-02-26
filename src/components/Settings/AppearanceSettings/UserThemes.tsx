@@ -1,6 +1,9 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import Theme from 'types/Theme';
 import themeStore from 'services/theme/themeStore';
 import {prompt} from 'components/Dialog';
+import ListBox from 'components/ListView/ListBox';
+import {ListViewHandle} from 'components/ListView';
 import {saveTextToFile} from 'utils';
 import useUserThemes from './useUserThemes';
 import confirmDeleteTheme from './confirmDeleteTheme';
@@ -9,58 +12,65 @@ import importThemeFromFile from './importThemeFromFile';
 import './UserThemes.scss';
 
 export default function UserThemes() {
+    const listViewRef = useRef<ListViewHandle>(null);
+    const renderTheme = useMemo(() => (theme: Theme) => theme.name, []);
     const fileRef = useRef<HTMLInputElement>(null);
-    const themesRef = useRef<HTMLSelectElement>(null);
     const themes = useUserThemes();
-    const [selectedCount, setSelectedCount] = useState(0);
     const [renamed, setRenamed] = useState('');
+    const [selectedThemes, setSelectedThemes] = useState<readonly Theme[]>([]);
+    const [selectedTheme] = selectedThemes;
 
     useEffect(() => {
-        if (renamed && themes.find((theme) => theme.name === renamed)) {
-            themesRef.current!.value = renamed;
-            setRenamed('');
+        if (renamed) {
+            const rowIndex = themes.findIndex((theme) => theme.name === renamed);
+            if (rowIndex !== -1) {
+                listViewRef.current!.selectAt(rowIndex);
+                setRenamed('');
+            }
         }
     }, [themes, renamed]);
 
-    const handleSelectionChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedCount(event.target.selectedOptions.length);
-    }, []);
-
     const handleRenameClick = useCallback(async () => {
-        const oldName = themesRef.current!.value;
-        const newName = await prompt({
-            title: 'My themes',
-            value: oldName,
-            buttonLabel: 'Rename',
-            system: true,
-        });
-        if (newName) {
-            const confirmed = await confirmOverwriteTheme(newName);
-            if (confirmed) {
-                await themeStore.rename(oldName, newName);
-                setRenamed(newName);
+        if (selectedTheme) {
+            const oldName = selectedTheme.name;
+            const newName = await prompt({
+                title: 'My themes',
+                suggestedValue: oldName,
+                okLabel: 'Rename',
+                system: true,
+            });
+            if (newName) {
+                const confirmed = await confirmOverwriteTheme(newName);
+                if (confirmed) {
+                    await themeStore.rename(oldName, newName);
+                    setRenamed(newName);
+                }
             }
         }
-    }, []);
+    }, [selectedTheme]);
 
     const handleExportClick = useCallback(async () => {
-        const name = themesRef.current!.value;
-        const theme = themeStore.getUserTheme(name);
-        if (theme) {
-            // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const {userTheme, ...data} = theme;
-            saveTextToFile(`${name}.json`, JSON.stringify(data, undefined, 4));
+        if (selectedTheme) {
+            const name = selectedTheme.name;
+            const theme = themeStore.getUserTheme(name);
+            if (theme) {
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const {userTheme, ...data} = theme;
+                saveTextToFile(`${name}.json`, JSON.stringify(data, undefined, 4));
+            }
         }
-    }, []);
+    }, [selectedTheme]);
 
     const handleDeleteClick = useCallback(async () => {
-        const name = themesRef.current!.value;
-        const confirmed = await confirmDeleteTheme(name);
-        if (confirmed) {
-            await themeStore.remove(name);
-            setSelectedCount(0);
+        if (selectedTheme) {
+            const name = selectedTheme.name;
+            const confirmed = await confirmDeleteTheme(name);
+            if (confirmed) {
+                await themeStore.remove(name);
+                setSelectedThemes([]);
+            }
         }
-    }, []);
+    }, [selectedTheme]);
 
     const handleImportClick = useCallback(() => {
         fileRef.current!.click();
@@ -76,43 +86,32 @@ export default function UserThemes() {
 
     return (
         <form className="user-themes" method="dialog">
-            <fieldset>
-                <legend>Saved themes</legend>
-                <p>
-                    <select size={8} ref={themesRef} onChange={handleSelectionChange}>
-                        {themes.map((theme) => (
-                            <option value={theme.name} key={theme.name}>
-                                {theme.name}
-                            </option>
-                        ))}
-                    </select>
-                </p>
-                <p className="user-themes-buttons">
-                    <button
-                        type="button"
-                        onClick={handleRenameClick}
-                        disabled={selectedCount === 0}
-                    >
-                        Rename…
-                    </button>
-                    <button
-                        type="button"
-                        onClick={handleExportClick}
-                        disabled={selectedCount === 0}
-                    >
-                        Export…
-                    </button>
-                    <button
-                        className="user-themes-delete"
-                        type="button"
-                        onClick={handleDeleteClick}
-                        disabled={selectedCount === 0}
-                    >
-                        Delete
-                    </button>
-                </p>
-            </fieldset>
-            <fieldset>
+            <h3>My themes:</h3>
+            <ListBox<Theme>
+                items={themes}
+                itemKey="name"
+                renderItem={renderTheme}
+                onDelete={handleDeleteClick}
+                onSelect={setSelectedThemes}
+                listViewRef={listViewRef}
+            />
+            <p className="user-themes-buttons">
+                <button type="button" onClick={handleRenameClick} disabled={!selectedTheme}>
+                    Rename…
+                </button>
+                <button type="button" onClick={handleExportClick} disabled={!selectedTheme}>
+                    Export…
+                </button>
+                <button
+                    className="user-themes-delete"
+                    type="button"
+                    onClick={handleDeleteClick}
+                    disabled={!selectedTheme}
+                >
+                    Delete
+                </button>
+            </p>
+            <fieldset className="user-themes-import">
                 <legend>Import themes</legend>
                 <p>
                     <input

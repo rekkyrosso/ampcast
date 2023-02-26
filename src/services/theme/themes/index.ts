@@ -21,7 +21,7 @@ export const emptyTheme: Required<Theme> = {
     textColor: 'white',
     frameColor: 'black',
     frameTextColor: 'white',
-    selectedBackgroundColor: 'darkblue',
+    selectedBackgroundColor: 'blue',
     selectedTextColor: 'white',
     // leave these empty
     buttonColor: '',

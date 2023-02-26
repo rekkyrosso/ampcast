@@ -78,7 +78,20 @@
     .blurb {
         margin-top: 1em;
         font-size: 0.75em;
-        max-height: 15em;
+        max-height: 14.5em;
+        text-align: justify;
+
+        .scrollable {
+            --scrollbar-size: 1.25em;
+            --scrollbar-color-hi: var(--scrollbar-color);
+            --scrollbar-color-lo: var(--scrollbar-color);
+
+            p {
+                margin: 0;
+                padding-right: 1em;
+                padding-bottom: 0.25em;
+            }
+        }
     }
 
     .icon-buttons {

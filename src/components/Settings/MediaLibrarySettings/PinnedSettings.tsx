@@ -1,12 +1,14 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
+import Pin from 'types/Pin';
 import pinStore from 'services/pins/pinStore';
+import ListBox from 'components/ListView/ListBox';
 import {MediaServiceSettingsProps} from './MediaServiceSettings';
 import './PinnedSettings.scss';
 
 export default function PinnedSettings({service}: MediaServiceSettingsProps) {
-    const pinsRef = useRef<HTMLSelectElement>(null);
+    const renderPin = useMemo(() => (pin: Pin) => pin.title, []);
     const [pins, setPins] = useState(() => pinStore.getPinsForService(service.id));
-    const [selectedCount, setSelectedCount] = useState(0);
+    const [selectedPins, setSelectedPins] = useState<readonly Pin[]>([]);
 
     const handleSubmit = useCallback(async () => {
         const originalPins = pinStore.getPinsForService(service.id);
@@ -18,37 +20,28 @@ export default function PinnedSettings({service}: MediaServiceSettingsProps) {
     }, [service, pins]);
 
     const handleRemoveClick = useCallback(() => {
-        const selectedSrcs = Array.from(pinsRef.current!.selectedOptions).map(
-            (option) => option.value
-        );
+        const selectedSrcs = selectedPins.map((pin) => pin.src);
         setPins((pins) => pins.filter((pin) => !selectedSrcs.includes(pin.src)));
-        setSelectedCount(0);
-    }, []);
-
-    const handleSelectionChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-        setSelectedCount(event.target.selectedOptions.length);
-    }, []);
+        setSelectedPins([]);
+    }, [selectedPins]);
 
     return (
         <form className="pinned-settings" method="dialog" onSubmit={handleSubmit}>
-            <p>
-                <label htmlFor="pinned-playlists">Pinned playlists:</label>
-                <select
-                    id="pinned-playlists"
-                    multiple
-                    size={8}
-                    onChange={handleSelectionChange}
-                    ref={pinsRef}
+            <h3>Pinned playlists:</h3>
+            <ListBox<Pin>
+                items={pins}
+                itemKey="src"
+                multiSelect
+                renderItem={renderPin}
+                onDelete={handleRemoveClick}
+                onSelect={setSelectedPins}
+            />
+            <p className="pinned-settings-buttons">
+                <button
+                    type="button"
+                    disabled={selectedPins.length === 0}
+                    onClick={handleRemoveClick}
                 >
-                    {pins.map((pin) => (
-                        <option value={pin.src} key={pin.src}>
-                            {pin.title}
-                        </option>
-                    ))}
-                </select>
-            </p>
-            <p>
-                <button type="button" disabled={selectedCount === 0} onClick={handleRemoveClick}>
                     Remove
                 </button>
             </p>

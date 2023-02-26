@@ -5,27 +5,16 @@ import showDialog from './showDialog';
 export interface PromptOptions {
     title?: string;
     label?: React.ReactNode;
-    buttonLabel?: React.ReactNode;
-    value?: string;
+    suggestedValue?: string;
+    okLabel?: React.ReactNode;
 }
 
 export default async function prompt({
-    title,
-    value,
-    label,
-    buttonLabel,
     system = false,
+    ...props
 }: PromptOptions & {system?: boolean}): Promise<string> {
     return showDialog(
-        (props: DialogProps) => (
-            <PromptDialog
-                {...props}
-                title={title}
-                value={value}
-                label={label}
-                buttonLabel={buttonLabel}
-            />
-        ),
+        (dialogProps: DialogProps) => <PromptDialog {...dialogProps} {...props} />,
         system
     );
 }
@@ -34,13 +23,13 @@ export type PromptDialogProps = DialogProps & PromptOptions;
 
 export function PromptDialog({
     title = 'Input',
-    value: defaultValue = '',
     label,
-    buttonLabel = 'OK',
+    suggestedValue = '',
+    okLabel = 'OK',
     ...props
 }: PromptDialogProps) {
     const id = useId();
-    const [value, setValue] = useState(defaultValue);
+    const [value, setValue] = useState(suggestedValue);
 
     const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         setValue(event.target.value);
@@ -58,7 +47,7 @@ export function PromptDialog({
                     <input
                         type="text"
                         id={id}
-                        defaultValue={defaultValue}
+                        defaultValue={suggestedValue}
                         autoFocus
                         spellCheck={false}
                         autoComplete="off"
@@ -70,7 +59,7 @@ export function PromptDialog({
                     <button type="button" value="#cancel">
                         Cancel
                     </button>
-                    <button value={value}>{buttonLabel}</button>
+                    <button value={value}>{okLabel}</button>
                 </footer>
             </form>
         </Dialog>
