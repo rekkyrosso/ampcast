@@ -16,15 +16,15 @@ const memoryStorage: BasicStorage = {
     },
 
     getItem(key: string): string | null {
-        return values.get(key) ?? null;
+        return values.get(String(key)) ?? null;
     },
 
     setItem(key: string, value: string): void {
-        values.set(key, String(value));
+        values.set(String(key), String(value));
     },
 
     removeItem(key: string): void {
-        values.delete(key);
+        values.delete(String(key));
     },
 };
 

@@ -7,8 +7,6 @@ export default async function showDialog(
     system = false
 ): Promise<string> {
     return new Promise((resolve, reject) => {
-        const popupRoot = document.getElementById('popup')!;
-        const systemRoot = document.getElementById('system')!;
         const rootElement = document.createElement('div');
         const root = createRoot(rootElement);
         try {
@@ -17,7 +15,7 @@ export default async function showDialog(
                 rootElement.remove();
                 resolve(returnValue);
             };
-            (system ? systemRoot : popupRoot).append(rootElement);
+            document.getElementById(system ? 'system' : 'popup')!.append(rootElement);
             root.render(<Dialog onClose={close} />);
         } catch (err) {
             root.unmount();

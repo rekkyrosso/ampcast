@@ -32,5 +32,5 @@ export default interface MediaService extends Auth {
         timeout?: number
     ) => Promise<readonly MediaItem[]>;
     rate?: (item: MediaObject, rating: number) => Promise<void>;
-    store?: (item: MediaObject, stored: boolean) => Promise<void>;
+    store?: (item: MediaObject, inLibrary: boolean) => Promise<void>;
 }

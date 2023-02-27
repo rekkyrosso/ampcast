@@ -130,7 +130,9 @@ export default function ListView<T>({
     const [rowHeight, setRowHeight] = useState(0);
     const [cols, handleColumnResize] = useColumns(layout);
     const width = useMemo(() => cols.reduce((width, col) => (width += col.width), 0), [cols]);
-    const pageSize = rowHeight ? Math.ceil(clientHeight / rowHeight) - (showTitles ? 1 : 0) : 0;
+    const pageSize = rowHeight
+        ? Math.max(Math.floor(clientHeight / rowHeight), 1) - (showTitles ? 1 : 0)
+        : 0;
     const size = items.length;
     const {selectedItems, selectAll, selectAt, selectRange, toggleSelectionAt} = useSelectedItems(
         items,
