@@ -88,10 +88,6 @@ function Router<T extends MediaObject>({service, sources}: MediaBrowserProps<T>)
     }, [service]);
 
     switch (source?.id) {
-        case 'apple/videos':
-        case 'apple/library-videos':
-            return <AppleMusicVideo sources={sources as readonly MediaSource<MediaItem>[]} />;
-
         case 'lastfm/top/tracks':
         case 'lastfm/top/albums':
         case 'lastfm/top/artists':
@@ -189,6 +185,17 @@ export function PagedBrowser<T extends MediaObject>(props: PagedBrowserProps<T>)
             }
 
         default:
-            return <MediaItemBrowser {...(props as unknown as PagedBrowserProps<MediaItem>)} />;
+            switch (props.source.id) {
+                case 'apple/search/videos':
+                case 'apple/library-videos':
+                    return (
+                        <AppleMusicVideo {...(props as unknown as PagedBrowserProps<MediaItem>)} />
+                    );
+
+                default:
+                    return (
+                        <MediaItemBrowser {...(props as unknown as PagedBrowserProps<MediaItem>)} />
+                    );
+            }
     }
 }

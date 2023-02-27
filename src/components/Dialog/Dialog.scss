@@ -121,11 +121,5 @@ dialog {
     &-body &-buttons {
         text-align: right;
         margin: 2em 0 0 0;
-
-        .alert-dialog &,
-        .confirm-dialog &,
-        .prompt-dialog & {
-            text-align: center;
-        }
     }
 }

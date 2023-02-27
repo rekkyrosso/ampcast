@@ -5,7 +5,7 @@ export default function LoginButton({service}: LoginProps) {
     return (
         <p>
             <button className="branded login" onClick={service.login}>
-                Login to {service.name}
+                Log in to {service.name}
             </button>
         </p>
     );

@@ -28,24 +28,6 @@ const defaultLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
 };
 
-export const appleMusicVideos: MediaSource<MediaItem> = {
-    id: 'apple/videos',
-    title: 'Music Video',
-    icon: 'video',
-    itemType: ItemType.Media,
-    searchable: true,
-    layout: defaultLayout,
-    defaultHidden: true,
-
-    search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
-        if (q) {
-            return createSearchPager(ItemType.Media, q, {types: 'music-videos'}, {maxSize: 250});
-        } else {
-            return new SimplePager();
-        }
-    },
-};
-
 const appleRecommendations: MediaSource<MediaPlaylist> = {
     id: 'apple/recommendations',
     title: 'Recommended',
@@ -174,6 +156,12 @@ const apple: MediaService = {
         createRoot(ItemType.Album, {title: 'Albums'}),
         createRoot(ItemType.Artist, {title: 'Artists'}),
         createRoot(ItemType.Playlist, {title: 'Playlists'}),
+        createRoot(
+            ItemType.Media,
+            {title: 'Videos', layout: defaultLayout},
+            {types: 'music-videos'},
+            {maxSize: 250}
+        ),
     ],
     sources: [
         appleLibrarySongs,
@@ -183,7 +171,6 @@ const apple: MediaService = {
         appleRecentlyPlayed,
         appleLibraryPlaylists,
         appleRecommendations,
-        appleMusicVideos,
     ],
     labels: {
         [Action.AddToLibrary]: 'Add to Apple Music Library',
@@ -362,17 +349,19 @@ async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
 
 function createRoot<T extends MediaObject>(
     itemType: ItemType,
-    props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
+    props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>,
+    filters?: MusicKit.QueryParameters,
+    options?: Partial<PagerConfig>
 ): MediaSource<T> {
     return {
         ...props,
         itemType,
-        id: String(itemType),
+        id: `apple/search/${props.title.toLowerCase()}`,
         icon: 'search',
         searchable: true,
 
         search({q = ''}: {q?: string} = {}): Pager<T> {
-            return createSearchPager(itemType, q);
+            return createSearchPager(itemType, q, filters, options);
         },
     };
 }

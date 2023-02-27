@@ -133,7 +133,7 @@ const youtube: MediaService = {
     defaultNoScrobble: true,
     roots: [
         {
-            id: 'youtube/search/video',
+            id: 'youtube/search/videos',
             title: 'Video',
             icon: '',
             itemType: ItemType.Media,

@@ -61,7 +61,7 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
         <Dialog
             {...props}
             className="listenbrainz-login-dialog"
-            title="Login to ListenBrainz"
+            title="Log in to ListenBrainz"
             ref={dialogRef}
         >
             <form method="dialog" onSubmit={handleSubmit}>

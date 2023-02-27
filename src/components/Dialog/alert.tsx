@@ -1,6 +1,7 @@
 import React from 'react';
 import Dialog, {DialogProps} from './Dialog';
 import showDialog from './showDialog';
+import './alert.scss';
 
 export interface AlertOptions {
     title?: string;

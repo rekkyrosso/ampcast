@@ -343,7 +343,7 @@ function createRoot<T extends MediaObject>(
     return {
         ...props,
         itemType,
-        id: String(itemType),
+        id: `plex/search/${props.title.toLowerCase()}`,
         icon: 'search',
         searchable: true,
 

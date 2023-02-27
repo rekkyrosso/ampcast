@@ -17,7 +17,7 @@
     .icon-button-menu,
     .icon-button-pin,
     .icon-button-plus {
-        display: none;
+        visibility: hidden;
     }
 
     .list-view-row:hover .icon-button-heart,
@@ -25,7 +25,7 @@
     .list-view-row:hover .icon-button-menu,
     .list-view-row:hover .icon-button-pin,
     .list-view-row:hover .icon-button-plus {
-        display: flex;
+        visibility: inherit;
     }
 
     .unplayable:not(.selected):not(.playing) .list-view-cell {

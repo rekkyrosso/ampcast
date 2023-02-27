@@ -427,7 +427,7 @@ function createRoot<T extends MediaObject>(
     return {
         ...props,
         itemType,
-        id: String(itemType),
+        id: `spotify/search/${props.title.toLowerCase()}`,
         icon: 'search',
         searchable: true,
 

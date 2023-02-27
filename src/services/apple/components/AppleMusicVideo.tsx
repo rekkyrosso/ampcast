@@ -1,17 +1,12 @@
 import React from 'react';
 import MediaItem from 'types/MediaItem';
-import MediaSource from 'types/MediaSource';
 import EmptyScreen from 'components/EmptyScreen';
-import {DefaultBrowser} from 'components/MediaBrowser';
-import apple from '../apple';
+import {PagedBrowserProps} from 'components/MediaBrowser';
+import MediaItemBrowser from 'components/MediaBrowser/MediaItemBrowser';
 
-export interface AppleMusicVideoProps {
-    sources: readonly MediaSource<MediaItem>[];
-}
-
-export default function AppleMusicVideo({sources}: AppleMusicVideoProps) {
+export default function AppleMusicVideo(props: PagedBrowserProps<MediaItem>) {
     const isBeta = window.MusicKit?.version.startsWith('3');
-    return isBeta ? <DefaultBrowser service={apple} sources={sources} /> : <BetaWarning />;
+    return isBeta ? <MediaItemBrowser {...props} /> : <BetaWarning />;
 }
 
 function BetaWarning() {
@@ -22,8 +17,8 @@ function BetaWarning() {
                     <strong>Apple MusicKit beta required.</strong>
                 </p>
                 <p>
-                    You need to enable <strong>MusicKit beta</strong> from the settings to watch
-                    videos from Apple Music.
+                    You need to enable <strong>MusicKit beta</strong> from the Settings screen to
+                    watch videos from Apple Music.
                 </p>
             </div>
         </EmptyScreen>

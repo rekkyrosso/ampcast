@@ -1,11 +1,30 @@
+import {confirm} from 'components/Dialog';
 import React, {useCallback, useRef} from 'react';
+import apple from '../apple';
 import appleSettings from '../appleSettings';
 
 export default function AppleBetaSettings() {
     const betaRef = useRef<HTMLInputElement>(null);
 
-    const handleSubmit = useCallback(() => {
+    const handleSubmit = useCallback(async () => {
         appleSettings.useMusicKitBeta = betaRef.current!.checked;
+
+        const confirmed = await confirm({
+            title: 'Reload required',
+            message: (
+                <>
+                    <p>You need to reload for changes to take effect.</p>
+                    <p>Reload now?</p>
+                </>
+            ),
+            okLabel: 'Reload',
+            system: true,
+        });
+
+        if (confirmed) {
+            await apple.logout();
+            location.reload();
+        }
     }, []);
 
     return (
@@ -38,7 +57,10 @@ export default function AppleBetaSettings() {
                     However, this release of MusicKit is still undergoing changes and may be
                     unstable. If you experience any problems then use the stable release.
                 </p>
-                <p>You will need to refresh the page for changes to take effect.</p>
+                <p>
+                    You will need to reload the page for changes to take effect. And you may have to
+                    log in again.
+                </p>
             </div>
             <p>
                 <small>

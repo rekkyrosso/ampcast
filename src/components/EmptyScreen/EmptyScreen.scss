@@ -4,4 +4,8 @@
     @include inset;
     flex: auto;
     padding: var(--gutter-width);
+
+    .note:only-child {
+        margin: 2em auto;
+    }
 }

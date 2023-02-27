@@ -1,4 +1,9 @@
 .confirm-dialog {
+    &,
+    .dialog-buttons {
+        text-align: center;
+    }
+
     &-storage {
         display: flex;
         flex-direction: row;

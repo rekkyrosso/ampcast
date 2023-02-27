@@ -1,6 +1,7 @@
 import React, {useCallback, useId, useState} from 'react';
 import Dialog, {DialogProps} from './Dialog';
 import showDialog from './showDialog';
+import './prompt.scss';
 
 export interface PromptOptions {
     title?: string;

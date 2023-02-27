@@ -61,7 +61,7 @@ export default function JellyfinLoginDialog(props: DialogProps) {
         <Dialog
             {...props}
             className="jellyfin-login-dialog"
-            title="Login to Jellyfin"
+            title="Log in to Jellyfin"
             ref={dialogRef}
         >
             <form method="dialog" onSubmit={handleSubmit}>
