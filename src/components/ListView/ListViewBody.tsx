@@ -1,4 +1,4 @@
-import React, {useMemo, useRef} from 'react';
+import React, {useRef} from 'react';
 import {ConditionalKeys} from 'type-fest';
 import ListViewBodyRow from './ListViewBodyRow';
 import {Column} from './ListView';
@@ -38,9 +38,7 @@ export default function ListViewBody<T>({
     const pageSize = Math.floor(height / rowHeight);
     const virtualStart = Math.max(0, topIndex - overScan);
     const virtualSize = Math.min(size, pageSize + 2 * overScan);
-    const virtualItems = useMemo(() => {
-        return items.slice(virtualStart, virtualStart + virtualSize);
-    }, [items, virtualStart, virtualSize]);
+    const virtualItems = items.slice(virtualStart, virtualStart + virtualSize);
 
     return (
         <ol

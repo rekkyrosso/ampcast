@@ -31,7 +31,7 @@ export default function PinnedSettings({service}: MediaServiceSettingsProps) {
             <ListBox<Pin>
                 items={pins}
                 itemKey="src"
-                multiSelect
+                multiple
                 renderItem={renderPin}
                 onDelete={handleRemoveClick}
                 onSelect={setSelectedPins}

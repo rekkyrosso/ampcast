@@ -11,7 +11,7 @@ const defaultLayout: MediaSourceLayout<MediaItem> = {
 export default function MediaItemList({
     className = '',
     layout = defaultLayout,
-    multiSelect = true,
+    multiple = true,
     draggable = true,
     ...props
 }: MediaListProps<MediaItem>) {
@@ -20,7 +20,7 @@ export default function MediaItemList({
             {...props}
             className={`media-items ${className}`}
             layout={layout}
-            multiSelect={multiSelect}
+            multiple={multiple}
             draggable={draggable}
         />
     );

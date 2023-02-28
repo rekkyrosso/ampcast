@@ -122,6 +122,7 @@ export default function MediaList<T extends MediaObject>({
                 items={items}
                 itemClassName={itemClassName}
                 itemKey={'src' as any} // TODO: remove cast
+                selectedIndex={items.length === 0 ? -1 : 0}
                 onContextMenu={handleContextMenu}
                 onDoubleClick={handleDoubleClick}
                 onEnter={handleEnter}

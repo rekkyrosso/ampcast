@@ -136,7 +136,7 @@ export default function Playlist({
                 itemClassName={itemClassName}
                 droppable={true}
                 droppableTypes={droppableTypes}
-                multiSelect={true}
+                multiple={true}
                 reorderable={true}
                 onContextMenu={handleContextMenu}
                 onDelete={handleDelete}

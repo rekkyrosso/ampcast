@@ -2,7 +2,11 @@ import {WaveformVisualizer} from 'types/Visualizer';
 import theme from 'services/theme';
 
 function getThemeColor(): string {
-    return theme.isLight && theme.isFrameLight ? theme.frameColor : theme.textColor;
+    return theme.isLight && theme.isFrameLight
+        ? theme.frameColor
+        : theme.isTextLight
+        ? theme.textColor
+        : theme.frameTextColor;
 }
 
 const visualizers: WaveformVisualizer[] = [

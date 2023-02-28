@@ -12,7 +12,7 @@ const defaultLayout: MediaSourceLayout<MediaFolderItem> = {
 export default function FolderItemList({
     className = '',
     layout = defaultLayout,
-    multiSelect = true,
+    multiple = true,
     draggable = true,
     onSelect,
     ...props
@@ -20,8 +20,8 @@ export default function FolderItemList({
     const [selectedItems, setSelectedItems] = useState<readonly MediaFolderItem[]>([]);
 
     const canMultiSelect = useMemo(() => {
-        return multiSelect && selectedItems.every((item) => item.itemType === ItemType.Media);
-    }, [multiSelect, selectedItems]);
+        return multiple && selectedItems.every((item) => item.itemType === ItemType.Media);
+    }, [multiple, selectedItems]);
 
     const canDrag = useMemo(() => {
         return draggable && selectedItems.every((item) => item.itemType === ItemType.Media);
@@ -40,7 +40,7 @@ export default function FolderItemList({
             {...props}
             className={`folder-items ${className}`}
             layout={layout}
-            multiSelect={canMultiSelect}
+            multiple={canMultiSelect}
             draggable={canDrag}
             onSelect={handleSelect}
         />

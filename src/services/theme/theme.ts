@@ -308,6 +308,14 @@ class MainTheme implements CurrentTheme {
         return new TinyColor(this.selectedBackgroundColor).isLight();
     }
 
+    get isTextDark(): boolean {
+        return new TinyColor(this.textColor).isDark();
+    }
+
+    get isTextLight(): boolean {
+        return new TinyColor(this.textColor).isLight();
+    }
+
     get userTheme(): boolean {
         return !!this.current.userTheme;
     }

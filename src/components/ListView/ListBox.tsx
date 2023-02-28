@@ -8,16 +8,13 @@ export interface ListBoxProps<T> extends Except<ListViewProps<T>, 'layout'> {
 }
 
 export default function ListBox<T>({
-    renderItem = String,
+    renderItem: render = String,
     className = '',
     ...props
 }: ListBoxProps<T>) {
     const layout: ListViewLayout<T> = useMemo(() => {
-        return {
-            view: 'details',
-            cols: [{render: renderItem}],
-        };
-    }, [renderItem]);
+        return {view: 'details', cols: [{render}]};
+    }, [render]);
 
     return <ListView<T> {...props} className={`list-box ${className}`} layout={layout} />;
 }

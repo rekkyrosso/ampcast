@@ -12,7 +12,11 @@
         }
 
         .media-source-label {
-            font-size: 1.125em;
+            font-size: 1.25em;
+
+            .text {
+                font-size: inherit;
+            }
         }
 
         > .media-list.list-view-card.thin .track-count {

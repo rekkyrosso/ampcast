@@ -63,11 +63,12 @@ export interface ListViewProps<T> {
     items: readonly T[];
     itemKey: ConditionalKeys<T, string | number>;
     itemClassName?: (item: T) => string;
+    selectedIndex?: number;
     sortable?: boolean;
     draggable?: boolean;
     droppable?: boolean;
     droppableTypes?: string[]; // mime types for file drops
-    multiSelect?: boolean;
+    multiple?: boolean;
     reorderable?: boolean;
     disabled?: boolean;
     className?: string;
@@ -91,16 +92,19 @@ const emptyString = () => '';
 const dragImage = new Image(0, 0);
 dragImage.src = pixel;
 
+const scrollKeys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown'];
+
 export default function ListView<T>({
     items = [],
     itemKey,
     itemClassName = emptyString,
     layout,
     className = '',
+    selectedIndex = -1,
     draggable,
     droppable,
     droppableTypes = [],
-    multiSelect,
+    multiple,
     reorderable,
     disabled,
     onClick,
@@ -117,6 +121,7 @@ export default function ListView<T>({
     onMove,
     listViewRef,
 }: ListViewProps<T>) {
+    const internalRef = useRef<ListViewHandle | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const scrollableRef = useRef<ScrollableHandle>(null);
     const cursorRef = useRef<HTMLDivElement>(null);
@@ -144,10 +149,9 @@ export default function ListView<T>({
     const [dragIndex, setDragIndex] = useState(-1);
     const [dragStartIndex, setDragStartIndex] = useState(-1);
     const isEmpty = size === 0;
-    const wasEmpty = usePrevious(isEmpty) ?? true;
     const isDragging = dragStartIndex !== -1;
     const scrollIndex = rowHeight ? Math.floor(scrollTop / rowHeight) : 0;
-    const keyboardBusy = useKeyboardBusy();
+    const keyboardBusy = useKeyboardBusy(scrollKeys);
     const atStart = rowIndex === 0;
     const atEnd = rowIndex === size - 1;
     const busy = keyboardBusy && !(atStart || atEnd);
@@ -191,16 +195,21 @@ export default function ListView<T>({
     );
 
     useEffect(() => {
+        internalRef.current = {
+            focus,
+            scrollIntoView,
+            scrollTo,
+            selectAll,
+            selectAt,
+        };
         if (listViewRef) {
-            listViewRef.current = {
-                focus,
-                scrollIntoView,
-                scrollTo,
-                selectAll,
-                selectAt,
-            };
+            listViewRef.current = internalRef.current;
         }
     }, [listViewRef, focus, scrollIntoView, scrollTo, selectAll, selectAt]);
+
+    useEffect(() => {
+        internalRef.current?.scrollIntoView(selectedIndex);
+    }, [selectedIndex]);
 
     useLayoutEffect(() => onRowIndexChange?.(rowIndex), [rowIndex, onRowIndexChange]);
     useLayoutEffect(() => onScrollIndexChange?.(scrollIndex), [scrollIndex, onScrollIndexChange]);
@@ -232,17 +241,14 @@ export default function ListView<T>({
     useEffect(() => {
         if (isEmpty) {
             setRowIndex(-1);
-        } else if (wasEmpty) {
-            setRowIndex(0);
-            selectAt(0);
         }
-    }, [isEmpty, wasEmpty, selectAt]);
+    }, [isEmpty]);
 
     useLayoutEffect(() => {
-        if (!multiSelect && selectedItems.length > 1) {
+        if (!multiple && selectedItems.length > 1) {
             selectAt(rowIndex);
         }
-    }, [multiSelect, rowIndex, selectedItems, selectAt]);
+    }, [multiple, rowIndex, selectedItems, selectAt]);
 
     const handleKeyDown = useCallback(
         (event: React.KeyboardEvent) => {
@@ -309,7 +315,7 @@ export default function ListView<T>({
                             scrollTo(nextIndex);
                             setRowIndex(nextIndex);
                         }
-                        if (multiSelect && event.shiftKey && rangeSelectionStart !== -1) {
+                        if (multiple && event.shiftKey && rangeSelectionStart !== -1) {
                             selectRange(rangeSelectionStart, nextIndex);
                         } else if (!event[browser.ctrlKey]) {
                             selectAt(nextIndex);
@@ -332,7 +338,7 @@ export default function ListView<T>({
             selectRange,
             toggleSelectionAt, // changes often
             selectedItems, // changes often
-            multiSelect,
+            multiple,
             rangeSelectionStart,
         ]
     );
@@ -342,20 +348,20 @@ export default function ListView<T>({
             const newRowIndex = getRowIndexFromMouseEvent(event);
             if (newRowIndex !== -1) {
                 setRowIndex(newRowIndex);
-                if (multiSelect && event[browser.ctrlKey]) {
-                    toggleSelectionAt(newRowIndex);
-                } else if (multiSelect && event.shiftKey) {
+                if (multiple && event.shiftKey) {
                     if (rangeSelectionStart === -1) {
                         selectRange(newRowIndex, rowIndex);
                     } else {
                         selectRange(rangeSelectionStart, newRowIndex);
                     }
+                } else if (multiple && event[browser.ctrlKey]) {
+                    toggleSelectionAt(newRowIndex);
                 } else if (!isRowSelectedFromMouseEvent(event)) {
                     selectAt(newRowIndex);
                 }
             }
         },
-        [selectAt, toggleSelectionAt, selectRange, rowIndex, rangeSelectionStart, multiSelect]
+        [selectAt, toggleSelectionAt, selectRange, rowIndex, rangeSelectionStart, multiple]
     );
 
     const handleMouseUp = useCallback(
@@ -363,13 +369,13 @@ export default function ListView<T>({
             if (event.button === 0) {
                 const rowIndex = getRowIndexFromMouseEvent(event);
                 if (rowIndex !== -1) {
-                    if (multiSelect && !event[browser.ctrlKey] && !event.shiftKey) {
+                    if (multiple && !event[browser.ctrlKey] && !event.shiftKey) {
                         selectAt(rowIndex);
                     }
                 }
             }
         },
-        [selectAt, multiSelect]
+        [selectAt, multiple]
     );
 
     const handleKeyUp = useCallback((event: React.KeyboardEvent) => {

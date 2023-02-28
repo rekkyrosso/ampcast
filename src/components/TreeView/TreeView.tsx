@@ -36,6 +36,8 @@ export interface TreeViewProps<T> {
 
 export const defaultRowHeight = 24;
 
+const scrollKeys = ['ArrowUp', 'ArrowDown'];
+
 // TODO: This wrapper only exists because the underlying component can't handle empty states.
 export default function TreeView<T>({roots, className = '', onSelect, ...props}: TreeViewProps<T>) {
     const isEmpty = roots.length === 0;
@@ -79,7 +81,7 @@ function Tree<T>({
     const pageSize = Math.floor(height / rowHeight) - 1;
     const size = visibleIds.length;
     const selectedValue = getValue(roots, selectedId);
-    const keyboardBusy = useKeyboardBusy();
+    const keyboardBusy = useKeyboardBusy(scrollKeys);
     const atEnd = rowIndex === 0 || rowIndex === size - 1;
     const busy = keyboardBusy && !atEnd;
     const [debouncedValue, setDebouncedValue] = useState<T>(() => selectedValue);

@@ -1,13 +1,17 @@
 import {useEffect, useState} from 'react';
 import {fromEvent, merge, of, timer} from 'rxjs';
-import {map, debounce} from 'rxjs/operators';
+import {filter, map, debounce} from 'rxjs/operators';
 
-export default function useKeyboardBusy(debounceTime = 200): boolean {
+export default function useKeyboardBusy(keyCodes?: readonly string[], debounceTime = 200): boolean {
     const [busy, setBusy] = useState(false);
 
     useEffect(() => {
+        const isValidKey = (event: KeyboardEvent) => !keyCodes || keyCodes.includes(event.code);
         const fromKeyboardEvent = (type: string, busy: boolean) =>
-            fromEvent<KeyboardEvent>(document, type, {capture: true}).pipe(map(() => busy));
+            fromEvent<KeyboardEvent>(document, type, {capture: true}).pipe(
+                filter(isValidKey),
+                map(() => busy)
+            );
 
         const busy$ = fromKeyboardEvent('keydown', true);
         const idle$ = fromKeyboardEvent('keyup', false);
@@ -17,7 +21,7 @@ export default function useKeyboardBusy(debounceTime = 200): boolean {
             .subscribe(setBusy);
 
         return () => subscription.unsubscribe();
-    }, [debounceTime]);
+    }, [keyCodes, debounceTime]);
 
     return busy;
 }
