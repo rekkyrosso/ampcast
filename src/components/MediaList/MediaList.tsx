@@ -57,15 +57,24 @@ export default function MediaList<T extends MediaObject>({
         [onSelect]
     );
 
-    const handleContextMenu = useCallback(async (items: readonly T[], x: number, y: number) => {
-        if (items.length === 0) {
-            return;
-        }
-        const action = await showActionsMenu(items, x, y, true);
-        if (action) {
-            await performAction(action, items);
-        }
-    }, []);
+    const handleContextMenu = useCallback(
+        async (items: readonly T[], x: number, y: number, rowIndex: number, button: number) => {
+            if (items.length === 0) {
+                return;
+            }
+            const action = await showActionsMenu(
+                items,
+                true,
+                x,
+                y,
+                button === -1 ? 'right' : 'left'
+            );
+            if (action) {
+                await performAction(action, items);
+            }
+        },
+        []
+    );
 
     const handleDoubleClick = useCallback(
         async (item: T, rowIndex: number) => {

@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useId, useState} from 'react';
 import MediaObject from 'types/MediaObject';
 import {PagedBrowser, PagedBrowserProps} from 'components/MediaBrowser';
 import PageHeader from 'components/MediaBrowser/PageHeader';
@@ -23,6 +23,7 @@ export default function LastFmTopBrowser<T extends MediaObject>({
     source,
     ...props
 }: PagedBrowserProps<T>) {
+    const id = useId();
     const [period, setPeriod] = useState<LastFMPeriod | undefined>();
     const pager = usePeriod(source, period);
 
@@ -40,14 +41,14 @@ export default function LastFmTopBrowser<T extends MediaObject>({
                     {options.map(({value, text}) => (
                         <li className="lastfm-period" key={value}>
                             <input
-                                id={`lastfm-period-${value}`}
+                                id={`${id}-period-${value}`}
                                 type="radio"
                                 name="lastfm-period"
                                 value={value}
                                 defaultChecked={value === 'overall'}
                                 onChange={handlePeriodChange}
                             />
-                            <label htmlFor={`lastfm-period-${value}`}>{text}</label>
+                            <label htmlFor={`${id}-period-${value}`}>{text}</label>
                         </li>
                     ))}
                 </ul>

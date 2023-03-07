@@ -44,7 +44,7 @@
     }
 
     .title {
-        margin-bottom: 0.25em;
+        margin-bottom: 0.5em;
         font-size: 1.5em;
 
         & + .owner {
@@ -92,6 +92,12 @@
                 padding-bottom: 0.25em;
             }
         }
+    }
+
+    .icon-button {
+        border-radius: 0;
+        outline-offset: 2px;
+        outline-width: 2px;
     }
 
     .icon-buttons {

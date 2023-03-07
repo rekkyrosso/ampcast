@@ -23,6 +23,10 @@ export interface TreeNode<T> {
     readonly icon?: IconName;
 }
 
+export interface TreeViewHandle {
+    focus: () => void;
+}
+
 export interface TreeViewProps<T> {
     roots: TreeNode<T>[];
     className?: string;
@@ -32,46 +36,29 @@ export interface TreeViewProps<T> {
     onEnter?: (item: T) => void;
     onInfo?: (item: T) => void;
     onSelect?: (item: T | null) => void;
+    treeViewRef?: React.MutableRefObject<TreeViewHandle | null>;
 }
 
 export const defaultRowHeight = 24;
 
 const scrollKeys = ['ArrowUp', 'ArrowDown'];
 
-// TODO: This wrapper only exists because the underlying component can't handle empty states.
-export default function TreeView<T>({roots, className = '', onSelect, ...props}: TreeViewProps<T>) {
-    const isEmpty = roots.length === 0;
-
-    useEffect(() => {
-        if (isEmpty) {
-            onSelect?.(null);
-        }
-    }, [isEmpty, onSelect]);
-
-    if (isEmpty) {
-        return <div className={`tree-view ${className}`} tabIndex={0} />;
-    } else {
-        return <Tree {...props} className={className} roots={roots} onSelect={onSelect} />;
-    }
-}
-
-function Tree<T>({
+export default function TreeView<T>({
     roots,
-    className,
+    className = '',
     storageId,
     onContextMenu,
     onDelete,
     onEnter,
     onInfo,
     onSelect,
+    treeViewRef,
 }: TreeViewProps<T>) {
     const containerRef = useRef<HTMLDivElement>(null);
     const scrollableRef = useRef<ScrollableHandle>(null);
     const cursorRef = useRef<HTMLDivElement>(null);
     const {storeSelectedNodeId, retrieveSelectedNodeId} = useTreeViewState(storageId);
-    const [selectedId, setSelectedId] = useState<string>(() =>
-        retrieveSelectedNodeId(roots[0]?.id)
-    );
+    const [selectedId, setSelectedId] = useState('');
     const {expandedIds, toggle} = useExpandedNodeIds(roots, storageId);
     const visibleIds = useVisibleNodeIds(roots, expandedIds);
     const rowIndex = visibleIds.indexOf(selectedId);
@@ -86,6 +73,20 @@ function Tree<T>({
     const busy = keyboardBusy && !atEnd;
     const [debouncedValue, setDebouncedValue] = useState<T>(() => selectedValue);
 
+    const focus = useCallback(() => containerRef.current!.focus(), []);
+
+    useEffect(() => {
+        if (treeViewRef) {
+            treeViewRef.current = {focus};
+        }
+    }, [treeViewRef, focus]);
+
+    useEffect(() => {
+        if (!selectedId && roots.length > 0) {
+            setSelectedId(retrieveSelectedNodeId(roots[0].id));
+        }
+    }, [roots, selectedId, retrieveSelectedNodeId]);
+
     useLayoutEffect(() => {
         if (!hasSelectedNode(roots, selectedId)) {
             const parentNode =
@@ -99,7 +100,9 @@ function Tree<T>({
     }, [debouncedValue, onSelect]);
 
     useEffect(() => {
-        storeSelectedNodeId(selectedId);
+        if (selectedId) {
+            storeSelectedNodeId(selectedId);
+        }
     }, [selectedId, storeSelectedNodeId]);
 
     useEffect(() => {

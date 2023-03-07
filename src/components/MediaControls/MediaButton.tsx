@@ -1,14 +1,14 @@
 import React, {useCallback, useRef} from 'react';
+import {Except} from 'type-fest';
+import Icon, {IconName} from 'components/Icon';
 import './MediaButton.scss';
 
-export type MediaButtonProps = React.ButtonHTMLAttributes<HTMLButtonElement>;
+export interface MediaButtonProps
+    extends Except<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
+    icon: IconName;
+}
 
-export default function MediaButton({
-    children,
-    className = '',
-    onClick,
-    ...props
-}: MediaButtonProps) {
+export default function MediaButton({icon, className = '', ...props}: MediaButtonProps) {
     const ref = useRef<HTMLButtonElement>(null);
 
     const handleMouseDown = useCallback((event: React.MouseEvent) => {
@@ -21,13 +21,12 @@ export default function MediaButton({
     return (
         <button
             {...props}
-            className={`media-button ${className}`}
+            className={`media-button media-button-${icon} ${className}`}
             type="button"
-            onClick={onClick}
             onMouseDown={handleMouseDown}
             ref={ref}
         >
-            {children}
+            <Icon name={icon} />
         </button>
     );
 }

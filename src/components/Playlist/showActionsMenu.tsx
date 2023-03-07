@@ -11,9 +11,10 @@ import PopupMenu, {
 export default async function showActionsMenu(
     items: readonly PlaylistItem[],
     selectedItems: readonly PlaylistItem[],
+    rowIndex: number,
     x: number,
     y: number,
-    rowIndex: number
+    align: 'left' | 'right' = 'left'
 ): Promise<string | undefined> {
     return showPopupMenu(
         (props: PopupMenuProps) => (
@@ -25,7 +26,8 @@ export default async function showActionsMenu(
             />
         ),
         x,
-        y
+        y,
+        align
     );
 }
 
@@ -36,58 +38,58 @@ interface ActionsMenuProps extends PopupMenuProps {
 }
 
 function ActionsMenu({items, selectedItems, rowIndex, ...props}: ActionsMenuProps) {
-    const isEmpty = items.length === 0;
-    const allSelected = selectedItems.length === items.length;
-    const isSingleSelection = selectedItems.length === 1;
+    const itemCount = items.length;
+    const selectedCount = selectedItems.length;
+    const isEmpty = itemCount === 0;
+    const allSelected = selectedCount === itemCount;
+    const isSingleSelection = selectedCount === 1;
 
     return (
-        <PopupMenu {...props} className="actions-menu">
-            <ul className="actions-menu-items">
-                {rowIndex === -1 ? null : (
-                    <>
-                        {isSingleSelection ? (
-                            <PopupMenuItem
-                                label="Play"
-                                action="play"
-                                acceleratorKey="Enter"
-                                key="play"
-                            />
-                        ) : null}
+        <PopupMenu {...props}>
+            {rowIndex === -1 ? null : (
+                <>
+                    {isSingleSelection ? (
                         <PopupMenuItem
-                            label="Remove"
-                            action="remove"
-                            acceleratorKey="Del"
-                            key="remove"
+                            label="Play"
+                            value="play"
+                            acceleratorKey="Enter"
+                            key="play"
                         />
-                        {isSingleSelection ? (
-                            <PopupMenuItem
-                                label="Info..."
-                                action="info"
-                                acceleratorKey={`${browser.ctrlKeyStr}+I`}
-                                key="info"
-                            />
-                        ) : null}
-                    </>
-                )}
-                <PopupMenuSeparator />
-                {allSelected ? null : (
+                    ) : null}
                     <PopupMenuItem
-                        label="Select all"
-                        action="select-all"
-                        acceleratorKey={`${browser.ctrlKeyStr}+A`}
-                        key="select-all"
+                        label="Remove"
+                        value="remove"
+                        acceleratorKey="Del"
+                        key="remove"
                     />
-                )}
-                {!isSingleSelection && isContiguousSelection(items, selectedItems) ? (
-                    <PopupMenuItem
-                        label="Reverse selection"
-                        action="reverse-selection"
-                        key="reverse-selection"
-                    />
-                ) : null}
-                <PopupMenuSeparator />
-                {isEmpty ? null : <PopupMenuItem label="Clear" action="clear" key="clear" />}
-            </ul>
+                    {isSingleSelection ? (
+                        <PopupMenuItem
+                            label="Info..."
+                            value="info"
+                            acceleratorKey={`${browser.ctrlKeyStr}+I`}
+                            key="info"
+                        />
+                    ) : null}
+                </>
+            )}
+            <PopupMenuSeparator />
+            {allSelected ? null : (
+                <PopupMenuItem
+                    label="Select all"
+                    value="select-all"
+                    acceleratorKey={`${browser.ctrlKeyStr}+A`}
+                    key="select-all"
+                />
+            )}
+            {!isSingleSelection && isContiguousSelection(items, selectedItems) ? (
+                <PopupMenuItem
+                    label="Reverse selection"
+                    value="reverse-selection"
+                    key="reverse-selection"
+                />
+            ) : null}
+            <PopupMenuSeparator />
+            {isEmpty ? null : <PopupMenuItem label="Clear" value="clear" key="clear" />}
         </PopupMenu>
     );
 }

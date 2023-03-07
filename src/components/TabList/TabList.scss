@@ -26,14 +26,16 @@
     }
 
     .tab {
+        position: relative;
         background-image: none;
-        border-color: #444;
+        border-color: #444; /* TODO: Where did this colour come from? */
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
 
         &[aria-selected="true"] {
             border-bottom: 1px solid var(--background-color);
             background-color: var(--background-color);
+            z-index: 1;
         }
 
         &:active {

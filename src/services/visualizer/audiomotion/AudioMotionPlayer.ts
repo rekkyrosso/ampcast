@@ -95,8 +95,26 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
     }
 
     private registerGradients(): void {
-        const brightColor = new TinyColor(theme.defaultMediaButtonColor);
-        const colors = new TinyColor(brightColor)
+        const brightColor = new TinyColor(
+            theme.isMediaButtonLight ? theme.mediaButtonColor : theme.defaultMediaButtonColor
+        );
+        const luminousColor =
+            [
+                new TinyColor(theme.mediaButtonColor),
+                new TinyColor(theme.defaultMediaButtonColor),
+                new TinyColor(theme.frameColor),
+                new TinyColor(theme.frameTextColor),
+                new TinyColor(theme.backgroundColor),
+                new TinyColor(theme.textColor),
+            ]
+                .filter(
+                    (color) =>
+                        color.getBrightness() < 200 &&
+                        color.getLuminance() > 0.3 &&
+                        color.toHsl().s > 0.3
+                )
+                .sort((a, b) => b.getLuminance() - a.getLuminance())[0] || brightColor;
+        const colors = luminousColor
             .tetrad()
             .map((color) => color.toRgbString())
             .slice(1);

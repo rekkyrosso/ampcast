@@ -1,4 +1,4 @@
-import React, {useCallback, useId, useState} from 'react';
+import React, {useCallback, useId, useLayoutEffect, useRef, useState} from 'react';
 import Tab from './Tab';
 import TabPanel from './TabPanel';
 import './TabList.scss';
@@ -16,31 +16,40 @@ export interface TabListProps {
 
 export default function TabList({label, items, className = ''}: TabListProps) {
     const id = useId();
+    const tabsRef = useRef<HTMLUListElement>(null);
+    const [buttons, setButtons] = useState<HTMLButtonElement[]>([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
-    const size = items.length;
+
+    useLayoutEffect(() => {
+        setButtons(Array.from(tabsRef.current!.querySelectorAll('button')));
+    }, []);
 
     const handleKeyDown = useCallback(
         (event: React.KeyboardEvent) => {
-            switch (event.key) {
-                case 'ArrowLeft':
-                    event.preventDefault();
-                    if (selectedIndex > 0) {
-                        setSelectedIndex(selectedIndex - 1);
-                        event.stopPropagation();
-                    }
-                    break;
-
-                case 'ArrowRight':
-                    event.preventDefault();
-                    if (selectedIndex < size - 1) {
-                        setSelectedIndex(selectedIndex + 1);
-                        event.stopPropagation();
-                    }
-                    break;
+            let currentIndex = selectedIndex;
+            if (event.code === 'ArrowRight') {
+                event.stopPropagation();
+                currentIndex++;
+            } else if (event.code === 'ArrowLeft') {
+                event.stopPropagation();
+                currentIndex--;
+            }
+            currentIndex = Math.min(Math.max(currentIndex, 0), buttons.length - 1);
+            const button = buttons[currentIndex];
+            if (button && !button.disabled) {
+                button.focus();
             }
         },
-        [selectedIndex, size]
+        [selectedIndex, buttons]
     );
+
+    const handleFocus = useCallback((event: React.FocusEvent) => {
+        const button = event.target as HTMLButtonElement;
+        if (button.id) {
+            const index = Number(button.id.split('-').pop());
+            setSelectedIndex(index);
+        }
+    }, []);
 
     return (
         <div className={`tab-list ${className}`}>
@@ -48,17 +57,13 @@ export default function TabList({label, items, className = ''}: TabListProps) {
                 className="tab-list-tabs"
                 role="tablist"
                 aria-label={label}
+                onFocus={handleFocus}
                 onKeyDown={handleKeyDown}
+                ref={tabsRef}
             >
                 {items.map((item, index) => (
                     <li role="presentation" key={index}>
-                        <Tab
-                            id={id}
-                            item={item}
-                            index={index}
-                            selected={index === selectedIndex}
-                            onSelect={setSelectedIndex}
-                        />
+                        <Tab id={id} item={item} index={index} selected={index === selectedIndex} />
                     </li>
                 ))}
             </ul>

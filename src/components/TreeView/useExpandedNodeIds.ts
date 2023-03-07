@@ -11,6 +11,10 @@ export default function useExpandedNodeIds(nodes: TreeNode<any>[], storageId?: s
     });
 
     useEffect(() => {
+        setExpandedIds(getInitialExpandedNodeIds(nodes, retrieveExpandedState));
+    }, [nodes, retrieveExpandedState]);
+
+    useEffect(() => {
         // Make sure that `expandedIds` are included in `allIds`.
         const newIds = expandedIds.filter((id) => allIds.includes(id));
         if (newIds.length !== expandedIds.length) {

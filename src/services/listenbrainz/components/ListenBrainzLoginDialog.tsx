@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useId, useRef} from 'react';
 import Dialog, {showDialog, DialogProps} from 'components/Dialog';
 import ExternalLink from 'components/ExternalLink';
 import Icon from 'components/Icon';
@@ -10,6 +10,7 @@ export async function showListenBrainzLoginDialog(): Promise<string> {
 }
 
 export default function ListenBrainzLoginDialog(props: DialogProps) {
+    const id = useId();
     const dialogRef = useRef<HTMLDialogElement>(null);
     const userNameRef = useRef<HTMLInputElement>(null);
     const tokenRef = useRef<HTMLInputElement>(null);
@@ -67,10 +68,10 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
             <form method="dialog" onSubmit={handleSubmit}>
                 <div className="table-layout">
                     <p>
-                        <label htmlFor="listenbrainz-username">User:</label>
+                        <label htmlFor={`${id}-username`}>User:</label>
                         <input
                             type="text"
-                            id="listenbrainz-username"
+                            id={`${id}-username`}
                             autoFocus
                             required
                             spellCheck={false}
@@ -80,8 +81,8 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
                         />
                     </p>
                     <p>
-                        <label htmlFor="listenbrainz-token">Token:</label>
-                        <input type="password" id="listenbrainz-token" required ref={tokenRef} />
+                        <label htmlFor={`${id}-token`}>Token:</label>
+                        <input type="password" id={`${id}-token`} required ref={tokenRef} />
                     </p>
                 </div>
                 <p className="listenbrainz-link">

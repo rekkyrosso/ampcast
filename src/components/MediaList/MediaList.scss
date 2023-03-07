@@ -8,6 +8,16 @@
         color: var(--selected-text-color);
     }
 
+    .list-view-row.selected.playing .list-view-cell {
+        .themed.dark.selection-dark & {
+            color: var(--currently-playing-color-light);
+        }
+
+        .themed.light.selection-light & {
+            color: var(--currently-playing-color-dark);
+        }
+    }
+
     .icon-buttons {
         justify-content: right;
     }

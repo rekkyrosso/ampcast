@@ -19,6 +19,10 @@
     border-radius: calc(var(--roundness) * 1em);
 }
 
+@mixin outline {
+    outline: solid var(--focus-ring-color);
+}
+
 @mixin pressable {
     transform-origin: bottom right;
 

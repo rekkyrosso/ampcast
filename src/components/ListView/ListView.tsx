@@ -74,7 +74,13 @@ export interface ListViewProps<T> {
     className?: string;
     onClick?: (item: T, rowIndex: number) => void;
     onDoubleClick?: (item: T, rowIndex: number) => void;
-    onContextMenu?: (items: readonly T[], x: number, y: number, rowIndex: number) => void;
+    onContextMenu?: (
+        items: readonly T[],
+        x: number,
+        y: number,
+        rowIndex: number,
+        button: number
+    ) => void;
     onDrop?: (items: readonly T[] | FileList, atIndex: number) => void;
     onMove?: (items: readonly T[], toIndex: number) => void;
     onDelete?: (items: readonly T[]) => void;
@@ -144,6 +150,7 @@ export default function ListView<T>({
         itemKey,
         rowIndex
     );
+    const hasSelection = selectedItems.length > 0;
     const fontSize = useFontSize();
     const [rangeSelectionStart, setRangeSelectionStart] = useState(-1);
     const [dragIndex, setDragIndex] = useState(-1);
@@ -203,7 +210,7 @@ export default function ListView<T>({
             selectAt,
         };
         if (listViewRef) {
-            listViewRef.current = internalRef.current;
+            listViewRef.current = Object.assign(listViewRef.current || {}, internalRef.current);
         }
     }, [listViewRef, focus, scrollIntoView, scrollTo, selectAll, selectAt]);
 
@@ -267,6 +274,7 @@ export default function ListView<T>({
 
                 case 'KeyI':
                     event.stopPropagation();
+                    event.preventDefault();
                     if (event[browser.ctrlKey] && !event.shiftKey && !event.repeat) {
                         onInfo?.(selectedItems);
                         break;
@@ -416,14 +424,24 @@ export default function ListView<T>({
     const handleContextMenu = useCallback(
         (event: React.MouseEvent) => {
             event.preventDefault();
-            onContextMenu?.(
-                selectedItems,
-                event.pageX,
-                event.pageY,
-                getRowIndexFromMouseEvent(event)
-            );
+            if (event.button === -1) {
+                // Not mouse-driven.
+                const row = getRowByIndex(containerRef.current!, rowIndex);
+                if (row) {
+                    const rect = row.getBoundingClientRect();
+                    onContextMenu?.(selectedItems, rect.right, rect.bottom, rowIndex, event.button);
+                }
+            } else {
+                onContextMenu?.(
+                    selectedItems,
+                    event.pageX,
+                    event.pageY,
+                    getRowIndexFromMouseEvent(event),
+                    event.button
+                );
+            }
         },
-        [selectedItems, onContextMenu]
+        [rowIndex, selectedItems, onContextMenu]
     );
 
     const handleDoubleClick = useCallback(
@@ -565,10 +583,16 @@ export default function ListView<T>({
         setDragIndex(-1);
     }, []);
 
+    const handleFocus = useCallback(() => {
+        if (!multiple && !hasSelection) {
+            selectAt(Math.max(rowIndex, 0));
+        }
+    }, [hasSelection, rowIndex, multiple, selectAt]);
+
     return (
         <div
             className={`list-view list-view-${layout.view} ${className}`}
-            tabIndex={disabled ? undefined : 0}
+            tabIndex={disabled ? undefined : isEmpty ? -1 : 0}
             onClick={handleClick}
             onContextMenu={handleContextMenu}
             onDoubleClick={handleDoubleClick}
@@ -578,6 +602,7 @@ export default function ListView<T>({
             onDragLeave={handleDragLeave}
             onDragEnd={handleDragEnd}
             onDrop={handleDrop}
+            onFocus={handleFocus}
             onKeyDown={handleKeyDown}
             onKeyUp={handleKeyUp}
             onMouseDown={handleMouseDown}
@@ -621,7 +646,7 @@ export default function ListView<T>({
                     className="list-view-cursor"
                     style={{
                         width: sizeable ? `${width}px` : undefined,
-                        transform: `translateY(${rowIndex * rowHeight}px)`,
+                        transform: `translateY(${Math.max(rowIndex, 0) * rowHeight}px)`,
                     }}
                     ref={cursorRef}
                 />
@@ -651,6 +676,10 @@ function getRowFromMouseEvent(event: React.MouseEvent): HTMLElement | null {
         target = target.parentElement;
     }
     return target;
+}
+
+function getRowByIndex(listView: HTMLElement, rowIndex: number): HTMLElement | null {
+    return listView.querySelector(`li[aria-posinset="${rowIndex + 1}"]`);
 }
 
 function getNextIndexByKey(

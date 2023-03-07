@@ -13,7 +13,6 @@ const visualizers: AudioMotionVisualizer[] = [
             spinSpeed: 1,
             mode: 8,
             barSpace: 0,
-            // gradient: 'rainbow',
             gradient: 'ampcast-rainbow',
             reflexRatio: 0.4,
             showPeaks: true,
@@ -29,7 +28,6 @@ const visualizers: AudioMotionVisualizer[] = [
         options: {
             mode: 7,
             barSpace: 0,
-            // gradient: 'classic',
             gradient: 'ampcast-classic',
             ledBars: true,
             lumiBars: false,
@@ -44,7 +42,6 @@ const visualizers: AudioMotionVisualizer[] = [
         options: {
             mode: 10,
             fillAlpha: 0.6,
-            // gradient: 'rainbow',
             gradient: 'ampcast-rainbow',
             lineWidth: 2,
             mirror: -1,
@@ -61,7 +58,6 @@ const visualizers: AudioMotionVisualizer[] = [
         options: {
             mode: 5,
             barSpace: 0.1,
-            // gradient: 'prism',
             gradient: 'ampcast-prism',
             radial: true,
             ledBars: false,

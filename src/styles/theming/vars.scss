@@ -21,9 +21,13 @@
     --frame-text-color-s: 0%;
     --frame-text-color-l: 92.2%;
 
+    --focus-ring-color: #3390ff;
+
     --link-color: var(--soft-white);
     --link-visited-color: var(--soft-white);
     --link-active-color: #ff9e9e;
+    --currently-playing-color-light: yellow;
+    --currently-playing-color-dark: blue;
 
     --spacing: 0.375;
     --roundness: 0.25;
@@ -246,13 +250,13 @@
 }
 
 .app.dark {
-    --currently-playing-color: yellow;
+    --currently-playing-color: var(--currently-playing-color-light);
     --even-row-background-color: rgba(255, 255, 255, 0.02);
     color-scheme: dark;
 }
 
 .app.light {
-    --currently-playing-color: blue;
+    --currently-playing-color: var(--currently-playing-color-dark);
     --even-row-background-color: rgba(0, 0, 0, 0.04);
     color-scheme: light;
 }
@@ -275,7 +279,6 @@
 
     --frame-text-color: var(--soft-white);
     --button-text-color: var(--soft-white);
-    --selected-text-color: var(--soft-white);
 
     accent-color: var(--soft-white);
     color-scheme: dark;
@@ -299,7 +302,6 @@
 
     --frame-text-color: black;
     --button-text-color: black;
-    --selected-text-color: var(--soft-white);
 
     accent-color: black;
     color-scheme: light;
@@ -312,6 +314,7 @@
     --scrollbar-text-color: var(--button-text-color);
     --scrollbar-color-hi: var(--button-color-hi);
     --scrollbar-color-lo: var(--button-color-lo);
-    --selected-background-color: blue;
+    --selected-text-color: white;
+    --selected-background-color: #0461d0;
     --selected-background-color-blurred: #545454;
 }

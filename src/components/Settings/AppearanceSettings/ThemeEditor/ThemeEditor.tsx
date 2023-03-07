@@ -1,4 +1,4 @@
-import React, {useCallback, useLayoutEffect} from 'react';
+import React, {useCallback, useId, useLayoutEffect} from 'react';
 import theme from 'services/theme';
 import ThemeColorPair from './ThemeColorPair';
 import useCurrentTheme from '../useCurrentTheme';
@@ -7,6 +7,7 @@ import saveTheme from './saveTheme';
 import './ThemeEditor.scss';
 
 export default function ThemeEditor() {
+    const id = useId();
     const currentTheme = useCurrentTheme();
     const themeName = `${currentTheme.name}${theme.edited ? ' (edited)' : ''}`;
     const themeKey = `${!!currentTheme.userTheme}/${currentTheme.name}`;
@@ -48,13 +49,14 @@ export default function ThemeEditor() {
         <form className="theme-editor" method="dialog" onSubmit={handleSubmit}>
             <div className="table-layout">
                 <p className="theme-name">
-                    <label htmlFor="theme-name">Name:</label>
+                    <label htmlFor={`${id}-theme-name`}>Name:</label>
                     <input
                         type="text"
-                        id="theme-name"
+                        id={`${id}-theme-name`}
                         value={themeName}
                         spellCheck={false}
                         readOnly
+                        tabIndex={-1}
                     />
                     <button className="small" type="button" onClick={handleSaveAsClick}>
                         Save as…
@@ -106,10 +108,10 @@ export default function ThemeEditor() {
                     key={`${themeKey}/scrollbar`}
                 />
                 <p>
-                    <label htmlFor="theme-spacing">Spacing:</label>
+                    <label htmlFor={`${id}-theme-spacing`}>Spacing:</label>
                     <input
                         type="range"
-                        id="theme-spacing"
+                        id={`${id}-theme-spacing`}
                         min={0}
                         max={1}
                         step={0.01}
@@ -118,10 +120,10 @@ export default function ThemeEditor() {
                     />
                 </p>
                 <p>
-                    <label htmlFor="theme-roundness">Roundness:</label>
+                    <label htmlFor={`${id}-theme-roundness`}>Roundness:</label>
                     <input
                         type="range"
-                        id="theme-roundness"
+                        id={`${id}-theme-roundness`}
                         min={0}
                         max={1}
                         step={0.01}
@@ -130,10 +132,10 @@ export default function ThemeEditor() {
                     />
                 </p>
                 <p>
-                    <label htmlFor="theme-flat">Flat:</label>
+                    <label htmlFor={`${id}-theme-flat`}>Flat:</label>
                     <input
                         type="checkbox"
-                        id="theme-flat"
+                        id={`${id}-theme-flat`}
                         checked={currentTheme.flat}
                         onChange={handleFlatChange}
                     />

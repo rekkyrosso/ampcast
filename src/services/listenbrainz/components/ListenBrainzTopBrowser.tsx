@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useId, useState} from 'react';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -39,6 +39,7 @@ export default function ListenBrainzTopBrowser<T extends MediaObject>({
     source,
     ...props
 }: PagedBrowserProps<T>) {
+    const id = useId();
     const [range, setRange] = useState<ListenBrainzRange | undefined>();
     const pager = useRange(source, range);
 
@@ -56,14 +57,14 @@ export default function ListenBrainzTopBrowser<T extends MediaObject>({
                     {options.map(({value, text}) => (
                         <li className="listenbrainz-range" key={value}>
                             <input
-                                id={`listenbrainz-range-${value}`}
+                                id={`${id}-range-${value}`}
                                 type="radio"
                                 name="listenbrainz-range"
                                 value={value}
                                 defaultChecked={value === 'all_time'}
                                 onChange={handleRangeChange}
                             />
-                            <label htmlFor={`listenbrainz-range-${value}`}>{text}</label>
+                            <label htmlFor={`${id}-range-${value}`}>{text}</label>
                         </li>
                     ))}
                 </ul>

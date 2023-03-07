@@ -67,7 +67,10 @@
         pointer-events: none;
     }
 
-    &-body:empty + &-cursor,
+    &-body:empty + &-cursor {
+        border-color: var(--text-color);
+    }
+
     &:not(:focus) &-cursor {
         visibility: hidden;
     }

@@ -143,6 +143,24 @@ class MainTheme implements CurrentTheme {
         this.theme$.next({...this.current, flat});
     }
 
+    get focusRingColor(): string {
+        if (this.isFrameDark) {
+            return new TinyColor(
+                this.isMediaButtonLight ? this.mediaButtonColor : this.defaultMediaButtonColor
+            )
+                .triad()[1]
+                .saturate(20)
+                .lighten(20)
+                .toHexString();
+        } else {
+            return new TinyColor(this.frameColor)
+                .triad()[2]
+                .saturate(33)
+                .darken(50)
+                .toHexString();
+        }
+    }
+
     get fontSize(): number {
         return Number(this.rootStyle.getPropertyValue('--font-size')) || this.defaultFontSize;
     }
@@ -292,6 +310,10 @@ class MainTheme implements CurrentTheme {
         return new TinyColor(this.frameTextColor).isLight();
     }
 
+    get isMediaButtonLight(): boolean {
+        return new TinyColor(this.mediaButtonColor).isLight();
+    }
+
     get isScrollbarDark(): boolean {
         return new TinyColor(this.scrollbarColor || this.defaultScrollbarColor).isDark();
     }
@@ -346,6 +368,7 @@ class MainTheme implements CurrentTheme {
 
     private applyAppStyles(): void {
         this.setProperty('black', this.black);
+        this.setProperty('focus-ring-color', this.focusRingColor);
         this.toggleClasses(this.app);
         this.toggleClasses(this.popup);
     }

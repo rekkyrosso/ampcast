@@ -13,7 +13,6 @@ export default function TabPanel({id, item, index, hidden}: TabPanelProps) {
         <div
             className="tab-panel"
             id={`${id}-panel-${index}`}
-            tabIndex={0}
             hidden={hidden}
             role="tabpanel"
             aria-labelledby={`${id}-tab-${index}`}

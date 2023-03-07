@@ -6,13 +6,13 @@ import mediaPlayback, {
     stop,
     observeCurrentTime,
     observeDuration,
-    observePaused,
 } from 'services/mediaPlayback';
 import playlist, {observeCurrentIndex} from 'services/playlist';
 import {ListViewHandle} from 'components/ListView';
 import Time from 'components/Time';
 import useObservable from 'hooks/useObservable';
-import MediaIconButton from './MediaIconButton';
+import usePaused from 'hooks/usePaused';
+import MediaButton from './MediaButton';
 import VolumeControl from './VolumeControl';
 import showActionsMenu from './showActionsMenu';
 import './MediaControls.scss';
@@ -25,16 +25,17 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
     const currentIndex = useObservable(observeCurrentIndex, -1);
     const currentTime = useObservable(observeCurrentTime, 0);
     const duration = useObservable(observeDuration, 0);
-    const paused = useObservable(observePaused, true);
+    const paused = usePaused();
 
     const handleSeekChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         seek(event.target.valueAsNumber);
     }, []);
 
     const handleMoreClick = useCallback(
-        async (event: React.MouseEvent) => {
+        async (event: React.MouseEvent<HTMLButtonElement>) => {
             const listView = listViewRef.current!;
-            const action = await showActionsMenu(event.pageX, event.pageY);
+            const rect = (event.target as HTMLButtonElement).getBoundingClientRect();
+            const action = await showActionsMenu(rect.right, rect.bottom + 4);
             switch (action) {
                 case 'jump-to-current':
                     listView.scrollIntoView(currentIndex);
@@ -50,7 +51,7 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
                     break;
 
                 case 'shuffle':
-                    playlist.shuffle(!paused);
+                    await playlist.shuffle(!paused);
                     listView.scrollIntoView(0);
                     break;
             }
@@ -63,7 +64,6 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
             mediaPlayback.prev();
             const listView = listViewRef.current!;
             listView.scrollIntoView(currentIndex - 1);
-            listView.focus();
         }
     }, [listViewRef, currentIndex]);
 
@@ -72,7 +72,6 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
             mediaPlayback.next();
             const listView = listViewRef.current!;
             listView.scrollIntoView(currentIndex + 1);
-            listView.focus();
         }
     }, [listViewRef, currentIndex]);
 
@@ -95,25 +94,21 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
             <div className="playback-control">
                 <VolumeControl />
                 <div className="media-buttons">
-                    <MediaIconButton
+                    <MediaButton
                         aria-label="Previous track"
                         icon="prev"
                         onClick={handlePrevClick}
                     />
-                    <MediaIconButton
+                    <MediaButton
                         aria-label={paused ? 'Play' : 'Pause'}
                         icon={paused ? 'play' : 'pause'}
                         onClick={paused ? play : pause}
                     />
-                    <MediaIconButton aria-label="Stop" icon="stop" onClick={stop} />
-                    <MediaIconButton
-                        aria-label="Next track"
-                        icon="next"
-                        onClick={handleNextClick}
-                    />
+                    <MediaButton aria-label="Stop" icon="stop" onClick={stop} />
+                    <MediaButton aria-label="Next track" icon="next" onClick={handleNextClick} />
                 </div>
                 <div className="media-buttons-more">
-                    <MediaIconButton title="More..." icon="menu" onClick={handleMoreClick} />
+                    <MediaButton title="More..." icon="menu" onClick={handleMoreClick} />
                 </div>
             </div>
         </div>

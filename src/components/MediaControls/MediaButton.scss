@@ -22,8 +22,8 @@
         margin-right: auto;
     }
 
-    &-icon:enabled:active,
-    &-icon:enabled.active {
+    &:enabled:active,
+    &:enabled.active {
         transform: scale(0.98);
     }
 

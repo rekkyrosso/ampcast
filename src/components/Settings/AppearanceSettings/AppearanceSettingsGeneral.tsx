@@ -1,11 +1,13 @@
-import React, {useCallback, useLayoutEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useId, useLayoutEffect, useMemo, useRef} from 'react';
 import theme from 'services/theme';
 import themeStore from 'services/theme/themeStore';
 import useCurrentTheme from './useCurrentTheme';
 import useDefaultThemes from './useDefaultThemes';
 import useUserThemes from './useUserThemes';
+import './AppearanceSettingsGeneral.scss';
 
 export default function AppearanceSettingsGeneral() {
+    const id = useId();
     const currentTheme = useCurrentTheme();
     const defaultThemesRef = useRef<HTMLSelectElement>(null);
     const userThemesRef = useRef<HTMLSelectElement>(null);
@@ -41,7 +43,7 @@ export default function AppearanceSettingsGeneral() {
     }, []);
 
     return (
-        <form className="theme-settings" method="dialog" onSubmit={handleSubmit}>
+        <form className="appearance-settings-general" method="dialog" onSubmit={handleSubmit}>
             <fieldset>
                 <legend>Theme</legend>
                 <div className="table-layout">
@@ -49,12 +51,12 @@ export default function AppearanceSettingsGeneral() {
                         <input
                             type="radio"
                             name="theme-source"
-                            id="default-themes"
+                            id={`${id}-default-themes`}
                             value=""
                             checked={!userTheme}
                             onChange={handleThemeChange}
                         />
-                        <label htmlFor="default-themes">Default themes:</label>
+                        <label htmlFor={`${id}-default-themes`}>Default themes:</label>
                         <select
                             value={userTheme ? undefined : currentTheme.name}
                             disabled={userTheme}
@@ -72,14 +74,14 @@ export default function AppearanceSettingsGeneral() {
                         <input
                             type="radio"
                             name="theme-source"
-                            id="user-themes"
+                            id={`${id}-user-themes`}
                             value="user"
                             checked={userTheme}
                             disabled={userThemes.length === 0}
                             onChange={handleThemeChange}
                             ref={userThemeRef}
                         />
-                        <label htmlFor="user-themes">My themes:</label>
+                        <label htmlFor={`${id}-user-themes`}>My themes:</label>
                         <select
                             value={userTheme ? currentTheme.name : undefined}
                             onChange={handleThemeChange}

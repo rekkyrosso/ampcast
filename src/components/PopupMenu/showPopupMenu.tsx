@@ -5,7 +5,8 @@ import {PopupMenuProps} from './PopupMenu';
 export default async function showPopupMenu<T extends string>(
     PopupMenu: React.FC<PopupMenuProps<T>>,
     x: number,
-    y: number
+    y: number,
+    align?: 'left' | 'right'
 ): Promise<T | undefined> {
     return new Promise((resolve, reject) => {
         const popupRoot = document.getElementById('popup')!;
@@ -18,7 +19,7 @@ export default async function showPopupMenu<T extends string>(
                 resolve(action);
             };
             popupRoot.append(rootElement);
-            root.render(<PopupMenu x={x} y={y} onClose={close} />);
+            root.render(<PopupMenu x={x} y={y} align={align} onClose={close} />);
         } catch (err) {
             root.unmount();
             rootElement.remove();

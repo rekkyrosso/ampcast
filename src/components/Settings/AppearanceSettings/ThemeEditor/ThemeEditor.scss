@@ -28,11 +28,16 @@
         }
     }
 
-    .icon-button-swap {
-        font-size: 0.75em;
+    .icon-button {
+        outline-width: 2px;
+        outline-offset: 2px;
 
-        &:disabled {
-            opacity: 0.5;
+        &-swap {
+            font-size: 0.75em;
+
+            &:disabled {
+                opacity: 0.5;
+            }
         }
     }
 }

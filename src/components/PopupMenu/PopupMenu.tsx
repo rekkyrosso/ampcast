@@ -1,32 +1,37 @@
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {filter, fromEvent, merge, switchMap, timer} from 'rxjs';
+import {preventDefault} from 'utils';
 import './PopupMenu.scss';
 
 export interface PopupMenuProps<T extends string = string> {
     onClose: (action?: T) => void;
     x: number;
     y: number;
+    align?: 'left' | 'right';
 }
 
-export interface BasePopupMenuProps<T extends string> extends PopupMenuProps<T> {
-    className?: string;
+interface BasePopupMenuProps<T extends string> extends PopupMenuProps<T> {
     children: React.ReactNode;
 }
 
 export default function PopupMenu<T extends string>({
-    className = '',
     children,
     onClose,
     x,
     y,
+    align = 'left',
 }: BasePopupMenuProps<T>) {
-    const popupRef = useRef<HTMLDivElement>(null);
+    const popupRef = useRef<HTMLUListElement>(null);
+    const restoreRef = useRef<HTMLElement>(document.activeElement as HTMLElement);
     const [style, setStyle] = useState<React.CSSProperties>({visibility: 'hidden'});
+    const [buttons, setButtons] = useState<HTMLButtonElement[]>([]);
+    const [buttonId, setButtonId] = useState('');
 
     useLayoutEffect(() => {
         const style: React.CSSProperties = {};
         const popup = popupRef.current!;
-        if (x + popup.offsetWidth > document.body.clientWidth) {
+        const buttons = Array.from(popup.querySelectorAll('button'));
+        if (align === 'right' || x + popup.offsetWidth > document.body.clientWidth) {
             style.left = `${x - popup.offsetWidth}px`;
         } else {
             style.left = `${x}px`;
@@ -36,8 +41,15 @@ export default function PopupMenu<T extends string>({
         } else {
             style.top = `${y}px`;
         }
+        setButtons(buttons);
         setStyle(style);
-    }, [x, y]);
+    }, [align, x, y]);
+
+    useEffect(() => {
+        const button = buttons.find((button) => !button.disabled);
+        button?.focus();
+        setButtonId(button?.id || '');
+    }, [buttons]);
 
     useEffect(() => {
         const subscription = merge(
@@ -48,34 +60,77 @@ export default function PopupMenu<T extends string>({
                     )
                 )
             ),
-            fromEvent(document, 'keydown', {capture: true}),
-            fromEvent(document, 'contextmenu', {capture: true}),
+            fromEvent<KeyboardEvent>(document, 'keydown', {capture: true}).pipe(
+                filter((event) => event.code === 'Escape')
+            ),
             fromEvent(window, 'blur')
-        ).subscribe(() => onClose());
+        ).subscribe(() => {
+            restoreRef.current?.focus();
+            onClose();
+        });
         return () => subscription.unsubscribe();
     }, [onClose]);
 
     const handleClick = useCallback(
         (event: React.MouseEvent) => {
             let button: any = event.target;
-            while (button && !button.value) {
+            while (button && button.nodeName !== 'BUTTON') {
                 button = button.parentElement;
             }
             if (button?.value && !button.disabled) {
+                restoreRef.current?.focus();
                 onClose(button!.value);
             }
         },
         [onClose]
     );
 
+    const handleKeyDown = useCallback(
+        (event: React.KeyboardEvent) => {
+            let currentIndex = buttons.indexOf(document.activeElement as HTMLButtonElement);
+            if (event.code === 'ArrowDown') {
+                event.stopPropagation();
+                currentIndex++;
+            } else if (event.code === 'ArrowUp') {
+                event.stopPropagation();
+                currentIndex--;
+            }
+            currentIndex = Math.min(Math.max(currentIndex, 0), buttons.length - 1);
+            const button = buttons[currentIndex];
+            if (button && !button.disabled) {
+                button.focus();
+                setButtonId(button.id);
+            }
+        },
+        [buttons]
+    );
+
+    const handleMouseOver = useCallback((event: React.MouseEvent) => {
+        let button: any = event.target;
+        while (button && button.nodeName !== 'BUTTON') {
+            button = button.parentElement;
+        }
+        if (button && !button.disabled) {
+            button.focus();
+            setButtonId(button.id);
+        }
+    }, []);
+
     return (
-        <menu
-            className={`popup-menu ${className}`}
-            onClick={handleClick}
+        <ul
+            className="popup-menu"
+            tabIndex={-1}
+            role="menu"
+            aria-label="Actions"
+            aria-activedescendant={buttonId}
             style={style}
+            onClick={handleClick}
+            onContextMenu={preventDefault}
+            onKeyDown={handleKeyDown}
+            onMouseOver={handleMouseOver}
             ref={popupRef}
         >
             {children}
-        </menu>
+        </ul>
     );
 }

@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useLayoutEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {DatePickerProps} from './DatePicker';
 
 export default function YearPicker({
@@ -34,7 +34,7 @@ export default function YearPicker({
 function useYears(min: number | string, max: number | string): number[] {
     const [years, setYears] = useState<number[]>([]);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         const years: number[] = [];
         const minDate = new Date(min);
         const maxDate = new Date(max);

@@ -1,8 +1,9 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useId, useRef, useState} from 'react';
 import {getYouTubeSrc} from 'services/youtube';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
 
 export default function AmbientVideoSettings() {
+    const id = useId();
     const enabledRef = useRef<HTMLInputElement>(null);
     const sourceRef = useRef<HTMLInputElement>(null);
     const useSourceRef = useRef<HTMLInputElement>(null);
@@ -39,37 +40,35 @@ export default function AmbientVideoSettings() {
         <form className="ambient-video-settings" method="dialog" onSubmit={handleSubmit}>
             <p>
                 <input
-                    id="ambient-video-enabled"
+                    id={`${id}-ambient-video-enabled`}
                     type="checkbox"
                     defaultChecked={visualizerSettings.ambientVideoEnabled}
                     ref={enabledRef}
                 />
-                <label htmlFor="ambient-video-enabled">Enable ambient video</label>
+                <label htmlFor={`${id}-ambient-video-enabled`}>Enable ambient video</label>
             </p>
             <fieldset>
                 <legend>Source</legend>
                 <p>
                     <input
                         type="radio"
-                        name="use-ambient-video-source"
-                        id="use-ambient-video-source-default"
+                        name="video-source"
+                        id={`${id}-source-default`}
                         defaultChecked={!visualizerSettings.useAmbientVideoSource}
                         onChange={handleSourceChange}
                     />
-                    <label htmlFor="use-ambient-video-source-default">Default videos</label>
+                    <label htmlFor={`${id}-source-default`}>Default videos</label>
                 </p>
                 <p>
                     <input
                         type="radio"
-                        name="use-ambient-video-source"
-                        id="use-ambient-video-source-youtube"
+                        name="video-source"
+                        id={`${id}-source-youtube`}
                         defaultChecked={visualizerSettings.useAmbientVideoSource}
                         onChange={handleSourceChange}
                         ref={useSourceRef}
                     />
-                    <label htmlFor="use-ambient-video-source-youtube">
-                        YouTube video or playlist:
-                    </label>
+                    <label htmlFor={`${id}-source-youtube`}>YouTube video or playlist:</label>
                 </p>
                 <p>
                     <input
@@ -84,12 +83,12 @@ export default function AmbientVideoSettings() {
             </fieldset>
             <p>
                 <input
-                    id="show-beats-overlay"
+                    id={`${id}-beats-overlay`}
                     type="checkbox"
                     defaultChecked={visualizerSettings.beatsOverlay}
                     ref={beatsOverlayRef}
                 />
-                <label htmlFor="show-beats-overlay">Show &quot;beats&quot; overlay</label>
+                <label htmlFor={`${id}-beats-overlay`}>Show &quot;beats&quot; overlay</label>
             </p>
             <footer className="dialog-buttons">
                 <button type="button" value="#cancel">

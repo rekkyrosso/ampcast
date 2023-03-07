@@ -16,7 +16,7 @@ import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import pinStore from 'services/pins/pinStore';
-import {getTextFromHtml, Logger} from 'utils';
+import {exists, getTextFromHtml, Logger} from 'utils';
 import spotify, {
     SpotifyAlbum,
     spotifyApi,
@@ -331,9 +331,9 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         const tracks = playlist.tracks?.items;
         if (tracks && tracks.length === playlist.tracks.total) {
             return new SimpleMediaPager(() => {
-                const items = tracks.map((item) =>
-                    this.createMediaItemFromTrack(item.track as SpotifyTrack)
-                );
+                const items = tracks
+                    .filter((item) => !!item.track)
+                    .map((item) => this.createMediaItemFromTrack(item.track as SpotifyTrack));
                 this.addInLibrary(items);
                 return items;
             });
@@ -345,7 +345,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                     limit,
                     market,
                 });
-                return {items: items.map((item) => item.track), total, next};
+                return {items: items.map((item) => item.track).filter(exists), total, next};
             });
         }
     }

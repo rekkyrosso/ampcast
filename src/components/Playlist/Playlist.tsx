@@ -89,11 +89,24 @@ export default function Playlist({
     }, []);
 
     const handleContextMenu = useCallback(
-        async (selectedItems: readonly PlaylistItem[], x: number, y: number, rowIndex: number) => {
+        async (
+            selectedItems: readonly PlaylistItem[],
+            x: number,
+            y: number,
+            rowIndex: number,
+            button: number
+        ) => {
             if (items.length === 0) {
                 return;
             }
-            const action = await showActionsMenu(items, selectedItems, x, y, rowIndex);
+            const action = await showActionsMenu(
+                items,
+                selectedItems,
+                rowIndex,
+                x,
+                y,
+                button === -1 ? 'right' : 'left'
+            );
             switch (action) {
                 case 'play':
                     onPlay?.(selectedItems[0]);
@@ -134,6 +147,7 @@ export default function Playlist({
                 items={items}
                 itemKey="id"
                 itemClassName={itemClassName}
+                selectedIndex={items.length === 0 ? -1 : 0}
                 droppable={true}
                 droppableTypes={droppableTypes}
                 multiple={true}

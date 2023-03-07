@@ -8,6 +8,7 @@
     width: 1em;
     height: 1em;
     opacity: 0.75;
+    border-radius: 50%;
 
     &:disabled {
         color: var(--grey1-color);
@@ -16,6 +17,7 @@
     &:enabled {
         cursor: pointer;
 
+        &:focus-visible,
         &:hover {
             opacity: 1;
         }

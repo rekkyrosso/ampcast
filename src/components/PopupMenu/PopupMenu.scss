@@ -1,12 +1,13 @@
 @import 'styles/mixins.scss';
 
 .popup-menu {
-    @include button;
     position: fixed;
     display: flex;
     flex-direction: column;
     padding: 0;
     overflow: hidden;
+    background-color: var(--button-color);
+    border: 1px solid var(--black);
     border-radius: var(--app-border-radius);
     box-shadow: rgb(0 0 0 / 33%) 2px 5px 10px;
 
@@ -21,17 +22,19 @@
         padding-left: 1.25em;
         background-image: none;
 
-        &:not(:disabled) {
-            &:hover {
-                background-color: var(--button-text-color);
-                color: var(--button-color);
-                filter: none;
-            }
+        &:focus {
+            background-color: var(--button-text-color);
+            color: var(--button-color);
+        }
 
-            &:active {
-                transform: none;
-                filter: none;
-            }
+        &:focus-visible {
+            outline: none;
+        }
+
+        &:hover,
+        &:active {
+            transform: none;
+            filter: none;
         }
     }
 
@@ -48,7 +51,7 @@
     }
 
     &-item {
-        &.checked button::before {
+        button[aria-checked="true"]::before {
             content: '✓';
             position: absolute;
             left: 0.33em;

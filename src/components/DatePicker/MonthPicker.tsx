@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {formatMonth} from 'utils';
 import {DatePickerProps} from './DatePicker';
 import YearPicker from './YearPicker';
@@ -19,7 +19,7 @@ export default function MonthPicker({
     const [month, setMonth] = useState(() => new Date(value).getMonth());
     const months = useMonths(year, min, max);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         const month = months[0];
         if (month !== undefined) {
             ref.current!.value = String(month);
@@ -59,7 +59,7 @@ export default function MonthPicker({
 function useMonths(year: string, min: number | string, max: number | string): number[] {
     const [months, setMonths] = useState<number[]>([]);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         const months: number[] = [];
         const minDate = new Date(min);
         const maxDate = new Date(max);

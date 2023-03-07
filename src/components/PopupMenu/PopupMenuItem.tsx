@@ -1,26 +1,29 @@
-import React from 'react';
+import React, {useId} from 'react';
 import {cancelEvent, stopPropagation} from 'utils';
 
-export interface PopupMenuItemProps<T extends string> {
+export interface PopupMenuItemProps<T extends string>
+    extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+    value: T;
     label: string;
-    action: T;
-    checked?: boolean;
     acceleratorKey?: string;
-    disabled?: boolean;
 }
 
 export default function PopupMenuItem<T extends string>({
+    className = '',
     label,
     acceleratorKey = '',
-    checked,
-    disabled,
-    action,
+    role = 'menuitem',
+    ...props
 }: PopupMenuItemProps<T>) {
+    const id = useId();
+
     return (
-        <li className={`popup-menu-item ${checked ? 'checked' : ''}`}>
+        <li className={`popup-menu-item ${className}`}>
             <button
-                value={action}
-                disabled={disabled}
+                {...props}
+                id={id}
+                role={role}
+                tabIndex={-1}
                 onMouseDown={cancelEvent}
                 onMouseUp={stopPropagation}
             >

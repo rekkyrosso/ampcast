@@ -1,11 +1,12 @@
 import {RefObject, useState, useEffect} from 'react';
 import {fromEvent} from 'rxjs';
-import browser from 'utils/browser';
+import {browser} from 'utils';
 
 export default function useMediaInfoDialog(dialogRef: RefObject<HTMLDialogElement>) {
     const [debug, setDebug] = useState(false);
 
     useEffect(() => {
+        // TODO: Why is this here?
         if (dialogRef.current) {
             const activeElements = document.querySelectorAll('.focus');
             for (const activeElement of activeElements) {

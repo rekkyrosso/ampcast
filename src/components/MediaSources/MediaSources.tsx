@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {useEffect, useRef} from 'react';
 import {LiteStorage} from 'utils';
-import TreeView from 'components/TreeView';
+import TreeView, {TreeViewHandle} from 'components/TreeView';
 import useMediaSources from './useMediaSources';
 import './MediaSources.scss';
 
@@ -13,11 +13,21 @@ export interface MediaSourcesProps {
 }
 
 export default function MediaSources({onSelect}: MediaSourcesProps) {
+    const treeViewRef = useRef<TreeViewHandle>(null);
     const sources = useMediaSources();
+
+    useEffect(() => {
+        treeViewRef.current!.focus();
+    }, []);
 
     return (
         <div className="panel media-sources">
-            <TreeView<React.ReactNode> roots={sources} onSelect={onSelect} storageId={storage.id} />
+            <TreeView<React.ReactNode>
+                roots={sources}
+                onSelect={onSelect}
+                storageId={storage.id}
+                treeViewRef={treeViewRef}
+            />
         </div>
     );
 }

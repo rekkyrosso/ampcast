@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useId, useRef} from 'react';
 import Dialog, {showDialog, DialogProps} from 'components/Dialog';
 import jellyfinSettings from '../jellyfinSettings';
 import './JellyfinLoginDialog.scss';
@@ -8,6 +8,7 @@ export async function showJellyfinLoginDialog(): Promise<string> {
 }
 
 export default function JellyfinLoginDialog(props: DialogProps) {
+    const id = useId();
     const dialogRef = useRef<HTMLDialogElement>(null);
     const hostRef = useRef<HTMLInputElement>(null);
     const userNameRef = useRef<HTMLInputElement>(null);
@@ -67,10 +68,10 @@ export default function JellyfinLoginDialog(props: DialogProps) {
             <form method="dialog" onSubmit={handleSubmit}>
                 <div className="table-layout">
                     <p>
-                        <label htmlFor="jellyfin-host">Host:</label>
+                        <label htmlFor={`${id}-host`}>Host:</label>
                         <input
                             type="url"
-                            id="jellyfin-host"
+                            id={`${id}-host`}
                             defaultValue={jellyfinSettings.host}
                             placeholder="https://"
                             ref={hostRef}
@@ -78,10 +79,10 @@ export default function JellyfinLoginDialog(props: DialogProps) {
                         />
                     </p>
                     <p>
-                        <label htmlFor="jellyfin-username">User:</label>
+                        <label htmlFor={`${id}-username`}>User:</label>
                         <input
                             type="text"
-                            id="jellyfin-username"
+                            id={`${id}-username`}
                             autoFocus
                             spellCheck={false}
                             autoComplete="off"
@@ -91,8 +92,8 @@ export default function JellyfinLoginDialog(props: DialogProps) {
                         />
                     </p>
                     <p>
-                        <label htmlFor="jellyfin-password">Password:</label>
-                        <input type="password" id="jellyfin-password" ref={passwordRef} required />
+                        <label htmlFor={`${id}-password`}>Password:</label>
+                        <input type="password" id={`${id}-password`} ref={passwordRef} required />
                     </p>
                 </div>
                 <footer className="dialog-buttons">

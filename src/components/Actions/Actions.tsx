@@ -65,8 +65,9 @@ export default function Actions({item, inline}: ActionsProps) {
     }, [item]);
 
     const showContextMenu = useCallback(
-        async (event: React.MouseEvent) => {
-            const action = await showActionsMenu([item], event.pageX, event.pageY);
+        async (event: React.MouseEvent<HTMLButtonElement>) => {
+            const rect = (event.target as HTMLButtonElement).getBoundingClientRect();
+            const action = await showActionsMenu([item], false, rect.right, rect.bottom, 'right');
             if (action) {
                 await performAction(action, [item]);
             }

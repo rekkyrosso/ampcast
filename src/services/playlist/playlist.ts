@@ -109,7 +109,7 @@ export function observeCurrentIndex(): Observable<number> {
     );
 }
 
-function getCurrentIndex(): number {
+export function getCurrentIndex(): number {
     const items = items$.getValue();
     const currentItemId = getCurrentItemId();
     return items.findIndex((item) => item.id === currentItemId);
@@ -141,17 +141,17 @@ function moveCurrentIndexBy(amount: -1 | 1): void {
 }
 
 export async function add(items: PlayableType): Promise<void> {
-    await insertAt(items, -1);
+    return insertAt(items, -1);
 }
 
-export function clear(): void {
+export async function clear(): Promise<void> {
     setItems([]);
 }
 
-export function eject(): void {
+export async function eject(): Promise<void> {
     const item = getCurrentItem();
     if (item) {
-        remove(item);
+        return remove(item);
     }
 }
 
@@ -189,7 +189,7 @@ export async function insertAt(items: PlayableType, index: number): Promise<void
     }
 }
 
-export function moveSelection(selection: PlaylistItem[], beforeIndex: number): void {
+export async function moveSelection(selection: PlaylistItem[], beforeIndex: number): Promise<void> {
     const items = getItems();
     const insertBeforeItem = items[beforeIndex];
     if (selection.includes(insertBeforeItem)) {
@@ -206,15 +206,15 @@ export function moveSelection(selection: PlaylistItem[], beforeIndex: number): v
     }
 }
 
-export function next(): void {
+export async function next(): Promise<void> {
     moveCurrentIndexBy(+1);
 }
 
-export function prev(): void {
+export async function prev(): Promise<void> {
     moveCurrentIndexBy(-1);
 }
 
-export function remove(item: PlaylistItem | readonly PlaylistItem[]): void {
+export async function remove(item: PlaylistItem | readonly PlaylistItem[]): Promise<void> {
     const items = getItems();
     const removals = Array.isArray(item) ? item : [item];
     const newItems = items.filter((item) => !removals.includes(item));
@@ -234,21 +234,21 @@ export function remove(item: PlaylistItem | readonly PlaylistItem[]): void {
     }
 }
 
-export function removeAt(index: number): void {
+export async function removeAt(index: number): Promise<void> {
     const item = getAt(index);
     if (item) {
-        remove(item);
+        return remove(item);
     }
 }
 
-export function reverseAt(index: number, length: number): void {
+export async function reverseAt(index: number, length: number): Promise<void> {
     const items = getItems();
     const reversals = items.slice(index, index + length).reverse();
     items.splice(index, length, ...reversals);
     setItems(items);
 }
 
-export function shuffle(preserveCurrentlyPlaying?: boolean): void {
+export async function shuffle(preserveCurrentlyPlaying?: boolean): Promise<void> {
     const currentItems = getItems().slice();
     if (currentItems.length > 0) {
         const currentItem = getCurrentItem();
@@ -322,6 +322,7 @@ const playlist: Playlist = {
     observeCurrentItem,
     observeNextItem,
     observeSize,
+    getCurrentIndex,
     getCurrentItem,
     setCurrentItem,
     add,

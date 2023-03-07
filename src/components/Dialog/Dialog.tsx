@@ -50,7 +50,6 @@ function Dialog(
         const dialog = dialogRef.current!;
         dialogPolyfill.registerDialog(dialog);
         dialog.showModal();
-        dialog.querySelector<HTMLElement>('input:read-write:enabled')?.focus();
     }, []);
 
     const close = useCallback(() => {
@@ -130,9 +129,14 @@ function Dialog(
         >
             <header className="dialog-head" onMouseDown={handleMouseDown}>
                 <h2>{title}</h2>
-                <button onClick={close} onMouseDown={stopPropagation}>
+                <div
+                    className="dialog-close"
+                    role="button"
+                    onClick={close}
+                    onMouseDown={stopPropagation}
+                >
                     <Icon name="close" />
-                </button>
+                </div>
             </header>
             <div className="dialog-body" onClick={handleBodyClick}>
                 {children}

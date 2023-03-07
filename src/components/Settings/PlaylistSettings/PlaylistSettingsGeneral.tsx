@@ -1,8 +1,9 @@
-import useObservable from 'hooks/useObservable';
-import React, {useCallback, useMemo, useRef} from 'react';
+import React, {useCallback, useId, useMemo, useRef} from 'react';
 import playlistSettings, {PlaylistSettings} from 'services/playlist/playlistSettings';
+import useObservable from 'hooks/useObservable';
 
 export default function PlaylistSettingsGeneral() {
+    const id = useId();
     const originalSettings: PlaylistSettings = useMemo(() => playlistSettings.get(), []);
     const settings = useObservable(playlistSettings.observe, originalSettings);
     const allowDuplicatesRef = useRef<HTMLInputElement>(null);
@@ -29,47 +30,47 @@ export default function PlaylistSettingsGeneral() {
                 <legend>Content</legend>
                 <p>
                     <input
-                        id="playlist-allow-duplicates"
+                        id={`${id}-allow-duplicates`}
                         type="checkbox"
                         checked={settings.allowDuplicates}
                         onChange={handleChange}
                         ref={allowDuplicatesRef}
                     />
-                    <label htmlFor="playlist-allow-duplicates">Allow duplicates</label>
+                    <label htmlFor={`${id}-allow-duplicates`}>Allow duplicates</label>
                 </p>
             </fieldset>
             <fieldset>
                 <legend>Display</legend>
                 <p>
                     <input
-                        id="playlist-item-numbers"
+                        id={`${id}-item-numbers`}
                         type="checkbox"
                         checked={settings.showLineNumbers}
                         onChange={handleChange}
                         ref={showLineNumbersRef}
                     />
-                    <label htmlFor="playlist-item-numbers">Show line numbers</label>
+                    <label htmlFor={`${id}-item-numbers`}>Show line numbers</label>
                 </p>
                 <p>
                     <input
-                        id="playlist-zero-pad"
+                        id={`${id}-zero-pad`}
                         type="checkbox"
                         checked={settings.zeroPadLineNumbers}
                         disabled={!settings.showLineNumbers}
                         onChange={handleChange}
                         ref={zeroPadLineNumbersRef}
                     />
-                    <label htmlFor="playlist-zero-pad">Zero pad line numbers</label>
+                    <label htmlFor={`${id}-zero-pad`}>Zero pad line numbers</label>
                 </p>
                 <p>
                     <input
-                        id="playlist-source-icons"
+                        id={`${id}-source-icons`}
                         type="checkbox"
                         checked={settings.showSourceIcons}
                         onChange={handleChange}
                         ref={showSourceIconsRef}
                     />
-                    <label htmlFor="playlist-source-icons">Show media source icons</label>
+                    <label htmlFor={`${id}-source-icons`}>Show media source icons</label>
                 </p>
             </fieldset>
             <footer className="dialog-buttons">

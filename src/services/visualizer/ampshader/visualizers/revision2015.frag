@@ -28,7 +28,7 @@ a=time*.4,cs=cos(a),ss=sin(a);
 
 
   float e = .5;
-  p = abs(p*r*r2)-.5-sin(time)*.005;;
+  p = abs(p*r*r2)-.5-sin(time)*.005;
   p = abs(p*r*r2)-.25-sin(time)*.005;
   p = abs(p*r*r2)-.125-sin(time)*.005;
   p = abs(p*r*r2)-.06125-sin(time)*.005;

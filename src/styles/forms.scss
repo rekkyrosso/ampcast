@@ -45,6 +45,11 @@ input {
 select {
     border: 1px solid;
     user-select: none;
+    outline-offset: -1px;
+
+    &:focus-visible {
+        @include outline;
+    }
 }
 
 input[type="checkbox"],
@@ -56,6 +61,12 @@ input[type="radio"] {
 
     & + label {
         vertical-align: middle;
+    }
+
+    &:focus-visible + label,
+    label + &:focus-visible {
+        @include outline;
+        outline-offset: 3px;
     }
 }
 
@@ -70,6 +81,10 @@ input[type="color"] {
 
     & + & {
         margin-left:  0.5em;
+    }
+
+    &:focus-visible {
+        @include outline;
     }
 }
 
@@ -123,6 +138,18 @@ input[type="range"] {
     &::-moz-range-thumb {
         @include thumb;
     }
+
+    &:focus-visible::-webkit-slider-thumb {
+        @include outline;
+    }
+
+    &:focus-visible::-moz-range-thumb {
+        @include outline;
+    }
+}
+
+label {
+    border-radius: calc(var(--roundness) * 0.5em);
 }
 
 label + input[type],
@@ -147,7 +174,8 @@ textarea {
     }
 }
 
-button {
+button,
+[role="button"] {
     @include button;
     @include pressable;
     -webkit-appearance: none;
@@ -176,6 +204,10 @@ button {
         filter: grayscale(0.5);
         background-image: none;
         opacity: 0.75;
+    }
+
+    &:focus-visible {
+        @include outline;
     }
 
     & + & {

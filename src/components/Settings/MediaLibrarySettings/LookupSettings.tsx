@@ -1,8 +1,9 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useId, useRef} from 'react';
 import lookupSettings from 'services/lookup/lookupSettings';
 import {getLookupServices} from 'services/mediaServices';
 
 export default function LookupSettings() {
+    const id = useId();
     const ref = useRef<HTMLSelectElement>(null);
     const preferredService = lookupSettings.preferredService;
 
@@ -12,8 +13,8 @@ export default function LookupSettings() {
 
     return (
         <form className="lookup-settings" method="dialog" onSubmit={handleSubmit}>
-            <label htmlFor="lookup-services">Preferred Service:</label>
-            <select id="lookup-services" defaultValue={preferredService} ref={ref}>
+            <label htmlFor={`${id}-lookup-services`}>Preferred Service:</label>
+            <select id={`${id}-lookup-services`} defaultValue={preferredService} ref={ref}>
                 <option value="">(none)</option>
                 {getLookupServices().map((service) => (
                     <option value={service.id} key={service.id}>

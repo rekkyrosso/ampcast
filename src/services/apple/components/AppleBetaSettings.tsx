@@ -1,9 +1,10 @@
 import {confirm} from 'components/Dialog';
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useId, useRef} from 'react';
 import apple from '../apple';
 import appleSettings from '../appleSettings';
 
 export default function AppleBetaSettings() {
+    const id = useId();
     const betaRef = useRef<HTMLInputElement>(null);
 
     const handleSubmit = useCallback(async () => {
@@ -35,20 +36,20 @@ export default function AppleBetaSettings() {
                     <input
                         type="radio"
                         name="use-musickit"
-                        id="use-musickit-stable"
+                        id={`${id}-musickit-stable`}
                         defaultChecked={!appleSettings.useMusicKitBeta}
                     />
-                    <label htmlFor="use-musickit-stable">Stable version</label>
+                    <label htmlFor={`${id}-musickit-stable`}>Stable version</label>
                 </p>
                 <p>
                     <input
                         type="radio"
                         name="use-musickit"
-                        id="use-musickit-beta"
+                        id={`${id}-musickit-beta`}
                         defaultChecked={appleSettings.useMusicKitBeta}
                         ref={betaRef}
                     />
-                    <label htmlFor="use-musickit-beta">Beta version</label>
+                    <label htmlFor={`${id}-musickit-beta`}>Beta version</label>
                 </p>
             </fieldset>
             <div className="note">

@@ -13,10 +13,7 @@
         .icon-button {
             flex: initial;
             margin: 0 calc(var(--gutter-width) + 0.25rem) 0 auto;
-
-            &:hover {
-                opacity: 1;
-            }
+            outline-offset: 3px;
         }
     }
 

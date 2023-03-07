@@ -1,12 +1,11 @@
-import {useEffect} from 'react';
+import {useLayoutEffect} from 'react';
 import {fromEvent, Subscription} from 'rxjs';
 import {stopPropagation} from 'utils';
 
-const app = document.getElementById('app')!;
-const system = document.getElementById('system')!;
-
 export default function usePseudoClasses(): void {
-    useEffect(() => {
+    useLayoutEffect(() => {
+        const app = document.getElementById('app')!;
+        const system = document.getElementById('system')!;
         const subscription = new Subscription();
         const subscribe = (root: HTMLElement) =>
             fromEvent<FocusEvent>(root, 'focusin').subscribe(() => {

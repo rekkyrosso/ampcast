@@ -14,16 +14,18 @@ import PopupMenu, {
 
 export default async function showActionsMenu<T extends MediaObject>(
     items: readonly T[],
+    isContextMenu: boolean,
     x: number,
     y: number,
-    isContextMenu = false
+    align: 'left' | 'right' = 'left'
 ): Promise<Action | undefined> {
     return showPopupMenu(
         (props: PopupMenuProps<Action>) => (
             <ActionsMenu {...props} items={items} isContextMenu={isContextMenu} />
         ),
         x,
-        y
+        y,
+        align
     );
 }
 
@@ -40,21 +42,17 @@ function ActionsMenu<T extends MediaObject>({items, isContextMenu, ...props}: Ac
     );
 
     return (
-        <PopupMenu {...props} className="actions-menu">
-            <ul className="actions-menu-items">
-                {allPlayable ? <PlayActions /> : null}
-                <PopupMenuSeparator />
-                {isContextMenu && isSingleItem ? <ContextualActions item={item} /> : null}
-                <PopupMenuSeparator />
-                {isSingleItem ? (
-                    <PopupMenuItem<Action>
-                        label="Info..."
-                        action={Action.Info}
-                        acceleratorKey={`${browser.ctrlKeyStr}+I`}
-                        key={Action.Info}
-                    />
-                ) : null}
-            </ul>
+        <PopupMenu {...props}>
+            {allPlayable ? <PlayActions /> : null}
+            {isContextMenu && isSingleItem ? <ContextualActions item={item} /> : null}
+            {isSingleItem ? (
+                <PopupMenuItem<Action>
+                    label="Info..."
+                    value={Action.Info}
+                    acceleratorKey={`${browser.ctrlKeyStr}+I`}
+                    key={Action.Info}
+                />
+            ) : null}
         </PopupMenu>
     );
 }
@@ -64,22 +62,23 @@ function PlayActions() {
         <>
             <PopupMenuItem<Action>
                 label="Queue"
-                action={Action.Queue}
+                value={Action.Queue}
                 acceleratorKey="Enter"
                 key={Action.Queue}
             />
             <PopupMenuItem<Action>
                 label="Play next"
-                action={Action.PlayNext}
+                value={Action.PlayNext}
                 acceleratorKey="Shift+Enter"
                 key={Action.PlayNext}
             />
             <PopupMenuItem<Action>
                 label="Play now"
-                action={Action.PlayNow}
+                value={Action.PlayNow}
                 acceleratorKey={`${browser.ctrlKeyStr}+Enter`}
                 key={Action.PlayNow}
             />
+            <PopupMenuSeparator />
         </>
     );
 }
@@ -97,7 +96,7 @@ function ContextualActions<T extends MediaObject>({item}: ContextualActionsProps
             {item.itemType === ItemType.Playlist ? (
                 <PopupMenuItem<Action>
                     label={item.isPinned ? 'Unpin' : 'Pin'}
-                    action={item.isPinned ? Action.Unpin : Action.Pin}
+                    value={item.isPinned ? Action.Unpin : Action.Pin}
                     key={item.isPinned ? Action.Unpin : Action.Pin}
                 />
             ) : null}
@@ -108,14 +107,14 @@ function ContextualActions<T extends MediaObject>({item}: ContextualActionsProps
                             ? getLabelForAction(service, Action.Unlike)
                             : getLabelForAction(service, Action.Like)
                     }
-                    action={item.rating ? Action.Unlike : Action.Like}
+                    value={item.rating ? Action.Unlike : Action.Like}
                     key={item.rating ? Action.Unlike : Action.Like}
                 />
             ) : null}
             {item.inLibrary === false && service?.canStore(item, true) ? (
                 <PopupMenuItem<Action>
                     label={getLabelForAction(service, Action.AddToLibrary)}
-                    action={Action.AddToLibrary}
+                    value={Action.AddToLibrary}
                     key={Action.AddToLibrary}
                 />
             ) : null}
@@ -123,10 +122,11 @@ function ContextualActions<T extends MediaObject>({item}: ContextualActionsProps
             {serviceId !== 'apple' && item.inLibrary === true && service?.canStore(item, true) ? (
                 <PopupMenuItem<Action>
                     label={getLabelForAction(service, Action.RemoveFromLibrary)}
-                    action={Action.RemoveFromLibrary}
+                    value={Action.RemoveFromLibrary}
                     key={Action.RemoveFromLibrary}
                 />
             ) : null}
+            <PopupMenuSeparator />
         </>
     );
 }

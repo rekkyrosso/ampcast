@@ -1,8 +1,9 @@
 import React from 'react';
 import mediaPlayback from 'services/mediaPlayback';
-import {observeCurrentIndex} from 'services/playlist';
+import {observeCurrentIndex, getCurrentIndex} from 'services/playlist';
 import PopupMenu, {
     PopupMenuItem,
+    PopupMenuItemCheckbox,
     PopupMenuProps,
     PopupMenuSeparator,
     showPopupMenu,
@@ -15,30 +16,28 @@ export default async function showActionsMenu(x: number, y: number): Promise<str
 }
 
 function ActionsMenu(props: PopupMenuProps) {
-    const currentIndex = useObservable(observeCurrentIndex, -1);
+    const currentIndex = useObservable(observeCurrentIndex, getCurrentIndex());
     const paused = usePaused();
 
     return (
-        <PopupMenu {...props} className="actions-menu">
-            <ul className="actions-menu-items">
-                <PopupMenuItem
-                    label="Stop after current"
-                    action="stop-after-current"
-                    disabled={paused}
-                    checked={mediaPlayback.stopAfterCurrent}
-                    key="stop-after-current"
-                />
-                <PopupMenuItem
-                    label="Jump to current"
-                    action="jump-to-current"
-                    disabled={currentIndex === -1}
-                    key="jump-to-current"
-                />
-                <PopupMenuSeparator />
-                <PopupMenuItem label="Shuffle" action="shuffle" key="shuffle" />
-                <PopupMenuSeparator />
-                <PopupMenuItem label="Clear" action="clear" key="clear" />
-            </ul>
+        <PopupMenu {...props}>
+            <PopupMenuItemCheckbox
+                label="Stop after current"
+                value="stop-after-current"
+                checked={mediaPlayback.stopAfterCurrent}
+                disabled={paused}
+                key="stop-after-current"
+            />
+            <PopupMenuItem
+                label="Jump to current"
+                value="jump-to-current"
+                disabled={currentIndex === -1}
+                key="jump-to-current"
+            />
+            <PopupMenuSeparator />
+            <PopupMenuItem label="Shuffle" value="shuffle" key="shuffle" />
+            <PopupMenuSeparator />
+            <PopupMenuItem label="Clear" value="clear" key="clear" />
         </PopupMenu>
     );
 }
