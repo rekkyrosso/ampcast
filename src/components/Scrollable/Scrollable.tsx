@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useId, useLayoutEffect, useRef, useState} from 'react';
 import {interval} from 'rxjs';
 import {partition} from 'utils';
 import useOnResize from 'hooks/useOnResize';
@@ -43,6 +43,7 @@ export default function Scrollable({
     onScroll,
     scrollableRef,
 }: ScrollableProps) {
+    const scrollableId = useId();
     const containerRef = useRef<HTMLDivElement>(null);
     const contentRef = useRef<HTMLDivElement>(null);
     const headRef = useRef<HTMLDivElement>(null);
@@ -185,7 +186,7 @@ export default function Scrollable({
     );
 
     return (
-        <div className="scrollable" onWheel={handleWheel} ref={containerRef}>
+        <div className="scrollable" id={scrollableId} onWheel={handleWheel} ref={containerRef}>
             <div
                 className="scrollable-content"
                 onDragOver={droppable ? handleDragOver : undefined}
@@ -222,6 +223,7 @@ export default function Scrollable({
                 </div>
             </div>
             <Scrollbar
+                scrollableId={scrollableId}
                 orientation="horizontal"
                 clientSize={clientWidth}
                 scrollSize={scrollWidth}
@@ -231,6 +233,7 @@ export default function Scrollable({
                 scrollbarRef={hScrollbarRef}
             />
             <Scrollbar
+                scrollableId={scrollableId}
                 orientation="vertical"
                 clientSize={clientHeight}
                 scrollSize={scrollHeight}

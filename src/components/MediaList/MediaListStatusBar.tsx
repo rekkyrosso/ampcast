@@ -75,16 +75,6 @@ function formatNumber(value = 0): string {
     }
 }
 
-function getErrorMessage(err: any): string {
-    if (err.message) {
-        return err.message;
-    } else if (err.statusText) {
-        return err.statusText;
-    } else {
-        return statusCodes[err.status] || err.status || '';
-    }
-}
-
 const statusCodes: Record<number, string> = {
     401: 'Unauthorized',
     403: 'Forbidden',
@@ -96,3 +86,9 @@ const statusCodes: Record<number, string> = {
     503: 'Service unavailable',
     504: 'Timeout',
 };
+
+function getErrorMessage(error: any): string {
+    return String(
+        error.message || error.statusText || statusCodes[error.status] || error.status || ''
+    );
+}

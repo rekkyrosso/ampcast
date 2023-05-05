@@ -58,9 +58,13 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
         segments: {},
         tatums: {},
     } as ActiveIntervals);
-    public fftSize = 2048;
-    public volumeSmoothing = 100;
     #volume = 0;
+    public fftSize = 2048;
+    // These are just for show.
+    public volumeSmoothing = 100;
+    public smoothingTimeConstant = 0;
+    public minDecibels = -100;
+    public maxDecibels = -30;
 
     constructor(spotifyPlayer: SpotifyPlayer) {
         spotifyPlayer
@@ -188,6 +192,15 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
         }
 
         array.fill(0);
+    }
+
+    getFloatFrequencyData(array: Float32Array): void {
+        const bufferSize = array.length;
+        const bytes = new Uint8Array(array.length);
+        this.getByteFrequencyData(bytes);
+        for (let i = 0; i < bufferSize; i++) {
+            array[i] = bytes[i] - 128;
+        }
     }
 
     getByteTimeDomainData(array: Uint8Array): void {

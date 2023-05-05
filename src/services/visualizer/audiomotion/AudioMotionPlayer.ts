@@ -1,4 +1,5 @@
-import {Observable, tap} from 'rxjs';
+import type {Observable} from 'rxjs';
+import {tap} from 'rxjs/operators';
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import {TinyColor} from '@ctrl/tinycolor';
 import {AudioMotionVisualizer} from 'types/Visualizer';
@@ -11,9 +12,9 @@ const logger = new Logger('AudioMotionPlayer');
 export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMotionVisualizer> {
     private readonly element: HTMLElement;
     private readonly visualizer: AudioMotionAnalyzer;
-    private audioSourceNode: AudioNode;
+    private audioSourceNode: AudioNode | undefined;
 
-    constructor(audioContext: AudioContext, audioSourceNode$: Observable<AudioNode>) {
+    constructor(audioCtx: AudioContext, audioSourceNode$: Observable<AudioNode>) {
         super();
 
         const container = (this.element = document.createElement('div'));
@@ -21,10 +22,8 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
         container.hidden = true;
         container.className = `visualizer visualizer-audiomotion`;
 
-        this.audioSourceNode = audioContext.createMediaElementSource(new Audio());
-
         const visualizer = (this.visualizer = new AudioMotionAnalyzer(container, {
-            source: this.audioSourceNode,
+            audioCtx,
             showBgColor: false,
             overlay: true,
             showScaleX: false,
@@ -54,7 +53,7 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
             this.element.hidden = hidden;
             if (hidden) {
                 this.visualizer.disconnectInput();
-            } else {
+            } else if (this.audioSourceNode) {
                 this.visualizer.connectInput(this.audioSourceNode);
             }
         }

@@ -1,4 +1,12 @@
-import React, {useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState} from 'react';
+import React, {
+    useCallback,
+    useEffect,
+    useId,
+    useLayoutEffect,
+    useMemo,
+    useRef,
+    useState,
+} from 'react';
 import {ConditionalKeys} from 'type-fest';
 import pixel from 'assets/pixel.png.base64';
 import SortOrder from 'types/SortOrder';
@@ -62,6 +70,7 @@ export interface ListViewProps<T> {
     layout: ListViewLayout<T>;
     items: readonly T[];
     itemKey: ConditionalKeys<T, string | number>;
+    title: string;
     itemClassName?: (item: T) => string;
     selectedIndex?: number;
     sortable?: boolean;
@@ -103,6 +112,7 @@ const scrollKeys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown'];
 export default function ListView<T>({
     items = [],
     itemKey,
+    title,
     itemClassName = emptyString,
     layout,
     className = '',
@@ -127,6 +137,7 @@ export default function ListView<T>({
     onMove,
     listViewRef,
 }: ListViewProps<T>) {
+    const listViewId = useId();
     const internalRef = useRef<ListViewHandle | null>(null);
     const containerRef = useRef<HTMLDivElement>(null);
     const scrollableRef = useRef<ScrollableHandle>(null);
@@ -167,6 +178,7 @@ export default function ListView<T>({
         () => selectedItems
     );
     const [dragItem1, dragItem2, dragItem3, dragItem4] = draggable ? selectedItems : [];
+    const selectedId = items[rowIndex] ? `${listViewId}-${items[rowIndex][itemKey]}` : '';
 
     const focus = useCallback(() => containerRef.current!.focus(), []);
 
@@ -429,7 +441,13 @@ export default function ListView<T>({
                 const row = getRowByIndex(containerRef.current!, rowIndex);
                 if (row) {
                     const rect = row.getBoundingClientRect();
-                    onContextMenu?.(selectedItems, rect.right, rect.bottom, rowIndex, event.button);
+                    onContextMenu?.(
+                        selectedItems,
+                        Math.min(rect.left + clientWidth, rect.right),
+                        rect.bottom,
+                        rowIndex,
+                        event.button
+                    );
                 }
             } else {
                 onContextMenu?.(
@@ -441,7 +459,7 @@ export default function ListView<T>({
                 );
             }
         },
-        [rowIndex, selectedItems, onContextMenu]
+        [rowIndex, selectedItems, onContextMenu, clientWidth]
     );
 
     const handleDoubleClick = useCallback(
@@ -468,6 +486,8 @@ export default function ListView<T>({
         items.length = Math.min(items.length, 4);
         for (let i = 0; i < items.length; i++) {
             const item = items[i].cloneNode(true) as HTMLElement;
+            item.removeAttribute('id');
+            item.removeAttribute('role');
             item.style.transform = `translateY(${rowHeight * i}px)`;
             dragImage.appendChild(item);
         }
@@ -477,7 +497,7 @@ export default function ListView<T>({
         (event: React.DragEvent) => {
             const dataTransfer = event.dataTransfer;
             if (draggable || reorderable) {
-                dataTransfer.setDragImage(dragImageRef.current!, -10, -10);
+                dataTransfer.setDragImage(dragImageRef.current!, -16, -16);
                 let effect: DataTransfer['effectAllowed'] = 'none';
                 if (draggable && reorderable) {
                     effect = 'copyMove';
@@ -630,6 +650,7 @@ export default function ListView<T>({
                     </FixedHeader>
                 )}
                 <ListViewBody
+                    title={title}
                     width={sizeable ? width : undefined}
                     height={clientHeight}
                     rowHeight={rowHeight}
@@ -637,10 +658,13 @@ export default function ListView<T>({
                     items={items}
                     itemKey={itemKey}
                     itemClassName={itemClassName}
+                    listViewId={listViewId}
+                    selectedId={selectedId}
                     scrollTop={scrollTop}
                     selection={disabled ? emptyArray : selectedItems}
                     dragIndex={dragIndex}
                     draggable={disabled ? false : draggable || reorderable}
+                    multiple={multiple}
                 />
                 <div
                     className="list-view-cursor"
@@ -650,8 +674,12 @@ export default function ListView<T>({
                     }}
                     ref={cursorRef}
                 />
-                <ul className="list-view-drag-image list-view-body" ref={dragImageRef} />
             </Scrollable>
+            <ul
+                className="list-view-drag-image list-view-body"
+                aria-hidden={true}
+                ref={dragImageRef}
+            />
         </div>
     );
 }

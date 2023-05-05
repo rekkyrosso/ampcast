@@ -47,13 +47,13 @@ const randomProviders: VisualizerProviderId[] = [
 ];
 
 const spotifyRandomProviders: VisualizerProviderId[] = [
-    ...Array(59).fill('spotifyviz'), // most of the time use this one
-    ...Array(20).fill('ampshader'),
+    ...Array(69).fill('ampshader'), // most of the time use this one
+    ...Array(10).fill('spotifyviz'),
     ...Array(1).fill('waveform'),
 ];
 
 const randomVideo: VisualizerProviderId[] = Array(10).fill('ambientvideo');
-const spotifyRandomVideo: VisualizerProviderId[] = randomVideo.concat(randomVideo);
+const spotifyRandomVideo: VisualizerProviderId[] = Array(20).fill('ambientvideo');
 
 export function observeCurrentVisualizer(): Observable<Visualizer> {
     return currentVisualizer$;
@@ -121,19 +121,25 @@ observeCurrentVisualizer()
     .pipe(tap((visualizer) => visualizerPlayer.load(visualizer)))
     .subscribe(logger);
 
-getVisualizerProvider('butterchurn')
-    ?.observeVisualizers()
-    .pipe(
-        skipWhile((visualizers) => visualizers.length === 0),
-        withLatestFrom(observeCurrentVisualizer()),
-        tap(([, currentVisualizer]) => {
-            if (currentVisualizer === noVisualizer) {
-                nextVisualizer('sync');
-            }
-        }),
-        take(2)
-    )
-    .subscribe(logger);
+function handleLazyLoads(providerId: string, count = 1) {
+    getVisualizerProvider(providerId)
+        ?.observeVisualizers()
+        .pipe(
+            skipWhile((visualizers) => visualizers.length === 0),
+            withLatestFrom(observeCurrentVisualizer()),
+            tap(([visualizers, currentVisualizer]) => {
+                console.log(`${providerId} visualizers:`, visualizers.length);
+                if (currentVisualizer === noVisualizer) {
+                    nextVisualizer('sync');
+                }
+            }),
+            take(count)
+        )
+        .subscribe(logger);
+}
+
+handleLazyLoads('ampshader');
+handleLazyLoads('butterchurn', 2);
 
 function getNextVisualizer(
     item: PlaylistItem | null,

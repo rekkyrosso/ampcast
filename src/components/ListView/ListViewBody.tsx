@@ -4,6 +4,8 @@ import ListViewBodyRow from './ListViewBodyRow';
 import {Column} from './ListView';
 
 export interface ListViewBodyProps<T> {
+    listViewId: string;
+    title: string;
     width?: number;
     height: number;
     rowHeight: number;
@@ -11,14 +13,18 @@ export interface ListViewBodyProps<T> {
     items: readonly T[];
     itemKey: ConditionalKeys<T, string | number>;
     itemClassName: (item: T) => string;
+    selectedId: string;
     scrollTop: number;
     overScan?: number;
     selection: readonly T[];
     draggable?: boolean;
     dragIndex: number;
+    multiple?: boolean;
 }
 
 export default function ListViewBody<T>({
+    listViewId,
+    title,
     width,
     height,
     rowHeight,
@@ -26,11 +32,13 @@ export default function ListViewBody<T>({
     items,
     itemKey,
     itemClassName,
+    selectedId,
     scrollTop,
     overScan = 2,
     selection,
     draggable,
     dragIndex,
+    multiple = false,
 }: ListViewBodyProps<T>) {
     const ref = useRef<HTMLOListElement>(null);
     const size = items.length;
@@ -48,11 +56,15 @@ export default function ListViewBody<T>({
             style={{
                 width: width ? `${width}px` : undefined,
             }}
+            aria-label={title}
+            aria-multiselectable={multiple}
+            aria-activedescendant={selectedId}
             ref={ref}
         >
             {virtualItems.map((item, i) => (
                 <ListViewBodyRow<T>
                     className={itemClassName(item)}
+                    id={`${listViewId}-${item[itemKey]}`}
                     rowIndex={virtualStart + i}
                     height={rowHeight}
                     selected={selection.includes(item)}

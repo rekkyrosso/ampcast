@@ -1,7 +1,5 @@
-// Revision 2015 Livecoding Round 1 by mu6k
 // https://www.shadertoy.com/view/ltj3W1
-
-
+/* NOT CURRENTLY USED */
 //#define LIGHT_REACT_TO_MUSIC
 
 #define time iTime
@@ -17,6 +15,8 @@ vec4 plas( vec2 v, float time )
   return vec4( sin(c * 0.2 + cos(time)), c * 0.15, cos( c * 0.1 + time / .4 ) * .25, 1.0 );
 }
 
+
+
 float df ( vec3 p)
 {
   p+=0.5;
@@ -28,7 +28,7 @@ a=time*.4,cs=cos(a),ss=sin(a);
 
 
   float e = .5;
-  p = abs(p*r*r2)-.5-sin(time)*.005;
+  p = abs(p*r*r2)-.5-sin(time)*.005;;
   p = abs(p*r*r2)-.25-sin(time)*.005;
   p = abs(p*r*r2)-.125-sin(time)*.005;
   p = abs(p*r*r2)-.06125-sin(time)*.005;
@@ -46,7 +46,8 @@ vec3 nf (vec3 p)
  );
 }
 
-void main(void) {
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
   vec2 uv = vec2(gl_FragCoord.x / v2Resolution.x, gl_FragCoord.y / v2Resolution.y);
   uv -= 0.5;
   uv /= vec2(v2Resolution.y / v2Resolution.x, 1);
@@ -104,5 +105,5 @@ void main(void) {
   //c -= .1;
   vec4 t = plas( m * 3.14, fGlobalTime ) / d;
   t = clamp( t, 0.0, 1.0 );
-  gl_FragColor = vec4(c,1.0)*beat + t*.05;
+  out_color = vec4(c,1.0)*beat + t*.05;;
 }

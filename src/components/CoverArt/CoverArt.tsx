@@ -45,7 +45,12 @@ export default function CoverArt({item, size, className = ''}: CoverArtProps) {
     return (
         <figure className={`cover-art ${className}`}>
             {src && !inError ? (
-                <img className="cover-art-image" src={src} onError={handleError} />
+                <img
+                    className="cover-art-image"
+                    src={src}
+                    alt={`${item.title}: Cover art`}
+                    onError={handleError}
+                />
             ) : fallback ? (
                 <Icon className="cover-art-image" name={fallback} />
             ) : null}

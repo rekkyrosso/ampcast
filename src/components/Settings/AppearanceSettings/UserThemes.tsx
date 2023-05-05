@@ -88,6 +88,7 @@ export default function UserThemes() {
         <form className="user-themes" method="dialog">
             <h3>My themes:</h3>
             <ListBox<Theme>
+                title="My themes"
                 items={themes}
                 itemKey="name"
                 renderItem={renderTheme}

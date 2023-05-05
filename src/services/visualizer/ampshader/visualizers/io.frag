@@ -1,7 +1,4 @@
-// I/O by movAX13h
 // https://www.shadertoy.com/view/XsfGDS
-
-
 // I/O fragment shader by movAX13h, August 2013
 
 #define SHOW_BLOCKS
@@ -30,7 +27,7 @@ float sampleMusic()
 		texture( iChannel0, vec2( 0.30, 0.25 ) ).x);
 }
 
-void main(void)
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
 	const float speed = 0.7;
 	const float ySpread = 1.6;
@@ -38,7 +35,7 @@ void main(void)
 
 	float pulse = sampleMusic();
 
-	vec2 uv = gl_FragCoord.xy / iResolution.xy - 0.5;
+	vec2 uv = fragCoord.xy / iResolution.xy - 0.5;
 	float aspect = iResolution.x / iResolution.y;
 	vec3 baseColor = uv.x > 0.0 ? vec3(0.0,0.3, 0.6) : vec3(0.6, 0.0, 0.3);
 
@@ -68,5 +65,5 @@ void main(void)
 	}
 
 	color -= rand(uv)*0.04;
-	gl_FragColor = vec4(color, 1.0);
+	fragColor = vec4(color, 1.0);
 }

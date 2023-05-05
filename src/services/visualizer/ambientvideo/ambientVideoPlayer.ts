@@ -15,10 +15,10 @@ import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer'
 import HTML5Player from 'services/players/HTML5Player';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
 import OmniPlayer from 'services/players/OmniPlayer';
+import theme from 'services/theme';
 import {LiteStorage, Logger} from 'utils';
 import visualizerSettings, {observeVisualizerSettings} from '../visualizerSettings';
 import beatsPlayer from './beatsPlayer';
-import theme from 'services/theme';
 
 const logger = new Logger('ambientVideoPlayer');
 

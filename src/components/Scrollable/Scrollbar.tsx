@@ -12,6 +12,7 @@ export interface ScrollbarHandle {
 }
 
 export interface ScrollbarProps {
+    scrollableId: string;
     orientation: 'horizontal' | 'vertical';
     clientSize: number;
     scrollSize: number;
@@ -22,6 +23,7 @@ export interface ScrollbarProps {
 }
 
 function Scrollbar({
+    scrollableId,
     orientation,
     scrollAmount,
     onChange,
@@ -162,6 +164,12 @@ function Scrollbar({
     return (
         <div
             className={`scrollbar scrollbar-${orientation}`}
+            role="scrollbar"
+            aria-controls={scrollableId}
+            aria-orientation={orientation}
+            aria-valuenow={Number(((position * 100) / max).toFixed(1))}
+            aria-valuemin={0}
+            aria-valuemax={100}
             onContextMenu={cancelEvent}
             onMouseDown={cancelEvent}
         >

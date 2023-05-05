@@ -52,6 +52,7 @@ export default function FolderItemBrowser({
             <div className={`panel folder-item-browser ${className}`}>
                 <FolderItemList
                     {...props}
+                    title={`Path: ${path}`}
                     pager={pager}
                     keepAlive={true}
                     onEnter={handleEnter}

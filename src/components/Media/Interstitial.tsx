@@ -35,11 +35,11 @@ export default memo(function Interstitial() {
             <div className="currently-playing">
                 {item ? (
                     <>
-                        <h3>{item.title}</h3>
+                        <h2>{item.title}</h2>
                         {item.artists ? (
                             <>
                                 <span className="by">by</span>
-                                <h4>{item.artists.join(', ')}</h4>
+                                <h3>{item.artists.join(', ')}</h3>
                             </>
                         ) : null}
                     </>

@@ -79,7 +79,10 @@ function PagedBrowser<T extends MediaObject>(props: PagedBrowserProps<T>) {
         case ItemType.Artist:
             return (
                 <div className="panel artist-browser">
-                    <ArtistList {...(props as unknown as PagedBrowserProps<MediaArtist>)} />
+                    <ArtistList
+                        {...(props as unknown as PagedBrowserProps<MediaArtist>)}
+                        title={props.source.title}
+                    />
                 </div>
             );
 

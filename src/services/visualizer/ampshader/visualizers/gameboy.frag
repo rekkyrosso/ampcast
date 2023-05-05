@@ -1,10 +1,5 @@
-// Gameboy by Inigo Quilez
 // https://www.shadertoy.com/view/XdlGzr
-
-
 /* NOT CURRENTLY USED */
-
-
 // Created by inigo quilez - iq/2013
 // https://www.youtube.com/c/InigoQuilez
 // https://iquilezles.org
@@ -49,8 +44,9 @@ float text( vec2 p )
 	return floor( mod(v/pow(2.0,15.0-mod( x, 16.0 )), 2.0) );
 }
 
-void main(void) {
-	vec2 uv = gl_FragCoord.xy / iResolution.xy;
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+	vec2 uv = fragCoord.xy / iResolution.xy;
     vec2 uvo = uv;
 
 	vec2 res = floor( 60.0*vec2(1.0,iResolution.y/iResolution.x) );
@@ -91,5 +87,5 @@ void main(void) {
 		if( g<0.15 || f<0.15 ) col = vec3(40.0,44.0,4.0);
 	}
 
-	gl_FragColor = vec4( col/255.0,1.0 );
+	fragColor = vec4( col/255.0,1.0 );
 }

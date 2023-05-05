@@ -69,6 +69,7 @@ export default function SaveThemeDialog({suggestedName, ...props}: SaveThemeDial
                     />
                 </p>
                 <ListBox<Theme>
+                    title="My themes"
                     items={userThemes}
                     itemKey="name"
                     renderItem={renderTheme}

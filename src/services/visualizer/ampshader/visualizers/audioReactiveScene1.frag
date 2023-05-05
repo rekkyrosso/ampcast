@@ -1,9 +1,4 @@
-// Audio-reactive scene 1st attempt by kishimisu
 // https://www.shadertoy.com/view/cslSRr
-
-/* DOES NOT WORK */
-
-
 /* @kishimisu - 2022
 
    First attempt at raymarching scenes
@@ -51,7 +46,7 @@ vec3 getLight(float d, vec3 color) {
 }
 
 float getLevel(float x) {
-    return texture(iChannel0, vec2(int(x*512.), 0)).r; // Can't get `.r` to work.
+    return texelFetch(iChannel0, ivec2(int(x*512.), 0), 0).r;
 }
 
 // The next functions are borrowed from https://www.shadertoy.com/view/7lVBRw
@@ -64,14 +59,14 @@ float logX(float x, float a, float c){
 }
 float logisticAmp(float amp){
    float c = 1.0 - (0.25);
-//    float a = 20.0 * (1.0 - iMouse.y / iResolution.y);
-   float a = 20.;
+   float a = 20.0 * (1.0 - iMouse.y / iResolution.y);
+   a = 20.;
    return (logX(amp, a, c) - logX(0.0, a, c)) / (logX(1.0, a, c) - logX(0.0, a, c));
 }
 float getAudioIntensityAt(float x) {
     x = abs(fract(x));
     float freq = pow(2., x*3.) * 261.;
-    return logisticAmp(getPitch(freq, 1));
+    return iChannelTime[0] <= 0. ? hash11(x) : logisticAmp(getPitch(freq, 1));
 }
 
 float map(vec3 p, inout vec3 col) {
@@ -113,8 +108,8 @@ void initRayOriginAndDirection(vec2 uv, inout vec3 ro, inout vec3 rd) {
     rd = normalize(f + uv.x*r + uv.y*cross(f, r));
 }
 
-void main(void) {
-    vec2 uv = (2.*gl_FragCoord.xy - iResolution.xy)/iResolution.y;
+void mainImage(out vec4 O, in vec2 F) {
+    vec2 uv = (2.*F - iResolution.xy)/iResolution.y;
     vec3 p, ro, rd, col;
 
     initRayOriginAndDirection(uv, ro, rd);
@@ -129,5 +124,5 @@ void main(void) {
     }
 
     col = pow(col, vec3(.45));
-    gl_FragColor = vec4(col, 1.0);
+    O = vec4(col, 1.0);
 }

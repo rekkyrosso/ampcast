@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, map, skipWhile, take, tap} from 'rxjs';
+import {BehaviorSubject} from 'rxjs';
 import {ButterchurnVisualizer} from 'types/Visualizer';
 
 const visualizers$ = new BehaviorSubject<readonly ButterchurnVisualizer[]>([]);
@@ -41,13 +41,3 @@ setTimeout(async () => {
         }
     }
 }, 1000);
-
-// logging
-observeVisualizers()
-    .pipe(
-        map((visualizers) => visualizers.length),
-        skipWhile((size) => size === 0),
-        tap((size) => console.log('Butterchurn visualizers:', size)),
-        take(2)
-    )
-    .subscribe();

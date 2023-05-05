@@ -134,6 +134,7 @@ function Dialog(
                     role="button"
                     onClick={close}
                     onMouseDown={stopPropagation}
+                    aria-label="Close"
                 >
                     <Icon name="close" />
                 </div>

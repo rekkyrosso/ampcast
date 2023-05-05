@@ -114,6 +114,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
         const data = item.track_metadata;
         const info = data.additional_info;
         const mbid = data.mbid_mapping?.recording_mbid || undefined;
+        const playableSrc = this.getPlayableSrc(info) || '';
 
         // examples:
         // listening_from: "Plex/lastfm/jellyfin/Rhythmbox/..."
@@ -121,7 +122,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
 
         return {
             itemType: ItemType.Media,
-            mediaType: MediaType.Audio,
+            mediaType: playableSrc.startsWith('youtube:') ? MediaType.Video : MediaType.Audio,
             src: `listenbrainz:listen:${item.listened_at}`,
             title: data.track_name,
             addedAt: item.inserted_at,
@@ -140,7 +141,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             artist_mbids: data.mbid_mapping?.artist_mbids,
             playedAt: item.listened_at,
             link: {
-                src: this.getPlayableSrc(info) || '',
+                src: playableSrc,
                 externalUrl: this.getExternalUrl(info?.origin_url),
             },
         };

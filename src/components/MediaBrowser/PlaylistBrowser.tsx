@@ -26,8 +26,9 @@ export default function PlaylistBrowser({
     return (
         <div className={`panel playlist-browser ${className}`}>
             <Splitter id="playlist-browser-layout" arrange="rows" primaryIndex={1}>
-                <PlaylistList {...props} onSelect={handleSelect} />
+                <PlaylistList {...props} title={source.title} onSelect={handleSelect} />
                 <MediaItemList
+                    title={selectedPlaylist ? `${selectedPlaylist.title}: Tracks` : ''}
                     className="playlist-items"
                     pager={selectedPlaylist?.pager}
                     keepAlive={true}

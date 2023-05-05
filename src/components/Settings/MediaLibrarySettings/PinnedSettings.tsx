@@ -29,6 +29,7 @@ export default function PinnedSettings({service}: MediaServiceSettingsProps) {
         <form className="pinned-settings" method="dialog" onSubmit={handleSubmit}>
             <h3>Pinned playlists:</h3>
             <ListBox<Pin>
+                title="Pinned playlists"
                 items={pins}
                 itemKey="src"
                 multiple

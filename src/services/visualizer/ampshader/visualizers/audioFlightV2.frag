@@ -1,10 +1,5 @@
-// Audio Flight v2 (strobes) by byt3_m3chanic
 // https://www.shadertoy.com/view/7tfyRl
-
-
-/* NOT CURRENTLY USED */
-
-
+/* DOES NOT WORK (non-constant loop index compare) */
 /**
     License: Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License
 
@@ -18,6 +13,7 @@
 
     Lots of fo
 */
+
 
 #define R           iResolution
 #define T           iTime
@@ -85,7 +81,7 @@ vec2 path(in float z){
 }
 
 // globals
-float time2,tm,travelSpeed;
+float time,tm,travelSpeed;
 
 // globals and stuff
 float glow,iqd,flight,beams,gcolor,objglow,offWobble,boxsize;
@@ -181,7 +177,7 @@ vec2 map (in vec3 p, float sg) {
     float zprs= mod(chs, tm <8.? tm <4.? tm <4.? 2.: 2.: 5.: floor(height*1.45));
 
     float d4a = length(r.xy-vec2(2.5,1.75))-.1;
-    float d4 =  length(r.xy-vec2(2.5,1.75))-.04+.027+.027*sin(r.z-time2*4.5);
+    float d4 =  length(r.xy-vec2(2.5,1.75))-.04+.027+.027*sin(r.z-time*4.5);
     if(d4<res.x ) {
         res = vec2(d4,12.);
         g_hp=p;
@@ -220,7 +216,7 @@ vec2 map (in vec3 p, float sg) {
 vec2 marcher(vec3 ro, vec3 rd, int maxstep, float sg){
     float d =  0.,
           m = -1.;
-        for(int i=0;i<164;i++){
+        for(int i=0;i<maxstep;i++){
             vec3 p = ro + rd * d;
             vec2 t = map(p,sg);
             if(abs(t.x)<d*MINDIST||d>MAXDIST)break;
@@ -246,19 +242,19 @@ vec3 hsv2rgb( in vec3 c ) {
     return c.z * mix( vec3(1.0), rgb, c.y);
 }
 
-void main(void) {
+void mainImage( out vec4 O, in vec2 F ) {
     // precal
-    time2 = iTime;
-    tm = mod(time2*.3, 18.);
-    travelSpeed = (time2 * 5.);
+    time = iTime;
+    tm = mod(time*.3, 18.);
+    travelSpeed = (time * 5.);
 
-    offWobble = 1.5+1.15*sin(tm+time2*.1);
+    offWobble = 1.5+1.15*sin(tm+time*.1);
 
-    r4 =r2(time2);
-    r5 =r2(time2);
+    r4 =r2(time);
+    r5 =r2(time);
 
     // pixel screen coordinates
-    vec2 uv = (gl_FragCoord.xy - R.xy*0.5)/max(R.x,R.y);
+    vec2 uv = (F.xy - R.xy*0.5)/max(R.x,R.y);
     vec3 C = vec3(0.),
          FC = vec3(.03);
 
@@ -287,7 +283,7 @@ void main(void) {
         rd=i-ro;
 
     // center tracking
-        rd.xy = r2( (.2*sin(time2*.3))-path(lp.z).x/ 24. )*rd.xy;
+        rd.xy = r2( (.2*sin(time*.3))-path(lp.z).x/ 24. )*rd.xy;
         rd.xz = r2( y-path(lp.z+1.).y/ 14. )*rd.xz;
 
     // march
@@ -333,7 +329,9 @@ void main(void) {
     C += abs(flight*.75)*vec3(.5,1,.2);
     }
 
+
     float px = 1./R.x;
+
 
     float d1 = fBox2(uv+vec2(-.485,.2675),vec2(.005))-.002;
     d1=smoothstep(px,-px,d1);
@@ -348,5 +346,5 @@ void main(void) {
     C=mix(C,vec3(0.882,0.459,0.867),d1);
 
     C=pow(C, vec3(0.4545));
-    gl_FragColor = vec4(C,1.0);
+    O = vec4(C,1.0);
 }

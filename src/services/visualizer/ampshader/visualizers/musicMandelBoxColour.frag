@@ -1,6 +1,4 @@
-// Music MandelBox Colour by pixelbeast
 // https://www.shadertoy.com/view/4s33Rj
-
 
 // Iain Melvin, 2015
 // fft distortions of mandlebox 3d, colour
@@ -10,7 +8,7 @@
 // Raymarch tutorial: - iq/2013
 
 
-float mandel3D(vec3 z,float fft) {
+float mandel3D(vec3 z,float fft){
   const float scale=3.5; //2.0; // -1.5
   const float r=0.5;
   const float f=1.125;
@@ -72,13 +70,14 @@ vec3 calcNormal( in vec3 pos ){
 }
 
 // iq's smooth hsv to rgb
-vec3 hsv2rgb( in vec3 c ) {
+vec3 hsv2rgb( in vec3 c ){
     vec3 rgb = clamp( abs(mod(c.x*6.0+vec3(0.0,4.0,2.0),6.0)-3.0)-1.0, 0.0, 1.0 );
 	rgb = rgb*rgb*(3.0-2.0*rgb);
 	return c.z * mix( vec3(1.0), rgb, c.y);
 }
 
-vec3 render( in vec3 ro, in vec3 rd ) {
+vec3 render( in vec3 ro, in vec3 rd )
+{
     vec3 col = vec3(0.0);
     vec2 res = castRay(ro,rd,15.0);
     float t = res.x; // dist to func
@@ -111,18 +110,19 @@ vec3 render( in vec3 ro, in vec3 rd ) {
 	return vec3( clamp(col,0.0,10.0) );
 }
 
-void main(void) {
-	vec2 q = gl_FragCoord.xy/iResolution.xy;
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+	vec2 q = fragCoord.xy/iResolution.xy;
     vec2 p = -1.0+2.0*q;
 	p.x *= iResolution.x/iResolution.y;
-    vec2 mo = iResolution.xy/iResolution.xy;
+    vec2 mo = iMouse.xy/iResolution.xy;
 
-	float time = -55.0; //+ time;
+	float time = -55.0; //+ iTime;
 
     vec3 d = vec3(0.25*mo.x,0.25*mo.y,0.0);
 
-    d.x += 5.5*(1.0-cos(0.6*time));
-    d.y += 2.5*(1.0-cos(0.05*time));
+    d.x += 5.5*(1.0-cos(0.6*iTime));
+    d.y += 2.5*(1.0-cos(0.05*iTime));
 
 	// camera
 	vec3 ro = vec3( d.x, d.y, 6.0 );
@@ -138,5 +138,5 @@ void main(void) {
     vec3 col = render( ro, rd );
 	col = sqrt( col );
 
-    gl_FragColor=vec4( col, 1.0 );
+    fragColor=vec4( col, 1.0 );
 }

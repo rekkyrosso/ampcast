@@ -5,6 +5,7 @@ import ListViewBodyCell from './ListViewBodyCell';
 export interface ListViewRowProps<T> {
     item: T;
     className: string;
+    id: string;
     rowIndex: number;
     height: number;
     selected: boolean;
@@ -16,6 +17,7 @@ export interface ListViewRowProps<T> {
 export default function ListViewRow<T>({
     item,
     className,
+    id,
     rowIndex,
     height,
     selected,
@@ -37,7 +39,8 @@ export default function ListViewRow<T>({
         <li
             role="option"
             className={`list-view-row ${classNames}`}
-            aria-selected={selected ? 'true' : undefined}
+            id={id}
+            aria-selected={selected}
             aria-setsize={setSize}
             aria-posinset={rowIndex + 1}
             style={{

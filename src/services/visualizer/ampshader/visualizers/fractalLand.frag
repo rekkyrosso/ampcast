@@ -1,13 +1,13 @@
-// Fractal Land by Kali
 // https://www.shadertoy.com/view/XsBXWt
-
-
 // "Fractal Cartoon" - former "DE edge detection" by Kali
 
 // There are no lights and no AO, only color by normals and dark edges.
 
+// update: Nyan Cat cameo, thanks to code from mu6k: https://www.shadertoy.com/view/4dXGWH
+
 
 //#define SHOWONLYEDGES
+// #define NYAN
 #define WAVES
 #define BORDER
 
@@ -109,6 +109,18 @@ vec4 rainbow(vec2 p)
 	return c;
 }
 
+vec4 nyan(vec2 p)
+{
+	vec2 uv = p*vec2(0.4,1.0);
+	float ns=3.0;
+	float nt = iTime*ns; nt-=mod(nt,240.0/256.0/6.0); nt = mod(nt,240.0/256.0);
+	float ny = mod(iTime*ns,1.0); ny-=mod(ny,0.75); ny*=-0.05;
+	vec4 color = texture(iChannel1,vec2(uv.x/3.0+210.0/256.0-nt+0.05,.5-uv.y-ny));
+	if (uv.x<-0.3) color.a = 0.0;
+	if (uv.x>0.2) color.a=0.0;
+	return color;
+}
+
 
 // Raymarching and 2D graphics
 
@@ -157,6 +169,14 @@ vec3 raymarch(in vec3 from, in vec3 dir)
 	col=1.-vec3(length(col));
 #else
 	col*=vec3(1.,.9,.85);
+#ifdef NYAN
+	dir.yx*=rot(dir.x);
+	vec2 ncatpos=(dir.xy+vec2(-3.+mod(-t,6.),-.27));
+	vec4 ncat=nyan(ncatpos*5.);
+	vec4 rain=rainbow(ncatpos*10.+vec2(.8,.5));
+	if (totdist>8.) col=mix(col,max(vec3(.2),rain.xyz),rain.a*.9);
+	if (totdist>8.) col=mix(col,max(vec3(.2),ncat.xyz),ncat.a*.9);
+#endif
 #endif
 	return col;
 }
@@ -176,17 +196,21 @@ vec3 move(inout vec3 dir) {
 	return go;
 }
 
-void main(void)
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {
-	vec2 uv = gl_FragCoord.xy / iResolution.xy*2.-1.;
+	vec2 uv = fragCoord.xy / iResolution.xy*2.-1.;
 	vec2 oriuv=uv;
 	uv.y*=iResolution.y/iResolution.x;
+	vec2 mouse=(iMouse.xy/iResolution.xy-.5)*3.;
+	if (iMouse.z<1.) mouse=vec2(0.,-0.05);
 	float fov=.9-max(0.,.7-iTime*.3);
 	vec3 dir=normalize(vec3(uv*fov,1.));
+	dir.yz*=rot(mouse.y);
+	dir.xz*=rot(mouse.x);
 	vec3 from=origin+move(dir);
 	vec3 color=raymarch(from,dir);
 	#ifdef BORDER
 	color=mix(vec3(0.),color,pow(max(0.,.95-length(oriuv*oriuv*oriuv*vec2(1.05,1.1))),.3));
 	#endif
-	gl_FragColor = vec4(color,1.);
+	fragColor = vec4(color,1.);
 }

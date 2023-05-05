@@ -14,7 +14,7 @@ import './Playlist.scss';
 
 export const droppableTypes = ['audio/*', 'video/*'];
 
-type NotRequired = 'items' | 'itemKey' | 'layout' | 'sortable' | 'droppableTypes';
+type NotRequired = 'items' | 'itemKey' | 'title' | 'layout' | 'sortable' | 'droppableTypes';
 
 export interface PlaylistProps extends Except<ListViewProps<PlaylistItem>, NotRequired> {
     onPlay?: (item: PlaylistItem) => void;
@@ -142,6 +142,7 @@ export default function Playlist({
         <div className="playlist">
             <ListView
                 {...props}
+                title="Playlist"
                 className="media-list"
                 layout={layout}
                 items={items}

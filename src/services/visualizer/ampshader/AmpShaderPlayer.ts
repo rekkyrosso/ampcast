@@ -1,6 +1,8 @@
+import {TinyColor} from '@ctrl/tinycolor';
 import SimpleAudioAnalyser from 'types/SimpleAudioAnalyser';
 import {AmpShaderVisualizer} from 'types/Visualizer';
 import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
+import theme from 'services/theme';
 import {Logger} from 'utils';
 
 const logger = new Logger('AmpShaderPlayer');
@@ -11,7 +13,10 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     private readonly canvas = document.createElement('canvas');
     private readonly gl = this.canvas.getContext('webgl')!;
     private animationFrameId = 0;
+    private fragTheme: WebGLUniformLocation | null = null;
     private fragTime: WebGLUniformLocation | null = null;
+    private fragChannelTime: WebGLUniformLocation | null = null;
+    private fragDate: WebGLUniformLocation | null = null;
     private shader: WebGLProgram | null = null;
     private startTime = performance.now();
 
@@ -22,6 +27,9 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
 
         this.canvas.hidden = true;
         this.canvas.className = `visualizer visualizer-ampshader`;
+
+        gl.getExtension('OES_standard_derivatives');
+        gl.getExtension('EXT_shader_texture_lod');
 
         const texture = gl.createTexture()!;
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -93,13 +101,31 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
 
         if (this.shader) {
             const fragResolution = gl.getUniformLocation(this.shader, 'iResolution');
-            gl.uniform2f(fragResolution, canvas.width, canvas.height);
+            gl.uniform3f(fragResolution, canvas.width, canvas.height, 1.0);
             this.renderFrame();
         }
     }
 
+    private get currentDate(): [number, number, number, number] {
+        const date = new Date();
+        return [
+            date.getFullYear(),
+            date.getMonth() + 1,
+            date.getDate(),
+            date.getHours() * 3600 +
+                date.getMinutes() * 60 +
+                date.getSeconds() +
+                date.getMilliseconds() * 0.001,
+        ];
+    }
+
     private get currentTime(): number {
         return (performance.now() - this.startTime) / 1000;
+    }
+
+    private get themeColor(): [number, number, number, number] {
+        const {r, g, b} = new TinyColor(theme.frameColor).toRgb();
+        return [r, g, b, 1];
     }
 
     private clear(): void {
@@ -133,11 +159,21 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
         const position = gl.getAttribLocation(shader, 'position');
         gl.enableVertexAttribArray(position);
 
-        this.fragTime = gl.getUniformLocation(shader, 'iTime')!;
-        gl.uniform1f(this.fragTime, this.currentTime);
+        this.fragTheme = gl.getUniformLocation(shader, 'iTheme');
+        gl.uniform4f(this.fragTheme, ...this.themeColor);
+
+        const time = this.currentTime;
+        this.fragTime = gl.getUniformLocation(shader, 'iTime');
+        gl.uniform1f(this.fragTime, time);
+
+        this.fragChannelTime = gl.getUniformLocation(shader, 'iChannelTime');
+        gl.uniform1fv(this.fragChannelTime, new Float32Array([time, 0, 0, 0]));
+
+        this.fragDate = gl.getUniformLocation(shader, 'iDate');
+        gl.uniform4f(this.fragDate, ...this.currentDate);
 
         const fragResolution = gl.getUniformLocation(shader, 'iResolution');
-        gl.uniform2f(fragResolution, this.canvas.width, this.canvas.height);
+        gl.uniform3f(fragResolution, this.canvas.width, this.canvas.height, 1.0);
 
         this.shader = shader;
     }
@@ -156,7 +192,6 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
             const fragSpectrumArray = new Uint8Array(4 * iChannel0.length);
 
             this.analyser.getByteFrequencyData(iChannel0);
-            gl.uniform1f(this.fragTime, this.currentTime);
 
             for (let i = 0; i < iChannel0.length; i++) {
                 fragSpectrumArray[4 * i + 0] = iChannel0[i]; // R
@@ -165,6 +200,11 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
                 fragSpectrumArray[4 * i + 3] = 255; // A
             }
 
+            const time = this.currentTime;
+            gl.uniform1f(this.fragTime, time);
+            gl.uniform1fv(this.fragChannelTime, new Float32Array([time, 0, 0, 0]));
+            gl.uniform4f(this.fragDate, ...this.currentDate);
+            gl.uniform4f(this.fragTheme, ...this.themeColor);
             gl.texImage2D(
                 gl.TEXTURE_2D,
                 0,

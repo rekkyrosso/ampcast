@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
+import {Except} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -159,7 +160,7 @@ export function DefaultBrowser<T extends MediaObject>({service, sources}: MediaB
     );
 }
 
-export interface PagedBrowserProps<T extends MediaObject> extends MediaListProps<T> {
+export interface PagedBrowserProps<T extends MediaObject> extends Except<MediaListProps<T>, 'title'> {
     source: MediaSource<T>;
 }
 

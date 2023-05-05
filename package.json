@@ -1,7 +1,8 @@
 {
     "name": "ampcast",
-    "version": "0.8.11",
+    "version": "0.8.12",
     "description": "Ampcast music player",
+    "homepage": "https://ampcast.app",
     "author": {
         "name": "rekkyrosso",
         "email": "rekky.rosso@gmail.com"
@@ -17,7 +18,7 @@
     "license": "ISC",
     "dependencies": {
         "@ctrl/tinycolor": "^3.4.1",
-        "audiomotion-analyzer": "^3.6.0",
+        "audiomotion-analyzer": "^4.0.0",
         "butterchurn": "^3.0.0-beta.4",
         "butterchurn-presets": "3.0.0-beta.4",
         "d3-array": "^3.2.0",
@@ -31,10 +32,10 @@
         "idb-keyval": "^6.2.0",
         "md5": "^2.3.0",
         "music-metadata-browser": "^2.5.9",
-        "nanoid": "^4.0.0",
+        "nanoid": "^4.0.2",
         "react": "^18.2.0",
         "react-dom": "^18.2.0",
-        "react-error-boundary": "^3.1.4",
+        "react-error-boundary": "^4.0.0",
         "rxjs": "^7.5.6",
         "spotify-web-api-js": "^1.5.2",
         "string-score": "^1.0.1",
@@ -56,7 +57,7 @@
         "@types/nanoid": "^3.0.0",
         "@types/react": "^18.0.28",
         "@types/react-dom": "^18.0.11",
-        "@types/spotify-api": "^0.0.20",
+        "@types/spotify-api": "^0.0.21",
         "@types/spotify-web-playback-sdk": "^0.1.15",
         "@types/unidecode": "^0.1.1",
         "@types/wicg-file-system-access": "^2020.9.5",
@@ -81,7 +82,7 @@
         "sass-loader": "^13.0.2",
         "ts-loader": "^9.3.1",
         "type-fest": "^3.0.0",
-        "typescript": "^4.8.3",
+        "typescript": "^5.0.2",
         "webpack": "^5.74.0",
         "webpack-cli": "^5.0.0"
     },

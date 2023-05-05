@@ -10,6 +10,10 @@
     user-select: none;
     cursor: default;
 
+    .scrollable {
+        background-color: inherit;
+    }
+
     &-head {
         border-radius: var(--app-border-radius);
     }
@@ -122,6 +126,11 @@
     }
 
     &-drag-image {
-        transform: translateY(-9999px);
+        position: absolute;
+        z-index: -1;
+
+        .actions {
+            display: none;
+        }
     }
 }

@@ -1,17 +1,28 @@
-// ♫ Sailing Beyond - Hyper Tunnel by patu
 // https://www.shadertoy.com/view/4t2cR1
-
-/* DOES NOT WORK */
-
-
 /*
+
     Hyper Tunnel from "Sailing Beyond" (demoscene producion)
 
     https://www.youtube.com/watch?v=oITx9xMrAcM&
 	https://www.pouet.net/prod.php?which=77899
+
+
 */
 
+
+/*
+	http://bit.ly/shadertoy-plugin
+*/
+
+
+
+
+
 #pragma optimize(off)
+
+
+
+
 
 #define getNormal getNormalHex
 
@@ -166,8 +177,9 @@ geometry trace(vec3 o, vec3 d) {
     return mp;
 }
 
-void main(void) {
-    vec2 ouv = gl_FragCoord.xy / iResolution.xy;
+void mainImage(out vec4 fragColor, in vec2 fragCoord) {
+
+    vec2 ouv = fragCoord.xy / iResolution.xy;
     vec2 uv = ouv - .5;
 
     uv *= tan(radians (FOV) / 2.0) * 4.;
@@ -204,8 +216,7 @@ void main(void) {
 
     sceneColor += min(.8, float(tr.iterations) / 90.) * col + col * .03;
     sceneColor *= 1. + .9 * (abs(fbm(tr.hit * .002 + 3.) * 10.) * (fbm(vec3(0.,0.,iTime * .05) * 2.)) * 1.);
-     // Can't get `.r` to work.
-    sceneColor = pow(sceneColor, vec3(1.)) * (iChannelTime[0] > 0. ? texture(iChannel0, vec2(128, 0)).r * min(1., mt * .1) : 0.6);
+    sceneColor = pow(sceneColor, vec3(1.)) * (iChannelTime[0] > 0. ? texelFetch(iChannel0, ivec2(128, 0), 0).r * min(1., mt * .1) : 0.6);
 
     vec3 steamColor1 = vec3(.0, .4, .5);
 	vec3 rro = oro;
@@ -221,10 +232,10 @@ void main(void) {
         if (distC < 3.) break;
     }
 
-    steamColor1 *= iChannelTime[0] > 0. ? texture(iChannel0, vec2(32, 0)).r : 1.;
+    steamColor1 *= iChannelTime[0] > 0. ? texelFetch(iChannel0, ivec2(32, 0), 0).r : 1.;
     sceneColor += steamColor1 * pow(abs(f * 1.5), 3.) * 4.;
 
-    gl_FragColor = vec4(clamp(sceneColor * (1. - length(uv) / 2.), 0.0, 1.0), 1.0);
-    gl_FragColor = pow(abs(gl_FragColor / tr.dist * 130.), vec4(.8));
+    fragColor = vec4(clamp(sceneColor * (1. - length(uv) / 2.), 0.0, 1.0), 1.0);
+    fragColor = pow(abs(fragColor / tr.dist * 130.), vec4(.8));
 
 }

@@ -26,8 +26,9 @@ export default function AlbumBrowser({
     return (
         <div className={`panel album-browser ${className}`}>
             <Splitter id="album-browser-layout" arrange="rows" primaryIndex={1}>
-                <AlbumList {...props} onSelect={handleSelect} />
+                <AlbumList {...props} title={source.title} onSelect={handleSelect} />
                 <MediaItemList
+                    title={selectedAlbum ? `${selectedAlbum.title}: Tracks` : ''}
                     className="album-items"
                     pager={selectedAlbum?.pager}
                     keepAlive={true}

@@ -78,7 +78,7 @@ export default function ThemeColorPair({
             />
             <IconButton
                 icon="swap"
-                title={locked ? undefined : 'Swap'}
+                title="Swap"
                 onClick={swap}
                 disabled={locked}
             />

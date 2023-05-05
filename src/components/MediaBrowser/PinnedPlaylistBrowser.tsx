@@ -41,12 +41,14 @@ export default function PinnedPlaylistBrowser({
         <div className={`panel playlist-browser pinned-playlist-browser ${className}`}>
             <PlaylistList
                 {...props}
+                title={source.title}
                 layout={source.layout || defaultLayout}
                 onSelect={handleSelect}
                 statusBar={false}
                 disabled
             />
             <MediaItemList
+                title={`${source.title}: Tracks`}
                 className="playlist-items"
                 pager={selectedPlaylist?.pager}
                 keepAlive={true}

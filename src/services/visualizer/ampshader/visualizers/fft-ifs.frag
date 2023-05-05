@@ -1,7 +1,4 @@
-// FFT-IFS by nshelton
 // https://www.shadertoy.com/view/4lyXWW
-
-
 //#define MAX_ITER 20
 #define MAX_ITER 50
 
@@ -14,6 +11,7 @@ mat3 rotationMatrix(vec3 axis, float angle) {
                 oc * axis.x * axis.y + axis.z * s,  oc * axis.y * axis.y + c,           oc * axis.y * axis.z - axis.x * s,
                 oc * axis.z * axis.x - axis.y * s,  oc * axis.y * axis.z + axis.x * s,  oc * axis.z * axis.z + c);
 }
+
 
 float udBox( vec3 p, vec3 b )
 {
@@ -106,8 +104,9 @@ vec3 applyFog( in vec3  rgb,      // original color of the pixel
 }
 
 
-void main(void) {
-	vec2 uv = gl_FragCoord.xy / iResolution.xy;
+void mainImage( out vec4 fragColor, in vec2 fragCoord )
+{
+	vec2 uv = fragCoord.xy / iResolution.xy;
     uv -= 0.5;
     float aspect = iResolution.x/iResolution.y;
     uv.x *= aspect;
@@ -163,5 +162,5 @@ void main(void) {
     color = pow(color, vec3(0.6));
 
 
-	gl_FragColor = vec4(color ,1.0);
+	fragColor = vec4(color ,1.0);
 }

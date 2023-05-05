@@ -37,6 +37,10 @@ export default class OmniAnalyser implements SimpleAudioAnalyser {
         this.currentAnalyser.getByteFrequencyData(array);
     }
 
+    getFloatFrequencyData(array: Float32Array): void {
+        this.currentAnalyser.getFloatFrequencyData(array);
+    }
+
     getByteTimeDomainData(array: Uint8Array): void {
         this.currentAnalyser.getByteTimeDomainData(array);
     }

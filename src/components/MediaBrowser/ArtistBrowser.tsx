@@ -48,9 +48,10 @@ export default function ArtistBrowser({
     return (
         <div className={`panel artist-browser ${className}`}>
             <Splitter id="artist-browser-layout" arrange="columns" primaryIndex={0}>
-                <ArtistList {...props} onSelect={handleArtistSelect} />
+                <ArtistList {...props} title={source.title} onSelect={handleArtistSelect} />
                 <Splitter id="artist-album-browser-layout" arrange="rows" primaryIndex={1}>
                     <AlbumList
+                        title={selectedArtist ? `${selectedArtist.title}: Albums` : ''}
                         className="artist-albums"
                         pager={selectedArtist?.pager}
                         keepAlive={true}
@@ -58,6 +59,7 @@ export default function ArtistBrowser({
                         onSelect={handleAlbumSelect}
                     />
                     <MediaItemList
+                        title={selectedAlbum ? `${selectedAlbum.title}: Tracks` : ''}
                         className="album-items"
                         pager={selectedAlbum?.pager}
                         keepAlive={true}
