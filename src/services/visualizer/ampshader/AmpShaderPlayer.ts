@@ -101,7 +101,7 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
 
         if (this.shader) {
             const fragResolution = gl.getUniformLocation(this.shader, 'iResolution');
-            gl.uniform3f(fragResolution, canvas.width, canvas.height, 1.0);
+            gl.uniform2f(fragResolution, canvas.width, canvas.height);
             this.renderFrame();
         }
     }
@@ -173,7 +173,7 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
         gl.uniform4f(this.fragDate, ...this.currentDate);
 
         const fragResolution = gl.getUniformLocation(shader, 'iResolution');
-        gl.uniform3f(fragResolution, this.canvas.width, this.canvas.height, 1.0);
+        gl.uniform2f(fragResolution, this.canvas.width, this.canvas.height);
 
         this.shader = shader;
     }
