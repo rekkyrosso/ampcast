@@ -2,7 +2,7 @@ import 'services/jellyfin/jellyfinScrobbler';
 import 'services/lastfm/lastfmScrobbler';
 import 'services/listenbrainz/listenbrainzScrobbler';
 import 'services/plex/plexScrobbler';
-import {mergeMap} from 'rxjs/operators';
+import {mergeMap} from 'rxjs';
 import {addListen} from 'services/localdb/listens';
 import {Logger} from 'utils';
 import {observePlaybackEnd} from './playback';

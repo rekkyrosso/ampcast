@@ -1,13 +1,13 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject} from 'rxjs';
 import {
+    BehaviorSubject,
     distinctUntilChanged,
     filter,
     map,
     switchMap,
     takeUntil,
     throttleTime,
-} from 'rxjs/operators';
+} from 'rxjs';
 import PlaybackState from 'types/PlaybackState';
 import Playback from 'types/Playback';
 import {observeCurrentItem} from 'services/playlist';

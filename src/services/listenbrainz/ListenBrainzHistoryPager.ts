@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
-import {from, ReplaySubject, Subscription} from 'rxjs';
-import {distinctUntilChanged, mergeMap, tap} from 'rxjs/operators';
+import {ReplaySubject, Subscription, distinctUntilChanged, from, mergeMap, tap} from 'rxjs';
 import getYouTubeID from 'get-youtube-id';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';

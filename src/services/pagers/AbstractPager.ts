@@ -1,6 +1,16 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, ReplaySubject, Subscription, combineLatest} from 'rxjs';
-import {distinctUntilChanged, filter, map, pairwise, take, tap} from 'rxjs/operators';
+import {
+    BehaviorSubject,
+    ReplaySubject,
+    Subscription,
+    combineLatest,
+    distinctUntilChanged,
+    filter,
+    map,
+    pairwise,
+    take,
+    tap,
+} from 'rxjs';
 import {Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';

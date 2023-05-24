@@ -1,16 +1,19 @@
 import type {Observable} from 'rxjs';
-import {Subject, BehaviorSubject, of, timer} from 'rxjs';
 import {
+    Subject,
+    BehaviorSubject,
     debounce,
     debounceTime,
     distinctUntilChanged,
     map,
+    of,
     skipWhile,
     switchMap,
     take,
     tap,
+    timer,
     withLatestFrom,
-} from 'rxjs/operators';
+} from 'rxjs';
 import MediaType from 'types/MediaType';
 import PlaylistItem from 'types/PlaylistItem';
 import Visualizer, {NoVisualizer} from 'types/Visualizer';

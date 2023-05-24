@@ -1,5 +1,4 @@
-import {EMPTY} from 'rxjs';
-import {distinctUntilChanged, filter, mergeMap, skip, switchMap, takeUntil} from 'rxjs/operators';
+import {EMPTY, distinctUntilChanged, filter, mergeMap, skip, switchMap, takeUntil} from 'rxjs';
 import PlaybackState from 'types/PlaybackState';
 import {
     observePlaybackStart,
@@ -15,8 +14,7 @@ console.log('module::plexScrobbler');
 
 const logger = new Logger('plexScrobbler');
 
-const isPlexItem = (state: PlaybackState): boolean =>
-    !!state.currentItem?.src.startsWith('plex:');
+const isPlexItem = (state: PlaybackState): boolean => !!state.currentItem?.src.startsWith('plex:');
 
 observeIsLoggedIn()
     .pipe(

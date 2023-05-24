@@ -1,6 +1,13 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, combineLatest} from 'rxjs';
-import {catchError, concatMap, distinctUntilChanged, filter, map} from 'rxjs/operators';
+import {
+    catchError,
+    concatMap,
+    distinctUntilChanged,
+    filter,
+    map,
+    BehaviorSubject,
+    combineLatest,
+} from 'rxjs';
 import Dexie, {liveQuery} from 'dexie';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';

@@ -1,15 +1,20 @@
-import {Observable, of} from 'rxjs';
-import {EMPTY, BehaviorSubject, Subject, combineLatest, fromEvent} from 'rxjs';
+import type {Observable} from 'rxjs';
 import {
+    EMPTY,
+    BehaviorSubject,
+    Subject,
+    combineLatest,
     debounceTime,
     distinctUntilChanged,
     filter,
+    fromEvent,
     map,
+    of,
     switchMap,
     takeUntil,
     tap,
     withLatestFrom,
-} from 'rxjs/operators';
+} from 'rxjs';
 import MediaPlayback from 'types/MediaPlayback';
 import PlaybackState from 'types/PlaybackState';
 import PlaylistItem from 'types/PlaylistItem';

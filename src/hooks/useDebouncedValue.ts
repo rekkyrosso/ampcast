@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {debounceTime} from 'rxjs/operators';
+import {debounceTime} from 'rxjs';
 import useSubject from './useSubject';
 
 export default function useDebouncedValue<T>(initialValue: T, dueTime: number) {

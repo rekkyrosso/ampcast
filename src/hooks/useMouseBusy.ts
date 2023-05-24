@@ -1,6 +1,5 @@
 import {useEffect, useState} from 'react';
-import {fromEvent} from 'rxjs';
-import {debounceTime, tap} from 'rxjs/operators';
+import {debounceTime, fromEvent, tap} from 'rxjs';
 
 export default function useMouseBusy(element: HTMLElement | null, idleTime = 200): boolean {
     const [busy, setBusy] = useState(false);

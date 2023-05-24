@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject} from 'rxjs';
-import {filter, tap} from 'rxjs/operators';
+import {BehaviorSubject, filter, tap} from 'rxjs';
 import {TinyColor} from '@ctrl/tinycolor';
 import {ConditionalKeys} from 'type-fest';
 import Theme from 'types/Theme';

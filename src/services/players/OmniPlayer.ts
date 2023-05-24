@@ -1,6 +1,13 @@
 import type {Observable} from 'rxjs';
-import {EMPTY, BehaviorSubject, Subject, merge, of} from 'rxjs';
-import {distinctUntilChanged, switchMap} from 'rxjs/operators';
+import {
+    EMPTY,
+    BehaviorSubject,
+    Subject,
+    distinctUntilChanged,
+    merge,
+    of,
+    switchMap,
+} from 'rxjs';
 import {SetReturnType} from 'type-fest';
 import Player from 'types/Player';
 

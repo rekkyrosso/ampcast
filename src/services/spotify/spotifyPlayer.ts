@@ -3,27 +3,25 @@ import {
     EMPTY,
     BehaviorSubject,
     Subject,
-    combineLatest,
-    firstValueFrom,
-    from,
-    interval,
-    merge,
-    of,
-} from 'rxjs';
-import {
     catchError,
+    combineLatest,
     delay,
     distinctUntilChanged,
     filter,
+    firstValueFrom,
+    from,
+    interval,
     map,
+    merge,
     mergeMap,
+    of,
     skip,
     skipWhile,
     switchMap,
     take,
     tap,
     withLatestFrom,
-} from 'rxjs/operators';
+} from 'rxjs';
 import Player from 'types/Player';
 import {exists, loadScript, Logger} from 'utils';
 import {observeAccessToken, refreshToken} from './spotifyAuth';

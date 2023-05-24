@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, Subscription, combineLatest} from 'rxjs';
-import {filter, map, tap} from 'rxjs/operators';
+import {BehaviorSubject, Subscription, combineLatest, filter, map, tap} from 'rxjs';
 import MediaObject from 'types/MediaObject';
 import Pager from 'types/Pager';
 import {Logger} from 'utils';

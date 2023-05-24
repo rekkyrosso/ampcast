@@ -1,14 +1,5 @@
 import type {Observable} from 'rxjs';
-import {EMPTY} from 'rxjs';
-import {
-    distinctUntilChanged,
-    filter,
-    map,
-    skip,
-    switchMap,
-    tap,
-    withLatestFrom,
-} from 'rxjs/operators';
+import {EMPTY, distinctUntilChanged, filter, map, skip, switchMap, tap, withLatestFrom} from 'rxjs';
 import Player from 'types/Player';
 import {AmbientVideoVisualizer, WaveformVisualizer} from 'types/Visualizer';
 import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';

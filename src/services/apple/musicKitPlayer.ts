@@ -1,6 +1,9 @@
 import type {Observable} from 'rxjs';
-import {EMPTY, BehaviorSubject, Subject, from} from 'rxjs';
 import {
+    EMPTY,
+    BehaviorSubject,
+    Subject,
+    from,
     catchError,
     distinctUntilChanged,
     filter,
@@ -9,7 +12,7 @@ import {
     switchMap,
     take,
     tap,
-} from 'rxjs/operators';
+} from 'rxjs';
 import Player from 'types/Player';
 import {Logger} from 'utils';
 import {observeIsLoggedIn} from './appleAuth';

@@ -1,5 +1,4 @@
-import {EMPTY} from 'rxjs';
-import {distinctUntilChanged, filter, mergeMap, skip, switchMap, takeUntil} from 'rxjs/operators';
+import {EMPTY, distinctUntilChanged, filter, mergeMap, skip, switchMap, takeUntil} from 'rxjs';
 import PlaybackState from 'types/PlaybackState';
 import {
     observePlaybackStart,

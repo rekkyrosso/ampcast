@@ -1,6 +1,18 @@
 import type {Observable} from 'rxjs';
-import {EMPTY, BehaviorSubject, combineLatest, of} from 'rxjs';
-import {catchError, concatMap, filter, map, switchMap, takeUntil, take, tap} from 'rxjs/operators';
+import {
+    EMPTY,
+    BehaviorSubject,
+    catchError,
+    combineLatest,
+    concatMap,
+    filter,
+    map,
+    of,
+    switchMap,
+    take,
+    takeUntil,
+    tap,
+} from 'rxjs';
 import MediaObject from 'types/MediaObject';
 import {Page, PagerConfig} from 'types/Pager';
 import {exists, Logger, uniqBy} from 'utils';

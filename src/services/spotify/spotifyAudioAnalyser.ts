@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
-import {EMPTY, BehaviorSubject} from 'rxjs';
-import {distinctUntilChanged, filter, map, switchMap} from 'rxjs/operators';
+import {EMPTY, BehaviorSubject, distinctUntilChanged, filter, map, switchMap} from 'rxjs';
 import {interpolateBasis} from 'd3-interpolate';
 import {min} from 'd3-array';
 import {scaleLog} from 'd3-scale';

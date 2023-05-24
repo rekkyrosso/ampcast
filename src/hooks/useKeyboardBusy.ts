@@ -1,6 +1,5 @@
 import {useEffect, useState} from 'react';
-import {fromEvent, merge, of, timer} from 'rxjs';
-import {filter, map, debounce} from 'rxjs/operators';
+import {debounce, filter, fromEvent, map, merge, of, timer} from 'rxjs';
 
 export default function useKeyboardBusy(keyCodes?: readonly string[], debounceTime = 200): boolean {
     const [busy, setBusy] = useState(false);

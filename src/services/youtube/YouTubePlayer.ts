@@ -1,18 +1,23 @@
 import type {Observable} from 'rxjs';
-import {Subject, BehaviorSubject, combineLatest, of, from, timer} from 'rxjs';
 import {
+    Subject,
+    BehaviorSubject,
     catchError,
+    combineLatest,
     distinctUntilChanged,
     filter,
+    from,
     map,
     mergeMap,
+    of,
     skip,
     skipWhile,
     switchMap,
     take,
     takeUntil,
     tap,
-} from 'rxjs/operators';
+    timer,
+} from 'rxjs';
 import YouTubeFactory from 'youtube-player';
 import getYouTubeID from 'get-youtube-id';
 import Player from 'types/Player';

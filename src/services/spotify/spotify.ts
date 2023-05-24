@@ -1,4 +1,4 @@
-import {catchError, concatMap, filter, map, mergeMap, skipWhile, take, tap} from 'rxjs/operators';
+import {catchError, concatMap, filter, map, mergeMap, skipWhile, take, tap} from 'rxjs';
 import SpotifyWebApi from 'spotify-web-api-js';
 import {Except} from 'type-fest';
 import Action from 'types/Action';

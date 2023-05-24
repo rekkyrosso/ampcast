@@ -1,5 +1,4 @@
-import {of} from 'rxjs';
-import {catchError, filter, map, mergeMap, takeUntil} from 'rxjs/operators';
+import {catchError, filter, map, mergeMap, of, takeUntil} from 'rxjs';
 import MediaObject from 'types/MediaObject';
 import {Page, PagerConfig} from 'types/Pager';
 import {Logger} from 'utils';

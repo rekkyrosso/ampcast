@@ -1,13 +1,14 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, of} from 'rxjs';
 import {
+    BehaviorSubject,
     catchError,
     debounceTime,
     distinctUntilChanged,
     map,
+    of,
     skipWhile,
     switchMap,
-} from 'rxjs/operators';
+} from 'rxjs';
 import {AmbientVideoVisualizer} from 'types/Visualizer';
 import {observeVisualizerSettings} from 'services/visualizer/visualizerSettings';
 import {getYouTubeSrc} from 'services/youtube';

@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
-import {Subscription} from 'rxjs';
-import {filter, map, mergeMap} from 'rxjs/operators';
+import {Subscription, filter, map, mergeMap} from 'rxjs';
 import {nanoid} from 'nanoid';
 import {Except} from 'type-fest';
 import ItemType from 'types/ItemType';

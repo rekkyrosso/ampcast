@@ -1,6 +1,15 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, combineLatest} from 'rxjs';
-import {debounceTime, distinctUntilChanged, filter, map, mergeMap, skip, tap} from 'rxjs/operators';
+import {
+    BehaviorSubject,
+    combineLatest,
+    debounceTime,
+    distinctUntilChanged,
+    filter,
+    map,
+    mergeMap,
+    skip,
+    tap,
+} from 'rxjs';
 import {get as dbRead, set as dbWrite, createStore} from 'idb-keyval';
 import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';

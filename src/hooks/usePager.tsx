@@ -1,6 +1,5 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
-import {concat, merge, of, Subscription} from 'rxjs';
-import {delay, map, take} from 'rxjs/operators';
+import {Subscription, concat, delay, map, merge, of, take} from 'rxjs';
 import Pager from 'types/Pager';
 import useSubject from './useSubject';
 

@@ -1,5 +1,4 @@
-import {EMPTY} from 'rxjs';
-import {debounceTime, filter, map, mergeMap, switchMap} from 'rxjs/operators';
+import {EMPTY, debounceTime, filter, map, mergeMap, switchMap} from 'rxjs';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import {getListenId, findScrobble, observeListens, updateListens} from 'services/localdb/listens';

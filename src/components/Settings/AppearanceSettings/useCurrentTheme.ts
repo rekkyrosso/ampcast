@@ -1,6 +1,5 @@
 import {useMemo} from 'react';
-import {merge} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {map, merge} from 'rxjs';
 import theme, {CurrentTheme} from 'services/theme';
 import themeStore from 'services/theme/themeStore';
 import useObservable from 'hooks/useObservable';

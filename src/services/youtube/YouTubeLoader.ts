@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
-import {EMPTY, merge, timer} from 'rxjs';
-import {map, filter, take, takeUntil} from 'rxjs/operators';
+import {EMPTY, filter, map, merge, take, takeUntil, timer} from 'rxjs';
 import YouTubePlayer, {PlayerState} from './YouTubePlayer';
 
 let loaderId = 0;

@@ -1,6 +1,5 @@
 import {useEffect} from 'react';
-import {fromEvent, merge} from 'rxjs';
-import {tap} from 'rxjs/operators';
+import {fromEvent, merge, tap} from 'rxjs';
 import {preventDefault} from 'utils';
 
 export default function usePreventDrop(): void {

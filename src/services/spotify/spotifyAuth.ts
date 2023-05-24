@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject} from 'rxjs';
-import {distinctUntilChanged, map} from 'rxjs/operators';
+import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
 import Auth from 'types/Auth';
 import {sp_client_id} from 'services/credentials';
 import {LiteStorage, Logger} from 'utils';

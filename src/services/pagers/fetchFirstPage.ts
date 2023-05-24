@@ -1,5 +1,4 @@
-import {merge, timer} from 'rxjs';
-import {map, take, takeUntil} from 'rxjs/operators';
+import {map, merge, take, takeUntil, timer} from 'rxjs';
 import Pager from 'types/Pager';
 
 export interface FetchFirstPageOptions {

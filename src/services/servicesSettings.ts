@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject} from 'rxjs';
-import {filter, map} from 'rxjs/operators';
+import {BehaviorSubject, filter, map} from 'rxjs';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import {LiteStorage} from 'utils';

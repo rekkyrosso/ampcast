@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
-import {Subscription} from 'rxjs';
-import {mergeMap} from 'rxjs/operators';
+import {Subscription, mergeMap} from 'rxjs';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';

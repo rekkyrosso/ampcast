@@ -1,6 +1,5 @@
 import React, {useEffect} from 'react';
-import {Subject, timer} from 'rxjs';
-import {map, mergeMap, tap} from 'rxjs/operators';
+import {Subject, map, mergeMap, tap, timer} from 'rxjs';
 import DefaultLogin from 'components/Login/DefaultLogin';
 import {refreshPin} from '../plexAuth';
 import plex from '../plex';

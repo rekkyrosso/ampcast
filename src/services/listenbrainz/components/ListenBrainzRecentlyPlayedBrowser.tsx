@@ -1,6 +1,17 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {interval, merge, Subscription} from 'rxjs';
-import {delay, map, mergeMap, skip, skipWhile, switchMap, take, tap} from 'rxjs/operators';
+import {
+    Subscription,
+    delay,
+    interval,
+    map,
+    merge,
+    mergeMap,
+    skip,
+    skipWhile,
+    switchMap,
+    take,
+    tap,
+} from 'rxjs';
 import MediaItem from 'types/MediaItem';
 import Pager from 'types/Pager';
 import DualPager from 'services/pagers/DualPager';

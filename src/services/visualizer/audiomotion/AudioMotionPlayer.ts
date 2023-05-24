@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {tap} from 'rxjs/operators';
+import {tap} from 'rxjs';
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import {TinyColor} from '@ctrl/tinycolor';
 import {AudioMotionVisualizer} from 'types/Visualizer';

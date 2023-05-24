@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject} from 'rxjs';
-import {distinctUntilChanged, skip} from 'rxjs/operators';
+import {BehaviorSubject, distinctUntilChanged, skip} from 'rxjs';
 import {observePlaybackStart} from 'services/mediaPlayback/playback';
 import OmniAudioContext from './OmniAudioContext';
 

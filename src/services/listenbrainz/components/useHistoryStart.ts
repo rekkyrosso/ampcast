@@ -1,6 +1,5 @@
 import {useEffect, useState} from 'react';
-import {from} from 'rxjs';
-import {filter, map, tap, take} from 'rxjs/operators';
+import {filter, from, map, take, tap} from 'rxjs';
 import {exists, formatDate} from 'utils';
 import listenbrainzApi from '../listenbrainzApi';
 import listenbrainzSettings from '../listenbrainzSettings';

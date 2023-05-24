@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
-import {fromEvent, Subject} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {Subject, fromEvent, map} from 'rxjs';
 import Player from 'types/Player';
 import jellyfinApi from 'services/jellyfin/jellyfinApi';
 import plexApi from 'services/plex/plexApi';

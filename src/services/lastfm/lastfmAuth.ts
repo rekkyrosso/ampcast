@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject} from 'rxjs';
-import {distinctUntilChanged, map} from 'rxjs/operators';
+import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
 import md5 from 'md5';
 import Auth from 'types/Auth';
 import {lf_api_key, lf_api_secret} from 'services/credentials';

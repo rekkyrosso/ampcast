@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject} from 'rxjs';
-import {distinctUntilChanged, filter, map, tap} from 'rxjs/operators';
+import {BehaviorSubject, distinctUntilChanged, filter, map, tap} from 'rxjs';
 import Auth from 'types/Auth';
 import {exists, Logger} from 'utils';
 import plexSettings from './plexSettings';

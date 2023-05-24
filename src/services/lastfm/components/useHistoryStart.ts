@@ -1,6 +1,5 @@
 import {useEffect, useState} from 'react';
-import {from, of, throwError} from 'rxjs';
-import {filter, map, tap, mergeMap} from 'rxjs/operators';
+import {filter, from, map, mergeMap, of, tap, throwError} from 'rxjs';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {exists, formatDate, Logger} from 'utils';
 import lastfmApi from '../lastfmApi';

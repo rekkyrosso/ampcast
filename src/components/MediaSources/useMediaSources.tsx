@@ -1,6 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {merge} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {map, merge} from 'rxjs';
 import {getAllServices} from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
 import {isVisible, observeHiddenServiceChanges} from 'services/servicesSettings';
