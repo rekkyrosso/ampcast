@@ -38,10 +38,10 @@ export default memo(function VisualizerControls() {
     }, []);
 
     const handleNextClick = useCallback(() => {
-        if (nextClicked === 0) {
-            nextVisualizer('click');
-        }
         setNextClicked(nextClicked + 1);
+        if (nextClicked === 0) {
+            setTimeout(() => nextVisualizer('click'));
+        }
     }, [nextClicked]);
 
     useEffect(() => {

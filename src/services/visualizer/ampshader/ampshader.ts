@@ -1,10 +1,10 @@
 import VisualizerProvider from 'types/VisualizerProvider';
 import {AmpShaderVisualizer} from 'types/Visualizer';
-import {simpleAnalyser} from 'services/audio';
+import {analyserNode} from 'services/audio';
 import AmpShaderPlayer from './AmpShaderPlayer';
 import {getVisualizers, observeVisualizers} from './visualizers';
 
-const ampShaderPlayer = new AmpShaderPlayer(simpleAnalyser);
+const ampShaderPlayer = new AmpShaderPlayer(analyserNode);
 
 const ampshader: VisualizerProvider<AmpShaderVisualizer> = {
     id: 'ampshader',

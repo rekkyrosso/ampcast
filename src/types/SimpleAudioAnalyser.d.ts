@@ -5,6 +5,7 @@ type SimpleAudioAnalyser = Pick<
     | 'getByteFrequencyData'
     | 'getByteTimeDomainData'
     | 'getFloatFrequencyData'
+    | 'getFloatTimeDomainData'
 >;
 
 export default SimpleAudioAnalyser;

@@ -1,5 +1,4 @@
 // https://www.shadertoy.com/view/wldBD8
-/* NOT CURRENTLY USED (looks bad for some reason) */
 // ##### Audio Visualizer: Rainbow #####
 // Made by Zi7ar21 (Discord: @Zi7ar21#2168)
 

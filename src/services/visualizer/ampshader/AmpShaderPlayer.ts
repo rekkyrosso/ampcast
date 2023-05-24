@@ -11,7 +11,7 @@ const logger = new Logger('AmpShaderPlayer');
 
 export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderVisualizer> {
     private readonly canvas = document.createElement('canvas');
-    private readonly gl = this.canvas.getContext('webgl')!;
+    private readonly gl = this.canvas.getContext('webgl2')!;
     private animationFrameId = 0;
     private fragTheme: WebGLUniformLocation | null = null;
     private fragTime: WebGLUniformLocation | null = null;
@@ -28,20 +28,23 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
         this.canvas.hidden = true;
         this.canvas.className = `visualizer visualizer-ampshader`;
 
-        gl.getExtension('OES_standard_derivatives');
-        gl.getExtension('EXT_shader_texture_lod');
-
         const texture = gl.createTexture()!;
         gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, 512, 2, 0, gl.RED, gl.UNSIGNED_BYTE, null);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
         gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
         const vbo = gl.createBuffer();
         gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-        const vertices = new Float32Array([-1, -1, 1, -1, -1, 1, 1, 1]);
-        gl.bufferData(gl.ARRAY_BUFFER, vertices, gl.STATIC_DRAW);
-        gl.vertexAttribPointer(0, 2, gl.FLOAT, false, 0, 0);
+        const positionBuffer = gl.createBuffer();
+        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+        gl.bufferData(
+            gl.ARRAY_BUFFER,
+            new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+            gl.STATIC_DRAW
+        );
     }
 
     get hidden(): boolean {
@@ -110,7 +113,7 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
         const date = new Date();
         return [
             date.getFullYear(),
-            date.getMonth() + 1,
+            date.getMonth(),
             date.getDate(),
             date.getHours() * 3600 +
                 date.getMinutes() * 60 +
@@ -136,7 +139,7 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
         const gl = this.gl;
 
         const vertexShader = gl.createShader(gl.VERTEX_SHADER)!;
-        const vertexShaderSrc = `attribute vec2 position;void main(void){gl_Position=vec4(position,0,1);}`;
+        const vertexShaderSrc = `#version 300 es\nin vec4 as_Position;void main(void){gl_Position=as_Position;}`;
         gl.shaderSource(vertexShader, vertexShaderSrc);
         gl.compileShader(vertexShader);
         if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
@@ -156,12 +159,14 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
         gl.linkProgram(shader);
         gl.useProgram(shader);
 
-        const position = gl.getAttribLocation(shader, 'position');
+        const position = gl.getAttribLocation(shader, 'as_Position');
         gl.enableVertexAttribArray(position);
+        gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
 
         this.fragTheme = gl.getUniformLocation(shader, 'iTheme');
         gl.uniform4f(this.fragTheme, ...this.themeColor);
 
+        this.startTime = performance.now();
         const time = this.currentTime;
         this.fragTime = gl.getUniformLocation(shader, 'iTime');
         gl.uniform1f(this.fragTime, time);
@@ -188,16 +193,17 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     private renderFrame(): void {
         if (this.shader) {
             const gl = this.gl;
-            const iChannel0 = new Uint8Array(this.analyser.frequencyBinCount);
-            const fragSpectrumArray = new Uint8Array(4 * iChannel0.length);
+            const bufferSize = this.analyser.frequencyBinCount;
+            const freq = new Uint8Array(bufferSize);
+            const wave = new Uint8Array(bufferSize);
+            const spectrum = new Uint8Array(1024);
 
-            this.analyser.getByteFrequencyData(iChannel0);
+            this.analyser.getByteFrequencyData(freq);
+            this.analyser.getByteTimeDomainData(wave);
 
-            for (let i = 0; i < iChannel0.length; i++) {
-                fragSpectrumArray[4 * i + 0] = iChannel0[i]; // R
-                fragSpectrumArray[4 * i + 1] = iChannel0[i]; // G
-                fragSpectrumArray[4 * i + 2] = iChannel0[i]; // B
-                fragSpectrumArray[4 * i + 3] = 255; // A
+            for (let i = 0; i < 512; i++) {
+                spectrum[i] = freq[i];
+                spectrum[i + 512] = wave[i];
             }
 
             const time = this.currentTime;
@@ -205,19 +211,10 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
             gl.uniform1fv(this.fragChannelTime, new Float32Array([time, 0, 0, 0]));
             gl.uniform4f(this.fragDate, ...this.currentDate);
             gl.uniform4f(this.fragTheme, ...this.themeColor);
-            gl.texImage2D(
-                gl.TEXTURE_2D,
-                0,
-                gl.RGBA,
-                iChannel0.length,
-                1,
-                0,
-                gl.RGBA,
-                gl.UNSIGNED_BYTE,
-                fragSpectrumArray
-            );
 
-            this.gl.drawArrays(this.gl.TRIANGLE_STRIP, 0, 4);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, 512, 2, 0, gl.RED, gl.UNSIGNED_BYTE, spectrum);
+
+            this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
         }
     }
 }

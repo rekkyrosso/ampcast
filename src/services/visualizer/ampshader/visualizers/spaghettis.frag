@@ -1,5 +1,5 @@
 // https://www.shadertoy.com/view/4d3SDX
-/* DOES NOT WORK (not sure why) */
+/* DOES NOT WORK (not synched with music) */
 // just toying with distance fields :)
 
 vec2 rot(vec2 p, float a) {

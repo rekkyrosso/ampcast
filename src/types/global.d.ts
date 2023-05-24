@@ -19,6 +19,15 @@ declare module 'string-score' {
     export default 'string-score' as (target: string, query: string, fuzziness?: number) => number;
 }
 
+declare module 'jsfft' {
+    interface ComplexArray {
+        real: Float32Array;
+        imag: Float32Array;
+    }
+
+    function InvFFT(input: Float32Array): ComplexArray;
+}
+
 type HTMLInputElements = {
     [Symbol.iterator](): Iterator<HTMLInputElement>;
 };

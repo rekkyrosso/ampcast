@@ -12,6 +12,7 @@ let playQueue: plex.PlayQueue | null = null; // TODO: Do this better.
 export async function reportStart(item: MediaItem): Promise<void> {
     try {
         const [, , key] = item.src.split(':');
+        playQueue = null;
         playQueue = await createPlayQueue(key);
         await reportState(item, 0, 'playing');
     } catch (err) {
@@ -22,6 +23,7 @@ export async function reportStart(item: MediaItem): Promise<void> {
 export async function reportStop(item: MediaItem): Promise<void> {
     try {
         await reportState(item, 0, 'stopped', true);
+        playQueue = null;
     } catch (err) {
         logger.error(err);
     }
@@ -45,6 +47,10 @@ async function reportState(
     state: 'stopped' | 'paused' | 'playing' | 'buffering' | 'error',
     keepalive?: boolean
 ): Promise<void> {
+    if (!playQueue) {
+        logger.warn(`Cannot report state (${state}): playQueue not defined`);
+        return;
+    }
     const [, , key] = item.src.split(':');
     await plexApi.fetch({
         path: '/:/timeline',

@@ -1,5 +1,4 @@
 // https://www.shadertoy.com/view/3tXBWS
-/* DOES NOT WORK (non-constant loop index compare) */
 #define AA 6.0 / iResolution.y
 
 float hash21(vec2 v) {

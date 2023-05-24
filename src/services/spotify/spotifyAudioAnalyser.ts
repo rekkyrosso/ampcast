@@ -1,9 +1,10 @@
 import type {Observable} from 'rxjs';
-import {distinctUntilChanged, EMPTY, filter, map, switchMap} from 'rxjs';
-import {BehaviorSubject} from 'rxjs';
+import {EMPTY, BehaviorSubject} from 'rxjs';
+import {distinctUntilChanged, filter, map, switchMap} from 'rxjs/operators';
 import {interpolateBasis} from 'd3-interpolate';
 import {min} from 'd3-array';
 import {scaleLog} from 'd3-scale';
+import {InvFFT as ifft} from 'jsfft';
 import SimpleAudioAnalyser from 'types/SimpleAudioAnalyser';
 import {observePaused} from 'services/mediaPlayback/playback';
 import spotifyPlayer, {SpotifyPlayer} from './spotifyPlayer';
@@ -60,11 +61,7 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
     } as ActiveIntervals);
     #volume = 0;
     public fftSize = 2048;
-    // These are just for show.
     public volumeSmoothing = 100;
-    public smoothingTimeConstant = 0;
-    public minDecibels = -100;
-    public maxDecibels = -30;
 
     constructor(spotifyPlayer: SpotifyPlayer) {
         spotifyPlayer
@@ -169,24 +166,25 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
             return;
         }
 
-        const pitches = this.segment.pitches;
-
         // This isn't real!
         // This is an attempt to get data suitable for visualizers.
-        // It's based on some completely made up Maths. :)
+        // It's based on some completely made up maths. :)
+
+        const pitches = this.segment.pitches;
 
         if (pitches) {
+            const beat = interpolateBasis([0.5, 1, 0.5])(this.beat.progress) * this.volume;
             const brightness = this.segment.timbre[1];
             const centre = (brightness - 180) / 360;
             const bufferSize = this.frequencyBinCount;
-            const beat = interpolateBasis([64, this.volume * 255, 64])(this.beat.progress);
             for (let i = 0; i < bufferSize; i++) {
-                const sample = samplePitches(pitches, i, this.sampleSize);
                 let radian = (i - bufferSize / 2 - centre * bufferSize) / bufferSize + 1;
                 if (radian < 0 || radian > 2) {
                     radian = 0;
                 }
-                array[i] = Math.sin(radian * (Math.PI / 2)) * sample * beat;
+                const max = Math.sin(radian * (Math.PI / 2));
+                const sample = samplePitches(pitches, i, this.sampleSize);
+                array[i] = ((sample + max) / 2) * 255 * beat;
             }
             return;
         }
@@ -195,16 +193,45 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
     }
 
     getFloatFrequencyData(array: Float32Array): void {
+        if (!this.active) {
+            array.fill(0);
+            return;
+        }
         const bufferSize = array.length;
-        const bytes = new Uint8Array(array.length);
-        this.getByteFrequencyData(bytes);
+        const uint8 = new Uint8Array(bufferSize);
+        this.getByteFrequencyData(uint8);
         for (let i = 0; i < bufferSize; i++) {
-            array[i] = bytes[i] - 128;
+            array[i] = uint8[i] - 128;
         }
     }
 
     getByteTimeDomainData(array: Uint8Array): void {
-        array.fill(128);
+        if (!this.active) {
+            array.fill(0);
+            return;
+        }
+        const bufferSize = array.length;
+        const float32 = new Float32Array(bufferSize);
+        this.getFloatTimeDomainData(float32);
+        const uint8 = Uint8Array.from(float32);
+        for (let i = 0; i < bufferSize; i++) {
+            array[i] = uint8[i];
+        }
+    }
+
+    getFloatTimeDomainData(array: Float32Array): void {
+        if (!this.active) {
+            array.fill(0);
+            return;
+        }
+        // More made up maths.
+        const bufferSize = array.length;
+        const float32 = new Float32Array(bufferSize);
+        this.getFloatFrequencyData(float32);
+        const {real, imag} = ifft(float32);
+        for (let i = 0; i < bufferSize; i++) {
+            array[i] = Math.sqrt(real[i] * real[i] + imag[i] * imag[i]) - 128;
+        }
     }
 
     private get activeIntervals(): ActiveIntervals {

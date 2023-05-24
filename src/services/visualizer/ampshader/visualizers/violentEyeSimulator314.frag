@@ -1,4 +1,5 @@
 // https://www.shadertoy.com/view/NdSGW3
+/* DOES NOT WORK (doesn't look the same as in ShaderToy) */
 float red (vec2 gv, float fft){
     float d = distance(gv, vec2(0.5));
     return smoothstep(0.15, fft, d);

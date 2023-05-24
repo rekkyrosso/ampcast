@@ -1,11 +1,11 @@
 import {of} from 'rxjs';
 import VisualizerProvider from 'types/VisualizerProvider';
 import {WaveformVisualizer} from 'types/Visualizer';
-import {simpleAnalyser} from 'services/audio';
+import {analyserNode} from 'services/audio';
 import WaveformPlayer from './WaveformPlayer';
 import visualizers from './visualizers';
 
-const waveformPlayer = new WaveformPlayer(simpleAnalyser);
+const waveformPlayer = new WaveformPlayer(analyserNode);
 
 const waveform: VisualizerProvider<WaveformVisualizer> = {
     id: 'waveform',

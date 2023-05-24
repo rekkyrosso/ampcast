@@ -1,6 +1,6 @@
 {
     "name": "ampcast",
-    "version": "0.8.12",
+    "version": "0.8.13",
     "description": "Ampcast music player",
     "homepage": "https://ampcast.app",
     "author": {
@@ -30,6 +30,7 @@
         "fullscreen-api-polyfill": "^1.1.2",
         "get-youtube-id": "^1.0.1",
         "idb-keyval": "^6.2.0",
+        "jsfft": "^0.0.4",
         "md5": "^2.3.0",
         "music-metadata-browser": "^2.5.9",
         "nanoid": "^4.0.2",
@@ -53,6 +54,7 @@
         "@types/gapi.auth2": "^0.0.57",
         "@types/gapi.client": "^1.0.5",
         "@types/gapi.client.youtube": "^3.0.2",
+        "@types/google.accounts": "^0.0.7",
         "@types/md5": "^2.3.2",
         "@types/nanoid": "^3.0.0",
         "@types/react": "^18.0.28",

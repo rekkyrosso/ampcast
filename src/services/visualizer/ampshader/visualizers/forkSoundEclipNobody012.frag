@@ -1,5 +1,4 @@
 // https://www.shadertoy.com/view/mtjSWm
-/* DOES NOT WORK (doesn't look the same as in shaderToy) */
 // credit: https://www.shadertoy.com/view/4tGXzt
 
 #define BEATMOVE 1

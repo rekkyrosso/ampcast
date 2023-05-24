@@ -1,5 +1,4 @@
 // https://www.shadertoy.com/view/7tfyRl
-/* DOES NOT WORK (non-constant loop index compare) */
 /**
     License: Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License
 

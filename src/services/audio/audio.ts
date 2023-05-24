@@ -2,19 +2,17 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import {distinctUntilChanged, skip} from 'rxjs/operators';
 import {observePlaybackStart} from 'services/mediaPlayback/playback';
-import spotifyAudioAnalyser from 'services/spotify/spotifyAudioAnalyser';
-import OmniAnalyser from './OmniAnalyser';
+import OmniAudioContext from './OmniAudioContext';
 
 console.log('module::audio');
 
-export const audioContext = new AudioContext();
-export const analyser = new AnalyserNode(audioContext, {
+export const audioContext = new OmniAudioContext();
+export const analyserNode = audioContext.createAnalyser({
     fftSize: 2048,
     smoothingTimeConstant: 0,
 });
-export const simpleAnalyser = new OmniAnalyser(analyser, spotifyAudioAnalyser);
 
-analyser.connect(audioContext.destination);
+analyserNode.connect(audioContext.destination);
 
 let html5AudioSourceNode: MediaElementAudioSourceNode;
 let appleAudioSourceNode: MediaElementAudioSourceNode;
@@ -28,7 +26,7 @@ export function observeAudioSourceNode(): Observable<AudioNode> {
 }
 
 observePlaybackStart().subscribe(({currentItem}) => {
-    if (currentItem!.src.startsWith('apple:')) {
+    if (currentItem?.src.startsWith('apple:')) {
         if (!appleAudioSourceNode) {
             const audioElement = document.querySelector(
                 'audio#apple-music-player'
@@ -55,11 +53,4 @@ observePlaybackStart().subscribe(({currentItem}) => {
 
 observeAudioSourceNode()
     .pipe(skip(1)) // TODO: Do we need to disconnect?
-    .subscribe((audioSourceNode) => audioSourceNode.connect(analyser));
-
-export default {
-    audioContext,
-    analyser,
-    simpleAnalyser,
-    observeAudioSourceNode,
-};
+    .subscribe((audioSourceNode) => audioSourceNode.connect(analyserNode));

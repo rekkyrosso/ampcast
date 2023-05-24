@@ -51,6 +51,7 @@ export async function logout(): Promise<void> {
     if (accessToken) {
         const oauth2 = await getGsiClient();
         oauth2.revoke(accessToken, () => accessToken$.next(''));
+        google.accounts.id.disableAutoSelect();
     }
 }
 
@@ -99,6 +100,7 @@ async function obtainAccessToken(): Promise<string> {
         const tokenClient = oauth2.initTokenClient({
             client_id: yt_client_id,
             scope: scope,
+            prompt: '',
             callback: (response) => {
                 if (response.error) {
                     reject(response.error_description);

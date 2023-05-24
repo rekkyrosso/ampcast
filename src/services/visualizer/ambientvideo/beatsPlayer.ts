@@ -1,11 +1,11 @@
-import {simpleAnalyser} from 'services/audio';
+import {analyserNode} from 'services/audio';
 import WaveformPlayer from 'services/visualizer/waveform/WaveformPlayer';
 
-const beatsPlayer = new WaveformPlayer(simpleAnalyser);
+const beatsPlayer = new WaveformPlayer(analyserNode);
 
 beatsPlayer.load({
     providerId: 'waveform',
-    name: 'bars',
+    name: 'beats',
     config: {
         onPaint: ({context2D, width, height, analyser}) => {
             const barCount = 12;

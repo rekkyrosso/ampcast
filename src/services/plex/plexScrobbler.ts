@@ -38,6 +38,7 @@ observeIsLoggedIn()
     .pipe(
         switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackProgress(10_000) : EMPTY)),
         filter(isPlexItem),
+        filter(({currentTime}) => currentTime > 0),
         mergeMap(({currentItem, currentTime, paused}) =>
             reportProgress(currentItem!, currentTime, paused ? 'paused' : 'playing')
         )

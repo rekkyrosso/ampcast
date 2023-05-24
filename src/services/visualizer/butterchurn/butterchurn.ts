@@ -1,10 +1,10 @@
 import VisualizerProvider from 'types/VisualizerProvider';
 import {ButterchurnVisualizer} from 'types/Visualizer';
-import {analyser} from 'services/audio';
+import {analyserNode} from 'services/audio';
 import ButterchurnPlayer from './ButterchurnPlayer';
 import {getVisualizers, observeVisualizers} from './visualizers';
 
-const butterchurnPlayer = new ButterchurnPlayer(analyser);
+const butterchurnPlayer = new ButterchurnPlayer(analyserNode);
 
 const butterchurn: VisualizerProvider<ButterchurnVisualizer> = {
     id: 'butterchurn',

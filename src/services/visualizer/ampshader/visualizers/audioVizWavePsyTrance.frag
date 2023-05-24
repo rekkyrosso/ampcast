@@ -1,5 +1,5 @@
 // https://www.shadertoy.com/view/ldlBWH
-/* DOES NOT WORK (not sure why -  doesn't look the same as in shaderToy) */
+/* DOES NOT WORK (doesn't look the same as in ShaderToy) */
 // From Stackoveflow
 // http://stackoverflow.com/questions/15095909/from-rgb-to-hsv-in-opengl-glsl
 vec3 hsv2rgb(vec3 c)

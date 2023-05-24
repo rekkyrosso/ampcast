@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
-import {Subject, BehaviorSubject, of} from 'rxjs';
+import {Subject, BehaviorSubject, of, timer} from 'rxjs';
 import {
+    debounce,
     debounceTime,
     distinctUntilChanged,
     map,
@@ -40,16 +41,15 @@ const currentVisualizer$ = new BehaviorSubject<Visualizer>(noVisualizer);
 const next$ = new Subject<NextReason>();
 
 const randomProviders: VisualizerProviderId[] = [
-    ...Array(79).fill('butterchurn'), // most of the time use this one
-    ...Array(6).fill('audiomotion'),
-    ...Array(4).fill('ampshader'),
+    ...Array(75).fill('butterchurn'), // most of the time use this one
+    ...Array(10).fill('ampshader'),
+    ...Array(4).fill('audiomotion'),
     ...Array(1).fill('waveform'),
 ];
 
 const spotifyRandomProviders: VisualizerProviderId[] = [
-    ...Array(69).fill('ampshader'), // most of the time use this one
+    ...Array(70).fill('ampshader'), // most of the time use this one
     ...Array(10).fill('spotifyviz'),
-    ...Array(1).fill('waveform'),
 ];
 
 const randomVideo: VisualizerProviderId[] = Array(10).fill('ambientvideo');
@@ -92,7 +92,8 @@ export function nextVisualizer(reason: NextReason): void {
 }
 
 export function observeNextVisualizerReason(): Observable<NextReason> {
-    return next$;
+    // Give the UI time to update after clicks.
+    return next$.pipe(debounce((reason) => (reason === 'click' ? timer(50) : of(undefined))));
 }
 
 export function lock(): void {
@@ -120,26 +121,6 @@ observeNextVisualizerReason()
 observeCurrentVisualizer()
     .pipe(tap((visualizer) => visualizerPlayer.load(visualizer)))
     .subscribe(logger);
-
-function handleLazyLoads(providerId: string, count = 1) {
-    getVisualizerProvider(providerId)
-        ?.observeVisualizers()
-        .pipe(
-            skipWhile((visualizers) => visualizers.length === 0),
-            withLatestFrom(observeCurrentVisualizer()),
-            tap(([visualizers, currentVisualizer]) => {
-                console.log(`${providerId} visualizers:`, visualizers.length);
-                if (currentVisualizer === noVisualizer) {
-                    nextVisualizer('sync');
-                }
-            }),
-            take(count)
-        )
-        .subscribe(logger);
-}
-
-handleLazyLoads('ampshader');
-handleLazyLoads('butterchurn', 2);
 
 function getNextVisualizer(
     item: PlaylistItem | null,
@@ -192,3 +173,23 @@ function getNextVisualizer(
     const visualizers = getVisualizers(provider);
     return getRandomValue(visualizers, currentVisualizer) || noVisualizer;
 }
+
+function handleLazyLoads(providerId: string, count = 1) {
+    getVisualizerProvider(providerId)
+        ?.observeVisualizers()
+        .pipe(
+            skipWhile((visualizers) => visualizers.length === 0),
+            withLatestFrom(observeCurrentVisualizer()),
+            tap(([visualizers, currentVisualizer]) => {
+                console.log(`${providerId} visualizers:`, visualizers.length);
+                if (currentVisualizer === noVisualizer) {
+                    nextVisualizer('sync');
+                }
+            }),
+            take(count)
+        )
+        .subscribe(logger);
+}
+
+handleLazyLoads('ampshader');
+handleLazyLoads('butterchurn', 2);
