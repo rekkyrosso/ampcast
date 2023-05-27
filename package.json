@@ -1,6 +1,6 @@
 {
     "name": "ampcast",
-    "version": "0.8.13",
+    "version": "0.8.14",
     "description": "Ampcast music player",
     "homepage": "https://ampcast.app",
     "author": {
@@ -59,7 +59,7 @@
         "@types/nanoid": "^3.0.0",
         "@types/react": "^18.0.28",
         "@types/react-dom": "^18.0.11",
-        "@types/spotify-api": "^0.0.21",
+        "@types/spotify-api": "^0.0.22",
         "@types/spotify-web-playback-sdk": "^0.1.15",
         "@types/unidecode": "^0.1.1",
         "@types/wicg-file-system-access": "^2020.9.5",

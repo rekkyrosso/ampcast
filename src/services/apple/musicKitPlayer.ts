@@ -3,10 +3,10 @@ import {
     EMPTY,
     BehaviorSubject,
     Subject,
-    from,
     catchError,
     distinctUntilChanged,
     filter,
+    from,
     map,
     skipWhile,
     switchMap,
@@ -15,7 +15,7 @@ import {
 } from 'rxjs';
 import Player from 'types/Player';
 import {Logger} from 'utils';
-import {observeIsLoggedIn} from './appleAuth';
+import {observeIsLoggedIn, refreshToken} from './appleAuth';
 
 const logger = new Logger('MusicKitPlayer');
 
@@ -117,16 +117,30 @@ export class MusicKitPlayer implements Player<string> {
             .subscribe(logger);
 
         this.observeIsLoggedIn()
-            .pipe(skipWhile((isLoggedIn) => isLoggedIn === this.isLoggedIn))
-            .subscribe((isLoggedIn) => {
-                this.isLoggedIn = isLoggedIn;
-                if (!isLoggedIn && this.player?.isPlaying) {
-                    this.stop();
-                    this.error$.next(Error(ERR_NOT_CONNECTED));
-                }
-            });
+            .pipe(
+                skipWhile((isLoggedIn) => isLoggedIn === this.isLoggedIn),
+                tap((isLoggedIn) => {
+                    this.isLoggedIn = isLoggedIn;
+                    if (!isLoggedIn) {
+                        this.loadedSrc = '';
+                        if (this.player?.isPlaying) {
+                            this.stop();
+                            this.error$.next(Error(ERR_NOT_CONNECTED));
+                        }
+                    }
+                })
+            )
+            .subscribe(logger);
 
         this.observeError().subscribe(logger.error);
+
+        this.observeError()
+            .pipe(
+                filter(() => this.player?.isAuthorized === false),
+                switchMap(() => refreshToken()),
+                catchError(() => EMPTY)
+            )
+            .subscribe(logger);
     }
 
     get hidden(): boolean {

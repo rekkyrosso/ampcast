@@ -298,10 +298,10 @@ mediaPlayer
         takeUntil(killed$)
     )
     .subscribe(([, paused, atStart, atEnd]) => {
-        if (atEnd || (atStart && direction === 'backward')) {
-            stop();
-        } else if (!paused) {
-            if (direction === 'backward') {
+        if (!paused) {
+            if (atEnd || (atStart && direction === 'backward')) {
+                stop();
+            } else if (direction === 'backward') {
                 playlist.prev();
             } else {
                 playlist.next();

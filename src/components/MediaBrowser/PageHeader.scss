@@ -34,14 +34,6 @@
         min-width: 1.125em;
         height: 1.125em;
         aspect-ratio: 1;
-
-        .themed.frame-text-light &-apple {
-            fill: white;
-        }
-
-        .themed.frame-text-dark &-apple {
-            fill: black;
-        }
     }
 
     .date-picker {

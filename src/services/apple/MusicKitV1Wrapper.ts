@@ -98,7 +98,9 @@ export default class MusicKitV1Wrapper {
         };
         const response = await fetch(`https://api.music.apple.com${href}`, init);
         if (!response.ok) {
-            throw response;
+            const err = new Error(String(response.status));
+            (err as any).data = response;
+            throw err;
         }
         const data = await response.json();
         return {data};

@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged} from 'rxjs';
 import Auth from 'types/Auth';
 import {am_dev_token} from 'services/credentials';
 import {loadScript, Logger} from 'utils';
@@ -10,34 +10,24 @@ console.log('module::appleAuth');
 
 const logger = new Logger('appleAuth');
 
-const accessToken$ = new BehaviorSubject('');
-
-export function observeAccessToken(): Observable<string> {
-    return accessToken$.pipe(distinctUntilChanged());
-}
+const isLoggedIn$ = new BehaviorSubject(false);
 
 export function isLoggedIn(): boolean {
-    return getAccessToken() !== '';
+    return isLoggedIn$.getValue();
 }
 
 export function observeIsLoggedIn(): Observable<boolean> {
-    return observeAccessToken().pipe(
-        map((token) => token !== ''),
-        distinctUntilChanged()
-    );
-}
-
-function getAccessToken(): string {
-    return accessToken$.getValue();
+    return isLoggedIn$.pipe(distinctUntilChanged());
 }
 
 export async function login(): Promise<void> {
     if (!isLoggedIn()) {
+        logger.log('login');
         try {
             const musicKit = await getMusicKit();
-            const accessToken = await musicKit.authorize();
+            await musicKit.authorize();
             logger.log('Access token successfully obtained.');
-            accessToken$.next(accessToken);
+            isLoggedIn$.next(true);
         } catch (err) {
             logger.log('Could not obtain access token.');
             logger.error(err);
@@ -46,8 +36,29 @@ export async function login(): Promise<void> {
 }
 
 export async function logout(): Promise<void> {
-    await MusicKit.getInstance().unauthorize();
-    accessToken$.next('');
+    if (isLoggedIn()) {
+        logger.log('logout');
+        const musicKit = await getMusicKit();
+        try {
+            if (musicKit.isPlaying) {
+                musicKit.stop();
+            }
+            if (!musicKit.queue.isEmpty) {
+                await musicKit.setQueue({});
+            }
+        } catch (err) {
+            logger.error(err);
+        }
+        await musicKit.unauthorize();
+        isLoggedIn$.next(false);
+    }
+}
+
+export async function refreshToken(): Promise<void> {
+    logger.log('refreshToken');
+    // Apple Music doesn't support token refresh so we'll force a new login.
+    await logout();
+    throw Error(`Access token refresh is not supported.`);
 }
 
 async function getMusicKit(): Promise<MusicKit.MusicKitInstance> {
@@ -62,10 +73,12 @@ async function getMusicKit(): Promise<MusicKit.MusicKitInstance> {
             );
             document.addEventListener('musickitloaded', async () => {
                 logger.log(`Loaded MusicKit version`, MusicKit.version);
+                // Wrap MusicKit v1.
                 if (window.MusicKit.version.startsWith('1')) {
                     window.MusicKit = new MusicKitV1Wrapper(MusicKit) as any;
                 }
                 try {
+                    // MusicKit v3 is async but the types are still v1.
                     const instance = await window.MusicKit.configure({
                         developerToken: am_dev_token,
                         app: {
@@ -96,8 +109,14 @@ export default appleAuth;
 (async function (): Promise<void> {
     const musicKit = await getMusicKit();
     if (musicKit.isAuthorized) {
-        const accessToken = await musicKit.authorize();
+        await musicKit.authorize();
         logger.log('Access token successfully obtained.');
-        accessToken$.next(accessToken);
+        isLoggedIn$.next(true);
     }
+    musicKit.addEventListener(MusicKit.Events.authorizationStatusDidChange, () => {
+        logger.log('authorizationStatusDidChange', musicKit.isAuthorized);
+        if (!musicKit.isAuthorized) {
+            isLoggedIn$.next(false);
+        }
+    });
 })();

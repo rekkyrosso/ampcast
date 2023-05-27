@@ -133,6 +133,7 @@ function getNextVisualizer(
     if (!item || item.mediaType === MediaType.Video || item.duration < 30) {
         return noVisualizer;
     }
+    const isError = reason === 'error';
     const isSpotify = item.src.startsWith('spotify:');
     const lockedVisualizer = settings.lockedVisualizer;
     let provider = lockedVisualizer?.providerId || settings.provider;
@@ -154,7 +155,9 @@ function getNextVisualizer(
             return noVisualizer;
     }
     if (lockedVisualizer) {
-        return getVisualizer(lockedVisualizer.providerId, lockedVisualizer.name) || noVisualizer;
+        return isError
+            ? noVisualizer
+            : getVisualizer(lockedVisualizer.providerId, lockedVisualizer.name) || noVisualizer;
     }
     const currentVisualizer = currentVisualizer$.getValue();
     provider = settings.provider;
@@ -174,6 +177,9 @@ function getNextVisualizer(
         }
     }
     const visualizers = getVisualizers(provider);
+    if (isError && settings.provider && visualizers.length === 1) {
+        return noVisualizer;
+    }
     return getRandomValue(visualizers, currentVisualizer) || noVisualizer;
 }
 

@@ -59,24 +59,21 @@
     }
 
     &-apple {
-        fill: rgba(255, 255, 255, 0.1);
-
-        .themed.light & {
-            fill: rgba(0, 0, 0, 0.1);
+        &-inner {
+            fill: none;
         }
 
         .apple-connected &,
-        &:not(.show-connectivity),
-        .themed.selection-dark .selected-text &:not(.show-connectivity) {
-            stroke: none;
-            fill: white;
-        }
+        &:not(.show-connectivity) {
+            .icon-apple {
+                &-inner {
+                    fill: white;
+                }
 
-        .apple-connected .app.light &,
-        .apple-connected .selection-light .selected-text &,
-        .themed.light &:not(.show-connectivity),
-        .themed.selection-light .selected-text &:not(.show-connectivity) {
-            fill: black;
+                &-outer {
+                    fill: url("#apple-linear-gradient");
+                }
+            }
         }
     }
 

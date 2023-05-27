@@ -48,6 +48,7 @@ export function observeIsLoggedIn(): Observable<boolean> {
 
 export async function login(): Promise<void> {
     if (!isLoggedIn()) {
+        logger.log('login');
         try {
             const token = await obtainAccessToken();
             storeAccessToken(token);
@@ -59,6 +60,7 @@ export async function login(): Promise<void> {
 }
 
 export async function logout(): Promise<void> {
+    logger.log('logout');
     clearAccessToken();
     await createCodeVerifier();
 }
@@ -83,7 +85,7 @@ async function obtainAccessToken(): Promise<TokenResponse> {
 
                 exchangeToken(event.data.code).then(resolve, reject);
             }
-        }
+        };
 
         window.addEventListener('message', receiveMessage, false);
 
@@ -176,6 +178,7 @@ async function exchangeToken(code: string): Promise<TokenResponse> {
 }
 
 export async function refreshToken(): Promise<string> {
+    logger.log('refreshToken');
     const token = retrieveAccessToken();
     const refresh_token = token?.refresh_token;
     if (refresh_token) {

@@ -13,7 +13,11 @@ export default function useOnResize<T extends HTMLElement>(
     useEffect(() => {
         const element = elementRef.current;
         if (element) {
-            const resizeObserver = new ResizeObserver(() => onResizeRef.current());
+            const resizeObserver = new ResizeObserver(() => {
+                if (elementRef.current) {
+                    onResizeRef.current();
+                }
+            });
             resizeObserver.observe(element);
             return () => resizeObserver.disconnect();
         }

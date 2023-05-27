@@ -18,6 +18,7 @@ import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import pinStore from 'services/pins/pinStore';
 import {bestOf, getTextFromHtml, Logger, ParentOf} from 'utils';
 import {addInLibrary, addRatings} from './apple';
+import {refreshToken} from './appleAuth';
 
 const logger = new Logger('MusicKitPager');
 
@@ -129,7 +130,19 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
     }
 
     private async fetchNext(href: string, params?: MusicKit.QueryParameters): Promise<any> {
-        return MusicKit.getInstance().api.music(href, params);
+        try {
+            const response = await MusicKit.getInstance().api.music(href, params);
+            return response;
+        } catch (err: any) {
+            const status = err?.data.status;
+            if (status === 401 || status === 403) {
+                await refreshToken();
+                // We'll never get here.
+                return MusicKit.getInstance().api.music(href, params);
+            } else {
+                throw err;
+            }
+        }
     }
 
     private createItems(items: readonly MusicKitItem[]): T[] {
