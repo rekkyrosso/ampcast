@@ -2,6 +2,7 @@ import React, {useCallback, useMemo, useState} from 'react';
 import Pin from 'types/Pin';
 import pinStore from 'services/pins/pinStore';
 import ListBox from 'components/ListView/ListBox';
+import DialogButtons from 'components/Dialog/DialogButtons';
 import {MediaServiceSettingsProps} from './MediaServiceSettings';
 import './PinnedSettings.scss';
 
@@ -46,12 +47,7 @@ export default function PinnedSettings({service}: MediaServiceSettingsProps) {
                     Remove
                 </button>
             </p>
-            <footer className="dialog-buttons">
-                <button type="button" value="#cancel">
-                    Cancel
-                </button>
-                <button>Confirm</button>
-            </footer>
+            <DialogButtons />
         </form>
     );
 }

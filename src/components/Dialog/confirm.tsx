@@ -1,6 +1,7 @@
 import React, {useCallback, useId, useRef} from 'react';
 import {LiteStorage} from 'utils';
 import Dialog, {DialogProps} from './Dialog';
+import DialogButtons from './DialogButtons';
 import showDialog from './showDialog';
 import './confirm.scss';
 
@@ -63,12 +64,7 @@ export function ConfirmDialog({
         <Dialog {...props} className="confirm-dialog" title={title}>
             <form method="dialog" onSubmit={handleSubmit}>
                 <div className="confirm-message">{message}</div>
-                <footer className="dialog-buttons">
-                    <button type="button" value="#cancel">
-                        Cancel
-                    </button>
-                    <button value="confirmed">{okLabel}</button>
-                </footer>
+                <DialogButtons value="confirmed" submitText={okLabel} />
                 {storageId ? (
                     <footer className="confirm-dialog-storage">
                         <input id={id} type="checkbox" ref={storageRef} />

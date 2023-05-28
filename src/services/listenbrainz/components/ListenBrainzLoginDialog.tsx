@@ -2,6 +2,7 @@ import React, {useCallback, useId, useRef} from 'react';
 import Dialog, {showDialog, DialogProps} from 'components/Dialog';
 import ExternalLink from 'components/ExternalLink';
 import Icon from 'components/Icon';
+import DialogButtons from 'components/Dialog/DialogButtons';
 import listenbrainzSettings from '../listenbrainzSettings';
 import './ListenBrainzLoginDialog.scss';
 
@@ -91,12 +92,7 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
                         {profileUrl}
                     </ExternalLink>
                 </p>
-                <footer className="dialog-buttons">
-                    <button type="button" value="#cancel">
-                        Cancel
-                    </button>
-                    <button>Login</button>
-                </footer>
+                <DialogButtons submitText="Login" />
             </form>
         </Dialog>
     );

@@ -1,5 +1,6 @@
 import React, {useCallback, useId, useState} from 'react';
 import Dialog, {DialogProps} from './Dialog';
+import DialogButtons from './DialogButtons';
 import showDialog from './showDialog';
 import './prompt.scss';
 
@@ -56,12 +57,7 @@ export function PromptDialog({
                         onChange={handleChange}
                     />
                 </p>
-                <footer className="dialog-buttons">
-                    <button type="button" value="#cancel">
-                        Cancel
-                    </button>
-                    <button value={value}>{okLabel}</button>
-                </footer>
+                <DialogButtons value={value} submitText={okLabel} />
             </form>
         </Dialog>
     );

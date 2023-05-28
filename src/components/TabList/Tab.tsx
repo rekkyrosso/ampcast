@@ -12,6 +12,7 @@ export default function Tab({id, item, index, selected, ...props}: TabProps) {
         <button
             {...props}
             className="tab"
+            type="button"
             id={`${id}-tab-${index}`}
             tabIndex={selected ? 0 : -1}
             role="tab"

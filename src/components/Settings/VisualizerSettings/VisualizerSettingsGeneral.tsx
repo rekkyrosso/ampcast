@@ -1,37 +1,39 @@
-import React, {useCallback, useId, useRef} from 'react';
-import VisualizerProviderId from 'types/VisualizerProviderId';
-import {getEnabledVisualizerProviders} from 'services/visualizer/visualizerProviders';
+import React, {useId} from 'react';
+import {getAllVisualizerProviders} from 'services/visualizer/visualizerProviders';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
+import DialogButtons from 'components/Dialog/DialogButtons';
 
-export default function VisualizerSettingsGeneral() {
+export interface VisualizerSettingsGeneralProps {
+    providerRef: React.RefObject<HTMLSelectElement>;
+    ambientVideoEnabled: boolean;
+    onSubmit: () => void;
+}
+
+export default function VisualizerSettingsGeneral({
+    providerRef,
+    ambientVideoEnabled,
+    onSubmit,
+}: VisualizerSettingsGeneralProps) {
     const id = useId();
-    const selectRef = useRef<HTMLSelectElement>(null);
     const provider = visualizerSettings.provider;
 
-    const handleSubmit = useCallback(() => {
-        visualizerSettings.provider = selectRef.current!.value as VisualizerProviderId;
-    }, []);
-
     return (
-        <form className="visualizer-settings-general" method="dialog" onSubmit={handleSubmit}>
+        <form className="visualizer-settings-general" method="dialog">
             <p>
                 <label htmlFor={`${id}-visualizer-provider`}>Provider:</label>
-                <select id={`${id}-visualizer-provider`} defaultValue={provider} ref={selectRef}>
+                <select id={`${id}-visualizer-provider`} defaultValue={provider} ref={providerRef}>
                     <option value="none">(none)</option>
                     <option value="">(random)</option>
-                    {getEnabledVisualizerProviders().map((provider) => (
-                        <option value={provider.id} key={provider.id}>
-                            {provider.name}
-                        </option>
-                    ))}
+                    {getAllVisualizerProviders()
+                        .filter((provider) => provider.id !== 'ambientvideo' || ambientVideoEnabled)
+                        .map((provider) => (
+                            <option value={provider.id} key={provider.id}>
+                                {provider.name}
+                            </option>
+                        ))}
                 </select>
             </p>
-            <footer className="dialog-buttons">
-                <button type="button" value="#cancel">
-                    Cancel
-                </button>
-                <button>Confirm</button>
-            </footer>
+            <DialogButtons onSubmit={onSubmit} />
         </form>
     );
 }

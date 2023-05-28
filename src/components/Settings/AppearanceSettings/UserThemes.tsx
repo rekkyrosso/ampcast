@@ -4,6 +4,7 @@ import themeStore from 'services/theme/themeStore';
 import {prompt} from 'components/Dialog';
 import ListBox from 'components/ListView/ListBox';
 import {ListViewHandle} from 'components/ListView';
+import DialogButtons from 'components/Dialog/DialogButtons';
 import {saveTextToFile} from 'utils';
 import useUserThemes from './useUserThemes';
 import confirmDeleteTheme from './confirmDeleteTheme';
@@ -126,12 +127,7 @@ export default function UserThemes() {
                     </button>
                 </p>
             </fieldset>
-            <footer className="dialog-buttons">
-                <button type="button" value="#cancel">
-                    Cancel
-                </button>
-                <button>Confirm</button>
-            </footer>
+            <DialogButtons />
         </form>
     );
 }

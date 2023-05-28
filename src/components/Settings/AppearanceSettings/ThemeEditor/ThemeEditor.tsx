@@ -1,5 +1,6 @@
 import React, {useCallback, useId, useLayoutEffect} from 'react';
 import theme from 'services/theme';
+import DialogButtons from 'components/Dialog/DialogButtons';
 import ThemeColorPair from './ThemeColorPair';
 import useCurrentTheme from '../useCurrentTheme';
 import useSuggestedColors from './useSuggestedColors';
@@ -141,12 +142,7 @@ export default function ThemeEditor() {
                     />
                 </p>
             </div>
-            <footer className="dialog-buttons">
-                <button type="button" value="#cancel">
-                    Cancel
-                </button>
-                <button>Confirm</button>
-            </footer>
+            <DialogButtons />
         </form>
     );
 }

@@ -1,5 +1,6 @@
 import React, {useCallback, useId, useRef} from 'react';
 import Dialog, {showDialog, DialogProps} from 'components/Dialog';
+import DialogButtons from 'components/Dialog/DialogButtons';
 import jellyfinSettings from '../jellyfinSettings';
 import './JellyfinLoginDialog.scss';
 
@@ -96,12 +97,7 @@ export default function JellyfinLoginDialog(props: DialogProps) {
                         <input type="password" id={`${id}-password`} ref={passwordRef} required />
                     </p>
                 </div>
-                <footer className="dialog-buttons">
-                    <button type="button" value="#cancel">
-                        Cancel
-                    </button>
-                    <button>Login</button>
-                </footer>
+                <DialogButtons submitText="Login" />
             </form>
         </Dialog>
     );

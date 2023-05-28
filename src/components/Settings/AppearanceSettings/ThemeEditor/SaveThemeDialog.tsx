@@ -2,6 +2,7 @@ import React, {useCallback, useId, useMemo, useRef, useState} from 'react';
 import Theme from 'types/Theme';
 import Dialog, {DialogProps} from 'components/Dialog';
 import ListBox from 'components/ListView/ListBox';
+import DialogButtons from 'components/Dialog/DialogButtons';
 import useUserThemes from '../useUserThemes';
 import confirmOverwriteTheme from '../confirmOverwriteTheme';
 import './SaveThemeDialog.scss';
@@ -76,12 +77,7 @@ export default function SaveThemeDialog({suggestedName, ...props}: SaveThemeDial
                     onDoubleClick={submit}
                     onSelect={handleSelect}
                 />
-                <footer className="dialog-buttons">
-                    <button type="button" value="#cancel">
-                        Cancel
-                    </button>
-                    <button value={value}>Save</button>
-                </footer>
+                <DialogButtons value={value} submitText="Save" />
             </form>
         </Dialog>
     );

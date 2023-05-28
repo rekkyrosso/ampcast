@@ -1,5 +1,6 @@
 import React, {useCallback, useId, useMemo, useRef} from 'react';
 import playlistSettings, {PlaylistSettings} from 'services/playlist/playlistSettings';
+import DialogButtons from 'components/Dialog/DialogButtons';
 import useObservable from 'hooks/useObservable';
 
 export default function PlaylistSettingsGeneral() {
@@ -73,12 +74,7 @@ export default function PlaylistSettingsGeneral() {
                     <label htmlFor={`${id}-source-icons`}>Show media source icons</label>
                 </p>
             </fieldset>
-            <footer className="dialog-buttons">
-                <button value="#cancel" onClick={handleCancel}>
-                    Cancel
-                </button>
-                <button>Confirm</button>
-            </footer>
+            <DialogButtons onCancel={handleCancel} />
         </form>
     );
 }

@@ -1,6 +1,7 @@
 import React, {useCallback, useId, useLayoutEffect, useMemo, useRef} from 'react';
 import theme from 'services/theme';
 import themeStore from 'services/theme/themeStore';
+import DialogButtons from 'components/Dialog/DialogButtons';
 import useCurrentTheme from './useCurrentTheme';
 import useDefaultThemes from './useDefaultThemes';
 import useUserThemes from './useUserThemes';
@@ -116,12 +117,7 @@ export default function AppearanceSettingsGeneral() {
                 </div>
             </fieldset>
 
-            <footer className="dialog-buttons">
-                <button type="button" value="#cancel">
-                    Cancel
-                </button>
-                <button>Confirm</button>
-            </footer>
+            <DialogButtons />
         </form>
     );
 }

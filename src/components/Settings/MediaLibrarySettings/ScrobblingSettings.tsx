@@ -7,6 +7,7 @@ import {
     setNoScrobble,
     updateOptions,
 } from 'services/scrobbleSettings';
+import DialogButtons from 'components/Dialog/DialogButtons';
 import {MediaServiceSettingsProps} from './MediaServiceSettings';
 
 export default function ScrobblingSettings({service: scrobbler}: MediaServiceSettingsProps) {
@@ -66,12 +67,7 @@ export default function ScrobblingSettings({service: scrobbler}: MediaServiceSet
                     </li>
                 </ul>
             </fieldset>
-            <footer className="dialog-buttons">
-                <button type="button" value="#cancel">
-                    Cancel
-                </button>
-                <button>Confirm</button>
-            </footer>
+            <DialogButtons />
         </form>
     );
 }

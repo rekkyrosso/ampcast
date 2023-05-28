@@ -1,5 +1,6 @@
-import {confirm} from 'components/Dialog';
 import React, {useCallback, useId, useRef} from 'react';
+import {confirm} from 'components/Dialog';
+import DialogButtons from 'components/Dialog/DialogButtons';
 import apple from '../apple';
 import appleSettings from '../appleSettings';
 
@@ -69,12 +70,7 @@ export default function AppleBetaSettings() {
                     Apple Music services and media playback.
                 </small>
             </p>
-            <footer className="dialog-buttons">
-                <button type="button" value="#cancel">
-                    Cancel
-                </button>
-                <button>Confirm</button>
-            </footer>
+            <DialogButtons />
         </form>
     );
 }

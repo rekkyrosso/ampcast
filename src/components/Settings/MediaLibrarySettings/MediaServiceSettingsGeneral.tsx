@@ -1,5 +1,6 @@
 import React, {useCallback, useId, useRef} from 'react';
 import {isVisible, setHidden} from 'services/servicesSettings';
+import DialogButtons from 'components/Dialog/DialogButtons';
 import useObservable from 'hooks/useObservable';
 import {MediaServiceSettingsProps} from './MediaServiceSettings';
 
@@ -45,12 +46,7 @@ export default function MediaServiceSettingsGeneral({service}: MediaServiceSetti
                     ))}
                 </ul>
             </fieldset>
-            <footer className="dialog-buttons">
-                <button type="button" value="#cancel">
-                    Cancel
-                </button>
-                <button>Confirm</button>
-            </footer>
+            <DialogButtons />
         </form>
     );
 }

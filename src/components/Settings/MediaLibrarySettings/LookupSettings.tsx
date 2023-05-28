@@ -1,6 +1,7 @@
 import React, {useCallback, useId, useRef} from 'react';
 import lookupSettings from 'services/lookup/lookupSettings';
 import {getLookupServices} from 'services/mediaServices';
+import DialogButtons from 'components/Dialog/DialogButtons';
 
 export default function LookupSettings() {
     const id = useId();
@@ -32,12 +33,7 @@ export default function LookupSettings() {
                     from the preferred lookup service is used.
                 </p>
             </div>
-            <footer className="dialog-buttons">
-                <button type="button" value="#cancel">
-                    Cancel
-                </button>
-                <button>Confirm</button>
-            </footer>
+            <DialogButtons />
         </form>
     );
 }

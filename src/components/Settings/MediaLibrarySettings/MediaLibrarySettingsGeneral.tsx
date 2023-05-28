@@ -1,6 +1,7 @@
 import React, {useCallback, useId, useRef} from 'react';
 import {getAllServices} from 'services/mediaServices';
 import {isVisible, setHidden} from 'services/servicesSettings';
+import DialogButtons from 'components/Dialog/DialogButtons';
 
 export default function MediaLibrarySettingsGeneral() {
     const id = useId();
@@ -33,12 +34,7 @@ export default function MediaLibrarySettingsGeneral() {
                     ))}
                 </ul>
             </fieldset>
-            <footer className="dialog-buttons">
-                <button type="button" value="#cancel">
-                    Cancel
-                </button>
-                <button>Confirm</button>
-            </footer>
+            <DialogButtons />
         </form>
     );
 }
