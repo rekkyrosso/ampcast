@@ -30,8 +30,8 @@ export class MusicKitPlayer implements Player<string> {
     private readonly ended$ = new Subject<void>();
     private readonly playing$ = new Subject<void>();
     private readonly error$ = new Subject<unknown>();
-    private readonly playerReady$ = new Subject<void>();
-    private readonly activated$ = new BehaviorSubject(false);
+    private readonly playerLoaded$ = new Subject<void>();
+    private readonly playerActivated$ = new BehaviorSubject(false);
     private readonly element: HTMLElement;
     private readonly src$ = new BehaviorSubject('');
     private loadedSrc = '';
@@ -72,7 +72,7 @@ export class MusicKitPlayer implements Player<string> {
 
                     player.volume = this.muted ? 0 : this.volume;
 
-                    this.playerReady$.next(undefined);
+                    this.playerLoaded$.next(undefined);
                 }),
                 take(1)
             )
@@ -90,6 +90,7 @@ export class MusicKitPlayer implements Player<string> {
                             return EMPTY;
                         }
                         const [, type, id] = src.split(':');
+                        // "(library-)?music-videos" => " musicVideo"
                         const kind = type
                             .replace('library-', '')
                             .replace(/s$/, '')
@@ -123,7 +124,7 @@ export class MusicKitPlayer implements Player<string> {
                     this.isLoggedIn = isLoggedIn;
                     if (!isLoggedIn) {
                         this.loadedSrc = '';
-                        if (this.player?.isPlaying) {
+                        if (!this.paused || this.player?.isPlaying) {
                             this.stop();
                             this.error$.next(Error(ERR_NOT_CONNECTED));
                         }
@@ -204,7 +205,7 @@ export class MusicKitPlayer implements Player<string> {
     load(src: string): void {
         logger.log('load', {src});
         if (this.autoplay) {
-            this.activated$.next(true);
+            this.playerActivated$.next(true);
         }
         this.src$.next(src);
         if (this.autoplay) {
@@ -225,7 +226,7 @@ export class MusicKitPlayer implements Player<string> {
 
     play(): void {
         logger.log('play');
-        this.activated$.next(true);
+        this.playerActivated$.next(true);
         this.paused$.next(false);
         if (this.player && this.isLoggedIn) {
             if (this.src === this.loadedSrc) {
@@ -233,7 +234,7 @@ export class MusicKitPlayer implements Player<string> {
             } else if (!this.canPlay(this.src)) {
                 this.error$.next(Error(ERR_VIDEO_PLAYBACK_NOT_SUPPORTED));
             }
-        } else {
+        } else if (!this.isLoggedIn) {
             this.error$.next(Error(ERR_NOT_CONNECTED));
         }
     }
@@ -280,8 +281,8 @@ export class MusicKitPlayer implements Player<string> {
     }
 
     private observeReady(): Observable<void> {
-        return this.playerReady$.pipe(
-            switchMap(() => this.activated$),
+        return this.playerLoaded$.pipe(
+            switchMap(() => this.playerActivated$),
             filter((activated) => activated),
             map(() => undefined),
             take(1)

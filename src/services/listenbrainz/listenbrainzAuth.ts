@@ -45,8 +45,8 @@ export async function login(): Promise<void> {
 }
 
 export async function logout(): Promise<void> {
-    accessToken$.next('');
     listenbrainzSettings.clear();
+    accessToken$.next('');
 }
 
 const listenbrainzAuth: Auth = {

@@ -294,6 +294,7 @@ mediaPlayer
 mediaPlayer
     .observeError()
     .pipe(
+        debounceTime(2000),
         withLatestFrom(observePaused(), observePlaylistAtStart(), observePlaylistAtEnd()),
         takeUntil(killed$)
     )

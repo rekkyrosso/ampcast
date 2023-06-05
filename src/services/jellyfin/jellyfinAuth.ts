@@ -48,8 +48,8 @@ export async function login(): Promise<void> {
 }
 
 export async function logout(): Promise<void> {
-    setAccessToken('');
     jellyfinSettings.clear();
+    setAccessToken('');
 }
 
 function setAccessToken(token: string): void {

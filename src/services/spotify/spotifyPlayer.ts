@@ -122,9 +122,17 @@ export class SpotifyPlayer implements Player<string> {
                 switchMap(() =>
                     this.observeCurrentTrackState().pipe(
                         skip(2),
-                        mergeMap((state) =>
-                            !state.paused && this.paused ? this.safePause() : of(undefined)
-                        ),
+                        mergeMap((state) => {
+                            if (!state.paused && this.paused) {
+                                logger.log('State mismatch: pausing...');
+                                return this.safePause();
+                            } else if (state.paused && !this.paused) {
+                                logger.log('State mismatch: resuming...');
+                                return this.safePlay();
+                            } else {
+                                return of(undefined);
+                            }
+                        }),
                         take(1)
                     )
                 )
@@ -270,7 +278,7 @@ export class SpotifyPlayer implements Player<string> {
             } else if (this.src === this.loadedSrc) {
                 this.safePlay();
             }
-        } else {
+        } else if (!this.isLoggedIn) {
             this.error$.next(Error(ERR_NOT_CONNECTED));
         }
     }

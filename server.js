@@ -28,7 +28,7 @@ app.use('/', webServer);
 app.get('*', (_, res) => res.redirect('/'));
 
 app.listen(port, host, () => {
-    const timestamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    const timestamp = new Date().toLocaleString();
     console.info(`Serving from: http://${host}:${port}`);
     console.info(`Using files from: ${runtimeDir}`);
     console.info(`Server started at: ${timestamp}`);

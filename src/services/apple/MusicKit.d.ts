@@ -1,7 +1,7 @@
 // Half-arsed attempt to patch the types for Musickit version 3.
 
 declare namespace MusicKit {
-    async function configure(configuration: Configuration): Promise<MusicKitInstance>;
+    function configure(configuration: Configuration): Promise<MusicKitInstance>;
 
     interface MusicKitInstance {
         readonly player: never;

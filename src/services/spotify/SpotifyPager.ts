@@ -18,15 +18,15 @@ import pinStore from 'services/pins/pinStore';
 import {exists, getTextFromHtml, Logger} from 'utils';
 import spotify, {
     SpotifyAlbum,
-    spotifyApi,
     SpotifyArtist,
     SpotifyEpisode,
     SpotifyItem,
     SpotifyPlaylist,
-    spotifySettings,
     SpotifyTrack,
 } from './spotify';
+import spotifyApi from './spotifyApi';
 import {refreshToken} from './spotifyAuth';
+import {userSettings} from './spotifySettings';
 
 const logger = new Logger('SpotifyPager');
 
@@ -207,7 +207,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         playlist: SpotifyPlaylist,
         inLibrary?: boolean | undefined
     ): MediaPlaylist {
-        const isOwn = playlist.owner.id === spotifySettings.getString('userId');
+        const isOwn = playlist.owner.id === userSettings.getString('userId');
 
         return {
             itemType: ItemType.Playlist,
@@ -350,7 +350,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
     }
 
     private getMarket(): string {
-        return spotifySettings.getString('market');
+        return userSettings.getString('market');
     }
 
     private async addInLibrary<T extends MediaObject>(items: readonly T[]): Promise<void> {

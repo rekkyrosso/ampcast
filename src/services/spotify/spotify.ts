@@ -1,5 +1,4 @@
-import {catchError, concatMap, filter, map, mergeMap, skipWhile, take, tap} from 'rxjs';
-import SpotifyWebApi from 'spotify-web-api-js';
+import {catchError, concatMap, filter, map} from 'rxjs';
 import {Except} from 'type-fest';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
@@ -17,24 +16,15 @@ import ViewType from 'types/ViewType';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import libraryStore from 'services/actions/libraryStore';
 import SimplePager from 'services/pagers/SimplePager';
-import {chunk, LiteStorage, Logger} from 'utils';
-import {
-    observeAccessToken,
-    observeIsLoggedIn,
-    isLoggedIn,
-    login,
-    logout,
-    refreshToken,
-} from './spotifyAuth';
+import {chunk, Logger} from 'utils';
+import {observeIsLoggedIn, isLoggedIn, login, logout, refreshToken} from './spotifyAuth';
+import spotifyApi from './spotifyApi';
 import SpotifyPager, {SpotifyPage} from './SpotifyPager';
+import {userSettings} from './spotifySettings';
 
 console.log('module::spotify');
 
 const logger = new Logger('spotify');
-
-export const spotifySettings = new LiteStorage('spotify');
-
-export const spotifyApi = new SpotifyWebApi();
 
 export type SpotifyArtist = SpotifyApi.ArtistObjectFull;
 export type SpotifyAlbum = SpotifyApi.AlbumObjectFull;
@@ -329,7 +319,7 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
 
         case ItemType.Playlist: {
             const [inLibrary] = await spotifyApi.areFollowingPlaylist(id, [
-                spotifySettings.getString('userId'),
+                userSettings.getString('userId'),
             ]);
             return {...item, inLibrary};
         }
@@ -493,23 +483,7 @@ function getFetch(
 }
 
 function getMarket(): string {
-    return spotifySettings.getString('market');
-}
-
-observeAccessToken().subscribe((token) => spotifyApi.setAccessToken(token));
-
-if (!getMarket()) {
-    observeAccessToken()
-        .pipe(
-            skipWhile((token) => !token),
-            mergeMap(() => spotifyApi.getMe()),
-            tap((me) => {
-                spotifySettings.setString('userId', me.id);
-                spotifySettings.setString('market', me.country);
-            }),
-            take(1)
-        )
-        .subscribe(logger);
+    return userSettings.getString('market');
 }
 
 libraryStore

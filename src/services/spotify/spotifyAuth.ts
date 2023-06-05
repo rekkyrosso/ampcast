@@ -2,13 +2,13 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
 import Auth from 'types/Auth';
 import {sp_client_id} from 'services/credentials';
-import {LiteStorage, Logger} from 'utils';
+import {Logger} from 'utils';
+import spotifyApi from './spotifyApi';
+import {authSettings, userSettings} from './spotifySettings';
 
 console.log('module::spotifyAuth');
 
 const logger = new Logger('spotifyAuth');
-
-export const authSettings = new LiteStorage('spotify/auth');
 
 const host = location.hostname;
 const base = host === 'localhost' ? `http://${host}:${location.port}` : `https://${host}`;
@@ -51,7 +51,7 @@ export async function login(): Promise<void> {
         logger.log('login');
         try {
             const token = await obtainAccessToken();
-            storeAccessToken(token);
+            await storeAccessToken(token);
         } catch (err) {
             logger.log('Could not obtain access token.');
             logger.error(err);
@@ -61,8 +61,7 @@ export async function login(): Promise<void> {
 
 export async function logout(): Promise<void> {
     logger.log('logout');
-    clearAccessToken();
-    await createCodeVerifier();
+    await clearAccessToken();
 }
 
 // From: https://github.com/JMPerez/spotify-dedup/blob/master/dedup/oauthManager.ts
@@ -179,7 +178,7 @@ async function exchangeToken(code: string): Promise<TokenResponse> {
 
 export async function refreshToken(): Promise<string> {
     logger.log('refreshToken');
-    const token = retrieveAccessToken();
+    const token = getAccessToken();
     const refresh_token = token?.refresh_token;
     if (refresh_token) {
         const response = await fetch(`${spotifyAccounts}/api/token`, {
@@ -194,32 +193,33 @@ export async function refreshToken(): Promise<string> {
             }),
         });
         if (!response.ok) {
-            clearAccessToken();
+            await clearAccessToken();
             throw response;
         }
         const token = await response.json();
-        storeAccessToken(token);
+        await storeAccessToken(token);
         return token.access_token;
     } else {
-        clearAccessToken();
+        await clearAccessToken();
         throw Error(`No 'refresh_token'`);
     }
 }
 
-function storeAccessToken(token: TokenResponse): void {
-    const {access_token, refresh_token, expires_in} = token;
-    const now = new Date();
-    const expires_at = new Date(now.setSeconds(now.getSeconds() + expires_in)).toISOString();
-    authSettings.setJson('token', {access_token, refresh_token, expires_at});
-    nextAccessToken(access_token);
+async function storeAccessToken(token: TokenResponse): Promise<void> {
+    try {
+        const {access_token, refresh_token} = token;
+        authSettings.setJson('token', {access_token, refresh_token});
+        spotifyApi.setAccessToken(token.access_token);
+        await getUserInfo();
+        nextAccessToken(access_token);
+    } catch (err) {
+        logger.error(err);
+        await clearAccessToken();
+    }
 }
 
-function retrieveAccessToken(): TokenStore | null {
-    const token = authSettings.getJson<TokenStore>('token');
-    if (token) {
-        token.expires_at = new Date(token.expires_at);
-    }
-    return token;
+function getAccessToken(): TokenStore | null {
+    return authSettings.getJson<TokenStore>('token');
 }
 
 function nextAccessToken(access_token: string): void {
@@ -227,9 +227,25 @@ function nextAccessToken(access_token: string): void {
     accessToken$.next(access_token);
 }
 
-function clearAccessToken(): void {
+async function clearAccessToken(): Promise<void> {
     authSettings.removeItem('token');
+    userSettings.clear();
+    await createCodeVerifier();
     accessToken$.next('');
+}
+
+async function createCodeVerifier(): Promise<void> {
+    const code_verifier = generateRandomString(64);
+    authSettings.setString('code_verifier', code_verifier);
+    code_challenge = await generateCodeChallenge(code_verifier);
+}
+
+async function getUserInfo(): Promise<void> {
+    if (!userSettings.getString('userId')) {
+        const me = await spotifyApi.getMe();
+        userSettings.setString('userId', me.id);
+        userSettings.setString('market', me.country);
+    }
 }
 
 const spotifyAuth: Auth = {
@@ -243,25 +259,23 @@ export default spotifyAuth;
 
 (async function (): Promise<void> {
     try {
-        const token = retrieveAccessToken();
+        const token = getAccessToken();
         if (token) {
-            const expiresIn = token.expires_at.getTime() - Date.now();
-            if (expiresIn <= 0) {
-                await refreshToken();
-            } else {
+            try {
+                spotifyApi.setAccessToken(token.access_token);
+                await getUserInfo();
                 nextAccessToken(token.access_token);
+            } catch (err: any) {
+                if (err.status === 401) {
+                    await refreshToken();
+                } else {
+                    throw err;
+                }
             }
             return;
         }
     } catch (err) {
         logger.error(err);
-        clearAccessToken();
     }
-    await createCodeVerifier();
+    await clearAccessToken();
 })();
-
-async function createCodeVerifier(): Promise<void> {
-    const code_verifier = generateRandomString(64);
-    authSettings.setString('code_verifier', code_verifier);
-    code_challenge = await generateCodeChallenge(code_verifier);
-}

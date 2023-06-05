@@ -43,14 +43,6 @@ export default {
         storage.setNumber('playCount', count);
     },
 
-    get removeDuplicates(): boolean {
-        return storage.getBoolean('removeDuplicates');
-    },
-
-    set removeDuplicates(removeDuplicates: boolean) {
-        storage.setBoolean('removeDuplicates', removeDuplicates);
-    },
-
     clear(): void {
         storage.clear();
     },

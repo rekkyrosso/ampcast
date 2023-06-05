@@ -7,7 +7,7 @@ import {InvFFT as ifft} from 'jsfft';
 import SimpleAudioAnalyser from 'types/SimpleAudioAnalyser';
 import {observePaused} from 'services/mediaPlayback/playback';
 import spotifyPlayer, {SpotifyPlayer} from './spotifyPlayer';
-import {spotifyApi} from './spotify';
+import spotifyApi from './spotifyApi';
 import {samplePitches} from './samplePitches';
 
 // Based on: https://github.com/zachwinter/spotify-viz/blob/master/client/classes/sync.js
