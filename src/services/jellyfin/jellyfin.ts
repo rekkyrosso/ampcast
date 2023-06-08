@@ -17,7 +17,6 @@ import Pin from 'types/Pin';
 import ViewType from 'types/ViewType';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import ratingStore from 'services/actions/ratingStore';
-import SimplePager from 'services/pagers/SimplePager';
 import {bestOf} from 'utils';
 import jellyfinApi from './jellyfinApi';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './jellyfinAuth';
@@ -316,32 +315,28 @@ function createSearchPager<T extends MediaObject>(
     filters?: Record<string, string>,
     options?: Partial<PagerConfig>
 ): Pager<T> {
-    if (q) {
-        const params: Record<string, string> = {...filters, SearchTerm: q};
-        if (itemType === ItemType.Artist) {
-            return new JellyfinPager(
-                'Artists/AlbumArtists',
-                {...params, UserId: jellyfinSettings.userId},
-                options
-            );
-        } else {
-            switch (itemType) {
-                case ItemType.Media:
-                    params.IncludeItemTypes = 'Audio';
-                    break;
-
-                case ItemType.Album:
-                    params.IncludeItemTypes = 'MusicAlbum';
-                    break;
-
-                case ItemType.Playlist:
-                    params.IncludeItemTypes = 'Playlist';
-                    break;
-            }
-            return createItemsPager(params, options);
-        }
+    const params: Record<string, string> = {...filters, SearchTerm: q};
+    if (itemType === ItemType.Artist) {
+        return new JellyfinPager(
+            'Artists/AlbumArtists',
+            {...params, UserId: jellyfinSettings.userId},
+            options
+        );
     } else {
-        return new SimplePager<T>();
+        switch (itemType) {
+            case ItemType.Media:
+                params.IncludeItemTypes = 'Audio';
+                break;
+
+            case ItemType.Album:
+                params.IncludeItemTypes = 'MusicAlbum';
+                break;
+
+            case ItemType.Playlist:
+                params.IncludeItemTypes = 'Playlist';
+                break;
+        }
+        return createItemsPager(params, options);
     }
 }
 

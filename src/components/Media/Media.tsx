@@ -1,6 +1,5 @@
 import React, {memo, useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {fromEvent} from 'rxjs';
-import {map} from 'rxjs/operators';
+import {fromEvent, map} from 'rxjs';
 import MediaType from 'types/MediaType';
 import mediaPlayback from 'services/mediaPlayback';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';

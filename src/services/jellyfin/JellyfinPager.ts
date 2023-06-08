@@ -36,7 +36,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         options?: Partial<PagerConfig>,
         private readonly parent?: ParentOf<T>
     ) {
-        this.pageSize = options?.pageSize || 100;
+        this.pageSize = options?.pageSize || 200;
         this.pager = new OffsetPager<T>((pageNumber) => this.fetch(pageNumber), {
             pageSize: this.pageSize,
             ...options,

@@ -68,10 +68,17 @@
     }
 
     .external-view {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
         margin-top: 1.625em;
 
         > .icon {
             font-size: 1.625em;
+            margin-right: 0.25em;
         }
     }
 
@@ -107,8 +114,8 @@
         justify-content: right;
         font-size: 1.375em;
 
-        &.star-rating {
-            font-size: 1em;
+        .star-rating {
+            font-size: 1.25em;
         }
     }
 

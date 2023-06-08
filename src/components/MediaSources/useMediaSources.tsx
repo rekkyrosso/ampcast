@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {map, merge} from 'rxjs';
 import {getAllServices} from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
+import plexSettings from 'services/plex/plexSettings';
 import {isVisible, observeHiddenServiceChanges} from 'services/servicesSettings';
 import {MediaSourceIconName} from 'components/Icon';
 import MediaBrowser from 'components/MediaBrowser';
@@ -13,7 +14,11 @@ export default function useMediaSources(): TreeNode<React.ReactNode>[] {
     const [sources, setSources] = useState<TreeNode<React.ReactNode>[]>([]);
 
     useEffect(() => {
-        const subscription = merge(observeHiddenServiceChanges(), pinStore.observe())
+        const subscription = merge(
+            observeHiddenServiceChanges(),
+            pinStore.observe(),
+            plexSettings.observeLibraryId()
+        )
             .pipe(
                 map(() => {
                     return getAllServices()

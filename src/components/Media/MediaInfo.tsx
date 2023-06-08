@@ -263,7 +263,7 @@ export function Thumbnail(props: CoverArtProps) {
 
 function Debug(props: MediaInfoProps<MediaObject>) {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {pager, ...item} = props.item as MediaAlbum;
+    const {pager, parent, ...item} = props.item as any;
     return (
         <article className="media-info debug">
             <pre>{JSON.stringify(item, undefined, 2)}</pre>

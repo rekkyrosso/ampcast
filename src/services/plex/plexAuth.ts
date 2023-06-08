@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, filter, map, tap} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, filter, tap} from 'rxjs';
 import Auth from 'types/Auth';
 import {exists, Logger} from 'utils';
 import plexSettings from './plexSettings';
@@ -12,6 +12,7 @@ const apiHost = `https://plex.tv/api/v2`;
 
 const accessToken$ = new BehaviorSubject('');
 const isConnected$ = new BehaviorSubject(false);
+const isLoggedIn$ = new BehaviorSubject(false);
 
 let pin: plex.Pin;
 export async function refreshPin(): Promise<plex.Pin> {
@@ -24,7 +25,7 @@ export async function refreshPin(): Promise<plex.Pin> {
     return pin;
 }
 
-export function observeAccessToken(): Observable<string> {
+function observeAccessToken(): Observable<string> {
     return accessToken$.pipe(distinctUntilChanged());
 }
 
@@ -33,10 +34,7 @@ export function isLoggedIn(): boolean {
 }
 
 export function observeIsLoggedIn(): Observable<boolean> {
-    return observeAccessToken().pipe(
-        map((token) => token !== ''),
-        distinctUntilChanged()
-    );
+    return isLoggedIn$.pipe(distinctUntilChanged());
 }
 
 export async function login(): Promise<void> {
@@ -53,9 +51,10 @@ export async function login(): Promise<void> {
 }
 
 export async function logout(): Promise<void> {
-    isConnected$.next(false);
-    setAccessToken('');
     plexSettings.clear();
+    setAccessToken('');
+    isConnected$.next(false);
+    isLoggedIn$.next(false);
 }
 
 function setAccessToken(token: string): void {
@@ -77,14 +76,14 @@ export default plexAuth;
 
 setAccessToken(plexSettings.userToken);
 
-observeIsLoggedIn()
+observeAccessToken()
     .pipe(
-        filter((isLoggedIn) => isLoggedIn),
+        filter((token) => token !== ''),
         tap(async () => {
-            const testConnection = async function (
+            const testConnection = async (
                 connection: plex.Connection,
                 token: string
-            ): Promise<plex.Connection | null> {
+            ): Promise<plex.Connection | null> => {
                 try {
                     await plexApi.fetch({
                         host: connection.uri,
@@ -164,8 +163,14 @@ isConnected$
             } = await plexApi.fetchJSON<plex.DirectoryResponse>({
                 path: '/library/sections',
             });
-            const musicSection = sections.find((section) => section.type === 'artist');
+            const musicSections = sections.filter((section) => section.type === 'artist');
+            const musicSection =
+                musicSections.find((section) => section.key === plexSettings.libraryId) ||
+                musicSections.find((section) => /m[uú][sz](i|ie)[ckq]/i.test(section.title)) ||
+                musicSections[0];
             plexSettings.libraryId = musicSection?.key || '';
+            plexSettings.sections = musicSections;
+            isLoggedIn$.next(true);
         })
     )
     .subscribe(logger);

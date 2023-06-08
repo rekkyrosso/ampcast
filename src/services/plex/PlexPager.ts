@@ -35,7 +35,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         private readonly parent?: ParentOf<T>
     ) {
         this.pageSize =
-            options?.pageSize || (plexSettings.connection?.local ? PlexPager.maxPageSize : 100);
+            options?.pageSize || (plexSettings.connection?.local ? PlexPager.maxPageSize : 200);
         this.pager = new OffsetPager<T>((pageNumber) => this.fetch(pageNumber), {
             pageSize: this.pageSize,
             ...options,

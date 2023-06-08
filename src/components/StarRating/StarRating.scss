@@ -1,57 +1,36 @@
-.icon-buttons.star-rating {
-    font-size: 0.625em;
-    padding: 0;
+.star-rating {
+    font-family: Arial, sans-serif;
+    font-weight: 400;
+    opacity: 0.75;
 
-    .icon-button ~ .icon-button {
+    &:hover {
+        opacity: 1;
+    }
+
+    &-button {
+        all: unset;
+        cursor: pointer;
+
+        &:hover {
+            opacity: 1;
+        }
+
+        &::before {
+            content: "☆";
+        }
+    }
+
+    &-button~&-button {
         margin-left: 0
     }
 
-    .icon-button {
-        padding: 0 0.125em;
-        border-radius: 0;
-
-        &:first-child {
-            padding-left: 0;
-        }
-
-        &:last-child {
-            padding-right: 0;
-        }
-
-        .icon {
-            width: auto;
-        }
+    &-button.checked::before,
+    &:hover &-button:not(.clicked)::before,
+    &-button:not(.clicked):hover::before {
+        content: "★";
     }
 
-    .checked .icon-star-inner {
-        fill: currentColor;
-    }
-
-    &:hover {
-        .icon-button {
-            opacity: 1;
-
-            &:not(.clicked) {
-                .icon-star-inner {
-                    fill: currentColor;
-                }
-            }
-        }
-    }
-
-    .icon-button:hover {
-        opacity: 1;
-
-        &:not(.clicked) {
-            .icon-star-inner {
-                fill: currentColor;
-            }
-        }
-
-        & ~ .icon-button {
-            .icon-star-inner {
-                fill: none;
-            }
-        }
+    & &-button:hover~&-button::before {
+        content: "☆";
     }
 }

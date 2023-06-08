@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
-import IconButton from 'components/Button/IconButton';
-import IconButtons from 'components/Button/IconButtons';
+import {cancelEvent, stopPropagation} from 'utils';
 import './StarRating.scss';
 
 export interface StarRatingProps {
@@ -18,10 +17,12 @@ export default function StarRating({
     const [firstStarClicked, setFirstStarClicked] = useState(false);
 
     return (
-        <IconButtons className="star-rating">
-            <IconButton
-                icon="star"
-                className={`${rating > 0 ? 'checked' : ''} ${firstStarClicked ? 'clicked' : ''}`}
+        <div className="star-rating" onMouseDown={cancelEvent} onMouseUp={stopPropagation}>
+            <button
+                className={`star-rating-button ${rating > 0 ? 'checked' : ''} ${
+                    firstStarClicked ? 'clicked' : ''
+                }`}
+                type="button"
                 tabIndex={-1}
                 onClick={() => {
                     setFirstStarClicked(true);
@@ -33,30 +34,30 @@ export default function StarRating({
                 }}
                 onMouseLeave={() => setFirstStarClicked(false)}
             />
-            <IconButton
-                icon="star"
-                className={rating > 1 ? 'checked' : ''}
+            <button
+                className={`star-rating-button ${rating > 1 ? 'checked' : ''}`}
+                type="button"
                 tabIndex={-1}
                 onClick={() => (rating === 2 ? onClick(2) : onClick(4))}
             />
-            <IconButton
-                icon="star"
-                className={rating > 2 ? 'checked' : ''}
+            <button
+                className={`star-rating-button ${rating > 2 ? 'checked' : ''}`}
+                type="button"
                 tabIndex={-1}
                 onClick={() => (rating === 3 ? onClick(4) : onClick(6))}
             />
-            <IconButton
-                icon="star"
-                className={rating > 3 ? 'checked' : ''}
+            <button
+                className={`star-rating-button ${rating > 3 ? 'checked' : ''}`}
+                type="button"
                 tabIndex={-1}
                 onClick={() => (rating === 4 ? onClick(6) : onClick(8))}
             />
-            <IconButton
-                icon="star"
-                className={rating > 4 ? 'checked' : ''}
+            <button
+                className={`star-rating-button ${rating > 4 ? 'checked' : ''}`}
+                type="button"
                 tabIndex={-1}
                 onClick={() => (rating === 5 ? onClick(8) : onClick(10))}
             />
-        </IconButtons>
+        </div>
     );
 }

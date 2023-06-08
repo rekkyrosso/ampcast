@@ -1,7 +1,12 @@
+import type {Observable} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged} from 'rxjs';
 import {nanoid} from 'nanoid';
 import {LiteStorage} from 'utils';
 
+type PlexSection = Pick<plex.Directory, 'key' | 'title'>;
+
 const storage = new LiteStorage('plex');
+const libraryId$ = new BehaviorSubject('');
 
 export default {
     get clientId(): string {
@@ -31,6 +36,22 @@ export default {
 
     set libraryId(libraryId: string) {
         storage.setString('libraryId', libraryId);
+        libraryId$.next(libraryId);
+    },
+
+    observeLibraryId(): Observable<string> {
+        return libraryId$.pipe(distinctUntilChanged());
+    },
+
+    get sections(): PlexSection[] {
+        return storage.getJson('sections') || [];
+    },
+
+    set sections(sections: PlexSection[]) {
+        storage.setJson(
+            'sections',
+            sections.map(({key, title}) => ({key, title}))
+        );
     },
 
     get server(): plex.Device | null {
@@ -63,9 +84,13 @@ export default {
 
     clear(): void {
         const clientId = this.clientId;
+        const libraryId = this.libraryId;
         storage.clear();
         if (clientId) {
             storage.setString('clientId', clientId);
+        }
+        if (libraryId) {
+            storage.setString('libraryId', libraryId);
         }
     },
 };

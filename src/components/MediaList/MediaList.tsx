@@ -110,7 +110,7 @@ export default function MediaList<T extends MediaObject>({
 
     const itemClassName = useCallback(
         (item: T) => {
-            if (item.itemType === ItemType.Media) {
+            if (item?.itemType === ItemType.Media) {
                 const [source] = item.src.split(':');
                 const playing = item.src === currentlyPlaying?.src ? 'playing' : '';
                 const unplayable = item.unplayable ? 'unplayable' : '';

@@ -7,7 +7,6 @@ import {
     distinctUntilChanged,
     filter,
     map,
-    pairwise,
     take,
     tap,
 } from 'rxjs';
@@ -37,6 +36,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
     protected readonly fetches$ = new BehaviorSubject<PageFetch>({index: 0, length: 0});
     protected subscriptions?: Subscription;
     protected disconnected = false;
+    private readonly srcs = new Set<string>();
 
     constructor(protected config: PagerConfig = {}) {}
 
@@ -46,11 +46,14 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
 
     observeAdditions(): Observable<readonly T[]> {
         return this.items$.pipe(
-            pairwise(),
-            map(([oldItems, newItems]) =>
-                newItems.filter(
-                    (newItem) => !oldItems.find((oldItem) => oldItem?.src === newItem.src)
-                )
+            map((items) =>
+                items.filter((item) => {
+                    const exists = this.srcs.has(item.src);
+                    if (!exists) {
+                        this.srcs.add(item.src);
+                    }
+                    return !exists;
+                })
             ),
             filter((additions) => additions.length > 0)
         );

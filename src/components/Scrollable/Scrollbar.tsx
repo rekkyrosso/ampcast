@@ -1,6 +1,5 @@
 import React, {memo, useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import {EMPTY, fromEvent, merge, timer} from 'rxjs';
-import {filter, map, startWith, switchMap, takeUntil} from 'rxjs/operators';
+import {EMPTY, filter, fromEvent, map, merge, startWith, switchMap, takeUntil, timer} from 'rxjs';
 import {cancelEvent} from 'utils';
 import useOnResize from 'hooks/useOnResize';
 import useScrollbarState from './useScrollbarState';

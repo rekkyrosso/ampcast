@@ -16,6 +16,8 @@ import Pin from 'types/Pin';
 import ViewType from 'types/ViewType';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import ratingStore from 'services/actions/ratingStore';
+import DualPager from 'services/pagers/DualPager';
+import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import {bestOf, uniqBy} from 'utils';
 import plexSettings from './plexSettings';
@@ -184,22 +186,40 @@ const plexFolders: MediaSource<MediaFolderItem> = {
     itemType: ItemType.Folder,
     defaultHidden: true,
 
-    search({
-        key = `library/sections/${plexSettings.libraryId}/folder`,
-    }: {key?: string} = {}): Pager<MediaFolderItem> {
+    search(): Pager<MediaFolderItem> {
         const root: Writable<SetOptional<MediaFolder, 'pager'>> = {
             itemType: ItemType.Folder,
-            src: '',
+            src: 'plex:folder:',
             title: 'Folders',
             fileName: '',
-            path: ''
+            path: '',
         };
 
-        root.pager = new PlexPager<MediaFolderItem>(
-            key,
-            {includeCollections: '1'},
-            undefined,
-            root as MediaFolder
+        root.pager = new SimpleMediaPager<MediaFolderItem>(() =>
+            plexSettings.sections.map(({key, title}) => {
+                const section: Writable<SetOptional<MediaFolder, 'pager'>> = {
+                    itemType: ItemType.Folder,
+                    src: `plex:folder:/library/sections/${key}/folder`,
+                    title,
+                    fileName: title,
+                    path: `/${title}`,
+                };
+                const parentFolder: MediaFolderItem = {
+                    ...(root as MediaFolder),
+                    fileName: '../',
+                };
+                const backPager = new SimplePager([parentFolder]);
+                const folderPager = new PlexPager<MediaFolderItem>(
+                    `library/sections/${key}/folder`,
+                    {includeCollections: '1'},
+                    undefined,
+                    section as MediaFolder
+                );
+
+                section.pager = new DualPager<MediaFolderItem>(backPager, folderPager);
+
+                return section as MediaFolder;
+            })
         );
 
         return root.pager;
@@ -211,6 +231,9 @@ const plex: MediaService = {
     name: 'Plex',
     icon: 'plex',
     url: 'https://www.plex.tv',
+    get libraryId(): string {
+        return plexSettings.libraryId;
+    },
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: tracksLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -359,32 +382,28 @@ function createSearchPager<T extends MediaObject>(
     filters?: Record<string, string>,
     options?: Partial<PagerConfig>
 ): Pager<T> {
-    if (q) {
-        const path =
-            itemType === ItemType.Playlist
-                ? '/playlists/all'
-                : `/library/sections/${plexSettings.libraryId}/all`;
-        const params: Record<string, string> = {...filters, title: q, sort: 'titleSort:asc'};
-        switch (itemType) {
-            case ItemType.Media:
-                params.type = '10';
-                break;
+    const path =
+        itemType === ItemType.Playlist
+            ? '/playlists/all'
+            : `/library/sections/${plexSettings.libraryId}/all`;
+    const params: Record<string, string> = {...filters, title: q, sort: 'titleSort:asc'};
+    switch (itemType) {
+        case ItemType.Media:
+            params.type = '10';
+            break;
 
-            case ItemType.Album:
-                params.type = '9';
-                break;
+        case ItemType.Album:
+            params.type = '9';
+            break;
 
-            case ItemType.Artist:
-                params.type = '8';
-                break;
+        case ItemType.Artist:
+            params.type = '8';
+            break;
 
-            case ItemType.Playlist:
-                params.playlistType = 'audio';
-                params.type = '15';
-                break;
-        }
-        return new PlexPager<T>(path, params, options);
-    } else {
-        return new SimplePager<T>();
+        case ItemType.Playlist:
+            params.playlistType = 'audio';
+            params.type = '15';
+            break;
     }
+    return new PlexPager<T>(path, params, options);
 }

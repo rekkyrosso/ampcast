@@ -1,4 +1,4 @@
-import {catchError, filter, map, mergeMap, of, takeUntil} from 'rxjs';
+import {catchError, filter, map, mergeMap, of, takeUntil, throttleTime} from 'rxjs';
 import MediaObject from 'types/MediaObject';
 import {Page, PagerConfig} from 'types/Pager';
 import {Logger} from 'utils';
@@ -31,6 +31,7 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
             this.subscriptions!.add(
                 this.fetches$
                     .pipe(
+                        throttleTime(200, undefined, {leading: false, trailing: true}),
                         filter(({index, length}) => length > 0 && this.isInRange(index)),
                         map(({index, length}) => this.getPageNumbersFromIndex(index, length)),
                         mergeMap((pageNumbers) => pageNumbers),
@@ -77,14 +78,9 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
 
         const pageCount = Math.ceil(size / this.pageSize);
         const offset = (pageNumber - 1) * this.pageSize;
-        const isLastPage = pageNumber === pageCount;
 
-        // If we get a number of items less than the page size then assume that we've reached the end.
-        items.length = isLastPage || page.items.length < this.pageSize ? offset : size;
         page.items.forEach((item, index) => (items[index + offset] = item));
-
-        // Sometimes we get too many items.
-        items.length = Math.min(items.length, size);
+        items.length = size;
 
         // Some endpoints may not support pagination.
         if (page.items.length === size) {
