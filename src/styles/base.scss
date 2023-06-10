@@ -39,6 +39,17 @@ a:any-link {
     }
 }
 
+.service-link {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+
+    .icon {
+        margin-right: 0.375em;
+    }
+}
+
 small {
     font-style: italic;
 

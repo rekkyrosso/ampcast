@@ -44,15 +44,18 @@
     }
 
     .service-link {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
         margin-top: 2em;
 
-        >.icon {
-            margin-right: 0.375em;
+        > .icon {
             font-size: 2em;
+            min-width: 0.5em;
         }
+    }
+
+    &-dialog .error {
+        text-align: left;
+        font-size: 0.75em;
+        min-height: 1.5em;
+        color: red;
     }
 }

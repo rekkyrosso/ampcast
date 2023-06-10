@@ -228,6 +228,7 @@ function nextAccessToken(access_token: string): void {
 }
 
 async function clearAccessToken(): Promise<void> {
+    logger.log('clearAccessToken');
     authSettings.removeItem('token');
     userSettings.clear();
     await createCodeVerifier();

@@ -6,7 +6,7 @@ import {LiteStorage} from 'utils';
 type PlexSection = Pick<plex.Directory, 'key' | 'title'>;
 
 const storage = new LiteStorage('plex');
-const libraryId$ = new BehaviorSubject('');
+const libraryId$ = new BehaviorSubject(storage.getString('libraryId'));
 
 export default {
     get clientId(): string {

@@ -57,6 +57,7 @@ export default function ArtistBrowser({
                         keepAlive={true}
                         layout={source.secondaryLayout || defaultAlbumsLayout}
                         onSelect={handleAlbumSelect}
+                        key={selectedArtist?.src}
                     />
                     <MediaItemList
                         title={selectedAlbum ? `${selectedAlbum.title}: Tracks` : ''}
@@ -64,6 +65,7 @@ export default function ArtistBrowser({
                         pager={selectedAlbum?.pager}
                         keepAlive={true}
                         layout={source.tertiaryLayout || defaultTracksLayout}
+                        key={selectedAlbum?.src}
                     />
                 </Splitter>
             </Splitter>

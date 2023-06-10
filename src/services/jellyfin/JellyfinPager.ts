@@ -1,7 +1,7 @@
 import type {Observable} from 'rxjs';
+import type {BaseItemDto} from '@jellyfin/client-axios/dist/models';
 import {map} from 'rxjs';
 import {SetOptional, Writable} from 'type-fest';
-import type {BaseItemDto} from '@jellyfin/client-axios/dist/models';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -111,7 +111,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             };
         } else {
             return {
-                items: data.Items.map((item: BaseItemDto) => this.createItem(item)),
+                items: data.Items?.map((item: BaseItemDto) => this.createItem(item)) || [],
                 total: data.TotalRecordCount,
             };
         }
@@ -153,7 +153,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             title: artist.Name || '',
             playCount: artist.UserData?.PlayCount || undefined,
             genres: artist.Genres || undefined,
-            thumbnails: this.createThumbnails(artist.Id),
+            thumbnails: this.createThumbnails(artist),
             pager: this.createAlbumsPager(artist),
         };
     }
@@ -170,7 +170,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                 : undefined,
             playCount: album.UserData?.PlayCount || undefined,
             genres: album.Genres || undefined,
-            thumbnails: this.createThumbnails(album.Id),
+            thumbnails: this.createThumbnails(album),
             trackCount: album.ChildCount || undefined,
             pager: this.createAlbumPager(album),
             artist: album.AlbumArtist || undefined,
@@ -191,7 +191,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                 : undefined,
             playCount: playlist.UserData?.PlayCount || undefined,
             genres: playlist.Genres || undefined,
-            thumbnails: this.createThumbnails(playlist.Id),
+            thumbnails: this.createThumbnails(playlist),
             trackCount: playlist.ChildCount || undefined,
             pager: this.createPlaylistPager(playlist),
             isPinned: pinStore.isPinned(src),
@@ -214,8 +214,6 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaItemFromTrack(track: BaseItemDto): MediaItem {
-        const thumbnailId = track.ImageTags?.Primary ? track.Id : track.AlbumId;
-
         return {
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
@@ -230,7 +228,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                 : 0,
             playCount: track.UserData?.PlayCount || undefined,
             genres: track.Genres || undefined,
-            thumbnails: this.createThumbnails(thumbnailId),
+            thumbnails: this.createThumbnails(track),
             artists: track.Artists || (track.AlbumArtist ? [track.AlbumArtist] : undefined),
             albumArtist: track.AlbumArtist || undefined,
             album: track.Album || undefined,
@@ -239,7 +237,8 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         };
     }
 
-    private createThumbnails(thumbnailId: string | null | undefined): Thumbnail[] | undefined {
+    private createThumbnails(item: BaseItemDto): Thumbnail[] | undefined {
+        const thumbnailId = item.ImageTags?.Primary ? item.Id : '';
         return thumbnailId
             ? [
                   this.createThumbnail(thumbnailId, 120),
@@ -250,8 +249,8 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             : undefined;
     }
 
-    private createThumbnail(trackId: string, width: number, height = width): Thumbnail {
-        const url = `${jellyfinSettings.host}/Items/${trackId}/Images/Primary?fillWidth=${width}&fillHeight=${height}`;
+    private createThumbnail(id: string, width: number, height = width): Thumbnail {
+        const url = `${jellyfinSettings.host}/Items/${id}/Images/Primary?fillWidth=${width}&fillHeight=${height}`;
         return {url, width, height};
     }
 

@@ -1,4 +1,4 @@
-import React, {useCallback, useId, useRef} from 'react';
+import React, {useCallback, useId, useRef, useState} from 'react';
 import Dialog, {showDialog, DialogProps} from 'components/Dialog';
 import ExternalLink from 'components/ExternalLink';
 import Icon from 'components/Icon';
@@ -12,6 +12,7 @@ export async function showListenBrainzLoginDialog(): Promise<string> {
 
 export default function ListenBrainzLoginDialog(props: DialogProps) {
     const id = useId();
+    const [errorMessage, setErrorMessage] = useState('');
     const dialogRef = useRef<HTMLDialogElement>(null);
     const userNameRef = useRef<HTMLInputElement>(null);
     const tokenRef = useRef<HTMLInputElement>(null);
@@ -23,6 +24,8 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
             const token = tokenRef.current!.value;
 
             listenbrainzSettings.userId = userId;
+
+            setErrorMessage('');
 
             const response = await fetch(`https://api.listenbrainz.org/1/validate-token`, {
                 headers: {
@@ -46,8 +49,9 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
             }
 
             dialogRef.current!.close(JSON.stringify({userId, token}));
-        } catch (err) {
-            console.error(err); // TODO: Show error in the UI
+        } catch (err: any) {
+            console.error(err);
+            setErrorMessage(err.message || err.statusText || 'Error');
         }
     }, []);
 
@@ -62,7 +66,7 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
     return (
         <Dialog
             {...props}
-            className="listenbrainz-login-dialog"
+            className="listenbrainz-login-dialog login-dialog"
             title="Log in to ListenBrainz"
             ref={dialogRef}
         >
@@ -86,7 +90,8 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
                         <input type="password" id={`${id}-token`} required ref={tokenRef} />
                     </p>
                 </div>
-                <p className="listenbrainz-link">
+                <p className="error">{errorMessage}</p>
+                <p className="listenbrainz-link service-link">
                     <ExternalLink href={profileUrl}>
                         <Icon name="listenbrainz" />
                         {profileUrl}

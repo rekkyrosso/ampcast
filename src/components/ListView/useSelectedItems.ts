@@ -19,9 +19,11 @@ export default function useSelectedItems<T>(
                 const size = items.length;
                 if (size > 0 && newSelectedItems.length === 0) {
                     if (rowIndex < size) {
-                        setSelectedItems([items[rowIndex]]);
+                        const item = items[rowIndex];
+                        setSelectedItems(item ? [item] : []);
                     } else if (rowIndex === size) {
-                        setSelectedItems([items[rowIndex - 1]]);
+                        const item = items[rowIndex - 1];
+                        setSelectedItems(item ? [item] : []);
                     } else {
                         setSelectedItems(newSelectedItems);
                     }

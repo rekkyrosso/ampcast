@@ -33,6 +33,7 @@ export default function PlaylistBrowser({
                     pager={selectedPlaylist?.pager}
                     keepAlive={true}
                     layout={source.secondaryLayout || defaultPlaylistItemsLayout}
+                    key={selectedPlaylist?.src}
                 />
             </Splitter>
         </div>

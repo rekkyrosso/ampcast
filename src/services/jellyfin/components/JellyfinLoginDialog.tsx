@@ -1,4 +1,4 @@
-import React, {useCallback, useId, useRef} from 'react';
+import React, {useCallback, useId, useRef, useState} from 'react';
 import Dialog, {showDialog, DialogProps} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import jellyfinSettings from '../jellyfinSettings';
@@ -10,6 +10,7 @@ export async function showJellyfinLoginDialog(): Promise<string> {
 
 export default function JellyfinLoginDialog(props: DialogProps) {
     const id = useId();
+    const [errorMessage, setErrorMessage] = useState('');
     const dialogRef = useRef<HTMLDialogElement>(null);
     const hostRef = useRef<HTMLInputElement>(null);
     const userNameRef = useRef<HTMLInputElement>(null);
@@ -21,6 +22,12 @@ export default function JellyfinLoginDialog(props: DialogProps) {
             const password = passwordRef.current!.value;
 
             jellyfinSettings.host = hostRef.current!.value.replace(/\/+$/, '');
+
+            setErrorMessage('');
+
+            if (location.protocol === 'https:' && !jellyfinSettings.host.startsWith('https:')) {
+                throw Error('https required');
+            }
 
             const {device, deviceId} = jellyfinSettings;
             const authorization = `MediaBrowser Client="${__app_name__}", Version="${__app_version__}", Device="${device}", DeviceId="${deviceId}"`;
@@ -37,7 +44,7 @@ export default function JellyfinLoginDialog(props: DialogProps) {
             });
 
             if (!response.ok) {
-                throw Error(`${response.status}: ${response.statusText}`);
+                throw response;
             }
 
             const auth = await response.json();
@@ -46,8 +53,13 @@ export default function JellyfinLoginDialog(props: DialogProps) {
             const token = auth.AccessToken;
 
             dialogRef.current!.close(JSON.stringify({serverId, userId, token}));
-        } catch (err) {
-            console.error(err); // TODO: Show error in the UI
+        } catch (err: any) {
+            console.error(err);
+            if (err instanceof TypeError) {
+                setErrorMessage('Host not found');
+            } else {
+                setErrorMessage(err.message || err.statusText || 'Error');
+            }
         }
     }, []);
 
@@ -62,7 +74,7 @@ export default function JellyfinLoginDialog(props: DialogProps) {
     return (
         <Dialog
             {...props}
-            className="jellyfin-login-dialog"
+            className="jellyfin-login-dialog login-dialog"
             title="Log in to Jellyfin"
             ref={dialogRef}
         >
@@ -97,6 +109,7 @@ export default function JellyfinLoginDialog(props: DialogProps) {
                         <input type="password" id={`${id}-password`} ref={passwordRef} required />
                     </p>
                 </div>
+                <p className="error">{errorMessage}</p>
                 <DialogButtons submitText="Login" />
             </form>
         </Dialog>

@@ -33,6 +33,7 @@ export default function AlbumBrowser({
                     pager={selectedAlbum?.pager}
                     keepAlive={true}
                     layout={source.secondaryLayout || defaultAlbumTracksLayout}
+                    key={selectedAlbum?.src}
                 />
             </Splitter>
         </div>

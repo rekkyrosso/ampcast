@@ -30,7 +30,7 @@ function observeAccessToken(): Observable<string> {
 }
 
 export function isLoggedIn(): boolean {
-    return accessToken$.getValue() !== '';
+    return isLoggedIn$.getValue();
 }
 
 export function observeIsLoggedIn(): Observable<boolean> {
@@ -163,13 +163,13 @@ isConnected$
             } = await plexApi.fetchJSON<plex.DirectoryResponse>({
                 path: '/library/sections',
             });
-            const musicSections = sections.filter((section) => section.type === 'artist');
-            const musicSection =
-                musicSections.find((section) => section.key === plexSettings.libraryId) ||
-                musicSections.find((section) => /m[uú][sz](i|ie)[ckq]/i.test(section.title)) ||
-                musicSections[0];
-            plexSettings.libraryId = musicSection?.key || '';
-            plexSettings.sections = musicSections;
+            const libraries = sections.filter((section) => section.type === 'artist');
+            const library =
+                libraries.find((section) => section.key === plexSettings.libraryId) ||
+                libraries.find((section) => /m[uú][sz](i|ie)[ckq]/i.test(section.title)) ||
+                libraries[0];
+            plexSettings.libraryId = library?.key || '';
+            plexSettings.sections = libraries;
             isLoggedIn$.next(true);
         })
     )
