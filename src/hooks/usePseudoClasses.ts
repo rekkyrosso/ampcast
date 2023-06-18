@@ -1,13 +1,14 @@
-import {useLayoutEffect} from 'react';
+import {useEffect} from 'react';
 import {fromEvent, Subscription} from 'rxjs';
 import {stopPropagation} from 'utils';
 
 export default function usePseudoClasses(): void {
-    useLayoutEffect(() => {
+    useEffect(() => {
+        let isFocusVisible = false;
         const app = document.getElementById('app')!;
         const system = document.getElementById('system')!;
         const subscription = new Subscription();
-        const subscribe = (root: HTMLElement) =>
+        const subscribeToFocusIn = (root: HTMLElement) =>
             fromEvent<FocusEvent>(root, 'focusin').subscribe(() => {
                 const prevActiveElement = root.querySelector('.focus');
                 if (prevActiveElement !== document.activeElement) {
@@ -15,6 +16,22 @@ export default function usePseudoClasses(): void {
                     document.activeElement!.classList.toggle('focus', true);
                 }
             });
+        document.activeElement!.classList.toggle('focus', true);
+        subscription.add(
+            fromEvent<MouseEvent>(document, 'keydown', {capture: true}).subscribe(() => {
+                isFocusVisible = true;
+            })
+        );
+        subscription.add(
+            fromEvent<MouseEvent>(document, 'mousedown', {capture: true}).subscribe(() => {
+                isFocusVisible = false;
+            })
+        );
+        subscription.add(
+            fromEvent<FocusEvent>(document, 'focusin').subscribe(() => {
+                document.body.classList.toggle('focus-visible', isFocusVisible);
+            })
+        );
         subscription.add(
             fromEvent<FocusEvent>(document, 'focusout').subscribe((event) => {
                 if (!event.relatedTarget) {
@@ -29,7 +46,7 @@ export default function usePseudoClasses(): void {
             })
         );
         subscription.add(
-            fromEvent<MouseEvent>(document, 'mouseup').subscribe(() => {
+            fromEvent<MouseEvent>(document, 'mouseup', {capture: true}).subscribe(() => {
                 // The `active` classes are set by individual components.
                 const activeElements = document.querySelectorAll('.active');
                 for (const activeElement of activeElements) {
@@ -38,8 +55,8 @@ export default function usePseudoClasses(): void {
             })
         );
         subscription.add(fromEvent(system, 'mousedown').subscribe(stopPropagation));
-        subscription.add(subscribe(app));
-        subscription.add(subscribe(system));
+        subscription.add(subscribeToFocusIn(app));
+        subscription.add(subscribeToFocusIn(system));
         return () => subscription.unsubscribe();
     }, []);
 }

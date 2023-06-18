@@ -21,7 +21,7 @@
         outline-offset: 0.125em;
     }
 
-    &:focus-visible &-text {
+    .focus-visible &:focus &-text {
         @include outline;
         outline-width: 2px;
     }

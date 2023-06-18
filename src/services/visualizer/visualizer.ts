@@ -116,8 +116,7 @@ observeCurrentVisualizers().subscribe(() => nextVisualizer('provider'));
 observeNextVisualizerReason()
     .pipe(
         withLatestFrom(observeCurrentItem(), observeVisualizerSettings()),
-        map(([reason, item, settings]) => getNextVisualizer(item, settings, reason)),
-        distinctUntilChanged()
+        map(([reason, item, settings]) => getNextVisualizer(item, settings, reason))
     )
     .subscribe(currentVisualizer$);
 

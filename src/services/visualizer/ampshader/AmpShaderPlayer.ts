@@ -19,6 +19,7 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     private fragDate: WebGLUniformLocation | null = null;
     private shader: WebGLProgram | null = null;
     private startTime = performance.now();
+    private currentVisualizer = '';
 
     constructor(private readonly analyser: SimpleAudioAnalyser) {
         super();
@@ -67,8 +68,11 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     load(visualizer: AmpShaderVisualizer): void {
         logger.log('load');
         if (visualizer) {
-            logger.log(`Using Ampshader visualizer: ${visualizer.name}`);
-            this.createShader(visualizer.shader);
+            if (this.currentVisualizer !== visualizer.name) {
+                this.currentVisualizer = visualizer.name;
+                this.createShader(visualizer.shader);
+                logger.log(`Using Ampshader visualizer: ${visualizer.name}`);
+            }
         }
         // A bit weird but `autoplay` controls looping.
         this.play();

@@ -43,7 +43,7 @@ export default function Splitter({
         }
     }, [id, secondaryPaneSize]);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         if (fontSize > 0) {
             const container = containerRef.current!;
             const minSize: keyof CSSStyleDeclaration = vertical ? 'minHeight' : 'minWidth';

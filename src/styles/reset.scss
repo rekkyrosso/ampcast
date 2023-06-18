@@ -1,6 +1,7 @@
 @import './libs/minireset.scss';
 
-*:focus {
+*:focus,
+*:focus-visible {
     outline: none;
 }
 

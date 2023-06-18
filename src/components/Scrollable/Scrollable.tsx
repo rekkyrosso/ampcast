@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useId, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import {interval} from 'rxjs';
 import {partition} from 'utils';
 import useOnResize from 'hooks/useOnResize';
@@ -80,7 +80,7 @@ export default function Scrollable({
         }
     }, [scrollableRef]);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         if (scrollWidth && clientWidth) {
             setOverflowX(scrollWidth - clientWidth > 1);
         } else {
@@ -88,7 +88,7 @@ export default function Scrollable({
         }
     }, [scrollWidth, clientWidth]);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         if (scrollHeight && clientHeight) {
             setOverflowY(scrollHeight - clientHeight > 1);
         } else {
@@ -96,15 +96,15 @@ export default function Scrollable({
         }
     }, [scrollHeight, clientHeight]);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         containerRef.current!.classList.toggle('overflow-x', overflowX);
     }, [overflowX]);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         containerRef.current!.classList.toggle('overflow-y', overflowY);
     }, [overflowY]);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         if (initialScrollWidth === 0) {
             setScrollWidth(contentRef.current?.scrollWidth || 0);
         } else {
@@ -112,7 +112,7 @@ export default function Scrollable({
         }
     }, [initialScrollWidth]);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         if (initialScrollHeight === 0) {
             setScrollHeight(contentRef.current?.scrollHeight || 0);
         } else {
@@ -145,7 +145,7 @@ export default function Scrollable({
     useOnResize(contentRef, onContentResize);
     useOnResize(bodyContentRef, onContentResize);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         onScroll?.({left: scrollLeft, top: scrollTop});
     }, [scrollLeft, scrollTop, onScroll]);
 

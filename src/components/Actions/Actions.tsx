@@ -108,7 +108,7 @@ export default function Actions({item, inline}: ActionsProps) {
                 <>
                     {item.rating !== undefined && service?.canRate(item, inline) ? (
                         serviceId === 'plex' ? (
-                            <StarRating rating={item.rating} onClick={rate} />
+                            <StarRating value={item.rating} tabIndex={tabIndex} onChange={rate} />
                         ) : (
                             <IconButton
                                 icon={

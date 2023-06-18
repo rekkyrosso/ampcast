@@ -25,10 +25,10 @@
         &:focus {
             background-color: var(--button-text-color);
             color: var(--button-color);
-        }
 
-        &:focus-visible {
-            outline: none;
+            .focus-visible & {
+                outline: none;
+            }
         }
 
         &:hover,

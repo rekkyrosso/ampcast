@@ -54,7 +54,6 @@ export default function FolderItemBrowser({
                     {...props}
                     title={`Path: ${path}`}
                     pager={pager}
-                    keepAlive={true}
                     onEnter={handleEnter}
                     onDoubleClick={handleDoubleClick}
                 />

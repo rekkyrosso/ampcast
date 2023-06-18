@@ -354,7 +354,7 @@ async function rate(item: MediaObject, rating: number): Promise<void> {
         params: {
             key: item.plex!.ratingKey,
             identifier: 'com.plexapp.plugins.library',
-            rating: rating || -1,
+            rating: rating * 2 || -1,
         },
     });
 }

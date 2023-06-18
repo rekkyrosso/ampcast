@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useRef} from 'react';
+import {useCallback, useRef} from 'react';
 import type {Observable} from 'rxjs';
 import {Subject} from 'rxjs';
 
@@ -8,10 +8,6 @@ export default function useSubject<T>(): [Observable<T>, (next: T) => void] {
     if (ref.current === null) {
         ref.current = new Subject<T>();
     }
-
-    useEffect(() => {
-        return () => ref.current?.complete();
-    }, []);
 
     const next = useCallback((value: T) => {
         ref.current!.next(value);

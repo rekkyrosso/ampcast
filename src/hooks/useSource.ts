@@ -10,7 +10,9 @@ export default function useSource<T extends MediaObject>(
     const [pager, setPager] = useState<Pager<T> | null>(null);
 
     useEffect(() => {
-        setPager(source?.search(params) || null);
+        const pager = source?.search(params) || null;
+        setPager(pager);
+        return () => pager?.disconnect();
     }, [source, params]);
 
     return pager;

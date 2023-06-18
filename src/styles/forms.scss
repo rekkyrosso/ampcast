@@ -46,8 +46,12 @@ select {
     border: 1px solid;
     user-select: none;
     outline-offset: -1px;
+}
 
-    &:focus-visible {
+select,
+textarea,
+input:not([type="range"]) {
+    .focus-visible &:focus {
         @include outline;
     }
 }
@@ -63,11 +67,14 @@ input[type="radio"] {
         vertical-align: middle;
     }
 
-    &:focus-visible + label,
-    label + &:focus-visible {
-        @include outline;
+    & + label,
+    label + & {
         outline-offset: 3px;
     }
+}
+
+input[type="radio"] {
+    border-radius: 50%;
 }
 
 input[type="color"] {
@@ -81,10 +88,6 @@ input[type="color"] {
 
     & + & {
         margin-left:  0.5em;
-    }
-
-    &:focus-visible {
-        @include outline;
     }
 }
 
@@ -100,6 +103,7 @@ input[type="range"] {
     background: transparent;
     color: var(--text-color);
     height: 0.5em;
+    outline: none;
 
     @mixin track {
         width: 100%;
@@ -139,11 +143,11 @@ input[type="range"] {
         @include thumb;
     }
 
-    &:focus-visible::-webkit-slider-thumb {
+    .focus-visible &:focus::-webkit-slider-thumb {
         @include outline;
     }
 
-    &:focus-visible::-moz-range-thumb {
+    .focus-visible &:focus::-moz-range-thumb {
         @include outline;
     }
 }
@@ -152,10 +156,13 @@ label {
     border-radius: calc(var(--roundness) * 0.5em);
 }
 
-label + input[type],
-input[type] + label,
+label + input,
 label + select {
     margin-left: 0.5em;
+}
+
+input + label {
+    padding-left: 0.5em;
 }
 
 input:disabled + label {
@@ -206,7 +213,7 @@ button,
         opacity: 0.75;
     }
 
-    &:focus-visible {
+    .focus-visible &:focus {
         @include outline;
     }
 

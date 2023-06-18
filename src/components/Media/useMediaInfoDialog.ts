@@ -6,7 +6,7 @@ export default function useMediaInfoDialog(dialogRef: RefObject<HTMLDialogElemen
     const [debug, setDebug] = useState(false);
 
     useEffect(() => {
-        // TODO: Why is this here?
+        // TODO: Should this be in a different hook?
         if (dialogRef.current) {
             const activeElements = document.querySelectorAll('.focus');
             for (const activeElement of activeElements) {

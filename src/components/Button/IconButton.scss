@@ -17,7 +17,7 @@
     &:enabled {
         cursor: pointer;
 
-        &:focus-visible,
+        .focus-visible &:focus,
         &:hover {
             opacity: 1;
         }

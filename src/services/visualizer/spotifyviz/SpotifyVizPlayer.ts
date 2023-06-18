@@ -28,6 +28,7 @@ export default class SpotifyVizPlayer extends AbstractVisualizerPlayer<SpotifyVi
     private readonly context2D = this.canvas.getContext('2d')!;
     private config?: SpotifyVizConfig;
     private animationFrameId = 0;
+    private currentVisualizer = '';
 
     constructor(private readonly analyser: SpotifyAudioAnalyser) {
         super();
@@ -75,9 +76,12 @@ export default class SpotifyVizPlayer extends AbstractVisualizerPlayer<SpotifyVi
     load(visualizer: SpotifyVizVisualizer): void {
         logger.log('load');
         if (visualizer) {
-            logger.log(`Using SpotifyViz visualizer: ${visualizer.name}`);
-            this.config = visualizer.config;
-            this.analyser.volumeSmoothing = visualizer.config?.volumeSmoothing ?? 100;
+            if (this.currentVisualizer !== visualizer.name) {
+                this.currentVisualizer = visualizer.name;
+                this.config = visualizer.config;
+                this.analyser.volumeSmoothing = visualizer.config?.volumeSmoothing ?? 100;
+                logger.log(`Using SpotifyViz visualizer: ${visualizer.name}`);
+            }
         }
         if (this.autoplay) {
             this.play();

@@ -13,6 +13,7 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
     private readonly element: HTMLElement;
     private readonly visualizer: AudioMotionAnalyzer;
     private audioSourceNode: AudioNode | undefined;
+    private currentVisualizer = '';
 
     constructor(audioCtx: AudioContext, audioSourceNode$: Observable<AudioNode>) {
         super();
@@ -66,8 +67,11 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
     load(visualizer: AudioMotionVisualizer): void {
         logger.log('load');
         if (visualizer) {
-            logger.log(`Using AudioMotion visualizer: ${visualizer.name}`);
-            this.visualizer.setOptions(visualizer.options);
+            if (this.currentVisualizer !== visualizer.name) {
+                this.currentVisualizer = visualizer.name;
+                this.visualizer.setOptions(visualizer.options);
+                logger.log(`Using AudioMotion visualizer: ${visualizer.name}`);
+            }
         }
         if (this.autoplay) {
             this.play();

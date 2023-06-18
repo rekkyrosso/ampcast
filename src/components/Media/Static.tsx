@@ -1,4 +1,4 @@
-import React, {useLayoutEffect, useRef} from 'react';
+import React, {useEffect, useRef} from 'react';
 import useOnResize from 'hooks/useOnResize';
 import './Static.scss';
 
@@ -6,7 +6,7 @@ export default function Static() {
     const ref = useRef<HTMLDivElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         let animationFrameId: number;
         const render = () => {
             const canvas = canvasRef.current!;

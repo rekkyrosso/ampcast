@@ -31,7 +31,6 @@ export default function PlaylistBrowser({
                     title={selectedPlaylist ? `${selectedPlaylist.title}: Tracks` : ''}
                     className="playlist-items"
                     pager={selectedPlaylist?.pager}
-                    keepAlive={true}
                     layout={source.secondaryLayout || defaultPlaylistItemsLayout}
                     key={selectedPlaylist?.src}
                 />

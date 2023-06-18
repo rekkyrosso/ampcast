@@ -1,4 +1,4 @@
-import React, {useCallback, useId, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useId, useEffect, useRef, useState} from 'react';
 import Tab from './Tab';
 import TabPanel from './TabPanel';
 import './TabList.scss';
@@ -20,7 +20,7 @@ export default function TabList({label, items, className = ''}: TabListProps) {
     const [buttons, setButtons] = useState<HTMLButtonElement[]>([]);
     const [selectedIndex, setSelectedIndex] = useState(0);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         setButtons(Array.from(tabsRef.current!.querySelectorAll('button')));
     }, []);
 

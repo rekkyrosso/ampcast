@@ -137,7 +137,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             album: albumTitle,
             duration: track.duration / 1000,
             track: albumTitle ? track.index : undefined,
-            rating: track.userRating || 0,
+            rating: this.getRating(track),
             year: track.parentYear,
             playedAt: track.lastViewedAt || 0,
             playCount: track.viewCount,
@@ -157,7 +157,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             description: album.summary,
             addedAt: album.addedAt,
             artist: album.parentTitle,
-            rating: album.userRating || 0,
+            rating: this.getRating(album),
             year: album.year,
             playedAt: album.lastViewedAt,
             playCount: album.viewCount,
@@ -179,7 +179,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             description: artist.summary,
             country: artist.Country?.map((country) => country.tag).join(', '),
             addedAt: artist.addedAt,
-            rating: artist.userRating || 0,
+            rating: this.getRating(artist),
             genres: artist.Genre?.map((genre) => genre.tag),
             plex: {
                 ratingKey: artist.ratingKey,
@@ -267,6 +267,10 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
 
     private getFileName(path: string): string | undefined {
         return path.split(/[/\\]/).pop();
+    }
+
+    private getRating(object: plex.MusicObject): number {
+        return Math.round((object.userRating || 0) / 2);
     }
 
     private createThumbnails(thumb: string): Thumbnail[] | undefined {

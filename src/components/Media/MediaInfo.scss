@@ -75,6 +75,7 @@
         overflow: hidden;
         text-overflow: ellipsis;
         margin-top: 1.625em;
+        padding: 1px 0;
 
         > .icon {
             font-size: 1.625em;
@@ -102,7 +103,7 @@
     }
 
     .icon-button {
-        border-radius: 0;
+        border-radius: calc(var(--roundness) * 0.5em);
         outline-offset: 2px;
         outline-width: 2px;
     }

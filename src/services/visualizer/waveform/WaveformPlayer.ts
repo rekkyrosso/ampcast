@@ -22,6 +22,7 @@ export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVis
     private readonly context2D = this.canvas.getContext('2d')!;
     private config?: WaveformConfig;
     private animationFrameId = 0;
+    private currentVisualizer = '';
 
     constructor(private readonly analyser: SimpleAudioAnalyser) {
         super();
@@ -49,8 +50,11 @@ export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVis
     load(visualizer: WaveformVisualizer): void {
         logger.log('load');
         if (visualizer) {
-            logger.log(`Using Waveform visualizer: ${visualizer.name}`);
-            this.config = visualizer.config;
+            if (this.currentVisualizer !== visualizer.name) {
+                this.currentVisualizer = visualizer.name;
+                this.config = visualizer.config;
+                logger.log(`Using Waveform visualizer: ${visualizer.name}`);
+            }
         }
         if (this.autoplay) {
             this.play();

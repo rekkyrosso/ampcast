@@ -54,7 +54,6 @@ export default function ArtistBrowser({
                         title={selectedArtist ? `${selectedArtist.title}: Albums` : ''}
                         className="artist-albums"
                         pager={selectedArtist?.pager}
-                        keepAlive={true}
                         layout={source.secondaryLayout || defaultAlbumsLayout}
                         onSelect={handleAlbumSelect}
                         key={selectedArtist?.src}
@@ -63,7 +62,6 @@ export default function ArtistBrowser({
                         title={selectedAlbum ? `${selectedAlbum.title}: Tracks` : ''}
                         className="album-items"
                         pager={selectedAlbum?.pager}
-                        keepAlive={true}
                         layout={source.tertiaryLayout || defaultTracksLayout}
                         key={selectedAlbum?.src}
                     />

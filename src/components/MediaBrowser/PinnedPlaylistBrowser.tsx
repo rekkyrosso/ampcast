@@ -51,7 +51,6 @@ export default function PinnedPlaylistBrowser({
                 title={`${source.title}: Tracks`}
                 className="playlist-items"
                 pager={selectedPlaylist?.pager}
-                keepAlive={true}
                 layout={source.secondaryLayout || defaultPlaylistItemsLayout}
             />
         </div>

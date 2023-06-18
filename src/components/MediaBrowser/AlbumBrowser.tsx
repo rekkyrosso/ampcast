@@ -31,7 +31,6 @@ export default function AlbumBrowser({
                     title={selectedAlbum ? `${selectedAlbum.title}: Tracks` : ''}
                     className="album-items"
                     pager={selectedAlbum?.pager}
-                    keepAlive={true}
                     layout={source.secondaryLayout || defaultAlbumTracksLayout}
                     key={selectedAlbum?.src}
                 />

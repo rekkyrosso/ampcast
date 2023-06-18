@@ -1,4 +1,4 @@
-import React, {useCallback, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import Scrollable, {ScrollableClient, ScrollableHandle} from 'components/Scrollable';
 import './TextBox.scss';
 
@@ -15,7 +15,7 @@ export default function TextBox({className, children}: TextBoxProps) {
         []
     );
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         // TODO: Fix `Scrollable` so that is doesn't re-layout so much.
         setTimeout(() => requestAnimationFrame(() => setVisibility(undefined)), 50);
     }, []);

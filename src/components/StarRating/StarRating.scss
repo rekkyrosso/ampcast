@@ -1,3 +1,5 @@
+@import 'styles/mixins.scss';
+
 .star-rating {
     font-family: Arial, sans-serif;
     font-weight: 400;
@@ -10,27 +12,14 @@
     &-button {
         all: unset;
         cursor: pointer;
+        border-radius: calc(var(--roundness) * 0.5em);
 
         &:hover {
             opacity: 1;
         }
-
-        &::before {
-            content: "☆";
-        }
     }
 
-    &-button~&-button {
-        margin-left: 0
-    }
-
-    &-button.checked::before,
-    &:hover &-button:not(.clicked)::before,
-    &-button:not(.clicked):hover::before {
-        content: "★";
-    }
-
-    & &-button:hover~&-button::before {
-        content: "☆";
+    .focus-visible &:focus .selected {
+        @include outline;
     }
 }

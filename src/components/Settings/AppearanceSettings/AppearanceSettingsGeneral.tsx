@@ -1,4 +1,4 @@
-import React, {useCallback, useId, useLayoutEffect, useMemo, useRef} from 'react';
+import React, {useCallback, useId, useEffect, useMemo, useRef} from 'react';
 import theme from 'services/theme';
 import themeStore from 'services/theme/themeStore';
 import DialogButtons from 'components/Dialog/DialogButtons';
@@ -18,7 +18,7 @@ export default function AppearanceSettingsGeneral() {
     const userThemes = useUserThemes();
     const userTheme = !!currentTheme.userTheme;
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         // Lock `font-size` for this dialog.
         const systemStyle = document.getElementById('system')!.style;
         systemStyle.setProperty('--font-size', String(theme.fontSize));

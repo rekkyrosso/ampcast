@@ -168,7 +168,7 @@ export const Rate: RenderField = (item) => {
         },
         [item]
     );
-    return <StarRating rating={item.rating} onClick={rate} />;
+    return <StarRating value={item.rating} tabIndex={-1} onChange={rate} />;
 };
 
 function Text({value = ''}: {value?: string | number}) {
@@ -210,7 +210,12 @@ const mediaFields: MediaFields<any> = {
     LastPlayed: {title: 'Last played', render: LastPlayed, className: 'played-at'},
     ListenDate: {title: 'Played On', render: ListenDate, className: 'played-at listen-date'},
     Thumbnail: {title: 'Thumbnail', render: Thumbnail, className: 'thumbnail'},
-    Rate: {title: <StarRating rating={0} />, render: Rate, className: 'rate', width: 120},
+    Rate: {
+        title: <StarRating value={0} tabIndex={-1} />,
+        render: Rate,
+        className: 'rate',
+        width: 120,
+    },
 };
 
 function getCount(count?: number): string {

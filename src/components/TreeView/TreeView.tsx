@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {browser} from 'utils';
 import {IconName} from 'components/Icon';
 import Scrollable, {
@@ -82,12 +82,6 @@ export default function TreeView<T>({
     }, [treeViewRef, focus]);
 
     useEffect(() => {
-        if (!selectedId && roots.length > 0) {
-            setSelectedId(retrieveSelectedNodeId(roots[0].id));
-        }
-    }, [roots, selectedId, retrieveSelectedNodeId]);
-
-    useLayoutEffect(() => {
         if (!hasSelectedNode(roots, selectedId)) {
             const parentNode =
                 roots.find((root) => selectedId?.startsWith(`${root.id}/`)) || roots[0];
@@ -95,7 +89,13 @@ export default function TreeView<T>({
         }
     }, [roots, selectedId]);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
+        if (!selectedId && roots.length > 0) {
+            setSelectedId(retrieveSelectedNodeId(roots[0].id));
+        }
+    }, [roots, selectedId, retrieveSelectedNodeId]);
+
+    useEffect(() => {
         onSelect?.(debouncedValue);
     }, [debouncedValue, onSelect]);
 

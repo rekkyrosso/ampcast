@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {EMPTY, filter, fromEvent, map, merge, startWith, switchMap, takeUntil, timer} from 'rxjs';
 import {cancelEvent} from 'utils';
 import useOnResize from 'hooks/useOnResize';
@@ -46,12 +46,13 @@ function Scrollbar({
         scrollbarRef.current = {scrollBy, scrollTo};
     }, [scrollbarRef, scrollBy, scrollTo]);
 
-    useLayoutEffect(
+    useEffect(
         () => resize(props.clientSize, props.scrollSize),
         [props.clientSize, props.scrollSize, resize]
     );
-    useLayoutEffect(() => onChange?.(position), [position, onChange]);
-    useLayoutEffect(() => onResize?.(size), [size, onResize]);
+
+    useEffect(() => onChange?.(position), [position, onChange]);
+    useEffect(() => onResize?.(size), [size, onResize]);
 
     useOnResize(trackRef, () => {
         const rect = trackRef.current!.getBoundingClientRect();

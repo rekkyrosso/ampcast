@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {filter, fromEvent, merge, switchMap, timer} from 'rxjs';
 import {preventDefault} from 'utils';
 import './PopupMenu.scss';
@@ -27,7 +27,7 @@ export default function PopupMenu<T extends string>({
     const [buttons, setButtons] = useState<HTMLButtonElement[]>([]);
     const [buttonId, setButtonId] = useState('');
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         const style: React.CSSProperties = {};
         const popup = popupRef.current!;
         const buttons = Array.from(popup.querySelectorAll('button'));
@@ -61,7 +61,7 @@ export default function PopupMenu<T extends string>({
                 )
             ),
             fromEvent<KeyboardEvent>(document, 'keydown', {capture: true}).pipe(
-                filter((event) => event.code === 'Escape')
+                filter((event) => event.code === 'Escape' || event.code === 'Tab')
             ),
             fromEvent(window, 'blur')
         ).subscribe(() => {

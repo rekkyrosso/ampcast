@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {fromEvent, map} from 'rxjs';
 import MediaType from 'types/MediaType';
 import mediaPlayback from 'services/mediaPlayback';
@@ -22,7 +22,7 @@ export default memo(function Media() {
     const visualizer = useCurrentVisualizer();
     const noVisualizer = !visualizer || visualizer.providerId === 'none';
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         mediaPlayback.appendTo(ref.current!);
     }, []);
 

@@ -18,7 +18,6 @@ import './MediaList.scss';
 export interface MediaListProps<T extends MediaObject>
     extends Except<ListViewProps<T>, 'items' | 'itemKey' | 'itemClassName' | 'layout'> {
     pager?: Pager<T> | null;
-    keepAlive?: boolean;
     layout?: MediaSourceLayout<T>;
     statusBar?: boolean;
     loadingText?: string;
@@ -27,7 +26,6 @@ export interface MediaListProps<T extends MediaObject>
 export default function MediaList<T extends MediaObject>({
     className = '',
     pager = null,
-    keepAlive,
     statusBar = true,
     loadingText,
     onDoubleClick,
@@ -38,7 +36,7 @@ export default function MediaList<T extends MediaObject>({
     const layout = useMediaListLayout(props.layout);
     const [scrollIndex, setScrollIndex] = useState(0);
     const [pageSize, setPageSize] = useState(0);
-    const [{items, loaded, error, size, maxSize}, fetchAt] = usePager(pager, keepAlive);
+    const [{items, loaded, error, size, maxSize}, fetchAt] = usePager(pager);
     const [selectedCount, setSelectedCount] = useState(0);
     const currentlyPlaying = useCurrentlyPlaying();
     const viewClassName = useViewClassName(layout);

@@ -10,6 +10,7 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
     private readonly context2D = this.canvas.getContext('2d')!;
     private readonly visualizer: butterchurn.Visualizer;
     private animationFrameId = 0;
+    private currentVisualizer = '';
 
     constructor(private readonly analyser: AnalyserNode) {
         super();
@@ -50,8 +51,11 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
 
     load(visualizer: ButterchurnVisualizer): void {
         if (visualizer) {
-            logger.log(`Using Butterchurn visualizer: ${visualizer.name}`);
-            this.visualizer.loadPreset(visualizer.data, 0.5);
+            if (this.currentVisualizer !== visualizer.name) {
+                this.currentVisualizer = visualizer.name;
+                this.visualizer.loadPreset(visualizer.data, 0.5);
+                logger.log(`Using Butterchurn visualizer: ${visualizer.name}`);
+            }
             if (this.animationFrameId) {
                 cancelAnimationFrame(this.animationFrameId);
                 this.animationFrameId = 0;

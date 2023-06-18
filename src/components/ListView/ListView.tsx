@@ -2,7 +2,6 @@ import React, {
     useCallback,
     useEffect,
     useId,
-    useLayoutEffect,
     useMemo,
     useRef,
     useState,
@@ -230,10 +229,10 @@ export default function ListView<T>({
         internalRef.current?.scrollIntoView(selectedIndex);
     }, [selectedIndex]);
 
-    useLayoutEffect(() => onRowIndexChange?.(rowIndex), [rowIndex, onRowIndexChange]);
-    useLayoutEffect(() => onScrollIndexChange?.(scrollIndex), [scrollIndex, onScrollIndexChange]);
-    useLayoutEffect(() => onPageSizeChange?.(pageSize), [pageSize, onPageSizeChange]);
-    useLayoutEffect(() => onSelect?.(debouncedSelectedItems), [debouncedSelectedItems, onSelect]);
+    useEffect(() => onRowIndexChange?.(rowIndex), [rowIndex, onRowIndexChange]);
+    useEffect(() => onScrollIndexChange?.(scrollIndex), [scrollIndex, onScrollIndexChange]);
+    useEffect(() => onPageSizeChange?.(pageSize), [pageSize, onPageSizeChange]);
+    useEffect(() => onSelect?.(debouncedSelectedItems), [debouncedSelectedItems, onSelect]);
 
     useEffect(() => setRowIndex(Math.min(size - 1, rowIndex)), [size, rowIndex]);
 
@@ -263,7 +262,7 @@ export default function ListView<T>({
         }
     }, [isEmpty]);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         if (!multiple && selectedItems.length > 1) {
             selectAt(rowIndex);
         }
@@ -418,7 +417,7 @@ export default function ListView<T>({
     });
 
     // TODO: This should probably be on `MediaList`.
-    useLayoutEffect(() => {
+    useEffect(() => {
         containerRef.current!.classList.toggle('thin', fontSize * 20 > clientWidth);
     }, [fontSize, clientWidth]);
 

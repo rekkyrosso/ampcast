@@ -1,5 +1,5 @@
 import usePrevious from 'hooks/usePrevious';
-import {useCallback, useLayoutEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 
 export default function useSelectedItems<T>(
     items: readonly T[],
@@ -9,7 +9,7 @@ export default function useSelectedItems<T>(
     const [selectedItems, setSelectedItems] = useState<readonly T[]>([]);
     const prevItems = usePrevious(items);
 
-    useLayoutEffect(() => {
+    useEffect(() => {
         // Make sure that `selectedItems` is always a subset of `items`.
         if (items !== prevItems) {
             const newSelectedItems = items.filter((item) =>

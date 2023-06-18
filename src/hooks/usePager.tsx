@@ -13,7 +13,7 @@ export interface PagerState<T> {
     loaded: boolean;
 }
 
-export default function usePager<T>(pager: Pager<T> | null, keepAlive = false) {
+export default function usePager<T>(pager: Pager<T> | null) {
     const [fetch$, nextFetch] = useSubject<FetchArgs>();
     const [items, setItems] = useState<readonly T[]>([]);
     const [size, setSize] = useState<number | undefined>(undefined);
@@ -60,18 +60,14 @@ export default function usePager<T>(pager: Pager<T> | null, keepAlive = false) {
         subscription.add(size$.subscribe(setSize));
         subscription.add(error$.subscribe(setError));
         subscription.add(loaded$.subscribe(setLoaded));
-        subscription.add(fetch$.subscribe(([index, length]) => pager.fetchAt(index, length)));
-
-        // If you keep the pager alive then you are responsible for disconnecting it yourself
-        // when you teardown the parent component.
-        if (!keepAlive) {
-            subscription.add(() => pager.disconnect());
-        }
+        subscription.add(fetch$.subscribe(([index, length]) => {
+            pager.fetchAt(index, length);
+        }));
 
         setMaxSize(pager.maxSize);
 
         return () => subscription.unsubscribe();
-    }, [pager, fetch$, keepAlive]);
+    }, [pager, fetch$]);
 
     return [state, fetchAt] as const;
 }
