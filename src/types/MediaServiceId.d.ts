@@ -1,11 +1,13 @@
 type MediaServiceId =
     | 'apple'
+    | 'emby'
     | 'jellyfin'
     | 'lastfm'
     | 'listenbrainz'
+    | 'navidrome'
     | 'plex'
     | 'spotify'
-    | 'youtube'
-    ;
+    | 'subsonic'
+    | 'youtube';
 
 export default MediaServiceId;

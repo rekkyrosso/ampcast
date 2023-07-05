@@ -131,7 +131,6 @@ const listenbrainz: MediaService = {
         [Action.Like]: 'Love on ListenBrainz',
         [Action.Unlike]: 'Unlove on ListenBrainz',
     },
-
     canRate,
     canStore: () => false,
     compareForRating,

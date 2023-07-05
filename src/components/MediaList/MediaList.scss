@@ -172,7 +172,7 @@
             background-color: transparent;
             font-style: italic;
             top: 0.25em;
-            padding: 0;
+            padding: 0 0.1em 0 0;
 
             &.listen-date {
                 right: 0.625em;
@@ -188,7 +188,7 @@
             }
 
             &.listen-date .text {
-                display: flex;
+                display: inline-flex;
                 flex-direction: row;
                 justify-content: center;
                 align-items: center;
@@ -280,7 +280,7 @@
             .rate {
                 .artists & {
                     right: auto;
-                    top: 3.125em;
+                    top: 2.75em;
                     left: 4.75em;
                 }
             }
@@ -366,6 +366,10 @@
                     border-bottom-left-radius: 0;
                     border-bottom-right-radius: 0;
                     text-align: center;
+
+                    .text {
+                        vertical-align: 0.125em;
+                    }
 
                     &.listen-date {
                         padding: 0.25em 0;

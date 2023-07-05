@@ -5,6 +5,7 @@ const enum ViewType {
     MostPlayed = 3,
     Library = 4,
     Ratings = 5,
+    Videos = 6,
 }
 
 export default ViewType;

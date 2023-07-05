@@ -1,7 +1,6 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
 import md5 from 'md5';
-import Auth from 'types/Auth';
 import {lf_api_key, lf_api_secret} from 'services/credentials';
 import {Logger} from 'utils';
 import lastfmSettings from './lastfmSettings';
@@ -36,20 +35,22 @@ export function observeIsLoggedIn(): Observable<boolean> {
 
 export async function login(): Promise<void> {
     if (!isLoggedIn()) {
+        logger.log('login');
         try {
             const token = await obtainAccessToken();
             const sessionKey = await obtainSessionKey(token);
-            logger.log('Access token successfully obtained.');
+            logger.log('Access token successfully obtained');
             sessionKey$.next(sessionKey);
             accessToken$.next(token);
         } catch (err) {
-            logger.log('Could not obtain access token.');
+            logger.log('Could not obtain access token');
             logger.error(err);
         }
     }
 }
 
 export async function logout(): Promise<void> {
+    logger.log('logout');
     lastfmSettings.clear();
     sessionKey$.next('');
     accessToken$.next('');
@@ -126,14 +127,5 @@ export function getApiSignature(params: Record<string, string>): string {
     return md5(string);
 }
 
-const lastfmAuth: Auth = {
-    observeIsLoggedIn,
-    isLoggedIn,
-    login,
-    logout,
-};
-
 sessionKey$.next(lastfmSettings.sessionKey);
 accessToken$.next(lastfmSettings.token);
-
-export default lastfmAuth;

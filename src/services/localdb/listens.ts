@@ -32,25 +32,29 @@ export function observeListens(): Observable<readonly Listen[]> {
     return listens$.pipe(filter((items) => items !== UNINITIALIZED));
 }
 
+export function isListenedTo(duration: number, startedAt: number, endedAt: number): boolean {
+    const minPlayTime = Math.min(duration / 2, 4 * 60);
+    startedAt = Math.floor(startedAt / 1000);
+    endedAt = Math.floor(endedAt / 1000);
+    const playTime = endedAt - startedAt;
+    return playTime > minPlayTime;
+}
+
 export async function addListen(state: PlaybackState): Promise<void> {
     try {
         const item = state.currentItem;
         if (!item || !state.startedAt || !state.endedAt) {
-            throw Error('Invalid PlaybackState.');
+            throw Error('Invalid playback state');
         }
         // These rules seem to apply for both last.fm and ListenBrainz.
         if (item.title && item.artists?.[0] && item.duration > 30) {
-            const minPlayTime = Math.min(item.duration / 2, 4 * 60);
-            const startedAt = Math.floor(state.startedAt / 1000);
-            const endedAt = Math.floor(state.endedAt / 1000);
-            const playTime = endedAt - startedAt;
-            if (playTime > minPlayTime) {
+            if (isListenedTo(item.duration, state.startedAt, state.endedAt)) {
                 // eslint-disable-next-line @typescript-eslint/no-unused-vars
                 const {id, lookupStatus, ...listen} = item;
                 logger.log('add', {listen});
                 await store.items.add({
                     ...listen,
-                    playedAt: startedAt,
+                    playedAt: Math.floor(state.startedAt / 1000),
                     lastfmScrobbledAt: 0,
                     listenbrainzScrobbledAt: 0,
                 });

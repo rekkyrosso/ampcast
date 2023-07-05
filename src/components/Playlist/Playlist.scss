@@ -16,7 +16,10 @@
             width: 100%;
 
             .apple-not-connected &.source-apple,
+            .emby-not-connected &.source-emby,
             .jellyfin-not-connected &.source-jellyfin,
+            .navidrome-not-connected &.source-navidrome,
+            .subsonic-not-connected &.source-subsonic,
             .plex-not-connected &.source-plex,
             .spotify-not-connected &.source-spotify {
                 &:not(.selected) {
@@ -25,7 +28,10 @@
             }
 
             .apple-connected &.source-apple,
+            .emby-connected &.source-emby,
             .jellyfin-connected &.source-jellyfin,
+            .navidrome-connected &.source-navidrome,
+            .subsonic-connected &.source-subsonic,
             .plex-connected &.source-plex,
             .spotify-connected &.source-spotify {
                 &.unplayable .icon.show-connectivity {

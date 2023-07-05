@@ -3,15 +3,10 @@ import memoryStorage from './memoryStorage';
 
 const logger = new Logger('LiteStorage');
 
-export type BasicStorage = Pick<
-    Storage,
-    'getItem' | 'setItem' | 'removeItem' | 'clear' | 'key' | 'length'
->;
-
 export default class LiteStorage {
     private static readonly ids: string[] = [];
     readonly id: string;
-    private readonly storage: BasicStorage;
+    private readonly storage: Storage;
 
     constructor(id: string, storage: 'local' | 'session' | 'memory' = 'local') {
         const storageId = `${storage}-${id}`;
@@ -56,7 +51,7 @@ export default class LiteStorage {
         } catch (err) {
             logger.error(err);
         }
-        return defaultValue ?? null;
+        return defaultValue;
     }
 
     setJson<T>(key: string, value: T): void {

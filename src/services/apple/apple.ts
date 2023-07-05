@@ -119,8 +119,8 @@ const appleLibraryArtists: MediaSource<MediaArtist> = {
 
 const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
     id: 'apple/playlists',
-    title: 'Playlists',
-    icon: 'playlist',
+    title: 'My Playlists',
+    icon: 'tick',
     itemType: ItemType.Playlist,
     viewType: ViewType.Library,
 
@@ -167,9 +167,9 @@ const apple: MediaService = {
         appleLibrarySongs,
         appleLibraryAlbums,
         appleLibraryArtists,
+        appleLibraryPlaylists,
         appleLibraryVideos,
         appleRecentlyPlayed,
-        appleLibraryPlaylists,
         appleRecommendations,
     ],
     labels: {
@@ -178,7 +178,6 @@ const apple: MediaService = {
         [Action.Like]: 'Love on Apple Music',
         [Action.Unlike]: 'Unlove on Apple Music',
     },
-
     canRate,
     canStore,
     compareForRating,

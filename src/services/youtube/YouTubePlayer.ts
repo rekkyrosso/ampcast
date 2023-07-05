@@ -277,7 +277,7 @@ export default class YouTubePlayer implements Player<string> {
                 this.player.playVideo();
             }
         } else {
-            this.error$.next(Error('YouTube player not loaded.'));
+            this.error$.next(Error('YouTube player not loaded'));
         }
     }
 

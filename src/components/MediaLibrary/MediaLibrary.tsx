@@ -25,6 +25,7 @@ export default memo(function MediaLibrary() {
                         <Icon className="app-icon" name="ampcast" />
                         <span className="app-text">{__app_name__}</span>
                     </span>
+                    {' '}
                     <span className="app-version">{__app_version__}</span>
                 </h1>
                 <IconButton

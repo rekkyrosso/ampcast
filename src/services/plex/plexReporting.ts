@@ -83,11 +83,3 @@ async function createPlayQueue(key: string): Promise<any> {
         },
     });
 }
-
-const plexReporting = {
-    reportStart,
-    reportStop,
-    reportProgress,
-};
-
-export default plexReporting;

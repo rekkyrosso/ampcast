@@ -3,6 +3,7 @@
     border-radius: calc(var(--roundness) * 1rem);
     user-select: none;
     contain: strict;
+    overflow: hidden;
 
     &:fullscreen {
         background: black;

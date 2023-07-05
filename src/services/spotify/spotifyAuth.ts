@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
-import Auth from 'types/Auth';
 import {sp_client_id} from 'services/credentials';
 import {Logger} from 'utils';
 import spotifyApi from './spotifyApi';
@@ -53,7 +52,7 @@ export async function login(): Promise<void> {
             const token = await obtainAccessToken();
             await storeAccessToken(token);
         } catch (err) {
-            logger.log('Could not obtain access token.');
+            logger.log('Could not obtain access token');
             logger.error(err);
         }
     }
@@ -223,7 +222,7 @@ function getAccessToken(): TokenStore | null {
 }
 
 function nextAccessToken(access_token: string): void {
-    logger.log('Access token successfully obtained.');
+    logger.log('Access token successfully obtained');
     accessToken$.next(access_token);
 }
 
@@ -248,15 +247,6 @@ async function getUserInfo(): Promise<void> {
         userSettings.setString('market', me.country);
     }
 }
-
-const spotifyAuth: Auth = {
-    observeIsLoggedIn,
-    isLoggedIn,
-    login,
-    logout,
-};
-
-export default spotifyAuth;
 
 (async function (): Promise<void> {
     try {

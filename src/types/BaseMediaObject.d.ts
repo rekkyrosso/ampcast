@@ -28,4 +28,7 @@ export default interface BaseMediaObject {
     readonly plex?: {
         readonly ratingKey: string;
     };
+    readonly subsonic?: {
+        readonly isDir?: boolean;
+    };
 }

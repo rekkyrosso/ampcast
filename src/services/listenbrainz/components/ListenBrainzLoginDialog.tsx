@@ -1,9 +1,11 @@
-import React, {useCallback, useId, useRef, useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import Dialog, {showDialog, DialogProps} from 'components/Dialog';
 import ExternalLink from 'components/ExternalLink';
 import Icon from 'components/Icon';
 import DialogButtons from 'components/Dialog/DialogButtons';
+import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import listenbrainzSettings from '../listenbrainzSettings';
+import listenbrainz from '../listenbrainz';
 import './ListenBrainzLoginDialog.scss';
 
 export async function showListenBrainzLoginDialog(): Promise<string> {
@@ -11,12 +13,17 @@ export async function showListenBrainzLoginDialog(): Promise<string> {
 }
 
 export default function ListenBrainzLoginDialog(props: DialogProps) {
-    const id = useId();
-    const [errorMessage, setErrorMessage] = useState('');
+    const id = listenbrainz.id;
+    const [connecting, setConnecting] = useState(false);
+    const [message, setMessage] = useState('');
     const dialogRef = useRef<HTMLDialogElement>(null);
     const userNameRef = useRef<HTMLInputElement>(null);
     const tokenRef = useRef<HTMLInputElement>(null);
     const profileUrl = 'https://listenbrainz.org/profile/';
+
+    const title = (
+        <MediaSourceLabel icon={listenbrainz.icon} text={`Log in to ${listenbrainz.name}`} />
+    );
 
     const login = useCallback(async () => {
         try {
@@ -25,7 +32,8 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
 
             listenbrainzSettings.userId = userId;
 
-            setErrorMessage('');
+            setConnecting(true);
+            setMessage('Connecting...');
 
             const response = await fetch(`https://api.listenbrainz.org/1/validate-token`, {
                 headers: {
@@ -41,18 +49,21 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
             const {valid, user_name} = await response.json();
 
             if (!valid) {
-                throw Error('Invalid token.');
+                throw Error('Invalid token');
             }
 
             if (user_name !== userId) {
-                throw Error('Token not valid for this user.');
+                throw Error('Token not valid for this user');
             }
+
+            setMessage('');
 
             dialogRef.current!.close(JSON.stringify({userId, token}));
         } catch (err: any) {
             console.error(err);
-            setErrorMessage(err.message || err.statusText || 'Error');
+            setMessage(err.message || err.statusText || 'Error');
         }
+        setConnecting(false);
     }, []);
 
     const handleSubmit = useCallback(
@@ -67,16 +78,17 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
         <Dialog
             {...props}
             className="listenbrainz-login-dialog login-dialog"
-            title="Log in to ListenBrainz"
+            title={title}
             ref={dialogRef}
         >
-            <form method="dialog" onSubmit={handleSubmit}>
+            <form id={`${id}-login`} method="dialog" onSubmit={handleSubmit}>
                 <div className="table-layout">
                     <p>
                         <label htmlFor={`${id}-username`}>User:</label>
                         <input
                             type="text"
                             id={`${id}-username`}
+                            name={`${id}-username`}
                             autoFocus
                             required
                             spellCheck={false}
@@ -87,10 +99,16 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
                     </p>
                     <p>
                         <label htmlFor={`${id}-token`}>Token:</label>
-                        <input type="password" id={`${id}-token`} required ref={tokenRef} />
+                        <input
+                            type="password"
+                            id={`${id}-token`}
+                            name={`${id}-token`}
+                            required
+                            ref={tokenRef}
+                        />
                     </p>
                 </div>
-                <p className="error">{errorMessage}</p>
+                <p className={`message ${connecting ? '' : 'error'}`}>{message}</p>
                 <p className="listenbrainz-link service-link">
                     <ExternalLink href={profileUrl}>
                         <Icon name="listenbrainz" />

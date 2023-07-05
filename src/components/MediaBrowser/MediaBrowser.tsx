@@ -23,6 +23,7 @@ import LastFmTopBrowser from 'services/lastfm/components/LastFmTopBrowser';
 import ListenBrainzHistoryBrowser from 'services/listenbrainz/components/ListenBrainzHistoryBrowser';
 import ListenBrainzRecentlyPlayedBrowser from 'services/listenbrainz/components/ListenBrainzRecentlyPlayedBrowser';
 import ListenBrainzTopBrowser from 'services/listenbrainz/components/ListenBrainzTopBrowser';
+import SubsonicGenreBrowser from 'services/subsonic/components/SubsonicGenreBrowser';
 import useObservable from 'hooks/useObservable';
 import useSearch from 'hooks/useSearch';
 import './MediaBrowser.scss';
@@ -92,12 +93,12 @@ function Router<T extends MediaObject>({service, sources}: MediaBrowserProps<T>)
         case 'lastfm/top/tracks':
         case 'lastfm/top/albums':
         case 'lastfm/top/artists':
-            return <LastFmTopBrowser source={source!} />;
+            return <LastFmTopBrowser source={source} />;
 
         case 'listenbrainz/top/tracks':
         case 'listenbrainz/top/albums':
         case 'listenbrainz/top/artists':
-            return <ListenBrainzTopBrowser source={source!} />;
+            return <ListenBrainzTopBrowser source={source} />;
 
         case 'lastfm/history':
             return <LastFmHistoryBrowser />;
@@ -111,17 +112,21 @@ function Router<T extends MediaObject>({service, sources}: MediaBrowserProps<T>)
         case 'listenbrainz/recently-played':
             return <ListenBrainzRecentlyPlayedBrowser />;
 
-        case 'jellyfin/folders':
-        case 'plex/folders':
-            return (
-                <FolderItemBrowser
-                    service={service}
-                    source={source as MediaSource<MediaFolderItem>}
-                />
-            );
+        case 'subsonic/albums-by-genre':
+        case 'subsonic/songs-by-genre':
+            return <SubsonicGenreBrowser source={source} />;
 
         default:
-            return <DefaultBrowser service={service} sources={sources} />;
+            if (source?.itemType === ItemType.Folder) {
+                return (
+                    <FolderItemBrowser
+                        service={service}
+                        source={source as MediaSource<MediaFolderItem>}
+                    />
+                );
+            } else {
+                return <DefaultBrowser service={service} sources={sources} />;
+            }
     }
 }
 

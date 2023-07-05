@@ -1,0 +1,308 @@
+import type {Observable} from 'rxjs';
+import type {BaseItemDto} from '@jellyfin/client-axios/dist/models';
+import {SetOptional, Writable} from 'type-fest';
+import ItemType from 'types/ItemType';
+import MediaAlbum from 'types/MediaAlbum';
+import MediaArtist from 'types/MediaArtist';
+import MediaFolder from 'types/MediaFolder';
+import MediaFolderItem from 'types/MediaFolderItem';
+import MediaItem from 'types/MediaItem';
+import MediaObject from 'types/MediaObject';
+import MediaPlaylist from 'types/MediaPlaylist';
+import MediaType from 'types/MediaType';
+import Pager, {Page, PagerConfig} from 'types/Pager';
+import Thumbnail from 'types/Thumbnail';
+import DualPager from 'services/pagers/DualPager';
+import OffsetPager from 'services/pagers/OffsetPager';
+import SimplePager from 'services/pagers/SimplePager';
+import ratingStore from 'services/actions/ratingStore';
+import pinStore from 'services/pins/pinStore';
+import {ParentOf} from 'utils';
+import embySettings from './embySettings';
+import embyApi from './embyApi';
+import emby from './emby';
+
+export default class EmbyPager<T extends MediaObject> implements Pager<T> {
+    static minPageSize = 10;
+    static maxPageSize = 500;
+
+    private readonly pager: Pager<T>;
+    private readonly pageSize: number;
+
+    constructor(
+        private readonly path: string,
+        private readonly params: Record<string, unknown> = {},
+        options?: Partial<PagerConfig>,
+        private readonly parent?: ParentOf<T>
+    ) {
+        this.pageSize = options?.pageSize || 200;
+        this.pager = new OffsetPager<T>((pageNumber) => this.fetch(pageNumber), {
+            pageSize: this.pageSize,
+            ...options,
+        });
+    }
+
+    get maxSize(): number | undefined {
+        return this.pager.maxSize;
+    }
+
+    observeItems(): Observable<readonly T[]> {
+        return this.pager.observeItems();
+    }
+
+    observeSize(): Observable<number> {
+        return this.pager.observeSize();
+    }
+
+    observeError(): Observable<unknown> {
+        return this.pager.observeError();
+    }
+
+    disconnect(): void {
+        this.pager.disconnect();
+    }
+
+    fetchAt(index: number, length: number): void {
+        this.pager.fetchAt(index, length);
+    }
+
+    private async fetch(pageNumber: number): Promise<Page<T>> {
+        const params = {
+            IncludeItemTypes: 'Audio',
+            Fields: 'AudioInfo,Genres,Path,ProductionYear,Overview,PresentationUniqueKey',
+            EnableUserData: true,
+            Recursive: true,
+            ImageTypeLimit: 1,
+            EnableImageTypes: 'Primary',
+            EnableTotalRecordCount: true,
+            ...this.params,
+            Limit: String(this.pageSize),
+            StartIndex: String((pageNumber - 1) * this.pageSize),
+        };
+
+        const data = await embyApi.get(this.path, params);
+
+        if ((data as BaseItemDto).Type) {
+            return {
+                items: [this.createItem(data as BaseItemDto)],
+                total: 1,
+            };
+        } else {
+            return {
+                items: data.Items?.map((item: BaseItemDto) => this.createItem(item)) || [],
+                total: data.TotalRecordCount || data.Items?.length,
+            };
+        }
+    }
+
+    private createItem(item: BaseItemDto): T {
+        if (this.parent?.itemType === ItemType.Folder && item.IsFolder) {
+            return this.createMediaFolder(item) as T;
+        } else {
+            let mediaObject: T;
+            switch (item.Type) {
+                case 'MusicArtist':
+                    mediaObject = this.createMediaArtist(item) as T;
+                    break;
+
+                case 'MusicAlbum':
+                    mediaObject = this.createMediaAlbum(item) as T;
+                    break;
+
+                case 'Playlist':
+                    mediaObject = this.createMediaPlaylist(item) as T;
+                    break;
+
+                default:
+                    mediaObject = this.createMediaItemFromTrack(item) as T;
+            }
+            if (emby.canRate(mediaObject)) {
+                (mediaObject as Writable<T>).rating = this.getRating(mediaObject, item);
+            }
+            return mediaObject;
+        }
+    }
+
+    private createMediaArtist(artist: BaseItemDto): MediaArtist {
+        return {
+            itemType: ItemType.Artist,
+            src: `emby:artist:${artist.Id}`,
+            externalUrl: this.getExternalUrl(artist),
+            title: artist.Name || '',
+            description: artist.Overview || undefined,
+            playCount: artist.UserData?.PlayCount || undefined,
+            genres: artist.Genres || undefined,
+            thumbnails: this.createThumbnails(artist),
+            pager: this.createAlbumsPager(artist),
+        };
+    }
+
+    private createMediaAlbum(album: BaseItemDto): MediaAlbum {
+        return {
+            itemType: ItemType.Album,
+            src: `emby:album:${album.Id}`,
+            externalUrl: this.getExternalUrl(album),
+            title: album.Name || '',
+            duration: album.RunTimeTicks ? album.RunTimeTicks / 10_000_000 : 0,
+            playedAt: album.UserData?.LastPlayedDate
+                ? Math.floor(new Date(album.UserData.LastPlayedDate).getTime() / 1000)
+                : undefined,
+            playCount: album.UserData?.PlayCount || undefined,
+            genres: album.Genres || undefined,
+            thumbnails: this.createThumbnails(album),
+            trackCount: album.ChildCount || undefined,
+            pager: this.createAlbumTracksPager(album),
+            artist: album.AlbumArtist || undefined,
+            year: album.ProductionYear || undefined,
+        };
+    }
+
+    private createMediaPlaylist(playlist: BaseItemDto): MediaPlaylist {
+        const src = `emby:playlist:${playlist.Id}`;
+        return {
+            src,
+            itemType: ItemType.Playlist,
+            externalUrl: this.getExternalUrl(playlist),
+            title: playlist.Name || '',
+            duration: playlist.RunTimeTicks ? playlist.RunTimeTicks / 10_000_000 : 0,
+            playedAt: playlist.UserData?.LastPlayedDate
+                ? Math.floor(new Date(playlist.UserData.LastPlayedDate).getTime() / 1000)
+                : undefined,
+            playCount: playlist.UserData?.PlayCount || undefined,
+            genres: playlist.Genres || undefined,
+            thumbnails: this.createThumbnails(playlist),
+            trackCount: playlist.ChildCount || undefined,
+            pager: this.createPlaylistPager(playlist),
+            isPinned: pinStore.isPinned(src),
+        };
+    }
+
+    private createMediaFolder(folder: BaseItemDto): MediaFolder {
+        const fileName = this.getFileName(folder.Path || '') || folder.Name || '[unknown]';
+        const mediaFolder: Writable<SetOptional<MediaFolder, 'pager'>> = {
+            itemType: ItemType.Folder,
+            src: `emby:folder:${folder.Id}`,
+            title: folder.Name || '[unknown]',
+            fileName,
+            path:
+                this.parent?.itemType === ItemType.Folder ? `${this.parent.path}/${fileName}` : '/',
+            parent: this.parent as ParentOf<MediaFolder>,
+        };
+        mediaFolder.pager = this.createFolderPager(mediaFolder as MediaFolder);
+        return mediaFolder as MediaFolder;
+    }
+
+    private createMediaItemFromTrack(track: BaseItemDto): MediaItem {
+        const isVideo = track.MediaType === 'Video';
+        return {
+            itemType: ItemType.Media,
+            mediaType: isVideo ? MediaType.Video : MediaType.Audio,
+            src: `emby:${isVideo ? 'video' : 'audio'}:${track.Id}:${
+                (track as any).PresentationUniqueKey || ''
+            }`,
+            externalUrl: this.getExternalUrl(track),
+            fileName: this.getFileName(track.Path || '') || track.Name || '[unknown]',
+            title: track.Name || '',
+            duration: track.RunTimeTicks ? track.RunTimeTicks / 10_000_000 : 0,
+            year: track.ProductionYear || undefined,
+            playedAt: track.UserData?.LastPlayedDate
+                ? Math.floor(new Date(track.UserData.LastPlayedDate).getTime() / 1000)
+                : 0,
+            playCount: track.UserData?.PlayCount || undefined,
+            genres: track.Genres || undefined,
+            thumbnails: this.createThumbnails(track),
+            artists: track.Artists?.length
+                ? track.Artists
+                : track.AlbumArtist
+                ? [track.AlbumArtist]
+                : undefined,
+            albumArtist: track.AlbumArtist || undefined,
+            album: track.Album || undefined,
+            disc: track.Album ? track.ParentIndexNumber || undefined : undefined,
+            track: track.Album ? track.IndexNumber || 0 : 0,
+        };
+    }
+
+    private createThumbnails(item: BaseItemDto): Thumbnail[] | undefined {
+        const thumbnailId = item.ImageTags?.Primary ? item.Id : item.AlbumId;
+        return thumbnailId
+            ? [
+                  this.createThumbnail(thumbnailId, 120),
+                  this.createThumbnail(thumbnailId, 240),
+                  this.createThumbnail(thumbnailId, 360),
+                  this.createThumbnail(thumbnailId, 480),
+              ]
+            : undefined;
+    }
+
+    private createThumbnail(id: string, width: number, height = width): Thumbnail {
+        const url = `${embySettings.host}/Items/${id}/Images/Primary?fillWidth=${width}&fillHeight=${height}`;
+        return {url, width, height};
+    }
+
+    private createAlbumTracksPager(album: BaseItemDto): Pager<MediaItem> {
+        return new EmbyPager(`Users/${embySettings.userId}/Items`, {
+            ParentId: album.Id!,
+            SortBy: 'IndexNumber',
+            SortOrder: 'Ascending',
+        });
+    }
+
+    private createAlbumsPager(artist: BaseItemDto): Pager<MediaAlbum> {
+        return new EmbyPager(`Users/${embySettings.userId}/Items`, {
+            AlbumArtistIds: artist.Id!,
+            IncludeItemTypes: 'MusicAlbum',
+            SortBy: 'ProductionYear,SortName',
+            SortOrder: 'Descending',
+        });
+    }
+
+    private createPlaylistPager(playlist: BaseItemDto): Pager<MediaItem> {
+        return new EmbyPager(`Playlists/${playlist.Id}/Items`, {
+            UserId: embySettings.userId,
+            MediaType: 'Audio',
+            Fields: 'ChildCount',
+        });
+    }
+
+    private createFolderPager(folder: MediaFolder): Pager<MediaFolderItem> {
+        const [, , id] = folder.src.split(':');
+        const folderPager = new EmbyPager<MediaFolderItem>(
+            `Users/${embySettings.userId}/Items`,
+            {
+                ParentId: id,
+                IncludeItemTypes: 'Folder,MusicAlbum,MusicArtist,Audio,MusicVideo',
+                Fields: 'AudioInfo,Genres,UserData,ParentId,Path,PresentationUniqueKey',
+                EnableUserData: true,
+                Recursive: false,
+                SortBy: 'IsFolder,IndexNumber,FileName',
+                SortOrder: 'Ascending',
+            },
+            {pageSize: this.pageSize},
+            folder
+        );
+        if (this.parent?.itemType === ItemType.Folder) {
+            const parentFolder: MediaFolderItem = {
+                ...this.parent,
+                fileName: `../${this.parent.fileName}`,
+            };
+            const backPager = new SimplePager([parentFolder]);
+            return new DualPager<MediaFolderItem>(backPager, folderPager);
+        } else {
+            return folderPager;
+        }
+    }
+
+    private getExternalUrl(item: BaseItemDto): string {
+        return `${embySettings.host}/web/index.html#!/item?id=${item.Id}&serverId=${embySettings.serverId}`;
+    }
+
+    private getFileName(path: string): string | undefined {
+        return path.split(/[/\\]/).pop();
+    }
+
+    private getRating(object: T, item: BaseItemDto): number | undefined {
+        const userData = item.UserData;
+        return ratingStore.get(object, userData ? (userData.IsFavorite ? 1 : 0) : undefined);
+    }
+}

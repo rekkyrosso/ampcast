@@ -44,18 +44,24 @@
         transition: opacity 1s linear;
     }
 
+    &.error &-state {
+        color: red;
+    }
+
     .no-visualizer:not(.is-playing-video) &:before,
     .no-visualizer:not(.is-playing-video) & .currently-playing,
     .media-playback.paused &:before,
     .media-playback.paused & .currently-playing,
-    &:not(.loaded):before,
-    &:not(.loaded) .currently-playing,
-    &:not(.loaded) &-state {
+    &:not(.playing):before,
+    &:not(.playing) .currently-playing,
+    &:not(.playing) &-state {
         opacity: 1;
     }
 
     &.is-recent:before,
+    &.error:before,
     &.is-recent &-state,
+    &.error &-state,
     .media-playback.paused &:before {
         transition: none;
     }

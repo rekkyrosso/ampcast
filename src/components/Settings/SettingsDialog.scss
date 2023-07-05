@@ -2,7 +2,8 @@
     width: 44em;
     height: 36em;
 
-    &::backdrop {
+    &::backdrop,
+    & + .backdrop {
         /* This helps with theme editing. */
         background: none;
     }

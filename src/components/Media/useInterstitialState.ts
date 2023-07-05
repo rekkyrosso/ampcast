@@ -1,11 +1,11 @@
 import {useEffect, useState} from 'react';
-import {take} from 'rxjs';
+import {Subscription, take} from 'rxjs';
 import LookupStatus from 'types/LookupStatus';
-import {observePlaying} from 'services/mediaPlayback';
+import {observeError, observePlaying} from 'services/mediaPlayback';
 import {hasPlayableSrc} from 'services/mediaServices';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 
-export type InterstitialState = 'searching' | 'loading' | 'loaded';
+export type InterstitialState = 'searching' | 'loading' | 'playing' | 'error';
 
 export default function useInterstitialState() {
     const [state, setState] = useState<InterstitialState>('searching');
@@ -21,22 +21,30 @@ export default function useInterstitialState() {
                 break;
 
             case LookupStatus.NotFound:
-                setState('loaded');
+                setState('error');
                 break;
 
             default:
                 if (item) {
                     if (hasPlayableSrc(item)) {
                         setState('loading');
-                        const subscription = observePlaying()
-                            .pipe(take(1))
-                            .subscribe(() => setState('loaded'));
+                        const subscription = new Subscription();
+                        subscription.add(
+                            observePlaying()
+                                .pipe(take(1))
+                                .subscribe(() => setState('playing'))
+                        );
+                        subscription.add(
+                            observeError()
+                                .pipe(take(1))
+                                .subscribe(() => setState('error'))
+                        );
                         return () => subscription.unsubscribe();
                     } else {
                         setState('searching');
                     }
                 } else {
-                    setState('loaded');
+                    setState('playing');
                 }
         }
     }, [item]);

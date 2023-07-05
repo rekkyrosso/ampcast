@@ -19,10 +19,15 @@ export default memo(function Interstitial() {
     }, [playlistItemId]);
 
     useEffect(() => {
-        setReady(false);
-        if (state === 'loaded') {
-            const timerId = setTimeout(() => setReady(true), 4500);
-            return () => clearTimeout(timerId);
+        if (state === 'error') {
+            setReady(true);
+            setIsRecent(false);
+        } else {
+            setReady(false);
+            if (state === 'playing') {
+                const timerId = setTimeout(() => setReady(true), 4500);
+                return () => clearTimeout(timerId);
+            }
         }
     }, [state]);
 
@@ -36,7 +41,7 @@ export default memo(function Interstitial() {
                 {item ? (
                     <>
                         <h2>{item.title}</h2>
-                        {item.artists ? (
+                        {item.artists?.length ? (
                             <>
                                 <span className="by">by</span>
                                 <h3>{item.artists.join(', ')}</h3>
@@ -48,7 +53,7 @@ export default memo(function Interstitial() {
                 )}
             </div>
             <p className="interstitial-state">
-                {paused ? '' : `${state === 'loaded' ? 'playing' : state}...`}
+                {paused ? '' : state === 'error' ? state : `${state}...`}
             </p>
         </div>
     );

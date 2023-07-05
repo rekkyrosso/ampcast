@@ -1,10 +1,10 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, filter, tap} from 'rxjs';
-import Auth from 'types/Auth';
+import {showEmbyLoginDialog} from 'services/emby/components/EmbyLoginDialog';
 import {Logger} from 'utils';
-import {showJellyfinLoginDialog} from './components/JellyfinLoginDialog';
 import jellyfinSettings from './jellyfinSettings';
 import jellyfinApi from './jellyfinApi';
+import jellyfin from './jellyfin';
 
 console.log('module::jellyfinAuth');
 
@@ -27,8 +27,9 @@ export function observeIsLoggedIn(): Observable<boolean> {
 
 export async function login(): Promise<void> {
     if (!isLoggedIn()) {
+        logger.log('login');
         try {
-            const returnValue = await showJellyfinLoginDialog();
+            const returnValue = await showEmbyLoginDialog(jellyfin, jellyfinSettings);
             if (returnValue) {
                 const {serverId, userId, token} = JSON.parse(returnValue);
                 jellyfinSettings.serverId = serverId;
@@ -36,13 +37,14 @@ export async function login(): Promise<void> {
                 setAccessToken(token);
             }
         } catch (err) {
-            logger.log('Could not obtain access token.');
+            logger.log('Could not obtain access token');
             logger.error(err);
         }
     }
 }
 
 export async function logout(): Promise<void> {
+    logger.log('logout');
     jellyfinSettings.clear();
     setAccessToken('');
     isLoggedIn$.next(false);
@@ -51,19 +53,10 @@ export async function logout(): Promise<void> {
 function setAccessToken(token: string): void {
     jellyfinSettings.token = token;
     if (token) {
-        logger.log('Access token successfully obtained.');
+        logger.log('Access token successfully obtained');
     }
     accessToken$.next(token);
 }
-
-const jellyfinAuth: Auth = {
-    observeIsLoggedIn,
-    isLoggedIn,
-    login,
-    logout,
-};
-
-export default jellyfinAuth;
 
 setAccessToken(jellyfinSettings.token);
 
@@ -76,14 +69,13 @@ observeAccessToken()
                 const libraries = await jellyfinApi.getMusicLibraries();
                 const library =
                     libraries.find((section) => section.id === jellyfinSettings.libraryId) ||
-                    libraries.find((section) => /m[uú][sz](i|ie)[ckq]/i.test(section.title)) ||
-                    libraries[0];
+                    libraries.find((section) => section.type === 'music');
                 jellyfinSettings.libraryId = library?.id || '';
                 jellyfinSettings.libraries = libraries;
+                isLoggedIn$.next(true);
             } catch (err) {
                 logger.error(err);
-            } finally {
-                isLoggedIn$.next(true);
+                isLoggedIn$.next(false);
             }
         })
     )

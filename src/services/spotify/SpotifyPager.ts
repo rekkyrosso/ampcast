@@ -15,7 +15,7 @@ import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import pinStore from 'services/pins/pinStore';
-import {exists, getTextFromHtml, Logger} from 'utils';
+import {exists, getTextFromHtml, Logger, sleep} from 'utils';
 import spotify, {
     SpotifyAlbum,
     SpotifyArtist,
@@ -75,6 +75,15 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                         await refreshToken();
                         const page = await fetchPage();
                         return page;
+                    } else if (err.status === 429) {
+                        const retryAfter = Number(err.headers?.get('Retry-After'));
+                        if (retryAfter && retryAfter <= 10) {
+                            await sleep(retryAfter * 1000);
+                            const page = await fetchPage();
+                            return page;
+                        } else {
+                            throw err;
+                        }
                     } else {
                         throw err;
                     }

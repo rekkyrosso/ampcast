@@ -69,7 +69,7 @@ export default class MusicKitV1Wrapper {
             }
             return instance;
         } else {
-            throw Error('Not configured.');
+            throw Error('Not configured');
         }
     }
 

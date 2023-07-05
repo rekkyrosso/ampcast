@@ -70,10 +70,10 @@ class LibraryStore extends Dexie {
                     values: {inLibrary},
                 });
             } else {
-                throw Error(`store() not supported by ${serviceId}.`);
+                throw Error(`store() not supported by ${serviceId}`);
             }
         } else {
-            throw Error(`Service not found '${serviceId}'.`);
+            throw Error(`Service not found '${serviceId}'`);
         }
     }
 

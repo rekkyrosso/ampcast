@@ -21,7 +21,7 @@ export interface HistoryBrowserProps extends PagedBrowserProps<MediaItem> {
 export default function HistoryBrowser({
     service,
     source,
-    minDate = '2010-01-1',
+    minDate = '2010-01-01',
     ...props
 }: HistoryBrowserProps) {
     const [startAt, setStartAt] = useState(0);

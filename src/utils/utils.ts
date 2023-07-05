@@ -32,12 +32,12 @@ export function chunk<T>(values: readonly T[], chunkSize = 1): T[][] {
     if (chunkSize <= 0) {
         return [];
     }
-    const temp = [...values];
-    const cache: T[][] = [];
-    while (temp.length) {
-        cache.push(temp.splice(0, chunkSize));
+    const chunks: T[][] = [];
+    const rest = [...values];
+    while (rest.length) {
+        chunks.push(rest.splice(0, chunkSize));
     }
-    return cache;
+    return chunks;
 }
 
 export function partition<T>(values: readonly T[], predicate: (value: T) => boolean): [T[], T[]] {
@@ -86,7 +86,7 @@ export function formatMonth(date?: number | string | Date): string {
 }
 
 export function formatTime(seconds: number): string {
-    return new Date(Math.round((seconds || 0) * 1000))
+    return new Date(Math.floor((seconds || 0) * 1000))
         .toISOString()
         .slice(11, 19) // time portion of: YYYY-MM-DDTHH:mm:ss.sssZ
         .replace(/^[0:]+(.{4,})$/, '$1'); // remove leading zeroes
@@ -143,9 +143,16 @@ export function fuzzyCompare(a: string, b: string, tolerance = 0.9): boolean {
 
 const dummyElement = document.createElement('p');
 
-export function getTextFromHtml(html: string): string {
-    dummyElement.innerHTML = html;
-    return dummyElement.textContent || '';
+export function getTextFromHtml(html = ''): string {
+    const paragraphs = html?.trim().split(/[\n\r]+/);
+    return (
+        paragraphs
+            ?.map((html) => {
+                dummyElement.innerHTML = html;
+                return dummyElement.textContent;
+            })
+            .join('\n') || ''
+    );
 }
 
 export function saveTextToFile(fileName: string, text: string, type = 'text/json'): void {
@@ -154,4 +161,8 @@ export function saveTextToFile(fileName: string, text: string, type = 'text/json
     link.download = fileName;
     link.type = type;
     link.click();
+}
+
+export function sleep(ms: number): Promise<void> {
+    return new Promise((resolve) => setTimeout(resolve, ms));
 }

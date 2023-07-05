@@ -349,7 +349,7 @@ loadingLocked$
         distinctUntilChanged(),
         switchMap((locked) => (locked ? EMPTY : observeNextItem())),
         distinctUntilChanged((a, b) => a?.id === b?.id),
-        debounceTime(10_000),
+        debounceTime(3_000),
         switchMap((item) => (item ? getPlayableItem(item) : EMPTY))
     )
     .subscribe(logger);

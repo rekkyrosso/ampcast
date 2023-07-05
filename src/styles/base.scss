@@ -86,6 +86,7 @@ small {
     @include inset;
     padding: 1rem;
     border-radius: var(--app-border-radius);
+    overflow: hidden;
 
     p {
         margin: 1em 0;
@@ -99,9 +100,12 @@ small {
     inset: 0;
 }
 
-#popup {
+#popup,
+#system {
     position: absolute;
     isolation: isolate;
+    width: 100vw;
+    background: none;
 
     &:empty {
         pointer-events: none;
@@ -114,14 +118,8 @@ small {
 }
 
 #system {
-    position: absolute;
-    isolation: isolate;
     contain: layout style size;
     font-size: calc(min(max(var(--font-size), 12), 20) * 1px);
-
-    &:empty {
-        pointer-events: none;
-    }
 }
 
 body.dragging {

@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged} from 'rxjs';
-import Auth from 'types/Auth';
 import {am_dev_token} from 'services/credentials';
 import {loadScript, Logger} from 'utils';
 import appleSettings from './appleSettings';
@@ -26,32 +25,34 @@ export async function login(): Promise<void> {
         try {
             const musicKit = await getMusicKit();
             await musicKit.authorize();
-            logger.log('Access token successfully obtained.');
+            logger.log('Access token successfully obtained');
             isLoggedIn$.next(true);
         } catch (err) {
-            logger.log('Could not obtain access token.');
+            logger.log('Could not obtain access token');
             logger.error(err);
         }
     }
 }
 
 export async function logout(): Promise<void> {
-    if (isLoggedIn()) {
-        logger.log('logout');
-        const musicKit = await getMusicKit();
-        try {
-            if (musicKit.isPlaying) {
-                musicKit.stop();
-            }
-            if (!musicKit.queue.isEmpty) {
-                await musicKit.setQueue({});
-            }
-        } catch (err) {
-            logger.error(err);
+    logger.log('logout');
+    const musicKit = await getMusicKit();
+    try {
+        if (musicKit.isPlaying) {
+            musicKit.stop();
         }
-        await musicKit.unauthorize();
-        isLoggedIn$.next(false);
+        if (!musicKit.queue.isEmpty) {
+            await musicKit.setQueue({});
+        }
+    } catch (err) {
+        logger.error(err);
     }
+    try {
+        await musicKit.unauthorize();
+    } catch (err) {
+        logger.error(err);
+    }
+    isLoggedIn$.next(false);
 }
 
 export async function refreshToken(): Promise<void> {
@@ -97,20 +98,11 @@ async function getMusicKit(): Promise<MusicKit.MusicKitInstance> {
     }
 }
 
-const appleAuth: Auth = {
-    observeIsLoggedIn,
-    isLoggedIn,
-    login,
-    logout,
-};
-
-export default appleAuth;
-
 (async function (): Promise<void> {
     const musicKit = await getMusicKit();
     if (musicKit.isAuthorized) {
         await musicKit.authorize();
-        logger.log('Access token successfully obtained.');
+        logger.log('Access token successfully obtained');
         isLoggedIn$.next(true);
     }
     musicKit.addEventListener(MusicKit.Events.authorizationStatusDidChange, () => {

@@ -90,7 +90,7 @@ export const TrackCount: RenderField<MediaPlaylist | MediaAlbum> = (item) => (
     <Text value={getCount(item.trackCount)} />
 );
 
-export const Year: RenderField<MediaAlbum | MediaItem> = (item) => <Text value={item.year} />;
+export const Year: RenderField<MediaAlbum | MediaItem> = (item) => <Text value={item.year || ''} />;
 
 export const Genre: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => (
     <Text value={item.genres?.join(', ')} />
@@ -109,7 +109,7 @@ export const Views: RenderField = (item) => {
 
 export const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
     if (!item.playedAt) {
-        return '';
+        return <span className="text last-played">unplayed</span>;
     }
     const date = new Date(item.playedAt * 1000);
     const elapsedTime = getElapsedTimeText(date.valueOf());
@@ -128,9 +128,7 @@ export const ListenDate: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
     return (
         <time className="text">
             <SunClock time={time} />
-            <span className="date">
-                {new Date(time).toLocaleDateString()}
-            </span>
+            <span className="date">{new Date(time).toLocaleDateString()}</span>
         </time>
     );
 };

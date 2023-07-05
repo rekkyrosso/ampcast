@@ -24,7 +24,7 @@ async function fetchJSON<T = any>({
         headers = {...headers, 'Content-Type': 'application/json'};
         body = JSON.stringify(body);
     }
-    const response = await fetch({
+    const response = await plexFetch({
         headers,
         body,
         ...rest,
@@ -32,7 +32,7 @@ async function fetchJSON<T = any>({
     return response.json();
 }
 
-async function fetch({
+async function plexFetch({
     host = plexSettings.host,
     path,
     method = 'GET',
@@ -55,7 +55,7 @@ async function fetch({
         token = host === plexSettings.host ? plexSettings.serverToken : plexSettings.userToken;
     }
 
-    const response = await window.fetch(`${host}${path}`, {
+    const response = await fetch(`${host}${path}`, {
         method,
         headers: {
             ...headers,
@@ -66,7 +66,7 @@ async function fetch({
     });
 
     if (!response.ok) {
-        throw Error(response.statusText);
+        throw response;
     }
 
     return response;
@@ -78,7 +78,7 @@ function getPlayableUrlFromSrc(src: string): string {
         const [, , key] = src.split(':');
         return `${host}${key}?X-Plex-Token=${serverToken}`;
     } else {
-        throw Error('Not logged in.');
+        throw Error('Not logged in');
     }
 }
 
@@ -105,7 +105,7 @@ function getHeaders(token: string): Record<string, string> {
 }
 
 const plexApi = {
-    fetch,
+    fetch: plexFetch,
     fetchJSON,
     getPlayableUrlFromSrc,
 };

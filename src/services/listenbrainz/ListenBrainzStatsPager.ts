@@ -114,7 +114,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
             const atEnd = payload.offset + items.length >= total;
             return {items, total, atEnd};
         } else {
-            throw Error('Unknown response.');
+            throw Error('Unknown response');
         }
     }
 

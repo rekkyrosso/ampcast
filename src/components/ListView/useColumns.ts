@@ -12,14 +12,7 @@ export default function useColumns<T>(layout: ListViewLayout<T>) {
             layout.cols.reduce<Column<T>[]>((cols, spec, index) => {
                 const prevCol = cols[index - 1];
                 const left = prevCol ? prevCol.left + prevCol.width : 0;
-                const {
-                    title = '',
-                    className = '',
-                    align = 'left',
-                    sortOrder = 'none',
-                    sortPriority = 0,
-                    width = 200,
-                } = spec;
+                const {title = '', className = '', align = 'left', width = 200} = spec;
                 const style = sizeable
                     ? {
                           left: `${left}px`,
@@ -40,8 +33,6 @@ export default function useColumns<T>(layout: ListViewLayout<T>) {
                     left,
                     width,
                     style,
-                    sortOrder,
-                    sortPriority,
                 });
                 return cols;
             }, [])

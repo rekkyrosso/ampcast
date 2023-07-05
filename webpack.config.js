@@ -20,7 +20,7 @@ module.exports = (env) => {
                 'audiomotion-analyzer',
                 'detect-browser',
                 'dexie',
-                'dialog-polyfill',
+                'libs/dialog-polyfill',
                 'fullscreen-api-polyfill',
                 'md5',
                 'react',
@@ -94,6 +94,10 @@ module.exports = (env) => {
                 __yt_api_key__: JSON.stringify(keys.yt_api_key),
                 __yt_client_id__: JSON.stringify(keys.yt_client_id),
             }),
+            new webpack.BannerPlugin({
+                include: 'lib/vendors',
+                banner: 'For license information please see dialog-polyfill.js.LICENSE.txt',
+            }),
         ],
         resolve: {
             alias: {
@@ -104,6 +108,7 @@ module.exports = (env) => {
                 styles: resolve(__dirname, 'src/styles/'),
                 types: resolve(__dirname, 'src/types/'),
                 utils: resolve(__dirname, 'src/utils/'),
+                libs: resolve(__dirname, 'libs/'),
             },
             extensions: ['.tsx', '.ts', '.js'],
         },

@@ -23,7 +23,7 @@ export default function useMediaSession() {
     const duration = useObservable(observeDuration, 0);
 
     useEffect(() => {
-        navigator.mediaSession.setPositionState({duration, position, playbackRate: 1});
+        navigator.mediaSession?.setPositionState({duration, position, playbackRate: 1});
     }, [duration, position]);
 
     useEffect(() => updateSession(state?.currentItem), [state]);
@@ -32,29 +32,31 @@ export default function useMediaSession() {
 
 function updateSession(item: MediaItem | null = null): void {
     const mediaSession = navigator.mediaSession;
-    if (item) {
-        mediaSession.metadata = new MediaMetadata({
-            title: item.title,
-            artist: item.artists?.join(', '),
-            // Windows 10 seems to favour `album` over `artist`.
-            // So suppress `album` if `artist` is available.
-            album: item.artists ? '' : item.album,
-            artwork: item.thumbnails?.map((thumbnail) => ({
-                src: getThumbnailUrl(thumbnail),
-                sizes: `${thumbnail.width}x${thumbnail.height}`,
-            })),
+    if (mediaSession) {
+        if (item) {
+            mediaSession.metadata = new MediaMetadata({
+                title: item.title,
+                artist: item.artists?.join(', '),
+                // Windows 10 seems to favour `album` over `artist`.
+                // So suppress `album` if `artist` is available.
+                album: item.artists ? '' : item.album,
+                artwork: item.thumbnails?.map((thumbnail) => ({
+                    src: getThumbnailUrl(thumbnail),
+                    sizes: `${thumbnail.width}x${thumbnail.height}`,
+                })),
+            });
+        }
+
+        // NOt really sure these updating every time but nothing else works particularly well.
+        mediaSession.setActionHandler('play', play);
+        mediaSession.setActionHandler('pause', pause);
+        mediaSession.setActionHandler('stop', stop);
+        mediaSession.setActionHandler('previoustrack', prev);
+        mediaSession.setActionHandler('nexttrack', next);
+        mediaSession.setActionHandler('seekto', (details) => {
+            if (details.seekTime != null) {
+                seek(details.seekTime);
+            }
         });
     }
-
-    // NOt really sure these updating every time but nothing else works particularly well.
-    mediaSession.setActionHandler('play', play);
-    mediaSession.setActionHandler('pause', pause);
-    mediaSession.setActionHandler('stop', stop);
-    mediaSession.setActionHandler('previoustrack', prev);
-    mediaSession.setActionHandler('nexttrack', next);
-    mediaSession.setActionHandler('seekto', (details) => {
-        if (details.seekTime != null) {
-            seek(details.seekTime);
-        }
-    });
 }

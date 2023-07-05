@@ -6,7 +6,6 @@
             "dom.iterable",
             "esnext"
         ],
-        "allowJs": true,
         "skipLibCheck": true,
         "esModuleInterop": true,
         "allowSyntheticDefaultImports": true,
@@ -24,7 +23,8 @@
             "hooks/*": [ "hooks/*" ],
             "styles/*": ["styles/*"],
             "types/*": [ "types/*" ],
-            "utils/*": [ "utils/*" ]
+            "utils/*": [ "utils/*" ],
+            "libs/*": [ "../libs/*" ]
         },
         "typeRoots": [
             "node_modules/musickit-typescript",
@@ -32,6 +32,7 @@
         ]
     },
     "include": [
+        "libs/**/*",
         "src/**/*"
     ],
     "exclude": [

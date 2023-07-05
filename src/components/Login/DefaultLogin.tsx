@@ -7,7 +7,10 @@ export default function DefaultLogin({service}: LoginProps) {
     return (
         <div className="panel">
             <div className="page login">
-                <p>You need to be logged in to play music from {service.name}.</p>
+                <p>
+                    You need to be logged in to{' '}
+                    {service.isScrobbler ? 'access your data' : 'play music'} from {service.name}.
+                </p>
                 <LoginButton service={service} />
                 <ServiceLink service={service} />
             </div>

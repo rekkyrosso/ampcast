@@ -1,7 +1,10 @@
 import type {Observable} from 'rxjs';
-import {Subject, fromEvent, map} from 'rxjs';
+import {Subject, filter, fromEvent, map} from 'rxjs';
 import Player from 'types/Player';
+import embyApi from 'services/emby/embyApi';
 import jellyfinApi from 'services/jellyfin/jellyfinApi';
+import navidromeApi from 'services/navidrome/navidromeApi';
+import subsonicApi from 'services/subsonic/subsonicApi';
 import plexApi from 'services/plex/plexApi';
 import {Logger} from 'utils';
 
@@ -25,9 +28,9 @@ export default class HTML5Player implements Player<string> {
             .pipe(map(() => element.error))
             .subscribe(this.error$);
 
-        const logger = (this.logger = new Logger(`HTML5Player/${type}/${id}`));
+        this.logger = new Logger(`HTML5Player/${type}/${id}`);
 
-        this.observeError().subscribe(logger.error);
+        this.observeError().subscribe(this.logger.error);
     }
 
     get hidden(): boolean {
@@ -72,7 +75,7 @@ export default class HTML5Player implements Player<string> {
     observeDuration(): Observable<number> {
         return fromEvent(this.element, 'durationchange').pipe(
             map(() => this.element.duration),
-            map((duration) => (isFinite(duration) ? duration : 0))
+            filter((duration) => isFinite(duration))
         );
     }
 
@@ -96,9 +99,9 @@ export default class HTML5Player implements Player<string> {
         this.logger.log('load');
         this.src = src;
         try {
-            const mediaSource = this.getMediaSource(this.src);
-            this.element.setAttribute('src', mediaSource);
             if (this.autoplay) {
+                const mediaSource = this.getMediaSource(this.src);
+                this.element.setAttribute('src', mediaSource);
                 this.safePlay();
             }
         } catch (err) {
@@ -140,12 +143,26 @@ export default class HTML5Player implements Player<string> {
     }
 
     private getMediaSource(src: string): string {
-        if (src.startsWith('jellyfin:')) {
-            return jellyfinApi.getPlayableUrlFromSrc(src);
-        } else if (src.startsWith('plex:')) {
-            return plexApi.getPlayableUrlFromSrc(src);
-        } else {
-            return src;
+        const [serviceId] = src.split(':');
+
+        switch (serviceId) {
+            case 'emby':
+                return embyApi.getPlayableUrlFromSrc(src);
+
+            case 'jellyfin':
+                return jellyfinApi.getPlayableUrlFromSrc(src);
+
+            case 'navidrome':
+                return navidromeApi.getPlayableUrlFromSrc(src);
+
+            case 'plex':
+                return plexApi.getPlayableUrlFromSrc(src);
+
+            case 'subsonic':
+                return subsonicApi.getPlayableUrlFromSrc(src);
+
+            default:
+                return src;
         }
     }
 

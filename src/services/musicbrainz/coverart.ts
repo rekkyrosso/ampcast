@@ -21,8 +21,8 @@ class CoverArtStore extends Dexie {
     constructor() {
         super('ampcast/musicbrainz/coverart');
 
-        this.version(1).stores({
-            items: `&mbid, album, artist, thumbnails`,
+        this.version(2).stores({
+            items: `&mbid, [album+artist], thumbnails`,
         });
     }
 }

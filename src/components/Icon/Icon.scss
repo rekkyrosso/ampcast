@@ -77,6 +77,25 @@
         }
     }
 
+    &-emby {
+        &-inner {
+            fill: var(--background-color);
+        }
+
+        .emby-connected &,
+        &:not(.show-connectivity) {
+            .icon-emby {
+                &-inner {
+                    fill: white;
+                }
+
+                &-outer {
+                    fill: #52b54b;
+                }
+            }
+        }
+    }
+
     &-jellyfin {
         .jellyfin-connected &,
         &:not(.show-connectivity) {
@@ -140,6 +159,13 @@
         }
     }
 
+    &-navidrome {
+        .navidrome-connected &,
+        &:not(.show-connectivity) {
+            fill: #0084ff;
+        }
+    }
+
     &-plex {
         &-inner {
             fill: var(--background-color);
@@ -168,6 +194,13 @@
         .spotify-connected &,
         &:not(.show-connectivity) {
             fill: #1ed760;
+        }
+    }
+
+    &-subsonic {
+        .subsonic-connected &,
+        &:not(.show-connectivity) {
+            fill: #ffd220;
         }
     }
 

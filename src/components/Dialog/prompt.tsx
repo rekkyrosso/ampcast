@@ -5,7 +5,7 @@ import showDialog from './showDialog';
 import './prompt.scss';
 
 export interface PromptOptions {
-    title?: string;
+    title?: React.ReactNode;
     label?: React.ReactNode;
     suggestedValue?: string;
     okLabel?: React.ReactNode;

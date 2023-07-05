@@ -86,13 +86,13 @@ export async function getYouTubeVideoInfo(videoId: string): Promise<MediaItem> {
     if (!response.ok) {
         switch (response.status) {
             case 401:
-                throw Error('Embedding prevented by channel owner.');
+                throw Error('Embedding prevented by channel owner');
 
             case 403:
-                throw Error('Private video.');
+                throw Error('Private video');
 
             case 404:
-                throw Error('Video does not exist.');
+                throw Error('Video does not exist');
 
             default:
                 throw Error(`${response.statusText} (${response.status})`);
@@ -160,7 +160,6 @@ const youtube: MediaService = {
         },
     ],
     sources: [youtubeLikes, youtubePlaylists],
-
     canRate: () => false,
     canStore: () => false,
     compareForRating: () => false,

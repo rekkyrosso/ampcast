@@ -19,8 +19,7 @@ import {observeIsLoggedIn, refreshToken} from './appleAuth';
 
 const logger = new Logger('MusicKitPlayer');
 
-const ERR_NOT_CONNECTED = 'Apple Music player not connected.';
-const ERR_VIDEO_PLAYBACK_NOT_SUPPORTED = 'Video playback not supported.';
+const ERR_NOT_CONNECTED = 'Apple Music player not connected';
 
 export class MusicKitPlayer implements Player<string> {
     private player?: MusicKit.MusicKitInstance;
@@ -86,7 +85,7 @@ export class MusicKitPlayer implements Player<string> {
                 switchMap((src) => {
                     if (src && src !== this.loadedSrc) {
                         if (!this.canPlay(src)) {
-                            this.error$.next(Error(ERR_VIDEO_PLAYBACK_NOT_SUPPORTED));
+                            this.error$.next(Error(this.getUnplayableReason(src)));
                             return EMPTY;
                         }
                         const [, type, id] = src.split(':');
@@ -216,7 +215,7 @@ export class MusicKitPlayer implements Player<string> {
                 if (src === this.loadedSrc) {
                     this.safePlay();
                 } else if (!this.canPlay(src)) {
-                    this.error$.next(Error(ERR_VIDEO_PLAYBACK_NOT_SUPPORTED));
+                    this.error$.next(Error(this.getUnplayableReason(src)));
                 }
             }
         } else if (this.autoplay) {
@@ -232,7 +231,7 @@ export class MusicKitPlayer implements Player<string> {
             if (this.src === this.loadedSrc) {
                 this.safePlay();
             } else if (!this.canPlay(this.src)) {
-                this.error$.next(Error(ERR_VIDEO_PLAYBACK_NOT_SUPPORTED));
+                this.error$.next(Error(this.getUnplayableReason(this.src)));
             }
         } else if (!this.isLoggedIn) {
             this.error$.next(Error(ERR_NOT_CONNECTED));
@@ -294,12 +293,23 @@ export class MusicKitPlayer implements Player<string> {
     }
 
     private canPlay(src: string): boolean {
-        return this.player?.version.startsWith('1') ? !/musicVideo/.test(src) : true;
+        return !this.getUnplayableReason(src);
+    }
+
+    private getUnplayableReason(src: string): string {
+        const [, type, id] = src.split(':');
+        if (id === 'UNPLAYABLE') {
+            return 'Unplayable';
+        } else if (/video/i.test(type) && this.player?.version.startsWith('1')) {
+            return 'Video playback not supported';
+        } else {
+            return '';
+        }
     }
 
     private async safePlay(): Promise<void> {
         try {
-            if (this.player?.isPlaying === false) {
+            if (this.src && this.src === this.loadedSrc && this.player?.isPlaying === false) {
                 await this.player.play();
                 this.hasPlayed = true;
             }

@@ -173,7 +173,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     private createMediaArtist(artist: plex.Artist): MediaArtist {
         return {
             itemType: ItemType.Artist,
-            src: `plex:album:${artist.ratingKey}`,
+            src: `plex:artist:${artist.ratingKey}`,
             externalUrl: this.getExternalUrl(`/library/metadata/${artist.ratingKey}`),
             title: artist.title,
             description: artist.summary,
@@ -300,7 +300,12 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
 
     private createFolderPager(folder: MediaFolder): Pager<MediaFolderItem> {
         const [, , key] = folder.src.split(':');
-        const folderPager = new PlexPager<MediaFolderItem>(key, undefined, undefined, folder);
+        const folderPager = new PlexPager<MediaFolderItem>(
+            key,
+            undefined,
+            {pageSize: this.pageSize},
+            folder
+        );
         if (this.parent?.itemType === ItemType.Folder) {
             const parentFolder: MediaFolderItem = {
                 ...this.parent,

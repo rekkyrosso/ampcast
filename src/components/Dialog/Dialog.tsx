@@ -9,12 +9,13 @@ import React, {
 import {Except} from 'type-fest';
 import {stopPropagation} from 'utils';
 import Icon from 'components/Icon';
-import dialogPolyfill from 'dialog-polyfill';
-import 'dialog-polyfill/dialog-polyfill.css';
+import dialogPolyfill from 'libs/dialog-polyfill';
+import 'libs/dialog-polyfill/dialog-polyfill.css';
 import './Dialog.scss';
 
 export interface DialogProps
-    extends Except<React.DialogHTMLAttributes<HTMLDialogElement>, 'onClose'> {
+    extends Except<React.DialogHTMLAttributes<HTMLDialogElement>, 'title' | 'onClose'> {
+    title?: React.ReactNode;
     onClose: (returnValue: string) => void;
 }
 

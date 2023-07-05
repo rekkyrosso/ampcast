@@ -5,6 +5,8 @@
  * @license  MIT
  */
 
+/*! For license information please see dialog-polyfill.js.LICENSE.txt */
+
 /**
  * @license React
  * react-dom.production.min.js

@@ -18,9 +18,9 @@ export default function AddYouTubeVideo() {
             const item = await getYouTubeVideoInfo(videoId!);
             const duration = await getYouTubeVideoDuration(item.src);
             await playlist.add({...item, duration});
-            setMessage('Queued.');
+            setMessage('Queued');
         } catch (err: any) {
-            setMessage(err.message || 'This video cannot be embedded.');
+            setMessage(err.message || 'This video cannot be embedded');
         }
     }, []);
 

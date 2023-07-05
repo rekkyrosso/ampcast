@@ -29,8 +29,8 @@ export const actionLabels: Record<LibraryAction, string> = {
     [Action.AddToLibrary]: 'Add to library',
     [Action.RemoveFromLibrary]: 'Remove from library',
     [Action.Rate]: 'Rate',
-    [Action.Like]: 'Love',
-    [Action.Unlike]: 'Unlove',
+    [Action.Like]: 'Like',
+    [Action.Unlike]: 'Unlike',
 };
 
 export default function Actions({item, inline}: ActionsProps) {
@@ -94,7 +94,7 @@ export default function Actions({item, inline}: ActionsProps) {
                 />
             ) : null}
 
-            {item.itemType === ItemType.Playlist ? (
+            {item.itemType === ItemType.Playlist && service?.createSourceFromPin ? (
                 <IconButton
                     icon={item.isPinned ? 'pin-fill' : 'pin'}
                     title={item.isPinned ? 'Unpin' : 'Pin to sidebar'}

@@ -5,6 +5,7 @@ import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import Pager, {Page} from 'types/Pager';
+import {getLookupServices} from 'services/mediaServices';
 import {musicBrainzHost} from 'services/musicbrainz';
 import SequentialPager from 'services/pagers/SequentialPager';
 import {getYouTubeSrc, getYouTubeUrl} from 'services/youtube';
@@ -178,8 +179,8 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
                 }
             }
             const musicServiceName = info.music_service_name?.toLowerCase() || '';
-            const serviceIds = 'jellyfin|spotify|youtube|apple|plex'.split('|');
-            for (const serviceId of serviceIds) {
+            const lookupServiceIds = getLookupServices().map((service) => service.id);
+            for (const serviceId of lookupServiceIds) {
                 if (musicServiceName.includes(serviceId)) {
                     return `${serviceId}:`;
                 }

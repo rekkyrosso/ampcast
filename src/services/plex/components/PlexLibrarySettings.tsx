@@ -7,7 +7,7 @@ export default function PlexLibrarySettings() {
     const id = useId();
     const ref = useRef<HTMLSelectElement>(null);
     const preferredLibrary = plexSettings.libraryId;
-    const sections = usePlexMusicLibraries();
+    const libraries = usePlexMusicLibraries();
 
     const handleSubmit = useCallback(() => {
         plexSettings.libraryId = ref.current!.value;
@@ -15,9 +15,9 @@ export default function PlexLibrarySettings() {
 
     return (
         <form className="plex-library-settings" method="dialog" onSubmit={handleSubmit}>
-            <label htmlFor={`${id}-sections`}>Preferred Library:</label>
-            <select id={`${id}-sections`} defaultValue={preferredLibrary} ref={ref}>
-                {sections.map(({key, title}) => (
+            <label htmlFor={`${id}-libraries`}>Preferred Library:</label>
+            <select id={`${id}-libraries`} defaultValue={preferredLibrary} ref={ref}>
+                {libraries.map(({key, title}) => (
                     <option value={key} key={key}>
                         {title}
                     </option>

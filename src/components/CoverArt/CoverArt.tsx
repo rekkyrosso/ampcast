@@ -6,6 +6,8 @@ import MediaType from 'types/MediaType';
 import Thumbnail from 'types/Thumbnail';
 import {findListen} from 'services/localdb/listens';
 import {getCoverArtThumbnails} from 'services/musicbrainz/coverart';
+import navidromeSettings from 'services/navidrome/navidromeSettings';
+import subsonicSettings from 'services/subsonic/subsonicSettings';
 import plexSettings from 'services/plex/plexSettings';
 import Icon, {IconName} from 'components/Icon';
 import './CoverArt.scss';
@@ -75,7 +77,10 @@ function findBestThumbnail(thumbnails: Thumbnail[], size = 240): Thumbnail {
 }
 
 export function getThumbnailUrl(thumbnail: Thumbnail): string {
-    return thumbnail.url.replace('{plex-token}', plexSettings.serverToken);
+    return thumbnail.url
+        .replace('{plex-token}', plexSettings.serverToken)
+        .replace('{navidrome-credentials}', navidromeSettings.credentials)
+        .replace('{subsonic-credentials}', subsonicSettings.credentials);
 }
 
 function getFallbackIcon(item: MediaObject): IconName {

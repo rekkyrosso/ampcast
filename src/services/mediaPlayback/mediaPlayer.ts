@@ -33,7 +33,9 @@ function selectPlayer(item: PlaylistItem | null): Player<string> | null {
 
 function loadPlayer(player: Player<string>, item: PlaylistItem | null): void {
     if (item?.unplayable) {
-        throw Error('Unplayable.');
+        const parts = item.src.split(':');
+        parts[2] = 'UNPLAYABLE';
+        player.load(parts.join(':'));
     } else {
         player.load(getMediaSource(item));
     }

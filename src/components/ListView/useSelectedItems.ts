@@ -21,11 +21,9 @@ export default function useSelectedItems<T>(
                     if (rowIndex < size) {
                         const item = items[rowIndex];
                         setSelectedItems(item ? [item] : []);
-                    } else if (rowIndex === size) {
-                        const item = items[rowIndex - 1];
-                        setSelectedItems(item ? [item] : []);
                     } else {
-                        setSelectedItems(newSelectedItems);
+                        const item = items[size - 1];
+                        setSelectedItems(item ? [item] : []);
                     }
                 } else {
                     setSelectedItems(newSelectedItems);

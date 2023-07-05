@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, filter, tap} from 'rxjs';
-import Auth from 'types/Auth';
 import {exists, Logger} from 'utils';
 import plexSettings from './plexSettings';
 import plexApi from './plexApi';
@@ -39,18 +38,20 @@ export function observeIsLoggedIn(): Observable<boolean> {
 
 export async function login(): Promise<void> {
     if (!isLoggedIn()) {
+        logger.log('login');
         try {
             const {id, authToken} = await obtainAccessToken();
             plexSettings.userId = id;
             setAccessToken(authToken);
         } catch (err) {
-            logger.log('Could not obtain access token.');
+            logger.log('Could not obtain access token');
             logger.error(err);
         }
     }
 }
 
 export async function logout(): Promise<void> {
+    logger.log('logout');
     plexSettings.clear();
     setAccessToken('');
     isConnected$.next(false);
@@ -60,19 +61,10 @@ export async function logout(): Promise<void> {
 function setAccessToken(token: string): void {
     plexSettings.userToken = token;
     if (token) {
-        logger.log('Access token successfully obtained.');
+        logger.log('Access token successfully obtained');
     }
     accessToken$.next(token);
 }
-
-const plexAuth: Auth = {
-    observeIsLoggedIn,
-    isLoggedIn,
-    login,
-    logout,
-};
-
-export default plexAuth;
 
 setAccessToken(plexSettings.userToken);
 
@@ -158,19 +150,24 @@ isConnected$
         filter((isConnected) => isConnected),
         tap(async () => {
             logger.log('Connected');
-            const {
-                MediaContainer: {Directory: sections},
-            } = await plexApi.fetchJSON<plex.DirectoryResponse>({
-                path: '/library/sections',
-            });
-            const libraries = sections.filter((section) => section.type === 'artist');
-            const library =
-                libraries.find((section) => section.key === plexSettings.libraryId) ||
-                libraries.find((section) => /m[uú][sz](i|ie)[ckq]/i.test(section.title)) ||
-                libraries[0];
-            plexSettings.libraryId = library?.key || '';
-            plexSettings.sections = libraries;
-            isLoggedIn$.next(true);
+            try {
+                const {
+                    MediaContainer: {Directory: sections},
+                } = await plexApi.fetchJSON<plex.DirectoryResponse>({
+                    path: '/library/sections',
+                });
+                const libraries = sections.filter((section) => section.type === 'artist');
+                const library =
+                    libraries.find((section) => section.key === plexSettings.libraryId) ||
+                    libraries.find((section) => /m[uú][sz](i|ie)[ckq]/i.test(section.title)) ||
+                    libraries[0];
+                plexSettings.libraryId = library?.key || '';
+                plexSettings.sections = libraries;
+            } catch (err) {
+                logger.error(err);
+            } finally {
+                isLoggedIn$.next(true);
+            }
         })
     )
     .subscribe(logger);
@@ -210,7 +207,7 @@ async function obtainAccessToken(): Promise<{id: string; authToken: string}> {
                         } else if (attemptsRemaining) {
                             setTimeout(checkForToken, 200);
                         } else {
-                            reject('Timeout.');
+                            reject('Timeout');
                         }
                     } catch (err) {
                         reject(err);

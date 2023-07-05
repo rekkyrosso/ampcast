@@ -1,14 +1,17 @@
 import MediaService from 'types/MediaService';
 import apple from 'services/apple';
+import emby from 'services/emby';
 import jellyfin from 'services/jellyfin';
 import lastfm from 'services/lastfm';
 import listenbrainz from 'services/listenbrainz';
+import navidrome from 'services/navidrome';
 import plex from 'services/plex';
 import spotify from 'services/spotify';
+import subsonic from 'services/subsonic';
 import youtube from 'services/youtube';
 
 export function getAllServices(): readonly MediaService[] {
-    return [apple, spotify, youtube, plex, jellyfin, lastfm, listenbrainz];
+    return [apple, spotify, youtube, plex, emby, jellyfin, navidrome, subsonic, lastfm, listenbrainz];
 }
 
 export function getLookupServices(): readonly MediaService[] {

@@ -4,11 +4,6 @@ dialog {
     border: 0;
     padding: 0;
     color: inherit;
-
-    & + .backdrop {
-        /* Turn off shim background. */
-        background: none;
-    }
 }
 
 .dialog {
@@ -38,13 +33,14 @@ dialog {
     isolation: isolate;
     contain: content;
 
-    &::backdrop {
-        background: rgba(0, 0, 0, 0.1);
+    &::backdrop,
+    & + .backdrop {
+         background: rgba(0, 0, 0, 0.1);
 
-        .app & {
-            background: rgba(0, 0, 0, 0.2);
-        }
-    }
+         .app & {
+             background: rgba(0, 0, 0, 0.2);
+         }
+     }
 
     .system & {
         border-radius: 0.5em;

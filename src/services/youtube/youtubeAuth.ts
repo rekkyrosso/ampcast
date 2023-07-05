@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
-import Auth from 'types/Auth';
 import {yt_api_key, yt_client_id} from 'services/credentials';
 import {loadScript, Logger} from 'utils';
 
@@ -34,34 +33,26 @@ function getAccessToken(): string {
 
 export async function login(): Promise<void> {
     if (!isLoggedIn()) {
+        logger.log('login');
         try {
             const accessToken = await obtainAccessToken();
-            logger.log('Access token successfully obtained.');
+            logger.log('Access token successfully obtained');
             accessToken$.next(accessToken);
         } catch (err) {
-            logger.log('Could not obtain access token.');
+            logger.log('Could not obtain access token');
             logger.error(err);
         }
     }
 }
 
 export async function logout(): Promise<void> {
+    logger.log('logout');
     const accessToken = getAccessToken();
     if (accessToken) {
         const oauth2 = await getGsiClient();
         oauth2.revoke(accessToken, () => accessToken$.next(''));
-        google.accounts.id.disableAutoSelect();
     }
 }
-
-const youtubeAuth: Auth = {
-    observeIsLoggedIn,
-    isLoggedIn,
-    login,
-    logout,
-};
-
-export default youtubeAuth;
 
 async function getGApi(): Promise<typeof gapi> {
     if (!window.gapi) {
@@ -117,7 +108,7 @@ async function obtainAccessToken(): Promise<string> {
     const client = await getGApiClient();
     const token = client.getToken();
     if (token) {
-        logger.log('Access token successfully obtained.');
+        logger.log('Access token successfully obtained');
         accessToken$.next(token.access_token);
     }
 

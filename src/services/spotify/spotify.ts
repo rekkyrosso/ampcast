@@ -162,8 +162,8 @@ const spotifyLikedAlbums: MediaSource<MediaAlbum> = {
 
 const spotifyPlaylists: MediaSource<MediaPlaylist> = {
     id: 'spotify/playlists',
-    title: 'Playlists',
-    icon: 'playlist',
+    title: 'My Playlists',
+    icon: 'heart',
     itemType: ItemType.Playlist,
     viewType: ViewType.Library,
     secondaryLayout: playlistItemsLayout,
@@ -225,10 +225,10 @@ const spotify: MediaService = {
     sources: [
         spotifyLikedSongs,
         spotifyLikedAlbums,
+        spotifyPlaylists,
         spotifyRecentlyPlayed,
         spotifyTopTracks,
         spotifyTopArtists,
-        spotifyPlaylists,
         spotifyFeaturedPlaylists,
     ],
     icons: {
@@ -239,7 +239,6 @@ const spotify: MediaService = {
         [Action.AddToLibrary]: 'Add to Spotify Library',
         [Action.RemoveFromLibrary]: 'Remove from Spotify Library',
     },
-
     canRate: () => false,
     canStore,
     compareForRating,
@@ -433,13 +432,13 @@ function createSearchPager<T extends MediaObject>(
     options?: Partial<PagerConfig>
 ): Pager<T> {
     if (q) {
-        return new SpotifyPager(getFetch(itemType, q), {maxSize: 250, ...options});
+        return new SpotifyPager(search(itemType, q), {maxSize: 250, ...options});
     } else {
         return new SimplePager<T>();
     }
 }
 
-function getFetch(
+function search(
     itemType: ItemType,
     q: string
 ): (offset: number, limit: number) => Promise<SpotifyPage> {
@@ -478,7 +477,7 @@ function getFetch(
             };
 
         default:
-            throw TypeError('Fetch not supported for this type of media.');
+            throw TypeError('Search not supported for this type of media');
     }
 }
 

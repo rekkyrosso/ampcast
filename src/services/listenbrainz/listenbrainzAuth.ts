@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
-import Auth from 'types/Auth';
 import {Logger} from 'utils';
 import {showListenBrainzLoginDialog} from './components/ListenBrainzLoginDialog';
 import listenbrainzSettings from './listenbrainzSettings';
@@ -28,34 +27,27 @@ export function observeIsLoggedIn(): Observable<boolean> {
 
 export async function login(): Promise<void> {
     if (!isLoggedIn()) {
+        logger.log('login');
         try {
             const returnValue = await showListenBrainzLoginDialog();
             if (returnValue) {
                 const {userId, token} = JSON.parse(returnValue);
                 listenbrainzSettings.userId = userId;
                 listenbrainzSettings.token = token;
-                logger.log('Access token successfully obtained.');
+                logger.log('Access token successfully obtained');
                 accessToken$.next(token);
             }
         } catch (err) {
-            logger.log('Could not obtain access token.');
+            logger.log('Could not obtain access token');
             logger.error(err);
         }
     }
 }
 
 export async function logout(): Promise<void> {
+    logger.log('logout');
     listenbrainzSettings.clear();
     accessToken$.next('');
 }
 
-const listenbrainzAuth: Auth = {
-    observeIsLoggedIn,
-    isLoggedIn,
-    login,
-    logout,
-};
-
 accessToken$.next(listenbrainzSettings.token);
-
-export default listenbrainzAuth;

@@ -117,7 +117,7 @@ function RowIcon({src, lookupStatus}: PlaylistItem) {
 }
 
 function RowTitle({title, artists}: PlaylistItem) {
-    if (artists) {
+    if (artists?.length) {
         return (
             <>
                 <span className="artist-text">{artists.join('/')}</span>

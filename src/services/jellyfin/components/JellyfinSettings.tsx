@@ -2,7 +2,8 @@ import React, {useMemo} from 'react';
 import TabList, {TabItem} from 'components/TabList';
 import MediaServiceSettingsGeneral from 'components/Settings/MediaLibrarySettings/MediaServiceSettingsGeneral';
 import PinnedSettings from 'components/Settings/MediaLibrarySettings/PinnedSettings';
-import JellyfinLibrarySettings from './JellyfinLibrarySettings';
+import EmbyLibrarySettings from 'services/emby/components/EmbyLibrarySettings';
+import jellyfinSettings from '../jellyfinSettings';
 import jellyfin from '../jellyfin';
 
 export default function JellyfinSettings() {
@@ -18,13 +19,17 @@ export default function JellyfinSettings() {
             },
             {
                 tab: 'Library',
-                panel: <JellyfinLibrarySettings />,
+                panel: <EmbyLibrarySettings settings={jellyfinSettings} />,
             },
         ],
         []
     );
 
     return (
-        <TabList className="media-service-settings jellyfin-settings" items={tabs} label={jellyfin.name} />
+        <TabList
+            className="media-service-settings jellyfin-settings"
+            items={tabs}
+            label={jellyfin.name}
+        />
     );
 }

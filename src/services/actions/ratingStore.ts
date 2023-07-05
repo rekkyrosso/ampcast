@@ -118,10 +118,10 @@ class RatingStore extends Dexie {
                     values: {rating},
                 });
             } else {
-                throw Error(`rate() not supported by ${serviceId}.`);
+                throw Error(`rate() not supported by ${serviceId}`);
             }
         } else {
-            throw Error(`Service not found '${serviceId}'.`);
+            throw Error(`Service not found '${serviceId}'`);
         }
     }
 

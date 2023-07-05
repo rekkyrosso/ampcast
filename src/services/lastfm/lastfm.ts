@@ -129,7 +129,6 @@ const lastfm: MediaService = {
         [Action.Like]: 'Love on last.fm',
         [Action.Unlike]: 'Unlove on last.fm',
     },
-
     canRate,
     canStore: () => false,
     compareForRating,

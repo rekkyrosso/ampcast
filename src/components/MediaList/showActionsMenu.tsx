@@ -93,7 +93,7 @@ function ContextualActions<T extends MediaObject>({item}: ContextualActionsProps
 
     return (
         <>
-            {item.itemType === ItemType.Playlist ? (
+            {item.itemType === ItemType.Playlist && service?.createSourceFromPin ? (
                 <PopupMenuItem<Action>
                     label={item.isPinned ? 'Unpin' : 'Pin'}
                     value={item.isPinned ? Action.Unpin : Action.Pin}

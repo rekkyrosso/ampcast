@@ -12,8 +12,23 @@
             color: white;
         }
 
+        .emby-browser & {
+            background: #52b54b;
+            color: white;
+        }
+
         .jellyfin-browser & {
             background: linear-gradient(135deg, #aa5cc3, #00a4dc);
+            color: white;
+        }
+
+        .navidrome-browser & {
+            background: #30638e;
+            color: white;
+        }
+
+        .subsonic-browser & {
+            background: #e65100;
             color: white;
         }
 
@@ -52,10 +67,13 @@
         }
     }
 
-    &-dialog .error {
+    &-dialog .message {
         text-align: left;
         font-size: 0.75em;
         min-height: 1.5em;
+    }
+
+    &-dialog .error {
         color: red;
     }
 }

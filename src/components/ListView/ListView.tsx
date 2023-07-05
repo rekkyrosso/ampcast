@@ -8,7 +8,6 @@ import React, {
 } from 'react';
 import {ConditionalKeys} from 'type-fest';
 import pixel from 'assets/pixel.png.base64';
-import SortOrder from 'types/SortOrder';
 import globalDrag from 'services/globalDrag';
 import {browser} from 'utils';
 import Scrollable, {
@@ -31,8 +30,6 @@ export interface ColumnSpec<T> {
     readonly title?: React.ReactNode;
     readonly className?: string;
     readonly align?: 'left' | 'right' | 'center';
-    readonly sortOrder?: SortOrder;
-    readonly sortPriority?: number;
     readonly width?: number; // starting width (only in a sizeable layout)
     readonly render: (item: T, rowIndex: number) => React.ReactNode;
 }

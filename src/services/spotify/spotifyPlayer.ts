@@ -23,7 +23,7 @@ import {
     withLatestFrom,
 } from 'rxjs';
 import Player from 'types/Player';
-import {exists, loadScript, Logger} from 'utils';
+import {exists, loadScript, Logger, sleep} from 'utils';
 import {observeAccessToken, refreshToken} from './spotifyAuth';
 
 interface LoadError {
@@ -36,7 +36,7 @@ const logger = new Logger('SpotifyPlayer');
 const spotifyApi = 'https://api.spotify.com/v1';
 const spotifyPlayerSdk = 'https://sdk.scdn.co/spotify-player.js';
 
-const ERR_NOT_CONNECTED = 'Spotify player not connected.';
+const ERR_NOT_CONNECTED = 'Spotify player not connected';
 
 const comparePausedAndPosition = (a: Spotify.PlaybackState, b: Spotify.PlaybackState): boolean =>
     a.paused === b.paused && a.position === b.position;
@@ -363,6 +363,11 @@ export class SpotifyPlayer implements Player<string> {
     };
 
     private async addToQueue(src: string, token: string, retryCount = 3): Promise<void> {
+        if (src !== this.src) {
+            // We've moved on from this request.
+            return;
+        }
+
         if (!token) {
             throw Error(ERR_NOT_CONNECTED);
         }
@@ -382,6 +387,16 @@ export class SpotifyPlayer implements Player<string> {
                     case 401: {
                         const token = await refreshToken();
                         return this.addToQueue(src, token, --retryCount);
+                    }
+
+                    case 429: {
+                        const retryAfter = Number(response.headers?.get('Retry-After'));
+                        if (retryAfter && retryAfter <= 5) {
+                            await sleep(retryAfter * 1000);
+                            return this.addToQueue(src, token, 0);
+                        } else {
+                            throw response;
+                        }
                     }
 
                     case 404:

@@ -1,30 +1,28 @@
-import {BasicStorage} from './LiteStorage';
+const items = new Map<string, string>();
 
-const values = new Map<string, string>();
-
-const memoryStorage: BasicStorage = {
+const memoryStorage: Storage = {
     get length(): number {
-        return values.size;
+        return items.size;
     },
 
     clear(): void {
-        values.clear();
+        items.clear();
     },
 
     key(index: number): string | null {
-        return [...values.keys()][index] ?? null;
+        return [...items.keys()][index] ?? null;
     },
 
     getItem(key: string): string | null {
-        return values.get(String(key)) ?? null;
+        return items.get(String(key)) ?? null;
     },
 
     setItem(key: string, value: string): void {
-        values.set(String(key), String(value));
+        items.set(String(key), String(value));
     },
 
     removeItem(key: string): void {
-        values.delete(String(key));
+        items.delete(String(key));
     },
 };
 

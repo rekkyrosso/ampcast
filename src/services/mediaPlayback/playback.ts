@@ -124,15 +124,15 @@ export function stop(): void {
         state.currentTime !== 0 ||
         (state.startedAt !== 0 && state.endedAt === 0)
     ) {
-        const newState = {
+        const endedState = {
             ...state,
             paused: true,
             currentTime: 0,
             endedAt: state.endedAt || (state.startedAt ? Date.now() : 0),
         };
-        playbackState$.next(newState);
+        playbackState$.next(endedState);
         if (state.startedAt) {
-            playbackState$.next({...newState, startedAt: 0, endedAt: 0});
+            playbackState$.next({...endedState, startedAt: 0, endedAt: 0});
         }
     }
 }
