@@ -51,16 +51,13 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
 
     load(visualizer: ButterchurnVisualizer): void {
         if (visualizer) {
+            logger.log('load', visualizer.name);
             if (this.currentVisualizer !== visualizer.name) {
                 this.currentVisualizer = visualizer.name;
+                this.cancelAnimation();
                 this.visualizer.loadPreset(visualizer.data, 0.5);
-                logger.log(`Using Butterchurn visualizer: ${visualizer.name}`);
+                this.render();
             }
-            if (this.animationFrameId) {
-                cancelAnimationFrame(this.animationFrameId);
-                this.animationFrameId = 0;
-            }
-            this.render();
         }
     }
 
@@ -73,14 +70,12 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
 
     pause(): void {
         logger.log('pause');
-        if (this.animationFrameId) {
-            cancelAnimationFrame(this.animationFrameId);
-            this.animationFrameId = 0;
-        }
+        this.cancelAnimation();
     }
 
     stop(): void {
-        this.pause();
+        logger.log('stop');
+        this.cancelAnimation();
         this.clear();
     }
 
@@ -102,6 +97,13 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
         this.visualizer.render();
         if (this.autoplay && !this.canvas.hidden) {
             this.animationFrameId = requestAnimationFrame(() => this.render());
+        }
+    }
+
+    private cancelAnimation(): void {
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = 0;
         }
     }
 }

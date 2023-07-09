@@ -3,8 +3,6 @@ import {Logger} from 'utils';
 import embyApi from './embyApi';
 import {EmbySettings} from './embySettings';
 
-console.log('module::embyReporting');
-
 const logger = new Logger('embyReporting');
 
 export async function reportStart(item: MediaItem, settings?: EmbySettings): Promise<void> {

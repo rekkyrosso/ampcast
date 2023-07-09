@@ -1,12 +1,10 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, filter, tap} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, filter, map, mergeMap, tap} from 'rxjs';
 import {showEmbyLoginDialog} from 'services/emby/components/EmbyLoginDialog';
 import {Logger} from 'utils';
 import jellyfinSettings from './jellyfinSettings';
 import jellyfinApi from './jellyfinApi';
 import jellyfin from './jellyfin';
-
-console.log('module::jellyfinAuth');
 
 const logger = new Logger('jellyfinAuth');
 
@@ -27,7 +25,7 @@ export function observeIsLoggedIn(): Observable<boolean> {
 
 export async function login(): Promise<void> {
     if (!isLoggedIn()) {
-        logger.log('login');
+        logger.log('connect');
         try {
             const returnValue = await showEmbyLoginDialog(jellyfin, jellyfinSettings);
             if (returnValue) {
@@ -37,14 +35,13 @@ export async function login(): Promise<void> {
                 setAccessToken(token);
             }
         } catch (err) {
-            logger.log('Could not obtain access token');
             logger.error(err);
         }
     }
 }
 
 export async function logout(): Promise<void> {
-    logger.log('logout');
+    logger.log('disconnect');
     jellyfinSettings.clear();
     setAccessToken('');
     isLoggedIn$.next(false);
@@ -52,31 +49,23 @@ export async function logout(): Promise<void> {
 
 function setAccessToken(token: string): void {
     jellyfinSettings.token = token;
-    if (token) {
-        logger.log('Access token successfully obtained');
-    }
     accessToken$.next(token);
 }
-
-setAccessToken(jellyfinSettings.token);
 
 observeAccessToken()
     .pipe(
         filter((token) => token !== ''),
-        tap(async () => {
-            logger.log('Connected');
-            try {
-                const libraries = await jellyfinApi.getMusicLibraries();
-                const library =
-                    libraries.find((section) => section.id === jellyfinSettings.libraryId) ||
-                    libraries.find((section) => section.type === 'music');
-                jellyfinSettings.libraryId = library?.id || '';
-                jellyfinSettings.libraries = libraries;
-                isLoggedIn$.next(true);
-            } catch (err) {
-                logger.error(err);
-                isLoggedIn$.next(false);
-            }
-        })
+        mergeMap(() => jellyfinApi.getMusicLibraries()),
+        tap((libraries) => (jellyfinSettings.libraries = libraries)),
+        map(
+            (libraries) =>
+                libraries.find((library) => library.id === jellyfinSettings.libraryId) ||
+                libraries.find((library) => library.type === 'music')
+        ),
+        map((library) => library?.id || ''),
+        tap((libraryId) => (jellyfinSettings.libraryId = libraryId)),
+        tap(() => isLoggedIn$.next(true))
     )
     .subscribe(logger);
+
+setAccessToken(jellyfinSettings.token);

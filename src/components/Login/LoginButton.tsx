@@ -1,10 +1,16 @@
 import React from 'react';
-import {LoginProps} from './Login';
+import {Except} from 'type-fest';
+import MediaService from 'types/MediaService';
 
-export default function LoginButton({service}: LoginProps) {
+export interface LoginButtonProps
+    extends Except<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
+    service: MediaService;
+}
+
+export default function LoginButton({service, ...props}: LoginButtonProps) {
     return (
         <p>
-            <button className="branded login" onClick={service.login}>
+            <button {...props} className="branded login" onClick={service.login}>
                 Log in to {service.name}
             </button>
         </p>

@@ -19,7 +19,7 @@ export default function JellyfinSettings() {
             },
             {
                 tab: 'Library',
-                panel: <EmbyLibrarySettings settings={jellyfinSettings} />,
+                panel: <EmbyLibrarySettings service={jellyfin} settings={jellyfinSettings} />,
             },
         ],
         []

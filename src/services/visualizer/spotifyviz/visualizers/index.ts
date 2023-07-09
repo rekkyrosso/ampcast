@@ -11,5 +11,3 @@ const visualizers: SpotifyVizVisualizer[] = [
 ];
 
 export default visualizers;
-
-console.log('spotify-viz visualizers:', visualizers.length);

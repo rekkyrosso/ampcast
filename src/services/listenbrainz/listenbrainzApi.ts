@@ -6,8 +6,6 @@ import {Logger, partition} from 'utils';
 import {compareForRating} from './listenbrainz';
 import listenbrainzSettings from './listenbrainzSettings';
 
-console.log('module::listenbrainzApi');
-
 const logger = new Logger('listenbrainzApi');
 
 export class ListenBrainzApi {

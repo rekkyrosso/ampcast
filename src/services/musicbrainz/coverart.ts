@@ -4,8 +4,6 @@ import MediaObject from 'types/MediaObject';
 import Thumbnail from 'types/Thumbnail';
 import {Logger} from 'utils';
 
-console.log('module:musicbrainz/coverart');
-
 const logger = new Logger('musicbrainz/coverart');
 
 interface CoverArt {

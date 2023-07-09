@@ -10,8 +10,6 @@ import {Logger} from 'utils';
 import {observeIsLoggedIn} from './plexAuth';
 import {reportStart, reportStop, reportProgress} from './plexReporting';
 
-console.log('module::plexScrobbler');
-
 const logger = new Logger('plexScrobbler');
 
 const isPlexItem = (state: PlaybackState): boolean => !!state.currentItem?.src.startsWith('plex:');

@@ -7,8 +7,6 @@ import spotifyPlayer from 'services/spotify/spotifyPlayer';
 import OmniPlayer from 'services/players/OmniPlayer';
 import HTML5Player from 'services/players/HTML5Player';
 
-console.log('module::mediaPlayer');
-
 const html5AudioPlayer = new HTML5Player('audio', 'main');
 const html5VideoPlayer = new HTML5Player('video', 'main');
 const youtubePlayer = new YouTubePlayer('main');

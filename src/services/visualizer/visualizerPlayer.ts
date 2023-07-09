@@ -4,8 +4,6 @@ import OmniPlayer from 'services/players/OmniPlayer';
 import {Logger} from 'utils';
 import {getAllVisualizerProviders, getVisualizerPlayer} from './visualizerProviders';
 
-console.log('module::visualizerPlayer');
-
 const logger = new Logger('visualizerPlayer');
 
 function selectPlayer(visualizer: Visualizer): Player<Visualizer> | null {

@@ -12,8 +12,6 @@ import PlaybackState from 'types/PlaybackState';
 import Playback from 'types/Playback';
 import {observeCurrentItem} from 'services/playlist';
 
-console.log('module::playback');
-
 export const defaultPlaybackState: PlaybackState = {
     currentItem: null,
     currentTime: 0,

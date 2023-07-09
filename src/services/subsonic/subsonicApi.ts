@@ -2,8 +2,6 @@ import {Primitive} from 'type-fest';
 import subsonicSettings from './subsonicSettings';
 import {shuffle} from 'utils/utils';
 
-console.log('module::subsonicApi');
-
 export interface SubsonicSettings {
     host: string;
     credentials: string;

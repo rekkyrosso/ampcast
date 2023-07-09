@@ -3,8 +3,6 @@ import {isListenedTo} from 'services/localdb/listens';
 import {Logger} from 'utils';
 import subsonicApi, {SubsonicSettings} from './subsonicApi';
 
-console.log('module::subsonicReporting');
-
 const logger = new Logger('subsonicReporting');
 
 export async function reportStart(item: MediaItem, settings?: SubsonicSettings): Promise<void> {

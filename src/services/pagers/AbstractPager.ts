@@ -31,6 +31,7 @@ let pagerCount = 0;
 
 export default abstract class AbstractPager<T extends MediaObject> implements Pager<T> {
     protected readonly items$ = new BehaviorSubject<readonly T[]>(UNINITIALIZED);
+    protected readonly additions$ = new BehaviorSubject<readonly T[]>(UNINITIALIZED);
     protected readonly size$ = new ReplaySubject<number>(1);
     protected readonly error$ = new ReplaySubject<unknown>(1);
     protected readonly fetches$ = new BehaviorSubject<PageFetch>({index: 0, length: 0});
@@ -45,18 +46,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
     }
 
     observeAdditions(): Observable<readonly T[]> {
-        return this.items$.pipe(
-            map((items) =>
-                items.filter((item) => {
-                    const exists = this.srcs.has(item.src);
-                    if (!exists) {
-                        this.srcs.add(item.src);
-                    }
-                    return !exists;
-                })
-            ),
-            filter((additions) => additions.length > 0)
-        );
+        return this.additions$.pipe(filter((items) => items !== UNINITIALIZED));
     }
 
     observeItems(): Observable<readonly T[]> {
@@ -81,6 +71,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
             }
             this.items.forEach((item) => (item as any).pager?.disconnect());
             this.items$.complete();
+            this.additions$.complete();
             this.size$.complete();
             this.error$.complete();
         }
@@ -138,6 +129,23 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
             this.subscriptions = new Subscription();
 
             if (!this.config.lookup) {
+                this.subscriptions.add(
+                    this.items$
+                        .pipe(
+                            map((items) =>
+                                items.filter((item) => {
+                                    const exists = this.srcs.has(item.src);
+                                    if (!exists) {
+                                        this.srcs.add(item.src);
+                                    }
+                                    return !exists;
+                                })
+                            ),
+                            filter((additions) => additions.length > 0)
+                        )
+                        .subscribe(this.additions$)
+                );
+
                 this.subscriptions.add(
                     this.observeAdditions()
                         .pipe(tap((items) => this.addMissingTrackCounts(items)))

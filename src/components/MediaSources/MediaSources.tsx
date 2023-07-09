@@ -1,10 +1,10 @@
 import React, {useEffect, useRef} from 'react';
 import {LiteStorage} from 'utils';
+import {showDialog} from 'components/Dialog';
 import TreeView, {TreeViewHandle} from 'components/TreeView';
+import MediaLibrarySettingsDialog from 'components/Settings/MediaLibrarySettings/MediaLibrarySettingsDialog';
 import useMediaSources from './useMediaSources';
 import './MediaSources.scss';
-
-console.log('component::MediaSources');
 
 export const storage = new LiteStorage('sources');
 
@@ -20,10 +20,16 @@ export default function MediaSources({onSelect}: MediaSourcesProps) {
         treeViewRef.current!.focus();
     }, []);
 
+    useEffect(() => {
+        if (sources?.length === 0) {
+            showDialog(MediaLibrarySettingsDialog, true);
+        }
+    }, [sources]);
+
     return (
         <div className="panel media-sources">
             <TreeView<React.ReactNode>
-                roots={sources}
+                roots={sources || []}
                 onSelect={onSelect}
                 storageId={storage.id}
                 treeViewRef={treeViewRef}

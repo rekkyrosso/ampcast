@@ -25,8 +25,6 @@ import {observeIsLoggedIn, isLoggedIn, login, logout} from './plexAuth';
 import plexApi from './plexApi';
 import PlexPager from './PlexPager';
 
-console.log('module::plex');
-
 const tracksLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
     fields: ['Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount', 'Rate'],
@@ -185,7 +183,6 @@ const plexFolders: MediaSource<MediaFolderItem> = {
     title: 'Folders',
     icon: 'folder',
     itemType: ItemType.Folder,
-    defaultHidden: true,
 
     search(): Pager<MediaFolderItem> {
         const root: Writable<SetOptional<MediaFolder, 'pager'>> = {
@@ -232,6 +229,7 @@ const plex: MediaService = {
     name: 'Plex',
     icon: 'plex',
     url: 'https://www.plex.tv',
+    defaultHidden: true,
     get libraryId(): string {
         return plexSettings.libraryId;
     },

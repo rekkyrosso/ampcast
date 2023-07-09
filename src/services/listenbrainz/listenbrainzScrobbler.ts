@@ -12,8 +12,6 @@ import {observeIsLoggedIn} from './listenbrainzAuth';
 import ListenBrainzHistoryPager from './ListenBrainzHistoryPager';
 import listenbrainz from './listenbrainz';
 
-console.log('module::listenbrainzScrobbler');
-
 const logger = new Logger('listenbrainzScrobbler');
 
 const timeFuzziness = 30;

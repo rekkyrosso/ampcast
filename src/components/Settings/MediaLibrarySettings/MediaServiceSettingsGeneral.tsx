@@ -1,5 +1,5 @@
 import React, {useCallback, useId, useRef} from 'react';
-import {isVisible, setHidden} from 'services/servicesSettings';
+import {isSourceVisible, setHiddenSources} from 'services/servicesSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import useObservable from 'hooks/useObservable';
 import {MediaServiceSettingsProps} from './MediaServiceSettings';
@@ -15,7 +15,7 @@ export default function MediaServiceSettingsGeneral({service}: MediaServiceSetti
         for (const input of inputs) {
             settings[input.value] = !input.checked;
         }
-        setHidden(settings);
+        setHiddenSources(settings);
     }, []);
 
     return (
@@ -39,7 +39,7 @@ export default function MediaServiceSettingsGeneral({service}: MediaServiceSetti
                                 id={`${id}-${source.id}`}
                                 type="checkbox"
                                 value={source.id}
-                                defaultChecked={isVisible(source)}
+                                defaultChecked={isSourceVisible(source)}
                             />
                             <label htmlFor={`${id}-${source.id}`}>{source.title}</label>
                         </li>

@@ -20,6 +20,7 @@ export default function useMediaInfoDialog(dialogRef: RefObject<HTMLDialogElemen
                 if (event.ctrlKey && event.shiftKey && event.code === 'Digit8') {
                     setDebug((debug) => !debug);
                 } else if (event[browser.ctrlKey] && !event.shiftKey && event.code === 'KeyI') {
+                    event.preventDefault();
                     dialogRef.current?.close();
                 }
             }

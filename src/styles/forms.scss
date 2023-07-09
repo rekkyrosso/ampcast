@@ -195,23 +195,11 @@ button,
     overflow: hidden;
     text-overflow: ellipsis;
 
-    &.branded {
-        padding: 1em 3em;
-        text-shadow: none;
-        border-radius: 0.5em;
-        font-weight: bold;
-
-        &.login {
-            padding: 1em 3em;
-            font-weight: bold;
-            cursor: pointer;
-        }
-    }
-
     &:disabled {
-        filter: grayscale(0.5);
+        filter: grayscale(1);
         background-image: none;
-        opacity: 0.75;
+        opacity: 0.5;
+        cursor: default;
     }
 
     .focus-visible &:focus {

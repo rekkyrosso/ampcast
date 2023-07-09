@@ -1,11 +1,9 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, filter, tap} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, filter, mergeMap, tap} from 'rxjs';
 import {Logger} from 'utils';
 import {showSubsonicLoginDialog} from './components/SubsonicLoginDialog';
 import subsonicSettings from './subsonicSettings';
 import subsonicApi from './subsonicApi';
-
-console.log('module::subsonicAuth');
 
 const logger = new Logger('subsonicAuth');
 
@@ -26,7 +24,7 @@ export function observeIsLoggedIn(): Observable<boolean> {
 
 export async function login(): Promise<void> {
     if (!isLoggedIn()) {
-        logger.log('login');
+        logger.log('connect');
         try {
             const returnValue = await showSubsonicLoginDialog();
             if (returnValue) {
@@ -35,14 +33,13 @@ export async function login(): Promise<void> {
                 setCredentials(credentials);
             }
         } catch (err) {
-            logger.log('Could not obtain access token');
             logger.error(err);
         }
     }
 }
 
 export async function logout(): Promise<void> {
-    logger.log('logout');
+    logger.log('disconnect');
     subsonicSettings.clear();
     setCredentials('');
     isLoggedIn$.next(false);
@@ -50,26 +47,15 @@ export async function logout(): Promise<void> {
 
 function setCredentials(credentials: string): void {
     subsonicSettings.credentials = credentials;
-    if (credentials) {
-        logger.log('Access token successfully obtained');
-    }
     credentials$.next(credentials);
 }
-
-setCredentials(subsonicSettings.credentials);
 
 observeCredentials()
     .pipe(
         filter((credentials) => credentials !== ''),
-        tap(async () => {
-            try {
-                subsonicSettings.folders = await subsonicApi.getMusicFolders();
-                isLoggedIn$.next(true);
-            } catch (err) {
-                logger.log(err);
-                setCredentials('');
-                isLoggedIn$.next(false);
-            }
-        })
+        mergeMap(() => subsonicApi.getMusicFolders()),
+        tap(() => isLoggedIn$.next(true))
     )
     .subscribe(logger);
+
+setCredentials(subsonicSettings.credentials);

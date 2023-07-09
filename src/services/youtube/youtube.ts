@@ -14,8 +14,6 @@ import SimplePager from 'services/pagers/SimplePager';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './youtubeAuth';
 import YouTubePager from './YouTubePager';
 
-console.log('module::youtube');
-
 export const youtubeHost = `https://www.youtube.com`;
 
 const defaultLayout: MediaSourceLayout<MediaItem> = {
@@ -130,12 +128,13 @@ const youtube: MediaService = {
     name: 'YouTube',
     icon: 'youtube',
     url: 'https://www.youtube.com',
+    defaultHidden: true,
     defaultNoScrobble: true,
     roots: [
         {
             id: 'youtube/search/videos',
             title: 'Video',
-            icon: '',
+            icon: 'search',
             itemType: ItemType.Media,
             layout: defaultLayout,
             searchable: true,

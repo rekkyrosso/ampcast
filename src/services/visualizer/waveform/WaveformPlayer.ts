@@ -38,7 +38,7 @@ export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVis
         if (this.canvas.hidden !== hidden) {
             this.canvas.hidden = hidden;
             if (!hidden && !this.animationFrameId) {
-                this.render(performance.now());
+                this.render();
             }
         }
     }
@@ -48,44 +48,39 @@ export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVis
     }
 
     load(visualizer: WaveformVisualizer): void {
-        logger.log('load');
         if (visualizer) {
+            logger.log('load', visualizer.name);
             if (this.currentVisualizer !== visualizer.name) {
                 this.currentVisualizer = visualizer.name;
+                this.cancelAnimation();
                 this.config = visualizer.config;
-                logger.log(`Using Waveform visualizer: ${visualizer.name}`);
+                this.render();
             }
-        }
-        if (this.autoplay) {
-            this.play();
         }
     }
 
     play(): void {
         logger.log('play');
         if (!this.animationFrameId) {
-            this.render(performance.now());
+            this.render();
         }
     }
 
     pause(): void {
         logger.log('pause');
-        if (this.animationFrameId) {
-            cancelAnimationFrame(this.animationFrameId);
-            this.animationFrameId = 0;
-        }
+        this.cancelAnimation();
     }
 
     stop(): void {
         logger.log('stop');
-        this.pause();
+        this.cancelAnimation();
         this.clear();
     }
 
     resize(width: number, height: number): void {
         this.canvas.width = width;
         this.canvas.height = height;
-        this.renderFrame(performance.now());
+        this.renderFrame();
     }
 
     private clear(): void {
@@ -94,18 +89,25 @@ export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVis
         this.context2D.clearRect(0, 0, width, height);
     }
 
-    private render(now: number): void {
+    private render(now = performance.now()): void {
         this.renderFrame(now);
         if (this.autoplay && !this.hidden) {
             this.animationFrameId = requestAnimationFrame((now) => this.render(now));
         }
     }
 
-    private renderFrame(now: number): void {
+    private renderFrame(now = performance.now()): void {
         const context2D = this.context2D;
         const width = this.canvas.width;
         const height = this.canvas.height;
         const analyser = this.analyser;
         this.config?.onPaint?.({context2D, width, height, now, analyser});
+    }
+
+    private cancelAnimation(): void {
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = 0;
+        }
     }
 }

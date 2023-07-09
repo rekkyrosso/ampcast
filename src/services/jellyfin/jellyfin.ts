@@ -26,8 +26,6 @@ import {observeIsLoggedIn, isLoggedIn, login, logout} from './jellyfinAuth';
 import JellyfinPager from './JellyfinPager';
 import jellyfinSettings from './jellyfinSettings';
 
-console.log('module::jellyfin');
-
 const serviceId: MediaServiceId = 'jellyfin';
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
@@ -182,7 +180,6 @@ const jellyfinFolders: MediaSource<MediaFolderItem> = {
     title: 'Folders',
     icon: 'folder',
     itemType: ItemType.Folder,
-    defaultHidden: true,
 
     search(): Pager<MediaFolderItem> {
         const root: Writable<SetOptional<MediaFolder, 'pager'>> = {
@@ -237,6 +234,7 @@ const jellyfin: MediaService = {
     icon: serviceId,
     name: 'Jellyfin',
     url: 'https://jellyfin.org',
+    defaultHidden: true,
     get libraryId(): string {
         return jellyfinSettings.libraryId;
     },

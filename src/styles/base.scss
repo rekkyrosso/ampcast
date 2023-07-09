@@ -149,3 +149,7 @@ body.dragging {
         border-color: red;
     }
 }
+
+.error {
+    color: var(--error-color);
+}

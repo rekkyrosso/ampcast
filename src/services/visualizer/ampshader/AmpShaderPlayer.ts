@@ -17,7 +17,9 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     private fragTime: WebGLUniformLocation | null = null;
     private fragChannelTime: WebGLUniformLocation | null = null;
     private fragDate: WebGLUniformLocation | null = null;
-    private shader: WebGLProgram | null = null;
+    private program: WebGLProgram | null = null;
+    private vertexShader: WebGLShader | null = null;
+    private fragmentShader: WebGLShader | null = null;
     private startTime = performance.now();
     private currentVisualizer = '';
 
@@ -66,16 +68,15 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     }
 
     load(visualizer: AmpShaderVisualizer): void {
-        logger.log('load');
         if (visualizer) {
+            logger.log('load', visualizer.name);
             if (this.currentVisualizer !== visualizer.name) {
                 this.currentVisualizer = visualizer.name;
+                this.cancelAnimation();
                 this.createShader(visualizer.shader);
-                logger.log(`Using Ampshader visualizer: ${visualizer.name}`);
+                this.render();
             }
         }
-        // A bit weird but `autoplay` controls looping.
-        this.play();
     }
 
     play(): void {
@@ -86,14 +87,13 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     }
 
     pause(): void {
-        if (this.animationFrameId) {
-            cancelAnimationFrame(this.animationFrameId);
-            this.animationFrameId = 0;
-        }
+        logger.log('pause');
+        this.cancelAnimation();
     }
 
     stop(): void {
-        this.pause();
+        logger.log('stop');
+        this.cancelAnimation();
         this.clear();
     }
 
@@ -106,8 +106,8 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
 
         gl.viewport(0, 0, width, height);
 
-        if (this.shader) {
-            const fragResolution = gl.getUniformLocation(this.shader, 'iResolution');
+        if (this.program) {
+            const fragResolution = gl.getUniformLocation(this.program, 'iResolution');
             gl.uniform2f(fragResolution, canvas.width, canvas.height);
             this.renderFrame();
         }
@@ -142,49 +142,58 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     private createShader(fragmentShaderSrc: string): void {
         const gl = this.gl;
 
-        const vertexShader = gl.createShader(gl.VERTEX_SHADER)!;
+        if (this.program) {
+            gl.detachShader(this.program, this.vertexShader!);
+            gl.detachShader(this.program, this.fragmentShader!);
+            gl.deleteProgram(this.program);
+            this.program = null;
+            this.vertexShader = null;
+            this.fragmentShader = null;
+        }
+
         const vertexShaderSrc = `#version 300 es\nin vec4 as_Position;void main(void){gl_Position=as_Position;}`;
+        const vertexShader = (this.vertexShader = gl.createShader(gl.VERTEX_SHADER)!);
         gl.shaderSource(vertexShader, vertexShaderSrc);
         gl.compileShader(vertexShader);
         if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
             throw new Error(gl.getShaderInfoLog(vertexShader)!);
         }
 
-        const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)!;
+        const fragmentShader = (this.fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)!);
         gl.shaderSource(fragmentShader, fragmentShaderSrc);
         gl.compileShader(fragmentShader);
         if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
             throw new Error(gl.getShaderInfoLog(fragmentShader)!);
         }
 
-        const shader = gl.createProgram()!;
-        gl.attachShader(shader, vertexShader);
-        gl.attachShader(shader, fragmentShader);
-        gl.linkProgram(shader);
-        gl.useProgram(shader);
+        const program = gl.createProgram()!;
+        gl.attachShader(program, vertexShader);
+        gl.attachShader(program, fragmentShader);
+        gl.linkProgram(program);
+        gl.useProgram(program);
 
-        const position = gl.getAttribLocation(shader, 'as_Position');
+        const position = gl.getAttribLocation(program, 'as_Position');
         gl.enableVertexAttribArray(position);
         gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
 
-        this.fragTheme = gl.getUniformLocation(shader, 'iTheme');
+        this.fragTheme = gl.getUniformLocation(program, 'iTheme');
         gl.uniform4f(this.fragTheme, ...this.themeColor);
 
         this.startTime = performance.now();
         const time = this.currentTime;
-        this.fragTime = gl.getUniformLocation(shader, 'iTime');
+        this.fragTime = gl.getUniformLocation(program, 'iTime');
         gl.uniform1f(this.fragTime, time);
 
-        this.fragChannelTime = gl.getUniformLocation(shader, 'iChannelTime');
+        this.fragChannelTime = gl.getUniformLocation(program, 'iChannelTime');
         gl.uniform1fv(this.fragChannelTime, new Float32Array([time, 0, 0, 0]));
 
-        this.fragDate = gl.getUniformLocation(shader, 'iDate');
+        this.fragDate = gl.getUniformLocation(program, 'iDate');
         gl.uniform4f(this.fragDate, ...this.currentDate);
 
-        const fragResolution = gl.getUniformLocation(shader, 'iResolution');
+        const fragResolution = gl.getUniformLocation(program, 'iResolution');
         gl.uniform2f(fragResolution, this.canvas.width, this.canvas.height);
 
-        this.shader = shader;
+        this.program = program;
     }
 
     private render(): void {
@@ -195,7 +204,7 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     }
 
     private renderFrame(): void {
-        if (this.shader) {
+        if (this.program) {
             const gl = this.gl;
             const bufferSize = this.analyser.frequencyBinCount;
             const freq = new Uint8Array(bufferSize);
@@ -219,6 +228,13 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
             gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, 512, 2, 0, gl.RED, gl.UNSIGNED_BYTE, spectrum);
 
             this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
+        }
+    }
+
+    private cancelAnimation(): void {
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = 0;
         }
     }
 }

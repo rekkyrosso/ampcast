@@ -1,11 +1,9 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, filter, tap} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, filter, mergeMap, tap} from 'rxjs';
 import {Logger} from 'utils';
 import {showNavidromeLoginDialog} from './components/NavidromeLoginDialog';
 import navidromeApi from './navidromeApi';
 import navidromeSettings from './navidromeSettings';
-
-console.log('module::navidromeAuth');
 
 const logger = new Logger('navidromeAuth');
 
@@ -26,7 +24,7 @@ export function observeIsLoggedIn(): Observable<boolean> {
 
 export async function login(): Promise<void> {
     if (!isLoggedIn()) {
-        logger.log('login');
+        logger.log('connect');
         try {
             const returnValue = await showNavidromeLoginDialog();
             if (returnValue) {
@@ -36,14 +34,13 @@ export async function login(): Promise<void> {
                 setAccessToken(token);
             }
         } catch (err) {
-            logger.log('Could not obtain access token');
             logger.error(err);
         }
     }
 }
 
 export async function logout(): Promise<void> {
-    logger.log('logout');
+    logger.log('disconnect');
     navidromeSettings.clear();
     setAccessToken('');
     isLoggedIn$.next(false);
@@ -51,26 +48,15 @@ export async function logout(): Promise<void> {
 
 function setAccessToken(token: string): void {
     navidromeSettings.token = token;
-    if (token) {
-        logger.log('Access token successfully obtained');
-    }
     accessToken$.next(token);
 }
-
-setAccessToken(navidromeSettings.token);
 
 observeAccessToken()
     .pipe(
         filter((token) => token !== ''),
-        tap(async () => {
-            try {
-                await navidromeApi.get('playlist', {_end: 1});
-                isLoggedIn$.next(true);
-            } catch (err) {
-                logger.log(err);
-                setAccessToken('');
-                isLoggedIn$.next(false);
-            }
-        })
+        mergeMap(() => navidromeApi.get('playlist', {_end: 1})),
+        tap(() => isLoggedIn$.next(true))
     )
     .subscribe(logger);
+
+setAccessToken(navidromeSettings.token);

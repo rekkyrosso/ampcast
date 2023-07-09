@@ -7,8 +7,6 @@ import PlaybackState from 'types/PlaybackState';
 import {findBestMatch} from 'services/lookup';
 import {fuzzyCompare, Logger} from 'utils';
 
-console.log('module:localdb/listens');
-
 const logger = new Logger('localdb/listens');
 
 const UNINITIALIZED: Listen[] = [];

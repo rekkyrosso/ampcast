@@ -3,43 +3,41 @@
     bottom: var(--gutter-width);
 
     button.branded {
+        padding: 1em 3em;
+        font-weight: bold;
         text-shadow: 1px 1px 0 rgba(16, 16, 16, 0.6);
         box-shadow: 1px 1px 0 rgba(16, 16, 16, 0.25);
         white-space: normal;
+        border-radius: 0.5em;
+        cursor: pointer;
+        color: white;
 
         .apple-browser & {
             background: #d60017;
-            color: white;
         }
 
         .emby-browser & {
             background: #52b54b;
-            color: white;
         }
 
         .jellyfin-browser & {
             background: linear-gradient(135deg, #aa5cc3, #00a4dc);
-            color: white;
         }
 
         .navidrome-browser & {
             background: #30638e;
-            color: white;
         }
 
         .subsonic-browser & {
             background: #e65100;
-            color: white;
         }
 
         .lastfm-browser & {
             background: #b90000;
-            color: white;
         }
 
         .listenbrainz-browser & {
             background: #353070;
-            color: white;
         }
 
         .plex-browser & {
@@ -48,13 +46,11 @@
         }
 
         .spotify-browser & {
-            background: rgb(29, 185, 84);
-            color: white;
+            background: #1db954;
         }
 
         .youtube-browser & {
             background: red;
-            color: white;
         }
     }
 
@@ -71,9 +67,5 @@
         text-align: left;
         font-size: 0.75em;
         min-height: 1.5em;
-    }
-
-    &-dialog .error {
-        color: red;
     }
 }

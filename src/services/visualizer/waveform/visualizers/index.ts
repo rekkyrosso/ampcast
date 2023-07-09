@@ -71,5 +71,3 @@ const visualizers: WaveformVisualizer[] = [
 ];
 
 export default visualizers;
-
-console.log('Waveform visualizers:', visualizers.length);

@@ -41,8 +41,8 @@ function Dialog(
 
     useImperativeHandle(ref, () => ({
         close: (returnValue?: string) => {
-            if (dialogRef.current!.open) {
-                dialogRef.current!.close(returnValue);
+            if (dialogRef.current?.open) {
+                dialogRef.current.close(returnValue);
             }
         },
     }));

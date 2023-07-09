@@ -15,10 +15,15 @@ export default function DialogButtons({
 }: DialogButtonsProps) {
     return (
         <footer className="dialog-buttons">
-            <button type="button" value="#cancel" onClick={onCancel}>
+            <button
+                className="dialog-button-cancel"
+                type="button"
+                value="#cancel"
+                onClick={onCancel}
+            >
                 Cancel
             </button>
-            <button value={value} onClick={onSubmit}>
+            <button className="dialog-button-submit" value={value} onClick={onSubmit}>
                 {submitText}
             </button>
         </footer>

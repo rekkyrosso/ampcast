@@ -83,14 +83,9 @@ export default {
     },
 
     clear(): void {
-        const clientId = this.clientId;
-        const libraryId = this.libraryId;
-        storage.clear();
-        if (clientId) {
-            storage.setString('clientId', clientId);
-        }
-        if (libraryId) {
-            storage.setString('libraryId', libraryId);
-        }
+        storage.removeItem('userId');
+        storage.removeItem('userToken');
+        storage.removeItem('server');
+        storage.removeItem('connection');
     },
 };

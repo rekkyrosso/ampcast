@@ -3,6 +3,7 @@ import TabList, {TabItem} from 'components/TabList';
 import MediaServiceSettingsGeneral from 'components/Settings/MediaLibrarySettings/MediaServiceSettingsGeneral';
 import PinnedSettings from 'components/Settings/MediaLibrarySettings/PinnedSettings';
 import EmbyLibrarySettings from './EmbyLibrarySettings';
+import embySettings from '../embySettings';
 import emby from '../emby';
 
 export default function EmbySettings() {
@@ -18,7 +19,7 @@ export default function EmbySettings() {
             },
             {
                 tab: 'Library',
-                panel: <EmbyLibrarySettings />,
+                panel: <EmbyLibrarySettings service={emby} settings={embySettings} />,
             },
         ],
         []

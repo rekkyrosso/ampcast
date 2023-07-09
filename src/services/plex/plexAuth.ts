@@ -4,8 +4,6 @@ import {exists, Logger} from 'utils';
 import plexSettings from './plexSettings';
 import plexApi from './plexApi';
 
-console.log('module::plexAuth');
-
 const logger = new Logger('plexAuth');
 const apiHost = `https://plex.tv/api/v2`;
 
@@ -38,20 +36,19 @@ export function observeIsLoggedIn(): Observable<boolean> {
 
 export async function login(): Promise<void> {
     if (!isLoggedIn()) {
-        logger.log('login');
+        logger.log('connect');
         try {
             const {id, authToken} = await obtainAccessToken();
             plexSettings.userId = id;
             setAccessToken(authToken);
         } catch (err) {
-            logger.log('Could not obtain access token');
             logger.error(err);
         }
     }
 }
 
 export async function logout(): Promise<void> {
-    logger.log('logout');
+    logger.log('disconnect');
     plexSettings.clear();
     setAccessToken('');
     isConnected$.next(false);
@@ -60,9 +57,6 @@ export async function logout(): Promise<void> {
 
 function setAccessToken(token: string): void {
     plexSettings.userToken = token;
-    if (token) {
-        logger.log('Access token successfully obtained');
-    }
     accessToken$.next(token);
 }
 
@@ -149,7 +143,6 @@ isConnected$
     .pipe(
         filter((isConnected) => isConnected),
         tap(async () => {
-            logger.log('Connected');
             try {
                 const {
                     MediaContainer: {Directory: sections},

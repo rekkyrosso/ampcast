@@ -8,11 +8,8 @@ import usePseudoClasses from 'hooks/usePseudoClasses';
 import usePreventDrop from 'hooks/usePreventDrop';
 import useMediaSession from 'hooks/useMediaSession';
 import useGlobalActions from 'hooks/useGlobalActions';
-import useStoragePersistence from 'hooks/useStoragePersistence';
 import DesktopWarning from './DesktopWarning';
 import 'styles/layout.scss';
-
-console.log('module::App');
 
 export default function App() {
     useBrowser();
@@ -21,7 +18,6 @@ export default function App() {
     usePreventDrop();
     useMediaSession();
     useGlobalActions();
-    useStoragePersistence();
 
     return (
         <main>

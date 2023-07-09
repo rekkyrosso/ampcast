@@ -10,6 +10,7 @@ import SequentialPager from 'services/pagers/SequentialPager';
 import pinStore from 'services/pins/pinStore';
 import {getYouTubeUrl, youtubeHost} from './youtube';
 import youtubeCache from './youtubeCache';
+import {getGApiClient} from './youtubeAuth';
 
 type YouTubeVideo = gapi.client.youtube.Video;
 type YouTubePlaylist = gapi.client.youtube.Playlist;
@@ -227,23 +228,20 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
         params: Record<string, unknown>,
         cachedResult?: T | undefined
     ): Promise<T> {
+        const client = await getGApiClient();
         const headers = cachedResult?.etag ? {'If-None-Match': cachedResult.etag} : undefined;
-        const request = gapi.client.request({
+        const {result, status, statusText} = await client.request({
             path: `${apiHost}${path}`,
             params,
             headers,
         });
-
-        return request.then(async (response) => {
-            const {result, status, statusText} = response;
-            if (result) {
-                return result;
-            } else if (status === 304 && cachedResult) {
-                return cachedResult;
-            } else {
-                throw Error(statusText || `Error (${status})`);
-            }
-        });
+        if (result) {
+            return result;
+        } else if (status === 304 && cachedResult) {
+            return cachedResult;
+        } else {
+            throw Error(statusText || `Error (${status})`);
+        }
     }
 
     private async getFromCache<T extends YouTubeCacheable>(key: string): Promise<T | undefined> {

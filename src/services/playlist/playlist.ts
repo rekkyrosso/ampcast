@@ -30,8 +30,6 @@ import {exists, shuffle as shuffleArray, Logger} from 'utils';
 import {removeUserData} from 'utils/media';
 import settings from './playlistSettings';
 
-console.log('module::playlist');
-
 const logger = new Logger('playlist');
 
 type PlayableType =

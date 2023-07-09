@@ -151,9 +151,15 @@ export class SpotifyPlayer implements Player<string> {
             )
             .subscribe(logger);
 
-        this.observeError().subscribe(logger.error);
+        this.observeIsLoggedIn()
+            .pipe(
+                filter((isLoggedIn) => isLoggedIn),
+                take(1),
+                mergeMap(() => loadScript(spotifyPlayerSdk))
+            )
+            .subscribe(logger);
 
-        loadScript(spotifyPlayerSdk);
+        this.observeError().subscribe(logger.error);
     }
 
     get autoplay(): boolean {

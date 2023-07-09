@@ -3,8 +3,6 @@ import {BehaviorSubject, distinctUntilChanged, skip} from 'rxjs';
 import {observePlaybackStart} from 'services/mediaPlayback/playback';
 import OmniAudioContext from './OmniAudioContext';
 
-console.log('module::audio');
-
 export const audioContext = new OmniAudioContext();
 export const analyserNode = audioContext.createAnalyser({
     fftSize: 2048,

@@ -6,7 +6,6 @@ import {
     distinctUntilChanged,
     map,
     of,
-    skipWhile,
     switchMap,
 } from 'rxjs';
 import {AmbientVideoVisualizer} from 'types/Visualizer';
@@ -16,9 +15,9 @@ import {loadYouTubePlaylist} from 'services/youtube/YouTubeLoader';
 import {Logger} from 'utils';
 import defaultAmbientVideos from './defaultAmbientVideos';
 
-console.log('Default ambient videos:', defaultAmbientVideos.length);
-
 const logger = new Logger('ambientvideo/visualizers');
+
+logger.log(`default (total=${defaultAmbientVideos.length})`);
 
 const visualizers$ = new BehaviorSubject<readonly AmbientVideoVisualizer[]>([]);
 
@@ -74,11 +73,3 @@ async function getUserAmbientVideos(url: string): Promise<AmbientVideoVisualizer
         src: `youtube:video:${videoId}`,
     }));
 }
-
-// logging
-observeVisualizers()
-    .pipe(
-        map((ambientVideos) => ambientVideos.length),
-        skipWhile((size) => size === 0)
-    )
-    .subscribe(logger.rx('size'));

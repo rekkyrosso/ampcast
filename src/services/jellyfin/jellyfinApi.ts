@@ -4,8 +4,6 @@ import embyApi from 'services/emby/embyApi';
 import {EmbyLibrary} from 'services/emby/embySettings';
 import jellyfinSettings from './jellyfinSettings';
 
-console.log('module::jellyfinApi');
-
 async function del(path: string, params?: Record<string, Primitive>): Promise<void> {
     return embyApi.delete(path, params, jellyfinSettings);
 }

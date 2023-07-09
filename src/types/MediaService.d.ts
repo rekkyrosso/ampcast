@@ -14,10 +14,10 @@ export default interface MediaService extends Auth {
     readonly icon: MediaServiceId;
     readonly url: string;
     readonly libraryId?: string;
-    readonly roots: readonly MediaSource[];
-    readonly sources: readonly MediaSource[];
+    readonly roots: readonly MediaSource<MediaObject>[];
+    readonly sources: readonly MediaSource<MediaObject>[];
     readonly isScrobbler?: boolean;
-    readonly defaultHidden?: boolean;
+    readonly defaultHidden: true; // `true` for all services
     readonly defaultNoScrobble?: boolean;
     readonly icons?: Partial<Record<LibraryAction, IconName>>;
     readonly labels?: Partial<Record<LibraryAction, string>>;

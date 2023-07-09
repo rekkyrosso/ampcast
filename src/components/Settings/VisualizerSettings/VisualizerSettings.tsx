@@ -50,15 +50,7 @@ export default function VisualizerSettings() {
                 ),
             },
         ],
-        [
-            providerRef,
-            ambientVideoEnabledRef,
-            ambientVideoSourceRef,
-            useAmbientVideoSourceRef,
-            beatsOverlayEnabledRef,
-            ambientVideoEnabled,
-            handleSubmit,
-        ]
+        [ambientVideoEnabled, handleSubmit]
     );
 
     return <TabList className="visualizer-settings" items={tabs} label="Visualizers" />;

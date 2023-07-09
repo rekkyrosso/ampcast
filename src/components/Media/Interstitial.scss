@@ -45,7 +45,7 @@
     }
 
     &.error &-state {
-        color: red;
+        color: var(--error-color);
     }
 
     .no-visualizer:not(.is-playing-video) &:before,

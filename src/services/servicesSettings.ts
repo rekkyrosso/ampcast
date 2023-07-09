@@ -10,31 +10,25 @@ const storage = new LiteStorage('services');
 const initialHiddenSettings = storage.getJson('hidden', {});
 const hidden$ = new BehaviorSubject<HiddenSettings>(initialHiddenSettings);
 
-export function observeHiddenServiceChanges(): Observable<void> {
+export function observeHiddenSourceChanges(): Observable<void> {
     return hidden$.pipe(
         filter((settings) => settings !== initialHiddenSettings),
         map(() => undefined)
     );
 }
 
-export function isHidden(source: MediaService | MediaSource<any>): boolean {
+export function isSourceHidden(source: MediaService | MediaSource<any>): boolean {
     const settings = hidden$.getValue();
     return settings[source.id] ?? !!source.defaultHidden;
 }
 
-export function isVisible(source: MediaService | MediaSource<any>): boolean {
-    return !isHidden(source);
+export function isSourceVisible(source: MediaService | MediaSource<any>): boolean {
+    return !isSourceHidden(source);
 }
 
-export function setHidden(updates: Record<string, boolean>): void {
+export function setHiddenSources(updates: Record<string, boolean>): void {
     const settings = hidden$.getValue();
     const newSettings = {...settings, ...updates};
     storage.setJson('hidden', newSettings);
     hidden$.next(newSettings);
 }
-
-export default {
-    observeHiddenServiceChanges,
-    isHidden,
-    setHidden,
-};

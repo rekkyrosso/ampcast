@@ -1,8 +1,6 @@
 import {browser} from 'utils';
 import plexSettings from './plexSettings';
 
-console.log('module::plexApi');
-
 interface PlexRequest {
     path: string;
     method?: 'GET' | 'PUT' | 'POST' | 'HEAD';

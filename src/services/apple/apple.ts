@@ -21,8 +21,6 @@ import {bestOf, ParentOf} from 'utils';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './appleAuth';
 import MusicKitPager, {MusicKitPage} from './MusicKitPager';
 
-console.log('module::apple');
-
 const defaultLayout: MediaSourceLayout<MediaItem> = {
     view: 'card',
     fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
@@ -33,7 +31,6 @@ const appleRecommendations: MediaSource<MediaPlaylist> = {
     title: 'Recommended',
     icon: 'playlist',
     itemType: ItemType.Playlist,
-    defaultHidden: true,
 
     search(): Pager<MediaPlaylist> {
         return new MusicKitPager(
@@ -151,6 +148,7 @@ const apple: MediaService = {
     name: 'Apple Music',
     icon: 'apple',
     url: 'https://music.apple.com',
+    defaultHidden: true,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),

@@ -1,11 +1,9 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, filter, tap} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, filter, map, mergeMap, tap} from 'rxjs';
 import {Logger} from 'utils';
 import {showEmbyLoginDialog} from './components/EmbyLoginDialog';
 import embySettings from './embySettings';
 import embyApi from './embyApi';
-
-console.log('module::embyAuth');
 
 const logger = new Logger('embyAuth');
 
@@ -26,7 +24,7 @@ export function observeIsLoggedIn(): Observable<boolean> {
 
 export async function login(): Promise<void> {
     if (!isLoggedIn()) {
-        logger.log('login');
+        logger.log('connect');
         try {
             const returnValue = await showEmbyLoginDialog();
             if (returnValue) {
@@ -36,14 +34,13 @@ export async function login(): Promise<void> {
                 setAccessToken(token);
             }
         } catch (err) {
-            logger.log('Could not obtain access token');
             logger.error(err);
         }
     }
 }
 
 export async function logout(): Promise<void> {
-    logger.log('logout');
+    logger.log('disconnect');
     embySettings.clear();
     setAccessToken('');
     isLoggedIn$.next(false);
@@ -51,32 +48,24 @@ export async function logout(): Promise<void> {
 
 function setAccessToken(token: string): void {
     embySettings.token = token;
-    if (token) {
-        logger.log('Access token successfully obtained');
-    }
     accessToken$.next(token);
 }
-
-setAccessToken(embySettings.token);
 
 observeAccessToken()
     .pipe(
         filter((token) => token !== ''),
-        tap(async () => {
-            logger.log('Connected');
-            try {
-                const libraries = await embyApi.getMusicLibraries();
-                const library =
-                    libraries.find((section) => section.id === embySettings.libraryId) ||
-                    libraries.find((section) => section.type === 'music') ||
-                    libraries.find((section) => section.type === 'audiobooks');
-                embySettings.libraryId = library?.id || '';
-                embySettings.libraries = libraries;
-                isLoggedIn$.next(true);
-            } catch (err) {
-                logger.error(err);
-                isLoggedIn$.next(false);
-            }
-        })
+        mergeMap(() => embyApi.getMusicLibraries()),
+        tap((libraries) => (embySettings.libraries = libraries)),
+        map(
+            (libraries) =>
+                libraries.find((library) => library.id === embySettings.libraryId) ||
+                libraries.find((library) => library.type === 'music') ||
+                libraries.find((library) => library.type === 'audiobooks')
+        ),
+        map((library) => library?.id || ''),
+        tap((libraryId) => (embySettings.libraryId = libraryId)),
+        tap(() => isLoggedIn$.next(true))
     )
     .subscribe(logger);
+
+setAccessToken(embySettings.token);

@@ -65,16 +65,15 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
     }
 
     load(visualizer: AudioMotionVisualizer): void {
-        logger.log('load');
         if (visualizer) {
+            logger.log('load', visualizer.name);
             if (this.currentVisualizer !== visualizer.name) {
                 this.currentVisualizer = visualizer.name;
                 this.visualizer.setOptions(visualizer.options);
-                logger.log(`Using AudioMotion visualizer: ${visualizer.name}`);
             }
         }
         if (this.autoplay) {
-            this.play();
+            this.visualizer.toggleAnalyzer(true);
         }
     }
 
@@ -89,7 +88,8 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
     }
 
     stop(): void {
-        this.visualizer.toggleAnalyzer(true);
+        logger.log('stop');
+        this.visualizer.toggleAnalyzer(true); // `hidden` will disconnect
     }
 
     resize(width: number, height: number): void {

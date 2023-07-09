@@ -61,7 +61,8 @@ export type IconName =
     | 'playlist-add'
     | 'lookup-pending'
     | 'lookup-looking'
-    | 'lookup-not-found';
+    | 'lookup-not-found'
+    | 'error';
 
 export interface IconProps {
     name: IconName;
@@ -788,6 +789,18 @@ export default function Icon({name, className = ''}: IconProps) {
                     <path
                         className="icon-lookup-inner"
                         d="M8 4a.5.5 0 0 1 .5.5v3h3a.5.5 0 0 1 0 1h-3v3a.5.5 0 0 1-1 0v-3h-3a.5.5 0 0 1 0-1h3v-3A.5.5 0 0 1 8 4z"
+                    />
+                </svg>
+            );
+
+        case 'error':
+            return (
+                <svg className={className} viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="11" />
+                    <circle cx="12" cy="12" r="6" stroke="none" fill="white" />
+                    <path
+                        stroke="none"
+                        d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm1 15h-2v-2h2v2zm0-4h-2V7h2v6z"
                     />
                 </svg>
             );

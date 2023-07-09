@@ -1,6 +1,7 @@
 type MusicKitType = typeof MusicKit;
 
 export default class MusicKitV1Wrapper {
+    readonly isWrapper = true;
     private instance!: MusicKit.MusicKitInstance;
 
     constructor(private readonly MusicKit: MusicKitType) {}
@@ -18,35 +19,37 @@ export default class MusicKitV1Wrapper {
     }
 
     async configure(configuration: MusicKit.Configuration): Promise<MusicKit.MusicKitInstance> {
-        const instance: any = this.MusicKit.configure(configuration);
-        this.instance = instance;
-        Object.defineProperties(instance, {
-            volume: {
-                get: () => instance.player.volume,
-                set: (volume: number) => (instance.player.volume = volume),
-            },
-            queue: {
-                get: () => instance.player.queue,
-            },
-            isPlaying: {
-                get: () => instance.player.isPlaying,
-            },
-            nowPlayingItem: {
-                get: () => instance.player.nowPlayingItem,
-            },
-        });
-        Object.defineProperties(instance.api, {
-            music: {
-                get:
-                    () =>
-                    (
-                        href: string,
-                        params?: MusicKit.QueryParameters,
-                        options?: {fetchOptions: RequestInit | undefined}
-                    ) =>
-                        this.music(href, params, options),
-            },
-        });
+        if (!this.instance) {
+            const instance: any = this.MusicKit.configure(configuration);
+            this.instance = instance;
+            Object.defineProperties(instance, {
+                volume: {
+                    get: () => instance.player.volume,
+                    set: (volume: number) => (instance.player.volume = volume),
+                },
+                queue: {
+                    get: () => instance.player.queue,
+                },
+                isPlaying: {
+                    get: () => instance.player.isPlaying,
+                },
+                nowPlayingItem: {
+                    get: () => instance.player.nowPlayingItem,
+                },
+            });
+            Object.defineProperties(instance.api, {
+                music: {
+                    get:
+                        () =>
+                        (
+                            href: string,
+                            params?: MusicKit.QueryParameters,
+                            options?: {fetchOptions: RequestInit | undefined}
+                        ) =>
+                            this.music(href, params, options),
+                },
+            });
+        }
         return this.instance;
     }
 

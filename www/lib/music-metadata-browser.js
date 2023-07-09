@@ -1,1 +1,1 @@
-(globalThis.webpackChunkampcast=globalThis.webpackChunkampcast||[]).push([[12],{9283:()=>{},3838:()=>{}}]);
+(self.webpackChunkampcast=self.webpackChunkampcast||[]).push([[12],{9283:()=>{},3838:()=>{}}]);

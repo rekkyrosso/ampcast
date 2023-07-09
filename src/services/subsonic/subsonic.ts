@@ -25,8 +25,6 @@ import subsonicApi from './subsonicApi';
 import SubsonicPager from './SubsonicPager';
 import subsonicSettings from './subsonicSettings';
 
-console.log('module::subsonic');
-
 const serviceId: MediaServiceId = 'subsonic';
 
 const defaultLayout: MediaSourceLayout<MediaItem> = {
@@ -156,7 +154,6 @@ const subsonicFolders: MediaSource<MediaFolderItem> = {
     title: 'Folders',
     icon: 'folder',
     itemType: ItemType.Folder,
-    defaultHidden: true,
 
     search(): Pager<MediaFolderItem> {
         const root: Writable<SetOptional<MediaFolder, 'pager'>> = {
@@ -219,7 +216,6 @@ const subsonicSongsByGenre: MediaSource<MediaItem> = {
     title: 'Songs by Genre',
     icon: 'genre',
     itemType: ItemType.Media,
-    defaultHidden: true,
     layout: {
         view: 'details',
         fields: ['Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount'],
@@ -245,7 +241,6 @@ const subsonicAlbumsByGenre: MediaSource<MediaAlbum> = {
     title: 'Albums by Genre',
     icon: 'genre',
     itemType: ItemType.Album,
-    defaultHidden: true,
 
     search({genre, total}: {genre?: string; total?: number}): Pager<MediaAlbum> {
         if (genre && total) {

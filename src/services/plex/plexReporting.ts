@@ -3,8 +3,6 @@ import {Logger} from 'utils';
 import plexSettings from './plexSettings';
 import plexApi from './plexApi';
 
-console.log('module::plexReporting');
-
 const logger = new Logger('plexReporting');
 
 let playQueue: plex.PlayQueue | null = null; // TODO: Do this better.

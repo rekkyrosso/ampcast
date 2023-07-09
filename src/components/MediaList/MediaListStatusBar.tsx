@@ -1,6 +1,7 @@
 import React from 'react';
 import MediaObject from 'types/MediaObject';
 import StatusBar from 'components/StatusBar';
+import Icon from 'components/Icon';
 
 export interface MediaListStatusBarProps {
     items: readonly MediaObject[];
@@ -52,7 +53,12 @@ export default function MediaListStatusBar({
             );
         } else if (error) {
             const message = getErrorMessage(error);
-            statusText = <span className="error">{message ? `Error: ${message}` : 'Error'}</span>;
+            statusText = (
+                <>
+                    <Icon name="error" />
+                    <span className="error">{message ? `Error: ${message}` : 'Error'}</span>
+                </>
+            );
         } else {
             statusText = <span className="message">0 {itemNamePlural}</span>;
         }

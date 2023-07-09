@@ -26,8 +26,6 @@ import EmbyPager from './EmbyPager';
 import embySettings from './embySettings';
 import embyApi from './embyApi';
 
-console.log('module::emby');
-
 const serviceId: MediaServiceId = 'emby';
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
@@ -182,7 +180,6 @@ const embyFolders: MediaSource<MediaFolderItem> = {
     title: 'Folders',
     icon: 'folder',
     itemType: ItemType.Folder,
-    defaultHidden: true,
 
     search(): Pager<MediaFolderItem> {
         const root: Writable<SetOptional<MediaFolder, 'pager'>> = {

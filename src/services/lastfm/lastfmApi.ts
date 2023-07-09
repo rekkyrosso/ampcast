@@ -6,8 +6,6 @@ import {Logger, exists} from 'utils';
 import {getApiSignature} from './lastfmAuth';
 import lastfmSettings from './lastfmSettings';
 
-console.log('module::lastfmApi');
-
 const logger = new Logger('lastfmApi');
 
 export class LastFmApi {

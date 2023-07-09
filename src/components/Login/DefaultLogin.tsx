@@ -1,16 +1,14 @@
 import React from 'react';
 import LoginButton from './LoginButton';
 import ServiceLink from './ServiceLink';
+import LoginRequired from './LoginRequired';
 import {LoginProps} from './Login';
 
 export default function DefaultLogin({service}: LoginProps) {
     return (
         <div className="panel">
             <div className="page login">
-                <p>
-                    You need to be logged in to{' '}
-                    {service.isScrobbler ? 'access your data' : 'play music'} from {service.name}.
-                </p>
+                <LoginRequired service={service} />
                 <LoginButton service={service} />
                 <ServiceLink service={service} />
             </div>

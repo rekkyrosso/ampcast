@@ -50,6 +50,10 @@
         }
     }
 
+    &-error {
+        fill: var(--error-color);
+    }
+
     &-palette,
     &-globe,
     &-visualizer {

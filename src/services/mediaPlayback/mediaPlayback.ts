@@ -27,8 +27,6 @@ import mediaPlayer from './mediaPlayer';
 import playback from './playback';
 import './scrobbler';
 
-console.log('module::mediaPlayback');
-
 const logger = new Logger('mediaPlayback');
 
 const appSettings = new LiteStorage('mediaPlayback');

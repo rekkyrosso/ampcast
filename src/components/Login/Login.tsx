@@ -1,5 +1,6 @@
 import React from 'react';
 import MediaService from 'types/MediaService';
+import AppleLogin from 'services/apple/components/AppleLogin';
 import PlexLogin from 'services/plex/components/PlexLogin';
 import SpotifyLogin from 'services/spotify/components/SpotifyLogin';
 import YouTubeLogin from 'services/youtube/components/YouTubeLogin';
@@ -12,6 +13,9 @@ export interface LoginProps {
 
 export default function Login({service}: LoginProps) {
     switch (service.id) {
+        case 'apple':
+            return <AppleLogin />;
+
         case 'plex':
             return <PlexLogin />;
 

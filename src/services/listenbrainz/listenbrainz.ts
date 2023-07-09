@@ -16,14 +16,11 @@ import ListenBrainzLikesPager from './ListenBrainzLikesPager';
 import listenbrainzSettings from './listenbrainzSettings';
 import ListenBrainzStatsPager from './ListenBrainzStatsPager';
 
-console.log('module::listenbrainz');
-
 export const listenbrainzHistory: MediaSource<MediaItem> = {
     id: 'listenbrainz/history',
     title: 'History',
     icon: 'clock',
     itemType: ItemType.Media,
-    defaultHidden: true,
 
     search({startAt: max_ts = 0}: {startAt?: number} = {}): Pager<MediaItem> {
         return new ListenBrainzHistoryPager(max_ts ? {max_ts} : undefined);
@@ -47,7 +44,6 @@ const listenbrainzLovedTracks: MediaSource<MediaItem> = {
     icon: 'heart',
     itemType: ItemType.Media,
     viewType: ViewType.Ratings,
-    defaultHidden: true,
     layout: {
         view: 'card',
         fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear'],
@@ -103,7 +99,6 @@ const listenbrainzTopArtists: MediaSource<MediaArtist> = {
         view: 'card minimal',
         fields: ['Thumbnail', 'Title', 'PlayCount'],
     },
-    defaultHidden: true,
 
     search(params: {range: string}): Pager<MediaArtist> {
         return new ListenBrainzStatsPager(
@@ -118,6 +113,7 @@ const listenbrainz: MediaService = {
     name: 'ListenBrainz',
     icon: 'listenbrainz',
     url: 'https://listenbrainz.org',
+    defaultHidden: true,
     isScrobbler: true,
     roots: [listenbrainzRecentlyPlayed],
     sources: [

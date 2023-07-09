@@ -7,7 +7,6 @@ import React, {
     useState,
 } from 'react';
 import {ConditionalKeys} from 'type-fest';
-import pixel from 'assets/pixel.png.base64';
 import globalDrag from 'services/globalDrag';
 import {browser} from 'utils';
 import Scrollable, {
@@ -100,8 +99,6 @@ export interface ListViewProps<T> {
 
 const emptyArray: any[] = [];
 const emptyString = () => '';
-const dragImage = new Image(0, 0);
-dragImage.src = pixel;
 
 const scrollKeys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown'];
 

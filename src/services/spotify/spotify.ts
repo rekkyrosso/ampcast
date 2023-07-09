@@ -22,8 +22,6 @@ import spotifyApi from './spotifyApi';
 import SpotifyPager, {SpotifyPage} from './SpotifyPager';
 import {userSettings} from './spotifySettings';
 
-console.log('module::spotify');
-
 const logger = new Logger('spotify');
 
 export type SpotifyArtist = SpotifyApi.ArtistObjectFull;
@@ -102,7 +100,6 @@ const spotifyTopArtists: MediaSource<MediaArtist> = {
     title: 'Top Artists',
     icon: 'star',
     itemType: ItemType.Artist,
-    defaultHidden: true,
 
     search(): Pager<MediaArtist> {
         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
@@ -190,7 +187,6 @@ const spotifyFeaturedPlaylists: MediaSource<MediaPlaylist> = {
     title: 'Featured Playlists',
     icon: 'playlist',
     itemType: ItemType.Playlist,
-    defaultHidden: true,
     secondaryLayout: playlistItemsLayout,
 
     search(): Pager<MediaPlaylist> {
@@ -213,6 +209,7 @@ const spotify: MediaService = {
     name: 'Spotify',
     icon: 'spotify',
     url: 'https://www.spotify.com',
+    defaultHidden: true,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),

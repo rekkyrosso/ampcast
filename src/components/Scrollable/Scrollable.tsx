@@ -65,6 +65,15 @@ export default function Scrollable({
     const clientWidth = Math.max(innerWidth - (overflowY ? vScrollbarSize : 0), 0);
     const clientHeight = Math.max(innerHeight - (overflowX ? hScrollbarSize : 0), 0);
 
+    // TODO: Fix this component so that is doesn't re-layout so much.
+    const [scrollbarsHidden, setScrollbarsHidden] = useState(true);
+    useEffect(() => {
+        if (overflowX || overflowY) {
+            const timerId = setTimeout(() => setScrollbarsHidden(false), 50);
+            return () => clearTimeout(timerId);
+        }
+    }, [overflowX, overflowY]);
+
     useEffect(() => {
         if (scrollableRef) {
             scrollableRef.current = {
@@ -84,7 +93,7 @@ export default function Scrollable({
         if (scrollWidth && clientWidth) {
             setOverflowX(scrollWidth - clientWidth > 1);
         } else {
-            setOverflowY(false);
+            setOverflowX(false);
         }
     }, [scrollWidth, clientWidth]);
 
@@ -95,14 +104,6 @@ export default function Scrollable({
             setOverflowY(false);
         }
     }, [scrollHeight, clientHeight]);
-
-    useEffect(() => {
-        containerRef.current!.classList.toggle('overflow-x', overflowX);
-    }, [overflowX]);
-
-    useEffect(() => {
-        containerRef.current!.classList.toggle('overflow-y', overflowY);
-    }, [overflowY]);
 
     useEffect(() => {
         if (initialScrollWidth === 0) {
@@ -186,7 +187,14 @@ export default function Scrollable({
     );
 
     return (
-        <div className="scrollable" id={scrollableId} onWheel={handleWheel} ref={containerRef}>
+        <div
+            className={`scrollable ${overflowX ? 'overflow-x' : ''} ${
+                overflowY ? 'overflow-y' : ''
+            } ${scrollbarsHidden ? 'scrollbars-hidden' : ''}`}
+            id={scrollableId}
+            onWheel={handleWheel}
+            ref={containerRef}
+        >
             <div
                 className="scrollable-content"
                 onDragOver={droppable ? handleDragOver : undefined}

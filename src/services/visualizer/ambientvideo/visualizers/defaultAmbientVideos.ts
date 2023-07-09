@@ -3,7 +3,7 @@ import {AmbientVideoVisualizer} from 'types/Visualizer';
 // Some sample ambient videos to get us started.
 const defaultAmbientVideos: AmbientVideoVisualizer[] = `
 mo2re_RX3Bs blXien2Jh_o etiatMRgFcM DYsMJiwiZSI _MZ7UZ5frCI HCx1Z92PjJE dIP7wWY4Znw gW4nffCscYs
-A1m0SEqmmbE 9uZ8CCa0t4Y MXlFDpaQ1ec wz_ItcoR0-c jS4-FmNEDKo Tz77vqH_LJw K73lfmxDVR0 W8ayfyRWUrg
+A1m0SEqmmbE 9uZ8CCa0t4Y 35CTu7dWzo8 wz_ItcoR0-c jS4-FmNEDKo Tz77vqH_LJw K73lfmxDVR0 W8ayfyRWUrg
 cbuldALGsaQ AJZon2grzmA H5ASEM9dMiA GE2YEq7vaLc MYGOdJNAzrI Oszl95YWfbs b0-IkxXyhmY hoYPURX2RuE
 H6Xy97CD9Hs p-OUNPqRzII XaTxLSPh_Is 1n3ezT1cvAM CWU1pZVw0xM ry1Q7KaQdxM VlC5LSTvoj0 j-bG0j3-KzE
 1bClbVe4QyI f6OZ01vvmko o4jE24WixcI BIej9P2LrzM dxw91a7C5BQ lN9LdcAQnjw VVkZKzTbWQs vXCB1zGGFiY
@@ -58,7 +58,7 @@ VIlQIVVLWVs 6A-kQCdEIpI _lisL6tLbdg VarS6olPfTA va306f9aN3A YlPawyXaMJI wjMf_bEf
 JBm1ainuk-c PkF4EKJQOOg 0aMUCiKjBDI D1KsEOUqCEU JdE_xc1rQBY omlVslJvzxQ FoS3732REf0 kNMOaRRBat4
 qqC80mXlOKo MS2asGj1-_M NmP0RylitI4 IahW6hJ1-SM 9MIJm1NeUpE 2qzbMPpgtDw H3UY2gQfj-s 9kekiNImlsI
 5zUCClmhjF0 88jpBZdsrT8 UdFae3BAH38 MAFdQs_yWvg BHgDL6ODWSU p7G1lkYIFTM yAKSGmQkjxM 7TML_MTQdg4
-SH4f_DnPIto oaQ8UXlKDiw 5rf_gOfa7O4 MYG6FeY4SKg AVzdfRpE9Q0 1UxoHtG2qas o7XgU4ut6jQ IcOYM87wTRc
+FGCIBbg0IYk oaQ8UXlKDiw 5rf_gOfa7O4 MYG6FeY4SKg AVzdfRpE9Q0 1UxoHtG2qas o7XgU4ut6jQ IcOYM87wTRc
 oPetbPLA8dM eQIzdzSTH08 tpRBHKAJ_tU sTy4stPcD0E p4jroQX6Hwk y2Zl-KXvdSk zffchwaq6KE jv7hNnJEWPU
 DN-BxbMH264 mWaC_VSncEg 8x5Yzxi3LhA 0Txa_T4pHY4 McT_FUPZR5k 5rTo8-CPgU4 WbUgBaEsugI QytjUFgcmWw
 6BLY2zj6pq0 W5Y0deEEszo U6jAaBK7idQ rHZlMW_zxaE 4Xp4J5RYns0 Xsf2ThMqNBM lUbOyYp91NU dpuTxI8KAyc
@@ -75,7 +75,7 @@ qZezMIk7Oq4 ZHNYXUmEGoU 8dFr3YqPaeg M9KXG8jCq2U djP_T_rp09s Tyd_wjLfA_E ymRww99Y
 W0Kl0QfMEPo 5bwHtF7fR94 IXSTdSv-Jlo mf5E3FDZ6rY 7JsOhtl_zG4 vr5dCRHAgb0 Di9jRVy7WHk cVdfUy_VMTY
 LD_jcIQGl0Q ZXas8NdyLsE ELUl-cAtUIE --qCu9yL5H8 74wsGjTZzGg Wey4zHA4nPg VArhsYKbKzk t76IJmQKzKA
 l1RxmWxXQcM 7HagxwgIRcY gJgwJwg6Deg 1mD8V2trqcw i5ZbYQ1Nok4 YE3iWysmcBQ vdycBdIx-do UE-J2Dt8LNs
-x_dVi_PC_sc FGCIBbg0IYk
+x_dVi_PC_sc
 `
     .match(/\S+/g)!
     .map((videoId) => ({

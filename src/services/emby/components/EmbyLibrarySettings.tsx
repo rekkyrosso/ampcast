@@ -1,17 +1,19 @@
 import React, {useCallback, useId, useRef} from 'react';
+import MediaService from 'types/MediaService';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import useEmbyMusicLibraries from './useEmbyMusicLibraries';
-import embySettings, {EmbySettings} from '../embySettings';
+import {EmbySettings} from '../embySettings';
 
 export interface EmbyLibrarySettings {
-    settings?: EmbySettings;
+    service: MediaService;
+    settings: EmbySettings;
 }
 
-export default function EmbyLibrarySettings({settings = embySettings}: EmbyLibrarySettings) {
+export default function EmbyLibrarySettings({service, settings}: EmbyLibrarySettings) {
     const id = useId();
     const ref = useRef<HTMLSelectElement>(null);
     const preferredLibrary = settings.libraryId;
-    const libraries = useEmbyMusicLibraries(settings);
+    const libraries = useEmbyMusicLibraries(service, settings);
 
     const handleSubmit = useCallback(() => {
         settings.libraryId = ref.current!.value;

@@ -144,15 +144,15 @@ export function fuzzyCompare(a: string, b: string, tolerance = 0.9): boolean {
 const dummyElement = document.createElement('p');
 
 export function getTextFromHtml(html = ''): string {
-    const paragraphs = html?.trim().split(/[\n\r]+/);
-    return (
-        paragraphs
-            ?.map((html) => {
-                dummyElement.innerHTML = html;
-                return dummyElement.textContent;
-            })
-            .join('\n') || ''
-    );
+    const paragraphs = String(html ?? '')
+        .trim()
+        .split(/[\n\r]+/);
+    return paragraphs
+        ?.map((html) => {
+            dummyElement.innerHTML = html;
+            return dummyElement.textContent;
+        })
+        .join('\n');
 }
 
 export function saveTextToFile(fileName: string, text: string, type = 'text/json'): void {

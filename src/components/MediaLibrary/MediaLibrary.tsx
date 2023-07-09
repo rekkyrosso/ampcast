@@ -8,8 +8,6 @@ import IconButton from 'components/Button/IconButton';
 import EmptyScreen from 'components/EmptyScreen';
 import './MediaLibrary.scss';
 
-console.log('component::MediaLibrary');
-
 export default memo(function MediaLibrary() {
     const [source, setSource] = useState<React.ReactNode>(null);
 

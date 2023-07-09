@@ -85,6 +85,4 @@ const visualizers: AudioMotionVisualizer[] = [
     },
 ];
 
-console.log('audioMotion-analyzer visualizers:', visualizers.length);
-
 export default visualizers;

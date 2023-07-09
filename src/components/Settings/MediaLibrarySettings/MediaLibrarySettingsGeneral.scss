@@ -1,0 +1,11 @@
+.media-library-settings-general {
+    .checkbox-list > li {
+        display: flex;
+        flex-direction: row;
+        align-items: baseline;
+    }
+
+    .media-source-label {
+        display: inline-flex;
+    }
+}

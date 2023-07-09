@@ -11,8 +11,6 @@ import Interstitial from './Interstitial';
 import 'fullscreen-api-polyfill';
 import './Media.scss';
 
-console.log('component::Media');
-
 export default memo(function Media() {
     const ref = useRef<HTMLDivElement>(null);
     const [fullScreen, setFullScreen] = useState(false);

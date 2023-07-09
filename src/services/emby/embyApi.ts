@@ -2,8 +2,6 @@ import type {BaseItemDto, BaseItemDtoQueryResult} from '@jellyfin/client-axios/d
 import {Primitive} from 'type-fest';
 import embySettings, {EmbyLibrary, EmbySettings} from './embySettings';
 
-console.log('module::embyApi');
-
 async function del(
     path: string,
     params?: Record<string, Primitive>,

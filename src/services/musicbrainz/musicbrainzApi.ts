@@ -1,5 +1,3 @@
-console.log('module::musicbrainzApi');
-
 export class MusicBrainzApi {
     private readonly host = `https://musicbrainz.org/ws/2`;
     private lastCall = 0;

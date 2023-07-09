@@ -130,15 +130,16 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
     }
 
     private async fetchNext(href: string, params?: MusicKit.QueryParameters): Promise<any> {
+        const musicKit = MusicKit.getInstance();
         try {
-            const response = await MusicKit.getInstance().api.music(href, params);
+            const response = await musicKit.api.music(href, params);
             return response;
         } catch (err: any) {
             const status = err?.data.status;
             if (status === 401 || status === 403) {
                 await refreshToken();
                 // We'll never get here.
-                return MusicKit.getInstance().api.music(href, params);
+                return musicKit.api.music(href, params);
             } else {
                 throw err;
             }

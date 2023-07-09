@@ -22,8 +22,6 @@ import {observeIsLoggedIn, isLoggedIn, login, logout} from './navidromeAuth';
 import NavidromePager from './NavidromePager';
 import navidromeSettings from './navidromeSettings';
 
-console.log('module::navidrome');
-
 const serviceId: MediaServiceId = 'navidrome';
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {

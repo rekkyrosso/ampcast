@@ -5,8 +5,6 @@ import {lf_api_key, lf_api_secret} from 'services/credentials';
 import {Logger} from 'utils';
 import lastfmSettings from './lastfmSettings';
 
-console.log('module::lastfmAuth');
-
 const lastfmApi = `https://ws.audioscrobbler.com/2.0`;
 
 const logger = new Logger('lastfmAuth');
@@ -35,22 +33,20 @@ export function observeIsLoggedIn(): Observable<boolean> {
 
 export async function login(): Promise<void> {
     if (!isLoggedIn()) {
-        logger.log('login');
+        logger.log('connect');
         try {
             const token = await obtainAccessToken();
             const sessionKey = await obtainSessionKey(token);
-            logger.log('Access token successfully obtained');
             sessionKey$.next(sessionKey);
             accessToken$.next(token);
         } catch (err) {
-            logger.log('Could not obtain access token');
             logger.error(err);
         }
     }
 }
 
 export async function logout(): Promise<void> {
-    logger.log('logout');
+    logger.log('disconnect');
     lastfmSettings.clear();
     sessionKey$.next('');
     accessToken$.next('');

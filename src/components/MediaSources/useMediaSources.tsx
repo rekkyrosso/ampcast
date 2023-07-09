@@ -1,23 +1,23 @@
 import React, {useEffect, useState} from 'react';
-import {map, merge, switchMap} from 'rxjs';
+import {map, merge, switchMap, take} from 'rxjs';
 import MediaService from 'types/MediaService';
 import {getAllServices} from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
 import jellyfinSettings from 'services/jellyfin/jellyfinSettings';
 import plexSettings from 'services/plex/plexSettings';
-import {isVisible, observeHiddenServiceChanges} from 'services/servicesSettings';
+import {isSourceVisible, observeHiddenSourceChanges} from 'services/servicesSettings';
 import {MediaSourceIconName} from 'components/Icon';
 import MediaBrowser from 'components/MediaBrowser';
 import {TreeNode} from 'components/TreeView';
 import MediaSourceLabel from './MediaSourceLabel';
 import {exists} from 'utils';
 
-export default function useMediaSources(): TreeNode<React.ReactNode>[] {
-    const [sources, setSources] = useState<TreeNode<React.ReactNode>[]>([]);
+export default function useMediaSources() {
+    const [sources, setSources] = useState<TreeNode<React.ReactNode>[]>();
 
     useEffect(() => {
         const refresh$ = merge(
-            observeHiddenServiceChanges(),
+            observeHiddenSourceChanges(),
             pinStore.observe(),
             jellyfinSettings.observeLibraryId(),
             plexSettings.observeLibraryId()
@@ -25,6 +25,7 @@ export default function useMediaSources(): TreeNode<React.ReactNode>[] {
         const subscription = pinStore
             .observe()
             .pipe(
+                take(1),
                 switchMap(() => refresh$),
                 map(() => getServices())
             )
@@ -37,7 +38,7 @@ export default function useMediaSources(): TreeNode<React.ReactNode>[] {
 
 function getServices() {
     return getAllServices()
-        .filter(isVisible)
+        .filter(isSourceVisible)
         .map((service) => getService(service));
 }
 
@@ -60,7 +61,7 @@ function getService(service: MediaService) {
 
 function getSources(service: MediaService) {
     return service.sources
-        .filter(isVisible)
+        .filter(isSourceVisible)
         .map((source) => ({
             id: source.id,
             label: <MediaSourceLabel icon={source.icon} text={source.title} />,

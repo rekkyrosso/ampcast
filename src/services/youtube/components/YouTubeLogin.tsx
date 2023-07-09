@@ -4,8 +4,11 @@ import LoginButton from 'components/Login/LoginButton';
 import ServiceLink from 'components/Login/ServiceLink';
 import youtube from '../youtube';
 import AddYouTubeVideo from './AddYouTubeVideo';
+import useGoogleClientLibrary from './useGoogleClientLibrary';
 
 export default function YouTubeLogin() {
+    const {client, error} = useGoogleClientLibrary();
+
     return (
         <div className="panel">
             <div className="page login">
@@ -15,7 +18,8 @@ export default function YouTubeLogin() {
                     <br />
                     But you need to be logged in to search for music and access your playlists.
                 </p>
-                <LoginButton service={youtube} />
+                <LoginButton service={youtube} disabled={!client} />
+                {error ? <p className="error">Could not load Google client library.</p> : null}
                 <AddYouTubeVideo />
                 <ServiceLink service={youtube} />
             </div>

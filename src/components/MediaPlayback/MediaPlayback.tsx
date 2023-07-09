@@ -11,8 +11,6 @@ import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import usePaused from 'hooks/usePaused';
 import './MediaPlayback.scss';
 
-console.log('component::MediaPlayback');
-
 export default memo(function MediaPlayback() {
     const listViewRef = useRef<ListViewHandle>(null);
     const currentlyPlaying = useCurrentlyPlaying();

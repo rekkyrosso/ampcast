@@ -12,8 +12,6 @@ import {observeIsLoggedIn} from './lastfmAuth';
 import LastFmHistoryPager from './LastFmHistoryPager';
 import lastfm from './lastfm';
 
-console.log('module::lastfmScrobbler');
-
 const logger = new Logger('lastfmScrobbler');
 
 const timeFuzziness = 30;

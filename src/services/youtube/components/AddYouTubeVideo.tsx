@@ -24,7 +24,7 @@ export default function AddYouTubeVideo() {
         }
     }, []);
 
-    const handleSourceInput = useCallback(() => {
+    const handleInput = useCallback(() => {
         setMessage('');
         const url = ref.current!.value;
         let validityMessage = 'Not a valid YouTube url.';
@@ -41,9 +41,9 @@ export default function AddYouTubeVideo() {
     return (
         <form className="add-youtube-video" onSubmit={handleSubmit}>
             <fieldset>
-                <legend>Add video from url:</legend>
+                <legend>Add video from YouTube url:</legend>
                 <p className="text-with-button">
-                    <input type="url" required onInput={handleSourceInput} ref={ref} />
+                    <input type="url" required onInput={handleInput} ref={ref} />
                     <button title="Add to playlist">
                         <Icon name="playlist-add" />
                     </button>

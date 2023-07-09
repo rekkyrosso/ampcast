@@ -17,8 +17,6 @@ import LastFmPager from './LastFmPager';
 import LastFmHistoryPager from './LastFmHistoryPager';
 import lastfmSettings from './lastfmSettings';
 
-console.log('module::lastfm');
-
 const topTracksLayout: MediaSourceLayout<MediaItem> = {
     view: 'card compact',
     fields: ['Thumbnail', 'Title', 'Artist', 'PlayCount'],
@@ -49,7 +47,6 @@ export const lastfmHistory: MediaSource<MediaItem> = {
     title: 'History',
     icon: 'clock',
     itemType: ItemType.Media,
-    defaultHidden: true,
 
     search({startAt: to = 0}: {startAt?: number} = {}): Pager<MediaItem> {
         return new LastFmHistoryPager(to ? {to} : undefined);
@@ -74,7 +71,6 @@ const lastfmLovedTracks: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
     viewType: ViewType.Ratings,
     layout: lovedTracksLayout,
-    defaultHidden: true,
 
     search(): Pager<MediaItem> {
         return new LastFmPager(
@@ -101,6 +97,7 @@ const lastfm: MediaService = {
     name: 'last.fm',
     icon: 'lastfm',
     url: 'https://www.last.fm',
+    defaultHidden: true,
     isScrobbler: true,
     roots: [lastfmRecentlyPlayed],
     sources: [

@@ -60,8 +60,8 @@ export default function AppleBetaSettings() {
                     unstable. If you experience any problems then use the stable release.
                 </p>
                 <p>
-                    You will need to reload the page for changes to take effect. And you may have to
-                    log in again.
+                    You will need to reload the page for changes to take effect. And you will need
+                    to log in again.
                 </p>
             </div>
             <p>

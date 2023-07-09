@@ -2,8 +2,6 @@ import {Primitive} from 'type-fest';
 import subsonicApi from 'services/subsonic/subsonicApi';
 import navidromeSettings from './navidromeSettings';
 
-console.log('module::navidromeApi');
-
 export interface NavidromePage<T> {
     readonly items: readonly T[];
     readonly total: number;

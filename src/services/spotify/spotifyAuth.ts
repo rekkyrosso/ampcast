@@ -5,8 +5,6 @@ import {Logger} from 'utils';
 import spotifyApi from './spotifyApi';
 import {authSettings, userSettings} from './spotifySettings';
 
-console.log('module::spotifyAuth');
-
 const logger = new Logger('spotifyAuth');
 
 const host = location.hostname;
@@ -47,19 +45,18 @@ export function observeIsLoggedIn(): Observable<boolean> {
 
 export async function login(): Promise<void> {
     if (!isLoggedIn()) {
-        logger.log('login');
+        logger.log('connect');
         try {
             const token = await obtainAccessToken();
             await storeAccessToken(token);
         } catch (err) {
-            logger.log('Could not obtain access token');
             logger.error(err);
         }
     }
 }
 
 export async function logout(): Promise<void> {
-    logger.log('logout');
+    logger.log('disconnect');
     await clearAccessToken();
 }
 
@@ -222,12 +219,10 @@ function getAccessToken(): TokenStore | null {
 }
 
 function nextAccessToken(access_token: string): void {
-    logger.log('Access token successfully obtained');
     accessToken$.next(access_token);
 }
 
 async function clearAccessToken(): Promise<void> {
-    logger.log('clearAccessToken');
     authSettings.removeItem('token');
     userSettings.clear();
     await createCodeVerifier();
@@ -248,7 +243,7 @@ async function getUserInfo(): Promise<void> {
     }
 }
 
-(async function (): Promise<void> {
+(async () => {
     try {
         const token = getAccessToken();
         if (token) {

@@ -2,6 +2,7 @@
 
 declare namespace MusicKit {
     function configure(configuration: Configuration): Promise<MusicKitInstance>;
+    const isWrapper: boolean | undefined;
 
     interface MusicKitInstance {
         readonly player: never;

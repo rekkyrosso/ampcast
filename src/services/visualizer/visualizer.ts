@@ -29,8 +29,6 @@ import visualizerSettings, {
 } from './visualizerSettings';
 export {observeVisualizerSettings} from './visualizerSettings';
 
-console.log('module::visualizer');
-
 const logger = new Logger('visualizer');
 
 type NextReason = 'click' | 'item' | 'provider' | 'sync' | 'error';
@@ -188,8 +186,7 @@ function handleLazyLoads(providerId: string, count = 1) {
         .pipe(
             skipWhile((visualizers) => visualizers.length === 0),
             withLatestFrom(observeCurrentVisualizer()),
-            tap(([visualizers, currentVisualizer]) => {
-                console.log(`${providerId} visualizers:`, visualizers.length);
+            tap(([, currentVisualizer]) => {
                 if (currentVisualizer === noVisualizer) {
                     nextVisualizer('sync');
                 }
