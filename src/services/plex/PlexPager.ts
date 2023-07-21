@@ -11,15 +11,14 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
-import DualPager from 'services/pagers/DualPager';
 import OffsetPager from 'services/pagers/OffsetPager';
 import SimplePager from 'services/pagers/SimplePager';
+import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
 import {ParentOf} from 'utils';
-import plexApi from './plexApi';
+import plexApi, {getMusicLibraryPath} from './plexApi';
+import plexMediaType from './plexMediaType';
 import plexSettings from './plexSettings';
-
-type PlexMediaObject = plex.Track | plex.MusicVideo | plex.Album | plex.Artist | plex.Playlist;
 
 export default class PlexPager<T extends MediaObject> implements Pager<T> {
     static minPageSize = 10;
@@ -34,8 +33,10 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         options?: Partial<PagerConfig>,
         private readonly parent?: ParentOf<T>
     ) {
-        this.pageSize =
-            options?.pageSize || (plexSettings.connection?.local ? PlexPager.maxPageSize : 200);
+        this.pageSize = Math.min(
+            options?.maxSize || Infinity,
+            options?.pageSize || (plexSettings.connection?.local ? PlexPager.maxPageSize : 200)
+        );
         this.pager = new OffsetPager<T>((pageNumber) => this.fetch(pageNumber), {
             pageSize: this.pageSize,
             ...options,
@@ -77,14 +78,14 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         });
 
         const {
-            MediaContainer: {Metadata: tracks = [], size, totalSize},
+            MediaContainer: {Metadata: plexItems = [], size, totalSize},
         } = result;
-        const items = tracks.map((track: plex.Track) => this.createItem(track));
+        const items = plexItems.map((item: plex.MediaObject) => this.createMediaObject(item));
 
         return {items, total: totalSize || size};
     }
 
-    private createItem(item: PlexMediaObject): T {
+    private createMediaObject(item: plex.MediaObject): T {
         switch (item.type) {
             case 'clip':
                 return this.createMediaItemFromVideo(item) as T;
@@ -137,6 +138,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             album: albumTitle,
             duration: track.duration / 1000,
             track: albumTitle ? track.index : undefined,
+            disc: albumTitle && track.index ? track.parentIndex : undefined,
             rating: this.getRating(track),
             year: track.parentYear,
             playedAt: track.lastViewedAt || 0,
@@ -144,7 +146,9 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             plex: {
                 ratingKey: track.ratingKey,
             },
-            thumbnails: this.createThumbnails(track.thumb),
+            thumbnails: this.createThumbnails(
+                track.thumb || track.parentThumb || track.grandparentThumb
+            ),
         };
     }
 
@@ -165,8 +169,8 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             plex: {
                 ratingKey: album.ratingKey,
             },
-            pager: this.createPager(album.key),
-            thumbnails: this.createThumbnails(album.thumb),
+            pager: new PlexPager(album.key),
+            thumbnails: this.createThumbnails(album.thumb || album.parentThumb),
         };
     }
 
@@ -184,11 +188,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             plex: {
                 ratingKey: artist.ratingKey,
             },
-            pager: this.createPager(`/library/sections/${plexSettings.libraryId}/all`, {
-                'artist.id': artist.ratingKey,
-                type: '9',
-                sort: 'year:desc,originallyAvailableAt:desc,artist.titleSort:desc,album.titleSort,album.index',
-            }),
+            pager: this.createArtistAlbumsPager(artist),
             thumbnails: this.createThumbnails(artist.thumb),
         };
     }
@@ -233,7 +233,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             plex: {
                 ratingKey: playlist.ratingKey,
             },
-            pager: this.createPager(playlist.key),
+            pager: new PlexPager(playlist.key),
             thumbnails: this.createThumbnails(playlist.composite),
             isPinned: pinStore.isPinned(src),
         };
@@ -291,13 +291,6 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         return {url, width, height};
     }
 
-    private createPager<T extends MediaObject>(
-        key: string,
-        params?: Record<string, string>
-    ): Pager<T> {
-        return new PlexPager<T>(key, params);
-    }
-
     private createFolderPager(folder: MediaFolder): Pager<MediaFolderItem> {
         const [, , key] = folder.src.split(':');
         const folderPager = new PlexPager<MediaFolderItem>(
@@ -312,9 +305,39 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
                 fileName: `../${this.parent.fileName}`,
             };
             const backPager = new SimplePager([parentFolder]);
-            return new DualPager<MediaFolderItem>(backPager, folderPager);
+            return new WrappedPager<MediaFolderItem>(backPager, folderPager);
         } else {
             return folderPager;
         }
+    }
+
+    private createArtistAlbumsPager(artist: plex.Artist): Pager<MediaAlbum> {
+        const otherTracks = this.createArtistOtherTracks(artist);
+        const otherTracksPager = new SimplePager<MediaAlbum>([otherTracks]);
+        const albumsPager = new PlexPager<MediaAlbum>(getMusicLibraryPath(), {
+            'artist.id': artist.ratingKey,
+            type: plexMediaType.Album,
+            sort: 'year:desc,originallyAvailableAt:desc,artist.titleSort:desc,album.titleSort,album.index',
+        });
+        return new WrappedPager(undefined, albumsPager, otherTracksPager);
+    }
+
+    private createArtistOtherTracks(artist: plex.Artist): MediaAlbum {
+        return {
+            itemType: ItemType.Album,
+            src: `plex:other-tracks:${artist.ratingKey}`,
+            title: 'Other Tracks',
+            artist: artist.title,
+            thumbnails: this.createThumbnails(artist.thumb),
+            pager: this.createOtherTracksPager(artist),
+            synthetic: true,
+        };
+    }
+
+    private createOtherTracksPager(artist: plex.Artist): Pager<MediaItem> {
+        return new PlexPager(getMusicLibraryPath(), {
+            originalTitle: artist.title,
+            type: plexMediaType.Track,
+        });
     }
 }

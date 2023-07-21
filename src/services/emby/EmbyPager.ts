@@ -12,9 +12,9 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
-import DualPager from 'services/pagers/DualPager';
 import OffsetPager from 'services/pagers/OffsetPager';
 import SimplePager from 'services/pagers/SimplePager';
+import WrappedPager from 'services/pagers/WrappedPager';
 import ratingStore from 'services/actions/ratingStore';
 import pinStore from 'services/pins/pinStore';
 import {ParentOf} from 'utils';
@@ -35,7 +35,7 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
         options?: Partial<PagerConfig>,
         private readonly parent?: ParentOf<T>
     ) {
-        this.pageSize = options?.pageSize || 200;
+        this.pageSize = Math.min(options?.maxSize || Infinity, options?.pageSize || 200);
         this.pager = new OffsetPager<T>((pageNumber) => this.fetch(pageNumber), {
             pageSize: this.pageSize,
             ...options,
@@ -69,7 +69,7 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
     private async fetch(pageNumber: number): Promise<Page<T>> {
         const params = {
             IncludeItemTypes: 'Audio',
-            Fields: 'AudioInfo,Genres,Path,ProductionYear,Overview,PresentationUniqueKey',
+            Fields: 'AudioInfo,Genres,ParentIndexNumber,Path,ProductionYear,Overview,PresentationUniqueKey',
             EnableUserData: true,
             Recursive: true,
             ImageTypeLimit: 1,
@@ -84,18 +84,18 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
 
         if ((data as BaseItemDto).Type) {
             return {
-                items: [this.createItem(data as BaseItemDto)],
+                items: [this.createMediaObject(data as BaseItemDto)],
                 total: 1,
             };
         } else {
             return {
-                items: data.Items?.map((item: BaseItemDto) => this.createItem(item)) || [],
+                items: data.Items?.map((item: BaseItemDto) => this.createMediaObject(item)) || [],
                 total: data.TotalRecordCount || data.Items?.length,
             };
         }
     }
 
-    private createItem(item: BaseItemDto): T {
+    private createMediaObject(item: BaseItemDto): T {
         if (this.parent?.itemType === ItemType.Folder && item.IsFolder) {
             return this.createMediaFolder(item) as T;
         } else {
@@ -133,7 +133,7 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
             playCount: artist.UserData?.PlayCount || undefined,
             genres: artist.Genres || undefined,
             thumbnails: this.createThumbnails(artist),
-            pager: this.createAlbumsPager(artist),
+            pager: this.createArtistAlbumsPager(artist),
         };
     }
 
@@ -240,20 +240,44 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
         return {url, width, height};
     }
 
-    private createAlbumTracksPager(album: BaseItemDto): Pager<MediaItem> {
-        return new EmbyPager(`Users/${embySettings.userId}/Items`, {
-            ParentId: album.Id!,
-            SortBy: 'IndexNumber',
-            SortOrder: 'Ascending',
-        });
-    }
-
-    private createAlbumsPager(artist: BaseItemDto): Pager<MediaAlbum> {
-        return new EmbyPager(`Users/${embySettings.userId}/Items`, {
+    private createArtistAlbumsPager(artist: BaseItemDto): Pager<MediaAlbum> {
+        const allTracks = this.createArtistAllTracks(artist);
+        const allTracksPager = new SimplePager<MediaAlbum>([allTracks]);
+        const albumsPager = new EmbyPager<MediaAlbum>(`Users/${embySettings.userId}/Items`, {
             AlbumArtistIds: artist.Id!,
             IncludeItemTypes: 'MusicAlbum',
             SortBy: 'ProductionYear,SortName',
             SortOrder: 'Descending',
+        });
+        return new WrappedPager(undefined, albumsPager, allTracksPager);
+    }
+
+    private createArtistAllTracks(artist: BaseItemDto): MediaAlbum {
+        return {
+            itemType: ItemType.Album,
+            src: `emby:all-tracks:${artist.Id}`,
+            title: 'All Songs',
+            artist: artist.Name || '',
+            thumbnails: this.createThumbnails(artist),
+            pager: this.createAllTracksPager(artist),
+            synthetic: true,
+        };
+    }
+
+    private createAllTracksPager(artist: BaseItemDto): Pager<MediaItem> {
+        return new EmbyPager<MediaItem>(`Users/${embySettings.userId}/Items`, {
+            ArtistIds: artist.Id!,
+            IncludeItemTypes: 'Audio',
+            SortBy: 'SortName',
+            SortOrder: 'Ascending',
+        });
+    }
+
+    private createAlbumTracksPager(album: BaseItemDto): Pager<MediaItem> {
+        return new EmbyPager(`Users/${embySettings.userId}/Items`, {
+            ParentId: album.Id!,
+            SortBy: 'ParentIndexNumber,IndexNumber',
+            SortOrder: 'Ascending',
         });
     }
 
@@ -287,7 +311,7 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
                 fileName: `../${this.parent.fileName}`,
             };
             const backPager = new SimplePager([parentFolder]);
-            return new DualPager<MediaFolderItem>(backPager, folderPager);
+            return new WrappedPager<MediaFolderItem>(backPager, folderPager);
         } else {
             return folderPager;
         }

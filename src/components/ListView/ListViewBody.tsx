@@ -9,14 +9,14 @@ export interface ListViewBodyProps<T> {
     width?: number;
     height: number;
     rowHeight: number;
-    cols: Column<T>[];
+    cols: readonly Column<T>[];
     items: readonly T[];
     itemKey: ConditionalKeys<T, string | number>;
     itemClassName: (item: T) => string;
     selectedId: string;
+    selectedIds: T[ConditionalKeys<T, string | number>][];
     scrollTop: number;
     overScan?: number;
-    selection: readonly T[];
     draggable?: boolean;
     dragIndex: number;
     multiple?: boolean;
@@ -33,9 +33,9 @@ export default function ListViewBody<T>({
     itemKey,
     itemClassName,
     selectedId,
+    selectedIds,
     scrollTop,
     overScan = 2,
-    selection,
     draggable,
     dragIndex,
     multiple = false,
@@ -67,7 +67,7 @@ export default function ListViewBody<T>({
                     id={`${listViewId}-${item[itemKey]}`}
                     rowIndex={virtualStart + i}
                     height={rowHeight}
-                    selected={selection.includes(item)}
+                    selected={item ? selectedIds.includes(item[itemKey]) : false}
                     cols={cols}
                     item={item}
                     setSize={size}

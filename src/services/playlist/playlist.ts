@@ -26,8 +26,7 @@ import {
     observeLookupEndEvents,
 } from 'services/lookup';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
-import {exists, shuffle as shuffleArray, Logger} from 'utils';
-import {removeUserData} from 'utils/media';
+import {exists, removeUserData, shuffle as shuffleArray, Logger} from 'utils';
 import settings from './playlistSettings';
 
 const logger = new Logger('playlist');
@@ -151,14 +150,14 @@ export async function add(items: PlayableType): Promise<void> {
     return insertAt(items, -1);
 }
 
-export async function clear(): Promise<void> {
+export function clear(): void {
     setItems([]);
 }
 
-export async function eject(): Promise<void> {
+export function eject(): void {
     const item = getCurrentItem();
     if (item) {
-        return remove(item);
+        remove(item);
     }
 }
 
@@ -213,15 +212,15 @@ export async function moveSelection(selection: PlaylistItem[], beforeIndex: numb
     }
 }
 
-export async function next(): Promise<void> {
+export function next(): void {
     moveCurrentIndexBy(+1);
 }
 
-export async function prev(): Promise<void> {
+export function prev(): void {
     moveCurrentIndexBy(-1);
 }
 
-export async function remove(item: PlaylistItem | readonly PlaylistItem[]): Promise<void> {
+export function remove(item: PlaylistItem | readonly PlaylistItem[]): void {
     const items = getItems();
     const removals = Array.isArray(item) ? item : [item];
     const newItems = items.filter((item) => !removals.includes(item));
@@ -241,21 +240,21 @@ export async function remove(item: PlaylistItem | readonly PlaylistItem[]): Prom
     }
 }
 
-export async function removeAt(index: number): Promise<void> {
+export function removeAt(index: number): void {
     const item = getAt(index);
     if (item) {
-        return remove(item);
+        remove(item);
     }
 }
 
-export async function reverseAt(index: number, length: number): Promise<void> {
+export function reverseAt(index: number, length: number): void {
     const items = getItems();
     const reversals = items.slice(index, index + length).reverse();
     items.splice(index, length, ...reversals);
     setItems(items);
 }
 
-export async function shuffle(preserveCurrentlyPlaying?: boolean): Promise<void> {
+export function shuffle(preserveCurrentlyPlaying?: boolean): void {
     const currentItems = getItems().slice();
     if (currentItems.length > 0) {
         const currentItem = getCurrentItem();

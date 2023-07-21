@@ -56,7 +56,7 @@ export default function MediaListStatusBar({
             statusText = (
                 <>
                     <Icon name="error" />
-                    <span className="error">{message ? `Error: ${message}` : 'Error'}</span>
+                    <span className="message error">{message ? `Error: ${message}` : 'Error'}</span>
                 </>
             );
         } else {

@@ -1,6 +1,11 @@
 import type {BaseItemDto, BaseItemDtoQueryResult} from '@jellyfin/client-axios/dist/models';
 import {Primitive} from 'type-fest';
-import embySettings, {EmbyLibrary, EmbySettings} from './embySettings';
+import ItemType from 'types/ItemType';
+import MediaFilter from 'types/MediaFilter';
+import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
+import ViewType from 'types/ViewType';
+import embySettings, {EmbySettings} from './embySettings';
+import {groupBy} from 'utils';
 
 async function del(
     path: string,
@@ -28,16 +33,85 @@ async function get<T extends BaseItemDtoQueryResult>(
     return data;
 }
 
+async function getDecades(
+    itemType: ItemType,
+    settings?: EmbySettings
+): Promise<readonly MediaFilter[]> {
+    const thisYear = new Date().getFullYear();
+    const toDecade = (year: number) => Math.floor(year / 10) * 10;
+    const filters = await fetchEmbyFilters('Years', itemType, settings);
+    const years = filters
+        .map((filter) => Number(filter.title))
+        .filter((year) => year > 500 && year <= thisYear);
+    const decades = groupBy(years, toDecade);
+    return Object.keys(decades)
+        .sort()
+        .reverse()
+        .map((key) => ({
+            id: decades[key as any].join(','),
+            title: `${key}s`,
+        }));
+}
+
+async function getFilters(
+    viewType: ViewType.ByDecade | ViewType.ByGenre,
+    itemType: ItemType,
+    settings?: EmbySettings
+): Promise<readonly MediaFilter[]> {
+    if (viewType === ViewType.ByDecade) {
+        return getDecades(itemType, settings);
+    } else {
+        return getGenres(itemType, settings);
+    }
+}
+
+async function getGenres(
+    itemType: ItemType,
+    settings?: EmbySettings
+): Promise<readonly MediaFilter[]> {
+    return fetchEmbyFilters('Genres', itemType, settings);
+}
+
+async function fetchEmbyFilters(
+    filterType: string,
+    itemType: ItemType,
+    settings: EmbySettings = embySettings
+): Promise<readonly MediaFilter[]> {
+    const params = {
+        UserId: settings.userId,
+        ParentId: settings.libraryId,
+        IncludeItemTypes: 'Audio',
+        SortBy: 'SortName',
+        Recursive: true,
+        Limit: 500,
+        StartIndex: 0,
+        EnableImages: false,
+        EnableUserData: false,
+        EnableTotalRecordCount: false,
+    };
+    switch (itemType) {
+        case ItemType.Album:
+            params.IncludeItemTypes = 'MusicAlbum';
+            break;
+        case ItemType.Artist:
+            params.IncludeItemTypes = 'AlbumArtist';
+            break;
+    }
+    const data = await get(filterType, params, settings);
+    const filters = data.Items || [];
+    return filters.map(({Id: id, Name: title}) => ({id: id || title, title} as MediaFilter));
+}
+
 async function getMusicLibraries(
     settings: EmbySettings = embySettings
-): Promise<readonly EmbyLibrary[]> {
+): Promise<readonly PersonalMediaLibrary[]> {
     const data = await get(`Users/${settings.userId}/Views`, undefined, settings);
     const libraries =
         data.Items?.filter((section: BaseItemDto) =>
             /^(audiobooks|music|musicvideos)$/.test(section.CollectionType!)
         ) || [];
     return libraries.map(
-        ({Id: id, Name: title, CollectionType: type}) => ({id, title, type} as EmbyLibrary)
+        ({Id: id, Name: title, CollectionType: type}) => ({id, title, type} as PersonalMediaLibrary)
     );
 }
 
@@ -113,6 +187,7 @@ function getPlayableUrlFromSrc(src: string, settings: EmbySettings = embySetting
 const embyApi = {
     delete: del,
     get,
+    getFilters,
     getMusicLibraries,
     post,
     getPlayableUrlFromSrc,

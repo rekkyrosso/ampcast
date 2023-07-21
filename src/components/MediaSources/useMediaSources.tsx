@@ -1,10 +1,8 @@
 import React, {useEffect, useState} from 'react';
 import {map, merge, switchMap, take} from 'rxjs';
 import MediaService from 'types/MediaService';
-import {getAllServices} from 'services/mediaServices';
+import {getAllServices, observePersonalMediaLibraryIdChanges} from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
-import jellyfinSettings from 'services/jellyfin/jellyfinSettings';
-import plexSettings from 'services/plex/plexSettings';
 import {isSourceVisible, observeHiddenSourceChanges} from 'services/servicesSettings';
 import {MediaSourceIconName} from 'components/Icon';
 import MediaBrowser from 'components/MediaBrowser';
@@ -18,9 +16,8 @@ export default function useMediaSources() {
     useEffect(() => {
         const refresh$ = merge(
             observeHiddenSourceChanges(),
-            pinStore.observe(),
-            jellyfinSettings.observeLibraryId(),
-            plexSettings.observeLibraryId()
+            observePersonalMediaLibraryIdChanges(),
+            pinStore.observe()
         );
         const subscription = pinStore
             .observe()

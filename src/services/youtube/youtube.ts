@@ -1,14 +1,14 @@
 import getYouTubeID from 'get-youtube-id';
 import MediaItem from 'types/MediaItem';
 import ItemType from 'types/ItemType';
-import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import Pin from 'types/Pin';
+import PublicMediaService from 'types/PublicMediaService';
+import ServiceType from 'types/ServiceType';
 import ViewType from 'types/ViewType';
 import SimplePager from 'services/pagers/SimplePager';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './youtubeAuth';
@@ -26,6 +26,7 @@ const youtubeLikes: MediaSource<MediaItem> = {
     title: 'Likes',
     icon: 'thumbs-up',
     itemType: ItemType.Media,
+    mediaType: MediaType.Video,
     viewType: ViewType.Ratings,
     layout: defaultLayout,
     defaultHidden: true,
@@ -123,11 +124,12 @@ export async function getYouTubeVideoInfo(videoId: string): Promise<MediaItem> {
     };
 }
 
-const youtube: MediaService = {
+const youtube: PublicMediaService = {
     id: 'youtube',
     name: 'YouTube',
     icon: 'youtube',
     url: 'https://www.youtube.com',
+    serviceType: ServiceType.PublicMedia,
     defaultHidden: true,
     defaultNoScrobble: true,
     roots: [
@@ -136,10 +138,11 @@ const youtube: MediaService = {
             title: 'Video',
             icon: 'search',
             itemType: ItemType.Media,
+            mediaType: MediaType.Video,
             layout: defaultLayout,
             searchable: true,
 
-            search<T extends MediaObject>({q = ''}: {q?: string} = {}): Pager<T> {
+            search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
                 if (q) {
                     return new YouTubePager(
                         '/search',
@@ -153,10 +156,10 @@ const youtube: MediaService = {
                         {maxSize: YouTubePager.maxPageSize, noCache: true}
                     );
                 } else {
-                    return new SimplePager<T>();
+                    return new SimplePager();
                 }
             },
-        },
+        } as MediaSource<MediaItem>,
     ],
     sources: [youtubeLikes, youtubePlaylists],
     canRate: () => false,
@@ -178,7 +181,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
         id: pin.src,
         icon: 'pin',
         isPin: true,
-        secondaryLayout: {...defaultLayout, view: 'card compact'},
+        secondaryLayout: {...(defaultLayout as any), view: 'card compact'},
 
         search(): Pager<MediaPlaylist> {
             const [, , playlistId] = pin.src.split(':');

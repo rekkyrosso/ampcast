@@ -1,11 +1,12 @@
 import {useEffect, useState} from 'react';
+import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
 import MediaSource from 'types/MediaSource';
 import Pager from 'types/Pager';
 
 export default function useSource<T extends MediaObject>(
     source: MediaSource<T> | null,
-    params?: Record<string, unknown>
+    params?: MediaFilter | Record<string, unknown>
 ) {
     const [pager, setPager] = useState<Pager<T> | null>(null);
 

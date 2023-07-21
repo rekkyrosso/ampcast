@@ -14,8 +14,8 @@ import {
 } from 'rxjs';
 import MediaItem from 'types/MediaItem';
 import Pager from 'types/Pager';
-import DualPager from 'services/pagers/DualPager';
 import SubjectPager from 'services/pagers/SubjectPager';
+import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {observeListens} from 'services/localdb/listens';
 import RecentlyPlayedBrowser from 'components/MediaBrowser/RecentlyPlayedBrowser';
@@ -45,7 +45,7 @@ function usePager() {
     useEffect(() => {
         const recentPager = new SubjectPager<MediaItem>();
         const historyPager = new LastFmHistoryPager({to: startAt});
-        const pager = new DualPager<MediaItem>(recentPager, historyPager);
+        const pager = new WrappedPager<MediaItem>(recentPager, historyPager);
         const afterScrobble$ = observeListens().pipe(skip(1), delay(20_000));
         const everyFiveMinutes$ = interval(300_000);
         const refresh$ = merge(afterScrobble$, everyFiveMinutes$);

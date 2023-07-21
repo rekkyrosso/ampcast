@@ -4,9 +4,10 @@ import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
-import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import Pager from 'types/Pager';
+import ServiceType from 'types/ServiceType';
+import Scrobbler from 'types/Scrobbler';
 import ViewType from 'types/ViewType';
 import ratingStore from 'services/actions/ratingStore';
 import listenbrainzApi from './listenbrainzApi';
@@ -99,6 +100,7 @@ const listenbrainzTopArtists: MediaSource<MediaArtist> = {
         view: 'card minimal',
         fields: ['Thumbnail', 'Title', 'PlayCount'],
     },
+    secondaryLayout: {view: 'none'},
 
     search(params: {range: string}): Pager<MediaArtist> {
         return new ListenBrainzStatsPager(
@@ -108,20 +110,20 @@ const listenbrainzTopArtists: MediaSource<MediaArtist> = {
     },
 };
 
-const listenbrainz: MediaService = {
+const listenbrainz: Scrobbler = {
     id: 'listenbrainz',
     name: 'ListenBrainz',
     icon: 'listenbrainz',
     url: 'https://listenbrainz.org',
+    serviceType: ServiceType.Scrobbler,
     defaultHidden: true,
-    isScrobbler: true,
     roots: [listenbrainzRecentlyPlayed],
     sources: [
         listenbrainzTopTracks,
         listenbrainzTopAlbums,
         listenbrainzTopArtists,
-        listenbrainzHistory,
         listenbrainzLovedTracks,
+        listenbrainzHistory,
     ],
     labels: {
         [Action.Like]: 'Love on ListenBrainz',

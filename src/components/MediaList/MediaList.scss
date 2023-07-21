@@ -435,6 +435,12 @@
         }
     }
 
+    .media-items:not(.multi-disc) & {
+        .disc {
+            display: none;
+        }
+    }
+
     .folder-items & {
         .cover-art {
             background: transparent;

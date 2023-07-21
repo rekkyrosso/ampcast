@@ -2,15 +2,11 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged} from 'rxjs';
 import {nanoid} from 'nanoid';
 import MediaServiceId from 'types/MediaServiceId';
-import {LiteStorage} from 'utils';
+import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
+import PersonalMediaLibrarySettings from 'types/PersonalMediaLibrarySettings';
+import {LiteStorage, stringContainsMusic} from 'utils';
 
-export interface EmbyLibrary {
-    readonly id: string;
-    readonly title: string;
-    readonly type: string;
-}
-
-export class EmbySettings {
+export class EmbySettings implements PersonalMediaLibrarySettings {
     private readonly storage: LiteStorage;
     private readonly libraryId$: BehaviorSubject<string>;
 
@@ -19,12 +15,8 @@ export class EmbySettings {
         this.libraryId$ = new BehaviorSubject(this.storage.getString('libraryId'));
     }
 
-    get host(): string {
-        return this.storage.getString('host');
-    }
-
-    set host(host: string) {
-        this.storage.setString('host', host);
+    get audioLibraries(): readonly PersonalMediaLibrary[] {
+        return this.libraries.filter((library) => library.type !== 'musicvideos');
     }
 
     get device(): string {
@@ -40,6 +32,14 @@ export class EmbySettings {
         return deviceId;
     }
 
+    get host(): string {
+        return this.storage.getString('host');
+    }
+
+    set host(host: string) {
+        this.storage.setString('host', host);
+    }
+
     get libraryId(): string {
         return this.storage.getString('libraryId');
     }
@@ -53,12 +53,20 @@ export class EmbySettings {
         return this.libraryId$.pipe(distinctUntilChanged());
     }
 
-    get libraries(): EmbyLibrary[] {
+    get libraries(): PersonalMediaLibrary[] {
         return this.storage.getJson('libraries') || [];
     }
 
-    set libraries(libraries: readonly EmbyLibrary[]) {
+    set libraries(libraries: readonly PersonalMediaLibrary[]) {
+        const library =
+            libraries.find((library) => library.id === this.libraryId) ||
+            libraries.find(
+                (library) => library.type === 'music' && stringContainsMusic(library.title)
+            ) ||
+            libraries.find((library) => library.type === 'music') ||
+            libraries.find((library) => library.type === 'audiobooks');
         this.storage.setJson('libraries', libraries);
+        this.libraryId = library?.id || '';
     }
 
     get serverId(): string {
@@ -83,6 +91,10 @@ export class EmbySettings {
 
     set userId(userId: string) {
         this.storage.setString('userId', userId);
+    }
+
+    get videoLibraryId(): string | undefined {
+        return this.libraries.find((library) => library.type === 'musicvideos')?.id;
     }
 
     clear(): void {

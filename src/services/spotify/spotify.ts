@@ -7,11 +7,12 @@ import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
 import Pin from 'types/Pin';
+import PublicMediaService from 'types/PublicMediaService';
+import ServiceType from 'types/ServiceType';
 import ViewType from 'types/ViewType';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import libraryStore from 'services/actions/libraryStore';
@@ -204,11 +205,12 @@ const spotifyFeaturedPlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
-const spotify: MediaService = {
+const spotify: PublicMediaService = {
     id: 'spotify',
     name: 'Spotify',
     icon: 'spotify',
     url: 'https://www.spotify.com',
+    serviceType: ServiceType.PublicMedia,
     defaultHidden: true,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),

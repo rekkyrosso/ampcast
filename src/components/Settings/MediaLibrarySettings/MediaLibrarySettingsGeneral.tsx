@@ -1,10 +1,13 @@
-import React, {useEffect, useId, useState} from 'react';
+import React, {useId, useMemo} from 'react';
 import MediaService from 'types/MediaService';
-import {getAllServices} from 'services/mediaServices';
+import {
+    getPersonalMediaServices,
+    getPublicMediaServices,
+    getScrobblers,
+} from 'services/mediaServices';
 import {isSourceVisible} from 'services/servicesSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
-import {partition} from 'utils';
 import './MediaLibrarySettingsGeneral.scss';
 
 export interface MediaLibrarySettingsGeneralProps {
@@ -16,7 +19,9 @@ export default function MediaLibrarySettingsGeneral({
     servicesRef,
     onSubmit,
 }: MediaLibrarySettingsGeneralProps) {
-    const [mediaServices, scrobblers] = useMediaServices();
+    const [publicServices, personalServices, scrobblers] = useMemo(() => {
+        return [getPublicMediaServices(), getPersonalMediaServices(), getScrobblers()];
+    }, []);
 
     return (
         <form
@@ -27,7 +32,11 @@ export default function MediaLibrarySettingsGeneral({
         >
             <fieldset>
                 <legend>Media Services</legend>
-                <CheckboxList services={mediaServices} />
+                <CheckboxList services={publicServices} />
+            </fieldset>
+            <fieldset>
+                <legend>Personal Media</legend>
+                <CheckboxList services={personalServices} />
             </fieldset>
             <fieldset>
                 <legend>Listening History</legend>
@@ -39,7 +48,7 @@ export default function MediaLibrarySettingsGeneral({
 }
 
 interface CheckboxListProps {
-    services: MediaService[];
+    services: readonly MediaService[];
 }
 
 function CheckboxList({services}: CheckboxListProps) {
@@ -61,14 +70,4 @@ function CheckboxList({services}: CheckboxListProps) {
             ))}
         </ul>
     );
-}
-
-function useMediaServices() {
-    const [services, setServices] = useState<[MediaService[], MediaService[]]>([[], []]);
-
-    useEffect(() => {
-        setServices(partition(getAllServices(), (service) => !service.isScrobbler));
-    }, []);
-
-    return services;
 }

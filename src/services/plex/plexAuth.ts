@@ -133,7 +133,7 @@ observeAccessToken()
                 logger.log(`Could not establish a connection.`);
             } catch (err) {
                 logger.log(err);
-                setAccessToken('');
+                accessToken$.next('');
             }
         })
     )
@@ -144,18 +144,8 @@ isConnected$
         filter((isConnected) => isConnected),
         tap(async () => {
             try {
-                const {
-                    MediaContainer: {Directory: sections},
-                } = await plexApi.fetchJSON<plex.DirectoryResponse>({
-                    path: '/library/sections',
-                });
-                const libraries = sections.filter((section) => section.type === 'artist');
-                const library =
-                    libraries.find((section) => section.key === plexSettings.libraryId) ||
-                    libraries.find((section) => /m[uú][sz](i|ie)[ckq]/i.test(section.title)) ||
-                    libraries[0];
-                plexSettings.libraryId = library?.key || '';
-                plexSettings.sections = libraries;
+                const libraries = await plexApi.getMusicLibraries();
+                plexSettings.libraries = libraries;
             } catch (err) {
                 logger.error(err);
             } finally {

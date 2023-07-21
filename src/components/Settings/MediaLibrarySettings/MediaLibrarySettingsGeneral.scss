@@ -1,11 +1,10 @@
 .media-library-settings-general {
-    .checkbox-list > li {
-        display: flex;
-        flex-direction: row;
-        align-items: baseline;
-    }
+    .checkbox-list {
+        max-height: 6em;
+        line-height: 1.6;
 
-    .media-source-label {
-        display: inline-flex;
+        & > li {
+            align-items: baseline;
+        }
     }
 }

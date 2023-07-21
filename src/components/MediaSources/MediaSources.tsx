@@ -2,7 +2,7 @@ import React, {useEffect, useRef} from 'react';
 import {LiteStorage} from 'utils';
 import {showDialog} from 'components/Dialog';
 import TreeView, {TreeViewHandle} from 'components/TreeView';
-import MediaLibrarySettingsDialog from 'components/Settings/MediaLibrarySettings/MediaLibrarySettingsDialog';
+import MediaServiceSelectionDialog from 'components/Settings/MediaLibrarySettings/MediaServiceSelectionDialog';
 import useMediaSources from './useMediaSources';
 import './MediaSources.scss';
 
@@ -22,7 +22,7 @@ export default function MediaSources({onSelect}: MediaSourcesProps) {
 
     useEffect(() => {
         if (sources?.length === 0) {
-            showDialog(MediaLibrarySettingsDialog, true);
+            showDialog(MediaServiceSelectionDialog, true);
         }
     }, [sources]);
 

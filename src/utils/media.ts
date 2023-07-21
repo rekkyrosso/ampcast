@@ -1,7 +1,9 @@
 import MediaItem from 'types/MediaItem';
-import PlaylistItem from 'types/PlaylistItem';
+import UserData from 'types/UserData';
 
-const userDataKeys: (keyof PlaylistItem)[] = [
+type Subtract<T, V> = Pick<T, Exclude<keyof T, keyof V>>;
+
+const userDataKeys: (keyof MediaItem | 'lookupStatus')[] = [
     'rating',
     'globalRating',
     'playCount',
@@ -10,12 +12,16 @@ const userDataKeys: (keyof PlaylistItem)[] = [
     'lookupStatus',
 ];
 
-export function removeUserData<T extends MediaItem>(item: T): MediaItem {
+export function removeUserData<T extends MediaItem>(item: T): Subtract<MediaItem, UserData> {
     const keys = Object.keys(item) as (keyof MediaItem)[];
     return keys.reduce((result, key) => {
         if (item[key] !== undefined && !userDataKeys.includes(key)) {
             (result as any)[key] = item[key];
         }
         return result;
-    }, {} as unknown as MediaItem);
+    }, {} as unknown as Subtract<MediaItem, UserData>);
+}
+
+export function stringContainsMusic(text: string): boolean {
+    return /m[uú][sz](i|ie)[ckq]/i.test(text);
 }

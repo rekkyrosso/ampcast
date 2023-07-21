@@ -60,7 +60,7 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
     );
 
     return (
-        <Dialog {...props} className="login-dialog" title={title} ref={dialogRef}>
+        <Dialog {...props} className={`login-dialog login-dialog-${service.id}`} title={title} ref={dialogRef}>
             <form id={`${id}-login`} method="dialog" onSubmit={handleSubmit}>
                 <div className="table-layout">
                     <p>

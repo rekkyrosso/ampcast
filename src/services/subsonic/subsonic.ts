@@ -1,22 +1,27 @@
+import type {Observable} from 'rxjs';
 import {Except, SetOptional, Writable} from 'type-fest';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
+import MediaFilter from 'types/MediaFilter';
 import MediaFolderItem from 'types/MediaFolderItem';
 import MediaFolder from 'types/MediaFolder';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import MediaService from 'types/MediaService';
 import MediaServiceId from 'types/MediaServiceId';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
+import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
+import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
+import PersonalMediaService from 'types/PersonalMediaService';
 import Pin from 'types/Pin';
+import ServiceType from 'types/ServiceType';
 import ViewType from 'types/ViewType';
-import DualPager from 'services/pagers/DualPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
+import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import ratingStore from 'services/actions/ratingStore';
 import {getTextFromHtml} from 'utils';
@@ -63,9 +68,9 @@ const subsonicLikedAlbums: MediaSource<MediaAlbum> = {
     search(): Pager<MediaAlbum> {
         return new SubsonicPager(
             ItemType.Album,
-            async (offset: number, pageSize: number): Promise<Page<Subsonic.Album>> => {
-                const items = await subsonicApi.getLikedAlbums(offset, pageSize);
-                return {items, atEnd: true};
+            async (offset: number, count: number): Promise<Page<Subsonic.Album>> => {
+                const items = await subsonicApi.getLikedAlbums(offset, count);
+                return {items};
             }
         );
     },
@@ -81,8 +86,8 @@ const subsonicRecentlyPlayed: MediaSource<MediaAlbum> = {
     search(): Pager<MediaAlbum> {
         return new SubsonicPager(
             ItemType.Album,
-            async (offset: number, pageSize: number): Promise<Page<Subsonic.Album>> => {
-                const items = await subsonicApi.getRecentlyPlayed(offset, pageSize);
+            async (offset: number, count: number): Promise<Page<Subsonic.Album>> => {
+                const items = await subsonicApi.getRecentlyPlayed(offset, count);
                 return {items};
             }
         );
@@ -107,8 +112,8 @@ const subsonicMostPlayed: MediaSource<MediaAlbum> = {
     search(): Pager<MediaAlbum> {
         return new SubsonicPager(
             ItemType.Album,
-            async (offset: number, pageSize: number): Promise<Page<Subsonic.Album>> => {
-                const items = await subsonicApi.getMostPlayed(offset, pageSize);
+            async (offset: number, count: number): Promise<Page<Subsonic.Album>> => {
+                const items = await subsonicApi.getMostPlayed(offset, count);
                 return {items};
             }
         );
@@ -130,11 +135,115 @@ const subsonicPlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
+const subsonicTracksByGenre: MediaSource<MediaItem> = {
+    id: 'subsonic/tracks-by-genre',
+    title: 'Songs by Genre',
+    icon: 'genre',
+    itemType: ItemType.Media,
+    viewType: ViewType.ByGenre,
+    defaultHidden: true,
+    layout: {
+        view: 'details',
+        fields: ['Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount'],
+    },
+
+    search(genre?: MediaFilter): Pager<MediaItem> {
+        if (genre) {
+            return new SubsonicPager(
+                ItemType.Media,
+                async (offset: number, count: number): Promise<Page<Subsonic.MediaItem>> => {
+                    const items = await subsonicApi.getSongsByGenre(genre.id, offset, count);
+                    return {items, total: genre.count};
+                }
+            );
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const subsonicAlbumsByGenre: MediaSource<MediaAlbum> = {
+    id: 'subsonic/albums-by-genre',
+    title: 'Albums by Genre',
+    icon: 'genre',
+    itemType: ItemType.Album,
+    viewType: ViewType.ByGenre,
+
+    search(genre?: MediaFilter): Pager<MediaAlbum> {
+        if (genre) {
+            return new SubsonicPager(
+                ItemType.Album,
+                async (offset: number, count: number): Promise<Page<Subsonic.Album>> => {
+                    const items = await subsonicApi.getAlbumsByGenre(genre.id, offset, count);
+                    return {items, total: genre.count};
+                }
+            );
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const subsonicAlbumsByDecade: MediaSource<MediaAlbum> = {
+    id: 'subsonic/albums-by-decade',
+    title: 'Albums by Decade',
+    icon: 'calendar',
+    itemType: ItemType.Album,
+    viewType: ViewType.ByDecade,
+
+    search(decade?: MediaFilter): Pager<MediaAlbum> {
+        if (decade) {
+            return new SubsonicPager(
+                ItemType.Album,
+                async (offset: number, count: number): Promise<Page<Subsonic.Album>> => {
+                    const items = await subsonicApi.getAlbumsByDecade(decade.id, offset, count);
+                    return {items};
+                }
+            );
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const subsonicRandomTracks: MediaSource<MediaItem> = {
+    id: 'subsonic/random-tracks',
+    title: 'Random Songs',
+    icon: 'shuffle',
+    itemType: ItemType.Media,
+    layout: {
+        view: 'card',
+        fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
+    },
+
+    search(): Pager<MediaItem> {
+        return new SubsonicPager(ItemType.Media, async () => {
+            const items = await subsonicApi.getRandomSongs(100);
+            return {items, atEnd: true};
+        });
+    },
+};
+
+const subsonicRandomAlbums: MediaSource<MediaAlbum> = {
+    id: 'subsonic/random-albums',
+    title: 'Random Albums',
+    icon: 'shuffle',
+    itemType: ItemType.Album,
+
+    search(): Pager<MediaAlbum> {
+        return new SubsonicPager(ItemType.Album, async () => {
+            const items = await subsonicApi.getRandomAlbums(100);
+            return {items, atEnd: true};
+        });
+    },
+};
+
 const subsonicMusicVideos: MediaSource<MediaItem> = {
     id: 'subsonic/videos',
     title: 'Music Videos',
     icon: 'video',
     itemType: ItemType.Media,
+    mediaType: MediaType.Video,
     defaultHidden: true,
     layout: {
         view: 'card compact',
@@ -154,6 +263,7 @@ const subsonicFolders: MediaSource<MediaFolderItem> = {
     title: 'Folders',
     icon: 'folder',
     itemType: ItemType.Folder,
+    viewType: ViewType.Folders,
 
     search(): Pager<MediaFolderItem> {
         const root: Writable<SetOptional<MediaFolder, 'pager'>> = {
@@ -167,13 +277,13 @@ const subsonicFolders: MediaSource<MediaFolderItem> = {
         const sortByName = (a: {name: string}, b: {name: string}) => a.name.localeCompare(b.name);
 
         root.pager = new SimpleMediaPager<MediaFolderItem>(() =>
-            subsonicSettings.folders.sort(sortByName).map(({id, name}) => {
+            subsonicSettings.libraries.map(({id, title}) => {
                 const rootFolder: Writable<SetOptional<MediaFolder, 'pager'>> = {
                     itemType: ItemType.Folder,
                     src: `subsonic:folder:${id}`,
-                    title: name,
-                    fileName: name,
-                    path: `/${name}`,
+                    title: title,
+                    fileName: title,
+                    path: `/${title}`,
                 };
                 const parentFolder: MediaFolderItem = {
                     ...(root as MediaFolder),
@@ -201,7 +311,7 @@ const subsonicFolders: MediaSource<MediaFolderItem> = {
                     rootFolder as MediaFolder
                 );
 
-                rootFolder.pager = new DualPager<MediaFolderItem>(backPager, folderPager);
+                rootFolder.pager = new WrappedPager<MediaFolderItem>(backPager, folderPager);
 
                 return rootFolder as MediaFolder;
             })
@@ -211,57 +321,12 @@ const subsonicFolders: MediaSource<MediaFolderItem> = {
     },
 };
 
-const subsonicSongsByGenre: MediaSource<MediaItem> = {
-    id: 'subsonic/songs-by-genre',
-    title: 'Songs by Genre',
-    icon: 'genre',
-    itemType: ItemType.Media,
-    layout: {
-        view: 'details',
-        fields: ['Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount'],
-    },
-
-    search({genre, total}: {genre?: string; total?: number}): Pager<MediaItem> {
-        if (genre && total) {
-            return new SubsonicPager(
-                ItemType.Media,
-                async (offset: number, count: number): Promise<Page<Subsonic.MediaItem>> => {
-                    const items = await subsonicApi.getSongsByGenre(genre, offset, count);
-                    return {items, total};
-                }
-            );
-        } else {
-            return new SimplePager();
-        }
-    },
-};
-
-const subsonicAlbumsByGenre: MediaSource<MediaAlbum> = {
-    id: 'subsonic/albums-by-genre',
-    title: 'Albums by Genre',
-    icon: 'genre',
-    itemType: ItemType.Album,
-
-    search({genre, total}: {genre?: string; total?: number}): Pager<MediaAlbum> {
-        if (genre && total) {
-            return new SubsonicPager(
-                ItemType.Album,
-                async (offset: number, count: number): Promise<Page<Subsonic.Album>> => {
-                    const items = await subsonicApi.getAlbumsByGenre(genre, offset, count);
-                    return {items, total};
-                }
-            );
-        } else {
-            return new SimplePager();
-        }
-    },
-};
-
-const subsonic: MediaService = {
+const subsonic: PersonalMediaService = {
     id: serviceId,
     icon: serviceId,
     name: 'Subsonic',
     url: 'http://www.subsonic.org/',
+    serviceType: ServiceType.PersonalMedia,
     defaultHidden: true,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs'}),
@@ -273,9 +338,12 @@ const subsonic: MediaService = {
         subsonicLikedAlbums,
         subsonicRecentlyPlayed,
         subsonicMostPlayed,
-        subsonicSongsByGenre,
-        subsonicAlbumsByGenre,
         subsonicPlaylists,
+        subsonicTracksByGenre,
+        subsonicAlbumsByGenre,
+        subsonicAlbumsByDecade,
+        subsonicRandomTracks,
+        subsonicRandomAlbums,
         subsonicMusicVideos,
         subsonicFolders,
     ],
@@ -283,11 +351,32 @@ const subsonic: MediaService = {
         [Action.Like]: 'Like on Subsonic',
         [Action.Unlike]: 'Unlike on Subsonic',
     },
+    get audioLibraries(): readonly PersonalMediaLibrary[] {
+        return subsonicSettings.audioLibraries;
+    },
+    get libraryId(): string {
+        return subsonicSettings.libraryId;
+    },
+    set libraryId(libraryId: string) {
+        subsonicSettings.libraryId = libraryId;
+    },
+    get libraries(): readonly PersonalMediaLibrary[] {
+        return subsonicSettings.libraries;
+    },
+    set libraries(libraries: readonly PersonalMediaLibrary[]) {
+        subsonicSettings.libraries = libraries;
+    },
+    observeLibraryId(): Observable<string> {
+        return subsonicSettings.observeLibraryId();
+    },
     canRate,
     canStore: () => false,
     compareForRating,
     createSourceFromPin,
+    getFilters,
     getMetadata,
+    getPlayableUrlFromSrc,
+    getThumbnailUrl,
     lookup,
     rate,
     observeIsLoggedIn,
@@ -341,6 +430,13 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     };
 }
 
+async function getFilters(
+    viewType: ViewType.ByDecade | ViewType.ByGenre,
+    itemType: ItemType
+): Promise<readonly MediaFilter[]> {
+    return subsonicApi.getFilters(viewType, itemType);
+}
+
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     const itemType = item.itemType;
     const [, , id] = item.src.split(':');
@@ -374,6 +470,14 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
         const song = await subsonicApi.getSong(id);
         return {...item, rating: song.starred ? 1 : 0};
     }
+}
+
+function getPlayableUrlFromSrc(src: string): string {
+    return subsonicApi.getPlayableUrlFromSrc(src);
+}
+
+function getThumbnailUrl(url: string): string {
+    return url.replace('{subsonic-credentials}', subsonicSettings.credentials);
 }
 
 async function lookup(
@@ -427,43 +531,31 @@ function createRoot<T extends MediaObject>(
         searchable: true,
 
         search({q = ''}: {q?: string} = {}): Pager<T> {
-            q = q.replace(/(\w{3,})(\s|$)/g, '$1*$2');
-            switch (itemType) {
-                case ItemType.Media:
-                    return new SubsonicPager(itemType, async (offset: number, count: number) => {
-                        if (q) {
+            q = q.trim();
+            if (q) {
+                return new SubsonicPager(itemType, async (offset: number, count: number) => {
+                    switch (itemType) {
+                        case ItemType.Media: {
                             const items = await subsonicApi.searchSongs(q, offset, count);
                             return {items};
-                        } else {
-                            const items = await subsonicApi.getRandomSongs(100);
-                            return {items, atEnd: true};
                         }
-                    });
 
-                case ItemType.Album:
-                    return new SubsonicPager(itemType, async (offset: number, count: number) => {
-                        if (q) {
+                        case ItemType.Album: {
                             const items = await subsonicApi.searchAlbums(q, offset, count);
                             return {items};
-                        } else {
-                            const items = await subsonicApi.getRandomAlbums(100);
-                            return {items, atEnd: true};
                         }
-                    });
 
-                case ItemType.Artist:
-                    return new SubsonicPager(itemType, async (offset: number, count: number) => {
-                        if (q) {
+                        case ItemType.Artist: {
                             const items = await subsonicApi.searchArtists(q, offset, count);
                             return {items};
-                        } else {
-                            const items = await subsonicApi.getRandomArtists(100);
-                            return {items, atEnd: true};
                         }
-                    });
 
-                default:
-                    throw TypeError('Search not supported for this type of media');
+                        default:
+                            throw TypeError('Search not supported for this type of media');
+                    }
+                });
+            } else {
+                return new SimplePager();
             }
         },
     };

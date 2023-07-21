@@ -1,7 +1,6 @@
 import Dexie from 'dexie';
 import MediaItem from 'types/MediaItem';
-import {Logger} from 'utils';
-import {removeUserData} from 'utils/media';
+import {Logger, removeUserData} from 'utils';
 
 const logger = new Logger('lookupStore');
 

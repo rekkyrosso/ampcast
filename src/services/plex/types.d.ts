@@ -104,6 +104,8 @@ declare namespace plex {
         readonly grandparentTitle: string;
     }
 
+    type MediaObject = Track | MusicVideo | Album | Artist | Playlist;
+
     interface Media {
         readonly id: number;
         readonly Part: readonly Part[];
@@ -124,7 +126,7 @@ declare namespace plex {
     }
 
     interface Genre {
-        readonly id: number;
+        readonly key: string;
         readonly title: string;
     }
 

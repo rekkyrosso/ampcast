@@ -1,8 +1,13 @@
 import {Primitive} from 'type-fest';
+import ItemType from 'types/ItemType';
+import MediaFilter from 'types/MediaFilter';
+import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
+import PersonalMediaLibrarySettings from 'types/PersonalMediaLibrarySettings';
+import ViewType from 'types/ViewType';
 import subsonicSettings from './subsonicSettings';
-import {shuffle} from 'utils/utils';
+import {shuffle} from 'utils';
 
-export interface SubsonicSettings {
+export interface SubsonicSettings extends Partial<PersonalMediaLibrarySettings> {
     host: string;
     credentials: string;
 }
@@ -56,11 +61,11 @@ async function getAlbumInfo(
 
 async function getAlbumList(
     params: Record<string, Primitive>,
-    settings?: SubsonicSettings
+    settings: SubsonicSettings = subsonicSettings
 ): Promise<Subsonic.Album[]> {
     const data = await get<{albumList: {album: Subsonic.Album[]}}>(
         'getAlbumList',
-        params,
+        settings.libraryId ? {...params, musicFolderId: settings.libraryId} : params,
         settings
     );
     return (
@@ -89,6 +94,17 @@ async function getAlbumTracks(
     }
 }
 
+async function getAlbumsByDecade(
+    decade: string,
+    offset: number,
+    size: number,
+    settings?: SubsonicSettings
+): Promise<Subsonic.Album[]> {
+    const toYear = Number(decade);
+    const fromYear = toYear + 9;
+    return getAlbumList({type: 'byYear', fromYear, toYear, size, offset}, settings);
+}
+
 async function getAlbumsByGenre(
     genre: string,
     offset: number,
@@ -103,10 +119,12 @@ async function getArtist(id: string, settings?: SubsonicSettings): Promise<Subso
     return data.artist;
 }
 
-async function getArtists(settings?: SubsonicSettings): Promise<Subsonic.Artist[]> {
+async function getArtists(
+    settings: SubsonicSettings = subsonicSettings
+): Promise<Subsonic.Artist[]> {
     const data = await get<{artists: {index: [{artist: Subsonic.Artist[]}]}}>(
         'getArtists',
-        undefined,
+        settings.libraryId ? {musicFolderId: settings.libraryId} : undefined,
         settings
     );
     return data.artists.index.map((index) => index.artist).flat();
@@ -127,7 +145,7 @@ async function getArtistInfo(
 
 async function getArtistTopTracks(
     artist: string,
-    count = 10,
+    count = 50,
     settings?: SubsonicSettings
 ): Promise<Subsonic.MediaItem[]> {
     const data = await get<{topSongs: {song: Subsonic.MediaItem[]}}>(
@@ -138,9 +156,52 @@ async function getArtistTopTracks(
     return data.topSongs.song || [];
 }
 
-async function getGenres(settings?: SubsonicSettings): Promise<Subsonic.Genre[]> {
+async function getDecades(): Promise<readonly MediaFilter[]> {
+    const decades: MediaFilter[] = [];
+    let decade = Math.floor(new Date().getFullYear() / 10) * 10;
+    while (decade >= 1930) {
+        decades.push({
+            id: String(decade),
+            title: `${decade}s`,
+        });
+        decade -= 10;
+    }
+    return decades;
+}
+
+async function getFilters(
+    viewType: ViewType.ByDecade | ViewType.ByGenre,
+    itemType: ItemType,
+    settings?: SubsonicSettings
+): Promise<readonly MediaFilter[]> {
+    if (viewType === ViewType.ByDecade) {
+        return getDecades();
+    } else {
+        return getGenres(itemType, settings);
+    }
+}
+
+async function getGenres(
+    itemType: ItemType,
+    settings?: SubsonicSettings
+): Promise<readonly MediaFilter[]> {
     const data = await get<{genres: {genre: Subsonic.Genre[]}}>('getGenres', undefined, settings);
-    return data.genres.genre || [];
+    return (
+        data.genres.genre
+            ?.map(({value: id, albumCount, songCount}) => {
+                const count = itemType === ItemType.Album ? albumCount : songCount;
+                const title = `${id} (${count})`;
+                return {id, title, count};
+            })
+            .filter((genre) => genre.count > 0)
+            .sort((a, b) => {
+                if (a.count === b.count) {
+                    return a.title.localeCompare(b.title);
+                } else {
+                    return b.count - a.count;
+                }
+            }) || []
+    );
 }
 
 async function getIndexes(
@@ -163,17 +224,25 @@ async function getLikedAlbums(
     return getAlbumList({type: 'starred', size, offset}, settings);
 }
 
-async function getLikedArtists(settings?: SubsonicSettings): Promise<Subsonic.Artist[]> {
+async function getLikedArtists(
+    settings: SubsonicSettings = subsonicSettings
+): Promise<Subsonic.Artist[]> {
     const data = await get<{starred2: {artist: Subsonic.Artist[]}}>(
         'getStarred2',
-        undefined,
+        settings.libraryId ? {musicFolderId: settings.libraryId} : undefined,
         settings
     );
     return data.starred2.artist || [];
 }
 
-async function getLikedSongs(settings?: SubsonicSettings): Promise<Subsonic.Song[]> {
-    const data = await get<{starred2: {song: Subsonic.Song[]}}>('getStarred2', undefined, settings);
+async function getLikedSongs(
+    settings: SubsonicSettings = subsonicSettings
+): Promise<Subsonic.Song[]> {
+    const data = await get<{starred2: {song: Subsonic.Song[]}}>(
+        'getStarred2',
+        settings.libraryId ? {musicFolderId: settings.libraryId} : undefined,
+        settings
+    );
     return data.starred2.song || [];
 }
 
@@ -193,13 +262,37 @@ async function getMusicDirectory(
     return data.directory;
 }
 
-async function getMusicFolders(settings?: SubsonicSettings): Promise<Subsonic.MusicFolder[]> {
+async function getMusicDirectoryItems(
+    id: string,
+    settings?: SubsonicSettings
+): Promise<Subsonic.DirectoryItem[]> {
+    const directory = await getMusicDirectory(id, settings);
+    // Sort folders to the top in alphabetical order. Don't sort the children.
+    return directory.child.sort((a, b) => {
+        if (a.isDir === b.isDir) {
+            if (a.isDir) {
+                return a.title.localeCompare(b.title);
+            } else {
+                return 0;
+            }
+        } else if (a.isDir) {
+            return -1;
+        }
+        return 1;
+    });
+}
+
+async function getMusicLibraries(settings?: SubsonicSettings): Promise<PersonalMediaLibrary[]> {
     const data = await get<{musicFolders: {musicFolder: Subsonic.MusicFolder[]}}>(
         'getMusicFolders',
         undefined,
         settings
     );
-    return data.musicFolders.musicFolder || [];
+    return (
+        data.musicFolders.musicFolder
+            ?.sort((a, b) => a.name.localeCompare(b.name))
+            .map(({id, name: title}) => ({id: String(id), title})) || []
+    );
 }
 
 async function getPlaylist(id: string, settings?: SubsonicSettings): Promise<Subsonic.Playlist> {
@@ -240,10 +333,13 @@ async function getRandomArtists(
     return shuffle(artists).slice(0, size);
 }
 
-async function getRandomSongs(size = 100, settings?: SubsonicSettings): Promise<Subsonic.Song[]> {
+async function getRandomSongs(
+    size = 100,
+    settings: SubsonicSettings = subsonicSettings
+): Promise<Subsonic.Song[]> {
     const data = await get<{randomSongs: {song: Subsonic.Song[]}}>(
         'getRandomSongs',
-        {size},
+        settings.libraryId ? {musicFolderId: settings.libraryId, size} : {size},
         settings
     );
     return data.randomSongs.song || [];
@@ -266,11 +362,12 @@ async function getSongsByGenre(
     genre: string,
     offset: number,
     count: number,
-    settings?: SubsonicSettings
+    settings: SubsonicSettings = subsonicSettings
 ): Promise<Subsonic.Song[]> {
+    const params = {genre, offset, count};
     const data = await get<{songsByGenre: {song: Subsonic.Song[]}}>(
         'getSongsByGenre',
-        {genre, offset, count},
+        settings.libraryId ? {...params, musicFolderId: settings.libraryId} : params,
         settings
     );
     return data.songsByGenre.song || [];
@@ -285,11 +382,12 @@ async function searchSongs(
     query: string,
     songOffset: number,
     songCount: number,
-    settings?: SubsonicSettings
+    settings: SubsonicSettings = subsonicSettings
 ): Promise<Subsonic.Song[]> {
+    const params = {query, songOffset, songCount, albumCount: 0, artistCount: 0};
     const data = await get<{searchResult3: {song?: Subsonic.Song[]}}>(
         'search3',
-        {query, songOffset, songCount, albumCount: 0, artistCount: 0},
+        settings.libraryId ? {...params, musicFolderId: settings.libraryId} : params,
         settings
     );
     return data.searchResult3.song || [];
@@ -299,11 +397,12 @@ async function searchAlbums(
     query: string,
     albumOffset: number,
     albumCount: number,
-    settings?: SubsonicSettings
+    settings: SubsonicSettings = subsonicSettings
 ): Promise<Subsonic.Album[]> {
+    const params = {query, albumCount, albumOffset, songCount: 0, artistCount: 0};
     const data = await get<{searchResult2: {album?: Subsonic.Album[]}}>(
         'search2',
-        {query, albumCount, albumOffset, songCount: 0, artistCount: 0},
+        settings.libraryId ? {...params, musicFolderId: settings.libraryId} : params,
         settings
     );
     return (
@@ -318,11 +417,12 @@ async function searchArtists(
     query: string,
     artistOffset: number,
     artistCount: number,
-    settings?: SubsonicSettings
+    settings: SubsonicSettings = subsonicSettings
 ): Promise<Subsonic.Artist[]> {
+    const params = {query, artistOffset, artistCount, songCount: 0, albumCount: 0};
     const data = await get<{searchResult3: {artist?: Subsonic.Artist[]}}>(
         'search3',
-        {query, artistOffset, artistCount, songCount: 0, albumCount: 0},
+        settings.libraryId ? {...params, musicFolderId: settings.libraryId} : params,
         settings
     );
     return data.searchResult3.artist || [];
@@ -348,12 +448,15 @@ const subsonicApi = {
     getAlbum,
     getAlbumInfo,
     getAlbumTracks,
+    getAlbumsByDecade,
     getAlbumsByGenre,
     getArtist,
     getArtists,
     getArtistAlbums,
     getArtistInfo,
     getArtistTopTracks,
+    getDecades,
+    getFilters,
     getGenres,
     getIndexes,
     getLikedAlbums,
@@ -361,7 +464,8 @@ const subsonicApi = {
     getLikedSongs,
     getMostPlayed,
     getMusicDirectory,
-    getMusicFolders,
+    getMusicDirectoryItems,
+    getMusicLibraries,
     getPlayableUrlFromSrc,
     getPlaylist,
     getPlaylists,

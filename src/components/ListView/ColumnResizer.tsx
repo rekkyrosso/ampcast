@@ -7,10 +7,10 @@ export interface ColumnResizerProps {
 }
 
 export default function ColumnResizer({col, onResize}: ColumnResizerProps) {
-    const [width, setWidth] = useState(col.width);
     const [dragStartX, setDragStartX] = useState(-1);
     const [dragWidth, setDragWidth] = useState(0);
     const dragging = dragStartX !== -1;
+    const {width, index} = col;
 
     const handleMouseDown = useCallback(
         (event: React.MouseEvent) => {
@@ -27,9 +27,9 @@ export default function ColumnResizer({col, onResize}: ColumnResizerProps) {
 
     const handleMouseMove = useCallback(
         (event: MouseEvent) => {
-            setWidth(Math.max(20, dragWidth + (event.screenX - dragStartX)));
+            onResize(index, Math.max(20, dragWidth + (event.screenX - dragStartX)));
         },
-        [dragStartX, dragWidth]
+        [dragStartX, dragWidth, index, onResize]
     );
 
     const handleMouseUp = useCallback(() => {

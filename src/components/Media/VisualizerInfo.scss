@@ -10,9 +10,15 @@
         margin: 0;
     }
 
-    .external-view > .icon {
-        margin-right: 0.25em;
-        margin-left: 0.25em;
+    .external-view {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        > .icon {
+            margin-right: 0.25em;
+            margin-left: 0.25em;
+        }
     }
 
     .external-link:any-link {
@@ -25,11 +31,9 @@
     }
 
     .external-link-text {
-        display: inline-block;
         max-width: 24em;
         text-overflow: ellipsis;
         overflow: hidden;
-        vertical-align: middle;
         text-decoration: underline;
     }
 }

@@ -7,7 +7,10 @@ export default function useGoogleClientLibrary() {
     const [error, setError] = useState<any>(null);
 
     useEffect(() => {
-        const subscription = from(getGsiClient()).subscribe({next: setClient, error: setError});
+        const subscription = from(getGsiClient()).subscribe({
+            next: setClient,
+            error: setError,
+        });
         return () => subscription.unsubscribe();
     }, []);
 

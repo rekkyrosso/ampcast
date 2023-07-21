@@ -2,7 +2,7 @@ import {useEffect, useState} from 'react';
 import {from, tap} from 'rxjs';
 import MediaObject from 'types/MediaObject';
 import mediaObjectChanges from 'services/actions/mediaObjectChanges';
-import {getService} from 'services/mediaServices';
+import {getServiceFromSrc} from 'services/mediaServices';
 import {Logger} from 'utils';
 
 const logger = new Logger('Media/useCurrentItem');
@@ -13,8 +13,7 @@ export default function useCurrentItem<T extends MediaObject>(item: T): T {
 
     useEffect(() => {
         if (metadataSrc !== item.src) {
-            const [serviceId] = item.src.split(':');
-            const service = getService(serviceId);
+            const service = getServiceFromSrc(item);
 
             if (service?.getMetadata) {
                 const subscription = from(service.getMetadata(item))

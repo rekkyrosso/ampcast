@@ -1,10 +1,15 @@
 import React, {useCallback, useId, useRef} from 'react';
 import {isSourceVisible, setHiddenSources} from 'services/servicesSettings';
+import MediaService from 'types/MediaService';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import useObservable from 'hooks/useObservable';
-import {MediaServiceSettingsProps} from './MediaServiceSettings';
+import './MediaServiceSettingsGeneral.scss';
 
-export default function MediaServiceSettingsGeneral({service}: MediaServiceSettingsProps) {
+export interface MediaServiceSettingsGeneralProps {
+    service: MediaService;
+}
+
+export default function MediaServiceSettingsGeneral({service}: MediaServiceSettingsGeneralProps) {
     const id = useId();
     const ref = useRef<HTMLFieldSetElement>(null);
     const connected = useObservable(service.observeIsLoggedIn, false);
@@ -32,7 +37,7 @@ export default function MediaServiceSettingsGeneral({service}: MediaServiceSetti
             </p>
             <fieldset ref={ref}>
                 <legend>Display</legend>
-                <ul>
+                <ul className="checkbox-list">
                     {service.sources.map((source) => (
                         <li key={source.id}>
                             <input

@@ -51,6 +51,7 @@ export default function usePager<T>(pager: Pager<T> | null) {
             map(() => true)
         );
 
+        // TODO: Make sure this is still needed.
         // Make sure we emit an empty array whenever we change pager.
         const flush$ = concat(of([]), of([]).pipe(delay(0)));
 

@@ -1,5 +1,6 @@
 import React, {useCallback, useId, useMemo, useRef} from 'react';
-import {getAllServices} from 'services/mediaServices';
+import Scrobbler from 'types/Scrobbler';
+import {getMediaServices} from 'services/mediaServices';
 import {
     ScrobblingOptions,
     canScrobble,
@@ -8,13 +9,16 @@ import {
     updateOptions,
 } from 'services/scrobbleSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
-import {MediaServiceSettingsProps} from './MediaServiceSettings';
 
-export default function ScrobblingSettings({service: scrobbler}: MediaServiceSettingsProps) {
+export interface ScrobblingSettingsProps {
+    service: Scrobbler;
+}
+
+export default function ScrobblingSettings({service: scrobbler}: ScrobblingSettingsProps) {
     const id = useId();
     const scrobbleRef = useRef<HTMLFieldSetElement>(null);
     const optionsRef = useRef<HTMLFieldSetElement>(null);
-    const services = useMemo(() => getAllServices().filter((service) => !service.isScrobbler), []);
+    const services = useMemo(() => getMediaServices(), []);
 
     const handleSubmit = useCallback(() => {
         const scrobbleInputs = scrobbleRef.current!.elements as HTMLInputElements;

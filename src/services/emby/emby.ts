@@ -1,23 +1,29 @@
+import type {Observable} from 'rxjs';
 import {Except, SetOptional, Writable} from 'type-fest';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
+import MediaFilter from 'types/MediaFilter';
 import MediaFolder from 'types/MediaFolder';
 import MediaFolderItem from 'types/MediaFolderItem';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import MediaService from 'types/MediaService';
 import MediaServiceId from 'types/MediaServiceId';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
+import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
+import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
+import PersonalMediaService from 'types/PersonalMediaService';
 import Pin from 'types/Pin';
+import ServiceType from 'types/ServiceType';
 import ViewType from 'types/ViewType';
-import DualPager from 'services/pagers/DualPager';
+import {NoMusicLibrary, NoMusicVideoLibrary} from 'services/errors';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
+import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import ratingStore from 'services/actions/ratingStore';
 import {bestOf} from 'utils';
@@ -27,6 +33,8 @@ import embySettings from './embySettings';
 import embyApi from './embyApi';
 
 const serviceId: MediaServiceId = 'emby';
+
+const songSort = 'AlbumArtist,Album,ParentIndexNumber,IndexNumber,SortName';
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
@@ -146,11 +154,159 @@ const embyPlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
+const embyTracksByGenre: MediaSource<MediaItem> = {
+    id: 'emby/tracks-by-genre',
+    title: 'Songs by Genre',
+    icon: 'genre',
+    itemType: ItemType.Media,
+    viewType: ViewType.ByGenre,
+    defaultHidden: true,
+
+    search(genre?: MediaFilter): Pager<MediaItem> {
+        if (genre) {
+            return createItemsPager({
+                ParentId: getMusicLibraryId(),
+                GenreIds: genre.id,
+                IncludeItemTypes: 'Audio',
+                SortBy: songSort,
+            });
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const embyAlbumsByGenre: MediaSource<MediaAlbum> = {
+    id: 'emby/albums-by-genre',
+    title: 'Albums by Genre',
+    icon: 'genre',
+    itemType: ItemType.Album,
+    viewType: ViewType.ByGenre,
+
+    search(genre?: MediaFilter): Pager<MediaAlbum> {
+        if (genre) {
+            return createItemsPager({
+                ParentId: getMusicLibraryId(),
+                GenreIds: genre.id,
+                IncludeItemTypes: 'MusicAlbum',
+                SortBy: 'AlbumArtist,SortName',
+            });
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const embyArtistsByGenre: MediaSource<MediaArtist> = {
+    id: 'emby/artists-by-genre',
+    title: 'Artists by Genre',
+    icon: 'genre',
+    itemType: ItemType.Artist,
+    viewType: ViewType.ByGenre,
+    defaultHidden: true,
+
+    search(genre?: MediaFilter): Pager<MediaArtist> {
+        if (genre) {
+            return new EmbyPager('Artists/AlbumArtists', {
+                ParentId: getMusicLibraryId(),
+                GenreIds: genre.id,
+                UserId: embySettings.userId,
+            });
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const embyTracksByDecade: MediaSource<MediaItem> = {
+    id: 'emby/tracks-by-decade',
+    title: 'Songs by Decade',
+    icon: 'calendar',
+    itemType: ItemType.Media,
+    viewType: ViewType.ByDecade,
+    defaultHidden: true,
+
+    search(decade?: MediaFilter): Pager<MediaItem> {
+        if (decade) {
+            return createItemsPager({
+                ParentId: getMusicLibraryId(),
+                Years: decade.id,
+                IncludeItemTypes: 'Audio',
+                SortBy: songSort,
+            });
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const embyAlbumsByDecade: MediaSource<MediaAlbum> = {
+    id: 'emby/albums-by-decade',
+    title: 'Albums by Decade',
+    icon: 'calendar',
+    itemType: ItemType.Album,
+    viewType: ViewType.ByDecade,
+
+    search(decade?: MediaFilter): Pager<MediaAlbum> {
+        if (decade) {
+            return createItemsPager({
+                ParentId: getMusicLibraryId(),
+                Years: decade.id,
+                IncludeItemTypes: 'MusicAlbum',
+                SortBy: 'AlbumArtist,SortName',
+            });
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const embyRandomTracks: MediaSource<MediaItem> = {
+    id: 'emby/random-tracks',
+    title: 'Random Songs',
+    icon: 'shuffle',
+    itemType: ItemType.Media,
+    layout: {
+        view: 'card',
+        fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
+    },
+
+    search(): Pager<MediaItem> {
+        return createItemsPager(
+            {
+                ParentId: getMusicLibraryId(),
+                IncludeItemTypes: 'Audio',
+                SortBy: 'Random',
+            },
+            {maxSize: 100}
+        );
+    },
+};
+
+const embyRandomAlbums: MediaSource<MediaAlbum> = {
+    id: 'emby/random-albums',
+    title: 'Random Albums',
+    icon: 'shuffle',
+    itemType: ItemType.Album,
+
+    search(): Pager<MediaAlbum> {
+        return createItemsPager(
+            {
+                ParentId: getMusicLibraryId(),
+                IncludeItemTypes: 'MusicAlbum',
+                SortBy: 'Random',
+            },
+            {maxSize: 100}
+        );
+    },
+};
+
 const embyMusicVideos: MediaSource<MediaItem> = {
     id: 'emby/videos',
     title: 'Music Videos',
     icon: 'video',
     itemType: ItemType.Media,
+    mediaType: MediaType.Video,
     searchable: true,
     defaultHidden: true,
     layout: {
@@ -159,14 +315,12 @@ const embyMusicVideos: MediaSource<MediaItem> = {
     },
 
     search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
-        const musicVideoLibrary = embySettings.libraries.find(
-            (library) => library.type === 'musicvideos'
-        );
-        if (!musicVideoLibrary) {
-            throw Error('No music video library');
+        const videoLibraryId = embySettings.videoLibraryId;
+        if (!videoLibraryId) {
+            throw new NoMusicVideoLibrary();
         }
         return createItemsPager({
-            ParentId: musicVideoLibrary.id,
+            ParentId: videoLibraryId,
             SortBy: 'SortName',
             SortOrder: 'Ascending',
             IncludeItemTypes: 'MusicVideo',
@@ -180,6 +334,7 @@ const embyFolders: MediaSource<MediaFolderItem> = {
     title: 'Folders',
     icon: 'folder',
     itemType: ItemType.Folder,
+    viewType: ViewType.Folders,
 
     search(): Pager<MediaFolderItem> {
         const root: Writable<SetOptional<MediaFolder, 'pager'>> = {
@@ -219,7 +374,7 @@ const embyFolders: MediaSource<MediaFolderItem> = {
                     library as MediaFolder
                 );
 
-                library.pager = new DualPager<MediaFolderItem>(backPager, folderPager);
+                library.pager = new WrappedPager<MediaFolderItem>(backPager, folderPager);
 
                 return library as MediaFolder;
             })
@@ -229,15 +384,13 @@ const embyFolders: MediaSource<MediaFolderItem> = {
     },
 };
 
-const emby: MediaService = {
+const emby: PersonalMediaService = {
     id: serviceId,
     icon: serviceId,
     name: 'Emby',
     url: 'https://emby.media/',
+    serviceType: ServiceType.PersonalMedia,
     defaultHidden: true,
-    get libraryId(): string {
-        return embySettings.libraryId;
-    },
     roots: [
         createRoot(ItemType.Media, {title: 'Songs'}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -251,6 +404,13 @@ const emby: MediaService = {
         embyMostPlayed,
         embyRecentlyPlayed,
         embyPlaylists,
+        embyTracksByGenre,
+        embyAlbumsByGenre,
+        embyArtistsByGenre,
+        embyTracksByDecade,
+        embyAlbumsByDecade,
+        embyRandomTracks,
+        embyRandomAlbums,
         embyMusicVideos,
         embyFolders,
     ],
@@ -258,11 +418,31 @@ const emby: MediaService = {
         [Action.Like]: 'Add to Emby Favorites',
         [Action.Unlike]: 'Remove from Emby Favorites',
     },
+    get audioLibraries(): readonly PersonalMediaLibrary[] {
+        return embySettings.audioLibraries;
+    },
+    get libraryId(): string {
+        return embySettings.libraryId;
+    },
+    set libraryId(libraryId: string) {
+        embySettings.libraryId = libraryId;
+    },
+    get libraries(): readonly PersonalMediaLibrary[] {
+        return embySettings.libraries;
+    },
+    set libraries(libraries: readonly PersonalMediaLibrary[]) {
+        embySettings.libraries = libraries;
+    },
+    observeLibraryId(): Observable<string> {
+        return embySettings.observeLibraryId();
+    },
     canRate,
     canStore: () => false,
     compareForRating,
     createSourceFromPin,
+    getFilters,
     getMetadata,
+    getPlayableUrlFromSrc,
     lookup,
     rate,
     observeIsLoggedIn,
@@ -310,6 +490,13 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     };
 }
 
+async function getFilters(
+    viewType: ViewType.ByDecade | ViewType.ByGenre,
+    itemType: ItemType
+): Promise<readonly MediaFilter[]> {
+    return embyApi.getFilters(viewType, itemType);
+}
+
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     if (!canRate(item) || item.rating !== undefined) {
         return item;
@@ -325,6 +512,10 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     });
     const items = await fetchFirstPage<T>(pager, {timeout: 2000});
     return bestOf(item, items[0]);
+}
+
+function getPlayableUrlFromSrc(src: string): string {
+    return embyApi.getPlayableUrlFromSrc(src, embySettings);
 }
 
 async function lookup(
@@ -377,7 +568,7 @@ function createSearchPager<T extends MediaObject>(
     const params: Record<string, string> = {
         ParentId: getMusicLibraryId(),
         SortBy: 'SortName',
-        SearchTerm: q,
+        SearchTerm: q.trim(),
         ...filters,
     };
     if (itemType === ItemType.Artist) {
@@ -386,7 +577,7 @@ function createSearchPager<T extends MediaObject>(
         switch (itemType) {
             case ItemType.Media:
                 params.IncludeItemTypes = 'Audio';
-                params.SortBy = 'AlbumArtist,Album,IndexNumber,SortName';
+                params.SortBy = songSort;
                 break;
 
             case ItemType.Album:
@@ -412,7 +603,7 @@ function createItemsPager<T extends MediaObject>(
 function getMusicLibraryId(): string {
     const libraryId = embySettings.libraryId;
     if (!libraryId) {
-        throw Error('No music library');
+        throw new NoMusicLibrary();
     }
     return libraryId;
 }

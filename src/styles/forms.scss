@@ -279,3 +279,21 @@ button,
         }
     }
 }
+
+.checkbox-list {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: column;
+    line-height: 1.8;
+
+    & > li {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        width: 50%;
+
+        .media-source-label {
+            display: inline-flex;
+        }
+    }
+}

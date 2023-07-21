@@ -2,7 +2,7 @@ import {useCallback, useEffect, useState} from 'react';
 import {Column, ListViewLayout} from './ListView';
 
 export default function useColumns<T>(layout: ListViewLayout<T>) {
-    const [cols, setCols] = useState<Column<T>[]>([]);
+    const [cols, setCols] = useState<readonly Column<T>[]>([]);
     const sizeable = layout.view === 'details' && layout.sizeable;
 
     useEffect(() => {

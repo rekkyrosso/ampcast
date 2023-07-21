@@ -16,7 +16,7 @@ import MediaObject from 'types/MediaObject';
 import MediaObjectChange from 'types/MediaObjectChange';
 import Pager, {PagerConfig} from 'types/Pager';
 import mediaObjectChanges from 'services/actions/mediaObjectChanges';
-import {Logger} from 'utils';
+import {Logger, exists, uniq} from 'utils';
 
 export interface PageFetch {
     readonly index: number;
@@ -37,7 +37,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
     protected readonly fetches$ = new BehaviorSubject<PageFetch>({index: 0, length: 0});
     protected subscriptions?: Subscription;
     protected disconnected = false;
-    private readonly srcs = new Set<string>();
+    private srcs?: Set<string>;
 
     constructor(protected config: PagerConfig = {}) {}
 
@@ -66,8 +66,12 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
             this.disconnected = true;
             if (this.subscriptions) {
                 this.subscriptions.unsubscribe();
-                pagerCount--;
-                // logger.log(`Pager disconnected. Connected pagers=${pagerCount}.`);
+                if (__dev__) {
+                    pagerCount--;
+                    if (pagerCount === 0) {
+                        logger.log(`All pagers disconnected. Connected pagers=${pagerCount}.`);
+                    }
+                }
             }
             this.items.forEach((item) => (item as any).pager?.disconnect());
             this.items$.complete();
@@ -120,23 +124,25 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
             return;
         }
         if (!this.subscriptions) {
-            pagerCount++;
-            // logger.log(`Pager connected. Connected pagers=${pagerCount}.`);
-            if (pagerCount > 100) {
-                logger.warn(`Too many pagers? Connected pagers=${pagerCount}.`);
+            if (__dev__) {
+                pagerCount++;
+                if (pagerCount % 100 === 0) {
+                    logger.warn(`Too many pagers? Connected pagers=${pagerCount}.`);
+                }
             }
 
             this.subscriptions = new Subscription();
 
             if (!this.config.lookup) {
+                this.srcs = new Set();
                 this.subscriptions.add(
                     this.items$
                         .pipe(
                             map((items) =>
                                 items.filter((item) => {
-                                    const exists = this.srcs.has(item.src);
+                                    const exists = this.srcs!.has(item.src);
                                     if (!exists) {
-                                        this.srcs.add(item.src);
+                                        this.srcs!.add(item.src);
                                     }
                                     return !exists;
                                 })
@@ -148,7 +154,13 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
 
                 this.subscriptions.add(
                     this.observeAdditions()
-                        .pipe(tap((items) => this.addMissingTrackCounts(items)))
+                        .pipe(tap((items) => this.addMultiDisc(items)))
+                        .subscribe(logger)
+                );
+
+                this.subscriptions.add(
+                    this.observeAdditions()
+                        .pipe(tap((items) => this.addTrackCount(items)))
                         .subscribe(logger)
                 );
 
@@ -178,13 +190,43 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
         }
     }
 
-    private addMissingTrackCounts(items: readonly T[]): void {
+    private addMultiDisc(items: readonly T[]): void {
+        items.forEach((item) => {
+            if (item.itemType === ItemType.Album && item.multiDisc === undefined) {
+                this.subscriptions!.add(
+                    item.pager
+                        .observeItems()
+                        .pipe(
+                            take(1),
+                            tap((tracks) => {
+                                const src = item.src;
+                                const index = this.items.findIndex((item) => item.src === src);
+                                if (index !== -1) {
+                                    const items = this.items.slice();
+                                    const item = items[index];
+                                    const discs = uniq(
+                                        tracks.map((track) => track.disc).filter(exists)
+                                    );
+                                    const multiDisc = discs.length > 1 || discs[0] > 1;
+                                    items[index] = {...item, multiDisc};
+                                    this.items$.next(items);
+                                }
+                            })
+                        )
+                        .subscribe(logger)
+                );
+            }
+        });
+    }
+
+    private addTrackCount(items: readonly T[]): void {
         items.forEach((item) => {
             if (item.itemType === ItemType.Playlist && !item.trackCount && item.pager) {
                 this.subscriptions!.add(
                     item.pager
                         .observeSize()
                         .pipe(
+                            take(1),
                             tap((size) => {
                                 const src = item.src;
                                 const index = this.items.findIndex((item) => item.src === src);

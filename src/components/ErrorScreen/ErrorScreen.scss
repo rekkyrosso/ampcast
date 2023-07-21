@@ -11,8 +11,19 @@
         padding: var(--gutter-width);
     }
 
+    h2 {
+        font-size: 1.5em;
+        font-weight: bold;
+        margin-bottom: 0.75em;
+    }
+
     pre {
         white-space: pre-wrap;
+    }
+
+    .buttons {
+        margin-top: 2em;
+        text-align: left;
     }
 
     button.disconnect {

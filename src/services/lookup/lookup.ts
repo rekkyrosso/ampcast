@@ -2,7 +2,7 @@ import unidecode from 'unidecode';
 import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
 import {findListen} from 'services/localdb/listens';
-import {getService, getLookupServices, hasPlayableSrc} from 'services/mediaServices';
+import {getServiceFromSrc, getLookupServices, hasPlayableSrc} from 'services/mediaServices';
 import {filterNotEmpty, fuzzyCompare, Logger} from 'utils';
 import {dispatchLookupStartEvent, dispatchLookupEndEvent} from './lookupEvents';
 import lookupSettings from './lookupSettings';
@@ -46,8 +46,7 @@ async function lookupMediaItem<T extends MediaItem>(item: T): Promise<MediaItem 
         return;
     }
     let matches: readonly MediaItem[] = [];
-    const [serviceId] = link?.src.split(':') || [];
-    const service = getService(serviceId);
+    const service = getServiceFromSrc(link);
     if (service) {
         matches = await serviceLookup(service, item);
     }

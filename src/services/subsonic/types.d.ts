@@ -58,6 +58,7 @@ declare namespace Subsonic {
         contentType: string;
         coverArt: string;
         created: string;
+        discNumber?: number;
         duration: number;
         genre?: string;
         id: string;

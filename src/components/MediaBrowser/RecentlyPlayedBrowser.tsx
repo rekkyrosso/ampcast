@@ -1,13 +1,12 @@
 import React, {useEffect, useReducer} from 'react';
+import {from, interval} from 'rxjs';
 import MediaItem from 'types/MediaItem';
-import MediaService from 'types/MediaService';
 import MediaSourceLayout from 'types/MediaSourceLayout';
-import {PagedBrowserProps} from './MediaBrowser';
-import MediaItemBrowser from './MediaItemBrowser';
+import {isScrobbler} from 'services/mediaServices';
 import PageHeader from './PageHeader';
+import PagedItems, {PagedItemsProps} from './PagedItems';
 
-export interface RecentlyPlayedBrowserProps extends PagedBrowserProps<MediaItem> {
-    service: MediaService;
+export interface RecentlyPlayedBrowserProps extends PagedItemsProps<MediaItem> {
     total?: number;
 }
 
@@ -22,12 +21,12 @@ export default function RecentlyPlayedBrowser({
     total,
     ...props
 }: RecentlyPlayedBrowserProps) {
-    const [, forceUpdate] = useReducer((i) => i + 1, 0);
+    const [, forceUpdate] = useReducer((i) => i++, 0);
 
     useEffect(() => {
         // Make sure the "last played" fields are updated.
-        const id = setInterval(forceUpdate, 60_000);
-        return () => clearInterval(id);
+        const subscription = from(interval(60_000)).subscribe(forceUpdate);
+        return () => subscription.unsubscribe();
     }, []);
 
     return (
@@ -37,13 +36,14 @@ export default function RecentlyPlayedBrowser({
                     service.name
                 ) : (
                     <>
-                        {service.name}: {total.toLocaleString()} scrobbles
+                        {service.name}: {total.toLocaleString()}{' '}
+                        {isScrobbler(service) ? 'scrobbles' : 'plays'}
                     </>
                 )}
             </PageHeader>
-            <MediaItemBrowser
+            <PagedItems
                 {...props}
-                className="recently-played-browser"
+                service={service}
                 source={source}
                 layout={source.layout || defaultLayout}
             />

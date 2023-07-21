@@ -11,10 +11,9 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
-import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
-import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
+import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
 import ratingStore from 'services/actions/ratingStore';
 import {ParentOf} from 'utils';
@@ -141,6 +140,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             album: song.album,
             duration: song.duration,
             track: song.track,
+            disc: song.discNumber,
             year: song.year,
             playedAt: 0,
             playCount: song.playCount,
@@ -273,7 +273,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
 
     private createArtistAlbumsPager(artist: Subsonic.Artist): Pager<MediaAlbum> {
         const topTracks = this.createArtistTopTracks(artist);
-        const topTracksPager = new SimpleMediaPager(() => [topTracks]);
+        const topTracksPager = new SimplePager([topTracks]);
         const albumsPager = artist.album
             ? new SimplePager(
                   artist.album.map(
@@ -288,15 +288,14 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
                   },
                   undefined
               );
-        topTracksPager.fetchAt(0);
-        return new DualPager(topTracksPager, albumsPager);
+        return new WrappedPager(topTracksPager, albumsPager);
     }
 
     private createArtistTopTracks(artist: Subsonic.Artist): MediaAlbum {
         return {
             itemType: ItemType.Album,
             src: `subsonic:top-tracks:${artist.id}`,
-            title: 'Top Tracks',
+            title: 'Top Songs',
             artist: artist.name,
             thumbnails: this.createThumbnails(artist.coverArt),
             pager: this.createTopTracksPager(artist),
@@ -305,10 +304,13 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createTopTracksPager(artist: Subsonic.Artist): Pager<MediaItem> {
-        return new SubsonicPager(ItemType.Media, async () => {
-            const items = await subsonicApi.getArtistTopTracks(artist.name);
-            return {items, atEnd: true};
-        });
+        return new SubsonicPager(
+            ItemType.Media,
+            async () => {
+                const items = await subsonicApi.getArtistTopTracks(artist.name);
+                return {items, atEnd: true};
+            },
+        );
     }
 
     private createPlaylistItemsPager(playlist: Subsonic.Playlist): Pager<MediaItem> {
@@ -331,19 +333,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
         const folderPager = new SubsonicPager<MediaFolderItem>(
             ItemType.Folder,
             async (): Promise<Page<Subsonic.DirectoryItem>> => {
-                const {child: items} = await subsonicApi.getMusicDirectory(id);
-                items.sort((a, b) => {
-                    if (a.isDir === b.isDir) {
-                        if (a.isDir) {
-                            return a.title.localeCompare(b.title);
-                        } else {
-                            return 0;
-                        }
-                    } else if (a.isDir) {
-                        return -1;
-                    }
-                    return 1;
-                });
+                const items = await subsonicApi.getMusicDirectoryItems(id);
                 return {items, atEnd: true};
             },
             {pageSize: this.pageSize},
@@ -355,7 +345,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
                 fileName: `../${this.parent.fileName}`,
             };
             const backPager = new SimplePager([parentFolder]);
-            return new DualPager<MediaFolderItem>(backPager, folderPager);
+            return new WrappedPager<MediaFolderItem>(backPager, folderPager);
         } else {
             return folderPager;
         }

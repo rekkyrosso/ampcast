@@ -54,7 +54,7 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
                 <Title title={item.title} />
                 <Artist artist={item.artists?.join(', ')} />
                 <AlbumAndYear album={item.album} year={item.year} />
-                <Track album={item.album} track={item.track} />
+                <Track album={item.album} disc={item.disc} track={item.track} />
                 <Owner owner={item.owner} src={item.src} />
                 <Actions item={item} />
             </div>
@@ -147,8 +147,8 @@ export function Owner<T extends MediaObject>({src, owner}: Pick<T, 'src' | 'owne
         return null;
     }
 
-    const [service] = src.split(':');
-    const label = service === 'youtube' ? 'Channel' : 'Curator';
+    const [serviceId] = src.split(':');
+    const label = serviceId === 'youtube' ? 'Channel' : 'Curator';
 
     return (
         <p className="owner">
@@ -174,6 +174,11 @@ export function ExternalView({src, url = ''}: {src: string; url: string | undefi
             } else {
                 serviceName = 'ListenBrainz';
             }
+            break;
+
+        case 'blob':
+        case 'file':
+            serviceName = 'local file system';
             break;
 
         default: {
@@ -214,15 +219,15 @@ export function AlbumAndYear<T extends MediaItem>({album, year}: Pick<T, 'album'
 
 export function Track<T extends MediaItem>({
     album,
-    disc,
+    disc = 1,
     track,
 }: Pick<T, 'album' | 'disc' | 'track'>) {
     if (album && track) {
         return (
-            <>
-                {disc && <p className="track disc">Disc: {disc}</p>}
-                <p className="track">Track: {track}</p>
-            </>
+            <p className="track">
+                Track: {track}
+                {disc > 1 ? ` (Disc ${disc})` : ''}
+            </p>
         );
     }
     return null;

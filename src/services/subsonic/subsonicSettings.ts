@@ -1,8 +1,17 @@
+import type {Observable} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged} from 'rxjs';
+import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
+import PersonalMediaLibrarySettings from 'types/PersonalMediaLibrarySettings';
 import {LiteStorage} from 'utils';
 
 const storage = new LiteStorage('subsonic');
+const libraryId$ = new BehaviorSubject(storage.getString('libraryId'));
 
-export default {
+const subsonicSettings = {
+    get audioLibraries(): readonly PersonalMediaLibrary[] {
+        return this.libraries;
+    },
+
     get host(): string {
         return storage.getString('host');
     },
@@ -19,12 +28,29 @@ export default {
         storage.setString('credentials', credentials);
     },
 
-    get folders(): Subsonic.MusicFolder[] {
-        return storage.getJson('folders') || [];
+    get libraryId(): string {
+        return storage.getString('libraryId');
     },
 
-    set folders(folders: Subsonic.MusicFolder[]) {
-        storage.setJson('folders', folders);
+    set libraryId(libraryId: string) {
+        storage.setString('libraryId', libraryId);
+        libraryId$.next(libraryId);
+    },
+
+    observeLibraryId(): Observable<string> {
+        return libraryId$.pipe(distinctUntilChanged());
+    },
+
+    get libraries(): PersonalMediaLibrary[] {
+        return storage.getJson('libraries') || [];
+    },
+
+    set libraries(libraries: readonly PersonalMediaLibrary[]) {
+        storage.setJson('libraries', libraries);
+        const library = libraries.find((library) => library.id === this.libraryId);
+        if (!library) {
+            this.libraryId = '';
+        }
     },
 
     get userName(): string {
@@ -40,3 +66,5 @@ export default {
         storage.removeItem('credentials');
     },
 };
+
+export default subsonicSettings satisfies PersonalMediaLibrarySettings;

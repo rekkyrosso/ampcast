@@ -1,11 +1,9 @@
 import {useCallback, useEffect, useState} from 'react';
-import useNodeIds from './useNodeIds';
 import {TreeNode} from './TreeView';
 import useTreeViewState from './useTreeViewState';
 
 export default function useExpandedNodeIds(nodes: TreeNode<any>[], storageId?: string) {
     const {storeExpandedState, retrieveExpandedState} = useTreeViewState(storageId);
-    const allIds = useNodeIds(nodes);
     const [expandedIds, setExpandedIds] = useState<string[]>(() => {
         return getInitialExpandedNodeIds(nodes, retrieveExpandedState);
     });
@@ -13,14 +11,6 @@ export default function useExpandedNodeIds(nodes: TreeNode<any>[], storageId?: s
     useEffect(() => {
         setExpandedIds(getInitialExpandedNodeIds(nodes, retrieveExpandedState));
     }, [nodes, retrieveExpandedState]);
-
-    useEffect(() => {
-        // Make sure that `expandedIds` are included in `allIds`.
-        const newIds = expandedIds.filter((id) => allIds.includes(id));
-        if (newIds.length !== expandedIds.length) {
-            setExpandedIds(newIds);
-        }
-    }, [allIds, expandedIds]);
 
     const toggle = useCallback(
         (id: string, force?: boolean) => {

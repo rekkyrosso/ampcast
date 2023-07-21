@@ -1,4 +1,6 @@
 import {Primitive} from 'type-fest';
+import MediaFilter from 'types/MediaFilter';
+import ViewType from 'types/ViewType';
 import subsonicApi from 'services/subsonic/subsonicApi';
 import navidromeSettings from './navidromeSettings';
 
@@ -14,6 +16,21 @@ async function get<T>(path: string, params?: Record<string, Primitive>): Promise
     });
     const data = await response.json();
     return data;
+}
+
+async function getFilters(
+    viewType: ViewType.ByDecade | ViewType.ByGenre
+): Promise<readonly MediaFilter[]> {
+    if (viewType === ViewType.ByDecade) {
+        return subsonicApi.getDecades();
+    } else {
+        return getGenres();
+    }
+}
+
+async function getGenres(): Promise<readonly MediaFilter[]> {
+    const genres = await get<Navidrome.Genre[]>('genre', {_sort: 'name'});
+    return genres.map(({id, name: title}) => ({id, title}));
 }
 
 async function getPage<T>(
@@ -65,6 +82,7 @@ function getPlayableUrlFromSrc(src: string): string {
 
 const navidromeApi = {
     get,
+    getFilters,
     getPage,
     getPlayableUrlFromSrc,
 };

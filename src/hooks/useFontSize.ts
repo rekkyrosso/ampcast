@@ -10,6 +10,7 @@ resizer.style.cssText = `
     font-size: 1rem;
     width: 1rem;
     height: 1rem;
+    z-index: -1;
 `;
 
 export default function useFontSize(): number {

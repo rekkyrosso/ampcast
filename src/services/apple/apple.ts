@@ -6,11 +6,13 @@ import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
+import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
 import Pin from 'types/Pin';
+import PublicMediaService from 'types/PublicMediaService';
+import ServiceType from 'types/ServiceType';
 import ViewType from 'types/ViewType';
 import libraryStore from 'services/actions/libraryStore';
 import ratingStore from 'services/actions/ratingStore';
@@ -134,6 +136,7 @@ const appleLibraryVideos: MediaSource<MediaItem> = {
     title: 'My Videos',
     icon: 'tick',
     itemType: ItemType.Media,
+    mediaType: MediaType.Video,
     viewType: ViewType.Library,
     layout: defaultLayout,
     defaultHidden: true,
@@ -143,20 +146,21 @@ const appleLibraryVideos: MediaSource<MediaItem> = {
     },
 };
 
-const apple: MediaService = {
+const apple: PublicMediaService = {
     id: 'apple',
     name: 'Apple Music',
     icon: 'apple',
     url: 'https://music.apple.com',
+    serviceType: ServiceType.PublicMedia,
     defaultHidden: true,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
         createRoot(ItemType.Artist, {title: 'Artists'}),
         createRoot(ItemType.Playlist, {title: 'Playlists'}),
-        createRoot(
+        createRoot<MediaItem>(
             ItemType.Media,
-            {title: 'Videos', layout: defaultLayout},
+            {title: 'Videos', layout: defaultLayout, mediaType: MediaType.Video},
             {types: 'music-videos'},
             {maxSize: 250}
         ),

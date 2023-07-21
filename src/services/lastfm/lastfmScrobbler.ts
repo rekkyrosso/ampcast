@@ -3,7 +3,7 @@ import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import {getListenId, findScrobble, observeListens, updateListens} from 'services/localdb/listens';
 import {observePlaybackStart} from 'services/mediaPlayback/playback';
-import {getService} from 'services/mediaServices';
+import {getServiceFromSrc} from 'services/mediaServices';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import scrobbleSettings from 'services/scrobbleSettings';
 import {exists, Logger, partition} from 'utils';
@@ -72,8 +72,7 @@ async function scrobble(items: Listen[]): Promise<void> {
 }
 
 function canScrobble(item: MediaItem): boolean {
-    const [serviceId] = item.src.split(':');
-    const service = getService(serviceId);
+    const service = getServiceFromSrc(item);
     // `serviceId` might be "blob" or "file" so we'll attempt to scrobble.
     return service ? scrobbleSettings.canScrobble(lastfm, service) : true;
 }

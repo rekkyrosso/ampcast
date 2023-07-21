@@ -1,30 +1,36 @@
+import type {Observable} from 'rxjs';
 import {Except, SetOptional, Writable} from 'type-fest';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
+import MediaFilter from 'types/MediaFilter';
 import MediaFolder from 'types/MediaFolder';
 import MediaFolderItem from 'types/MediaFolderItem';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import MediaService from 'types/MediaService';
 import MediaServiceId from 'types/MediaServiceId';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
+import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
+import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
+import PersonalMediaService from 'types/PersonalMediaService';
 import Pin from 'types/Pin';
+import ServiceType from 'types/ServiceType';
 import ViewType from 'types/ViewType';
-import DualPager from 'services/pagers/DualPager';
+import {NoMusicLibrary, NoMusicVideoLibrary} from 'services/errors';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
+import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import ratingStore from 'services/actions/ratingStore';
 import {bestOf} from 'utils';
-import jellyfinApi from './jellyfinApi';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './jellyfinAuth';
-import JellyfinPager from './JellyfinPager';
 import jellyfinSettings from './jellyfinSettings';
+import JellyfinPager from './JellyfinPager';
+import jellyfinApi from './jellyfinApi';
 
 const serviceId: MediaServiceId = 'jellyfin';
 
@@ -146,11 +152,159 @@ const jellyfinPlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
+const jellyfinTracksByGenre: MediaSource<MediaItem> = {
+    id: 'jellyfin/tracks-by-genre',
+    title: 'Songs by Genre',
+    icon: 'genre',
+    itemType: ItemType.Media,
+    viewType: ViewType.ByGenre,
+    defaultHidden: true,
+
+    search(genre?: MediaFilter): Pager<MediaItem> {
+        if (genre) {
+            return createItemsPager({
+                ParentId: getMusicLibraryId(),
+                GenreIds: genre.id,
+                IncludeItemTypes: 'Audio',
+                SortBy: 'AlbumArtist,Album,ParentIndexNumber,IndexNumber,SortName',
+            });
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const jellyfinAlbumsByGenre: MediaSource<MediaAlbum> = {
+    id: 'jellyfin/albums-by-genre',
+    title: 'Albums by Genre',
+    icon: 'genre',
+    itemType: ItemType.Album,
+    viewType: ViewType.ByGenre,
+
+    search(genre?: MediaFilter): Pager<MediaAlbum> {
+        if (genre) {
+            return createItemsPager({
+                ParentId: getMusicLibraryId(),
+                GenreIds: genre.id,
+                IncludeItemTypes: 'MusicAlbum',
+                SortBy: 'AlbumArtist,SortName',
+            });
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const jellyfinArtistsByGenre: MediaSource<MediaArtist> = {
+    id: 'jellyfin/artists-by-genre',
+    title: 'Artists by Genre',
+    icon: 'genre',
+    itemType: ItemType.Artist,
+    viewType: ViewType.ByGenre,
+    defaultHidden: true,
+
+    search(genre?: MediaFilter): Pager<MediaArtist> {
+        if (genre) {
+            return new JellyfinPager('Artists/AlbumArtists', {
+                ParentId: getMusicLibraryId(),
+                GenreIds: genre.id,
+                UserId: jellyfinSettings.userId,
+            });
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const jellyfinTracksByDecade: MediaSource<MediaItem> = {
+    id: 'jellyfin/tracks-by-decade',
+    title: 'Songs by Decade',
+    icon: 'calendar',
+    itemType: ItemType.Media,
+    viewType: ViewType.ByDecade,
+    defaultHidden: true,
+
+    search(decade?: MediaFilter): Pager<MediaItem> {
+        if (decade) {
+            return createItemsPager({
+                ParentId: getMusicLibraryId(),
+                Years: decade.id,
+                IncludeItemTypes: 'Audio',
+                SortBy: 'AlbumArtist,Album,ParentIndexNumber,IndexNumber,SortName',
+            });
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const jellyfinAlbumsByDecade: MediaSource<MediaAlbum> = {
+    id: 'jellyfin/albums-by-decade',
+    title: 'Albums by Decade',
+    icon: 'calendar',
+    itemType: ItemType.Album,
+    viewType: ViewType.ByDecade,
+
+    search(decade?: MediaFilter): Pager<MediaAlbum> {
+        if (decade) {
+            return createItemsPager({
+                ParentId: getMusicLibraryId(),
+                Years: decade.id,
+                IncludeItemTypes: 'MusicAlbum',
+                SortBy: 'AlbumArtist,SortName',
+            });
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const jellyfinRandomTracks: MediaSource<MediaItem> = {
+    id: 'jellyfin/random-tracks',
+    title: 'Random Songs',
+    icon: 'shuffle',
+    itemType: ItemType.Media,
+    layout: {
+        view: 'card',
+        fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
+    },
+
+    search(): Pager<MediaItem> {
+        return createItemsPager(
+            {
+                ParentId: getMusicLibraryId(),
+                IncludeItemTypes: 'Audio',
+                SortBy: 'Random',
+            },
+            {maxSize: 100}
+        );
+    },
+};
+
+const jellyfinRandomAlbums: MediaSource<MediaAlbum> = {
+    id: 'jellyfin/random-albums',
+    title: 'Random Albums',
+    icon: 'shuffle',
+    itemType: ItemType.Album,
+
+    search(): Pager<MediaAlbum> {
+        return createItemsPager(
+            {
+                ParentId: getMusicLibraryId(),
+                IncludeItemTypes: 'MusicAlbum',
+                SortBy: 'Random',
+            },
+            {maxSize: 100}
+        );
+    },
+};
+
 const jellyfinMusicVideos: MediaSource<MediaItem> = {
     id: 'jellyfin/videos',
     title: 'Music Videos',
     icon: 'video',
     itemType: ItemType.Media,
+    mediaType: MediaType.Video,
     searchable: true,
     defaultHidden: true,
     layout: {
@@ -159,14 +313,12 @@ const jellyfinMusicVideos: MediaSource<MediaItem> = {
     },
 
     search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
-        const musicVideoLibrary = jellyfinSettings.libraries.find(
-            (library) => library.type === 'musicvideos'
-        );
-        if (!musicVideoLibrary) {
-            throw Error('No music video library');
+        const videoLibraryId = jellyfinSettings.videoLibraryId;
+        if (!videoLibraryId) {
+            throw new NoMusicVideoLibrary();
         }
         return createItemsPager({
-            ParentId: musicVideoLibrary.id,
+            ParentId: videoLibraryId,
             SortBy: 'SortName',
             SortOrder: 'Ascending',
             IncludeItemTypes: 'MusicVideo',
@@ -180,6 +332,7 @@ const jellyfinFolders: MediaSource<MediaFolderItem> = {
     title: 'Folders',
     icon: 'folder',
     itemType: ItemType.Folder,
+    viewType: ViewType.Folders,
 
     search(): Pager<MediaFolderItem> {
         const root: Writable<SetOptional<MediaFolder, 'pager'>> = {
@@ -219,7 +372,7 @@ const jellyfinFolders: MediaSource<MediaFolderItem> = {
                     library as MediaFolder
                 );
 
-                library.pager = new DualPager<MediaFolderItem>(backPager, folderPager);
+                library.pager = new WrappedPager<MediaFolderItem>(backPager, folderPager);
 
                 return library as MediaFolder;
             })
@@ -229,15 +382,13 @@ const jellyfinFolders: MediaSource<MediaFolderItem> = {
     },
 };
 
-const jellyfin: MediaService = {
+const jellyfin: PersonalMediaService = {
     id: serviceId,
     icon: serviceId,
     name: 'Jellyfin',
     url: 'https://jellyfin.org',
+    serviceType: ServiceType.PersonalMedia,
     defaultHidden: true,
-    get libraryId(): string {
-        return jellyfinSettings.libraryId;
-    },
     roots: [
         createRoot(ItemType.Media, {title: 'Songs'}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -251,6 +402,13 @@ const jellyfin: MediaService = {
         jellyfinMostPlayed,
         jellyfinRecentlyPlayed,
         jellyfinPlaylists,
+        jellyfinTracksByGenre,
+        jellyfinAlbumsByGenre,
+        jellyfinArtistsByGenre,
+        jellyfinTracksByDecade,
+        jellyfinAlbumsByDecade,
+        jellyfinRandomTracks,
+        jellyfinRandomAlbums,
         jellyfinMusicVideos,
         jellyfinFolders,
     ],
@@ -258,11 +416,31 @@ const jellyfin: MediaService = {
         [Action.Like]: 'Add to Jellyfin Favorites',
         [Action.Unlike]: 'Remove from Jellyfin Favorites',
     },
+    get audioLibraries(): readonly PersonalMediaLibrary[] {
+        return jellyfinSettings.audioLibraries;
+    },
+    get libraryId(): string {
+        return jellyfinSettings.libraryId;
+    },
+    set libraryId(libraryId: string) {
+        jellyfinSettings.libraryId = libraryId;
+    },
+    get libraries(): readonly PersonalMediaLibrary[] {
+        return jellyfinSettings.libraries;
+    },
+    set libraries(libraries: readonly PersonalMediaLibrary[]) {
+        jellyfinSettings.libraries = libraries;
+    },
+    observeLibraryId(): Observable<string> {
+        return jellyfinSettings.observeLibraryId();
+    },
     canRate,
     canStore: () => false,
     compareForRating,
     createSourceFromPin,
+    getFilters,
     getMetadata,
+    getPlayableUrlFromSrc,
     lookup,
     rate,
     observeIsLoggedIn,
@@ -310,6 +488,13 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     };
 }
 
+async function getFilters(
+    viewType: ViewType.ByDecade | ViewType.ByGenre,
+    itemType: ItemType
+): Promise<readonly MediaFilter[]> {
+    return jellyfinApi.getFilters(viewType, itemType);
+}
+
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     if (!canRate(item) || item.rating !== undefined) {
         return item;
@@ -325,6 +510,10 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     });
     const items = await fetchFirstPage<T>(pager, {timeout: 2000});
     return bestOf(item, items[0]);
+}
+
+function getPlayableUrlFromSrc(src: string): string {
+    return jellyfinApi.getPlayableUrlFromSrc(src);
 }
 
 async function lookup(
@@ -377,7 +566,7 @@ function createSearchPager<T extends MediaObject>(
     const params: Record<string, string> = {
         ParentId: getMusicLibraryId(),
         SortBy: 'SortName',
-        SearchTerm: q,
+        SearchTerm: q.trim(),
         ...filters,
     };
     if (itemType === ItemType.Artist) {
@@ -412,7 +601,7 @@ function createItemsPager<T extends MediaObject>(
 function getMusicLibraryId(): string {
     const libraryId = jellyfinSettings.libraryId;
     if (!libraryId) {
-        throw Error('No music library');
+        throw new NoMusicLibrary();
     }
     return libraryId;
 }

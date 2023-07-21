@@ -9,6 +9,7 @@ export type Field =
     | 'Blurb'
     | 'Album'
     | 'AlbumArtist'
+    | 'AlbumTrack'
     | 'AlbumAndYear'
     | 'Track'
     | 'Duration'
@@ -25,7 +26,13 @@ export type Field =
     | 'Thumbnail'
     | 'Rate';
 
-export default interface MediaSourceLayout<T extends MediaObject> {
-    readonly view: ListViewLayout<T>['view'];
-    readonly fields: readonly Field[];
-}
+type MediaSourceLayout<T extends MediaObject> =
+    | {
+          readonly view: 'none';
+      }
+    | {
+          readonly view: ListViewLayout<T>['view'];
+          readonly fields: readonly Field[];
+      };
+
+export default MediaSourceLayout;

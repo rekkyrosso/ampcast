@@ -1,14 +1,18 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged} from 'rxjs';
 import {nanoid} from 'nanoid';
-import {LiteStorage} from 'utils';
-
-type PlexSection = Pick<plex.Directory, 'key' | 'title'>;
+import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
+import PersonalMediaLibrarySettings from 'types/PersonalMediaLibrarySettings';
+import {LiteStorage, stringContainsMusic} from 'utils';
 
 const storage = new LiteStorage('plex');
 const libraryId$ = new BehaviorSubject(storage.getString('libraryId'));
 
-export default {
+const plexSettings = {
+    get audioLibraries(): readonly PersonalMediaLibrary[] {
+        return this.libraries;
+    },
+
     get clientId(): string {
         let clientId = storage.getString('clientId');
         if (!clientId) {
@@ -43,15 +47,17 @@ export default {
         return libraryId$.pipe(distinctUntilChanged());
     },
 
-    get sections(): PlexSection[] {
-        return storage.getJson('sections') || [];
+    get libraries(): PersonalMediaLibrary[] {
+        return storage.getJson('libraries') || [];
     },
 
-    set sections(sections: PlexSection[]) {
-        storage.setJson(
-            'sections',
-            sections.map(({key, title}) => ({key, title}))
-        );
+    set libraries(libraries: readonly PersonalMediaLibrary[]) {
+        const library =
+            libraries.find((library) => library.id === this.libraryId) ||
+            libraries.find((library) => stringContainsMusic(library.title)) ||
+            libraries[0];
+        storage.setJson('libraries', libraries);
+        this.libraryId = library?.id || '';
     },
 
     get server(): plex.Device | null {
@@ -89,3 +95,5 @@ export default {
         storage.removeItem('connection');
     },
 };
+
+export default plexSettings satisfies PersonalMediaLibrarySettings;

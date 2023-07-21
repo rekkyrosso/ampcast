@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, filter, mergeMap, tap} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, filter, mergeMap} from 'rxjs';
 import {Logger} from 'utils';
 import {showSubsonicLoginDialog} from './components/SubsonicLoginDialog';
 import subsonicSettings from './subsonicSettings';
@@ -50,12 +50,23 @@ function setCredentials(credentials: string): void {
     credentials$.next(credentials);
 }
 
+async function checkConnection(): Promise<boolean> {
+    try {
+        const libraries = await subsonicApi.getMusicLibraries();
+        subsonicSettings.libraries = libraries;
+        return true;
+    } catch (err) {
+        logger.error(err);
+        credentials$.next(''); // Keep it in settings (it might be a temporary failure)
+        return false;
+    }
+}
+
 observeCredentials()
     .pipe(
         filter((credentials) => credentials !== ''),
-        mergeMap(() => subsonicApi.getMusicFolders()),
-        tap(() => isLoggedIn$.next(true))
+        mergeMap(() => checkConnection())
     )
-    .subscribe(logger);
+    .subscribe(isLoggedIn$);
 
 setCredentials(subsonicSettings.credentials);

@@ -1,11 +1,4 @@
-import React, {
-    useCallback,
-    useEffect,
-    useId,
-    useMemo,
-    useRef,
-    useState,
-} from 'react';
+import React, {useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
 import {ConditionalKeys} from 'type-fest';
 import globalDrag from 'services/globalDrag';
 import {browser} from 'utils';
@@ -172,6 +165,10 @@ export default function ListView<T>({
     );
     const [dragItem1, dragItem2, dragItem3, dragItem4] = draggable ? selectedItems : [];
     const selectedId = items[rowIndex] ? `${listViewId}-${items[rowIndex][itemKey]}` : '';
+    const selectedIds = useMemo(
+        () => selectedItems.map((item) => item[itemKey]),
+        [selectedItems, itemKey]
+    );
 
     const focus = useCallback(() => containerRef.current!.focus(), []);
 
@@ -653,8 +650,8 @@ export default function ListView<T>({
                     itemClassName={itemClassName}
                     listViewId={listViewId}
                     selectedId={selectedId}
+                    selectedIds={disabled ? emptyArray : selectedIds}
                     scrollTop={scrollTop}
-                    selection={disabled ? emptyArray : selectedItems}
                     dragIndex={dragIndex}
                     draggable={disabled ? false : draggable || reorderable}
                     multiple={multiple}

@@ -39,9 +39,9 @@ export default function Splitter({
 
     useEffect(() => {
         if (id) {
-            layoutSettings.set(id, secondaryPaneSize);
+            layoutSettings.set(id, Math.max(secondaryPaneSize, secondaryMinSize));
         }
-    }, [id, secondaryPaneSize]);
+    }, [id, secondaryPaneSize, secondaryMinSize]);
 
     useEffect(() => {
         if (fontSize > 0) {

@@ -12,9 +12,9 @@ import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import ratingStore from 'services/actions/ratingStore';
 import libraryStore from 'services/actions/libraryStore';
-import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
-import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
+import SimplePager from 'services/pagers/SimplePager';
+import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
 import {bestOf, getTextFromHtml, Logger, ParentOf} from 'utils';
 import {addInLibrary, addRatings} from './apple';
@@ -382,9 +382,8 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             return albumsPager;
         }
         const topTracks = this.createArtistTopTracks(artist);
-        const topTracksPager = new SimpleMediaPager(() => [topTracks]);
-        topTracksPager.fetchAt(0);
-        return new DualPager(topTracksPager, albumsPager);
+        const topTracksPager = new SimplePager([topTracks]);
+        return new WrappedPager(topTracksPager, albumsPager);
     }
 
     private createTopTracksPager(artist: AppleMusicApi.Artist | LibraryArtist): Pager<MediaItem> {
@@ -394,7 +393,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
                 'limit[artists:top-songs]': '20',
                 views: 'top-songs',
             },
-            {maxSize: 20},
+            {maxSize: 10},
             undefined,
             (response: any) => {
                 const result = response.data[0]?.views?.['top-songs'] || response;

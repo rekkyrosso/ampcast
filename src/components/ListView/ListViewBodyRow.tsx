@@ -9,7 +9,7 @@ export interface ListViewRowProps<T> {
     rowIndex: number;
     height: number;
     selected: boolean;
-    cols: Column<T>[];
+    cols: readonly Column<T>[];
     setSize: number;
     dragIndex: number;
 }

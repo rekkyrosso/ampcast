@@ -9,7 +9,7 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSourceLayout, {Field} from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import {performAction} from 'services/actions';
-import {getService} from 'services/mediaServices';
+import {getServiceFromSrc} from 'services/mediaServices';
 import {ColumnSpec, ListViewLayout} from 'components/ListView';
 import Actions from 'components/Actions';
 import CoverArt from 'components/CoverArt';
@@ -33,6 +33,9 @@ export default function useMediaListLayout<T extends MediaObject = MediaObject>(
 function createMediaListLayout<T extends MediaObject = MediaObject>(
     layout: MediaSourceLayout<T>
 ): ListViewLayout<T> {
+    if (layout.view === 'none') {
+        return {view: 'details', cols: []};
+    }
     const {view, fields} = layout;
     const cols = fields.map((field) => mediaFields[field]);
     cols.push({
@@ -57,8 +60,7 @@ export const Index: RenderField = (_, rowIndex) => rowIndex + 1;
 export const Title: RenderField = (item) => <Text value={item.title} />;
 
 export const IconTitle: RenderField = (item) => {
-    const [serviceId] = item.src.split(':');
-    const service = getService(serviceId);
+    const service = getServiceFromSrc(item);
     return service ? (
         <MediaSourceLabel icon={service.icon} text={item.title} />
     ) : (
@@ -69,6 +71,19 @@ export const IconTitle: RenderField = (item) => {
 export const Blurb: RenderField<MediaPlaylist> = (item) => <Text value={item.description} />;
 
 export const Track: RenderField<MediaItem> = (item) => <Text value={item.track || '-'} />;
+
+export const AlbumTrack: RenderField<MediaItem> = (item) => (
+    <span className="text">
+        {item.track ? (
+            <>
+                <span className="disc">{item.disc || '?'}.</span>
+                {item.track}
+            </>
+        ) : (
+            '-'
+        )}
+    </span>
+);
 
 export const Artist: RenderField<MediaAlbum | MediaItem> = (item) => (
     <Text value={item.itemType === ItemType.Media ? item.artists?.join(', ') : item.artist} />
@@ -178,6 +193,7 @@ const mediaFields: MediaFields<any> = {
     Index: {title: '#', render: Index, className: 'index', align: 'right', width: 60},
     Artist: {title: 'Artist', render: Artist, className: 'artist'},
     AlbumArtist: {title: 'Album Artist', render: AlbumArtist, className: 'artist'},
+    AlbumTrack: {title: '#', render: AlbumTrack, align: 'right', width: 60, className: 'index'},
     Title: {title: 'Title', render: Title, className: 'title'},
     IconTitle: {title: 'Title', render: IconTitle, className: 'title'},
     Blurb: {title: 'Description', render: Blurb, className: 'blurb'},
@@ -211,8 +227,9 @@ const mediaFields: MediaFields<any> = {
     Rate: {
         title: <StarRating value={0} tabIndex={-1} />,
         render: Rate,
-        className: 'rate',
+        align: 'right',
         width: 120,
+        className: 'rate',
     },
 };
 
@@ -276,6 +293,6 @@ function getGlobalPlayCount(
     } else {
         return `${(globalPlayCount / 1_000_000_000)
             .toFixed(1)
-            .replace('.0', '')}M  ${countNamePlural}`;
+            .replace('.0', '')}B  ${countNamePlural}`;
     }
 }

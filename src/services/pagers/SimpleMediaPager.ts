@@ -2,14 +2,15 @@ import MediaObject from 'types/MediaObject';
 import AbstractPager from './AbstractPager';
 
 export default class SimpleMediaPager<T extends MediaObject> extends AbstractPager<T> {
-    constructor(private readonly fetch: (index: number) => readonly T[]) {
+    constructor(private readonly fetch: () => readonly T[]) {
         super();
     }
 
-    fetchAt(index: number): void {
+    fetchAt(index: 0): void;
+    fetchAt(): void {
         if (!this.disconnected && !this.subscriptions) {
             this.connect();
-            const items = this.fetch(index);
+            const items = this.fetch();
             this.size$.next(items.length);
             this.items$.next(items);
         }

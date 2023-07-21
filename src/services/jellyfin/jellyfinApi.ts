@@ -1,7 +1,10 @@
 import type {BaseItemDtoQueryResult} from '@jellyfin/client-axios/dist/models';
 import {Primitive} from 'type-fest';
+import ItemType from 'types/ItemType';
+import MediaFilter from 'types/MediaFilter';
+import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
+import ViewType from 'types/ViewType';
 import embyApi from 'services/emby/embyApi';
-import {EmbyLibrary} from 'services/emby/embySettings';
 import jellyfinSettings from './jellyfinSettings';
 
 async function del(path: string, params?: Record<string, Primitive>): Promise<void> {
@@ -15,7 +18,14 @@ async function get<T extends BaseItemDtoQueryResult>(
     return embyApi.get(path, params, jellyfinSettings);
 }
 
-async function getMusicLibraries(): Promise<readonly EmbyLibrary[]> {
+async function getFilters(
+    viewType: ViewType.ByDecade | ViewType.ByGenre,
+    itemType: ItemType
+): Promise<readonly MediaFilter[]> {
+    return embyApi.getFilters(viewType, itemType, jellyfinSettings);
+}
+
+async function getMusicLibraries(): Promise<readonly PersonalMediaLibrary[]> {
     return embyApi.getMusicLibraries(jellyfinSettings);
 }
 
@@ -30,6 +40,7 @@ function getPlayableUrlFromSrc(src: string): string {
 const jellyfinApi = {
     delete: del,
     get,
+    getFilters,
     getMusicLibraries,
     post,
     getPlayableUrlFromSrc,

@@ -10,6 +10,8 @@ import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import OffsetPager from 'services/pagers/OffsetPager';
+import SimplePager from 'services/pagers/SimplePager';
+import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
 import ratingStore from 'services/actions/ratingStore';
 import {getTextFromHtml} from 'utils';
@@ -136,7 +138,7 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
             externalUrl: this.getExternalUrl(`album/${album_id}`),
             title: album.name,
             addedAt: this.parseDate(album.createdAt),
-            artist: album.artist,
+            artist: album.albumArtist,
             rating: album.starred ? 1 : 0,
             year: album.minYear || album.maxYear,
             playedAt: this.parseDate(album.playDate),
@@ -159,7 +161,7 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
             description: getTextFromHtml(artist.biography) || undefined,
             rating: artist.starred ? 1 : 0,
             genres: artist.genres?.map((genre) => genre.name),
-            pager: new NavidromePager(ItemType.Album, 'album', {artist_id, compilation: false}),
+            pager: this.createArtistAlbumsPager(artist),
             thumbnails: hasThumbnails ? this.createThumbnails(artist_id) : undefined,
             artist_mbid: artist.mbzArtistId,
         };
@@ -218,5 +220,36 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
         const {host} = navidromeSettings;
         const url = `${host}/rest/getCoverArt?id=${id}&size=${width}&{navidrome-credentials}`; // not a typo
         return {url, width, height};
+    }
+
+    private createArtistAlbumsPager(artist: Navidrome.Artist): Pager<MediaAlbum> {
+        const allTracks = this.createArtistAllTracks(artist);
+        const allTracksPager = new SimplePager<MediaAlbum>([allTracks]);
+        const albumsPager = new NavidromePager<MediaAlbum>(ItemType.Album, 'album', {
+            album_artist_id: artist.id,
+            _sort: 'minYear',
+            _order: 'DESC',
+        });
+        return new WrappedPager(undefined, albumsPager, allTracksPager);
+    }
+
+    private createArtistAllTracks(artist: Navidrome.Artist): MediaAlbum {
+        const hasThumbnails = Object.keys(artist).some((key) => /ImageUrl$/.test(key));
+        return {
+            itemType: ItemType.Album,
+            src: `navidrome:all-tracks:${artist.id}`,
+            title: 'All Songs',
+            artist: artist.name,
+            thumbnails: hasThumbnails ? this.createThumbnails(artist.id) : undefined,
+            pager: this.createAllTracksPager(artist),
+            synthetic: true,
+        };
+    }
+
+    private createAllTracksPager(artist: Navidrome.Artist): Pager<MediaItem> {
+        return new NavidromePager<MediaItem>(ItemType.Media, 'song', {
+            artist: artist.name,
+            _sort: 'title',
+        });
     }
 }

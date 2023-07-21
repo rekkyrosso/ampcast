@@ -12,9 +12,9 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
-import DualPager from 'services/pagers/DualPager';
 import OffsetPager from 'services/pagers/OffsetPager';
 import SimplePager from 'services/pagers/SimplePager';
+import WrappedPager from 'services/pagers/WrappedPager';
 import ratingStore from 'services/actions/ratingStore';
 import pinStore from 'services/pins/pinStore';
 import {ParentOf} from 'utils';
@@ -74,6 +74,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             Recursive: true,
             ImageTypeLimit: 1,
             EnableImageTypes: 'Primary',
+            EnableTotalRecordCount: true,
             ...this.params,
             Limit: String(this.pageSize),
             StartIndex: String((pageNumber - 1) * this.pageSize),
@@ -83,18 +84,18 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
 
         if ((data as BaseItemDto).Type) {
             return {
-                items: [this.createItem(data as BaseItemDto)],
+                items: [this.createMediaObject(data as BaseItemDto)],
                 total: 1,
             };
         } else {
             return {
-                items: data.Items?.map((item: BaseItemDto) => this.createItem(item)) || [],
+                items: data.Items?.map((item: BaseItemDto) => this.createMediaObject(item)) || [],
                 total: data.TotalRecordCount || data.Items?.length,
             };
         }
     }
 
-    private createItem(item: BaseItemDto): T {
+    private createMediaObject(item: BaseItemDto): T {
         if (this.parent?.itemType === ItemType.Folder && item.IsFolder) {
             return this.createMediaFolder(item) as T;
         } else {
@@ -113,7 +114,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                     break;
 
                 default:
-                    mediaObject = this.createMediaItemFromTrack(item) as T;
+                    mediaObject = this.createMediaItem(item) as T;
             }
             if (jellyfin.canRate(mediaObject)) {
                 (mediaObject as Writable<T>).rating = this.getRating(mediaObject, item);
@@ -131,7 +132,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             playCount: artist.UserData?.PlayCount || undefined,
             genres: artist.Genres || undefined,
             thumbnails: this.createThumbnails(artist),
-            pager: this.createAlbumsPager(artist),
+            pager: this.createArtistAlbumsPager(artist),
         };
     }
 
@@ -190,7 +191,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         return mediaFolder as MediaFolder;
     }
 
-    private createMediaItemFromTrack(track: BaseItemDto): MediaItem {
+    private createMediaItem(track: BaseItemDto): MediaItem {
         const isVideo = track.MediaType === 'Video';
         return {
             itemType: ItemType.Media,
@@ -244,11 +245,39 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         });
     }
 
-    private createAlbumsPager(artist: BaseItemDto): Pager<MediaAlbum> {
-        return new JellyfinPager(`Users/${jellyfinSettings.userId}/Items`, {
-            AlbumArtistIds: artist.Id!,
-            IncludeItemTypes: 'MusicAlbum',
-            SortOrder: 'Descending',
+    private createArtistAlbumsPager(artist: BaseItemDto): Pager<MediaAlbum> {
+        const allTracks = this.createArtistAllTracks(artist);
+        const allTracksPager = new SimplePager<MediaAlbum>([allTracks]);
+        const albumsPager = new JellyfinPager<MediaAlbum>(
+            `Users/${jellyfinSettings.userId}/Items`,
+            {
+                AlbumArtistIds: artist.Id!,
+                IncludeItemTypes: 'MusicAlbum',
+                SortBy: 'ProductionYear,SortName',
+                SortOrder: 'Descending,Ascending',
+            }
+        );
+        return new WrappedPager(undefined, albumsPager, allTracksPager);
+    }
+
+    private createArtistAllTracks(artist: BaseItemDto): MediaAlbum {
+        return {
+            itemType: ItemType.Album,
+            src: `jellyfin:all-tracks:${artist.Id}`,
+            title: 'All Songs',
+            artist: artist.Name || '',
+            thumbnails: this.createThumbnails(artist),
+            pager: this.createAllTracksPager(artist),
+            synthetic: true,
+        };
+    }
+
+    private createAllTracksPager(artist: BaseItemDto): Pager<MediaItem> {
+        return new JellyfinPager<MediaItem>(`Users/${jellyfinSettings.userId}/Items`, {
+            ArtistIds: artist.Id!,
+            IncludeItemTypes: 'Audio',
+            SortBy: 'Name',
+            SortOrder: 'Ascending',
         });
     }
 
@@ -282,7 +311,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                 fileName: `../${this.parent.fileName}`,
             };
             const backPager = new SimplePager([parentFolder]);
-            return new DualPager<MediaFolderItem>(backPager, folderPager);
+            return new WrappedPager<MediaFolderItem>(backPager, folderPager);
         } else {
             return folderPager;
         }

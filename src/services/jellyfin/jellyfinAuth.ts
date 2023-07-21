@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, filter, map, mergeMap, tap} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, filter, mergeMap} from 'rxjs';
 import {showEmbyLoginDialog} from 'services/emby/components/EmbyLoginDialog';
 import {Logger} from 'utils';
 import jellyfinSettings from './jellyfinSettings';
@@ -52,20 +52,23 @@ function setAccessToken(token: string): void {
     accessToken$.next(token);
 }
 
+async function checkConnection(): Promise<boolean> {
+    try {
+        const libraries = await jellyfinApi.getMusicLibraries();
+        jellyfinSettings.libraries = libraries;
+        return true;
+    } catch (err) {
+        logger.error(err);
+        accessToken$.next(''); // Keep it in settings (it might be a temporary failure)
+        return false;
+    }
+}
+
 observeAccessToken()
     .pipe(
         filter((token) => token !== ''),
-        mergeMap(() => jellyfinApi.getMusicLibraries()),
-        tap((libraries) => (jellyfinSettings.libraries = libraries)),
-        map(
-            (libraries) =>
-                libraries.find((library) => library.id === jellyfinSettings.libraryId) ||
-                libraries.find((library) => library.type === 'music')
-        ),
-        map((library) => library?.id || ''),
-        tap((libraryId) => (jellyfinSettings.libraryId = libraryId)),
-        tap(() => isLoggedIn$.next(true))
+        mergeMap(() => checkConnection())
     )
-    .subscribe(logger);
+    .subscribe(isLoggedIn$);
 
 setAccessToken(jellyfinSettings.token);

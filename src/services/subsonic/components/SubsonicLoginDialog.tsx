@@ -5,6 +5,7 @@ import {showDialog, DialogProps} from 'components/Dialog';
 import LoginDialog from 'components/Login/LoginDialog';
 import subsonicSettings from '../subsonicSettings';
 import subsonic from '../subsonic';
+import './SubsonicLoginDialog.scss';
 
 export async function showSubsonicLoginDialog(): Promise<string> {
     return showDialog(SubsonicLoginDialog, true);

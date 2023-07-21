@@ -1,4 +1,10 @@
 import {browser} from 'utils';
+import ItemType from 'types/ItemType';
+import MediaFilter from 'types/MediaFilter';
+import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
+import ViewType from 'types/ViewType';
+import {NoMusicLibrary} from 'services/errors';
+import plexMediaType from './plexMediaType';
 import plexSettings from './plexSettings';
 
 interface PlexRequest {
@@ -12,11 +18,7 @@ interface PlexRequest {
     keepalive?: boolean;
 }
 
-async function fetchJSON<T = any>({
-    headers,
-    body,
-    ...rest
-}: PlexRequest): Promise<T> {
+async function fetchJSON<T = any>({headers, body, ...rest}: PlexRequest): Promise<T> {
     headers = {...headers, Accept: 'application/json'};
     if (body) {
         headers = {...headers, 'Content-Type': 'application/json'};
@@ -70,14 +72,50 @@ async function plexFetch({
     return response;
 }
 
-function getPlayableUrlFromSrc(src: string): string {
-    const {host, serverToken} = plexSettings;
-    if (host && serverToken) {
-        const [, , key] = src.split(':');
-        return `${host}${key}?X-Plex-Token=${serverToken}`;
+async function getMusicLibraries(): Promise<readonly PersonalMediaLibrary[]> {
+    const {
+        MediaContainer: {Directory: sections},
+    } = await fetchJSON<plex.DirectoryResponse>({
+        path: '/library/sections',
+    });
+    return sections
+        .filter((section) => section.type === 'artist')
+        .map(({key: id, title}) => ({id, title}));
+}
+
+async function getDecades(): Promise<readonly MediaFilter[]> {
+    const {
+        MediaContainer: {Directory: decades},
+    } = await fetchJSON<plex.DirectoryResponse>({
+        path: getMusicLibraryPath('decade'),
+        params: {type: plexMediaType.Album},
+    });
+    const thisDecade = Math.floor(new Date().getFullYear() / 10) * 10;
+    return decades
+        .filter(({key: decade}) => Number(decade) > 500 && Number(decade) <= thisDecade)
+        .map(({key: id, title}) => ({id, title}));
+}
+
+async function getFilters(
+    viewType: ViewType.ByDecade | ViewType.ByGenre,
+    itemType: ItemType
+): Promise<readonly MediaFilter[]> {
+    if (viewType === ViewType.ByDecade) {
+        return getDecades();
     } else {
-        throw Error('Not logged in');
+        return getGenres(itemType);
     }
+}
+
+async function getGenres(itemType: ItemType): Promise<readonly MediaFilter[]> {
+    const type = getPlexMediaType(itemType);
+    const {
+        MediaContainer: {Directory: genres},
+    } = await fetchJSON<plex.DirectoryResponse>({
+        path: getMusicLibraryPath('genre'),
+        params: {type},
+    });
+    return genres.map(({key: id, title}) => ({id, title}));
 }
 
 function getHeaders(token: string): Record<string, string> {
@@ -102,10 +140,36 @@ function getHeaders(token: string): Record<string, string> {
     return headers;
 }
 
+export function getMusicLibraryPath(path = 'all'): string {
+    return `/library/sections/${getMusicLibraryId()}/${path}`;
+}
+
+export function getMusicLibraryId(): string {
+    const libraryId = plexSettings.libraryId;
+    if (!libraryId) {
+        throw new NoMusicLibrary();
+    }
+    return libraryId;
+}
+
+function getPlexMediaType(itemType: ItemType): plexMediaType {
+    switch (itemType) {
+        case ItemType.Album:
+            return plexMediaType.Album;
+        case ItemType.Artist:
+            return plexMediaType.Artist;
+        case ItemType.Playlist:
+            return plexMediaType.Playlist;
+        default:
+            return plexMediaType.Track;
+    }
+}
+
 const plexApi = {
     fetch: plexFetch,
     fetchJSON,
-    getPlayableUrlFromSrc,
+    getFilters,
+    getMusicLibraries,
 };
 
 export default plexApi;

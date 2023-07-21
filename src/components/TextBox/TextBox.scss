@@ -1,3 +1,11 @@
 .text-box {
-    line-height: 1.6;
+    line-height: 1.25;
+
+    p {
+        margin: 0 0 1em 0;
+    }
+
+    .scrollable p {
+        margin-right: 1em;
+    }
 }

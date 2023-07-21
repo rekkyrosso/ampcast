@@ -5,10 +5,11 @@ import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
-import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
+import ServiceType from 'types/ServiceType';
+import Scrobbler from 'types/Scrobbler';
 import ViewType from 'types/ViewType';
 import ratingStore from 'services/actions/ratingStore';
 import lastfmApi from './lastfmApi';
@@ -34,7 +35,7 @@ const albumLayout: MediaSourceLayout<MediaAlbum> = {
 
 const albumTrackLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
-    fields: ['Index', 'Title', 'Artist'],
+    fields: ['AlbumTrack', 'Title', 'Artist'],
 };
 
 const artistLayout: MediaSourceLayout<MediaArtist> = {
@@ -92,13 +93,13 @@ const lastfmLovedTracks: MediaSource<MediaItem> = {
     },
 };
 
-const lastfm: MediaService = {
+const lastfm: Scrobbler = {
     id: 'lastfm',
     name: 'last.fm',
     icon: 'lastfm',
     url: 'https://www.last.fm',
+    serviceType: ServiceType.Scrobbler,
     defaultHidden: true,
-    isScrobbler: true,
     roots: [lastfmRecentlyPlayed],
     sources: [
         createTopView('user.getTopTracks', {
@@ -119,8 +120,8 @@ const lastfm: MediaService = {
             secondaryLayout: albumLayout,
             tertiaryLayout: albumTrackLayout,
         }),
-        lastfmHistory,
         lastfmLovedTracks,
+        lastfmHistory,
     ],
     labels: {
         [Action.Like]: 'Love on last.fm',

@@ -1,12 +1,16 @@
 import React, {useCallback, useMemo, useState} from 'react';
+import MediaService from 'types/MediaService';
 import Pin from 'types/Pin';
 import pinStore from 'services/pins/pinStore';
-import ListBox from 'components/ListView/ListBox';
 import DialogButtons from 'components/Dialog/DialogButtons';
-import {MediaServiceSettingsProps} from './MediaServiceSettings';
+import ListBox from 'components/ListView/ListBox';
 import './PinnedSettings.scss';
 
-export default function PinnedSettings({service}: MediaServiceSettingsProps) {
+export interface PinnedSettingsProps {
+    service: MediaService;
+}
+
+export default function PinnedSettings({service}: PinnedSettingsProps) {
     const renderPin = useMemo(() => (pin: Pin) => pin.title, []);
     const [pins, setPins] = useState(() => pinStore.getPinsForService(service.id));
     const [selectedPins, setSelectedPins] = useState<readonly Pin[]>([]);

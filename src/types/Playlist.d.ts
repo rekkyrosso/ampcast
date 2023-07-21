@@ -20,8 +20,8 @@ export default interface Playlist {
     add(file: File): Promise<void>;
     add(files: readonly File[]): Promise<void>;
     add(files: FileList): Promise<void>;
-    clear(): Promise<void>;
-    eject(): Promise<void>;
+    clear(): void;
+    eject(): void;
     insert(album: MediaAlbum): Promise<void>;
     insert(item: MediaItem): Promise<void>;
     insert(items: readonly MediaItem[]): Promise<void>;
@@ -36,11 +36,11 @@ export default interface Playlist {
     insertAt(files: FileList, index: number): Promise<void>;
     insertAt(items: readonly MediaItem[] | FileList, index: number): Promise<void>;
     moveSelection(selection: readonly PlaylistItem[], toIndex: number): void;
-    remove(item: PlaylistItem): Promise<void>;
-    remove(items: readonly PlaylistItem[]): Promise<void>;
-    removeAt(index: number): Promise<void>;
-    reverseAt(index: number, length: number): Promise<void>;
-    next(): Promise<void>;
-    prev(): Promise<void>;
-    shuffle(preserveCurrentlyPlaying?: boolean): Promise<void>;
+    remove(item: PlaylistItem): void;
+    remove(items: readonly PlaylistItem[]): void;
+    removeAt(index: number): void;
+    reverseAt(index: number, length: number): void;
+    next(): void;
+    prev(): void;
+    shuffle(preserveCurrentlyPlaying?: boolean): void;
 }

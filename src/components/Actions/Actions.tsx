@@ -5,7 +5,7 @@ import LibraryAction from 'types/LibraryAction';
 import MediaObject from 'types/MediaObject';
 import MediaService from 'types/MediaService';
 import {performAction} from 'services/actions';
-import {getService} from 'services/mediaServices';
+import {getServiceFromSrc} from 'services/mediaServices';
 import IconButton from 'components/Button';
 import IconButtons from 'components/Button/IconButtons';
 import {IconName} from 'components/Icon';
@@ -34,8 +34,7 @@ export const actionLabels: Record<LibraryAction, string> = {
 };
 
 export default function Actions({item, inline}: ActionsProps) {
-    const [serviceId] = item.src.split(':');
-    const service = getService(serviceId);
+    const service = getServiceFromSrc(item);
     const tabIndex = inline ? -1 : undefined;
 
     const togglePin = useCallback(async () => {
@@ -107,7 +106,7 @@ export default function Actions({item, inline}: ActionsProps) {
             {service ? (
                 <>
                     {item.rating !== undefined && service?.canRate(item, inline) ? (
-                        serviceId === 'plex' ? (
+                        service.id === 'plex' ? (
                             <StarRating value={item.rating} tabIndex={tabIndex} onChange={rate} />
                         ) : (
                             <IconButton
@@ -141,7 +140,7 @@ export default function Actions({item, inline}: ActionsProps) {
                                     : getLabelForAction(service, Action.AddToLibrary)
                             }
                             tabIndex={tabIndex}
-                            disabled={serviceId === 'apple' && item.inLibrary} // remove doesn't work (https://developer.apple.com/forums/thread/107807)
+                            disabled={service.id === 'apple' && item.inLibrary} // remove doesn't work (https://developer.apple.com/forums/thread/107807)
                             onClick={toggleInLibrary}
                             key="store"
                         />

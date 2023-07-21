@@ -3,11 +3,9 @@ import {EMPTY, of} from 'rxjs';
 import Pager from 'types/Pager';
 
 export default class SimplePager<T> implements Pager<T> {
-    constructor(private readonly items: readonly T[] = []) {}
+    readonly maxSize = undefined;
 
-    get maxSize(): number | undefined {
-        return undefined;
-    }
+    constructor(private readonly items: readonly T[] = []) {}
 
     observeItems(): Observable<readonly T[]> {
         return of(this.items);

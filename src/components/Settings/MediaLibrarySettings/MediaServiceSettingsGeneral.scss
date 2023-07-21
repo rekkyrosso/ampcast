@@ -1,0 +1,13 @@
+.media-service-settings-general {
+    .disconnect {
+        width: 100%;
+
+        &:disabled {
+            background-image: none;
+        }
+    }
+
+    .checkbox-list {
+        max-height: 16em;
+    }
+}

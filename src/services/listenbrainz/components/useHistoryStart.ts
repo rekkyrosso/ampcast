@@ -4,7 +4,7 @@ import {exists, formatDate} from 'utils';
 import listenbrainzApi from '../listenbrainzApi';
 import listenbrainzSettings from '../listenbrainzSettings';
 
-const serviceStartDate = '2015-09-17';
+const serviceStartDate = '2015-09-17'; // ListenBrainz first launched.
 
 export default function useHistoryStart() {
     const [startedAt, setStartedAt] = useState(listenbrainzSettings.firstScrobbledAt);

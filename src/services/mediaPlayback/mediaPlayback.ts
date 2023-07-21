@@ -10,6 +10,7 @@ import {
     fromEvent,
     map,
     of,
+    skipWhile,
     switchMap,
     takeUntil,
     tap,
@@ -313,6 +314,7 @@ playlist
     .pipe(
         map((size) => size === 0),
         distinctUntilChanged(),
+        skipWhile((isEmpty) => isEmpty),
         filter((isEmpty) => isEmpty)
     )
     .subscribe(stop);

@@ -1,11 +1,11 @@
 import React, {useCallback, useState} from 'react';
 import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
+import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import DatePicker from 'components/DatePicker';
-import {PagedBrowserProps} from './MediaBrowser';
-import MediaItemBrowser from './MediaItemBrowser';
 import PageHeader from './PageHeader';
+import PagedItems from './PagedItems';
 import useHistoryPager from './useHistoryPager';
 
 const defaultLayout: MediaSourceLayout<MediaItem> = {
@@ -13,8 +13,9 @@ const defaultLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'ListenDate'],
 };
 
-export interface HistoryBrowserProps extends PagedBrowserProps<MediaItem> {
+export interface HistoryBrowserProps {
     service: MediaService;
+    source: MediaSource<MediaItem>;
     minDate?: string; // yyyy-mm-dd
 }
 
@@ -47,9 +48,9 @@ export default function HistoryBrowser({
                 {service.name}:
                 <DatePicker min={minDate} onSelect={handleDateChange} />
             </PageHeader>
-            <MediaItemBrowser
+            <PagedItems
                 {...props}
-                className="history-browser"
+                service={service}
                 source={source}
                 pager={pager}
                 layout={source.layout || defaultLayout}

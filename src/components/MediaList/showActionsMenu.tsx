@@ -2,7 +2,7 @@ import React from 'react';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
-import {getService} from 'services/mediaServices';
+import {getServiceFromSrc} from 'services/mediaServices';
 import {browser} from 'utils';
 import {getLabelForAction} from 'components/Actions';
 import PopupMenu, {
@@ -88,8 +88,7 @@ interface ContextualActionsProps<T extends MediaObject> {
 }
 
 function ContextualActions<T extends MediaObject>({item}: ContextualActionsProps<T>) {
-    const [serviceId] = item?.src.split(':') || [];
-    const service = getService(serviceId);
+    const service = getServiceFromSrc(item);
 
     return (
         <>
@@ -119,7 +118,7 @@ function ContextualActions<T extends MediaObject>({item}: ContextualActionsProps
                 />
             ) : null}
             {/* remove doesn't work (https://developer.apple.com/forums/thread/107807) */}
-            {serviceId !== 'apple' && item.inLibrary === true && service?.canStore(item, true) ? (
+            {service?.id !== 'apple' && item.inLibrary === true && service?.canStore(item, true) ? (
                 <PopupMenuItem<Action>
                     label={getLabelForAction(service, Action.RemoveFromLibrary)}
                     value={Action.RemoveFromLibrary}

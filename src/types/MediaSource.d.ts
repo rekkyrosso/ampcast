@@ -1,6 +1,9 @@
 import type {IconName} from 'components/Icon';
+import ItemType from './ItemType';
+import MediaFilter from './MediaFilter';
 import MediaObject from './MediaObject';
 import MediaSourceLayout from './MediaSourceLayout';
+import MediaType from './MediaType';
 import Pager from './Pager';
 import ViewType from './ViewType';
 
@@ -9,6 +12,7 @@ export default interface MediaSource<T extends MediaObject> {
     readonly title: string;
     readonly icon: IconName;
     readonly itemType: T['itemType'];
+    readonly mediaType?: T['itemType'] extends ItemType.Media ? MediaType : never;
     readonly viewType?: ViewType;
     readonly layout?: MediaSourceLayout<T>;
     readonly secondaryLayout?: MediaSourceLayout<MediaObject>;
@@ -16,5 +20,5 @@ export default interface MediaSource<T extends MediaObject> {
     readonly searchable?: boolean;
     readonly defaultHidden?: boolean;
     readonly isPin?: boolean;
-    search(params?: Record<string, unknown>): Pager<T>;
+    search(params?: MediaFilter | Record<string, unknown>): Pager<T>;
 }

@@ -7,9 +7,9 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
-import DualPager from 'services/pagers/DualPager';
 import SequentialPager from 'services/pagers/SequentialPager';
-import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
+import SimplePager from 'services/pagers/SimplePager';
+import WrappedPager from 'services/pagers/WrappedPager';
 import lastfmApi from './lastfmApi';
 import lastfmSettings from './lastfmSettings';
 
@@ -180,7 +180,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
 
     private createArtistAlbumsPager(artist: LastFm.Artist): Pager<MediaAlbum> {
         const topTracks = this.createArtistTopTracks(artist);
-        const topTracksPager = new SimpleMediaPager(() => [topTracks]);
+        const topTracksPager = new SimplePager([topTracks]);
         const albumsPager = new LastFmPager<MediaAlbum>(
             {
                 method: 'artist.getTopAlbums',
@@ -195,8 +195,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
             },
             {maxSize: 100, playCountName: 'userplaycount'}
         );
-        topTracksPager.fetchAt(0);
-        return new DualPager(topTracksPager, albumsPager);
+        return new WrappedPager(topTracksPager, albumsPager);
     }
 
     private createAlbumPager(album: LastFm.Album): Pager<MediaItem> {
@@ -241,7 +240,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
                 const atEnd = attr.page === attr.totalPages;
                 return {items, total, atEnd, itemType: ItemType.Media};
             },
-            {maxSize: 20}
+            {pageSize: 10, maxSize: 10}
         );
     }
 }

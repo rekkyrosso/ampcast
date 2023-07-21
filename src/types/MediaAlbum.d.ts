@@ -8,6 +8,7 @@ export default interface MediaAlbum extends BaseMediaObject {
     readonly pager: Pager<MediaItem>;
     // Everything below here should be optional
     readonly artist?: string;
+    readonly multiDisc?: boolean;
     readonly year?: number;
     readonly trackCount?: number;
     readonly duration?: number;

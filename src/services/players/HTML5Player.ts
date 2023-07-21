@@ -1,11 +1,7 @@
 import type {Observable} from 'rxjs';
 import {Subject, filter, fromEvent, map} from 'rxjs';
 import Player from 'types/Player';
-import embyApi from 'services/emby/embyApi';
-import jellyfinApi from 'services/jellyfin/jellyfinApi';
-import navidromeApi from 'services/navidrome/navidromeApi';
-import subsonicApi from 'services/subsonic/subsonicApi';
-import plexApi from 'services/plex/plexApi';
+import {getServiceFromSrc} from 'services/mediaServices';
 import {Logger} from 'utils';
 
 export default class HTML5Player implements Player<string> {
@@ -100,8 +96,8 @@ export default class HTML5Player implements Player<string> {
         this.src = src;
         try {
             if (this.autoplay) {
-                const mediaSource = this.getMediaSource(this.src);
-                this.element.setAttribute('src', mediaSource);
+                const src = this.getMediaSrc(this.src);
+                this.element.setAttribute('src', src);
                 this.safePlay();
             }
         } catch (err) {
@@ -112,9 +108,9 @@ export default class HTML5Player implements Player<string> {
     play(): void {
         this.logger.log('play');
         try {
-            const mediaSource = this.getMediaSource(this.src);
-            if (this.element.getAttribute('src') !== mediaSource) {
-                this.element.setAttribute('src', mediaSource);
+            const src = this.getMediaSrc(this.src);
+            if (this.element.getAttribute('src') !== src) {
+                this.element.setAttribute('src', src);
             }
             this.safePlay();
         } catch (err) {
@@ -142,28 +138,9 @@ export default class HTML5Player implements Player<string> {
         this.element.style.height = `${height}px`;
     }
 
-    private getMediaSource(src: string): string {
-        const [serviceId] = src.split(':');
-
-        switch (serviceId) {
-            case 'emby':
-                return embyApi.getPlayableUrlFromSrc(src);
-
-            case 'jellyfin':
-                return jellyfinApi.getPlayableUrlFromSrc(src);
-
-            case 'navidrome':
-                return navidromeApi.getPlayableUrlFromSrc(src);
-
-            case 'plex':
-                return plexApi.getPlayableUrlFromSrc(src);
-
-            case 'subsonic':
-                return subsonicApi.getPlayableUrlFromSrc(src);
-
-            default:
-                return src;
-        }
+    private getMediaSrc(src: string): string {
+        const service = getServiceFromSrc({src});
+        return service?.getPlayableUrlFromSrc?.(src) ?? src;
     }
 
     private async safePlay(): Promise<void> {

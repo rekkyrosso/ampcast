@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, filter, mergeMap, tap} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, filter, mergeMap} from 'rxjs';
 import {Logger} from 'utils';
 import {showNavidromeLoginDialog} from './components/NavidromeLoginDialog';
 import navidromeApi from './navidromeApi';
@@ -51,12 +51,22 @@ function setAccessToken(token: string): void {
     accessToken$.next(token);
 }
 
+async function checkConnection(): Promise<boolean> {
+    try {
+        await navidromeApi.get('playlist', {_end: 1});
+        return true;
+    } catch (err) {
+        logger.error(err);
+        accessToken$.next(''); // Keep it in settings (it might be a temporary failure)
+        return false;
+    }
+}
+
 observeAccessToken()
     .pipe(
         filter((token) => token !== ''),
-        mergeMap(() => navidromeApi.get('playlist', {_end: 1})),
-        tap(() => isLoggedIn$.next(true))
+        mergeMap(() => checkConnection())
     )
-    .subscribe(logger);
+    .subscribe(isLoggedIn$);
 
 setAccessToken(navidromeSettings.token);

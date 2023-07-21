@@ -7,7 +7,10 @@ export default function useMusicKit() {
     const [error, setError] = useState<any>(null);
 
     useEffect(() => {
-        const subscription = from(getMusicKitInstance()).subscribe({next: setMusicKit, error: setError});
+        const subscription = from(getMusicKitInstance()).subscribe({
+            next: setMusicKit,
+            error: setError,
+        });
         return () => subscription.unsubscribe();
     }, []);
 

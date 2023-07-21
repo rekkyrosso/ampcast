@@ -1,10 +1,12 @@
 import React, {useMemo} from 'react';
 import MediaService from 'types/MediaService';
+import ServiceType from 'types/ServiceType';
 import TabList, {TabItem} from 'components/TabList';
+import AppleBetaSettings from 'services/apple/components/AppleBetaSettings';
 import MediaServiceSettingsGeneral from './MediaServiceSettingsGeneral';
+import PersonalMediaLibrarySettings from './PersonalMediaLibrarySettings';
 import PinnedSettings from './PinnedSettings';
 import ScrobblingSettings from './ScrobblingSettings';
-import './MediaServiceSettings.scss';
 
 export interface MediaServiceSettingsProps {
     service: MediaService;
@@ -18,16 +20,28 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
                 panel: <MediaServiceSettingsGeneral service={service} />,
             },
         ];
+        if ('libraryId' in service) {
+            tabs.push({
+                tab: 'Library',
+                panel: <PersonalMediaLibrarySettings service={service} />,
+            });
+        }
+        if (service.serviceType === ServiceType.Scrobbler) {
+            tabs.push({
+                tab: 'Scrobbling',
+                panel: <ScrobblingSettings service={service} />,
+            });
+        }
         if (service.createSourceFromPin) {
             tabs.push({
                 tab: 'Pinned',
                 panel: <PinnedSettings service={service} />,
             });
         }
-        if (service.isScrobbler) {
+        if (service.id === 'apple') {
             tabs.push({
-                tab: 'Scrobbling',
-                panel: <ScrobblingSettings service={service} />,
+                tab: 'Beta',
+                panel: <AppleBetaSettings />,
             });
         }
         return tabs;

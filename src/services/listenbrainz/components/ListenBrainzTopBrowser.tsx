@@ -1,14 +1,8 @@
 import React, {useCallback, useId, useState} from 'react';
-import ItemType from 'types/ItemType';
-import MediaAlbum from 'types/MediaAlbum';
-import MediaArtist from 'types/MediaArtist';
-import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
-import {PagedBrowserProps} from 'components/MediaBrowser';
-import AlbumBrowser from 'components/MediaBrowser/AlbumBrowser';
-import MediaItemBrowser from 'components/MediaBrowser/MediaItemBrowser';
+import MediaSource from 'types/MediaSource';
 import PageHeader from 'components/MediaBrowser/PageHeader';
-import ArtistList from 'components/MediaList/ArtistList';
+import PagedItems from 'components/MediaBrowser/PagedItems';
 import listenbrainz from '../listenbrainz';
 import useRange from './useRange';
 
@@ -35,10 +29,13 @@ const options: ListenBrainzRangeOption[] = [
     {value: 'week', text: 'Week'},
 ];
 
+export interface ListenBrainzTopBrowserProps<T extends MediaObject> {
+    source: MediaSource<T>;
+}
+
 export default function ListenBrainzTopBrowser<T extends MediaObject>({
     source,
-    ...props
-}: PagedBrowserProps<T>) {
+}: ListenBrainzTopBrowserProps<T>) {
     const id = useId();
     const [range, setRange] = useState<ListenBrainzRange | undefined>();
     const pager = useRange(source, range);
@@ -69,27 +66,12 @@ export default function ListenBrainzTopBrowser<T extends MediaObject>({
                     ))}
                 </ul>
             </div>
-            <PagedBrowser {...props} source={source} pager={pager} layout={source.layout} />
+            <PagedItems
+                service={listenbrainz}
+                source={source}
+                pager={pager}
+                layout={source.layout}
+            />
         </>
     );
-}
-
-function PagedBrowser<T extends MediaObject>(props: PagedBrowserProps<T>) {
-    switch (props.source.itemType) {
-        case ItemType.Artist:
-            return (
-                <div className="panel artist-browser">
-                    <ArtistList
-                        {...(props as unknown as PagedBrowserProps<MediaArtist>)}
-                        title={props.source.title}
-                    />
-                </div>
-            );
-
-        case ItemType.Album:
-            return <AlbumBrowser {...(props as unknown as PagedBrowserProps<MediaAlbum>)} />;
-
-        default:
-            return <MediaItemBrowser {...(props as unknown as PagedBrowserProps<MediaItem>)} />;
-    }
 }

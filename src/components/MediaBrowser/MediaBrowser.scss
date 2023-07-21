@@ -5,31 +5,8 @@
     inset: var(--gutter-width);
     bottom: 0;
 
-    .splitter-rows > .layout-splitter {
-        left: 0;
-        width: 100%;
-    }
-
-    .artist-browser .splitter-rows > .layout-splitter {
-        left: var(--gutter-width);
-        width: calc(100% - var(--gutter-width));
-    }
-
-    .splitter-columns > .layout-splitter {
-        top: 0;
-        height: calc(100% - var(--gutter-width));
-    }
-
     .panel {
         inset: 0;
-
-        &.artists {
-            right: var(--gutter-width);
-        }
-
-        &.artist-albums {
-            left: var(--gutter-width);
-        }
     }
 
     > .panel {
@@ -37,13 +14,39 @@
         flex: auto;
     }
 
-    .playlist-items,
-    .album-items {
-        top: var(--gutter-width);
+    .splitter-rows {
+        > .layout-splitter {
+            left: 0;
+            width: 100%;
+        }
+
+        > .layout-pane:last-child > .panel {
+            top: var(--gutter-width);
+        }
     }
 
-    .artist-browser .album-items {
-        left: var(--gutter-width);
+    .splitter-columns {
+        > .layout-splitter {
+            top: 0;
+            height: calc(100% - 3 * var(--gutter-width));
+        }
+
+        > .layout-pane:first-child > .panel {
+            right: var(--gutter-width);
+        }
+
+        > .layout-pane:last-child {
+            > .panel {
+                left: var(--gutter-width);
+            }
+
+            > .splitter-rows {
+                > .layout-splitter,
+                > .layout-pane > .panel {
+                    left: var(--gutter-width);
+                }
+            }
+        }
     }
 
     .options {

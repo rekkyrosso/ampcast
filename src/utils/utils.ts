@@ -40,6 +40,24 @@ export function chunk<T>(values: readonly T[], chunkSize = 1): T[][] {
     return chunks;
 }
 
+export function groupBy<T, K extends keyof any>(
+    values: readonly T[],
+    criteria: K | ((value: T) => K)
+): Record<K, readonly T[]> {
+    const getKey: (value: T) => K =
+        typeof criteria === 'function'
+            ? criteria
+            : (value: T) => value[criteria as unknown as keyof T] as K;
+    return values.reduce((groups, value) => {
+        const key = getKey(value);
+        if (!groups[key]) {
+            groups[key] = [];
+        }
+        groups[key].push(value);
+        return groups;
+    }, {} as Record<K, T[]>);
+}
+
 export function partition<T>(values: readonly T[], predicate: (value: T) => boolean): [T[], T[]] {
     const trues: T[] = [];
     const falses: T[] = [];
@@ -54,7 +72,7 @@ export function partition<T>(values: readonly T[], predicate: (value: T) => bool
 }
 
 export function uniq<T>(values: readonly T[]): T[] {
-    return values.filter((a, index, self) => index === self.findIndex((b) => a === b));
+    return [...new Set(values)];
 }
 
 export function uniqBy<T>(values: readonly T[], key: keyof T): T[] {

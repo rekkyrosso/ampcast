@@ -61,6 +61,15 @@ function Dialog(
         onClose(dialogRef.current!.returnValue);
     }, [onClose]);
 
+    const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
+        if (event.key === 'Escape') {
+            // Safari restores the main window (if it was maximized).
+            event.preventDefault();
+            event.stopPropagation();
+            dialogRef.current!.close();
+        }
+    }, []);
+
     const handleBodyClick = useCallback((event: React.MouseEvent) => {
         let button: any = event.target;
         while (button && button.nodeName !== 'BUTTON') {
@@ -121,6 +130,7 @@ function Dialog(
             {...props}
             className={`dialog ${className}`}
             onClose={handleClose}
+            onKeyDown={handleKeyDown}
             style={{
                 transform: `translate(${position.left + dragPosition.left}px, ${
                     position.top + dragPosition.top

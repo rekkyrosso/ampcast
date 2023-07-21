@@ -1,3 +1,5 @@
+import type {Observable} from 'rxjs';
+import {Subject} from 'rxjs';
 import butterchurn from 'butterchurn';
 import {ButterchurnVisualizer} from 'types/Visualizer';
 import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
@@ -9,6 +11,7 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
     private readonly canvas = document.createElement('canvas');
     private readonly context2D = this.canvas.getContext('2d')!;
     private readonly visualizer: butterchurn.Visualizer;
+    private readonly error$ = new Subject<unknown>();
     private animationFrameId = 0;
     private currentVisualizer = '';
 
@@ -43,6 +46,10 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
                 }
             }
         }
+    }
+
+    observeError(): Observable<unknown> {
+        return this.error$;
     }
 
     appendTo(parentElement: HTMLElement): void {
@@ -94,7 +101,17 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
     }
 
     private render(): void {
-        this.visualizer.render();
+        // try/catch on first render only
+        if (!this.animationFrameId) {
+            try {
+                this.visualizer.render();
+            } catch (err) {
+                logger.error(err);
+                this.error$.next(err);
+            }
+        } else {
+            this.visualizer.render();
+        }
         if (this.autoplay && !this.canvas.hidden) {
             this.animationFrameId = requestAnimationFrame(() => this.render());
         }

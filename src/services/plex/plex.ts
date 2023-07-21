@@ -1,3 +1,4 @@
+import type {Observable} from 'rxjs';
 import {Except, SetOptional, Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
@@ -5,24 +6,28 @@ import MediaArtist from 'types/MediaArtist';
 import MediaFolder from 'types/MediaFolder';
 import MediaFolderItem from 'types/MediaFolderItem';
 import MediaItem from 'types/MediaItem';
+import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
+import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
+import PersonalMediaService from 'types/PersonalMediaService';
 import Pin from 'types/Pin';
+import ServiceType from 'types/ServiceType';
 import ViewType from 'types/ViewType';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import ratingStore from 'services/actions/ratingStore';
-import DualPager from 'services/pagers/DualPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
+import WrappedPager from 'services/pagers/WrappedPager';
 import {bestOf, uniqBy} from 'utils';
 import plexSettings from './plexSettings';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './plexAuth';
-import plexApi from './plexApi';
+import plexApi, {getMusicLibraryId, getMusicLibraryPath} from './plexApi';
+import plexMediaType from './plexMediaType';
 import PlexPager from './PlexPager';
 
 const tracksLayout: MediaSourceLayout<MediaItem> = {
@@ -30,35 +35,19 @@ const tracksLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount', 'Rate'],
 };
 
+const albumsLayout: MediaSourceLayout<MediaAlbum> = {
+    view: 'card compact',
+    fields: ['Thumbnail', 'Title', 'Artist', 'Year', 'Rate'],
+};
+
 const albumTracksLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
-    fields: ['Index', 'Artist', 'Title', 'Duration', 'PlayCount', 'Rate'],
+    fields: ['AlbumTrack', 'Artist', 'Title', 'Duration', 'PlayCount', 'Rate'],
 };
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
     fields: ['Index', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount', 'Rate'],
-};
-
-const plexMusicVideos: MediaSource<MediaItem> = {
-    id: 'plex/videos',
-    title: 'Music Videos',
-    icon: 'video',
-    itemType: ItemType.Media,
-    searchable: true,
-    defaultHidden: true,
-    layout: {
-        view: 'card compact',
-        fields: ['Thumbnail', 'Artist', 'Title', 'Year', 'Duration'],
-    },
-
-    search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
-        return new PlexPager(`/library/sections/${getMusicLibraryId()}/extras/all`, {
-            title: q,
-            type: '8', // artist
-            extraType: '4', // video
-        });
-    },
 };
 
 const plexRecentlyPlayed: MediaSource<MediaItem> = {
@@ -72,8 +61,8 @@ const plexRecentlyPlayed: MediaSource<MediaItem> = {
     },
 
     search(): Pager<MediaItem> {
-        return new PlexPager(`/library/sections/${getMusicLibraryId()}/all`, {
-            type: '10', // track
+        return new PlexPager(getMusicLibraryPath(), {
+            type: plexMediaType.Track,
             'lastViewedAt>': '0',
             sort: 'lastViewedAt:desc',
         });
@@ -91,8 +80,8 @@ const plexMostPlayed: MediaSource<MediaItem> = {
     },
 
     search(): Pager<MediaItem> {
-        return new PlexPager(`/library/sections/${getMusicLibraryId()}/all`, {
-            type: '10', // track
+        return new PlexPager(getMusicLibraryPath(), {
+            type: plexMediaType.Track,
             'viewCount>': '1',
             sort: 'viewCount:desc,lastViewedAt:desc',
         });
@@ -111,8 +100,8 @@ const plexTopTracks: MediaSource<MediaItem> = {
     },
 
     search(): Pager<MediaItem> {
-        return new PlexPager(`/library/sections/${getMusicLibraryId()}/all`, {
-            type: '10', // track
+        return new PlexPager(getMusicLibraryPath(), {
+            type: plexMediaType.Track,
             'track.userRating>': '1',
             sort: 'track.userRating:desc,viewCount:desc,lastViewedAt:desc',
         });
@@ -125,15 +114,12 @@ const plexTopAlbums: MediaSource<MediaAlbum> = {
     icon: 'star',
     itemType: ItemType.Album,
     viewType: ViewType.Ratings,
-    layout: {
-        view: 'card compact',
-        fields: ['Thumbnail', 'Title', 'Artist', 'Year', 'Rate'],
-    },
+    layout: albumsLayout,
     secondaryLayout: albumTracksLayout,
 
     search(): Pager<MediaAlbum> {
-        return new PlexPager(`/library/sections/${getMusicLibraryId()}/all`, {
-            type: '9', // album
+        return new PlexPager(getMusicLibraryPath(), {
+            type: plexMediaType.Album,
             'album.userRating>': '1',
             sort: 'album.userRating:desc,viewCount:desc,lastViewedAt:desc',
         });
@@ -154,8 +140,8 @@ const plexTopArtists: MediaSource<MediaArtist> = {
     tertiaryLayout: albumTracksLayout,
 
     search(): Pager<MediaArtist> {
-        return new PlexPager(`/library/sections/${getMusicLibraryId()}/all`, {
-            type: '8', // artist
+        return new PlexPager(getMusicLibraryPath(), {
+            type: plexMediaType.Artist,
             'artist.userRating>': '1',
             sort: 'artist.userRating:desc,viewCount:desc,lastViewedAt:desc',
         });
@@ -172,8 +158,124 @@ const plexPlaylists: MediaSource<MediaPlaylist> = {
     search(): Pager<MediaPlaylist> {
         getMusicLibraryId(); // Make sure to throw even if not needed
         return new PlexPager('/playlists/all', {
-            type: '15', // playlist
+            type: plexMediaType.Playlist,
             playlistType: 'audio',
+        });
+    },
+};
+
+const plexAlbumsByGenre: MediaSource<MediaAlbum> = {
+    id: 'plex/albums-by-genre',
+    title: 'Albums by Genre',
+    icon: 'genre',
+    itemType: ItemType.Album,
+    viewType: ViewType.ByGenre,
+
+    search(genre?: MediaFilter): Pager<MediaAlbum> {
+        if (genre) {
+            return new PlexPager(getMusicLibraryPath(), {
+                genre: genre.id,
+                type: plexMediaType.Album,
+            });
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const plexArtistsByGenre: MediaSource<MediaArtist> = {
+    id: 'plex/artists-by-genre',
+    title: 'Artists by Genre',
+    icon: 'genre',
+    itemType: ItemType.Artist,
+    viewType: ViewType.ByGenre,
+    defaultHidden: true,
+
+    search(genre?: MediaFilter): Pager<MediaArtist> {
+        if (genre) {
+            return new PlexPager(getMusicLibraryPath(), {
+                genre: genre.id,
+                type: plexMediaType.Artist,
+            });
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const plexAlbumsByDecade: MediaSource<MediaAlbum> = {
+    id: 'plex/albums-by-decade',
+    title: 'Albums by Decade',
+    icon: 'calendar',
+    itemType: ItemType.Album,
+    viewType: ViewType.ByDecade,
+
+    search(decade?: MediaFilter): Pager<MediaAlbum> {
+        if (decade) {
+            return new PlexPager(getMusicLibraryPath(), {
+                decade: decade.id,
+                type: plexMediaType.Album,
+            });
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const plexRandomTracks: MediaSource<MediaItem> = {
+    id: 'plex/random-tracks',
+    title: 'Random Tracks',
+    icon: 'shuffle',
+    itemType: ItemType.Media,
+    layout: {
+        view: 'card',
+        fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
+    },
+
+    search(): Pager<MediaItem> {
+        return new PlexPager(
+            getMusicLibraryPath(),
+            {type: plexMediaType.Track, sort: 'random'},
+            {maxSize: 100}
+        );
+    },
+};
+
+const plexRandomAlbums: MediaSource<MediaAlbum> = {
+    id: 'plex/random-albums',
+    title: 'Random Albums',
+    icon: 'shuffle',
+    itemType: ItemType.Album,
+    layout: albumsLayout,
+    secondaryLayout: albumTracksLayout,
+
+    search(): Pager<MediaAlbum> {
+        return new PlexPager(
+            getMusicLibraryPath(),
+            {type: plexMediaType.Album, sort: 'random'},
+            {maxSize: 100}
+        );
+    },
+};
+
+const plexMusicVideos: MediaSource<MediaItem> = {
+    id: 'plex/videos',
+    title: 'Music Videos',
+    icon: 'video',
+    itemType: ItemType.Media,
+    mediaType: MediaType.Video,
+    searchable: true,
+    defaultHidden: true,
+    layout: {
+        view: 'card compact',
+        fields: ['Thumbnail', 'Artist', 'Title', 'Year', 'Duration'],
+    },
+
+    search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
+        return new PlexPager(getMusicLibraryPath('extras/all'), {
+            title: q,
+            type: plexMediaType.Artist,
+            extraType: plexMediaType.Episode,
         });
     },
 };
@@ -183,6 +285,7 @@ const plexFolders: MediaSource<MediaFolderItem> = {
     title: 'Folders',
     icon: 'folder',
     itemType: ItemType.Folder,
+    viewType: ViewType.Folders,
 
     search(): Pager<MediaFolderItem> {
         const root: Writable<SetOptional<MediaFolder, 'pager'>> = {
@@ -194,10 +297,10 @@ const plexFolders: MediaSource<MediaFolderItem> = {
         };
 
         root.pager = new SimpleMediaPager<MediaFolderItem>(() =>
-            plexSettings.sections.map(({key, title}) => {
+            plexSettings.libraries.map(({id, title}) => {
                 const section: Writable<SetOptional<MediaFolder, 'pager'>> = {
                     itemType: ItemType.Folder,
-                    src: `plex:folder:/library/sections/${key}/folder`,
+                    src: `plex:folder:/library/sections/${id}/folder`,
                     title,
                     fileName: title,
                     path: `/${title}`,
@@ -208,13 +311,13 @@ const plexFolders: MediaSource<MediaFolderItem> = {
                 };
                 const backPager = new SimplePager([parentFolder]);
                 const folderPager = new PlexPager<MediaFolderItem>(
-                    `library/sections/${key}/folder`,
+                    `library/sections/${id}/folder`,
                     {includeCollections: '1'},
                     undefined,
                     section as MediaFolder
                 );
 
-                section.pager = new DualPager<MediaFolderItem>(backPager, folderPager);
+                section.pager = new WrappedPager<MediaFolderItem>(backPager, folderPager);
 
                 return section as MediaFolder;
             })
@@ -224,17 +327,15 @@ const plexFolders: MediaSource<MediaFolderItem> = {
     },
 };
 
-const plex: MediaService = {
+const plex: PersonalMediaService = {
     id: 'plex',
     name: 'Plex',
     icon: 'plex',
     url: 'https://www.plex.tv',
+    serviceType: ServiceType.PersonalMedia,
     defaultHidden: true,
-    get libraryId(): string {
-        return plexSettings.libraryId;
-    },
     roots: [
-        createRoot(ItemType.Media, {title: 'Songs', layout: tracksLayout}),
+        createRoot(ItemType.Media, {title: 'Tracks', layout: tracksLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
         createRoot(ItemType.Artist, {title: 'Artists'}),
         createRoot(ItemType.Playlist, {title: 'Playlists', secondaryLayout: playlistItemsLayout}),
@@ -246,14 +347,40 @@ const plex: MediaService = {
         plexMostPlayed,
         plexRecentlyPlayed,
         plexPlaylists,
+        plexAlbumsByGenre,
+        plexArtistsByGenre,
+        plexAlbumsByDecade,
+        plexRandomTracks,
+        plexRandomAlbums,
         plexMusicVideos,
         plexFolders,
     ],
+    get audioLibraries(): readonly PersonalMediaLibrary[] {
+        return plexSettings.audioLibraries;
+    },
+    get libraryId(): string {
+        return plexSettings.libraryId;
+    },
+    set libraryId(libraryId: string) {
+        plexSettings.libraryId = libraryId;
+    },
+    get libraries(): readonly PersonalMediaLibrary[] {
+        return plexSettings.libraries;
+    },
+    set libraries(libraries: readonly PersonalMediaLibrary[]) {
+        plexSettings.libraries = libraries;
+    },
+    observeLibraryId(): Observable<string> {
+        return plexSettings.observeLibraryId();
+    },
     canRate,
     canStore: () => false,
     compareForRating,
     createSourceFromPin,
+    getFilters,
     getMetadata,
+    getPlayableUrlFromSrc,
+    getThumbnailUrl,
     lookup,
     rate,
     observeIsLoggedIn,
@@ -299,11 +426,18 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
 
         search(): Pager<MediaPlaylist> {
             return new PlexPager(`/playlists/${pin.plex!.ratingKey}`, {
-                type: '15', // playlist
+                type: plexMediaType.Playlist,
                 playlistType: 'audio',
             });
         },
     };
+}
+
+async function getFilters(
+    viewType: ViewType.ByDecade | ViewType.ByGenre,
+    itemType: ItemType
+): Promise<readonly MediaFilter[]> {
+    return plexApi.getFilters(viewType, itemType);
 }
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
@@ -324,6 +458,20 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     });
     const items = await fetchFirstPage<T>(pager, {timeout: 2000});
     return bestOf(item, items[0]);
+}
+
+function getPlayableUrlFromSrc(src: string): string {
+    const {host, serverToken} = plexSettings;
+    if (host && serverToken) {
+        const [, , key] = src.split(':');
+        return `${host}${key}?X-Plex-Token=${serverToken}`;
+    } else {
+        throw Error('Not logged in');
+    }
+}
+
+function getThumbnailUrl(url: string): string {
+    return url.replace('{plex-token}', plexSettings.serverToken);
 }
 
 async function lookup(
@@ -380,37 +528,29 @@ function createSearchPager<T extends MediaObject>(
     filters?: Record<string, string>,
     options?: Partial<PagerConfig>
 ): Pager<T> {
-    const libraryId = getMusicLibraryId(); // Make sure to throw even if not needed
-    const path =
-        itemType === ItemType.Playlist ? '/playlists/all' : `/library/sections/${libraryId}/all`;
-    const params: Record<string, string> = {...filters, title: q, sort: 'titleSort:asc'};
+    getMusicLibraryId(); // Make sure to throw even if not needed
+    const path = itemType === ItemType.Playlist ? '/playlists/all' : getMusicLibraryPath();
+    const params: Record<string, string> = {...filters};
+    if (q) {
+        params.title = q.trim();
+    }
     switch (itemType) {
         case ItemType.Media:
-            params.type = '10';
-            params.sort = 'artist.titleSort:asc,album.titleSort:asc,track.index:asc';
+            params.type = plexMediaType.Track;
             break;
 
         case ItemType.Album:
-            params.type = '9';
-            params.sort = 'artist.titleSort:asc,titleSort:asc';
+            params.type = plexMediaType.Album;
             break;
 
         case ItemType.Artist:
-            params.type = '8';
+            params.type = plexMediaType.Artist;
             break;
 
         case ItemType.Playlist:
-            params.type = '15';
+            params.type = plexMediaType.Playlist;
             params.playlistType = 'audio';
             break;
     }
     return new PlexPager<T>(path, params, options);
-}
-
-function getMusicLibraryId(): string {
-    const libraryId = plexSettings.libraryId;
-    if (!libraryId) {
-        throw Error('No music library');
-    }
-    return libraryId;
 }

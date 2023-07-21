@@ -1,7 +1,8 @@
 import React, {useCallback, useId, useState} from 'react';
 import MediaObject from 'types/MediaObject';
-import {PagedBrowser, PagedBrowserProps} from 'components/MediaBrowser';
+import MediaSource from 'types/MediaSource';
 import PageHeader from 'components/MediaBrowser/PageHeader';
+import PagedItems from 'components/MediaBrowser/PagedItems';
 import lastfm from '../lastfm';
 import usePeriod from './usePeriod';
 
@@ -19,10 +20,14 @@ const options: LastFMPeriodOption[] = [
     {value: '7day', text: 'Week'},
 ];
 
+export interface LastFmTopBrowserProps<T extends MediaObject> {
+    source: MediaSource<T>;
+}
+
 export default function LastFmTopBrowser<T extends MediaObject>({
     source,
     ...props
-}: PagedBrowserProps<T>) {
+}: LastFmTopBrowserProps<T>) {
     const id = useId();
     const [period, setPeriod] = useState<LastFMPeriod | undefined>();
     const pager = usePeriod(source, period);
@@ -53,7 +58,13 @@ export default function LastFmTopBrowser<T extends MediaObject>({
                     ))}
                 </ul>
             </div>
-            <PagedBrowser {...props} source={source} pager={pager} layout={source.layout} />
+            <PagedItems
+                {...props}
+                service={lastfm}
+                source={source}
+                pager={pager}
+                layout={source.layout}
+            />
         </>
     );
 }

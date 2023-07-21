@@ -80,7 +80,7 @@ export default function TreeViewNode<T>({
         >
             <span
                 className={`tree-view-row ${selected ? 'selected-text' : ''}`}
-                onDoubleClick={handleDoubleClick}
+                onDoubleClick={expandable ? handleDoubleClick : undefined}
                 style={{
                     height: `${rowHeight}px`,
                 }}

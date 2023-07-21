@@ -6,7 +6,7 @@ import ColumnResizer from './ColumnResizer';
 export interface ListViewHeadProps<T> {
     width: number;
     height: number;
-    cols: Column<T>[];
+    cols: readonly Column<T>[];
     sizeable?: boolean;
     onColumnResize?: (index: number, width: number) => void;
 }

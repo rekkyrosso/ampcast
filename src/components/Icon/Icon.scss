@@ -205,6 +205,11 @@
         .subsonic-connected &,
         &:not(.show-connectivity) {
             fill: #ffd220;
+            filter: drop-shadow(1px 1px 0 rgba(16, 16, 16, 0.6));
+
+            .dark & {
+                filter: drop-shadow(1px 1px 0 rgba(240, 240, 240, 0.4));
+            }
         }
     }
 
