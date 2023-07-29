@@ -6,16 +6,14 @@ import spotify from '../spotify';
 
 export default function SpotifyLogin() {
     return (
-        <div className="panel">
-            <div className="page login">
-                <DevMode service={spotify} />
-                <p>You need to be logged in to play music from Spotify.*</p>
-                <LoginButton service={spotify} />
-                <p>
-                    <small>*Spotify Premium required.</small>
-                </p>
-                <ServiceLink service={spotify} />
-            </div>
-        </div>
+        <>
+            <DevMode service={spotify} />
+            <p>You need to be logged in to play music from Spotify.*</p>
+            <LoginButton service={spotify} />
+            <p>
+                <small>*Spotify Premium required.</small>
+            </p>
+            <ServiceLink service={spotify} />
+        </>
     );
 }

@@ -435,7 +435,7 @@ async function scrobble(
     return get('scrobble', params as any, settings);
 }
 
-function getPlayableUrlFromSrc(
+function getPlayableUrl(
     src: string,
     {host, credentials}: SubsonicSettings = subsonicSettings
 ): string {
@@ -466,7 +466,7 @@ const subsonicApi = {
     getMusicDirectory,
     getMusicDirectoryItems,
     getMusicLibraries,
-    getPlayableUrlFromSrc,
+    getPlayableUrl,
     getPlaylist,
     getPlaylists,
     getPlaylistItems,

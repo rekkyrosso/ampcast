@@ -5,7 +5,7 @@ import {LoginProps} from './Login';
 
 export default function ServiceLink({service}: LoginProps) {
     return (
-        <p className="service-link">
+        <p className={`service-link service-link-${service.id}`}>
             <Icon name={service.icon} />
             <ExternalLink href={service.url} />
         </p>

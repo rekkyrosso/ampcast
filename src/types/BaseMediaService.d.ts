@@ -8,6 +8,7 @@ import MediaObject from './MediaObject';
 import MediaPlaylist from './MediaPlaylist';
 import MediaServiceId from './MediaServiceId';
 import MediaSource from './MediaSource';
+import PlayableItem from './PlayableItem';
 import Pin from './Pin';
 import ViewType from './ViewType';
 
@@ -18,7 +19,8 @@ type BaseMediaService = Auth & {
     readonly url: string;
     readonly roots: readonly MediaSource<MediaObject>[];
     readonly sources: readonly MediaSource<MediaObject>[];
-    readonly defaultHidden: true; // `true` for all services
+    readonly defaultHidden?: boolean; // `true` for all services
+    readonly authServiceId?: MediaServiceId;
     readonly defaultNoScrobble?: boolean;
     readonly icons?: Partial<Record<LibraryAction, IconName>>;
     readonly labels?: Partial<Record<LibraryAction, string>>;
@@ -31,7 +33,7 @@ type BaseMediaService = Auth & {
         itemType: ItemType
     ) => Promise<readonly MediaFilter[]>;
     getMetadata?: <T extends MediaObject>(item: T) => Promise<T>;
-    getPlayableUrlFromSrc?: (src: string) => string;
+    getPlayableUrl?: (item: PlayableItem) => string;
     getThumbnailUrl?: (url: string) => string;
     lookup?: (
         artist: string,
@@ -40,7 +42,9 @@ type BaseMediaService = Auth & {
         timeout?: number
     ) => Promise<readonly MediaItem[]>;
     rate?: (item: MediaObject, rating: number) => Promise<void>;
+    bulkRate?: (items: readonly MediaObject[], rating: number) => Promise<void>;
     store?: (item: MediaObject, inLibrary: boolean) => Promise<void>;
+    bulkStore?: (items: readonly MediaObject[], inLibrary: boolean) => Promise<void>;
 };
 
 export default BaseMediaService;

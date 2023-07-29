@@ -167,6 +167,10 @@ export function ExternalView({src, url = ''}: {src: string; url: string | undefi
             serviceName = 'MusicBrainz';
             break;
 
+        case 'plex-tidal':
+            serviceName = 'Plex';
+            break;
+
         case 'listenbrainz':
             if (/musicbrainz/.test(url)) {
                 serviceName = 'MusicBrainz';
@@ -195,7 +199,9 @@ export function ExternalView({src, url = ''}: {src: string; url: string | undefi
             {url ? (
                 <ExternalLink href={url}>View on {serviceName}</ExternalLink>
             ) : (
-                <span className="external-provider">Provided by {serviceName}</span>
+                <span className="external-provider">
+                    Provided by {serviceId === 'plex-tidal' ? 'TIDAL' : serviceName}
+                </span>
             )}
         </p>
     );

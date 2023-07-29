@@ -4,9 +4,9 @@ import MediaService from 'types/MediaService';
 import {getAllServices, observePersonalMediaLibraryIdChanges} from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
 import {isSourceVisible, observeHiddenSourceChanges} from 'services/servicesSettings';
-import {MediaSourceIconName} from 'components/Icon';
 import MediaBrowser from 'components/MediaBrowser';
 import {TreeNode} from 'components/TreeView';
+import MediaServiceLabel from './MediaServiceLabel';
 import MediaSourceLabel from './MediaSourceLabel';
 import {exists} from 'utils';
 
@@ -42,13 +42,7 @@ function getServices() {
 function getService(service: MediaService) {
     return {
         id: service.id,
-        label: (
-            <MediaSourceLabel
-                icon={service.icon as MediaSourceIconName}
-                text={service.name}
-                showConnectivity
-            />
-        ),
+        label: <MediaServiceLabel service={service} showConnectivity />,
         value: <MediaBrowser service={service} sources={service.roots} />,
         startExpanded: true,
 

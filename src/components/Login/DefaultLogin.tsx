@@ -6,12 +6,10 @@ import {LoginProps} from './Login';
 
 export default function DefaultLogin({service}: LoginProps) {
     return (
-        <div className="panel">
-            <div className="page login">
-                <LoginRequired service={service} />
-                <LoginButton service={service} />
-                <ServiceLink service={service} />
-            </div>
-        </div>
+        <>
+            <LoginRequired service={service} />
+            <LoginButton service={service} />
+            <ServiceLink service={service} />
+        </>
     );
 }

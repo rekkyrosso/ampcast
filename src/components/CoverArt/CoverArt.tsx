@@ -43,7 +43,7 @@ export default function CoverArt({item, size, className = ''}: CoverArtProps) {
     const handleError = useCallback(() => setInError(true), []);
 
     return (
-        <figure className={`cover-art ${className}`}>
+        <figure className={`cover-art ${className}`} key={item.src}>
             {src && !inError ? (
                 <img
                     className="cover-art-image"

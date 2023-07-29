@@ -15,12 +15,10 @@ import Thumbnail from 'types/Thumbnail';
 import OffsetPager from 'services/pagers/OffsetPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
-import ratingStore from 'services/actions/ratingStore';
 import pinStore from 'services/pins/pinStore';
 import {ParentOf} from 'utils';
 import embySettings from './embySettings';
 import embyApi from './embyApi';
-import emby from './emby';
 
 export default class EmbyPager<T extends MediaObject> implements Pager<T> {
     static minPageSize = 10;
@@ -114,10 +112,7 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
                     break;
 
                 default:
-                    mediaObject = this.createMediaItemFromTrack(item) as T;
-            }
-            if (emby.canRate(mediaObject)) {
-                (mediaObject as Writable<T>).rating = this.getRating(mediaObject, item);
+                    mediaObject = this.createMediaItem(item) as T;
             }
             return mediaObject;
         }
@@ -132,6 +127,7 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
             description: artist.Overview || undefined,
             playCount: artist.UserData?.PlayCount || undefined,
             genres: artist.Genres || undefined,
+            inLibrary: artist.UserData?.IsFavorite,
             thumbnails: this.createThumbnails(artist),
             pager: this.createArtistAlbumsPager(artist),
         };
@@ -149,6 +145,7 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
                 : undefined,
             playCount: album.UserData?.PlayCount || undefined,
             genres: album.Genres || undefined,
+            inLibrary: album.UserData?.IsFavorite,
             thumbnails: this.createThumbnails(album),
             trackCount: album.ChildCount || undefined,
             pager: this.createAlbumTracksPager(album),
@@ -171,6 +168,7 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
             playCount: playlist.UserData?.PlayCount || undefined,
             genres: playlist.Genres || undefined,
             thumbnails: this.createThumbnails(playlist),
+            inLibrary: playlist.UserData?.IsFavorite,
             trackCount: playlist.ChildCount || undefined,
             pager: this.createPlaylistPager(playlist),
             isPinned: pinStore.isPinned(src),
@@ -192,7 +190,7 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
         return mediaFolder as MediaFolder;
     }
 
-    private createMediaItemFromTrack(track: BaseItemDto): MediaItem {
+    private createMediaItem(track: BaseItemDto): MediaItem {
         const isVideo = track.MediaType === 'Video';
         return {
             itemType: ItemType.Media,
@@ -211,6 +209,7 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
             playCount: track.UserData?.PlayCount || undefined,
             genres: track.Genres || undefined,
             thumbnails: this.createThumbnails(track),
+            inLibrary: track.UserData?.IsFavorite,
             artists: track.Artists?.length
                 ? track.Artists
                 : track.AlbumArtist
@@ -323,10 +322,5 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
 
     private getFileName(path: string): string | undefined {
         return path.split(/[/\\]/).pop();
-    }
-
-    private getRating(object: T, item: BaseItemDto): number | undefined {
-        const userData = item.UserData;
-        return ratingStore.get(object, userData ? (userData.IsFavorite ? 1 : 0) : undefined);
     }
 }

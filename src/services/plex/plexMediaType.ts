@@ -10,7 +10,7 @@ enum plexMediaType {
     Album = '9',
     Track = '10',
     // PhotoAlbum = '11',
-    // Picture = '12',
+    MusicVideo = '12', // Or 'Picture'?
     // Photo = '13',
     Clip = '14',
     Playlist = '15',

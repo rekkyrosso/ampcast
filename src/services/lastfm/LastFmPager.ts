@@ -122,11 +122,11 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
             release_mbid: this.album?.mbid || track.album?.mbid,
             duration: Number(track.duration) || 0,
             track: rank ? Number(rank) || undefined : undefined,
-            rating:
+            inLibrary:
                 'loved' in track
-                    ? Number(track.loved) || 0
+                    ? !!Number(track.loved)
                     : this.method === 'user.getLovedTracks'
-                    ? 1
+                    ? true
                     : undefined,
             playedAt,
         };

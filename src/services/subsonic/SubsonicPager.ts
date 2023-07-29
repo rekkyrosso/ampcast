@@ -15,9 +15,7 @@ import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
-import ratingStore from 'services/actions/ratingStore';
 import {ParentOf} from 'utils';
-import subsonic from './subsonic';
 import subsonicApi from './subsonicApi';
 import subsonicSettings from './subsonicSettings';
 
@@ -101,15 +99,6 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             default:
                 mediaObject = this.createMediaItem(item as Subsonic.MediaItem) as T;
         }
-        if (
-            subsonic.canRate(mediaObject) &&
-            !(mediaObject.itemType === ItemType.Album && !mediaObject.subsonic?.isDir)
-        ) {
-            (mediaObject as Writable<T>).rating = this.getRating(
-                mediaObject,
-                item as Subsonic.RateableObject
-            );
-        }
         return mediaObject;
     }
 
@@ -144,6 +133,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             year: song.year,
             playedAt: 0,
             playCount: song.playCount,
+            inLibrary: !!song.starred,
             genres: song.genre ? [song.genre] : undefined,
             thumbnails: this.createThumbnails(song.coverArt),
         };
@@ -159,6 +149,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             duration: video.duration,
             playedAt: 0,
             playCount: video.playCount,
+            inLibrary: !!video.starred,
             thumbnails: this.createThumbnails(video.id),
         };
     }
@@ -172,6 +163,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             artist: album.artist,
             year: album.year,
             playCount: album.playCount,
+            inLibrary: !!album.starred,
             genres: album.genre ? [album.genre] : undefined,
             pager: this.createAlbumTracksPager(album),
             thumbnails: this.createThumbnails(album.coverArt),
@@ -188,6 +180,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             title: artist.name,
             pager: this.createArtistAlbumsPager(artist),
             thumbnails: this.createThumbnails(artist.coverArt),
+            inLibrary: !!artist.starred,
         };
     }
 
@@ -224,10 +217,6 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
         };
         mediaFolder.pager = this.createFolderPager(mediaFolder as MediaFolder);
         return mediaFolder as MediaFolder;
-    }
-
-    private getRating(object: T, item: Subsonic.RateableObject): number | undefined {
-        return ratingStore.get(object, item.starred ? 1 : 0);
     }
 
     private parseDate(date: string): number {
@@ -304,13 +293,10 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createTopTracksPager(artist: Subsonic.Artist): Pager<MediaItem> {
-        return new SubsonicPager(
-            ItemType.Media,
-            async () => {
-                const items = await subsonicApi.getArtistTopTracks(artist.name);
-                return {items, atEnd: true};
-            },
-        );
+        return new SubsonicPager(ItemType.Media, async () => {
+            const items = await subsonicApi.getArtistTopTracks(artist.name);
+            return {items, atEnd: true};
+        });
     }
 
     private createPlaylistItemsPager(playlist: Subsonic.Playlist): Pager<MediaItem> {

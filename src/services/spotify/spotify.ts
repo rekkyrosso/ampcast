@@ -1,4 +1,3 @@
-import {catchError, concatMap, filter, map} from 'rxjs';
 import {Except} from 'type-fest';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
@@ -13,17 +12,14 @@ import Pager, {PagerConfig} from 'types/Pager';
 import Pin from 'types/Pin';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
-import ViewType from 'types/ViewType';
+import actionsStore from 'services/actions/actionsStore';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
-import libraryStore from 'services/actions/libraryStore';
 import SimplePager from 'services/pagers/SimplePager';
-import {chunk, Logger} from 'utils';
 import {observeIsLoggedIn, isLoggedIn, login, logout, refreshToken} from './spotifyAuth';
 import spotifyApi from './spotifyApi';
 import SpotifyPager, {SpotifyPage} from './SpotifyPager';
 import {userSettings} from './spotifySettings';
-
-const logger = new Logger('spotify');
+import {chunk} from 'utils';
 
 export type SpotifyArtist = SpotifyApi.ArtistObjectFull;
 export type SpotifyAlbum = SpotifyApi.AlbumObjectFull;
@@ -114,7 +110,7 @@ const spotifyLikedSongs: MediaSource<MediaItem> = {
     title: 'My Songs',
     icon: 'heart',
     itemType: ItemType.Media,
-    viewType: ViewType.Library,
+    lockActionsStore: true,
     layout: defaultLayout,
 
     search(): Pager<MediaItem> {
@@ -139,7 +135,7 @@ const spotifyLikedAlbums: MediaSource<MediaAlbum> = {
     title: 'My Albums',
     icon: 'heart',
     itemType: ItemType.Album,
-    viewType: ViewType.Library,
+    lockActionsStore: true,
 
     search(): Pager<MediaAlbum> {
         const market = getMarket();
@@ -163,7 +159,7 @@ const spotifyPlaylists: MediaSource<MediaPlaylist> = {
     title: 'My Playlists',
     icon: 'heart',
     itemType: ItemType.Playlist,
-    viewType: ViewType.Library,
+    lockActionsStore: true,
     secondaryLayout: playlistItemsLayout,
 
     search(): Pager<MediaPlaylist> {
@@ -185,7 +181,7 @@ const spotifyPlaylists: MediaSource<MediaPlaylist> = {
 
 const spotifyFeaturedPlaylists: MediaSource<MediaPlaylist> = {
     id: 'spotify/featured-playlists',
-    title: 'Featured Playlists',
+    title: 'Recommended',
     icon: 'playlist',
     itemType: ItemType.Playlist,
     secondaryLayout: playlistItemsLayout,
@@ -245,6 +241,7 @@ const spotify: PublicMediaService = {
     getMetadata,
     lookup,
     store,
+    bulkStore,
     observeIsLoggedIn,
     isLoggedIn,
     login,
@@ -299,7 +296,7 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     if (!canStore(item) || item.inLibrary !== undefined) {
         return item;
     }
-    const inLibrary = libraryStore.get(item.src);
+    const inLibrary = actionsStore.getInLibrary(item);
     if (inLibrary !== undefined) {
         return {...item, inLibrary};
     }
@@ -347,10 +344,38 @@ async function lookup(
 }
 
 async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
-    return storeAll([item], inLibrary);
+    return storeMany([item], inLibrary);
 }
 
-async function storeAll(items: readonly MediaObject[], inLibrary: boolean): Promise<void> {
+async function bulkStore(items: readonly MediaObject[], inLibrary: boolean): Promise<void> {
+    const item = items[0];
+    if (!item) {
+        return;
+    }
+    let chunkSize = 0;
+    switch (item.itemType) {
+        case ItemType.Media:
+            chunkSize = 500;
+            break;
+
+        case ItemType.Album:
+            chunkSize = 200;
+            break;
+
+        case ItemType.Playlist:
+            chunkSize = 10;
+            break;
+    }
+    if (chunkSize === 0) {
+        return;
+    }
+    const chunks = chunk(items, chunkSize);
+    for (const chunk of chunks) {
+        await storeMany(chunk, inLibrary);
+    }
+}
+
+async function storeMany(items: readonly MediaObject[], inLibrary: boolean): Promise<void> {
     const item = items[0];
     if (!item) {
         return;
@@ -483,31 +508,3 @@ function search(
 function getMarket(): string {
     return userSettings.getString('market');
 }
-
-libraryStore
-    .observeRemovals('spotify')
-    .pipe(
-        map((items) => {
-            switch (items[0]?.itemType) {
-                case ItemType.Media:
-                    return items.slice(0, 500);
-
-                case ItemType.Album:
-                    return items.slice(0, 200);
-
-                case ItemType.Playlist:
-                    return items.slice(0, 10);
-
-                default:
-                    return [];
-            }
-        }),
-        filter((items) => items.length > 0),
-        concatMap((items) => storeAll(items as MediaObject[], false).then(() => items)),
-        concatMap((items) => libraryStore.applyRemovals(items as MediaObject[])),
-        catchError((err) => {
-            logger.error(err);
-            return [];
-        })
-    )
-    .subscribe(logger);

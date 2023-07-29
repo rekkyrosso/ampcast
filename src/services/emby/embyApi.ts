@@ -150,7 +150,7 @@ async function embyFetch(
     return response;
 }
 
-function getPlayableUrlFromSrc(src: string, settings: EmbySettings = embySettings): string {
+function getPlayableUrl(src: string, settings: EmbySettings = embySettings): string {
     const {host, userId, token, deviceId} = settings;
     if (host && userId && token && deviceId) {
         const [, type, id, mediaSourceId] = src.split(':');
@@ -190,7 +190,7 @@ const embyApi = {
     getFilters,
     getMusicLibraries,
     post,
-    getPlayableUrlFromSrc,
+    getPlayableUrl,
 };
 
 export default embyApi;

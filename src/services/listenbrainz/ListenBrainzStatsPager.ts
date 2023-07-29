@@ -86,7 +86,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
                         map((items) => items.filter((item) => item.itemType === ItemType.Media)),
                         filter((items) => items.length > 0),
                         mergeMap((items) =>
-                            listenbrainzApi.addRatings(items as readonly MediaItem[])
+                            listenbrainzApi.addInLibrary(items as readonly MediaItem[])
                         )
                     )
                     .subscribe(logger)

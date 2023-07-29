@@ -20,6 +20,7 @@ import {
 } from 'rxjs';
 import YouTubeFactory from 'youtube-player';
 import getYouTubeID from 'get-youtube-id';
+import PlayableItem from 'types/PlayableItem';
 import Player from 'types/Player';
 import {Logger} from 'utils';
 import {getYouTubeVideoInfo} from './youtube';
@@ -61,7 +62,7 @@ export const enum PlayerState {
     CUED = 5,
 }
 
-export default class YouTubePlayer implements Player<string> {
+export default class YouTubePlayer implements Player<PlayableItem> {
     protected readonly logger: Logger;
     protected readonly player: YT.Player | null = null;
     private readonly src$ = new BehaviorSubject('');
@@ -256,7 +257,7 @@ export default class YouTubePlayer implements Player<string> {
         this.createPlayer();
     }
 
-    load(src: string): void {
+    load({src}: PlayableItem): void {
         this.logger.log('load', {src});
         if (!this.player) {
             this.createPlayer();

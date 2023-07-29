@@ -13,6 +13,7 @@ import {
     take,
     tap,
 } from 'rxjs';
+import PlayableItem from 'types/PlayableItem';
 import Player from 'types/Player';
 import {Logger} from 'utils';
 import {observeIsLoggedIn, refreshToken} from './appleAuth';
@@ -21,7 +22,7 @@ const logger = new Logger('MusicKitPlayer');
 
 const ERR_NOT_CONNECTED = 'Apple Music player not connected';
 
-export class MusicKitPlayer implements Player<string> {
+export class MusicKitPlayer implements Player<PlayableItem> {
     private player?: MusicKit.MusicKitInstance;
     private readonly paused$ = new BehaviorSubject(true);
     private readonly duration$ = new Subject<number>();
@@ -201,7 +202,7 @@ export class MusicKitPlayer implements Player<string> {
         parentElement.appendChild(this.element);
     }
 
-    load(src: string): void {
+    load({src}: PlayableItem): void {
         logger.log('load', {src});
         if (this.autoplay) {
             this.playerActivated$.next(true);

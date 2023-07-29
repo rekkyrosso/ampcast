@@ -12,7 +12,8 @@ import {reportStart, reportStop, reportProgress} from './plexReporting';
 
 const logger = new Logger('plexScrobbler');
 
-const isPlexItem = (state: PlaybackState): boolean => !!state.currentItem?.src.startsWith('plex:');
+const isPlexItem = (state: PlaybackState): boolean =>
+    /^(plex(-tidal)?):/.test(state.currentItem?.src as any);
 
 observeIsLoggedIn()
     .pipe(

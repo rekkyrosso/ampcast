@@ -1,7 +1,7 @@
 import MediaItem from 'types/MediaItem';
 import {Logger} from 'utils';
 import plexSettings from './plexSettings';
-import plexApi from './plexApi';
+import plexApi, {musicPlayHost, musicProviderHost} from './plexApi';
 
 const logger = new Logger('plexReporting');
 
@@ -9,9 +9,8 @@ let playQueue: plex.PlayQueue | null = null; // TODO: Do this better.
 
 export async function reportStart(item: MediaItem): Promise<void> {
     try {
-        const [, , key] = item.src.split(':');
         playQueue = null;
-        playQueue = await createPlayQueue(key);
+        playQueue = await createPlayQueue(item);
         await reportState(item, 0, 'playing');
     } catch (err) {
         logger.error(err);
@@ -49,15 +48,16 @@ async function reportState(
         logger.warn(`Cannot report state (${state}): playQueue not defined`);
         return;
     }
-    const [, , key] = item.src.split(':');
+    const [serviceId, , ratingKey] = item.src.split(':');
+    const isTidal = serviceId === 'plex-tidal';
     await plexApi.fetch({
-        path: '/:/timeline',
+        host: isTidal ? musicProviderHost : undefined,
+        path: isTidal ? '/timeline' : '/:/timeline',
         params: {
-            key,
-            ratingKey: item.plex!.ratingKey,
+            key: `/library/metadata/${ratingKey}`,
+            ratingKey,
             playQueueItemID: String(playQueue!.playQueueSelectedItemID),
             state,
-            hasMDE: '1', // No idea what this does
             time: String(Math.floor(currentTime * 1000)),
             duration: String(Math.floor(item.duration * 1000)),
         },
@@ -65,19 +65,25 @@ async function reportState(
     });
 }
 
-async function createPlayQueue(key: string): Promise<any> {
+async function createPlayQueue(item: MediaItem): Promise<plex.PlayQueue> {
+    const [serviceId, , ratingKey] = item.src.split(':');
+    const key = `/library/metadata/${ratingKey}`;
+    const isTidal = serviceId === 'plex-tidal';
     return plexApi.fetchJSON({
+        host: isTidal ? musicPlayHost : undefined,
         path: '/playQueues',
         method: 'POST',
         params: {
+            key,
             type: 'music',
+            uri: isTidal
+                ? `provider://tv.plex.provider.music${key}`
+                : `server://${
+                      plexSettings.server!.clientIdentifier
+                  }/com.plexapp.plugins.library${key}`,
             continuous: '0',
-            uri: `server://${
-                plexSettings.server!.clientIdentifier
-            }/com.plexapp.plugins.library/${key}`,
             repeat: '0',
             own: '1',
-            includeExternalMedia: '1',
         },
     });
 }

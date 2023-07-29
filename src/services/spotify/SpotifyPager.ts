@@ -9,7 +9,6 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
-import libraryStore from 'services/actions/libraryStore';
 import mediaObjectChanges from 'services/actions/mediaObjectChanges';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
@@ -185,7 +184,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             thumbnails: album.images as Thumbnail[],
             trackCount: album.tracks?.total,
             pager: this.createAlbumPager(album),
-            inLibrary: libraryStore.get(album.uri, inLibrary),
+            inLibrary,
         };
     }
 
@@ -234,7 +233,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             },
             isPinned: pinStore.isPinned(playlist.uri),
             isOwn,
-            inLibrary: isOwn ? false : libraryStore.get(playlist.uri, inLibrary),
+            inLibrary: isOwn ? false : inLibrary,
         };
     }
 
@@ -268,7 +267,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             isrc: track.external_ids?.isrc,
             thumbnails: track.album?.images as Thumbnail[],
             unplayable: track.is_playable === false,
-            inLibrary: libraryStore.get(track.uri, inLibrary),
+            inLibrary,
         };
     }
 

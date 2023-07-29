@@ -33,8 +33,8 @@ async function post(path: string, params: Record<string, Primitive> = {}): Promi
     return embyApi.post(path, params, jellyfinSettings);
 }
 
-function getPlayableUrlFromSrc(src: string): string {
-    return embyApi.getPlayableUrlFromSrc(src, jellyfinSettings);
+function getPlayableUrl(src: string): string {
+    return embyApi.getPlayableUrl(src, jellyfinSettings);
 }
 
 const jellyfinApi = {
@@ -43,7 +43,7 @@ const jellyfinApi = {
     getFilters,
     getMusicLibraries,
     post,
-    getPlayableUrlFromSrc,
+    getPlayableUrl,
 };
 
 export default jellyfinApi;

@@ -2,6 +2,7 @@ import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import mediaObjectChanges from 'services/actions/mediaObjectChanges';
+import {getService} from 'services/mediaServices';
 import {Logger, partition} from 'utils';
 import {compareForRating} from './listenbrainz';
 import listenbrainzSettings from './listenbrainzSettings';
@@ -13,10 +14,10 @@ export class ListenBrainzApi {
     private rateLimitRemainingCalls = 2;
     private rateLimitResetTime = 0;
 
-    async rate(item: MediaItem, score: number): Promise<void> {
+    async store(item: MediaItem, inLibrary: boolean): Promise<void> {
         if (item.recording_msid || item.recording_mbid) {
             const path = `feedback/recording-feedback`;
-            const params: any = {score};
+            const params: any = {score: inLibrary ? 1 : 0};
             if (item.recording_msid) {
                 params.recording_msid = item.recording_msid;
             }
@@ -30,21 +31,21 @@ export class ListenBrainzApi {
         }
     }
 
-    async addRatings(items: readonly MediaItem[]): Promise<void> {
+    async addInLibrary(items: readonly MediaItem[]): Promise<void> {
         items = items.filter((item) => !!item.recording_msid || !!item.recording_mbid);
         if (items.length > 0) {
-            const ratings = await this.getRatings(items);
+            const inLibrary = await this.getInLibrary(items);
 
             mediaObjectChanges.dispatch(
                 items.map((item, index) => ({
                     match: (object: MediaObject) => compareForRating(object, item),
-                    values: {rating: ratings[index]},
+                    values: {inLibrary: inLibrary[index]},
                 }))
             );
         }
     }
 
-    async getRatings(items: readonly MediaItem[]): Promise<readonly number[]> {
+    async getInLibrary(items: readonly MediaItem[]): Promise<readonly boolean[]> {
         items = items.filter((item) => !!item.recording_msid || !!item.recording_mbid);
         if (items.length > 0) {
             const [mbids, msids] = partition(items, (item) => !!item.recording_mbid);
@@ -61,15 +62,15 @@ export class ListenBrainzApi {
                 `feedback/user/${listenbrainzSettings.userId}/get-feedback-for-recordings`,
                 params
             );
-            return items.map((item) =>
-                feedback.find(
-                    (feedback) =>
-                        (!!item.recording_mbid &&
-                            item.recording_mbid === feedback.recording_mbid) ||
-                        (!!item.recording_msid && item.recording_msid === feedback.recording_msid)
-                )?.score === 1
-                    ? 1
-                    : 0
+            return items.map(
+                (item) =>
+                    feedback.find(
+                        (feedback) =>
+                            (!!item.recording_mbid &&
+                                item.recording_mbid === feedback.recording_mbid) ||
+                            (!!item.recording_msid &&
+                                item.recording_msid === feedback.recording_msid)
+                    )?.score === 1
             );
         }
         return [];
@@ -218,8 +219,14 @@ export class ListenBrainzApi {
         if (item.isrc) {
             info.isrc = item.isrc;
         }
-        const [service] = item.src.split(':');
-        switch (service) {
+
+        // From ListenBrainz API Docs:
+        //
+        // > Only if you cannot determine a domain for the service should you use
+        // > the text-only `music_service_name` field.
+
+        const [serviceId] = item.src.split(':');
+        switch (serviceId) {
             case 'spotify':
                 if (item.externalUrl) {
                     info.origin_url = item.externalUrl;
@@ -242,18 +249,22 @@ export class ListenBrainzApi {
                 info.music_service = 'youtube.com';
                 break;
 
-            case 'jellyfin':
-                info.music_service_name = 'Jellyfin';
-                break;
-
-            case 'plex':
-                info.music_service_name = 'Plex';
+            case 'tidal':
+            case 'plex-tidal':
+                info.music_service = 'tidal.com';
                 break;
 
             case 'blob':
             case 'file':
                 info.music_service_name = 'Local file';
                 break;
+
+            default: {
+                const service = getService(serviceId);
+                if (service) {
+                    info.music_service_name = service.name;
+                }
+            }
         }
         const params: ListenBrainz.ListenMetadata = {
             track_name: item.title,

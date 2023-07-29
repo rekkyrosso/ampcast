@@ -2,11 +2,15 @@ import unidecode from 'unidecode';
 import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
 import {findListen} from 'services/localdb/listens';
-import {getServiceFromSrc, getLookupServices, hasPlayableSrc} from 'services/mediaServices';
+import {
+    getLookupServices,
+    getService,
+    getServiceFromSrc,
+    hasPlayableSrc,
+} from 'services/mediaServices';
 import {filterNotEmpty, fuzzyCompare, Logger} from 'utils';
 import {dispatchLookupStartEvent, dispatchLookupEndEvent} from './lookupEvents';
 import lookupSettings from './lookupSettings';
-import lookupStore from './lookupStore';
 
 const logger = new Logger('lookup');
 
@@ -49,6 +53,12 @@ async function lookupMediaItem<T extends MediaItem>(item: T): Promise<MediaItem 
     const service = getServiceFromSrc(link);
     if (service) {
         matches = await serviceLookup(service, item);
+        if (matches.length === 0 && (service.id === 'plex' || service.id === 'tidal')) {
+            const plexTidal = getService('plex-tidal');
+            if (plexTidal) {
+                matches = await serviceLookup(plexTidal, item);
+            }
+        }
     }
     if (matches.length === 0) {
         // Search logged in services first.
@@ -70,10 +80,6 @@ async function serviceLookup<T extends MediaItem>(
             return [];
         }
         const {artist, title} = getArtistAndTitle(item);
-        const lookup = await lookupStore.get(service.id, artist, title);
-        if (lookup) {
-            return lookup.items;
-        }
         if (service.isLoggedIn()) {
             const searchString = (q: string): string =>
                 normalize(q)
@@ -87,9 +93,7 @@ async function serviceLookup<T extends MediaItem>(
                 10,
                 2000
             );
-            const foundItems = findMatches(matches, item);
-            await lookupStore.add(service.id, artist, title, foundItems);
-            return foundItems;
+            return findMatches(matches, item);
         }
     } catch (err) {
         logger.error(err);

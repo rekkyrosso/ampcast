@@ -21,7 +21,9 @@
             .navidrome-not-connected &.source-navidrome,
             .subsonic-not-connected &.source-subsonic,
             .plex-not-connected &.source-plex,
-            .spotify-not-connected &.source-spotify {
+            .plex-not-connected &.source-plex-tidal,
+            .spotify-not-connected &.source-spotify,
+            .tidal-not-connected &.source-tidal {
                 &:not(.selected) {
                     color: var(--grey1-color);
                 }
@@ -33,7 +35,9 @@
             .navidrome-connected &.source-navidrome,
             .subsonic-connected &.source-subsonic,
             .plex-connected &.source-plex,
-            .spotify-connected &.source-spotify {
+            .plex-connected &.source-plex-tidal,
+            .spotify-connected &.source-spotify,
+            .tidal-connected &.source-tidal {
                 &.unplayable .icon.show-connectivity {
                     opacity: 0.5;
                 }

@@ -628,6 +628,18 @@ export default function Icon({name, className = ''}: IconProps) {
                 </svg>
             );
 
+        case 'plex-tidal':
+        case 'tidal':
+            return (
+                <svg className={className} viewBox="0 0 560 560">
+                    <path
+                        className="icon-tidal-inner"
+                        d="M373.331 186.32l-93.324 93.332-93.337-93.341L280.007 93l93.332 93.309L466.67 93 560 186.318l-93.33 93.341-93.339-93.339zm.01 186.669l-93.334 93.34-93.337-93.34 93.337-93.337 93.334 93.337zm-186.67-186.67l-93.338 93.34L0 186.32 93.333 93l93.337 93.318z"
+                        fillRule="nonzero"
+                    />
+                </svg>
+            );
+
         case 'jellyfin':
             return (
                 <svg className={className} viewBox="0 0 512 512">

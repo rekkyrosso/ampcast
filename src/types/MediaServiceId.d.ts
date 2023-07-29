@@ -6,8 +6,10 @@ type MediaServiceId =
     | 'listenbrainz'
     | 'navidrome'
     | 'plex'
+    | 'plex-tidal'
     | 'spotify'
     | 'subsonic'
+    | 'tidal'
     | 'youtube';
 
 export default MediaServiceId;

@@ -19,9 +19,6 @@ type BaseMediaObject = UserData & {
     readonly apple?: {
         readonly catalogId: string;
     };
-    readonly plex?: {
-        readonly ratingKey: string;
-    };
     readonly subsonic?: {
         readonly isDir?: boolean;
     };

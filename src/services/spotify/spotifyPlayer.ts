@@ -22,6 +22,7 @@ import {
     tap,
     withLatestFrom,
 } from 'rxjs';
+import PlayableItem from 'types/PlayableItem';
 import Player from 'types/Player';
 import {exists, loadScript, Logger, sleep} from 'utils';
 import {observeAccessToken, refreshToken} from './spotifyAuth';
@@ -41,7 +42,7 @@ const ERR_NOT_CONNECTED = 'Spotify player not connected';
 const comparePausedAndPosition = (a: Spotify.PlaybackState, b: Spotify.PlaybackState): boolean =>
     a.paused === b.paused && a.position === b.position;
 
-export class SpotifyPlayer implements Player<string> {
+export class SpotifyPlayer implements Player<PlayableItem> {
     private player: Spotify.Player | null = null;
     private readonly paused$ = new BehaviorSubject(true);
     private readonly src$ = new BehaviorSubject('');
@@ -260,7 +261,7 @@ export class SpotifyPlayer implements Player<string> {
         // not visible
     }
 
-    load(src: string): void {
+    load({src}: PlayableItem): void {
         logger.log('load', {src});
         this.src$.next(src);
         if (this.autoplay) {

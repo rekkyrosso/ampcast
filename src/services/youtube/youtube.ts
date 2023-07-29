@@ -9,7 +9,6 @@ import Pager from 'types/Pager';
 import Pin from 'types/Pin';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
-import ViewType from 'types/ViewType';
 import SimplePager from 'services/pagers/SimplePager';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './youtubeAuth';
 import YouTubePager from './YouTubePager';
@@ -27,7 +26,7 @@ const youtubeLikes: MediaSource<MediaItem> = {
     icon: 'thumbs-up',
     itemType: ItemType.Media,
     mediaType: MediaType.Video,
-    viewType: ViewType.Ratings,
+    lockActionsStore: true,
     layout: defaultLayout,
     defaultHidden: true,
 

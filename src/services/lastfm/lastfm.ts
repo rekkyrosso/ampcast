@@ -10,8 +10,7 @@ import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
 import ServiceType from 'types/ServiceType';
 import Scrobbler from 'types/Scrobbler';
-import ViewType from 'types/ViewType';
-import ratingStore from 'services/actions/ratingStore';
+import actionsStore from 'services/actions/actionsStore';
 import lastfmApi from './lastfmApi';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './lastfmAuth';
 import LastFmPager from './LastFmPager';
@@ -70,7 +69,7 @@ const lastfmLovedTracks: MediaSource<MediaItem> = {
     title: 'Loved Tracks',
     icon: 'heart',
     itemType: ItemType.Media,
-    viewType: ViewType.Ratings,
+    lockActionsStore: true,
     layout: lovedTracksLayout,
 
     search(): Pager<MediaItem> {
@@ -124,14 +123,14 @@ const lastfm: Scrobbler = {
         lastfmHistory,
     ],
     labels: {
-        [Action.Like]: 'Love on last.fm',
-        [Action.Unlike]: 'Unlove on last.fm',
+        [Action.AddToLibrary]: 'Love on last.fm',
+        [Action.RemoveFromLibrary]: 'Unlove on last.fm',
     },
-    canRate,
-    canStore: () => false,
+    canRate: () => false,
+    canStore,
     compareForRating,
     getMetadata,
-    rate,
+    store,
     observeIsLoggedIn,
     isLoggedIn,
     login,
@@ -140,13 +139,18 @@ const lastfm: Scrobbler = {
 
 export default lastfm;
 
-ratingStore.addObserver(lastfm, 5);
-
-function canRate<T extends MediaObject>(item: T): boolean {
+function canStore<T extends MediaObject>(item: T): boolean {
     return item.itemType === ItemType.Media && !!item.title && !!item.artists?.[0];
 }
 
 function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
+    const [aService] = a.src.split(':');
+    const [bService] = b.src.split(':');
+
+    if (aService !== bService) {
+        return false;
+    }
+
     switch (a.itemType) {
         case ItemType.Media:
             return (
@@ -167,7 +171,7 @@ function compareString(a: string, b = ''): boolean {
 }
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
-    if (item.itemType !== ItemType.Media || item.rating !== undefined) {
+    if (item.itemType !== ItemType.Media || item.inLibrary !== undefined) {
         return item;
     }
     const params: Record<string, string> = {
@@ -199,20 +203,20 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
         return {
             ...item,
             ...albumData,
-            rating: ratingStore.get(item, Number(track.userloved) || 0),
+            inLibrary: actionsStore.getInLibrary(item, !!Number(track.userloved)),
             playCount: Number(track.userplaycount) || 0,
             globalPlayCount: Number(track.playcount) || 0,
         };
     }
 }
 
-async function rate(item: MediaObject, rating: number): Promise<void> {
+async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
     if (item.itemType === ItemType.Media) {
         const {title: track, artists = []} = item;
         const artist = artists[0];
         if (track && artist) {
             await lastfmApi.post({
-                method: rating ? 'track.love' : 'track.unlove',
+                method: inLibrary ? 'track.love' : 'track.unlove',
                 track,
                 artist,
             });

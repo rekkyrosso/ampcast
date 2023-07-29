@@ -8,16 +8,11 @@ export default class SimpleMediaPager<T extends MediaObject> extends AbstractPag
 
     fetchAt(index: 0): void;
     fetchAt(): void {
-        if (!this.disconnected && !this.subscriptions) {
+        if (!this.disconnected && !this.connected) {
             this.connect();
             const items = this.fetch();
-            this.size$.next(items.length);
-            this.items$.next(items);
+            this.size = items.length;
+            this.items = items;
         }
-    }
-
-    disconnect(): void {
-        super.disconnect();
-        this.items.forEach((item) => (item as any).pager?.disconnect());
     }
 }

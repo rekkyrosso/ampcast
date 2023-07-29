@@ -3,6 +3,7 @@
 .external-link {
     white-space: nowrap;
     text-decoration: none;
+    color: var(--link-color);
 
     &:hover,
     &:active {

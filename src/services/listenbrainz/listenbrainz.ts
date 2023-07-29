@@ -8,8 +8,6 @@ import MediaSource from 'types/MediaSource';
 import Pager from 'types/Pager';
 import ServiceType from 'types/ServiceType';
 import Scrobbler from 'types/Scrobbler';
-import ViewType from 'types/ViewType';
-import ratingStore from 'services/actions/ratingStore';
 import listenbrainzApi from './listenbrainzApi';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './listenbrainzAuth';
 import ListenBrainzHistoryPager from './ListenBrainzHistoryPager';
@@ -44,7 +42,7 @@ const listenbrainzLovedTracks: MediaSource<MediaItem> = {
     title: 'Loved Tracks',
     icon: 'heart',
     itemType: ItemType.Media,
-    viewType: ViewType.Ratings,
+    lockActionsStore: true,
     layout: {
         view: 'card',
         fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear'],
@@ -126,13 +124,13 @@ const listenbrainz: Scrobbler = {
         listenbrainzHistory,
     ],
     labels: {
-        [Action.Like]: 'Love on ListenBrainz',
-        [Action.Unlike]: 'Unlove on ListenBrainz',
+        [Action.AddToLibrary]: 'Love on ListenBrainz',
+        [Action.RemoveFromLibrary]: 'Unlove on ListenBrainz',
     },
-    canRate,
-    canStore: () => false,
+    canRate: () => false,
+    canStore,
     compareForRating,
-    rate,
+    store,
     observeIsLoggedIn,
     isLoggedIn,
     login,
@@ -141,13 +139,18 @@ const listenbrainz: Scrobbler = {
 
 export default listenbrainz;
 
-ratingStore.addObserver(listenbrainz, 5);
-
-function canRate<T extends MediaObject>(item: T): boolean {
+function canStore<T extends MediaObject>(item: T): boolean {
     return item.itemType === ItemType.Media && !!(item.recording_mbid || item.recording_msid);
 }
 
 export function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
+    const [aService] = a.src.split(':');
+    const [bService] = b.src.split(':');
+
+    if (aService !== bService) {
+        return false;
+    }
+
     switch (a.itemType) {
         case ItemType.Media:
             return (
@@ -161,8 +164,8 @@ export function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     }
 }
 
-async function rate(item: MediaObject, rating: number): Promise<void> {
-    if (canRate(item)) {
-        await listenbrainzApi.rate(item as MediaItem, rating);
+async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
+    if (canStore(item)) {
+        await listenbrainzApi.store(item as MediaItem, inLibrary);
     }
 }

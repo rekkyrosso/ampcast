@@ -13,9 +13,7 @@ import Pager, {PagerConfig} from 'types/Pager';
 import Pin from 'types/Pin';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
-import ViewType from 'types/ViewType';
-import libraryStore from 'services/actions/libraryStore';
-import ratingStore from 'services/actions/ratingStore';
+import actionsStore from 'services/actions/actionsStore';
 import mediaObjectChanges from 'services/actions/mediaObjectChanges';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
@@ -75,7 +73,7 @@ const appleLibrarySongs: MediaSource<MediaItem> = {
     title: 'My Songs',
     icon: 'tick',
     itemType: ItemType.Media,
-    viewType: ViewType.Library,
+    lockActionsStore: true,
     layout: defaultLayout,
     defaultHidden: true,
 
@@ -89,7 +87,7 @@ const appleLibraryAlbums: MediaSource<MediaAlbum> = {
     title: 'My Albums',
     icon: 'tick',
     itemType: ItemType.Album,
-    viewType: ViewType.Library,
+    lockActionsStore: true,
 
     search(): Pager<MediaAlbum> {
         return new MusicKitPager(`/v1/me/library/albums`, {
@@ -104,7 +102,7 @@ const appleLibraryArtists: MediaSource<MediaArtist> = {
     title: 'My Artists',
     icon: 'tick',
     itemType: ItemType.Artist,
-    viewType: ViewType.Library,
+    lockActionsStore: true,
     defaultHidden: true,
 
     search(): Pager<MediaArtist> {
@@ -121,7 +119,7 @@ const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
     title: 'My Playlists',
     icon: 'tick',
     itemType: ItemType.Playlist,
-    viewType: ViewType.Library,
+    lockActionsStore: true,
 
     search(): Pager<MediaPlaylist> {
         return new MusicKitPager(`/v1/me/library/playlists`, {
@@ -137,7 +135,7 @@ const appleLibraryVideos: MediaSource<MediaItem> = {
     icon: 'tick',
     itemType: ItemType.Media,
     mediaType: MediaType.Video,
-    viewType: ViewType.Library,
+    lockActionsStore: true,
     layout: defaultLayout,
     defaultHidden: true,
 
@@ -174,6 +172,10 @@ const apple: PublicMediaService = {
         appleRecentlyPlayed,
         appleRecommendations,
     ],
+    icons: {
+        [Action.AddToLibrary]: 'plus',
+        [Action.RemoveFromLibrary]: 'tick-fill',
+    },
     labels: {
         [Action.AddToLibrary]: 'Add to Apple Music Library',
         [Action.RemoveFromLibrary]: 'Saved to Apple Music Library',
@@ -279,11 +281,11 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
         result = bestOf(item, items[0]);
         result.description = items[0]?.description || item.description;
     }
-    result.inLibrary = libraryStore.get(result.src, result.inLibrary);
+    result.inLibrary = actionsStore.getInLibrary(result as T, result.inLibrary);
     if (result.inLibrary === undefined) {
         addInLibrary([result as T]);
     }
-    result.rating = ratingStore.get(result as T, result.rating);
+    result.rating = actionsStore.getRating(result as T, result.rating);
     if (result.rating === undefined) {
         addRatings([result as T]);
     }

@@ -10,9 +10,8 @@ import mediaPlayback from 'services/mediaPlayback';
 import pinStore from 'services/pins/pinStore';
 import playlist from 'services/playlist';
 import {showMediaInfoDialog} from 'components/Media/MediaInfoDialog';
+import actionsStore from './actionsStore';
 import {Logger} from 'utils';
-import libraryStore from './libraryStore';
-import ratingStore from './ratingStore';
 
 const logger = new Logger('ampcast/actions');
 
@@ -111,26 +110,26 @@ export async function performLibraryAction<T extends MediaObject>(
     try {
         switch (action) {
             case Action.Like:
-                await ratingStore.rate(item, 1);
+                await actionsStore.rate(item, 1);
                 break;
 
             case Action.Unlike:
-                await ratingStore.rate(item, 0);
+                await actionsStore.rate(item, 0);
                 break;
 
             case Action.Rate: {
                 if (typeof payload === 'number') {
-                    await ratingStore.rate(item, payload);
+                    await actionsStore.rate(item, payload);
                 }
                 break;
             }
 
             case Action.AddToLibrary:
-                await libraryStore.store(item, true);
+                await actionsStore.store(item, true);
                 break;
 
             case Action.RemoveFromLibrary:
-                await libraryStore.store(item, false);
+                await actionsStore.store(item, false);
                 break;
         }
     } catch (err) {

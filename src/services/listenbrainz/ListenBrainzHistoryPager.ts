@@ -1,5 +1,13 @@
 import type {Observable} from 'rxjs';
-import {ReplaySubject, Subscription, distinctUntilChanged, from, mergeMap, tap} from 'rxjs';
+import {
+    BehaviorSubject,
+    Subscription,
+    distinctUntilChanged,
+    from,
+    mergeMap,
+    skipWhile,
+    tap,
+} from 'rxjs';
 import getYouTubeID from 'get-youtube-id';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
@@ -18,7 +26,7 @@ const logger = new Logger('ListenBrainzHistoryPager');
 export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
     static maxPageSize = 100;
     private readonly pager: SequentialPager<MediaItem>;
-    private readonly size$ = new ReplaySubject<number>(1);
+    private readonly size$ = new BehaviorSubject<number>(-1);
     private nextPageParams: Record<string, string | number> | undefined = undefined;
     private subscriptions?: Subscription;
 
@@ -65,7 +73,10 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
     }
 
     observeSize(): Observable<number> {
-        return this.size$.pipe(distinctUntilChanged());
+        return this.size$.pipe(
+            skipWhile((size) => size === -1),
+            distinctUntilChanged()
+        );
     }
 
     observeError(): Observable<unknown> {
@@ -92,7 +103,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             this.subscriptions.add(
                 this.pager
                     .observeAdditions()
-                    .pipe(mergeMap((items) => listenbrainzApi.addRatings(items)))
+                    .pipe(mergeMap((items) => listenbrainzApi.addInLibrary(items)))
                     .subscribe(logger)
             );
 
@@ -173,6 +184,9 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
                 }
                 if (url.includes('spotify.com')) {
                     return this.getSpotifySrc(url);
+                }
+                if (url.includes('tidal.com')) {
+                    return 'tidal:';
                 }
                 if (/youtu\.?be/.test(url)) {
                     return getYouTubeSrc(url);

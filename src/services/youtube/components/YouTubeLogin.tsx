@@ -10,19 +10,17 @@ export default function YouTubeLogin() {
     const {client, error} = useGoogleClientLibrary();
 
     return (
-        <div className="panel">
-            <div className="page login">
-                <DevMode service={youtube} />
-                <p>
-                    You can still play YouTube videos without being logged in.
-                    <br />
-                    But you need to be logged in to search for music and access your playlists.
-                </p>
-                <LoginButton service={youtube} disabled={!client} />
-                {error ? <p className="error">Could not load Google client library.</p> : null}
-                <AddYouTubeVideo />
-                <ServiceLink service={youtube} />
-            </div>
-        </div>
+        <>
+            <DevMode service={youtube} />
+            <p>
+                You can still play YouTube videos without being logged in.
+                <br />
+                But you need to be logged in to search for music and access your playlists.
+            </p>
+            <LoginButton service={youtube} disabled={!client} />
+            {error ? <p className="error">Could not load Google client library.</p> : null}
+            <AddYouTubeVideo />
+            <ServiceLink service={youtube} />
+        </>
     );
 }

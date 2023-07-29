@@ -12,3 +12,7 @@ export class NoMusicLibrary extends FullScreenError {
 export class NoMusicVideoLibrary extends FullScreenError {
     readonly message ='No music video library found.';
 }
+
+export class NoTidalSubscription extends FullScreenError {
+    readonly message = 'No TIDAL subscription found.';
+}

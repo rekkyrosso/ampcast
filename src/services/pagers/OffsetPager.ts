@@ -14,7 +14,6 @@ const logger = new Logger('OffsetPager');
 
 export default class OffsetPager<T extends MediaObject> extends AbstractPager<T> {
     private readonly fetchStates: Record<number, FetchState> = {};
-    private size = 0;
 
     constructor(
         private readonly fetch: (pageNumber: number, pageSize: number) => Promise<Page<T>>,
@@ -24,26 +23,25 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
     }
 
     protected connect(): void {
-        if (!this.subscriptions) {
+        if (!this.disconnected && !this.connected) {
             super.connect();
 
             // TODO: better error handling.
-            this.subscriptions!.add(
-                this.fetches$
-                    .pipe(
-                        throttleTime(200, undefined, {leading: false, trailing: true}),
-                        filter(({index, length}) => length > 0 && this.isInRange(index)),
-                        map(({index, length}) => this.getPageNumbersFromIndex(index, length)),
-                        mergeMap((pageNumbers) => pageNumbers),
-                        mergeMap((pageNumber) => this.fetchPage(pageNumber)),
-                        catchError((err: unknown) => {
-                            logger.error(err);
-                            this.error$.next(err);
-                            return of(undefined);
-                        }),
-                        takeUntil(this.observeComplete())
-                    )
-                    .subscribe(logger)
+            this.subscribeTo(
+                this.observeFetches().pipe(
+                    throttleTime(200, undefined, {leading: false, trailing: true}),
+                    filter(({index, length}) => length > 0 && this.isInRange(index)),
+                    map(({index, length}) => this.getPageNumbersFromIndex(index, length)),
+                    mergeMap((pageNumbers) => pageNumbers),
+                    mergeMap((pageNumber) => this.fetchPage(pageNumber)),
+                    catchError((err: unknown) => {
+                        logger.error(err);
+                        this.error = err;
+                        return of(undefined);
+                    }),
+                    takeUntil(this.observeComplete())
+                ),
+                logger
             );
         }
     }
@@ -82,7 +80,6 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
         page.items.forEach((item, index) => (items[index + offset] = item));
         items.length = size;
 
-        // Some endpoints may not support pagination.
         if (page.items.length === size) {
             for (let i = 0; i <= pageCount; i++) {
                 this.fetchStates[i + 1] = FetchState.Fulfilled;
@@ -90,12 +87,11 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
         }
 
         this.size = size;
-        this.size$.next(size);
-        this.items$.next(items);
+        this.items = items;
     }
 
     private getPageNumbersFromIndex(index: number, length: number): number[] {
-        const size = this.size;
+        const size = this.size || 0;
         const proximity = Math.max(Math.ceil(this.pageSize / 2), length);
         const startIndex = Math.max(index - proximity, 0);
         const lastIndex = Math.min(
@@ -121,6 +117,7 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
     }
 
     private isInRange(index: number): boolean {
-        return this.size === 0 ? index >= 0 : index >= 0 && index < this.size;
+        const size = this.size || 0;
+        return size === 0 ? index >= 0 : index >= 0 && index < size;
     }
 }

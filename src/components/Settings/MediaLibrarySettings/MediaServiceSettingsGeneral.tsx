@@ -1,6 +1,7 @@
 import React, {useCallback, useId, useRef} from 'react';
-import {isSourceVisible, setHiddenSources} from 'services/servicesSettings';
 import MediaService from 'types/MediaService';
+import {getAuthService} from 'services/mediaServices';
+import {isSourceVisible, setHiddenSources} from 'services/servicesSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import useObservable from 'hooks/useObservable';
 import './MediaServiceSettingsGeneral.scss';
@@ -12,7 +13,8 @@ export interface MediaServiceSettingsGeneralProps {
 export default function MediaServiceSettingsGeneral({service}: MediaServiceSettingsGeneralProps) {
     const id = useId();
     const ref = useRef<HTMLFieldSetElement>(null);
-    const connected = useObservable(service.observeIsLoggedIn, false);
+    const authService = getAuthService(service);
+    const connected = useObservable(authService.observeIsLoggedIn, false);
 
     const handleSubmit = useCallback(() => {
         const inputs = ref.current!.elements as HTMLInputElements;
@@ -29,10 +31,10 @@ export default function MediaServiceSettingsGeneral({service}: MediaServiceSetti
                 <button
                     type="button"
                     className="disconnect"
-                    onClick={service.logout}
+                    onClick={authService.logout}
                     disabled={!connected}
                 >
-                    {connected ? 'Disconnect...' : 'Not connected'}
+                    {connected ? `Disconnect from ${authService.name}...` : 'Not connected'}
                 </button>
             </p>
             <fieldset ref={ref}>

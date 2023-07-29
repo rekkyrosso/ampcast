@@ -12,6 +12,7 @@ import {
 } from 'rxjs';
 import {get as dbRead, set as dbWrite, createStore} from 'idb-keyval';
 import {nanoid} from 'nanoid';
+import {Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
@@ -350,7 +351,18 @@ export default playlist;
 (async () => {
     const items = (await dbRead<PlaylistItem[]>('items', playlistStore)) ?? [];
     const id = (await dbRead('currently-playing-id', playlistStore)) ?? '';
-    items$.next(items);
+    items$.next(
+        items.map((item: Writable<PlaylistItem & {plex?: {ratingKey: string}}>) => {
+            // Upgrade legacy Plex items.
+            if (item.plex) {
+                const [, type, src] = item.src.split(':');
+                item.src = `plex:${type}:${item.plex.ratingKey}`;
+                item.srcs = [src];
+                delete item.plex;
+            }
+            return item;
+        })
+    );
     currentItemId$.next(id);
 })();
 

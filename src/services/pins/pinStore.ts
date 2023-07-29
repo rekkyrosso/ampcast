@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, combineLatest, filter, map} from 'rxjs';
 import Dexie, {liveQuery} from 'dexie';
+import {Writable} from 'type-fest';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import Pin from 'types/Pin';
@@ -19,9 +20,21 @@ class PinStore extends Dexie {
     constructor() {
         super('ampcast/pins');
 
-        this.version(1).stores({
-            pins: `&src`,
-        });
+        this.version(2)
+            .stores({
+                pins: `&src`,
+            })
+            .upgrade((transaction) =>
+                // Upgrade Plex `src`.
+                transaction
+                    .table('pins')
+                    .toCollection()
+                    .modify((pin: Writable<Pin & {plex?: {ratingKey: string}}>) => {
+                        if (pin.plex) {
+                            pin.src = `plex:playlist:${pin.plex.ratingKey}`;
+                        }
+                    })
+            );
 
         liveQuery(() => this.pins.toArray()).subscribe(this.pins$);
     }

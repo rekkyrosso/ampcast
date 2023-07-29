@@ -17,15 +17,16 @@ import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
+import PlayableItem from 'types/PlayableItem';
 import Pin from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import ViewType from 'types/ViewType';
+import actionsStore from 'services/actions/actionsStore';
 import {NoMusicLibrary, NoMusicVideoLibrary} from 'services/errors';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
-import ratingStore from 'services/actions/ratingStore';
 import {bestOf} from 'utils';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './embyAuth';
 import EmbyPager from './EmbyPager';
@@ -35,6 +36,11 @@ import embyApi from './embyApi';
 const serviceId: MediaServiceId = 'emby';
 
 const songSort = 'AlbumArtist,Album,ParentIndexNumber,IndexNumber,SortName';
+
+const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
+    view: 'card compact',
+    fields: ['Thumbnail', 'Title', 'TrackCount', 'Genre'],
+};
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
@@ -46,9 +52,9 @@ const embyLikedSongs: MediaSource<MediaItem> = {
     title: 'My Songs',
     icon: 'heart',
     itemType: ItemType.Media,
-    viewType: ViewType.Ratings,
+    lockActionsStore: true,
     layout: {
-        view: 'card compact',
+        view: 'card',
         fields: ['Thumbnail', 'Artist', 'Title', 'AlbumAndYear', 'Duration'],
     },
 
@@ -66,7 +72,7 @@ const embyLikedAlbums: MediaSource<MediaAlbum> = {
     title: 'My Albums',
     icon: 'heart',
     itemType: ItemType.Album,
-    viewType: ViewType.Ratings,
+    lockActionsStore: true,
 
     search(): Pager<MediaAlbum> {
         return createItemsPager({
@@ -83,7 +89,7 @@ const embyLikedArtists: MediaSource<MediaArtist> = {
     title: 'My Artists',
     icon: 'heart',
     itemType: ItemType.Artist,
-    viewType: ViewType.Ratings,
+    lockActionsStore: true,
     defaultHidden: true,
 
     search(): Pager<MediaArtist> {
@@ -100,7 +106,6 @@ const embyRecentlyPlayed: MediaSource<MediaItem> = {
     title: 'Recently Played',
     icon: 'clock',
     itemType: ItemType.Media,
-    viewType: ViewType.RecentlyPlayed,
     layout: {
         view: 'card',
         fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'LastPlayed'],
@@ -121,7 +126,6 @@ const embyMostPlayed: MediaSource<MediaItem> = {
     title: 'Most Played',
     icon: 'most-played',
     itemType: ItemType.Media,
-    viewType: ViewType.MostPlayed,
     layout: {
         view: 'details',
         fields: ['PlayCount', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'Genre'],
@@ -142,6 +146,7 @@ const embyPlaylists: MediaSource<MediaPlaylist> = {
     title: 'Playlists',
     icon: 'playlist',
     itemType: ItemType.Playlist,
+    layout: playlistLayout,
     secondaryLayout: playlistItemsLayout,
 
     search(): Pager<MediaPlaylist> {
@@ -415,8 +420,8 @@ const emby: PersonalMediaService = {
         embyFolders,
     ],
     labels: {
-        [Action.Like]: 'Add to Emby Favorites',
-        [Action.Unlike]: 'Remove from Emby Favorites',
+        [Action.AddToLibrary]: 'Add to Emby Favorites',
+        [Action.RemoveFromLibrary]: 'Remove from Emby Favorites',
     },
     get audioLibraries(): readonly PersonalMediaLibrary[] {
         return embySettings.audioLibraries;
@@ -436,15 +441,15 @@ const emby: PersonalMediaService = {
     observeLibraryId(): Observable<string> {
         return embySettings.observeLibraryId();
     },
-    canRate,
-    canStore: () => false,
+    canRate: () => false,
+    canStore,
     compareForRating,
     createSourceFromPin,
     getFilters,
     getMetadata,
-    getPlayableUrlFromSrc,
+    getPlayableUrl,
     lookup,
-    rate,
+    store,
     observeIsLoggedIn,
     isLoggedIn,
     login,
@@ -453,9 +458,7 @@ const emby: PersonalMediaService = {
 
 export default emby;
 
-ratingStore.addObserver(emby);
-
-function canRate<T extends MediaObject>(item: T): boolean {
+function canStore<T extends MediaObject>(item: T): boolean {
     switch (item.itemType) {
         case ItemType.Album:
             return !item.synthetic;
@@ -476,6 +479,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     return {
         title: pin.title,
         itemType: ItemType.Playlist,
+        layout: playlistLayout,
         id: pin.src,
         icon: 'pin',
         isPin: true,
@@ -498,12 +502,12 @@ async function getFilters(
 }
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
-    if (!canRate(item) || item.rating !== undefined) {
+    if (!canStore(item) || item.inLibrary !== undefined) {
         return item;
     }
-    const rating = ratingStore.get(item);
-    if (rating !== undefined) {
-        return {...item, rating};
+    const inLibrary = actionsStore.getInLibrary(item);
+    if (inLibrary !== undefined) {
+        return {...item, inLibrary};
     }
     const [, , id] = item.src.split(':');
     const pager = new EmbyPager<T>(`Users/${embySettings.userId}/Items/${id}`, undefined, {
@@ -514,8 +518,8 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     return bestOf(item, items[0]);
 }
 
-function getPlayableUrlFromSrc(src: string): string {
-    return embyApi.getPlayableUrlFromSrc(src, embySettings);
+function getPlayableUrl({src}: PlayableItem): string {
+    return embyApi.getPlayableUrl(src, embySettings);
 }
 
 async function lookup(
@@ -532,10 +536,10 @@ async function lookup(
     return fetchFirstPage(pager, {timeout});
 }
 
-async function rate(item: MediaObject, rating: number): Promise<void> {
+async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
     const [, , id] = item.src.split(':');
     const path = `Users/${embySettings.userId}/FavoriteItems/${id}`;
-    if (rating) {
+    if (inLibrary) {
         await embyApi.post(path);
     } else {
         await embyApi.delete(path);

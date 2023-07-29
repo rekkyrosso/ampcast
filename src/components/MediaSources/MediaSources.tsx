@@ -4,7 +4,6 @@ import {showDialog} from 'components/Dialog';
 import TreeView, {TreeViewHandle} from 'components/TreeView';
 import MediaServiceSelectionDialog from 'components/Settings/MediaLibrarySettings/MediaServiceSelectionDialog';
 import useMediaSources from './useMediaSources';
-import './MediaSources.scss';
 
 export const storage = new LiteStorage('sources');
 

@@ -3,6 +3,7 @@ import MediaService from 'types/MediaService';
 import ServiceType from 'types/ServiceType';
 import TabList, {TabItem} from 'components/TabList';
 import AppleBetaSettings from 'services/apple/components/AppleBetaSettings';
+import PlexTidalStreamingSettings from 'services/plex/components/PlexTidalStreamingSettings';
 import MediaServiceSettingsGeneral from './MediaServiceSettingsGeneral';
 import PersonalMediaLibrarySettings from './PersonalMediaLibrarySettings';
 import PinnedSettings from './PinnedSettings';
@@ -42,6 +43,12 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
             tabs.push({
                 tab: 'Beta',
                 panel: <AppleBetaSettings />,
+            });
+        }
+        if (service.id === 'plex-tidal') {
+            tabs.push({
+                tab: 'Streaming',
+                panel: <PlexTidalStreamingSettings />,
             });
         }
         return tabs;

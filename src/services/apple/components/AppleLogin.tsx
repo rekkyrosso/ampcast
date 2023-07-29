@@ -9,13 +9,11 @@ export default function AppleLogin() {
     const {musicKit, error} = useMusicKit();
 
     return (
-        <div className="panel">
-            <div className="page login">
-                <LoginRequired service={apple} />
-                <LoginButton service={apple} disabled={!musicKit} />
-                {error ? <p className="error">Could not load Apple MusicKit library.</p> : null}
-                <ServiceLink service={apple} />
-            </div>
-        </div>
+        <>
+            <LoginRequired service={apple} />
+            <LoginButton service={apple} disabled={!musicKit} />
+            {error ? <p className="error">Could not load Apple MusicKit library.</p> : null}
+            <ServiceLink service={apple} />
+        </>
     );
 }

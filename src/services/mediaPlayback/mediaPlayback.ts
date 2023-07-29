@@ -340,6 +340,7 @@ loadingLocked$
         switchMap((locked) => (locked ? EMPTY : observeCurrentItem())),
         distinctUntilChanged((a, b) => a?.id === b?.id),
         switchMap((item) => (item ? getPlayableItem(item) : of(null))),
+        skipWhile((item) => !item),
         tap(load)
     )
     .subscribe(logger);
@@ -357,7 +358,13 @@ loadingLocked$
 fromEvent(window, 'pagehide').subscribe(kill);
 
 // logging
-observeDuration().pipe(map(formatTime), distinctUntilChanged()).subscribe(logger.rx('duration'));
+observeDuration()
+    .pipe(
+        skipWhile((duration) => !duration),
+        map(formatTime),
+        distinctUntilChanged()
+    )
+    .subscribe(logger.rx('duration'));
 observeCurrentTime()
     .pipe(
         filter((time) => Math.round(time) % 30 === 0),

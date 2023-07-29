@@ -7,7 +7,7 @@ let loaderId = 0;
 class YouTubeLoader extends YouTubePlayer {
     constructor(src: string) {
         super(`loader-${loaderId++}`);
-        this.load(src);
+        this.load({src});
     }
 
     async loadPlaylist(): Promise<string[]> {

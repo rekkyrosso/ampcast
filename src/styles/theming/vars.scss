@@ -9,6 +9,8 @@
     --background-color-s: 0%;
     --background-color-l: 0%;
 
+    --background-mark-color: rgba(255, 255, 255, 0.1);
+
     --text-color-h: 0;
     --text-color-s: 0%;
     --text-color-l: 92.2%;
@@ -36,154 +38,102 @@
 }
 
 .themed {
-    --background-color: hsl(
-        var(--background-color-h),
-        var(--background-color-s),
-        var(--background-color-l)
-    );
+    --background-color: hsl(var(--background-color-h),
+            var(--background-color-s),
+            var(--background-color-l));
 
-    --text-color: hsl(
-        var(--text-color-h),
-        var(--text-color-s),
-        var(--text-color-l)
-    );
+    --text-color: hsl(var(--text-color-h),
+            var(--text-color-s),
+            var(--text-color-l));
 
-    --grey1-color: hsl(
-        var(--text-color-h),
-        calc(var(--text-color-s) * 0.5),
-        calc(var(--text-color-l) * 0.5)
-    );
+    --grey1-color: hsl(var(--text-color-h),
+            calc(var(--text-color-s) * 0.5),
+            calc(var(--text-color-l) * 0.5));
 
-    --grey2-color: hsl(
-        var(--text-color-h),
-        calc(var(--text-color-s) * 0.5),
-        calc(var(--text-color-l) * 0.75)
-    );
+    --grey2-color: hsl(var(--text-color-h),
+            calc(var(--text-color-s) * 0.5),
+            calc(var(--text-color-l) * 0.75));
 
-    --frame-color: hsl(
-        var(--frame-color-h),
-        var(--frame-color-s),
-        var(--frame-color-l)
-    );
+    --frame-color: hsl(var(--frame-color-h),
+            var(--frame-color-s),
+            var(--frame-color-l));
 
-    --frame2-color: hsl(
-        var(--frame2-color-h),
-        var(--frame2-color-s),
-        var(--frame2-color-l)
-    );
+    --frame2-color: hsl(var(--frame2-color-h),
+            var(--frame2-color-s),
+            var(--frame2-color-l));
 
-    --frame-color-hi: hsl(
-        var(--frame-color-h),
-        var(--frame-color-s),
-        calc(var(--frame-color-l) + (100% - var(--frame-color-l)) * 0.15)
-    );
+    --frame-color-hi: hsl(var(--frame-color-h),
+            var(--frame-color-s),
+            calc(var(--frame-color-l) + (100% - var(--frame-color-l)) * 0.15));
 
-    --frame-color-lo: hsl(
-        var(--frame-color-h),
-        var(--frame-color-s),
-        calc(var(--frame-color-l) - var(--frame-color-l) * 0.5)
-    );
+    --frame-color-lo: hsl(var(--frame-color-h),
+            var(--frame-color-s),
+            calc(var(--frame-color-l) - var(--frame-color-l) * 0.5));
 
-    --frame-text-color: hsl(
-        var(--frame-text-color-h),
-        var(--frame-text-color-s),
-        var(--frame-text-color-l)
-    );
+    --frame-text-color: hsl(var(--frame-text-color-h),
+            var(--frame-text-color-s),
+            var(--frame-text-color-l));
 
-    --button-color: hsl(
-        var(--button-color-h),
-        var(--button-color-s),
-        var(--button-color-l)
-    );
+    --button-color: hsl(var(--button-color-h),
+            var(--button-color-s),
+            var(--button-color-l));
 
-    --button-text-color: hsl(
-        var(--button-text-color-h),
-        var(--button-text-color-s),
-        var(--button-text-color-l)
-    );
+    --button-text-color: hsl(var(--button-text-color-h),
+            var(--button-text-color-s),
+            var(--button-text-color-l));
 
     --button-background:
-        linear-gradient(
-            to bottom,
+        linear-gradient(to bottom,
             var(--button-color-hi),
-            transparent 0.125rem
-        ),
-        linear-gradient(
-            to right,
+            transparent 0.125rem),
+        linear-gradient(to right,
             var(--button-color-hi),
-            transparent 0.125rem
-        ),
-        linear-gradient(
-            to left,
+            transparent 0.125rem),
+        linear-gradient(to left,
             var(--button-color-lo),
-            transparent 0.125rem
-        ),
-        linear-gradient(
-            to top,
+            transparent 0.125rem),
+        linear-gradient(to top,
             var(--button-color-lo),
-            transparent 0.125rem
-        );
+            transparent 0.125rem);
 
-    --scrollbar-color: hsl(
-        var(--scrollbar-color-h),
-        var(--scrollbar-color-s),
-        var(--scrollbar-color-l)
-    );
+    --scrollbar-color: hsl(var(--scrollbar-color-h),
+            var(--scrollbar-color-s),
+            var(--scrollbar-color-l));
 
-    --scrollbar-text-color: hsl(
-        var(--scrollbar-text-color-h),
-        var(--scrollbar-text-color-s),
-        var(--scrollbar-text-color-l)
-    );
+    --scrollbar-text-color: hsl(var(--scrollbar-text-color-h),
+            var(--scrollbar-text-color-s),
+            var(--scrollbar-text-color-l));
 
-    --media-button-color: hsl(
-        var(--media-button-color-h),
-        var(--media-button-color-s),
-        var(--media-button-color-l)
-    );
-
-    --media-button-text-color: hsl(
-        var(--media-button-text-color-h),
-        var(--media-button-text-color-s),
-        var(--media-button-text-color-l)
-    );
-
-    --media-button-background: linear-gradient(
-        hsl(
-            var(--media-button-color-h),
+    --media-button-color: hsl(var(--media-button-color-h),
             var(--media-button-color-s),
-            calc(var(--media-button-color-l) + (100% - var(--media-button-color-l)) * 0.4)
-        ),
-        hsl(
-            var(--media-button-color-h),
-            calc(var(--media-button-color-s) - var(--media-button-color-s) * 0.6),
-            calc(var(--media-button-color-l) - var(--media-button-color-l) * 0.3)
-        )
-    );
+            var(--media-button-color-l));
 
-    --media-button-background-flat: hsl(
-        var(--media-button-color-h),
-        calc(var(--media-button-color-s) + (100% - var(--media-button-color-s)) * 0.33),
-        calc(var(--media-button-color-l) + (100% - var(--media-button-color-l)) * 0.33)
-    );
+    --media-button-text-color: hsl(var(--media-button-text-color-h),
+            var(--media-button-text-color-s),
+            var(--media-button-text-color-l));
 
-    --selected-background-color: hsl(
-        var(--selected-background-color-h),
-        var(--selected-background-color-s),
-        var(--selected-background-color-l)
-    );
+    --media-button-background: linear-gradient(hsl(var(--media-button-color-h),
+                var(--media-button-color-s),
+                calc(var(--media-button-color-l) + (100% - var(--media-button-color-l)) * 0.4)),
+            hsl(var(--media-button-color-h),
+                calc(var(--media-button-color-s) - var(--media-button-color-s) * 0.6),
+                calc(var(--media-button-color-l) - var(--media-button-color-l) * 0.3)));
 
-    --selected-background-color-blurred: hsl(
-        var(--selected-background-color-h),
-        calc(var(--selected-background-color-s) - var(--selected-background-color-s) * 0.5),
-        calc(var(--selected-background-color-l) - 5%)
-    );
+    --media-button-background-flat: hsl(var(--media-button-color-h),
+            calc(var(--media-button-color-s) + (100% - var(--media-button-color-s)) * 0.33),
+            calc(var(--media-button-color-l) + (100% - var(--media-button-color-l)) * 0.33));
 
-    --selected-text-color: hsl(
-        var(--selected-text-color-h),
-        var(--selected-text-color-s),
-        var(--selected-text-color-l)
-    );
+    --selected-background-color: hsl(var(--selected-background-color-h),
+            var(--selected-background-color-s),
+            var(--selected-background-color-l));
+
+    --selected-background-color-blurred: hsl(var(--selected-background-color-h),
+            calc(var(--selected-background-color-s) - var(--selected-background-color-s) * 0.5),
+            calc(var(--selected-background-color-l) - 5%));
+
+    --selected-text-color: hsl(var(--selected-text-color-h),
+            var(--selected-text-color-s),
+            var(--selected-text-color-l));
 
     --gutter-width: calc(var(--spacing) * 1rem);
     --app-border-radius: calc(var(--roundness) * var(--roundness) * 0.75rem);
@@ -191,13 +141,15 @@
 }
 
 .themed.light {
+    --background-mark-color: rgba(0, 0, 0, 0.1);
+
     --grey1-color: hsl(var(--text-color-h),
-        calc(var(--text-color-s) * 0.5),
-        calc(var(--text-color-l) + (100% - var(--text-color-l)) * 0.45));
+            calc(var(--text-color-s) * 0.5),
+            calc(var(--text-color-l) + (100% - var(--text-color-l)) * 0.45));
 
     --grey2-color: hsl(var(--text-color-h),
-        calc(var(--text-color-s) * 0.5),
-        calc(var(--text-color-l) + (100% - var(--text-color-l)) * 0.25));
+            calc(var(--text-color-s) * 0.5),
+            calc(var(--text-color-l) + (100% - var(--text-color-l)) * 0.25));
 
     --link-color: #222222;
     --link-visited-color: #222222;

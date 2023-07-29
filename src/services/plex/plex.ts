@@ -15,18 +15,20 @@ import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
+import PlayableItem from 'types/PlayableItem';
 import Pin from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import ViewType from 'types/ViewType';
+import actionsStore from 'services/actions/actionsStore';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
-import ratingStore from 'services/actions/ratingStore';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
-import {bestOf, uniqBy} from 'utils';
+import {bestOf} from 'utils';
 import plexSettings from './plexSettings';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './plexAuth';
-import plexApi, {getMusicLibraryId, getMusicLibraryPath} from './plexApi';
+import plexApi, {getMusicLibraryId, getMusicLibraryPath, getPlexMediaType} from './plexApi';
+import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
 import PlexPager from './PlexPager';
 
@@ -61,10 +63,13 @@ const plexRecentlyPlayed: MediaSource<MediaItem> = {
     },
 
     search(): Pager<MediaItem> {
-        return new PlexPager(getMusicLibraryPath(), {
-            type: plexMediaType.Track,
-            'lastViewedAt>': '0',
-            sort: 'lastViewedAt:desc',
+        return new PlexPager({
+            path: getMusicLibraryPath(),
+            params: {
+                type: plexMediaType.Track,
+                'lastViewedAt>': '0',
+                sort: 'lastViewedAt:desc',
+            },
         });
     },
 };
@@ -80,10 +85,13 @@ const plexMostPlayed: MediaSource<MediaItem> = {
     },
 
     search(): Pager<MediaItem> {
-        return new PlexPager(getMusicLibraryPath(), {
-            type: plexMediaType.Track,
-            'viewCount>': '1',
-            sort: 'viewCount:desc,lastViewedAt:desc',
+        return new PlexPager({
+            path: getMusicLibraryPath(),
+            params: {
+                type: plexMediaType.Track,
+                'viewCount>': '1',
+                sort: 'viewCount:desc,lastViewedAt:desc',
+            },
         });
     },
 };
@@ -93,17 +101,20 @@ const plexTopTracks: MediaSource<MediaItem> = {
     title: 'Top Tracks',
     icon: 'star',
     itemType: ItemType.Media,
-    viewType: ViewType.Ratings,
+    lockActionsStore: true,
     layout: {
         view: 'details',
         fields: ['Rate', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount'],
     },
 
     search(): Pager<MediaItem> {
-        return new PlexPager(getMusicLibraryPath(), {
-            type: plexMediaType.Track,
-            'track.userRating>': '1',
-            sort: 'track.userRating:desc,viewCount:desc,lastViewedAt:desc',
+        return new PlexPager({
+            path: getMusicLibraryPath(),
+            params: {
+                type: plexMediaType.Track,
+                'track.userRating>': '1',
+                sort: 'track.userRating:desc,viewCount:desc,lastViewedAt:desc',
+            },
         });
     },
 };
@@ -113,15 +124,18 @@ const plexTopAlbums: MediaSource<MediaAlbum> = {
     title: 'Top Albums',
     icon: 'star',
     itemType: ItemType.Album,
-    viewType: ViewType.Ratings,
+    lockActionsStore: true,
     layout: albumsLayout,
     secondaryLayout: albumTracksLayout,
 
     search(): Pager<MediaAlbum> {
-        return new PlexPager(getMusicLibraryPath(), {
-            type: plexMediaType.Album,
-            'album.userRating>': '1',
-            sort: 'album.userRating:desc,viewCount:desc,lastViewedAt:desc',
+        return new PlexPager({
+            path: getMusicLibraryPath(),
+            params: {
+                type: plexMediaType.Album,
+                'album.userRating>': '1',
+                sort: 'album.userRating:desc,viewCount:desc,lastViewedAt:desc',
+            },
         });
     },
 };
@@ -131,7 +145,7 @@ const plexTopArtists: MediaSource<MediaArtist> = {
     title: 'Top Artists',
     icon: 'star',
     itemType: ItemType.Artist,
-    viewType: ViewType.Ratings,
+    lockActionsStore: true,
     defaultHidden: true,
     layout: {
         view: 'card compact',
@@ -140,10 +154,13 @@ const plexTopArtists: MediaSource<MediaArtist> = {
     tertiaryLayout: albumTracksLayout,
 
     search(): Pager<MediaArtist> {
-        return new PlexPager(getMusicLibraryPath(), {
-            type: plexMediaType.Artist,
-            'artist.userRating>': '1',
-            sort: 'artist.userRating:desc,viewCount:desc,lastViewedAt:desc',
+        return new PlexPager({
+            path: getMusicLibraryPath(),
+            params: {
+                type: plexMediaType.Artist,
+                'artist.userRating>': '1',
+                sort: 'artist.userRating:desc,viewCount:desc,lastViewedAt:desc',
+            },
         });
     },
 };
@@ -157,9 +174,12 @@ const plexPlaylists: MediaSource<MediaPlaylist> = {
 
     search(): Pager<MediaPlaylist> {
         getMusicLibraryId(); // Make sure to throw even if not needed
-        return new PlexPager('/playlists/all', {
-            type: plexMediaType.Playlist,
-            playlistType: 'audio',
+        return new PlexPager({
+            path: '/playlists/all',
+            params: {
+                type: plexMediaType.Playlist,
+                playlistType: 'audio',
+            },
         });
     },
 };
@@ -173,9 +193,12 @@ const plexAlbumsByGenre: MediaSource<MediaAlbum> = {
 
     search(genre?: MediaFilter): Pager<MediaAlbum> {
         if (genre) {
-            return new PlexPager(getMusicLibraryPath(), {
-                genre: genre.id,
-                type: plexMediaType.Album,
+            return new PlexPager({
+                path: getMusicLibraryPath(),
+                params: {
+                    genre: genre.id,
+                    type: plexMediaType.Album,
+                },
             });
         } else {
             return new SimplePager();
@@ -193,9 +216,12 @@ const plexArtistsByGenre: MediaSource<MediaArtist> = {
 
     search(genre?: MediaFilter): Pager<MediaArtist> {
         if (genre) {
-            return new PlexPager(getMusicLibraryPath(), {
-                genre: genre.id,
-                type: plexMediaType.Artist,
+            return new PlexPager({
+                path: getMusicLibraryPath(),
+                params: {
+                    genre: genre.id,
+                    type: plexMediaType.Artist,
+                },
             });
         } else {
             return new SimplePager();
@@ -212,9 +238,12 @@ const plexAlbumsByDecade: MediaSource<MediaAlbum> = {
 
     search(decade?: MediaFilter): Pager<MediaAlbum> {
         if (decade) {
-            return new PlexPager(getMusicLibraryPath(), {
-                decade: decade.id,
-                type: plexMediaType.Album,
+            return new PlexPager({
+                path: getMusicLibraryPath(),
+                params: {
+                    decade: decade.id,
+                    type: plexMediaType.Album,
+                },
             });
         } else {
             return new SimplePager();
@@ -234,8 +263,10 @@ const plexRandomTracks: MediaSource<MediaItem> = {
 
     search(): Pager<MediaItem> {
         return new PlexPager(
-            getMusicLibraryPath(),
-            {type: plexMediaType.Track, sort: 'random'},
+            {
+                path: getMusicLibraryPath(),
+                params: {type: plexMediaType.Track, sort: 'random'},
+            },
             {maxSize: 100}
         );
     },
@@ -251,8 +282,10 @@ const plexRandomAlbums: MediaSource<MediaAlbum> = {
 
     search(): Pager<MediaAlbum> {
         return new PlexPager(
-            getMusicLibraryPath(),
-            {type: plexMediaType.Album, sort: 'random'},
+            {
+                path: getMusicLibraryPath(),
+                params: {type: plexMediaType.Album, sort: 'random'},
+            },
             {maxSize: 100}
         );
     },
@@ -272,10 +305,13 @@ const plexMusicVideos: MediaSource<MediaItem> = {
     },
 
     search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
-        return new PlexPager(getMusicLibraryPath('extras/all'), {
-            title: q,
-            type: plexMediaType.Artist,
-            extraType: plexMediaType.Episode,
+        return new PlexPager({
+            path: getMusicLibraryPath('extras/all'),
+            params: {
+                title: q,
+                type: plexMediaType.Artist,
+                extraType: plexMediaType.Episode,
+            },
         });
     },
 };
@@ -311,8 +347,10 @@ const plexFolders: MediaSource<MediaFolderItem> = {
                 };
                 const backPager = new SimplePager([parentFolder]);
                 const folderPager = new PlexPager<MediaFolderItem>(
-                    `library/sections/${id}/folder`,
-                    {includeCollections: '1'},
+                    {
+                        path: `library/sections/${id}/folder`,
+                        params: {includeCollections: '1'},
+                    },
                     undefined,
                     section as MediaFolder
                 );
@@ -379,7 +417,7 @@ const plex: PersonalMediaService = {
     createSourceFromPin,
     getFilters,
     getMetadata,
-    getPlayableUrlFromSrc,
+    getPlayableUrl,
     getThumbnailUrl,
     lookup,
     rate,
@@ -391,10 +429,8 @@ const plex: PersonalMediaService = {
 
 export default plex;
 
-ratingStore.addObserver(plex);
-
 function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
-    return a.plex!.ratingKey === b.plex!.ratingKey;
+    return a.src === b.src;
 }
 
 function canRate<T extends MediaObject>(item: T, inline?: boolean): boolean {
@@ -425,9 +461,12 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
         isPin: true,
 
         search(): Pager<MediaPlaylist> {
-            return new PlexPager(`/playlists/${pin.plex!.ratingKey}`, {
-                type: plexMediaType.Playlist,
-                playlistType: 'audio',
+            return new PlexPager({
+                path: `/playlists/${getRatingKey(pin)}`,
+                params: {
+                    type: plexMediaType.Playlist,
+                    playlistType: 'audio',
+                },
             });
         },
     };
@@ -444,27 +483,28 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     if (!canRate(item) || item.rating !== undefined) {
         return item;
     }
-    const rating = ratingStore.get(item);
+    const rating = actionsStore.getRating(item);
     if (rating !== undefined) {
         return {...item, rating};
     }
+    const ratingKey = getRatingKey(item);
     const path =
         item.itemType === ItemType.Playlist
-            ? `/playlists/${item.plex!.ratingKey}`
-            : `/library/metadata/${item.plex!.ratingKey}`;
-    const pager = new PlexPager<T>(path, undefined, {
-        pageSize: 1,
-        maxSize: 1,
-    });
+            ? `/playlists/${ratingKey}`
+            : `/library/metadata/${ratingKey}`;
+    const pager = new PlexPager<T>({path}, {maxSize: 1});
     const items = await fetchFirstPage<T>(pager, {timeout: 2000});
     return bestOf(item, items[0]);
 }
 
-function getPlayableUrlFromSrc(src: string): string {
+function getPlayableUrl(item: PlayableItem): string {
     const {host, serverToken} = plexSettings;
     if (host && serverToken) {
-        const [, , key] = src.split(':');
-        return `${host}${key}?X-Plex-Token=${serverToken}`;
+        const [src] = item.srcs || [];
+        if (!src) {
+            throw Error('No playable source');
+        }
+        return `${host}${src}?X-Plex-Token=${serverToken}`;
     } else {
         throw Error('Not logged in');
     }
@@ -483,14 +523,21 @@ async function lookup(
     if (!artist || !title) {
         return [];
     }
-    const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit, lookup: true};
-    const lookup = async (filter: Record<string, string>): Promise<readonly MediaItem[]> =>
-        fetchFirstPage(createSearchPager(ItemType.Media, title, filter, options), {timeout});
-    const results = await Promise.all([
-        lookup({'artist.title': artist}),
-        lookup({originalTitle: artist}),
-    ]);
-    return uniqBy(results.flat(), 'src');
+    return fetchFirstPage(
+        new PlexPager<MediaItem>(
+            {
+                path: `/library/search`,
+                params: {
+                    query: `${artist} ${title}`,
+                    searchTypes: 'music',
+                    limit: 50,
+                    type: plexItemType.Track,
+                },
+            },
+            {maxSize: limit, lookup: true}
+        ),
+        {timeout}
+    );
 }
 
 async function rate(item: MediaObject, rating: number): Promise<void> {
@@ -498,7 +545,7 @@ async function rate(item: MediaObject, rating: number): Promise<void> {
         path: '/:/rate',
         method: 'PUT',
         params: {
-            key: item.plex!.ratingKey,
+            key: getRatingKey(item),
             identifier: 'com.plexapp.plugins.library',
             rating: rating * 2 || -1,
         },
@@ -534,23 +581,14 @@ function createSearchPager<T extends MediaObject>(
     if (q) {
         params.title = q.trim();
     }
-    switch (itemType) {
-        case ItemType.Media:
-            params.type = plexMediaType.Track;
-            break;
-
-        case ItemType.Album:
-            params.type = plexMediaType.Album;
-            break;
-
-        case ItemType.Artist:
-            params.type = plexMediaType.Artist;
-            break;
-
-        case ItemType.Playlist:
-            params.type = plexMediaType.Playlist;
-            params.playlistType = 'audio';
-            break;
+    params.type = getPlexMediaType(itemType);
+    if (itemType === ItemType.Playlist) {
+        params.playlistType = 'audio';
     }
-    return new PlexPager<T>(path, params, options);
+    return new PlexPager<T>({path, params}, options);
+}
+
+function getRatingKey({src}: {src: string}): string {
+    const [, , ratingKey] = src.split(':');
+    return ratingKey;
 }

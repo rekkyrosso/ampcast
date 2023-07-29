@@ -95,7 +95,7 @@ export default class ListenBrainzLikesPager implements Pager<MediaItem> {
             release_mbid: data.mbid_mapping?.release_mbid,
             artist_mbids: data.mbid_mapping?.artist_mbids,
             playedAt: 0,
-            rating: 1,
+            inLibrary: true,
         };
     }
 

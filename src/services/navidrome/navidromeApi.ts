@@ -76,15 +76,15 @@ async function navidromeFetch(
     return response;
 }
 
-function getPlayableUrlFromSrc(src: string): string {
-    return subsonicApi.getPlayableUrlFromSrc(src, navidromeSettings);
+function getPlayableUrl(src: string): string {
+    return subsonicApi.getPlayableUrl(src, navidromeSettings);
 }
 
 const navidromeApi = {
     get,
     getFilters,
     getPage,
-    getPlayableUrlFromSrc,
+    getPlayableUrl,
 };
 
 export default navidromeApi;

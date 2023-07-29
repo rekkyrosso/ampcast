@@ -49,7 +49,7 @@ from(getAllVisualizerProviders())
             provider.observeVisualizers().pipe(
                 map((visualizers) => visualizers.length),
                 skipWhile((size) => size === 0),
-                tap((size) => logger.log(`${provider.name} (total=${size})`))
+                tap((size) => logger.log(`${provider.id} (total=${size})`))
             )
         )
     )

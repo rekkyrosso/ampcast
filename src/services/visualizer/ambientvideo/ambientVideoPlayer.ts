@@ -1,5 +1,6 @@
 import type {Observable} from 'rxjs';
 import {EMPTY, distinctUntilChanged, filter, map, skip, switchMap, tap, withLatestFrom} from 'rxjs';
+import PlayableItem from 'types/PlayableItem';
 import Player from 'types/Player';
 import {AmbientVideoVisualizer, WaveformVisualizer} from 'types/Visualizer';
 import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
@@ -19,7 +20,7 @@ const html5Player = new HTML5Player('video', 'ambient');
 const youtubePlayer = new YouTubePlayer('ambient');
 const storage = new LiteStorage('ambientVideoPlayer');
 
-function selectPlayer(visualizer: AmbientVideoVisualizer): Player<string> | null {
+function selectPlayer(visualizer: AmbientVideoVisualizer): Player<PlayableItem> | null {
     if (visualizer) {
         if (visualizer.src.startsWith('youtube:')) {
             return youtubePlayer;
@@ -29,16 +30,16 @@ function selectPlayer(visualizer: AmbientVideoVisualizer): Player<string> | null
     return null;
 }
 
-function loadPlayer(player: Player<string>, visualizer: AmbientVideoVisualizer): void {
+function loadPlayer(player: Player<PlayableItem>, visualizer: AmbientVideoVisualizer): void {
     const src = visualizer.src;
     if (src.startsWith('youtube:')) {
         const [, , videoId] = src.split(':');
         const key = getProgressKey();
         const progress = storage.getJson<ProgressRecord>(key, {});
         const startTime = progress[videoId] || (key === 'progress' ? 120 : 0);
-        player.load(`${src}:${startTime}`);
+        player.load({src: `${src}:${startTime}`});
     } else {
-        player.load(src);
+        player.load({src});
     }
 }
 
@@ -48,7 +49,7 @@ function getProgressKey(): string {
         : 'progress';
 }
 
-const videoPlayer = new OmniPlayer<AmbientVideoVisualizer, string>(
+const videoPlayer = new OmniPlayer<AmbientVideoVisualizer, PlayableItem>(
     'ambient-video-player',
     [html5Player, youtubePlayer, beatsPlayer as any],
     selectPlayer,

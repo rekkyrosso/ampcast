@@ -5,6 +5,7 @@ import PersonalMediaService from 'types/PersonalMediaService';
 import PublicMediaService from 'types/PublicMediaService';
 import Scrobbler from 'types/Scrobbler';
 import ServiceType from 'types/ServiceType';
+import actionsStore from './actions/actionsStore';
 import apple from 'services/apple';
 import emby from 'services/emby';
 import jellyfin from 'services/jellyfin';
@@ -12,6 +13,7 @@ import lastfm from 'services/lastfm';
 import listenbrainz from 'services/listenbrainz';
 import navidrome from 'services/navidrome';
 import plex from 'services/plex';
+import plexTidal from 'services/plex/tidal';
 import spotify from 'services/spotify';
 import subsonic from 'services/subsonic';
 import youtube from 'services/youtube';
@@ -19,16 +21,19 @@ import {Logger} from 'utils';
 
 const logger = new Logger('mediaServices');
 
+actionsStore.registerServices(getAllServices());
+
 export function getAllServices(): readonly MediaService[] {
     return [
         apple,
         spotify,
-        youtube,
         emby,
         jellyfin,
         navidrome,
         plex,
+        plexTidal,
         subsonic,
+        youtube,
         lastfm,
         listenbrainz,
     ];
@@ -60,6 +65,11 @@ export function getPublicMediaServices(): readonly PublicMediaService[] {
 
 export function getScrobblers(): readonly Scrobbler[] {
     return getAllServices().filter(isScrobbler);
+}
+
+export function getAuthService(service: MediaService): MediaService {
+    const authServiceId = service.authServiceId;
+    return authServiceId ? getService(authServiceId) || service : service;
 }
 
 export function getService(serviceId: string): MediaService | undefined {
@@ -119,7 +129,7 @@ from(getAllServices())
             service.observeIsLoggedIn().pipe(
                 skipWhile((isLoggedIn) => !isLoggedIn),
                 tap((isLoggedIn) =>
-                    logger.log(`${service.name} ${isLoggedIn ? '' : 'dis'}connected`)
+                    logger.log(`${service.id} ${isLoggedIn ? '' : 'dis'}connected`)
                 )
             )
         )

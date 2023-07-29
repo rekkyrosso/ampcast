@@ -1,14 +1,15 @@
 import type {Observable} from 'rxjs';
 import {Subject, filter, fromEvent, map} from 'rxjs';
+import PlayableItem from 'types/PlayableItem';
 import Player from 'types/Player';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {Logger} from 'utils';
 
-export default class HTML5Player implements Player<string> {
+export default class HTML5Player implements Player<PlayableItem> {
     protected readonly logger: Logger;
     protected readonly element: HTMLMediaElement;
     protected readonly error$ = new Subject<unknown>();
-    private src = '';
+    private item: PlayableItem | null = null;
     autoplay = false;
 
     constructor(type: 'audio' | 'video', id: string) {
@@ -20,11 +21,11 @@ export default class HTML5Player implements Player<string> {
         element.className = `html5-${type} html5-${type}-${id}`;
         element.crossOrigin = 'anonymous';
 
+        this.logger = new Logger(`HTML5Player/${type}/${id}`);
+
         fromEvent(element, 'error')
             .pipe(map(() => element.error))
             .subscribe(this.error$);
-
-        this.logger = new Logger(`HTML5Player/${type}/${id}`);
 
         this.observeError().subscribe(this.logger.error);
     }
@@ -91,12 +92,12 @@ export default class HTML5Player implements Player<string> {
         parentElement.appendChild(this.element);
     }
 
-    load(src: string): void {
+    load(item: PlayableItem): void {
         this.logger.log('load');
-        this.src = src;
+        this.item = item;
         try {
             if (this.autoplay) {
-                const src = this.getMediaSrc(this.src);
+                const src = this.getMediaSrc(item);
                 this.element.setAttribute('src', src);
                 this.safePlay();
             }
@@ -108,7 +109,7 @@ export default class HTML5Player implements Player<string> {
     play(): void {
         this.logger.log('play');
         try {
-            const src = this.getMediaSrc(this.src);
+            const src = this.getMediaSrc(this.item);
             if (this.element.getAttribute('src') !== src) {
                 this.element.setAttribute('src', src);
             }
@@ -138,9 +139,14 @@ export default class HTML5Player implements Player<string> {
         this.element.style.height = `${height}px`;
     }
 
-    private getMediaSrc(src: string): string {
-        const service = getServiceFromSrc({src});
-        return service?.getPlayableUrlFromSrc?.(src) ?? src;
+    private getMediaSrc(item: PlayableItem | null): string {
+        if (item) {
+            const service = getServiceFromSrc(item);
+            const src = service?.getPlayableUrl?.(item) ?? item.src;
+            return src;
+        } else {
+            throw Error('No playable item');
+        }
     }
 
     private async safePlay(): Promise<void> {

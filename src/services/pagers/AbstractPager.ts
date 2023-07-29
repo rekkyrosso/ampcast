@@ -1,12 +1,12 @@
 import type {Observable} from 'rxjs';
 import {
     BehaviorSubject,
-    ReplaySubject,
     Subscription,
     combineLatest,
     distinctUntilChanged,
     filter,
     map,
+    skipWhile,
     take,
     tap,
 } from 'rxjs';
@@ -15,6 +15,7 @@ import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import MediaObjectChange from 'types/MediaObjectChange';
 import Pager, {PagerConfig} from 'types/Pager';
+import actionsStore from 'services/actions/actionsStore';
 import mediaObjectChanges from 'services/actions/mediaObjectChanges';
 import {Logger, exists, uniq} from 'utils';
 
@@ -30,14 +31,14 @@ const logger = new Logger('AbstractPager');
 let pagerCount = 0;
 
 export default abstract class AbstractPager<T extends MediaObject> implements Pager<T> {
-    protected readonly items$ = new BehaviorSubject<readonly T[]>(UNINITIALIZED);
-    protected readonly additions$ = new BehaviorSubject<readonly T[]>(UNINITIALIZED);
-    protected readonly size$ = new ReplaySubject<number>(1);
-    protected readonly error$ = new ReplaySubject<unknown>(1);
-    protected readonly fetches$ = new BehaviorSubject<PageFetch>({index: 0, length: 0});
-    protected subscriptions?: Subscription;
-    protected disconnected = false;
-    private srcs?: Set<string>;
+    private readonly additions$ = new BehaviorSubject<readonly T[]>(UNINITIALIZED);
+    private readonly error$ = new BehaviorSubject<unknown>(UNINITIALIZED);
+    private readonly items$ = new BehaviorSubject<readonly T[]>(UNINITIALIZED);
+    private readonly fetches$ = new BehaviorSubject<PageFetch>({index: 0, length: 0});
+    private readonly size$ = new BehaviorSubject<number>(-1);
+    private readonly srcs = new Set<string>();
+    private subscriptions?: Subscription;
+    #disconnected = false;
 
     constructor(protected config: PagerConfig = {}) {}
 
@@ -46,24 +47,27 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
     }
 
     observeAdditions(): Observable<readonly T[]> {
-        return this.additions$.pipe(filter((items) => items !== UNINITIALIZED));
-    }
-
-    observeItems(): Observable<readonly T[]> {
-        return this.items$.pipe(filter((items) => items !== UNINITIALIZED));
-    }
-
-    observeSize(): Observable<number> {
-        return this.size$.pipe(distinctUntilChanged());
+        return this.additions$.pipe(skipWhile((additions) => additions === UNINITIALIZED));
     }
 
     observeError(): Observable<unknown> {
-        return this.error$;
+        return this.error$.pipe(skipWhile((error) => error === UNINITIALIZED));
+    }
+
+    observeItems(): Observable<readonly T[]> {
+        return this.items$.pipe(skipWhile((items) => items === UNINITIALIZED));
+    }
+
+    observeSize(): Observable<number> {
+        return this.size$.pipe(
+            skipWhile((size) => size === -1),
+            distinctUntilChanged()
+        );
     }
 
     disconnect(): void {
         if (!this.disconnected) {
-            this.disconnected = true;
+            this.#disconnected = true;
             if (this.subscriptions) {
                 this.subscriptions.unsubscribe();
                 if (__dev__) {
@@ -73,7 +77,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
                     }
                 }
             }
-            this.items.forEach((item) => (item as any).pager?.disconnect());
+            this.items.forEach((item) => (item as any)?.pager?.disconnect());
             this.items$.complete();
             this.additions$.complete();
             this.size$.complete();
@@ -91,7 +95,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
             length = 50;
         }
 
-        if (!this.subscriptions) {
+        if (!this.connected) {
             this.connect();
 
             if (this.config.calculatePageSize) {
@@ -107,8 +111,53 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
         this.fetches$.next({index, length});
     }
 
+    protected get connected(): boolean {
+        return !!this.subscriptions;
+    }
+
+    protected get disconnected(): boolean {
+        return this.#disconnected;
+    }
+
+    protected get error(): unknown {
+        const error = this.error$.getValue();
+        return error === UNINITIALIZED ? undefined : error;
+    }
+
+    protected set error(error: unknown) {
+        this.error$.next(error);
+    }
+
     protected get items(): readonly T[] {
         return this.items$.getValue();
+    }
+
+    protected set items(items: readonly T[]) {
+        const additions: T[] = [];
+        this.items$.next(
+            items.map((item) => {
+                if (!this.srcs.has(item.src)) {
+                    this.srcs.add(item.src);
+                    const inLibrary = actionsStore.getInLibrary(item, item.inLibrary);
+                    const rating = actionsStore.getRating(item, item.rating);
+                    if (item.inLibrary !== inLibrary || item.rating !== rating) {
+                        item = {...item, inLibrary, rating};
+                    }
+                    additions.push(item);
+                }
+                return item;
+            })
+        );
+        this.additions$.next(additions);
+    }
+
+    protected get size(): number | undefined {
+        const size = this.size$.getValue();
+        return size === -1 ? undefined : size;
+    }
+
+    protected set size(size: number) {
+        this.size$.next(size);
     }
 
     protected observeComplete(): Observable<readonly T[]> {
@@ -119,11 +168,12 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
         );
     }
 
+    protected observeFetches(): Observable<PageFetch> {
+        return this.fetches$;
+    }
+
     protected connect(): void {
-        if (this.disconnected) {
-            return;
-        }
-        if (!this.subscriptions) {
+        if (!this.disconnected && !this.connected) {
             if (__dev__) {
                 pagerCount++;
                 if (pagerCount % 100 === 0) {
@@ -134,44 +184,28 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
             this.subscriptions = new Subscription();
 
             if (!this.config.lookup) {
-                this.srcs = new Set();
-                this.subscriptions.add(
-                    this.items$
-                        .pipe(
-                            map((items) =>
-                                items.filter((item) => {
-                                    const exists = this.srcs!.has(item.src);
-                                    if (!exists) {
-                                        this.srcs!.add(item.src);
-                                    }
-                                    return !exists;
-                                })
-                            ),
-                            filter((additions) => additions.length > 0)
-                        )
-                        .subscribe(this.additions$)
+                this.subscribeTo(
+                    this.observeAdditions().pipe(tap((items) => this.addMultiDisc(items))),
+                    logger
                 );
 
-                this.subscriptions.add(
-                    this.observeAdditions()
-                        .pipe(tap((items) => this.addMultiDisc(items)))
-                        .subscribe(logger)
+                this.subscribeTo(
+                    this.observeAdditions().pipe(tap((items) => this.addTrackCount(items))),
+                    logger
                 );
 
-                this.subscriptions.add(
-                    this.observeAdditions()
-                        .pipe(tap((items) => this.addTrackCount(items)))
-                        .subscribe(logger)
-                );
-
-                this.subscriptions.add(
+                this.subscribeTo(
                     mediaObjectChanges
                         .observe<T>()
-                        .pipe(tap((changes) => this.applyChanges(changes)))
-                        .subscribe(logger)
+                        .pipe(tap((changes) => this.applyChanges(changes))),
+                    logger
                 );
             }
         }
+    }
+
+    protected subscribeTo<T>(observable$: Observable<T>, logger: Logger): void {
+        this.subscriptions!.add(observable$.subscribe(logger));
     }
 
     private applyChanges(changes: readonly MediaObjectChange<T>[]): void {
@@ -193,27 +227,25 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
     private addMultiDisc(items: readonly T[]): void {
         items.forEach((item) => {
             if (item.itemType === ItemType.Album && item.multiDisc === undefined) {
-                this.subscriptions!.add(
-                    item.pager
-                        .observeItems()
-                        .pipe(
-                            take(1),
-                            tap((tracks) => {
-                                const src = item.src;
-                                const index = this.items.findIndex((item) => item.src === src);
-                                if (index !== -1) {
-                                    const items = this.items.slice();
-                                    const item = items[index];
-                                    const discs = uniq(
-                                        tracks.map((track) => track.disc).filter(exists)
-                                    );
-                                    const multiDisc = discs.length > 1 || discs[0] > 1;
-                                    items[index] = {...item, multiDisc};
-                                    this.items$.next(items);
-                                }
-                            })
-                        )
-                        .subscribe(logger)
+                this.subscribeTo(
+                    item.pager.observeItems().pipe(
+                        take(1),
+                        tap((tracks) => {
+                            const src = item.src;
+                            const index = this.items.findIndex((item) => item.src === src);
+                            if (index !== -1) {
+                                const items = this.items.slice();
+                                const item = items[index];
+                                const discs = uniq(
+                                    tracks.map((track) => track.disc).filter(exists)
+                                );
+                                const multiDisc = discs.length > 1 || discs[0] > 1;
+                                items[index] = {...item, multiDisc};
+                                this.items$.next(items);
+                            }
+                        })
+                    ),
+                    logger
                 );
             }
         });
@@ -222,23 +254,21 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
     private addTrackCount(items: readonly T[]): void {
         items.forEach((item) => {
             if (item.itemType === ItemType.Playlist && !item.trackCount && item.pager) {
-                this.subscriptions!.add(
-                    item.pager
-                        .observeSize()
-                        .pipe(
-                            take(1),
-                            tap((size) => {
-                                const src = item.src;
-                                const index = this.items.findIndex((item) => item.src === src);
-                                if (index !== -1) {
-                                    const items = this.items.slice();
-                                    const item = items[index];
-                                    items[index] = {...item, trackCount: size};
-                                    this.items$.next(items);
-                                }
-                            })
-                        )
-                        .subscribe(logger)
+                this.subscribeTo(
+                    item.pager.observeSize().pipe(
+                        take(1),
+                        tap((size) => {
+                            const src = item.src;
+                            const index = this.items.findIndex((item) => item.src === src);
+                            if (index !== -1) {
+                                const items = this.items.slice();
+                                const item = items[index];
+                                items[index] = {...item, trackCount: size};
+                                this.items$.next(items);
+                            }
+                        })
+                    ),
+                    logger
                 );
             }
         });

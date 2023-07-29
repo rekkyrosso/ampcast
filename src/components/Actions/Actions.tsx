@@ -18,8 +18,8 @@ export interface ActionsProps {
 }
 
 export const actionIcons: Record<LibraryAction, IconName> = {
-    [Action.AddToLibrary]: 'plus',
-    [Action.RemoveFromLibrary]: 'tick-fill',
+    [Action.AddToLibrary]: 'heart',
+    [Action.RemoveFromLibrary]: 'heart-fill',
     [Action.Rate]: 'star',
     [Action.Like]: 'heart',
     [Action.Unlike]: 'heart-fill',

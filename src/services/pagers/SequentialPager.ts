@@ -8,6 +8,7 @@ import {
     filter,
     map,
     of,
+    startWith,
     switchMap,
     take,
     takeUntil,
@@ -33,32 +34,32 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
     }
 
     protected connect(): void {
-        if (!this.subscriptions) {
+        if (!this.disconnected && !this.connected) {
             super.connect();
 
             // TODO: better error handling.
-            this.subscriptions!.add(
-                this.observeShouldFetch()
-                    .pipe(
-                        tap(() => this.fetching$.next(true)),
-                        concatMap(() => this.fetchNext(this.config.pageSize)),
-                        tap((page) => this.addPage(page)),
-                        catchError((err: unknown) => {
-                            logger.error(err);
-                            this.error$.next(err);
-                            return of(undefined);
-                        }),
-                        tap(() => this.fetching$.next(false)),
-                        takeUntil(this.observeComplete()),
-                        take(100)
-                    )
-                    .subscribe(logger)
+            this.subscribeTo(
+                this.observeShouldFetch().pipe(
+                    startWith(undefined),
+                    tap(() => this.fetching$.next(true)),
+                    concatMap(() => this.fetchNext(this.config.pageSize)),
+                    tap((page) => this.addPage(page)),
+                    catchError((err: unknown) => {
+                        logger.error(err);
+                        this.error = err;
+                        return of(undefined);
+                    }),
+                    tap(() => this.fetching$.next(false)),
+                    takeUntil(this.observeComplete()),
+                    take(100)
+                ),
+                logger
             );
         }
     }
 
     private observeShouldFetch(): Observable<void> {
-        const shouldFetch$ = combineLatest([this.fetches$, this.items$]).pipe(
+        const shouldFetch$ = combineLatest([this.observeFetches(), this.observeItems()]).pipe(
             map(([{index, length}, items]) => index + 2 * length >= items.length),
             filter((shouldFetch) => shouldFetch),
             map(() => undefined),
@@ -88,8 +89,8 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
         }
         const size = atEnd ? items.length : page.total;
         if (size !== undefined) {
-            this.size$.next(Math.min(size, this.maxSize ?? Infinity));
+            this.size = Math.min(size, this.maxSize ?? Infinity);
         }
-        this.items$.next(items);
+        this.items = items;
     }
 }

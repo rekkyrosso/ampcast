@@ -1,12 +1,11 @@
 .cover-art {
     position: relative;
-    background-color: rgba(255, 255, 255, 0.1);
+    background-color: var(--background-mark-color);
     border: 1px solid rgba(255, 255, 255, 0.2);
     border-radius: var(--app-border-radius);
     overflow: hidden;
 
     .themed.light & {
-        background-color: rgba(0, 0, 0, 0.1);
         border-color: var(--black);
     }
 

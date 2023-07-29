@@ -20,7 +20,7 @@ export default function MediaBrowser<T extends MediaObject>({
     sources,
 }: MediaBrowserProps<T>) {
     const isLoggedIn = useObservable(service.observeIsLoggedIn, false);
-    const renderError = useErrorScreen(service);
+    const renderError = useErrorScreen(service, sources);
     const key = `${service.id}/${(service as PersonalMediaService).libraryId || '*'}/${sources.map(
         (source) => source.id
     )}`;

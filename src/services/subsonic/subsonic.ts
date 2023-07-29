@@ -16,14 +16,15 @@ import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
+import PlayableItem from 'types/PlayableItem';
 import Pin from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import ViewType from 'types/ViewType';
+import actionsStore from 'services/actions/actionsStore';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
-import ratingStore from 'services/actions/ratingStore';
 import {getTextFromHtml} from 'utils';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './subsonicAuth';
 import subsonicApi from './subsonicApi';
@@ -31,11 +32,6 @@ import SubsonicPager from './SubsonicPager';
 import subsonicSettings from './subsonicSettings';
 
 const serviceId: MediaServiceId = 'subsonic';
-
-const defaultLayout: MediaSourceLayout<MediaItem> = {
-    view: 'details',
-    fields: ['Artist', 'Title', 'Album', 'Track', 'Duration', 'Genre', 'PlayCount'],
-};
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
@@ -47,8 +43,11 @@ const subsonicLikedSongs: MediaSource<MediaItem> = {
     title: 'My Songs',
     icon: 'heart',
     itemType: ItemType.Media,
-    viewType: ViewType.Ratings,
-    layout: defaultLayout,
+    lockActionsStore: true,
+    layout: {
+        view: 'card',
+        fields: ['Thumbnail', 'Artist', 'Title', 'AlbumAndYear', 'Duration'],
+    },
 
     search(): Pager<MediaItem> {
         return new SubsonicPager(ItemType.Media, async (): Promise<Page<Subsonic.Song>> => {
@@ -63,7 +62,7 @@ const subsonicLikedAlbums: MediaSource<MediaAlbum> = {
     title: 'My Albums',
     icon: 'heart',
     itemType: ItemType.Album,
-    viewType: ViewType.Ratings,
+    lockActionsStore: true,
 
     search(): Pager<MediaAlbum> {
         return new SubsonicPager(
@@ -81,7 +80,6 @@ const subsonicRecentlyPlayed: MediaSource<MediaAlbum> = {
     title: 'Recently Played',
     icon: 'clock',
     itemType: ItemType.Album,
-    viewType: ViewType.RecentlyPlayed,
 
     search(): Pager<MediaAlbum> {
         return new SubsonicPager(
@@ -99,7 +97,6 @@ const subsonicMostPlayed: MediaSource<MediaAlbum> = {
     title: 'Most Played',
     icon: 'most-played',
     itemType: ItemType.Album,
-    viewType: ViewType.MostPlayed,
     layout: {
         view: 'card compact',
         fields: ['Thumbnail', 'Title', 'Artist', 'Year', 'PlayCount'],
@@ -348,8 +345,8 @@ const subsonic: PersonalMediaService = {
         subsonicFolders,
     ],
     labels: {
-        [Action.Like]: 'Like on Subsonic',
-        [Action.Unlike]: 'Unlike on Subsonic',
+        [Action.AddToLibrary]: 'Like on Subsonic',
+        [Action.RemoveFromLibrary]: 'Unlike on Subsonic',
     },
     get audioLibraries(): readonly PersonalMediaLibrary[] {
         return subsonicSettings.audioLibraries;
@@ -369,16 +366,16 @@ const subsonic: PersonalMediaService = {
     observeLibraryId(): Observable<string> {
         return subsonicSettings.observeLibraryId();
     },
-    canRate,
-    canStore: () => false,
+    canRate: () => false,
+    canStore,
     compareForRating,
     createSourceFromPin,
     getFilters,
     getMetadata,
-    getPlayableUrlFromSrc,
+    getPlayableUrl,
     getThumbnailUrl,
     lookup,
-    rate,
+    store,
     observeIsLoggedIn,
     isLoggedIn,
     login,
@@ -387,9 +384,7 @@ const subsonic: PersonalMediaService = {
 
 export default subsonic;
 
-ratingStore.addObserver(subsonic);
-
-function canRate<T extends MediaObject>(item: T): boolean {
+function canStore<T extends MediaObject>(item: T): boolean {
     switch (item.itemType) {
         case ItemType.Media:
             return true;
@@ -455,25 +450,25 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
             artist_mbid: info.musicBrainzId,
         };
     }
-    if (!canRate(item) || item.rating !== undefined) {
+    if (!canStore(item) || item.inLibrary !== undefined) {
         return item;
     }
-    const rating = ratingStore.get(item);
-    if (rating !== undefined) {
-        return {...item, rating};
+    const inLibrary = actionsStore.getInLibrary(item);
+    if (inLibrary !== undefined) {
+        return {...item, inLibrary};
     }
     if (itemType === ItemType.Album) {
         const id = await getAlbumDirectoryId(item);
         const directory = await subsonicApi.getMusicDirectory(id);
-        return {...item, rating: directory.starred ? 1 : 0};
+        return {...item, inLibrary: directory.starred};
     } else {
         const song = await subsonicApi.getSong(id);
-        return {...item, rating: song.starred ? 1 : 0};
+        return {...item, inLibrary: song.starred};
     }
 }
 
-function getPlayableUrlFromSrc(src: string): string {
-    return subsonicApi.getPlayableUrlFromSrc(src);
+function getPlayableUrl({src}: PlayableItem): string {
+    return subsonicApi.getPlayableUrl(src);
 }
 
 function getThumbnailUrl(url: string): string {
@@ -501,8 +496,8 @@ async function lookup(
     return fetchFirstPage(pager, {timeout});
 }
 
-async function rate(item: MediaObject, rating: number): Promise<void> {
-    const method = rating ? 'star' : 'unstar';
+async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
+    const method = inLibrary ? 'star' : 'unstar';
     switch (item.itemType) {
         case ItemType.Media: {
             const [, , id] = item.src.split(':');

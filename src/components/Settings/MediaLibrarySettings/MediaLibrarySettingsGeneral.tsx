@@ -7,7 +7,7 @@ import {
 } from 'services/mediaServices';
 import {isSourceVisible} from 'services/servicesSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
-import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
+import MediaServiceLabel from 'components/MediaSources/MediaServiceLabel';
 import './MediaLibrarySettingsGeneral.scss';
 
 export interface MediaLibrarySettingsGeneralProps {
@@ -64,7 +64,7 @@ function CheckboxList({services}: CheckboxListProps) {
                         defaultChecked={isSourceVisible(service)}
                     />
                     <label htmlFor={`${id}-${service.id}`}>
-                        <MediaSourceLabel icon={service.icon} text={service.name} />
+                        <MediaServiceLabel service={service} />
                     </label>
                 </li>
             ))}

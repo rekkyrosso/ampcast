@@ -20,5 +20,6 @@ export default interface MediaSource<T extends MediaObject> {
     readonly searchable?: boolean;
     readonly defaultHidden?: boolean;
     readonly isPin?: boolean;
+    readonly lockActionsStore?: boolean;
     search(params?: MediaFilter | Record<string, unknown>): Pager<T>;
 }

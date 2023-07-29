@@ -12,12 +12,13 @@ import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
 import PersonalMediaService from 'types/PersonalMediaService';
+import PlayableItem from 'types/PlayableItem';
 import Pin from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import ViewType from 'types/ViewType';
+import actionsStore from 'services/actions/actionsStore';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
-import ratingStore from 'services/actions/ratingStore';
 import subsonicApi from 'services/subsonic/subsonicApi';
 import {bestOf, getTextFromHtml} from 'utils';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './navidromeAuth';
@@ -40,9 +41,9 @@ const navidromeLikedSongs: MediaSource<MediaItem> = {
     title: 'My Songs',
     icon: 'heart',
     itemType: ItemType.Media,
-    viewType: ViewType.Ratings,
+    lockActionsStore: true,
     layout: {
-        view: 'card compact',
+        view: 'card',
         fields: ['Thumbnail', 'Artist', 'Title', 'AlbumAndYear', 'Duration'],
     },
 
@@ -60,7 +61,7 @@ const navidromeLikedAlbums: MediaSource<MediaAlbum> = {
     title: 'My Albums',
     icon: 'heart',
     itemType: ItemType.Album,
-    viewType: ViewType.Ratings,
+    lockActionsStore: true,
 
     search(): Pager<MediaAlbum> {
         return new NavidromePager(ItemType.Album, 'album', {
@@ -76,7 +77,7 @@ const navidromeLikedArtists: MediaSource<MediaArtist> = {
     title: 'My Artists',
     icon: 'heart',
     itemType: ItemType.Artist,
-    viewType: ViewType.Ratings,
+    lockActionsStore: true,
     defaultHidden: true,
 
     search(): Pager<MediaArtist> {
@@ -93,7 +94,6 @@ const navidromeRecentlyPlayed: MediaSource<MediaItem> = {
     title: 'Recently Played',
     icon: 'clock',
     itemType: ItemType.Media,
-    viewType: ViewType.RecentlyPlayed,
     layout: {
         view: 'card',
         fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'LastPlayed'],
@@ -112,7 +112,6 @@ const navidromeMostPlayed: MediaSource<MediaItem> = {
     title: 'Most Played',
     icon: 'most-played',
     itemType: ItemType.Media,
-    viewType: ViewType.MostPlayed,
     layout: {
         view: 'details',
         fields: ['PlayCount', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'Genre'],
@@ -252,19 +251,19 @@ const navidrome: PersonalMediaService = {
         navidromeRandomAlbums,
     ],
     labels: {
-        [Action.Like]: 'Add to Navidrome Favorites',
-        [Action.Unlike]: 'Remove from Navidrome Favorites',
+        [Action.AddToLibrary]: 'Add to Navidrome Favorites',
+        [Action.RemoveFromLibrary]: 'Remove from Navidrome Favorites',
     },
-    canRate,
-    canStore: () => false,
+    canRate: () => false,
+    canStore,
     compareForRating,
     createSourceFromPin,
     getFilters,
     getMetadata,
-    getPlayableUrlFromSrc,
+    getPlayableUrl,
     getThumbnailUrl,
     lookup,
-    rate,
+    store,
     observeIsLoggedIn,
     isLoggedIn,
     login,
@@ -273,9 +272,7 @@ const navidrome: PersonalMediaService = {
 
 export default navidrome;
 
-ratingStore.addObserver(navidrome);
-
-function canRate<T extends MediaObject>(item: T): boolean {
+function canStore<T extends MediaObject>(item: T): boolean {
     switch (item.itemType) {
         case ItemType.Media:
         case ItemType.Artist:
@@ -321,12 +318,12 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
         const info = await subsonicApi.getAlbumInfo(id, false, navidromeSettings);
         item = {...item, description: getTextFromHtml(info.notes)};
     }
-    if (!canRate(item) || item.rating !== undefined) {
+    if (!canStore(item) || item.inLibrary !== undefined) {
         return item;
     }
-    const rating = ratingStore.get(item);
-    if (rating !== undefined) {
-        return {...item, rating};
+    const inLibrary = actionsStore.getInLibrary(item);
+    if (inLibrary !== undefined) {
+        return {...item, inLibrary};
     }
     const type =
         itemType === ItemType.Artist ? 'artist' : itemType === ItemType.Album ? 'album' : 'song';
@@ -338,8 +335,8 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     return bestOf(item, items[0]);
 }
 
-function getPlayableUrlFromSrc(src: string): string {
-    return navidromeApi.getPlayableUrlFromSrc(src);
+function getPlayableUrl({src}: PlayableItem): string {
+    return navidromeApi.getPlayableUrl(src);
 }
 
 function getThumbnailUrl(url: string): string {
@@ -368,9 +365,9 @@ async function lookup(
     return fetchFirstPage(pager, {timeout});
 }
 
-async function rate(item: MediaObject, rating: number): Promise<void> {
+async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
     const [, , id] = item.src.split(':');
-    const method = rating ? 'star' : 'unstar';
+    const method = inLibrary ? 'star' : 'unstar';
     switch (item.itemType) {
         case ItemType.Media:
             await subsonicApi.get(method, {id}, navidromeSettings);

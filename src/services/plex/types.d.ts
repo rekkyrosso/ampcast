@@ -8,11 +8,19 @@ declare namespace plex {
         readonly mediaTagVersion: string;
     }
 
-    interface MetadataContainer<T = Track> extends MediaContainer {
+    interface MetadataContainer<T = MediaObject> extends MediaContainer {
         readonly Metadata: readonly T[];
     }
 
-    interface MetadataResponse<T = Track> {
+    interface AccountResponse {
+        readonly MyPlex: Account;
+    }
+
+    interface Account {
+        readonly authToken: string;
+    }
+
+    interface MetadataResponse<T = MediaObject> {
         readonly MediaContainer: MetadataContainer<T>;
     }
 
@@ -24,10 +32,31 @@ declare namespace plex {
         readonly MediaContainer: DirectoryContainer;
     }
 
+    interface SearchResult {
+        readonly Metadata: Metadata;
+        readonly score: number;
+    }
+
+    interface SearchResultContainer extends MediaContainer {
+        readonly SearchResult: readonly SearchResult[];
+    }
+
+    interface SearchResultsContainer extends MediaContainer {
+        readonly SearchResults: readonly SearchResultContainer[];
+    }
+
+    interface SearchResultsResponse {
+        readonly MediaContainer: SearchResultsContainer;
+    }
+
+    interface SearchResultResponse {
+        readonly MediaContainer: SearchResultContainer;
+    }
+
     interface MusicObject {
         readonly Genre: readonly Tag[];
         readonly Country: readonly Tag[];
-        readonly popularTracks: readonly Track[];
+        // readonly popularTracks: readonly Track[];
         readonly addedAt: number; // Date
         readonly art: string;
         readonly deletedAt: number; // Date
@@ -41,9 +70,12 @@ declare namespace plex {
         readonly thumb: string;
         readonly title: string;
         readonly titleSort: string;
-        readonly type: 'artist' | 'album' | 'track';
+        readonly type: 'artist' | 'album' | 'track' | 'clip';
         readonly updatedAt: number; // Date
         readonly viewCount: number;
+        readonly userState?: boolean;
+        readonly rating?: number;
+        readonly saved?: boolean;
     }
 
     interface Artist extends MusicObject {
@@ -93,6 +125,7 @@ declare namespace plex {
         readonly parentYear: number;
         readonly ratingCount: number;
         readonly ratingKey: string;
+        readonly year?: number;
     }
 
     interface MusicVideo extends MusicObject {
@@ -110,10 +143,12 @@ declare namespace plex {
         readonly id: number;
         readonly Part: readonly Part[];
         readonly duration: number;
-        readonly bitrate: number;
+        readonly bitrate?: number;
         readonly audioChannels: string;
         readonly audioCodec: string;
+        readonly audioProfile?: string;
         readonly container: string;
+        readonly optimizedForStreaming?: boolean;
     }
 
     interface Part {
@@ -217,22 +252,23 @@ declare namespace plex {
     }
 
     interface Playlist {
-        type: 'playlist';
-        addedAt: number; // Date (unix)
-        composite: string;
-        duration: number;
-        guid: string;
-        icon: string;
-        key: string;
-        lastViewedAt: number; // Date (unix)
-        leafCount: number;
-        playlistType: string;
-        ratingKey: string;
-        smart: boolean;
-        summary: '';
-        title: string;
-        updatedAt: number; // Date (unix)
-        viewCount: number;
+        readonly type: 'playlist';
+        readonly addedAt: number; // Date (unix)
+        readonly composite: string;
+        readonly duration: number;
+        readonly guid: string;
+        readonly icon: string;
+        readonly key: string;
+        readonly lastViewedAt: number; // Date (unix)
+        readonly leafCount: number;
+        readonly playlistType: string;
+        readonly ratingKey: string;
+        readonly smart: boolean;
+        readonly summary: '';
+        readonly thumb?: string;
+        readonly title: string;
+        readonly updatedAt: number; // Date (unix)
+        readonly viewCount: number;
     }
 
     interface Pin {

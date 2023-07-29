@@ -122,6 +122,5 @@ declare namespace Navidrome {
         updatedAt: string;
     }
 
-    type RateableObject = Song | Album | Artist;
-    type MediaObject = RateableObject | Playlist;
+    type MediaObject = Song | Album | Artist | Playlist;
 }

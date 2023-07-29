@@ -10,8 +10,6 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
-import ratingStore from 'services/actions/ratingStore';
-import libraryStore from 'services/actions/libraryStore';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
@@ -191,10 +189,9 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             modifiedAt: Math.floor(new Date(item.lastModifiedDate).valueOf() / 1000) || undefined,
             unplayable: !item.playParams || undefined,
             isPinned: pinStore.isPinned(src),
-            inLibrary: libraryStore.get(src, playlist.type.startsWith('library-') || undefined),
+            inLibrary: playlist.type.startsWith('library-') || undefined,
             apple: {catalogId},
         };
-        mediaPlaylist.rating = ratingStore.get(mediaPlaylist as MediaPlaylist);
         mediaPlaylist.pager = new MusicKitPager(
             `${playlist.href!}/tracks`,
             undefined,
@@ -263,10 +260,9 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             genres: this.getGenres(item),
             year: new Date(item.releaseDate).getFullYear() || 0,
             unplayable: !item.playParams || undefined,
-            inLibrary: libraryStore.get(src, album.type.startsWith('library-') || undefined),
+            inLibrary: album.type.startsWith('library-') || undefined,
             apple: {catalogId},
         };
-        mediaAlbum.rating = ratingStore.get(mediaAlbum as MediaAlbum);
         mediaAlbum.pager = new MusicKitPager(
             `${album.href!}/tracks`,
             undefined,
@@ -318,10 +314,9 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             isrc: item.isrc,
             unplayable: !item.playParams || undefined,
             playedAt: 0,
-            inLibrary: libraryStore.get(src, (isLibraryItem && !isPlaylistItem) || undefined),
+            inLibrary: (isLibraryItem && !isPlaylistItem) || undefined,
             apple: {catalogId},
         };
-        mediaItem.rating = ratingStore.get(mediaItem as MediaItem);
         return mediaItem;
     }
 

@@ -40,7 +40,8 @@
             background: #353070;
         }
 
-        .plex-browser & {
+        .plex-browser &,
+        .plex-tidal-browser & {
             background: #282a2c;
             color: #e49f0d;
         }
@@ -56,6 +57,7 @@
 
     .service-link {
         margin-top: 2em;
+        color: var(--link-color);
 
         > .icon {
             font-size: 2em;

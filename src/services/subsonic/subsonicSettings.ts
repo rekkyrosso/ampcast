@@ -42,7 +42,11 @@ const subsonicSettings = {
     },
 
     get libraries(): PersonalMediaLibrary[] {
-        return storage.getJson('libraries') || [];
+        const libraries = storage.getJson<PersonalMediaLibrary[]>('libraries', []);
+        if (libraries[0]?.id !== '') {
+            libraries.splice(0, 0, {id: '', title: '(all)'});
+        }
+        return libraries;
     },
 
     set libraries(libraries: readonly PersonalMediaLibrary[]) {

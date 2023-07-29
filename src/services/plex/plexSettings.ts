@@ -3,6 +3,7 @@ import {BehaviorSubject, distinctUntilChanged} from 'rxjs';
 import {nanoid} from 'nanoid';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaLibrarySettings from 'types/PersonalMediaLibrarySettings';
+import StreamingQuality from 'types/StreamingQuality';
 import {LiteStorage, stringContainsMusic} from 'utils';
 
 const storage = new LiteStorage('plex');
@@ -28,6 +29,14 @@ const plexSettings = {
 
     set connection(connection: plex.Connection | null) {
         storage.setJson('connection', connection);
+    },
+
+    get hasTidal(): boolean {
+        return storage.getBoolean('hasTidal');
+    },
+
+    set hasTidal(hasTidal: boolean) {
+        storage.setBoolean('hasTidal', hasTidal);
     },
 
     get host(): string {
@@ -72,6 +81,14 @@ const plexSettings = {
         return this.server?.accessToken || '';
     },
 
+    get streamingQuality(): StreamingQuality {
+        return storage.getNumber('streamingQuality', StreamingQuality.Lossless);
+    },
+
+    set streamingQuality(streamingQuality: StreamingQuality) {
+        storage.setNumber('streamingQuality', streamingQuality);
+    },
+
     get userToken(): string {
         return storage.getString('userToken');
     },
@@ -93,6 +110,7 @@ const plexSettings = {
         storage.removeItem('userToken');
         storage.removeItem('server');
         storage.removeItem('connection');
+        storage.removeItem('hasTidal');
     },
 };
 

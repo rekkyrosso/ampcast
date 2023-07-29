@@ -141,7 +141,6 @@ declare namespace Subsonic {
     }
 
     type MediaItem = Song | Video;
-    type RateableObject = MediaItem | Album;
     type DirectoryItem = Directory | MediaItem;
     type MediaObject = Album | Artist | Playlist | DirectoryItem;
 

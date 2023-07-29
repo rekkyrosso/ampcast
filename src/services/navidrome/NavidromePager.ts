@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {Primitive, Writable} from 'type-fest';
+import {Primitive} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -13,11 +13,9 @@ import OffsetPager from 'services/pagers/OffsetPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
-import ratingStore from 'services/actions/ratingStore';
 import {getTextFromHtml} from 'utils';
 import navidromeApi from './navidromeApi';
 import navidromeSettings from './navidromeSettings';
-import navidrome from './navidrome';
 
 export default class NavidromePager<T extends MediaObject> implements Pager<T> {
     static minPageSize = 10;
@@ -93,19 +91,13 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
                 break;
 
             default:
-                mediaObject = this.createMediaItemFromSong(item as Navidrome.Song) as T;
+                mediaObject = this.createMediaItem(item as Navidrome.Song) as T;
                 break;
-        }
-        if (navidrome.canRate(mediaObject)) {
-            (mediaObject as Writable<T>).rating = this.getRating(
-                mediaObject,
-                item as Navidrome.RateableObject
-            );
         }
         return mediaObject;
     }
 
-    private createMediaItemFromSong(song: Navidrome.Song): MediaItem {
+    private createMediaItem(song: Navidrome.Song): MediaItem {
         const id = song.mediaFileId || song.id;
         return {
             itemType: ItemType.Media,
@@ -120,7 +112,7 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
             duration: song.duration,
             track: song.trackNumber,
             disc: song.discNumber,
-            rating: song.starred ? 1 : 0,
+            inLibrary: song.starred,
             year: song.year,
             playedAt: this.parseDate(song.playDate),
             playCount: song.playCount,
@@ -139,7 +131,7 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
             title: album.name,
             addedAt: this.parseDate(album.createdAt),
             artist: album.albumArtist,
-            rating: album.starred ? 1 : 0,
+            inLibrary: album.starred,
             year: album.minYear || album.maxYear,
             playedAt: this.parseDate(album.playDate),
             playCount: album.playCount,
@@ -159,7 +151,7 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
             externalUrl: this.getExternalUrl(`artist/${artist_id}`),
             title: artist.name,
             description: getTextFromHtml(artist.biography) || undefined,
-            rating: artist.starred ? 1 : 0,
+            inLibrary: artist.starred,
             genres: artist.genres?.map((genre) => genre.name),
             pager: this.createArtistAlbumsPager(artist),
             thumbnails: hasThumbnails ? this.createThumbnails(artist_id) : undefined,
@@ -194,10 +186,6 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
 
     private getExternalUrl(id: string): string {
         return `${navidromeSettings.host}/app/#/${id}/show`;
-    }
-
-    private getRating(object: T, item: Navidrome.RateableObject): number | undefined {
-        return ratingStore.get(object, item.starred ? 1 : 0);
     }
 
     private parseDate(date: string): number {
