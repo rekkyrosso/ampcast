@@ -73,9 +73,10 @@ class PinStore extends Dexie {
 
     async unpin(playlist: Pin): Promise<void>;
     async unpin(playlists: readonly Pin[]): Promise<void>;
-    async unpin(playlist: readonly Pin[] | Pin): Promise<void> {
+    async unpin(playlist: {src: string}): Promise<void>;
+    async unpin(playlist: readonly Pin[] | Pin | {src: string}): Promise<void> {
         try {
-            const playlists: Pin[] = Array.isArray(playlist) ? playlist : [playlist];
+            const playlists: {src: string}[] = Array.isArray(playlist) ? playlist : [playlist];
             logger.log('unpin', {playlists});
             await this.pins.bulkDelete(playlists.map((playlist) => playlist.src));
             mediaObjectChanges.dispatch(
@@ -101,14 +102,14 @@ class PinStore extends Dexie {
         );
     }
 
-    getPinsForService(service: string): readonly Pin[] {
+    getPinsForService(serviceId: string): readonly Pin[] {
         const pins = this.pins$.getValue().slice() as Pin[];
         const lockedPin = this.lockedPin$.getValue();
         if (lockedPin && !pins.find((pin) => pin.src === lockedPin.src)) {
             pins.push(lockedPin);
         }
         return pins
-            .filter((pin) => pin.src.startsWith(`${service}:`))
+            .filter((pin) => pin.src.startsWith(`${serviceId}:`))
             .sort((a, b) =>
                 a.title.localeCompare(b.title, undefined, {
                     sensitivity: 'accent',

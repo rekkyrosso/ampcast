@@ -1,7 +1,10 @@
+@import 'styles/mixins.scss';
+
 .pinned-playlist {
     .playlists {
         bottom: auto;
         height: 6.125em;
+        background-color: var(--background-color);
 
         .cover-art {
             inset: 0.25em;
@@ -9,6 +12,12 @@
 
         .title {
             top: 0.125em;
+        }
+
+        .blurb {
+            @include line-clamp(2);
+            top: 2em;
+            line-height: 1.25;
         }
 
         .media-source-label {
@@ -27,6 +36,20 @@
         .track-count .text {
             font-size: 1em;
             line-height: 1.5;
+        }
+
+        &-error {
+            padding: 1em;
+
+            .message {
+                display: flex;
+                flex-direction: row;
+                align-items: center;
+
+                .icon {
+                    margin-right: 0.25em;
+                }
+            }
         }
     }
 

@@ -332,7 +332,7 @@ const plexFolders: MediaSource<MediaFolderItem> = {
             path: '',
         };
 
-        root.pager = new SimpleMediaPager<MediaFolderItem>(() =>
+        root.pager = new SimpleMediaPager<MediaFolderItem>(async () =>
             plexSettings.libraries.map(({id, title}) => {
                 const section: Writable<SetOptional<MediaFolder, 'pager'>> = {
                     itemType: ItemType.Folder,

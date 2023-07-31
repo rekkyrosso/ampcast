@@ -14,13 +14,17 @@ import Thumbnail from 'types/Thumbnail';
 import OffsetPager from 'services/pagers/OffsetPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
+import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import WrappedPager from 'services/pagers/WrappedPager';
+import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import pinStore from 'services/pins/pinStore';
-import {ParentOf} from 'utils';
-import plexApi, {PlexRequest, musicProviderHost} from './plexApi';
+import {Logger, ParentOf} from 'utils';
+import plexApi, {PlexRequest, getMusicLibraryPath, musicProviderHost} from './plexApi';
 import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
 import plexSettings from './plexSettings';
+
+const logger = new Logger('PlexPager');
 
 export interface PlexPagerConfig extends PagerConfig {
     serviceId?: 'plex' | 'plex-tidal';
@@ -263,6 +267,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             inLibrary: this.getInLibrary(video),
             thumbnails: this.createThumbnails(video.thumb),
             unplayable: part ? undefined : true,
+            videoFormat: this.serviceId === 'plex-tidal' ? 'hls' : undefined,
         };
     }
 
@@ -367,15 +372,32 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createArtistAlbumsPager(artist: plex.Artist): Pager<MediaAlbum> {
-        const albumsPager = this.createPager<MediaAlbum>({path: artist.key});
-        if (this.serviceId === 'plex') {
+        if (this.serviceId === 'plex-tidal') {
+            const albumsPager = this.createPager<MediaAlbum>({path: artist.key});
+            const topTracks = this.createArtistTopTracks(artist);
+            const videos = this.createArtistVideos(artist);
+            const topPager = new SimpleMediaPager<MediaAlbum>(async () => {
+                try {
+                    const items = await fetchFirstPage(videos.pager, {keepAlive: true});
+                    return items.length === 0 ? [topTracks] : [topTracks, videos];
+                } catch (err) {
+                    logger.error(err);
+                    return [topTracks];
+                }
+            });
+            return new WrappedPager(topPager, albumsPager);
+        } else {
+            const albumsPager = this.createPager<MediaAlbum>({
+                path: getMusicLibraryPath(),
+                params: {
+                    'artist.id': artist.ratingKey,
+                    type: plexMediaType.Album,
+                    sort: 'year:desc,originallyAvailableAt:desc,artist.titleSort:desc,album.titleSort,album.index',
+                },
+            });
             const otherTracks = this.createArtistOtherTracks(artist);
             const otherTracksPager = new SimplePager<MediaAlbum>([otherTracks]);
             return new WrappedPager(undefined, albumsPager, otherTracksPager);
-        } else {
-            const topTracks = this.createArtistTopTracks(artist);
-            const topTracksPager = new SimplePager<MediaAlbum>([topTracks]);
-            return new WrappedPager(topTracksPager, albumsPager);
         }
     }
 
@@ -403,6 +425,18 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         };
     }
 
+    private createArtistVideos(artist: plex.Artist): MediaAlbum {
+        return {
+            itemType: ItemType.Album,
+            src: `${this.serviceId}:videos:${artist.ratingKey}`,
+            title: 'Music Videos',
+            artist: artist.title,
+            thumbnails: this.createThumbnails(artist.thumb),
+            pager: this.createVideosPager(artist),
+            synthetic: true,
+        };
+    }
+
     private createOtherTracksPager(artist: plex.Artist): Pager<MediaItem> {
         return this.createPager({
             params: {
@@ -415,8 +449,12 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     private createTopTracksPager(artist: plex.Artist): Pager<MediaItem> {
         return this.createPager(
             {path: `/library/metadata/${artist.ratingKey}/popular`},
-            {maxSize: 10}
+            {maxSize: 100}
         );
+    }
+
+    private createVideosPager(artist: plex.Artist): Pager<MediaItem> {
+        return this.createPager({path: `/library/metadata/${artist.ratingKey}/extras`});
     }
 
     private createPager<T extends MediaObject>(

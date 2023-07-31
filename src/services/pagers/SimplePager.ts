@@ -1,22 +1,25 @@
 import type {Observable} from 'rxjs';
-import {EMPTY, of} from 'rxjs';
+import {BehaviorSubject, NEVER, map} from 'rxjs';
 import Pager from 'types/Pager';
 
 export default class SimplePager<T> implements Pager<T> {
+    private readonly items$ = new BehaviorSubject<readonly T[]>([]);
     readonly maxSize = undefined;
 
-    constructor(private readonly items: readonly T[] = []) {}
+    constructor(items: readonly T[] = []) {
+        this.items$.next(items);
+    }
 
     observeItems(): Observable<readonly T[]> {
-        return of(this.items);
+        return this.items$;
     }
 
     observeSize(): Observable<number> {
-        return of(this.items.length);
+        return this.items$.pipe(map((items) => items.length));
     }
 
     observeError(): Observable<unknown> {
-        return EMPTY;
+        return NEVER;
     }
 
     fetchAt(): void {
@@ -25,5 +28,9 @@ export default class SimplePager<T> implements Pager<T> {
 
     disconnect(): void {
         this.items.forEach((item) => (item as any)?.pager?.disconnect());
+    }
+
+    private get items(): readonly T[] {
+        return this.items$.getValue();
     }
 }

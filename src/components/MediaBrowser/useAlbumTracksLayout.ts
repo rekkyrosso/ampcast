@@ -9,6 +9,11 @@ const defaultAlbumTracksLayout: MediaSourceLayout<MediaItem> = {
     fields: ['AlbumTrack', 'Title', 'Artist', 'Duration'],
 };
 
+const videosLayout: MediaSourceLayout<MediaItem> = {
+    view: 'card compact',
+    fields: ['Thumbnail', 'Title', 'Artist', 'Duration'],
+};
+
 export default function useAlbumTracksLayout(
     album: MediaAlbum | null,
     preferredLayout = defaultAlbumTracksLayout
@@ -17,15 +22,20 @@ export default function useAlbumTracksLayout(
 
     useEffect(() => {
         if (album?.synthetic && preferredLayout.view === 'details') {
-            const fields = preferredLayout.fields.slice();
-            if (fields[0] === 'Track' || fields[0] === 'AlbumTrack') {
-                fields[0] = 'Index';
+            const [, type] = album.src.split(':');
+            if (type === 'videos') {
+                setLayout(videosLayout);
+            } else {
+                const fields = preferredLayout.fields.slice();
+                if (fields[0] === 'Track' || fields[0] === 'AlbumTrack') {
+                    fields[0] = 'Index';
+                }
+                const index = fields.indexOf('Duration');
+                if (index !== -1) {
+                    fields.splice(index + 1, 0, 'Album', 'Year');
+                }
+                setLayout({view: 'details', fields: uniq(fields)});
             }
-            const index = fields.indexOf('Duration');
-            if (index !== -1) {
-                fields.splice(index + 1, 0, 'Album', 'Year');
-            }
-            setLayout({view: 'details', fields: uniq(fields)});
         } else {
             setLayout(preferredLayout);
         }

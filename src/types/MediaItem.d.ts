@@ -27,4 +27,5 @@ export default interface MediaItem extends BaseMediaObject {
     };
     readonly blob?: Blob;
     readonly srcs?: string[];
+    readonly videoFormat?: T['mediaType'] extends MediaType.Video ? string : never;
 }

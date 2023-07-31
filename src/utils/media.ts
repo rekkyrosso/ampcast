@@ -1,5 +1,6 @@
 import MediaItem from 'types/MediaItem';
 import UserData from 'types/UserData';
+import browser from './browser';
 
 type Subtract<T, V> = Pick<T, Exclude<keyof T, keyof V>>;
 
@@ -24,4 +25,35 @@ export function removeUserData<T extends MediaItem>(item: T): Subtract<MediaItem
 
 export function stringContainsMusic(text: string): boolean {
     return /m[uú][sz](i|ie)[ckq]/i.test(text);
+}
+
+const defaultDrm = browser.os === 'Mac OS' || browser.os === 'iOS' ? 'fairplay' : 'widevine';
+let supportedDrm = '';
+
+export async function getSupportedDrm(): Promise<string> {
+    if (!supportedDrm) {
+        const keySystems = Object.entries({
+            widevine: 'com.widevine.alpha',
+            fairplay: 'com.apple.fairplay',
+            playready: 'com.microsoft.playready',
+        });
+        const config = {
+            initDataTypes: ['cenc'],
+            audioCapabilities: [{contentType: 'audio/mp4;codecs="mp4a.40.2"'}],
+            videoCapabilities: [{contentType: 'video/mp4;codecs="avc1.42E01E"'}],
+        };
+        for (const [key, keySystem] of keySystems) {
+            try {
+                await navigator.requestMediaKeySystemAccess(keySystem, [config]);
+                supportedDrm = key;
+                break;
+            } catch {
+                // ignore
+            }
+        }
+        if (!supportedDrm) {
+            supportedDrm = defaultDrm;
+        }
+    }
+    return supportedDrm;
 }

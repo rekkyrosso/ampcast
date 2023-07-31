@@ -1,3 +1,5 @@
+@import 'styles/mixins.scss';
+
 .media-list.list-view {
     .list-view-row.playing .list-view-cell {
         font-style: italic;
@@ -264,12 +266,8 @@
             }
 
             .playlists & .blurb {
+                @include line-clamp(2);
                 top: 1.675em;
-                display: -webkit-box;
-                -webkit-line-clamp: 2;
-                -webkit-box-orient: vertical;
-                overflow: hidden;
-                white-space: normal;
                 line-height: 1;
             }
 

@@ -7,7 +7,7 @@ export default class SubjectPager<T extends MediaObject> extends AbstractPager<T
     }
 
     next(items: readonly T[]): void {
-        if (!this.disconnected && !this.connected) {
+        if (!this.disconnected) {
             this.connect();
             this.size = items.length;
             this.items = items;

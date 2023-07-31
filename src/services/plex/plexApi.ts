@@ -61,11 +61,13 @@ async function plexFetch({
         token = host === plexSettings.host ? plexSettings.serverToken : plexSettings.userToken;
     }
 
+    const drm = host === plexSettings.host ? undefined : plexSettings.drm;
+
     const response = await fetch(`${host}/${path}`, {
         method,
         headers: {
             ...headers,
-            ...getHeaders(token),
+            ...getHeaders(token, drm),
         },
         body,
         keepalive,
@@ -191,7 +193,7 @@ async function getEnhancedItems<T extends plex.MediaObject>(
     return items;
 }
 
-function getHeaders(token: string): Record<string, string> {
+function getHeaders(token: string, drm?: string): Record<string, string> {
     const headers: Record<string, string> = {
         // This app
         'X-Plex-Product': __app_name__,
@@ -206,10 +208,12 @@ function getHeaders(token: string): Record<string, string> {
         // Other
         'X-Plex-Model': 'hosted',
         'Accept-Encoding': 'gzip, deflate, br',
-        'X-Plex-Features': 'external-media',
     };
     if (token) {
         headers['X-Plex-Token'] = token;
+    }
+    if (drm) {
+        headers['X-Plex-Drm'] = drm;
     }
     return headers;
 }

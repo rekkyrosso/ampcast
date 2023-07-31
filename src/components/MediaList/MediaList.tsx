@@ -21,6 +21,8 @@ export interface MediaListProps<T extends MediaObject>
     layout?: MediaSourceLayout<T>;
     statusBar?: boolean;
     loadingText?: string;
+    onError?: (error: any) => void;
+    onLoad?: () => void;
 }
 
 export default function MediaList<T extends MediaObject>({
@@ -30,6 +32,8 @@ export default function MediaList<T extends MediaObject>({
     loadingText,
     onDoubleClick,
     onEnter,
+    onError,
+    onLoad,
     onSelect,
     ...props
 }: MediaListProps<T>) {
@@ -40,6 +44,18 @@ export default function MediaList<T extends MediaObject>({
     const [selectedCount, setSelectedCount] = useState(0);
     const currentlyPlaying = useCurrentlyPlaying();
     const viewClassName = useViewClassName(layout);
+
+    useEffect(() => {
+        if (error && onError) {
+            onError(error);
+        }
+    }, [error, onError]);
+
+    useEffect(() => {
+        if (loaded && onLoad) {
+            onLoad();
+        }
+    }, [loaded, onLoad]);
 
     useEffect(() => {
         if (scrollIndex >= 0 && pageSize > 0) {

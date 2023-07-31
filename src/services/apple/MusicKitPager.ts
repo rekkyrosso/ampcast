@@ -11,11 +11,13 @@ import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import SequentialPager from 'services/pagers/SequentialPager';
+import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
+import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import pinStore from 'services/pins/pinStore';
 import {bestOf, getTextFromHtml, Logger, ParentOf} from 'utils';
-import {addInLibrary, addRatings} from './apple';
+import {addInLibrary, addRatings, isMusicKitBeta} from './apple';
 import {refreshToken} from './appleAuth';
 
 const logger = new Logger('MusicKitPager');
@@ -135,7 +137,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         } catch (err: any) {
             const status = err?.data.status;
             if (status === 401 || status === 403) {
-                await refreshToken();
+                await refreshToken(); // this throws
                 // We'll never get here.
                 return musicKit.api.music(href, params);
             } else {
@@ -218,25 +220,6 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             genres: this.getGenres(item),
             pager: this.createArtistAlbumsPager(artist),
             apple: {catalogId},
-        };
-    }
-
-    private createArtistTopTracks(
-        artist: AppleMusicApi.Artist | LibraryArtist
-    ): SetRequired<MediaAlbum, 'apple'> {
-        const item = this.createFromLibrary<AppleMusicApi.Artist['attributes']>(artist);
-
-        return {
-            itemType: ItemType.Album,
-            src: `apple:top-tracks:${artist.id}`,
-            title: 'Top Tracks',
-            thumbnails: this.createThumbnails(item as any),
-            artist: item.name,
-            genres: this.getGenres(item),
-            pager: this.createTopTracksPager(artist),
-            synthetic: true,
-            inLibrary: false,
-            apple: {catalogId: ''},
         };
     }
 
@@ -343,6 +326,10 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         return item.relationships?.catalog?.data?.[0];
     }
 
+    private getGenres({genreNames = []}: {genreNames: string[]}): readonly string[] | undefined {
+        return genreNames.filter((name) => name !== 'Music');
+    }
+
     private createThumbnails({
         artwork,
     }: {
@@ -377,30 +364,88 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             return albumsPager;
         }
         const topTracks = this.createArtistTopTracks(artist);
-        const topTracksPager = new SimplePager([topTracks]);
-        return new WrappedPager(topTracksPager, albumsPager);
+        const supportsVideo = isMusicKitBeta();
+        let topPager: Pager<MediaAlbum>;
+        if (supportsVideo) {
+            const videos = this.createArtistVideos(artist);
+            topPager = new SimpleMediaPager<MediaAlbum>(async () => {
+                try {
+                    const items = await fetchFirstPage(videos.pager, {keepAlive: true});
+                    return items.length === 0 ? [topTracks] : [topTracks, videos];
+                } catch (err) {
+                    logger.error(err);
+                    return [topTracks];
+                }
+            });
+        } else {
+            topPager = new SimplePager<MediaAlbum>([topTracks]);
+        }
+        return new WrappedPager(topPager, albumsPager);
+    }
+
+    private createArtistTopTracks(
+        artist: AppleMusicApi.Artist | LibraryArtist
+    ): SetRequired<MediaAlbum, 'apple'> {
+        const item = this.createFromLibrary<AppleMusicApi.Artist['attributes']>(artist);
+
+        return {
+            itemType: ItemType.Album,
+            src: `apple:top-tracks:${artist.id}`,
+            title: 'Top Tracks',
+            thumbnails: this.createThumbnails(item as any),
+            artist: item.name,
+            genres: this.getGenres(item),
+            pager: this.createTopTracksPager(artist),
+            synthetic: true,
+            inLibrary: false,
+            apple: {catalogId: ''},
+        };
+    }
+
+    private createArtistVideos(artist: AppleMusicApi.Artist | LibraryArtist): MediaAlbum {
+        const item = this.createFromLibrary<AppleMusicApi.Artist['attributes']>(artist);
+
+        return {
+            itemType: ItemType.Album,
+            src: `apple:videos:${artist.id}`,
+            title: 'Music Videos',
+            thumbnails: this.createThumbnails(item as any),
+            artist: item.name,
+            genres: this.getGenres(item),
+            pager: this.createVideosPager(artist),
+            synthetic: true,
+            inLibrary: false,
+            apple: {catalogId: ''},
+        };
     }
 
     private createTopTracksPager(artist: AppleMusicApi.Artist | LibraryArtist): Pager<MediaItem> {
+        return this.createArtistViewPager(artist, 'top-songs');
+    }
+
+    private createVideosPager(artist: AppleMusicApi.Artist | LibraryArtist): Pager<MediaItem> {
+        return this.createArtistViewPager(artist, 'top-music-videos');
+    }
+
+    private createArtistViewPager(
+        artist: AppleMusicApi.Artist | LibraryArtist,
+        view: string,
+    ): Pager<MediaItem> {
         return new MusicKitPager(
             artist.href!,
             {
-                'limit[artists:top-songs]': '20',
-                views: 'top-songs',
+                [`limit[artists:${view}]`]: 30,
+                views: view,
             },
-            {maxSize: 10},
+            {maxSize: 100},
             undefined,
             (response: any) => {
-                const result = response.data[0]?.views?.['top-songs'] || response;
+                const result = response.data[0]?.views?.[view] || response;
                 const items = result.data || [];
                 const nextPageUrl = result.next;
                 const total = result.meta?.total;
                 return {items, total, nextPageUrl};
             }
         );
-    }
-
-    private getGenres({genreNames = []}: {genreNames: string[]}): readonly string[] | undefined {
-        return genreNames.filter((name) => name !== 'Music');
     }
 }

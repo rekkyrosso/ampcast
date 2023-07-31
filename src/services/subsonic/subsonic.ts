@@ -273,45 +273,47 @@ const subsonicFolders: MediaSource<MediaFolderItem> = {
 
         const sortByName = (a: {name: string}, b: {name: string}) => a.name.localeCompare(b.name);
 
-        root.pager = new SimpleMediaPager<MediaFolderItem>(() =>
-            subsonicSettings.libraries.map(({id, title}) => {
-                const rootFolder: Writable<SetOptional<MediaFolder, 'pager'>> = {
-                    itemType: ItemType.Folder,
-                    src: `subsonic:folder:${id}`,
-                    title: title,
-                    fileName: title,
-                    path: `/${title}`,
-                };
-                const parentFolder: MediaFolderItem = {
-                    ...(root as MediaFolder),
-                    fileName: '../',
-                };
-                const backPager = new SimplePager<MediaFolderItem>([parentFolder]);
-                const folderPager = new SubsonicPager<MediaFolderItem>(
-                    ItemType.Folder,
-                    async (): Promise<Page<Subsonic.Directory>> => {
-                        const indexes = await subsonicApi.getIndexes(id);
-                        return {
-                            items: indexes
-                                .map((index) =>
-                                    index.artist.map(
-                                        ({id, name}) =>
-                                            ({id, name, title: name} as Subsonic.Directory)
+        root.pager = new SimpleMediaPager<MediaFolderItem>(async () =>
+            subsonicSettings.libraries
+                .filter(({id}) => !!id)
+                .map(({id, title}) => {
+                    const rootFolder: Writable<SetOptional<MediaFolder, 'pager'>> = {
+                        itemType: ItemType.Folder,
+                        src: `subsonic:folder:${id}`,
+                        title: title,
+                        fileName: title,
+                        path: `/${title}`,
+                    };
+                    const parentFolder: MediaFolderItem = {
+                        ...(root as MediaFolder),
+                        fileName: '../',
+                    };
+                    const backPager = new SimplePager<MediaFolderItem>([parentFolder]);
+                    const folderPager = new SubsonicPager<MediaFolderItem>(
+                        ItemType.Folder,
+                        async (): Promise<Page<Subsonic.Directory>> => {
+                            const indexes = await subsonicApi.getIndexes(id);
+                            return {
+                                items: indexes
+                                    .map((index) =>
+                                        index.artist.map(
+                                            ({id, name}) =>
+                                                ({id, name, title: name} as Subsonic.Directory)
+                                        )
                                     )
-                                )
-                                .flat()
-                                .sort(sortByName),
-                            atEnd: true,
-                        };
-                    },
-                    undefined,
-                    rootFolder as MediaFolder
-                );
+                                    .flat()
+                                    .sort(sortByName),
+                                atEnd: true,
+                            };
+                        },
+                        undefined,
+                        rootFolder as MediaFolder
+                    );
 
-                rootFolder.pager = new WrappedPager<MediaFolderItem>(backPager, folderPager);
+                    rootFolder.pager = new WrappedPager<MediaFolderItem>(backPager, folderPager);
 
-                return rootFolder as MediaFolder;
-            })
+                    return rootFolder as MediaFolder;
+                })
         );
 
         return root.pager;
@@ -435,13 +437,18 @@ async function getFilters(
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     const itemType = item.itemType;
     const [, , id] = item.src.split(':');
-    if (itemType === ItemType.Album && item.description === undefined) {
-        const info = await subsonicApi.getAlbumInfo(id, item.subsonic?.isDir);
-        item = {
-            ...item,
-            description: getTextFromHtml(info.notes),
-            release_mbid: info.musicBrainzId,
-        };
+    if (itemType === ItemType.Album) {
+        if (item.synthetic) {
+            return item;
+        }
+        if (item.description === undefined) {
+            const info = await subsonicApi.getAlbumInfo(id, item.subsonic?.isDir);
+            item = {
+                ...item,
+                description: getTextFromHtml(info.notes),
+                release_mbid: info.musicBrainzId,
+            };
+        }
     } else if (itemType === ItemType.Artist && item.description === undefined) {
         const info = await subsonicApi.getArtistInfo(id);
         item = {

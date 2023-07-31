@@ -1,8 +1,10 @@
 import {useEffect, useState} from 'react';
+import MediaType from 'types/MediaType';
+import {getServiceFromSrc} from 'services/mediaServices';
 import {MediaSourceIconName} from 'components/Icon';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
-import MediaType from 'types/MediaType';
+import ServiceType from 'types/ServiceType';
 
 export default function useVideoSourceIcon(): MediaSourceIconName | '' {
     const media = useCurrentlyPlaying();
@@ -10,13 +12,16 @@ export default function useVideoSourceIcon(): MediaSourceIconName | '' {
     const [icon, setIcon] = useState<MediaSourceIconName | ''>('');
 
     useEffect(() => {
-        if (media?.src.startsWith('youtube:')) {
-            setIcon('youtube');
-        } else if (media?.src.startsWith('apple:') && media?.mediaType === MediaType.Video) {
-            setIcon('apple');
+        if (media?.mediaType === MediaType.Video) {
+            const service = getServiceFromSrc(media);
+            if (service?.serviceType === ServiceType.PublicMedia) {
+                setIcon(service.id === 'apple' ? 'apple-logo' : service.icon);
+            } else {
+                setIcon('');
+            }
         } else if (
             visualizer?.providerId === 'ambientvideo' &&
-            visualizer?.src.startsWith('youtube:')
+            visualizer.src.startsWith('youtube:')
         ) {
             setIcon('youtube');
         } else {

@@ -8,6 +8,7 @@ import Scrollable, {
 } from 'components/Scrollable';
 import useKeyboardBusy from 'hooks/useKeyboardBusy';
 import useOnResize from 'hooks/useOnResize';
+import usePrevious from 'hooks/usePrevious';
 import useExpandedNodeIds from './useExpandedNodeIds';
 import useVisibleNodeIds from './useVisibleNodeIds';
 import TreeViewNode from './TreeViewNode';
@@ -62,6 +63,8 @@ export default function TreeView<T>({
     const {expandedIds, toggle} = useExpandedNodeIds(roots, storageId);
     const visibleIds = useVisibleNodeIds(roots, expandedIds);
     const rowIndex = visibleIds.indexOf(selectedId);
+    const prevRowIndex = usePrevious(rowIndex) || 0;
+    const prevNodeId = visibleIds[prevRowIndex - 1];
     const [height, setHeight] = useState(0);
     const [rowHeight, setRowHeight] = useState(defaultRowHeight);
     const [scrollTop, setScrollTop] = useState(0);
@@ -70,6 +73,7 @@ export default function TreeView<T>({
     const selectedValue = getValue(roots, selectedId);
     const keyboardBusy = useKeyboardBusy(scrollKeys);
     const atEnd = rowIndex === 0 || rowIndex === size - 1;
+    const noSelection = rowIndex === -1;
     const busy = keyboardBusy && !atEnd;
     const [debouncedValue, setDebouncedValue] = useState<T>(() => selectedValue);
 
@@ -82,12 +86,11 @@ export default function TreeView<T>({
     }, [treeViewRef, focus]);
 
     useEffect(() => {
-        if (!hasSelectedNode(roots, selectedId)) {
-            const parentNode =
-                roots.find((root) => selectedId?.startsWith(`${root.id}/`)) || roots[0];
-            setSelectedId(parentNode?.id);
+        if (noSelection) {
+            const parentNodeId = getParentNodeId(roots, prevNodeId);
+            setSelectedId(parentNodeId);
         }
-    }, [roots, selectedId]);
+    }, [roots, noSelection, prevNodeId]);
 
     useEffect(() => {
         if (!selectedId && roots.length > 0) {
@@ -300,4 +303,18 @@ function getValue<T>(roots: TreeNode<T>[], id: string): T {
         return value;
     }, undefined);
     return value!;
+}
+
+function getParentNodeId<T>(roots: TreeNode<T>[], id: string): string {
+    return roots.reduce((value, node) => {
+        if (!value) {
+            if (node.children) {
+                if (node.children.find((child) => child.id === id)) {
+                    return node.id;
+                }
+                return getParentNodeId(node.children, id);
+            }
+        }
+        return value;
+    }, '');
 }

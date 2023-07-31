@@ -1,5 +1,9 @@
 node_modules
 www-dev
 www/*.zip
+www/*.js
+www/*.css
+www/lib/*
+!www/lib/dialog-polyfill.js.LICENSE.txt
 .idea
 .vscode

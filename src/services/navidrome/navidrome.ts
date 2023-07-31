@@ -314,9 +314,14 @@ async function getFilters(
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     const itemType = item.itemType;
     const [, , id] = item.src.split(':');
-    if (itemType === ItemType.Album && item.description === undefined) {
-        const info = await subsonicApi.getAlbumInfo(id, false, navidromeSettings);
-        item = {...item, description: getTextFromHtml(info.notes)};
+    if (itemType === ItemType.Album) {
+        if (item.synthetic) {
+            return item;
+        }
+        if (item.description === undefined) {
+            const info = await subsonicApi.getAlbumInfo(id, false, navidromeSettings);
+            item = {...item, description: getTextFromHtml(info.notes)};
+        }
     }
     if (!canStore(item) || item.inLibrary !== undefined) {
         return item;

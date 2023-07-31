@@ -8,6 +8,7 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
+import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import Pin from 'types/Pin';
 import PlayableItem from 'types/PlayableItem';
@@ -96,22 +97,22 @@ const tidalLibraryPlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
-// const tidalLibraryVideos: MediaSource<MediaItem> = {
-//     id: `${serviceId}/library-videos`,
-//     title: 'My Videos',
-//     icon: 'heart',
-//     itemType: ItemType.Media,
-//     mediaType: MediaType.Video,
-//     defaultHidden: true,
-//     layout: defaultLayout,
+const tidalLibraryVideos: MediaSource<MediaItem> = {
+    id: `${serviceId}/library-videos`,
+    title: 'My Videos',
+    icon: 'heart',
+    itemType: ItemType.Media,
+    mediaType: MediaType.Video,
+    defaultHidden: true,
+    layout: defaultLayout,
 
-//     search(): Pager<MediaItem> {
-//         return createLibraryPager(plexMediaType.MusicVideo);
-//     },
-// };
+    search(): Pager<MediaItem> {
+        return createLibraryPager(plexMediaType.MusicVideo);
+    },
+};
 
 const tidalMyMixes: MediaSource<MediaPlaylist> = {
-    id: 'tidal/my-mixes',
+    id: `${serviceId}/my-mixes`,
     title: 'Recommended',
     icon: 'playlist',
     itemType: ItemType.Playlist,
@@ -125,7 +126,7 @@ const tidalMyMixes: MediaSource<MediaPlaylist> = {
 };
 
 const tidalPlexPicks: MediaSource<MediaAlbum> = {
-    id: 'tidal/plex-picks',
+    id: `${serviceId}/plex-picks`,
     title: 'Plex Picks',
     icon: 'album',
     itemType: ItemType.Album,
@@ -137,7 +138,7 @@ const tidalPlexPicks: MediaSource<MediaAlbum> = {
 };
 
 const tidalNewPlaylists: MediaSource<MediaPlaylist> = {
-    id: 'tidal/new-playlists',
+    id: `${serviceId}/new-playlists`,
     title: 'New Playlists',
     icon: 'playlist',
     itemType: ItemType.Playlist,
@@ -168,7 +169,7 @@ const tidal: PublicMediaService = {
         tidalLibraryAlbums,
         tidalLibraryArtists,
         tidalLibraryPlaylists,
-        // tidalLibraryVideos,
+        tidalLibraryVideos,
         tidalMyMixes,
         tidalNewPlaylists,
         tidalPlexPicks,
@@ -220,7 +221,10 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     return {
         title: pin.title,
         itemType: ItemType.Playlist,
-        layout: playlistLayout,
+        layout: {
+            view: 'card',
+            fields: ['Thumbnail', 'IconTitle', 'TrackCount', 'Blurb'],
+        },
         id: pin.src,
         icon: 'pin',
         isPin: true,
@@ -237,7 +241,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     const itemType = item.itemType;
     if (
-        itemType === ItemType.Album ||
+        (itemType === ItemType.Album && !item.synthetic) ||
         itemType === ItemType.Artist ||
         itemType === ItemType.Playlist ||
         (canStore(item) && item.inLibrary === undefined)

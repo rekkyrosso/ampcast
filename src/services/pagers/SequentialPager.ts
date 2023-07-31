@@ -60,7 +60,7 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
 
     private observeShouldFetch(): Observable<void> {
         const shouldFetch$ = combineLatest([this.observeFetches(), this.observeItems()]).pipe(
-            map(([{index, length}, items]) => index + 2 * length >= items.length),
+            map(([{index, length}, items]) => index + length + 1 >= items.length),
             filter((shouldFetch) => shouldFetch),
             map(() => undefined),
             take(1)

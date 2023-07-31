@@ -23,6 +23,14 @@ const plexSettings = {
         return clientId;
     },
 
+    get drm(): string {
+        return storage.getString('drm', 'widevine');
+    },
+
+    set drm(drm: string) {
+        storage.setString('drm', drm);
+    },
+
     get connection(): plex.Connection | null {
         return storage.getJson('connection');
     },

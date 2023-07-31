@@ -348,7 +348,7 @@ const jellyfinFolders: MediaSource<MediaFolderItem> = {
             path: '',
         };
 
-        root.pager = new SimpleMediaPager<MediaFolderItem>(() =>
+        root.pager = new SimpleMediaPager<MediaFolderItem>(async () =>
             jellyfinSettings.libraries.map(({id, title}) => {
                 const library: Writable<SetOptional<MediaFolder, 'pager'>> = {
                     itemType: ItemType.Folder,
@@ -477,7 +477,10 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     return {
         title: pin.title,
         itemType: ItemType.Playlist,
-        layout: playlistLayout,
+        layout: {
+            view: 'card',
+            fields: ['Thumbnail', 'IconTitle', 'TrackCount', 'Genre'],
+        },
         id: pin.src,
         icon: 'pin',
         isPin: true,

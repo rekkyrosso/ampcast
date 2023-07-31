@@ -9,7 +9,7 @@ export default class HTML5Player implements Player<PlayableItem> {
     protected readonly logger: Logger;
     protected readonly element: HTMLMediaElement;
     protected readonly error$ = new Subject<unknown>();
-    private item: PlayableItem | null = null;
+    protected item: PlayableItem | null = null;
     autoplay = false;
 
     constructor(type: 'audio' | 'video', id: string) {
@@ -97,9 +97,7 @@ export default class HTML5Player implements Player<PlayableItem> {
         this.item = item;
         try {
             if (this.autoplay) {
-                const src = this.getMediaSrc(item);
-                this.element.setAttribute('src', src);
-                this.safePlay();
+                this.safePlay(item);
             }
         } catch (err) {
             this.error$.next(err);
@@ -109,11 +107,7 @@ export default class HTML5Player implements Player<PlayableItem> {
     play(): void {
         this.logger.log('play');
         try {
-            const src = this.getMediaSrc(this.item);
-            if (this.element.getAttribute('src') !== src) {
-                this.element.setAttribute('src', src);
-            }
-            this.safePlay();
+            this.safePlay(this.item);
         } catch (err) {
             this.error$.next(err);
         }
@@ -139,7 +133,11 @@ export default class HTML5Player implements Player<PlayableItem> {
         this.element.style.height = `${height}px`;
     }
 
-    private getMediaSrc(item: PlayableItem | null): string {
+    protected get type(): string {
+        return this.element.nodeName.toLocaleLowerCase();
+    }
+
+    protected getMediaSrc(item: PlayableItem): string {
         if (item) {
             const service = getServiceFromSrc(item);
             const src = service?.getPlayableUrl?.(item) ?? item.src;
@@ -149,7 +147,14 @@ export default class HTML5Player implements Player<PlayableItem> {
         }
     }
 
-    private async safePlay(): Promise<void> {
+    protected async safePlay(item: PlayableItem | null): Promise<void> {
+        if (!item) {
+            throw Error('Player not loaded');
+        }
+        const src = this.getMediaSrc(item);
+        if (this.element.getAttribute('src') !== src) {
+            this.element.setAttribute('src', src);
+        }
         try {
             await this.element.play();
         } catch (err) {

@@ -165,7 +165,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             title: episode.name,
             duration: episode.duration_ms / 1000,
             thumbnails: episode.images as Thumbnail[],
-            unplayable: episode.is_playable === false,
+            unplayable: episode.is_playable === false ? true : undefined,
             playedAt: episode.played_at
                 ? Math.floor((new Date(episode.played_at).getTime() || 0) / 1000)
                 : 0,
@@ -197,18 +197,6 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             genres: artist.genres,
             thumbnails: artist.images as Thumbnail[],
             pager: this.createArtistAlbumsPager(artist),
-        };
-    }
-
-    private createArtistTopTracks(artist: SpotifyArtist): MediaAlbum {
-        return {
-            itemType: ItemType.Album,
-            src: `spotify:top-tracks:${artist.id}`,
-            title: 'Top Tracks',
-            artist: artist.name,
-            thumbnails: artist.images as Thumbnail[],
-            pager: this.createTopTracksPager(artist),
-            synthetic: true,
         };
     }
 
@@ -266,7 +254,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                 : undefined,
             isrc: track.external_ids?.isrc,
             thumbnails: track.album?.images as Thumbnail[],
-            unplayable: track.is_playable === false,
+            unplayable: track.is_playable === false ? true : undefined,
             inLibrary,
         };
     }
@@ -289,6 +277,18 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         return new WrappedPager(topTracksPager, albumsPager);
     }
 
+    private createArtistTopTracks(artist: SpotifyArtist): MediaAlbum {
+        return {
+            itemType: ItemType.Album,
+            src: `spotify:top-tracks:${artist.id}`,
+            title: 'Top Tracks',
+            artist: artist.name,
+            thumbnails: artist.images as Thumbnail[],
+            pager: this.createTopTracksPager(artist),
+            synthetic: true,
+        };
+    }
+
     private createTopTracksPager(artist: SpotifyArtist): Pager<MediaItem> {
         const market = this.getMarket();
         return new SpotifyPager(
@@ -300,14 +300,14 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                 });
                 return {items: tracks as SpotifyTrack[], next: ''};
             },
-            {pageSize: 10, maxSize: 10}
+            {pageSize: 30, maxSize: 100}
         );
     }
 
     private createAlbumPager(album: SpotifyAlbum): Pager<MediaItem> {
         const tracks = album.tracks?.items;
         if (tracks && tracks.length === album.total_tracks) {
-            return new SimpleMediaPager(() => {
+            return new SimpleMediaPager(async () => {
                 const items = tracks.map((track) =>
                     this.createMediaItemFromTrack({
                         ...track,
@@ -340,7 +340,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
     private createPlaylistPager(playlist: SpotifyPlaylist): Pager<MediaItem> {
         const tracks = playlist.tracks?.items;
         if (tracks && tracks.length === playlist.tracks.total) {
-            return new SimpleMediaPager(() => {
+            return new SimpleMediaPager(async () => {
                 const items = tracks
                     .filter((item) => !!item.track)
                     .map((item) => this.createMediaItemFromTrack(item.track as SpotifyTrack));

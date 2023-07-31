@@ -1,6 +1,6 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, filter, mergeMap, tap} from 'rxjs';
-import {exists, Logger} from 'utils';
+import {exists, getSupportedDrm, Logger} from 'utils';
 import plexSettings from './plexSettings';
 import plexApi, {musicProviderHost} from './plexApi';
 
@@ -209,10 +209,19 @@ setUserToken(plexSettings.userToken);
 observeUserToken()
     .pipe(
         filter((token) => !!token),
-        mergeMap(() => Promise.all([getMusicLibraries(), checkTidalSubscription()])),
+        mergeMap(() => Promise.all([getDrm(), getMusicLibraries(), checkTidalSubscription()])),
         tap(() => isLoggedIn$.next(true))
     )
     .subscribe(logger);
+
+async function getDrm(): Promise<void> {
+    try {
+        const drm = await getSupportedDrm();
+        plexSettings.drm = drm;
+    } catch (err) {
+        logger.error(err);
+    }
+}
 
 async function getMusicLibraries(): Promise<void> {
     try {

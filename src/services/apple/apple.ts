@@ -198,6 +198,10 @@ const apple: PublicMediaService = {
 
 export default apple;
 
+export function isMusicKitBeta(): boolean | undefined {
+    return window.MusicKit?.version.startsWith('3');
+}
+
 function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.src === b.src;
 }
@@ -262,6 +266,9 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     if (item.itemType === ItemType.Playlist && item.isOwn) {
+        return item;
+    }
+    if (item.itemType === ItemType.Album && item.synthetic) {
         return item;
     }
     let result: Writable<T> = item;
@@ -399,7 +406,7 @@ function createSearchPager<T extends MediaObject>(
         }
         const type = params.types;
         return new MusicKitPager(
-            `/v1/catalog/{{storefrontId}}/search`,
+            '/v1/catalog/{{storefrontId}}/search',
             params,
             {maxSize: 250, pageSize: 25, ...options},
             undefined,

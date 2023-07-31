@@ -7,6 +7,8 @@ import {
     filter,
     map,
     of,
+    startWith,
+    take,
     tap,
 } from 'rxjs';
 import MediaObject from 'types/MediaObject';
@@ -46,7 +48,7 @@ export default class WrappedPager<T extends MediaObject> implements Pager<T> {
 
     observeSize(): Observable<number> {
         return combineLatest([
-            this.headerPager?.observeSize() || of(0),
+            this.observeHeaderSize(),
             this.bodyPager.observeSize(),
             this.footerPager?.observeSize() || of(0),
             this.observeComplete(),
@@ -87,8 +89,19 @@ export default class WrappedPager<T extends MediaObject> implements Pager<T> {
         if (!this.subscriptions) {
             this.subscriptions = new Subscription();
 
+            if (this.headerPager) {
+                this.subscriptions.add(
+                    this.observeFetches()
+                        .pipe(
+                            take(1),
+                            tap(({index, length}) => this.headerPager!.fetchAt(index, length))
+                        )
+                        .subscribe(logger)
+                );
+            }
+
             this.subscriptions.add(
-                combineLatest([this.headerPager?.observeSize() || of(0), this.observeFetches()])
+                combineLatest([this.observeHeaderSize(), this.observeFetches()])
                     .pipe(
                         tap(([headerSize, fetch]) =>
                             this.bodyPager.fetchAt(
@@ -113,11 +126,22 @@ export default class WrappedPager<T extends MediaObject> implements Pager<T> {
     private observeComplete(): Observable<boolean> {
         return combineLatest([this.bodyPager.observeItems(), this.bodyPager.observeSize()]).pipe(
             map(([items, size]) => items.reduce((total) => (total += 1), 0) === size),
+            startWith(false),
             distinctUntilChanged()
         );
     }
 
     private observeFetches(): Observable<PageFetch> {
         return this.fetches$.pipe(filter((fetch) => fetch.length > 0));
+    }
+
+    private observeHeaderSize(): Observable<number> {
+        return (
+            this.headerPager?.observeSize().pipe(
+                startWith(0),
+                map((size) => size || 0),
+                distinctUntilChanged()
+            ) || of(0)
+        );
     }
 }

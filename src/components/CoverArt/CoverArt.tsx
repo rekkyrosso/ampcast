@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {from} from 'rxjs';
 import ItemType from 'types/ItemType';
+import MediaAlbum from 'types/MediaAlbum';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import Thumbnail from 'types/Thumbnail';
@@ -22,7 +23,8 @@ export default function CoverArt({item, size, className = ''}: CoverArtProps) {
     const hasThumbnails = !!thumbnails?.length;
     const thumbnail = hasThumbnails ? findBestThumbnail(thumbnails, size) : undefined;
     const src = thumbnail ? getThumbnailUrl(thumbnail) : '';
-    const fallback = getFallbackIcon(item);
+    const fallbackIcon = getFallbackIcon(item);
+    const overlayIcon = item.itemType === ItemType.Album && getOverlayIcon(item);
 
     useEffect(() => setThumbnails(item.thumbnails), [item.thumbnails]);
 
@@ -43,16 +45,26 @@ export default function CoverArt({item, size, className = ''}: CoverArtProps) {
     const handleError = useCallback(() => setInError(true), []);
 
     return (
-        <figure className={`cover-art ${className}`} key={item.src}>
+        <figure
+            className={`cover-art ${className} ${overlayIcon ? 'cover-art-' + overlayIcon : ''}`}
+            key={item.src}
+        >
             {src && !inError ? (
-                <img
-                    className="cover-art-image"
-                    src={src}
-                    alt={`${item.title}: Cover art`}
-                    onError={handleError}
-                />
-            ) : fallback ? (
-                <Icon className="cover-art-image" name={fallback} />
+                <>
+                    <img
+                        className="cover-art-image"
+                        src={src}
+                        alt={`${item.title}: Cover art`}
+                        onError={handleError}
+                    />
+                    {overlayIcon ? (
+                        <div className="cover-art-icon-overlay">
+                            <Icon className="cover-art-icon" name={overlayIcon} />
+                        </div>
+                    ) : null}
+                </>
+            ) : fallbackIcon ? (
+                <Icon className="cover-art-image" name={fallbackIcon} />
             ) : null}
         </figure>
     );
@@ -86,8 +98,10 @@ function getFallbackIcon(item: MediaObject): IconName {
         case ItemType.Artist:
             return 'artist';
 
-        case ItemType.Album:
-            return 'album';
+        case ItemType.Album: {
+            const icon = getOverlayIcon(item);
+            return icon && icon !== 'audio' ? icon : 'album';
+        }
 
         case ItemType.Media:
             if (item.mediaType === MediaType.Video) {
@@ -101,6 +115,23 @@ function getFallbackIcon(item: MediaObject): IconName {
 
         case ItemType.Folder:
             return 'folder';
+    }
+}
+
+function getOverlayIcon(item: MediaAlbum): IconName | '' {
+    if (!item.synthetic) {
+        return '';
+    }
+    const [, type] = item.src.split(':');
+    switch (type) {
+        case 'top-tracks':
+            return 'star';
+
+        case 'videos':
+            return 'video';
+
+        default:
+            return 'audio';
     }
 }
 
