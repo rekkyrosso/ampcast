@@ -17,7 +17,7 @@ export interface ActionsProps {
     inline?: boolean;
 }
 
-export const actionIcons: Record<LibraryAction, IconName> = {
+const defaultActionIcons: Record<LibraryAction, IconName> = {
     [Action.AddToLibrary]: 'heart',
     [Action.RemoveFromLibrary]: 'heart-fill',
     [Action.Rate]: 'star',
@@ -25,7 +25,7 @@ export const actionIcons: Record<LibraryAction, IconName> = {
     [Action.Unlike]: 'heart-fill',
 };
 
-export const actionLabels: Record<LibraryAction, string> = {
+const defaultActionLabels: Record<LibraryAction, string> = {
     [Action.AddToLibrary]: 'Add to library',
     [Action.RemoveFromLibrary]: 'Remove from library',
     [Action.Rate]: 'Rate',
@@ -152,9 +152,9 @@ export default function Actions({item, inline}: ActionsProps) {
 }
 
 export function getIconForAction(service: MediaService, action: LibraryAction): IconName {
-    return service.icons?.[action] || actionIcons[action];
+    return service.icons?.[action] || defaultActionIcons[action];
 }
 
 export function getLabelForAction(service: MediaService, action: LibraryAction): string {
-    return service.labels?.[action] || actionLabels[action];
+    return service.labels?.[action] || defaultActionLabels[action];
 }

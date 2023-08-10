@@ -21,6 +21,7 @@ export type Field =
     | 'Year'
     | 'Genre'
     | 'Owner'
+    | 'AddedAt'
     | 'LastPlayed'
     | 'ListenDate'
     | 'Thumbnail'

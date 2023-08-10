@@ -1,6 +1,6 @@
 {
     "name": "ampcast",
-    "version": "0.8.24",
+    "version": "0.8.25",
     "description": "Ampcast music player",
     "homepage": "https://ampcast.app",
     "author": {
@@ -12,6 +12,7 @@
         "test": "echo \"Error: no test specified\" && exit 1",
         "build:dev": "webpack --env=mode=development",
         "build:prod": "webpack --env=mode=production",
+        "build:electron": "webpack --env=mode=electron",
         "start:dev": "node server.js",
         "start:prod": "node server.js --prod"
     },

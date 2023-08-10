@@ -152,11 +152,7 @@ class MainTheme implements CurrentTheme {
                 .lighten(20)
                 .toHexString();
         } else {
-            return new TinyColor(this.frameColor)
-                .triad()[2]
-                .saturate(33)
-                .darken(50)
-                .toHexString();
+            return new TinyColor(this.frameColor).triad()[2].saturate(33).darken(50).toHexString();
         }
     }
 
@@ -167,6 +163,9 @@ class MainTheme implements CurrentTheme {
     set fontSize(fontSize: number) {
         this.rootStyle.setProperty('--font-size', String(fontSize));
         this.createPlayheadSmiley();
+        if (__electron__) {
+            window.ampcastElectron?.setFontSize(fontSize);
+        }
     }
 
     get frameColor(): string {
@@ -177,6 +176,17 @@ class MainTheme implements CurrentTheme {
         this.setColor('frameColor', color);
         this.buttonColor = this.current.buttonColor;
         this.mediaButtonColor = this.current.mediaButtonColor;
+        if (__electron__) {
+            window.ampcastElectron?.setFrameColor(color);
+        } else {
+            let themeColorMeta = document.head.querySelector('meta[name="theme-color"]');
+            if (!themeColorMeta) {
+                themeColorMeta = document.createElement('meta');
+                themeColorMeta.setAttribute('name', 'theme-color');
+                document.head.append(themeColorMeta);
+            }
+            themeColorMeta.setAttribute('content', color);
+        }
     }
 
     get frameTextColor(): string {
@@ -186,6 +196,9 @@ class MainTheme implements CurrentTheme {
     set frameTextColor(color: string) {
         this.setColor('frameTextColor', color);
         this.buttonTextColor = this.current.buttonTextColor;
+        if (__electron__) {
+            window.ampcastElectron?.setFrameTextColor(color);
+        }
     }
 
     get mediaButtonColor(): string {
@@ -363,6 +376,9 @@ class MainTheme implements CurrentTheme {
         Object.assign(this, values);
         this.applyingUpdate = false;
         this.theme$.next(this.current);
+        if (__electron__) {
+            window.ampcastElectron?.setTheme(this.current);
+        }
     }
 
     private applyAppStyles(): void {

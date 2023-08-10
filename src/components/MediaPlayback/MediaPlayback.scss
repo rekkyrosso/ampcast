@@ -1,5 +1,14 @@
 .media-playback {
     .panel.playback {
+        top: calc(var(--gutter-width) / 2);
         bottom: 0;
+
+        @media (display-mode: window-controls-overlay) {
+            top: max(1.5rem, 32px);
+        }
+
+        .electron & {
+            top: 1.5rem;
+        }
     }
 }

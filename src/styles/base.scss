@@ -52,6 +52,7 @@ a:any-link {
 
 small {
     font-style: italic;
+    font-size: 0.75em;
 
     p > &:only-child {
         display: block;
@@ -119,7 +120,7 @@ small {
 
 #system {
     contain: layout style size;
-    font-size: calc(min(max(var(--font-size), 12), 20) * 1px);
+    font-size: min(max(calc(var(--font-size) * 1px), 12px), 22px, 3vh);
 }
 
 body.dragging {
@@ -136,7 +137,12 @@ body.dragging {
     margin: 1em 0;
     background-color: rgba(64, 128, 128, 0.1);
     border: 1px solid var(--grey2-color);
-    border-radius: 0.25em;
+    border-radius: var(--app-border-radius);
+
+    .system & {
+        border-radius: 0.25em;
+        font-size: 0.75em;
+    }
 
     .light & {
         background-color: rgba(255, 255, 0, 0.25);

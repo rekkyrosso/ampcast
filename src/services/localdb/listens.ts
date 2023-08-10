@@ -44,19 +44,16 @@ export async function addListen(state: PlaybackState): Promise<void> {
         if (!item || !state.startedAt || !state.endedAt) {
             throw Error('Invalid playback state');
         }
-        // These rules seem to apply for both last.fm and ListenBrainz.
-        if (item.title && item.artists?.[0] && item.duration > 30) {
-            if (isListenedTo(item.duration, state.startedAt, state.endedAt)) {
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const {id, lookupStatus, ...listen} = item;
-                logger.log('add', {listen});
-                await store.items.add({
-                    ...listen,
-                    playedAt: Math.floor(state.startedAt / 1000),
-                    lastfmScrobbledAt: 0,
-                    listenbrainzScrobbledAt: 0,
-                });
-            }
+        if (isListenedTo(item.duration, state.startedAt, state.endedAt)) {
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const {id, lookupStatus, ...listen} = item;
+            logger.log('add', {listen});
+            await store.items.add({
+                ...listen,
+                playedAt: Math.floor(state.startedAt / 1000),
+                lastfmScrobbledAt: 0,
+                listenbrainzScrobbledAt: 0,
+            });
         }
     } catch (err) {
         logger.error(err);
@@ -90,7 +87,7 @@ export function findScrobble(
             return undefined;
         }
         if (item.playedAt > startTime && item.playedAt < endTime) {
-            if (matchTitle(listen, item, 0.75)) {
+            if (matchTitle(listen, item, 0.5)) {
                 return item;
             }
         }
@@ -141,7 +138,7 @@ function findListenByUniqueId(listens: readonly Listen[], item: MediaItem): List
     );
 }
 
-function getListens(): readonly Listen[] {
+export function getListens(): readonly Listen[] {
     return listens$.getValue();
 }
 

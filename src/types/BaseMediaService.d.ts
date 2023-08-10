@@ -19,8 +19,8 @@ type BaseMediaService = Auth & {
     readonly url: string;
     readonly roots: readonly MediaSource<MediaObject>[];
     readonly sources: readonly MediaSource<MediaObject>[];
-    readonly defaultHidden?: boolean; // `true` for all services
-    readonly authServiceId?: MediaServiceId;
+    readonly defaultHidden?: boolean; // `true` for most services
+    readonly authServiceId?: MediaServiceId; // id of a different `MediaService` for `Auth`
     readonly defaultNoScrobble?: boolean;
     readonly icons?: Partial<Record<LibraryAction, IconName>>;
     readonly labels?: Partial<Record<LibraryAction, string>>;

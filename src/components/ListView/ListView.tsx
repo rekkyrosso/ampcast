@@ -275,10 +275,12 @@ export default function ListView<T>({
                     break;
 
                 case 'KeyI':
-                    event.stopPropagation();
-                    event.preventDefault();
-                    if (event[browser.ctrlKey] && !event.shiftKey && !event.repeat) {
-                        onInfo?.(selectedItems);
+                    if (event[browser.ctrlKey] && !event.shiftKey) {
+                        event.preventDefault();
+                        event.stopPropagation();
+                        if (!event.repeat) {
+                            onInfo?.(selectedItems);
+                        }
                         break;
                     }
                     break;

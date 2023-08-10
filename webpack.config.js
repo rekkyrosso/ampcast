@@ -7,26 +7,33 @@ const prodKeys = require('../credentials/keys-prod.json');
 const packageJson = require('./package.json');
 
 module.exports = (env) => {
-    const mode = env.mode || 'production';
+    const mode = env.mode === 'electron' ? 'production' : env.mode || 'production';
     const __dev__ = mode === 'development';
-    const wwwDir = resolve(__dirname, __dev__ ? 'www-dev' : 'www');
-    const keys = __dev__ ? devKeys : prodKeys;
+    const __electron__ = env.mode === 'electron';
+    const wwwDir = resolve(__dirname, __dev__ ? 'www-dev' : __electron__ ? 'www-electron' : 'www');
+    const keys = env.mode === 'production' ? prodKeys : devKeys; // fix electron later
 
     return {
         entry: {
             'lib/butterchurn': 'butterchurn',
             'lib/unidecode': 'unidecode',
             'lib/vendors': [
+                '@ctrl/tinycolor',
                 'audiomotion-analyzer',
+                'd3-array',
+                'd3-interpolate',
+                'd3-scale',
                 'detect-browser',
                 'dexie',
                 'libs/dialog-polyfill',
                 'fullscreen-api-polyfill',
+                'jsfft',
                 'md5',
                 'react',
                 'react-dom',
                 'react-error-boundary',
                 'spotify-web-api-js',
+                'string-score',
                 'youtube-player',
             ],
             bundle: {
@@ -84,6 +91,7 @@ module.exports = (env) => {
             }),
             new webpack.DefinePlugin({
                 __dev__,
+                __electron__,
                 __app_name__: JSON.stringify(packageJson.name),
                 __app_version__: JSON.stringify(packageJson.version),
                 __app_contact__: JSON.stringify(packageJson.author.email),

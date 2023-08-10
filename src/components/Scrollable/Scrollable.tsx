@@ -7,15 +7,15 @@ import Scrollbar, {ScrollbarHandle} from './Scrollbar';
 import './Scrollable.scss';
 
 export interface ScrollablePosition {
-    left: number;
-    top: number;
+    readonly left: number;
+    readonly top: number;
 }
 
 export interface ScrollableClient {
-    clientWidth: number;
-    clientHeight: number;
-    scrollWidth: number;
-    scrollHeight: number;
+    readonly clientWidth: number;
+    readonly clientHeight: number;
+    readonly scrollWidth: number;
+    readonly scrollHeight: number;
 }
 
 export interface ScrollableHandle {
@@ -208,7 +208,7 @@ export default function Scrollable({
                 }}
                 ref={contentRef}
             >
-                {head ? (
+                {head?.length ? (
                     <div className="scrollable-head" ref={headRef}>
                         {head}
                     </div>

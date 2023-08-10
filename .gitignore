@@ -1,9 +1,10 @@
 node_modules
+builds
 www-dev
+www-electron
 www/*.zip
 www/*.js
 www/*.css
 www/lib/*
 !www/lib/dialog-polyfill.js.LICENSE.txt
 .idea
-.vscode

@@ -146,7 +146,8 @@
         .duration,
         .track-count,
         .play-count,
-        .played-at {
+        .played-at,
+        .added-at {
             left: auto;
             top: 0.375em;
             right: 0.375em;
@@ -165,7 +166,8 @@
             }
         }
 
-        .played-at {
+        .played-at,
+        .added-at {
             color: var(--grey2-color);
             background-color: transparent;
             font-style: italic;
@@ -353,7 +355,8 @@
                 .duration,
                 .track-count,
                 .play-count,
-                .played-at {
+                .played-at,
+                .added-at {
                     top: calc(0.5em + 1px);
                     color: var(--soft-white) !important;
                     background-color: rgba(0, 0, 0, 0.75);
@@ -367,7 +370,8 @@
                     border-top-left-radius: 0;
                 }
 
-                .played-at {
+                .played-at,
+                .added-at {
                     right: auto;
                     left: calc(0.5em + 1px);
                     width: calc(5em - 2px);
@@ -389,7 +393,8 @@
                 .duration,
                 .track-count,
                 .play-count,
-                .played-at {
+                .played-at,
+                .added-at {
                     right: calc(100% - 4.125em + 1px);
                     top: calc(0.375em + 1px);
                 }

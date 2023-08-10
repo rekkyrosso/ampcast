@@ -9,7 +9,10 @@ import Pager from 'types/Pager';
 import Pin from 'types/Pin';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
+import {getListens} from 'services/localdb/listens';
+import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
+import {uniqBy} from 'utils';
 import {observeIsLoggedIn, isLoggedIn, login, logout} from './youtubeAuth';
 import YouTubePager from './YouTubePager';
 
@@ -36,6 +39,28 @@ const youtubeLikes: MediaSource<MediaItem> = {
             part: 'snippet,contentDetails,statistics',
             fields: YouTubePager.videoFields,
         });
+    },
+};
+
+const youtubeRecentlyPlayed: MediaSource<MediaItem> = {
+    id: 'youtube/recently-played',
+    title: 'Recently Played',
+    icon: 'clock',
+    itemType: ItemType.Media,
+    mediaType: MediaType.Video,
+    defaultHidden: true,
+    layout: {
+        view: 'card',
+        fields: ['Thumbnail', 'Title', 'Owner', 'LastPlayed'],
+    },
+
+    search(): Pager<MediaItem> {
+        return new SimpleMediaPager(async () =>
+            uniqBy(
+                getListens().filter((item) => item.src.startsWith('youtube:')),
+                'src'
+            )
+        );
     },
 };
 
@@ -160,7 +185,7 @@ const youtube: PublicMediaService = {
             },
         } as MediaSource<MediaItem>,
     ],
-    sources: [youtubeLikes, youtubePlaylists],
+    sources: [youtubeLikes, youtubeRecentlyPlayed, youtubePlaylists],
     canRate: () => false,
     canStore: () => false,
     compareForRating: () => false,

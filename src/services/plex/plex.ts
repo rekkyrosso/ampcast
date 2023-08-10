@@ -52,6 +52,29 @@ const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Index', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount', 'Rate'],
 };
 
+const plexRecentlyAdded: MediaSource<MediaItem> = {
+    id: 'plex/recently-added',
+    title: 'Recently Added',
+    icon: 'recently-added',
+    itemType: ItemType.Media,
+    defaultHidden: true,
+    layout: {
+        view: 'card',
+        fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'AddedAt'],
+    },
+
+    search(): Pager<MediaItem> {
+        return new PlexPager({
+            path: getMusicLibraryPath(),
+            params: {
+                type: plexMediaType.Track,
+                'album.addedAt>>': '-6mon',
+                sort: 'album.addedAt:desc',
+            },
+        });
+    },
+};
+
 const plexRecentlyPlayed: MediaSource<MediaItem> = {
     id: 'plex/recently-played',
     title: 'Recently Played',
@@ -383,6 +406,7 @@ const plex: PersonalMediaService = {
         plexTopAlbums,
         plexTopArtists,
         plexMostPlayed,
+        plexRecentlyAdded,
         plexRecentlyPlayed,
         plexPlaylists,
         plexAlbumsByGenre,

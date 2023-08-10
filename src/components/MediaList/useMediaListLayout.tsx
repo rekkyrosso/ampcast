@@ -135,6 +135,19 @@ export const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
     );
 };
 
+export const AddedAt: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
+    if (!item.addedAt) {
+        return null;
+    }
+    const date = new Date(item.addedAt * 1000);
+    const elapsedTime = getElapsedTimeText(date.valueOf());
+    return (
+        <time className="text added-at" title={date.toLocaleDateString()}>
+            {elapsedTime}
+        </time>
+    );
+};
+
 export const ListenDate: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
     if (!item.playedAt) {
         return '';
@@ -221,6 +234,7 @@ const mediaFields: MediaFields<any> = {
     Views: {title: 'Views', render: Views, className: 'views'},
     Genre: {title: 'Genre', render: Genre, className: 'genre'},
     Owner: {title: 'Owner', render: Owner, className: 'owner'},
+    AddedAt: {title: 'Date Added', render: AddedAt, className: 'added-at'},
     LastPlayed: {title: 'Last played', render: LastPlayed, className: 'played-at'},
     ListenDate: {title: 'Played On', render: ListenDate, className: 'played-at listen-date'},
     Thumbnail: {title: 'Thumbnail', render: Thumbnail, className: 'thumbnail'},

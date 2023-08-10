@@ -8,19 +8,48 @@
         flex-direction: row;
         flex: initial;
         align-items: center;
-        margin: var(--gutter-width) 0 0 var(--gutter-width);
+        margin-top: calc(var(--gutter-width) / 2);
+
+        @mixin chromeless {
+            margin-top: 0;
+            user-select: none;
+        }
+
+        @media (display-mode: window-controls-overlay) {
+            @include chromeless;
+        }
+
+        .electron & {
+            @include chromeless;
+        }
 
         .icon-button {
             flex: initial;
             margin: 0 calc(var(--gutter-width) + 0.25rem) 0 auto;
             outline-offset: 3px;
+            -webkit-app-region: no-drag;
         }
     }
 
     &-title {
+        margin-left: var(--gutter-width);
+
+        @mixin chromeless {
+            margin-left: 0.5em;
+            margin-top: 0.25em;
+        }
+
+        @media (display-mode: window-controls-overlay) {
+            @include chromeless;
+        }
+
+        .electron & {
+            @include chromeless;
+        }
+
         .app {
             &-icon {
-                margin-right: 0.125em;
+                margin-right: 0.25em;
             }
 
             &-version {

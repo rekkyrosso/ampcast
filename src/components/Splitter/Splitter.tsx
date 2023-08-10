@@ -1,8 +1,8 @@
-import React, {Children, useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
-import layoutSettings from 'services/layoutSettings';
+import React, {Children, useCallback, useEffect, useRef, useState} from 'react';
 import useFontSize from 'hooks/useFontSize';
 import useOnResize from 'hooks/useOnResize';
 import LayoutPane from './LayoutPane';
+import useSplitterState from './useSplitterState';
 import './Splitter.scss';
 
 export interface SplitterProps {
@@ -12,11 +12,6 @@ export interface SplitterProps {
     children: React.ReactNode;
 }
 
-interface Rect {
-    width: number;
-    height: number;
-}
-
 export default function Splitter({
     id,
     arrange = 'columns',
@@ -24,13 +19,8 @@ export default function Splitter({
     children,
 }: SplitterProps) {
     const containerRef = useRef<HTMLDivElement>(null);
-    const [containerRect, setContainerRect] = useState<Rect>({width: 0, height: 0});
-    const [primaryMinSize, setPrimaryMinSize] = useState(0);
-    const [secondaryMinSize, setSecondaryMinSize] = useState(0);
-    const [splitterSize, setSplitterSize] = useState(0);
-    const [secondaryPaneSize, setSecondaryPaneSize] = useState(() =>
-        id ? layoutSettings.get(id) : 0
-    );
+    const {secondaryPaneSize, setContainerSize, setSecondaryPaneSize, setMinSizes} =
+        useSplitterState(id);
     const [dragStartPos, setDragStartPos] = useState(-1);
     const [dragStartSize, setDragStartSize] = useState(0);
     const dragging = dragStartPos !== -1;
@@ -38,64 +28,34 @@ export default function Splitter({
     const vertical = arrange === 'rows';
 
     useEffect(() => {
-        if (id) {
-            layoutSettings.set(id, Math.max(secondaryPaneSize, secondaryMinSize));
-        }
-    }, [id, secondaryPaneSize, secondaryMinSize]);
-
-    useEffect(() => {
         if (fontSize > 0) {
+            let primaryMinSize = 0;
+            let secondaryMinSize = 0;
+            let splitterSize = 0;
             const container = containerRef.current!;
             const minSize: keyof CSSStyleDeclaration = vertical ? 'minHeight' : 'minWidth';
             const primaryPane = container.querySelector(
                 ':scope > .layout-pane-primary'
             ) as HTMLElement;
             if (primaryPane) {
-                primaryPane.style[minSize] = '';
-                const primaryMinSize = parseInt(getComputedStyle(primaryPane)[minSize], 10);
-                primaryPane.style[minSize] = 'unset';
-                setPrimaryMinSize(primaryMinSize || 80);
+                primaryMinSize = parseInt(getComputedStyle(primaryPane)[minSize], 10) || 0;
             }
             const secondaryPane = container.querySelector(
                 ':scope > .layout-pane-secondary'
             ) as HTMLElement;
             if (secondaryPane) {
                 secondaryPane.style[minSize] = '';
-                const secondaryMinSize = parseInt(getComputedStyle(secondaryPane)[minSize], 10);
+                secondaryMinSize = parseInt(getComputedStyle(secondaryPane)[minSize], 10) || 0;
                 secondaryPane.style[minSize] = 'unset';
-                setSecondaryMinSize(secondaryMinSize || 80);
                 const clientSize: keyof HTMLElement = vertical ? 'offsetHeight' : 'offsetWidth';
                 const splitter = container.querySelector(
                     ':scope > .layout-splitter'
                 ) as HTMLElement;
-                setSplitterSize(splitter?.[clientSize] ?? 4);
+                splitterSize = splitter?.[clientSize] ?? 4;
             }
+            setMinSizes(primaryMinSize, secondaryMinSize, splitterSize);
         }
-    }, [vertical, fontSize]);
-
-    // This effect clamps `secondaryPaneSize`.
-    useLayoutEffect(() => {
-        const containerSize = vertical ? containerRect.height : containerRect.width;
-        if (containerSize > 0) {
-            const primaryPaneSize = containerSize - splitterSize - secondaryPaneSize;
-            if (primaryPaneSize < primaryMinSize) {
-                setSecondaryPaneSize(
-                    Math.max(secondaryPaneSize - (primaryMinSize - primaryPaneSize), 0)
-                );
-            } else if (secondaryPaneSize < secondaryMinSize) {
-                setSecondaryPaneSize(
-                    Math.min(containerSize - splitterSize - primaryMinSize, secondaryMinSize)
-                );
-            }
-        }
-    }, [
-        vertical,
-        containerRect,
-        primaryMinSize,
-        secondaryMinSize,
-        splitterSize,
-        secondaryPaneSize,
-    ]);
+    }, [vertical, fontSize, setMinSizes]);
 
     const handleMouseDown = useCallback(
         (event: React.MouseEvent) => {
@@ -117,7 +77,7 @@ export default function Splitter({
                 primaryIndex === 0 ? dragStartSize - dragDistance : dragStartSize + dragDistance;
             setSecondaryPaneSize(size);
         },
-        [vertical, primaryIndex, dragStartPos, dragStartSize]
+        [vertical, primaryIndex, dragStartPos, dragStartSize, setSecondaryPaneSize]
     );
 
     const handleMouseUp = useCallback(() => {
@@ -142,10 +102,7 @@ export default function Splitter({
 
     useOnResize(containerRef, () => {
         const container = containerRef.current!;
-        setContainerRect({
-            width: container.clientWidth,
-            height: container.clientHeight,
-        });
+        setContainerSize(vertical ? container.clientHeight : container.clientWidth);
     });
 
     return (

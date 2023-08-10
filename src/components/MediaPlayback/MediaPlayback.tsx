@@ -2,6 +2,7 @@ import React, {memo, useCallback, useRef} from 'react';
 import PlaylistItem from 'types/PlaylistItem';
 import mediaPlayback, {eject} from 'services/mediaPlayback';
 import playlist from 'services/playlist';
+import AppDragRegion from 'components/App/AppDragRegion';
 import {ListViewHandle} from 'components/ListView';
 import Media from 'components/Media';
 import MediaControls from 'components/MediaControls';
@@ -32,6 +33,7 @@ export default memo(function MediaPlayback() {
 
     return (
         <div className={`media-playback ${paused ? 'paused' : ''}`}>
+            <AppDragRegion />
             <Splitter id="media-playback-layout" arrange="rows">
                 <div className="panel playback">
                     <MediaControls listViewRef={listViewRef} />

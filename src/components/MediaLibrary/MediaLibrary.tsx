@@ -4,6 +4,7 @@ import MediaSources from 'components/MediaSources';
 import {SettingsDialog} from 'components/Settings';
 import {showDialog} from 'components/Dialog';
 import Icon from 'components/Icon';
+import AppDragRegion from 'components/App/AppDragRegion';
 import IconButton from 'components/Button/IconButton';
 import EmptyScreen from 'components/EmptyScreen';
 import './MediaLibrary.scss';
@@ -22,10 +23,10 @@ export default memo(function MediaLibrary() {
                     <span className="app-name">
                         <Icon className="app-icon" name="ampcast" />
                         <span className="app-text">{__app_name__}</span>
-                    </span>
-                    {' '}
+                    </span>{' '}
                     <span className="app-version">{__app_version__}</span>
                 </h1>
+                <AppDragRegion />
                 <IconButton
                     icon="settings"
                     className="in-frame"
