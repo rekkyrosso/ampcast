@@ -36,6 +36,7 @@
             var(--frame2-color-lo)
             var(--frame2-color-hi);
         border-radius: calc(var(--roundness) * 1.5 * var(--layout-splitter-size));
+        -webkit-app-region: no-drag;
 
         &:hover {
             border: none;
