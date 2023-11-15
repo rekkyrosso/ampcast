@@ -21,7 +21,7 @@ import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import subsonicApi from 'services/subsonic/subsonicApi';
 import {bestOf, getTextFromHtml} from 'utils';
-import {observeIsLoggedIn, isLoggedIn, login, logout} from './navidromeAuth';
+import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './navidromeAuth';
 import NavidromePager from './NavidromePager';
 import navidromeSettings from './navidromeSettings';
 import navidromeApi from './navidromeApi';
@@ -265,6 +265,7 @@ const navidrome: PersonalMediaService = {
     lookup,
     store,
     observeIsLoggedIn,
+    isConnected,
     isLoggedIn,
     login,
     logout,

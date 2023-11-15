@@ -14,6 +14,10 @@ function observeAccessToken(): Observable<string> {
     return accessToken$.pipe(distinctUntilChanged());
 }
 
+export function isConnected(): boolean {
+    return !!navidromeSettings.token;
+}
+
 export function isLoggedIn(): boolean {
     return isLoggedIn$.getValue();
 }
@@ -51,17 +55,6 @@ function setAccessToken(token: string): void {
     accessToken$.next(token);
 }
 
-async function checkConnection(): Promise<boolean> {
-    try {
-        await navidromeApi.get('playlist', {_end: 1});
-        return true;
-    } catch (err) {
-        logger.error(err);
-        accessToken$.next(''); // Keep it in settings (it might be a temporary failure)
-        return false;
-    }
-}
-
 observeAccessToken()
     .pipe(
         filter((token) => token !== ''),
@@ -69,4 +62,19 @@ observeAccessToken()
     )
     .subscribe(isLoggedIn$);
 
-setAccessToken(navidromeSettings.token);
+async function checkConnection(): Promise<boolean> {
+    try {
+        await navidromeApi.get('playlist', {_end: 1});
+        return true;
+    } catch (err: any) {
+        if (err.status === 401) {
+            navidromeSettings.clear();
+        } else {
+            logger.error(err);
+        }
+        accessToken$.next('');
+        return false;
+    }
+}
+
+accessToken$.next(navidromeSettings.token);

@@ -1,11 +1,19 @@
-import type {BaseItemDto, BaseItemDtoQueryResult} from '@jellyfin/client-axios/dist/models';
+import type {
+    BaseItemDto,
+    BaseItemDtoQueryResult,
+    EndPointInfo,
+} from '@jellyfin/client-axios/dist/models';
 import {Primitive} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaFilter from 'types/MediaFilter';
+import MediaItem from 'types/MediaItem';
+import MediaType from 'types/MediaType';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
+import PlayableItem from 'types/PlayableItem';
+import PlaybackType from 'types/PlaybackType';
 import ViewType from 'types/ViewType';
+import {canPlayVideo, getContentType, groupBy} from 'utils';
 import embySettings, {EmbySettings} from './embySettings';
-import {groupBy} from 'utils';
 
 async function del(
     path: string,
@@ -15,7 +23,7 @@ async function del(
     await embyFetch(path, params, {method: 'DELETE'}, settings);
 }
 
-async function get<T extends BaseItemDtoQueryResult>(
+async function get<T = BaseItemDtoQueryResult>(
     path: string,
     params?: Record<string, Primitive>,
     settings?: EmbySettings
@@ -102,6 +110,11 @@ async function fetchEmbyFilters(
     return filters.map(({Id: id, Name: title}) => ({id: id || title, title} as MediaFilter));
 }
 
+async function getEndpointInfo(settings: EmbySettings = embySettings): Promise<EndPointInfo> {
+    const info = await get<EndPointInfo>(`System/Endpoint`, undefined, settings);
+    return info;
+}
+
 async function getMusicLibraries(
     settings: EmbySettings = embySettings
 ): Promise<readonly PersonalMediaLibrary[]> {
@@ -150,32 +163,49 @@ async function embyFetch(
     return response;
 }
 
-function getPlayableUrl(src: string, settings: EmbySettings = embySettings): string {
-    const {host, userId, token, deviceId} = settings;
+function getPlayableUrl(item: PlayableItem, settings: EmbySettings = embySettings): string {
+    const {host, userId, token, deviceId, sessionId} = settings;
     if (host && userId && token && deviceId) {
-        const [, type, id, mediaSourceId] = src.split(':');
+        const [, type, id, mediaSourceId] = item.src.split(':');
+        const PlaySessionId = `${sessionId}-${id}`;
         if (type === 'video') {
-            const videoParams = new URLSearchParams({
-                MediaSourceId: mediaSourceId || id,
-                Static: 'true',
-                UserId: userId,
-                DeviceId: deviceId,
-                api_key: token,
-            });
-            return `${host}/Videos/${id}/stream?${videoParams}`;
+            if (item.playbackType === PlaybackType.Direct) {
+                const videoParams = new URLSearchParams({
+                    MediaSourceId: mediaSourceId || id,
+                    Static: 'true',
+                    UserId: userId,
+                    DeviceId: deviceId,
+                    api_key: token,
+                    PlaySessionId,
+                });
+                return `${host}/Videos/${id}/stream?${videoParams}`;
+            } else {
+                const videoParams = new URLSearchParams({
+                    MediaSourceId: mediaSourceId || id,
+                    DeviceId: deviceId,
+                    api_key: token,
+                    TranscodeReasons: 'ContainerNotSupported',
+                    VideoCodec: 'h264,h265,hevc',
+                    AudioCodec: 'mp3,aac',
+                    PlaySessionId,
+                });
+                return `${host}/Videos/${id}/master.m3u8?${videoParams}`;
+            }
         } else {
             const audioParams = new URLSearchParams({
                 MaxStreamingBitrate: '140000000',
                 MaxSampleRate: '48000',
                 TranscodingProtocol: 'hls',
-                TranscodingContainer: 'ts',
+                TranscodingContainer: 'aac',
                 Container:
                     'opus,webm|opus,mp3,aac,m4a|aac,m4a|alac,m4b|aac,flac,webma,webm|webma,wav,ogg',
                 AudioCodec: 'aac',
-                Static: 'true',
                 UserId: userId,
                 api_key: token,
                 DeviceId: deviceId,
+                EnableRedirection: 'true',
+                StartTimeTicks: '0',
+                PlaySessionId,
             });
             return `${host}/Audio/${id}/universal?${audioParams}`;
         }
@@ -184,13 +214,46 @@ function getPlayableUrl(src: string, settings: EmbySettings = embySettings): str
     }
 }
 
+async function getPlaybackType(
+    item: MediaItem,
+    settings: EmbySettings = embySettings
+): Promise<PlaybackType> {
+    try {
+        if (item.mediaType === MediaType.Video) {
+            const {host, userId, token, deviceId} = settings;
+            const [, , id, mediaSourceId] = item.src.split(':');
+            const videoParams = new URLSearchParams({
+                MediaSourceId: mediaSourceId || id,
+                Static: 'true',
+                UserId: userId,
+                DeviceId: deviceId,
+                api_key: token,
+            });
+            const url = `${host}/Videos/${id}/stream?${videoParams}`;
+            const directPlay = await canPlayVideo(url);
+            return directPlay ? PlaybackType.Direct : PlaybackType.HLS;
+        } else {
+            const url = getPlayableUrl(item, settings);
+            const contentType = (await getContentType(url)).toLowerCase();
+            return contentType === 'application/x-mpegurl' ||
+                contentType === 'application/vnd.apple.mpegurl'
+                ? PlaybackType.HLS
+                : PlaybackType.Direct;
+        }
+    } catch (err) {
+        return PlaybackType.Direct;
+    }
+}
+
 const embyApi = {
     delete: del,
     get,
     getFilters,
+    getEndpointInfo,
     getMusicLibraries,
     post,
     getPlayableUrl,
+    getPlaybackType,
 };
 
 export default embyApi;

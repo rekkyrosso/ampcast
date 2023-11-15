@@ -1,3 +1,3 @@
 export {default} from './subsonic';
 export * from './subsonic';
-export {observeIsLoggedIn, isLoggedIn, login, logout} from './subsonicAuth';
+export {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './subsonicAuth';

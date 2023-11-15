@@ -15,8 +15,9 @@ import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
-import PlayableItem from 'types/PlayableItem';
 import Pin from 'types/Pin';
+import PlayableItem from 'types/PlayableItem';
+import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
 import ViewType from 'types/ViewType';
 import actionsStore from 'services/actions/actionsStore';
@@ -26,7 +27,7 @@ import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import {bestOf} from 'utils';
 import plexSettings from './plexSettings';
-import {observeIsLoggedIn, isLoggedIn, login, logout} from './plexAuth';
+import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './plexAuth';
 import plexApi, {getMusicLibraryId, getMusicLibraryPath, getPlexMediaType} from './plexApi';
 import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
@@ -395,6 +396,9 @@ const plex: PersonalMediaService = {
     url: 'https://www.plex.tv',
     serviceType: ServiceType.PersonalMedia,
     defaultHidden: true,
+    get internetRequired() {
+        return plexSettings.internetRequired;
+    },
     roots: [
         createRoot(ItemType.Media, {title: 'Tracks', layout: tracksLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -442,10 +446,12 @@ const plex: PersonalMediaService = {
     getFilters,
     getMetadata,
     getPlayableUrl,
+    getPlaybackType,
     getThumbnailUrl,
     lookup,
     rate,
     observeIsLoggedIn,
+    isConnected,
     isLoggedIn,
     login,
     logout,
@@ -522,16 +528,11 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
 }
 
 function getPlayableUrl(item: PlayableItem): string {
-    const {host, serverToken} = plexSettings;
-    if (host && serverToken) {
-        const [src] = item.srcs || [];
-        if (!src) {
-            throw Error('No playable source');
-        }
-        return `${host}${src}?X-Plex-Token=${serverToken}`;
-    } else {
-        throw Error('Not logged in');
-    }
+    return plexApi.getPlayableUrl(item);
+}
+
+async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
+    return plexApi.getPlaybackType(item);
 }
 
 function getThumbnailUrl(url: string): string {

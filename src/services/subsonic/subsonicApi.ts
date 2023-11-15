@@ -36,7 +36,7 @@ async function get<T>(
     }
     const {['subsonic-response']: data} = await response.json();
     if (data.error) {
-        throw Error(data.error.message || 'Failed');
+        throw data.error;
     }
     return data;
 }

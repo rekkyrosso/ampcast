@@ -94,4 +94,9 @@
             @include smiley-thumb;
         }
     }
+
+    input[type="file"] {
+        position: absolute;
+        visibility: hidden;
+    }
 }

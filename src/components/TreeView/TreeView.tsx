@@ -19,7 +19,7 @@ export interface TreeNode<T> {
     readonly id: string;
     readonly label: React.ReactNode;
     readonly value: T;
-    readonly children?: TreeNode<T>[];
+    readonly children?: readonly TreeNode<T>[];
     readonly startExpanded?: boolean;
     readonly icon?: IconName;
 }
@@ -29,7 +29,7 @@ export interface TreeViewHandle {
 }
 
 export interface TreeViewProps<T> {
-    roots: TreeNode<T>[];
+    roots: readonly TreeNode<T>[];
     className?: string;
     storageId?: string;
     onContextMenu?: (item: T, x: number, y: number) => void;
@@ -88,13 +88,18 @@ export default function TreeView<T>({
     useEffect(() => {
         if (noSelection) {
             const parentNodeId = getParentNodeId(roots, prevNodeId);
-            setSelectedId(parentNodeId);
+            setSelectedId(parentNodeId || roots[0]?.id || '');
         }
     }, [roots, noSelection, prevNodeId]);
 
     useEffect(() => {
         if (!selectedId && roots.length > 0) {
-            setSelectedId(retrieveSelectedNodeId(roots[0].id));
+            const nodeId = retrieveSelectedNodeId();
+            if (hasSelectedNode(roots, nodeId)) {
+                setSelectedId(nodeId);
+            } else {
+                setSelectedId(roots[0].id);
+            }
         }
     }, [roots, selectedId, retrieveSelectedNodeId]);
 
@@ -261,7 +266,7 @@ export default function TreeView<T>({
     );
 }
 
-export function hasSelectedNode<T>(children: TreeNode<T>[], selectedId: string): boolean {
+export function hasSelectedNode<T>(children: readonly TreeNode<T>[], selectedId: string): boolean {
     for (const child of children) {
         if (child.id === selectedId) {
             return true;
@@ -291,7 +296,7 @@ function getSelectedIdByKey(key: string, visibleIds: string[], selectedId: strin
     }
 }
 
-function getValue<T>(roots: TreeNode<T>[], id: string): T {
+function getValue<T>(roots: readonly TreeNode<T>[], id: string): T {
     const value = roots.reduce<T | undefined>((value, node) => {
         if (value === undefined) {
             if (node.id === id) {
@@ -305,7 +310,7 @@ function getValue<T>(roots: TreeNode<T>[], id: string): T {
     return value!;
 }
 
-function getParentNodeId<T>(roots: TreeNode<T>[], id: string): string {
+function getParentNodeId<T>(roots: readonly TreeNode<T>[], id: string): string {
     return roots.reduce((value, node) => {
         if (!value) {
             if (node.children) {

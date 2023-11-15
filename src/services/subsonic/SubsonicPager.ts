@@ -10,6 +10,7 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
+import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
@@ -122,6 +123,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
+            playbackType: PlaybackType.Direct,
             src: `subsonic:audio:${song.id}`,
             fileName: this.getFileName(song.path || '') || '[unknown]',
             title: song.title,
@@ -143,6 +145,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Media,
             mediaType: MediaType.Video,
+            playbackType: PlaybackType.Direct,
             src: `subsonic:video:${video.id}`,
             fileName: this.getFileName(video.path || '') || '[unknown]',
             title: video.title,

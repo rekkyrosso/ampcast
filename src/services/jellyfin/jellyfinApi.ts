@@ -2,7 +2,10 @@ import type {BaseItemDtoQueryResult} from '@jellyfin/client-axios/dist/models';
 import {Primitive} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaFilter from 'types/MediaFilter';
+import MediaItem from 'types/MediaItem';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
+import PlayableItem from 'types/PlayableItem';
+import PlaybackType from 'types/PlaybackType';
 import ViewType from 'types/ViewType';
 import embyApi from 'services/emby/embyApi';
 import jellyfinSettings from './jellyfinSettings';
@@ -33,8 +36,12 @@ async function post(path: string, params: Record<string, Primitive> = {}): Promi
     return embyApi.post(path, params, jellyfinSettings);
 }
 
-function getPlayableUrl(src: string): string {
-    return embyApi.getPlayableUrl(src, jellyfinSettings);
+function getPlayableUrl(item: PlayableItem): string {
+    return embyApi.getPlayableUrl(item, jellyfinSettings);
+}
+
+async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
+    return embyApi.getPlaybackType(item, jellyfinSettings);
 }
 
 const jellyfinApi = {
@@ -44,6 +51,7 @@ const jellyfinApi = {
     getMusicLibraries,
     post,
     getPlayableUrl,
+    getPlaybackType,
 };
 
 export default jellyfinApi;

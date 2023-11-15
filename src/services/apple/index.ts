@@ -1,3 +1,3 @@
 export {default} from './apple';
 export * from './apple';
-export {observeIsLoggedIn, isLoggedIn, login, logout} from './appleAuth';
+export {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './appleAuth';

@@ -8,10 +8,12 @@ import {LiteStorage, stringContainsMusic} from 'utils';
 
 export class EmbySettings implements PersonalMediaLibrarySettings {
     private readonly storage: LiteStorage;
+    private readonly session: LiteStorage;
     private readonly libraryId$: BehaviorSubject<string>;
 
     constructor(id: MediaServiceId) {
         this.storage = new LiteStorage(id);
+        this.session = new LiteStorage(`${id}/session`, 'session');
         this.libraryId$ = new BehaviorSubject(this.storage.getString('libraryId'));
     }
 
@@ -38,6 +40,14 @@ export class EmbySettings implements PersonalMediaLibrarySettings {
 
     set host(host: string) {
         this.storage.setString('host', host);
+    }
+
+    get isLocal(): boolean {
+        return this.storage.getBoolean('isLocal');
+    }
+
+    set isLocal(isLocal: boolean) {
+        this.storage.setBoolean('isLocal', isLocal);
     }
 
     get libraryId(): string {
@@ -75,6 +85,17 @@ export class EmbySettings implements PersonalMediaLibrarySettings {
 
     set serverId(serverId: string) {
         this.storage.setString('serverId', serverId);
+    }
+
+    get sessionId(): string {
+        let sessionId = this.session.getString('id');
+        if (!sessionId) {
+            // Don't use nanoid for this.
+            // Needs to be numeric otherwise Jellyfin doesn't like it.
+            sessionId = String(Math.floor(Math.random() * 10_000_000));
+            this.session.setString('id', sessionId);
+        }
+        return sessionId;
     }
 
     get token(): string {

@@ -8,8 +8,9 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
+import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
-import mediaObjectChanges from 'services/actions/mediaObjectChanges';
+import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
@@ -160,6 +161,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
+            playbackType: PlaybackType.Direct,
             src: episode.uri,
             externalUrl: episode.external_urls.spotify,
             title: episode.name,
@@ -236,6 +238,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
+            playbackType: PlaybackType.Direct,
             src: track.uri,
             externalUrl: track.external_urls.spotify,
             title: track.name,
@@ -383,7 +386,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                 inLibrary = await spotifyApi.containsMySavedTracks(ids);
             }
 
-            mediaObjectChanges.dispatch(
+            dispatchMediaObjectChanges(
                 items.map(({src}, index) => ({
                     match: (item: MediaObject) => item.src === src,
                     values: {inLibrary: inLibrary[index]},

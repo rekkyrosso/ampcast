@@ -3,6 +3,10 @@ import {createRoot} from 'react-dom/client';
 import 'styles/index.scss';
 import App from 'components/App';
 
+if (!__electron__ && !__dev__) {
+    navigator.serviceWorker?.register('/service-worker.js').then(() => undefined, console.error);
+}
+
 createRoot(document.getElementById('app')!).render(
     <StrictMode>
         <App />

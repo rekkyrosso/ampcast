@@ -4,6 +4,7 @@ import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
+import MediaType from 'types/MediaType';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSource from 'types/MediaSource';
@@ -15,7 +16,14 @@ import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
-import {observeIsLoggedIn, isLoggedIn, login, logout, refreshToken} from './spotifyAuth';
+import {
+    observeIsLoggedIn,
+    isConnected,
+    isLoggedIn,
+    login,
+    logout,
+    refreshToken,
+} from './spotifyAuth';
 import spotifyApi from './spotifyApi';
 import SpotifyPager, {SpotifyPage} from './SpotifyPager';
 import {userSettings} from './spotifySettings';
@@ -207,7 +215,10 @@ const spotify: PublicMediaService = {
     icon: 'spotify',
     url: 'https://www.spotify.com',
     serviceType: ServiceType.PublicMedia,
+    primaryMediaType: MediaType.Audio,
     defaultHidden: true,
+    internetRequired: true,
+    restrictedAccess: true,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -243,6 +254,7 @@ const spotify: PublicMediaService = {
     store,
     bulkStore,
     observeIsLoggedIn,
+    isConnected,
     isLoggedIn,
     login,
     logout,

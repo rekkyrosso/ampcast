@@ -5,6 +5,7 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
+import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
 import SequentialPager from 'services/pagers/SequentialPager';
 import pinStore from 'services/pins/pinStore';
@@ -126,6 +127,7 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Media,
             mediaType: MediaType.Video,
+            playbackType: PlaybackType.Direct,
             src: `youtube:video:${video.id}`,
             externalUrl: getYouTubeUrl(video.id!),
             title: video.snippet?.title || video.id!,

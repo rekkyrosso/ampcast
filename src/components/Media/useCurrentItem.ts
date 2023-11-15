@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import {from, tap} from 'rxjs';
 import MediaObject from 'types/MediaObject';
-import mediaObjectChanges from 'services/actions/mediaObjectChanges';
+import {observeMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {Logger} from 'utils';
 
@@ -32,8 +32,7 @@ export default function useCurrentItem<T extends MediaObject>(item: T): T {
     }, [item, metadataSrc]);
 
     useEffect(() => {
-        const subscription = mediaObjectChanges
-            .observe<T>()
+        const subscription = observeMediaObjectChanges<T>()
             .pipe(
                 tap((changes) => {
                     for (const {match, values} of changes) {

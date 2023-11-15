@@ -26,7 +26,7 @@ import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {getTextFromHtml} from 'utils';
-import {observeIsLoggedIn, isLoggedIn, login, logout} from './subsonicAuth';
+import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './subsonicAuth';
 import subsonicApi from './subsonicApi';
 import SubsonicPager from './SubsonicPager';
 import subsonicSettings from './subsonicSettings';
@@ -379,6 +379,7 @@ const subsonic: PersonalMediaService = {
     lookup,
     store,
     observeIsLoggedIn,
+    isConnected,
     isLoggedIn,
     login,
     logout,

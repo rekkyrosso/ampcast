@@ -3,7 +3,6 @@ import PlayableItem from 'types/PlayableItem';
 import Player from 'types/Player';
 import PlaylistItem from 'types/PlaylistItem';
 import HTML5Player from 'services/players/HTML5Player';
-import hlsPlayer from 'services/players/hlsPlayer';
 import OmniPlayer from 'services/players/OmniPlayer';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
 import musicKitPlayer from 'services/apple/musicKitPlayer';
@@ -23,11 +22,7 @@ function selectPlayer(item: PlaylistItem | null): Player<PlayableItem> | null {
         } else if (item.src.startsWith('spotify:')) {
             return spotifyPlayer;
         } else if (item.mediaType === MediaType.Video) {
-            if (item.videoFormat === 'hls') {
-                return hlsPlayer;
-            } else {
-                return html5VideoPlayer;
-            }
+            return html5VideoPlayer;
         } else {
             return html5AudioPlayer;
         }
@@ -57,7 +52,7 @@ function getMediaSource(item: PlaylistItem | null): PlayableItem {
 
 const mediaPlayer = new OmniPlayer<PlaylistItem | null, PlayableItem>(
     'media-player',
-    [html5AudioPlayer, html5VideoPlayer, youtubePlayer, musicKitPlayer, spotifyPlayer, hlsPlayer],
+    [html5AudioPlayer, html5VideoPlayer, youtubePlayer, musicKitPlayer, spotifyPlayer],
     selectPlayer,
     loadPlayer
 );

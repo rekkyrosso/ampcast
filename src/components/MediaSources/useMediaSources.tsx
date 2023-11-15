@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {map, merge, switchMap, take} from 'rxjs';
 import MediaService from 'types/MediaService';
-import {getAllServices, observePersonalMediaLibraryIdChanges} from 'services/mediaServices';
+import {getEnabledServices, observePersonalMediaLibraryIdChanges} from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
 import {isSourceVisible, observeHiddenSourceChanges} from 'services/servicesSettings';
 import MediaBrowser from 'components/MediaBrowser';
@@ -34,7 +34,7 @@ export default function useMediaSources() {
 }
 
 function getServices() {
-    return getAllServices()
+    return getEnabledServices()
         .filter(isSourceVisible)
         .map((service) => getService(service));
 }
@@ -43,9 +43,8 @@ function getService(service: MediaService) {
     return {
         id: service.id,
         label: <MediaServiceLabel service={service} showConnectivity />,
-        value: <MediaBrowser service={service} sources={service.roots} />,
+        value: <MediaBrowser service={service} sources={service.roots} key={service.id} />,
         startExpanded: true,
-
         children: getSources(service),
     };
 }
@@ -56,7 +55,7 @@ function getSources(service: MediaService) {
         .map((source) => ({
             id: source.id,
             label: <MediaSourceLabel icon={source.icon} text={source.title} />,
-            value: <MediaBrowser service={service} sources={[source]} />,
+            value: <MediaBrowser service={service} sources={[source]} key={source.id} />,
         }))
         .concat(getPins(service));
 }
@@ -69,6 +68,6 @@ function getPins(service: MediaService) {
         .map((source) => ({
             id: source.id,
             label: <MediaSourceLabel icon={source.icon} text={source.title} />,
-            value: <MediaBrowser service={service} sources={[source]} />,
+            value: <MediaBrowser service={service} sources={[source]} key={source.id} />,
         }));
 }

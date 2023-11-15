@@ -1,9 +1,9 @@
-import React, {useEffect, useRef} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {LiteStorage} from 'utils';
-import {showDialog} from 'components/Dialog';
 import TreeView, {TreeViewHandle} from 'components/TreeView';
-import MediaServiceSelectionDialog from 'components/Settings/MediaLibrarySettings/MediaServiceSelectionDialog';
 import useMediaSources from './useMediaSources';
+import {showDialog} from 'components/Dialog';
+import StartupWizard from 'components/StartupWizard';
 
 export const storage = new LiteStorage('sources');
 
@@ -14,16 +14,21 @@ export interface MediaSourcesProps {
 export default function MediaSources({onSelect}: MediaSourcesProps) {
     const treeViewRef = useRef<TreeViewHandle>(null);
     const sources = useMediaSources();
+    const [wizardShown, setWizardShown] = useState(false);
 
     useEffect(() => {
         treeViewRef.current!.focus();
     }, []);
 
     useEffect(() => {
-        if (sources?.length === 0) {
-            showDialog(MediaServiceSelectionDialog, true);
+        if (sources) {
+            const useWizard = sources.length === 0 && !wizardShown;
+            setWizardShown(true);
+            if (useWizard) {
+                showDialog(StartupWizard, true);
+            }
         }
-    }, [sources]);
+    }, [sources, wizardShown]);
 
     return (
         <div className="panel media-sources">

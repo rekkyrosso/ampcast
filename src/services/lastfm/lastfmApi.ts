@@ -1,9 +1,9 @@
+import md5 from 'md5';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import Thumbnail from 'types/Thumbnail';
-import {lf_api_key} from 'services/credentials';
+import {lf_api_key, lf_api_secret} from 'services/credentials';
 import {Logger, exists} from 'utils';
-import {getApiSignature} from './lastfmAuth';
 import lastfmSettings from './lastfmSettings';
 
 const logger = new Logger('lastfmApi');
@@ -11,6 +11,18 @@ const logger = new Logger('lastfmApi');
 export class LastFmApi {
     private readonly host = `https://ws.audioscrobbler.com/2.0`;
     private readonly placeholderImage = '2a96cbd8b46e442fc41c2b86b821562f.png';
+
+    getSignature(params: Record<string, string>): string {
+        const keys = Object.keys(params);
+        let string = '';
+
+        keys.sort();
+        keys.forEach((key) => (string += key + params[key]));
+
+        string += lf_api_secret;
+
+        return md5(string);
+    }
 
     async scrobble(items: Listen[]): Promise<void> {
         logger.log('scrobble', {items});
@@ -89,7 +101,7 @@ export class LastFmApi {
         const sk = lastfmSettings.sessionKey;
         params = {...params, api_key: lf_api_key, token, sk};
         const headers = {'Content-Type': 'application/x-www-form-urlencoded'};
-        const api_sig = getApiSignature(params);
+        const api_sig = this.getSignature(params);
         const body = `${new URLSearchParams(params)}&api_sig=${api_sig}`;
         const response = await fetch(this.host, {method: 'POST', headers, body});
         if (!response.ok) {

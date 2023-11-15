@@ -11,8 +11,12 @@ const logger = new Logger('jellyfinAuth');
 const accessToken$ = new BehaviorSubject('');
 const isLoggedIn$ = new BehaviorSubject(false);
 
-export function observeAccessToken(): Observable<string> {
+function observeAccessToken(): Observable<string> {
     return accessToken$.pipe(distinctUntilChanged());
+}
+
+export function isConnected(): boolean {
+    return !!jellyfinSettings.token;
 }
 
 export function isLoggedIn(): boolean {
@@ -52,18 +56,6 @@ function setAccessToken(token: string): void {
     accessToken$.next(token);
 }
 
-async function checkConnection(): Promise<boolean> {
-    try {
-        const libraries = await jellyfinApi.getMusicLibraries();
-        jellyfinSettings.libraries = libraries;
-        return true;
-    } catch (err) {
-        logger.error(err);
-        accessToken$.next(''); // Keep it in settings (it might be a temporary failure)
-        return false;
-    }
-}
-
 observeAccessToken()
     .pipe(
         filter((token) => token !== ''),
@@ -71,4 +63,20 @@ observeAccessToken()
     )
     .subscribe(isLoggedIn$);
 
-setAccessToken(jellyfinSettings.token);
+async function checkConnection(): Promise<boolean> {
+    try {
+        const libraries = await jellyfinApi.getMusicLibraries();
+        jellyfinSettings.libraries = libraries;
+        return true;
+    } catch (err: any) {
+        if (err.status === 401) {
+            jellyfinSettings.token = '';
+        } else {
+            logger.error(err);
+        }
+        accessToken$.next('');
+        return false;
+    }
+}
+
+accessToken$.next(jellyfinSettings.token);

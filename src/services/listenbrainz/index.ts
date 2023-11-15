@@ -1,3 +1,3 @@
 export {default} from './listenbrainz';
 export * from './listenbrainz';
-export {observeIsLoggedIn, isLoggedIn, login, logout} from './listenbrainzAuth';
+export {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './listenbrainzAuth';

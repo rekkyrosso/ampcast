@@ -1,10 +1,12 @@
 import BaseMediaObject from './BaseMediaObject';
 import ItemType from './ItemType';
 import MediaType from './MediaType';
+import PlaybackType from './PlaybackType';
 
 export default interface MediaItem extends BaseMediaObject {
     readonly itemType: ItemType.Media;
     readonly mediaType: MediaType;
+    readonly playbackType?: PlaybackType;
     readonly duration: number;
     readonly playedAt: number; // UTC
     readonly artists?: readonly string[];
@@ -15,6 +17,7 @@ export default interface MediaItem extends BaseMediaObject {
     readonly year?: number;
     readonly aspectRatio?: number;
     readonly unplayable?: boolean;
+    readonly noScrobble?: boolean;
     readonly isrc?: string;
     readonly recording_mbid?: string; // MusicBrainz ID
     readonly recording_msid?: string; // MusicBrainz ID
@@ -27,5 +30,4 @@ export default interface MediaItem extends BaseMediaObject {
     };
     readonly blob?: Blob;
     readonly srcs?: string[];
-    readonly videoFormat?: T['mediaType'] extends MediaType.Video ? string : never;
 }

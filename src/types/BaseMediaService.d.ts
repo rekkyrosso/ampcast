@@ -6,9 +6,10 @@ import MediaItem from './MediaItem';
 import MediaFilter from './MediaFilter';
 import MediaObject from './MediaObject';
 import MediaPlaylist from './MediaPlaylist';
-import MediaServiceId from './MediaServiceId';
+import MediaService from './MediaService';
 import MediaSource from './MediaSource';
 import PlayableItem from './PlayableItem';
+import PlaybackType from './PlaybackType';
 import Pin from './Pin';
 import ViewType from './ViewType';
 
@@ -19,8 +20,10 @@ type BaseMediaService = Auth & {
     readonly url: string;
     readonly roots: readonly MediaSource<MediaObject>[];
     readonly sources: readonly MediaSource<MediaObject>[];
+    readonly disabled?: boolean;
     readonly defaultHidden?: boolean; // `true` for most services
-    readonly authServiceId?: MediaServiceId; // id of a different `MediaService` for `Auth`
+    readonly internetRequired?: boolean;
+    readonly authService?: MediaService; // Different `MediaService` for `Auth`
     readonly defaultNoScrobble?: boolean;
     readonly icons?: Partial<Record<LibraryAction, IconName>>;
     readonly labels?: Partial<Record<LibraryAction, string>>;
@@ -33,6 +36,7 @@ type BaseMediaService = Auth & {
         itemType: ItemType
     ) => Promise<readonly MediaFilter[]>;
     getMetadata?: <T extends MediaObject>(item: T) => Promise<T>;
+    getPlaybackType?: (item: MediaItem) => Promise<PlaybackType>;
     getPlayableUrl?: (item: PlayableItem) => string;
     getThumbnailUrl?: (url: string) => string;
     lookup?: (

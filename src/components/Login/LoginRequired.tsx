@@ -6,7 +6,7 @@ export default function LoginRequired({service}: LoginProps) {
     return (
         <p>
             You need to be logged in to{' '}
-            {service.serviceType === ServiceType.Scrobbler ? 'access your data' : 'play music'} from{' '}
+            {service.serviceType === ServiceType.DataService ? 'access your data' : 'play music'} from{' '}
             {service.name}.
         </p>
     );

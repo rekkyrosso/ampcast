@@ -115,6 +115,37 @@ declare namespace ListenBrainz {
         track_name: string;
     }
 
+    interface Playlist {
+        annotation: string;
+        creator: string;
+        date: string;
+        identifier: string;
+        title: string;
+    }
+
+    interface PlaylistItem {
+        creator: string;
+        identifier: string;
+        title: string;
+        extension: {
+            'https://musicbrainz.org/doc/jspf#track': {
+                added_at: string;
+                added_by: string;
+                additional_metadata: {
+                    caa_id: number;
+                    caa_release_mbid: string;
+                };
+                artist_identifiers: string[];
+            };
+        };
+    }
+
+    interface PlaylistItemsResponse {
+        playlist: Playlist & {
+            track: readonly PlaylistItem[];
+        };
+    }
+
     namespace User {
         interface ListenCount {
             payload: {
@@ -142,7 +173,7 @@ declare namespace ListenBrainz {
             recording_mbid: string;
             recording_msid: string;
             score: number;
-            track_metadata: TrackMetadata;
+            track_metadata: TrackMetadata | null;
             user_id: string;
         }
 
@@ -156,6 +187,13 @@ declare namespace ListenBrainz {
         interface UserRecordingsFeedbackResponse {
             feedback: readonly Feedback[];
             user_name: string;
+        }
+
+        interface PlaylistsResponse {
+            count: number;
+            playlists: readonly {playlist: Playlist}[];
+            offset: number;
+            playlist_count: number;
         }
     }
 

@@ -6,6 +6,7 @@ import MediaType from 'types/MediaType';
 import Pager, {Page} from 'types/Pager';
 import {musicBrainzHost} from 'services/musicbrainz';
 import SequentialPager from 'services/pagers/SequentialPager';
+import {exists} from 'utils';
 import listenbrainzApi from './listenbrainzApi';
 import listenbrainzSettings from './listenbrainzSettings';
 
@@ -68,11 +69,14 @@ export default class ListenBrainzLikesPager implements Pager<MediaItem> {
     }
 
     private createItems(items: readonly ListenBrainz.User.Feedback[]): MediaItem[] {
-        return items.map((item) => this.createItem(item));
+        return items.map((item) => this.createItem(item)).filter(exists);
     }
 
-    private createItem(item: ListenBrainz.User.Feedback): MediaItem {
+    private createItem(item: ListenBrainz.User.Feedback): MediaItem | undefined {
         const data = item.track_metadata;
+        if (!data) {
+            return;
+        }
         const info = data.additional_info;
         const mbid = item.recording_mbid;
 

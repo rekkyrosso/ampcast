@@ -19,7 +19,8 @@ import MediaItem from 'types/MediaItem';
 import Playlist from 'types/Playlist';
 import PlaylistItem from 'types/PlaylistItem';
 import LookupStatus from 'types/LookupStatus';
-import {createMediaItemFromFile} from 'services/file';
+import {observeMediaObjectChanges} from 'services/actions/mediaObjectChanges';
+import {createMediaItemFromFile} from 'services/music-metadata';
 import {
     LookupStartEvent,
     LookupEndEvent,
@@ -352,13 +353,14 @@ export default playlist;
     const items = (await dbRead<PlaylistItem[]>('items', playlistStore)) ?? [];
     const id = (await dbRead('currently-playing-id', playlistStore)) ?? '';
     items$.next(
-        items.map((item: Writable<PlaylistItem & {plex?: {ratingKey: string}}>) => {
-            // Upgrade legacy Plex items.
-            if (item.plex) {
+        // Upgrade legacy Plex items.
+        // TODO: Delete this in a later version.
+        items.map((item: Writable<PlaylistItem & {plex?: {ratingKey?: string}}>) => {
+            if (item.plex?.ratingKey) {
                 const [, type, src] = item.src.split(':');
                 item.src = `plex:${type}:${item.plex.ratingKey}`;
                 item.srcs = [src];
-                delete item.plex;
+                delete item.plex.ratingKey;
             }
             return item;
         })
@@ -372,7 +374,7 @@ items$
         debounceTime(delayWriteTime),
         mergeMap((items: PlaylistItem[]) => {
             items = items.map((item) => {
-                if (item.lookupStatus) {
+                if ('lookupStatus' in item) {
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     const {lookupStatus, ...rest} = item;
                     return rest;
@@ -416,6 +418,29 @@ observeLookupEndEvents()
                 items[index] = foundItem
                     ? {...foundItem, id: item.id, lookupStatus: undefined}
                     : {...item, lookupStatus: LookupStatus.NotFound};
+                setItems(items);
+            }
+        })
+    )
+    .subscribe(logger);
+
+observeMediaObjectChanges<MediaItem>()
+    .pipe(
+        tap((changes) => {
+            let changed = false;
+            const items = getItems().map((item) => {
+                for (const {match, values} of changes) {
+                    if (match(item)) {
+                        const nonUserData = removeUserData(values);
+                        if (Object.keys(nonUserData).length > 0) {
+                            changed = true;
+                            return {...item, ...nonUserData};
+                        }
+                    }
+                }
+                return item;
+            });
+            if (changed) {
                 setItems(items);
             }
         })

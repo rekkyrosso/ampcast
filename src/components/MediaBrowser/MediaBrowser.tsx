@@ -3,9 +3,10 @@ import {ErrorBoundary} from 'react-error-boundary';
 import MediaObject from 'types/MediaObject';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
-import PersonalMediaService from 'types/PersonalMediaService';
 import Login from 'components/Login';
 import useObservable from 'hooks/useObservable';
+import useIsOnLine from 'hooks/useIsOnLine';
+import NoInternetError from './NoInternetError';
 import useErrorScreen from './useErrorScreen';
 import './MediaBrowser.scss';
 import Router from './Router';
@@ -19,21 +20,21 @@ export default function MediaBrowser<T extends MediaObject>({
     service,
     sources,
 }: MediaBrowserProps<T>) {
-    const isLoggedIn = useObservable(service.observeIsLoggedIn, false);
+    const isOnLine = useIsOnLine();
+    const isLoggedIn = useObservable(service.observeIsLoggedIn, service.isLoggedIn());
     const renderError = useErrorScreen(service, sources);
-    const key = `${service.id}/${(service as PersonalMediaService).libraryId || '*'}/${sources.map(
-        (source) => source.id
-    )}`;
 
     return (
-        <div className={`media-browser ${service.id}-browser`} key={key}>
-            {isLoggedIn ? (
-                <ErrorBoundary fallbackRender={renderError}>
+        <div className={`media-browser ${service.id}-browser`}>
+            <ErrorBoundary fallbackRender={renderError}>
+                {service.internetRequired && !isOnLine ? (
+                    <NoInternetError />
+                ) : isLoggedIn ? (
                     <Router service={service} sources={sources} />
-                </ErrorBoundary>
-            ) : (
-                <Login service={service} />
-            )}
+                ) : (
+                    <Login service={service} />
+                )}
+            </ErrorBoundary>
         </div>
     );
 }

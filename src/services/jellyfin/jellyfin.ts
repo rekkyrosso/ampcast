@@ -18,17 +18,18 @@ import Pager, {PagerConfig} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
 import PlayableItem from 'types/PlayableItem';
+import PlaybackType from 'types/PlaybackType';
 import Pin from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import ViewType from 'types/ViewType';
 import actionsStore from 'services/actions/actionsStore';
-import {NoMusicLibrary, NoMusicVideoLibrary} from 'services/errors';
+import {NoMusicLibraryError, NoMusicVideoLibraryError} from 'services/errors';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {bestOf} from 'utils';
-import {observeIsLoggedIn, isLoggedIn, login, logout} from './jellyfinAuth';
+import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './jellyfinAuth';
 import jellyfinSettings from './jellyfinSettings';
 import JellyfinPager from './JellyfinPager';
 import jellyfinApi from './jellyfinApi';
@@ -320,7 +321,7 @@ const jellyfinMusicVideos: MediaSource<MediaItem> = {
     search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
         const videoLibraryId = jellyfinSettings.videoLibraryId;
         if (!videoLibraryId) {
-            throw new NoMusicVideoLibrary();
+            throw new NoMusicVideoLibraryError();
         }
         return createItemsPager({
             ParentId: videoLibraryId,
@@ -446,9 +447,11 @@ const jellyfin: PersonalMediaService = {
     getFilters,
     getMetadata,
     getPlayableUrl,
+    getPlaybackType,
     lookup,
     store,
     observeIsLoggedIn,
+    isConnected,
     isLoggedIn,
     login,
     logout,
@@ -519,8 +522,12 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     return bestOf(item, items[0]);
 }
 
-function getPlayableUrl({src}: PlayableItem): string {
-    return jellyfinApi.getPlayableUrl(src);
+function getPlayableUrl(item: PlayableItem): string {
+    return jellyfinApi.getPlayableUrl(item);
+}
+
+async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
+    return jellyfinApi.getPlaybackType(item);
 }
 
 async function lookup(
@@ -608,7 +615,7 @@ function createItemsPager<T extends MediaObject>(
 function getMusicLibraryId(): string {
     const libraryId = jellyfinSettings.libraryId;
     if (!libraryId) {
-        throw new NoMusicLibrary();
+        throw new NoMusicLibraryError();
     }
     return libraryId;
 }

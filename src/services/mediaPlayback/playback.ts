@@ -73,11 +73,11 @@ export function observePaused(): Observable<boolean> {
     );
 }
 
-export function getCurrentTime(): number {
+function getCurrentTime(): number {
     return playbackState$.getValue().currentTime;
 }
 
-export function setCurrentTime(currentTime: number): void {
+function setCurrentTime(currentTime: number): void {
     const state = playbackState$.getValue();
     currentTime = Math.max(
         Math.min(Math.floor(isFinite(currentTime) ? currentTime : 0), state.duration),
@@ -88,11 +88,11 @@ export function setCurrentTime(currentTime: number): void {
     }
 }
 
-export function getDuration(): number {
+function getDuration(): number {
     return playbackState$.getValue().duration;
 }
 
-export function setDuration(duration: number): void {
+function setDuration(duration: number): void {
     const state = playbackState$.getValue();
     duration = Math.max(Math.floor(isFinite(duration) ? duration : 0), 0);
     if (duration !== state.duration) {
@@ -101,21 +101,21 @@ export function setDuration(duration: number): void {
     }
 }
 
-export function play(): void {
+function play(): void {
     const state = playbackState$.getValue();
     if (state.currentItem && state.paused) {
         playbackState$.next({...state, paused: false});
     }
 }
 
-export function pause(): void {
+function pause(): void {
     const state = playbackState$.getValue();
     if (!state.paused) {
         playbackState$.next({...state, paused: true});
     }
 }
 
-export function stop(): void {
+function stop(): void {
     const state = playbackState$.getValue();
     if (
         !state.paused ||
@@ -135,14 +135,14 @@ export function stop(): void {
     }
 }
 
-export function started(): void {
+function started(): void {
     const state = playbackState$.getValue();
     if (!state.startedAt) {
         playbackState$.next({...state, startedAt: Date.now()});
     }
 }
 
-export function ended(): void {
+function ended(): void {
     const state = playbackState$.getValue();
     if (state.startedAt) {
         if (!state.endedAt) {

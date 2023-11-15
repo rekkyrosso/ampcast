@@ -8,10 +8,17 @@ import './LoginDialog.scss';
 export interface LoginDialogProps extends DialogProps {
     service: MediaService;
     settings: {host: string};
+    userName?: string;
     login: (host: string, userName: string, password: string) => Promise<string>;
 }
 
-export default function LoginDialog({service, settings, login, ...props}: LoginDialogProps) {
+export default function LoginDialog({
+    service,
+    settings,
+    userName = '',
+    login,
+    ...props
+}: LoginDialogProps) {
     const id = service.id;
     const [connecting, setConnecting] = useState(false);
     const [message, setMessage] = useState('');
@@ -60,7 +67,12 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
     );
 
     return (
-        <Dialog {...props} className={`login-dialog login-dialog-${service.id}`} title={title} ref={dialogRef}>
+        <Dialog
+            {...props}
+            className={`login-dialog login-dialog-${service.id}`}
+            title={title}
+            ref={dialogRef}
+        >
             <form id={`${id}-login`} method="dialog" onSubmit={handleSubmit}>
                 <div className="table-layout">
                     <p>
@@ -83,6 +95,7 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
                             id={`${id}-username`}
                             name={`${id}-username`}
                             autoFocus={!!settings.host}
+                            defaultValue={userName}
                             spellCheck={false}
                             autoComplete="off"
                             autoCapitalize="off"

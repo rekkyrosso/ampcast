@@ -1,0 +1,5 @@
+.media-service-list {
+    & > li:not(.no-icon) {
+        align-items: baseline;
+    }
+}

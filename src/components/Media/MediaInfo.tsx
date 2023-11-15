@@ -185,6 +185,11 @@ export function ExternalView({src, url = ''}: {src: string; url: string | undefi
             serviceName = 'local file system';
             break;
 
+        case 'http':
+        case 'https':
+            serviceName = 'external source';
+            break;
+
         default: {
             const service = getService(serviceId);
             if (service) {

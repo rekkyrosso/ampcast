@@ -15,7 +15,7 @@ import MediaObject from 'types/MediaObject';
 import MediaService from 'types/MediaService';
 import {getService, getServiceFromSrc} from 'services/mediaServices';
 import {Logger, chunk, groupBy} from 'utils';
-import mediaObjectChanges from './mediaObjectChanges';
+import {dispatchMediaObjectChanges} from './mediaObjectChanges';
 
 export type StorableMediaObject = Omit<MediaObject, 'pager'>;
 
@@ -25,8 +25,8 @@ interface Lock {
 }
 
 class ActionsStore extends Dexie {
-    private readonly libraryRemovals!: Dexie.Table<StorableMediaObject, string>;
-    private readonly libraryRemovals$ = new BehaviorSubject<readonly StorableMediaObject[]>([]);
+    private readonly inLibraryChanges!: Dexie.Table<StorableMediaObject, string>;
+    private readonly inLibraryChanges$ = new BehaviorSubject<readonly StorableMediaObject[]>([]);
     private readonly ratingChanges!: Dexie.Table<StorableMediaObject, string>;
     private readonly ratingChanges$ = new BehaviorSubject<readonly StorableMediaObject[]>([]);
     private readonly lock$ = new BehaviorSubject<Lock | null>(null);
@@ -35,13 +35,13 @@ class ActionsStore extends Dexie {
     constructor() {
         super('ampcast/pending-actions');
 
-        this.version(1).stores({
-            libraryRemovals: `&src`,
+        this.version(2).stores({
+            inLibraryChanges: `&src`,
             ratingChanges: `&src`,
         });
 
+        liveQuery(() => this.inLibraryChanges.toArray()).subscribe(this.inLibraryChanges$);
         liveQuery(() => this.ratingChanges.toArray()).subscribe(this.ratingChanges$);
-        liveQuery(() => this.libraryRemovals.toArray()).subscribe(this.libraryRemovals$);
     }
 
     registerServices(services: readonly MediaService[]): void {
@@ -59,7 +59,8 @@ class ActionsStore extends Dexie {
     }
 
     getInLibrary(item: MediaObject, defaultValue?: boolean | undefined): boolean | undefined {
-        return this.getLibraryRemovedItem(item) ? false : defaultValue;
+        const changedItem = this.getInLibraryChangedItem(item);
+        return changedItem ? changedItem.inLibrary : defaultValue;
     }
 
     getRating(item: MediaObject, defaultValue?: number | undefined): number | undefined {
@@ -82,7 +83,7 @@ class ActionsStore extends Dexie {
                     }
                     await service.rate(item, rating);
                 }
-                mediaObjectChanges.dispatch({
+                dispatchMediaObjectChanges({
                     match: (object) => service.compareForRating(object, item),
                     values: {rating},
                 });
@@ -100,20 +101,20 @@ class ActionsStore extends Dexie {
         const service = getService(serviceId);
         if (service) {
             if (service.store) {
+                const toggledItem = this.getInLibraryChangedItem(item);
+                if (toggledItem) {
+                    await this.inLibraryChanges.delete(toggledItem.src);
+                }
                 if (this.isLocked(item)) {
-                    if (inLibrary) {
-                        await this.libraryRemovals.delete(src);
-                    } else {
-                        await this.libraryRemovals.put(this.createStorableMediaObject(item));
+                    if (!toggledItem) {
+                        await this.inLibraryChanges.put(
+                            this.createStorableMediaObject({...item, inLibrary})
+                        );
                     }
                 } else {
-                    const removedItem = this.getLibraryRemovedItem(item);
-                    if (removedItem) {
-                        await this.libraryRemovals.delete(removedItem.src);
-                    }
                     await service.store(item, inLibrary);
                 }
-                mediaObjectChanges.dispatch({
+                dispatchMediaObjectChanges({
                     match: (object) => service.compareForRating(object, item),
                     values: {inLibrary},
                 });
@@ -125,10 +126,10 @@ class ActionsStore extends Dexie {
         }
     }
 
-    private observeLibraryRemovals(
+    private observeInLibraryChanges(
         service: MediaService
     ): Observable<readonly StorableMediaObject[]> {
-        return this.observeUpdates(service, this.libraryRemovals$);
+        return this.observeUpdates(service, this.inLibraryChanges$);
     }
 
     private observeRatingChanges(
@@ -162,10 +163,10 @@ class ActionsStore extends Dexie {
         rating: number,
         chunkSize = 10
     ): Promise<void> {
-        const applyRatingChanges = async (items: readonly T[]): Promise<void> => {
+        const applyChanges = async (items: readonly T[]): Promise<void> => {
             const srcs = items.map((item) => item.src);
             await this.ratingChanges.bulkDelete(srcs);
-            mediaObjectChanges.dispatch({
+            dispatchMediaObjectChanges({
                 match: (object) => items.some((item) => service.compareForRating(object, item)),
                 values: {rating},
             });
@@ -173,27 +174,26 @@ class ActionsStore extends Dexie {
 
         if (service.bulkRate) {
             await service.bulkRate(items, rating);
-            applyRatingChanges(items);
+            applyChanges(items);
         } else {
             const chunks = chunk(items, chunkSize);
             for (const chunk of chunks) {
                 await Promise.all(chunk.map((item) => service.rate!(item, rating)));
-                applyRatingChanges(chunk);
+                applyChanges(chunk);
             }
         }
     }
 
-    private async bulkRemoveFromLibrary<T extends MediaObject>(
+    private async bulkStore<T extends MediaObject>(
         service: MediaService,
         items: readonly T[],
+        inLibrary: boolean,
         chunkSize = 10
     ): Promise<void> {
-        const inLibrary = false;
-
-        const applyLibraryRemovals = async (items: readonly T[]): Promise<void> => {
+        const applyChanges = async (items: readonly T[]): Promise<void> => {
             const srcs = items.map((item) => item.src);
-            await this.libraryRemovals.bulkDelete(srcs);
-            mediaObjectChanges.dispatch({
+            await this.inLibraryChanges.bulkDelete(srcs);
+            dispatchMediaObjectChanges({
                 match: (object) => items.some((item) => service.compareForRating(object, item)),
                 values: {inLibrary},
             });
@@ -201,12 +201,12 @@ class ActionsStore extends Dexie {
 
         if (service.bulkStore) {
             await service.bulkStore(items, inLibrary);
-            applyLibraryRemovals(items);
+            applyChanges(items);
         } else {
             const chunks = chunk(items, chunkSize);
             for (const chunk of chunks) {
                 await Promise.all(chunk.map((item) => service.store!(item, inLibrary)));
-                applyLibraryRemovals(chunk);
+                applyChanges(chunk);
             }
         }
     }
@@ -221,6 +221,19 @@ class ActionsStore extends Dexie {
         }
     }
 
+    private getInLibraryChangedItem(
+        item: MediaObject | StorableMediaObject
+    ): StorableMediaObject | undefined {
+        const service = getServiceFromSrc(item);
+        if (service?.store) {
+            return this.inLibraryChanges$
+                .getValue()
+                .find((changed) =>
+                    service.compareForRating(changed as MediaObject, item as MediaObject)
+                );
+        }
+    }
+
     private getRatingChangedItem(
         item: MediaObject | StorableMediaObject
     ): StorableMediaObject | undefined {
@@ -230,19 +243,6 @@ class ActionsStore extends Dexie {
                 .getValue()
                 .find((changed) =>
                     service.compareForRating(changed as MediaObject, item as MediaObject)
-                );
-        }
-    }
-
-    private getLibraryRemovedItem(
-        item: MediaObject | StorableMediaObject
-    ): StorableMediaObject | undefined {
-        const service = getServiceFromSrc(item);
-        if (service?.store) {
-            return this.libraryRemovals$
-                .getValue()
-                .find((removed) =>
-                    service.compareForRating(removed as MediaObject, item as MediaObject)
                 );
         }
     }
@@ -282,11 +282,18 @@ class ActionsStore extends Dexie {
         }
         if (service.store) {
             const logger = this.logger.id(`${service.id}/inLibrary`);
-            this.observeLibraryRemovals(service)
+            this.observeInLibraryChanges(service)
                 .pipe(
                     filter((items) => items.length > 0),
-                    concatMap((items) =>
-                        this.bulkRemoveFromLibrary(service, items as MediaObject[], maxChunkSize)
+                    map((items) => groupBy(items, (item) => String(!!item.inLibrary))),
+                    mergeMap((byInLibrary) =>
+                        Object.keys(byInLibrary).map((inLibrary) => ({
+                            items: byInLibrary[inLibrary as any],
+                            inLibrary: inLibrary !== 'false',
+                        }))
+                    ),
+                    concatMap(({items, inLibrary}) =>
+                        this.bulkStore(service, items as MediaObject[], inLibrary, maxChunkSize)
                     ),
                     catchError((err) => {
                         logger.error(err);

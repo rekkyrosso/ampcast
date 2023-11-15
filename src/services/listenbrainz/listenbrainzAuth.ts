@@ -1,15 +1,20 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, filter, map, mergeMap} from 'rxjs';
 import {Logger} from 'utils';
 import {showListenBrainzLoginDialog} from './components/ListenBrainzLoginDialog';
+import listenbrainzApi from './listenbrainzApi';
 import listenbrainzSettings from './listenbrainzSettings';
 
 const logger = new Logger('listenbrainzAuth');
 
 const accessToken$ = new BehaviorSubject('');
 
-export function observeAccessToken(): Observable<string> {
+function observeAccessToken(): Observable<string> {
     return accessToken$.pipe(distinctUntilChanged());
+}
+
+export function isConnected(): boolean {
+    return !!listenbrainzSettings.token;
 }
 
 export function isLoggedIn(): boolean {
@@ -44,6 +49,26 @@ export async function logout(): Promise<void> {
     logger.log('disconnect');
     listenbrainzSettings.clear();
     accessToken$.next('');
+}
+
+observeAccessToken()
+    .pipe(
+        filter((token) => !!token),
+        mergeMap(() => checkConnection())
+    )
+    .subscribe(logger);
+
+async function checkConnection(): Promise<void> {
+    try {
+        await listenbrainzApi.getListenCount();
+    } catch (err: any) {
+        if (err.status === 401) {
+            listenbrainzSettings.clear();
+            accessToken$.next('');
+        } else {
+            logger.error(err);
+        }
+    }
 }
 
 accessToken$.next(listenbrainzSettings.token);

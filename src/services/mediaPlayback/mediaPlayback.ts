@@ -15,12 +15,14 @@ import {
     takeUntil,
     tap,
     withLatestFrom,
+    take,
 } from 'rxjs';
 import MediaPlayback from 'types/MediaPlayback';
 import PlaybackState from 'types/PlaybackState';
 import PlaylistItem from 'types/PlaylistItem';
+import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import lookup from 'services/lookup';
-import {hasPlayableSrc} from 'services/mediaServices';
+import {hasPlayableSrc, getPlaybackType} from 'services/mediaServices';
 import playlist from 'services/playlist';
 import visualizerPlayer from 'services/visualizer/visualizerPlayer';
 import {formatTime, LiteStorage, Logger} from 'utils';
@@ -203,8 +205,12 @@ async function getPlayableItem(item: PlaylistItem): Promise<PlaylistItem> {
     if (!hasPlayableSrc(item)) {
         const foundItem = await lookup(item);
         if (foundItem) {
-            return {...item, ...foundItem} as PlaylistItem;
+            item = {...item, ...foundItem};
         }
+    }
+    if (item.playbackType === undefined) {
+        const playbackType = await getPlaybackType(item);
+        item = {...item, playbackType};
     }
     return item;
 }
@@ -318,6 +324,26 @@ playlist
         filter((isEmpty) => isEmpty)
     )
     .subscribe(stop);
+
+// Use `duration` from media playback if it's missing in metadata.
+observeCurrentItem()
+    .pipe(
+        switchMap((item) =>
+            item?.duration === 0
+                ? observeDuration().pipe(
+                      filter((duration) => duration !== 0),
+                      take(1),
+                      tap((duration) =>
+                          dispatchMediaObjectChanges({
+                              match: (object) => object.src === item.src,
+                              values: {duration},
+                          })
+                      )
+                  )
+                : EMPTY
+        )
+    )
+    .subscribe(logger);
 
 // Unlock loading after 250ms.
 // `mediaPlayer` won't actually load anything until then.

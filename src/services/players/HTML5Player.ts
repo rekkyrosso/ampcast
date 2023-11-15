@@ -1,15 +1,22 @@
+import type Hls from 'hls.js';
 import type {Observable} from 'rxjs';
 import {Subject, filter, fromEvent, map} from 'rxjs';
 import PlayableItem from 'types/PlayableItem';
+import PlaybackType from 'types/PlaybackType';
 import Player from 'types/Player';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {Logger} from 'utils';
 
 export default class HTML5Player implements Player<PlayableItem> {
-    protected readonly logger: Logger;
-    protected readonly element: HTMLMediaElement;
-    protected readonly error$ = new Subject<unknown>();
-    protected item: PlayableItem | null = null;
+    private readonly logger: Logger;
+    private readonly element: HTMLMediaElement;
+    private readonly error$ = new Subject<unknown>();
+    private item: PlayableItem | null = null;
+    private hasNativeHls = false;
+    private hls: Hls | null = null;
+    private hlsIsSupported = false;
+    private loadedHlsSrc = '';
+    private loadingHlsScript = false;
     autoplay = false;
 
     constructor(type: 'audio' | 'video', id: string) {
@@ -24,8 +31,19 @@ export default class HTML5Player implements Player<PlayableItem> {
         this.logger = new Logger(`HTML5Player/${type}/${id}`);
 
         fromEvent(element, 'error')
-            .pipe(map(() => element.error))
+            .pipe(
+                map(() => element.error),
+                // Filter out HLS errors (handled further below).
+                filter((error) => error !== null && !('fatal' in error))
+            )
             .subscribe(this.error$);
+
+        if (
+            element.canPlayType('application/x-mpegURL').replace('no', '') ||
+            element.canPlayType('application/vnd.apple.mpegURL').replace('no', '')
+        ) {
+            this.hasNativeHls = true;
+        }
 
         this.observeError().subscribe(this.logger.error);
     }
@@ -95,22 +113,17 @@ export default class HTML5Player implements Player<PlayableItem> {
     load(item: PlayableItem): void {
         this.logger.log('load');
         this.item = item;
-        try {
-            if (this.autoplay) {
-                this.safePlay(item);
-            }
-        } catch (err) {
-            this.error$.next(err);
+        if (this.isHlsItem && !this.hasNativeHls) {
+            this.loadHlsScript();
+        }
+        if (this.autoplay) {
+            this.safePlay(item);
         }
     }
 
     play(): void {
         this.logger.log('play');
-        try {
-            this.safePlay(this.item);
-        } catch (err) {
-            this.error$.next(err);
-        }
+        this.safePlay(this.item);
     }
 
     pause(): void {
@@ -122,6 +135,11 @@ export default class HTML5Player implements Player<PlayableItem> {
         this.logger.log('stop');
         this.element.pause();
         this.element.currentTime = 0;
+        if (this.loadedHlsSrc) {
+            this.loadedHlsSrc = '';
+            this.hls!.stopLoad();
+            this.hls!.detachMedia();
+        }
     }
 
     seek(time: number): void {
@@ -129,15 +147,17 @@ export default class HTML5Player implements Player<PlayableItem> {
     }
 
     resize(width: number, height: number): void {
-        this.element.style.width = `${width}px`;
-        this.element.style.height = `${height}px`;
+        if (this.type === 'video') {
+            this.element.style.width = `${width}px`;
+            this.element.style.height = `${height}px`;
+        }
     }
 
-    protected get type(): string {
-        return this.element.nodeName.toLocaleLowerCase();
+    private get type(): string {
+        return this.element.nodeName.toLowerCase();
     }
 
-    protected getMediaSrc(item: PlayableItem): string {
+    private getMediaSrc(item: PlayableItem): string {
         if (item) {
             const service = getServiceFromSrc(item);
             const src = service?.getPlayableUrl?.(item) ?? item.src;
@@ -147,18 +167,78 @@ export default class HTML5Player implements Player<PlayableItem> {
         }
     }
 
-    protected async safePlay(item: PlayableItem | null): Promise<void> {
-        if (!item) {
-            throw Error('Player not loaded');
-        }
-        const src = this.getMediaSrc(item);
-        if (this.element.getAttribute('src') !== src) {
-            this.element.setAttribute('src', src);
-        }
+    private async safePlay(item: PlayableItem | null): Promise<void> {
         try {
+            if (!item) {
+                throw Error('Player not loaded');
+            }
+            const src = this.getMediaSrc(item);
+            if (this.isHlsItem && !this.hasNativeHls) {
+                if (!this.hls) {
+                    this.loadHlsScript();
+                    return;
+                }
+                if (this.hlsIsSupported) {
+                    if (this.loadedHlsSrc !== src) {
+                        this.loadedHlsSrc = src;
+                        this.hls.stopLoad();
+                        this.hls.detachMedia();
+                        this.element.removeAttribute('src');
+                        this.hls.loadSource(src);
+                        this.hls.attachMedia(this.element);
+                    }
+                } else {
+                    throw Error(`Unsupported ${this.type} format`);
+                }
+            } else {
+                if (this.element.getAttribute('src') !== src) {
+                    this.element.setAttribute('src', src);
+                }
+            }
             await this.element.play();
         } catch (err) {
             this.error$.next(err);
+        }
+    }
+
+    private get isHlsItem(): boolean {
+        return this.item?.playbackType === PlaybackType.HLS;
+    }
+
+    private async loadHlsScript(): Promise<void> {
+        if (this.loadingHlsScript || this.hls) {
+            return;
+        }
+        this.loadingHlsScript = true;
+        const {default: Hls} = await import(
+            /* webpackChunkName: "hls" */
+            /* webpackMode: "lazy-once" */
+            'hls.js'
+        );
+        this.hls = new Hls();
+        this.loadingHlsScript = false;
+        this.hlsIsSupported = Hls.isSupported();
+        // https://github.com/video-dev/hls.js/blob/HEAD/docs/API.md#fifth-step-error-handling
+        this.hls.on(Hls.Events.ERROR, (_, error) => {
+            if (!this.isHlsItem) {
+                return;
+            }
+            if (error.fatal) {
+                switch (error.type) {
+                    case Hls.ErrorTypes.MEDIA_ERROR:
+                        this.logger.warn('Fatal HLS media error encountered, trying to recover...');
+                        this.hls!.recoverMediaError();
+                        break;
+                    default:
+                        this.error$.next(error);
+                }
+            } else {
+                this.logger.warn('Non-fatal HLS media error:');
+                this.logger.log({error});
+            }
+        });
+        if (this.autoplay && this.isHlsItem) {
+            this.safePlay(this.item);
         }
     }
 }

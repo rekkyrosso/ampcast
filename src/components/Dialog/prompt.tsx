@@ -6,6 +6,8 @@ import './prompt.scss';
 
 export interface PromptOptions {
     title?: React.ReactNode;
+    type?: HTMLInputElement['type'];
+    placeholder?: HTMLInputElement['placeholder'];
     label?: React.ReactNode;
     suggestedValue?: string;
     okLabel?: React.ReactNode;
@@ -25,6 +27,8 @@ export type PromptDialogProps = DialogProps & PromptOptions;
 
 export function PromptDialog({
     title = 'Input',
+    type = 'text',
+    placeholder = '',
     label,
     suggestedValue = '',
     okLabel = 'OK',
@@ -40,17 +44,15 @@ export function PromptDialog({
     return (
         <Dialog {...props} className="prompt-dialog" title={title}>
             <form method="dialog">
-                {label ? (
-                    <p className="prompt-message">
-                        <label htmlFor={id}>{label}: </label>
-                    </p>
-                ) : null}
                 <p>
+                    {label ? <label htmlFor={id}>{label}: </label> : null}
                     <input
-                        type="text"
+                        type={type}
                         id={id}
                         defaultValue={suggestedValue}
+                        placeholder={placeholder}
                         autoFocus
+                        required
                         spellCheck={false}
                         autoComplete="off"
                         autoCapitalize="off"

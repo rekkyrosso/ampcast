@@ -1,10 +1,10 @@
 import React from 'react';
+import {LoginProps} from 'components/Login';
 import DevMode from 'components/Login/DevMode';
 import LoginButton from 'components/Login/LoginButton';
 import ServiceLink from 'components/Login/ServiceLink';
-import spotify from '../spotify';
 
-export default function SpotifyLogin() {
+export default function SpotifyLogin({service: spotify}: LoginProps) {
     return (
         <>
             <DevMode service={spotify} />

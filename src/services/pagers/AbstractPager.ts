@@ -16,7 +16,7 @@ import MediaObject from 'types/MediaObject';
 import MediaObjectChange from 'types/MediaObjectChange';
 import Pager, {PagerConfig} from 'types/Pager';
 import actionsStore from 'services/actions/actionsStore';
-import mediaObjectChanges from 'services/actions/mediaObjectChanges';
+import {observeMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import {Logger, exists, uniq} from 'utils';
 
 export interface PageFetch {
@@ -148,7 +148,9 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
                 return item;
             })
         );
-        this.additions$.next(additions);
+        if (additions.length > 0) {
+            this.additions$.next(additions);
+        }
     }
 
     protected get size(): number | undefined {
@@ -195,9 +197,9 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
                 );
 
                 this.subscribeTo(
-                    mediaObjectChanges
-                        .observe<T>()
-                        .pipe(tap((changes) => this.applyChanges(changes))),
+                    observeMediaObjectChanges<T>().pipe(
+                        tap((changes) => this.applyChanges(changes))
+                    ),
                     logger
                 );
             }

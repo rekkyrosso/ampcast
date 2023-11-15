@@ -22,7 +22,7 @@ import embyApi from './embyApi';
 
 export default class EmbyPager<T extends MediaObject> implements Pager<T> {
     static minPageSize = 10;
-    static maxPageSize = 500;
+    static maxPageSize = 1000;
 
     private readonly pager: Pager<T>;
     private readonly pageSize: number;
@@ -33,7 +33,10 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
         options?: Partial<PagerConfig>,
         private readonly parent?: ParentOf<T>
     ) {
-        this.pageSize = Math.min(options?.maxSize || Infinity, options?.pageSize || 200);
+        this.pageSize = Math.min(
+            options?.maxSize || Infinity,
+            options?.pageSize || (embySettings.isLocal ? EmbyPager.maxPageSize : 200)
+        );
         this.pager = new OffsetPager<T>((pageNumber) => this.fetch(pageNumber), {
             pageSize: this.pageSize,
             ...options,

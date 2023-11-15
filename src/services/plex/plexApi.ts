@@ -1,10 +1,13 @@
-import {browser} from 'utils';
 import ItemType from 'types/ItemType';
 import MediaFilter from 'types/MediaFilter';
+import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
+import PlayableItem from 'types/PlayableItem';
+import PlaybackType from 'types/PlaybackType';
 import ViewType from 'types/ViewType';
-import {NoMusicLibrary} from 'services/errors';
+import {NoMusicLibraryError} from 'services/errors';
+import {browser, canPlayMedia} from 'utils';
 import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
 import plexSettings from './plexSettings';
@@ -18,6 +21,7 @@ export interface PlexRequest {
     host?: string;
     token?: string;
     keepalive?: boolean;
+    timeout?: number; // MS
 }
 
 export const musicPlayHost = 'https://play.provider.plex.tv';
@@ -47,6 +51,7 @@ async function plexFetch({
     body,
     token,
     keepalive,
+    timeout,
 }: PlexRequest): Promise<Response> {
     if (!host) {
         throw Error(`No Plex connection.`);
@@ -63,7 +68,7 @@ async function plexFetch({
 
     const drm = host === plexSettings.host ? undefined : plexSettings.drm;
 
-    const response = await fetch(`${host}/${path}`, {
+    const init: RequestInit = {
         method,
         headers: {
             ...headers,
@@ -71,7 +76,20 @@ async function plexFetch({
         },
         body,
         keepalive,
-    });
+    };
+
+    let timerId: any = 0;
+    if (timeout) {
+        const controller = new AbortController();
+        timerId = setTimeout(() => controller.abort(), timeout);
+        init.signal = controller.signal;
+    }
+
+    const response = await fetch(`${host}/${path}`, init);
+
+    if (timerId) {
+        clearTimeout(timerId);
+    }
 
     if (!response.ok) {
         throw response;
@@ -141,7 +159,7 @@ export function getMusicLibraryPath(path = 'all'): string {
 export function getMusicLibraryId(): string {
     const libraryId = plexSettings.libraryId;
     if (!libraryId) {
-        throw new NoMusicLibrary();
+        throw new NoMusicLibraryError();
     }
     return libraryId;
 }
@@ -191,6 +209,53 @@ async function getEnhancedItems<T extends plex.MediaObject>(
         items = Metadata;
     }
     return items;
+}
+
+function getPlayableUrl(item: PlayableItem): string {
+    const {host, serverToken} = plexSettings;
+    if (host && serverToken) {
+        if (item.playbackType === PlaybackType.Direct) {
+            const [src] = item.srcs || [];
+            if (!src) {
+                throw Error('No playable source');
+            }
+            return `${host}${src}?X-Plex-Token=${serverToken}`;
+        } else {
+            const [, , ratingKey] = item.src.split(':');
+            const params: Record<string, string> = {
+                path: `/library/metadata/${ratingKey}`,
+                hasMDE: '1',
+                mediaIndex: '0',
+                partIndex: '0',
+                musicBitrate: '320',
+                directStreamAudio: '1',
+                mediaBufferSize: '12288',
+                protocol: item.playbackType === PlaybackType.HLS ? 'hls' : 'dash',
+                directPlay: '0',
+                ...getHeaders(serverToken),
+                'X-Plex-Client-Profile-Extra':
+                    'add-transcode-target(type=musicProfile&context=streaming&protocol=dash&container=mp4&audioCodec=aac)+add-transcode-target(type=musicProfile&context=streaming&protocol=hls&container=mpegts&audioCodec=aac,mp3)',
+            };
+            return `${host}/music/:/transcode/universal/start.mpd?${new URLSearchParams(params)}`;
+        }
+    } else {
+        throw Error('Not logged in');
+    }
+}
+
+async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
+    try {
+        const {host, serverToken} = plexSettings;
+        const [src] = item.srcs || [];
+        const url = `${host}${src}?X-Plex-Token=${serverToken}`;
+        const directPlay = await canPlayMedia(
+            item.mediaType === MediaType.Video ? 'video' : 'audio',
+            url
+        );
+        return directPlay ? PlaybackType.Direct : PlaybackType.HLS;
+    } catch (err) {
+        return PlaybackType.Direct;
+    }
 }
 
 function getHeaders(token: string, drm?: string): Record<string, string> {
@@ -257,6 +322,8 @@ const plexApi = {
     getAccount,
     getFilters,
     getMusicLibraries,
+    getPlayableUrl,
+    getPlaybackType,
     search,
 };
 

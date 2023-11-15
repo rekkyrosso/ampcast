@@ -1,5 +1,5 @@
 .settings-dialog {
-    width: 44em;
+    width: 45em;
     height: 36.5em; /* For the tallest tab */
 
     &::backdrop,
@@ -16,14 +16,27 @@
 
     &-sources {
         flex: initial;
-        width: 10em;
-        min-width: 10em;
+        width: 11em;
+        min-width: 11em;
     }
 
     &-source {
         display: flex;
         flex: auto;
         margin-left: 1em;
+    }
+
+    .media-services {
+        font-size: 1.25em;
+
+        & + .restricted-access {
+            margin-top: 1em;
+            font-style: italic;
+        }
+    }
+
+    .icon-globe {
+        fill: currentColor;
     }
 
     footer.dialog-buttons {

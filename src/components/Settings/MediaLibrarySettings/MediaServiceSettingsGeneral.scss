@@ -1,13 +1,9 @@
 .media-service-settings-general {
-    .disconnect {
-        width: 100%;
-
-        &:disabled {
-            background-image: none;
-        }
+    .media-source-label {
+        display: inline-flex;
     }
 
     .checkbox-list {
-        max-height: 16em;
+        max-height: 18em;
     }
 }

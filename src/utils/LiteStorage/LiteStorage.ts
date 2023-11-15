@@ -33,8 +33,8 @@ export default class LiteStorage {
         }
     }
 
-    getBoolean(key: string): boolean {
-        const value = this.getItem(key);
+    getBoolean(key: string, defaultValue = false): boolean {
+        const value = this.getItem(key) ?? defaultValue;
         return !!value && value !== 'false';
     }
 
@@ -85,6 +85,10 @@ export default class LiteStorage {
 
     getItem(key: string): string | null {
         return this.storage.getItem(`${this.id}/${key}`);
+    }
+
+    hasItem(key: string): boolean {
+        return this.getItem(key) !== null;
     }
 
     setItem(key: string, value: string | null): void {

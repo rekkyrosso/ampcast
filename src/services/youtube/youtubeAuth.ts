@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
 import {
     BehaviorSubject,
+    Subject,
     distinctUntilChanged,
     filter,
     from,
@@ -8,6 +9,7 @@ import {
     mergeMap,
     skipWhile,
     take,
+    takeUntil,
     tap,
 } from 'rxjs';
 import {yt_api_key, yt_client_id} from 'services/credentials';
@@ -20,9 +22,14 @@ const scope = 'https://www.googleapis.com/auth/youtube.readonly';
 const discoveryDocs = ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'];
 
 const accessToken$ = new BehaviorSubject('');
+const disconnected$ = new Subject<void>();
 
 function observeAccessToken(): Observable<string> {
     return accessToken$.pipe(distinctUntilChanged());
+}
+
+export function isConnected(): boolean {
+    return !!youtubeSettings.connectedAt;
 }
 
 export function isLoggedIn(): boolean {
@@ -54,11 +61,18 @@ export async function login(): Promise<void> {
 
 export async function logout(): Promise<void> {
     logger.log('disconnect');
-    const accessToken = getAccessToken();
-    if (accessToken) {
-        const oauth2 = await getGsiClient();
-        oauth2.revoke(accessToken, () => accessToken$.next(''));
+    disconnected$.next(undefined);
+    try {
+        const accessToken = getAccessToken();
+        if (accessToken) {
+            const oauth2 = await getGsiClient();
+            oauth2.revoke(accessToken, () => accessToken$.next(''));
+        }
+    } catch (err) {
+        // oauth2 not loaded.
     }
+    youtubeSettings.connectedAt = 0;
+    accessToken$.next('');
 }
 
 async function getGApi(): Promise<typeof gapi> {
@@ -138,12 +152,13 @@ observeIsLoggedIn()
     )
     .subscribe(logger);
 
-if (youtubeSettings.connectedAt) {
+if (youtubeSettings.enabled && isConnected()) {
     from(getGApiClient())
         .pipe(
             // This might stop working.
             map((client) => client.getToken()),
-            tap((token) => accessToken$.next(token?.access_token || ''))
+            tap((token) => accessToken$.next(token?.access_token || '')),
+            takeUntil(disconnected$)
         )
         .subscribe(logger);
 }

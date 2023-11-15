@@ -11,6 +11,10 @@
         cursor: pointer;
         color: white;
 
+        &:disabled {
+            cursor: default;
+        }
+
         .apple-browser & {
             background: #d60017;
         }

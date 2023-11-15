@@ -1,25 +1,18 @@
-import React, {useCallback, useState} from 'react';
-import {browser, LiteStorage} from 'utils';
+import React from 'react';
+import AppTitle from './AppTitle';
 import './DesktopWarning.scss';
 
-const settings = new LiteStorage('desktopWarning');
+export interface DesktopWarningProps {
+    onDismiss: () => void;
+}
 
-export default function DesktopWarning() {
-    const [hidden, setHidden] = useState(() => browser.desktop || settings.getBoolean('dismissed'));
-
-    const hide = useCallback(() => {
-        settings.setBoolean('dismissed', true);
-        setHidden(true);
-    }, []);
-
-    return hidden ? null : (
+export default function DesktopWarning({onDismiss}: DesktopWarningProps) {
+    return (
         <div className="desktop-warning">
-            <h1>
-                {__app_name__} {__app_version__}
-            </h1>
+            <AppTitle />
             <p>This application is intended for a desktop browser.</p>
             <p>
-                <button onClick={hide}>Proceed</button>
+                <button onClick={onDismiss}>Proceed</button>
             </p>
         </div>
     );

@@ -4,16 +4,24 @@ import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
+import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSource from 'types/MediaSource';
+import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
 import ServiceType from 'types/ServiceType';
-import Scrobbler from 'types/Scrobbler';
+import DataService from 'types/DataService';
 import listenbrainzApi from './listenbrainzApi';
-import {observeIsLoggedIn, isLoggedIn, login, logout} from './listenbrainzAuth';
+import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './listenbrainzAuth';
 import ListenBrainzHistoryPager from './ListenBrainzHistoryPager';
 import ListenBrainzLikesPager from './ListenBrainzLikesPager';
-import listenbrainzSettings from './listenbrainzSettings';
+import ListenBrainzPlaylistsPager from './ListenBrainzPlaylistsPager';
 import ListenBrainzStatsPager from './ListenBrainzStatsPager';
+import listenbrainzSettings from './listenbrainzSettings';
+
+const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
+    view: 'details',
+    fields: ['Index', 'Artist', 'Title'],
+};
 
 export const listenbrainzHistory: MediaSource<MediaItem> = {
     id: 'listenbrainz/history',
@@ -108,13 +116,43 @@ const listenbrainzTopArtists: MediaSource<MediaArtist> = {
     },
 };
 
-const listenbrainz: Scrobbler = {
+const listenbrainzPlaylists: MediaSource<MediaPlaylist> = {
+    id: 'listenbrainz/playlists',
+    title: 'My Playlists',
+    icon: 'playlist',
+    itemType: ItemType.Playlist,
+    secondaryLayout: playlistItemsLayout,
+    defaultHidden: true,
+
+    search(): Pager<MediaPlaylist> {
+        return new ListenBrainzPlaylistsPager(`user/${listenbrainzSettings.userId}/playlists`);
+    },
+};
+
+const listenbrainzRecommendations: MediaSource<MediaPlaylist> = {
+    id: 'listenbrainz/recommendations',
+    title: 'Recommendations',
+    icon: 'playlist',
+    itemType: ItemType.Playlist,
+    secondaryLayout: playlistItemsLayout,
+    defaultHidden: true,
+
+    search(): Pager<MediaPlaylist> {
+        return new ListenBrainzPlaylistsPager(
+            `user/${listenbrainzSettings.userId}/playlists/createdfor`
+        );
+    },
+};
+
+const listenbrainz: DataService = {
     id: 'listenbrainz',
     name: 'ListenBrainz',
     icon: 'listenbrainz',
     url: 'https://listenbrainz.org',
-    serviceType: ServiceType.Scrobbler,
+    serviceType: ServiceType.DataService,
+    canScrobble: true,
     defaultHidden: true,
+    internetRequired: true,
     roots: [listenbrainzRecentlyPlayed],
     sources: [
         listenbrainzTopTracks,
@@ -122,6 +160,8 @@ const listenbrainz: Scrobbler = {
         listenbrainzTopArtists,
         listenbrainzLovedTracks,
         listenbrainzHistory,
+        listenbrainzPlaylists,
+        listenbrainzRecommendations,
     ],
     labels: {
         [Action.AddToLibrary]: 'Love on ListenBrainz',
@@ -132,6 +172,7 @@ const listenbrainz: Scrobbler = {
     compareForRating,
     store,
     observeIsLoggedIn,
+    isConnected,
     isLoggedIn,
     login,
     logout,

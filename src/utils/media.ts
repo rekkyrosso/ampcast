@@ -13,14 +13,14 @@ const userDataKeys: (keyof MediaItem | 'lookupStatus')[] = [
     'lookupStatus',
 ];
 
-export function removeUserData<T extends MediaItem>(item: T): Subtract<MediaItem, UserData> {
-    const keys = Object.keys(item) as (keyof MediaItem)[];
+export function removeUserData<T extends Partial<MediaItem>>(item: T): Subtract<T, UserData> {
+    const keys = Object.keys(item) as (keyof T)[];
     return keys.reduce((result, key) => {
-        if (item[key] !== undefined && !userDataKeys.includes(key)) {
+        if (item[key] !== undefined && !userDataKeys.includes(key as any)) {
             (result as any)[key] = item[key];
         }
         return result;
-    }, {} as unknown as Subtract<MediaItem, UserData>);
+    }, {} as unknown as Subtract<T, UserData>);
 }
 
 export function stringContainsMusic(text: string): boolean {
@@ -56,4 +56,36 @@ export async function getSupportedDrm(): Promise<string> {
         }
     }
     return supportedDrm;
+}
+
+export function canPlayAudio(src: string): Promise<boolean> {
+    return canPlayMedia('audio', src);
+}
+
+export function canPlayVideo(src: string): Promise<boolean> {
+    return canPlayMedia('video', src);
+}
+
+export function canPlayMedia(nodeName: 'audio' | 'video', src: string): Promise<boolean> {
+    return new Promise((resolve) => {
+        const media = document.createElement(nodeName);
+        const resolveAs = (result: boolean) => () => {
+            media.removeAttribute('src');
+            clearTimeout(timerId);
+            resolve(result);
+        };
+        const resolveFalse = resolveAs(false);
+        const resolveTrue = resolveAs(true);
+        const timerId = setTimeout(resolveTrue, 1000);
+        try {
+            media.muted = true;
+            media.crossOrigin = 'anonymous';
+            media.onerror = resolveFalse;
+            media.onplaying = resolveTrue;
+            media.setAttribute('src', src);
+            media.play().then(undefined, resolveFalse);
+        } catch (err) {
+            resolveFalse();
+        }
+    });
 }

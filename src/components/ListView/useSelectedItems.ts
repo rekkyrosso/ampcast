@@ -1,5 +1,6 @@
 import usePrevious from 'hooks/usePrevious';
 import {useCallback, useEffect, useState} from 'react';
+import {exists} from 'utils';
 
 export default function useSelectedItems<T>(
     items: readonly T[],
@@ -33,7 +34,7 @@ export default function useSelectedItems<T>(
     }, [prevItems, items, selectedItems, itemKey, rowIndex]);
 
     const selectAll = useCallback(() => {
-        setSelectedItems(items.slice());
+        setSelectedItems(items.filter(exists));
     }, [items]);
 
     const selectAt = useCallback(
@@ -48,7 +49,7 @@ export default function useSelectedItems<T>(
         (firstIndex: number, lastIndex: number) => {
             const start = Math.min(firstIndex, lastIndex);
             const end = Math.max(firstIndex, lastIndex);
-            const selectedItems = items.slice(start, end + 1);
+            const selectedItems = items.slice(start, end + 1).filter(exists);
             setSelectedItems(selectedItems);
         },
         [items]

@@ -1,12 +1,14 @@
 import type {Observable} from 'rxjs';
 import {
     BehaviorSubject,
+    Subject,
     distinctUntilChanged,
     filter,
     from,
     mergeMap,
     skipWhile,
     take,
+    takeUntil,
     tap,
 } from 'rxjs';
 import {am_dev_token} from 'services/credentials';
@@ -17,6 +19,11 @@ import MusicKitV1Wrapper from './MusicKitV1Wrapper';
 const logger = new Logger('appleAuth');
 
 const isLoggedIn$ = new BehaviorSubject(false);
+const disconnected$ = new Subject<void>();
+
+export function isConnected(): boolean {
+    return !!appleSettings.connectedAt;
+}
 
 export function isLoggedIn(): boolean {
     return isLoggedIn$.getValue();
@@ -41,23 +48,29 @@ export async function login(): Promise<void> {
 
 export async function logout(): Promise<void> {
     logger.log('disconnect');
-    const musicKit = await getMusicKitInstance();
+    disconnected$.next(undefined);
     try {
-        if (musicKit.isPlaying) {
-            musicKit.stop();
+        const musicKit = await getMusicKitInstance();
+        try {
+            if (musicKit.isPlaying) {
+                musicKit.stop();
+            }
+            if (!musicKit.queue.isEmpty) {
+                await musicKit.setQueue({});
+            }
+        } catch (err) {
+            logger.error(err);
         }
-        if (!musicKit.queue.isEmpty) {
-            await musicKit.setQueue({});
+        try {
+            await musicKit.unauthorize();
+        } catch (err) {
+            logger.error(err);
         }
     } catch (err) {
-        logger.error(err);
+        // MusicKit not loaded.
     }
-    try {
-        await musicKit.unauthorize();
-    } catch (err) {
-        logger.error(err);
-    }
-    isLoggedIn$.next(musicKit.isAuthorized);
+    appleSettings.connectedAt = 0;
+    isLoggedIn$.next(false);
 }
 
 export async function refreshToken(): Promise<void> {
@@ -123,12 +136,13 @@ observeIsLoggedIn()
     )
     .subscribe(logger);
 
-if (appleSettings.connectedAt) {
+if (isConnected()) {
     from(getMusicKitInstance())
         .pipe(
             filter((musicKit) => musicKit.isAuthorized),
             mergeMap((musicKit) => musicKit.authorize()),
-            tap((token) => isLoggedIn$.next(!!token))
+            tap((token) => isLoggedIn$.next(!!token)),
+            takeUntil(disconnected$)
         )
         .subscribe(logger);
 }

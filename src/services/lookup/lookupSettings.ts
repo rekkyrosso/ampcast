@@ -3,11 +3,11 @@ import {LiteStorage} from 'utils';
 const storage = new LiteStorage('lookup');
 
 export default {
-    get preferredService(): string {
-        return storage.getString('preferredService');
+    get preferPersonalMedia(): boolean {
+        return storage.getBoolean('preferPersonalMedia');
     },
 
-    set preferredService(preferredService: string) {
-        storage.setString('preferredService', preferredService);
+    set preferPersonalMedia(preferPersonalMedia: boolean) {
+        storage.setBoolean('preferPersonalMedia', preferPersonalMedia);
     },
 };

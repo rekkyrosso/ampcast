@@ -31,11 +31,11 @@ export default function useTreeViewState(storageId?: string) {
     );
 
     const retrieveSelectedNodeId = useCallback(
-        (defaultId: string): string => {
+        (): string => {
             if (storageId) {
-                return localStorage.getItem(`${storageId}/selectedId`) || defaultId;
+                return localStorage.getItem(`${storageId}/selectedId`) || '';
             }
-            return defaultId;
+            return '';
         },
         [storageId]
     );

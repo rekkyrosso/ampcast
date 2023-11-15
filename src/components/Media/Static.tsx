@@ -18,9 +18,9 @@ export default function Static() {
                 buffer[i] = ((255 * Math.random()) | 0) << 24;
             }
             ctx.putImageData(data, 0, 0);
-            animationFrameId = requestAnimationFrame(() => render());
+            animationFrameId = requestAnimationFrame(render);
         };
-        animationFrameId = requestAnimationFrame(() => render());
+        animationFrameId = requestAnimationFrame(render);
         return () => cancelAnimationFrame(animationFrameId);
     }, []);
 

@@ -52,7 +52,7 @@ const visualizerSettings: VisualizerSettings = {
     },
 
     get beatsOverlay(): boolean {
-        return storage.getBoolean('beatsOverlay');
+        return storage.getBoolean('beatsOverlay', true);
     },
 
     set beatsOverlay(beatsOverlay: boolean) {

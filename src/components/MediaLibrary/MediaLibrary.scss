@@ -31,7 +31,7 @@
         }
     }
 
-    &-title {
+    .app-title {
         margin-left: var(--gutter-width);
 
         @mixin chromeless {
@@ -47,19 +47,9 @@
             @include chromeless;
         }
 
-        .app {
-            &-icon {
-                margin-right: 0.25em;
-            }
-
-            &-version {
-                margin-left: 0.25em;
-                padding: 0.125em 0.25em;
-                font-size: 0.5625em;
-                background-color: var(--frame2-color);
-                border-radius: var(--app-border-radius);
-                vertical-align: super;
-            }
+        .app-version {
+            background-color: var(--frame2-color);
+            border-radius: var(--app-border-radius);
         }
     }
 

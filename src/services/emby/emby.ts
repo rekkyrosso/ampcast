@@ -18,17 +18,18 @@ import Pager, {PagerConfig} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
 import PlayableItem from 'types/PlayableItem';
+import PlaybackType from 'types/PlaybackType';
 import Pin from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import ViewType from 'types/ViewType';
 import actionsStore from 'services/actions/actionsStore';
-import {NoMusicLibrary, NoMusicVideoLibrary} from 'services/errors';
+import {NoMusicLibraryError, NoMusicVideoLibraryError} from 'services/errors';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {bestOf} from 'utils';
-import {observeIsLoggedIn, isLoggedIn, login, logout} from './embyAuth';
+import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './embyAuth';
 import EmbyPager from './EmbyPager';
 import embySettings from './embySettings';
 import embyApi from './embyApi';
@@ -322,7 +323,7 @@ const embyMusicVideos: MediaSource<MediaItem> = {
     search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
         const videoLibraryId = embySettings.videoLibraryId;
         if (!videoLibraryId) {
-            throw new NoMusicVideoLibrary();
+            throw new NoMusicVideoLibraryError();
         }
         return createItemsPager({
             ParentId: videoLibraryId,
@@ -448,9 +449,11 @@ const emby: PersonalMediaService = {
     getFilters,
     getMetadata,
     getPlayableUrl,
+    getPlaybackType,
     lookup,
     store,
     observeIsLoggedIn,
+    isConnected,
     isLoggedIn,
     login,
     logout,
@@ -521,8 +524,12 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     return bestOf(item, items[0]);
 }
 
-function getPlayableUrl({src}: PlayableItem): string {
-    return embyApi.getPlayableUrl(src, embySettings);
+function getPlayableUrl(item: PlayableItem): string {
+    return embyApi.getPlayableUrl(item);
+}
+
+async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
+    return embyApi.getPlaybackType(item);
 }
 
 async function lookup(
@@ -610,7 +617,7 @@ function createItemsPager<T extends MediaObject>(
 function getMusicLibraryId(): string {
     const libraryId = embySettings.libraryId;
     if (!libraryId) {
-        throw new NoMusicLibrary();
+        throw new NoMusicLibraryError();
     }
     return libraryId;
 }

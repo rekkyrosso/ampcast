@@ -1,6 +1,7 @@
 import {Except, Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import Action from 'types/Action';
+import DataService from 'types/DataService';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
@@ -9,10 +10,9 @@ import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
 import ServiceType from 'types/ServiceType';
-import Scrobbler from 'types/Scrobbler';
 import actionsStore from 'services/actions/actionsStore';
 import lastfmApi from './lastfmApi';
-import {observeIsLoggedIn, isLoggedIn, login, logout} from './lastfmAuth';
+import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './lastfmAuth';
 import LastFmPager from './LastFmPager';
 import LastFmHistoryPager from './LastFmHistoryPager';
 import lastfmSettings from './lastfmSettings';
@@ -30,11 +30,6 @@ const lovedTracksLayout: MediaSourceLayout<MediaItem> = {
 const albumLayout: MediaSourceLayout<MediaAlbum> = {
     view: 'card compact',
     fields: ['Thumbnail', 'Title', 'Artist', 'Year', 'PlayCount'],
-};
-
-const albumTrackLayout: MediaSourceLayout<MediaItem> = {
-    view: 'details',
-    fields: ['AlbumTrack', 'Title', 'Artist'],
 };
 
 const artistLayout: MediaSourceLayout<MediaArtist> = {
@@ -92,13 +87,15 @@ const lastfmLovedTracks: MediaSource<MediaItem> = {
     },
 };
 
-const lastfm: Scrobbler = {
+const lastfm: DataService = {
     id: 'lastfm',
     name: 'last.fm',
     icon: 'lastfm',
     url: 'https://www.last.fm',
-    serviceType: ServiceType.Scrobbler,
+    serviceType: ServiceType.DataService,
+    canScrobble: true,
     defaultHidden: true,
+    internetRequired: true,
     roots: [lastfmRecentlyPlayed],
     sources: [
         createTopView('user.getTopTracks', {
@@ -110,14 +107,12 @@ const lastfm: Scrobbler = {
             title: 'Top Albums',
             itemType: ItemType.Album,
             layout: albumLayout,
-            secondaryLayout: albumTrackLayout,
         }),
         createTopView('user.getTopArtists', {
             title: 'Top Artists',
             itemType: ItemType.Artist,
             layout: artistLayout,
             secondaryLayout: albumLayout,
-            tertiaryLayout: albumTrackLayout,
         }),
         lastfmLovedTracks,
         lastfmHistory,
@@ -132,6 +127,7 @@ const lastfm: Scrobbler = {
     getMetadata,
     store,
     observeIsLoggedIn,
+    isConnected,
     isLoggedIn,
     login,
     logout,

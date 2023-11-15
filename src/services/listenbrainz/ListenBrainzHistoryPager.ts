@@ -127,10 +127,6 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
         const mbid = data.mbid_mapping?.recording_mbid || undefined;
         const playableSrc = this.getPlayableSrc(info) || '';
 
-        // examples:
-        // listening_from: "Plex/lastfm/jellyfin/Rhythmbox/..."
-        // origin_url: "https://anyband.bandcamp.com/album/..."
-
         return {
             itemType: ItemType.Media,
             mediaType: playableSrc.startsWith('youtube:') ? MediaType.Video : MediaType.Audio,

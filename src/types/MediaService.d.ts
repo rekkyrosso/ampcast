@@ -1,10 +1,10 @@
+import DataService from './DataService';
 import PersonalMediaService from './PersonalMediaService';
 import PublicMediaService from './PublicMediaService';
-import Scrobbler from './Scrobbler';
 
 type MediaService =
     | PublicMediaService
     | PersonalMediaService
-    | Scrobbler;
+    | DataService;
 
 export default MediaService;

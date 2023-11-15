@@ -1,11 +1,10 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, combineLatest, filter, map} from 'rxjs';
 import Dexie, {liveQuery} from 'dexie';
-import {Writable} from 'type-fest';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import Pin from 'types/Pin';
-import mediaObjectChanges from 'services/actions/mediaObjectChanges';
+import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import {Logger} from 'utils';
 
 const logger = new Logger('pinStore');
@@ -24,17 +23,6 @@ class PinStore extends Dexie {
             .stores({
                 pins: `&src`,
             })
-            .upgrade((transaction) =>
-                // Upgrade Plex `src`.
-                transaction
-                    .table('pins')
-                    .toCollection()
-                    .modify((pin: Writable<Pin & {plex?: {ratingKey: string}}>) => {
-                        if (pin.plex) {
-                            pin.src = `plex:playlist:${pin.plex.ratingKey}`;
-                        }
-                    })
-            );
 
         liveQuery(() => this.pins.toArray()).subscribe(this.pins$);
     }
@@ -60,7 +48,7 @@ class PinStore extends Dexie {
                     return {...pin, isPinned: true};
                 })
             );
-            mediaObjectChanges.dispatch(
+            dispatchMediaObjectChanges(
                 playlists.map((playlist) => ({
                     match: (object: MediaObject) => object.src === playlist.src,
                     values: {isPinned: true},
@@ -79,7 +67,7 @@ class PinStore extends Dexie {
             const playlists: {src: string}[] = Array.isArray(playlist) ? playlist : [playlist];
             logger.log('unpin', {playlists});
             await this.pins.bulkDelete(playlists.map((playlist) => playlist.src));
-            mediaObjectChanges.dispatch(
+            dispatchMediaObjectChanges(
                 playlists.map((playlist) => ({
                     match: (object: MediaObject) => object.src === playlist.src,
                     values: {isPinned: false},

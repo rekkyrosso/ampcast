@@ -9,6 +9,7 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
+import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
@@ -135,7 +136,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             const response = await musicKit.api.music(href, params);
             return response;
         } catch (err: any) {
-            const status = err?.data.status;
+            const status = err?.data?.status;
             if (status === 401 || status === 403) {
                 await refreshToken(); // this throws
                 // We'll never get here.
@@ -281,6 +282,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         const mediaItem: Writable<SetRequired<MediaItem, 'apple'>> = {
             itemType: ItemType.Media,
             mediaType: kind === 'musicVideo' ? MediaType.Video : MediaType.Audio,
+            playbackType: PlaybackType.Direct,
             src,
             externalUrl,
             title: item.name,

@@ -1,23 +1,27 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
-import md5 from 'md5';
-import {lf_api_key, lf_api_secret} from 'services/credentials';
+import {BehaviorSubject, distinctUntilChanged, filter, map, mergeMap} from 'rxjs';
+import {lf_api_key} from 'services/credentials';
 import {Logger} from 'utils';
+import lastfmApi from './lastfmApi';
 import lastfmSettings from './lastfmSettings';
 
-const lastfmApi = `https://ws.audioscrobbler.com/2.0`;
-
 const logger = new Logger('lastfmAuth');
+
+const lastfmApiHost = `https://ws.audioscrobbler.com/2.0`;
 
 const accessToken$ = new BehaviorSubject('');
 const sessionKey$ = new BehaviorSubject('');
 
-export function observeAccessToken(): Observable<string> {
+function observeAccessToken(): Observable<string> {
     return accessToken$.pipe(distinctUntilChanged());
 }
 
 export function observeSessionKey(): Observable<string> {
     return sessionKey$.pipe(distinctUntilChanged());
+}
+
+export function isConnected(): boolean {
+    return !!lastfmSettings.token;
 }
 
 export function isLoggedIn(): boolean {
@@ -97,9 +101,9 @@ async function obtainAccessToken(): Promise<string> {
 async function obtainSessionKey(token: string): Promise<string> {
     const method = 'auth.getSession';
     const params = {api_key: lf_api_key, token, method};
-    const api_sig = getApiSignature(params);
+    const api_sig = lastfmApi.getSignature(params);
     const response = await fetch(
-        `${lastfmApi}?method=${method}&api_key=${lf_api_key}&token=${token}&api_sig=${api_sig}&format=json`
+        `${lastfmApiHost}?method=${method}&api_key=${lf_api_key}&token=${token}&api_sig=${api_sig}&format=json`
     );
     if (!response.ok) {
         throw response;
@@ -111,16 +115,25 @@ async function obtainSessionKey(token: string): Promise<string> {
     return session.key;
 }
 
-export function getApiSignature(params: Record<string, string>): string {
-    const keys = Object.keys(params);
-    let string = '';
+observeAccessToken()
+    .pipe(
+        filter((token) => !!token),
+        mergeMap(() => checkConnection())
+    )
+    .subscribe(logger);
 
-    keys.sort();
-    keys.forEach((key) => (string += key + params[key]));
-
-    string += lf_api_secret;
-
-    return md5(string);
+async function checkConnection(): Promise<void> {
+    try {
+        await lastfmApi.getUserInfo();
+    } catch (err: any) {
+        if (err.status === 401) {
+            lastfmSettings.clear();
+            sessionKey$.next('');
+            accessToken$.next('');
+        } else {
+            logger.error(err);
+        }
+    }
 }
 
 sessionKey$.next(lastfmSettings.sessionKey);

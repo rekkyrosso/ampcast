@@ -14,11 +14,11 @@ import Pin from 'types/Pin';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
-import mediaObjectChanges from 'services/actions/mediaObjectChanges';
+import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import {bestOf, ParentOf} from 'utils';
-import {observeIsLoggedIn, isLoggedIn, login, logout} from './appleAuth';
+import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './appleAuth';
 import MusicKitPager, {MusicKitPage} from './MusicKitPager';
 
 const defaultLayout: MediaSourceLayout<MediaItem> = {
@@ -93,6 +93,7 @@ const appleLibraryAlbums: MediaSource<MediaAlbum> = {
         return new MusicKitPager(`/v1/me/library/albums`, {
             'fields[library-albums]': 'name,artistName,playParams',
             'include[library-albums]': 'catalog',
+            sort: '-dateAdded',
         });
     },
 };
@@ -125,6 +126,7 @@ const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
         return new MusicKitPager(`/v1/me/library/playlists`, {
             'fields[library-playlists]': 'name,playParams',
             'include[library-playlists]': 'catalog',
+            sort: '-dateAdded',
         });
     },
 };
@@ -150,7 +152,9 @@ const apple: PublicMediaService = {
     icon: 'apple',
     url: 'https://music.apple.com',
     serviceType: ServiceType.PublicMedia,
+    primaryMediaType: MediaType.Audio,
     defaultHidden: true,
+    internetRequired: true,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -191,6 +195,7 @@ const apple: PublicMediaService = {
     rate,
     store,
     observeIsLoggedIn,
+    isConnected,
     isLoggedIn,
     login,
     logout,
@@ -271,7 +276,7 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     if (item.itemType === ItemType.Album && item.synthetic) {
         return item;
     }
-    let result: Writable<T> = item;
+    let result: Writable<T> = item as Writable<T>;
     const hasMetadata = !!item.externalUrl; // this field is not available on library items
     if (!hasMetadata) {
         const [, type, id] = item.src.split(':');
@@ -285,7 +290,7 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
             {lookup: true}
         );
         const items = await fetchFirstPage<T>(pager, {timeout: 2000});
-        result = bestOf(item, items[0]);
+        result = bestOf(item, items[0]) as Writable<T>;
         result.description = items[0]?.description || item.description;
     }
     result.inLibrary = actionsStore.getInLibrary(result as T, result.inLibrary);
@@ -296,7 +301,7 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     if (result.rating === undefined) {
         addRatings([result as T]);
     }
-    return result;
+    return result as T;
 }
 
 async function lookup(
@@ -456,7 +461,7 @@ export async function addRatings<T extends MediaObject>(
         data.map((data: any) => [data.id, data.attributes.value])
     );
 
-    mediaObjectChanges.dispatch(
+    dispatchMediaObjectChanges(
         ids.map((id) => ({
             match: (object: MediaObject) => object.src === `apple:${type}:${id}`,
             values: {rating: ratings.get(id) || 0},
@@ -508,7 +513,7 @@ export async function addInLibrary<T extends MediaObject>(
         Object.keys(data).map((key) => [key, data[key].attributes.inLibrary])
     );
 
-    mediaObjectChanges.dispatch<MediaObject>(
+    dispatchMediaObjectChanges<MediaObject>(
         ids.map((id) => ({
             match: (object: MediaObject) => object.apple?.catalogId === id,
             values: {inLibrary: inLibrary.get(id) || false},

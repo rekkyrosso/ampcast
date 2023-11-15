@@ -1,4 +1,5 @@
 import {useEffect} from 'react';
+import MediaItem from 'types/MediaItem';
 import {
     observeCurrentTime,
     observeDuration,
@@ -13,7 +14,6 @@ import {
 import {getThumbnailUrl} from 'components/CoverArt';
 import useCurrentlyPlaying from './useCurrentlyPlaying';
 import useObservable from './useObservable';
-import MediaItem from 'types/MediaItem';
 
 // This works shockingly badly. Oh well.
 export default function useMediaSession() {
@@ -41,7 +41,7 @@ function updateSession(item: MediaItem | null = null): void {
                 // So suppress `album` if `artist` is available.
                 album: item.artists ? '' : item.album,
                 artwork: item.thumbnails?.map((thumbnail) => ({
-                    src: getThumbnailUrl(thumbnail),
+                    src: getThumbnailUrl(item, thumbnail),
                     sizes: `${thumbnail.width}x${thumbnail.height}`,
                 })),
             });

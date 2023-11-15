@@ -1,4 +1,6 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useRef} from 'react';
+import getYouTubeID from 'get-youtube-id';
+import {createMediaItemFromUrl} from 'services/music-metadata';
 import mediaPlayback, {
     pause,
     play,
@@ -8,6 +10,8 @@ import mediaPlayback, {
     observeDuration,
 } from 'services/mediaPlayback';
 import playlist, {observeCurrentIndex} from 'services/playlist';
+import {getYouTubeVideoInfo} from 'services/youtube';
+import {prompt} from 'components/Dialog';
 import {ListViewHandle} from 'components/ListView';
 import Time from 'components/Time';
 import useObservable from 'hooks/useObservable';
@@ -22,6 +26,7 @@ export interface MediaControlsProps {
 }
 
 export default function MediaControls({listViewRef}: MediaControlsProps) {
+    const fileRef = useRef<HTMLInputElement>(null);
     const currentIndex = useObservable(observeCurrentIndex, -1);
     const currentTime = useObservable(observeCurrentTime, 0);
     const duration = useObservable(observeDuration, 0);
@@ -51,9 +56,30 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
                     break;
 
                 case 'shuffle':
-                    await playlist.shuffle(!paused);
+                    playlist.shuffle(!paused);
                     listView.scrollIntoView(0);
                     break;
+
+                case 'add-from-file':
+                    fileRef.current!.click();
+                    break;
+
+                case 'add-from-url': {
+                    const url = await prompt({
+                        title: 'External Media',
+                        type: 'url',
+                        label: 'Url',
+                        okLabel: 'Add',
+                    });
+                    if (url) {
+                        const videoId = getYouTubeID(url);
+                        const item = await (videoId
+                            ? getYouTubeVideoInfo(videoId)
+                            : createMediaItemFromUrl(url));
+                        playlist.add(item);
+                    }
+                    break;
+                }
             }
         },
         [listViewRef, currentIndex, paused]
@@ -74,6 +100,14 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
             listView.scrollIntoView(currentIndex + 1);
         }
     }, [listViewRef, currentIndex]);
+
+    const handleFileImport = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
+        const files = event.target!.files;
+        if (files) {
+            await playlist.add(files);
+            event.target!.value = '';
+        }
+    }, []);
 
     return (
         <div className="media-controls">
@@ -109,6 +143,13 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
                 </div>
                 <div className="media-buttons-more">
                     <MediaButton title="More..." icon="menu" onClick={handleMoreClick} />
+                    <input
+                        type="file"
+                        accept="audio/*,video/*"
+                        multiple
+                        onChange={handleFileImport}
+                        ref={fileRef}
+                    />
                 </div>
             </div>
         </div>

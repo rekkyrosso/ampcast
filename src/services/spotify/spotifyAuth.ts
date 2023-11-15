@@ -32,6 +32,10 @@ export function observeAccessToken(): Observable<string> {
     return accessToken$.pipe(distinctUntilChanged());
 }
 
+export function isConnected(): boolean {
+    return !!getAccessToken();
+}
+
 export function isLoggedIn(): boolean {
     return accessToken$.getValue() !== '';
 }
@@ -225,8 +229,8 @@ function nextAccessToken(access_token: string): void {
 async function clearAccessToken(): Promise<void> {
     authSettings.removeItem('token');
     userSettings.clear();
-    await createCodeVerifier();
     accessToken$.next('');
+    await createCodeVerifier();
 }
 
 async function createCodeVerifier(): Promise<void> {
@@ -244,15 +248,17 @@ async function getUserInfo(): Promise<void> {
 }
 
 (async () => {
+    const token = getAccessToken();
     try {
-        const token = getAccessToken();
         if (token) {
             try {
                 spotifyApi.setAccessToken(token.access_token);
                 await getUserInfo();
-                nextAccessToken(token.access_token);
+                if (isConnected()) {
+                    nextAccessToken(token.access_token);
+                }
             } catch (err: any) {
-                if (err.status === 401) {
+                if (err.status === 401 && isConnected()) {
                     await refreshToken();
                 } else {
                     throw err;

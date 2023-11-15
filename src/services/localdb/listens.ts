@@ -46,7 +46,7 @@ export async function addListen(state: PlaybackState): Promise<void> {
         }
         if (isListenedTo(item.duration, state.startedAt, state.endedAt)) {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const {id, lookupStatus, ...listen} = item;
+            const {id, lookupStatus, blob, ...listen} = item;
             logger.log('add', {listen});
             await store.items.add({
                 ...listen,

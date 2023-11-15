@@ -1,0 +1,7 @@
+.disconnect-button {
+    width: 100%;
+
+    &:disabled {
+        background-image: none;
+    }
+}

@@ -1,11 +1,12 @@
 import MediaItem from 'types/MediaItem';
+import MediaType from 'types/MediaType';
 import {Logger} from 'utils';
 import embyApi from './embyApi';
 import {EmbySettings} from './embySettings';
 
 const logger = new Logger('embyReporting');
 
-export async function reportStart(item: MediaItem, settings?: EmbySettings): Promise<void> {
+export async function reportStart(item: MediaItem, settings: EmbySettings): Promise<void> {
     try {
         const [, , ItemId] = item.src.split(':');
         await embyApi.post(
@@ -26,7 +27,7 @@ export async function reportStart(item: MediaItem, settings?: EmbySettings): Pro
 export async function reportStop(
     item: MediaItem,
     currentTime: number,
-    settings?: EmbySettings
+    settings: EmbySettings
 ): Promise<void> {
     try {
         const [, , ItemId] = item.src.split(':');
@@ -36,10 +37,18 @@ export async function reportStop(
                 ItemId,
                 IsPaused: false,
                 PositionTicks: Math.floor(currentTime * 10_000_000),
-                PlayMethod: 'Transcode',
             },
             settings
         );
+        if (item.mediaType === MediaType.Video) {
+            const {deviceId, sessionId} = settings;
+            const [, , id] = item.src.split(':');
+            await embyApi.delete(
+                'Videos/ActiveEncodings',
+                {DeviceId: deviceId, PlaySessionId: `${sessionId}-${id}`},
+                settings
+            );
+        }
     } catch (err) {
         logger.error(err);
     }
@@ -50,7 +59,7 @@ export async function reportProgress(
     currentTime: number,
     paused: boolean,
     eventName: 'pause' | 'unpause' | 'timeupdate',
-    settings?: EmbySettings
+    settings: EmbySettings
 ): Promise<void> {
     try {
         const [, , ItemId] = item.src.split(':');

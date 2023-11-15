@@ -34,6 +34,8 @@
         }
     }
 
+    &-http,
+    &-https,
     &-globe {
         fill: skyblue;
 
@@ -243,12 +245,12 @@
     }
 
     &-plex-tidal.show-connectivity {
-        .plex-connected .light &,
-        .plex-connected .dark & {
+        .plex-tidal-connected .light &,
+        .plex-tidal-connected .dark & {
             fill: #0ff;
         }
 
-        .plex-connected .light & {
+        .plex-tidal-connected .light & {
             background-color: #07332f;
         }
     }

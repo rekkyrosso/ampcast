@@ -2,7 +2,7 @@ import {useCallback, useEffect, useState} from 'react';
 import {TreeNode} from './TreeView';
 import useTreeViewState from './useTreeViewState';
 
-export default function useExpandedNodeIds(nodes: TreeNode<any>[], storageId?: string) {
+export default function useExpandedNodeIds(nodes: readonly TreeNode<any>[], storageId?: string) {
     const {storeExpandedState, retrieveExpandedState} = useTreeViewState(storageId);
     const [expandedIds, setExpandedIds] = useState<string[]>(() => {
         return getInitialExpandedNodeIds(nodes, retrieveExpandedState);
@@ -31,7 +31,7 @@ export default function useExpandedNodeIds(nodes: TreeNode<any>[], storageId?: s
 }
 
 function getInitialExpandedNodeIds(
-    nodes: TreeNode<any>[],
+    nodes: readonly TreeNode<any>[],
     retrieveExpandedState: (nodeId: string, defaultExpanded?: boolean) => boolean
 ): string[] {
     return nodes.reduce<string[]>((expandedIds, node) => {

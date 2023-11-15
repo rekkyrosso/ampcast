@@ -71,7 +71,7 @@ export default function PlaylistSettingsGeneral() {
                         onChange={handleChange}
                         ref={showSourceIconsRef}
                     />
-                    <label htmlFor={`${id}-source-icons`}>Show media source icons</label>
+                    <label htmlFor={`${id}-source-icons`}>Show media service icons</label>
                 </p>
             </fieldset>
             <DialogButtons onCancel={handleCancel} />

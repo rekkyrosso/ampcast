@@ -35,7 +35,8 @@ export default function UserThemes() {
         if (selectedTheme) {
             const oldName = selectedTheme.name;
             const newName = await prompt({
-                title: 'My themes',
+                title: 'My Themes',
+                label: 'Name',
                 suggestedValue: oldName,
                 okLabel: 'Rename',
                 system: true,

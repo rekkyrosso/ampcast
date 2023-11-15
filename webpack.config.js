@@ -2,6 +2,7 @@ const {resolve} = require('path');
 const webpack = require('webpack');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
+const CopyPlugin = require('copy-webpack-plugin');
 const devKeys = require('../credentials/keys-dev.json');
 const prodKeys = require('../credentials/keys-prod.json');
 const packageJson = require('./package.json');
@@ -43,7 +44,7 @@ module.exports = (env) => {
         },
         output: {
             chunkFilename: 'lib/[name].js',
-            path: wwwDir,
+            path: __electron__ ? wwwDir : `${wwwDir}/v${packageJson.version}`,
         },
         optimization: {
             runtimeChunk: 'single',
@@ -102,10 +103,46 @@ module.exports = (env) => {
                 __yt_api_key__: JSON.stringify(keys.yt_api_key),
                 __yt_client_id__: JSON.stringify(keys.yt_client_id),
             }),
-            new webpack.BannerPlugin({
-                include: 'lib/vendors',
-                banner: 'For license information please see dialog-polyfill.js.LICENSE.txt',
+            new CopyPlugin({
+                patterns: [
+                    {
+                        from: './src/html/index.html',
+                        to: wwwDir,
+                        transform(content) {
+                            return String(content).replace(
+                                /%version%/g,
+                                __electron__ ? '' : `/v${packageJson.version}`
+                            );
+                        },
+                    },
+                ],
             }),
+            __dev__ || __electron__
+                ? undefined
+                : new CopyPlugin({
+                      patterns: [
+                          {
+                              from: './src/html/privacy-policy.html',
+                              to: wwwDir,
+                          },
+                      ],
+                  }),
+            __dev__ || __electron__
+                ? undefined
+                : new CopyPlugin({
+                      patterns: [
+                          {
+                              from: './src/service-worker.js',
+                              to: wwwDir,
+                              transform(content) {
+                                  return String(content)
+                                      .replace('%appName%', packageJson.name)
+                                      .replace('%appVersion%', packageJson.version);
+                              },
+                          },
+                      ],
+                  }),
+            ,
         ],
         resolve: {
             alias: {

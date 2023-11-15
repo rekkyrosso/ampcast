@@ -7,14 +7,16 @@ import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import Pin from 'types/Pin';
+import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
 import {getListens} from 'services/localdb/listens';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import {uniqBy} from 'utils';
-import {observeIsLoggedIn, isLoggedIn, login, logout} from './youtubeAuth';
+import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './youtubeAuth';
 import YouTubePager from './YouTubePager';
+import youtubeSettings from './youtubeSettings';
 
 export const youtubeHost = `https://www.youtube.com`;
 
@@ -127,6 +129,7 @@ export async function getYouTubeVideoInfo(videoId: string): Promise<MediaItem> {
     return {
         itemType: ItemType.Media,
         mediaType: MediaType.Video,
+        playbackType: PlaybackType.Direct,
         src: `youtube:video:${videoId}`,
         externalUrl: url,
         title: video.title,
@@ -154,8 +157,14 @@ const youtube: PublicMediaService = {
     icon: 'youtube',
     url: 'https://www.youtube.com',
     serviceType: ServiceType.PublicMedia,
+    primaryMediaType: MediaType.Video,
+    get disabled(): boolean {
+        return !youtubeSettings.enabled;
+    },
     defaultHidden: true,
     defaultNoScrobble: true,
+    internetRequired: true,
+    restrictedAccess: true,
     roots: [
         {
             id: 'youtube/search/videos',
@@ -191,6 +200,7 @@ const youtube: PublicMediaService = {
     compareForRating: () => false,
     createSourceFromPin,
     observeIsLoggedIn,
+    isConnected,
     isLoggedIn,
     login,
     logout,

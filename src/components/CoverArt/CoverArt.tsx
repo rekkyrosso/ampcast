@@ -1,15 +1,20 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {from} from 'rxjs';
+import getYouTubeID from 'get-youtube-id';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import Thumbnail from 'types/Thumbnail';
 import {findListen} from 'services/localdb/listens';
-import {getAllServices} from 'services/mediaServices';
+import {getService} from 'services/mediaServices';
 import {getCoverArtThumbnails} from 'services/musicbrainz/coverart';
+import {getYouTubeVideoInfo} from 'services/youtube';
 import Icon, {IconName} from 'components/Icon';
+import {Logger} from 'utils';
 import './CoverArt.scss';
+
+const logger = new Logger('CoverArt');
 
 export interface CoverArtProps {
     className?: string;
@@ -22,7 +27,7 @@ export default function CoverArt({item, size, className = ''}: CoverArtProps) {
     const [thumbnails, setThumbnails] = useState(() => item.thumbnails);
     const hasThumbnails = !!thumbnails?.length;
     const thumbnail = hasThumbnails ? findBestThumbnail(thumbnails, size) : undefined;
-    const src = thumbnail ? getThumbnailUrl(thumbnail) : '';
+    const src = thumbnail ? getThumbnailUrl(item, thumbnail) : '';
     const fallbackIcon = getFallbackIcon(item);
     const overlayIcon = item.itemType === ItemType.Album && getOverlayIcon(item);
 
@@ -37,7 +42,7 @@ export default function CoverArt({item, size, className = ''}: CoverArtProps) {
                     return;
                 }
             }
-            const subscription = from(getCoverArtThumbnails(item)).subscribe(setThumbnails);
+            const subscription = from(lookupThumbnails(item)).subscribe(setThumbnails);
             return () => subscription.unsubscribe();
         }
     }, [hasThumbnails, item]);
@@ -70,6 +75,25 @@ export default function CoverArt({item, size, className = ''}: CoverArtProps) {
     );
 }
 
+async function lookupThumbnails(item: MediaObject): Promise<Thumbnail[] | undefined> {
+    if (item.itemType === ItemType.Media) {
+        const externalUrl = item.link?.externalUrl;
+        if (externalUrl) {
+            const videoId = getYouTubeID(item.link?.externalUrl);
+            if (videoId) {
+                try {
+                    const video = await getYouTubeVideoInfo(videoId);
+                    return video.thumbnails;
+                } catch (err) {
+                    logger.error(err);
+                    return;
+                }
+            }
+        }
+    }
+    return getCoverArtThumbnails(item);
+}
+
 function findBestThumbnail(thumbnails: Thumbnail[], size = 240): Thumbnail {
     if (thumbnails.length === 1) {
         return thumbnails[0];
@@ -86,11 +110,11 @@ function findBestThumbnail(thumbnails: Thumbnail[], size = 240): Thumbnail {
     return matches[0];
 }
 
-export function getThumbnailUrl(thumbnail: Thumbnail): string {
-    return getAllServices().reduce(
-        (url, service) => service?.getThumbnailUrl?.(url) ?? url,
-        thumbnail?.url || ''
-    );
+export function getThumbnailUrl(item: MediaObject, thumbnail: Thumbnail): string {
+    const [serviceId] = item.src.split(':');
+    const service = getService(serviceId);
+    const url = thumbnail.url;
+    return service?.getThumbnailUrl?.(url) || url;
 }
 
 function getFallbackIcon(item: MediaObject): IconName {

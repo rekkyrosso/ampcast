@@ -96,8 +96,8 @@ export default class MusicKitV1Wrapper {
         }
         init.headers = {
             ...init.headers,
-            authorization: `Bearer ${musicKit.developerToken}`,
-            'music-user-token': musicKit.musicUserToken,
+            Authorization: `Bearer ${musicKit.developerToken}`,
+            'Music-User-Token': musicKit.musicUserToken,
         };
         const response = await fetch(`https://api.music.apple.com${href}`, init);
         if (!response.ok) {

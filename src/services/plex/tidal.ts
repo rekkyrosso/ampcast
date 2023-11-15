@@ -12,15 +12,16 @@ import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import Pin from 'types/Pin';
 import PlayableItem from 'types/PlayableItem';
+import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
 import StreamingQuality from 'types/StreamingQuality';
-import {NoTidalSubscription} from 'services/errors';
+import {NoTidalSubscriptionError} from 'services/errors';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {isSourceHidden} from 'services/servicesSettings';
 import {bestOf} from 'utils';
-import {observeIsLoggedIn, isLoggedIn, login, logout} from './plexAuth';
+import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './plexAuth';
 import plexSettings from './plexSettings';
 import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
@@ -157,7 +158,9 @@ const tidal: PublicMediaService = {
     icon: serviceId,
     url: 'https://tidal.com/',
     serviceType: ServiceType.PublicMedia,
-    authServiceId: 'plex',
+    primaryMediaType: MediaType.Audio,
+    authService: plex,
+    internetRequired: true,
     defaultHidden: isSourceHidden(plex),
     roots: [
         createRoot(ItemType.Media, {title: 'Tracks', layout: defaultLayout}),
@@ -188,10 +191,12 @@ const tidal: PublicMediaService = {
     createSourceFromPin,
     getMetadata,
     getPlayableUrl,
+    getPlaybackType,
     getThumbnailUrl,
     lookup,
     store,
     observeIsLoggedIn,
+    isConnected,
     isLoggedIn,
     login,
     logout,
@@ -295,6 +300,10 @@ function getPlayableUrl(item: PlayableItem): string {
     }
 }
 
+async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
+    return item.mediaType === MediaType.Video ? PlaybackType.HLS : PlaybackType.Direct;
+}
+
 function getThumbnailUrl(url: string): string {
     return plex.getThumbnailUrl!(url);
 }
@@ -390,6 +399,6 @@ function getRatingKey({src}: {src: string}): string {
 
 function checkSubscription(): void {
     if (!plexSettings.hasTidal) {
-        throw new NoTidalSubscription();
+        throw new NoTidalSubscriptionError();
     }
 }

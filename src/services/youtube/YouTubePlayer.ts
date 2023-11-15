@@ -45,9 +45,10 @@ const playerVars: YT.PlayerVars = {
     controls: 0,
     disablekb: 1,
     enablejsapi: 1,
+    origin: location.origin,
     fs: 0,
     iv_load_policy: 3,
-    modestbranding: 1,
+    modestbranding: 1, // deprecated
     rel: 0,
     showinfo: 0,
 };
@@ -74,6 +75,7 @@ export default class YouTubePlayer implements Player<PlayableItem> {
     private readonly element: HTMLElement;
     private readonly targetId: string;
     private loadError?: LoadError;
+    private loadingPlayer = false;
     #muted = true;
     #volume = 1;
     autoplay = false;
@@ -277,7 +279,7 @@ export default class YouTubePlayer implements Player<PlayableItem> {
             } else {
                 this.player.playVideo();
             }
-        } else {
+        } else if (!this.loadingPlayer) {
             this.error$.next(Error('YouTube player not loaded'));
         }
     }
@@ -350,7 +352,12 @@ export default class YouTubePlayer implements Player<PlayableItem> {
 
     private createPlayer(): void {
         if (!this.player && this.element.isConnected) {
-            const youtube = YouTubeFactory(this.targetId, {playerVars} as any);
+            this.loadingPlayer = true;
+
+            const youtube = YouTubeFactory(this.targetId, {
+                playerVars,
+                host: 'https://www.youtube-nocookie.com',
+            } as any);
 
             youtube.on('ready', ({target}: any) => {
                 (this as any).player = target;
@@ -361,6 +368,7 @@ export default class YouTubePlayer implements Player<PlayableItem> {
                     target.mute();
                 }
 
+                this.loadingPlayer = false;
                 this.ready$.next(undefined);
             });
 

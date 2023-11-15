@@ -25,19 +25,19 @@ export default function Login({service}: LoginProps) {
 function ServiceLogin({service}: LoginProps) {
     switch (service.id) {
         case 'apple':
-            return <AppleLogin />;
+            return <AppleLogin service={service} />;
 
         case 'plex':
-            return <PlexLogin />;
+            return <PlexLogin service={service} />;
 
         case 'plex-tidal':
-            return <PlexTidalLogin />;
+            return <PlexTidalLogin service={service} />;
 
         case 'spotify':
-            return <SpotifyLogin />;
+            return <SpotifyLogin service={service} />;
 
         case 'youtube':
-            return <YouTubeLogin />;
+            return <YouTubeLogin service={service} />;
 
         default:
             return <DefaultLogin service={service} />;

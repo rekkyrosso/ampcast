@@ -1,9 +1,8 @@
 import React, {useCallback, useId, useRef} from 'react';
 import MediaService from 'types/MediaService';
-import {getAuthService} from 'services/mediaServices';
 import {isSourceVisible, setHiddenSources} from 'services/servicesSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
-import useObservable from 'hooks/useObservable';
+import DisconnectButton from './DisconnectButton';
 import './MediaServiceSettingsGeneral.scss';
 
 export interface MediaServiceSettingsGeneralProps {
@@ -13,8 +12,6 @@ export interface MediaServiceSettingsGeneralProps {
 export default function MediaServiceSettingsGeneral({service}: MediaServiceSettingsGeneralProps) {
     const id = useId();
     const ref = useRef<HTMLFieldSetElement>(null);
-    const authService = getAuthService(service);
-    const connected = useObservable(authService.observeIsLoggedIn, false);
 
     const handleSubmit = useCallback(() => {
         const inputs = ref.current!.elements as HTMLInputElements;
@@ -27,16 +24,7 @@ export default function MediaServiceSettingsGeneral({service}: MediaServiceSetti
 
     return (
         <form className="media-service-settings-general" method="dialog" onSubmit={handleSubmit}>
-            <p>
-                <button
-                    type="button"
-                    className="disconnect"
-                    onClick={authService.logout}
-                    disabled={!connected}
-                >
-                    {connected ? `Disconnect from ${authService.name}...` : 'Not connected'}
-                </button>
-            </p>
+            <DisconnectButton service={service} />
             <fieldset ref={ref}>
                 <legend>Display</legend>
                 <ul className="checkbox-list">

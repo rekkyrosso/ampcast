@@ -11,7 +11,16 @@ export default {
         storage.setNumber('connectedAt', connectedAt);
     },
 
+    get enabled(): boolean {
+        // The property `enabled` was added after `connectedAt`.
+        // Hopefully this will always return `true` one day.
+        if (!storage.hasItem('enabled') && this.connectedAt) {
+            storage.setBoolean('enabled', true);
+        }
+        return storage.getBoolean('enabled');
+    },
+
     clear(): void {
-        storage.clear();
+        storage.removeItem('connectedAt');
     },
 };

@@ -1,11 +1,14 @@
 import type {Observable} from 'rxjs';
 import {from, map, merge, mergeMap, skipWhile, tap} from 'rxjs';
+import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
 import PersonalMediaService from 'types/PersonalMediaService';
+import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
-import Scrobbler from 'types/Scrobbler';
+import DataService from 'types/DataService';
 import ServiceType from 'types/ServiceType';
-import actionsStore from './actions/actionsStore';
+import actionsStore from 'services/actions/actionsStore';
+import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import apple from 'services/apple';
 import emby from 'services/emby';
 import jellyfin from 'services/jellyfin';
@@ -13,17 +16,19 @@ import lastfm from 'services/lastfm';
 import listenbrainz from 'services/listenbrainz';
 import navidrome from 'services/navidrome';
 import plex from 'services/plex';
+import plexSettings from 'services/plex/plexSettings';
 import plexTidal from 'services/plex/tidal';
 import spotify from 'services/spotify';
 import subsonic from 'services/subsonic';
 import youtube from 'services/youtube';
-import {Logger} from 'utils';
+import {Logger, filterNotEmpty} from 'utils';
+import {allowAllServices, isSourceVisible, setHiddenSources} from './servicesSettings';
 
 const logger = new Logger('mediaServices');
 
-actionsStore.registerServices(getAllServices());
+actionsStore.registerServices(getEnabledServices());
 
-export function getAllServices(): readonly MediaService[] {
+function getAllServices(): readonly MediaService[] {
     return [
         apple,
         spotify,
@@ -39,6 +44,11 @@ export function getAllServices(): readonly MediaService[] {
     ];
 }
 
+// Available to most users but may be hidden by settings.
+export function getEnabledServices(): readonly MediaService[] {
+    return getAllServices().filter((service) => !service.disabled);
+}
+
 export function observePersonalMediaLibraryIdChanges(): Observable<void> {
     return merge(
         ...getPersonalMediaServices()
@@ -47,29 +57,42 @@ export function observePersonalMediaLibraryIdChanges(): Observable<void> {
     ).pipe(map(() => undefined));
 }
 
-export function getLookupServices(): readonly MediaService[] {
-    return getAllServices().filter((service) => !!service.lookup);
+export function getDataServices(): readonly DataService[] {
+    return getEnabledServices().filter(isDataService);
 }
 
-export function getMediaServices(): readonly MediaService[] {
-    return getAllServices().filter((service) => !isScrobbler(service));
+export function getLookupServices(): readonly MediaService[] {
+    return getEnabledServices().filter((service) => !!service.lookup);
 }
 
 export function getPersonalMediaServices(): readonly PersonalMediaService[] {
-    return getAllServices().filter(isPersonalMediaService);
+    return getEnabledServices().filter(isPersonalMediaService);
+}
+
+export function getPlayableServices(): readonly MediaService[] {
+    const services = getAllServices().slice();
+    return services.filter((service) => !isDataService(service));
+}
+
+export async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
+    let playbackType = item.playbackType;
+    if (playbackType === undefined) {
+        const service = getServiceFromSrc(item);
+        if (service?.getPlaybackType) {
+            playbackType = await service.getPlaybackType(item);
+        } else {
+            playbackType = PlaybackType.Direct;
+        }
+        dispatchMediaObjectChanges({
+            match: (object) => object.src === item.src,
+            values: {playbackType},
+        });
+    }
+    return playbackType;
 }
 
 export function getPublicMediaServices(): readonly PublicMediaService[] {
-    return getAllServices().filter(isPublicMediaService);
-}
-
-export function getScrobblers(): readonly Scrobbler[] {
-    return getAllServices().filter(isScrobbler);
-}
-
-export function getAuthService(service: MediaService): MediaService {
-    const authServiceId = service.authServiceId;
-    return authServiceId ? getService(authServiceId) || service : service;
+    return getEnabledServices().filter(isPublicMediaService);
 }
 
 export function getService(serviceId: string): MediaService | undefined {
@@ -85,15 +108,14 @@ export function hasPlayableSrc(item: {src: string}): boolean {
     return item ? isPlayableSrc(item.src) : false;
 }
 
-export function isPlayableService(serviceId: string): boolean {
-    const service = getService(serviceId);
-    return service ? service.serviceType !== ServiceType.Scrobbler : false;
+export function isDataService(service: MediaService): service is DataService {
+    return isMediaServiceType(service, ServiceType.DataService);
 }
 
 export function isPlayableSrc(src: string): boolean {
     if (src) {
         const [serviceId, type, id] = src.split(':');
-        if (serviceId === 'blob' || serviceId === 'file') {
+        if (/^(blob|file|https?|youtube)$/.test(serviceId)) {
             return true;
         }
         return !!id && !!type && isPlayableService(serviceId);
@@ -109,8 +131,8 @@ export function isPublicMediaService(service: MediaService): service is PublicMe
     return isMediaServiceType(service, ServiceType.PublicMedia);
 }
 
-export function isScrobbler(service: MediaService): service is Scrobbler {
-    return isMediaServiceType(service, ServiceType.Scrobbler);
+export function isScrobbler(service: MediaService): boolean {
+    return isDataService(service) && !!service.canScrobble;
 }
 
 function isMediaService(service: any): service is MediaService {
@@ -121,16 +143,64 @@ function isMediaServiceType(service: any, type: ServiceType): boolean {
     return isMediaService(service) && service.serviceType === type;
 }
 
+function isPlayableService(serviceId: string): boolean {
+    const service = getService(serviceId);
+    return service ? service.serviceType !== ServiceType.DataService : false;
+}
+
+// Ensure that only one public media service is visible
+if (!allowAllServices || youtube.disabled) {
+    let changed = false;
+    const hidden: Record<string, boolean> = {};
+    if (youtube.disabled && isSourceVisible(youtube)) {
+        hidden[youtube.id] = true;
+        changed = true;
+    }
+    if (!allowAllServices) {
+        const visibleServices = getPublicMediaServices().filter(isSourceVisible);
+        if (visibleServices.length > 1) {
+            let services = visibleServices;
+            if (!plexSettings.hasTidal) {
+                services = filterNotEmpty(services, (service) => service !== plexTidal);
+            }
+            if (services.length > 1) {
+                services = filterNotEmpty(services, (service) => service.isConnected());
+                if (services.length > 1) {
+                    const preferences = [apple, plexTidal, spotify, youtube];
+                    while (services.length > 1 && preferences.length > 0) {
+                        const leastPreferred = preferences.pop();
+                        services = filterNotEmpty(
+                            services,
+                            (service) => service !== leastPreferred
+                        );
+                    }
+                }
+            }
+            const [selectedService] = services;
+            for (const service of visibleServices) {
+                if (service !== selectedService) {
+                    hidden[service.id] = true;
+                    if (service.isConnected() && !service.authService) {
+                        service.logout();
+                    }
+                }
+            }
+            changed = true;
+        }
+    }
+    if (changed) {
+        setHiddenSources(hidden);
+    }
+}
+
 // Connectivity logging.
 
-from(getAllServices())
+from(getEnabledServices())
     .pipe(
         mergeMap((service) =>
             service.observeIsLoggedIn().pipe(
                 skipWhile((isLoggedIn) => !isLoggedIn),
-                tap((isLoggedIn) =>
-                    logger.log(`${service.id} ${isLoggedIn ? '' : 'dis'}connected`)
-                )
+                tap((isLoggedIn) => logger.log(`${service.id} ${isLoggedIn ? '' : 'dis'}connected`))
             )
         )
     )

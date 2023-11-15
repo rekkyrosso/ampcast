@@ -5,6 +5,10 @@ www-electron
 www/*.zip
 www/*.js
 www/*.css
+www/privacy-policy.html
 www/lib/*
+www/v0*/*
+www/v1*/*
+www/v2*/*
 !www/lib/dialog-polyfill.js.LICENSE.txt
 .idea

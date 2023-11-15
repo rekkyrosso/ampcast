@@ -28,6 +28,11 @@ export async function loadScript(src: string): Promise<void> {
     });
 }
 
+export async function getContentType(url: string): Promise<string> {
+    const response = await fetch(url, {method: 'HEAD'});
+    return response.headers.get('Content-Type') || '';
+}
+
 export function chunk<T>(values: readonly T[], chunkSize = 1): T[][] {
     if (chunkSize <= 0) {
         return [];
@@ -147,10 +152,10 @@ export function bestOf<T extends object>(a: T, b: Partial<T> = {}): T {
 }
 
 export function filterNotEmpty<T>(
-    values: readonly T[],
+    values: T[],
     predicate: (value: T, index: number, array: readonly T[]) => unknown,
     thisArg?: any
-): readonly T[] {
+): T[] {
     const newValues = values.filter(predicate, thisArg);
     return newValues.length === 0 ? values : newValues;
 }
@@ -159,16 +164,15 @@ export function fuzzyCompare(a: string, b: string, tolerance = 0.9): boolean {
     return Math.max(stringScore(a, b, 0.99), stringScore(b, a, 0.99)) >= tolerance;
 }
 
-const dummyElement = document.createElement('p');
-
 export function getTextFromHtml(html = ''): string {
+    const element = document.createElement('p');
     const paragraphs = String(html ?? '')
         .trim()
         .split(/[\n\r]+/);
     return paragraphs
         ?.map((html) => {
-            dummyElement.innerHTML = html;
-            return dummyElement.textContent;
+            element.innerHTML = html;
+            return element.textContent;
         })
         .join('\n');
 }

@@ -7,6 +7,7 @@ import {
     getService,
     getServiceFromSrc,
     hasPlayableSrc,
+    isPersonalMediaService,
 } from 'services/mediaServices';
 import {filterNotEmpty, fuzzyCompare, Logger} from 'utils';
 import {dispatchLookupStartEvent, dispatchLookupEndEvent} from './lookupEvents';
@@ -14,7 +15,7 @@ import lookupSettings from './lookupSettings';
 
 const logger = new Logger('lookup');
 
-let lastFoundService = '';
+let lastFoundServiceId = '';
 
 export default async function lookup<T extends MediaItem>(item: T): Promise<MediaItem | undefined> {
     try {
@@ -27,7 +28,7 @@ export default async function lookup<T extends MediaItem>(item: T): Promise<Medi
         dispatchLookupStartEvent(item);
         const foundItem = await lookupMediaItem(item);
         if (foundItem) {
-            [lastFoundService] = foundItem.src.split(':');
+            [lastFoundServiceId] = foundItem.src.split(':');
         }
         dispatchLookupEndEvent(item, foundItem);
         return foundItem;
@@ -39,36 +40,41 @@ export default async function lookup<T extends MediaItem>(item: T): Promise<Medi
 async function lookupMediaItem<T extends MediaItem>(item: T): Promise<MediaItem | undefined> {
     const listen = findListen(item);
     if (listen) {
-        return listen;
-    }
-    const {link, ...rest} = item;
-    if (link && hasPlayableSrc(link)) {
-        return {...rest, ...link};
-    }
-    const {artist, title} = getArtistAndTitle(item);
-    if (!artist || !title) {
-        return;
-    }
-    let matches: readonly MediaItem[] = [];
-    const service = getServiceFromSrc(link);
-    if (service) {
-        matches = await serviceLookup(service, item);
-        if (matches.length === 0 && (service.id === 'plex' || service.id === 'tidal')) {
-            const plexTidal = getService('plex-tidal');
-            if (plexTidal) {
-                matches = await serviceLookup(plexTidal, item);
-            }
+        const service = getServiceFromSrc(listen);
+        if (service?.isLoggedIn()) {
+            return listen;
         }
     }
-    if (matches.length === 0) {
-        // Search logged in services first.
-        matches = await multiLookup(item, true, service);
+
+    const {link, ...rest} = item;
+    const linkedItem = link && hasPlayableSrc(link) ? {...rest, ...link} : undefined;
+    if (linkedItem) {
+        const service = getServiceFromSrc(linkedItem);
+        if (service?.isLoggedIn()) {
+            return linkedItem;
+        }
     }
-    if (matches.length === 0) {
-        // See if we have anything stored for not logged in services.
-        matches = await multiLookup(item, false, service);
+
+    let matches: readonly MediaItem[] = [];
+
+    const {artist, title} = getArtistAndTitle(item);
+    if (artist && title) {
+        const service = getServiceFromSrc(link);
+        if (service) {
+            matches = await serviceLookup(service, item);
+            if (matches.length === 0 && (service.id === 'plex' || service.id === 'tidal')) {
+                const plexTidal = getService('plex-tidal');
+                if (plexTidal) {
+                    matches = await serviceLookup(plexTidal, item);
+                }
+            }
+        }
+        if (matches.length === 0) {
+            matches = await multiLookup(item, service);
+        }
     }
-    return findBestMatch(matches, item);
+
+    return findBestMatch(matches, item) || listen || linkedItem;
 }
 
 async function serviceLookup<T extends MediaItem>(
@@ -103,11 +109,10 @@ async function serviceLookup<T extends MediaItem>(
 
 async function multiLookup<T extends MediaItem>(
     item: T,
-    isLoggedIn: boolean,
     excludedService?: MediaService
 ): Promise<readonly MediaItem[]> {
     const services = getLookupServices().filter(
-        (service) => service !== excludedService && service.isLoggedIn() === isLoggedIn
+        (service) => service !== excludedService && service.isLoggedIn()
     );
     if (services.length === 0) {
         return [];
@@ -127,19 +132,21 @@ export function findBestMatch<T extends MediaItem>(
     if (!artist || !title) {
         return;
     }
-    const preferredService = lookupSettings.preferredService || lastFoundService;
     let matches = findMatches(items, item);
     matches = filterNotEmpty(matches, (match) => compareAlbum(match, item));
-    if (preferredService) {
-        matches = filterNotEmpty(matches, (match) => match.src.startsWith(preferredService));
+    if (lookupSettings.preferPersonalMedia) {
+        matches = filterNotEmpty(matches, (match) => {
+            const service = getServiceFromSrc(match);
+            return service ? isPersonalMediaService(service) : false;
+        });
+    }
+    if (lastFoundServiceId) {
+        matches = filterNotEmpty(matches, (match) => match.src.startsWith(lastFoundServiceId));
     }
     return matches[0];
 }
 
-function findMatches<T extends MediaItem>(
-    items: readonly MediaItem[],
-    item: T
-): readonly MediaItem[] {
+function findMatches<T extends MediaItem>(items: readonly MediaItem[], item: T): MediaItem[] {
     let matches = items.filter((match) => compare(match, item, true));
     if (matches.length === 0) {
         matches = items.filter((match) => compare(match, item, false));

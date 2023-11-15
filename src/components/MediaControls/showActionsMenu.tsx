@@ -38,6 +38,9 @@ function ActionsMenu(props: PopupMenuProps) {
             <PopupMenuItem label="Shuffle" value="shuffle" key="shuffle" />
             <PopupMenuSeparator />
             <PopupMenuItem label="Clear" value="clear" key="clear" />
+            <PopupMenuSeparator />
+            <PopupMenuItem label="Add from file..." value="add-from-file" key="add-from-file" />
+            <PopupMenuItem label="Add from url..." value="add-from-url" key="add-from-url" />
         </PopupMenu>
     );
 }

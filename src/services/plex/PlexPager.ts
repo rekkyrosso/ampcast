@@ -10,6 +10,7 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
+import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
 import OffsetPager from 'services/pagers/OffsetPager';
 import SequentialPager from 'services/pagers/SequentialPager';
@@ -177,6 +178,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             srcs: track.Media?.map(({Part: [part]}) => part.key),
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
+            playbackType: this.serviceId === 'plex-tidal' ? PlaybackType.Direct : undefined,
             externalUrl: this.getExternalUrl(`/library/metadata/${track.parentRatingKey}`),
             fileName: fileName,
             title: title || fileName.replace(/\.\w+/, ''),
@@ -255,6 +257,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             srcs: video.Media?.map(({Part: [part]}) => part.key),
             itemType: ItemType.Media,
             mediaType: MediaType.Video,
+            playbackType: this.serviceId === 'plex-tidal' ? PlaybackType.HLS : PlaybackType.Direct,
             externalUrl: video.art ? this.getExternalUrl(video.art.replace(/\/art\/\d+$/, '')) : '',
             fileName: this.getFileName(part?.file),
             title: video.title || 'Video',
@@ -267,7 +270,6 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             inLibrary: this.getInLibrary(video),
             thumbnails: this.createThumbnails(video.thumb),
             unplayable: part ? undefined : true,
-            videoFormat: this.serviceId === 'plex-tidal' ? 'hls' : undefined,
         };
     }
 
@@ -449,7 +451,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     private createTopTracksPager(artist: plex.Artist): Pager<MediaItem> {
         return this.createPager(
             {path: `/library/metadata/${artist.ratingKey}/popular`},
-            {maxSize: 100}
+            {maxSize: 20}
         );
     }
 

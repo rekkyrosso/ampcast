@@ -48,7 +48,20 @@ const plexSettings = {
     },
 
     get host(): string {
-        return this.connection?.uri || '';
+        const connection = this.connection;
+        if (!connection) {
+            return '';
+        }
+        return connection.local && location.protocol === 'http:'
+            ? `http://${connection.address}:${connection.port}`
+            : connection.uri;
+    },
+
+    get internetRequired() {
+        if (this.connection?.local) {
+            return location.protocol !== 'http:';
+        }
+        return true;
     },
 
     get libraryId(): string {

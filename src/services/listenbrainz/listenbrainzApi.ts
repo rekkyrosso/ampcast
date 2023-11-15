@@ -1,7 +1,7 @@
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
-import mediaObjectChanges from 'services/actions/mediaObjectChanges';
+import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import {getService} from 'services/mediaServices';
 import {Logger, partition} from 'utils';
 import {compareForRating} from './listenbrainz';
@@ -24,10 +24,7 @@ export class ListenBrainzApi {
             if (item.recording_mbid) {
                 params.recording_mbid = item.recording_mbid;
             }
-            const response = await this.post(path, params);
-            if (!response.ok) {
-                throw response;
-            }
+            await this.post(path, params);
         }
     }
 
@@ -36,7 +33,7 @@ export class ListenBrainzApi {
         if (items.length > 0) {
             const inLibrary = await this.getInLibrary(items);
 
-            mediaObjectChanges.dispatch(
+            dispatchMediaObjectChanges(
                 items.map((item, index) => ({
                     match: (object: MediaObject) => compareForRating(object, item),
                     values: {inLibrary: inLibrary[index]},
@@ -58,7 +55,7 @@ export class ListenBrainzApi {
             if (recording_msids.length > 0) {
                 params.recording_msids = recording_msids;
             }
-            const {feedback} = await this.get<ListenBrainz.User.UserRecordingsFeedbackResponse>(
+            const {feedback} = await this.post<ListenBrainz.User.UserRecordingsFeedbackResponse>(
                 `feedback/user/${listenbrainzSettings.userId}/get-feedback-for-recordings`,
                 params
             );
@@ -150,10 +147,11 @@ export class ListenBrainzApi {
         return response.json();
     }
 
-    async post(path: string, params: any): Promise<Response> {
+    async post<T>(path: string, params: any): Promise<T> {
         const headers = {'Content-Type': 'application/json'};
         const body = JSON.stringify(params);
-        return this.fetch(path, {method: 'POST', headers, body}, true);
+        const response = await this.fetch(path, {method: 'POST', headers, body}, true);
+        return response.json();
     }
 
     private async fetch(path: string, init: RequestInit, signed = false): Promise<Response> {

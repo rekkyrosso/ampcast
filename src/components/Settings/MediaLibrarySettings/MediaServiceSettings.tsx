@@ -27,16 +27,10 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
                 panel: <PersonalMediaLibrarySettings service={service} />,
             });
         }
-        if (service.serviceType === ServiceType.Scrobbler) {
+        if (service.serviceType === ServiceType.DataService && service.canScrobble) {
             tabs.push({
                 tab: 'Scrobbling',
                 panel: <ScrobblingSettings service={service} />,
-            });
-        }
-        if (service.createSourceFromPin) {
-            tabs.push({
-                tab: 'Pinned',
-                panel: <PinnedSettings service={service} />,
             });
         }
         if (service.id === 'apple') {
@@ -49,6 +43,12 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
             tabs.push({
                 tab: 'Streaming',
                 panel: <PlexTidalStreamingSettings />,
+            });
+        }
+        if (service.createSourceFromPin) {
+            tabs.push({
+                tab: 'Pinned',
+                panel: <PinnedSettings service={service} />,
             });
         }
         return tabs;

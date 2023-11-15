@@ -53,7 +53,7 @@ export default function FilterSelector({
             <label htmlFor={id}>{title}:</label>
             <select id={id} onChange={handleChange}>
                 {filters.map((filter, index) => (
-                    <option key={filter.id} value={index}>
+                    <option value={index} key={filter.id}>
                         {filter.title}
                     </option>
                 ))}

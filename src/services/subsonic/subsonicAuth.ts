@@ -14,6 +14,10 @@ function observeCredentials(): Observable<string> {
     return credentials$.pipe(distinctUntilChanged());
 }
 
+export function isConnected(): boolean {
+    return !!subsonicSettings.credentials;
+}
+
 export function isLoggedIn(): boolean {
     return isLoggedIn$.getValue();
 }
@@ -50,18 +54,6 @@ function setCredentials(credentials: string): void {
     credentials$.next(credentials);
 }
 
-async function checkConnection(): Promise<boolean> {
-    try {
-        const libraries = await subsonicApi.getMusicLibraries();
-        subsonicSettings.libraries = libraries;
-        return true;
-    } catch (err) {
-        logger.error(err);
-        credentials$.next(''); // Keep it in settings (it might be a temporary failure)
-        return false;
-    }
-}
-
 observeCredentials()
     .pipe(
         filter((credentials) => credentials !== ''),
@@ -69,4 +61,20 @@ observeCredentials()
     )
     .subscribe(isLoggedIn$);
 
-setCredentials(subsonicSettings.credentials);
+async function checkConnection(): Promise<boolean> {
+    try {
+        const libraries = await subsonicApi.getMusicLibraries();
+        subsonicSettings.libraries = libraries;
+        return true;
+    } catch (err: any) {
+        if (err.code === 40) {
+            subsonicSettings.credentials = '';
+        } else {
+            logger.error(err);
+        }
+        credentials$.next('');
+        return false;
+    }
+}
+
+credentials$.next(subsonicSettings.credentials);

@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, filter, mergeMap, tap} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, filter, mergeMap} from 'rxjs';
 import {exists, getSupportedDrm, Logger} from 'utils';
 import plexSettings from './plexSettings';
 import plexApi, {musicProviderHost} from './plexApi';
@@ -8,7 +8,6 @@ const logger = new Logger('plexAuth');
 const apiHost = `https://plex.tv/api/v2`;
 
 const userToken$ = new BehaviorSubject('');
-const isConnected$ = new BehaviorSubject(false);
 const isLoggedIn$ = new BehaviorSubject(false);
 
 let pin: plex.Pin;
@@ -24,6 +23,10 @@ export async function refreshPin(): Promise<plex.Pin> {
 
 function observeUserToken(): Observable<string> {
     return userToken$.pipe(distinctUntilChanged());
+}
+
+export function isConnected(): boolean {
+    return !!plexSettings.userToken;
 }
 
 export function isLoggedIn(): boolean {
@@ -50,8 +53,7 @@ export async function login(): Promise<void> {
 export async function logout(): Promise<void> {
     logger.log('disconnect');
     plexSettings.clear();
-    setUserToken('');
-    isConnected$.next(false);
+    userToken$.next('');
     isLoggedIn$.next(false);
 }
 
@@ -70,6 +72,7 @@ async function testConnection(
             path: '/',
             method: 'HEAD',
             token,
+            timeout: 3000,
         });
         return connection;
     } catch (err) {
@@ -193,40 +196,38 @@ async function obtainServerToken(): Promise<{id: string; authToken: string}> {
     });
 }
 
-// Fix legacy plex
-if (plexSettings.userToken === plexSettings.serverToken) {
-    setUserToken('');
-    if (plexSettings.serverToken && plexSettings.userId) {
-        (async () => {
-            const {authToken} = await plexApi.getAccount(plexSettings.serverToken);
-            setUserToken(authToken);
-        })();
-    }
-}
-
-setUserToken(plexSettings.userToken);
-
 observeUserToken()
     .pipe(
         filter((token) => !!token),
-        mergeMap(() => Promise.all([getDrm(), getMusicLibraries(), checkTidalSubscription()])),
-        tap(() => isLoggedIn$.next(true))
+        mergeMap(() => checkConnection())
     )
-    .subscribe(logger);
+    .subscribe(isLoggedIn$);
+
+async function checkConnection(): Promise<boolean> {
+    try {
+        const [libraries] = await Promise.all([
+            plexApi.getMusicLibraries(),
+            getDrm(),
+            checkTidalSubscription(),
+        ]);
+        plexSettings.libraries = libraries;
+        return true;
+    } catch (err: any) {
+        if (err.status === 401) {
+            plexSettings.clear();
+            userToken$.next('');
+            return false;
+        } else {
+            logger.error(err);
+            return true; // we're still logged in but some things might not work
+        }
+    }
+}
 
 async function getDrm(): Promise<void> {
     try {
         const drm = await getSupportedDrm();
         plexSettings.drm = drm;
-    } catch (err) {
-        logger.error(err);
-    }
-}
-
-async function getMusicLibraries(): Promise<void> {
-    try {
-        const libraries = await plexApi.getMusicLibraries();
-        plexSettings.libraries = libraries;
     } catch (err) {
         logger.error(err);
     }
@@ -251,3 +252,5 @@ async function checkTidalSubscription(): Promise<void> {
         }
     }
 }
+
+userToken$.next(plexSettings.userToken);
