@@ -27,7 +27,7 @@ import playlist from 'services/playlist';
 import visualizerPlayer from 'services/visualizer/visualizerPlayer';
 import {formatTime, LiteStorage, Logger} from 'utils';
 import mediaPlayer from './mediaPlayer';
-import playback from './playback';
+import playback, {observePlaybackReady} from './playback';
 import './scrobbler';
 
 const logger = new Logger('mediaPlayback');
@@ -89,13 +89,15 @@ export function observePlaying(): Observable<void> {
 }
 
 export function appendTo(parentElement: HTMLElement): void {
-    const container = parentElement.querySelector('#playback') as HTMLElement;
-    mediaPlayer.appendTo(container);
-    visualizerPlayer.appendTo(container);
+    mediaPlayer.appendTo(parentElement);
+    visualizerPlayer.appendTo(parentElement);
 }
 
 export function load(item: PlaylistItem | null): void {
     logger.log('load', {item});
+    if (mediaPlayer.autoplay) {
+        playback.ready();
+    }
     mediaPlayer.load(item);
     if (mediaPlayer.autoplay) {
         playback.play();
@@ -104,6 +106,7 @@ export function load(item: PlaylistItem | null): void {
 
 export function play(): void {
     logger.log('play');
+    playback.ready();
     direction = 'forward';
     unlockLoading();
     playback.play();
@@ -142,6 +145,7 @@ export function resize(width: number, height: number): void {
 }
 
 export function prev(): void {
+    logger.log('prev');
     direction = 'backward';
     if (!playlist.atStart) {
         mediaPlayback.stopAfterCurrent = false;
@@ -151,6 +155,7 @@ export function prev(): void {
 }
 
 export function next(): void {
+    logger.log('next');
     direction = 'forward';
     if (!playlist.atEnd) {
         mediaPlayback.stopAfterCurrent = false;
@@ -165,8 +170,8 @@ export function eject(): void {
     playlist.eject();
 }
 
-export function shuffle(): void {
-    playlist.shuffle();
+export function shuffle(preserveCurrentlyPlaying?: boolean): void {
+    playlist.shuffle(preserveCurrentlyPlaying);
 }
 
 function observePlaylistAtEnd(): Observable<boolean> {
@@ -206,6 +211,8 @@ async function getPlayableItem(item: PlaylistItem): Promise<PlaylistItem> {
         const foundItem = await lookup(item);
         if (foundItem) {
             item = {...item, ...foundItem};
+        } else {
+            return item;
         }
     }
     if (item.playbackType === undefined) {
@@ -348,8 +355,8 @@ observeCurrentItem()
 // Unlock loading after 250ms.
 // `mediaPlayer` won't actually load anything until then.
 // This avoids spamming media services with play requests that will soon be skipped over.
-// This can happen if you click the prev/next buttons quickly or you rapidly
-// delete the currently playing item (eject).
+// This can happen if you click the prev/next buttons quickly or you rapidly delete the
+// currently playing item (eject).
 loadingLocked$
     .pipe(
         debounceTime(250),
@@ -384,6 +391,12 @@ loadingLocked$
 fromEvent(window, 'pagehide').subscribe(kill);
 
 // logging
+observePlaybackReady().subscribe(logger.rx('playbackReady'));
+observePlaybackStart().subscribe(logger.rx('playbackStart'));
+observePlaybackEnd().subscribe(logger.rx('playbackEnd'));
+observePlaying().subscribe(logger.rx('playing'));
+observeEnded().subscribe(logger.rx('ended'));
+observeError().subscribe(logger.error);
 observeDuration()
     .pipe(
         skipWhile((duration) => !duration),
@@ -397,7 +410,3 @@ observeCurrentTime()
         map(formatTime)
     )
     .subscribe(logger.rx('currentTime'));
-observePlaying().subscribe(logger.rx('playing'));
-observeEnded().subscribe(logger.rx('ended'));
-observePlaybackStart().subscribe(logger.rx('playbackStart'));
-observePlaybackEnd().subscribe(logger.rx('playbackEnd'));

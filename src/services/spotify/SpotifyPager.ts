@@ -41,8 +41,6 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
 
     private readonly pager: SequentialPager<T>;
     private readonly defaultConfig: PagerConfig = {
-        minPageSize: SpotifyPager.minPageSize,
-        maxPageSize: SpotifyPager.maxPageSize,
         pageSize: SpotifyPager.maxPageSize,
     };
     private readonly config: PagerConfig;
@@ -161,7 +159,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
-            playbackType: PlaybackType.Direct,
+            playbackType: PlaybackType.IFrame,
             src: episode.uri,
             externalUrl: episode.external_urls.spotify,
             title: episode.name,
@@ -238,7 +236,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
-            playbackType: PlaybackType.Direct,
+            playbackType: PlaybackType.IFrame,
             src: track.uri,
             externalUrl: track.external_urls.spotify,
             title: track.name,

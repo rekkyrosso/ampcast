@@ -1,8 +1,8 @@
 import type {Observable} from 'rxjs';
 
 export default interface Player<T> {
-    hidden: boolean;
     autoplay: boolean;
+    hidden: boolean;
     loop: boolean;
     muted: boolean;
     volume: number;

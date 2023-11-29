@@ -7,7 +7,7 @@ import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import Thumbnail from 'types/Thumbnail';
 import {findListen} from 'services/localdb/listens';
-import {getService} from 'services/mediaServices';
+import {getEnabledServices} from 'services/mediaServices';
 import {getCoverArtThumbnails} from 'services/musicbrainz/coverart';
 import {getYouTubeVideoInfo} from 'services/youtube';
 import Icon, {IconName} from 'components/Icon';
@@ -27,7 +27,7 @@ export default function CoverArt({item, size, className = ''}: CoverArtProps) {
     const [thumbnails, setThumbnails] = useState(() => item.thumbnails);
     const hasThumbnails = !!thumbnails?.length;
     const thumbnail = hasThumbnails ? findBestThumbnail(thumbnails, size) : undefined;
-    const src = thumbnail ? getThumbnailUrl(item, thumbnail) : '';
+    const src = thumbnail ? getThumbnailUrl(thumbnail) : '';
     const fallbackIcon = getFallbackIcon(item);
     const overlayIcon = item.itemType === ItemType.Album && getOverlayIcon(item);
 
@@ -110,11 +110,11 @@ function findBestThumbnail(thumbnails: Thumbnail[], size = 240): Thumbnail {
     return matches[0];
 }
 
-export function getThumbnailUrl(item: MediaObject, thumbnail: Thumbnail): string {
-    const [serviceId] = item.src.split(':');
-    const service = getService(serviceId);
-    const url = thumbnail.url;
-    return service?.getThumbnailUrl?.(url) || url;
+export function getThumbnailUrl(thumbnail: Thumbnail): string {
+    return getEnabledServices().reduce(
+        (url, service) => service?.getThumbnailUrl?.(url) ?? url,
+        thumbnail?.url || ''
+    );
 }
 
 function getFallbackIcon(item: MediaObject): IconName {

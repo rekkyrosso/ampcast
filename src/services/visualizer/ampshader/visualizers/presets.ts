@@ -8,6 +8,7 @@ import allNight from './allNight.frag';
 import ambilight from './ambilight.frag';
 import audioFlightV2 from './audioFlightV2.frag';
 import audioPulsar from './audioPulsar.frag';
+import audioReactiveFractal from './audioReactiveFractal.frag';
 import audioReactiveScene1 from './audioReactiveScene1.frag';
 import audioSpectrum from './audioSpectrum.frag';
 import audioVisualizer from './audioVisualizer.frag';
@@ -18,8 +19,10 @@ import avRaymarching from './avRaymarching.frag';
 import barebones from './barebones.frag';
 import basicAudioVisualizerModified from './basicAudioVisualizerModified.frag';
 import beatOfBrokenHearts from './beatOfBrokenHearts.frag';
+import brokowi from './brokowi .frag';
 import bubbles from './bubbles.frag';
 import burnSoundWave from './burnSoundWave.frag';
+import carelsAudioVisualizer from './carelsAudioVisualizer.frag';
 import cavitation from './cavitation.frag';
 import chromaticResonance from './chromaticResonance.frag';
 import cityAtNight from './cityAtNight.frag';
@@ -33,6 +36,8 @@ import disco2000 from './disco2000.frag';
 import diveIntoGeometry from './diveIntoGeometry.frag';
 import dotGridThing from './dotGridThing.frag';
 import fftIfs from './fft-ifs.frag';
+import firstShaderTest from './firstShaderTest.frag';
+import firstVisualiser_globaldusk from './firstVisualiser_globaldusk.frag';
 import fork4MusicGreenPlasma from './fork4MusicGreenPlasma.frag';
 import forkSoundEclipNobody012 from './forkSoundEclipNobody012.frag';
 import forkSoundEclipReverland340 from './forkSoundEclipReverland340.frag';
@@ -40,10 +45,12 @@ import forkWaves from './forkWaves.frag';
 import fractalAudio01 from './fractalAudio01.frag';
 import fractalBrownian from './fractalBrownian.frag';
 import fractalLand from './fractalLand.frag';
+import gauges from './gauges.frag';
 import goatranceTrip from './goatranceTrip.frag';
 import inversionsKreis from './inversionsKreis.frag';
 import io from './io.frag';
 import issues from './issues.frag';
+import lelabah from './lelabah.frag';
 import mandelKoch from './mandelKoch.frag';
 import mellowRainbowBlob from './mellowRainbowBlob.frag';
 import multicolorPixelatedSpiral from './multicolorPixelatedSpiral.frag';
@@ -82,6 +89,7 @@ import solarDance from './solarDance.frag';
 import soundEclipseRpm from './soundEclipseRpm.frag';
 import soundSinusWave from './soundSinusWave.frag';
 import soundStar from './soundStar.frag';
+import spaceshipConsole from './spaceshipConsole.frag';
 import speaker from './speaker.frag';
 import swirlyRainbowSoundVisualizer from './swirlyRainbowSoundVisualizer.frag';
 import symmetricalSoundVisualiser from './symmetricalSoundVisualiser.frag';
@@ -542,6 +550,46 @@ const presets: AmpShaderVisualizer[] = [
         id: '4dXcWB',
         name: 'Mellow rainbow blob by bwestlin',
         shader: mellowRainbowBlob,
+    },
+    {
+        id: 'dllBWn',
+        name: 'Brokowi by zhonkvision',
+        shader: brokowi,
+    },
+    {
+        id: 'mlsfzB',
+        name: 'Lelabah by zhonkvision',
+        shader: lelabah,
+    },
+    {
+        id: 'dtSBR1',
+        name: 'Audio Reactive Fractal by FaustianBargainForTop',
+        shader: audioReactiveFractal,
+    },
+    {
+        id: 'clVyWR',
+        name: `Carel S' Audio Visualizer by carel_s`,
+        shader: carelsAudioVisualizer,
+    },
+    {
+        id: 'msVBRc',
+        name: 'First shader test // Music by skill347',
+        shader: firstShaderTest,
+    },
+    {
+        id: 'ds2yWh',
+        name: 'First visualiser by globaldusk',
+        shader: firstVisualiser_globaldusk,
+    },
+    {
+        id: 'DlVXDc',
+        name: 'Spaceship Console by QuantumSuper',
+        shader: spaceshipConsole,
+    },
+    {
+        id: 'DsjcRD',
+        name: 'Gauges by QuantumSuper',
+        shader: gauges,
     },
 ].map(({id, name, shader}) => ({
     providerId: 'ampshader',

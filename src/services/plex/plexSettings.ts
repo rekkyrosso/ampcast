@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged} from 'rxjs';
 import {nanoid} from 'nanoid';
+import DRMType from 'types/DRMType';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaLibrarySettings from 'types/PersonalMediaLibrarySettings';
 import StreamingQuality from 'types/StreamingQuality';
@@ -23,11 +24,11 @@ const plexSettings = {
         return clientId;
     },
 
-    get drm(): string {
+    get drm(): DRMType {
         return storage.getString('drm', 'widevine');
     },
 
-    set drm(drm: string) {
+    set drm(drm: DRMType) {
         storage.setString('drm', drm);
     },
 
@@ -103,19 +104,11 @@ const plexSettings = {
     },
 
     get streamingQuality(): StreamingQuality {
-        return storage.getNumber('streamingQuality', StreamingQuality.Lossless);
+        return storage.getNumber('streamingQuality', StreamingQuality.High);
     },
 
     set streamingQuality(streamingQuality: StreamingQuality) {
         storage.setNumber('streamingQuality', streamingQuality);
-    },
-
-    get userToken(): string {
-        return storage.getString('userToken');
-    },
-
-    set userToken(token: string) {
-        storage.setString('userToken', token);
     },
 
     get userId(): string {
@@ -124,6 +117,14 @@ const plexSettings = {
 
     set userId(userId: string) {
         storage.setString('userId', userId);
+    },
+
+    get userToken(): string {
+        return storage.getString('userToken');
+    },
+
+    set userToken(token: string) {
+        storage.setString('userToken', token);
     },
 
     clear(): void {

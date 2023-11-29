@@ -11,8 +11,9 @@ import mediaPlayback, {
 } from 'services/mediaPlayback';
 import playlist, {observeCurrentIndex} from 'services/playlist';
 import {getYouTubeVideoInfo} from 'services/youtube';
-import {prompt} from 'components/Dialog';
+import {alert, prompt} from 'components/Dialog';
 import {ListViewHandle} from 'components/ListView';
+import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import Time from 'components/Time';
 import useObservable from 'hooks/useObservable';
 import usePaused from 'hooks/usePaused';
@@ -73,10 +74,19 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
                     });
                     if (url) {
                         const videoId = getYouTubeID(url);
-                        const item = await (videoId
-                            ? getYouTubeVideoInfo(videoId)
-                            : createMediaItemFromUrl(url));
-                        playlist.add(item);
+                        try {
+                            const item = await (videoId
+                                ? getYouTubeVideoInfo(videoId)
+                                : createMediaItemFromUrl(url));
+                            playlist.add(item);
+                        } catch (err: any) {
+                            await alert({
+                                title: <MediaSourceLabel icon="error" text="Error" />,
+                                message:
+                                    err.message ||
+                                    `${videoId ? 'video' : 'media'} cannot be played.`,
+                            });
+                        }
                     }
                     break;
                 }

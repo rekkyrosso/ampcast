@@ -32,6 +32,10 @@ declare namespace plex {
         readonly MediaContainer: DirectoryContainer;
     }
 
+    interface PlayQueueResponse {
+        readonly MediaContainer: PlayQueue;
+    }
+
     interface SearchResult {
         readonly Metadata: Metadata;
         readonly score: number;
@@ -212,7 +216,7 @@ declare namespace plex {
         readonly mediaTagPrefix: string;
         readonly mediaTagVersion: number;
         readonly playQueueID: number;
-        readonly playQueueSelectedItemID: number;
+        readonly playQueueSelectedItemID: string | number;
         readonly playQueueSelectedItemOffset: number;
         readonly playQueueSelectedMetadataItemID: string;
         readonly playQueueShuffled: false;

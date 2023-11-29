@@ -4,13 +4,22 @@ import {interpolateBasis} from 'd3-interpolate';
 import {min} from 'd3-array';
 import {scaleLog} from 'd3-scale';
 import {InvFFT as ifft} from 'jsfft';
-import SimpleAudioAnalyser from 'types/SimpleAudioAnalyser';
 import {observePaused} from 'services/mediaPlayback/playback';
 import spotifyPlayer, {SpotifyPlayer} from './spotifyPlayer';
 import spotifyApi from './spotifyApi';
 import {samplePitches} from './samplePitches';
 
 // Based on: https://github.com/zachwinter/spotify-viz/blob/master/client/classes/sync.js
+
+type SimpleAudioAnalyser = Pick<
+    AnalyserNode,
+    | 'fftSize'
+    | 'frequencyBinCount'
+    | 'getByteFrequencyData'
+    | 'getByteTimeDomainData'
+    | 'getFloatFrequencyData'
+    | 'getFloatTimeDomainData'
+>;
 
 type IntervalType = 'bars' | 'beats' | 'sections' | 'segments' | 'tatums';
 

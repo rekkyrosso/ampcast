@@ -3,6 +3,7 @@ import PlaybackState from './PlaybackState';
 
 export default interface Playback {
     paused: boolean;
+    observePlaybackReady(): Observable<void>;
     observePlaybackState(): Observable<PlaybackState>;
     observePlaybackStart(): Observable<PlaybackState>;
     observePlaybackEnd(): Observable<PlaybackState>;
@@ -16,6 +17,7 @@ export default interface Playback {
     setDuration(duration: number): void;
     play(): void;
     pause(): void;
+    ready(): void;
     stop(): void;
     started(): void;
     ended(): void;

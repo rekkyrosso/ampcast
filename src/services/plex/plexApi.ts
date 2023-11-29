@@ -221,8 +221,9 @@ function getPlayableUrl(item: PlayableItem): string {
             }
             return `${host}${src}?X-Plex-Token=${serverToken}`;
         } else {
-            const [, , ratingKey] = item.src.split(':');
-            const params: Record<string, string> = {
+            const [, type, ratingKey] = item.src.split(':');
+            const mediaType = type === 'video' ? 'video' : 'music';
+            const params = new URLSearchParams({
                 path: `/library/metadata/${ratingKey}`,
                 hasMDE: '1',
                 mediaIndex: '0',
@@ -235,8 +236,8 @@ function getPlayableUrl(item: PlayableItem): string {
                 ...getHeaders(serverToken),
                 'X-Plex-Client-Profile-Extra':
                     'add-transcode-target(type=musicProfile&context=streaming&protocol=dash&container=mp4&audioCodec=aac)+add-transcode-target(type=musicProfile&context=streaming&protocol=hls&container=mpegts&audioCodec=aac,mp3)',
-            };
-            return `${host}/music/:/transcode/universal/start.mpd?${new URLSearchParams(params)}`;
+            });
+            return `${host}/${mediaType}/:/transcode/universal/start.mpd?${params}`;
         }
     } else {
         throw Error('Not logged in');
@@ -321,6 +322,7 @@ const plexApi = {
     getEnhancedItems,
     getAccount,
     getFilters,
+    getHeaders,
     getMusicLibraries,
     getPlayableUrl,
     getPlaybackType,

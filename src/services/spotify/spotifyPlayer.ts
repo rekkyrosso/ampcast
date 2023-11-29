@@ -65,10 +65,11 @@ export class SpotifyPlayer implements Player<PlayableItem> {
         window.onSpotifyWebPlaybackSDKReady = this.onSpotifyWebPlaybackSDKReady;
 
         this.observeReady()
-            .pipe(
-                tap(() => this.player!.activateElement()),
-                take(1)
-            )
+            .pipe(mergeMap(() => this.player!.activateElement()))
+            .subscribe(logger);
+
+        this.observeReady()
+            .pipe(mergeMap(() => this.safeVolume(this.muted ? 0 : this.volume)))
             .subscribe(logger);
 
         // Load new tracks.

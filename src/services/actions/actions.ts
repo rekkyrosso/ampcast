@@ -79,9 +79,9 @@ export async function performPlayAction<T extends MediaObject>(
                     mediaPlayback.autoplay = true;
                 }
                 if (itemType === ItemType.Media) {
-                    await playlist.insert(items as readonly MediaItem[]);
+                    await playlist.inject(items as readonly MediaItem[]);
                 } else {
-                    await playlist.insert(item as MediaAlbum);
+                    await playlist.inject(item as MediaAlbum);
                 }
                 if (action === Action.PlayNow) {
                     playlist.next();

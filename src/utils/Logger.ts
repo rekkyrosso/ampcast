@@ -16,6 +16,7 @@ export default class Logger implements BasicConsole, AnyObserver {
 
     constructor(id = '', rx = false, console: BasicConsole = window.console) {
         const prefix = id ? ` ${id}:` : '';
+
         const createId = (oldId: string, newId?: string) =>
             oldId && newId ? `${oldId}/${newId}` : newId || oldId;
 
@@ -25,6 +26,7 @@ export default class Logger implements BasicConsole, AnyObserver {
             }
         };
 
+        // Basic console.
         this.log = (...args: any[]) => log(`##${prefix}`, ...args);
         this.warn = (...args: any[]) => log(`###${prefix}`, ...args);
         this.error = (err: unknown) => {
@@ -34,16 +36,17 @@ export default class Logger implements BasicConsole, AnyObserver {
             }
         };
 
-        // For RxJS debugging
+        // For RxJS debugging.
         if (rx) {
             this.next = this.log;
             this.complete = () => this.log('***complete***');
         }
 
-        // For cloning
+        // For cloning.
         this.id = (newId: string) => new Logger(createId(id, newId), rx, console);
         this.rx = (newId?: string) => new Logger(createId(id, newId), true, console);
 
+        // For less noise.
         this.only = () => {
             if (__dev__) {
                 Logger.only = id;

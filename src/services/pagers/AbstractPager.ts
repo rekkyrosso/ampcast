@@ -10,7 +10,6 @@ import {
     take,
     tap,
 } from 'rxjs';
-import {Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import MediaObjectChange from 'types/MediaObjectChange';
@@ -97,15 +96,6 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
 
         if (!this.connected) {
             this.connect();
-
-            if (this.config.calculatePageSize) {
-                const {minPageSize = 10, maxPageSize = 100} = this.config;
-                const pageSize = Math.ceil((length * 2) / 10) * 10;
-                (this.config as Writable<PagerConfig>).pageSize = Math.max(
-                    Math.min(pageSize, maxPageSize),
-                    minPageSize
-                );
-            }
         }
 
         this.fetches$.next({index, length});

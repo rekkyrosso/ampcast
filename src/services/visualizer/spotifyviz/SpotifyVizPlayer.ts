@@ -1,6 +1,7 @@
 import {SpotifyVizVisualizer} from 'types/Visualizer';
 import {ActiveIntervals, SpotifyAudioAnalyser} from 'services/spotify/spotifyAudioAnalyser';
 import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
+import spotifyAudioAnalyser from 'services/spotify/spotifyAudioAnalyser';
 import {Logger} from 'utils';
 
 const logger = new Logger('SpotifyVizPlayer');
@@ -24,16 +25,19 @@ export interface SpotifyVizPaintData {
 }
 
 export default class SpotifyVizPlayer extends AbstractVisualizerPlayer<SpotifyVizVisualizer> {
+    private readonly analyser = spotifyAudioAnalyser;
     private readonly canvas = document.createElement('canvas');
     private readonly context2D = this.canvas.getContext('2d')!;
     private config?: SpotifyVizConfig;
     private animationFrameId = 0;
     private currentVisualizer = '';
 
-    constructor(private readonly analyser: SpotifyAudioAnalyser) {
+    constructor() {
         super();
         this.canvas.hidden = true;
         this.canvas.className = `visualizer visualizer-spotifyviz`;
+
+        const analyser = this.analyser;
 
         analyser.observeBar().subscribe((bar: ActiveIntervals['bars']) => {
             this.config?.onBar?.(bar);
@@ -63,8 +67,12 @@ export default class SpotifyVizPlayer extends AbstractVisualizerPlayer<SpotifyVi
     set hidden(hidden: boolean) {
         if (this.canvas.hidden !== hidden) {
             this.canvas.hidden = hidden;
-            if (!hidden && !this.animationFrameId) {
-                this.render();
+            if (hidden) {
+                this.cancelAnimation();
+            } else {
+                if (!this.animationFrameId) {
+                    this.render();
+                }
             }
         }
     }
@@ -74,15 +82,13 @@ export default class SpotifyVizPlayer extends AbstractVisualizerPlayer<SpotifyVi
     }
 
     load(visualizer: SpotifyVizVisualizer): void {
-        if (visualizer) {
-            logger.log('load', visualizer.name);
-            if (this.currentVisualizer !== visualizer.name) {
-                this.currentVisualizer = visualizer.name;
-                this.cancelAnimation();
-                this.config = visualizer.config;
-                this.analyser.volumeSmoothing = visualizer.config?.volumeSmoothing ?? 100;
-                this.render();
-            }
+        logger.log('load', visualizer.name);
+        if (this.currentVisualizer !== visualizer.name) {
+            this.currentVisualizer = visualizer.name;
+            this.cancelAnimation();
+            this.config = visualizer.config;
+            this.analyser.volumeSmoothing = visualizer.config?.volumeSmoothing ?? 100;
+            this.render();
         }
     }
 

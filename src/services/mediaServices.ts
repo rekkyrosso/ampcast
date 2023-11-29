@@ -70,8 +70,7 @@ export function getPersonalMediaServices(): readonly PersonalMediaService[] {
 }
 
 export function getPlayableServices(): readonly MediaService[] {
-    const services = getAllServices().slice();
-    return services.filter((service) => !isDataService(service));
+    return getAllServices().filter((service) => !isDataService(service));
 }
 
 export async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
@@ -95,12 +94,16 @@ export function getPublicMediaServices(): readonly PublicMediaService[] {
     return getEnabledServices().filter(isPublicMediaService);
 }
 
+export function getScrobblers(): readonly DataService[] {
+    return getDataServices().filter((service) => service.canScrobble);
+}
+
 export function getService(serviceId: string): MediaService | undefined {
     return getAllServices().find((service) => service.id === serviceId);
 }
 
-export function getServiceFromSrc({src = ''}: {src?: string} = {}): MediaService | undefined {
-    const [serviceId] = src?.split(':') || [''];
+export function getServiceFromSrc({src}: {src?: string} = {}): MediaService | undefined {
+    const [serviceId] = String(src).split(':');
     return getService(serviceId);
 }
 
@@ -108,23 +111,25 @@ export function hasPlayableSrc(item: {src: string}): boolean {
     return item ? isPlayableSrc(item.src) : false;
 }
 
+export function isAlwaysPlayableSrc(src: string): boolean {
+    const [serviceId] = String(src).split(':');
+    return /^(blob|file|https?|youtube)$/.test(serviceId);
+}
+
 export function isDataService(service: MediaService): service is DataService {
     return isMediaServiceType(service, ServiceType.DataService);
 }
 
-export function isPlayableSrc(src: string): boolean {
-    if (src) {
-        const [serviceId, type, id] = src.split(':');
-        if (/^(blob|file|https?|youtube)$/.test(serviceId)) {
-            return true;
-        }
-        return !!id && !!type && isPlayableService(serviceId);
-    }
-    return false;
-}
-
 export function isPersonalMediaService(service: MediaService): service is PersonalMediaService {
     return isMediaServiceType(service, ServiceType.PersonalMedia);
+}
+
+export function isPlayableSrc(src: string): boolean {
+    if (isAlwaysPlayableSrc(src)) {
+        return true;
+    }
+    const [serviceId, type, id] = String(src).split(':');
+    return !!id && !!type && isPlayableService(serviceId);
 }
 
 export function isPublicMediaService(service: MediaService): service is PublicMediaService {
@@ -139,7 +144,7 @@ function isMediaService(service: any): service is MediaService {
     return service ? 'serviceType' in service : false;
 }
 
-function isMediaServiceType(service: any, type: ServiceType): boolean {
+function isMediaServiceType(service: MediaService, type: ServiceType): boolean {
     return isMediaService(service) && service.serviceType === type;
 }
 

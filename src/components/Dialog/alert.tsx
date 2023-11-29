@@ -4,7 +4,7 @@ import showDialog from './showDialog';
 import './alert.scss';
 
 export interface AlertOptions {
-    title?: string;
+    title?: React.ReactNode;
     message: React.ReactNode;
 }
 

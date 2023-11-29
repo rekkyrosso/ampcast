@@ -5,12 +5,12 @@ import plexApi, {musicPlayHost, musicProviderHost} from './plexApi';
 
 const logger = new Logger('plexReporting');
 
-let playQueue: plex.PlayQueue | null = null; // TODO: Do this better.
+let playQueueItemID = ''; // TODO: Do this better.
 
 export async function reportStart(item: MediaItem): Promise<void> {
     try {
-        playQueue = null;
-        playQueue = await createPlayQueue(item);
+        playQueueItemID = '';
+        playQueueItemID = await createPlayQueueItemId(item);
         await reportState(item, 0, 'playing');
     } catch (err) {
         logger.error(err);
@@ -20,7 +20,6 @@ export async function reportStart(item: MediaItem): Promise<void> {
 export async function reportStop(item: MediaItem): Promise<void> {
     try {
         await reportState(item, 0, 'stopped', true);
-        playQueue = null;
     } catch (err) {
         logger.error(err);
     }
@@ -44,9 +43,8 @@ async function reportState(
     state: 'stopped' | 'paused' | 'playing' | 'buffering' | 'error',
     keepalive?: boolean
 ): Promise<void> {
-    if (!playQueue) {
-        logger.warn(`Cannot report state (${state}): playQueue not defined`);
-        return;
+    if (!playQueueItemID) {
+        logger.warn('reportState: `playQueueItemID` not defined', {state});
     }
     const [serviceId, , ratingKey] = item.src.split(':');
     const isTidal = serviceId === 'plex-tidal';
@@ -56,7 +54,7 @@ async function reportState(
         params: {
             key: `/library/metadata/${ratingKey}`,
             ratingKey,
-            playQueueItemID: String(playQueue!.playQueueSelectedItemID),
+            playQueueItemID,
             state,
             time: String(Math.floor(currentTime * 1000)),
             duration: String(Math.floor(item.duration * 1000)),
@@ -65,11 +63,11 @@ async function reportState(
     });
 }
 
-async function createPlayQueue(item: MediaItem): Promise<plex.PlayQueue> {
+async function createPlayQueueItemId(item: MediaItem): Promise<string> {
     const [serviceId, , ratingKey] = item.src.split(':');
     const key = `/library/metadata/${ratingKey}`;
     const isTidal = serviceId === 'plex-tidal';
-    return plexApi.fetchJSON({
+    const {MediaContainer: playQueue} = await plexApi.fetchJSON<plex.PlayQueueResponse>({
         host: isTidal ? musicPlayHost : undefined,
         path: '/playQueues',
         method: 'POST',
@@ -86,4 +84,5 @@ async function createPlayQueue(item: MediaItem): Promise<plex.PlayQueue> {
             own: '1',
         },
     });
+    return String(playQueue.playQueueSelectedItemID);
 }

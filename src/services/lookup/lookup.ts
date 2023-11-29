@@ -7,6 +7,7 @@ import {
     getService,
     getServiceFromSrc,
     hasPlayableSrc,
+    isAlwaysPlayableSrc,
     isPersonalMediaService,
 } from 'services/mediaServices';
 import {filterNotEmpty, fuzzyCompare, Logger} from 'utils';
@@ -40,8 +41,7 @@ export default async function lookup<T extends MediaItem>(item: T): Promise<Medi
 async function lookupMediaItem<T extends MediaItem>(item: T): Promise<MediaItem | undefined> {
     const listen = findListen(item);
     if (listen) {
-        const service = getServiceFromSrc(listen);
-        if (service?.isLoggedIn()) {
+        if (canPlayNow(listen)) {
             return listen;
         }
     }
@@ -49,8 +49,7 @@ async function lookupMediaItem<T extends MediaItem>(item: T): Promise<MediaItem 
     const {link, ...rest} = item;
     const linkedItem = link && hasPlayableSrc(link) ? {...rest, ...link} : undefined;
     if (linkedItem) {
-        const service = getServiceFromSrc(linkedItem);
-        if (service?.isLoggedIn()) {
+        if (canPlayNow(linkedItem)) {
             return linkedItem;
         }
     }
@@ -75,6 +74,17 @@ async function lookupMediaItem<T extends MediaItem>(item: T): Promise<MediaItem 
     }
 
     return findBestMatch(matches, item) || listen || linkedItem;
+}
+
+function canPlayNow<T extends MediaItem>(item: T): boolean {
+    if (isAlwaysPlayableSrc(item.src)) {
+        return true;
+    }
+    const service = getServiceFromSrc(item);
+    if (service?.isLoggedIn()) {
+        return true;
+    }
+    return false;
 }
 
 async function serviceLookup<T extends MediaItem>(

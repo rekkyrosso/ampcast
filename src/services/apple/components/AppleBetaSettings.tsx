@@ -1,5 +1,5 @@
 import React, {useCallback, useId, useRef} from 'react';
-import {confirm} from 'components/Dialog';
+import {alert} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import apple from '../apple';
 import appleSettings from '../appleSettings';
@@ -9,21 +9,16 @@ export default function AppleBetaSettings() {
     const betaRef = useRef<HTMLInputElement>(null);
 
     const handleSubmit = useCallback(async () => {
-        appleSettings.useMusicKitBeta = betaRef.current!.checked;
+        const useMusicKitBeta = betaRef.current!.checked;
+        if (appleSettings.useMusicKitBeta !== useMusicKitBeta) {
+            appleSettings.useMusicKitBeta = useMusicKitBeta;
 
-        const confirmed = await confirm({
-            title: 'Reload required',
-            message: (
-                <>
-                    <p>You need to reload for changes to take effect.</p>
-                    <p>Reload now?</p>
-                </>
-            ),
-            okLabel: 'Reload',
-            system: true,
-        });
+            await alert({
+                title: 'Reload required',
+                message: 'The app will now reload.',
+                system: true,
+            });
 
-        if (confirmed) {
             await apple.logout();
             location.reload();
         }

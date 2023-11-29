@@ -1,5 +1,6 @@
-import {Except, Primitive} from 'type-fest';
+import {Except, Primitive, Writable} from 'type-fest';
 import Action from 'types/Action';
+import DRMInfo from 'types/DRMInfo';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -20,7 +21,7 @@ import {NoTidalSubscriptionError} from 'services/errors';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {isSourceHidden} from 'services/servicesSettings';
-import {bestOf} from 'utils';
+import {bestOf, drmKeySystems} from 'utils';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './plexAuth';
 import plexSettings from './plexSettings';
 import plexItemType from './plexItemType';
@@ -189,6 +190,7 @@ const tidal: PublicMediaService = {
     canStore,
     compareForRating,
     createSourceFromPin,
+    getDrmInfo,
     getMetadata,
     getPlayableUrl,
     getPlaybackType,
@@ -243,6 +245,21 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     };
 }
 
+function getDrmInfo(item?: PlayableItem): DRMInfo | undefined {
+    if (item?.playbackType === PlaybackType.DASH) {
+        const type = plexSettings.drm;
+        const isFairplay = type === 'fairplay';
+        const keySystem = isFairplay ? ('com.apple.fps.1_0' as any) : drmKeySystems[type];
+        const license = getPlayableUrl(item).replace(/\.(mpd|m3u8)/, '/license');
+        const info: DRMInfo = {type, keySystem, license};
+        if (isFairplay) {
+            (info as Writable<DRMInfo>).certificate =
+                'https://resources.tidal.com/drm/fairplay/certificate';
+        }
+        return info;
+    }
+}
+
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     const itemType = item.itemType;
     if (
@@ -294,14 +311,16 @@ function getPlayableUrl(item: PlayableItem): string {
         if (!src) {
             throw Error('No playable source');
         }
-        return `${musicProviderHost}${src}?X-Plex-Token=${userToken}`;
+        const headers = plexApi.getHeaders(userToken, plexSettings.drm);
+        const params = new URLSearchParams(headers);
+        return `${musicProviderHost}${src}?${params}`;
     } else {
         throw Error('Not logged in');
     }
 }
 
 async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
-    return item.mediaType === MediaType.Video ? PlaybackType.HLS : PlaybackType.Direct;
+    return item.mediaType === MediaType.Video ? PlaybackType.HLS : PlaybackType.DASH;
 }
 
 function getThumbnailUrl(url: string): string {

@@ -8,7 +8,7 @@ import './confirm.scss';
 const storage = new LiteStorage('confirm');
 
 export interface ConfirmOptions {
-    title?: string;
+    title?: React.ReactNode;
     message: React.ReactNode;
     okLabel?: React.ReactNode;
     storageId?: string;

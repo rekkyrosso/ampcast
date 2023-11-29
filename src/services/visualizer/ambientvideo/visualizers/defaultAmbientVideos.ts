@@ -2,7 +2,7 @@ import {AmbientVideoVisualizer} from 'types/Visualizer';
 
 // Some sample ambient videos to get us started.
 const defaultAmbientVideos: AmbientVideoVisualizer[] = `
-mo2re_RX3Bs blXien2Jh_o etiatMRgFcM DYsMJiwiZSI _MZ7UZ5frCI HCx1Z92PjJE dIP7wWY4Znw gW4nffCscYs
+mo2re_RX3Bs blXien2Jh_o etiatMRgFcM DYsMJiwiZSI _MZ7UZ5frCI HCx1Z92PjJE dIP7wWY4Znw SDxtzBm5vD4
 A1m0SEqmmbE 9uZ8CCa0t4Y 35CTu7dWzo8 wz_ItcoR0-c jS4-FmNEDKo Tz77vqH_LJw K73lfmxDVR0 W8ayfyRWUrg
 cbuldALGsaQ AJZon2grzmA H5ASEM9dMiA GE2YEq7vaLc MYGOdJNAzrI Oszl95YWfbs b0-IkxXyhmY QxE5VqaQ6oE
 H6Xy97CD9Hs p-OUNPqRzII XaTxLSPh_Is 1n3ezT1cvAM CWU1pZVw0xM ry1Q7KaQdxM VlC5LSTvoj0 j-bG0j3-KzE
@@ -47,7 +47,7 @@ ZFBoN7yIMZw 4mexI7cACZk bx-0YlFprqc NDWpXTg3koc Vo2AcHSCRiQ UrfJgjQt1SY WXI7byeZ
 ubmUJcwor3k CGslieDL-04 w7ljU-lmaK4 I0B21LjeSUQ PyFN_FYwqvc bxy9PFJRJ0g ahmrb5EYoxY HGxuVWpN8vQ
 DNR1zyr5Go4 eyPhudLTuis aPWXL4ahxdY JB0A8Me8EKk dGy_6qyyY7c rxrDLgt5YFA uhcocK-td5E 4Z5FLeh7P18
 VB0zDS9ITmk VukLV0AoeFA CouF-tNHV3g lTvYjERVAnY S27YOjpgaaE 24uCC_-zaaE DslTxXsDLsw xilGAQPx5Xw
-9eu4yqpxQGU FDqQlAUDZyk R1OHRQoJOP0 fbqmVbEj9fg asL1AN3hifU fd8spJiYS0k 3ma3yXXc3V8 1U1We59en3s
+vuLm2t58qIQ FDqQlAUDZyk R1OHRQoJOP0 fbqmVbEj9fg asL1AN3hifU fd8spJiYS0k 3ma3yXXc3V8 1U1We59en3s
 iNm7PPqO6rM CLRk8SgtVS4 VYO8Biwffns 9Wm8Ij8rHIE ZMOC332wC7A doORhRob3Qg E2sSvVCRI4s 2aVxI4PSiDI
 E6Ww7lpuZ2k Ueqm3PQKYPk eFiKAcbp2MY dAfMgDBeqwU MsUOx11_eLk LAFK1EvwulU OF0iDephya8 L_mlofcsRaA
 eZe4Q_58UTU NXObT_Fl-xI MntPfBulD2o _WkkH31sTMI ALJcKvnOjHM 85Y1N8avsXs NCY42RnUpCE 48rsDblF5Ig
@@ -59,7 +59,7 @@ JBm1ainuk-c PkF4EKJQOOg 0aMUCiKjBDI D1KsEOUqCEU JdE_xc1rQBY omlVslJvzxQ FoS3732R
 qqC80mXlOKo MS2asGj1-_M NmP0RylitI4 IahW6hJ1-SM 9MIJm1NeUpE 2qzbMPpgtDw H3UY2gQfj-s 9kekiNImlsI
 5zUCClmhjF0 88jpBZdsrT8 UdFae3BAH38 MAFdQs_yWvg 8quqk2FPRgQ p7G1lkYIFTM RzE9pczkYU4 7TML_MTQdg4
 FGCIBbg0IYk oaQ8UXlKDiw 5rf_gOfa7O4 MYG6FeY4SKg AVzdfRpE9Q0 1UxoHtG2qas o7XgU4ut6jQ IcOYM87wTRc
-oPetbPLA8dM eQIzdzSTH08 tpRBHKAJ_tU sTy4stPcD0E p4jroQX6Hwk y2Zl-KXvdSk zffchwaq6KE jv7hNnJEWPU
+D4mdWvVONyg eQIzdzSTH08 tpRBHKAJ_tU sTy4stPcD0E p4jroQX6Hwk y2Zl-KXvdSk zffchwaq6KE jv7hNnJEWPU
 DN-BxbMH264 mWaC_VSncEg 8x5Yzxi3LhA 0Txa_T4pHY4 sYYMBV68hmE 5rTo8-CPgU4 WbUgBaEsugI QytjUFgcmWw
 6BLY2zj6pq0 W5Y0deEEszo U6jAaBK7idQ rHZlMW_zxaE 4Xp4J5RYns0 Xsf2ThMqNBM lUbOyYp91NU dpuTxI8KAyc
 OIoAJfLDW1U bXK3EZ1AOZ0 nV62c0XBLDg 7ZWSdWxHAzY LVJHOKOIXK4 8QdnY1lACEs BfkdRwJAeu8 qyCXiUtWhD0
@@ -76,9 +76,10 @@ W0Kl0QfMEPo 5bwHtF7fR94 IXSTdSv-Jlo mf5E3FDZ6rY 7JsOhtl_zG4 vr5dCRHAgb0 Di9jRVy7
 LD_jcIQGl0Q ZXas8NdyLsE ELUl-cAtUIE --qCu9yL5H8 74wsGjTZzGg Wey4zHA4nPg VArhsYKbKzk t76IJmQKzKA
 l1RxmWxXQcM 7HagxwgIRcY gJgwJwg6Deg 1mD8V2trqcw i5ZbYQ1Nok4 YE3iWysmcBQ vdycBdIx-do UE-J2Dt8LNs
 x_dVi_PC_sc z3oaQlq9weg gvusDEF3eh4 0wb-OBF3LOo tKC1zBZf8NM Moz3NHnVXog s7v0c2nKKGE cV9kT-xcQZw
-iQ3ymQzBERg 6BcYV3gqcFA TaWhAJGUK-w oHrnBcYW6U0 iXI8oo8KpMA 4Qdd8khODKc KVKtVyhCMQ8 6h3zxMYjAwI
+apwA8UQ_xeE 6BcYV3gqcFA TaWhAJGUK-w oHrnBcYW6U0 iXI8oo8KpMA 4Qdd8khODKc KVKtVyhCMQ8 6h3zxMYjAwI
 jMaWecFnC_8 XS3p0GDnLF4 CCc2EYQchpE Oj0l4QlC-JE pENN3OPwydk 6q81M5Xd5X8 IqS4kWK6aV0 8OUQ7eCqt50
-gdAbs95GIm4 j800SVeiS5I vuLm2t58qIQ SDxtzBm5vD4
+gdAbs95GIm4 j800SVeiS5I bZIuALduxQU UyFoYkj8dAc q5hHF9Ofu3g UrKl1h8wWpg SNpXK6omAdQ dY-bDp_3krs
+9HI3UVKoesg JFMT1tU17TM
 `
     .match(/\S+/g)!
     .map((videoId) => ({

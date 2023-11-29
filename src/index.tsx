@@ -4,7 +4,9 @@ import 'styles/index.scss';
 import App from 'components/App';
 
 if (!__electron__ && !__dev__) {
-    navigator.serviceWorker?.register('/service-worker.js').then(() => undefined, console.error);
+    window.addEventListener('load', () => {
+        navigator.serviceWorker?.register('/service-worker.js');
+    });
 }
 
 createRoot(document.getElementById('app')!).render(

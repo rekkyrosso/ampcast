@@ -1,5 +1,6 @@
 import type {IconName} from 'components/Icon';
 import Auth from './Auth';
+import DRMInfo from './DRMInfo';
 import ItemType from './ItemType';
 import LibraryAction from './LibraryAction';
 import MediaItem from './MediaItem';
@@ -31,6 +32,7 @@ type BaseMediaService = Auth & {
     canStore: (item: MediaObject, inline?: boolean) => boolean;
     compareForRating: <T extends MediaObject>(a: T, b: T) => boolean;
     createSourceFromPin?: (pin: Pin) => MediaSource<MediaPlaylist>;
+    getDrmInfo?: (item?: PlayableItem) => DRMInfo | undefined;
     getFilters?: (
         viewType: ViewType.ByDecade | ViewType.ByGenre,
         itemType: ItemType

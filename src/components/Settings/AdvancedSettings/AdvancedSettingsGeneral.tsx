@@ -1,4 +1,5 @@
 import React, {useCallback} from 'react';
+import DialogButtons from 'components/Dialog/DialogButtons';
 import showFactoryReset from './showFactoryReset';
 
 export default function AdvancedSettingsGeneral() {
@@ -12,6 +13,7 @@ export default function AdvancedSettingsGeneral() {
             <p>
                 <button onClick={factoryReset}>Factory Reset…</button>
             </p>
+            <DialogButtons />
         </form>
     );
 }

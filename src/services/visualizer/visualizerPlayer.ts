@@ -1,5 +1,7 @@
+import {tap} from 'rxjs';
 import Player from 'types/Player';
 import Visualizer from 'types/Visualizer';
+import audio from 'services/audio';
 import OmniPlayer from 'services/players/OmniPlayer';
 import {Logger} from 'utils';
 import {getAllVisualizerProviders, getVisualizerPlayer} from './visualizerProviders';
@@ -16,7 +18,6 @@ function loadVisualizer(player: Player<Visualizer>, visualizer: Visualizer): voi
 
 const visualizerPlayer = new OmniPlayer<Visualizer>(
     'visualizer-player',
-    getAllVisualizerProviders().map((provider) => provider.player),
     selectPlayer,
     loadVisualizer
 );
@@ -24,7 +25,17 @@ const visualizerPlayer = new OmniPlayer<Visualizer>(
 visualizerPlayer.loop = true;
 visualizerPlayer.muted = true;
 visualizerPlayer.volume = 0.07;
-
 visualizerPlayer.observeError().subscribe(logger.error);
+
+audio
+    .observeReady()
+    .pipe(
+        tap((audio) =>
+            visualizerPlayer.registerPlayers(
+                getAllVisualizerProviders().map((provider) => provider.createPlayer(audio))
+            )
+        )
+    )
+    .subscribe(logger);
 
 export default visualizerPlayer;

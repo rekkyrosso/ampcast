@@ -27,8 +27,6 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
 
     private readonly pager: Pager<T>;
     private readonly defaultConfig: PagerConfig = {
-        minPageSize: LastFmPager.minPageSize,
-        maxPageSize: LastFmPager.maxPageSize,
         pageSize: 50,
     };
     private pageNumber = 1;

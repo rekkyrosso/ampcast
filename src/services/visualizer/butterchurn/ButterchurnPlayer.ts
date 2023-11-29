@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
 import {Subject} from 'rxjs';
 import butterchurn from 'butterchurn';
+import AudioManager from 'types/AudioManager';
 import {ButterchurnVisualizer} from 'types/Visualizer';
 import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
 import {Logger} from 'utils';
@@ -10,24 +11,21 @@ const logger = new Logger('ButterchurnPlayer');
 export default class ButterchurnPlayer extends AbstractVisualizerPlayer<ButterchurnVisualizer> {
     private readonly canvas = document.createElement('canvas');
     private readonly context2D = this.canvas.getContext('2d')!;
+    private readonly source: AudioNode;
     private readonly visualizer: butterchurn.Visualizer;
     private readonly error$ = new Subject<unknown>();
     private animationFrameId = 0;
     private currentVisualizer = '';
 
-    constructor(private readonly analyser: AnalyserNode) {
+    constructor({context, source}: AudioManager) {
         super();
-
+        this.source = source;
+        this.canvas.className = 'visualizer visualizer-butterchurn';
         this.canvas.hidden = true;
-        this.canvas.className = `visualizer visualizer-butterchurn`;
-
-        const visualizer = (this.visualizer = butterchurn.createVisualizer(
-            analyser.context,
-            this.canvas,
-            {width: 400, height: 200}
-        ));
-
-        visualizer.connectAudio(analyser);
+        this.visualizer = butterchurn.createVisualizer(context, this.canvas, {
+            width: 400,
+            height: 200,
+        });
     }
 
     get hidden(): boolean {
@@ -38,9 +36,11 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
         if (this.canvas.hidden !== hidden) {
             this.canvas.hidden = hidden;
             if (hidden) {
-                this.visualizer.disconnectAudio(this.analyser);
+                logger.log('disconnect');
+                this.visualizer.disconnectAudio(this.source);
             } else {
-                this.visualizer.connectAudio(this.analyser);
+                logger.log('connect');
+                this.visualizer.connectAudio(this.source);
                 if (!this.animationFrameId) {
                     this.render();
                 }
@@ -57,14 +57,12 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
     }
 
     load(visualizer: ButterchurnVisualizer): void {
-        if (visualizer) {
-            logger.log('load', visualizer.name);
-            if (this.currentVisualizer !== visualizer.name) {
-                this.currentVisualizer = visualizer.name;
-                this.cancelAnimation();
-                this.visualizer.loadPreset(visualizer.data, 0.5);
-                this.render();
-            }
+        logger.log('load', visualizer.name);
+        if (this.currentVisualizer !== visualizer.name) {
+            this.currentVisualizer = visualizer.name;
+            this.cancelAnimation();
+            this.visualizer.loadPreset(visualizer.data, 0.5);
+            this.render();
         }
     }
 

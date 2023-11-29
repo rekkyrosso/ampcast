@@ -564,18 +564,6 @@ export default function Icon({name, className = ''}: IconProps) {
         case 'apple':
             return (
                 <svg className={className} viewBox="0 0 73 73">
-                    <linearGradient
-                        id="apple-linear-gradient"
-                        gradientUnits="userSpaceOnUse"
-                        x1="36"
-                        y1="2.2858"
-                        x2="36"
-                        y2="72.455"
-                        gradientTransform="matrix(1 0 0 -1 0 74.0068)"
-                    >
-                        <stop offset="0" style={{stopColor: '#FA233B'}} />
-                        <stop offset="1" style={{stopColor: '#FB5C74'}} />
-                    </linearGradient>
                     <rect className="icon-apple-inner" x="10" y="10" width="53" height="53" />
                     <path
                         className="icon-apple-outer"
@@ -651,19 +639,6 @@ export default function Icon({name, className = ''}: IconProps) {
         case 'jellyfin':
             return (
                 <svg className={className} viewBox="0 0 512 512">
-                    <defs>
-                        <linearGradient
-                            id="jellyfin-linear-gradient"
-                            gradientUnits="userSpaceOnUse"
-                            x1="110.25"
-                            y1="213.3"
-                            x2="496.14"
-                            y2="436.09"
-                        >
-                            <stop offset="0" style={{stopColor: '#aa5cc3'}} />
-                            <stop offset="1" style={{stopColor: '#00a4dc'}} />
-                        </linearGradient>
-                    </defs>
                     <path d="M256,201.6c-20.4,0-86.2,119.3-76.2,139.4s142.5,19.9,152.4,0S276.5,201.6,256,201.6z" />
                     <path d="M256,23.3c-61.6,0-259.8,359.4-229.6,420.1s429.3,60,459.2,0S317.6,23.3,256,23.3z M406.5,390.8c-19.6,39.3-281.1,39.8-300.9,0s110.1-275.3,150.4-275.3S426.1,351.4,406.5,390.8z" />
                 </svg>

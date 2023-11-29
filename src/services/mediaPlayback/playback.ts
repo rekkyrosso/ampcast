@@ -5,6 +5,7 @@ import {
     filter,
     map,
     switchMap,
+    take,
     takeUntil,
     throttleTime,
 } from 'rxjs';
@@ -21,7 +22,16 @@ export const defaultPlaybackState: PlaybackState = {
     paused: true,
 };
 
+const playbackReady$ = new BehaviorSubject(false);
 const playbackState$ = new BehaviorSubject<PlaybackState>(defaultPlaybackState);
+
+export function observePlaybackReady(): Observable<void> {
+    return playbackReady$.pipe(
+        filter((ready) => ready),
+        take(1),
+        map(() => undefined)
+    );
+}
 
 export function observePlaybackState(): Observable<PlaybackState> {
     return playbackState$;
@@ -115,6 +125,10 @@ function pause(): void {
     }
 }
 
+function ready(): void {
+    playbackReady$.next(true);
+}
+
 function stop(): void {
     const state = playbackState$.getValue();
     if (
@@ -168,6 +182,7 @@ const playback: Playback = {
     get paused(): boolean {
         return playbackState$.getValue().paused;
     },
+    observePlaybackReady,
     observePlaybackState,
     observePlaybackStart,
     observePlaybackEnd,
@@ -181,6 +196,7 @@ const playback: Playback = {
     setDuration,
     play,
     pause,
+    ready,
     stop,
     started,
     ended,

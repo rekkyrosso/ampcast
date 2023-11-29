@@ -282,7 +282,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         const mediaItem: Writable<SetRequired<MediaItem, 'apple'>> = {
             itemType: ItemType.Media,
             mediaType: kind === 'musicVideo' ? MediaType.Video : MediaType.Audio,
-            playbackType: PlaybackType.Direct,
+            playbackType: PlaybackType.HLS,
             src,
             externalUrl,
             title: item.name,
@@ -431,7 +431,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
 
     private createArtistViewPager(
         artist: AppleMusicApi.Artist | LibraryArtist,
-        view: string,
+        view: string
     ): Pager<MediaItem> {
         return new MusicKitPager(
             artist.href!,

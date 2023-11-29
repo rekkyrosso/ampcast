@@ -1,6 +1,7 @@
 import React from 'react';
 import TabList, {TabItem} from 'components/TabList';
 import AdvancedSettingsGeneral from './AdvancedSettingsGeneral';
+import './AdvancedSettings.scss';
 
 const tabs: TabItem[] = [
     {

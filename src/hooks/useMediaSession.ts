@@ -41,7 +41,7 @@ function updateSession(item: MediaItem | null = null): void {
                 // So suppress `album` if `artist` is available.
                 album: item.artists ? '' : item.album,
                 artwork: item.thumbnails?.map((thumbnail) => ({
-                    src: getThumbnailUrl(item, thumbnail),
+                    src: getThumbnailUrl(thumbnail),
                     sizes: `${thumbnail.width}x${thumbnail.height}`,
                 })),
             });

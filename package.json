@@ -1,6 +1,6 @@
 {
     "name": "ampcast",
-    "version": "0.9.0",
+    "version": "0.9.1",
     "description": "Ampcast music player",
     "homepage": "https://ampcast.app",
     "author": {
@@ -39,6 +39,7 @@
         "react-dom": "^18.2.0",
         "react-error-boundary": "^4.0.0",
         "rxjs": "^7.5.6",
+        "shaka-player": "3.3.1",
         "spotify-web-api-js": "^1.5.2",
         "string-score": "^1.0.1",
         "unidecode": "^0.1.8",

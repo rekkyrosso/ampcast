@@ -127,7 +127,7 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Media,
             mediaType: MediaType.Video,
-            playbackType: PlaybackType.Direct,
+            playbackType: PlaybackType.IFrame,
             src: `youtube:video:${video.id}`,
             externalUrl: getYouTubeUrl(video.id!),
             title: video.snippet?.title || video.id!,

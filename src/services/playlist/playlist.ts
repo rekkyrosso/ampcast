@@ -149,7 +149,7 @@ function moveCurrentIndexBy(amount: -1 | 1): void {
 }
 
 export async function add(items: PlayableType): Promise<void> {
-    return insertAt(items, -1);
+    return injectAt(items, -1);
 }
 
 export function clear(): void {
@@ -168,11 +168,11 @@ function getAt(index: number): PlaylistItem | null {
     return items[index] ?? null;
 }
 
-export async function insert(items: PlayableType): Promise<void> {
-    return insertAt(items, getCurrentIndex() + 1);
+export async function inject(items: PlayableType): Promise<void> {
+    return injectAt(items, getCurrentIndex() + 1);
 }
 
-export async function insertAt(items: PlayableType, index: number): Promise<void> {
+export async function injectAt(items: PlayableType, index: number): Promise<void> {
     const all = getItems();
     const allowDuplicates = settings.get().allowDuplicates;
     let additions = await createMediaItems(items);
@@ -336,8 +336,8 @@ const playlist: Playlist = {
     add,
     clear,
     eject,
-    insert,
-    insertAt,
+    inject,
+    injectAt,
     moveSelection,
     next,
     prev,
@@ -350,9 +350,12 @@ const playlist: Playlist = {
 export default playlist;
 
 (async () => {
-    const items = (await dbRead<PlaylistItem[]>('items', playlistStore)) ?? [];
-    const id = (await dbRead('currently-playing-id', playlistStore)) ?? '';
-    items$.next(
+    const [items = [], id = ''] = await Promise.all([
+        dbRead<PlaylistItem[]>('items', playlistStore),
+        dbRead<string>('currently-playing-id', playlistStore),
+    ]);
+    setCurrentItemId(id);
+    setItems(
         // Upgrade legacy Plex items.
         // TODO: Delete this in a later version.
         items.map((item: Writable<PlaylistItem & {plex?: {ratingKey?: string}}>) => {
@@ -365,7 +368,6 @@ export default playlist;
             return item;
         })
     );
-    currentItemId$.next(id);
 })();
 
 items$

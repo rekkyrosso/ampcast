@@ -15,10 +15,13 @@ import {
     withLatestFrom,
 } from 'rxjs';
 import MediaType from 'types/MediaType';
+import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
 import Visualizer, {NoVisualizer} from 'types/Visualizer';
 import VisualizerProvider from 'types/VisualizerProvider';
 import VisualizerProviderId from 'types/VisualizerProviderId';
+import audio from 'services/audio';
+import {observePlaybackReady} from 'services/mediaPlayback/playback';
 import {observeCurrentItem} from 'services/playlist';
 import {getRandomValue, Logger} from 'utils';
 import {getVisualizerProvider, getVisualizer, getVisualizers} from './visualizerProviders';
@@ -27,11 +30,10 @@ import visualizerSettings, {
     observeVisualizerSettings,
     VisualizerSettings,
 } from './visualizerSettings';
-export {observeVisualizerSettings} from './visualizerSettings';
 
 const logger = new Logger('visualizer');
 
-type NextReason = 'click' | 'item' | 'provider' | 'sync' | 'error';
+type NextVisualizerReason = 'click' | 'item' | 'provider' | 'sync' | 'error';
 
 const noVisualizer: NoVisualizer = {
     providerId: 'none',
@@ -39,7 +41,7 @@ const noVisualizer: NoVisualizer = {
 };
 
 const currentVisualizer$ = new BehaviorSubject<Visualizer>(noVisualizer);
-const next$ = new Subject<NextReason>();
+const nextVisualizerReason$ = new Subject<NextVisualizerReason>();
 
 const randomProviders: VisualizerProviderId[] = [
     ...Array(75).fill('butterchurn'), // most of the time use this one
@@ -49,7 +51,8 @@ const randomProviders: VisualizerProviderId[] = [
 ];
 
 const spotifyRandomProviders: VisualizerProviderId[] = [
-    ...Array(70).fill('ampshader'), // most of the time use this one
+    ...Array(60).fill('ampshader'), // most of the time use this one
+    ...Array(10).fill('butterchurn'),
     ...Array(10).fill('spotifyviz'),
 ];
 
@@ -88,25 +91,30 @@ export function observeProviderId(): Observable<VisualizerProviderId | ''> {
     );
 }
 
-export function nextVisualizer(reason: NextReason): void {
-    next$.next(reason);
+export function nextVisualizer(reason: NextVisualizerReason): void {
+    nextVisualizerReason$.next(reason);
 }
 
-export function observeNextVisualizerReason(): Observable<NextReason> {
+export function observeNextVisualizerReason(): Observable<NextVisualizerReason> {
     // Give the UI time to update after clicks.
-    return next$.pipe(debounce((reason) => (reason === 'click' ? timer(50) : of(undefined))));
+    return nextVisualizerReason$.pipe(
+        debounce((reason) => (reason === 'click' ? timer(50) : of(undefined)))
+    );
 }
 
 export function lock(): void {
-    visualizerSettings.lockedVisualizer = currentVisualizer$.getValue();
+    visualizerSettings.lockedVisualizer = getCurrentVisualizer();
 }
 
 export function unlock(): void {
     visualizerSettings.lockedVisualizer = null;
 }
 
-observeCurrentItem()
-    .pipe(debounceTime(200))
+observePlaybackReady()
+    .pipe(
+        switchMap(() => observeCurrentItem()),
+        debounceTime(200)
+    )
     .subscribe(() => nextVisualizer('item'));
 visualizerPlayer.observeError().subscribe(() => nextVisualizer('error'));
 observeCurrentVisualizers().subscribe(() => nextVisualizer('provider'));
@@ -122,10 +130,14 @@ observeCurrentVisualizer()
     .pipe(tap((visualizer) => visualizerPlayer.load(visualizer)))
     .subscribe(logger);
 
+function getCurrentVisualizer(): Visualizer {
+    return currentVisualizer$.getValue();
+}
+
 function getNextVisualizer(
     item: PlaylistItem | null,
     settings: VisualizerSettings,
-    reason: NextReason
+    reason: NextVisualizerReason
 ): Visualizer {
     if (!item || item.mediaType === MediaType.Video || item.duration < 30) {
         return noVisualizer;
@@ -133,18 +145,17 @@ function getNextVisualizer(
     const isError = reason === 'error';
     const isSpotify = item.src.startsWith('spotify:');
     const lockedVisualizer = settings.lockedVisualizer;
-    let provider = lockedVisualizer?.providerId || settings.provider;
-    switch (provider) {
+    let providerId = lockedVisualizer?.providerId || settings.provider;
+    switch (providerId) {
         case 'spotifyviz':
             if (!isSpotify) {
-                return noVisualizer;
+                return noVisualizer; // unsupported
             }
             break;
 
         case 'audiomotion':
-        case 'butterchurn':
             if (isSpotify) {
-                return noVisualizer;
+                return noVisualizer; // unsupported
             }
             break;
 
@@ -153,34 +164,46 @@ function getNextVisualizer(
     }
     if (lockedVisualizer) {
         return isError
-            ? noVisualizer
+            ? noVisualizer // prevent further errors
             : getVisualizer(lockedVisualizer.providerId, lockedVisualizer.name) || noVisualizer;
     }
-    const currentVisualizer = currentVisualizer$.getValue();
-    provider = settings.provider;
-    if (!provider) {
+    const currentVisualizer = getCurrentVisualizer();
+    providerId = settings.provider;
+    if (!providerId) {
         // Random provider.
         let providers = isSpotify ? spotifyRandomProviders : randomProviders;
         if (settings.ambientVideoEnabled) {
             providers = providers.concat(isSpotify ? spotifyRandomVideo : randomVideo);
         }
-        provider = getRandomValue(providers);
+        providerId = getRandomValue(providers, isError ? currentVisualizer.providerId : undefined);
         if (
             reason === 'click' &&
-            provider === currentVisualizer.providerId &&
-            getVisualizers(provider).length === 1
+            providerId === currentVisualizer.providerId &&
+            getVisualizers(providerId).length === 1
         ) {
-            provider = getRandomValue(providers, provider);
+            providerId = getRandomValue(providers, providerId);
         }
     }
-    const visualizers = getVisualizers(provider);
+    // Fix for Safari.
+    // If the Web Audio API is not supported for streaming media then
+    // we can't use a visualizer.
+    if (
+        providerId !== 'ambientvideo' &&
+        !audio.streamingSupported &&
+        (item.playbackType === PlaybackType.DASH || item.playbackType === PlaybackType.HLS)
+    ) {
+        return noVisualizer; // unsupported
+    }
+    const visualizers = getVisualizers(providerId);
     if (isError && settings.provider && visualizers.length === 1) {
+        // Prevent further errors.
         return noVisualizer;
     }
     return getRandomValue(visualizers, currentVisualizer) || noVisualizer;
 }
 
-function handleLazyLoads(providerId: string, count = 1) {
+// If the user has locked a visualizer then make sure it loads once it's available.
+function handleLazyLoads(providerId: string, loadCount = 1) {
     getVisualizerProvider(providerId)
         ?.observeVisualizers()
         .pipe(
@@ -191,7 +214,7 @@ function handleLazyLoads(providerId: string, count = 1) {
                     nextVisualizer('sync');
                 }
             }),
-            take(count)
+            take(loadCount)
         )
         .subscribe(logger);
 }

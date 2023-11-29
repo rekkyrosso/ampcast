@@ -13,6 +13,7 @@ import './Media.scss';
 
 export default memo(function Media() {
     const ref = useRef<HTMLDivElement>(null);
+    const playbackRef = useRef<HTMLDivElement>(null);
     const [fullScreen, setFullScreen] = useState(false);
     const currentlyPlaying = useCurrentlyPlaying();
     const isPlayingVideo = currentlyPlaying?.mediaType === MediaType.Video;
@@ -21,7 +22,7 @@ export default memo(function Media() {
     const noVisualizer = !visualizer || visualizer.providerId === 'none';
 
     useEffect(() => {
-        mediaPlayback.appendTo(ref.current!);
+        mediaPlayback.appendTo(playbackRef.current!);
     }, []);
 
     useEffect(() => {
@@ -52,7 +53,7 @@ export default memo(function Media() {
             onDoubleClick={toggleFullScreen}
             ref={ref}
         >
-            <div id="playback" />
+            <div id="playback" ref={playbackRef} />
             <Interstitial />
             <VisualizerControls />
         </div>

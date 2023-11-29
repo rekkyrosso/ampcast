@@ -27,7 +27,14 @@ import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import {bestOf} from 'utils';
 import plexSettings from './plexSettings';
-import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './plexAuth';
+import {
+    observeConnectionStatus,
+    observeIsLoggedIn,
+    isConnected,
+    isLoggedIn,
+    login,
+    logout,
+} from './plexAuth';
 import plexApi, {getMusicLibraryId, getMusicLibraryPath, getPlexMediaType} from './plexApi';
 import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
@@ -450,6 +457,7 @@ const plex: PersonalMediaService = {
     getThumbnailUrl,
     lookup,
     rate,
+    observeConnectionStatus,
     observeIsLoggedIn,
     isConnected,
     isLoggedIn,

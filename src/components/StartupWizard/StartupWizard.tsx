@@ -2,9 +2,9 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import MediaService from 'types/MediaService';
 import PublicMediaService from 'types/PublicMediaService';
 import {
-    getDataServices,
     getPersonalMediaServices,
     getPublicMediaServices,
+    getScrobblers,
     getService,
 } from 'services/mediaServices';
 import {allowAllServices, isSourceVisible, setHiddenSources} from 'services/servicesSettings';
@@ -61,11 +61,13 @@ function StreamingMedia() {
 
 function PersonalMedia() {
     const services = useMemo(getPersonalMediaServices, []);
-    return <Services icon="network" title="Personal Media" services={services} multiSelect />;
+    return (
+        <Services icon="network" title="Personal Media Servers" services={services} />
+    );
 }
 
 function DataServices() {
-    const services = useMemo(getDataServices, []);
+    const services = useMemo(getScrobblers, []);
     return <Services icon="data" title="Listening History" services={services} multiSelect />;
 }
 

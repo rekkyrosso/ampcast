@@ -13,7 +13,7 @@
 
     .layout-pane {
         position: relative;
-        overflow: auto;
+        overflow: hidden;
 
         &-primary {
             flex: auto;

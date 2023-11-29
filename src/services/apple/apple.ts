@@ -11,6 +11,7 @@ import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
 import Pin from 'types/Pin';
+import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
@@ -191,6 +192,7 @@ const apple: PublicMediaService = {
     compareForRating,
     createSourceFromPin,
     getMetadata,
+    getPlaybackType,
     lookup,
     rate,
     store,
@@ -302,6 +304,10 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
         addRatings([result as T]);
     }
     return result as T;
+}
+
+async function getPlaybackType(): Promise<PlaybackType> {
+    return PlaybackType.HLS;
 }
 
 async function lookup(

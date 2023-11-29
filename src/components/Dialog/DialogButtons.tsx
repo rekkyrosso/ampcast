@@ -3,8 +3,8 @@ import React from 'react';
 export interface DialogButtonsProps {
     value?: string;
     submitText?: React.ReactNode;
-    onCancel?: (event: React.FormEvent) => void;
-    onSubmit?: (event: React.FormEvent) => void;
+    onCancel?: (event: React.MouseEvent) => void;
+    onSubmit?: (event: React.MouseEvent) => void;
 }
 
 export default function DialogButtons({

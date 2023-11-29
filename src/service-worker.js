@@ -1,6 +1,6 @@
 const appName = '%appName%';
 const appVersion = '%appVersion%';
-const cacheName = `${appName}-v${appVersion}`;
+const cacheName = `${appName}/v${appVersion}`;
 
 const primaryAppFiles = [
     '/',
@@ -19,6 +19,7 @@ const secondaryAppFiles = [
     'lib/butterchurn-presets-extra.js',
     'lib/hls.js',
     'lib/music-metadata-browser.js',
+    'lib/shaka-player.js',
 ];
 
 self.addEventListener('install', (event) => {
@@ -48,7 +49,6 @@ self.addEventListener('activate', (event) => {
 
 self.addEventListener('fetch', (event) => {
     const url = new URL(event.request.url);
-
     if (url.origin === location.origin) {
         event.respondWith(
             (async () => {

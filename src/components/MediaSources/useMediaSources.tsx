@@ -1,7 +1,11 @@
 import React, {useEffect, useState} from 'react';
 import {map, merge, switchMap, take} from 'rxjs';
 import MediaService from 'types/MediaService';
-import {getEnabledServices, observePersonalMediaLibraryIdChanges} from 'services/mediaServices';
+import {
+    getEnabledServices,
+    isPersonalMediaService,
+    observePersonalMediaLibraryIdChanges,
+} from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
 import {isSourceVisible, observeHiddenSourceChanges} from 'services/servicesSettings';
 import MediaBrowser from 'components/MediaBrowser';
@@ -43,7 +47,9 @@ function getService(service: MediaService) {
     return {
         id: service.id,
         label: <MediaServiceLabel service={service} showConnectivity />,
-        value: <MediaBrowser service={service} sources={service.roots} key={service.id} />,
+        value: (
+            <MediaBrowser service={service} sources={service.roots} key={getServiceKey(service)} />
+        ),
         startExpanded: true,
         children: getSources(service),
     };
@@ -55,7 +61,13 @@ function getSources(service: MediaService) {
         .map((source) => ({
             id: source.id,
             label: <MediaSourceLabel icon={source.icon} text={source.title} />,
-            value: <MediaBrowser service={service} sources={[source]} key={source.id} />,
+            value: (
+                <MediaBrowser
+                    service={service}
+                    sources={[source]}
+                    key={`${getServiceKey(service)}/${source.id}`}
+                />
+            ),
         }))
         .concat(getPins(service));
 }
@@ -70,4 +82,10 @@ function getPins(service: MediaService) {
             label: <MediaSourceLabel icon={source.icon} text={source.title} />,
             value: <MediaBrowser service={service} sources={[source]} key={source.id} />,
         }));
+}
+
+function getServiceKey(service: MediaService): string {
+    return isPersonalMediaService(service)
+        ? `${service.id}/${service.libraryId || ''}`
+        : service.id;
 }

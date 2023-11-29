@@ -1,3 +1,5 @@
+import DRMKeySystem from 'types/DRMKeySystem';
+import DRMType from 'types/DRMType';
 import MediaItem from 'types/MediaItem';
 import UserData from 'types/UserData';
 import browser from './browser';
@@ -27,16 +29,19 @@ export function stringContainsMusic(text: string): boolean {
     return /m[uú][sz](i|ie)[ckq]/i.test(text);
 }
 
-const defaultDrm = browser.os === 'Mac OS' || browser.os === 'iOS' ? 'fairplay' : 'widevine';
-let supportedDrm = '';
+const defaultDrm: DRMType =
+    browser.os === 'Mac OS' || browser.os === 'iOS' ? 'fairplay' : 'widevine';
+let supportedDrm: DRMType | '' = '';
 
-export async function getSupportedDrm(): Promise<string> {
+export const drmKeySystems: Record<DRMType, DRMKeySystem> = {
+    widevine: 'com.widevine.alpha',
+    fairplay: 'com.apple.fairplay',
+    playready: 'com.microsoft.playready',
+};
+
+export async function getSupportedDrm(): Promise<DRMType> {
     if (!supportedDrm) {
-        const keySystems = Object.entries({
-            widevine: 'com.widevine.alpha',
-            fairplay: 'com.apple.fairplay',
-            playready: 'com.microsoft.playready',
-        });
+        const keySystems = Object.entries(drmKeySystems);
         const config = {
             initDataTypes: ['cenc'],
             audioCapabilities: [{contentType: 'audio/mp4;codecs="mp4a.40.2"'}],
@@ -45,7 +50,7 @@ export async function getSupportedDrm(): Promise<string> {
         for (const [key, keySystem] of keySystems) {
             try {
                 await navigator.requestMediaKeySystemAccess(keySystem, [config]);
-                supportedDrm = key;
+                supportedDrm = key as DRMType;
                 break;
             } catch {
                 // ignore
@@ -66,9 +71,9 @@ export function canPlayVideo(src: string): Promise<boolean> {
     return canPlayMedia('video', src);
 }
 
-export function canPlayMedia(nodeName: 'audio' | 'video', src: string): Promise<boolean> {
+export function canPlayMedia(type: 'audio' | 'video', src: string): Promise<boolean> {
     return new Promise((resolve) => {
-        const media = document.createElement(nodeName);
+        const media = document.createElement(type);
         const resolveAs = (result: boolean) => () => {
             media.removeAttribute('src');
             clearTimeout(timerId);
@@ -81,7 +86,9 @@ export function canPlayMedia(nodeName: 'audio' | 'video', src: string): Promise<
             media.muted = true;
             media.crossOrigin = 'anonymous';
             media.onerror = resolveFalse;
+            media.oncanplay = resolveTrue;
             media.onplaying = resolveTrue;
+            media.ontimeupdate = resolveTrue;
             media.setAttribute('src', src);
             media.play().then(undefined, resolveFalse);
         } catch (err) {

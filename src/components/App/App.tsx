@@ -1,5 +1,6 @@
 import React, {useCallback, useState} from 'react';
 import {browser, LiteStorage} from 'utils';
+import SvgDefs from 'components/Icon/SvgDefs';
 import AppContent from './AppContent';
 import DesktopWarning from './DesktopWarning';
 
@@ -16,8 +17,15 @@ export default function App() {
     }, []);
 
     return (
-        <main>
-            {desktopWarningHidden ? <AppContent /> : <DesktopWarning onDismiss={dismissWarning} />}
-        </main>
+        <>
+            <SvgDefs />
+            <main>
+                {desktopWarningHidden ? (
+                    <AppContent />
+                ) : (
+                    <DesktopWarning onDismiss={dismissWarning} />
+                )}
+            </main>
+        </>
     );
 }

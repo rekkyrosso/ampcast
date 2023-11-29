@@ -12,14 +12,10 @@ export default {
     },
 
     get useMusicKitBeta(): boolean {
-        return storage.getBoolean('useMusicKitBeta');
+        return storage.getBoolean('useMusicKitBeta', true);
     },
 
     set useMusicKitBeta(beta: boolean) {
         storage.setBoolean('useMusicKitBeta', beta);
-    },
-
-    clear(): void {
-        storage.clear();
     },
 };

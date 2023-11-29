@@ -1,7 +1,7 @@
-import type {Observable} from 'rxjs';
 import {tap} from 'rxjs';
 import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import {TinyColor} from '@ctrl/tinycolor';
+import AudioManager from 'types/AudioManager';
 import {AudioMotionVisualizer} from 'types/Visualizer';
 import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
 import theme from 'services/theme';
@@ -10,33 +10,25 @@ import {Logger} from 'utils';
 const logger = new Logger('AudioMotionPlayer');
 
 export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMotionVisualizer> {
-    private readonly element: HTMLElement;
+    private readonly element = document.createElement('div');
+    private readonly source: AudioNode;
     private readonly visualizer: AudioMotionAnalyzer;
-    private audioSourceNode: AudioNode | undefined;
     private currentVisualizer = '';
 
-    constructor(audioCtx: AudioContext, audioSourceNode$: Observable<AudioNode>) {
+    constructor({context, source}: AudioManager) {
         super();
 
-        const container = (this.element = document.createElement('div'));
+        this.source = source;
+        this.element.className = `visualizer visualizer-audiomotion`;
+        this.element.hidden = true;
 
-        container.hidden = true;
-        container.className = `visualizer visualizer-audiomotion`;
-
-        const visualizer = (this.visualizer = new AudioMotionAnalyzer(container, {
-            audioCtx,
+        this.visualizer = new AudioMotionAnalyzer(this.element, {
+            audioCtx: context,
             showBgColor: false,
             overlay: true,
             showScaleX: false,
             showScaleY: false,
             connectSpeakers: false,
-        }));
-
-        audioSourceNode$.subscribe((audioSourceNode) => {
-            this.audioSourceNode = audioSourceNode;
-            if (!this.element.hidden) {
-                visualizer.connectInput(audioSourceNode);
-            }
         });
 
         theme
@@ -53,9 +45,11 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
         if (this.element.hidden !== hidden) {
             this.element.hidden = hidden;
             if (hidden) {
+                logger.log('disconnect');
                 this.visualizer.disconnectInput();
-            } else if (this.audioSourceNode) {
-                this.visualizer.connectInput(this.audioSourceNode);
+            } else {
+                logger.log('connect');
+                this.visualizer.connectInput(this.source);
             }
         }
     }
@@ -65,12 +59,10 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
     }
 
     load(visualizer: AudioMotionVisualizer): void {
-        if (visualizer) {
-            logger.log('load', visualizer.name);
-            if (this.currentVisualizer !== visualizer.name) {
-                this.currentVisualizer = visualizer.name;
-                this.visualizer.setOptions(visualizer.options);
-            }
+        logger.log('load', visualizer.name);
+        if (this.currentVisualizer !== visualizer.name) {
+            this.currentVisualizer = visualizer.name;
+            this.visualizer.setOptions(visualizer.options);
         }
         if (this.autoplay) {
             this.visualizer.toggleAnalyzer(true);

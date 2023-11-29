@@ -1,14 +1,12 @@
+.idea
 node_modules
 builds
 www-dev
 www-electron
-www/*.zip
 www/*.js
+www/*.html
 www/*.css
-www/privacy-policy.html
-www/lib/*
+www/*.zip
 www/v0*/*
 www/v1*/*
 www/v2*/*
-!www/lib/dialog-polyfill.js.LICENSE.txt
-.idea

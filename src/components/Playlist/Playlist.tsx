@@ -156,7 +156,7 @@ export default function Playlist({
                 onContextMenu={handleContextMenu}
                 onDelete={handleDelete}
                 onDoubleClick={handleDoubleClick}
-                onDrop={playlist.insertAt}
+                onDrop={playlist.injectAt}
                 onEnter={handleEnter}
                 onInfo={handleInfo}
                 onMove={playlist.moveSelection}

@@ -1,5 +1,5 @@
 import {TinyColor} from '@ctrl/tinycolor';
-import SimpleAudioAnalyser from 'types/SimpleAudioAnalyser';
+import AudioManager from 'types/AudioManager';
 import {AmpShaderVisualizer} from 'types/Visualizer';
 import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
 import theme from 'services/theme';
@@ -10,6 +10,8 @@ const logger = new Logger('AmpShaderPlayer');
 // Based on: https://noisehack.com/build-music-visualizer-web-audio-api/
 
 export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderVisualizer> {
+    private readonly analyser: AnalyserNode;
+    private readonly source: AudioNode;
     private readonly canvas = document.createElement('canvas');
     private readonly gl = this.canvas.getContext('webgl2')!;
     private animationFrameId = 0;
@@ -23,13 +25,16 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     private startTime = performance.now();
     private currentVisualizer = '';
 
-    constructor(private readonly analyser: SimpleAudioAnalyser) {
+    constructor({context, source}: AudioManager) {
         super();
 
-        const gl = this.gl;
+        this.source = source;
+        this.analyser = context.createAnalyser();
 
         this.canvas.hidden = true;
         this.canvas.className = `visualizer visualizer-ampshader`;
+
+        const gl = this.gl;
 
         const texture = gl.createTexture()!;
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -57,8 +62,16 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     set hidden(hidden: boolean) {
         if (this.canvas.hidden !== hidden) {
             this.canvas.hidden = hidden;
-            if (!hidden && !this.animationFrameId) {
-                this.render();
+            if (hidden) {
+                logger.log('disconnect');
+                this.cancelAnimation();
+                this.source.disconnect(this.analyser);
+            } else {
+                logger.log('connect');
+                this.source.connect(this.analyser);
+                if (!this.animationFrameId) {
+                    this.render();
+                }
             }
         }
     }
@@ -68,14 +81,12 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     }
 
     load(visualizer: AmpShaderVisualizer): void {
-        if (visualizer) {
-            logger.log('load', visualizer.name);
-            if (this.currentVisualizer !== visualizer.name) {
-                this.currentVisualizer = visualizer.name;
-                this.cancelAnimation();
-                this.createShader(visualizer.shader);
-                this.render();
-            }
+        logger.log('load', visualizer.name);
+        if (this.currentVisualizer !== visualizer.name) {
+            this.currentVisualizer = visualizer.name;
+            this.cancelAnimation();
+            this.createShader(visualizer.shader);
+            this.render();
         }
     }
 

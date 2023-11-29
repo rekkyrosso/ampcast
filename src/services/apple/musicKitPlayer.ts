@@ -15,6 +15,7 @@ import {
 } from 'rxjs';
 import PlayableItem from 'types/PlayableItem';
 import Player from 'types/Player';
+import audio from 'services/audio';
 import {Logger} from 'utils';
 import {observeIsLoggedIn, refreshToken} from './appleAuth';
 
@@ -56,6 +57,8 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                     const player = (this.player = MusicKit.getInstance());
                     const events = MusicKit.Events;
 
+                    this.synchVolume();
+
                     player.addEventListener(
                         events.playbackStateDidChange,
                         this.onPlaybackStateChange
@@ -69,8 +72,6 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                         this.onPlaybackTimeChange
                     );
                     player.addEventListener(events.mediaPlaybackError, this.onPlaybackError);
-
-                    player.volume = this.muted ? 0 : this.volume;
 
                     this.playerLoaded$.next(undefined);
                 }),
@@ -157,12 +158,8 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     }
 
     set muted(muted: boolean) {
-        if (this.#muted !== muted) {
-            this.#muted = muted;
-            if (this.player) {
-                this.player.volume = muted ? 0 : this.volume;
-            }
-        }
+        this.#muted = muted;
+        this.synchVolume();
     }
 
     get volume(): number {
@@ -170,12 +167,8 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     }
 
     set volume(volume: number) {
-        if (this.#volume !== volume) {
-            this.#volume = volume;
-            if (this.player) {
-                this.player.volume = this.muted ? 0 : volume;
-            }
-        }
+        this.#volume = volume;
+        this.synchVolume();
     }
 
     observeCurrentTime(): Observable<number> {
@@ -208,6 +201,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
             this.playerActivated$.next(true);
         }
         this.src$.next(src);
+        this.synchVolume();
         if (this.autoplay) {
             this.paused$.next(false);
         }
@@ -312,10 +306,28 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         try {
             if (this.src && this.src === this.loadedSrc && this.player?.isPlaying === false) {
                 await this.player.play();
-                this.hasPlayed = true;
+                if (!this.hasPlayed) {
+                    this.hasPlayed = true;
+                    if (this.player.isPlaying) {
+                        this.playing$.next(undefined);
+                    }
+                }
             }
         } catch (err) {
             this.error$.next(err);
+        }
+    }
+
+    private synchVolume(): void {
+        if (this.player) {
+            const [, type] = this.src.split(':');
+            this.player.volume =
+                // Audio volume is handled by a `GainNode`.
+                !audio.streamingSupported || /video/i.test(type)
+                    ? this.muted
+                        ? 0
+                        : this.volume
+                    : 1;
         }
     }
 
@@ -332,7 +344,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                     this.stop();
                 } else if (this.paused) {
                     this.pause();
-                } else {
+                } else if (this.hasPlayed) {
                     this.playing$.next(undefined);
                 }
                 break;

@@ -12,6 +12,7 @@ import CoverArt, {CoverArtProps} from 'components/CoverArt';
 import ExternalLink from 'components/ExternalLink';
 import Icon, {MediaSourceIconName} from 'components/Icon';
 import TextBox from 'components/TextBox';
+import useFirstValue from 'hooks/useFirstValue';
 import {formatTime} from 'utils';
 import useCurrentItem from './useCurrentItem';
 import './MediaInfo.scss';
@@ -23,9 +24,10 @@ export interface MediaInfoProps<T extends MediaObject> {
 
 export default function MediaInfo<T extends MediaObject>(props: MediaInfoProps<T>) {
     const item = useCurrentItem(props.item);
+    const originalItem = useFirstValue(item);
 
     if (props.debug) {
-        return <Debug item={item} />;
+        return <Debug item={originalItem} />;
     } else {
         switch (item.itemType) {
             case ItemType.Media:

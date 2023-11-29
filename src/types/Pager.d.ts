@@ -14,10 +14,6 @@ export interface PagerConfig {
     readonly maxSize?: number;
     readonly lookup?: boolean; // lookup only (no background fetching)
     readonly noCache?: boolean; // disable caching (implementation specific)
-    readonly calculatePageSize?: boolean;
-    // The following only apply if `calculatePageSize` is set.
-    readonly minPageSize?: number;
-    readonly maxPageSize?: number;
 }
 
 export interface Page<T> {

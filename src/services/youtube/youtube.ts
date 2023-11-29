@@ -129,7 +129,7 @@ export async function getYouTubeVideoInfo(videoId: string): Promise<MediaItem> {
     return {
         itemType: ItemType.Media,
         mediaType: MediaType.Video,
-        playbackType: PlaybackType.Direct,
+        playbackType: PlaybackType.IFrame,
         src: `youtube:video:${videoId}`,
         externalUrl: url,
         title: video.title,
@@ -199,6 +199,7 @@ const youtube: PublicMediaService = {
     canStore: () => false,
     compareForRating: () => false,
     createSourceFromPin,
+    getPlaybackType,
     observeIsLoggedIn,
     isConnected,
     isLoggedIn,
@@ -226,4 +227,8 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
             });
         },
     };
+}
+
+async function getPlaybackType(): Promise<PlaybackType> {
+    return PlaybackType.IFrame;
 }

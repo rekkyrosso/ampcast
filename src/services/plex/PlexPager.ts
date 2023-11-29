@@ -172,13 +172,14 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
                 : track.parentTitle || undefined
             : undefined;
         const fileName = this.getFileName(part?.file) || '[Unknown]';
+        const isTidal = this.serviceId === 'plex-tidal';
 
         return {
             src: `${this.serviceId}:audio:${track.ratingKey}`,
             srcs: track.Media?.map(({Part: [part]}) => part.key),
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
-            playbackType: this.serviceId === 'plex-tidal' ? PlaybackType.Direct : undefined,
+            playbackType: isTidal ? PlaybackType.DASH : undefined,
             externalUrl: this.getExternalUrl(`/library/metadata/${track.parentRatingKey}`),
             fileName: fileName,
             title: title || fileName.replace(/\.\w+/, ''),
@@ -203,7 +204,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             playCount: track.viewCount,
             genres: track.Genre?.map((genre) => genre.tag),
             thumbnails: this.createThumbnails(
-                track.thumb || track.parentThumb || track.grandparentThumb
+                (isTidal ? undefined : track.thumb) || track.parentThumb || track.grandparentThumb
             ),
             unplayable: part ? undefined : true,
         };
@@ -257,7 +258,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             srcs: video.Media?.map(({Part: [part]}) => part.key),
             itemType: ItemType.Media,
             mediaType: MediaType.Video,
-            playbackType: this.serviceId === 'plex-tidal' ? PlaybackType.HLS : PlaybackType.Direct,
+            playbackType: this.serviceId === 'plex-tidal' ? PlaybackType.HLS : undefined,
             externalUrl: video.art ? this.getExternalUrl(video.art.replace(/\/art\/\d+$/, '')) : '',
             fileName: this.getFileName(part?.file),
             title: video.title || 'Video',

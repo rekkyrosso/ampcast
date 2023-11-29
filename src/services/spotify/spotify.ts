@@ -11,6 +11,7 @@ import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
 import Pin from 'types/Pin';
+import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
@@ -156,7 +157,7 @@ const spotifyLikedAlbums: MediaSource<MediaAlbum> = {
                 });
                 return {items: items.map((item) => item.album), total, next};
             },
-            {calculatePageSize: true},
+            {pageSize: 20},
             true
         );
     },
@@ -250,6 +251,7 @@ const spotify: PublicMediaService = {
     compareForRating,
     createSourceFromPin,
     getMetadata,
+    getPlaybackType,
     lookup,
     store,
     bulkStore,
@@ -334,6 +336,10 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
         default:
             return item;
     }
+}
+
+async function getPlaybackType(): Promise<PlaybackType> {
+    return PlaybackType.IFrame;
 }
 
 async function lookup(

@@ -20,6 +20,10 @@ declare module 'string-score' {
     export default 'string-score' as (target: string, query: string, fuzziness?: number) => number;
 }
 
+declare module 'shaka-player/dist/shaka-player.compiled' {
+    export = shaka;
+}
+
 declare module 'jsfft' {
     interface ComplexArray {
         real: Float32Array;

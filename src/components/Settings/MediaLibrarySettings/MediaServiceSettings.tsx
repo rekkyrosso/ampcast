@@ -33,12 +33,6 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
                 panel: <ScrobblingSettings service={service} />,
             });
         }
-        if (service.id === 'apple') {
-            tabs.push({
-                tab: 'Beta',
-                panel: <AppleBetaSettings />,
-            });
-        }
         if (service.id === 'plex-tidal') {
             tabs.push({
                 tab: 'Streaming',
@@ -49,6 +43,12 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
             tabs.push({
                 tab: 'Pinned',
                 panel: <PinnedSettings service={service} />,
+            });
+        }
+        if (service.id === 'apple') {
+            tabs.push({
+                tab: 'Beta',
+                panel: <AppleBetaSettings />,
             });
         }
         return tabs;
