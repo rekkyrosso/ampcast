@@ -9,7 +9,7 @@ import PlayAction from 'types/PlayAction';
 import mediaPlayback from 'services/mediaPlayback';
 import pinStore from 'services/pins/pinStore';
 import playlist from 'services/playlist';
-import {showMediaInfoDialog} from 'components/Media/MediaInfoDialog';
+import {showMediaInfoDialog} from 'components/MediaInfo/MediaInfoDialog';
 import actionsStore from './actionsStore';
 import {Logger} from 'utils';
 

@@ -7,7 +7,7 @@ import ListView, {ListViewHandle, ListViewProps} from 'components/ListView';
 import MediaListStatusBar from 'components/MediaList/MediaListStatusBar';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useObservable from 'hooks/useObservable';
-import {showMediaInfoDialog} from 'components/Media/MediaInfoDialog';
+import {showMediaInfoDialog} from 'components/MediaInfo/MediaInfoDialog';
 import showActionsMenu from './showActionsMenu';
 import usePlaylistLayout from './usePlaylistLayout';
 import './Playlist.scss';

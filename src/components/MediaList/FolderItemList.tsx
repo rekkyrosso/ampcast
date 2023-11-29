@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import ItemType from 'types/ItemType';
 import MediaFolderItem from 'types/MediaFolderItem';
 import MediaSourceLayout from 'types/MediaSourceLayout';
@@ -18,14 +18,9 @@ export default function FolderItemList({
     ...props
 }: MediaListProps<MediaFolderItem>) {
     const [selectedItems, setSelectedItems] = useState<readonly MediaFolderItem[]>([]);
-
-    const canMultiSelect = useMemo(() => {
-        return multiple && selectedItems.every((item) => item.itemType === ItemType.Media);
-    }, [multiple, selectedItems]);
-
-    const canDrag = useMemo(() => {
-        return draggable && selectedItems.every((item) => item.itemType === ItemType.Media);
-    }, [draggable, selectedItems]);
+    const isOnlyMediaSelected = selectedItems.every((item) => item.itemType === ItemType.Media);
+    const canMultiSelect = multiple && isOnlyMediaSelected;
+    const canDrag = draggable && isOnlyMediaSelected;
 
     const handleSelect = useCallback(
         (items: readonly MediaFolderItem[]) => {

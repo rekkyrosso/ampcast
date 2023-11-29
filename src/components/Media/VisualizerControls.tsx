@@ -14,7 +14,7 @@ import IconButtons from 'components/Button/IconButtons';
 import useObservable from 'hooks/useObservable';
 import {showDialog} from 'components/Dialog';
 import {VisualizerSettingsDialog} from 'components/Settings';
-import CurrentlyPlayingDialog from './CurrentlyPlayingDialog';
+import CurrentlyPlayingDialog from 'components/MediaInfo/CurrentlyPlayingDialog';
 import Static from './Static';
 import useVideoSourceIcon from './useVideoSourceIcon';
 import './Visualizer.scss';
