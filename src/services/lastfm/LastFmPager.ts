@@ -118,6 +118,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
             album: this.album?.name || track.album?.['#text'],
             albumArtist: this.album?.artist.name,
             release_mbid: this.album?.mbid || track.album?.mbid,
+            track_mbid: track.mbid,
             duration: Number(track.duration) || 0,
             track: rank ? Number(rank) || undefined : undefined,
             inLibrary:

@@ -242,13 +242,20 @@ export class SpotifyPlayer implements Player<PlayableItem> {
     }
 
     observePlaying(): Observable<void> {
-        return this.observeCurrentTrackState().pipe(
-            distinctUntilChanged(comparePausedAndPosition),
-            withLatestFrom(this.observePaused()),
-            map(([state, paused]) => !paused && !state.paused),
-            distinctUntilChanged(),
-            filter((playing) => playing),
-            map(() => undefined)
+        return this.currentTrackSrc$.pipe(
+            switchMap((src) =>
+                src
+                    ? this.observeCurrentTrackState().pipe(
+                          distinctUntilChanged(comparePausedAndPosition),
+                          withLatestFrom(this.observePaused()),
+                          map(([state, paused]) => !paused && !state.paused),
+                          distinctUntilChanged(),
+                          filter((playing) => playing),
+                          map(() => undefined),
+                          take(1)
+                      )
+                    : EMPTY
+            )
         );
     }
 

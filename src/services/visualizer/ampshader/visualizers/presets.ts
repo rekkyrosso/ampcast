@@ -1,6 +1,4 @@
 import {AmpShaderVisualizer} from 'types/Visualizer';
-import header from './_header.frag';
-import footer from './_footer.frag';
 import _25boxes from './25boxes.frag';
 import abstract_audio_react from './abstract_audio_react.frag';
 import abstractMusic from './abstractMusic.frag';
@@ -34,11 +32,9 @@ import dancingDots from './dancingDots.frag';
 import dancingOctopus from './dancingOctopus.frag';
 import disco2000 from './disco2000.frag';
 import diveIntoGeometry from './diveIntoGeometry.frag';
-import dotGridThing from './dotGridThing.frag';
 import fftIfs from './fft-ifs.frag';
 import firstShaderTest from './firstShaderTest.frag';
 import firstVisualiser_globaldusk from './firstVisualiser_globaldusk.frag';
-import fork4MusicGreenPlasma from './fork4MusicGreenPlasma.frag';
 import forkSoundEclipNobody012 from './forkSoundEclipNobody012.frag';
 import forkSoundEclipReverland340 from './forkSoundEclipReverland340.frag';
 import forkWaves from './forkWaves.frag';
@@ -53,7 +49,6 @@ import issues from './issues.frag';
 import lelabah from './lelabah.frag';
 import mandelKoch from './mandelKoch.frag';
 import mellowRainbowBlob from './mellowRainbowBlob.frag';
-import multicolorPixelatedSpiral from './multicolorPixelatedSpiral.frag';
 import music_Spheres from './music_Spheres.frag';
 import musicMandelBoxColour from './musicMandelBoxColour.frag';
 import musicVisualiser from './musicVisualiser.frag';
@@ -68,6 +63,7 @@ import otherworldy from './otherworldy.frag';
 import particlesDance from './particlesDance.frag';
 import phonk from './phonk.frag';
 import pinwheel from './pinwheel.frag';
+import plasmaGlobe from './plasmaGlobe.frag';
 import playingAroundWithSpirals from './playingAroundWithSpirals.frag';
 import psyTrance from './psyTrance.frag';
 import psychedelicEye from './psychedelicEye.frag';
@@ -88,7 +84,6 @@ import soapBubble from './soapBubble.frag';
 import solarDance from './solarDance.frag';
 import soundEclipseRpm from './soundEclipseRpm.frag';
 import soundSinusWave from './soundSinusWave.frag';
-import soundStar from './soundStar.frag';
 import spaceshipConsole from './spaceshipConsole.frag';
 import speaker from './speaker.frag';
 import swirlyRainbowSoundVisualizer from './swirlyRainbowSoundVisualizer.frag';
@@ -145,11 +140,6 @@ const presets: AmpShaderVisualizer[] = [
         id: 'ltc3WH',
         name: 'ambilight visualization 2.0 by MillhausVKodi',
         shader: ambilight,
-    },
-    {
-        id: 'Xd2cRG',
-        name: 'dot grid thing by laney',
-        shader: dotGridThing,
     },
     {
         id: 'llXBWB',
@@ -327,11 +317,6 @@ const presets: AmpShaderVisualizer[] = [
         shader: shamosis,
     },
     {
-        id: 'WsGBDc',
-        name: 'Multicolor pixelated spiral by z0rg',
-        shader: multicolorPixelatedSpiral,
-    },
-    {
         id: 'fd2GD1',
         name: 'Shimmy by Kali',
         shader: shimmy,
@@ -375,11 +360,6 @@ const presets: AmpShaderVisualizer[] = [
         id: 'WsGfDm',
         name: 'osc + equalizer by chernomord',
         shader: oscEqualizer,
-    },
-    {
-        id: 'sdjGWG',
-        name: 'SoundStar by atutahi',
-        shader: soundStar,
     },
     {
         id: '4dycW1',
@@ -512,11 +492,6 @@ const presets: AmpShaderVisualizer[] = [
         shader: shadowDancing,
     },
     {
-        id: '7l3yWr',
-        name: 'Fork 4 Music+ Green Plasma Globe by soundmasteraj',
-        shader: fork4MusicGreenPlasma,
-    },
-    {
         id: 'MtKyDR',
         name: 'Noise + Noise raymarching by DeadMan',
         shader: noiseNoiseRaymarching,
@@ -591,11 +566,16 @@ const presets: AmpShaderVisualizer[] = [
         name: 'Gauges by QuantumSuper',
         shader: gauges,
     },
+    {
+        id: 'XsjXRm',
+        name: 'Plasma Globe by nimitz',
+        shader: plasmaGlobe,
+    },
 ].map(({id, name, shader}) => ({
     providerId: 'ampshader',
     name,
+    shader,
     externalUrl: `https://www.shadertoy.com/view/${id}`,
-    shader: `${header}\n${shader}\n${footer}`,
 }));
 
 export default presets;

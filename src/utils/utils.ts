@@ -157,7 +157,7 @@ export function filterNotEmpty<T>(
     thisArg?: any
 ): T[] {
     const newValues = values.filter(predicate, thisArg);
-    return newValues.length === 0 ? values : newValues;
+    return newValues.length === 0 ? values.slice() : newValues;
 }
 
 export function fuzzyCompare(a: string, b: string, tolerance = 0.9): boolean {

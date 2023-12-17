@@ -339,10 +339,10 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
     }): Thumbnail[] | undefined {
         return artwork
             ? [
-                  this.createThumbnail(artwork, 120),
                   this.createThumbnail(artwork, 240),
                   this.createThumbnail(artwork, 360),
                   this.createThumbnail(artwork, 480),
+                  this.createThumbnail(artwork, 800),
               ]
             : undefined;
     }

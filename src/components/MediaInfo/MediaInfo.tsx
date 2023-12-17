@@ -141,7 +141,12 @@ export function Blurb<T extends MediaPlaylist>({description}: Pick<T, 'descripti
 }
 
 export function Artist<T extends MediaAlbum>({artist}: Pick<T, 'artist'>) {
-    return artist ? <h4 className="artist">By: {artist}</h4> : null;
+    return artist ? (
+        <h4 className="artist">
+            <span className="by">By: </span>
+            {artist}
+        </h4>
+    ) : null;
 }
 
 export function Owner<T extends MediaObject>({src, owner}: Pick<T, 'src' | 'owner'>) {
@@ -160,7 +165,7 @@ export function Owner<T extends MediaObject>({src, owner}: Pick<T, 'src' | 'owne
     );
 }
 
-export function ExternalView({src, url = ''}: {src: string; url: string | undefined}) {
+export function ExternalView({src, url = ''}: {src: string; url?: string | undefined}) {
     let [serviceId] = src.split(':');
     let serviceName = serviceId;
 

@@ -1,14 +1,15 @@
 import type {Observable} from 'rxjs';
 import {Subject} from 'rxjs';
 import MediaItem from 'types/MediaItem';
+import PlaylistItem from 'types/PlaylistItem';
 import {bestOf} from 'utils';
 
 export interface LookupStartEvent {
-    lookupItem: MediaItem;
+    lookupItem: PlaylistItem;
 }
 
 export interface LookupEndEvent {
-    lookupItem: MediaItem;
+    lookupItem: PlaylistItem;
     foundItem: MediaItem | undefined;
 }
 
@@ -23,12 +24,12 @@ export function observeLookupEndEvents(): Observable<LookupEndEvent> {
     return lookupEndEvent$;
 }
 
-export function dispatchLookupStartEvent(lookupItem: MediaItem): void {
+export function dispatchLookupStartEvent(lookupItem: PlaylistItem): void {
     lookupStartEvent$.next({lookupItem});
 }
 
 export function dispatchLookupEndEvent(
-    lookupItem: MediaItem,
+    lookupItem: PlaylistItem,
     foundItem: MediaItem | undefined
 ): void {
     lookupEndEvent$.next({

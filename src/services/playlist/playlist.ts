@@ -400,10 +400,9 @@ observeLookupStartEvents()
     .pipe(
         tap(({lookupItem}: LookupStartEvent) => {
             const items = getItems();
-            const index = items.findIndex((item) => item.src === lookupItem.src);
+            const index = items.findIndex((item) => item.id === lookupItem.id);
             if (index !== -1) {
-                const item = items[index];
-                items[index] = {...item, lookupStatus: LookupStatus.Looking};
+                items[index] = {...lookupItem, lookupStatus: LookupStatus.Looking};
                 setItems(items);
             }
         })
@@ -414,12 +413,11 @@ observeLookupEndEvents()
     .pipe(
         tap(({lookupItem, foundItem}: LookupEndEvent) => {
             const items = getItems();
-            const index = items.findIndex((item) => item.src === lookupItem.src);
+            const index = items.findIndex((item) => item.id === lookupItem.id);
             if (index !== -1) {
-                const item = items[index];
                 items[index] = foundItem
-                    ? {...foundItem, id: item.id, lookupStatus: undefined}
-                    : {...item, lookupStatus: LookupStatus.NotFound};
+                    ? {...foundItem, id: lookupItem.id}
+                    : {...lookupItem, lookupStatus: LookupStatus.NotFound};
                 setItems(items);
             }
         })

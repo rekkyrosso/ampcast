@@ -1,21 +1,24 @@
-import {TinyColor} from '@ctrl/tinycolor';
+import Color from 'colorjs.io';
 import AudioManager from 'types/AudioManager';
 import {AmpShaderVisualizer} from 'types/Visualizer';
 import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
 import theme from 'services/theme';
 import {Logger} from 'utils';
-
-const logger = new Logger('AmpShaderPlayer');
+import header from './header.frag';
+import footer from './footer.frag';
 
 // Based on: https://noisehack.com/build-music-visualizer-web-audio-api/
 
 export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderVisualizer> {
+    private readonly logger = new Logger(`AmpShaderPlayer/${this.name}`);
     private readonly analyser: AnalyserNode;
     private readonly source: AudioNode;
     private readonly canvas = document.createElement('canvas');
     private readonly gl = this.canvas.getContext('webgl2')!;
     private animationFrameId = 0;
-    private fragTheme: WebGLUniformLocation | null = null;
+    private fragFrameColor: WebGLUniformLocation | null = null;
+    private fragBackgroundColor: WebGLUniformLocation | null = null;
+    private fragColor: WebGLUniformLocation | null = null;
     private fragTime: WebGLUniformLocation | null = null;
     private fragChannelTime: WebGLUniformLocation | null = null;
     private fragDate: WebGLUniformLocation | null = null;
@@ -24,8 +27,10 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     private fragmentShader: WebGLShader | null = null;
     private startTime = performance.now();
     private currentVisualizer = '';
+    #backgroundColor = '';
+    #color = '';
 
-    constructor({context, source}: AudioManager) {
+    constructor({context, source}: AudioManager, readonly name: string) {
         super();
 
         this.source = source;
@@ -63,11 +68,11 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
         if (this.canvas.hidden !== hidden) {
             this.canvas.hidden = hidden;
             if (hidden) {
-                logger.log('disconnect');
+                this.logger.log('disconnect');
                 this.cancelAnimation();
                 this.source.disconnect(this.analyser);
             } else {
-                logger.log('connect');
+                this.logger.log('connect');
                 this.source.connect(this.analyser);
                 if (!this.animationFrameId) {
                     this.render();
@@ -81,29 +86,31 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     }
 
     load(visualizer: AmpShaderVisualizer): void {
-        logger.log('load', visualizer.name);
+        this.logger.log('load', visualizer.name);
         if (this.currentVisualizer !== visualizer.name) {
             this.currentVisualizer = visualizer.name;
             this.cancelAnimation();
-            this.createShader(visualizer.shader);
+            this.createShader(`${header}\n${visualizer.shader}\n${footer}`);
+        }
+        if (this.autoplay && !this.animationFrameId) {
             this.render();
         }
     }
 
     play(): void {
-        logger.log('play');
+        this.logger.log('play');
         if (!this.animationFrameId) {
             this.render();
         }
     }
 
     pause(): void {
-        logger.log('pause');
+        this.logger.log('pause');
         this.cancelAnimation();
     }
 
     stop(): void {
-        logger.log('stop');
+        this.logger.log('stop');
         this.cancelAnimation();
         this.clear();
     }
@@ -112,6 +119,9 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
         const canvas = this.canvas;
         const gl = this.gl;
 
+        width = Math.round(width);
+        height = Math.round(height);
+
         canvas.width = width;
         canvas.height = height;
 
@@ -119,9 +129,25 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
 
         if (this.program) {
             const fragResolution = gl.getUniformLocation(this.program, 'iResolution');
-            gl.uniform2f(fragResolution, canvas.width, canvas.height);
+            gl.uniform2f(fragResolution, width, height);
             this.renderFrame();
         }
+    }
+
+    get backgroundColor(): string {
+        return this.#backgroundColor || theme.backgroundColor;
+    }
+
+    set backgroundColor(backgroundColor: string) {
+        this.#backgroundColor = backgroundColor;
+    }
+
+    get color(): string {
+        return this.#color || theme.textColor;
+    }
+
+    set color(color: string) {
+        this.#color = color;
     }
 
     private get currentDate(): [number, number, number, number] {
@@ -141,9 +167,8 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
         return (performance.now() - this.startTime) / 1000;
     }
 
-    private get themeColor(): [number, number, number, number] {
-        const {r, g, b} = new TinyColor(theme.frameColor).toRgb();
-        return [r, g, b, 1];
+    private get frameColor(): string {
+        return theme.frameColor;
     }
 
     private clear(): void {
@@ -187,8 +212,14 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
         gl.enableVertexAttribArray(position);
         gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
 
-        this.fragTheme = gl.getUniformLocation(program, 'iTheme');
-        gl.uniform4f(this.fragTheme, ...this.themeColor);
+        this.fragFrameColor = gl.getUniformLocation(program, 'iFrameColor');
+        gl.uniform3f(this.fragFrameColor, ...this.toRgb(this.frameColor));
+
+        this.fragBackgroundColor = gl.getUniformLocation(program, 'iBackgroundColor');
+        gl.uniform3f(this.fragBackgroundColor, ...this.toRgb(this.backgroundColor));
+
+        this.fragColor = gl.getUniformLocation(program, 'iColor');
+        gl.uniform3f(this.fragColor, ...this.toRgb(this.color));
 
         this.startTime = performance.now();
         const time = this.currentTime;
@@ -220,23 +251,20 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
             const bufferSize = this.analyser.frequencyBinCount;
             const freq = new Uint8Array(bufferSize);
             const wave = new Uint8Array(bufferSize);
-            const spectrum = new Uint8Array(1024);
 
             this.analyser.getByteFrequencyData(freq);
             this.analyser.getByteTimeDomainData(wave);
-
-            for (let i = 0; i < 512; i++) {
-                spectrum[i] = freq[i];
-                spectrum[i + 512] = wave[i];
-            }
 
             const time = this.currentTime;
             gl.uniform1f(this.fragTime, time);
             gl.uniform1fv(this.fragChannelTime, new Float32Array([time, 0, 0, 0]));
             gl.uniform4f(this.fragDate, ...this.currentDate);
-            gl.uniform4f(this.fragTheme, ...this.themeColor);
+            gl.uniform3f(this.fragFrameColor, ...this.toRgb(this.frameColor));
+            gl.uniform3f(this.fragBackgroundColor, ...this.toRgb(this.backgroundColor));
+            gl.uniform3f(this.fragColor, ...this.toRgb(this.color));
 
-            gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, 512, 2, 0, gl.RED, gl.UNSIGNED_BYTE, spectrum);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 0, 512, 1, gl.RED, gl.UNSIGNED_BYTE, freq);
+            gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 1, 512, 1, gl.RED, gl.UNSIGNED_BYTE, wave);
 
             this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
         }
@@ -247,5 +275,10 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = 0;
         }
+    }
+
+    private toRgb(color: string): [number, number, number] {
+        const [r, g, b] = new Color(color).srgb;
+        return [r, g, b];
     }
 }

@@ -166,16 +166,21 @@ function ended(): void {
     }
 }
 
-observeCurrentItem().subscribe((item) => {
-    ended();
-    playbackState$.next({
-        ...playbackState$.getValue(),
-        currentItem: item,
-        currentTime: 0,
-        duration: item?.duration || 0,
-        startedAt: 0,
-        endedAt: 0,
-    });
+observeCurrentItem().subscribe((currentItem) => {
+    const state = playbackState$.getValue();
+    if (currentItem?.id === state.currentItem?.id) {
+        playbackState$.next({...state, currentItem});
+    } else {
+        ended();
+        playbackState$.next({
+            ...state,
+            currentItem,
+            currentTime: 0,
+            duration: currentItem?.duration || 0,
+            startedAt: 0,
+            endedAt: 0,
+        });
+    }
 });
 
 const playback: Playback = {

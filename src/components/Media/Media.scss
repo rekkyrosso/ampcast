@@ -9,14 +9,11 @@
         background: black;
         border-radius: 0;
         inset: 0;
-        font-size: 2rem;
+        font-size: 3vw;
+        border-radius: 0;
 
         &.idle {
             cursor: none;
-
-            .visualizer-controls {
-                display: none;
-            }
         }
     }
 
@@ -49,10 +46,31 @@
         height: inherit;
     }
 
-    .ambient-video-player .visualizer-waveform {
-        background: none;
-        inset: auto;
+    &.is-showing-cover-art > .progress-bar {
+        display: none;
+    }
+
+    &-state {
+        position: absolute;
         bottom: 0.5em;
-        margin: 0 calc(50% - 5em);
+        width: 100%;
+        font-size: 0.75em;
+        color: rgba(238, 238, 238, 0.6);
+        text-align: center;
+        line-height: 1;
+    }
+
+    &:fullscreen &-state {
+        bottom: 0.375em;
+        font-size: 0.375em;
+    }
+
+    &.loaded .playback-state {
+        opacity: 0;
+        transition: opacity linear 1s;
+    }
+
+    &.error .playback-state {
+        color: var(--error-color);
     }
 }

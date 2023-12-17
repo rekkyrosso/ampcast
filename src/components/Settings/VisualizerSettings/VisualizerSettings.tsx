@@ -4,6 +4,7 @@ import visualizerSettings from 'services/visualizer/visualizerSettings';
 import TabList, {TabItem} from 'components/TabList';
 import VisualizerSettingsGeneral from './VisualizerSettingsGeneral';
 import AmbientVideoSettings from './AmbientVideoSettings';
+import CoverArtSettings from './CoverArtSettings';
 import './VisualizerSettings.scss';
 
 export default function VisualizerSettings() {
@@ -11,7 +12,10 @@ export default function VisualizerSettings() {
     const ambientVideoEnabledRef = useRef<HTMLInputElement>(null);
     const ambientVideoSourceRef = useRef<HTMLInputElement>(null);
     const useAmbientVideoSourceRef = useRef<HTMLInputElement>(null);
-    const beatsOverlayEnabledRef = useRef<HTMLInputElement>(null);
+    const ambientVideoBeatsEnabledRef = useRef<HTMLInputElement>(null);
+    const coverArtAnimatedBackgroundRef = useRef<HTMLInputElement>(null);
+    const coverArtBeatsEnabledRef = useRef<HTMLInputElement>(null);
+    const fullscreenProgressRef = useRef<HTMLInputElement>(null);
     const [ambientVideoEnabled, setAmbientVideoEnabled] = useState(
         visualizerSettings.ambientVideoEnabled
     );
@@ -21,7 +25,11 @@ export default function VisualizerSettings() {
         visualizerSettings.ambientVideoEnabled = ambientVideoEnabledRef.current!.checked;
         visualizerSettings.useAmbientVideoSource = useAmbientVideoSourceRef.current!.checked;
         visualizerSettings.ambientVideoSource = ambientVideoSourceRef.current!.value;
-        visualizerSettings.beatsOverlay = beatsOverlayEnabledRef.current!.checked;
+        visualizerSettings.ambientVideoBeats = ambientVideoBeatsEnabledRef.current!.checked;
+        visualizerSettings.coverArtAnimatedBackground =
+            coverArtAnimatedBackgroundRef.current!.checked;
+        visualizerSettings.coverArtBeats = coverArtBeatsEnabledRef.current!.checked;
+        visualizerSettings.fullscreenProgress = fullscreenProgressRef.current!.checked;
     }, []);
 
     const tabs: TabItem[] = useMemo(
@@ -31,6 +39,7 @@ export default function VisualizerSettings() {
                 panel: (
                     <VisualizerSettingsGeneral
                         providerRef={providerRef}
+                        fullscreenProgressRef={fullscreenProgressRef}
                         ambientVideoEnabled={ambientVideoEnabled}
                         onSubmit={handleSubmit}
                     />
@@ -43,8 +52,18 @@ export default function VisualizerSettings() {
                         ambientVideoEnabledRef={ambientVideoEnabledRef}
                         ambientVideoSourceRef={ambientVideoSourceRef}
                         useAmbientVideoSourceRef={useAmbientVideoSourceRef}
-                        beatsOverlayEnabledRef={beatsOverlayEnabledRef}
+                        beatsOverlayEnabledRef={ambientVideoBeatsEnabledRef}
                         onAmbientVideoEnabledChange={setAmbientVideoEnabled}
+                        onSubmit={handleSubmit}
+                    />
+                ),
+            },
+            {
+                tab: 'Cover Art',
+                panel: (
+                    <CoverArtSettings
+                        animatedBackgroundEnabledRef={coverArtAnimatedBackgroundRef}
+                        beatsOverlayEnabledRef={coverArtBeatsEnabledRef}
                         onSubmit={handleSubmit}
                     />
                 ),

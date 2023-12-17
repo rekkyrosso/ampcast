@@ -7,7 +7,7 @@ import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import ViewType from 'types/ViewType';
 import {NoMusicLibraryError} from 'services/errors';
-import {browser, canPlayMedia} from 'utils';
+import {browser, canPlayMedia, partition} from 'utils';
 import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
 import plexSettings from './plexSettings';
@@ -24,6 +24,7 @@ export interface PlexRequest {
     timeout?: number; // MS
 }
 
+export const apiHost = `https://plex.tv/api/v2`;
 export const musicPlayHost = 'https://play.provider.plex.tv';
 export const musicProviderHost = 'https://music.provider.plex.tv';
 export const musicSearchHost = 'https://discover.provider.plex.tv';
@@ -106,11 +107,27 @@ async function getAccount(token: string): Promise<plex.Account> {
     return account;
 }
 
-async function getMusicLibraries(): Promise<readonly PersonalMediaLibrary[]> {
+async function getServers(token = plexSettings.serverToken): Promise<readonly plex.Device[]> {
+    const devices = await fetchJSON<plex.Device[]>({
+        host: apiHost,
+        path: '/resources',
+        params: {includeHttps: '1'},
+        token,
+    });
+    // Sort "owned" servers to the top.
+    return partition(devices, (device) => device.owned).flat();
+}
+
+async function getMusicLibraries(
+    host = plexSettings.host,
+    token = plexSettings.serverToken
+): Promise<readonly PersonalMediaLibrary[]> {
     const {
         MediaContainer: {Directory: sections},
     } = await fetchJSON<plex.DirectoryResponse>({
+        host,
         path: '/library/sections',
+        token,
     });
     return sections
         .filter((section) => section.type === 'artist')
@@ -326,6 +343,7 @@ const plexApi = {
     getMusicLibraries,
     getPlayableUrl,
     getPlaybackType,
+    getServers,
     search,
 };
 

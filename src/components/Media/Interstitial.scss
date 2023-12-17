@@ -4,13 +4,72 @@
     color: var(--soft-white);
     text-align: center;
 
-    &:before {
-        content: "";
+    &::before,
+    .currently-playing {
         position: absolute;
         inset: 0;
-        background-color: var(--black);
         opacity: 0;
-        transition: opacity 4s linear;
+        transition: opacity 0s linear;
+        will-change: opacity;
+    }
+
+    &::before {
+        content: "";
+        background-color: var(--black);
+
+        .media:fullscreen & {
+            background-color: black;
+        }
+    }
+
+    .currently-playing {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 2em;
+        text-shadow: 1px 1px 0 rgba(16, 16, 16, 0.8);
+        background: radial-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
+
+        .media:fullscreen & {
+            text-shadow: 2px 2px 0 rgba(16, 16, 16, 0.8);
+        }
+    }
+
+    &.show {
+        &::before {
+            opacity: 1;
+            transition: none;
+        }
+
+        .currently-playing {
+            opacity: 1;
+            transition: opacity 600ms linear;
+        }
+    }
+
+    &.hide {
+        &::before {
+            opacity: 0;
+            transition: opacity 400ms ease-in 250ms;
+        }
+
+        .currently-playing {
+            opacity: 0;
+            transition: opacity 400ms linear 300ms;
+        }
+    }
+
+    &.fade-out {
+        &::before {
+            opacity: 0;
+            transition: opacity 8s linear;
+        }
+
+        .currently-playing {
+            opacity: 0;
+            transition: opacity 10s linear;
+        }
     }
 
     .by {
@@ -21,76 +80,18 @@
         font-size: 0.75em;
     }
 
-    .currently-playing {
-        position: absolute;
-        inset: 0;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        justify-content: center;
-        padding: 2em;
-        text-shadow: 0.125em 0.125em 0 rgba(16, 16, 16, 0.6);
-        opacity: 0;
-        transition: opacity 4.5s linear;
+    .media.is-showing-cover-art & .playback-state {
+        display: none;
     }
 
-    &-state {
-        position: absolute;
-        bottom: 0.4em;
-        width: 100%;
-        font-size: 0.75em;
-        color: rgba(238, 238, 238, 0.625);
-        opacity: 0;
-        transition: opacity 1s linear;
-    }
-
-    &.error &-state {
-        color: var(--error-color);
-    }
-
-    .no-visualizer:not(.is-playing-video) &:before,
-    .no-visualizer:not(.is-playing-video) & .currently-playing,
-    .media-playback.paused &:before,
-    .media-playback.paused & .currently-playing,
-    &:not(.playing):before,
-    &:not(.playing) .currently-playing,
-    &:not(.playing) &-state {
+    .media-playback:not(.paused) .media:not(.is-showing-cover-art):hover & .currently-playing {
         opacity: 1;
+        transition: opacity 400ms linear;
     }
 
-    &.is-recent:before,
-    &.error:before,
-    &.is-recent &-state,
-    &.error &-state,
-    .media-playback.paused &:before {
-        transition: none;
-    }
+    /* (fullscreen & idle) this is a bit different to the other `opacity` changes. */
 
-    &.is-recent .currently-playing {
-        transition: none;
+    .media-playback:not(.paused) .media:not(.no-visualizer.is-playing-audio):not(.is-new-item):fullscreen.idle & {
+        opacity: 0; /* Hide but prevent interaction with anything behind. */
     }
-
-    .media-playback.paused & .currently-playing {
-        transition-duration: 1s;
-    }
-
-    &.is-recent:before,
-    &.is-recent .currently-playing {
-        opacity: 0.85;
-    }
-
-    /* Show title/artist on hover */
-    /*
-    .currently-playing {
-        background: radial-gradient(rgba(0, 0, 0, 0.6), transparent);
-    }
-
-    &.ready .currently-playing {
-        transition-duration: 100ms;
-
-        .media:hover & {
-            opacity: 1;
-        }
-    }
-    */
 }

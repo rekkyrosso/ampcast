@@ -19,7 +19,9 @@ const visualizers: WaveformVisualizer[] = [
                 const dataArray = new Uint8Array(bufferSize);
                 const sliceWidth = width / bufferSize;
                 let x = 0;
-                context2D.lineWidth = Math.round(theme.fontSize / 4);
+                context2D.lineWidth = Math.round(
+                    theme.fontSize / (document.fullscreenElement ? 2 : 4)
+                );
                 context2D.clearRect(0, 0, width, height);
                 context2D.strokeStyle = getThemeColor();
                 context2D.beginPath();
@@ -45,7 +47,7 @@ const visualizers: WaveformVisualizer[] = [
         config: {
             onPaint: ({context2D, width, height, analyser}) => {
                 const barCount = 16;
-                const gapWidth = 2;
+                const gapWidth = document.fullscreenElement ? 8 : 4;
                 const bufferSize = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferSize);
                 analyser.getByteFrequencyData(dataArray);

@@ -78,7 +78,7 @@ const plexSettings = {
         return libraryId$.pipe(distinctUntilChanged());
     },
 
-    get libraries(): PersonalMediaLibrary[] {
+    get libraries(): readonly PersonalMediaLibrary[] {
         return storage.getJson('libraries') || [];
     },
 
@@ -97,6 +97,10 @@ const plexSettings = {
 
     set server(server: plex.Device | null) {
         storage.setJson('server', server);
+    },
+
+    get serverId(): string {
+        return this.server?.clientIdentifier || '';
     },
 
     get serverToken(): string {

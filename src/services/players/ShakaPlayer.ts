@@ -100,13 +100,15 @@ export default class ShakaPlayer extends HTML5Player {
                     throw Error(`Unsupported ${this.type} format`);
                 }
 
-                await this.element.play();
+                if (this.autoplay && this.item === item) {
+                    await this.element.play();
 
-                if (!this.hasPlayed && this.item === item) {
-                    // This doesn't really fix any bugs but seems right.
-                    // `playing` emits too early otherwise.
-                    this.hasPlayed = true;
-                    this.playing$.next(undefined);
+                    if (!this.hasPlayed && this.item === item) {
+                        // This doesn't really fix any bugs but seems right.
+                        // `playing` emits too early otherwise.
+                        this.hasPlayed = true;
+                        this.playing$.next(undefined);
+                    }
                 }
             } catch (err: any) {
                 if (err.name === 'AbortError' || this.item !== item) {

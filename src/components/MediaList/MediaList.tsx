@@ -42,7 +42,8 @@ export default function MediaList<T extends MediaObject>({
     const [pageSize, setPageSize] = useState(0);
     const [{items, loaded, error, size, maxSize}, fetchAt] = usePager(pager);
     const [selectedCount, setSelectedCount] = useState(0);
-    const currentlyPlaying = useCurrentlyPlaying();
+    const item = useCurrentlyPlaying();
+    const currentSrc = item?.src;
     const viewClassName = useViewClassName(layout);
 
     useEffect(() => {
@@ -126,14 +127,14 @@ export default function MediaList<T extends MediaObject>({
         (item: T) => {
             if (item?.itemType === ItemType.Media) {
                 const [source] = item.src.split(':');
-                const playing = item.src === currentlyPlaying?.src ? 'playing' : '';
+                const playing = item.src === currentSrc ? 'playing' : '';
                 const unplayable = item.unplayable ? 'unplayable' : '';
                 return `source-${source} ${playing} ${unplayable}`;
             } else {
                 return '';
             }
         },
-        [currentlyPlaying]
+        [currentSrc]
     );
 
     return (

@@ -1,13 +1,18 @@
 .visualizer-info {
     width: 100%;
-    margin-top: 1.25rem;
+    margin-top: 1.25em;
     padding-top: 1rem;
     border-top: 1px solid;
-    font-size: 0.75rem;
+    font-size: 0.75em;
     color: var(--grey2-color);
 
     p {
         margin: 0;
+    }
+
+    .no-visualizer-reason {
+        font-style: italic;
+        margin-top: 0.25em;
     }
 
     .external-view {

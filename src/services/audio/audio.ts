@@ -117,10 +117,11 @@ class Audio implements SetOptional<AudioManager, 'context' | 'source'> {
     private getAudioElement(item: PlaylistItem): HTMLAudioElement | null {
         if (this.canUseWebAudio(item)) {
             const id = this.getAudioElementId(item);
-            return document.querySelector<HTMLAudioElement>(`audio#${id}`);
-        } else {
-            return null;
+            if (id) {
+                return document.querySelector<HTMLAudioElement>(`audio#${id}`);
+            }
         }
+        return null;
     }
 
     private canUseWebAudio(item: PlaylistItem): boolean {

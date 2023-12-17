@@ -21,6 +21,8 @@ module.exports = (env) => {
             'lib/vendors': [
                 '@ctrl/tinycolor',
                 'audiomotion-analyzer',
+                'colorjs.io',
+                'colorthief',
                 'd3-array',
                 'd3-interpolate',
                 'd3-scale',

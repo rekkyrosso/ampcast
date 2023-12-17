@@ -12,7 +12,7 @@ const ampshader: VisualizerProvider<AmpShaderVisualizer> = {
     observeVisualizers,
     createPlayer(audio) {
         if (!this.player) {
-            (this as any).player = new AmpShaderPlayer(audio);
+            (this as any).player = new AmpShaderPlayer(audio, 'main');
         }
         return this.player!;
     },

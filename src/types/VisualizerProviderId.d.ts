@@ -4,6 +4,7 @@ type VisualizerProviderId =
     | 'ampshader'
     | 'audiomotion'
     | 'butterchurn'
+    | 'coverart'
     | 'spotifyviz'
     | 'waveform'
     ;

@@ -6,6 +6,12 @@ declare namespace LastFm {
         '#text': string;
     }
 
+    interface Wiki {
+        content: string;
+        summary: string;
+        published: string; // date text (parsable)
+    }
+
     interface PageInfo {
         page: string; // numeric
         perPage: string; // numeric
@@ -60,11 +66,7 @@ declare namespace LastFm {
         playcount?: string; // numeric
         userplaycount?: number;
         url: string;
-        wiki?: {
-            content: string;
-            summary: string;
-            published: string; // date text (parsable)
-        };
+        wiki?: Wiki;
         loved?: '0' | '1';
     }
 
@@ -103,6 +105,7 @@ declare namespace LastFm {
             image: readonly Thumbnail[];
         };
         userloved?: '0' | '1';
+        wiki?: Wiki;
     }
 
     interface TrackInfoResponse {

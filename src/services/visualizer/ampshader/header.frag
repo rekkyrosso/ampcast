@@ -7,7 +7,9 @@ precision highp float;
 precision highp int;
 precision mediump sampler3D;
 #endif
-uniform vec4 iTheme;
+uniform vec3 iFrameColor;
+uniform vec3 iBackgroundColor;
+uniform vec3 iColor;
 uniform float iTime;
 uniform float iChannelTime[4];
 uniform vec4 iDate;

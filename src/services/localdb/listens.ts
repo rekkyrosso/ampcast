@@ -134,7 +134,10 @@ function findListenByUniqueId(listens: readonly Listen[], item: MediaItem): List
             item.src === listen.src ||
             (item.externalUrl && item.externalUrl === listen.externalUrl) ||
             (item.isrc && item.isrc === listen.isrc) ||
-            (item.recording_mbid && item.recording_mbid === listen.recording_mbid)
+            (item.recording_mbid && item.recording_mbid === listen.recording_mbid) ||
+            (item.track_mbid &&
+                item.release_mbid === listen.release_mbid &&
+                item.track_mbid === listen.track_mbid)
     );
 }
 

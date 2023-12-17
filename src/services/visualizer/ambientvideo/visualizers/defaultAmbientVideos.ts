@@ -2,16 +2,16 @@ import {AmbientVideoVisualizer} from 'types/Visualizer';
 
 // Some sample ambient videos to get us started.
 const defaultAmbientVideos: AmbientVideoVisualizer[] = `
-mo2re_RX3Bs blXien2Jh_o etiatMRgFcM DYsMJiwiZSI _MZ7UZ5frCI HCx1Z92PjJE dIP7wWY4Znw SDxtzBm5vD4
+9HI3UVKoesg rOSUaprXqiY etiatMRgFcM DYsMJiwiZSI _MZ7UZ5frCI HCx1Z92PjJE dIP7wWY4Znw SDxtzBm5vD4
 A1m0SEqmmbE 9uZ8CCa0t4Y 35CTu7dWzo8 wz_ItcoR0-c jS4-FmNEDKo Tz77vqH_LJw K73lfmxDVR0 W8ayfyRWUrg
 cbuldALGsaQ AJZon2grzmA H5ASEM9dMiA GE2YEq7vaLc MYGOdJNAzrI Oszl95YWfbs b0-IkxXyhmY QxE5VqaQ6oE
 H6Xy97CD9Hs p-OUNPqRzII XaTxLSPh_Is 1n3ezT1cvAM CWU1pZVw0xM ry1Q7KaQdxM VlC5LSTvoj0 j-bG0j3-KzE
 1bClbVe4QyI f6OZ01vvmko o4jE24WixcI BIej9P2LrzM dxw91a7C5BQ lN9LdcAQnjw VVkZKzTbWQs vXCB1zGGFiY
 JHARFKMl8dU KSB1AZ0-I74 IGqfU6cJJc8 8zg22-ZCUfE WMlR8eJRS3I l4D6bnIdehk A5pbF_YBulo dRFRsKobN9I
-Bur1ChHBNsQ IlDvBTDGanI SqMzG8xsynw mOmwk3WyYnw im2eWwIiTOc lxQS58t39_U yk076o8NF3k oggiHfuV4m8
+QxS6PpMArMU IlDvBTDGanI SqMzG8xsynw mOmwk3WyYnw im2eWwIiTOc lxQS58t39_U yk076o8NF3k oggiHfuV4m8
 p_GnUkm-G1M xVMsAgHy_IY VdZkfef44JI ZxOd8tmdsIM fszuqfJWKxc 0LGL_lx9XcA i_hU5eUrVIs qtwWkv9OdF0
 uZjCNtOeZG4 ZpXnEvW0XD0 -C8TYbhnVTU WzxSiEWK3cg ZE8vuq4aqNA 7HMw3bcIgRE ZJiCEDweLl8 lyh2kAjcmSY
-vFwqZ4qAUkE QLbPYQcUcgM xwf7EssFnXU -Pail6FITXc vvm8b2jAfv0 XkRFSnxXQ_w Ee0Qh_nIoHw 78rppSvbh7A
+tOWGsyt40t8 QLbPYQcUcgM xwf7EssFnXU -Pail6FITXc vvm8b2jAfv0 XkRFSnxXQ_w Ee0Qh_nIoHw 78rppSvbh7A
 NXIaYDJql1c VWHTlq5Fcr8 ZkRjihsMdp8 e1M6jHcRrlM z9Ug-3qhrwY mA30W2dHQIo XIhEPwTMjWk -Tm4H4CrKT0
 T6tapzmF_n0 7QetsPh7BPM xBDqge4w-XA suWbFuw1O_I OvStKpL5Ujo ZX8fSO8uTPg xX9xfFT-Qw0 hf3r9TNSsyY
 -WIamcIaipI Zjc6DwVDvq0 eHjoav_sb88 7E0WVROBsEE BvLIJSmzAnY YPurG3WT8xI 0ocUnSG4oQQ EkmJlmU7uqw
@@ -25,10 +25,10 @@ PaIH77c53LA FSlhSL8bFoI XLuV3_a-ro0 mo7mUJZV6DM IqWPDr8KCmQ v-QS_Kh_i6o zowLNSKy
 7gG4l70v8mw thurNCHVo08 YgryBZTMVZY XAmU3yQc90M KBUg3U3MRao v_My9t4gadA Xwb1xsWClCM KlH1g1x6RJk
 yFqew9NnNvk LMSmWzCqlPE oN3glsVrnRY PPBV3hem5iM eqzVRpevI8s nSJ67PGjQfQ EoBF2xRsbAc KDUYy3xwCFs
 RZOcoZS_52Q pSP9_otXcTU H36qe8NatNQ qgfd-uWTVwg Blu_yCEFYvk HeYMIBFtwh4 fb0QX7DbqLg kdqyAA0ILD4
-riZWEoGKyuU 4qo9bKRxgYA t0j_GdkG1BM hLq9J32lGRs zfc53CpvlZ4 IjNKQbm4AQ8 hg2FDCmqNkg tG991Undnbc
+9IENFNxy5i8 4qo9bKRxgYA t0j_GdkG1BM hLq9J32lGRs zfc53CpvlZ4 IjNKQbm4AQ8 hg2FDCmqNkg tG991Undnbc
 sh8l2-cCAGQ XDE5pd4V_xc C2BVXFIX7bY ySPxZpoqXZ8 hiEUaLX4cCM 3F4l-6GwkKM F399teRPBaY 2jw2eAIW8sU
 WsCCYv2adkM wmV7Po_E0pw 9Rvtm2zGEl4 DGlAMkUjcY0 h2s_WOkfTXk 0VhxPdtX0xg 6vuFh6NNa70 ukOHqdPbYYg
-H6OmEQ8RqVk qPp315pPVSI FQqj6gN7M6M Xrwks9O2-JQ ipRwt3TDgY4 aVqRyfRviwA X33dmu12C5c QEwzFKoG7tk
+H6OmEQ8RqVk JFMT1tU17TM FQqj6gN7M6M Xrwks9O2-JQ ipRwt3TDgY4 aVqRyfRviwA X33dmu12C5c QEwzFKoG7tk
 h98nR30UD8Q Z7WpAwRjprI ilqlSBYfCGs V6SoeDWDon0 d-Hwz42Vfw4 RCdAP0e4W4w 22dlye7h3qU p7l6JQApzak
 blSZ365wpfQ ADF4KgfhzPs jSRvD7Uma1g uLMC6bL_q38 k9DuPxFQ7HQ 7f2taFPyqxc vHf4WQtJvdI NXg0IKlrz-Q
 ORHIVufNfRM RT4hEmX5OJ0 H3GL5jO53NU acTsYqhq-AA vp2yiZnjK0w eR5vsN1Lq4E yyNl2HuCTHk 55w2VtMNuvY
@@ -43,7 +43,7 @@ hlvfDL3nSoo 6L2xYzu724E URy2Ak-WRpE 9N-sp0FaZEA yttvb9ByOtY ctqujFKaFZQ orTy-IqN
 ef1wAfrMg5I eN-RZVkFGj0 KPV1hFJIXrg -bp4Bgs7MaQ u1rRUwx_Vy4 iTjgWeJMUJo WL9EOfzoSsA xrCNwCD-z-M
 CC3AanQdQZA ZGLrP5eawdY HoOghpRTkvs N787WRdI35A Cw0d-nqSNE8 2vifO3_gjiM OeJ5xXrbkfU vkYBLYAGavM
 jP4gBqxfheI HHi8qOtHnhE oN8q7p57nZw 6vnxzfejWN4 gVamQ6jodK0 iU5QjAbuhec qLIU_90P4Ac z8k_ximc8Og
-ZFBoN7yIMZw 4mexI7cACZk bx-0YlFprqc NDWpXTg3koc Vo2AcHSCRiQ UrfJgjQt1SY WXI7byeZk5s y8d7Ihe0IwE
+ZFBoN7yIMZw 4mexI7cACZk bWG0rEB6gmc NDWpXTg3koc Vo2AcHSCRiQ UrfJgjQt1SY WXI7byeZk5s y8d7Ihe0IwE
 ubmUJcwor3k CGslieDL-04 w7ljU-lmaK4 I0B21LjeSUQ PyFN_FYwqvc bxy9PFJRJ0g ahmrb5EYoxY HGxuVWpN8vQ
 DNR1zyr5Go4 eyPhudLTuis aPWXL4ahxdY JB0A8Me8EKk dGy_6qyyY7c rxrDLgt5YFA uhcocK-td5E 4Z5FLeh7P18
 VB0zDS9ITmk VukLV0AoeFA CouF-tNHV3g lTvYjERVAnY S27YOjpgaaE 24uCC_-zaaE DslTxXsDLsw xilGAQPx5Xw
@@ -62,7 +62,7 @@ FGCIBbg0IYk oaQ8UXlKDiw 5rf_gOfa7O4 MYG6FeY4SKg AVzdfRpE9Q0 1UxoHtG2qas o7XgU4ut
 D4mdWvVONyg eQIzdzSTH08 tpRBHKAJ_tU sTy4stPcD0E p4jroQX6Hwk y2Zl-KXvdSk zffchwaq6KE jv7hNnJEWPU
 DN-BxbMH264 mWaC_VSncEg 8x5Yzxi3LhA 0Txa_T4pHY4 sYYMBV68hmE 5rTo8-CPgU4 WbUgBaEsugI QytjUFgcmWw
 6BLY2zj6pq0 W5Y0deEEszo U6jAaBK7idQ rHZlMW_zxaE 4Xp4J5RYns0 Xsf2ThMqNBM lUbOyYp91NU dpuTxI8KAyc
-OIoAJfLDW1U bXK3EZ1AOZ0 nV62c0XBLDg 7ZWSdWxHAzY LVJHOKOIXK4 8QdnY1lACEs BfkdRwJAeu8 qyCXiUtWhD0
+OIoAJfLDW1U bXK3EZ1AOZ0 nV62c0XBLDg 7ZWSdWxHAzY dY-bDp_3krs 8QdnY1lACEs BfkdRwJAeu8 qyCXiUtWhD0
 XLNixgPHzao Q-iZMkvHnFw O47-jQYPznA H0RwPrdQs9g 5hkJkYLounY tlgv2urELis zHAbIALBaog cvoo5xXtiEA
 RpHnKaxt_OQ GsqsG3axUCs eMv6SCniTPg 5BdpkKiY3Fw _85ElkxtQa4 xCfEA0kuNww zsdPYFPTdw0 9pTT6867XJ4
 DUhdSWsapuA EmxS4JvlT5k CGBPXRi1nrM P9iRIGoIc9g Cy3okiPj26M TaKvapV_BwU jg5mnvYmrzU eG89_Vk_cqE
@@ -73,13 +73,15 @@ Q7W4JISNmQk fryghm20GnQ jgtcAEUtgF4 XPKTAyKWoIo n5PqysUA4lU 0bJWDOTyCTY YJJA6pUx
 hsNMJp8G5tA pO13fJttJBE iw44ObI2cig 0KIWOl_lF2A 001TlVo_jmg kt0qIFPQBJg 0tZ2Y8kpCLI bzADvjia-mw
 qZezMIk7Oq4 ZHNYXUmEGoU 8dFr3YqPaeg M9KXG8jCq2U djP_T_rp09s Tyd_wjLfA_E ymRww99Yb-I zQrgF2izz2Y
 W0Kl0QfMEPo 5bwHtF7fR94 IXSTdSv-Jlo mf5E3FDZ6rY 7JsOhtl_zG4 vr5dCRHAgb0 Di9jRVy7WHk cVdfUy_VMTY
-LD_jcIQGl0Q ZXas8NdyLsE ELUl-cAtUIE --qCu9yL5H8 74wsGjTZzGg Wey4zHA4nPg VArhsYKbKzk t76IJmQKzKA
+LD_jcIQGl0Q ZXas8NdyLsE JptSD1Jdhyw --qCu9yL5H8 74wsGjTZzGg Wey4zHA4nPg VArhsYKbKzk t76IJmQKzKA
 l1RxmWxXQcM 7HagxwgIRcY gJgwJwg6Deg 1mD8V2trqcw i5ZbYQ1Nok4 YE3iWysmcBQ vdycBdIx-do UE-J2Dt8LNs
 x_dVi_PC_sc z3oaQlq9weg gvusDEF3eh4 0wb-OBF3LOo tKC1zBZf8NM Moz3NHnVXog s7v0c2nKKGE cV9kT-xcQZw
 apwA8UQ_xeE 6BcYV3gqcFA TaWhAJGUK-w oHrnBcYW6U0 iXI8oo8KpMA 4Qdd8khODKc KVKtVyhCMQ8 6h3zxMYjAwI
 jMaWecFnC_8 XS3p0GDnLF4 CCc2EYQchpE Oj0l4QlC-JE pENN3OPwydk 6q81M5Xd5X8 IqS4kWK6aV0 8OUQ7eCqt50
-gdAbs95GIm4 j800SVeiS5I bZIuALduxQU UyFoYkj8dAc q5hHF9Ofu3g UrKl1h8wWpg SNpXK6omAdQ dY-bDp_3krs
-9HI3UVKoesg JFMT1tU17TM
+gdAbs95GIm4 j800SVeiS5I bZIuALduxQU UyFoYkj8dAc q5hHF9Ofu3g UrKl1h8wWpg SNpXK6omAdQ 9D53rJslwak
+91q_XSSDCDE ufUfa_wS6cc O87EBwZaC_U J_Qs64FctiA yP64H8aLEE8 Ml_PEaEBKi0 SolQqtVQ7vA al7T6Y6CoUo
+nmm0zfspmos wUtgReo4pDM 7HDlompCs58 ZsMlXu09ghs iO_Me1wspYM jHyItjAKRdY F18YfQD3s28 RgzTvK84LHo
+DOVsgCZoFLI kBbaAJMJC_k iyhP3voUf_s Ek7MAukn5P0 RpKLilRfFNE 7eN7zRJdfkM kk7tTjPOzt4
 `
     .match(/\S+/g)!
     .map((videoId) => ({

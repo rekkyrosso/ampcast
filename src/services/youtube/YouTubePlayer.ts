@@ -75,7 +75,7 @@ export default class YouTubePlayer implements Player<PlayableItem> {
     private readonly element: HTMLElement;
     private readonly targetId: string;
     private loadError?: LoadError;
-    private loadingPlayer = false;
+    private playerLoading = false;
     #muted = true;
     #volume = 1;
     autoplay = false;
@@ -279,7 +279,7 @@ export default class YouTubePlayer implements Player<PlayableItem> {
             } else {
                 this.player.playVideo();
             }
-        } else if (!this.loadingPlayer) {
+        } else if (!this.playerLoading) {
             this.error$.next(Error('YouTube player not loaded'));
         }
     }
@@ -352,7 +352,7 @@ export default class YouTubePlayer implements Player<PlayableItem> {
 
     private createPlayer(): void {
         if (!this.player && this.element.isConnected) {
-            this.loadingPlayer = true;
+            this.playerLoading = true;
 
             const youtube = YouTubeFactory(this.targetId, {
                 playerVars,
@@ -368,7 +368,7 @@ export default class YouTubePlayer implements Player<PlayableItem> {
                     target.mute();
                 }
 
-                this.loadingPlayer = false;
+                this.playerLoading = false;
                 this.ready$.next(undefined);
             });
 

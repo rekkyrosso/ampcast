@@ -100,9 +100,8 @@ export default function Splitter({
         }
     }, [vertical, dragging, handleMouseMove, handleMouseUp]);
 
-    useOnResize(containerRef, () => {
-        const container = containerRef.current!;
-        setContainerSize(vertical ? container.clientHeight : container.clientWidth);
+    useOnResize(containerRef, ({width, height}) => {
+        setContainerSize(vertical ? height : width);
     });
 
     return (

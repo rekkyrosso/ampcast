@@ -230,10 +230,10 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
     private createThumbnails(id: string): Thumbnail[] | undefined {
         return id
             ? [
-                  this.createThumbnail(id, 120),
                   this.createThumbnail(id, 240),
                   this.createThumbnail(id, 360),
                   this.createThumbnail(id, 480),
+                  this.createThumbnail(id, 800),
               ]
             : undefined;
     }

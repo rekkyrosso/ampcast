@@ -149,7 +149,7 @@ vec3 raymarch(in vec3 from, in vec3 dir)
 #endif
 	totdist=clamp(totdist,0.,26.);
 	dir.y-=.02;
-	float sunsize=7.-max(0.,texture(iChannel0,vec2(.6,.2)).x)*5.; // responsive sun size
+	float sunsize=7.-max(0.,texture(iChannel0,vec2(.6,.2)).x)*3.; // responsive sun size
 	float an=atan(dir.x,dir.y)+iTime*1.5; // angle for drawing and rotating sun
 	float s=pow(clamp(1.0-length(dir.xy)*sunsize-abs(.2-mod(an,.4)),0.,1.),.1); // sun
 	float sb=pow(clamp(1.0-length(dir.xy)*(sunsize-.2)-abs(.2-mod(an,.4)),0.,1.),.1); // sun border

@@ -102,7 +102,7 @@ export default function AmbientVideoSettings({
                 <input
                     id={`${id}-beats-overlay`}
                     type="checkbox"
-                    defaultChecked={visualizerSettings.beatsOverlay}
+                    defaultChecked={visualizerSettings.ambientVideoBeats}
                     ref={beatsOverlayEnabledRef}
                 />
                 <label htmlFor={`${id}-beats-overlay`}>Show &quot;beats&quot; overlay</label>

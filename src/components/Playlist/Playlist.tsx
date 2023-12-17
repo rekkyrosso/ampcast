@@ -32,19 +32,20 @@ export default function Playlist({
     const items = useObservable(playlist.observe, []);
     const size = items.length;
     const layout = usePlaylistLayout(size);
-    const currentlyPlaying = useCurrentlyPlaying();
+    const item = useCurrentlyPlaying();
+    const currentId = item?.id;
     const [selectedCount, setSelectedCount] = useState(0);
 
     const itemClassName = useCallback(
         (item: PlaylistItem) => {
             const [service] = item.src.split(':');
-            const playing = item.id === currentlyPlaying?.id;
+            const playing = item.id === currentId;
             const unplayable = item.unplayable || item.lookupStatus === LookupStatus.NotFound;
             return `source-${service} ${playing ? 'playing' : ''} ${
                 unplayable ? 'unplayable' : ''
             }`;
         },
-        [currentlyPlaying]
+        [currentId]
     );
 
     const handleSelect = useCallback(
@@ -73,13 +74,13 @@ export default function Playlist({
 
     const handleDelete = useCallback(
         (items: readonly PlaylistItem[]) => {
-            if (items.length === 1 && items[0] === currentlyPlaying) {
+            if (items.length === 1 && items[0].id === currentId) {
                 onEject?.();
             } else {
                 playlist.remove(items);
             }
         },
-        [onEject, currentlyPlaying]
+        [onEject, currentId]
     );
 
     const handleInfo = useCallback(async ([item]: readonly PlaylistItem[]) => {

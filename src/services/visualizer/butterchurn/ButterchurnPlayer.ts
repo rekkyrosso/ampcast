@@ -62,6 +62,8 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
             this.currentVisualizer = visualizer.name;
             this.cancelAnimation();
             this.visualizer.loadPreset(visualizer.data, 0.5);
+        }
+        if (this.autoplay && !this.animationFrameId) {
             this.render();
         }
     }
@@ -85,6 +87,8 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
     }
 
     resize(width: number, height: number): void {
+        width = Math.round(width);
+        height = Math.round(height);
         this.canvas.width = width;
         this.canvas.height = height;
         this.visualizer.render(); // Need to render at least once before we resize
@@ -93,8 +97,7 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
     }
 
     private clear(): void {
-        const width = this.canvas.width;
-        const height = this.canvas.height;
+        const {width, height} = this.canvas;
         this.context2D.clearRect(0, 0, width, height);
     }
 

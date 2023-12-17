@@ -16,6 +16,18 @@ declare module '*.frag' {
     export = value;
 }
 
+declare module 'colorthief' {
+    export type RGBColor = [number, number, number];
+    export default class ColorThief {
+        getColor: (img: HTMLImageElement | null, quality: number = 10) => RGBColor;
+        getPalette: (
+            img: HTMLImageElement | null,
+            colorCount: number = 10,
+            quality: number = 10
+        ) => RGBColor[] | null;
+    }
+}
+
 declare module 'string-score' {
     export default 'string-score' as (target: string, query: string, fuzziness?: number) => number;
 }

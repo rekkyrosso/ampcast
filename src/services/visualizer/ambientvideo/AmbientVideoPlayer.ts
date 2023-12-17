@@ -8,10 +8,9 @@ import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer'
 import HTML5Player from 'services/players/HTML5Player';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
 import OmniPlayer from 'services/players/OmniPlayer';
-import theme from 'services/theme';
 import {LiteStorage, Logger} from 'utils';
 import visualizerSettings, {observeVisualizerSettings} from '../visualizerSettings';
-import BeatsPlayer from './BeatsPlayer';
+import BeatsPlayer from '../waveform/BeatsPlayer';
 
 const logger = new Logger('AmbientVideoPlayer');
 
@@ -30,7 +29,7 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
 
         observeVisualizerSettings()
             .pipe(
-                map((settings) => settings.beatsOverlay),
+                map((settings) => settings.ambientVideoBeats),
                 distinctUntilChanged(),
                 tap((beatsOverlay) => {
                     this.beatsPlayer.hidden = this.hidden || !beatsOverlay;
@@ -63,7 +62,7 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
 
     set hidden(hidden: boolean) {
         this.videoPlayer.hidden = hidden;
-        this.beatsPlayer.hidden = hidden || !visualizerSettings.beatsOverlay;
+        this.beatsPlayer.hidden = hidden || !visualizerSettings.ambientVideoBeats;
     }
 
     observeCurrentTime(): Observable<number> {
@@ -92,32 +91,32 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
 
     load(visualizer: AmbientVideoVisualizer): void {
         this.videoPlayer.load(visualizer);
-        if (this.autoplay && visualizerSettings.beatsOverlay) {
-            this.beatsPlayer.load();
-        }
+        this.beatsPlayer.load();
     }
 
     play(): void {
+        logger.log('play');
         this.videoPlayer.play();
-        if (visualizerSettings.beatsOverlay) {
+        if (visualizerSettings.ambientVideoBeats) {
             this.beatsPlayer.play();
         }
     }
 
     pause(): void {
+        logger.log('pause');
         this.videoPlayer.pause();
         this.beatsPlayer.pause();
     }
 
     stop(): void {
+        logger.log('stop');
         this.videoPlayer.stop();
         this.beatsPlayer.stop();
     }
 
     resize(width: number, height: number): void {
         this.videoPlayer.resize(width, height);
-        const zoom = document.fullscreenElement ? 20 : 10;
-        this.beatsPlayer.resize(theme.fontSize * zoom, theme.fontSize * zoom * 0.225);
+        this.beatsPlayer.resize(width);
     }
 
     private createVideoPlayer(beatsPlayer: Player<any>): Player<PlayableItem> {
@@ -180,11 +179,11 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
                         ? youtubePlayer.observeCurrentTime().pipe(
                               map(Math.round),
                               distinctUntilChanged(),
-                              // Update storage every 30 seconds
-                              filter((time) => time > 0 && time % 30 === 0),
+                              // Update storage every 20 seconds
+                              filter((time) => time > 0 && time % 20 === 0),
                               withLatestFrom(youtubePlayer.observeDuration()),
                               // Don't bother for short videos
-                              filter(([, duration]) => duration > 600),
+                              filter(([, duration]) => duration > 120),
                               tap(([time]) => {
                                   const key = this.getProgressKey();
                                   const progress = this.storage.getJson<ProgressRecord>(key, {});

@@ -1,12 +1,17 @@
 import {useEffect, useState} from 'react';
-import {debounceTime, fromEvent, tap} from 'rxjs';
+import {debounceTime, fromEvent, merge, tap} from 'rxjs';
 
 export default function useMouseBusy(element: HTMLElement | null, idleTime = 200): boolean {
     const [busy, setBusy] = useState(false);
 
     useEffect(() => {
         if (element) {
-            const subscription = fromEvent<MouseEvent>(element, 'mousemove')
+            const fromMouseEvent = (type: string) => fromEvent<MouseEvent>(element, type);
+            const subscription = merge(
+                fromMouseEvent('mousemove'),
+                fromMouseEvent('mousedown'),
+                fromMouseEvent('mouseup')
+            )
                 .pipe(
                     tap(() => setBusy(true)),
                     debounceTime(idleTime),

@@ -88,6 +88,8 @@ export default class SpotifyVizPlayer extends AbstractVisualizerPlayer<SpotifyVi
             this.cancelAnimation();
             this.config = visualizer.config;
             this.analyser.volumeSmoothing = visualizer.config?.volumeSmoothing ?? 100;
+        }
+        if (this.autoplay && !this.animationFrameId) {
             this.render();
         }
     }
@@ -111,8 +113,8 @@ export default class SpotifyVizPlayer extends AbstractVisualizerPlayer<SpotifyVi
     }
 
     resize(width: number, height: number): void {
-        this.canvas.width = width;
-        this.canvas.height = height;
+        this.canvas.width = Math.round(width);
+        this.canvas.height = Math.round(height);
         this.renderFrame();
     }
 

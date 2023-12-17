@@ -1,5 +1,7 @@
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {timer} from 'rxjs';
+import MediaType from 'types/MediaType';
+import Visualizer from 'types/Visualizer';
 import {
     observeLocked,
     lock,
@@ -15,19 +17,31 @@ import useObservable from 'hooks/useObservable';
 import {showDialog} from 'components/Dialog';
 import {VisualizerSettingsDialog} from 'components/Settings';
 import CurrentlyPlayingDialog from 'components/MediaInfo/CurrentlyPlayingDialog';
-import Static from './Static';
+import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
+import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
+import usePrevious from 'hooks/usePrevious';
+import usePaused from 'hooks/usePaused';
 import useVideoSourceIcon from './useVideoSourceIcon';
-import './Visualizer.scss';
+import MediaButtons from './MediaButtons';
+import ProgressBar from './ProgressBar';
+import Static from './Static';
+import './VisualizerControls.scss';
 
 export default memo(function VisualizerControls() {
     const currentVisualizers = useObservable(observeCurrentVisualizers, []);
+    const currentVisualizer = useCurrentVisualizer();
     const locked = useObservable(observeLocked, false);
-    const providerId = useObservable(observeProviderId, undefined);
+    const providerId = useObservable(observeProviderId, '');
+    const prevProviderId = usePrevious(providerId);
     const hasVisualizers = providerId !== 'none';
     const isRandom = !providerId;
-    const hasNext = !locked && (isRandom || currentVisualizers.length > 1);
-    const videoIcon = useVideoSourceIcon();
+    const canLock = isRandom || currentVisualizers.length > 1;
+    const hasNext = canLock && !locked;
+    const videoSourceIcon = useVideoSourceIcon();
     const [nextClicked, setNextClicked] = useState(0);
+    const paused = usePaused();
+    const isPlayingVideo = useCurrentlyPlaying()?.mediaType === MediaType.Video;
+    const noVisualizerReason = getNoVisualizerReason(currentVisualizer);
 
     const openInfoDialog = useCallback(() => {
         showDialog(CurrentlyPlayingDialog);
@@ -45,6 +59,14 @@ export default memo(function VisualizerControls() {
     }, [nextClicked]);
 
     useEffect(() => {
+        // Don't show static while the page is loading.
+        if (prevProviderId && prevProviderId !== providerId && !isPlayingVideo) {
+            // Changed via Settings.
+            setNextClicked((nextClicked) => nextClicked + 1);
+        }
+    }, [prevProviderId, providerId, isPlayingVideo]);
+
+    useEffect(() => {
         if (nextClicked) {
             const subscription = timer(500).subscribe(() => setNextClicked(0));
             return () => subscription.unsubscribe();
@@ -52,9 +74,9 @@ export default memo(function VisualizerControls() {
     }, [nextClicked]);
 
     return (
-        <div className="visualizer-controls">
-            {hasVisualizers && nextClicked ? <Static /> : null}
-            <IconButtons className="visualizer-controls-settings">
+        <div className="visualizer-controls" style={nextClicked ? {opacity: '1'} : undefined}>
+            {hasVisualizers && nextClicked && !paused ? <Static /> : null}
+            <IconButtons className="visualizer-buttons visualizer-controls-settings">
                 <IconButton
                     className="with-overlay"
                     icon="info"
@@ -71,14 +93,16 @@ export default memo(function VisualizerControls() {
                 />
             </IconButtons>
             {hasVisualizers ? (
-                <IconButtons className="visualizer-controls-selector">
-                    <IconButton
-                        className="with-overlay"
-                        icon={locked ? 'locked' : 'unlocked'}
-                        title={`${locked ? 'Unlock' : 'Lock the current visualizer'}`}
-                        tabIndex={-1}
-                        onClick={locked ? unlock : lock}
-                    />
+                <IconButtons className="visualizer-buttons visualizer-controls-selector">
+                    {canLock ? (
+                        <IconButton
+                            className="with-overlay"
+                            icon={locked ? 'locked' : 'unlocked'}
+                            title={`${locked ? 'Unlock' : 'Lock the current visualizer'}`}
+                            tabIndex={-1}
+                            onClick={locked ? unlock : lock}
+                        />
+                    ) : null}
                     {hasNext ? (
                         <IconButton
                             className="with-overlay"
@@ -90,7 +114,17 @@ export default memo(function VisualizerControls() {
                     ) : null}
                 </IconButtons>
             ) : null}
-            {videoIcon ? <Icon className="source-icon" name={videoIcon} /> : null}
+            <MediaButtons />
+            {videoSourceIcon ? <Icon className="video-source-icon" name={videoSourceIcon} /> : null}
+            <p className="media-state no-visualizer-reason">{noVisualizerReason}</p>
+            <ProgressBar />
         </div>
     );
 });
+
+function getNoVisualizerReason(visualizer: Visualizer | null): string {
+    if (visualizer?.providerId === 'none' && visualizer.reason) {
+        return `visualizer ${visualizer.reason}`;
+    }
+    return '';
+}

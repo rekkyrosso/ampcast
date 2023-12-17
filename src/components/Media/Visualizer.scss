@@ -3,6 +3,10 @@
     inset: 0;
     background: var(--black);
 
+    .media:fullscreen & {
+        background: black;
+    }
+
     &-audiomotion {
         &[hidden] {
             display: block;
@@ -20,61 +24,24 @@
         }
     }
 
-    &-controls {
-        position: absolute;
-        inset: 0;
-        color: white;
-        opacity: 0;
+    &-waveform-beats {
+        inset: auto;
+        bottom: 0.625em;
+        left: 50%;
+        transform: translateX(-50%);
+        background: none;
 
-        &:hover {
-            opacity: 1;
+        .media:fullscreen & {
+            bottom: 0.5em;
+            background: none;
         }
 
-        .icon-button {
-            width: 1.25em;
-            height: 1.25em;
-            opacity: 1;
-            filter: brightness(0.75);
-
-            &:hover {
-                filter: brightness(1);
-            }
+        .media-playback.paused & {
+            display: none;
         }
 
-        .source-icon,
-        &-settings,
-        &-selector {
-            position: absolute;
-        }
-
-        .source-icon {
-            right: 0.375em;
-            bottom: 0.375em;
-            width: 1.5em;
-            height: 1.5em;
-
-            &.icon-apple {
-                fill: white !important;
-            }
-
-            .media-playback.paused & {
-                display: none;
-            }
-        }
-
-        &-settings {
-            right: 0.25em;
-            top: 0.25em;
-        }
-
-        &-selector {
-            left: 0.25em;
-            bottom: 0.25em;
-
-            .media-playback.paused &,
-            .media.is-playing-video & {
-                display: none;
-            }
+        .media:fullscreen:not(.idle):hover & {
+            visibility: hidden;
         }
     }
 }

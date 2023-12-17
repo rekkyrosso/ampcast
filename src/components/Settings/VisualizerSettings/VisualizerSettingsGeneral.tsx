@@ -5,12 +5,14 @@ import DialogButtons from 'components/Dialog/DialogButtons';
 
 export interface VisualizerSettingsGeneralProps {
     providerRef: React.RefObject<HTMLSelectElement>;
+    fullscreenProgressRef: React.RefObject<HTMLInputElement>;
     ambientVideoEnabled: boolean;
     onSubmit: () => void;
 }
 
 export default function VisualizerSettingsGeneral({
     providerRef,
+    fullscreenProgressRef,
     ambientVideoEnabled,
     onSubmit,
 }: VisualizerSettingsGeneralProps) {
@@ -34,6 +36,18 @@ export default function VisualizerSettingsGeneral({
                         ))}
                 </select>
             </p>
+            <fieldset>
+                <legend>Fullscreen</legend>
+                <p>
+                    <input
+                        type="checkbox"
+                        id={`${id}-fullscreen-progress`}
+                        defaultChecked={visualizerSettings.fullscreenProgress}
+                        ref={fullscreenProgressRef}
+                    />
+                    <label htmlFor={`${id}-fullscreen-progress`}>Show progress bar</label>
+                </p>
+            </fieldset>
             <DialogButtons onSubmit={onSubmit} />
         </form>
     );

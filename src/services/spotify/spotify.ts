@@ -175,11 +175,10 @@ const spotifyPlaylists: MediaSource<MediaPlaylist> = {
         const market = getMarket();
         return new SpotifyPager(
             async (offset: number, limit: number): Promise<SpotifyPage> => {
-                const {items, total, next} = await spotifyApi.getUserPlaylists(undefined, {
-                    offset,
-                    limit,
-                    market,
-                });
+                const {items, total, next} = await spotifyApi.getUserPlaylists(
+                    userSettings.getString('userId'),
+                    {offset, limit, market}
+                );
                 return {items: items as SpotifyPlaylist[], total, next};
             },
             undefined,

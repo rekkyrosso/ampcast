@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
 import Visualizer from 'types/Visualizer';
 import VisualizerProviderId from 'types/VisualizerProviderId';
 import {LiteStorage} from 'utils';
@@ -8,11 +8,14 @@ type VisualizerKeys = Pick<Visualizer, 'providerId' | 'name'>;
 
 export interface VisualizerSettings {
     provider: VisualizerProviderId | '';
+    ambientVideoBeats: boolean;
     ambientVideoEnabled: boolean;
     ambientVideoSource: string;
     useAmbientVideoSource: boolean;
+    coverArtAnimatedBackground: boolean;
+    coverArtBeats: boolean;
+    fullscreenProgress: boolean;
     lockedVisualizer: VisualizerKeys | null;
-    beatsOverlay: boolean;
 }
 
 const storage = new LiteStorage('visualizer/settings');
@@ -51,13 +54,13 @@ const visualizerSettings: VisualizerSettings = {
         }
     },
 
-    get beatsOverlay(): boolean {
-        return storage.getBoolean('beatsOverlay', true);
+    get ambientVideoBeats(): boolean {
+        return storage.getBoolean('ambientVideoBeats', true);
     },
 
-    set beatsOverlay(beatsOverlay: boolean) {
-        if (beatsOverlay !== this.beatsOverlay) {
-            storage.setBoolean('beatsOverlay', beatsOverlay);
+    set ambientVideoBeats(ambientVideoBeats: boolean) {
+        if (ambientVideoBeats !== this.ambientVideoBeats) {
+            storage.setBoolean('ambientVideoBeats', ambientVideoBeats);
             settings$.next(this);
         }
     },
@@ -72,6 +75,39 @@ const visualizerSettings: VisualizerSettings = {
             if (this.lockedVisualizer?.providerId === 'ambientvideo') {
                 storage.removeItem('lockedVisualizer');
             }
+            settings$.next(this);
+        }
+    },
+
+    get coverArtAnimatedBackground(): boolean {
+        return storage.getBoolean('coverArtAnimatedBackground');
+    },
+
+    set coverArtAnimatedBackground(coverArtAnimatedBackground: boolean) {
+        if (coverArtAnimatedBackground !== this.coverArtAnimatedBackground) {
+            storage.setBoolean('coverArtAnimatedBackground', coverArtAnimatedBackground);
+            settings$.next(this);
+        }
+    },
+
+    get coverArtBeats(): boolean {
+        return storage.getBoolean('coverArtBeats', true);
+    },
+
+    set coverArtBeats(coverArtBeats: boolean) {
+        if (coverArtBeats !== this.coverArtBeats) {
+            storage.setBoolean('coverArtBeats', coverArtBeats);
+            settings$.next(this);
+        }
+    },
+
+    get fullscreenProgress(): boolean {
+        return storage.getBoolean('fullscreenProgress');
+    },
+
+    set fullscreenProgress(fullscreenProgress: boolean) {
+        if (fullscreenProgress !== this.fullscreenProgress) {
+            storage.setBoolean('fullscreenProgress', fullscreenProgress);
             settings$.next(this);
         }
     },
@@ -111,4 +147,11 @@ export default visualizerSettings;
 
 export function observeVisualizerSettings(): Observable<VisualizerSettings> {
     return settings$;
+}
+
+export function observeFullscreenProgressEnabled(): Observable<boolean> {
+    return observeVisualizerSettings().pipe(
+        map((settings) => settings.fullscreenProgress),
+        distinctUntilChanged()
+    );
 }

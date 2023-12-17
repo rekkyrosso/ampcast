@@ -1,10 +1,4 @@
-// https://www.shadertoy.com/view/7l3yWr
-// Fork of "Fork for Green Plasma Globe" by soundmasteraj. https://shadertoy.com/view/fdGfWR
-// 2022-08-03 21:37:26
-
-// Fork of "Plasma Globe" by nimitz. https://shadertoy.com/view/XsjXRm
-// 2022-07-15 20:56:39
-
+// https://www.shadertoy.com/view/XsjXRm
 // Plasma Globe by nimitz (twitter: @stormoid)
 // https://www.shadertoy.com/view/XsjXRm
 // License Creative Commons Attribution-NonCommercial-ShareAlike 3.0 Unported License
@@ -70,7 +64,7 @@ float sins(in float x)
         rz += abs(fract(x*1.4)-0.5)/z;
         x *= 1.3;
         z *= 1.15;
-        x -= (sin(iTime/3.1415))+time*.65*z; //added sin
+        x -= time*.65*z;
     }
     return rz;
 }
@@ -136,12 +130,10 @@ vec3 vmarch(in vec3 ro, in vec3 rd, in float j, in vec3 orig)
         p += rd*.03;
         float lp = length(p);
 
-        vec3 col = sin(vec3(.05,0.5,1.052)*3.94+r.x)*.85+0.4; // +r.y to +r.x   and changed vec3
-
+        vec3 col = sin(vec3(1.05,2.5,1.52)*3.94+r.y)*.85+0.4;
         col.rgb *= smoothstep(.0,.015,-r.x);
         col *= smoothstep(0.04,.2,abs(lp-1.1));
         col *= smoothstep(0.1,.34,lp);
-
         sum += abs(col)*5. * (1.2-noise(lp*2.+j*13.+time*5.)*1.1) / (log(distance(p,orig)-2.)+.75);
     }
     return sum;
@@ -203,7 +195,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         vec3 rf2 = reflect( rd, pos2 );
         float nz = (-log(abs(flow(rf*1.2,time)-.01)));
         float nz2 = (-log(abs(flow(rf2*1.2,-time)-.01)));
-        col += (0.1*nz*nz* vec3(0.012,0.512,.5) + 0.05*nz2*nz2*vec3(0.0055,0.2,.55))*0.8;
+        col += (0.1*nz*nz* vec3(0.12,0.12,.5) + 0.05*nz2*nz2*vec3(0.55,0.2,.55))*0.8;
     }
 
 	fragColor = vec4(col*1.3, 1.0);

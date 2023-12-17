@@ -7,13 +7,13 @@ import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
 import ServiceType from 'types/ServiceType';
 
 export default function useVideoSourceIcon(): MediaSourceIconName | '' {
-    const media = useCurrentlyPlaying();
+    const item = useCurrentlyPlaying();
     const visualizer = useCurrentVisualizer();
     const [icon, setIcon] = useState<MediaSourceIconName | ''>('');
 
     useEffect(() => {
-        if (media?.mediaType === MediaType.Video) {
-            const service = getServiceFromSrc(media);
+        if (item?.mediaType === MediaType.Video) {
+            const service = getServiceFromSrc(item);
             if (service?.serviceType === ServiceType.PublicMedia) {
                 setIcon(service.id === 'apple' ? 'apple-logo' : service.icon);
             } else {
@@ -27,7 +27,7 @@ export default function useVideoSourceIcon(): MediaSourceIconName | '' {
         } else {
             setIcon('');
         }
-    }, [media, visualizer]);
+    }, [item, visualizer]);
 
     return icon;
 }

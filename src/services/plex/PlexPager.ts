@@ -47,10 +47,9 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         private readonly parent?: ParentOf<T>
     ) {
         this.serviceId = options?.serviceId || 'plex';
-        const isTidal = this.serviceId === 'plex-tidal';
         let pageSize = options?.pageSize;
         if (!pageSize) {
-            if (isTidal) {
+            if (this.isTidal) {
                 pageSize = 50;
             } else {
                 pageSize = plexSettings.connection?.local ? PlexPager.plexMaxPageSize : 200;
@@ -58,7 +57,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         }
         this.pageSize = Math.min(options?.maxSize || Infinity, pageSize);
         const config = {...options, pageSize: this.pageSize};
-        this.pager = isTidal
+        this.pager = this.isTidal
             ? new SequentialPager<T>(() => this.fetchNext(), config)
             : new OffsetPager<T>((pageNumber) => this.fetch(pageNumber), config);
     }
@@ -85,6 +84,10 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
 
     fetchAt(index: number, length: number): void {
         this.pager.fetchAt(index, length);
+    }
+
+    private get isTidal(): boolean {
+        return this.serviceId === 'plex-tidal';
     }
 
     private async fetch(pageNumber: number): Promise<Page<T>> {
@@ -172,17 +175,16 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
                 : track.parentTitle || undefined
             : undefined;
         const fileName = this.getFileName(part?.file) || '[Unknown]';
-        const isTidal = this.serviceId === 'plex-tidal';
 
         return {
             src: `${this.serviceId}:audio:${track.ratingKey}`,
             srcs: track.Media?.map(({Part: [part]}) => part.key),
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
-            playbackType: isTidal ? PlaybackType.DASH : undefined,
+            playbackType: this.isTidal ? PlaybackType.DASH : undefined,
             externalUrl: this.getExternalUrl(`/library/metadata/${track.parentRatingKey}`),
             fileName: fileName,
-            title: title || fileName.replace(/\.\w+/, ''),
+            title: this.fixTrackTitle(title) || fileName.replace(/\.\w+/, ''),
             addedAt: track.addedAt,
             artists: hasMetadata
                 ? track.originalTitle
@@ -204,7 +206,9 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             playCount: track.viewCount,
             genres: track.Genre?.map((genre) => genre.tag),
             thumbnails: this.createThumbnails(
-                (isTidal ? undefined : track.thumb) || track.parentThumb || track.grandparentThumb
+                (this.isTidal ? undefined : track.thumb) ||
+                    track.parentThumb ||
+                    track.grandparentThumb
             ),
             unplayable: part ? undefined : true,
         };
@@ -258,7 +262,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             srcs: video.Media?.map(({Part: [part]}) => part.key),
             itemType: ItemType.Media,
             mediaType: MediaType.Video,
-            playbackType: this.serviceId === 'plex-tidal' ? PlaybackType.HLS : undefined,
+            playbackType: this.isTidal ? PlaybackType.HLS : undefined,
             externalUrl: video.art ? this.getExternalUrl(video.art.replace(/\/art\/\d+$/, '')) : '',
             fileName: this.getFileName(part?.file),
             title: video.title || 'Video',
@@ -312,7 +316,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
 
     private get webHost(): string {
         const host = 'https://app.plex.tv/desktop/#!';
-        if (this.serviceId === 'plex-tidal') {
+        if (this.isTidal) {
             return `${host}/provider/tv.plex.provider.music`;
         } else {
             const clientIdentifier = plexSettings.server?.clientIdentifier;
@@ -330,20 +334,20 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     }
 
     private getInLibrary(object: plex.MusicObject): boolean | undefined {
-        return this.serviceId === 'plex-tidal' ? object.saved : undefined;
+        return this.isTidal ? object.saved : undefined;
     }
 
     private getRating(object: plex.MusicObject): number | undefined {
-        return this.serviceId === 'plex' ? Math.round((object.userRating || 0) / 2) : undefined;
+        return this.isTidal ? undefined : Math.round((object.userRating || 0) / 2);
     }
 
     private createThumbnails(thumb: string): Thumbnail[] | undefined {
         return thumb
             ? [
-                  this.createThumbnail(thumb, 120),
                   this.createThumbnail(thumb, 240),
                   this.createThumbnail(thumb, 360),
                   this.createThumbnail(thumb, 480),
+                  this.createThumbnail(thumb, 800),
               ]
             : undefined;
     }
@@ -375,7 +379,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createArtistAlbumsPager(artist: plex.Artist): Pager<MediaAlbum> {
-        if (this.serviceId === 'plex-tidal') {
+        if (this.isTidal) {
             const albumsPager = this.createPager<MediaAlbum>({path: artist.key});
             const topTracks = this.createArtistTopTracks(artist);
             const videos = this.createArtistVideos(artist);
@@ -470,10 +474,22 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
                 ...this.request,
                 params: undefined,
                 ...request,
-                host: this.serviceId === 'plex-tidal' ? musicProviderHost : request.host,
+                host: this.isTidal ? musicProviderHost : request.host,
             },
             {...options, serviceId: this.serviceId},
             parent
         );
+    }
+
+    private fixTrackTitle(title: string): string {
+        if (title && this.isTidal) {
+            // Remove duplicates.
+            // e.g. "Disorder (2007 Remaster) (2007 Remaster)" => "Disorder (2007 Remaster)"
+            title = title.replace(/(\([^)]*\))\s*\1/g, '$1');
+            // Remove more duplicates.
+            // Specifically: "Disorder (Live at High Wycombe Town Hall, 20th February 1980) [Sound Check] (Live at High Wycombe Town Hall, 20th February 1980; Sound Check)"
+            title = title.replace(/(\([^)]*\)\s*\[[^\]]*\]).*/g, '$1');
+        }
+        return title;
     }
 }

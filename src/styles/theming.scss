@@ -10,6 +10,7 @@
     --background-color-l: 0%;
 
     --background-mark-color: rgba(255, 255, 255, 0.1);
+    --thumbnail-border-color: rgba(255, 255, 255, 0.2);
 
     --text-color-h: 0;
     --text-color-s: 0%;
@@ -142,6 +143,7 @@
 
 .themed.light {
     --background-mark-color: rgba(0, 0, 0, 0.1);
+    --thumbnail-border-color: var(--black);
 
     --grey1-color: hsl(var(--text-color-h),
             calc(var(--text-color-s) * 0.5),
@@ -271,4 +273,16 @@
     --selected-text-color: white;
     --selected-background-color: #0461d0;
     --selected-background-color-blurred: #545454;
+}
+
+.themed.flat {
+    --frame-color-hi: var(--frame-color);
+    --frame-color-lo: var(--frame-color);
+    --frame2-color-hi: var(--frame2-color);
+    --frame2-color-lo: var(--frame2-color);
+    --button-color-hi: var(--button-color);
+    --button-color-lo: var(--button-color);
+    --scrollbar-color-hi: var(--scrollbar-color);
+    --scrollbar-color-lo: var(--scrollbar-color);
+    --media-button-background: var(--media-button-background-flat);
 }

@@ -102,7 +102,8 @@ small {
 }
 
 #popup,
-#system {
+#system,
+#fullscreen-popup {
     position: absolute;
     isolation: isolate;
     width: 100vw;
@@ -121,6 +122,10 @@ small {
 #system {
     contain: layout style size;
     font-size: min(max(calc(var(--font-size) * 1px), 12px), 22px, 3vh);
+}
+
+#fullscreen-popup {
+    font-size: 1.5vw;
 }
 
 body.dragging {

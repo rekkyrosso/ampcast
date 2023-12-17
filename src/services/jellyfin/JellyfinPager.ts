@@ -223,10 +223,10 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         const thumbnailId = item.ImageTags?.Primary ? item.Id : item.AlbumId;
         return thumbnailId
             ? [
-                  this.createThumbnail(thumbnailId, 120),
                   this.createThumbnail(thumbnailId, 240),
                   this.createThumbnail(thumbnailId, 360),
                   this.createThumbnail(thumbnailId, 480),
+                  this.createThumbnail(thumbnailId, 800),
               ]
             : undefined;
     }

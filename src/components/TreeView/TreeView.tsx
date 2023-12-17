@@ -216,11 +216,10 @@ export default function TreeView<T>({
         ({clientHeight}: ScrollableClient) => setHeight(clientHeight),
         []
     );
+
     const handleScroll = useCallback(({top}: ScrollablePosition) => setScrollTop(top), []);
 
-    useOnResize(cursorRef, () => {
-        setRowHeight(cursorRef.current!.getBoundingClientRect().height);
-    });
+    useOnResize(cursorRef, ({height}) => setRowHeight(height), 'border-box');
 
     return (
         <div

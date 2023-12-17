@@ -6,6 +6,7 @@ import ambientvideo from './ambientvideo';
 import ampshader from './ampshader';
 import audiomotion from './audiomotion';
 import butterchurn from './butterchurn';
+import coverart from './coverart';
 import spotifyviz from './spotifyviz';
 import waveform from './waveform';
 import visualizerSettings from './visualizerSettings';
@@ -14,7 +15,7 @@ import {Logger} from 'utils';
 const logger = new Logger('visualizerProviders');
 
 export function getAllVisualizerProviders(): readonly VisualizerProvider<Visualizer>[] {
-    return [ambientvideo, ampshader, audiomotion, butterchurn, spotifyviz, waveform];
+    return [ambientvideo, ampshader, audiomotion, butterchurn, coverart, spotifyviz, waveform];
 }
 
 export function getEnabledVisualizerProviders(): readonly VisualizerProvider<Visualizer>[] {

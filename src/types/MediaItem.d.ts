@@ -19,8 +19,9 @@ export default interface MediaItem extends BaseMediaObject {
     readonly unplayable?: boolean;
     readonly noScrobble?: boolean;
     readonly isrc?: string;
-    readonly recording_mbid?: string; // MusicBrainz ID
-    readonly recording_msid?: string; // MusicBrainz ID
+    readonly recording_mbid?: string;
+    readonly recording_msid?: string;
+    readonly track_mbid?: string;
     readonly release_mbid?: string;
     readonly artist_mbids?: string[];
     readonly fileName?: string;

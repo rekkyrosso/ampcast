@@ -44,16 +44,18 @@ const currentVisualizer$ = new BehaviorSubject<Visualizer>(noVisualizer);
 const nextVisualizerReason$ = new Subject<NextVisualizerReason>();
 
 const randomProviders: VisualizerProviderId[] = [
-    ...Array(75).fill('butterchurn'), // most of the time use this one
+    ...Array(74).fill('butterchurn'), // most of the time use this one
     ...Array(10).fill('ampshader'),
     ...Array(4).fill('audiomotion'),
+    ...Array(1).fill('coverart'),
     ...Array(1).fill('waveform'),
 ];
 
 const spotifyRandomProviders: VisualizerProviderId[] = [
-    ...Array(60).fill('ampshader'), // most of the time use this one
+    ...Array(58).fill('ampshader'), // most of the time use this one
     ...Array(10).fill('butterchurn'),
     ...Array(10).fill('spotifyviz'),
+    ...Array(2).fill('coverart'),
 ];
 
 const randomVideo: VisualizerProviderId[] = Array(10).fill('ambientvideo');
@@ -113,6 +115,7 @@ export function unlock(): void {
 observePlaybackReady()
     .pipe(
         switchMap(() => observeCurrentItem()),
+        distinctUntilChanged((a, b) => a?.id === b?.id),
         debounceTime(200)
     )
     .subscribe(() => nextVisualizer('item'));
@@ -122,7 +125,7 @@ observeCurrentVisualizers().subscribe(() => nextVisualizer('provider'));
 observeNextVisualizerReason()
     .pipe(
         withLatestFrom(observeCurrentItem(), observeVisualizerSettings()),
-        map(([reason, item, settings]) => getNextVisualizer(item, settings, reason))
+        map(([reason, item, settings]) => getNextVisualizer(reason, item, settings))
     )
     .subscribe(currentVisualizer$);
 
@@ -135,27 +138,27 @@ function getCurrentVisualizer(): Visualizer {
 }
 
 function getNextVisualizer(
+    reason: NextVisualizerReason,
     item: PlaylistItem | null,
-    settings: VisualizerSettings,
-    reason: NextVisualizerReason
+    settings: VisualizerSettings
 ): Visualizer {
-    if (!item || item.mediaType === MediaType.Video || item.duration < 30) {
+    if (!item || item.mediaType === MediaType.Video) {
         return noVisualizer;
     }
     const isError = reason === 'error';
     const isSpotify = item.src.startsWith('spotify:');
     const lockedVisualizer = settings.lockedVisualizer;
-    let providerId = lockedVisualizer?.providerId || settings.provider;
+    let providerId: VisualizerProviderId | '' = lockedVisualizer?.providerId || settings.provider;
     switch (providerId) {
         case 'spotifyviz':
             if (!isSpotify) {
-                return noVisualizer; // unsupported
+                return createNoVisualizer(providerId, 'not supported');
             }
             break;
 
         case 'audiomotion':
             if (isSpotify) {
-                return noVisualizer; // unsupported
+                return createNoVisualizer(providerId, 'not supported');
             }
             break;
 
@@ -164,8 +167,9 @@ function getNextVisualizer(
     }
     if (lockedVisualizer) {
         return isError
-            ? noVisualizer // prevent further errors
-            : getVisualizer(lockedVisualizer.providerId, lockedVisualizer.name) || noVisualizer;
+            ? createNoVisualizer(providerId, 'error')
+            : getVisualizer(lockedVisualizer.providerId, lockedVisualizer.name) ||
+                  createNoVisualizer(providerId, 'not found');
     }
     const currentVisualizer = getCurrentVisualizer();
     providerId = settings.provider;
@@ -185,25 +189,33 @@ function getNextVisualizer(
         }
     }
     // Fix for Safari.
-    // If the Web Audio API is not supported for streaming media then
-    // we can't use a visualizer.
+    // If the Web Audio API is not supported for streaming media then we can't use a visualizer.
     if (
         providerId !== 'ambientvideo' &&
         !audio.streamingSupported &&
         (item.playbackType === PlaybackType.DASH || item.playbackType === PlaybackType.HLS)
     ) {
-        return noVisualizer; // unsupported
+        return createNoVisualizer(providerId, 'not supported');
     }
     const visualizers = getVisualizers(providerId);
     if (isError && settings.provider && visualizers.length === 1) {
         // Prevent further errors.
-        return noVisualizer;
+        return createNoVisualizer(providerId, 'error');
     }
     return getRandomValue(visualizers, currentVisualizer) || noVisualizer;
 }
 
+function createNoVisualizer(
+    providerId: VisualizerProviderId | '',
+    reason: NoVisualizer['reason']
+): NoVisualizer {
+    const visualizer = getVisualizerProvider(providerId);
+    const name = visualizer?.name || providerId;
+    return {providerId: 'none', name, reason};
+}
+
 // If the user has locked a visualizer then make sure it loads once it's available.
-function handleLazyLoads(providerId: string, loadCount = 1) {
+function handleLazyLoads(providerId: VisualizerProviderId, loadCount = 1) {
     getVisualizerProvider(providerId)
         ?.observeVisualizers()
         .pipe(

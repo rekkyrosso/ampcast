@@ -1,54 +1,49 @@
 import {useEffect, useState} from 'react';
-import {Subscription, take} from 'rxjs';
-import LookupStatus from 'types/LookupStatus';
-import {observeError, observePlaying} from 'services/mediaPlayback';
-import {isPlayableSrc} from 'services/mediaServices';
-import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
+import MediaType from 'types/MediaType';
+import {observePlaybackState} from 'services/mediaPlayback/playback';
+import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
+import useObservable from 'hooks/useObservable';
 
-export type InterstitialState = 'searching' | 'loading' | 'playing' | 'error';
+export type InterstitialState = 'show' | 'hide' | 'fade-out';
 
 export default function useInterstitialState(): InterstitialState {
-    const [state, setState] = useState<InterstitialState>('searching');
-    const item = useCurrentlyPlaying();
-    const src = item?.src;
-    const lookupStatus = item?.lookupStatus;
-
-    useEffect(() => setState('searching'), [item?.id]);
+    const [state, setState] = useState<InterstitialState>('show');
+    const playbackState = useObservable(observePlaybackState, null);
+    const paused = playbackState?.paused ?? true;
+    const item = playbackState?.currentItem;
+    const currentTime = playbackState?.currentTime || 0;
+    const isPlayingVideo = item?.mediaType === MediaType.Video;
+    const visualizerProvider = useCurrentVisualizer()?.providerId || 'none';
+    const [isNewItem, setIsNewItem] = useState(true);
+    const loaded = currentTime > 0;
 
     useEffect(() => {
-        switch (lookupStatus) {
-            case LookupStatus.Looking:
-                setState('searching');
-                break;
-
-            case LookupStatus.NotFound:
-                setState('error');
-                break;
-
-            default:
-                if (src) {
-                    if (isPlayableSrc(src)) {
-                        setState('loading');
-                        const subscription = new Subscription();
-                        subscription.add(
-                            observePlaying()
-                                .pipe(take(1))
-                                .subscribe(() => setState('playing'))
-                        );
-                        subscription.add(
-                            observeError()
-                                .pipe(take(1))
-                                .subscribe(() => setState('error'))
-                        );
-                        return () => subscription.unsubscribe();
-                    } else {
-                        setState('searching');
-                    }
-                } else {
-                    setState('playing');
-                }
+        setIsNewItem(true);
+        if (loaded) {
+            const timerId = setTimeout(() => setIsNewItem(false), 10_000);
+            return () => clearTimeout(timerId);
         }
-    }, [src, lookupStatus]);
+    }, [loaded]);
+
+    useEffect(() => {
+        if (paused) {
+            setState('show');
+        } else if (visualizerProvider === 'coverart' && !isPlayingVideo) {
+            setState('hide');
+        } else if (visualizerProvider === 'none' && !isPlayingVideo) {
+            setState('show');
+        } else {
+            if (loaded) {
+                if (isNewItem) {
+                    setState('fade-out');
+                } else {
+                    setState('hide');
+                }
+            } else {
+                setState('show');
+            }
+        }
+    }, [paused, visualizerProvider, isPlayingVideo, loaded, isNewItem]);
 
     return state;
 }

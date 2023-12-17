@@ -14,13 +14,14 @@ import './MediaPlayback.scss';
 
 export default memo(function MediaPlayback() {
     const listViewRef = useRef<ListViewHandle>(null);
-    const currentlyPlaying = useCurrentlyPlaying();
+    const item = useCurrentlyPlaying();
+    const currentId = item?.id;
     const paused = usePaused();
 
     // Caused by interaction with the playlist.
     const handlePlay = useCallback(
         (item: PlaylistItem) => {
-            if (item === currentlyPlaying) {
+            if (item.id === currentId) {
                 mediaPlayback.play();
             } else {
                 mediaPlayback.load(null);
@@ -28,7 +29,7 @@ export default memo(function MediaPlayback() {
                 playlist.setCurrentItem(item);
             }
         },
-        [currentlyPlaying]
+        [currentId]
     );
 
     return (

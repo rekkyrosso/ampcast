@@ -405,9 +405,7 @@ export default function ListView<T>({
         setScrollTop(top);
     }, []);
 
-    useOnResize(cursorRef, () => {
-        setRowHeight(cursorRef.current!.getBoundingClientRect().height);
-    });
+    useOnResize(cursorRef, ({height}) => setRowHeight(height), 'border-box');
 
     // TODO: This should probably be on `MediaList`.
     useEffect(() => {

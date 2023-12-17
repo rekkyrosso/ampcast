@@ -119,6 +119,8 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
             genres: song.genres?.map((genre) => genre.name),
             thumbnails: this.createThumbnails(song.albumId),
             recording_mbid: song.mbzTrackId,
+            release_mbid: song.mbzAlbumId,
+            track_mbid: song.mbzReleaseTrackId,
         };
     }
 
@@ -196,10 +198,10 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
     private createThumbnails(id: string): Thumbnail[] | undefined {
         return id
             ? [
-                  this.createThumbnail(id, 120),
                   this.createThumbnail(id, 240),
                   this.createThumbnail(id, 360),
                   this.createThumbnail(id, 480),
+                  this.createThumbnail(id, 800),
               ]
             : undefined;
     }

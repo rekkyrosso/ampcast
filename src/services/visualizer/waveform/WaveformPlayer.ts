@@ -59,10 +59,13 @@ export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVis
     }
 
     load(visualizer: WaveformVisualizer): void {
+        this.logger.log('load', visualizer.name);
         if (this.currentVisualizer !== visualizer.name) {
             this.currentVisualizer = visualizer.name;
             this.cancelAnimation();
             this.config = visualizer.config;
+        }
+        if (this.autoplay && !this.animationFrameId) {
             this.render();
         }
     }
@@ -86,8 +89,8 @@ export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVis
     }
 
     resize(width: number, height: number): void {
-        this.canvas.width = width;
-        this.canvas.height = height;
+        this.canvas.width = Math.round(width);
+        this.canvas.height = Math.round(height);
         this.renderFrame();
     }
 

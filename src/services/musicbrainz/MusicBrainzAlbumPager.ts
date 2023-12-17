@@ -69,6 +69,7 @@ export default class MusicBrainzAlbumPager implements Pager<MediaItem> {
             duration: track.length / 1000 || 0,
             track: track.number ? Number(track.number) : undefined,
             recording_mbid: mbid,
+            track_mbid: track.id,
             release_mbid: this.release_mbid,
             year:
                 album?.year ||

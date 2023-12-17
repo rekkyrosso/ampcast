@@ -20,9 +20,11 @@ export interface CoverArtProps {
     className?: string;
     item: MediaObject;
     size?: number;
+    onLoad?: (src: string) => void;
+    onError?: () => void;
 }
 
-export default function CoverArt({item, size, className = ''}: CoverArtProps) {
+export default function CoverArt({item, size, className = '', onLoad, onError}: CoverArtProps) {
     const [inError, setInError] = useState(false);
     const [thumbnails, setThumbnails] = useState(() => item.thumbnails);
     const hasThumbnails = !!thumbnails?.length;
@@ -31,23 +33,42 @@ export default function CoverArt({item, size, className = ''}: CoverArtProps) {
     const fallbackIcon = getFallbackIcon(item);
     const overlayIcon = item.itemType === ItemType.Album && getOverlayIcon(item);
 
-    useEffect(() => setThumbnails(item.thumbnails), [item.thumbnails]);
+    useEffect(() => {
+        setInError(false);
+        setThumbnails(item.thumbnails);
+    }, [item.thumbnails]);
 
     useEffect(() => {
         if (!hasThumbnails) {
             if (item.itemType === ItemType.Media) {
                 const listen = findListen(item);
-                if (listen && listen.thumbnails) {
+                const hasThumbnail = !!listen?.thumbnails?.[0];
+                if (hasThumbnail) {
                     setThumbnails(listen.thumbnails);
                     return;
                 }
             }
-            const subscription = from(lookupThumbnails(item)).subscribe(setThumbnails);
+            const subscription = from(lookupThumbnails(item)).subscribe((thumbnails) => {
+                if (thumbnails?.[0]) {
+                    setThumbnails(thumbnails);
+                } else {
+                    setInError(true);
+                    onError?.();
+                }
+            });
             return () => subscription.unsubscribe();
         }
-    }, [hasThumbnails, item]);
+    }, [hasThumbnails, item, onError]);
 
-    const handleError = useCallback(() => setInError(true), []);
+    const handleError = useCallback(() => {
+        setInError(true);
+        onError?.();
+    }, [onError]);
+
+    const handleLoad = useCallback(() => {
+        setInError(false);
+        onLoad?.(src);
+    }, [onLoad, src]);
 
     return (
         <figure
@@ -61,6 +82,7 @@ export default function CoverArt({item, size, className = ''}: CoverArtProps) {
                         src={src}
                         alt={`${item.title}: Cover art`}
                         onError={handleError}
+                        onLoad={handleLoad}
                     />
                     {overlayIcon ? (
                         <div className="cover-art-icon-overlay">

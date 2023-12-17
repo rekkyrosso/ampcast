@@ -1,0 +1,112 @@
+.visualizer-controls {
+    position: absolute;
+    inset: 0;
+    color: white;
+
+    .media:fullscreen.idle & {
+        visibility: hidden;
+    }
+
+    .icon-button {
+        width: 1.25em;
+        height: 1.25em;
+        filter: brightness(0.75);
+
+        &:hover {
+            filter: brightness(1);
+        }
+    }
+
+    .visualizer-buttons,
+    .media-buttons,
+    .video-source-icon {
+        position: absolute;
+    }
+
+    &-settings {
+        right: 0.25em;
+        top: 0.25em;
+    }
+
+    .media-buttons {
+        bottom: 0.5em;
+        left: 50%;
+        transform: translateX(-50%);
+
+        .icon-button {
+            font-size: 0.625em;
+            padding: 0.625em;
+            width: 1em;
+            height: 1em;
+        }
+    }
+
+    &-selector {
+        left: 0.25em;
+        bottom: 0.375em;
+
+        .media-playback.paused &,
+        .media.is-playing-video & {
+            display: none;
+        }
+    }
+
+    .video-source-icon {
+        right: 0.375em;
+        bottom: 0.375em;
+        width: 1.5em;
+        height: 1.5em;
+
+        .media:fullscreen & {
+            font-size: 0.75em;
+        }
+
+        &.icon-apple {
+            fill: white !important;
+        }
+
+        .media-playback.paused & {
+            display: none;
+        }
+    }
+
+    .no-visualizer-reason {
+        .media:fullscreen & {
+            bottom: 0.875rem;
+        }
+    }
+
+    .progress-bar {
+        .is-showing-cover-art & {
+            display: none;
+        }
+    }
+
+    /* Show buttons on hover. */
+
+    .visualizer-buttons,
+    .media-buttons,
+    .video-source-icon,
+    .no-visualizer-reason,
+    .progress-bar {
+        visibility: hidden;
+    }
+
+    &:hover {
+        .visualizer-buttons,
+        .video-source-icon {
+            visibility: inherit;
+        }
+    }
+
+    .media:fullscreen &:hover {
+        .media-buttons,
+        .progress-bar {
+            visibility: inherit;
+        }
+    }
+
+    .media.loaded.no-visualizer &:hover .no-visualizer-reason {
+        visibility: inherit;
+    }
+}

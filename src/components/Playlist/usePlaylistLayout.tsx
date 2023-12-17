@@ -22,7 +22,8 @@ const playlistLayout: ListViewLayout<PlaylistItem> = {
 };
 
 export default function usePlaylistLayout(size: number): ListViewLayout<PlaylistItem> {
-    const currentlyPlaying = useCurrentlyPlaying();
+    const item = useCurrentlyPlaying();
+    const currentId = item?.id;
     const paused = usePaused();
     const sizeExponent = String(size).length;
     const {zeroPadLineNumbers, showLineNumbers, showSourceIcons} = useObservable(
@@ -55,7 +56,7 @@ export default function usePlaylistLayout(size: number): ListViewLayout<Playlist
                                     rowIndex,
                                     zeroPadLineNumbers ? sizeExponent : 0
                                 );
-                                if (item.id === currentlyPlaying?.id) {
+                                if (item.id === currentId) {
                                     return (
                                         <>
                                             <Icon name={paused ? 'pause' : 'play'} />
@@ -72,14 +73,7 @@ export default function usePlaylistLayout(size: number): ListViewLayout<Playlist
                     }
                 }),
         };
-    }, [
-        zeroPadLineNumbers,
-        showLineNumbers,
-        showSourceIcons,
-        sizeExponent,
-        currentlyPlaying,
-        paused,
-    ]);
+    }, [zeroPadLineNumbers, showLineNumbers, showSourceIcons, sizeExponent, currentId, paused]);
 }
 
 function RowNumber(rowIndex: number, numberOfDigits = 0) {

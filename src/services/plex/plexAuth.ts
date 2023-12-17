@@ -1,11 +1,10 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, Subject, distinctUntilChanged, filter, mergeMap} from 'rxjs';
-import {exists, getSupportedDrm, Logger} from 'utils';
+import {getSupportedDrm, Logger, partition} from 'utils';
 import plexSettings from './plexSettings';
-import plexApi, {musicProviderHost} from './plexApi';
+import plexApi, {apiHost, musicProviderHost} from './plexApi';
 
 const logger = new Logger('plexAuth');
-const apiHost = `https://plex.tv/api/v2`;
 
 const serverToken$ = new BehaviorSubject('');
 const isLoggedIn$ = new BehaviorSubject(false);
@@ -142,11 +141,11 @@ async function obtainServerToken(): Promise<{id: string; serverToken: string}> {
 }
 
 async function establishConnection(authToken: string): Promise<void> {
-    const connection = plexSettings.connection;
-    if (connection) {
+    const {server, connection} = plexSettings;
+    if (server && connection) {
         const connectionType = connection.local ? 'local' : 'public';
         connectionStatus$.next(`Trying existing ${connectionType} connection...`);
-        if (await testConnection(connection, plexSettings.serverToken)) {
+        if (await testConnection(server, connection)) {
             return;
         } else {
             plexSettings.server = null;
@@ -156,16 +155,7 @@ async function establishConnection(authToken: string): Promise<void> {
 
     connectionStatus$.next(`Searching for ${connection ? 'a new' : 'a'} connection...`);
 
-    const fetchResources = async function (): Promise<plex.Device[]> {
-        return plexApi.fetchJSON({
-            host: apiHost,
-            path: '/resources',
-            params: {includeHttps: '1'},
-            token: authToken,
-        });
-    };
-    const resources = await fetchResources();
-    const servers = resources.filter((resource) => resource.provides === 'server');
+    const servers = await plexApi.getServers(authToken);
 
     if (servers.length === 0) {
         const message = 'Could not find a Plex server';
@@ -174,19 +164,10 @@ async function establishConnection(authToken: string): Promise<void> {
     }
 
     for (const server of servers) {
-        // TODO: Allow server choices...
-        const attempts = await Promise.all([
-            ...server.connections.map((connection) =>
-                testConnection(connection, server.accessToken)
-            ),
-        ]);
-        const connections = attempts.filter(exists);
-        if (connections.length > 0) {
-            // TODO: Allow connection choices...
-            const connection = connections.find((connection) => connection.local) || connections[0];
+        const connection = await getConnection(server);
+        if (connection) {
             plexSettings.server = server;
             plexSettings.connection = connection;
-            connectionStatus$.next(`Using ${connection.local ? 'local' : 'public'} connection`);
             return;
         }
     }
@@ -196,25 +177,35 @@ async function establishConnection(authToken: string): Promise<void> {
     throw Error(message);
 }
 
-async function testConnection(
-    connection: plex.Connection,
-    token: string
-): Promise<plex.Connection | null> {
+export async function getConnection(server: plex.Device): Promise<plex.Connection | null> {
+    // Prefer local connections.
+    const connections = partition(server.connections, (connection) => connection.local).flat();
+    for (const connection of connections) {
+        const canConnect = await testConnection(server, connection);
+        if (canConnect) {
+            return connection;
+        }
+    }
+    return null;
+}
+
+async function testConnection(server: plex.Device, connection: plex.Connection): Promise<boolean> {
+    const name = server.name;
     const connectionType = connection.local ? 'local' : 'public';
     try {
         await plexApi.fetch({
             host: connection.uri,
             path: '/',
             method: 'HEAD',
-            token,
+            token: server.accessToken,
             timeout: 3000,
         });
-        connectionStatus$.next(`${connectionType} connection successful`);
-        return connection;
+        connectionStatus$.next(`(${name}) ${connectionType} connection successful`);
+        return true;
     } catch (err) {
-        connectionStatus$.next(`${connectionType} connection failed`);
-        return null;
+        connectionStatus$.next(`(${name}) ${connectionType} connection failed`);
     }
+    return false;
 }
 
 observeServerToken()
@@ -232,7 +223,6 @@ async function checkConnection(): Promise<boolean> {
             checkTidalSubscription(),
         ]);
         plexSettings.libraries = libraries;
-        connectionStatus$.next('Connected successfully');
         return true;
     } catch (err: any) {
         if (err.status === 401) {
@@ -279,6 +269,8 @@ async function checkTidalSubscription(): Promise<void> {
     }
 }
 
-observeConnectionStatus().subscribe(logger.rx());
+observeConnectionStatus()
+    .pipe(filter((status) => status !== ''))
+    .subscribe(logger.rx());
 
 serverToken$.next(plexSettings.serverToken);

@@ -5,6 +5,7 @@ import BaseVisualizer from './BaseVisualizer';
 
 export interface NoVisualizer extends BaseVisualizer {
     providerId: 'none';
+    reason?: 'not found' | 'not supported' | 'error';
 }
 
 export interface AmbientVideoVisualizer extends BaseVisualizer {
@@ -27,6 +28,10 @@ export interface ButterchurnVisualizer extends BaseVisualizer {
     data: MilkdropRawData;
 }
 
+export interface CoverArtVisualizer extends BaseVisualizer {
+    providerId: 'coverart';
+}
+
 export interface SpotifyVizVisualizer extends BaseVisualizer {
     providerId: 'spotifyviz';
     config: SpotifyVizConfig;
@@ -43,6 +48,7 @@ type Visualizer =
     | AmpShaderVisualizer
     | AudioMotionVisualizer
     | ButterchurnVisualizer
+    | CoverArtVisualizer
     | SpotifyVizVisualizer
     | WaveformVisualizer;
 

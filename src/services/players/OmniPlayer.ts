@@ -137,6 +137,7 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
         this.player$.next(null); // turn off event streams
 
         if (prevPlayer && prevPlayer !== nextPlayer) {
+            prevPlayer.autoplay = false;
             prevPlayer.muted = true;
             prevPlayer.hidden = true;
             prevPlayer.stop();
@@ -196,7 +197,6 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
     }
 
     registerPlayers(players: readonly Player<S>[]): void {
-        const shouldResize = this.#width * this.#height > 0;
         players
             .filter((player) => !this.players.includes(player))
             .forEach((player) => {
@@ -205,7 +205,7 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
                 player.autoplay = this.autoplay;
                 player.loop = this.loop;
                 player.volume = this.volume;
-                if (shouldResize) {
+                if (this.#width * this.#height > 0) {
                     player.resize(this.#width, this.#height);
                 }
                 player.appendTo(this.element);
@@ -214,7 +214,10 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
     }
 
     unregisterPlayers(players: readonly Player<S>[]): void {
-        const [removed, remaining] = partition(this.players, (player) => players.includes(player));
+        const playersToRemove = players.filter((player) => this.players.includes(player));
+        const [removed, remaining] = partition(this.players, (player) =>
+            playersToRemove.includes(player)
+        );
         removed.forEach((player) => player.stop());
         this.players.length = 0;
         this.players.push(...remaining);

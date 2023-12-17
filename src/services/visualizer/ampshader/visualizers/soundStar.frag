@@ -1,4 +1,5 @@
 // https://www.shadertoy.com/view/sdjGWG
+/* NOT CURRENTLY USED */
 #define PI 3.14159
 
 float expStep( float x, float k, float n )

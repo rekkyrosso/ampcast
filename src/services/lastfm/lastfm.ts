@@ -11,6 +11,7 @@ import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
+import {getTextFromHtml} from 'utils';
 import lastfmApi from './lastfmApi';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './lastfmAuth';
 import LastFmPager from './LastFmPager';
@@ -188,17 +189,26 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     if (!track || 'error' in track) {
         throw Error((track as any)?.message || 'Not found');
     } else {
-        const albumData: Partial<Writable<MediaItem>> = {};
-        if (track.album) {
-            albumData.album = track.album.title;
-            albumData.albumArtist = track.album.artist;
+        const metadata: Partial<Writable<MediaItem>> = {};
+        const {album, wiki} = track;
+        if (album) {
+            metadata.album = album.title;
+            metadata.albumArtist = album.artist;
             if (!item.thumbnails) {
-                albumData.thumbnails = lastfmApi.createThumbnails(track.album.image);
+                metadata.thumbnails = lastfmApi.createThumbnails(album.image);
             }
+        }
+        if (!item.description && wiki) {
+            metadata.description = getTextFromHtml(wiki.content || wiki.summary);
+        }
+        if (!item.year && wiki) {
+            metadata.year = wiki.published
+                ? new Date(wiki.published).getFullYear() || undefined
+                : undefined;
         }
         return {
             ...item,
-            ...albumData,
+            ...metadata,
             inLibrary: actionsStore.getInLibrary(item, !!Number(track.userloved)),
             playCount: Number(track.userplaycount) || 0,
             globalPlayCount: Number(track.playcount) || 0,

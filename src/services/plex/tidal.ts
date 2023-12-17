@@ -333,19 +333,24 @@ async function lookup(
     limit = 10,
     timeout?: number
 ): Promise<readonly MediaItem[]> {
-    if (!plexSettings.hasTidal) {
+    if (!plexSettings.hasTidal || !artist || !title) {
         return [];
     }
-    if (!artist || !title) {
-        return [];
+    artist = artist.replace(/\s*([,;&|/×]|ft\.|feat\.?)\s*/, ' '); // splitters
+    const search = async (query: string) =>
+        fetchFirstPage<MediaItem>(
+            createSearchPager(plexItemType.Track, query, limit, {
+                lookup: true,
+                maxSize: limit,
+            }),
+            {timeout}
+        );
+
+    let items = await search(`${artist} ${title}`);
+    if (items.length === 0) {
+        items = await search(title);
     }
-    return fetchFirstPage(
-        createSearchPager(plexItemType.Track, `${artist} ${title}`, 50, {
-            lookup: true,
-            maxSize: limit,
-        }),
-        {timeout}
-    );
+    return items;
 }
 
 async function store(item: MediaObject, inLibrary: boolean): Promise<void> {

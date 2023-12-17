@@ -19,14 +19,16 @@ export default function PersonalMediaLibrarySettings({service}: PersonalMediaLib
 
     return (
         <form className="personal-media-library-settings" method="dialog" onSubmit={handleSubmit}>
-            <label htmlFor={`${id}-libraries`}>Preferred Library:</label>
-            <select id={`${id}-libraries`} defaultValue={preferredLibraryId} ref={ref}>
-                {libraries.map(({id, title}) => (
-                    <option value={id} key={id}>
-                        {title}
-                    </option>
-                ))}
-            </select>
+            <p>
+                <label htmlFor={`${id}-libraries`}>Preferred Library:</label>
+                <select id={`${id}-libraries`} defaultValue={preferredLibraryId} ref={ref}>
+                    {libraries.map(({id, title}) => (
+                        <option value={id} key={id}>
+                            {title}
+                        </option>
+                    ))}
+                </select>
+            </p>
             <DialogButtons />
         </form>
     );

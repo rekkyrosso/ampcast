@@ -15,7 +15,11 @@ export default async function showDialog(
                 rootElement.remove();
                 resolve(returnValue);
             };
-            document.getElementById(system ? 'system' : 'popup')!.append(rootElement);
+            document
+                .getElementById(
+                    document.fullscreenElement ? 'fullscreen-popup' : system ? 'system' : 'popup'
+                )!
+                .append(rootElement);
             root.render(<Dialog onClose={close} />);
         } catch (err) {
             root.unmount();

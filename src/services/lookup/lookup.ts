@@ -1,7 +1,9 @@
 import unidecode from 'unidecode';
 import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
+import PlaylistItem from 'types/PlaylistItem';
 import {findListen} from 'services/localdb/listens';
+import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import {
     getLookupServices,
     getService,
@@ -18,27 +20,30 @@ const logger = new Logger('lookup');
 
 let lastFoundServiceId = '';
 
-export default async function lookup<T extends MediaItem>(item: T): Promise<MediaItem | undefined> {
+export default async function lookup<T extends PlaylistItem>(
+    item: T
+): Promise<MediaItem | undefined> {
+    if (!item) {
+        return;
+    }
+    if (hasPlayableSrc(item)) {
+        return item;
+    }
+    let foundItem: MediaItem | undefined;
+    dispatchLookupStartEvent(item);
     try {
-        if (!item) {
-            return;
-        }
-        if (hasPlayableSrc(item)) {
-            return item;
-        }
-        dispatchLookupStartEvent(item);
-        const foundItem = await lookupMediaItem(item);
+        foundItem = await lookupMediaItem(item);
         if (foundItem) {
             [lastFoundServiceId] = foundItem.src.split(':');
         }
-        dispatchLookupEndEvent(item, foundItem);
-        return foundItem;
     } catch (err) {
         logger.error(err);
     }
+    dispatchLookupEndEvent(item, foundItem);
+    return foundItem;
 }
 
-async function lookupMediaItem<T extends MediaItem>(item: T): Promise<MediaItem | undefined> {
+async function lookupMediaItem<T extends PlaylistItem>(item: T): Promise<MediaItem | undefined> {
     const listen = findListen(item);
     if (listen) {
         if (canPlayNow(listen)) {
@@ -55,41 +60,36 @@ async function lookupMediaItem<T extends MediaItem>(item: T): Promise<MediaItem 
     }
 
     let matches: readonly MediaItem[] = [];
+    let isrcs: readonly string[] = [];
+
+    if (item.recording_mbid || (item.release_mbid && item.track_mbid)) {
+        isrcs = await musicbrainzApi.getISRCs(item);
+    }
 
     const {artist, title} = getArtistAndTitle(item);
     if (artist && title) {
         const service = getServiceFromSrc(link);
         if (service) {
-            matches = await serviceLookup(service, item);
+            matches = await serviceLookup(service, item, isrcs);
             if (matches.length === 0 && (service.id === 'plex' || service.id === 'tidal')) {
                 const plexTidal = getService('plex-tidal');
                 if (plexTidal) {
-                    matches = await serviceLookup(plexTidal, item);
+                    matches = await serviceLookup(plexTidal, item, isrcs);
                 }
             }
         }
         if (matches.length === 0) {
-            matches = await multiLookup(item, service);
+            matches = await multiLookup(item, isrcs, service);
         }
     }
 
-    return findBestMatch(matches, item) || listen || linkedItem;
+    return findBestMatch(matches, item, isrcs) || listen || linkedItem;
 }
 
-function canPlayNow<T extends MediaItem>(item: T): boolean {
-    if (isAlwaysPlayableSrc(item.src)) {
-        return true;
-    }
-    const service = getServiceFromSrc(item);
-    if (service?.isLoggedIn()) {
-        return true;
-    }
-    return false;
-}
-
-async function serviceLookup<T extends MediaItem>(
+async function serviceLookup<T extends PlaylistItem>(
     service: MediaService,
-    item: T
+    item: T,
+    isrcs: readonly string[]
 ): Promise<readonly MediaItem[]> {
     try {
         if (!service.lookup) {
@@ -98,7 +98,7 @@ async function serviceLookup<T extends MediaItem>(
         const {artist, title} = getArtistAndTitle(item);
         if (service.isLoggedIn()) {
             const searchString = (q: string): string =>
-                normalize(q)
+                String(q)
                     .replace(/[([].*$/, '')
                     .replace(/['"]/g, ' ')
                     .replace(/\s\s+/g, ' ');
@@ -109,7 +109,7 @@ async function serviceLookup<T extends MediaItem>(
                 10,
                 2000
             );
-            return findMatches(matches, item);
+            return findMatches(matches, item, isrcs);
         }
     } catch (err) {
         logger.error(err);
@@ -117,8 +117,9 @@ async function serviceLookup<T extends MediaItem>(
     return [];
 }
 
-async function multiLookup<T extends MediaItem>(
+async function multiLookup<T extends PlaylistItem>(
     item: T,
+    isrcs: readonly string[],
     excludedService?: MediaService
 ): Promise<readonly MediaItem[]> {
     const services = getLookupServices().filter(
@@ -128,7 +129,7 @@ async function multiLookup<T extends MediaItem>(
         return [];
     } else {
         const matches = await Promise.all([
-            ...services.map((service) => serviceLookup(service, item)),
+            ...services.map((service) => serviceLookup(service, item, isrcs)),
         ]);
         return matches.flat();
     }
@@ -136,13 +137,14 @@ async function multiLookup<T extends MediaItem>(
 
 export function findBestMatch<T extends MediaItem>(
     items: readonly MediaItem[],
-    item: T
+    item: T,
+    isrcs: readonly string[] = []
 ): MediaItem | undefined {
     const {artist, title} = getArtistAndTitle(item);
     if (!artist || !title) {
         return;
     }
-    let matches = findMatches(items, item);
+    let matches = findMatches(items, item, isrcs);
     matches = filterNotEmpty(matches, (match) => compareAlbum(match, item));
     if (lookupSettings.preferPersonalMedia) {
         matches = filterNotEmpty(matches, (match) => {
@@ -156,20 +158,43 @@ export function findBestMatch<T extends MediaItem>(
     return matches[0];
 }
 
-function findMatches<T extends MediaItem>(items: readonly MediaItem[], item: T): MediaItem[] {
-    let matches = items.filter((match) => compare(match, item, true));
+function findMatches<T extends MediaItem>(
+    items: readonly MediaItem[],
+    item: T,
+    isrcs: readonly string[]
+): MediaItem[] {
+    let matches: MediaItem[] = [];
+    if (isrcs.length > 0) {
+        matches = items.filter((match) => match.isrc && isrcs.includes(match.isrc));
+    }
+    if (matches.length === 0) {
+        matches = items.filter((match) => compare(match, item, true));
+    }
     if (matches.length === 0) {
         matches = items.filter((match) => compare(match, item, false));
     }
     return matches;
 }
 
-const regFeaturedArtists = /\s*(feat\.|[([]?\s?feat[\s.]).*$/i;
+const regFeaturedArtists = /\s*(feat\.|ft\.|[([]?\s?(feat|ft)[\s.]).*$/i;
 
 function compare<T extends MediaItem>(match: MediaItem, item: T, strict: boolean): boolean {
+    if (compareByUniqueId(match, item)) {
+        return true;
+    }
     return (
-        (compareTitle(match, item, strict) || compareAlbumTrack(match, item)) &&
-        compareArtist(match, item, strict)
+        compareArtist(match, item, strict) &&
+        (compareTitle(match, item, strict) || compareAlbumTrack(match, item))
+    );
+}
+
+function compareByUniqueId<T extends MediaItem>(match: MediaItem, item: T): boolean {
+    return !!(
+        (item.isrc && item.isrc === match.isrc) ||
+        (item.recording_mbid && item.recording_mbid === match.recording_mbid) ||
+        (item.track_mbid &&
+            item.release_mbid === match.release_mbid &&
+            item.track_mbid === match.track_mbid)
     );
 }
 
@@ -205,23 +230,27 @@ function compareArtist<T extends MediaItem>(match: MediaItem, item: T, strict: b
     if (compareString(removeFeaturedArtists(artist), match.albumArtist)) {
         return true;
     }
-    const joiners = ',;&|/'
-        .split('')
-        .map((j) => [j, `${j} `, ` ${j} `])
-        .flat();
-    for (const joiner of joiners) {
-        const [matchedArtist] = matchedArtists[0].split(joiner);
-        if (compareString(artist, matchedArtist)) {
-            return true;
-        }
-        if (matchedArtists.length > 1) {
-            const matchedArtist = matchedArtists.join(joiner);
-            if (compareString(artist, matchedArtist)) {
-                return true;
-            }
-        }
+    if (compareMultiArtist(match, item)) {
+        return true;
     }
     return false;
+}
+
+function compareMultiArtist<T extends MediaItem>(match: MediaItem, item: T): boolean {
+    const artists = splitArtists(item.artists!);
+    const matchedArtists = splitArtists(match.artists!);
+    if (matchedArtists.length > 1 || artists.length > 1) {
+        return (
+            artists.filter((artist) =>
+                matchedArtists.find((match) => compareString(normalize(artist), normalize(match)))
+            ).length > 0
+        );
+    }
+    return false;
+}
+
+function splitArtists(artists: readonly string[]): readonly string[] {
+    return artists.join('|').split(/\s*[,;&|/×]\s*/);
 }
 
 function compareAlbumTrack<T extends MediaItem>(match: MediaItem, item: T): boolean {
@@ -240,7 +269,7 @@ function compareAlbumTrack<T extends MediaItem>(match: MediaItem, item: T): bool
 }
 
 function compareTitle<T extends MediaItem>(match: MediaItem, item: T, strict: boolean): boolean {
-    let title = item.title;
+    const title = item.title;
     if (!title) {
         return false;
     }
@@ -250,7 +279,17 @@ function compareTitle<T extends MediaItem>(match: MediaItem, item: T, strict: bo
     if (strict) {
         return false;
     }
-    const matchedTitle = normalize(match.title);
+    if (compareTitleStrings(match, match.title, title)) {
+        return true;
+    }
+    if (compareTitleStrings(match, trimTrackTitle(match.title), trimTrackTitle(title))) {
+        return true;
+    }
+    return false;
+}
+
+function compareTitleStrings(match: MediaItem, matchedTitle: string, title: string): boolean {
+    matchedTitle = normalize(matchedTitle);
     title = normalize(title);
     if (compareString(title, matchedTitle)) {
         return true;
@@ -280,6 +319,18 @@ function compareTitle<T extends MediaItem>(match: MediaItem, item: T, strict: bo
     return false;
 }
 
+function trimTrackTitle(title: string): string {
+    // Remove remaster tags.
+    // e.g. "Disorder (2007 Remaster)" => "Disorder"
+    title = title.replace(/\s*\((19|20)\d\d(\sDigital)?\sRemaster\)$/gi, '');
+    // Remove album/single version.
+    // e.g. "Disorder (Single Version)" => "Disorder"
+    // e.g. "Disorder - Single Version" => "Disorder"
+    title = title.replace(/\s*\((Album|Single)(\s+Version)?\)$/gi, '');
+    title = title.replace(/\s*-\s*(Album|Single)(\s+Version)?$/gi, '');
+    return title;
+}
+
 function compareAlbum<T extends MediaItem>(match: MediaItem, item: T): boolean {
     if (!match.album || !item.album) {
         return false;
@@ -303,4 +354,15 @@ function getArtistAndTitle<T extends MediaItem>(item: T): {artist: string; title
 function removeFeaturedArtists(title: string): string {
     // Featured artists: `(feat. Artist1, Artist2 & Artist3)`.
     return title.replace(regFeaturedArtists, '');
+}
+
+function canPlayNow<T extends MediaItem>(item: T): boolean {
+    if (isAlwaysPlayableSrc(item.src)) {
+        return true;
+    }
+    const service = getServiceFromSrc(item);
+    if (service?.isLoggedIn()) {
+        return true;
+    }
+    return false;
 }

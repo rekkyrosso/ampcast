@@ -73,8 +73,6 @@ export class LastFmApi {
     createThumbnails(thumbs: readonly LastFm.Thumbnail[]): Thumbnail[] | undefined {
         const result = thumbs
             ? [
-                  this.createThumbnail(thumbs[0], 34),
-                  this.createThumbnail(thumbs[1], 64),
                   this.createThumbnail(thumbs[2], 174),
                   this.createThumbnail(thumbs[3], 300),
               ].filter(exists)

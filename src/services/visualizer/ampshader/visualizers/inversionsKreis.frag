@@ -55,9 +55,9 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
         ? 1.+1.5*(farbe(iTime))*b : 1.-1.5*(farbe(iTime))*b;
 
     // Time varying pixel color
-    float red = (iTheme.r/255.0)*abs(sin(iTime*0.1));
-    float green = (iTheme.g/255.0)*abs(sin(iTime*0.11));
-    float blue = (iTheme.b/255.0)*abs(sin(iTime*0.12))+0.2;
+    float red = (iFrameColor.r)*abs(sin(iTime*0.1));
+    float green = (iFrameColor.g)*abs(sin(iTime*0.11));
+    float blue = (iFrameColor.b)*abs(sin(iTime*0.12))+0.2;
     vec3 col = vec3(g*red,g*green,g*blue);
 
     // Output to screen

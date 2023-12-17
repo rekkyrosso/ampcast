@@ -1,13 +1,9 @@
 .cover-art {
     position: relative;
     background-color: var(--background-mark-color);
-    border: 1px solid rgba(255, 255, 255, 0.2);
+    border: 1px solid var(--thumbnail-border-color);
     border-radius: var(--app-border-radius);
     overflow: hidden;
-
-    .themed.light & {
-        border-color: var(--black);
-    }
 
     &-image {
         object-fit: cover;

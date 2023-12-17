@@ -3,6 +3,7 @@ import MediaService from 'types/MediaService';
 import ServiceType from 'types/ServiceType';
 import TabList, {TabItem} from 'components/TabList';
 import AppleBetaSettings from 'services/apple/components/AppleBetaSettings';
+import PlexMediaLibrarySettings from 'services/plex/components/PlexMediaLibrarySettings';
 import PlexTidalStreamingSettings from 'services/plex/components/PlexTidalStreamingSettings';
 import MediaServiceSettingsGeneral from './MediaServiceSettingsGeneral';
 import PersonalMediaLibrarySettings from './PersonalMediaLibrarySettings';
@@ -24,7 +25,12 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
         if ('libraryId' in service) {
             tabs.push({
                 tab: 'Library',
-                panel: <PersonalMediaLibrarySettings service={service} />,
+                panel:
+                    service.id === 'plex' ? (
+                        <PlexMediaLibrarySettings />
+                    ) : (
+                        <PersonalMediaLibrarySettings service={service} />
+                    ),
             });
         }
         if (service.serviceType === ServiceType.DataService && service.canScrobble) {

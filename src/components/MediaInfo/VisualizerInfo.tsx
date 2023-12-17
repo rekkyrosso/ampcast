@@ -1,5 +1,5 @@
 import React from 'react';
-import Visualizer, {AmbientVideoVisualizer} from 'types/Visualizer';
+import Visualizer, {AmbientVideoVisualizer, NoVisualizer} from 'types/Visualizer';
 import {getVisualizerProvider} from 'services/visualizer/visualizerProviders';
 import ExternalLink from 'components/ExternalLink';
 import Icon from 'components/Icon';
@@ -25,29 +25,35 @@ function VisualizerProvider({visualizer}: VisualizerInfoProps) {
 }
 
 function VisualizerDetail({visualizer}: VisualizerInfoProps) {
-    const isYouTubeVideo =
-        visualizer?.providerId === 'ambientvideo' && visualizer.src.startsWith('youtube:');
-    const externalUrl = visualizer
-        ? visualizer.externalUrl || getVisualizerProvider(visualizer.providerId)?.externalUrl
-        : undefined;
+    if (visualizer) {
+        if (isNoVisualizer(visualizer)) {
+            return <p className="no-visualizer-reason">{getNoVisualizerReason(visualizer)}</p>;
+        } else {
+            const isYouTubeVideo =
+                visualizer.providerId === 'ambientvideo' && visualizer.src.startsWith('youtube:');
+            const externalUrl = visualizer
+                ? visualizer.externalUrl ||
+                  getVisualizerProvider(visualizer.providerId)?.externalUrl
+                : undefined;
 
-    return isYouTubeVideo ? (
-        <YouTubeVideoInfo visualizer={visualizer} />
-    ) : visualizer?.name ? (
-        <>
-            <h4>Name: {visualizer.name}</h4>
-            {externalUrl ? (
-                <p className="external-view">
-                    <span>Url:</span> <ExternalLink href={externalUrl} />
-                </p>
-            ) : null}
-        </>
-    ) : null;
+            return isYouTubeVideo ? (
+                <YouTubeVideoInfo visualizer={visualizer} />
+            ) : visualizer.name ? (
+                <>
+                    <h4>Name: {visualizer.name}</h4>
+                    {externalUrl ? (
+                        <p className="external-view">
+                            <span>Url:</span> <ExternalLink href={externalUrl} />
+                        </p>
+                    ) : null}
+                </>
+            ) : null;
+        }
+    }
 }
 
 function YouTubeVideoInfo({visualizer}: {visualizer: AmbientVideoVisualizer}) {
     const video = useYouTubeVideoInfo(visualizer!.src);
-
     return video ? (
         <div className="youtube-video-info">
             <h4>Title: {video.title}</h4>
@@ -61,10 +67,34 @@ function YouTubeVideoInfo({visualizer}: {visualizer: AmbientVideoVisualizer}) {
 
 function getProviderName(visualizer: Visualizer | null): string {
     if (visualizer) {
-        const provider = getVisualizerProvider(visualizer.providerId);
-        if (provider) {
-            return provider.name;
+        if (isNoVisualizer(visualizer)) {
+            return visualizer.name || 'none';
+        } else {
+            const provider = getVisualizerProvider(visualizer.providerId);
+            if (provider) {
+                return provider.name;
+            }
         }
     }
     return 'none';
+}
+
+function getNoVisualizerReason(visualizer: Visualizer | null): string {
+    if (isNoVisualizer(visualizer)) {
+        switch (visualizer.reason) {
+            case 'not supported':
+                return 'Visualizer not supported for this media';
+
+            case 'not found':
+                return 'Visualizer not found';
+
+            case 'error':
+                return 'Visualizer error';
+        }
+    }
+    return '';
+}
+
+function isNoVisualizer(visualizer: Visualizer | null): visualizer is NoVisualizer {
+    return visualizer?.providerId === 'none';
 }
