@@ -28,6 +28,7 @@ import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
+import {t} from 'services/i18n';
 import {bestOf} from 'utils';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './embyAuth';
 import EmbyPager from './EmbyPager';
@@ -421,8 +422,8 @@ const emby: PersonalMediaService = {
         embyFolders,
     ],
     labels: {
-        [Action.AddToLibrary]: 'Add to Emby Favorites',
-        [Action.RemoveFromLibrary]: 'Remove from Emby Favorites',
+        [Action.AddToLibrary]: t('Add to Emby Favorites'),
+        [Action.RemoveFromLibrary]: t('Remove from Emby Favorites'),
     },
     get audioLibraries(): readonly PersonalMediaLibrary[] {
         return embySettings.audioLibraries;

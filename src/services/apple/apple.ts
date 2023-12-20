@@ -10,17 +10,21 @@ import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
+import ParentOf from 'types/ParentOf';
 import Pin from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
+import {NoFavoritesPlaylistError} from 'services/errors';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
 import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
-import {bestOf, ParentOf} from 'utils';
+import {t} from 'services/i18n';
+import {bestOf} from 'utils';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './appleAuth';
 import MusicKitPager, {MusicKitPage} from './MusicKitPager';
+import appleSettings from './appleSettings';
 
 const defaultLayout: MediaSourceLayout<MediaItem> = {
     view: 'card',
@@ -124,11 +128,39 @@ const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
     lockActionsStore: true,
 
     search(): Pager<MediaPlaylist> {
-        return new MusicKitPager(`/v1/me/library/playlists`, {
-            'fields[library-playlists]': 'name,playParams',
-            'include[library-playlists]': 'catalog',
-            sort: '-dateAdded',
-        });
+        return new MusicKitPager(
+            `/v1/me/library/playlists`,
+            {
+                'fields[playlists]': 'curatorName,url,description',
+                'format[resources]': 'map',
+                include: 'catalog',
+                'omit[resource]': 'autos',
+                sort: '-dateAdded',
+            },
+            undefined,
+            undefined,
+            ({
+                data = [],
+                resources: {'library-playlists': libraryPlaylists = {}, playlists = {}} = {},
+                next: nextPageUrl,
+                meta,
+            }: any): MusicKitPage => {
+                const items = data.map((data: {id: string}) => {
+                    const item = libraryPlaylists[data.id];
+                    const attributes = item?.attributes;
+                    if (!attributes?.canEdit) {
+                        const catalog = item.relationships?.catalog?.data?.[0];
+                        const playlist = playlists[catalog?.id]?.attributes;
+                        attributes.curatorName = playlist?.curatorName;
+                        attributes.url = playlist?.url;
+                        attributes.description = playlist?.description;
+                    }
+                    return item;
+                });
+                const total = meta?.total;
+                return {items, total, nextPageUrl};
+            }
+        );
     },
 };
 
@@ -144,6 +176,33 @@ const appleLibraryVideos: MediaSource<MediaItem> = {
 
     search(): Pager<MediaItem> {
         return new MusicKitPager(`/v1/me/library/music-videos`);
+    },
+};
+
+const appleFavoriteSongs: MediaSource<MediaItem> = {
+    id: 'apple/favorite-songs',
+    get title(): string {
+        return t('Favorite Songs');
+    },
+    icon: 'star',
+    itemType: ItemType.Media,
+    layout: defaultLayout,
+    defaultHidden: true,
+
+    search(): Pager<MediaItem> {
+        const playlistId = appleSettings.favoriteSongsId;
+        if (!playlistId) {
+            throw new NoFavoritesPlaylistError();
+        }
+        return new MusicKitPager(
+            `/v1/me/library/playlists/${playlistId}/tracks`,
+            undefined,
+            undefined,
+            {
+                src: `apple:library-playlists:${playlistId}`,
+                itemType: ItemType.Playlist,
+            } as MediaPlaylist
+        );
     },
 };
 
@@ -174,6 +233,7 @@ const apple: PublicMediaService = {
         appleLibraryArtists,
         appleLibraryPlaylists,
         appleLibraryVideos,
+        appleFavoriteSongs,
         appleRecentlyPlayed,
         appleRecommendations,
     ],
@@ -184,17 +244,14 @@ const apple: PublicMediaService = {
     labels: {
         [Action.AddToLibrary]: 'Add to Apple Music Library',
         [Action.RemoveFromLibrary]: 'Saved to Apple Music Library',
-        [Action.Like]: 'Love on Apple Music',
-        [Action.Unlike]: 'Unlove on Apple Music',
     },
-    canRate,
+    canRate: () => false,
     canStore,
     compareForRating,
     createSourceFromPin,
     getMetadata,
     getPlaybackType,
     lookup,
-    rate,
     store,
     observeIsLoggedIn,
     isConnected,
@@ -211,23 +268,6 @@ export function isMusicKitBeta(): boolean | undefined {
 
 function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.src === b.src;
-}
-
-function canRate(): boolean {
-    // Turn this off for now.
-    // It works but I'm not sure how useful it is.
-    return false;
-    // switch (item.itemType) {
-    //     case ItemType.Album:
-    //         return !inline && !item.synthetic;
-
-    //     case ItemType.Media:
-    //     case ItemType.Playlist:
-    //         return !inline;
-
-    //     default:
-    //         return false;
-    // }
 }
 
 function canStore<T extends MediaObject>(item: T): boolean {
@@ -272,9 +312,6 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
 }
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
-    if (item.itemType === ItemType.Playlist && item.isOwn) {
-        return item;
-    }
     if (item.itemType === ItemType.Album && item.synthetic) {
         return item;
     }
@@ -297,11 +334,7 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     }
     result.inLibrary = actionsStore.getInLibrary(result as T, result.inLibrary);
     if (result.inLibrary === undefined) {
-        addInLibrary([result as T]);
-    }
-    result.rating = actionsStore.getRating(result as T, result.rating);
-    if (result.rating === undefined) {
-        addRatings([result as T]);
+        addUserData([result as T]);
     }
     return result as T;
 }
@@ -325,28 +358,6 @@ async function lookup(
         lookup: true,
     });
     return fetchFirstPage(pager, {timeout});
-}
-
-async function rate(item: MediaObject, rating: number): Promise<void> {
-    const musicKit = MusicKit.getInstance();
-    const [, type, id] = item.src.split(':');
-    const path = `/v1/me/ratings/${type}/${id}`;
-
-    if (rating) {
-        await musicKit.api.music(path, undefined, {
-            fetchOptions: {
-                method: 'PUT',
-                body: JSON.stringify({
-                    type: 'rating',
-                    attributes: {
-                        value: rating,
-                    },
-                }),
-            },
-        });
-    } else {
-        await musicKit.api.music(path, undefined, {fetchOptions: {method: 'DELETE'}});
-    }
 }
 
 async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
@@ -433,49 +444,7 @@ function createSearchPager<T extends MediaObject>(
     }
 }
 
-export async function addRatings<T extends MediaObject>(
-    items: readonly T[],
-    inline = false
-): Promise<void> {
-    const item = items[0];
-    if (!item || !apple.canRate(item, inline)) {
-        return;
-    }
-
-    const ids: string[] = items
-        .filter((item) => item.rating === undefined)
-        .map((item) => {
-            const [, , id] = item.src.split(':');
-            return id;
-        });
-
-    if (ids.length === 0) {
-        return;
-    }
-
-    const [, type] = item.src.split(':');
-    const musicKit = MusicKit.getInstance();
-    const {
-        data: {data},
-    } = await musicKit.api.music(`/v1/me/ratings/${type}`, {ids});
-
-    if (!data) {
-        return;
-    }
-
-    const ratings = new Map<string, number>(
-        data.map((data: any) => [data.id, data.attributes.value])
-    );
-
-    dispatchMediaObjectChanges(
-        ids.map((id) => ({
-            match: (object: MediaObject) => object.src === `apple:${type}:${id}`,
-            values: {rating: ratings.get(id) || 0},
-        }))
-    );
-}
-
-export async function addInLibrary<T extends MediaObject>(
+export async function addUserData<T extends MediaObject>(
     items: readonly T[],
     inline = false,
     parent?: ParentOf<T>
@@ -522,7 +491,7 @@ export async function addInLibrary<T extends MediaObject>(
     dispatchMediaObjectChanges<MediaObject>(
         ids.map((id) => ({
             match: (object: MediaObject) => object.apple?.catalogId === id,
-            values: {inLibrary: inLibrary.get(id) || false},
+            values: {inLibrary: !!inLibrary.get(id)},
         }))
     );
 }

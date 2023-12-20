@@ -14,7 +14,9 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     private readonly analyser: AnalyserNode;
     private readonly source: AudioNode;
     private readonly canvas = document.createElement('canvas');
-    private readonly gl = this.canvas.getContext('webgl2')!;
+    private readonly offscreenCanvas: OffscreenCanvas | HTMLCanvasElement;
+    private readonly gl: WebGL2RenderingContext;
+    private readonly outputGl: CanvasRenderingContext2D;
     private animationFrameId = 0;
     private fragFrameColor: WebGLUniformLocation | null = null;
     private fragBackgroundColor: WebGLUniformLocation | null = null;
@@ -38,8 +40,23 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
 
         this.canvas.hidden = true;
         this.canvas.className = `visualizer visualizer-ampshader`;
+        this.outputGl = this.canvas.getContext('2d')!;
 
-        const gl = this.gl;
+        if (window.OffscreenCanvas) {
+            this.offscreenCanvas = new OffscreenCanvas(200, 200);
+        } else {
+            this.offscreenCanvas = document.createElement('canvas');
+        }
+
+        const gl = (this.gl = this.offscreenCanvas.getContext('webgl2', {
+            alpha: false,
+            antialias: false,
+            depth: false,
+            powerPreference: 'high-performance',
+            premultipliedAlpha: false,
+            preserveDrawingBuffer: true,
+            stencil: false,
+        })!);
 
         const texture = gl.createTexture()!;
         gl.bindTexture(gl.TEXTURE_2D, texture);
@@ -116,14 +133,15 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     }
 
     resize(width: number, height: number): void {
-        const canvas = this.canvas;
         const gl = this.gl;
 
-        width = Math.round(width);
-        height = Math.round(height);
+        width = Math.ceil(width);
+        height = Math.ceil(height);
 
-        canvas.width = width;
-        canvas.height = height;
+        this.canvas.width = width;
+        this.canvas.height = height;
+        this.offscreenCanvas.width = width;
+        this.offscreenCanvas.height = height;
 
         gl.viewport(0, 0, width, height);
 
@@ -172,7 +190,8 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     }
 
     private clear(): void {
-        // do nothing
+        const {width, height} = this.canvas;
+        this.outputGl.clearRect(0, 0, width, height);
     }
 
     private createShader(fragmentShaderSrc: string): void {
@@ -191,46 +210,33 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
         const vertexShader = (this.vertexShader = gl.createShader(gl.VERTEX_SHADER)!);
         gl.shaderSource(vertexShader, vertexShaderSrc);
         gl.compileShader(vertexShader);
-        if (!gl.getShaderParameter(vertexShader, gl.COMPILE_STATUS)) {
-            throw new Error(gl.getShaderInfoLog(vertexShader)!);
-        }
 
         const fragmentShader = (this.fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)!);
         gl.shaderSource(fragmentShader, fragmentShaderSrc);
         gl.compileShader(fragmentShader);
-        if (!gl.getShaderParameter(fragmentShader, gl.COMPILE_STATUS)) {
-            throw new Error(gl.getShaderInfoLog(fragmentShader)!);
-        }
 
         const program = gl.createProgram()!;
         gl.attachShader(program, vertexShader);
         gl.attachShader(program, fragmentShader);
+
         gl.linkProgram(program);
+        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
+            throw Error(`Link failed: ${gl.getProgramInfoLog(program)}`);
+        }
+
         gl.useProgram(program);
 
         const position = gl.getAttribLocation(program, 'as_Position');
         gl.enableVertexAttribArray(position);
         gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
 
-        this.fragFrameColor = gl.getUniformLocation(program, 'iFrameColor');
-        gl.uniform3f(this.fragFrameColor, ...this.toRgb(this.frameColor));
-
-        this.fragBackgroundColor = gl.getUniformLocation(program, 'iBackgroundColor');
-        gl.uniform3f(this.fragBackgroundColor, ...this.toRgb(this.backgroundColor));
-
-        this.fragColor = gl.getUniformLocation(program, 'iColor');
-        gl.uniform3f(this.fragColor, ...this.toRgb(this.color));
-
         this.startTime = performance.now();
-        const time = this.currentTime;
+        this.fragFrameColor = gl.getUniformLocation(program, 'iFrameColor');
+        this.fragBackgroundColor = gl.getUniformLocation(program, 'iBackgroundColor');
+        this.fragColor = gl.getUniformLocation(program, 'iColor');
         this.fragTime = gl.getUniformLocation(program, 'iTime');
-        gl.uniform1f(this.fragTime, time);
-
         this.fragChannelTime = gl.getUniformLocation(program, 'iChannelTime');
-        gl.uniform1fv(this.fragChannelTime, new Float32Array([time, 0, 0, 0]));
-
         this.fragDate = gl.getUniformLocation(program, 'iDate');
-        gl.uniform4f(this.fragDate, ...this.currentDate);
 
         const fragResolution = gl.getUniformLocation(program, 'iResolution');
         gl.uniform2f(fragResolution, this.canvas.width, this.canvas.height);
@@ -267,6 +273,8 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
             gl.texSubImage2D(gl.TEXTURE_2D, 0, 0, 1, 512, 1, gl.RED, gl.UNSIGNED_BYTE, wave);
 
             this.gl.drawArrays(this.gl.TRIANGLES, 0, 6);
+
+            this.outputGl.drawImage(this.offscreenCanvas, 0, 0);
         }
     }
 

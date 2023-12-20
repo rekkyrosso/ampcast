@@ -10,13 +10,13 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
+import ParentOf from 'types/ParentOf';
 import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
-import {ParentOf} from 'utils';
 import subsonicApi from './subsonicApi';
 import subsonicSettings from './subsonicSettings';
 

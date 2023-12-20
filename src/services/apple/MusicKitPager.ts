@@ -9,6 +9,7 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
+import ParentOf from 'types/ParentOf';
 import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
 import SequentialPager from 'services/pagers/SequentialPager';
@@ -17,8 +18,8 @@ import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import pinStore from 'services/pins/pinStore';
-import {bestOf, getTextFromHtml, Logger, ParentOf} from 'utils';
-import {addInLibrary, addRatings, isMusicKitBeta} from './apple';
+import {bestOf, getTextFromHtml, Logger} from 'utils';
+import {addUserData, isMusicKitBeta} from './apple';
 import {refreshToken} from './appleAuth';
 
 const logger = new Logger('MusicKitPager');
@@ -116,14 +117,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
                 this.subscriptions.add(
                     this.pager
                         .observeAdditions()
-                        .pipe(mergeMap((items) => addRatings(items, true)))
-                        .subscribe(logger)
-                );
-
-                this.subscriptions.add(
-                    this.pager
-                        .observeAdditions()
-                        .pipe(mergeMap((items) => addInLibrary(items, true, this.parent)))
+                        .pipe(mergeMap((items) => addUserData(items, true, this.parent)))
                         .subscribe(logger)
                 );
             }
@@ -176,15 +170,19 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
     private createMediaPlaylist(
         playlist: AppleMusicApi.Playlist | LibraryPlaylist
     ): SetRequired<MediaPlaylist, 'apple'> {
+        const musicKit = MusicKit.getInstance();
         const item = this.createFromLibrary<AppleMusicApi.Playlist['attributes']>(playlist);
         const description = item.description?.standard || item.description?.short;
         const src = `apple:${playlist.type}:${playlist.id}`;
         const catalogId = this.getCatalogId(playlist);
+        const isLibraryPlaylist = playlist.type.startsWith('library-') || undefined;
 
         const mediaPlaylist: Writable<SetOptional<SetRequired<MediaPlaylist, 'apple'>, 'pager'>> = {
             src,
             itemType: ItemType.Playlist,
-            externalUrl: item.url || undefined,
+            externalUrl: isLibraryPlaylist
+                ? `https://music.apple.com/${musicKit.storefrontId}/library/playlist/${playlist.id}`
+                : item.url,
             title: item.name,
             description: description ? getTextFromHtml(description) : undefined,
             thumbnails: this.createThumbnails(item),
@@ -192,7 +190,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             modifiedAt: Math.floor(new Date(item.lastModifiedDate).valueOf() / 1000) || undefined,
             unplayable: !item.playParams || undefined,
             isPinned: pinStore.isPinned(src),
-            inLibrary: playlist.type.startsWith('library-') || undefined,
+            inLibrary: isLibraryPlaylist,
             apple: {catalogId},
         };
         mediaPlaylist.pager = new MusicKitPager(

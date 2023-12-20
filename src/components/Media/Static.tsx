@@ -26,8 +26,8 @@ export default function Static() {
 
     useOnResize(ref, ({width, height}) => {
         const canvas = canvasRef.current!;
-        canvas.width = Math.round(width);
-        canvas.height = Math.round(height);
+        canvas.width = Math.ceil(width);
+        canvas.height = Math.ceil(height);
     });
 
     return (

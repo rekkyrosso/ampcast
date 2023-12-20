@@ -11,6 +11,14 @@ export default {
         storage.setNumber('connectedAt', connectedAt);
     },
 
+    get favoriteSongsId(): string {
+        return storage.getString('favoriteSongsId');
+    },
+
+    set favoriteSongsId(id: string) {
+        storage.setString('favoriteSongsId', id);
+    },
+
     get useMusicKitBeta(): boolean {
         return storage.getBoolean('useMusicKitBeta', true);
     },

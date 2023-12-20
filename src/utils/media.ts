@@ -1,10 +1,9 @@
 import DRMKeySystem from 'types/DRMKeySystem';
 import DRMType from 'types/DRMType';
 import MediaItem from 'types/MediaItem';
+import Subtract from 'types/Subtract';
 import UserData from 'types/UserData';
 import browser from './browser';
-
-type Subtract<T, V> = Pick<T, Exclude<keyof T, keyof V>>;
 
 const userDataKeys: (keyof MediaItem | 'lookupStatus')[] = [
     'rating',

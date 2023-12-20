@@ -113,8 +113,8 @@ export default class SpotifyVizPlayer extends AbstractVisualizerPlayer<SpotifyVi
     }
 
     resize(width: number, height: number): void {
-        this.canvas.width = Math.round(width);
-        this.canvas.height = Math.round(height);
+        this.canvas.width = Math.ceil(width);
+        this.canvas.height = Math.ceil(height);
         this.renderFrame();
     }
 

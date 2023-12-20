@@ -11,12 +11,12 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
+import ParentOf from 'types/ParentOf';
 import Thumbnail from 'types/Thumbnail';
 import OffsetPager from 'services/pagers/OffsetPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
-import {ParentOf} from 'utils';
 import jellyfinSettings from './jellyfinSettings';
 import jellyfinApi from './jellyfinApi';
 

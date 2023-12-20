@@ -28,6 +28,7 @@ import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
+import {t} from 'services/i18n';
 import {bestOf} from 'utils';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './jellyfinAuth';
 import jellyfinSettings from './jellyfinSettings';
@@ -419,8 +420,8 @@ const jellyfin: PersonalMediaService = {
         jellyfinFolders,
     ],
     labels: {
-        [Action.AddToLibrary]: 'Add to Jellyfin Favorites',
-        [Action.RemoveFromLibrary]: 'Remove from Jellyfin Favorites',
+        [Action.AddToLibrary]: t('Add to Jellyfin Favorites'),
+        [Action.RemoveFromLibrary]: t('Remove from Jellyfin Favorites'),
     },
     get audioLibraries(): readonly PersonalMediaLibrary[] {
         return jellyfinSettings.audioLibraries;

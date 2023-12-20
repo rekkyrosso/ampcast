@@ -70,6 +70,7 @@ export async function logout(): Promise<void> {
         // MusicKit not loaded.
     }
     appleSettings.connectedAt = 0;
+    appleSettings.favoriteSongsId = '';
     isLoggedIn$.next(false);
 }
 
@@ -140,9 +141,35 @@ if (isConnected()) {
     from(getMusicKitInstance())
         .pipe(
             filter((musicKit) => musicKit.isAuthorized),
-            mergeMap((musicKit) => musicKit.authorize()),
+            mergeMap(initMusicKit),
             tap((token) => isLoggedIn$.next(!!token)),
             takeUntil(disconnected$)
         )
         .subscribe(logger);
+}
+
+async function initMusicKit(musicKit: MusicKit.MusicKitInstance): Promise<string> {
+    const token = await musicKit.authorize();
+    if (token && !appleSettings.favoriteSongsId) {
+        await setFavoritesPlaylistId(musicKit);
+    }
+    return token;
+}
+
+async function setFavoritesPlaylistId(musicKit: MusicKit.MusicKitInstance): Promise<void> {
+    try {
+        const path = '/v1/me/library/playlists';
+        const {
+            data: {data: items = []},
+        } = await musicKit.api.music(path, {
+            'extend[library-playlists]': 'tags',
+            'fields[library-playlists]': 'tags',
+        });
+        const favoriteSongs = items.find((item: any) => item.attributes.tags.includes('favorited'));
+        if (favoriteSongs) {
+            appleSettings.favoriteSongsId = favoriteSongs.id;
+        }
+    } catch (err) {
+        logger.error(err);
+    }
 }

@@ -20,6 +20,7 @@ import actionsStore from 'services/actions/actionsStore';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import subsonicApi from 'services/subsonic/subsonicApi';
+import {t} from 'services/i18n';
 import {bestOf, getTextFromHtml} from 'utils';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './navidromeAuth';
 import NavidromePager from './NavidromePager';
@@ -251,8 +252,8 @@ const navidrome: PersonalMediaService = {
         navidromeRandomAlbums,
     ],
     labels: {
-        [Action.AddToLibrary]: 'Add to Navidrome Favorites',
-        [Action.RemoveFromLibrary]: 'Remove from Navidrome Favorites',
+        [Action.AddToLibrary]: t('Add to Navidrome Favorites'),
+        [Action.RemoveFromLibrary]: t('Remove from Navidrome Favorites'),
     },
     canRate: () => false,
     canStore,

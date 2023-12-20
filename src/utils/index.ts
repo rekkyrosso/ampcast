@@ -1,4 +1,3 @@
-export * from './types';
 export * from './utils';
 export * from './media';
 export {default as LiteStorage} from './LiteStorage';
