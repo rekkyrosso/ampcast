@@ -20,6 +20,7 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
     private readonly player$ = new BehaviorSubject<Player<S> | null>(null);
     private readonly error$ = new Subject<unknown>();
     private stopped = true;
+    #loadError: Error | null = null;
     #autoplay = false;
     #loop = false;
     #muted = false;
@@ -143,8 +144,14 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
             prevPlayer.stop();
         }
 
+        if (this.autoplay) {
+            this.stopped = false;
+        }
+
+        this.loadError = null;
+
         if (nextPlayer && !this.players.includes(nextPlayer)) {
-            this.error$.next(Error('Player not registered'));
+            this.loadError = Error('Player not registered');
             return;
         }
 
@@ -152,25 +159,26 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
 
         if (nextPlayer) {
             try {
-                if (this.autoplay) {
-                    this.stopped = false;
-                }
                 nextPlayer.autoplay = this.autoplay;
                 this.loadPlayer(nextPlayer, src);
                 nextPlayer.muted = this.muted;
                 nextPlayer.hidden = this.hidden;
-            } catch (err) {
-                this.error$.next(err);
+            } catch (err: any) {
+                this.loadError = Error(err?.message || 'Failed to load');
             }
         } else {
-            this.error$.next(Error('No player found'));
+            this.loadError = Error('No player found');
         }
     }
 
     play(): void {
         this.stopped = false;
         this.autoplay = true;
-        this.currentPlayer?.play();
+        if (this.loadError) {
+            this.error$.next(this.loadError);
+        } else {
+            this.currentPlayer?.play();
+        }
     }
 
     pause(): void {
@@ -225,6 +233,17 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
 
     private get currentPlayer(): Player<S> | null {
         return this.player$.getValue();
+    }
+
+    private get loadError(): Error | null {
+        return this.#loadError;
+    }
+
+    private set loadError(error: Error | null) {
+        this.#loadError = error;
+        if (error) {
+            this.error$.next(error);
+        }
     }
 
     private observeCurrentPlayer(): Observable<Player<S> | null> {

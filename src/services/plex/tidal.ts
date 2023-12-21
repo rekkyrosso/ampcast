@@ -1,3 +1,5 @@
+import type {Observable} from 'rxjs';
+import {combineLatest, distinctUntilChanged, map} from 'rxjs';
 import {Except, Primitive, Writable} from 'type-fest';
 import Action from 'types/Action';
 import DRMInfo from 'types/DRMInfo';
@@ -20,9 +22,9 @@ import StreamingQuality from 'types/StreamingQuality';
 import {NoTidalSubscriptionError} from 'services/errors';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
-import {isSourceHidden} from 'services/servicesSettings';
+import {isSourceVisible, observeSourceVisibility} from 'services/servicesSettings';
 import {bestOf, drmKeySystems} from 'utils';
-import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './plexAuth';
+import {login, logout} from './plexAuth';
 import plexSettings from './plexSettings';
 import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
@@ -162,7 +164,7 @@ const tidal: PublicMediaService = {
     primaryMediaType: MediaType.Audio,
     authService: plex,
     internetRequired: true,
-    defaultHidden: isSourceHidden(plex),
+    defaultHidden: true,
     roots: [
         createRoot(ItemType.Media, {title: 'Tracks', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -205,6 +207,21 @@ const tidal: PublicMediaService = {
 };
 
 export default tidal;
+
+function observeIsLoggedIn(): Observable<boolean> {
+    return combineLatest([plex.observeIsLoggedIn(), observeSourceVisibility(tidal)]).pipe(
+        map(([isLoggedIn, visible]) => isLoggedIn && visible),
+        distinctUntilChanged()
+    );
+}
+
+function isConnected(): boolean {
+    return plex.isConnected() && isSourceVisible(tidal);
+}
+
+function isLoggedIn(): boolean {
+    return plex.isLoggedIn() && isSourceVisible(tidal);
+}
 
 function canStore<T extends MediaObject>(item: T): boolean {
     switch (item.itemType) {
@@ -289,7 +306,7 @@ async function getMetadataByRatingKey<T extends MediaObject>(
 
 function getPlayableUrl(item: PlayableItem): string {
     const {userToken} = plexSettings;
-    if (userToken) {
+    if (userToken && isLoggedIn()) {
         const srcs = item.srcs || [];
         let src: string | undefined = srcs[0];
         switch (plexSettings.streamingQuality) {

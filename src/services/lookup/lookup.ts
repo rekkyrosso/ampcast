@@ -5,11 +5,11 @@ import PlaylistItem from 'types/PlaylistItem';
 import {findListen} from 'services/localdb/listens';
 import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import {
+    canPlayNow,
     getLookupServices,
     getService,
     getServiceFromSrc,
     hasPlayableSrc,
-    isAlwaysPlayableSrc,
     isPersonalMediaService,
 } from 'services/mediaServices';
 import {filterNotEmpty, fuzzyCompare, Logger} from 'utils';
@@ -354,15 +354,4 @@ function getArtistAndTitle<T extends MediaItem>(item: T): {artist: string; title
 function removeFeaturedArtists(title: string): string {
     // Featured artists: `(feat. Artist1, Artist2 & Artist3)`.
     return title.replace(regFeaturedArtists, '');
-}
-
-function canPlayNow<T extends MediaItem>(item: T): boolean {
-    if (isAlwaysPlayableSrc(item.src)) {
-        return true;
-    }
-    const service = getServiceFromSrc(item);
-    if (service?.isLoggedIn()) {
-        return true;
-    }
-    return false;
 }

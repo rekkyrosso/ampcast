@@ -7,7 +7,7 @@ import {
     observePersonalMediaLibraryIdChanges,
 } from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
-import {isSourceVisible, observeHiddenSourceChanges} from 'services/servicesSettings';
+import {isSourceVisible, observeVisibilityChanges} from 'services/servicesSettings';
 import MediaBrowser from 'components/MediaBrowser';
 import {TreeNode} from 'components/TreeView';
 import MediaServiceLabel from './MediaServiceLabel';
@@ -19,7 +19,7 @@ export default function useMediaSources() {
 
     useEffect(() => {
         const refresh$ = merge(
-            observeHiddenSourceChanges(),
+            observeVisibilityChanges(),
             observePersonalMediaLibraryIdChanges(),
             pinStore.observe()
         );

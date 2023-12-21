@@ -57,6 +57,17 @@ export function observePersonalMediaLibraryIdChanges(): Observable<void> {
     ).pipe(map(() => undefined));
 }
 
+export function canPlayNow<T extends MediaItem>(item: T): boolean {
+    if (isAlwaysPlayableSrc(item.src)) {
+        return true;
+    }
+    const service = getServiceFromSrc(item);
+    if (service?.isLoggedIn()) {
+        return true;
+    }
+    return false;
+}
+
 export function getDataServices(): readonly DataService[] {
     return getEnabledServices().filter(isDataService);
 }

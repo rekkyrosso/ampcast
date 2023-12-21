@@ -292,10 +292,8 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     }
 
     private getUnplayableReason(src: string): string {
-        const [, type, id] = src.split(':');
-        if (id === 'UNPLAYABLE') {
-            return 'Unplayable';
-        } else if (/video/i.test(type) && this.player?.version.startsWith('1')) {
+        const [, type] = src.split(':');
+        if (/video/i.test(type) && this.player?.version.startsWith('1')) {
             return 'Video playback not supported';
         } else {
             return '';

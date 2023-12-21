@@ -50,14 +50,11 @@ function loadPlayer(player: Player<PlayableItem>, item: PlaylistItem | null): vo
 
 function getMediaSource(item: PlaylistItem | null): PlayableItem {
     if (!item) {
-        return {src: ''};
+        throw Error('No source');
+    } else if (item.unplayable) {
+        throw Error('Unplayable');
     } else if (item.blob) {
         return {src: URL.createObjectURL(item.blob)};
-    } else if (item.unplayable) {
-        // TODO: Do this better
-        const parts = item.src.split(':');
-        parts[2] = 'UNPLAYABLE';
-        return {src: parts.join(':')};
     } else {
         return item;
     }

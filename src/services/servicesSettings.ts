@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, map, skipWhile} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, map, skipWhile} from 'rxjs';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import {LiteStorage} from 'utils';
@@ -12,10 +12,19 @@ const hidden$ = new BehaviorSubject(initialHiddenSettings);
 
 export const allowAllServices = storage.getBoolean('allowAll');
 
-export function observeHiddenSourceChanges(): Observable<void> {
+export function observeVisibilityChanges(): Observable<void> {
     return hidden$.pipe(
         skipWhile((settings) => settings === initialHiddenSettings),
         map(() => undefined)
+    );
+}
+
+export function observeSourceVisibility(
+    source: MediaService | MediaSource<any>
+): Observable<boolean> {
+    return hidden$.pipe(
+        map(() => isSourceVisible(source)),
+        distinctUntilChanged()
     );
 }
 

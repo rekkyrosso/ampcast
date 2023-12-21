@@ -39,7 +39,6 @@ export async function login(): Promise<void> {
         try {
             const musicKit = MusicKit.getInstance(); // let this throw
             await musicKit.authorize();
-            isLoggedIn$.next(musicKit.isAuthorized);
         } catch (err) {
             logger.error(err);
         }
@@ -130,9 +129,13 @@ observeIsLoggedIn()
         mergeMap(() => getMusicKitInstance()),
         take(1),
         tap((musicKit) => {
-            musicKit.addEventListener(MusicKit.Events.authorizationStatusDidChange, () =>
-                isLoggedIn$.next(musicKit.isAuthorized)
-            );
+            musicKit.addEventListener(MusicKit.Events.authorizationStatusDidChange, async () => {
+                const isLoggedIn = musicKit.isAuthorized;
+                if (isLoggedIn) {
+                    await setFavoritesPlaylistId(musicKit);
+                }
+                isLoggedIn$.next(isLoggedIn);
+            });
         })
     )
     .subscribe(logger);
@@ -150,7 +153,7 @@ if (isConnected()) {
 
 async function initMusicKit(musicKit: MusicKit.MusicKitInstance): Promise<string> {
     const token = await musicKit.authorize();
-    if (token && !appleSettings.favoriteSongsId) {
+    if (token) {
         await setFavoritesPlaylistId(musicKit);
     }
     return token;
@@ -158,16 +161,20 @@ async function initMusicKit(musicKit: MusicKit.MusicKitInstance): Promise<string
 
 async function setFavoritesPlaylistId(musicKit: MusicKit.MusicKitInstance): Promise<void> {
     try {
-        const path = '/v1/me/library/playlists';
-        const {
-            data: {data: items = []},
-        } = await musicKit.api.music(path, {
-            'extend[library-playlists]': 'tags',
-            'fields[library-playlists]': 'tags',
-        });
-        const favoriteSongs = items.find((item: any) => item.attributes.tags.includes('favorited'));
-        if (favoriteSongs) {
-            appleSettings.favoriteSongsId = favoriteSongs.id;
+        if (!appleSettings.favoriteSongsId) {
+            const path = '/v1/me/library/playlists';
+            const {
+                data: {data: items = []},
+            } = await musicKit.api.music(path, {
+                'extend[library-playlists]': 'tags',
+                'fields[library-playlists]': 'tags',
+            });
+            const favoriteSongs = items.find((item: any) =>
+                item.attributes.tags.includes('favorited')
+            );
+            if (favoriteSongs) {
+                appleSettings.favoriteSongsId = favoriteSongs.id;
+            }
         }
     } catch (err) {
         logger.error(err);
