@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
 import {Except, SetOptional, Writable} from 'type-fest';
 import Action from 'types/Action';
+import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -154,8 +155,8 @@ const embyPlaylists: MediaSource<MediaPlaylist> = {
     search(): Pager<MediaPlaylist> {
         return createItemsPager({
             ParentId: getMusicLibraryId(),
-            SortBy: 'SortName',
-            SortOrder: 'Ascending',
+            SortBy: 'DateCreated,SortName',
+            SortOrder: 'Descending,Ascending',
             IncludeItemTypes: 'Playlist',
         });
     },
@@ -402,7 +403,11 @@ const emby: PersonalMediaService = {
         createRoot(ItemType.Media, {title: 'Songs'}),
         createRoot(ItemType.Album, {title: 'Albums'}),
         createRoot(ItemType.Artist, {title: 'Artists'}),
-        createRoot(ItemType.Playlist, {title: 'Playlists', secondaryLayout: playlistItemsLayout}),
+        createRoot(ItemType.Playlist, {
+            title: 'Playlists',
+            layout: playlistLayout,
+            secondaryLayout: playlistItemsLayout,
+        }),
     ],
     sources: [
         embyLikedSongs,
@@ -446,6 +451,7 @@ const emby: PersonalMediaService = {
     canRate: () => false,
     canStore,
     compareForRating,
+    createPlaylist,
     createSourceFromPin,
     getFilters,
     getMetadata,
@@ -479,6 +485,13 @@ function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.src === b.src;
 }
 
+async function createPlaylist(
+    name: string,
+    {description = '', items = []}: CreatePlaylistOptions = {}
+): Promise<void> {
+    return embyApi.createPlaylist(name, description, items.map(getIdFromSrc));
+}
+
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     return {
         title: pin.title,
@@ -492,9 +505,8 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
         isPin: true,
 
         search(): Pager<MediaPlaylist> {
-            const [, , id] = pin.src.split(':');
             return createItemsPager({
-                ids: id,
+                ids: getIdFromSrc(pin),
                 IncludeItemTypes: 'Playlist',
             });
         },
@@ -516,7 +528,7 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     if (inLibrary !== undefined) {
         return {...item, inLibrary};
     }
-    const [, , id] = item.src.split(':');
+    const id = getIdFromSrc(item);
     const pager = new EmbyPager<T>(`Users/${embySettings.userId}/Items/${id}`, undefined, {
         pageSize: 1,
         maxSize: 1,
@@ -548,7 +560,7 @@ async function lookup(
 }
 
 async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
-    const [, , id] = item.src.split(':');
+    const id = getIdFromSrc(item);
     const path = `Users/${embySettings.userId}/FavoriteItems/${id}`;
     if (inLibrary) {
         await embyApi.post(path);
@@ -621,4 +633,9 @@ function getMusicLibraryId(): string {
         throw new NoMusicLibraryError();
     }
     return libraryId;
+}
+
+function getIdFromSrc({src}: {src: string}): string {
+    const [, , id] = src.split(':');
+    return id;
 }

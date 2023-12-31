@@ -68,4 +68,8 @@
 
         margin-bottom: calc(var(--gutter-width) / 2);
     }
+
+    &.plex-browser .source-plex-tidal .star-rating {
+        display: none;
+    }
 }

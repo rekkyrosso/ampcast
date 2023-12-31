@@ -28,17 +28,23 @@ async function get<T = BaseItemDtoQueryResult>(
     params?: Record<string, Primitive>,
     settings?: EmbySettings
 ): Promise<T> {
-    const response = await embyFetch(
-        path,
-        params,
-        {
-            method: 'GET',
-            headers: {Accept: 'application/json'},
-        },
-        settings
-    );
-    const data = await response.json();
-    return data;
+    const response = await embyFetch(path, params, {method: 'GET'}, settings);
+    return response.json();
+}
+
+async function createPlaylist(
+    Name: string,
+    Overview: string,
+    ids: readonly string[],
+    settings: EmbySettings = embySettings
+): Promise<void> {
+    const UserId = settings.userId;
+    const Ids = ids.join(',');
+    const response = await post('Playlists', {Name, Ids, UserId}, settings);
+    const {Id} = await response.json();
+    const path = `Items/${Id}`;
+    const playlist = await get<BaseItemDto>(`Users/${UserId}/${path}`, undefined, settings);
+    await post(path, {...playlist, Overview}, settings);
 }
 
 async function getDecades(
@@ -130,12 +136,12 @@ async function getMusicLibraries(
 
 async function post(
     path: string,
-    params: Record<string, Primitive> = {},
+    params: Record<string, any> = {},
     settings: EmbySettings = embySettings
-): Promise<void> {
+): Promise<Response> {
     const headers = {'Content-Type': 'application/json'};
     const body = JSON.stringify(params);
-    await embyFetch(path, undefined, {method: 'POST', headers, body}, settings);
+    return embyFetch(path, undefined, {method: 'POST', headers, body}, settings);
 }
 
 async function embyFetch(
@@ -154,6 +160,7 @@ async function embyFetch(
     }
     init.headers = {
         ...init.headers,
+        Accept: 'application/json',
         'X-Emby-Authorization': `MediaBrowser Client="${__app_name__}", Version="${__app_version__}", Device="${device}", DeviceId="${deviceId}", Token="${token}"`,
     };
     const response = await fetch(`${host}/${path}`, init);
@@ -246,6 +253,7 @@ async function getPlaybackType(
 }
 
 const embyApi = {
+    createPlaylist,
     delete: del,
     get,
     getFilters,

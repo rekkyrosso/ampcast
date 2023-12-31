@@ -23,6 +23,7 @@ export interface MediaListProps<T extends MediaObject>
     loadingText?: string;
     onError?: (error: any) => void;
     onLoad?: () => void;
+    onNoContent?: () => void;
 }
 
 export default function MediaList<T extends MediaObject>({
@@ -34,6 +35,7 @@ export default function MediaList<T extends MediaObject>({
     onEnter,
     onError,
     onLoad,
+    onNoContent,
     onSelect,
     ...props
 }: MediaListProps<T>) {
@@ -45,6 +47,7 @@ export default function MediaList<T extends MediaObject>({
     const item = useCurrentlyPlaying();
     const currentSrc = item?.src;
     const viewClassName = useViewClassName(layout);
+    const hasItems = loaded ? items.length > 0 : undefined;
 
     useEffect(() => {
         if (error && onError) {
@@ -57,6 +60,12 @@ export default function MediaList<T extends MediaObject>({
             onLoad();
         }
     }, [loaded, onLoad]);
+
+    useEffect(() => {
+        if (hasItems === false && onNoContent) {
+            onNoContent();
+        }
+    }, [hasItems, onNoContent]);
 
     useEffect(() => {
         if (scrollIndex >= 0 && pageSize > 0) {

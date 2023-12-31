@@ -40,7 +40,6 @@ interface ActionsMenuProps extends PopupMenuProps {
 function ActionsMenu({items, selectedItems, rowIndex, ...props}: ActionsMenuProps) {
     const itemCount = items.length;
     const selectedCount = selectedItems.length;
-    const isEmpty = itemCount === 0;
     const allSelected = selectedCount === itemCount;
     const isSingleSelection = selectedCount === 1;
 
@@ -62,14 +61,6 @@ function ActionsMenu({items, selectedItems, rowIndex, ...props}: ActionsMenuProp
                         acceleratorKey="Del"
                         key="remove"
                     />
-                    {isSingleSelection ? (
-                        <PopupMenuItem
-                            label="Info..."
-                            value="info"
-                            acceleratorKey={`${browser.ctrlKeyStr}+I`}
-                            key="info"
-                        />
-                    ) : null}
                 </>
             )}
             <PopupMenuSeparator />
@@ -89,7 +80,14 @@ function ActionsMenu({items, selectedItems, rowIndex, ...props}: ActionsMenuProp
                 />
             ) : null}
             <PopupMenuSeparator />
-            {isEmpty ? null : <PopupMenuItem label="Clear" value="clear" key="clear" />}
+            {isSingleSelection ? (
+                <PopupMenuItem
+                    label="Info..."
+                    value="info"
+                    acceleratorKey={`${browser.ctrlKeyStr}+I`}
+                    key="info"
+                />
+            ) : null}
         </PopupMenu>
     );
 }

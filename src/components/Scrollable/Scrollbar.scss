@@ -2,11 +2,7 @@
 
 .scrollbar {
     position: absolute;
-    background: hsl(
-        var(--scrollbar-color-h),
-        var(--scrollbar-color-s),
-        calc(var(--scrollbar-color-l) - var(--scrollbar-color-l) * 0.5)
-    );
+    background: var(--scrollbar-background-color);
     border-radius: var(--app-border-radius);
     display: none;
 

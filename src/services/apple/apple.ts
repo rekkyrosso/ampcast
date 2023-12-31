@@ -1,5 +1,6 @@
 import {Except, Writable} from 'type-fest';
 import Action from 'types/Action';
+import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -83,7 +84,9 @@ const appleLibrarySongs: MediaSource<MediaItem> = {
     defaultHidden: true,
 
     search(): Pager<MediaItem> {
-        return new MusicKitPager(`/v1/me/library/songs`);
+        return new MusicKitPager(`/v1/me/library/songs`, {
+            'include[library-songs]': 'catalog',
+        });
     },
 };
 
@@ -128,39 +131,11 @@ const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
     lockActionsStore: true,
 
     search(): Pager<MediaPlaylist> {
-        return new MusicKitPager(
-            `/v1/me/library/playlists`,
-            {
-                'fields[playlists]': 'curatorName,url,description',
-                'format[resources]': 'map',
-                include: 'catalog',
-                'omit[resource]': 'autos',
-                sort: '-dateAdded',
-            },
-            undefined,
-            undefined,
-            ({
-                data = [],
-                resources: {'library-playlists': libraryPlaylists = {}, playlists = {}} = {},
-                next: nextPageUrl,
-                meta,
-            }: any): MusicKitPage => {
-                const items = data.map((data: {id: string}) => {
-                    const item = libraryPlaylists[data.id];
-                    const attributes = item?.attributes;
-                    if (!attributes?.canEdit) {
-                        const catalog = item.relationships?.catalog?.data?.[0];
-                        const playlist = playlists[catalog?.id]?.attributes;
-                        attributes.curatorName = playlist?.curatorName;
-                        attributes.url = playlist?.url;
-                        attributes.description = playlist?.description;
-                    }
-                    return item;
-                });
-                const total = meta?.total;
-                return {items, total, nextPageUrl};
-            }
-        );
+        return new MusicKitPager(`/v1/me/library/playlists`, {
+            'fields[library-playlists]': 'name,playParams,artwork',
+            'include[library-playlists]': 'catalog',
+            sort: '-dateAdded',
+        });
     },
 };
 
@@ -196,7 +171,7 @@ const appleFavoriteSongs: MediaSource<MediaItem> = {
         }
         return new MusicKitPager(
             `/v1/me/library/playlists/${playlistId}/tracks`,
-            undefined,
+            {'include[library-songs]': 'catalog'},
             undefined,
             {
                 src: `apple:library-playlists:${playlistId}`,
@@ -248,10 +223,12 @@ const apple: PublicMediaService = {
     canRate: () => false,
     canStore,
     compareForRating,
+    createPlaylist,
     createSourceFromPin,
     getMetadata,
     getPlaybackType,
     lookup,
+    lookupByISRC,
     store,
     observeIsLoggedIn,
     isConnected,
@@ -282,6 +259,25 @@ function canStore<T extends MediaObject>(item: T): boolean {
         default:
             return false;
     }
+}
+
+async function createPlaylist(
+    name: string,
+    {description = '', isPublic, items = []}: CreatePlaylistOptions = {}
+): Promise<void> {
+    const musicKit = MusicKit.getInstance();
+    const attributes = {name, description, isPublic};
+    const tracks = items.map((item) => {
+        const [, type, id] = item.src.split(':');
+        return {id, type};
+    });
+    const relationships = {tracks: {data: tracks}};
+    return musicKit.api.music('/v1/me/library/playlists', undefined, {
+        fetchOptions: {
+            method: 'POST',
+            body: JSON.stringify({attributes, relationships}),
+        },
+    });
 }
 
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
@@ -357,7 +353,26 @@ async function lookup(
         maxSize: limit,
         lookup: true,
     });
-    return fetchFirstPage(pager, {timeout});
+    const items = await fetchFirstPage(pager, {timeout});
+    return items.filter((item) => !item.unplayable);
+}
+
+async function lookupByISRC(
+    isrcs: readonly string[],
+    limit?: number,
+    timeout?: number
+): Promise<readonly MediaItem[]> {
+    if (isrcs.length === 0) {
+        return [];
+    }
+    // https://developer.apple.com/documentation/applemusicapi/get_multiple_catalog_songs_by_isrc
+    const pager = new MusicKitPager<MediaItem>(
+        `/v1/catalog/{{storefrontId}}/songs`,
+        {'filter[isrc]': isrcs.slice(0, 25).join(',')},
+        {pageSize: limit, maxSize: limit, lookup: true}
+    );
+    const items = await fetchFirstPage(pager, {timeout});
+    return items.filter((item) => !item.unplayable);
 }
 
 async function store(item: MediaObject, inLibrary: boolean): Promise<void> {

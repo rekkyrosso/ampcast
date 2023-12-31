@@ -1,5 +1,6 @@
 import type {Observable} from 'rxjs';
 import {Except, SetOptional, Writable} from 'type-fest';
+import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -25,7 +26,6 @@ import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
-import {bestOf} from 'utils';
 import plexSettings from './plexSettings';
 import {
     observeConnectionStatus,
@@ -42,7 +42,7 @@ import PlexPager from './PlexPager';
 
 const tracksLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
-    fields: ['Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount', 'Rate'],
+    fields: ['Artist', 'Title', 'Album', 'Track', 'Duration', 'Genre', 'PlayCount', 'Rate'],
 };
 
 const albumsLayout: MediaSourceLayout<MediaAlbum> = {
@@ -55,9 +55,24 @@ const albumTracksLayout: MediaSourceLayout<MediaItem> = {
     fields: ['AlbumTrack', 'Artist', 'Title', 'Duration', 'PlayCount', 'Rate'],
 };
 
+const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
+    view: 'card compact',
+    fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb'],
+};
+
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
-    fields: ['Index', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount', 'Rate'],
+    fields: [
+        'Index',
+        'Artist',
+        'Title',
+        'Album',
+        'Track',
+        'Duration',
+        'Genre',
+        'PlayCount',
+        'Rate',
+    ],
 };
 
 const plexRecentlyAdded: MediaSource<MediaItem> = {
@@ -201,6 +216,7 @@ const plexPlaylists: MediaSource<MediaPlaylist> = {
     title: 'Playlists',
     icon: 'playlist',
     itemType: ItemType.Playlist,
+    layout: playlistLayout,
     secondaryLayout: playlistItemsLayout,
 
     search(): Pager<MediaPlaylist> {
@@ -210,6 +226,7 @@ const plexPlaylists: MediaSource<MediaPlaylist> = {
             params: {
                 type: plexMediaType.Playlist,
                 playlistType: 'audio',
+                sort: 'addedAt:desc',
             },
         });
     },
@@ -410,7 +427,11 @@ const plex: PersonalMediaService = {
         createRoot(ItemType.Media, {title: 'Tracks', layout: tracksLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
         createRoot(ItemType.Artist, {title: 'Artists'}),
-        createRoot(ItemType.Playlist, {title: 'Playlists', secondaryLayout: playlistItemsLayout}),
+        createRoot(ItemType.Playlist, {
+            title: 'Playlists',
+            layout: playlistLayout,
+            secondaryLayout: playlistItemsLayout,
+        }),
     ],
     sources: [
         plexTopTracks,
@@ -449,6 +470,7 @@ const plex: PersonalMediaService = {
     canRate,
     canStore: () => false,
     compareForRating,
+    createPlaylist,
     createSourceFromPin,
     getFilters,
     getMetadata,
@@ -472,7 +494,7 @@ function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
 }
 
 function canRate<T extends MediaObject>(item: T, inline?: boolean): boolean {
-    if (inline) {
+    if (inline || !item.src.startsWith('plex:')) {
         return false;
     }
     switch (item.itemType) {
@@ -490,6 +512,13 @@ function canRate<T extends MediaObject>(item: T, inline?: boolean): boolean {
     }
 }
 
+async function createPlaylist(
+    name: string,
+    {description = '', items = []}: CreatePlaylistOptions = {}
+): Promise<void> {
+    return plexApi.createPlaylist(name, description, items);
+}
+
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     return {
         title: pin.title,
@@ -497,6 +526,10 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
         id: pin.src,
         icon: 'pin',
         isPin: true,
+        layout: {
+            view: 'card',
+            fields: ['Thumbnail', 'IconTitle', 'TrackCount', 'Blurb'],
+        },
 
         search(): Pager<MediaPlaylist> {
             return new PlexPager({
@@ -526,13 +559,8 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
         return {...item, rating};
     }
     const ratingKey = getRatingKey(item);
-    const path =
-        item.itemType === ItemType.Playlist
-            ? `/playlists/${ratingKey}`
-            : `/library/metadata/${ratingKey}`;
-    const pager = new PlexPager<T>({path}, {maxSize: 1});
-    const items = await fetchFirstPage<T>(pager, {timeout: 2000});
-    return bestOf(item, items[0]);
+    const [plexItem] = await plexApi.getMetadata<plex.RatingObject>([ratingKey]);
+    return {...item, rating: Math.round((plexItem.userRating || 0) / 2)};
 }
 
 function getPlayableUrl(item: PlayableItem): string {
@@ -567,7 +595,7 @@ async function lookup(
                     type: plexItemType.Track,
                 },
             },
-            {maxSize: limit, lookup: true}
+            {pageSize: limit, maxSize: limit, lookup: true}
         ),
         {timeout}
     );

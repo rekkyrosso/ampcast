@@ -11,11 +11,6 @@ type BaseMediaObject = UserData & {
     readonly genres?: readonly string[];
     readonly mood?: string;
     readonly thumbnails?: Thumbnail[];
-    readonly isOwn?: boolean;
-    readonly owner?: {
-        readonly name: string;
-        readonly url?: string;
-    };
     readonly apple?: {
         readonly catalogId: string;
     };

@@ -68,7 +68,7 @@ export default class ListenBrainzPlaylistItemsPager implements Pager<MediaItem> 
             this.subscriptions.add(
                 this.pager
                     .observeAdditions()
-                    .pipe(mergeMap((items) => listenbrainzApi.addInLibrary(items)))
+                    .pipe(mergeMap((items) => listenbrainzApi.addUserData(items)))
                     .subscribe(logger)
             );
         }
@@ -76,20 +76,25 @@ export default class ListenBrainzPlaylistItemsPager implements Pager<MediaItem> 
 
     private createMediaItem(item: ListenBrainz.PlaylistItem): MediaItem {
         const mbid = item.identifier.split('/').pop()!;
-        const data = item.extension?.['https://musicbrainz.org/doc/jspf#track'];
+        const track = item.extension?.['https://musicbrainz.org/doc/jspf#track'];
+        const metadata = track?.['additional_metadata'];
         return {
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             src: `listenbrainz:track:${mbid}`,
             externalUrl: item.identifier,
             title: item.title,
-            artists: item.creator ? [item.creator] : undefined,
+            artists: metadata?.artists
+                ? metadata.artists.map((artist) => artist.artist_credit_name)
+                : item.creator
+                ? [item.creator]
+                : undefined,
             duration: 0,
             recording_mbid: mbid,
-            release_mbid: data?.additional_metadata?.caa_release_mbid,
-            artist_mbids: data?.artist_identifiers?.map(
-                (identifier) => identifier.split('/').pop()!
-            ),
+            release_mbid: track?.additional_metadata?.caa_release_mbid,
+            artist_mbids: metadata?.artists
+                ? metadata.artists.map((artist) => artist.artist_mbid)
+                : track?.artist_identifiers?.map((identifier) => identifier.split('/').pop()!),
             playedAt: 0,
         };
     }

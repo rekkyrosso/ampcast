@@ -1,5 +1,6 @@
 import type {IconName} from 'components/Icon';
 import Auth from './Auth';
+import CreatePlaylistOptions from './CreatePlaylistOptions';
 import DRMInfo from './DRMInfo';
 import ItemType from './ItemType';
 import LibraryAction from './LibraryAction';
@@ -31,6 +32,7 @@ type BaseMediaService = Auth & {
     canRate: (item: MediaObject, inline?: boolean) => boolean;
     canStore: (item: MediaObject, inline?: boolean) => boolean;
     compareForRating: <T extends MediaObject>(a: T, b: T) => boolean;
+    createPlaylist?: (name: string, options?: CreatePlaylistOptions) => Promise<void>;
     createSourceFromPin?: (pin: Pin) => MediaSource<MediaPlaylist>;
     getDrmInfo?: (item?: PlayableItem) => DRMInfo | undefined;
     getFilters?: (
@@ -44,6 +46,11 @@ type BaseMediaService = Auth & {
     lookup?: (
         artist: string,
         title: string,
+        limit?: number,
+        timeout?: number
+    ) => Promise<readonly MediaItem[]>;
+    lookupByISRC?: (
+        isrcs: readonly string[],
         limit?: number,
         timeout?: number
     ) => Promise<readonly MediaItem[]>;

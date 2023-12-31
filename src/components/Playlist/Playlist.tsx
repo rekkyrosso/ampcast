@@ -130,10 +130,6 @@ export default function Playlist({
                     playlist.reverseAt(startIndex, selectedItems.length);
                     break;
                 }
-
-                case 'clear':
-                    playlist.clear();
-                    break;
             }
         },
         [onPlay, items, listViewRef]

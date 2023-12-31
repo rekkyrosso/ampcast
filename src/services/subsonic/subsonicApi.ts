@@ -5,7 +5,7 @@ import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaLibrarySettings from 'types/PersonalMediaLibrarySettings';
 import ViewType from 'types/ViewType';
 import subsonicSettings from './subsonicSettings';
-import {shuffle} from 'utils';
+import {chunk, shuffle} from 'utils';
 
 export interface SubsonicSettings extends Partial<PersonalMediaLibrarySettings> {
     host: string;
@@ -39,6 +39,25 @@ async function get<T>(
         throw data.error;
     }
     return data;
+}
+
+async function createPlaylist(
+    name: string,
+    description: string,
+    isPublic: boolean,
+    ids: readonly string[]
+): Promise<void> {
+    const {playlist} = await get<Subsonic.CreatePlaylistResponse>('createPlaylist', {name});
+    const chunks = chunk(ids, 300); // TODO: Some kind of maximum size.
+    for (const chunk of chunks) {
+        const params = new URLSearchParams({
+            playlistId: playlist.id,
+            comment: description,
+            public: String(isPublic),
+        });
+        chunk.forEach((id) => params.append('songIdToAdd', id));
+        await get(`updatePlaylist?${params}`);
+    }
 }
 
 async function getAlbum(id: string, settings?: SubsonicSettings): Promise<Subsonic.Album> {
@@ -444,6 +463,7 @@ function getPlayableUrl(
 }
 
 const subsonicApi = {
+    createPlaylist,
     get,
     getAlbum,
     getAlbumInfo,

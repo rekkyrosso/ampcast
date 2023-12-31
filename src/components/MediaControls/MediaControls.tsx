@@ -1,6 +1,4 @@
 import React, {useCallback, useRef} from 'react';
-import getYouTubeID from 'get-youtube-id';
-import {createMediaItemFromUrl} from 'services/music-metadata';
 import mediaPlayback, {
     pause,
     play,
@@ -10,16 +8,13 @@ import mediaPlayback, {
     observeDuration,
 } from 'services/mediaPlayback';
 import playlist, {observeCurrentIndex} from 'services/playlist';
-import {getYouTubeVideoInfo} from 'services/youtube';
-import {alert, prompt} from 'components/Dialog';
 import {ListViewHandle} from 'components/ListView';
-import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import Time from 'components/Time';
 import useObservable from 'hooks/useObservable';
 import usePaused from 'hooks/usePaused';
 import MediaButton from './MediaButton';
 import VolumeControl from './VolumeControl';
-import showActionsMenu from './showActionsMenu';
+import useActionsMenu from './useActionsMenu';
 import './MediaControls.scss';
 
 export interface MediaControlsProps {
@@ -27,10 +22,11 @@ export interface MediaControlsProps {
 }
 
 export default function MediaControls({listViewRef}: MediaControlsProps) {
-    const fileRef = useRef<HTMLInputElement>(null);
+    const fileRef = useRef<HTMLInputElement>(null); // TODO
     const currentIndex = useObservable(observeCurrentIndex, -1);
     const currentTime = useObservable(observeCurrentTime, 0);
     const duration = useObservable(observeDuration, 0);
+    const {showActionsMenu} = useActionsMenu(listViewRef, fileRef);
     const paused = usePaused();
 
     const handleSeekChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -39,60 +35,10 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
 
     const handleMoreClick = useCallback(
         async (event: React.MouseEvent<HTMLButtonElement>) => {
-            const listView = listViewRef.current!;
             const rect = (event.target as HTMLButtonElement).getBoundingClientRect();
-            const action = await showActionsMenu(rect.right, rect.bottom + 4);
-            switch (action) {
-                case 'jump-to-current':
-                    listView.scrollIntoView(currentIndex);
-                    listView.focus();
-                    break;
-
-                case 'stop-after-current':
-                    mediaPlayback.stopAfterCurrent = !mediaPlayback.stopAfterCurrent;
-                    break;
-
-                case 'clear':
-                    playlist.clear();
-                    break;
-
-                case 'shuffle':
-                    playlist.shuffle(!paused);
-                    listView.scrollIntoView(0);
-                    break;
-
-                case 'add-from-file':
-                    fileRef.current!.click();
-                    break;
-
-                case 'add-from-url': {
-                    const url = await prompt({
-                        title: 'External Media',
-                        type: 'url',
-                        label: 'Url',
-                        okLabel: 'Add',
-                    });
-                    if (url) {
-                        const videoId = getYouTubeID(url);
-                        try {
-                            const item = await (videoId
-                                ? getYouTubeVideoInfo(videoId)
-                                : createMediaItemFromUrl(url));
-                            playlist.add(item);
-                        } catch (err: any) {
-                            await alert({
-                                title: <MediaSourceLabel icon="error" text="Error" />,
-                                message:
-                                    err.message ||
-                                    `${videoId ? 'video' : 'media'} cannot be played.`,
-                            });
-                        }
-                    }
-                    break;
-                }
-            }
+            showActionsMenu(rect.right, rect.bottom + 4);
         },
-        [listViewRef, currentIndex, paused]
+        [showActionsMenu]
     );
 
     const handlePrevClick = useCallback(async () => {

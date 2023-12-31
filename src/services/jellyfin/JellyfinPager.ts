@@ -22,7 +22,7 @@ import jellyfinApi from './jellyfinApi';
 
 export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     static minPageSize = 10;
-    static maxPageSize = 500;
+    static maxPageSize = 1000;
 
     private readonly pager: Pager<T>;
     private readonly pageSize: number;
@@ -33,7 +33,10 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         options?: Partial<PagerConfig>,
         private readonly parent?: ParentOf<T>
     ) {
-        this.pageSize = options?.pageSize || 200;
+        this.pageSize = Math.min(
+            options?.maxSize || Infinity,
+            options?.pageSize || (jellyfinSettings.isLocal ? JellyfinPager.maxPageSize : 200)
+        );
         this.pager = new OffsetPager<T>((pageNumber) => this.fetch(pageNumber), {
             pageSize: this.pageSize,
             ...options,
@@ -67,7 +70,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     private async fetch(pageNumber: number): Promise<Page<T>> {
         const params = {
             IncludeItemTypes: 'Audio',
-            Fields: 'AudioInfo,Genres,Path',
+            Fields: 'AudioInfo,ChildCount,DateCreated,Genres,Path,ProviderIds',
             EnableUserData: true,
             Recursive: true,
             ImageTypeLimit: 1,
@@ -128,6 +131,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             genres: artist.Genres || undefined,
             thumbnails: this.createThumbnails(artist),
             inLibrary: artist.UserData?.IsFavorite,
+            artist_mbid: artist.ProviderIds?.['MusicBrainzArtist'],
             pager: this.createArtistAlbumsPager(artist),
         };
     }
@@ -149,6 +153,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             trackCount: album.ChildCount || undefined,
             pager: this.createAlbumTracksPager(album),
             artist: album.AlbumArtist || undefined,
+            release_mbid: album.ProviderIds?.['MusicBrainzAlbum'],
             year: album.ProductionYear || undefined,
         };
     }
@@ -169,7 +174,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             thumbnails: this.createThumbnails(playlist),
             inLibrary: playlist.UserData?.IsFavorite,
             trackCount: playlist.ChildCount || undefined,
-            pager: this.createPlaylistPager(playlist),
+            pager: this.createPlaylistItemsPager(playlist),
             isPinned: pinStore.isPinned(src),
         };
     }
@@ -191,6 +196,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
 
     private createMediaItem(track: BaseItemDto): MediaItem {
         const isVideo = track.MediaType === 'Video';
+        const artist_mbid = track.ProviderIds?.['MusicBrainzArtist'];
         return {
             itemType: ItemType.Media,
             mediaType: isVideo ? MediaType.Video : MediaType.Audio,
@@ -216,6 +222,9 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             album: track.Album || undefined,
             disc: track.Album ? track.ParentIndexNumber || undefined : undefined,
             track: track.Album ? track.IndexNumber || 0 : 0,
+            track_mbid: track.ProviderIds?.['MusicBrainzTrack'],
+            release_mbid: track.ProviderIds?.['MusicBrainzAlbum'],
+            artist_mbids: artist_mbid ? [artist_mbid] : undefined,
         };
     }
 
@@ -280,11 +289,10 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         });
     }
 
-    private createPlaylistPager(playlist: BaseItemDto): Pager<MediaItem> {
+    private createPlaylistItemsPager(playlist: BaseItemDto): Pager<MediaItem> {
         return new JellyfinPager(`Playlists/${playlist.Id}/Items`, {
             UserId: jellyfinSettings.userId,
             MediaType: 'Audio',
-            Fields: 'ChildCount',
         });
     }
 

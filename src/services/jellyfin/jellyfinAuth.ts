@@ -65,7 +65,11 @@ observeAccessToken()
 
 async function checkConnection(): Promise<boolean> {
     try {
-        const libraries = await jellyfinApi.getMusicLibraries();
+        const [endpoint, libraries] = await Promise.all([
+            jellyfinApi.getEndpointInfo(),
+            jellyfinApi.getMusicLibraries(),
+        ]);
+        jellyfinSettings.isLocal = !!endpoint.IsLocal;
         jellyfinSettings.libraries = libraries;
         return true;
     } catch (err: any) {

@@ -175,8 +175,8 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
         method: 'track.getInfo',
         user: lastfmSettings.userId,
     };
-    if (item.recording_mbid) {
-        params.mbid = item.recording_mbid;
+    if (item.track_mbid) {
+        params.mbid = item.track_mbid;
     } else {
         const {title, artists = []} = item;
         params.artist = artists[0];

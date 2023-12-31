@@ -76,9 +76,7 @@ async function createPlayQueueItemId(item: MediaItem): Promise<string> {
             type: 'music',
             uri: isTidal
                 ? `provider://tv.plex.provider.music${key}`
-                : `server://${
-                      plexSettings.server!.clientIdentifier
-                  }/com.plexapp.plugins.library${key}`,
+                : `server://${plexSettings.serverId}/com.plexapp.plugins.library${key}`,
             continuous: '0',
             repeat: '0',
             own: '1',

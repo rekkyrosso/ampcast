@@ -1,5 +1,6 @@
 import {Except} from 'type-fest';
 import Action from 'types/Action';
+import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -32,9 +33,14 @@ const serviceId: MediaServiceId = 'navidrome';
 const songSort = 'order_album_artist_name,order_album_name,disc_number,track_number';
 const albumSort = 'order_album_artist_name,order_album_name';
 
+const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
+    view: 'card compact',
+    fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb'],
+};
+
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
-    fields: ['Index', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount'],
+    fields: ['Index', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'Genre', 'PlayCount'],
 };
 
 const navidromeLikedSongs: MediaSource<MediaItem> = {
@@ -131,6 +137,7 @@ const navidromePlaylists: MediaSource<MediaPlaylist> = {
     title: 'Playlists',
     icon: 'playlist',
     itemType: ItemType.Playlist,
+    layout: playlistLayout,
     secondaryLayout: playlistItemsLayout,
 
     search(): Pager<MediaPlaylist> {
@@ -236,7 +243,11 @@ const navidrome: PersonalMediaService = {
         createRoot(ItemType.Media, {title: 'Songs'}),
         createRoot(ItemType.Album, {title: 'Albums'}),
         createRoot(ItemType.Artist, {title: 'Artists'}),
-        createRoot(ItemType.Playlist, {title: 'Playlists'}),
+        createRoot(ItemType.Playlist, {
+            title: 'Playlists',
+            layout: playlistLayout,
+            secondaryLayout: playlistItemsLayout,
+        }),
     ],
     sources: [
         navidromeLikedSongs,
@@ -258,6 +269,7 @@ const navidrome: PersonalMediaService = {
     canRate: () => false,
     canStore,
     compareForRating,
+    createPlaylist,
     createSourceFromPin,
     getFilters,
     getMetadata,
@@ -292,6 +304,13 @@ function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.src === b.src;
 }
 
+async function createPlaylist(
+    name: string,
+    {description = '', isPublic = false, items = []}: CreatePlaylistOptions = {}
+): Promise<void> {
+    return navidromeApi.createPlaylist(name, description, isPublic, items.map(getIdFromSrc));
+}
+
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     return {
         title: pin.title,
@@ -301,7 +320,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
         isPin: true,
 
         search(): Pager<MediaPlaylist> {
-            const [, , id] = pin.src.split(':');
+            const id = getIdFromSrc(pin);
             return new NavidromePager(ItemType.Playlist, `playlist/${id}`);
         },
     };
@@ -315,15 +334,26 @@ async function getFilters(
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     const itemType = item.itemType;
-    const [, , id] = item.src.split(':');
+    const id = getIdFromSrc(item);
     if (itemType === ItemType.Album) {
         if (item.synthetic) {
             return item;
         }
         if (item.description === undefined) {
             const info = await subsonicApi.getAlbumInfo(id, false, navidromeSettings);
-            item = {...item, description: getTextFromHtml(info.notes)};
+            item = {
+                ...item,
+                description: getTextFromHtml(info.notes),
+                release_mbid: info.musicBrainzId,
+            };
         }
+    } else if (itemType === ItemType.Artist && item.description === undefined) {
+        const info = await subsonicApi.getArtistInfo(id, navidromeSettings);
+        item = {
+            ...item,
+            description: getTextFromHtml(info.biography),
+            artist_mbid: info.musicBrainzId,
+        };
     }
     if (!canStore(item) || item.inLibrary !== undefined) {
         return item;
@@ -373,7 +403,7 @@ async function lookup(
 }
 
 async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
-    const [, , id] = item.src.split(':');
+    const id = getIdFromSrc(item);
     const method = inLibrary ? 'star' : 'unstar';
     switch (item.itemType) {
         case ItemType.Media:
@@ -427,4 +457,9 @@ function createRoot<T extends MediaObject>(
             }
         },
     };
+}
+
+function getIdFromSrc({src}: {src: string}): string {
+    const [, , id] = src.split(':');
+    return id;
 }

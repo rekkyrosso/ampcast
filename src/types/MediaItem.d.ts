@@ -20,15 +20,27 @@ export default interface MediaItem extends BaseMediaObject {
     readonly noScrobble?: boolean;
     readonly isrc?: string;
     readonly recording_mbid?: string;
-    readonly recording_msid?: string;
+    readonly recording_msid?: string; // ListenBrainz only
     readonly track_mbid?: string;
     readonly release_mbid?: string;
-    readonly artist_mbids?: string[];
+    readonly artist_mbids?: readonly string[];
     readonly fileName?: string;
+    readonly blob?: Blob;
+    // Playable sources that can be derived from `src`.
+    readonly srcs?: string[];
+    // For YouTube videos mainly.
+    readonly owner?: {
+        readonly name: string;
+        readonly url?: string;
+    };
+    // For last.fm/ListenBrainz: (partial) link to original source (if any).
     readonly link?: {
         readonly src: string;
         readonly externalUrl?: string;
     };
-    readonly blob?: Blob;
-    readonly srcs?: string[];
+    readonly musicBrainz?: {
+        readonly status: string;
+        readonly country: string;
+        readonly format: string;
+    };
 }

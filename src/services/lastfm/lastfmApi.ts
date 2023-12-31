@@ -72,10 +72,9 @@ export class LastFmApi {
 
     createThumbnails(thumbs: readonly LastFm.Thumbnail[]): Thumbnail[] | undefined {
         const result = thumbs
-            ? [
-                  this.createThumbnail(thumbs[2], 174),
-                  this.createThumbnail(thumbs[3], 300),
-              ].filter(exists)
+            ? [this.createThumbnail(thumbs[2], 174), this.createThumbnail(thumbs[3], 300)].filter(
+                  exists
+              )
             : [];
 
         return result.length === 0 ? undefined : result;
@@ -124,8 +123,8 @@ export class LastFmApi {
         if (item.track) {
             params.trackNumber = String(item.track);
         }
-        if (item.recording_mbid) {
-            params.mbid = item.recording_mbid;
+        if (item.track_mbid) {
+            params.mbid = item.track_mbid;
         }
         return params;
     }

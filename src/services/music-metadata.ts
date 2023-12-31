@@ -53,10 +53,7 @@ async function fetchFromUrl(url: string, options?: IOptions): Promise<IAudioMeta
         /* webpackMode: "lazy-once" */
         'music-metadata-browser'
     );
-    const controller = new AbortController();
-    const timerId = setTimeout(() => controller.abort(), 3000);
-    const response = await fetch(url, {signal: controller.signal});
-    clearTimeout(timerId);
+    const response = await fetch(url, {signal: AbortSignal.timeout(3000)});
     if (response.ok) {
         if (response.body) {
             const size = response.headers.get('Content-Length');

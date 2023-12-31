@@ -1,6 +1,6 @@
 import React from 'react';
 import mediaPlayback from 'services/mediaPlayback';
-import {observeCurrentIndex, getCurrentIndex} from 'services/playlist';
+import {observeSize} from 'services/playlist';
 import PopupMenu, {
     PopupMenuItem,
     PopupMenuItemCheckbox,
@@ -16,7 +16,8 @@ export default async function showActionsMenu(x: number, y: number): Promise<str
 }
 
 function ActionsMenu(props: PopupMenuProps) {
-    const currentIndex = useObservable(observeCurrentIndex, getCurrentIndex());
+    const size = useObservable(observeSize, 0);
+    const isEmpty = size === 0;
     const paused = usePaused();
 
     return (
@@ -31,16 +32,23 @@ function ActionsMenu(props: PopupMenuProps) {
             <PopupMenuItem
                 label="Jump to current"
                 value="jump-to-current"
-                disabled={currentIndex === -1}
+                disabled={isEmpty}
                 key="jump-to-current"
             />
             <PopupMenuSeparator />
-            <PopupMenuItem label="Shuffle" value="shuffle" key="shuffle" />
+            <PopupMenuItem label="Shuffle" value="shuffle" disabled={isEmpty} key="shuffle" />
             <PopupMenuSeparator />
-            <PopupMenuItem label="Clear" value="clear" key="clear" />
+            <PopupMenuItem
+                label="Save as playlist..."
+                value="save-as-playlist"
+                disabled={isEmpty}
+                key="save-as-playlist"
+            />
             <PopupMenuSeparator />
             <PopupMenuItem label="Add from file..." value="add-from-file" key="add-from-file" />
             <PopupMenuItem label="Add from url..." value="add-from-url" key="add-from-url" />
+            <PopupMenuSeparator />
+            <PopupMenuItem label="Clear" value="clear" disabled={isEmpty} key="clear" />
         </PopupMenu>
     );
 }

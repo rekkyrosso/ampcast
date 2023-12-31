@@ -157,7 +157,8 @@ label {
 }
 
 label + input,
-label + select {
+label + select,
+label + textarea {
     margin-left: 0.5em;
 }
 
@@ -261,7 +262,8 @@ button,
         }
 
         & > label + input,
-        & > label + select {
+        & > label + select,
+        & > label + textarea {
             display: table-cell;
             width: calc(100% - 0.5em);
         }
@@ -270,6 +272,10 @@ button,
         & > select,
         & > button {
             vertical-align: middle;
+        }
+
+        & > textarea {
+            vertical-align: text-top;
         }
 
         input[type=checkbox],

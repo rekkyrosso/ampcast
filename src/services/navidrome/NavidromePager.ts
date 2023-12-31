@@ -121,6 +121,7 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
             recording_mbid: song.mbzTrackId,
             release_mbid: song.mbzAlbumId,
             track_mbid: song.mbzReleaseTrackId,
+            artist_mbids: song.mbzArtistId ? [song.mbzArtistId] : undefined,
         };
     }
 
@@ -141,6 +142,7 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
             pager: new NavidromePager(ItemType.Media, 'song', {album_id, _sort: 'album'}),
             thumbnails: this.createThumbnails(album_id),
             release_mbid: album.mbzAlbumId,
+            artist_mbids: album.mbzAlbumArtistId ? [album.mbzAlbumArtistId] : undefined,
         };
     }
 

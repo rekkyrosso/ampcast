@@ -20,7 +20,7 @@ const defaultPlaylistItemsLayout: MediaSourceLayout<MediaItem> = {
 };
 
 export default function PinnedPlaylist({source, ...props}: PagedItemsProps<MediaPlaylist>) {
-    const [error, setError] = useState<any>();
+    const [error, setError] = useState<unknown>();
     const [selectedPlaylist, setSelectedPlaylist] = useState<MediaPlaylist | null>(null);
 
     useEffect(() => () => pinStore.unlock(), [source]);
@@ -35,6 +35,10 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
         setSelectedPlaylist(item || null);
     }, []);
 
+    const handleNotFound = useCallback(() => {
+        setError(Error('Not found'));
+    }, []);
+
     return (
         <div className="panel pinned-playlist">
             {error ? (
@@ -45,6 +49,7 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
                     title={source.title}
                     layout={source.layout || defaultLayout}
                     onError={setError}
+                    onNoContent={handleNotFound}
                     onSelect={handleSelect}
                     statusBar={false}
                     disabled
@@ -55,6 +60,7 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
                 className="playlist-items"
                 pager={selectedPlaylist?.pager}
                 layout={source.secondaryLayout || defaultPlaylistItemsLayout}
+                onError={setError}
             />
         </div>
     );

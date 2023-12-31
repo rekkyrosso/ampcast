@@ -1,5 +1,6 @@
 import {Except} from 'type-fest';
 import Action from 'types/Action';
+import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -17,6 +18,7 @@ import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
+import {chunk} from 'utils';
 import {
     observeIsLoggedIn,
     isConnected,
@@ -28,7 +30,6 @@ import {
 import spotifyApi from './spotifyApi';
 import SpotifyPager, {SpotifyPage} from './SpotifyPager';
 import {userSettings} from './spotifySettings';
-import {chunk} from 'utils';
 
 export type SpotifyArtist = SpotifyApi.ArtistObjectFull;
 export type SpotifyAlbum = SpotifyApi.AlbumObjectFull;
@@ -209,6 +210,29 @@ const spotifyFeaturedPlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
+const spotifyNewReleases: MediaSource<MediaAlbum> = {
+    id: 'spotify/new-albums',
+    title: 'New releases',
+    icon: 'album',
+    itemType: ItemType.Album,
+    secondaryLayout: playlistItemsLayout,
+    defaultHidden: true,
+
+    search(): Pager<MediaAlbum> {
+        const market = getMarket();
+        return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
+            const {
+                albums: {items, total, next},
+            } = await spotifyApi.getNewReleases({
+                offset,
+                limit,
+                market,
+            });
+            return {items: items as SpotifyAlbum[], total, next};
+        });
+    },
+};
+
 const spotify: PublicMediaService = {
     id: 'spotify',
     name: 'Spotify',
@@ -236,6 +260,7 @@ const spotify: PublicMediaService = {
         spotifyTopTracks,
         spotifyTopArtists,
         spotifyFeaturedPlaylists,
+        spotifyNewReleases,
     ],
     icons: {
         [Action.AddToLibrary]: 'heart',
@@ -248,10 +273,12 @@ const spotify: PublicMediaService = {
     canRate: () => false,
     canStore,
     compareForRating,
+    createPlaylist,
     createSourceFromPin,
     getMetadata,
     getPlaybackType,
     lookup,
+    lookupByISRC,
     store,
     bulkStore,
     observeIsLoggedIn,
@@ -281,6 +308,27 @@ function canStore<T extends MediaObject>(item: T, inline?: boolean): boolean {
 
 function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.src === b.src;
+}
+
+async function createPlaylist(
+    name: string,
+    {description = '', isPublic = false, items}: CreatePlaylistOptions = {}
+): Promise<void> {
+    const userId = userSettings.getString('userId');
+    const playlist = await spotifyApi.createPlaylist(userId, {
+        name,
+        description,
+        public: isPublic,
+    });
+    if (items?.length) {
+        const chunks = chunk(items, 100);
+        for (const chunk of chunks) {
+            await spotifyApi.addTracksToPlaylist(
+                playlist.id,
+                chunk.map((item) => item.src)
+            );
+        }
+    }
 }
 
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
@@ -351,13 +399,29 @@ async function lookup(
         return [];
     }
     const safeString = (s: string) => s.replace(/['"]/g, ' ');
-    const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit, lookup: true};
     const pager = createSearchPager<MediaItem>(
         ItemType.Media,
         `${safeString(artist)} ${safeString(title)}`,
-        options
+        {pageSize: limit, maxSize: limit, lookup: true}
     );
     return fetchFirstPage(pager, {timeout});
+}
+
+async function lookupByISRC(
+    isrcs: readonly string[],
+    limit?: number,
+    timeout?: number
+): Promise<readonly MediaItem[]> {
+    if (isrcs.length === 0) {
+        return [];
+    }
+    const pager = createSearchPager<MediaItem>(
+        ItemType.Media,
+        isrcs.map((isrc) => `isrc:${isrc}`).join('+'),
+        {pageSize: limit, maxSize: limit, lookup: true}
+    );
+    const items = await fetchFirstPage(pager, {timeout});
+    return items.filter((item) => !item.unplayable);
 }
 
 async function store(item: MediaObject, inLibrary: boolean): Promise<void> {

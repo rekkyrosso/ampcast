@@ -14,6 +14,7 @@ export default interface Playlist {
     getCurrentIndex(): number;
     getCurrentItem(): PlaylistItem | null;
     setCurrentItem(item: PlaylistItem): void;
+    getItems(): readonly PlaylistItem[];
     add(album: MediaAlbum): Promise<void>;
     add(item: MediaItem): Promise<void>;
     add(items: readonly MediaItem[]): Promise<void>;

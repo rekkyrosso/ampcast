@@ -103,7 +103,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             this.subscriptions.add(
                 this.pager
                     .observeAdditions()
-                    .pipe(mergeMap((items) => listenbrainzApi.addInLibrary(items)))
+                    .pipe(mergeMap((items) => listenbrainzApi.addUserData(items)))
                     .subscribe(logger)
             );
 

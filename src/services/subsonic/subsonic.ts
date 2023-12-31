@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
 import {Except, SetOptional, Writable} from 'type-fest';
 import Action from 'types/Action';
+import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
@@ -33,9 +34,14 @@ import subsonicSettings from './subsonicSettings';
 
 const serviceId: MediaServiceId = 'subsonic';
 
+const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
+    view: 'card compact',
+    fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb'],
+};
+
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
-    fields: ['Index', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount'],
+    fields: ['Index', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'Genre', 'PlayCount'],
 };
 
 const subsonicLikedSongs: MediaSource<MediaItem> = {
@@ -122,6 +128,7 @@ const subsonicPlaylists: MediaSource<MediaPlaylist> = {
     title: 'Playlists',
     icon: 'playlist',
     itemType: ItemType.Playlist,
+    layout: playlistLayout,
     secondaryLayout: playlistItemsLayout,
 
     search(): Pager<MediaPlaylist> {
@@ -371,6 +378,7 @@ const subsonic: PersonalMediaService = {
     canRate: () => false,
     canStore,
     compareForRating,
+    createPlaylist,
     createSourceFromPin,
     getFilters,
     getMetadata,
@@ -407,16 +415,27 @@ function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.src === b.src;
 }
 
+async function createPlaylist(
+    name: string,
+    {description = '', isPublic = false, items = []}: CreatePlaylistOptions = {}
+): Promise<void> {
+    return subsonicApi.createPlaylist(name, description, isPublic, items.map(getIdFromSrc));
+}
+
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     return {
         title: pin.title,
         itemType: ItemType.Playlist,
+        layout: {
+            view: 'card',
+            fields: ['Thumbnail', 'IconTitle', 'TrackCount', 'Blurb'],
+        },
         id: pin.src,
         icon: 'pin',
         isPin: true,
 
         search(): Pager<MediaPlaylist> {
-            const [, , id] = pin.src.split(':');
+            const id = getIdFromSrc(pin);
             return new SubsonicPager(
                 ItemType.Playlist,
                 async (): Promise<Page<Subsonic.Playlist>> => {
@@ -437,7 +456,7 @@ async function getFilters(
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     const itemType = item.itemType;
-    const [, , id] = item.src.split(':');
+    const id = getIdFromSrc(item);
     if (itemType === ItemType.Album) {
         if (item.synthetic) {
             return item;
@@ -565,10 +584,15 @@ function createRoot<T extends MediaObject>(
 }
 
 async function getAlbumDirectoryId(album: MediaAlbum): Promise<string> {
-    const [, , id] = album.src.split(':');
+    const id = getIdFromSrc(album);
     if (album.subsonic?.isDir) {
         return id;
     }
     const [{parent}] = await subsonicApi.getAlbumTracks(id);
     return parent || '';
+}
+
+function getIdFromSrc({src}: {src: string}): string {
+    const [, , id] = src.split(':');
+    return id;
 }

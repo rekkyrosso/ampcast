@@ -57,12 +57,13 @@ declare namespace plex {
         readonly MediaContainer: SearchResultContainer;
     }
 
-    interface MusicObject {
+    interface BaseRatingObject {
         readonly Genre: readonly Tag[];
+        readonly Guid: readonly Guid[];
         readonly Country: readonly Tag[];
-        // readonly popularTracks: readonly Track[];
         readonly addedAt: number; // Date
         readonly art: string;
+        readonly attribution: string;
         readonly deletedAt: number; // Date
         readonly guid: string;
         readonly index: number;
@@ -74,19 +75,19 @@ declare namespace plex {
         readonly thumb: string;
         readonly title: string;
         readonly titleSort: string;
-        readonly type: 'artist' | 'album' | 'track' | 'clip';
         readonly updatedAt: number; // Date
         readonly viewCount: number;
         readonly userState?: boolean;
         readonly rating?: number;
+        readonly ratingCount?: number;
         readonly saved?: boolean;
     }
 
-    interface Artist extends MusicObject {
+    interface Artist extends BaseRatingObject {
         readonly type: 'artist';
     }
 
-    interface Album extends MusicObject {
+    interface Album extends BaseRatingObject {
         readonly type: 'album';
         readonly parentId: number;
         readonly mood: Tag[];
@@ -106,7 +107,7 @@ declare namespace plex {
         readonly year: number;
     }
 
-    interface Track extends MusicObject {
+    interface Track extends BaseRatingObject {
         readonly type: 'track';
         readonly Media: Media[];
         readonly parentId: number;
@@ -127,20 +128,41 @@ declare namespace plex {
         readonly parentThumb: string;
         readonly parentTitle: string;
         readonly parentYear: number;
-        readonly ratingCount: number;
-        readonly ratingKey: string;
         readonly year?: number;
     }
 
-    interface MusicVideo extends MusicObject {
+    interface MusicVideo extends BaseRatingObject {
         readonly type: 'clip';
         readonly subType: 'musicVideo';
         readonly extraType: number; // '4' - artist
         readonly Media: Media[];
         readonly duration: number;
+        readonly grandparentRatingKey: string;
         readonly grandparentTitle: string;
     }
 
+    interface Playlist {
+        readonly type: 'playlist';
+        readonly addedAt: number; // Date (unix)
+        readonly attribution: string;
+        readonly composite: string;
+        readonly duration: number;
+        readonly guid: string;
+        readonly icon: string;
+        readonly key: string;
+        readonly lastViewedAt: number; // Date (unix)
+        readonly leafCount: number;
+        readonly playlistType: string;
+        readonly ratingKey: string;
+        readonly smart: boolean;
+        readonly summary: '';
+        readonly thumb?: string;
+        readonly title: string;
+        readonly updatedAt: number; // Date (unix)
+        readonly viewCount: number;
+    }
+
+    type RatingObject = Track | MusicVideo | Album | Artist;
     type MediaObject = Track | MusicVideo | Album | Artist | Playlist;
 
     interface Media {
@@ -162,6 +184,10 @@ declare namespace plex {
         readonly file: string;
         readonly size: number;
         readonly container: string;
+    }
+
+    interface Guid {
+        readonly id: string;
     }
 
     interface Genre {
@@ -253,26 +279,6 @@ declare namespace plex {
     interface Location {
         readonly id: number;
         readonly path: string;
-    }
-
-    interface Playlist {
-        readonly type: 'playlist';
-        readonly addedAt: number; // Date (unix)
-        readonly composite: string;
-        readonly duration: number;
-        readonly guid: string;
-        readonly icon: string;
-        readonly key: string;
-        readonly lastViewedAt: number; // Date (unix)
-        readonly leafCount: number;
-        readonly playlistType: string;
-        readonly ratingKey: string;
-        readonly smart: boolean;
-        readonly summary: '';
-        readonly thumb?: string;
-        readonly title: string;
-        readonly updatedAt: number; // Date (unix)
-        readonly viewCount: number;
     }
 
     interface Pin {

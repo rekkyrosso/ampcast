@@ -1,16 +1,5 @@
 import type {Observable} from 'rxjs';
-import {
-    BehaviorSubject,
-    Subject,
-    distinctUntilChanged,
-    filter,
-    from,
-    mergeMap,
-    skipWhile,
-    take,
-    takeUntil,
-    tap,
-} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, skipWhile} from 'rxjs';
 import {am_dev_token} from 'services/credentials';
 import {loadScript, Logger} from 'utils';
 import appleSettings from './appleSettings';
@@ -19,7 +8,6 @@ import MusicKitV1Wrapper from './MusicKitV1Wrapper';
 const logger = new Logger('appleAuth');
 
 const isLoggedIn$ = new BehaviorSubject(false);
-const disconnected$ = new Subject<void>();
 
 export function isConnected(): boolean {
     return !!appleSettings.connectedAt;
@@ -47,7 +35,6 @@ export async function login(): Promise<void> {
 
 export async function logout(): Promise<void> {
     logger.log('disconnect');
-    disconnected$.next(undefined);
     try {
         const musicKit = await getMusicKitInstance();
         try {
@@ -89,7 +76,7 @@ const musicKitPromise = new Promise<MusicKit.MusicKitInstance>((resolve, reject)
         }
         try {
             // MusicKit v3 is async but the types are still v1.
-            const instance = await MusicKit.configure({
+            const musicKit = await MusicKit.configure({
                 developerToken: am_dev_token,
                 app: {
                     name: __app_name__,
@@ -98,7 +85,18 @@ const musicKitPromise = new Promise<MusicKit.MusicKitInstance>((resolve, reject)
                 sourceType: 8, // "WEBPLAYER"
                 suppressErrorDialog: true,
             } as any);
-            resolve(instance);
+            musicKit.addEventListener(MusicKit.Events.authorizationStatusDidChange, async () => {
+                const isLoggedIn = musicKit.isAuthorized;
+                if (isLoggedIn) {
+                    try {
+                        await setFavoriteSongsId(musicKit);
+                    } catch (err) {
+                        logger.error(err);
+                    }
+                }
+                isLoggedIn$.next(isLoggedIn);
+            });
+            resolve(musicKit);
         } catch (error) {
             reject(error);
         }
@@ -119,64 +117,37 @@ export async function getMusicKitInstance(): Promise<MusicKit.MusicKitInstance> 
     }
 }
 
+async function setFavoriteSongsId(musicKit: MusicKit.MusicKitInstance): Promise<void> {
+    if (!appleSettings.favoriteSongsId) {
+        const {
+            data: {data: playlists = []},
+        } = await musicKit.api.music('/v1/me/library/playlists', {
+            'extend[library-playlists]': 'tags',
+            'fields[library-playlists]': 'tags',
+        });
+        const favoriteSongs = playlists.find((playlist: any) =>
+            playlist.attributes?.tags?.includes('favorited')
+        );
+        if (favoriteSongs) {
+            appleSettings.favoriteSongsId = favoriteSongs.id;
+        }
+    }
+}
+
 observeIsLoggedIn()
     .pipe(skipWhile((isLoggedIn) => !isLoggedIn))
     .subscribe((isLoggedIn) => (appleSettings.connectedAt = isLoggedIn ? Date.now() : 0));
 
-observeIsLoggedIn()
-    .pipe(
-        filter((isLoggedIn) => isLoggedIn),
-        mergeMap(() => getMusicKitInstance()),
-        take(1),
-        tap((musicKit) => {
-            musicKit.addEventListener(MusicKit.Events.authorizationStatusDidChange, async () => {
-                const isLoggedIn = musicKit.isAuthorized;
-                if (isLoggedIn) {
-                    await setFavoritesPlaylistId(musicKit);
-                }
-                isLoggedIn$.next(isLoggedIn);
-            });
-        })
-    )
-    .subscribe(logger);
-
-if (isConnected()) {
-    from(getMusicKitInstance())
-        .pipe(
-            filter((musicKit) => musicKit.isAuthorized),
-            mergeMap(initMusicKit),
-            tap((token) => isLoggedIn$.next(!!token)),
-            takeUntil(disconnected$)
-        )
-        .subscribe(logger);
-}
-
-async function initMusicKit(musicKit: MusicKit.MusicKitInstance): Promise<string> {
-    const token = await musicKit.authorize();
-    if (token) {
-        await setFavoritesPlaylistId(musicKit);
-    }
-    return token;
-}
-
-async function setFavoritesPlaylistId(musicKit: MusicKit.MusicKitInstance): Promise<void> {
+(async () => {
     try {
-        if (!appleSettings.favoriteSongsId) {
-            const path = '/v1/me/library/playlists';
-            const {
-                data: {data: items = []},
-            } = await musicKit.api.music(path, {
-                'extend[library-playlists]': 'tags',
-                'fields[library-playlists]': 'tags',
-            });
-            const favoriteSongs = items.find((item: any) =>
-                item.attributes.tags.includes('favorited')
-            );
-            if (favoriteSongs) {
-                appleSettings.favoriteSongsId = favoriteSongs.id;
+        if (isConnected()) {
+            const musicKit = await getMusicKitInstance();
+            if (musicKit.isAuthorized) {
+                await setFavoriteSongsId(musicKit);
+                isLoggedIn$.next(true);
             }
         }
     } catch (err) {
         logger.error(err);
     }
-}
+})();

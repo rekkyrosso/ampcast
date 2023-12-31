@@ -1,4 +1,4 @@
-import {map, merge, take, takeUntil, timer} from 'rxjs';
+import {map, merge, takeUntil, timer} from 'rxjs';
 import Pager from 'types/Pager';
 
 export interface FetchFirstPageOptions {
@@ -17,8 +17,8 @@ export default function fetchFirstPage<T>(
             pager.observeError(),
             timer(timeout).pipe(map(() => Error('timeout')))
         );
-        items$.pipe(takeUntil(error$), take(1)).subscribe({next: resolve, complete});
-        error$.pipe(takeUntil(items$), take(1)).subscribe({next: reject, complete});
+        items$.pipe(takeUntil(error$)).subscribe({next: resolve, complete});
+        error$.pipe(takeUntil(items$)).subscribe({next: reject, complete});
         pager.fetchAt(0);
     });
 }

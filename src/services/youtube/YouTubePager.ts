@@ -118,7 +118,7 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
             thumbnails: this.mapThumbnails(playlist.snippet?.thumbnails),
             trackCount: playlist.contentDetails?.itemCount,
             owner: this.createOwner(playlist.snippet!),
-            pager: this.createPlaylistPager(playlist.id!),
+            pager: this.createPlaylistItemsPager(playlist.id!),
             isPinned: pinStore.isPinned(src),
         };
     }
@@ -155,7 +155,7 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
             : undefined;
     }
 
-    private createPlaylistPager(playlistId: string): Pager<MediaItem> {
+    private createPlaylistItemsPager(playlistId: string): Pager<MediaItem> {
         return new YouTubePager('/playlistItems', {
             playlistId,
             part: 'contentDetails',

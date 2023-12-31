@@ -101,6 +101,12 @@
             var(--scrollbar-color-s),
             var(--scrollbar-color-l));
 
+    --scrollbar-background-color: hsl(
+        var(--scrollbar-color-h),
+        var(--scrollbar-color-s),
+        calc(var(--scrollbar-color-l) - var(--scrollbar-color-l) * 0.5)
+    );
+
     --scrollbar-text-color: hsl(var(--scrollbar-text-color-h),
             var(--scrollbar-text-color-s),
             var(--scrollbar-text-color-l));

@@ -45,7 +45,12 @@
             padding: 0;
             border: 0;
             text-indent: 0;
+            min-width: 3em;
             cursor: pointer;
+
+            & + select {
+                margin-left: 1em;
+            }
 
             &:hover {
                 filter: brightness(1.1);

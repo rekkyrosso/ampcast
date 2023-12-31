@@ -1,4 +1,4 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useMemo} from 'react';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
@@ -111,7 +111,9 @@ export const Genre: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item)
     <Text value={item.genres?.join(', ')} />
 );
 
-export const Owner: RenderField = (item) => <Text value={item.owner?.name} />;
+export const Owner: RenderField<MediaPlaylist | MediaItem> = (item) => (
+    <Text value={item.owner?.name} />
+);
 
 export const FileName: RenderField<MediaFolderItem> = (item) => <Text value={item.fileName} />;
 
@@ -189,13 +191,15 @@ export const Thumbnail: RenderField = (item) => {
 };
 
 export const Rate: RenderField = (item) => {
-    const rate = useCallback(
-        async (rating: number) => {
-            await performAction(Action.Rate, [item], rating);
-        },
-        [item]
+    return (
+        <StarRating
+            value={item.rating}
+            tabIndex={-1}
+            onChange={async (rating: number) => {
+                await performAction(Action.Rate, [item], rating);
+            }}
+        />
     );
-    return <StarRating value={item.rating} tabIndex={-1} onChange={rate} />;
 };
 
 function Text({value = ''}: {value?: string | number}) {

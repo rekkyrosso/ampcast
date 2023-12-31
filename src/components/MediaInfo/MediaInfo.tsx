@@ -149,7 +149,7 @@ export function Artist<T extends MediaAlbum>({artist}: Pick<T, 'artist'>) {
     ) : null;
 }
 
-export function Owner<T extends MediaObject>({src, owner}: Pick<T, 'src' | 'owner'>) {
+export function Owner<T extends MediaItem | MediaPlaylist>({src, owner}: Pick<T, 'src' | 'owner'>) {
     if (!owner || !owner.name) {
         return null;
     }

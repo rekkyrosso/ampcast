@@ -2,254 +2,269 @@ declare namespace ListenBrainz {
     // Timestamps are in Unix time.
 
     interface ListensSubmission {
-        listen_type: 'single' | 'import';
-        payload: ListenPayload[];
+        readonly listen_type: 'single' | 'import';
+        readonly payload: readonly ListenPayload[];
     }
 
     interface ListensSubmission {
-        listen_type: 'playing_now';
-        payload: Omit<ListenPayload, 'listened_at'>[];
+        readonly listen_type: 'playing_now';
+        readonly payload: Omit<ListenPayload, 'listened_at'>[];
     }
 
     interface ListenPayload {
-        listened_at: number;
-        track_metadata: ListenMetadata;
+        readonly listened_at: number;
+        readonly track_metadata: ListenMetadata;
     }
 
     interface ListenMetadata {
-        artist_name: string;
-        track_name: string;
-        release_name?: string;
-        additional_info?: {
-            artist_mbids?: string[];
-            release_group_mbid?: string;
-            release_mbid?: string;
-            recording_mbid?: string;
-            track_mbid?: string;
-            work_mbids?: string[];
-            tracknumber?: number;
-            discnumber?: number;
-            duration?: number;
-            duration_ms?: number;
-            isrc?: string;
-            spotify_id?: string;
-            tags?: string[];
-            media_player?: string;
-            media_player_version?: string;
-            submission_client?: string;
-            submission_client_version?: string;
-            music_service?: string;
-            music_service_name?: string;
-            origin_url?: string;
+        readonly artist_name: string;
+        readonly track_name: string;
+        readonly release_name?: string;
+        readonly additional_info?: {
+            readonly artist_mbids?: readonly string[];
+            readonly release_group_mbid?: readonly string;
+            readonly release_mbid?: string;
+            readonly recording_mbid?: string;
+            readonly track_mbid?: string;
+            readonly work_mbids?: readonly string[];
+            readonly tracknumber?: number;
+            readonly discnumber?: number;
+            readonly duration?: number;
+            readonly duration_ms?: number;
+            readonly isrc?: string;
+            readonly spotify_id?: string;
+            readonly tags?: string[];
+            readonly media_player?: string;
+            readonly media_player_version?: string;
+            readonly submission_client?: string;
+            readonly submission_client_version?: string;
+            readonly music_service?: string;
+            readonly music_service_name?: string;
+            readonly origin_url?: string;
         };
     }
 
     interface TrackMetadata {
-        artist_name: string;
-        track_name: string;
-        release_name?: string;
-        additional_info?: {
-            artist_msid?: string | null;
-            artist_names?: string[];
-            track_number?: number;
-            tracknumber?: number;
-            discnumber?: number;
-            duration?: number;
-            duration_ms?: number;
-            isrc?: string;
-            origin_url?: string;
-            recording_msid?: string | null;
-            release_artist_name?: string;
-            release_artist_names?: string[];
-            release_msid?: string | null;
-            lastfm_artist_mbid?: string;
-            lastfm_release_mbid?: string;
-            lastfm_track_mbid?: string;
-            spotify_album_artist_ids?: string[];
-            spotify_album_id?: string;
-            spotify_artist_ids?: string[];
-            spotify_id?: string;
-            music_service?: string;
-            music_service_name?: string;
-            media_player?: string;
-            media_player_version?: string;
-            submission_client?: string;
-            submission_client_version?: string;
-            brainzplayer_metadata?: {
-                artist_name: string;
-                track_name: string;
-                release_name?: string;
+        readonly artist_name: string;
+        readonly track_name: string;
+        readonly release_name?: string;
+        readonly additional_info?: {
+            readonly artist_msid?: string | null;
+            readonly artist_names?: readonly string[];
+            readonly track_number?: number;
+            readonly tracknumber?: number;
+            readonly discnumber?: number;
+            readonly duration?: number;
+            readonly duration_ms?: number;
+            readonly isrc?: string;
+            readonly origin_url?: string;
+            readonly recording_msid?: string | null;
+            readonly release_artist_name?: string;
+            readonly release_artist_names?: readonly string[];
+            readonly release_msid?: string | null;
+            readonly lastfm_artist_mbid?: string;
+            readonly lastfm_release_mbid?: string;
+            readonly lastfm_track_mbid?: string;
+            readonly spotify_album_artist_ids?: readonly string[];
+            readonly spotify_album_id?: string;
+            readonly spotify_artist_ids?: readonly string[];
+            readonly spotify_id?: string;
+            readonly music_service?: string;
+            readonly music_service_name?: string;
+            readonly media_player?: string;
+            readonly media_player_version?: string;
+            readonly submission_client?: string;
+            readonly submission_client_version?: string;
+            readonly brainzplayer_metadata?: {
+                readonly artist_name: string;
+                readonly track_name: string;
+                readonly release_name?: string;
             };
         };
-        mbid_mapping?: {
-            artist_mbids: string[];
-            release_mbid: string;
-            recording_mbid: string;
+        readonly mbid_mapping?: {
+            readonly artist_mbids: readonly string[];
+            readonly release_mbid: string;
+            readonly recording_mbid: string;
         };
     }
 
     interface Listen {
-        inserted_at: number;
-        listened_at: number;
-        recording_msid: string | null;
-        track_metadata: TrackMetadata;
-        user_name: string;
+        readonly inserted_at: number;
+        readonly listened_at: number;
+        readonly recording_msid: string | null;
+        readonly track_metadata: TrackMetadata;
+        readonly user_name: string;
     }
 
     interface Artist {
-        artist_mbids: string[];
-        artist_msid: string | null;
-        artist_name: string;
-        listen_count: number;
+        readonly artist_mbids: readonly string[];
+        readonly artist_msid: string | null;
+        readonly artist_name: string;
+        readonly listen_count: number;
     }
 
     interface Release extends Artist {
-        release_mbid: string;
-        release_msid: string | null;
-        release_name: string;
+        readonly release_mbid: string;
+        readonly release_msid: string | null;
+        readonly release_name: string;
     }
 
     interface Recording extends Release {
-        recording_mbid: string;
-        recording_msid: string | null;
-        track_name: string;
+        readonly recording_mbid: string;
+        readonly recording_msid: string | null;
+        readonly track_name: string;
     }
 
     interface Playlist {
-        annotation: string;
-        creator: string;
-        date: string;
-        identifier: string;
-        title: string;
-    }
-
-    interface PlaylistItem {
-        creator: string;
-        identifier: string;
-        title: string;
-        extension: {
-            'https://musicbrainz.org/doc/jspf#track': {
-                added_at: string;
-                added_by: string;
-                additional_metadata: {
-                    caa_id: number;
-                    caa_release_mbid: string;
-                };
-                artist_identifiers: string[];
+        readonly annotation: string;
+        readonly creator: string;
+        readonly date: string;
+        readonly identifier: string;
+        readonly title: string;
+        readonly extension: {
+            'https://musicbrainz.org/doc/jspf#playlist': {
+                readonly creator: string;
+                readonly last_modified_at: string; // ISO
+                readonly public: boolean;
             };
         };
     }
 
+    interface PlaylistItem {
+        readonly creator: string;
+        readonly identifier: string;
+        readonly title: string;
+        readonly extension: {
+            'https://musicbrainz.org/doc/jspf#track': {
+                readonly added_at: string;
+                readonly added_by: string;
+                readonly additional_metadata: {
+                    readonly artists?: readonly ArtistsMetadata[];
+                    readonly caa_id: number;
+                    readonly caa_release_mbid: string;
+                };
+                readonly artist_identifiers: readonly string[];
+                readonly release_identifier: string;
+            };
+        };
+    }
+
+    interface ArtistsMetadata {
+        readonly artist_credit_name: string;
+        readonly artist_mbid: string;
+        readonly join_phrase: string;
+    }
+
     interface PlaylistItemsResponse {
-        playlist: Playlist & {
-            track: readonly PlaylistItem[];
+        readonly playlist: Playlist & {
+            readonly track: readonly PlaylistItem[];
         };
     }
 
     namespace User {
         interface ListenCount {
-            payload: {
-                count: number;
+            readonly payload: {
+                readonly count: number;
             };
         }
 
         interface ListensParams {
-            count?: number;
-            min_ts?: number;
-            max_ts?: number;
+            readonly count?: number;
+            readonly min_ts?: number;
+            readonly max_ts?: number;
         }
 
         interface Listens {
-            payload: {
-                count: number;
-                latest_listen_ts: number;
-                listens: Listen[];
-                user_name: string;
+            readonly payload: {
+                readonly count: number;
+                readonly latest_listen_ts: number;
+                readonly listens: readonly Listen[];
+                readonly user_name: string;
             };
         }
 
         interface Feedback {
-            created: number; // timestamp (UNIX)
-            recording_mbid: string;
-            recording_msid: string;
-            score: number;
-            track_metadata: TrackMetadata | null;
-            user_id: string;
+            readonly created: number; // timestamp (UNIX)
+            readonly recording_mbid: string;
+            readonly recording_msid: string;
+            readonly score: number;
+            readonly track_metadata: TrackMetadata | null;
+            readonly user_id: string;
         }
 
         interface UserFeedbackResponse {
-            count: number;
+            readonly count: number;
             feedback: readonly Feedback[];
-            offset: number;
-            total_count: number;
+            readonly offset: number;
+            readonly total_count: number;
         }
 
         interface UserRecordingsFeedbackResponse {
-            feedback: readonly Feedback[];
-            user_name: string;
+            readonly feedback: readonly Feedback[];
+            readonly user_name: string;
         }
 
         interface PlaylistsResponse {
-            count: number;
-            playlists: readonly {playlist: Playlist}[];
-            offset: number;
-            playlist_count: number;
+            readonly count: number;
+            readonly playlists: readonly {playlist: Playlist}[];
+            readonly offset: number;
+            readonly playlist_count: number;
         }
     }
 
     namespace Stats {
         interface MediaPayload {
-            count: number;
-            from_ts: number;
-            last_updated: number;
-            offset: number;
-            range: string;
-            to_ts: number;
-            user_id: string;
+            readonly count: number;
+            readonly from_ts: number;
+            readonly last_updated: number;
+            readonly offset: number;
+            readonly range: string;
+            readonly to_ts: number;
+            readonly user_id: string;
         }
 
         interface Artists {
-            payload: MediaPayload & {
-                artists: Artist[];
-                total_artist_count: number;
+            readonly payload: MediaPayload & {
+                readonly artists: readonly Artist[];
+                readonly total_artist_count: number;
             };
         }
 
         interface Releases {
-            payload: MediaPayload & {
-                releases: Release[];
-                total_release_count: number;
+            readonly payload: MediaPayload & {
+                readonly releases: readonly Release[];
+                readonly total_release_count: number;
             };
         }
 
         interface Recordings {
-            payload: MediaPayload & {
-                recordings: Recording[];
-                total_recording_count: number;
+            readonly payload: MediaPayload & {
+                readonly recordings: readonly Recording[];
+                readonly total_recording_count: number;
             };
         }
 
         type Response = Artists | Releases | Recordings;
 
         interface ListeningActivity {
-            listen_count: number;
-            time_range: string;
-            from_ts: number;
-            to_ts: number;
+            readonly listen_count: number;
+            readonly time_range: string;
+            readonly from_ts: number;
+            readonly to_ts: number;
         }
 
         interface ListeningActivityParams {
-            range?: string;
+            readonly range?: string;
         }
 
         interface ListeningActivityResponse {
-            payload: {
-                from_ts: number;
-                last_updated: number;
-                listening_activity: ListeningActivity[];
-                range: string;
-                to_ts: number;
-                user_id: string;
+            readonly payload: {
+                readonly from_ts: number;
+                readonly last_updated: number;
+                readonly listening_activity: readonly ListeningActivity[];
+                readonly range: string;
+                readonly to_ts: number;
+                readonly user_id: string;
             };
         }
     }

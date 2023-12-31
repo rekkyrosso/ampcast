@@ -33,6 +33,24 @@ export async function getContentType(url: string): Promise<string> {
     return response.headers.get('Content-Type') || '';
 }
 
+// From: https://github.com/whatwg/fetch/issues/905#issuecomment-1816547024
+export function anySignal(signals: AbortSignal[]): AbortSignal {
+    const controller = new AbortController();
+
+    for (const signal of signals) {
+        if (signal.aborted) {
+            controller.abort();
+            return signal;
+        }
+
+        signal.addEventListener('abort', () => controller.abort(signal.reason), {
+            signal: controller.signal,
+        });
+    }
+
+    return controller.signal;
+}
+
 export function chunk<T>(values: readonly T[], chunkSize = 1): T[][] {
     if (chunkSize <= 0) {
         return [];
@@ -52,7 +70,7 @@ export function groupBy<T, K extends keyof any>(
     const getKey: (value: T) => K =
         typeof criteria === 'function'
             ? criteria
-            : (value: T) => value[criteria as unknown as keyof T] as K;
+            : (value: T) => value[criteria as unknown as keyof T] as K; // TypeScript master ;)
     return values.reduce((groups, value) => {
         const key = getKey(value);
         if (!groups[key]) {

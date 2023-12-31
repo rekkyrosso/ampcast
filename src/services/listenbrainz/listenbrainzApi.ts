@@ -1,8 +1,10 @@
+import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import {getService} from 'services/mediaServices';
+import {addMetadata} from 'services/musicbrainz/musicbrainzApi';
 import {Logger, partition} from 'utils';
 import {compareForRating} from './listenbrainz';
 import listenbrainzSettings from './listenbrainzSettings';
@@ -10,7 +12,8 @@ import listenbrainzSettings from './listenbrainzSettings';
 const logger = new Logger('listenbrainzApi');
 
 export class ListenBrainzApi {
-    private readonly host = `https://api.listenbrainz.org/1`;
+    private readonly apiHost = 'https://api.listenbrainz.org/1';
+    private readonly webHost = 'https://musicbrainz.org';
     private rateLimitRemainingCalls = 2;
     private rateLimitResetTime = 0;
 
@@ -28,7 +31,7 @@ export class ListenBrainzApi {
         }
     }
 
-    async addInLibrary(items: readonly MediaItem[]): Promise<void> {
+    async addUserData(items: readonly MediaItem[]): Promise<void> {
         items = items.filter((item) => !!item.recording_msid || !!item.recording_mbid);
         if (items.length > 0) {
             const inLibrary = await this.getInLibrary(items);
@@ -40,6 +43,52 @@ export class ListenBrainzApi {
                 }))
             );
         }
+    }
+
+    async createPlaylist(
+        name: string,
+        {description = '', isPublic, items = []}: CreatePlaylistOptions = {}
+    ): Promise<void> {
+        const host = this.webHost;
+        const userId = listenbrainzSettings.userId;
+        items = await addMetadata(items, false);
+        items = items.filter((item) => item.recording_mbid);
+        const createTrack = (item: MediaItem) => {
+            const recording_mbid = item.recording_mbid;
+            const release_mbid = item.release_mbid || '';
+            return {
+                title: item.title,
+                id: recording_mbid,
+                identifier: recording_mbid ? `${host}/recording/${recording_mbid}` : '',
+                creator: item.artists?.join(' & '),
+                trackNum: item.track,
+                duration: item.duration,
+                extension: {
+                    [`${host}/doc/jspf#track`]: {
+                        artist_identifiers:
+                            item.artist_mbids?.map(
+                                (artist_mbid) => `${host}/artist/${artist_mbid}`
+                            ) || [],
+                        release_identifier: release_mbid ? `${host}/release/${release_mbid}` : '',
+                    },
+                },
+                album: item.album || '',
+            };
+        };
+        return this.post('playlist/create', {
+            playlist: {
+                extension: {
+                    [`${host}/doc/jspf#playlist`]: {
+                        // creator: userId,
+                        public: isPublic,
+                    },
+                },
+                creator: userId,
+                title: name,
+                annotation: description,
+                track: items.map(createTrack),
+            },
+        });
     }
 
     async getInLibrary(items: readonly MediaItem[]): Promise<readonly boolean[]> {
@@ -168,7 +217,7 @@ export class ListenBrainzApi {
             path = path.slice(1);
         }
 
-        const response = await window.fetch(`${this.host}/${path}`, init);
+        const response = await window.fetch(`${this.apiHost}/${path}`, init);
 
         if (!response.ok) {
             throw response;
@@ -194,7 +243,8 @@ export class ListenBrainzApi {
     }
 
     private getScrobbleParams(item: MediaItem): ListenBrainz.ListenMetadata {
-        const info: ListenBrainz.ListenMetadata['additional_info'] = {
+        type Mutable<T> = {-readonly [P in keyof T]: T[P]};
+        const info: Mutable<ListenBrainz.ListenMetadata['additional_info']> = {
             media_player: __app_name__,
             media_player_version: __app_version__,
             submission_client: __app_name__,
@@ -264,7 +314,7 @@ export class ListenBrainzApi {
                 }
             }
         }
-        const params: ListenBrainz.ListenMetadata = {
+        const params: Mutable<ListenBrainz.ListenMetadata> = {
             track_name: item.title,
             artist_name: item.artists![0],
             additional_info: info,

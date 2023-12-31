@@ -10,12 +10,25 @@ export interface NavidromePage<T> {
 }
 
 async function get<T>(path: string, params?: Record<string, Primitive>): Promise<T> {
-    const response = await navidromeFetch(path, params, {
-        method: 'GET',
-        headers: {Accept: 'application/json'},
-    });
-    const data = await response.json();
-    return data;
+    const response = await navidromeFetch(path, params, {method: 'GET'});
+    return response.json();
+}
+
+async function post(path: string, params?: Record<string, any>): Promise<Response> {
+    const headers = {'Content-Type': 'application/json'};
+    const body = JSON.stringify(params);
+    return navidromeFetch(path, undefined, {method: 'POST', headers, body});
+}
+
+async function createPlaylist(
+    name: string,
+    comment: string,
+    isPublic: boolean,
+    ids: readonly string[]
+): Promise<void> {
+    const response = await post('playlist', {name, comment, public: isPublic});
+    const {id} = await response.json();
+    await post(`playlist/${id}/tracks`, {ids});
 }
 
 async function getFilters(
@@ -67,6 +80,7 @@ async function navidromeFetch(
     }
     init.headers = {
         ...init.headers,
+        Accept: 'application/json',
         'x-nd-authorization': `Bearer ${token}`,
     };
     const response = await fetch(`${host}/api/${path}`, init);
@@ -81,6 +95,7 @@ function getPlayableUrl(src: string): string {
 }
 
 const navidromeApi = {
+    createPlaylist,
     get,
     getFilters,
     getPage,

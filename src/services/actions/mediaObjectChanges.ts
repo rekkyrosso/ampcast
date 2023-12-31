@@ -14,8 +14,14 @@ export function dispatchMediaObjectChanges<T extends MediaObject>(
 export function dispatchMediaObjectChanges<T extends MediaObject>(
     change: MediaObjectChange<T> | readonly MediaObjectChange<T>[]
 ): void {
-    const changes: readonly MediaObjectChange<T>[] = Array.isArray(change) ? change : [change];
-    changes$.next(changes);
+    const changes: readonly MediaObjectChange<T>[] = change
+        ? Array.isArray(change)
+            ? change
+            : [change]
+        : [];
+    if (changes.length > 0) {
+        changes$.next(changes);
+    }
 }
 
 export function observeMediaObjectChanges<T extends MediaObject>(): Observable<

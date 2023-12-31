@@ -13,8 +13,13 @@ export interface LookupEndEvent {
     foundItem: MediaItem | undefined;
 }
 
+export interface LookupCancelledEvent {
+    lookupItem: PlaylistItem;
+}
+
 const lookupStartEvent$ = new Subject<LookupStartEvent>();
 const lookupEndEvent$ = new Subject<LookupEndEvent>();
+const lookupCancelledEvent$ = new Subject<LookupCancelledEvent>();
 
 export function observeLookupStartEvents(): Observable<LookupStartEvent> {
     return lookupStartEvent$;
@@ -22,6 +27,10 @@ export function observeLookupStartEvents(): Observable<LookupStartEvent> {
 
 export function observeLookupEndEvents(): Observable<LookupEndEvent> {
     return lookupEndEvent$;
+}
+
+export function observeLookupCancelledEvents(): Observable<LookupCancelledEvent> {
+    return lookupCancelledEvent$;
 }
 
 export function dispatchLookupStartEvent(lookupItem: PlaylistItem): void {
@@ -36,4 +45,8 @@ export function dispatchLookupEndEvent(
         lookupItem,
         foundItem: foundItem ? bestOf(foundItem, lookupItem) : undefined,
     });
+}
+
+export function dispatchLookupCancelledEvent(lookupItem: PlaylistItem): void {
+    lookupCancelledEvent$.next({lookupItem});
 }

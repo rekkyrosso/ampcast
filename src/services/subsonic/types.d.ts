@@ -149,4 +149,8 @@ declare namespace Subsonic {
         time?: number;
         submission?: boolean;
     }
+
+    interface CreatePlaylistResponse {
+        playlist: Playlist;
+    }
 }

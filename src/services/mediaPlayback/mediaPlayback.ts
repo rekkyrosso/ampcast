@@ -4,6 +4,7 @@ import {
     BehaviorSubject,
     Subject,
     combineLatest,
+    concatMap,
     debounceTime,
     distinctUntilChanged,
     filter,
@@ -12,10 +13,10 @@ import {
     of,
     skipWhile,
     switchMap,
+    take,
     takeUntil,
     tap,
     withLatestFrom,
-    take,
 } from 'rxjs';
 import MediaPlayback from 'types/MediaPlayback';
 import PlaybackState from 'types/PlaybackState';
@@ -35,7 +36,7 @@ const logger = new Logger('mediaPlayback');
 const appSettings = new LiteStorage('mediaPlayback');
 const sessionSettings = new LiteStorage('mediaPlayback', 'session');
 
-const loadingLocked$ = new BehaviorSubject(false);
+const loadingLocked$ = new BehaviorSubject(true);
 const killed$ = new Subject<void>();
 
 let direction: 'backward' | 'forward' = 'forward';
@@ -48,11 +49,11 @@ export function observeNextItem(): Observable<PlaylistItem | null> {
     return playlist.observeNextItem();
 }
 
-export function observeCurrentTime(): Observable<number> {
+function observeCurrentTime(): Observable<number> {
     return playback.observeCurrentTime();
 }
 
-export function observeDuration(): Observable<number> {
+function observeDuration(): Observable<number> {
     return playback.observeDuration();
 }
 
@@ -64,23 +65,23 @@ export function observeError(): Observable<unknown> {
     return mediaPlayer.observeError();
 }
 
-export function observePaused(): Observable<boolean> {
+function observePaused(): Observable<boolean> {
     return playback.observePaused();
 }
 
-export function observePlaybackStart(): Observable<PlaybackState> {
+function observePlaybackStart(): Observable<PlaybackState> {
     return playback.observePlaybackStart();
 }
 
-export function observePlaybackEnd(): Observable<PlaybackState> {
+function observePlaybackEnd(): Observable<PlaybackState> {
     return playback.observePlaybackEnd();
 }
 
-export function observePlaybackProgress(interval: number): Observable<PlaybackState> {
+function observePlaybackProgress(interval: number): Observable<PlaybackState> {
     return playback.observePlaybackProgress(interval);
 }
 
-export function observePlaybackState(): Observable<PlaybackState> {
+function observePlaybackState(): Observable<PlaybackState> {
     return playback.observePlaybackState();
 }
 
@@ -352,14 +353,14 @@ observeCurrentItem()
     )
     .subscribe(logger);
 
-// Unlock loading after 250ms.
+// Unlock loading after 300ms.
 // `mediaPlayer` won't actually load anything until then.
-// This avoids spamming media services with play requests that will soon be skipped over.
+// This avoids spamming media services with play/lookup requests that will soon be skipped over.
 // This can happen if you click the prev/next buttons quickly or you rapidly delete the
 // currently playing item (eject).
 loadingLocked$
     .pipe(
-        debounceTime(250),
+        debounceTime(300),
         filter((locked) => locked)
     )
     .subscribe(() => {
@@ -378,13 +379,12 @@ loadingLocked$
     )
     .subscribe(logger);
 
-loadingLocked$
+// Read ahead.
+observeNextItem()
     .pipe(
-        distinctUntilChanged(),
-        switchMap((locked) => (locked ? EMPTY : observeNextItem())),
         distinctUntilChanged((a, b) => a?.id === b?.id),
         debounceTime(3_000),
-        switchMap((item) => (item ? getPlayableItem(item) : EMPTY))
+        concatMap((item) => (item ? getPlayableItem(item) : of(null)))
     )
     .subscribe(logger);
 

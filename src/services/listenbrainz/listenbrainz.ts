@@ -1,4 +1,5 @@
 import Action from 'types/Action';
+import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -170,6 +171,7 @@ const listenbrainz: DataService = {
     canRate: () => false,
     canStore,
     compareForRating,
+    createPlaylist,
     store,
     observeIsLoggedIn,
     isConnected,
@@ -203,6 +205,10 @@ export function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
         default:
             return false;
     }
+}
+
+async function createPlaylist(name: string, options: CreatePlaylistOptions = {}): Promise<void> {
+    return listenbrainzApi.createPlaylist(name, options);
 }
 
 async function store(item: MediaObject, inLibrary: boolean): Promise<void> {

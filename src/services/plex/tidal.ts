@@ -2,6 +2,7 @@ import type {Observable} from 'rxjs';
 import {combineLatest, distinctUntilChanged, map} from 'rxjs';
 import {Except, Primitive, Writable} from 'type-fest';
 import Action from 'types/Action';
+import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import DRMInfo from 'types/DRMInfo';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
@@ -19,11 +20,12 @@ import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
 import StreamingQuality from 'types/StreamingQuality';
+import actionsStore from 'services/actions/actionsStore';
 import {NoTidalSubscriptionError} from 'services/errors';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {isSourceVisible, observeSourceVisibility} from 'services/servicesSettings';
-import {bestOf, drmKeySystems} from 'utils';
+import {drmKeySystems} from 'utils';
 import {login, logout} from './plexAuth';
 import plexSettings from './plexSettings';
 import plexItemType from './plexItemType';
@@ -42,11 +44,6 @@ const defaultLayout: MediaSourceLayout<MediaItem> = {
 const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
     view: 'card compact',
     fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb'],
-};
-
-const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
-    view: 'details',
-    fields: ['Index', 'Artist', 'Title', 'Album', 'Track', 'Duration'],
 };
 
 const tidalLibraryTracks: MediaSource<MediaItem> = {
@@ -93,11 +90,10 @@ const tidalLibraryPlaylists: MediaSource<MediaPlaylist> = {
     itemType: ItemType.Playlist,
     lockActionsStore: true,
     layout: playlistLayout,
-    secondaryLayout: playlistItemsLayout,
 
     search(): Pager<MediaPlaylist> {
         checkSubscription();
-        return createPager('/playlists/all');
+        return createPager('/playlists/all', {sort: 'addedAt:desc'});
     },
 };
 
@@ -121,7 +117,6 @@ const tidalMyMixes: MediaSource<MediaPlaylist> = {
     icon: 'playlist',
     itemType: ItemType.Playlist,
     layout: playlistLayout,
-    secondaryLayout: playlistItemsLayout,
 
     search(): Pager<MediaPlaylist> {
         checkSubscription();
@@ -148,7 +143,6 @@ const tidalNewPlaylists: MediaSource<MediaPlaylist> = {
     itemType: ItemType.Playlist,
     defaultHidden: true,
     layout: playlistLayout,
-    secondaryLayout: playlistItemsLayout,
 
     search(): Pager<MediaPlaylist> {
         return createPager('/hubs/sections/tidal/newPlaylists');
@@ -191,6 +185,7 @@ const tidal: PublicMediaService = {
     canRate: () => false,
     canStore,
     compareForRating,
+    createPlaylist,
     createSourceFromPin,
     getDrmInfo,
     getMetadata,
@@ -241,6 +236,13 @@ function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.src === b.src;
 }
 
+async function createPlaylist(
+    name: string,
+    {description = '', items = []}: CreatePlaylistOptions = {}
+): Promise<void> {
+    return plexApi.createPlaylist(name, description, items, musicProviderHost);
+}
+
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     return {
         title: pin.title,
@@ -278,30 +280,16 @@ function getDrmInfo(item?: PlayableItem): DRMInfo | undefined {
 }
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
-    const itemType = item.itemType;
-    if (
-        (itemType === ItemType.Album && !item.synthetic) ||
-        itemType === ItemType.Artist ||
-        itemType === ItemType.Playlist ||
-        (canStore(item) && item.inLibrary === undefined)
-    ) {
-        const data = await getMetadataByRatingKey<T>(itemType, getRatingKey(item));
-        return bestOf(item, data);
+    if (!canStore(item) || item.inLibrary !== undefined) {
+        return item;
     }
-    return item;
-}
-
-async function getMetadataByRatingKey<T extends MediaObject>(
-    itemType: T['itemType'],
-    ratingKey: string
-): Promise<T> {
-    const path =
-        itemType === ItemType.Playlist
-            ? `/playlists/${ratingKey}`
-            : `/library/metadata/${ratingKey}`;
-    const pager = createPager<T>(path, undefined, {maxSize: 1});
-    const items = await fetchFirstPage<T>(pager, {timeout: 2000});
-    return items[0];
+    const inLibrary = actionsStore.getInLibrary(item);
+    if (inLibrary !== undefined) {
+        return {...item, inLibrary};
+    }
+    const ratingKey = getRatingKey(item);
+    const [plexItem] = await plexApi.getMetadata<plex.RatingObject>([ratingKey], musicProviderHost);
+    return {...item, inLibrary: plexItem.saved};
 }
 
 function getPlayableUrl(item: PlayableItem): string {
@@ -353,12 +341,13 @@ async function lookup(
     if (!plexSettings.hasTidal || !artist || !title) {
         return [];
     }
-    artist = artist.replace(/\s*([,;&|/×]|ft\.|feat\.?)\s*/, ' '); // splitters
+    artist = artist.replace(/\s*([,;&|/x×]|(\b(feat\.?|ft\.?|featuring|with)\s))\s*/gi, ' ').trim(); // joiners
     const search = async (query: string) =>
         fetchFirstPage<MediaItem>(
             createSearchPager(plexItemType.Track, query, limit, {
-                lookup: true,
+                pageSize: limit,
                 maxSize: limit,
+                lookup: true,
             }),
             {timeout}
         );

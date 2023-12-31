@@ -195,7 +195,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         };
         mediaPlaylist.pager = new MusicKitPager(
             `${playlist.href!}/tracks`,
-            undefined,
+            {'include[library-songs]': 'catalog'},
             undefined,
             mediaPlaylist as MediaPlaylist
         );
@@ -247,7 +247,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         };
         mediaAlbum.pager = new MusicKitPager(
             `${album.href!}/tracks`,
-            undefined,
+            {'include[library-songs]': 'catalog'},
             undefined,
             mediaAlbum as MediaAlbum
         );

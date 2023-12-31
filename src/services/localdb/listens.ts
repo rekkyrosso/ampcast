@@ -5,6 +5,7 @@ import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import PlaybackState from 'types/PlaybackState';
 import {findBestMatch} from 'services/lookup';
+import {addMetadata} from 'services/musicbrainz/musicbrainzApi';
 import {fuzzyCompare, Logger} from 'utils';
 
 const logger = new Logger('localdb/listens');
@@ -40,11 +41,16 @@ export function isListenedTo(duration: number, startedAt: number, endedAt: numbe
 
 export async function addListen(state: PlaybackState): Promise<void> {
     try {
-        const item = state.currentItem;
+        let item = state.currentItem;
         if (!item || !state.startedAt || !state.endedAt) {
             throw Error('Invalid playback state');
         }
         if (isListenedTo(item.duration, state.startedAt, state.endedAt)) {
+            try {
+                item = await addMetadata(item, true);
+            } catch (err) {
+                logger.error(err);
+            }
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const {id, lookupStatus, blob, ...listen} = item;
             logger.log('add', {listen});
@@ -96,11 +102,7 @@ export function findScrobble(
 
 export function findListen(item: MediaItem, timeFuzziness?: number): MediaItem | undefined {
     const listens = getListens();
-    return (
-        findListenByPlayedAt(listens, item, timeFuzziness) ||
-        findListenByUniqueId(listens, item) ||
-        findBestMatch(listens, item)
-    );
+    return findListenByPlayedAt(listens, item, timeFuzziness) || findBestMatch(listens, item);
 }
 
 function findListenByPlayedAt(
@@ -126,19 +128,6 @@ function findListenByPlayedAt(
             }
         }
     }
-}
-
-function findListenByUniqueId(listens: readonly Listen[], item: MediaItem): Listen | undefined {
-    return listens.find(
-        (listen) =>
-            item.src === listen.src ||
-            (item.externalUrl && item.externalUrl === listen.externalUrl) ||
-            (item.isrc && item.isrc === listen.isrc) ||
-            (item.recording_mbid && item.recording_mbid === listen.recording_mbid) ||
-            (item.track_mbid &&
-                item.release_mbid === listen.release_mbid &&
-                item.track_mbid === listen.track_mbid)
-    );
 }
 
 export function getListens(): readonly Listen[] {

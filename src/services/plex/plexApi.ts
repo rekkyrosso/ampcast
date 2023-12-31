@@ -79,24 +79,63 @@ async function plexFetch({
         keepalive,
     };
 
-    let timerId: any = 0;
     if (timeout) {
-        const controller = new AbortController();
-        timerId = setTimeout(() => controller.abort(), timeout);
-        init.signal = controller.signal;
+        init.signal = AbortSignal.timeout(timeout);
     }
 
     const response = await fetch(`${host}/${path}`, init);
-
-    if (timerId) {
-        clearTimeout(timerId);
-    }
 
     if (!response.ok) {
         throw response;
     }
 
     return response;
+}
+
+async function createPlaylist(
+    title: string,
+    summary: string,
+    items: readonly MediaItem[],
+    host = plexSettings.host
+): Promise<void> {
+    const type = 'audio';
+    const isTidalPlaylist = host === musicProviderHost;
+    const [tidalItems, plexItems] = partition(items, (item) => item.src.startsWith('plex-tidal:'));
+    const toPlexUri = (items: readonly MediaItem[]): string => {
+        const ids = items.map(getIdFromSrc).join(',');
+        return `server://${plexSettings.serverId}/com.plexapp.plugins.library/library/metadata/${ids}`;
+    };
+    const toTidalUri = (items: readonly MediaItem[]): string => {
+        const ids = items.map(getIdFromSrc).join(',');
+        return `provider://tv.plex.provider.music/library/metadata/${ids}`;
+    };
+    const uri = isTidalPlaylist ? toTidalUri(tidalItems) : toPlexUri(plexItems);
+    const {
+        MediaContainer: {Metadata: [playlist] = []},
+    } = await fetchJSON<plex.MetadataResponse>({
+        host,
+        method: 'POST',
+        path: '/playlists',
+        params: {type, title, uri, smart: 0},
+    });
+    // Need to do these sequentially.
+    if (summary) {
+        await plexFetch({
+            host,
+            method: 'PUT',
+            path: `/playlists/${playlist.ratingKey}`,
+            params: {summary},
+        });
+    }
+    if (!isTidalPlaylist && tidalItems.length > 0) {
+        // TODO: Put playlist items back into the original order (not easy).
+        await fetchJSON<plex.Playlist>({
+            host,
+            method: 'PUT',
+            path: `/playlists/${playlist.ratingKey}/items`,
+            params: {uri: toTidalUri(tidalItems)},
+        });
+    }
 }
 
 async function getAccount(token: string): Promise<plex.Account> {
@@ -185,9 +224,9 @@ async function search<T extends plex.MediaObject>({
     params: {type, ...params} = {},
     ...request
 }: PlexRequest): Promise<readonly T[]> {
-    let items: readonly T[] = [];
     let results: readonly plex.SearchResult[] = [];
-    if (request.host === musicSearchHost) {
+    const isTidal = request.host === musicSearchHost;
+    if (isTidal) {
         const {
             MediaContainer: {
                 SearchResults: [{SearchResult = []}],
@@ -200,32 +239,32 @@ async function search<T extends plex.MediaObject>({
         } = await fetchJSON<plex.SearchResultResponse>({...request, params});
         results = SearchResult;
     }
-    items = results.map((result) => result.Metadata).filter((item) => item.type === type);
-    if (request.host === musicSearchHost) {
-        items = await getEnhancedItems(items, musicProviderHost);
-    }
-    return items;
+
+    const items = results.map((result) => result.Metadata).filter((item) => item.type === type);
+    return getMetadata(
+        items.map((item) => item.ratingKey),
+        isTidal ? musicProviderHost : undefined
+    );
 }
 
-async function getEnhancedItems<T extends plex.MediaObject>(
-    items: readonly T[],
-    host?: string
+async function getMetadata<T extends plex.MediaObject>(
+    ratingKeys: readonly string[],
+    host = plexSettings.host
 ): Promise<readonly T[]> {
-    if (items.length > 0) {
-        const ratingKeys = items.map((item) => item.ratingKey);
-        const {
-            MediaContainer: {Metadata = []},
-        } = await fetchJSON<plex.MetadataResponse<T>>({
-            host,
-            path: `/library/metadata/${ratingKeys.join(',')}`,
-            headers: {
-                'X-Plex-Container-Start': '0',
-                'X-Plex-Container-Size': String(ratingKeys.length),
-            },
-        });
-        items = Metadata;
+    if (ratingKeys.length === 0) {
+        return [];
     }
-    return items;
+    const {
+        MediaContainer: {Metadata = []},
+    } = await fetchJSON<plex.MetadataResponse<T>>({
+        host,
+        path: `/library/metadata/${ratingKeys.join(',')}`,
+        headers: {
+            'X-Plex-Container-Start': '0',
+            'X-Plex-Container-Size': String(ratingKeys.length),
+        },
+    });
+    return Metadata;
 }
 
 function getPlayableUrl(item: PlayableItem): string {
@@ -333,13 +372,19 @@ export function getPlexItemType(itemType: ItemType, mediaType?: MediaType): plex
     }
 }
 
+function getIdFromSrc({src}: {src: string}): string {
+    const [, , id] = src.split(':');
+    return id;
+}
+
 const plexApi = {
+    createPlaylist,
     fetch: plexFetch,
     fetchJSON,
-    getEnhancedItems,
     getAccount,
     getFilters,
     getHeaders,
+    getMetadata,
     getMusicLibraries,
     getPlayableUrl,
     getPlaybackType,

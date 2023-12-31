@@ -86,7 +86,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
                         map((items) => items.filter((item) => item.itemType === ItemType.Media)),
                         filter((items) => items.length > 0),
                         mergeMap((items) =>
-                            listenbrainzApi.addInLibrary(items as readonly MediaItem[])
+                            listenbrainzApi.addUserData(items as readonly MediaItem[])
                         )
                     )
                     .subscribe(logger)
@@ -143,7 +143,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
             artist_mbids: item.artist_mbids,
             playCount: item.listen_count,
         };
-        return {...album, pager: mbid ? new MusicBrainzAlbumPager(mbid, album) : new SimplePager()};
+        return {...album, pager: mbid ? new MusicBrainzAlbumPager(mbid) : new SimplePager()};
     }
 
     private createMediaItem(item: ListenBrainz.Recording): MediaItem {

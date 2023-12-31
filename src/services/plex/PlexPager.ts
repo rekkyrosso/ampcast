@@ -1,4 +1,5 @@
 import type {Observable} from 'rxjs';
+import {Subscription, mergeMap} from 'rxjs';
 import {SetOptional, Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
@@ -13,6 +14,8 @@ import Pager, {Page, PagerConfig} from 'types/Pager';
 import ParentOf from 'types/ParentOf';
 import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
+import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
+import AbstractPager from 'services/pagers/AbstractPager';
 import OffsetPager from 'services/pagers/OffsetPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
@@ -20,7 +23,7 @@ import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import pinStore from 'services/pins/pinStore';
-import {Logger} from 'utils';
+import {Logger, partition, uniq} from 'utils';
 import plexApi, {PlexRequest, getMusicLibraryPath, musicProviderHost} from './plexApi';
 import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
@@ -37,14 +40,15 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     static plexMaxPageSize = 1000;
     static tidalMaxPageSize = 100;
 
-    private readonly pager: Pager<T>;
+    private readonly pager: AbstractPager<T>;
     private readonly pageSize: number;
     private readonly serviceId: 'plex' | 'plex-tidal';
     private pageNumber = 1;
+    private subscriptions?: Subscription;
 
     constructor(
         private readonly request: PlexRequest,
-        options?: Partial<PlexPagerConfig>,
+        private readonly options?: Partial<PlexPagerConfig>,
         private readonly parent?: ParentOf<T>
     ) {
         this.serviceId = options?.serviceId || 'plex';
@@ -81,9 +85,14 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
 
     disconnect(): void {
         this.pager.disconnect();
+        this.subscriptions?.unsubscribe();
     }
 
     fetchAt(index: number, length: number): void {
+        if (!this.subscriptions) {
+            this.connect();
+        }
+
         this.pager.fetchAt(index, length);
     }
 
@@ -91,13 +100,76 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         return this.serviceId === 'plex-tidal';
     }
 
+    private get isSearch(): boolean {
+        return this.request.path.endsWith('/search');
+    }
+
+    private connect(): void {
+        if (!this.subscriptions) {
+            this.subscriptions = new Subscription();
+
+            // Items from the `/search` endpoints are already enhanced.
+            if (!this.options?.lookup && !this.isSearch) {
+                this.subscriptions.add(
+                    this.pager
+                        .observeAdditions()
+                        .pipe(mergeMap((items) => this.enhanceItems(items)))
+                        .subscribe(logger)
+                );
+            }
+        }
+    }
+
+    private async enhanceItems(items: readonly T[]): Promise<void> {
+        const [tidalItems, plexItems] = partition(items, (item) =>
+            item.src.startsWith('plex-tidal:')
+        );
+        const enhance = async (items: readonly T[], host?: string): Promise<void> => {
+            items = items.filter(
+                (item) => !(item.itemType === ItemType.Media && item.mediaType === MediaType.Video)
+            );
+            if (items.length > 0) {
+                const isTidal = host === musicProviderHost;
+                const plexObjects = await plexApi.getMetadata(
+                    items.map(({src}): string => {
+                        const [, , ratingKey] = src.split(':');
+                        return ratingKey;
+                    }),
+                    host
+                );
+                const plexAlbums = isTidal ? [] : await this.getPlexAlbums(plexObjects);
+                const enhancedItems = plexObjects.map(
+                    (object: plex.MediaObject) => this.createMediaObject(object, plexAlbums, true) // no pager
+                );
+                dispatchMediaObjectChanges<MediaObject>(
+                    enhancedItems.map((item) => ({
+                        match: (object: MediaObject) => object.src === item.src,
+                        values: item,
+                    }))
+                );
+            }
+        };
+        await Promise.all([
+            enhance(
+                plexItems.filter((item) => [ItemType.Media, ItemType.Album].includes(item.itemType))
+            ),
+            enhance(
+                tidalItems.filter((item) =>
+                    [ItemType.Media, ItemType.Artist].includes(item.itemType)
+                ),
+                musicProviderHost
+            ),
+        ]);
+    }
+
     private async fetch(pageNumber: number): Promise<Page<T>> {
         const path = this.request.path;
-        if (path.endsWith('/search')) {
-            const plexItems = await plexApi.search(this.request);
-            const items = plexItems.map((item) => this.createMediaObject(item));
-            const total = items.length;
-            return {items, total};
+        let plexItems: readonly plex.MediaObject[];
+        let plexAlbums: readonly plex.Album[] = [];
+        let total = 0;
+        if (this.isSearch) {
+            plexItems = await plexApi.search(this.request);
+            total = plexItems.length;
         } else {
             const {headers, ...request} = this.request;
             const result = await plexApi.fetchJSON<plex.MetadataResponse>({
@@ -108,33 +180,42 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
                     'X-Plex-Container-Start': String((pageNumber - 1) * this.pageSize),
                 },
             });
-
             const {
                 MediaContainer: {Metadata = [], size, totalSize},
             } = result;
 
-            let plexItems = Metadata;
-
-            if (path.endsWith('/tidal/myMixes')) {
-                // The playlists from this response all have a `leafCount` of `1`.
-                // And they have the wrong `title`.
-                plexItems = plexItems.map((item, index) => {
-                    if (item.type === 'playlist' && item.leafCount === 1) {
-                        return {
-                            ...item,
-                            leafCount: undefined,
-                            title: `My Mix ${index + 1}`,
-                            summary: item.title,
-                        };
-                    }
-                    return item;
-                }) as plex.MediaObject[];
-            }
-
-            const items = plexItems.map((item: plex.MediaObject) => this.createMediaObject(item));
-
-            return {items, total: totalSize || size};
+            plexItems = Metadata;
+            total = totalSize || size;
         }
+
+        if (this.options?.lookup && !this.isTidal) {
+            // The lookup service uses `/library/search`.
+            // Search results are already enhanced so we'll fetch the albums
+            // to give us the `release_mbid`.
+            plexAlbums = await this.getPlexAlbums(plexItems);
+        }
+
+        if (path.endsWith('/tidal/myMixes')) {
+            // The playlists from this response all have a `leafCount` of `1`.
+            // And they have the wrong `title`.
+            plexItems = plexItems.map((item, index) => {
+                if (item.type === 'playlist' && item.leafCount === 1) {
+                    return {
+                        ...item,
+                        leafCount: undefined,
+                        title: `My Mix ${index + 1}`,
+                        summary: item.title,
+                    };
+                }
+                return item;
+            }) as plex.MediaObject[];
+        }
+
+        const items = plexItems.map((item: plex.MediaObject) =>
+            this.createMediaObject(item, plexAlbums)
+        );
+
+        return {items, total};
     }
 
     private async fetchNext(): Promise<Page<T>> {
@@ -143,32 +224,38 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         return page;
     }
 
-    private createMediaObject(item: plex.MediaObject): T {
-        switch (item.type) {
+    private createMediaObject(
+        object: plex.MediaObject,
+        albums: readonly plex.Album[],
+        noPager?: boolean
+    ): T {
+        switch (object.type) {
             case plexItemType.Clip:
-                return this.createMediaItemFromVideo(item) as T;
+                return this.createMediaItemFromVideo(object) as T;
 
             case plexItemType.Album:
-                return this.createMediaAlbum(item) as T;
+                return this.createMediaAlbum(object, noPager) as T;
 
             case plexItemType.Artist:
-                return this.createMediaArtist(item) as T;
+                return this.createMediaArtist(object, noPager) as T;
 
             case plexItemType.Playlist:
-                return this.createMediaPlaylist(item) as T;
+                return this.createMediaPlaylist(object, noPager) as T;
 
-            case plexItemType.Track:
-                return this.createMediaItemFromTrack(item) as T;
+            case plexItemType.Track: {
+                const album = albums.find((album) => album.ratingKey === object.parentRatingKey);
+                return this.createMediaItemFromTrack(object, album) as T;
+            }
 
             default:
-                return this.createMediaFolder(item) as T;
+                return this.createMediaFolder(object) as T;
         }
     }
 
-    private createMediaItemFromTrack(track: plex.Track): MediaItem {
+    private createMediaItemFromTrack(track: plex.Track, album: plex.Album | undefined): MediaItem {
         const [media] = track.Media || [];
         const [part] = media?.Part || [];
-        const title = (track.title || '').trim();
+        let title = (track.title || '').trim();
         const hasMetadata = !!title;
         const albumTitle = hasMetadata
             ? track.parentTitle === '[Unknown Album]'
@@ -176,16 +263,21 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
                 : track.parentTitle || undefined
             : undefined;
         const fileName = this.getFileName(part?.file) || '[Unknown]';
-
+        const isTidal = track.attribution === 'com.tidal';
+        if (isTidal) {
+            title = this.fixTrackTitle(title);
+        } else {
+            title = title || fileName.replace(/\.\w+/, '');
+        }
         return {
-            src: `${this.serviceId}:audio:${track.ratingKey}`,
+            src: this.getSrc('audio', track),
             srcs: track.Media?.map(({Part: [part]}) => part.key),
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
-            playbackType: this.isTidal ? PlaybackType.DASH : undefined,
-            externalUrl: this.getExternalUrl(`/library/metadata/${track.parentRatingKey}`),
-            fileName: fileName,
-            title: this.fixTrackTitle(title) || fileName.replace(/\.\w+/, ''),
+            playbackType: isTidal ? PlaybackType.DASH : undefined,
+            title,
+            fileName: isTidal ? undefined : fileName,
+            externalUrl: this.getExternalUrl(track),
             addedAt: track.addedAt,
             artists: hasMetadata
                 ? track.originalTitle
@@ -200,71 +292,80 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             track: albumTitle ? track.index : undefined,
             disc: albumTitle && track.index ? track.parentIndex : undefined,
             inLibrary: this.getInLibrary(track),
-            rating: this.getRating(track),
-            globalRating: track.rating,
+            rating: this.getRating(track.userRating),
+            globalRating: this.getRating(track.rating),
             year: track.year || track.parentYear,
             playedAt: track.lastViewedAt || 0,
             playCount: track.viewCount,
-            genres: track.Genre?.map((genre) => genre.tag),
+            genres: this.getGenres(track) || (album ? this.getGenres(album) : undefined),
             thumbnails: this.createThumbnails(
-                (this.isTidal ? undefined : track.thumb) ||
-                    track.parentThumb ||
-                    track.grandparentThumb
+                (isTidal ? undefined : track.thumb) || track.parentThumb || track.grandparentThumb
             ),
+            release_mbid: album ? this.getMbid(album) : undefined,
+            track_mbid: this.getMbid(track),
             unplayable: part ? undefined : true,
         };
     }
 
-    private createMediaAlbum(album: plex.Album): MediaAlbum {
-        return {
-            src: `${this.serviceId}:album:${album.ratingKey}`,
+    private createMediaAlbum(album: plex.Album, noPager?: boolean): MediaAlbum {
+        const mediaAlbum = {
+            src: this.getSrc('album', album),
             itemType: ItemType.Album,
-            externalUrl: this.getExternalUrl(`/library/metadata/${album.ratingKey}`),
+            externalUrl: this.getExternalUrl(album),
             title: album.title || '',
             description: album.summary,
             addedAt: album.addedAt,
             artist: album.parentTitle,
             inLibrary: this.getInLibrary(album),
-            rating: this.getRating(album),
-            globalRating: album.rating,
+            rating: this.getRating(album.userRating),
+            globalRating: this.getRating(album.rating),
             year: album.year,
             playedAt: album.lastViewedAt,
             playCount: album.viewCount,
-            genres: album.Genre?.map((genre) => genre.tag),
-            pager: this.createPager({path: album.key}),
+            genres: this.getGenres(album),
             thumbnails: this.createThumbnails(album.thumb || album.parentThumb),
+            release_mbid: this.getMbid(album),
         };
+        if (!noPager) {
+            (mediaAlbum as any).pager = this.createPager({path: album.key});
+        }
+        return mediaAlbum as MediaAlbum;
     }
 
-    private createMediaArtist(artist: plex.Artist): MediaArtist {
-        return {
-            src: `${this.serviceId}:artist:${artist.ratingKey}`,
+    private createMediaArtist(artist: plex.Artist, noPager?: boolean): MediaArtist {
+        const mediaArtist = {
+            src: this.getSrc('artist', artist),
             itemType: ItemType.Artist,
-            externalUrl: this.getExternalUrl(`/library/metadata/${artist.ratingKey}`),
+            externalUrl: this.getExternalUrl(artist),
             title: artist.title,
             description: artist.summary,
             country: artist.Country?.map((country) => country.tag).join(', '),
             addedAt: artist.addedAt,
             inLibrary: this.getInLibrary(artist),
-            rating: this.getRating(artist),
-            globalRating: artist.rating,
-            genres: artist.Genre?.map((genre) => genre.tag),
-            pager: this.createArtistAlbumsPager(artist),
+            rating: this.getRating(artist.userRating),
+            globalRating: this.getRating(artist.rating),
+            genres: this.getGenres(artist),
             thumbnails: this.createThumbnails(artist.thumb),
+            artist_mbid: this.getMbid(artist),
         };
+        if (!noPager) {
+            (mediaArtist as any).pager = this.createArtistAlbumsPager(artist);
+        }
+        return mediaArtist as MediaArtist;
     }
 
     private createMediaItemFromVideo(video: plex.MusicVideo): MediaItem {
         const [media] = video.Media || [];
         const [part] = media?.Part || [];
+        const isTidal = video.attribution === 'com.tidal';
 
         return {
-            src: `${this.serviceId}:video:${video.ratingKey}`,
+            src: this.getSrc('video', video),
             srcs: video.Media?.map(({Part: [part]}) => part.key),
             itemType: ItemType.Media,
             mediaType: MediaType.Video,
-            playbackType: this.isTidal ? PlaybackType.HLS : undefined,
-            externalUrl: video.art ? this.getExternalUrl(video.art.replace(/\/art\/\d+$/, '')) : '',
+            playbackType: isTidal ? PlaybackType.HLS : undefined,
+            externalUrl: this.getExternalUrl(video),
             fileName: this.getFileName(part?.file),
             title: video.title || 'Video',
             addedAt: video.addedAt,
@@ -272,20 +373,19 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             duration: video.duration / 1000,
             playedAt: video.lastViewedAt || 0,
             playCount: video.viewCount,
-            genres: video.Genre?.map((genre) => genre.tag),
+            genres: this.getGenres(video),
             inLibrary: this.getInLibrary(video),
             thumbnails: this.createThumbnails(video.thumb),
             unplayable: part ? undefined : true,
         };
     }
 
-    private createMediaPlaylist(playlist: plex.Playlist): MediaPlaylist {
-        const src = `${this.serviceId}:playlist:${playlist.ratingKey}`;
-
-        return {
+    private createMediaPlaylist(playlist: plex.Playlist, noPager?: boolean): MediaPlaylist {
+        const src = this.getSrc('playlist', playlist);
+        const mediaPlaylist = {
             src,
             itemType: ItemType.Playlist,
-            externalUrl: this.getExternalUrl(`/playlists/${playlist.ratingKey}`, 'playlist'),
+            externalUrl: this.getExternalUrl(playlist),
             title: playlist.title,
             description: playlist.summary,
             addedAt: playlist.addedAt,
@@ -293,16 +393,19 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             playedAt: playlist.lastViewedAt,
             playCount: playlist.viewCount,
             trackCount: playlist.leafCount,
-            pager: this.createPager({path: playlist.key}),
             thumbnails: this.createThumbnails(playlist.thumb || playlist.composite),
             isPinned: pinStore.isPinned(src),
         };
+        if (!noPager) {
+            (mediaPlaylist as any).pager = this.createPager({path: playlist.key});
+        }
+        return mediaPlaylist as MediaPlaylist;
     }
 
     private createMediaFolder(folder: plex.Folder): MediaFolder {
         const mediaFolder: Writable<SetOptional<MediaFolder, 'pager'>> = {
             itemType: ItemType.Folder,
-            src: `${this.serviceId}:folder:${folder.key}`,
+            src: `plex:folder:${folder.key}`,
             title: folder.title,
             fileName: folder.title,
             path:
@@ -315,31 +418,83 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         return mediaFolder as MediaFolder;
     }
 
-    private get webHost(): string {
+    private getExternalUrl(object: plex.MediaObject): string {
+        const isTidal = object.attribution === 'com.tidal';
         const host = 'https://app.plex.tv/desktop/#!';
-        if (this.isTidal) {
-            return `${host}/provider/tv.plex.provider.music`;
+        let webHost = '';
+        if (isTidal) {
+            webHost = `${host}/provider/tv.plex.provider.music`;
         } else {
             const clientIdentifier = plexSettings.server?.clientIdentifier;
-            return clientIdentifier ? `${host}/server/${clientIdentifier}` : '';
+            webHost = clientIdentifier ? `${host}/server/${clientIdentifier}` : '';
         }
-    }
+        let path = 'details';
+        let key = `/library/metadata/${object.ratingKey}`;
 
-    private getExternalUrl(key: string, path = 'details'): string {
-        const webHost = this.webHost;
-        return webHost ? `${webHost}/${path}?key=${encodeURIComponent(key)}` : '';
+        switch (object.type) {
+            case plexItemType.Clip:
+                if (isTidal) {
+                    const grandparentRatingKey = object.grandparentRatingKey;
+                    key = grandparentRatingKey ? `/library/metadata/${grandparentRatingKey}` : '';
+                } else {
+                    key = object.art?.replace(/\/art\/\d+$/, '');
+                }
+                break;
+
+            case plexItemType.Playlist:
+                key = `/playlists/${object.ratingKey}`;
+                path = 'playlist';
+                break;
+
+            case plexItemType.Track: {
+                const parentRatingKey = object.parentRatingKey;
+                key = parentRatingKey ? `/library/metadata/${parentRatingKey}` : '';
+                break;
+            }
+        }
+        return webHost && key ? `${webHost}/${path}?key=${encodeURIComponent(key)}` : '';
     }
 
     private getFileName(path = ''): string | undefined {
         return path.split(/[/\\]/).pop();
     }
 
-    private getInLibrary(object: plex.MusicObject): boolean | undefined {
-        return this.isTidal ? object.saved : undefined;
+    private getGenres(object: plex.RatingObject): string[] | undefined {
+        return object.Genre?.map((genre) => genre.tag);
     }
 
-    private getRating(object: plex.MusicObject): number | undefined {
-        return this.isTidal ? undefined : Math.round((object.userRating || 0) / 2);
+    private getInLibrary(object: plex.RatingObject): boolean | undefined {
+        return object.attribution === 'com.tidal' ? object.saved : undefined;
+    }
+
+    private getMbid(object: plex.RatingObject): string | undefined {
+        const guids = object.Guid;
+        if (guids) {
+            const id = guids.map((guid) => guid.id).find((id) => id.startsWith('mbid://'));
+            return id?.replace('mbid://', '');
+        }
+    }
+
+    private async getPlexAlbums(
+        items: readonly plex.MediaObject[]
+    ): Promise<readonly plex.Album[]> {
+        const isTrack = (object: plex.MediaObject): object is plex.Track =>
+            object.type === 'track' && object.attribution !== 'com.tidal';
+        const tracks = items.filter(isTrack);
+        const albumKeys = uniq(tracks.map((track) => track.parentRatingKey));
+        if (albumKeys.length > 0) {
+            return plexApi.getMetadata<plex.Album>(albumKeys);
+        }
+        return [];
+    }
+
+    private getRating(rating: number | undefined): number | undefined {
+        return typeof rating === 'number' ? Math.round((rating || 0) / 2) : undefined;
+    }
+
+    private getSrc(type: string, object: plex.MediaObject): string {
+        const serviceId = object.attribution === 'com.tidal' ? 'plex-tidal' : 'plex';
+        return `${serviceId}:${type}:${object.ratingKey}`;
     }
 
     private createThumbnails(thumb: string): Thumbnail[] | undefined {
@@ -380,7 +535,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createArtistAlbumsPager(artist: plex.Artist): Pager<MediaAlbum> {
-        if (this.isTidal) {
+        if (artist.attribution === 'com.tidal') {
             const albumsPager = this.createPager<MediaAlbum>({path: artist.key});
             const topTracks = this.createArtistTopTracks(artist);
             const videos = this.createArtistVideos(artist);
@@ -403,16 +558,26 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
                     sort: 'year:desc,originallyAvailableAt:desc,artist.titleSort:desc,album.titleSort,album.index',
                 },
             });
+            const videos = this.createArtistVideos(artist);
+            const topPager = new SimpleMediaPager<MediaAlbum>(async () => {
+                try {
+                    const items = await fetchFirstPage(videos.pager, {keepAlive: true});
+                    return items.length === 0 ? [] : [videos];
+                } catch (err) {
+                    logger.error(err);
+                    return [];
+                }
+            });
             const otherTracks = this.createArtistOtherTracks(artist);
             const otherTracksPager = new SimplePager<MediaAlbum>([otherTracks]);
-            return new WrappedPager(undefined, albumsPager, otherTracksPager);
+            return new WrappedPager(topPager, albumsPager, otherTracksPager);
         }
     }
 
     private createArtistOtherTracks(artist: plex.Artist): MediaAlbum {
         return {
             itemType: ItemType.Album,
-            src: `${this.serviceId}:other-tracks:${artist.ratingKey}`,
+            src: this.getSrc('other-tracks', artist),
             title: 'Other Tracks',
             artist: artist.title,
             thumbnails: this.createThumbnails(artist.thumb),
@@ -424,7 +589,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     private createArtistTopTracks(artist: plex.Artist): MediaAlbum {
         return {
             itemType: ItemType.Album,
-            src: `${this.serviceId}:top-tracks:${artist.ratingKey}`,
+            src: this.getSrc('top-tracks', artist),
             title: 'Top Tracks',
             artist: artist.title,
             thumbnails: this.createThumbnails(artist.thumb),
@@ -436,7 +601,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     private createArtistVideos(artist: plex.Artist): MediaAlbum {
         return {
             itemType: ItemType.Album,
-            src: `${this.serviceId}:videos:${artist.ratingKey}`,
+            src: this.getSrc('videos', artist),
             title: 'Music Videos',
             artist: artist.title,
             thumbnails: this.createThumbnails(artist.thumb),
@@ -483,7 +648,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     }
 
     private fixTrackTitle(title: string): string {
-        if (title && this.isTidal) {
+        if (title) {
             // Remove duplicates.
             // e.g. "Disorder (2007 Remaster) (2007 Remaster)" => "Disorder (2007 Remaster)"
             title = title.replace(/(\([^)]*\))\s*\1/g, '$1');
