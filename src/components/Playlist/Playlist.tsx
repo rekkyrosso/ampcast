@@ -1,18 +1,28 @@
 import React, {useCallback, useState} from 'react';
 import {Except} from 'type-fest';
 import LookupStatus from 'types/LookupStatus';
+import MediaAlbum from 'types/MediaAlbum';
+import MediaItem from 'types/MediaItem';
 import PlaylistItem from 'types/PlaylistItem';
 import playlist from 'services/playlist';
 import ListView, {ListViewHandle, ListViewProps} from 'components/ListView';
 import MediaListStatusBar from 'components/MediaList/MediaListStatusBar';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useObservable from 'hooks/useObservable';
+import useOnDragStart from 'components/MediaList/useOnDragStart';
 import {showMediaInfoDialog} from 'components/MediaInfo/MediaInfoDialog';
 import showActionsMenu from './showActionsMenu';
+import usePlaylistInject from './usePlaylistInject';
 import usePlaylistLayout from './usePlaylistLayout';
 import './Playlist.scss';
 
-export const droppableTypes = ['audio/*', 'video/*'];
+export const droppableTypes = [
+    'audio/*',
+    'video/*',
+    // Preferred order.
+    'text/x-spotify-tracks',
+    'text/uri-list',
+];
 
 type NotRequired = 'items' | 'itemKey' | 'title' | 'layout' | 'sortable' | 'droppableTypes';
 
@@ -34,7 +44,9 @@ export default function Playlist({
     const layout = usePlaylistLayout(size);
     const item = useCurrentlyPlaying();
     const currentId = item?.id;
-    const [selectedCount, setSelectedCount] = useState(0);
+    const [selectedItems, setSelectedItems] = useState<readonly PlaylistItem[]>([]);
+    const onDragStart = useOnDragStart(selectedItems);
+    const inject = usePlaylistInject();
 
     const itemClassName = useCallback(
         (item: PlaylistItem) => {
@@ -50,7 +62,7 @@ export default function Playlist({
 
     const handleSelect = useCallback(
         (items: readonly PlaylistItem[]) => {
-            setSelectedCount(items.length);
+            setSelectedItems(items);
             onSelect?.(items);
         },
         [onSelect]
@@ -135,8 +147,39 @@ export default function Playlist({
         [onPlay, items, listViewRef]
     );
 
+    const handleDrop = useCallback(
+        async (
+            data: readonly MediaItem[] | readonly MediaAlbum[] | readonly File[] | DataTransferItem,
+            atIndex: number
+        ) => {
+            if (data instanceof DataTransferItem) {
+                switch (data.type) {
+                    case 'text/x-spotify-tracks': {
+                        data.getAsString(async (string) => {
+                            const trackIds = string.split(/\s+/).map((uri) => uri.split(':')[2]);
+                            await inject.spotifyTracks(trackIds, atIndex);
+                        });
+                        break;
+                    }
+
+                    case 'text/uri-list':
+                        data.getAsString(async (string) => {
+                            const urls = string.split(/\s+/);
+                            await inject.urls(urls, atIndex);
+                        });
+                        break;
+                }
+            } else if (data[0] instanceof File) {
+                await inject.files(data as readonly File[], atIndex);
+            } else {
+                await inject.items(data as readonly MediaItem[], atIndex);
+            }
+        },
+        [inject]
+    );
+
     return (
-        <div className="playlist">
+        <div className="playlist" onDragStart={onDragStart}>
             <ListView
                 {...props}
                 title="Playlist"
@@ -146,6 +189,7 @@ export default function Playlist({
                 itemKey="id"
                 itemClassName={itemClassName}
                 selectedIndex={items.length === 0 ? -1 : 0}
+                draggable={true}
                 droppable={true}
                 droppableTypes={droppableTypes}
                 multiple={true}
@@ -153,14 +197,18 @@ export default function Playlist({
                 onContextMenu={handleContextMenu}
                 onDelete={handleDelete}
                 onDoubleClick={handleDoubleClick}
-                onDrop={playlist.injectAt}
+                onDrop={handleDrop}
                 onEnter={handleEnter}
                 onInfo={handleInfo}
                 onMove={playlist.moveSelection}
                 onSelect={handleSelect}
                 listViewRef={listViewRef}
             />
-            <MediaListStatusBar items={items} size={items.length} selectedCount={selectedCount} />
+            <MediaListStatusBar
+                items={items}
+                size={items.length}
+                selectedCount={selectedItems.length}
+            />
         </div>
     );
 }

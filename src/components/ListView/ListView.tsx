@@ -78,7 +78,7 @@ export interface ListViewProps<T> {
         rowIndex: number,
         button: number
     ) => void;
-    onDrop?: (items: readonly T[] | FileList, atIndex: number) => void;
+    onDrop?: (data: readonly T[] | readonly File[] | DataTransferItem, atIndex: number) => void;
     onMove?: (items: readonly T[], toIndex: number) => void;
     onDelete?: (items: readonly T[]) => void;
     onEnter?: (items: readonly T[], ctrlKey: boolean, shiftKey: boolean) => void;
@@ -163,14 +163,15 @@ export default function ListView<T>({
     const [debouncedSelectedItems, setDebouncedSelectedItems] = useState<readonly T[]>(
         () => selectedItems
     );
-    const [dragItem1, dragItem2, dragItem3, dragItem4] = draggable ? selectedItems : [];
+    const [dragItem1, dragItem2, dragItem3, dragItem4] =
+        draggable || reorderable ? selectedItems : [];
     const selectedId = items[rowIndex] ? `${listViewId}-${items[rowIndex][itemKey]}` : '';
     const selectedIds = useMemo(
         () => selectedItems.map((item) => item[itemKey]),
         [selectedItems, itemKey]
     );
 
-    const focus = useCallback(() => containerRef.current!.focus(), []);
+    const focus = useCallback(() => containerRef.current?.focus(), []);
 
     const scrollTo = useCallback(
         (rowIndex: number) => {
@@ -470,7 +471,7 @@ export default function ListView<T>({
         }
         const items = Array.from(
             containerRef.current!.querySelectorAll(
-                `.list-view-body:not(list-view-drag-image) li.selected`
+                '.list-view-body:not(.list-view-drag-image) li.selected'
             )
         );
         items.length = Math.min(items.length, 4);
@@ -511,13 +512,12 @@ export default function ListView<T>({
             event.stopPropagation();
             const dataTransfer = event.dataTransfer;
             if (droppable || reorderable) {
-                const hasItems = dataTransfer.types.includes('text/plain');
                 let rowIndex = getRowIndexFromMouseEvent(event);
                 if (rowIndex === -1) {
                     rowIndex = size;
                 }
                 if (isDragging) {
-                    if (reorderable && hasItems) {
+                    if (reorderable && canDrop(dataTransfer, droppableTypes)) {
                         dataTransfer.dropEffect = 'move';
                         setDragIndex(rowIndex);
                     } else {
@@ -525,10 +525,7 @@ export default function ListView<T>({
                         setDragIndex(-1);
                     }
                 } else {
-                    if (
-                        droppable &&
-                        (hasItems || hasDroppableType(dataTransfer.items, droppableTypes))
-                    ) {
+                    if (droppable && canDrop(dataTransfer, droppableTypes)) {
                         dataTransfer.dropEffect = 'copy';
                         setDragIndex(rowIndex);
                     } else {
@@ -549,23 +546,20 @@ export default function ListView<T>({
     const handleDrop = useCallback(
         (event: React.DragEvent) => {
             if (droppable || reorderable) {
-                const dataTransfer = event.dataTransfer;
                 let rowIndex = getRowIndexFromMouseEvent(event);
                 if (rowIndex === -1) {
                     rowIndex = size;
                 }
                 const effect = globalDrag.getEffect(event);
-                if (effect === 'copy') {
-                    const items: T[] | null = globalDrag.getData(event);
-                    if (items) {
-                        onDrop?.(items, rowIndex);
-                    }
-                } else if (effect === 'move') {
+                if (reorderable && (effect === 'move' || effect === 'copyMove')) {
                     const offset = dragStartIndex < rowIndex ? -1 : 0;
                     onMove?.(selectedItems, rowIndex);
                     setRowIndex(rowIndex + offset);
-                } else if (droppable && hasDroppableType(dataTransfer.items, droppableTypes)) {
-                    onDrop?.(dataTransfer.files, rowIndex);
+                } else if (droppable) {
+                    const data = getDropData<T>(event, droppableTypes);
+                    if (data) {
+                        onDrop?.(data, rowIndex);
+                    }
                 }
             }
             setDragIndex(-1);
@@ -589,7 +583,11 @@ export default function ListView<T>({
         setDragStartIndex(-1);
     }, []);
 
-    const handleDragLeave = useCallback(() => {
+    const handleDragLeave = useCallback((event: React.DragEvent) => {
+        const dataTransfer = event.dataTransfer;
+        if (dataTransfer.effectAllowed === 'copyMove') {
+            dataTransfer.dropEffect = 'copy';
+        }
         setDragIndex(-1);
     }, []);
 
@@ -738,15 +736,47 @@ function getNextIndexByKey(
     return Math.min(Math.max(index, 0), totalSize - 1);
 }
 
-function hasDroppableType(items: DataTransferItemList, droppableTypes: string[]): boolean {
-    const compareTypes = (a: string, b: string): boolean => {
-        const [typeA, subtypeA] = a.split('/');
-        const [typeB, subtypeB] = b.split('/');
-        return typeA === typeB && (subtypeA === subtypeB || subtypeA === '*');
-    };
-    return (
-        Array.from(items).findIndex((item) =>
-            droppableTypes.some((type) => compareTypes(type, item.type))
-        ) !== -1
-    );
+function canDrop(dataTransfer: DataTransfer, droppableTypes: string[]): boolean {
+    return getDroppableItem(dataTransfer, droppableTypes) !== null;
+}
+
+function getDropData<T>(
+    event: React.DragEvent,
+    droppableTypes: string[]
+): readonly T[] | readonly File[] | DataTransferItem | null {
+    const dataTransfer = event.dataTransfer;
+    switch (dataTransfer.types[0]) {
+        case 'Files':
+            return Array.from(dataTransfer.files).filter((item) =>
+                droppableTypes.some((type) => compareTypes(type, item.type))
+            );
+
+        case 'text/ampcast-items':
+            return globalDrag.getData(event);
+
+        default:
+            return getDroppableItem(dataTransfer, droppableTypes);
+    }
+}
+
+function getDroppableItem(
+    dataTransfer: DataTransfer,
+    droppableTypes: string[]
+): DataTransferItem | null {
+    const types = [globalDrag.type].concat(droppableTypes);
+    const items = Array.from(dataTransfer.items);
+    for (const type of types) {
+        for (const item of items) {
+            if (compareTypes(type, item.type)) {
+                return item;
+            }
+        }
+    }
+    return null;
+}
+
+function compareTypes(a: string, b: string): boolean {
+    const [typeA, subtypeA] = a.split('/');
+    const [typeB, subtypeB] = b.split('/');
+    return typeA === typeB && (subtypeA === subtypeB || subtypeA === '*');
 }

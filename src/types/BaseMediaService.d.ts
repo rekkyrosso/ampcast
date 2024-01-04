@@ -39,10 +39,14 @@ type BaseMediaService = Auth & {
         viewType: ViewType.ByDecade | ViewType.ByGenre,
         itemType: ItemType
     ) => Promise<readonly MediaFilter[]>;
+    getAlbumsById?: (ids: readonly string[]) => Promise<readonly MediaAlbum[]>;
+    getArtistsById?: (ids: readonly string[]) => Promise<readonly MediaArtist[]>;
     getMetadata?: <T extends MediaObject>(item: T) => Promise<T>;
     getPlaybackType?: (item: MediaItem) => Promise<PlaybackType>;
     getPlayableUrl?: (item: PlayableItem) => string;
+    getPlaylistsById?: (ids: readonly string[]) => Promise<readonly MediaPlaylist[]>;
     getThumbnailUrl?: (url: string) => string;
+    getTracksById?: (ids: readonly string[]) => Promise<readonly MediaItem[]>;
     lookup?: (
         artist: string,
         title: string,

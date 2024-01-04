@@ -10,6 +10,7 @@ import mediaPlayback, {
 import playlist, {observeCurrentIndex} from 'services/playlist';
 import {ListViewHandle} from 'components/ListView';
 import Time from 'components/Time';
+import usePlaylistInject from 'components/Playlist/usePlaylistInject';
 import useObservable from 'hooks/useObservable';
 import usePaused from 'hooks/usePaused';
 import MediaButton from './MediaButton';
@@ -27,6 +28,8 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
     const currentTime = useObservable(observeCurrentTime, 0);
     const duration = useObservable(observeDuration, 0);
     const {showActionsMenu} = useActionsMenu(listViewRef, fileRef);
+    const inject = usePlaylistInject();
+
     const paused = usePaused();
 
     const handleSeekChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
@@ -57,13 +60,16 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
         }
     }, [listViewRef, currentIndex]);
 
-    const handleFileImport = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const files = event.target!.files;
-        if (files) {
-            await playlist.add(files);
-            event.target!.value = '';
-        }
-    }, []);
+    const handleFileImport = useCallback(
+        async (event: React.ChangeEvent<HTMLInputElement>) => {
+            const files = event.target!.files;
+            if (files) {
+                await inject.files(files, -1);
+                event.target!.value = '';
+            }
+        },
+        [inject]
+    );
 
     return (
         <div className="media-controls">

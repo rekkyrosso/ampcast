@@ -277,6 +277,7 @@ const spotify: PublicMediaService = {
     createSourceFromPin,
     getMetadata,
     getPlaybackType,
+    getTracksById,
     lookup,
     lookupByISRC,
     store,
@@ -387,6 +388,21 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
 
 async function getPlaybackType(): Promise<PlaybackType> {
     return PlaybackType.IFrame;
+}
+
+async function getTracksById(trackIds: readonly string[]): Promise<readonly MediaItem[]> {
+    const maxSize = 50; // TODO: chunk
+    const ids = trackIds.slice(0, maxSize);
+    const market = getMarket();
+    const pager = new SpotifyPager<MediaItem>(
+        async (): Promise<SpotifyPage> => {
+            const {tracks: items} = await spotifyApi.getTracks(ids, {market});
+            return {items, total: items.length};
+        },
+        {maxSize, pageSize: maxSize},
+        true
+    );
+    return fetchFirstPage(pager);
 }
 
 async function lookup(

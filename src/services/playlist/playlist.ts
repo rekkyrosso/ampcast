@@ -20,7 +20,6 @@ import Playlist from 'types/Playlist';
 import PlaylistItem from 'types/PlaylistItem';
 import LookupStatus from 'types/LookupStatus';
 import {observeMediaObjectChanges} from 'services/actions/mediaObjectChanges';
-import {createMediaItemFromFile} from 'services/music-metadata';
 import {
     LookupStartEvent,
     LookupEndEvent,
@@ -35,14 +34,7 @@ import settings from './playlistSettings';
 
 const logger = new Logger('playlist');
 
-type PlayableType =
-    | MediaAlbum
-    | MediaItem
-    | File
-    | FileList
-    | readonly MediaAlbum[]
-    | readonly MediaItem[]
-    | readonly File[];
+type PlayableType = MediaAlbum | MediaItem | readonly MediaAlbum[] | readonly MediaItem[];
 
 const delayWriteTime = 200;
 
@@ -286,36 +278,18 @@ async function createMediaItems(source: PlayableType): Promise<readonly MediaIte
             );
             items = albums.flat();
         } else {
-            items = await Promise.all(source.map((item) => createMediaItem(item)));
+            items = source;
         }
     } else if (isAlbum(source)) {
         items = await createMediaItemsFromAlbum(source);
     } else {
-        if (source instanceof FileList) {
-            items = await Promise.all(
-                Array.from(source).map((file) => createMediaItemFromFile(file))
-            );
-        } else {
-            items = [await createMediaItem(source as File | MediaItem)];
-        }
+        items = [source as MediaItem];
     }
     return items.filter(exists);
 }
 
 async function createMediaItemsFromAlbum(album: MediaAlbum): Promise<readonly MediaItem[]> {
     return fetchFirstPage(album.pager, {keepAlive: true});
-}
-
-async function createMediaItem(item: File | MediaItem): Promise<MediaItem | null> {
-    if (item instanceof File) {
-        if (/^(audio|video)/.test(item.type)) {
-            return createMediaItemFromFile(item);
-        } else {
-            return null;
-        }
-    } else {
-        return item;
-    }
 }
 
 const playlist: Playlist = {

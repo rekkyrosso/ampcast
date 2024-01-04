@@ -11,6 +11,7 @@ import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import usePager from 'hooks/usePager';
 import MediaListStatusBar from './MediaListStatusBar';
 import useMediaListLayout from './useMediaListLayout';
+import useOnDragStart from './useOnDragStart';
 import useViewClassName from './useViewClassName';
 import showActionsMenu from './showActionsMenu';
 import './MediaList.scss';
@@ -43,11 +44,12 @@ export default function MediaList<T extends MediaObject>({
     const [scrollIndex, setScrollIndex] = useState(0);
     const [pageSize, setPageSize] = useState(0);
     const [{items, loaded, error, size, maxSize}, fetchAt] = usePager(pager);
-    const [selectedCount, setSelectedCount] = useState(0);
+    const [selectedItems, setSelectedItems] = useState<readonly T[]>([]);
     const item = useCurrentlyPlaying();
     const currentSrc = item?.src;
     const viewClassName = useViewClassName(layout);
     const hasItems = loaded ? items.length > 0 : undefined;
+    const onDragStart = useOnDragStart(selectedItems);
 
     useEffect(() => {
         if (error && onError) {
@@ -75,7 +77,7 @@ export default function MediaList<T extends MediaObject>({
 
     const handleSelect = useCallback(
         (items: readonly T[]) => {
-            setSelectedCount(items.length);
+            setSelectedItems(items);
             onSelect?.(items);
         },
         [onSelect]
@@ -147,7 +149,7 @@ export default function MediaList<T extends MediaObject>({
     );
 
     return (
-        <div className={`panel ${className} ${viewClassName}`}>
+        <div className={`panel ${className} ${viewClassName}`} onDragStart={onDragStart}>
             <ListView
                 {...props}
                 className="media-list"
@@ -172,7 +174,7 @@ export default function MediaList<T extends MediaObject>({
                     maxSize={maxSize}
                     loading={!!pager && !loaded}
                     loadingText={loadingText}
-                    selectedCount={selectedCount}
+                    selectedCount={selectedItems.length}
                 />
             ) : null}
         </div>

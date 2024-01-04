@@ -72,7 +72,7 @@ async function fetchFromUrl(url: string, options?: IOptions): Promise<IAudioMeta
             return parseBlob(await response.blob(), options);
         }
     } else {
-        throw Error(response.statusText || 'Failed to fetch');
+        throw Error(response.statusText || 'Could not load media');
     }
 }
 
