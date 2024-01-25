@@ -7,7 +7,7 @@ import Pager from 'types/Pager';
 export default function useSource<T extends MediaObject>(
     source: MediaSource<T> | null,
     params?: MediaFilter | Record<string, unknown>
-) {
+): Pager<T> | null {
     const [pager, setPager] = useState<Pager<T> | null>(null);
 
     useEffect(() => {

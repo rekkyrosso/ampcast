@@ -41,14 +41,23 @@ async function get<T>(
     return data;
 }
 
+async function addToPlaylist(playlistId: string, ids: readonly string[]): Promise<void> {
+    const chunks = chunk(ids, 300);
+    for (const chunk of chunks) {
+        const params = new URLSearchParams({playlistId});
+        chunk.forEach((id) => params.append('songIdToAdd', id));
+        await get(`updatePlaylist?${params}`);
+    }
+}
+
 async function createPlaylist(
     name: string,
     description: string,
     isPublic: boolean,
     ids: readonly string[]
-): Promise<void> {
+): Promise<Subsonic.Playlist> {
     const {playlist} = await get<Subsonic.CreatePlaylistResponse>('createPlaylist', {name});
-    const chunks = chunk(ids, 300); // TODO: Some kind of maximum size.
+    const chunks = chunk(ids, 300);
     for (const chunk of chunks) {
         const params = new URLSearchParams({
             playlistId: playlist.id,
@@ -58,6 +67,7 @@ async function createPlaylist(
         chunk.forEach((id) => params.append('songIdToAdd', id));
         await get(`updatePlaylist?${params}`);
     }
+    return playlist;
 }
 
 async function getAlbum(id: string, settings?: SubsonicSettings): Promise<Subsonic.Album> {
@@ -463,6 +473,7 @@ function getPlayableUrl(
 }
 
 const subsonicApi = {
+    addToPlaylist,
     createPlaylist,
     get,
     getAlbum,

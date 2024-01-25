@@ -6,16 +6,20 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import PlayAction from 'types/PlayAction';
+import actionsStore from 'services/actions/actionsStore';
 import mediaPlayback from 'services/mediaPlayback';
 import pinStore from 'services/pins/pinStore';
 import playlist from 'services/playlist';
+import {addToRecentPlaylist} from 'services/recentPlaylists';
+import {error} from 'components/Dialog';
 import {showMediaInfoDialog} from 'components/MediaInfo/MediaInfoDialog';
-import actionsStore from './actionsStore';
+import {showAddToPlaylistDialog} from './AddToPlaylistDialog';
+import {showCreatePlaylistDialog} from './CreatePlaylistDialog';
 import {Logger} from 'utils';
 
-const logger = new Logger('ampcast/actions');
+const logger = new Logger('ampcast/performAction');
 
-export async function performAction<T extends MediaObject>(
+export default async function performAction<T extends MediaObject>(
     action: Action,
     items: readonly T[],
     payload?: any
@@ -57,10 +61,34 @@ export async function performAction<T extends MediaObject>(
         case Action.Info:
             await showMediaInfoDialog(item);
             break;
+
+        case Action.AddToPlaylist:
+            await showAddToPlaylistDialog(items as readonly MediaItem[]);
+            break;
+
+        case Action.AddToNewPlaylist:
+            await showCreatePlaylistDialog(items as readonly MediaItem[]);
+            break;
+
+        case Action.AddToRecentPlaylist1:
+        case Action.AddToRecentPlaylist2:
+        case Action.AddToRecentPlaylist3:
+        case Action.AddToRecentPlaylist4: {
+            try {
+                await addToRecentPlaylist(
+                    Number(action.slice(-1)) - 1,
+                    items as readonly MediaItem[]
+                );
+            } catch (err) {
+                logger.error(err);
+                await error('An error occurred while updating your playlist.');
+            }
+            break;
+        }
     }
 }
 
-export async function performPlayAction<T extends MediaObject>(
+async function performPlayAction<T extends MediaObject>(
     action: PlayAction,
     items: readonly T[]
 ): Promise<void> {
@@ -99,7 +127,7 @@ export async function performPlayAction<T extends MediaObject>(
     }
 }
 
-export async function performLibraryAction<T extends MediaObject>(
+async function performLibraryAction<T extends MediaObject>(
     action: LibraryAction,
     item: T,
     payload?: any

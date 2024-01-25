@@ -33,7 +33,7 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
             listenbrainzSettings.userId = userId;
 
             setConnecting(true);
-            setMessage('Connecting...');
+            setMessage('Connecting…');
 
             const response = await fetch(`https://api.listenbrainz.org/1/validate-token`, {
                 headers: {

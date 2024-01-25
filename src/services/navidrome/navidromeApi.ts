@@ -20,15 +20,20 @@ async function post(path: string, params?: Record<string, any>): Promise<Respons
     return navidromeFetch(path, undefined, {method: 'POST', headers, body});
 }
 
+async function addToPlaylist(playlistId: string, ids: readonly string[]): Promise<void> {
+    await post(`playlist/${playlistId}/tracks`, {ids});
+}
+
 async function createPlaylist(
     name: string,
     comment: string,
     isPublic: boolean,
     ids: readonly string[]
-): Promise<void> {
+): Promise<Navidrome.Playlist> {
     const response = await post('playlist', {name, comment, public: isPublic});
-    const {id} = await response.json();
-    await post(`playlist/${id}/tracks`, {ids});
+    const playlist = await response.json();
+    await post(`playlist/${playlist.id}/tracks`, {ids});
+    return playlist;
 }
 
 async function getFilters(
@@ -95,6 +100,7 @@ function getPlayableUrl(src: string): string {
 }
 
 const navidromeApi = {
+    addToPlaylist,
     createPlaylist,
     get,
     getFilters,

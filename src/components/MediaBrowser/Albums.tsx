@@ -9,6 +9,7 @@ import useAlbumTracksLayout from './useAlbumTracksLayout';
 export default function Albums({source, ...props}: PagedItemsProps<MediaAlbum>) {
     const [selectedAlbum, setSelectedAlbum] = useState<MediaAlbum | null>(null);
     const albumTracksLayout = useAlbumTracksLayout(selectedAlbum, source.secondaryLayout);
+    const tracksPager = selectedAlbum?.pager || null;
 
     const handleSelect = useCallback(([album]: readonly MediaAlbum[]) => {
         setSelectedAlbum(album || null);
@@ -20,7 +21,7 @@ export default function Albums({source, ...props}: PagedItemsProps<MediaAlbum>) 
         <MediaItemList
             title={selectedAlbum ? `${selectedAlbum.title}: Tracks` : ''}
             className={`album-tracks ${selectedAlbum?.multiDisc ? 'multi-disc' : ''}`}
-            pager={selectedAlbum?.pager}
+            pager={tracksPager}
             layout={albumTracksLayout}
             key={selectedAlbum?.src}
         />

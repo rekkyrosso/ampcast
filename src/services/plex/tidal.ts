@@ -97,6 +97,17 @@ const tidalLibraryPlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
+const tidalEditablePlaylists: MediaSource<MediaPlaylist> = {
+    id: `${serviceId}/editable-playlists`,
+    title: 'Editable Playlists',
+    icon: 'playlist',
+    itemType: ItemType.Playlist,
+
+    search(): Pager<MediaPlaylist> {
+        return createPager('/playlists/all', {readOnly: '0', smart: '0'});
+    },
+};
+
 const tidalLibraryVideos: MediaSource<MediaItem> = {
     id: `${serviceId}/library-videos`,
     title: 'My Videos',
@@ -182,6 +193,8 @@ const tidal: PublicMediaService = {
         [Action.AddToLibrary]: 'Add to My TIDAL',
         [Action.RemoveFromLibrary]: 'Remove from My TIDAL',
     },
+    editablePlaylists: tidalEditablePlaylists,
+    addToPlaylist,
     canRate: () => false,
     canStore,
     compareForRating,
@@ -236,11 +249,24 @@ function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.src === b.src;
 }
 
-async function createPlaylist(
-    name: string,
-    {description = '', items = []}: CreatePlaylistOptions = {}
+async function addToPlaylist<T extends MediaItem>(
+    playlist: MediaPlaylist,
+    items: readonly T[]
 ): Promise<void> {
-    return plexApi.createPlaylist(name, description, items, musicProviderHost);
+    return plexApi.addToPlaylist(playlist, items, musicProviderHost);
+}
+
+async function createPlaylist<T extends MediaItem>(
+    name: string,
+    {description = '', items = []}: CreatePlaylistOptions<T> = {}
+): Promise<MediaPlaylist> {
+    const playlist = await plexApi.createPlaylist(name, description, items, musicProviderHost);
+    return {
+        src: `plex-tidal:playlist:${playlist.ratingKey}`,
+        title: name,
+        itemType: ItemType.Playlist,
+        pager: new SimplePager(),
+    };
 }
 
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {

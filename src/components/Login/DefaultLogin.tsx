@@ -1,5 +1,5 @@
 import React from 'react';
-import ConnectionStatus from './ConnectionStatus';
+import ConnectionLogging from './ConnectionLogging';
 import LoginButton from './LoginButton';
 import ServiceLink from './ServiceLink';
 import LoginRequired from './LoginRequired';
@@ -11,7 +11,7 @@ export default function DefaultLogin({service}: LoginProps) {
             <LoginRequired service={service} />
             <LoginButton service={service} />
             <ServiceLink service={service} />
-            {service.observeConnectionStatus ? <ConnectionStatus service={service} /> : null}
+            <ConnectionLogging service={service} />
         </>
     );
 }

@@ -14,6 +14,7 @@ const defaultPlaylistItemsLayout: MediaSourceLayout<MediaItem> = {
 
 export default function Playlists({source, ...props}: PagedItemsProps<MediaPlaylist>) {
     const [selectedPlaylist, setSelectedPlaylist] = useState<MediaPlaylist | null>(null);
+    const itemsPager = selectedPlaylist?.pager || null;
 
     const handleSelect = useCallback(([item]: readonly MediaPlaylist[]) => {
         setSelectedPlaylist(item || null);
@@ -25,7 +26,7 @@ export default function Playlists({source, ...props}: PagedItemsProps<MediaPlayl
         <MediaItemList
             title={selectedPlaylist ? `${selectedPlaylist.title}: Tracks` : ''}
             className="playlist-items"
-            pager={selectedPlaylist?.pager}
+            pager={itemsPager}
             layout={source.secondaryLayout || defaultPlaylistItemsLayout}
             key={selectedPlaylist?.src}
         />

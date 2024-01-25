@@ -8,7 +8,7 @@ export default function useViewClassName(layout: ListViewLayout<any>): string {
         let clip = 0;
         if (layout.view !== 'details') {
             layout.cols.forEach((col) => {
-                if (/played-at|added-at/.test(col.className!)) {
+                if (/played-at|added-at|rate/.test(col.className!)) {
                     clip = 2;
                 }
                 if (clip !== 2) {

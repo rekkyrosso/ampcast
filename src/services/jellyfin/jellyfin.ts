@@ -160,6 +160,20 @@ const jellyfinPlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
+const jellyfinEditablePlaylists: MediaSource<MediaPlaylist> = {
+    id: 'jellyfin/editable-playlists',
+    title: 'Editable Playlists',
+    icon: 'playlist',
+    itemType: ItemType.Playlist,
+
+    search(): Pager<MediaPlaylist> {
+        return createItemsPager({
+            ParentId: getMusicLibraryId(),
+            IncludeItemTypes: 'Playlist',
+        });
+    },
+};
+
 const jellyfinTracksByGenre: MediaSource<MediaItem> = {
     id: 'jellyfin/tracks-by-genre',
     title: 'Songs by Genre',
@@ -428,6 +442,7 @@ const jellyfin: PersonalMediaService = {
         [Action.AddToLibrary]: t('Add to Jellyfin Favorites'),
         [Action.RemoveFromLibrary]: t('Remove from Jellyfin Favorites'),
     },
+    editablePlaylists: jellyfinEditablePlaylists,
     get audioLibraries(): readonly PersonalMediaLibrary[] {
         return jellyfinSettings.audioLibraries;
     },
@@ -446,6 +461,7 @@ const jellyfin: PersonalMediaService = {
     observeLibraryId(): Observable<string> {
         return jellyfinSettings.observeLibraryId();
     },
+    addToPlaylist,
     canRate: () => false,
     canStore,
     compareForRating,
@@ -483,11 +499,25 @@ function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.src === b.src;
 }
 
-async function createPlaylist(
-    name: string,
-    {description = '', items = []}: CreatePlaylistOptions = {}
+async function addToPlaylist<T extends MediaItem>(
+    playlist: MediaPlaylist,
+    items: readonly T[]
 ): Promise<void> {
-    return jellyfinApi.createPlaylist(name, description, items.map(getIdFromSrc));
+    const playlistId = getIdFromSrc(playlist);
+    return jellyfinApi.addToPlaylist(playlistId, items.map(getIdFromSrc));
+}
+
+async function createPlaylist<T extends MediaItem>(
+    name: string,
+    {description = '', items = []}: CreatePlaylistOptions<T> = {}
+): Promise<MediaPlaylist> {
+    const playlist = await jellyfinApi.createPlaylist(name, description, items.map(getIdFromSrc));
+    return {
+        src: `jellyfin:playlist:${playlist.Id}`,
+        title: name,
+        itemType: ItemType.Playlist,
+        pager: new SimplePager(),
+    };
 }
 
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {

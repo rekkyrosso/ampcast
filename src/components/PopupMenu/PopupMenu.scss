@@ -51,10 +51,40 @@
     }
 
     &-item {
+        position: relative;
+
         button[aria-checked="true"]::before {
             content: '✓';
             position: absolute;
             left: 0.33em;
+        }
+
+        &.has-popup-right {
+            & > button::before {
+                content: '❮';
+                position: absolute;
+                left: 0.5em;
+                font-size: 0.75em;
+            }
+
+            .popup-menu {
+                border-top-right-radius: 0;
+                z-index: -1;
+            }
+        }
+
+        &.has-popup-left {
+            & > button::before {
+                content: '❯';
+                position: absolute;
+                right: 1.33em;
+                font-size: 0.75em;
+            }
+
+            .popup-menu {
+                border-top-left-radius: 0;
+                z-index: -1;
+            }
         }
 
         &-label {
@@ -68,5 +98,9 @@
             text-align: right;
             font-size: 0.75em;
         }
+    }
+
+    .media-source-label .icon {
+        margin-right: 0.5em;
     }
 }

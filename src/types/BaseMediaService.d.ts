@@ -29,22 +29,29 @@ type BaseMediaService = Auth & {
     readonly defaultNoScrobble?: boolean;
     readonly icons?: Partial<Record<LibraryAction, IconName>>;
     readonly labels?: Partial<Record<LibraryAction, string>>;
+    readonly editablePlaylists?: MediaSource<MediaPlaylist>;
+    addToPlaylist?: (
+        playlist: MediaPlaylist,
+        items: readonly MediaItem[],
+        position?: number
+    ) => Promise<void>;
+    removeFromPlaylist?: (playlist: MediaPlaylist, items: readonly MediaItem[]) => Promise<void>;
     canRate: (item: MediaObject, inline?: boolean) => boolean;
     canStore: (item: MediaObject, inline?: boolean) => boolean;
     compareForRating: <T extends MediaObject>(a: T, b: T) => boolean;
-    createPlaylist?: (name: string, options?: CreatePlaylistOptions) => Promise<void>;
+    createPlaylist?: <T extends MediaItem>(
+        name: string,
+        options?: CreatePlaylistOptions<T>
+    ) => Promise<MediaPlaylist>;
     createSourceFromPin?: (pin: Pin) => MediaSource<MediaPlaylist>;
     getDrmInfo?: (item?: PlayableItem) => DRMInfo | undefined;
     getFilters?: (
         viewType: ViewType.ByDecade | ViewType.ByGenre,
         itemType: ItemType
     ) => Promise<readonly MediaFilter[]>;
-    getAlbumsById?: (ids: readonly string[]) => Promise<readonly MediaAlbum[]>;
-    getArtistsById?: (ids: readonly string[]) => Promise<readonly MediaArtist[]>;
     getMetadata?: <T extends MediaObject>(item: T) => Promise<T>;
     getPlaybackType?: (item: MediaItem) => Promise<PlaybackType>;
     getPlayableUrl?: (item: PlayableItem) => string;
-    getPlaylistsById?: (ids: readonly string[]) => Promise<readonly MediaPlaylist[]>;
     getThumbnailUrl?: (url: string) => string;
     getTracksById?: (ids: readonly string[]) => Promise<readonly MediaItem[]>;
     lookup?: (

@@ -28,7 +28,7 @@ import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import plexSettings from './plexSettings';
 import {
-    observeConnectionStatus,
+    observeConnectionLogging,
     observeIsLoggedIn,
     isConnected,
     isLoggedIn,
@@ -227,6 +227,26 @@ const plexPlaylists: MediaSource<MediaPlaylist> = {
                 type: plexMediaType.Playlist,
                 playlistType: 'audio',
                 sort: 'addedAt:desc',
+            },
+        });
+    },
+};
+
+const plexEditablePlaylists: MediaSource<MediaPlaylist> = {
+    id: 'plex/editable-playlists',
+    title: 'Editable Playlists',
+    icon: 'playlist',
+    itemType: ItemType.Playlist,
+
+    search(): Pager<MediaPlaylist> {
+        getMusicLibraryId();
+        return new PlexPager({
+            path: '/playlists/all',
+            params: {
+                type: plexMediaType.Playlist,
+                playlistType: 'audio',
+                readOnly: '0',
+                smart: '0',
             },
         });
     },
@@ -449,6 +469,7 @@ const plex: PersonalMediaService = {
         plexMusicVideos,
         plexFolders,
     ],
+    editablePlaylists: plexEditablePlaylists,
     get audioLibraries(): readonly PersonalMediaLibrary[] {
         return plexSettings.audioLibraries;
     },
@@ -467,6 +488,7 @@ const plex: PersonalMediaService = {
     observeLibraryId(): Observable<string> {
         return plexSettings.observeLibraryId();
     },
+    addToPlaylist,
     canRate,
     canStore: () => false,
     compareForRating,
@@ -479,7 +501,7 @@ const plex: PersonalMediaService = {
     getThumbnailUrl,
     lookup,
     rate,
-    observeConnectionStatus,
+    observeConnectionLogging,
     observeIsLoggedIn,
     isConnected,
     isLoggedIn,
@@ -512,11 +534,24 @@ function canRate<T extends MediaObject>(item: T, inline?: boolean): boolean {
     }
 }
 
-async function createPlaylist(
-    name: string,
-    {description = '', items = []}: CreatePlaylistOptions = {}
+async function addToPlaylist<T extends MediaItem>(
+    playlist: MediaPlaylist,
+    items: readonly T[]
 ): Promise<void> {
-    return plexApi.createPlaylist(name, description, items);
+    return plexApi.addToPlaylist(playlist, items);
+}
+
+async function createPlaylist<T extends MediaItem>(
+    name: string,
+    {description = '', items = []}: CreatePlaylistOptions<T> = {}
+): Promise<MediaPlaylist> {
+    const playlist = await plexApi.createPlaylist(name, description, items);
+    return {
+        src: `plex:playlist:${playlist.ratingKey}`,
+        title: name,
+        itemType: ItemType.Playlist,
+        pager: new SimplePager(),
+    };
 }
 
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {

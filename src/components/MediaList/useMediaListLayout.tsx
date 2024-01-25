@@ -8,8 +8,8 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSourceLayout, {Field} from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
-import {performAction} from 'services/actions';
 import {getServiceFromSrc} from 'services/mediaServices';
+import {performAction} from 'components/Actions';
 import {ColumnSpec, ListViewLayout} from 'components/ListView';
 import Actions from 'components/Actions';
 import CoverArt from 'components/CoverArt';
@@ -118,7 +118,7 @@ export const Owner: RenderField<MediaPlaylist | MediaItem> = (item) => (
 export const FileName: RenderField<MediaFolderItem> = (item) => <Text value={item.fileName} />;
 
 export const Views: RenderField = (item) => {
-    if (item.globalPlayCount === undefined) {
+    if (item.globalPlayCount == null) {
         return null;
     }
     return <Text value={getGlobalPlayCount(item.globalPlayCount, 'view')} />;

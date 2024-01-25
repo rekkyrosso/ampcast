@@ -131,6 +131,7 @@ declare namespace ListenBrainz {
     }
 
     interface PlaylistItem {
+        readonly id: string;
         readonly creator: string;
         readonly identifier: string;
         readonly title: string;

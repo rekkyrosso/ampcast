@@ -8,7 +8,7 @@ const logger = new Logger('plexAuth');
 
 const serverToken$ = new BehaviorSubject('');
 const isLoggedIn$ = new BehaviorSubject(false);
-const connectionStatus$ = new Subject<string>();
+const connectionLogging$ = new Subject<string>();
 
 let pin: plex.Pin;
 export async function refreshPin(): Promise<plex.Pin> {
@@ -37,15 +37,15 @@ export function observeIsLoggedIn(): Observable<boolean> {
     return isLoggedIn$.pipe(distinctUntilChanged());
 }
 
-export function observeConnectionStatus(): Observable<string> {
-    return connectionStatus$.pipe(distinctUntilChanged());
+export function observeConnectionLogging(): Observable<string> {
+    return connectionLogging$;
 }
 
 export async function login(): Promise<void> {
     if (!isLoggedIn()) {
         logger.log('connect');
         try {
-            connectionStatus$.next('');
+            connectionLogging$.next('');
             const {id, userToken, serverToken} = await obtainUserToken();
             plexSettings.userId = id;
             plexSettings.userToken = userToken;
@@ -109,7 +109,7 @@ async function obtainServerToken(): Promise<{id: string; serverToken: string}> {
                         } else if (attemptsRemaining) {
                             setTimeout(checkForToken, 200);
                         } else {
-                            connectionStatus$.next('Timeout');
+                            connectionLogging$.next('Timeout');
                             reject('Timeout');
                         }
                     } catch (err) {
@@ -144,7 +144,7 @@ async function establishConnection(authToken: string): Promise<void> {
     const {server, connection} = plexSettings;
     if (server && connection) {
         const connectionType = connection.local ? 'local' : 'public';
-        connectionStatus$.next(`Trying existing ${connectionType} connection...`);
+        connectionLogging$.next(`Trying existing ${connectionType} connection…`);
         if (await testConnection(server, connection)) {
             return;
         } else {
@@ -153,13 +153,13 @@ async function establishConnection(authToken: string): Promise<void> {
         }
     }
 
-    connectionStatus$.next(`Searching for ${connection ? 'a new' : 'a'} connection...`);
+    connectionLogging$.next(`Searching for ${connection ? 'a new' : 'a'} connection…`);
 
     const servers = await plexApi.getServers(authToken);
 
     if (servers.length === 0) {
         const message = 'Could not find a Plex server';
-        connectionStatus$.next(message);
+        connectionLogging$.next(message);
         throw Error(message);
     }
 
@@ -173,7 +173,7 @@ async function establishConnection(authToken: string): Promise<void> {
     }
 
     const message = 'Could not establish a connection';
-    connectionStatus$.next(message);
+    connectionLogging$.next(message);
     throw Error(message);
 }
 
@@ -200,10 +200,10 @@ async function testConnection(server: plex.Device, connection: plex.Connection):
             token: server.accessToken,
             timeout: 3000,
         });
-        connectionStatus$.next(`(${name}) ${connectionType} connection successful`);
+        connectionLogging$.next(`(${name}) ${connectionType} connection successful`);
         return true;
     } catch (err) {
-        connectionStatus$.next(`(${name}) ${connectionType} connection failed`);
+        connectionLogging$.next(`(${name}) ${connectionType} connection failed`);
     }
     return false;
 }
@@ -228,11 +228,11 @@ async function checkConnection(): Promise<boolean> {
         if (err.status === 401) {
             plexSettings.clear();
             serverToken$.next('');
-            connectionStatus$.next('Connection failed');
+            connectionLogging$.next('Connection failed');
             return false;
         } else {
             logger.error(err);
-            connectionStatus$.next('Connected with errors');
+            connectionLogging$.next('Connected with errors');
             return true; // we're still logged in but some things might not work
         }
     }
@@ -269,7 +269,7 @@ async function checkTidalSubscription(): Promise<void> {
     }
 }
 
-observeConnectionStatus()
+observeConnectionLogging()
     .pipe(filter((status) => status !== ''))
     .subscribe(logger.rx());
 

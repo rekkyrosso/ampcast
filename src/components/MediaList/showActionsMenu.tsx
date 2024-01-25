@@ -5,6 +5,7 @@ import MediaObject from 'types/MediaObject';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {browser} from 'utils';
 import {getLabelForAction} from 'components/Actions';
+import PlaylistActions from 'components/Actions/PlaylistActions';
 import PopupMenu, {
     PopupMenuItem,
     PopupMenuProps,
@@ -42,12 +43,14 @@ function ActionsMenu<T extends MediaObject>({items, isContextMenu, ...props}: Ac
     );
 
     return (
-        <PopupMenu {...props}>
+        <PopupMenu<Action> {...props}>
             {allPlayable ? <PlayActions /> : null}
             {isContextMenu && isSingleItem ? <ContextualActions item={item} /> : null}
+            <PlaylistActions items={items} />
+            <PopupMenuSeparator />
             {isSingleItem ? (
-                <PopupMenuItem<Action>
-                    label="Info..."
+                <PopupMenuItem
+                    label="Info…"
                     value={Action.Info}
                     acceleratorKey={`${browser.ctrlKeyStr}+I`}
                     key={Action.Info}

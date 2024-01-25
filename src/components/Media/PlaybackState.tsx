@@ -8,11 +8,7 @@ export default function PlaybackState() {
 
     return (
         <p className="media-state playback-state">
-            {state === 'error'
-                ? state
-                : paused
-                ? ''
-                : `${state === 'loaded' ? 'playing' : state}...`}
+            {state === 'error' ? state : paused ? '' : `${state === 'loaded' ? 'playing' : state}…`}
         </p>
     );
 }

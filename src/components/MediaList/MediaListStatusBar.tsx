@@ -29,7 +29,7 @@ export default function MediaListStatusBar({
     let statusText: React.ReactNode = '';
 
     if (loading) {
-        statusText = <span className="message">{loadingText}...</span>;
+        statusText = <span className="message">{loadingText}…</span>;
     } else {
         if (items.length > 0) {
             const itemCount = getArrayCount(items);

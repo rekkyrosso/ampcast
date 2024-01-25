@@ -1,6 +1,7 @@
 import React from 'react';
 import PlaylistItem from 'types/PlaylistItem';
 import {browser} from 'utils';
+import PlaylistActions from 'components/Actions/PlaylistActions';
 import PopupMenu, {
     PopupMenuItem,
     PopupMenuProps,
@@ -80,9 +81,11 @@ function ActionsMenu({items, selectedItems, rowIndex, ...props}: ActionsMenuProp
                 />
             ) : null}
             <PopupMenuSeparator />
+            <PlaylistActions items={selectedItems} />
+            <PopupMenuSeparator />
             {isSingleSelection ? (
                 <PopupMenuItem
-                    label="Info..."
+                    label="Info…"
                     value="info"
                     acceleratorKey={`${browser.ctrlKeyStr}+I`}
                     key="info"

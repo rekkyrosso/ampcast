@@ -37,13 +37,13 @@ export default function useMediaSources() {
     return sources;
 }
 
-function getServices() {
+function getServices(): TreeNode<React.ReactNode>[] {
     return getEnabledServices()
         .filter(isSourceVisible)
         .map((service) => getService(service));
 }
 
-function getService(service: MediaService) {
+function getService(service: MediaService): TreeNode<React.ReactNode> {
     return {
         id: service.id,
         label: <MediaServiceLabel service={service} showConnectivity />,
@@ -51,28 +51,25 @@ function getService(service: MediaService) {
             <MediaBrowser service={service} sources={service.roots} key={getServiceKey(service)} />
         ),
         startExpanded: true,
-        children: getSources(service),
+        children: [...getSources(service), ...getPins(service)],
     };
 }
 
-function getSources(service: MediaService) {
-    return service.sources
-        .filter(isSourceVisible)
-        .map((source) => ({
-            id: source.id,
-            label: <MediaSourceLabel icon={source.icon} text={source.title} />,
-            value: (
-                <MediaBrowser
-                    service={service}
-                    sources={[source]}
-                    key={`${getServiceKey(service)}/${source.id}`}
-                />
-            ),
-        }))
-        .concat(getPins(service));
+function getSources(service: MediaService): TreeNode<React.ReactNode>[] {
+    return service.sources.filter(isSourceVisible).map((source) => ({
+        id: source.id,
+        label: <MediaSourceLabel icon={source.icon} text={source.title} />,
+        value: (
+            <MediaBrowser
+                service={service}
+                sources={[source]}
+                key={`${getServiceKey(service)}/${source.id}`}
+            />
+        ),
+    }));
 }
 
-function getPins(service: MediaService) {
+function getPins(service: MediaService): TreeNode<React.ReactNode>[] {
     return pinStore
         .getPinsForService(service.id)
         .map((pin) => service.createSourceFromPin?.(pin))

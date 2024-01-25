@@ -18,7 +18,7 @@ import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
-import {chunk} from 'utils';
+import {chunk, partition} from 'utils';
 import {
     observeIsLoggedIn,
     isConnected,
@@ -188,6 +188,40 @@ const spotifyPlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
+const spotifyEditablePlaylists: MediaSource<MediaPlaylist> = {
+    id: 'spotify/editable-playlists',
+    title: 'Editable Playlists',
+    icon: 'playlist',
+    itemType: ItemType.Playlist,
+
+    search(): Pager<MediaPlaylist> {
+        const market = getMarket();
+        const userId = userSettings.getString('userId');
+        let nonEditableTotal = 0;
+        return new SpotifyPager(
+            async (offset: number, limit: number): Promise<SpotifyPage> => {
+                const {items, total, next} = await spotifyApi.getUserPlaylists(userId, {
+                    offset,
+                    limit,
+                    market,
+                });
+                const [editable, nonEditable] = partition(
+                    items,
+                    (item) => item.owner.id === userId
+                );
+                nonEditableTotal += nonEditable.length;
+                return {
+                    items: editable as SpotifyPlaylist[],
+                    total: total - nonEditableTotal,
+                    next,
+                };
+            },
+            undefined,
+            true
+        );
+    },
+};
+
 const spotifyFeaturedPlaylists: MediaSource<MediaPlaylist> = {
     id: 'spotify/featured-playlists',
     title: 'Recommended',
@@ -243,6 +277,7 @@ const spotify: PublicMediaService = {
     defaultHidden: true,
     internetRequired: true,
     restrictedAccess: true,
+    editablePlaylists: spotifyEditablePlaylists,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -270,6 +305,7 @@ const spotify: PublicMediaService = {
         [Action.AddToLibrary]: 'Add to Spotify Library',
         [Action.RemoveFromLibrary]: 'Remove from Spotify Library',
     },
+    addToPlaylist,
     canRate: () => false,
     canStore,
     compareForRating,
@@ -311,10 +347,26 @@ function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.src === b.src;
 }
 
-async function createPlaylist(
-    name: string,
-    {description = '', isPublic = false, items}: CreatePlaylistOptions = {}
+async function addToPlaylist<T extends MediaItem>(
+    playlist: MediaPlaylist,
+    items: readonly T[]
 ): Promise<void> {
+    if (items?.length) {
+        const [, , playlistId] = playlist.src.split(':');
+        const chunks = chunk(items, 100);
+        for (const chunk of chunks) {
+            await spotifyApi.addTracksToPlaylist(
+                playlistId,
+                chunk.map((item) => item.src)
+            );
+        }
+    }
+}
+
+async function createPlaylist<T extends MediaItem>(
+    name: string,
+    {description = '', isPublic = false, items}: CreatePlaylistOptions<T> = {}
+): Promise<MediaPlaylist> {
     const userId = userSettings.getString('userId');
     const playlist = await spotifyApi.createPlaylist(userId, {
         name,
@@ -330,6 +382,12 @@ async function createPlaylist(
             );
         }
     }
+    return {
+        src: playlist.uri,
+        title: name,
+        itemType: ItemType.Playlist,
+        pager: new SimplePager(),
+    };
 }
 
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {

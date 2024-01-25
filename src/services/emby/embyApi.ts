@@ -32,12 +32,22 @@ async function get<T = BaseItemDtoQueryResult>(
     return response.json();
 }
 
+async function addToPlaylist(
+    playlistId: string,
+    ids: readonly string[],
+    settings: EmbySettings = embySettings
+): Promise<void> {
+    const UserId = settings.userId;
+    const Ids = ids.join(',');
+    await embyFetch(`Playlists/${playlistId}/Items`, {Ids, UserId}, {method: 'POST'}, settings);
+}
+
 async function createPlaylist(
     Name: string,
     Overview: string,
     ids: readonly string[],
     settings: EmbySettings = embySettings
-): Promise<void> {
+): Promise<BaseItemDto> {
     const UserId = settings.userId;
     const Ids = ids.join(',');
     const response = await post('Playlists', {Name, Ids, UserId}, settings);
@@ -45,6 +55,7 @@ async function createPlaylist(
     const path = `Items/${Id}`;
     const playlist = await get<BaseItemDto>(`Users/${UserId}/${path}`, undefined, settings);
     await post(path, {...playlist, Overview}, settings);
+    return playlist;
 }
 
 async function getDecades(
@@ -253,6 +264,7 @@ async function getPlaybackType(
 }
 
 const embyApi = {
+    addToPlaylist,
     createPlaylist,
     delete: del,
     get,

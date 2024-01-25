@@ -1,6 +1,6 @@
 import React from 'react';
 import {LoginProps} from 'components/Login';
-import ConnectionStatus from 'components/Login/ConnectionStatus';
+import ConnectionLogging from 'components/Login/ConnectionLogging';
 import LoginRequired from 'components/Login/LoginRequired';
 import LoginButton from 'components/Login/LoginButton';
 import ServiceLink from 'components/Login/ServiceLink';
@@ -16,7 +16,7 @@ export default function PlexTidalLogin({service: tidal}: LoginProps) {
             <LoginButton service={plex} />
             <ServiceLink service={plex} />
             <ServiceLink service={tidal} />
-            <ConnectionStatus service={plex} />
+            <ConnectionLogging service={plex} />
         </>
     );
 }

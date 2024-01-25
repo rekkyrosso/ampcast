@@ -1,10 +1,12 @@
 import React, {useCallback, useState} from 'react';
 import {Except} from 'type-fest';
+import Action from 'types/Action';
 import LookupStatus from 'types/LookupStatus';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import PlaylistItem from 'types/PlaylistItem';
 import playlist from 'services/playlist';
+import {performAction} from 'components/Actions';
 import ListView, {ListViewHandle, ListViewProps} from 'components/ListView';
 import MediaListStatusBar from 'components/MediaList/MediaListStatusBar';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
@@ -142,6 +144,10 @@ export default function Playlist({
                     playlist.reverseAt(startIndex, selectedItems.length);
                     break;
                 }
+
+                default:
+                    await performAction(action as Action, selectedItems);
+                    break;
             }
         },
         [onPlay, items, listViewRef]

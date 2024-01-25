@@ -139,6 +139,21 @@ const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
+const appleEditablePlaylists: MediaSource<MediaPlaylist> = {
+    id: 'apple/editable-playlists',
+    title: 'Editable Playlists',
+    icon: 'playlist',
+    itemType: ItemType.Playlist,
+
+    search(): Pager<MediaPlaylist> {
+        return new MusicKitPager(`/v1/me/library/playlists`, {
+            'fields[library-playlists]': 'name,playParams,artwork',
+            'include[library-playlists]': 'catalog',
+            'filter[featured]': 'suggested',
+        });
+    },
+};
+
 const appleLibraryVideos: MediaSource<MediaItem> = {
     id: 'apple/library-videos',
     title: 'My Videos',
@@ -220,6 +235,8 @@ const apple: PublicMediaService = {
         [Action.AddToLibrary]: 'Add to Apple Music Library',
         [Action.RemoveFromLibrary]: 'Saved to Apple Music Library',
     },
+    editablePlaylists: appleEditablePlaylists,
+    addToPlaylist,
     canRate: () => false,
     canStore,
     compareForRating,
@@ -261,10 +278,28 @@ function canStore<T extends MediaObject>(item: T): boolean {
     }
 }
 
-async function createPlaylist(
-    name: string,
-    {description = '', isPublic, items = []}: CreatePlaylistOptions = {}
+async function addToPlaylist<T extends MediaItem>(
+    playlist: MediaPlaylist,
+    items: readonly T[]
 ): Promise<void> {
+    const musicKit = MusicKit.getInstance();
+    const [, , id] = playlist.src.split(':');
+    const tracks = items.map((item) => {
+        const [, type, id] = item.src.split(':');
+        return {id, type};
+    });
+    return musicKit.api.music(`/v1/me/library/playlists/${id}/tracks`, undefined, {
+        fetchOptions: {
+            method: 'POST',
+            body: JSON.stringify({data: tracks}),
+        },
+    });
+}
+
+async function createPlaylist<T extends MediaItem>(
+    name: string,
+    {description = '', isPublic, items = []}: CreatePlaylistOptions<T> = {}
+): Promise<MediaPlaylist> {
     const musicKit = MusicKit.getInstance();
     const attributes = {name, description, isPublic};
     const tracks = items.map((item) => {
@@ -272,12 +307,18 @@ async function createPlaylist(
         return {id, type};
     });
     const relationships = {tracks: {data: tracks}};
-    return musicKit.api.music('/v1/me/library/playlists', undefined, {
+    const playlist = await musicKit.api.music('/v1/me/library/playlists', undefined, {
         fetchOptions: {
             method: 'POST',
             body: JSON.stringify({attributes, relationships}),
         },
     });
+    return {
+        src: `apple:${playlist.type}:${playlist.id}`,
+        title: name,
+        itemType: ItemType.Playlist,
+        pager: new SimplePager(),
+    };
 }
 
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {

@@ -19,7 +19,7 @@ export default async function showPopupMenu<T extends string>(
                 resolve(action);
             };
             popupRoot.append(rootElement);
-            root.render(<PopupMenu x={x} y={y} align={align} onClose={close} />);
+            root.render(<PopupMenu x={x} y={y} align={align} onClose={close} autoFocus />);
         } catch (err) {
             root.unmount();
             rootElement.remove();

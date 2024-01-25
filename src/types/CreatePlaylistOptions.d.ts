@@ -1,7 +1,7 @@
-import PlaylistItem from './PlaylistItem';
+import MediaItem from './MediaItem';
 
-export default interface CreatePlaylistOptions {
+export default interface CreatePlaylistOptions<T extends MediaItem> {
     description?: string;
-    items?: readonly PlaylistItem[];
+    items?: readonly T[];
     isPublic?: boolean;
 }

@@ -1,4 +1,8 @@
-import type {BaseItemDtoQueryResult, EndPointInfo} from '@jellyfin/client-axios/dist/models';
+import type {
+    BaseItemDto,
+    BaseItemDtoQueryResult,
+    EndPointInfo,
+} from '@jellyfin/client-axios/dist/models';
 import {Primitive} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaFilter from 'types/MediaFilter';
@@ -21,11 +25,15 @@ async function get<T extends BaseItemDtoQueryResult>(
     return embyApi.get(path, params, jellyfinSettings);
 }
 
+async function addToPlaylist(playlistId: string, ids: readonly string[]): Promise<void> {
+    return embyApi.addToPlaylist(playlistId, ids, jellyfinSettings);
+}
+
 async function createPlaylist(
     name: string,
     description: string,
     ids: readonly string[]
-): Promise<void> {
+): Promise<BaseItemDto> {
     return embyApi.createPlaylist(name, description, ids, jellyfinSettings);
 }
 
@@ -57,6 +65,7 @@ async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
 }
 
 const jellyfinApi = {
+    addToPlaylist,
     createPlaylist,
     delete: del,
     get,

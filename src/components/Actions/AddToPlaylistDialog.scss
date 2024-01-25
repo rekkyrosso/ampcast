@@ -1,0 +1,22 @@
+.add-to-playlist-dialog {
+    select {
+        min-width: 16em;
+    }
+
+    .playlists {
+        position: relative;
+        height: 10em;
+        width: 100%;
+        inset: auto;
+    }
+
+    .scrollable {
+        --scrollbar-size: 1.25em;
+        --scrollbar-color-hi: var(--scrollbar-color);
+        --scrollbar-color-lo: var(--scrollbar-color);
+    }
+
+    .status-bar {
+        display: none;
+    }
+}

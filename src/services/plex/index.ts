@@ -1,7 +1,7 @@
 export {default} from './plex';
 export * from './plex';
 export {
-    observeConnectionStatus,
+    observeConnectionLogging,
     observeIsLoggedIn,
     isConnected,
     isLoggedIn,

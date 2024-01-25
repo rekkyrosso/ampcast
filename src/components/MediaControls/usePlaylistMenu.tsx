@@ -4,19 +4,24 @@ import playlist from 'services/playlist';
 import {prompt} from 'components/Dialog';
 import {ListViewHandle} from 'components/ListView';
 import usePlaylistInject from 'components/Playlist/usePlaylistInject';
-import {showSavePlaylistDialog} from './SavePlaylistDialog';
-import showActionsMenu from './showActionsMenu';
+import {showCreatePlaylistDialog} from 'components/Actions/CreatePlaylistDialog';
+import {PopupMenuProps, showPopupMenu} from 'components/PopupMenu';
+import PlaylistMenu from './PlaylistMenu';
 
-export default function useActionsMenu(
+export default function usePlaylistMenu(
     listViewRef: React.MutableRefObject<ListViewHandle | null>,
     fileRef: React.MutableRefObject<HTMLInputElement | null>
 ) {
     const inject = usePlaylistInject();
 
-    const show = useCallback(
+    const showPlaylistMenu = useCallback(
         async (x: number, y: number) => {
             const listView = listViewRef.current!;
-            const action = await showActionsMenu(x, y);
+            const action = await showPopupMenu(
+                (props: PopupMenuProps) => <PlaylistMenu {...props} />,
+                x,
+                y
+            );
             switch (action) {
                 case 'jump-to-current':
                     listView.scrollIntoView(playlist.getCurrentIndex());
@@ -54,12 +59,12 @@ export default function useActionsMenu(
                 }
 
                 case 'save-as-playlist':
-                    await showSavePlaylistDialog(playlist.getItems());
+                    await showCreatePlaylistDialog(playlist.getItems());
                     break;
             }
         },
         [listViewRef, fileRef, inject]
     );
 
-    return {showActionsMenu: show};
+    return {showPlaylistMenu};
 }

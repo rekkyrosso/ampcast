@@ -2,6 +2,7 @@ import React from 'react';
 
 export interface DialogButtonsProps {
     value?: string;
+    disabled?: boolean;
     submitText?: React.ReactNode;
     onCancel?: (event: React.MouseEvent) => void;
     onSubmit?: (event: React.MouseEvent) => void;
@@ -9,6 +10,7 @@ export interface DialogButtonsProps {
 
 export default function DialogButtons({
     value = '',
+    disabled,
     submitText = 'Confirm',
     onCancel,
     onSubmit,
@@ -23,7 +25,12 @@ export default function DialogButtons({
             >
                 Cancel
             </button>
-            <button className="dialog-button-submit" value={value} onClick={onSubmit}>
+            <button
+                className="dialog-button-submit"
+                value={value}
+                disabled={disabled}
+                onClick={onSubmit}
+            >
                 {submitText}
             </button>
         </footer>

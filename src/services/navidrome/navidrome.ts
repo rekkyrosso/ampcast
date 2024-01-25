@@ -266,6 +266,8 @@ const navidrome: PersonalMediaService = {
         [Action.AddToLibrary]: t('Add to Navidrome Favorites'),
         [Action.RemoveFromLibrary]: t('Remove from Navidrome Favorites'),
     },
+    editablePlaylists: navidromePlaylists,
+    addToPlaylist,
     canRate: () => false,
     canStore,
     compareForRating,
@@ -304,11 +306,30 @@ function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.src === b.src;
 }
 
-async function createPlaylist(
-    name: string,
-    {description = '', isPublic = false, items = []}: CreatePlaylistOptions = {}
+async function addToPlaylist<T extends MediaItem>(
+    playlist: MediaPlaylist,
+    items: readonly T[]
 ): Promise<void> {
-    return navidromeApi.createPlaylist(name, description, isPublic, items.map(getIdFromSrc));
+    const playlistId = getIdFromSrc(playlist);
+    return navidromeApi.addToPlaylist(playlistId, items.map(getIdFromSrc));
+}
+
+async function createPlaylist<T extends MediaItem>(
+    name: string,
+    {description = '', isPublic = false, items = []}: CreatePlaylistOptions<T> = {}
+): Promise<MediaPlaylist> {
+    const playlist = await navidromeApi.createPlaylist(
+        name,
+        description,
+        isPublic,
+        items.map(getIdFromSrc)
+    );
+    return {
+        src: `navidrome:playlist:${playlist.id}`,
+        title: name,
+        itemType: ItemType.Playlist,
+        pager: new SimplePager(),
+    };
 }
 
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {

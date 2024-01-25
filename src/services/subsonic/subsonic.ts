@@ -357,6 +357,7 @@ const subsonic: PersonalMediaService = {
         [Action.AddToLibrary]: 'Like on Subsonic',
         [Action.RemoveFromLibrary]: 'Unlike on Subsonic',
     },
+    editablePlaylists: subsonicPlaylists,
     get audioLibraries(): readonly PersonalMediaLibrary[] {
         return subsonicSettings.audioLibraries;
     },
@@ -375,6 +376,7 @@ const subsonic: PersonalMediaService = {
     observeLibraryId(): Observable<string> {
         return subsonicSettings.observeLibraryId();
     },
+    addToPlaylist,
     canRate: () => false,
     canStore,
     compareForRating,
@@ -415,11 +417,30 @@ function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.src === b.src;
 }
 
-async function createPlaylist(
-    name: string,
-    {description = '', isPublic = false, items = []}: CreatePlaylistOptions = {}
+async function addToPlaylist<T extends MediaItem>(
+    playlist: MediaPlaylist,
+    items: readonly T[]
 ): Promise<void> {
-    return subsonicApi.createPlaylist(name, description, isPublic, items.map(getIdFromSrc));
+    const playlistId = getIdFromSrc(playlist);
+    return subsonicApi.addToPlaylist(playlistId, items.map(getIdFromSrc));
+}
+
+async function createPlaylist<T extends MediaItem>(
+    name: string,
+    {description = '', isPublic = false, items = []}: CreatePlaylistOptions<T> = {}
+): Promise<MediaPlaylist> {
+    const playlist = await subsonicApi.createPlaylist(
+        name,
+        description,
+        isPublic,
+        items.map(getIdFromSrc)
+    );
+    return {
+        src: `subsonic:playlist:${playlist.id}`,
+        title: name,
+        itemType: ItemType.Playlist,
+        pager: new SimplePager(),
+    };
 }
 
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {

@@ -1,3 +1,5 @@
+import {t} from './i18n';
+
 export class FullScreenError extends Error {
     constructor() {
         super();
@@ -10,7 +12,7 @@ export class NoMusicLibraryError extends FullScreenError {
 }
 
 export class NoMusicVideoLibraryError extends FullScreenError {
-    readonly message ='No music video library found.';
+    readonly message = 'No music video library found.';
 }
 
 export class NoTidalSubscriptionError extends FullScreenError {
@@ -18,5 +20,5 @@ export class NoTidalSubscriptionError extends FullScreenError {
 }
 
 export class NoFavoritesPlaylistError extends FullScreenError {
-    readonly message = 'No favorites playlist found.';
+    readonly message = t('No favorites playlist found.');
 }

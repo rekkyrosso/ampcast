@@ -15,7 +15,7 @@ import useObservable from 'hooks/useObservable';
 import usePaused from 'hooks/usePaused';
 import MediaButton from './MediaButton';
 import VolumeControl from './VolumeControl';
-import useActionsMenu from './useActionsMenu';
+import usePlaylistMenu from './usePlaylistMenu';
 import './MediaControls.scss';
 
 export interface MediaControlsProps {
@@ -27,10 +27,9 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
     const currentIndex = useObservable(observeCurrentIndex, -1);
     const currentTime = useObservable(observeCurrentTime, 0);
     const duration = useObservable(observeDuration, 0);
-    const {showActionsMenu} = useActionsMenu(listViewRef, fileRef);
-    const inject = usePlaylistInject();
-
     const paused = usePaused();
+    const {showPlaylistMenu} = usePlaylistMenu(listViewRef, fileRef);
+    const inject = usePlaylistInject();
 
     const handleSeekChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         seek(event.target.valueAsNumber);
@@ -38,10 +37,10 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
 
     const handleMoreClick = useCallback(
         async (event: React.MouseEvent<HTMLButtonElement>) => {
-            const rect = (event.target as HTMLButtonElement).getBoundingClientRect();
-            showActionsMenu(rect.right, rect.bottom + 4);
+            const {right, bottom} = (event.target as HTMLButtonElement).getBoundingClientRect();
+            await showPlaylistMenu(right, bottom + 4);
         },
-        [showActionsMenu]
+        [showPlaylistMenu]
     );
 
     const handlePrevClick = useCallback(async () => {
@@ -104,7 +103,7 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
                     <MediaButton aria-label="Next track" icon="next" onClick={handleNextClick} />
                 </div>
                 <div className="media-buttons-more">
-                    <MediaButton title="More..." icon="menu" onClick={handleMoreClick} />
+                    <MediaButton title="More…" icon="menu" onClick={handleMoreClick} />
                     <input
                         type="file"
                         accept="audio/*,video/*"

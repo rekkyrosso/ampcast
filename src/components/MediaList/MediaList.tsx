@@ -5,10 +5,10 @@ import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
-import {performAction} from 'services/actions';
 import ListView, {ListViewProps} from 'components/ListView';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import usePager from 'hooks/usePager';
+import {performAction} from 'components/Actions';
 import MediaListStatusBar from './MediaListStatusBar';
 import useMediaListLayout from './useMediaListLayout';
 import useOnDragStart from './useOnDragStart';
@@ -18,7 +18,7 @@ import './MediaList.scss';
 
 export interface MediaListProps<T extends MediaObject>
     extends Except<ListViewProps<T>, 'items' | 'itemKey' | 'itemClassName' | 'layout'> {
-    pager?: Pager<T> | null;
+    pager: Pager<T> | null;
     layout?: MediaSourceLayout<T>;
     statusBar?: boolean;
     loadingText?: string;
@@ -32,6 +32,7 @@ export default function MediaList<T extends MediaObject>({
     pager = null,
     statusBar = true,
     loadingText,
+    onContextMenu,
     onDoubleClick,
     onEnter,
     onError,
@@ -158,7 +159,7 @@ export default function MediaList<T extends MediaObject>({
                 itemClassName={itemClassName}
                 itemKey={'src' as any} // TODO: remove cast
                 selectedIndex={items.length === 0 ? -1 : 0}
-                onContextMenu={handleContextMenu}
+                onContextMenu={onContextMenu || handleContextMenu}
                 onDoubleClick={handleDoubleClick}
                 onEnter={handleEnter}
                 onInfo={handleInfo}

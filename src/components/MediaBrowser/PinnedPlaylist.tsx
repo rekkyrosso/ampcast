@@ -22,6 +22,7 @@ const defaultPlaylistItemsLayout: MediaSourceLayout<MediaItem> = {
 export default function PinnedPlaylist({source, ...props}: PagedItemsProps<MediaPlaylist>) {
     const [error, setError] = useState<unknown>();
     const [selectedPlaylist, setSelectedPlaylist] = useState<MediaPlaylist | null>(null);
+    const itemsPager = selectedPlaylist?.pager || null;
 
     useEffect(() => () => pinStore.unlock(), [source]);
 
@@ -58,7 +59,7 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
             <MediaItemList
                 title={`${source.title}: Tracks`}
                 className="playlist-items"
-                pager={selectedPlaylist?.pager}
+                pager={itemsPager}
                 layout={source.secondaryLayout || defaultPlaylistItemsLayout}
                 onError={setError}
             />

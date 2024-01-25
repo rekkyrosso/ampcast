@@ -11,6 +11,7 @@ import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
 import ServiceType from 'types/ServiceType';
 import DataService from 'types/DataService';
+import SimplePager from 'services/pagers/SimplePager';
 import listenbrainzApi from './listenbrainzApi';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './listenbrainzAuth';
 import ListenBrainzHistoryPager from './ListenBrainzHistoryPager';
@@ -168,6 +169,8 @@ const listenbrainz: DataService = {
         [Action.AddToLibrary]: 'Love on ListenBrainz',
         [Action.RemoveFromLibrary]: 'Unlove on ListenBrainz',
     },
+    editablePlaylists: listenbrainzPlaylists,
+    addToPlaylist,
     canRate: () => false,
     canStore,
     compareForRating,
@@ -207,8 +210,24 @@ export function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     }
 }
 
-async function createPlaylist(name: string, options: CreatePlaylistOptions = {}): Promise<void> {
-    return listenbrainzApi.createPlaylist(name, options);
+async function addToPlaylist<T extends MediaItem>(
+    playlist: MediaPlaylist,
+    items: readonly T[]
+): Promise<void> {
+    return listenbrainzApi.addToPlaylist(playlist, items);
+}
+
+async function createPlaylist<T extends MediaItem>(
+    name: string,
+    options: CreatePlaylistOptions<T> = {}
+): Promise<MediaPlaylist> {
+    const {playlist_mbid} = await listenbrainzApi.createPlaylist(name, options);
+    return {
+        src: `listenbrainz:playlist:${playlist_mbid}`,
+        title: name,
+        itemType: ItemType.Playlist,
+        pager: new SimplePager(),
+    };
 }
 
 async function store(item: MediaObject, inLibrary: boolean): Promise<void> {

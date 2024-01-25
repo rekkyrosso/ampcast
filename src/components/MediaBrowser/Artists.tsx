@@ -18,6 +18,8 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
     const [selectedArtist, setSelectedArtist] = useState<MediaArtist | null>(null);
     const [selectedAlbum, setSelectedAlbum] = useState<MediaAlbum | null>(null);
     const albumTracksLayout = useAlbumTracksLayout(selectedAlbum, source.tertiaryLayout);
+    const albumsPager = selectedArtist?.pager || null;
+    const tracksPager = selectedAlbum?.pager || null;
 
     const handleArtistSelect = useCallback(([artist]: readonly MediaArtist[]) => {
         setSelectedArtist(artist || null);
@@ -33,7 +35,7 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
         <AlbumList
             title={selectedArtist ? `${selectedArtist.title}: Albums` : ''}
             className="artist-albums"
-            pager={selectedArtist?.pager}
+            pager={albumsPager}
             layout={source.secondaryLayout || defaultAlbumsLayout}
             onSelect={handleAlbumSelect}
             key={selectedArtist?.src}
@@ -44,7 +46,7 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
         <MediaItemList
             title={selectedAlbum ? `${selectedAlbum.title}: Tracks` : ''}
             className={`album-tracks ${selectedAlbum?.multiDisc ? 'multi-disc' : ''}`}
-            pager={selectedAlbum?.pager}
+            pager={tracksPager}
             layout={albumTracksLayout}
             key={selectedAlbum?.src}
         />

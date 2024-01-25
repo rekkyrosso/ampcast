@@ -4,13 +4,13 @@ import ItemType from 'types/ItemType';
 import LibraryAction from 'types/LibraryAction';
 import MediaObject from 'types/MediaObject';
 import MediaService from 'types/MediaService';
-import {performAction} from 'services/actions';
 import {getServiceFromSrc} from 'services/mediaServices';
 import IconButton from 'components/Button';
 import IconButtons from 'components/Button/IconButtons';
 import {IconName} from 'components/Icon';
 import showActionsMenu from 'components/MediaList/showActionsMenu';
 import StarRating from 'components/StarRating';
+import performAction from './performAction';
 
 export interface ActionsProps {
     item: MediaObject;
@@ -86,7 +86,7 @@ export default function Actions({item, inline}: ActionsProps) {
             {inline ? (
                 <IconButton
                     icon="menu"
-                    title="More..."
+                    title="More…"
                     tabIndex={tabIndex}
                     onClick={showContextMenu}
                     key="menu"
