@@ -8,7 +8,7 @@
         }
 
         .electron & {
-            top: 1.5rem;
+            top: env(titlebar-area-height, 1.5rem);
         }
     }
 }

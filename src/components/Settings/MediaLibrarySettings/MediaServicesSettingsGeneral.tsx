@@ -68,7 +68,7 @@ export default function MediaServicesSettingsGeneral({
                 <MediaServiceList services={services} multiSelect={multiSelect} />
             </fieldset>
             {restrictedAccess ? (
-                <p className="restricted-access">*Access is restricted to approved users only.</p>
+                <p className="restricted-access">*Access is restricted.</p>
             ) : null}
             <DialogButtons />
         </form>

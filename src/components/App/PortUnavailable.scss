@@ -1,0 +1,30 @@
+.port-unavailable {
+    font-size: min(3vh, 24px);
+    padding: 2em;
+
+    .app-title {
+        margin: 0;
+    }
+
+    h2 {
+        margin-bottom: 1em;
+        font-weight: bold;
+        font-size: 1.125em;
+    }
+
+    p + p {
+        margin-top: 1em;
+    }
+
+    ul {
+        margin-top: 0.5em;
+
+        & + p {
+            margin-top: 2em;
+        }
+    }
+
+    li {
+        line-height: 1.8;
+    }
+}

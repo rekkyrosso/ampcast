@@ -9,6 +9,7 @@ import {isSourceVisible} from 'services/servicesSettings';
 import {TreeNode} from 'components/TreeView';
 import MediaServiceLabel from 'components/MediaSources/MediaServiceLabel';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
+import AppSettings from './AppSettings';
 import AppearanceSettings from './AppearanceSettings';
 import MediaServicesSettings from './MediaLibrarySettings/MediaServicesSettings';
 import MediaServiceSettings from './MediaLibrarySettings/MediaServiceSettings';
@@ -19,6 +20,11 @@ import AdvancedSettings from './AdvancedSettings';
 export default function useSettingsSources(): readonly TreeNode<React.ReactNode>[] {
     const sources = useMemo(
         () => [
+            {
+                id: 'app',
+                label: <MediaSourceLabel text="Application" icon="ampcast" />,
+                value: <AppSettings />,
+            },
             {
                 id: 'streaming-media',
                 label: <MediaSourceLabel text="Streaming Media" icon="globe" />,

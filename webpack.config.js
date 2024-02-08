@@ -5,14 +5,15 @@ const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const devKeys = require('../credentials/keys-dev.json');
 const prodKeys = require('../credentials/keys-prod.json');
+const electronKeys = require('../credentials/keys-electron.json');
 const packageJson = require('./package.json');
 
 module.exports = (env) => {
-    const mode = env.mode === 'electron' ? 'production' : env.mode || 'production';
+    const {mode = 'production', target = 'web'} = env;
     const __dev__ = mode === 'development';
-    const __electron__ = env.mode === 'electron';
+    const __electron__ = target === 'electron';
     const wwwDir = resolve(__dirname, __dev__ ? 'www-dev' : __electron__ ? 'www-electron' : 'www');
-    const keys = env.mode === 'production' ? prodKeys : devKeys; // fix electron later
+    const keys = __dev__ ? devKeys : __electron__ ? electronKeys : prodKeys;
 
     return {
         entry: {
@@ -94,7 +95,6 @@ module.exports = (env) => {
             }),
             new webpack.DefinePlugin({
                 __dev__,
-                __electron__,
                 __app_name__: JSON.stringify(packageJson.name),
                 __app_version__: JSON.stringify(packageJson.version),
                 __app_contact__: JSON.stringify(packageJson.author.email),

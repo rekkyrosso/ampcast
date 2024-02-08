@@ -29,7 +29,7 @@ import {
 } from './spotifyAuth';
 import spotifyApi from './spotifyApi';
 import SpotifyPager, {SpotifyPage} from './SpotifyPager';
-import {userSettings} from './spotifySettings';
+import spotifySettings from './spotifySettings';
 
 export type SpotifyArtist = SpotifyApi.ArtistObjectFull;
 export type SpotifyAlbum = SpotifyApi.AlbumObjectFull;
@@ -177,7 +177,7 @@ const spotifyPlaylists: MediaSource<MediaPlaylist> = {
         return new SpotifyPager(
             async (offset: number, limit: number): Promise<SpotifyPage> => {
                 const {items, total, next} = await spotifyApi.getUserPlaylists(
-                    userSettings.getString('userId'),
+                    spotifySettings.userId,
                     {offset, limit, market}
                 );
                 return {items: items as SpotifyPlaylist[], total, next};
@@ -196,7 +196,7 @@ const spotifyEditablePlaylists: MediaSource<MediaPlaylist> = {
 
     search(): Pager<MediaPlaylist> {
         const market = getMarket();
-        const userId = userSettings.getString('userId');
+        const userId = spotifySettings.userId;
         let nonEditableTotal = 0;
         return new SpotifyPager(
             async (offset: number, limit: number): Promise<SpotifyPage> => {
@@ -367,7 +367,7 @@ async function createPlaylist<T extends MediaItem>(
     name: string,
     {description = '', isPublic = false, items}: CreatePlaylistOptions<T> = {}
 ): Promise<MediaPlaylist> {
-    const userId = userSettings.getString('userId');
+    const userId = spotifySettings.userId;
     const playlist = await spotifyApi.createPlaylist(userId, {
         name,
         description,
@@ -433,9 +433,7 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
         }
 
         case ItemType.Playlist: {
-            const [inLibrary] = await spotifyApi.areFollowingPlaylist(id, [
-                userSettings.getString('userId'),
-            ]);
+            const [inLibrary] = await spotifyApi.areFollowingPlaylist(id, [spotifySettings.userId]);
             return {...item, inLibrary};
         }
 
@@ -661,5 +659,5 @@ function search(
 }
 
 function getMarket(): string {
-    return userSettings.getString('market');
+    return spotifySettings.market;
 }

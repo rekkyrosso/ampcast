@@ -1,4 +1,5 @@
 import {detect} from 'detect-browser';
+import isElectron from 'is-electron';
 
 const browser = detect();
 const name = browser?.name || 'unknown';
@@ -19,4 +20,5 @@ export default {
     desktop,
     ctrlKey,
     ctrlKeyStr,
+    isElectron: isElectron()
 };

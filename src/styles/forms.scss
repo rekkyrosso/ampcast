@@ -162,6 +162,7 @@ label + textarea {
     margin-left: 0.5em;
 }
 
+label + output,
 input + label {
     padding-left: 0.5em;
 }
@@ -262,6 +263,7 @@ button,
         }
 
         & > label + input,
+        & > label + output,
         & > label + select,
         & > label + textarea {
             display: table-cell;
@@ -269,6 +271,7 @@ button,
         }
 
         & > input,
+        & > output,
         & > select,
         & > button {
             vertical-align: middle;

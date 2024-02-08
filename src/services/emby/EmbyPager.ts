@@ -70,7 +70,7 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
     private async fetch(pageNumber: number): Promise<Page<T>> {
         const params = {
             IncludeItemTypes: 'Audio',
-            Fields: 'AudioInfo,ChildCount,DateCreated,Genres,ParentIndexNumber,Path,ProductionYear,Overview,PresentationUniqueKey,ProviderIds',
+            Fields: 'AudioInfo,ChildCount,DateCreated,Genres,ParentIndexNumber,Path,ProductionYear,Overview,PresentationUniqueKey,ProviderIds,,UserDataPlayCount,UserDataLastPlayedDate',
             EnableUserData: true,
             Recursive: true,
             ImageTypeLimit: 1,

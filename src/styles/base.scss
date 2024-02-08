@@ -121,7 +121,7 @@ small {
 
 #system {
     contain: layout style size;
-    font-size: min(max(calc(var(--font-size) * 1px), 12px), 22px, 3vh);
+    font-size: min(max(calc(var(--font-size) * 1px), 12px), 2vw, 3vh, 22px);
 }
 
 #fullscreen-popup {

@@ -1,9 +1,8 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
-import {sp_client_id} from 'services/credentials';
 import {Logger} from 'utils';
 import spotifyApi from './spotifyApi';
-import {authSettings, userSettings} from './spotifySettings';
+import spotifySettings from './spotifySettings';
 
 const logger = new Logger('spotifyAuth');
 
@@ -20,12 +19,6 @@ interface TokenResponse {
     refresh_token: string;
 }
 
-interface TokenStore {
-    access_token: string;
-    expires_at: Date;
-    refresh_token: string;
-}
-
 const accessToken$ = new BehaviorSubject('');
 
 export function observeAccessToken(): Observable<string> {
@@ -33,7 +26,7 @@ export function observeAccessToken(): Observable<string> {
 }
 
 export function isConnected(): boolean {
-    return !!getAccessToken();
+    return !!spotifySettings.token;
 }
 
 export function isLoggedIn(): boolean {
@@ -111,7 +104,7 @@ async function obtainAccessToken(): Promise<TokenResponse> {
         ];
 
         const params = new URLSearchParams({
-            client_id: sp_client_id,
+            client_id: spotifySettings.clientId,
             scope: spotifyScopes.join(' '),
             redirect_uri,
             response_type: 'code',
@@ -152,7 +145,7 @@ async function generateCodeChallenge(codeVerifier: string): Promise<string> {
 }
 
 async function exchangeToken(code: string): Promise<TokenResponse> {
-    const code_verifier = authSettings.getString('code_verifier');
+    const code_verifier = spotifySettings.codeVerifier;
 
     const response = await fetch(`${spotifyAccounts}/api/token`, {
         method: 'POST',
@@ -160,7 +153,7 @@ async function exchangeToken(code: string): Promise<TokenResponse> {
             'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
         },
         body: new URLSearchParams({
-            client_id: sp_client_id,
+            client_id: spotifySettings.clientId,
             grant_type: 'authorization_code',
             code,
             redirect_uri,
@@ -178,7 +171,7 @@ async function exchangeToken(code: string): Promise<TokenResponse> {
 
 export async function refreshToken(): Promise<string> {
     logger.log('refreshToken');
-    const token = getAccessToken();
+    const token = spotifySettings.token;
     const refresh_token = token?.refresh_token;
     if (refresh_token) {
         const response = await fetch(`${spotifyAccounts}/api/token`, {
@@ -187,7 +180,7 @@ export async function refreshToken(): Promise<string> {
                 'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
             },
             body: new URLSearchParams({
-                client_id: sp_client_id,
+                client_id: spotifySettings.clientId,
                 grant_type: 'refresh_token',
                 refresh_token,
             }),
@@ -207,9 +200,9 @@ export async function refreshToken(): Promise<string> {
 
 async function storeAccessToken(token: TokenResponse): Promise<void> {
     try {
-        const {access_token, refresh_token} = token;
-        authSettings.setJson('token', {access_token, refresh_token});
-        spotifyApi.setAccessToken(token.access_token);
+        const {access_token} = token;
+        spotifySettings.token = token;
+        spotifyApi.setAccessToken(access_token);
         await getUserInfo();
         nextAccessToken(access_token);
     } catch (err) {
@@ -218,37 +211,32 @@ async function storeAccessToken(token: TokenResponse): Promise<void> {
     }
 }
 
-function getAccessToken(): TokenStore | null {
-    return authSettings.getJson<TokenStore>('token');
-}
-
 function nextAccessToken(access_token: string): void {
     accessToken$.next(access_token);
 }
 
 async function clearAccessToken(): Promise<void> {
-    authSettings.removeItem('token');
-    userSettings.clear();
+    spotifySettings.clear();
     accessToken$.next('');
     await createCodeVerifier();
 }
 
 async function createCodeVerifier(): Promise<void> {
-    const code_verifier = generateRandomString(64);
-    authSettings.setString('code_verifier', code_verifier);
-    code_challenge = await generateCodeChallenge(code_verifier);
+    const codeVerifier = generateRandomString(64);
+    spotifySettings.codeVerifier = codeVerifier;
+    code_challenge = await generateCodeChallenge(codeVerifier);
 }
 
 async function getUserInfo(): Promise<void> {
-    if (!userSettings.getString('userId')) {
+    if (!spotifySettings.userId) {
         const me = await spotifyApi.getMe();
-        userSettings.setString('userId', me.id);
-        userSettings.setString('market', me.country);
+        spotifySettings.userId = me.id;
+        spotifySettings.market = me.country;
     }
 }
 
 (async () => {
-    const token = getAccessToken();
+    const token = spotifySettings.token;
     try {
         if (token) {
             try {

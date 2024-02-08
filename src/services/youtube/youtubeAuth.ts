@@ -12,7 +12,6 @@ import {
     takeUntil,
     tap,
 } from 'rxjs';
-import {yt_api_key, yt_client_id} from 'services/credentials';
 import {loadScript, Logger} from 'utils';
 import youtubeSettings from './youtubeSettings';
 
@@ -90,7 +89,8 @@ export async function getGApiClient(): Promise<typeof gapi.client> {
     return new Promise((resolve, reject) => {
         gapi.load('client', {
             callback: () => {
-                const config = {apiKey: yt_api_key, clientId: yt_client_id, discoveryDocs, scope};
+                const {apiKey, clientId} = youtubeSettings;
+                const config = {apiKey, clientId, discoveryDocs, scope};
                 gapi.client.init(config).then(() => resolve(gapi.client), reject);
             },
             onerror: reject,
@@ -109,7 +109,7 @@ async function obtainAccessToken(): Promise<string> {
     const oauth2 = google.accounts.oauth2; // let this throw
     return new Promise((resolve, reject) => {
         const tokenClient = oauth2.initTokenClient({
-            client_id: yt_client_id,
+            client_id: youtubeSettings.clientId,
             scope: scope,
             prompt: '',
             callback: (response) => {

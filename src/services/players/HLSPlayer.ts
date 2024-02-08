@@ -25,6 +25,7 @@ export default class HLSPlayer extends HTML5Player {
     }
 
     // Fix for Safari. Would be nice to delete one day.
+    // Audio volume is handled by a `GainNode` on other browsers.
     set muted(muted: boolean) {
         super.muted = muted;
         if (this.type === 'audio' && !audio.streamingSupported) {
@@ -33,6 +34,7 @@ export default class HLSPlayer extends HTML5Player {
     }
 
     // Fix for Safari. Would be nice to delete one day.
+    // Audio volume is handled by a `GainNode` on other browsers.
     set volume(volume: number) {
         super.volume = volume;
         if (this.type === 'audio' && !audio.streamingSupported) {

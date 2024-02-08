@@ -1,10 +1,13 @@
 import React, {useMemo} from 'react';
 import MediaService from 'types/MediaService';
 import ServiceType from 'types/ServiceType';
+import {sp_client_id, yt_client_id} from 'services/credentials';
 import TabList, {TabItem} from 'components/TabList';
 import AppleBetaSettings from 'services/apple/components/AppleBetaSettings';
 import PlexMediaLibrarySettings from 'services/plex/components/PlexMediaLibrarySettings';
 import PlexTidalStreamingSettings from 'services/plex/components/PlexTidalStreamingSettings';
+import SpotifyCredentials from 'services/spotify/components/SpotifyCredentials';
+import YouTubeCredentials from 'services/youtube/components/YouTubeCredentials';
 import MediaServiceSettingsGeneral from './MediaServiceSettingsGeneral';
 import PersonalMediaLibrarySettings from './PersonalMediaLibrarySettings';
 import PinnedSettings from './PinnedSettings';
@@ -22,6 +25,18 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
                 panel: <MediaServiceSettingsGeneral service={service} />,
             },
         ];
+        if (service.id === 'spotify' && !sp_client_id) {
+            tabs.push({
+                tab: 'Credentials',
+                panel: <SpotifyCredentials />,
+            });
+        }
+        if (service.id === 'youtube' && !yt_client_id) {
+            tabs.push({
+                tab: 'Credentials',
+                panel: <YouTubeCredentials />,
+            });
+        }
         if ('libraryId' in service) {
             tabs.push({
                 tab: 'Library',

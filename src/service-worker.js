@@ -13,7 +13,7 @@ const primaryAppFiles = [
 ];
 
 const secondaryAppFiles = [
-    'lib/463.js',
+    'lib/552.js',
     'lib/ampshader-presets.js',
     'lib/butterchurn-presets.js',
     'lib/butterchurn-presets-extra.js',

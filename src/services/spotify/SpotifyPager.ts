@@ -27,7 +27,7 @@ import spotify, {
 } from './spotify';
 import spotifyApi from './spotifyApi';
 import {refreshToken} from './spotifyAuth';
-import {userSettings} from './spotifySettings';
+import spotifySettings from './spotifySettings';
 
 const logger = new Logger('SpotifyPager');
 
@@ -204,7 +204,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         playlist: SpotifyPlaylist,
         inLibrary?: boolean | undefined
     ): MediaPlaylist {
-        const isOwn = playlist.owner.id === userSettings.getString('userId');
+        const isOwn = playlist.owner.id === spotifySettings.userId;
 
         return {
             itemType: ItemType.Playlist,
@@ -362,7 +362,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
     }
 
     private getMarket(): string {
-        return userSettings.getString('market');
+        return spotifySettings.market;
     }
 
     private async addUserData<T extends MediaObject>(items: readonly T[]): Promise<void> {

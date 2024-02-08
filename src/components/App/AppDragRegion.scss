@@ -17,5 +17,6 @@
 
     .electron & {
         @include chromeless;
+        height: env(titlebar-area-height, 1.5rem);
     }
 }
