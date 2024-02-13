@@ -304,21 +304,40 @@ mediaPlayer
         }
     });
 
-mediaPlayer
-    .observeError()
+// Continue playing if we get a playback error (move to the next track)
+observeCurrentItem()
     .pipe(
-        debounceTime(2000),
-        withLatestFrom(observePaused(), observePlaylistAtStart(), observePlaylistAtEnd()),
+        distinctUntilChanged((a, b) => a?.id === b?.id),
+        switchMap((item) =>
+            item
+                ? mediaPlayer
+                      .observeError()
+                      .pipe(
+                          debounceTime(2000),
+                          withLatestFrom(
+                              observePaused(),
+                              observePlaylistAtStart(),
+                              observePlaylistAtEnd()
+                          )
+                      )
+                : EMPTY
+        ),
         takeUntil(killed$)
     )
     .subscribe(([, paused, atStart, atEnd]) => {
         if (!paused) {
-            if (atEnd || (atStart && direction === 'backward')) {
-                stop();
-            } else if (direction === 'backward') {
-                playlist.prev();
+            if (direction === 'backward') {
+                if (atStart) {
+                    stop();
+                } else {
+                    playlist.prev();
+                }
             } else {
-                playlist.next();
+                if (atEnd) {
+                    stop();
+                } else {
+                    playlist.next();
+                }
             }
         }
     });

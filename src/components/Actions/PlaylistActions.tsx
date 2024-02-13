@@ -57,16 +57,14 @@ interface AddToRecentPlaylistProps {
 
 function AddToRecentPlaylist({playlist, itemsByService, index}: AddToRecentPlaylistProps) {
     const service = getServiceFromSrc(playlist);
+    const title = playlist.title;
     const items = itemsByService.find((items) => items.service === service)?.items || [];
+    const count = items.length;
+    const text = count > 1 ? `${title} (${count})` : title;
 
     return service ? (
         <PopupMenuItem<Action>
-            label={
-                <MediaSourceLabel
-                    icon={service.icon}
-                    text={`${playlist.title} (${items.length})`}
-                />
-            }
+            label={<MediaSourceLabel icon={service.icon} text={text} />}
             value={`add-to-recent-playlist-${index}` as Action}
         />
     ) : null;

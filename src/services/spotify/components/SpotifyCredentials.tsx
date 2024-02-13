@@ -1,4 +1,5 @@
 import React, {useCallback, useId, useRef} from 'react';
+import {spotifyCreateAppUrl} from 'services/constants';
 import {sp_client_id} from 'services/credentials';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import ExternalLink from 'components/ExternalLink';
@@ -10,7 +11,6 @@ export default function SpotifyCredentials() {
     const id = useId();
     const clientIdRef = useRef<HTMLInputElement>(null);
     const readOnly = !!sp_client_id;
-    const url = 'https://developer.spotify.com/dashboard/create';
 
     const handleSubmit = useCallback(async () => {
         spotifySettings.clientId = clientIdRef.current!.value;
@@ -28,6 +28,9 @@ export default function SpotifyCredentials() {
                         id={`${id}-client-id`}
                         defaultValue={spotifySettings.clientId}
                         readOnly={readOnly}
+                        spellCheck={false}
+                        autoComplete="off"
+                        autoCapitalize="off"
                         ref={clientIdRef}
                     />
                 </p>
@@ -35,9 +38,9 @@ export default function SpotifyCredentials() {
             <fieldset>
                 <legend>Registration</legend>
                 <p className="spotify-link service-link">
-                    <ExternalLink href={url}>
+                    <ExternalLink href={spotifyCreateAppUrl}>
                         <Icon name="spotify" />
-                        {url}
+                        {spotifyCreateAppUrl}
                     </ExternalLink>
                 </p>
             </fieldset>

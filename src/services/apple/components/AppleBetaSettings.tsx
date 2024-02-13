@@ -1,5 +1,5 @@
 import React, {useCallback, useId, useRef} from 'react';
-import {alert} from 'components/Dialog';
+import {confirm} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import apple from '../apple';
 import appleSettings from '../appleSettings';
@@ -11,16 +11,17 @@ export default function AppleBetaSettings() {
     const handleSubmit = useCallback(async () => {
         const useMusicKitBeta = betaRef.current!.checked;
         if (appleSettings.useMusicKitBeta !== useMusicKitBeta) {
-            appleSettings.useMusicKitBeta = useMusicKitBeta;
-
-            await alert({
-                title: 'Reload required',
-                message: 'The app will now reload.',
+            const confirmed = await confirm({
+                message: `Switch to the ${useMusicKitBeta ? 'beta' : 'stable'} version?`,
+                okLabel: 'Switch version',
                 system: true,
             });
 
-            await apple.logout();
-            location.reload();
+            if (confirmed) {
+                appleSettings.useMusicKitBeta = useMusicKitBeta;
+                await apple.logout();
+                location.reload();
+            }
         }
     }, []);
 

@@ -2,7 +2,7 @@ import {useEffect} from 'react';
 import {observePlaybackState, pause, play, seek, stop, prev, next} from 'services/mediaPlayback';
 import PlaybackState from 'types/PlaybackState';
 import {getThumbnailUrl} from 'components/CoverArt';
-import useObservable from './useObservable';
+import useObservable from 'hooks/useObservable';
 
 // This doesn't really work for Spotify and YouTube because they play in an iframe.
 

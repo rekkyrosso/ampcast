@@ -30,6 +30,9 @@ export default function YouTubeCredentials() {
                         id={`${id}-api-key`}
                         defaultValue={youtubeSettings.apiKey}
                         readOnly={readOnly}
+                        spellCheck={false}
+                        autoComplete="off"
+                        autoCapitalize="off"
                         ref={apiKeyRef}
                     />
                 </p>
@@ -41,6 +44,9 @@ export default function YouTubeCredentials() {
                         id={`${id}-client-id`}
                         defaultValue={youtubeSettings.clientId}
                         readOnly={readOnly}
+                        spellCheck={false}
+                        autoComplete="off"
+                        autoCapitalize="off"
                         ref={clientIdRef}
                     />
                 </p>

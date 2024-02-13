@@ -1,4 +1,5 @@
 import React, {useCallback} from 'react';
+import {spotifyCreateAppUrl} from 'services/constants';
 import {sp_client_id} from 'services/credentials';
 import {LoginProps} from 'components/Login';
 import CredentialsRequired from 'components/Login/CredentialsRequired';
@@ -12,7 +13,7 @@ import spotifySettings from '../spotifySettings';
 export default function SpotifyLogin({service: spotify}: LoginProps) {
     const login = useCallback(async () => {
         if (!spotifySettings.clientId) {
-            await showDialog(SpotifyCredentialsDialog);
+            await showDialog(SpotifyCredentialsDialog, true);
         }
         if (spotifySettings.clientId) {
             await spotify.login();
@@ -26,10 +27,7 @@ export default function SpotifyLogin({service: spotify}: LoginProps) {
                     <DevMode service={spotify} />
                 ) : null
             ) : (
-                <CredentialsRequired
-                    service={spotify}
-                    url="https://developer.spotify.com/dashboard/create"
-                />
+                <CredentialsRequired service={spotify} url={spotifyCreateAppUrl} />
             )}
             <p>You need to be logged in to play music from Spotify.*</p>
             <LoginButton service={spotify} onClick={login} />

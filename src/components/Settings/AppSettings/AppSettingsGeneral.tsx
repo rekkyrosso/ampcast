@@ -1,4 +1,5 @@
 import React, {useCallback, useId, useRef} from 'react';
+import {downloadUrl, supportUrl} from 'services/constants';
 import electronSettings from 'services/electronSettings';
 import {confirm} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
@@ -8,8 +9,6 @@ import {browser} from 'utils';
 export default function AppSettingsGeneral() {
     const portRef = useRef<HTMLInputElement>(null);
     const id = useId();
-    const downloadUrl = 'https://github.com/rekkyrosso/ampcast-electron/releases';
-    const supportUrl = 'https://www.reddit.com/r/ampcast';
 
     const handleSubmit = useCallback(async () => {
         if (browser.isElectron) {

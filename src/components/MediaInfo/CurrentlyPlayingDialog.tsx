@@ -1,6 +1,7 @@
 import React, {useRef} from 'react';
 import MediaType from 'types/MediaType';
 import Dialog, {DialogProps} from 'components/Dialog';
+import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
 import useFirstValue from 'hooks/useFirstValue';
@@ -21,7 +22,7 @@ export default function CurrentlyPlayingDialog(props: DialogProps) {
         <Dialog
             {...props}
             className="currently-playing-dialog media-info-dialog"
-            title="Media Info"
+            title={<MediaSourceLabel icon="info" text="Media Info" />}
             ref={ref}
         >
             <form method="dialog">

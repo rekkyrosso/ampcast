@@ -80,7 +80,7 @@
         font-size: 0.75em;
     }
 
-    .media.is-showing-cover-art & .playback-state {
+    .media.is-showing-cover-art & .playback-state:not(.error) {
         display: none;
     }
 

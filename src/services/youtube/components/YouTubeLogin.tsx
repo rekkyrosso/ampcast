@@ -16,7 +16,7 @@ export default function YouTubeLogin({service: youtube}: LoginProps) {
 
     const login = useCallback(async () => {
         if (!youtubeSettings.apiKey || !youtubeSettings.clientId) {
-            await showDialog(YouTubeCredentialsDialog);
+            await showDialog(YouTubeCredentialsDialog, true);
         }
         if (youtubeSettings.apiKey && youtubeSettings.clientId) {
             await youtube.login();

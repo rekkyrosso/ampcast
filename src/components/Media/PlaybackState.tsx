@@ -7,7 +7,7 @@ export default function PlaybackState() {
     const paused = usePaused();
 
     return (
-        <p className="media-state playback-state">
+        <p className={`media-state playback-state ${state}`}>
             {state === 'error' ? state : paused ? '' : `${state === 'loaded' ? 'playing' : state}…`}
         </p>
     );

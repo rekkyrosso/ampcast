@@ -9,7 +9,7 @@ export default {
             return port;
         }
         port = location.port;
-        storage.getString('port', port);
+        storage.setString('port', port);
         return port;
     },
 

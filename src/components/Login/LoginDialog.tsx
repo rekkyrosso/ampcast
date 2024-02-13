@@ -83,7 +83,7 @@ export default function LoginDialog({
                             name={`${id}-host`}
                             autoFocus={!settings.host}
                             defaultValue={settings.host}
-                            placeholder="https://"
+                            placeholder={`${location.protocol}//`}
                             required
                             ref={hostRef}
                         />

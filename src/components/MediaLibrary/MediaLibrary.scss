@@ -9,6 +9,7 @@
         flex: initial;
         align-items: center;
         margin-top: calc(var(--gutter-width) / 2);
+        white-space: nowrap;
 
         @mixin chromeless {
             margin-top: 0;
@@ -21,6 +22,12 @@
 
         .electron & {
             @include chromeless;
+        }
+
+        .electron-mac & {
+            .app-title {
+                visibility: hidden;
+            }
         }
 
         .icon-button {

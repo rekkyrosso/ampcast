@@ -73,4 +73,19 @@
         font-size: 0.75em;
         min-height: 1.5em;
     }
+
+    a.external-link {
+        white-space: pre-wrap;
+        overflow-wrap: anywhere;
+    }
+
+    &-download {
+        a.external-link {
+            color: inherit;
+
+            &:hover {
+                color: var(--link-color);
+            }
+        }
+    }
 }
