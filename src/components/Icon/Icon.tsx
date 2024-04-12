@@ -68,6 +68,7 @@ export type IconName =
     | 'lookup-not-found'
     | 'apple-logo'
     | 'github'
+    | 'google-cloud'
     | 'error';
 
 export interface IconProps {
@@ -774,6 +775,36 @@ export default function Icon({name, className = ''}: IconProps) {
                 </svg>
             );
 
+        case 'google-cloud':
+            return (
+                <svg className={className} viewBox="0 0 48 48">
+                    <path
+                        d="M21.85 7.41h1l2.85-2.85.14-1.21A12.81 12.81 0 0 0 5 9.6a1.55 1.55 0 0 1 1-.06l5.7-.94s.29-.48.44-.45a7.11 7.11 0 0 1 9.73-.74z"
+                        fill="#ea4335"
+                        stroke="none"
+                        transform="translate(-1.53 4.474) scale(1.464)"
+                    />
+                    <path
+                        d="M29.76 9.6a12.84 12.84 0 0 0-3.87-6.24l-4 4A7.11 7.11 0 0 1 24.5 13v.71a3.56 3.56 0 1 1 0 7.12h-7.12l-.71.72v4.27l.71.71h7.12A9.26 9.26 0 0 0 29.76 9.6z"
+                        fill="#4285f4"
+                        stroke="none"
+                        transform="translate(-1.53 4.474) scale(1.464)"
+                    />
+                    <path
+                        d="M10.25 26.49h7.12v-5.7h-7.12a3.54 3.54 0 0 1-1.47-.32l-1 .31-2.87 2.85-.25 1a9.21 9.21 0 0 0 5.59 1.86z"
+                        fill="#34a853"
+                        stroke="none"
+                        transform="translate(-1.53 4.474) scale(1.464)"
+                    />
+                    <path
+                        d="M10.25 8a9.26 9.26 0 0 0-5.59 16.6l4.13-4.13a3.56 3.56 0 1 1 4.71-4.71l4.13-4.13A9.25 9.25 0 0 0 10.25 8z"
+                        fill="#fbbc05"
+                        stroke="none"
+                        transform="translate(-1.53 4.474) scale(1.464)"
+                    />
+                </svg>
+            );
+
         case 'lookup-pending':
             return (
                 <svg className={`${className} icon-lookup`} viewBox="0 0 16 16">
@@ -828,7 +859,11 @@ export default function Icon({name, className = ''}: IconProps) {
         case 'apple-logo':
             return (
                 // From: https://github.com/Remix-Design/RemixIcon
-                <svg className={className} viewBox="0 0 24 24">
+                <svg
+                    className={className}
+                    viewBox="0 0 24 24"
+                    transform="translate(0 -1)"
+                >
                     <path
                         fillRule="nonzero"
                         d="M11.624 7.222c-.876 0-2.232-.996-3.66-.96-1.884.024-3.612 1.092-4.584 2.784-1.956 3.396-.504 8.412 1.404 11.172.936 1.344 2.04 2.856 3.504 2.808 1.404-.06 1.932-.912 3.636-.912 1.692 0 2.172.912 3.66.876 1.512-.024 2.472-1.368 3.396-2.724 1.068-1.56 1.512-3.072 1.536-3.156-.036-.012-2.94-1.128-2.976-4.488-.024-2.808 2.292-4.152 2.4-4.212-1.32-1.932-3.348-2.148-4.056-2.196-1.848-.144-3.396 1.008-4.26 1.008zm3.12-2.832c.78-.936 1.296-2.244 1.152-3.54-1.116.048-2.46.744-3.264 1.68-.72.828-1.344 2.16-1.176 3.432 1.236.096 2.508-.636 3.288-1.572z"

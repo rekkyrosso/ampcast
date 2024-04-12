@@ -1,11 +1,12 @@
 import React, {useCallback, useId, useRef} from 'react';
 import {spotifyCreateAppUrl} from 'services/constants';
 import {sp_client_id} from 'services/credentials';
-import DialogButtons from 'components/Dialog/DialogButtons';
+import AppCredentials from 'components/Settings/MediaLibrarySettings/AppCredentials';
+import AppCredential from 'components/Settings/MediaLibrarySettings/AppCredential';
 import ExternalLink from 'components/ExternalLink';
 import Icon from 'components/Icon';
 import spotifySettings from '../spotifySettings';
-import './SpotifyCredentials.scss';
+import spotify from '../spotify';
 
 export default function SpotifyCredentials() {
     const id = useId();
@@ -13,27 +14,27 @@ export default function SpotifyCredentials() {
     const readOnly = !!sp_client_id;
 
     const handleSubmit = useCallback(async () => {
-        spotifySettings.clientId = clientIdRef.current!.value;
+        const clientId = clientIdRef.current!.value;
+        if (clientId !== spotifySettings.clientId) {
+            spotifySettings.clientId = clientId;
+            if (spotify.isLoggedIn()) {
+                await spotify.logout();
+            }
+        }
     }, []);
 
     return (
-        <form className="spotify-credentials" method="dialog" onSubmit={handleSubmit}>
+        <AppCredentials className="spotify-credentials" onSubmit={handleSubmit}>
             <fieldset>
                 <legend>Your App</legend>
-                <p>
-                    <label htmlFor={`${id}-client-id`}>Client ID:</label>
-                    <input
-                        type="text"
-                        name="spotify-client-id"
-                        id={`${id}-client-id`}
-                        defaultValue={spotifySettings.clientId}
-                        readOnly={readOnly}
-                        spellCheck={false}
-                        autoComplete="off"
-                        autoCapitalize="off"
-                        ref={clientIdRef}
-                    />
-                </p>
+                <AppCredential
+                    label="Client ID"
+                    name="spotify-client-id"
+                    defaultValue={spotifySettings.clientId}
+                    readOnly={readOnly}
+                    inputRef={clientIdRef}
+                    autoFocus
+                />
             </fieldset>
             <fieldset>
                 <legend>Registration</legend>
@@ -67,7 +68,6 @@ export default function SpotifyCredentials() {
                     </li>
                 </ul>
             </fieldset>
-            <DialogButtons />
-        </form>
+        </AppCredentials>
     );
 }

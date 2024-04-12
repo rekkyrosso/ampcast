@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, skipWhile} from 'rxjs';
-import {am_dev_token} from 'services/credentials';
 import {loadScript, Logger} from 'utils';
 import appleSettings from './appleSettings';
 import MusicKitV1Wrapper from './MusicKitV1Wrapper';
@@ -26,7 +25,8 @@ export async function login(): Promise<void> {
         logger.log('connect');
         try {
             const musicKit = MusicKit.getInstance(); // let this throw
-            await musicKit.authorize();
+            const token = await musicKit.authorize();
+            isLoggedIn$.next(!!token);
         } catch (err) {
             logger.error(err);
         }
@@ -36,21 +36,23 @@ export async function login(): Promise<void> {
 export async function logout(): Promise<void> {
     logger.log('disconnect');
     try {
-        const musicKit = await getMusicKitInstance();
-        try {
-            if (musicKit.isPlaying) {
-                musicKit.stop();
+        if (window.MusicKit) {
+            const musicKit = await getMusicKitInstance();
+            try {
+                if (musicKit.isPlaying) {
+                    musicKit.stop();
+                }
+                if (!musicKit.queue.isEmpty) {
+                    await musicKit.setQueue({});
+                }
+            } catch (err) {
+                logger.error(err);
             }
-            if (!musicKit.queue.isEmpty) {
-                await musicKit.setQueue({});
+            try {
+                await musicKit.unauthorize();
+            } catch (err) {
+                logger.error(err);
             }
-        } catch (err) {
-            logger.error(err);
-        }
-        try {
-            await musicKit.unauthorize();
-        } catch (err) {
-            logger.error(err);
         }
     } catch (err) {
         // MusicKit not loaded.
@@ -77,7 +79,7 @@ const musicKitPromise = new Promise<MusicKit.MusicKitInstance>((resolve, reject)
         try {
             // MusicKit v3 is async but the types are still v1.
             const musicKit = await MusicKit.configure({
-                developerToken: am_dev_token,
+                developerToken: appleSettings.devToken,
                 app: {
                     name: __app_name__,
                     build: __app_version__,
@@ -140,7 +142,7 @@ observeIsLoggedIn()
 
 (async () => {
     try {
-        if (isConnected()) {
+        if (appleSettings.devToken && isConnected()) {
             const musicKit = await getMusicKitInstance();
             if (musicKit.isAuthorized) {
                 await setFavoriteSongsId(musicKit);

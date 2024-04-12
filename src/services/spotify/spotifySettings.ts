@@ -6,6 +6,7 @@ interface TokenStore {
     refresh_token: string;
 }
 
+const storage = new LiteStorage('spotify');
 const authStorage = new LiteStorage('spotify/auth');
 const userStorage = new LiteStorage('spotify/user', 'memory');
 
@@ -24,6 +25,10 @@ const spotifySettings = {
 
     set codeVerifier(code_verifier: string) {
         authStorage.setString('code_verifier', code_verifier);
+    },
+
+    get disabled(): boolean {
+        return __spotify_disabled__ && !storage.getBoolean('enabled');
     },
 
     get market(): string {

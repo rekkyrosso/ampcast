@@ -1,9 +1,11 @@
 import React, {useMemo} from 'react';
 import MediaService from 'types/MediaService';
 import ServiceType from 'types/ServiceType';
-import {sp_client_id, yt_client_id} from 'services/credentials';
+import {am_dev_token, lf_api_key, sp_client_id, yt_client_id} from 'services/credentials';
 import TabList, {TabItem} from 'components/TabList';
 import AppleBetaSettings from 'services/apple/components/AppleBetaSettings';
+import AppleCredentials from 'services/apple/components/AppleCredentials';
+import LastFmCredentials from 'services/lastfm/components/LastFmCredentials';
 import PlexMediaLibrarySettings from 'services/plex/components/PlexMediaLibrarySettings';
 import PlexTidalStreamingSettings from 'services/plex/components/PlexTidalStreamingSettings';
 import SpotifyCredentials from 'services/spotify/components/SpotifyCredentials';
@@ -25,13 +27,22 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
                 panel: <MediaServiceSettingsGeneral service={service} />,
             },
         ];
-        if (service.id === 'spotify' && !sp_client_id) {
+        if (service.id === 'apple' && !am_dev_token) {
+            tabs.push({
+                tab: 'Credentials',
+                panel: <AppleCredentials />,
+            });
+        } else if (service.id === 'lastfm' && !lf_api_key) {
+            tabs.push({
+                tab: 'Credentials',
+                panel: <LastFmCredentials />,
+            });
+        } else if (service.id === 'spotify' && !sp_client_id) {
             tabs.push({
                 tab: 'Credentials',
                 panel: <SpotifyCredentials />,
             });
-        }
-        if (service.id === 'youtube' && !yt_client_id) {
+        } else if (service.id === 'youtube' && !yt_client_id) {
             tabs.push({
                 tab: 'Credentials',
                 panel: <YouTubeCredentials />,

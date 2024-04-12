@@ -10,6 +10,10 @@ declare const __sp_client_id__: string;
 declare const __yt_api_key__: string;
 declare const __yt_client_id__: string;
 
+declare const __spotify_disabled__: boolean;
+declare const __youtube_disabled__: boolean;
+declare const __single_streaming_service__: boolean;
+
 declare module '*.frag' {
     const value: string;
     export = value;

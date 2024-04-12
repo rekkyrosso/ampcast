@@ -1,6 +1,7 @@
 import React from 'react';
 import MediaService from 'types/MediaService';
 import AppleLogin from 'services/apple/components/AppleLogin';
+import LastFmLogin from 'services/lastfm/components/LastFmLogin';
 import PlexLogin from 'services/plex/components/PlexLogin';
 import PlexTidalLogin from 'services/plex/components/PlexTidalLogin';
 import SpotifyLogin from 'services/spotify/components/SpotifyLogin';
@@ -26,6 +27,9 @@ function ServiceLogin({service}: LoginProps) {
     switch (service.id) {
         case 'apple':
             return <AppleLogin service={service} />;
+
+        case 'lastfm':
+            return <LastFmLogin service={service} />;
 
         case 'plex':
             return <PlexLogin service={service} />;

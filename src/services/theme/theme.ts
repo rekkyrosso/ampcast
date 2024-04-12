@@ -1,7 +1,6 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, filter, tap} from 'rxjs';
 import {TinyColor} from '@ctrl/tinycolor';
-import {ConditionalKeys} from 'type-fest';
 import Theme from 'types/Theme';
 import {LiteStorage, Logger, browser} from 'utils';
 import {emptyTheme, defaultTheme} from './themes';
@@ -14,6 +13,20 @@ const ampcastElectron = window.ampcastElectron;
 export interface CurrentTheme extends Required<Theme> {
     readonly userTheme?: boolean;
 }
+
+export type ThemeColorName =
+    | 'backgroundColor'
+    | 'buttonColor'
+    | 'buttonTextColor'
+    | 'frameColor'
+    | 'frameTextColor'
+    | 'mediaButtonColor'
+    | 'mediaButtonTextColor'
+    | 'scrollbarColor'
+    | 'scrollbarTextColor'
+    | 'selectedBackgroundColor'
+    | 'selectedTextColor'
+    | 'textColor';
 
 class MainTheme implements CurrentTheme {
     readonly defaultFontSize = 17.2;
@@ -457,7 +470,7 @@ class MainTheme implements CurrentTheme {
     }
 
     private setColor(
-        colorName: ConditionalKeys<CurrentTheme, string>,
+        colorName: ThemeColorName,
         value: TinyColor | string | null,
         defaultValue?: TinyColor | string | null
     ): void {

@@ -1,10 +1,10 @@
 import React, {useCallback} from 'react';
-import {ConditionalKeys, Except} from 'type-fest';
-import theme, {CurrentTheme} from 'services/theme';
+import {Except} from 'type-fest';
+import theme, {ThemeColorName} from 'services/theme';
 
 export interface ThemeColorProps
     extends Except<React.InputHTMLAttributes<HTMLInputElement>, 'onChange'> {
-    colorName: ConditionalKeys<CurrentTheme, string>;
+    colorName: ThemeColorName;
     onChange?: (value: string) => void;
 }
 

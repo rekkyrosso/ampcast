@@ -39,7 +39,7 @@ textarea {
 }
 
 input {
-    padding: calc(0.125em - 2px) 0.25em;
+    padding: calc(0.125em - 2px) 0 calc(0.125em - 2px) 0.25em;
 }
 
 select {

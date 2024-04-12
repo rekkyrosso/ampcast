@@ -1,8 +1,17 @@
+import {lf_api_key, lf_api_secret} from 'services/credentials';
 import {LiteStorage} from 'utils';
 
 const storage = new LiteStorage('lastfm');
 
 export default {
+    get apiKey(): string {
+        return lf_api_key || storage.getString('apiKey');
+    },
+
+    set apiKey(apiKey: string) {
+        storage.setString('apiKey', apiKey);
+    },
+
     get token(): string {
         return storage.getString('token');
     },
@@ -41,6 +50,14 @@ export default {
 
     set playCount(count: number) {
         storage.setNumber('playCount', count);
+    },
+
+    get secret(): string {
+        return lf_api_secret || storage.getString('secret');
+    },
+
+    set secret(secret: string) {
+        storage.setString('secret', secret);
     },
 
     clear(): void {

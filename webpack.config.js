@@ -1,21 +1,22 @@
 const {resolve} = require('path');
 const webpack = require('webpack');
+const dotenv = require('dotenv');
 const ESLintPlugin = require('eslint-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
-const devKeys = require('../credentials/keys-dev.json');
-const prodKeys = require('../credentials/keys-prod.json');
-const electronKeys = require('../credentials/keys-electron.json');
 const packageJson = require('./package.json');
 
-module.exports = (env) => {
-    const {mode = 'production', target = 'web'} = env;
+module.exports = (args) => {
+    const {mode = 'production', target = 'pwa'} = args;
     const __dev__ = mode === 'development';
     const __electron__ = target === 'electron';
     const wwwDir = resolve(__dirname, __dev__ ? 'www-dev' : __electron__ ? 'www-electron' : 'www');
-    const keys = __dev__ ? devKeys : __electron__ ? electronKeys : prodKeys;
+    const env = dotenv.config({
+        path: __dev__ ? './.env' : __electron__ ? './.env.electron' : './.env.pwa',
+    }).parsed;
 
     return {
+        mode,
         entry: {
             'lib/butterchurn': 'butterchurn',
             'lib/unidecode': 'unidecode',
@@ -98,12 +99,15 @@ module.exports = (env) => {
                 __app_name__: JSON.stringify(packageJson.name),
                 __app_version__: JSON.stringify(packageJson.version),
                 __app_contact__: JSON.stringify(packageJson.author.email),
-                __am_dev_token__: JSON.stringify(keys.am_dev_token),
-                __lf_api_key__: JSON.stringify(keys.lf_api_key),
-                __lf_api_secret__: JSON.stringify(keys.lf_api_secret),
-                __sp_client_id__: JSON.stringify(keys.sp_client_id),
-                __yt_api_key__: JSON.stringify(keys.yt_api_key),
-                __yt_client_id__: JSON.stringify(keys.yt_client_id),
+                __am_dev_token__: JSON.stringify(env.AM_DEV_TOKEN),
+                __lf_api_key__: JSON.stringify(env.LF_API_KEY),
+                __lf_api_secret__: JSON.stringify(env.LF_API_SECRET),
+                __sp_client_id__: JSON.stringify(env.SP_CLIENT_ID),
+                __yt_api_key__: JSON.stringify(env.YT_API_KEY),
+                __yt_client_id__: JSON.stringify(env.YT_CLIENT_ID),
+                __spotify_disabled__: env.SPOTIFY_DISABLED === 'true',
+                __youtube_disabled__: env.YOUTUBE_DISABLED === 'true',
+                __single_streaming_service__: env.SINGLE_STREAMING_SERVICE === 'true',
             }),
             new CopyPlugin({
                 patterns: [
@@ -139,7 +143,8 @@ module.exports = (env) => {
                               transform(content) {
                                   return String(content)
                                       .replace('%appName%', packageJson.name)
-                                      .replace('%appVersion%', packageJson.version);
+                                      .replace('%appVersion%', packageJson.version)
+                                      .replace('%timeStamp%', Date.now());
                               },
                           },
                       ],
@@ -162,6 +167,5 @@ module.exports = (env) => {
         stats: {
             builtAt: true,
         },
-        mode,
     };
 };

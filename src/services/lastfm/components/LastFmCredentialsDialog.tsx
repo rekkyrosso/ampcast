@@ -1,16 +1,16 @@
 import React from 'react';
 import Dialog, {DialogProps} from 'components/Dialog';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
-import SpotifyCredentials from './SpotifyCredentials';
+import LastFmCredentials from './LastFmCredentials';
 
-export default function SpotifyCredentialsDialog(props: DialogProps) {
+export default function LastFmCredentialsDialog(props: DialogProps) {
     return (
         <Dialog
             {...props}
             className="settings-dialog app-credentials-dialog"
-            title={<MediaSourceLabel icon="spotify" text="Spotify Credentials" />}
+            title={<MediaSourceLabel icon="lastfm" text="last.fm Credentials" />}
         >
-            <SpotifyCredentials />
+            <LastFmCredentials />
         </Dialog>
     );
 }

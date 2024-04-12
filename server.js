@@ -1,12 +1,13 @@
 const {resolve} = require('path');
 const express = require('express');
+const dotenv = require('dotenv').config();
 
 const host = 'localhost';
-const port = 8000;
+const port = dotenv.parsed.DEV_PORT || 8000;
 const app = express();
 const wwwDir = resolve(__dirname, './www');
 const devDir = resolve(__dirname, './www-dev');
-const runtimeDir = process.argv[2] === '--prod' ? wwwDir : devDir;
+const runtimeDir = process.argv[2] === '--pwa' ? wwwDir : devDir;
 const webIndex = resolve(runtimeDir, './index.html');
 
 express.static.mime.define({

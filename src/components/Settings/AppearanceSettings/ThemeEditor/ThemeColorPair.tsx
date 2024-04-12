@@ -1,16 +1,13 @@
 import React, {useCallback, useState} from 'react';
-import {ConditionalKeys} from 'type-fest';
-import theme, {CurrentTheme} from 'services/theme';
+import theme, {ThemeColorName} from 'services/theme';
 import IconButton from 'components/Button/IconButton';
 import useCurrentTheme from '../useCurrentTheme';
 import ThemeColor from './ThemeColor';
 
-type ColorName = ConditionalKeys<CurrentTheme, string>;
-
 export interface ThemeColorPairProps {
     label: string;
-    backgroundColorName: ColorName;
-    textColorName: ColorName;
+    backgroundColorName: ThemeColorName;
+    textColorName: ThemeColorName;
     defaultBackgroundColor?: string;
     defaultTextColor?: string;
     suggestedColors?: [string, string];

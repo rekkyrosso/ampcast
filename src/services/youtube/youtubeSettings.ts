@@ -28,7 +28,7 @@ export default {
         storage.setNumber('connectedAt', connectedAt);
     },
 
-    get enabled(): boolean {
-        return storage.getBoolean('enabled');
+    get disabled(): boolean {
+        return __youtube_disabled__ && !storage.getBoolean('enabled');
     },
 };

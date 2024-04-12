@@ -274,6 +274,9 @@ const spotify: PublicMediaService = {
     url: 'https://www.spotify.com',
     serviceType: ServiceType.PublicMedia,
     primaryMediaType: MediaType.Audio,
+    get disabled(): boolean {
+        return spotifySettings.disabled;
+    },
     defaultHidden: true,
     internetRequired: true,
     restrictedAccess: true,

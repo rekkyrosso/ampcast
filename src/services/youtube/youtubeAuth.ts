@@ -152,7 +152,7 @@ observeIsLoggedIn()
     )
     .subscribe(logger);
 
-if (youtubeSettings.enabled && isConnected()) {
+if (!youtubeSettings.disabled && isConnected()) {
     from(getGApiClient())
         .pipe(
             // This might stop working.

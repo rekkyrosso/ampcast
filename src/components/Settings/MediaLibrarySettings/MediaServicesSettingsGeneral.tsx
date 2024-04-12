@@ -3,7 +3,7 @@ import MediaService from 'types/MediaService';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
 import {getService} from 'services/mediaServices';
-import {allowAllServices, isSourceVisible, setHiddenSources} from 'services/servicesSettings';
+import {allowMultiSelect, isSourceVisible, setHiddenSources} from 'services/servicesSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import MediaServiceList from './MediaServiceList';
 import confirmDisconnectServices from './confirmDisconnectServices';
@@ -19,7 +19,7 @@ export default function MediaServicesSettingsGeneral({
 }: MediaServicesSettingsGeneralProps) {
     const ref = useRef<HTMLFieldSetElement>(null);
     const isPublicMedia = serviceType === ServiceType.PublicMedia;
-    const multiSelect = !isPublicMedia || allowAllServices;
+    const multiSelect = !isPublicMedia || allowMultiSelect;
     const [restrictedAccess, setRestrictedAccess] = useState(() =>
         isPublicMedia ? services.filter(isSourceVisible).some(hasRestrictedAccess) : false
     );

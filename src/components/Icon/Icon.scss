@@ -64,6 +64,15 @@
         }
     }
 
+    &-apple-logo {
+        stroke: none;
+        fill: white;
+
+        .themed.light & {
+            fill: black;
+        }
+    }
+
     &-apple {
         &-inner {
             fill: none;
@@ -289,10 +298,5 @@
                 fill: rgba(16, 16, 16, 0.4);
             }
         }
-    }
-
-    &-apple-logo {
-        stroke: none;
-        fill: white;
     }
 }

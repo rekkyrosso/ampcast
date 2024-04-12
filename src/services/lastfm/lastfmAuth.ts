@@ -1,6 +1,5 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, filter, map, mergeMap} from 'rxjs';
-import {lf_api_key} from 'services/credentials';
 import {Logger} from 'utils';
 import lastfmApi from './lastfmApi';
 import lastfmSettings from './lastfmSettings';
@@ -58,11 +57,7 @@ export async function logout(): Promise<void> {
 
 async function obtainAccessToken(): Promise<string> {
     return new Promise((resolve, reject) => {
-        const host = location.hostname;
-        const base = host === 'localhost' ? `http://${host}:${location.port}` : `https://${host}`;
         const lastfmApiAuth = `https://www.last.fm/api/auth`;
-        const callback = `${base}/auth/lastfm/callback/`;
-
         let authWindow: Window | null = null;
 
         const receiveMessage = (event: {origin: string; data: {token: string}}) => {
@@ -84,7 +79,7 @@ async function obtainAccessToken(): Promise<string> {
         window.addEventListener('message', receiveMessage, false);
 
         authWindow = window.open(
-            `${lastfmApiAuth}?api_key=${lf_api_key}&cb=${callback}`,
+            `${lastfmApiAuth}?api_key=${lastfmSettings.apiKey}`,
             'last.fm',
             'popup'
         );
@@ -99,11 +94,12 @@ async function obtainAccessToken(): Promise<string> {
 }
 
 async function obtainSessionKey(token: string): Promise<string> {
+    const api_key = lastfmSettings.apiKey;
     const method = 'auth.getSession';
-    const params = {api_key: lf_api_key, token, method};
+    const params = {api_key, token, method};
     const api_sig = lastfmApi.getSignature(params);
     const response = await fetch(
-        `${lastfmApiHost}?method=${method}&api_key=${lf_api_key}&token=${token}&api_sig=${api_sig}&format=json`
+        `${lastfmApiHost}?method=${method}&api_key=${api_key}&token=${token}&api_sig=${api_sig}&format=json`
     );
     if (!response.ok) {
         throw response;

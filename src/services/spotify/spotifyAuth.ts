@@ -236,26 +236,28 @@ async function getUserInfo(): Promise<void> {
 }
 
 (async () => {
-    const token = spotifySettings.token;
-    try {
-        if (token) {
-            try {
-                spotifyApi.setAccessToken(token.access_token);
-                await getUserInfo();
-                if (isConnected()) {
-                    nextAccessToken(token.access_token);
+    if (!spotifySettings.disabled) {
+        const token = spotifySettings.token;
+        try {
+            if (token) {
+                try {
+                    spotifyApi.setAccessToken(token.access_token);
+                    await getUserInfo();
+                    if (isConnected()) {
+                        nextAccessToken(token.access_token);
+                    }
+                } catch (err: any) {
+                    if (err.status === 401 && isConnected()) {
+                        await refreshToken();
+                    } else {
+                        throw err;
+                    }
                 }
-            } catch (err: any) {
-                if (err.status === 401 && isConnected()) {
-                    await refreshToken();
-                } else {
-                    throw err;
-                }
+                return;
             }
-            return;
+        } catch (err) {
+            logger.error(err);
         }
-    } catch (err) {
-        logger.error(err);
+        await clearAccessToken();
     }
-    await clearAccessToken();
 })();

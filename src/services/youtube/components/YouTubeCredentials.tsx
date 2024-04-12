@@ -1,10 +1,11 @@
 import React, {useCallback, useId, useRef} from 'react';
 import {yt_client_id} from 'services/credentials';
-import DialogButtons from 'components/Dialog/DialogButtons';
+import AppCredentials from 'components/Settings/MediaLibrarySettings/AppCredentials';
+import AppCredential from 'components/Settings/MediaLibrarySettings/AppCredential';
 import ExternalLink from 'components/ExternalLink';
 import Icon from 'components/Icon';
 import youtubeSettings from '../youtubeSettings';
-import './YouTubeCredentials.scss';
+import youtube from '../youtube';
 
 export default function YouTubeCredentials() {
     const id = useId();
@@ -14,53 +15,47 @@ export default function YouTubeCredentials() {
     const url = 'https://console.cloud.google.com/apis/credentials';
 
     const handleSubmit = useCallback(async () => {
-        youtubeSettings.apiKey = apiKeyRef.current!.value;
-        youtubeSettings.clientId = clientIdRef.current!.value;
+        const apiKey = apiKeyRef.current!.value;
+        const clientId = clientIdRef.current!.value;
+        if (apiKey !== youtubeSettings.apiKey || clientId !== youtubeSettings.clientId) {
+            youtubeSettings.apiKey = apiKey;
+            youtubeSettings.clientId = clientId;
+            if (youtube.isLoggedIn()) {
+                await youtube.logout();
+            }
+        }
     }, []);
 
     return (
-        <form className="youtube-credentials" method="dialog" onSubmit={handleSubmit}>
+        <AppCredentials className="youtube-credentials" onSubmit={handleSubmit}>
             <fieldset>
                 <legend>Your App</legend>
-                <p>
-                    <label htmlFor={`${id}-api-key`}>API Key:</label>
-                    <input
-                        type="text"
-                        name="youtube-api-key"
-                        id={`${id}-api-key`}
-                        defaultValue={youtubeSettings.apiKey}
-                        readOnly={readOnly}
-                        spellCheck={false}
-                        autoComplete="off"
-                        autoCapitalize="off"
-                        ref={apiKeyRef}
-                    />
-                </p>
-                <p>
-                    <label htmlFor={`${id}-client-id`}>Client ID:</label>
-                    <input
-                        type="text"
-                        name="youtube-client-id"
-                        id={`${id}-client-id`}
-                        defaultValue={youtubeSettings.clientId}
-                        readOnly={readOnly}
-                        spellCheck={false}
-                        autoComplete="off"
-                        autoCapitalize="off"
-                        ref={clientIdRef}
-                    />
-                </p>
+                <AppCredential
+                    label="Client ID"
+                    name="youtube-client-id"
+                    defaultValue={youtubeSettings.clientId}
+                    readOnly={readOnly}
+                    inputRef={clientIdRef}
+                    autoFocus
+                />
+                <AppCredential
+                    label="API Key"
+                    name="youtube-api-key"
+                    defaultValue={youtubeSettings.apiKey}
+                    readOnly={readOnly}
+                    inputRef={apiKeyRef}
+                />
             </fieldset>
             <fieldset>
                 <legend>Registration</legend>
                 <p className="youtube-link service-link">
                     <ExternalLink href={url}>
-                        <Icon name="youtube" />
+                        <Icon name="google-cloud" />
                         {url}
                     </ExternalLink>
                 </p>
             </fieldset>
-            <fieldset className="youtube-credentials-requirements note">
+            <fieldset className="app-credentials-requirements note">
                 <legend>Requirements</legend>
                 <p>
                     <label htmlFor={`${id}-origin`}>Authorized JavaScript origin:</label>
@@ -74,7 +69,6 @@ export default function YouTubeCredentials() {
                     </li>
                 </ul>
             </fieldset>
-            <DialogButtons />
-        </form>
+        </AppCredentials>
     );
 }

@@ -7,7 +7,7 @@ import {
     getScrobblers,
     getService,
 } from 'services/mediaServices';
-import {allowAllServices, isSourceVisible, setHiddenSources} from 'services/servicesSettings';
+import {allowMultiSelect, isSourceVisible, setHiddenSources} from 'services/servicesSettings';
 import Dialog, {DialogProps} from 'components/Dialog';
 import MediaServiceList from 'components/Settings/MediaLibrarySettings/MediaServiceList';
 import {IconName} from 'components/Icon';
@@ -54,16 +54,14 @@ function StreamingMedia() {
             icon="globe"
             title="Streaming Media"
             services={services}
-            multiSelect={allowAllServices}
+            multiSelect={allowMultiSelect}
         />
     );
 }
 
 function PersonalMedia() {
     const services = useMemo(getPersonalMediaServices, []);
-    return (
-        <Services icon="network" title="Personal Media Servers" services={services} />
-    );
+    return <Services icon="network" title="Personal Media Server" services={services} />;
 }
 
 function DataServices() {
@@ -111,9 +109,7 @@ function Services({icon, title, multiSelect, services}: ServicesProps) {
                 <legend>Enable</legend>
                 <MediaServiceList services={services} multiSelect={multiSelect} />
             </fieldset>
-            {restrictedAccess ? (
-                <p className="restricted-access">*Access is restricted.</p>
-            ) : null}
+            {restrictedAccess ? <p className="restricted-access">*Access is restricted.</p> : null}
         </div>
     );
 }

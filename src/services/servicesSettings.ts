@@ -10,7 +10,7 @@ const storage = new LiteStorage('services');
 const initialHiddenSettings = storage.getJson<HiddenSettings>('hidden', {});
 const hidden$ = new BehaviorSubject(initialHiddenSettings);
 
-export const allowAllServices = storage.getBoolean('allowAll');
+export const allowMultiSelect = !__single_streaming_service__ || storage.getBoolean('multiSelect');
 
 export function observeVisibilityChanges(): Observable<void> {
     return hidden$.pipe(

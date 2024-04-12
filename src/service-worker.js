@@ -1,6 +1,5 @@
-const appName = '%appName%';
 const appVersion = '%appVersion%';
-const cacheName = `${appName}/v${appVersion}`;
+const cacheName = `%appName%/v${appVersion}-%timeStamp%`;
 
 const primaryAppFiles = [
     '/',
@@ -13,7 +12,7 @@ const primaryAppFiles = [
 ];
 
 const secondaryAppFiles = [
-    'lib/552.js',
+    'lib/15.js',
     'lib/ampshader-presets.js',
     'lib/butterchurn-presets.js',
     'lib/butterchurn-presets-extra.js',

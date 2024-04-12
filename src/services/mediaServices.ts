@@ -22,7 +22,7 @@ import spotify from 'services/spotify';
 import subsonic from 'services/subsonic';
 import youtube from 'services/youtube';
 import {Logger, filterNotEmpty} from 'utils';
-import {allowAllServices, isSourceVisible, setHiddenSources} from './servicesSettings';
+import {allowMultiSelect, isSourceVisible, setHiddenSources} from './servicesSettings';
 
 const logger = new Logger('mediaServices');
 
@@ -44,7 +44,7 @@ function getAllServices(): readonly MediaService[] {
     ];
 }
 
-// Available to most users but may be hidden by settings.
+// Available to most users but may be hidden by settings or build configuration.
 export function getEnabledServices(): readonly MediaService[] {
     return getAllServices().filter((service) => !service.disabled);
 }
@@ -165,14 +165,14 @@ function isPlayableService(serviceId: string): boolean {
 }
 
 // Ensure that only one public media service is visible
-if (!allowAllServices || youtube.disabled) {
+if (!allowMultiSelect || youtube.disabled) {
     let changed = false;
     const hidden: Record<string, boolean> = {};
     if (youtube.disabled && isSourceVisible(youtube)) {
         hidden[youtube.id] = true;
         changed = true;
     }
-    if (!allowAllServices) {
+    if (!allowMultiSelect) {
         const visibleServices = getPublicMediaServices().filter(isSourceVisible);
         if (visibleServices.length > 1) {
             let services = visibleServices;

@@ -159,7 +159,7 @@ const youtube: PublicMediaService = {
     serviceType: ServiceType.PublicMedia,
     primaryMediaType: MediaType.Video,
     get disabled(): boolean {
-        return !youtubeSettings.enabled;
+        return youtubeSettings.disabled;
     },
     defaultHidden: true,
     defaultNoScrobble: true,

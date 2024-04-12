@@ -2,7 +2,6 @@ import md5 from 'md5';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import Thumbnail from 'types/Thumbnail';
-import {lf_api_key, lf_api_secret} from 'services/credentials';
 import {Logger, exists} from 'utils';
 import lastfmSettings from './lastfmSettings';
 
@@ -19,7 +18,7 @@ export class LastFmApi {
         keys.sort();
         keys.forEach((key) => (string += key + params[key]));
 
-        string += lf_api_secret;
+        string += lastfmSettings.secret;
 
         return md5(string);
     }
@@ -83,7 +82,7 @@ export class LastFmApi {
     async get<T>(params: any): Promise<T> {
         const path = `${this.host}?${new URLSearchParams({
             ...params,
-            api_key: lf_api_key,
+            api_key: lastfmSettings.apiKey,
             format: 'json',
         })}`;
         const response = await fetch(path, {method: 'GET'});
@@ -96,7 +95,8 @@ export class LastFmApi {
     async post(params: Record<string, string>): Promise<Response> {
         const token = lastfmSettings.token;
         const sk = lastfmSettings.sessionKey;
-        params = {...params, api_key: lf_api_key, token, sk};
+        const api_key = lastfmSettings.apiKey;
+        params = {...params, api_key, token, sk};
         const headers = {'Content-Type': 'application/x-www-form-urlencoded'};
         const api_sig = this.getSignature(params);
         const body = `${new URLSearchParams(params)}&api_sig=${api_sig}`;

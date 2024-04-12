@@ -10,3 +10,7 @@ www/*.zip
 www/v0*/*
 www/v1*/*
 www/v2*/*
+www/v3*/*
+.env
+.env.*
+!.env.example
