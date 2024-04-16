@@ -35,10 +35,11 @@ jobs:
         run: |
           npm run build:electron
 
+      - name: change to app directory
+        run: cd ./app
+
       - name: Install electron dependencies
-        run: |
-          cd ./app
-          npm install
+        run: npm install
 
       - name: Install castlabs-evs
         run: python -m pip install --upgrade castlabs-evs
@@ -46,6 +47,5 @@ jobs:
       - name: Authorize castlabs-evs
         run: python -m castlabs_evs.account reauth -A ${{secrets.CASTLABS_ACCOUNT_NAME}} -P ${{secrets.CASTLABS_PASSWORD}}
 
-      - name: Build and package application
-        run: |
-          npm exec electron-builder -- --publish always --mac
+      - name: Build and package electron app
+        run: npm exec electron-builder -- --publish always --mac
