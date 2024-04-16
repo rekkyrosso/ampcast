@@ -42,4 +42,4 @@ jobs:
 
       - name: Build and package application
         run: |
-          npm exec electron-builder --config electron-builder.json --publish always --win
+          npm exec electron-builder -- --publish always --win

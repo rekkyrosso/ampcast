@@ -36,4 +36,4 @@ jobs:
 
       - name: Build and package electron app
         run: |
-          npm exec electron-builder --config electron-builder.json --publish always --linux
+          npm exec electron-builder -- --publish always --linux

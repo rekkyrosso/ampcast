@@ -12,9 +12,9 @@
     "license": "GPL-3.0",
     "scripts": {
         "start": "electron .",
-        "build:mac": "electron-builder --config electron-builder.json -m",
-        "build:win": "electron-builder --config electron-builder.json -w",
-        "build:linux": "electron-builder --config electron-builder.json -l"
+        "build:mac": "electron-builder -- -mac",
+        "build:win": "electron-builder -- -win",
+        "build:linux": "electron-builder -- -linux"
     },
     "devDependencies": {
         "@electron/notarize": "^2.2.1",
