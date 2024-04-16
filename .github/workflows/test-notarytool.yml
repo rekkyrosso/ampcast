@@ -9,9 +9,6 @@ jobs:
     timeout-minutes: 10
 
     steps:
-      - name: change to app directory
-        run: cd ./app
-
       - name: notarytool history
         run: xcrun notarytool history --apple-id ${{secrets.APPLE_ID}} --password ${{secrets.APPLE_ID_PASSWORD}} --team-id ${{secrets.APPLE_TEAM_ID}}
 
