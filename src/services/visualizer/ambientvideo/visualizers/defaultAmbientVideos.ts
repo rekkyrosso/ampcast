@@ -5,7 +5,7 @@ const defaultAmbientVideos: AmbientVideoVisualizer[] = `
 9HI3UVKoesg rOSUaprXqiY etiatMRgFcM DYsMJiwiZSI _MZ7UZ5frCI HCx1Z92PjJE dIP7wWY4Znw SDxtzBm5vD4
 A1m0SEqmmbE 9uZ8CCa0t4Y 35CTu7dWzo8 wz_ItcoR0-c jS4-FmNEDKo Tz77vqH_LJw K73lfmxDVR0 W8ayfyRWUrg
 cbuldALGsaQ AJZon2grzmA H5ASEM9dMiA GE2YEq7vaLc MYGOdJNAzrI Oszl95YWfbs b0-IkxXyhmY QxE5VqaQ6oE
-H6Xy97CD9Hs p-OUNPqRzII XaTxLSPh_Is 1n3ezT1cvAM CWU1pZVw0xM ry1Q7KaQdxM VlC5LSTvoj0 j-bG0j3-KzE
+H6Xy97CD9Hs p-OUNPqRzII XaTxLSPh_Is 1n3ezT1cvAM CWU1pZVw0xM ry1Q7KaQdxM VlC5LSTvoj0 DMoAn4E_p0c
 1bClbVe4QyI f6OZ01vvmko o4jE24WixcI BIej9P2LrzM dxw91a7C5BQ lN9LdcAQnjw VVkZKzTbWQs vXCB1zGGFiY
 JHARFKMl8dU KSB1AZ0-I74 IGqfU6cJJc8 8zg22-ZCUfE WMlR8eJRS3I l4D6bnIdehk A5pbF_YBulo dRFRsKobN9I
 QxS6PpMArMU IlDvBTDGanI SqMzG8xsynw mOmwk3WyYnw im2eWwIiTOc lxQS58t39_U yk076o8NF3k oggiHfuV4m8
@@ -14,7 +14,7 @@ uZjCNtOeZG4 ZpXnEvW0XD0 -C8TYbhnVTU WzxSiEWK3cg ZE8vuq4aqNA 7HMw3bcIgRE ZJiCEDwe
 tOWGsyt40t8 QLbPYQcUcgM xwf7EssFnXU -Pail6FITXc vvm8b2jAfv0 XkRFSnxXQ_w Ee0Qh_nIoHw 78rppSvbh7A
 NXIaYDJql1c VWHTlq5Fcr8 ZkRjihsMdp8 e1M6jHcRrlM z9Ug-3qhrwY mA30W2dHQIo XIhEPwTMjWk -Tm4H4CrKT0
 T6tapzmF_n0 7QetsPh7BPM xBDqge4w-XA suWbFuw1O_I OvStKpL5Ujo ZX8fSO8uTPg xX9xfFT-Qw0 hf3r9TNSsyY
--WIamcIaipI Zjc6DwVDvq0 eHjoav_sb88 7E0WVROBsEE BvLIJSmzAnY YPurG3WT8xI 0ocUnSG4oQQ EkmJlmU7uqw
+-WIamcIaipI Zjc6DwVDvq0 eHjoav_sb88 7E0WVROBsEE BvLIJSmzAnY YPurG3WT8xI XyGcUXDuXVY EkmJlmU7uqw
 aC7s2UVXt3c EJArkl7K29k 9eFVeErnUzg CLDzwdixWsk B1-yyoNMUzs Ab5I38wGxko sVuqgnXD9AE OiRqM-4c14Y
 Y0U0HAwpw2s G20ZaQfTWgs Nde5P8Ob2xg f-Xul0mdBCA ExStG9rRkoY tMzCwwvHwN0 iaVmsp7dU1Y TV4J01qGE8E
 MPch_urCew8 eYpCCSAW3aw XfBNIrQ5JKQ -b68N6Q4Qus H3mdjo7kYiQ 9CJLtzzUphU yy-aMo2ds2k fVRSSNkq3Bk
@@ -40,7 +40,7 @@ sBtYWK817-0 g0IvwhzSIW0 y7vz1qQGUd8 -0ewPjoBBNI S1emxk9UWBE 1muEwEFDKgk P0MbbslO
 wwXpkTd1CaQ W2A_PcIhUVM ZIb8u6uJwBo TWjid2dVjMk gdJjc6l6iII n3Dru5y3ROc OOf4Z7tyLVM iDXDrTKJehk
 wYhliE9O_3k nw0uvJZonBc cK7x6lUUsYo ltNMSx_imZU e2AUzM6QgGs 3cxyYOXiJss AsD5u6k6dKI d_hx39kXDUg
 hlvfDL3nSoo 6L2xYzu724E URy2Ak-WRpE 9N-sp0FaZEA yttvb9ByOtY ctqujFKaFZQ orTy-IqN9_I JdkM1EBCCKs
-ef1wAfrMg5I eN-RZVkFGj0 KPV1hFJIXrg -bp4Bgs7MaQ u1rRUwx_Vy4 iTjgWeJMUJo WL9EOfzoSsA xrCNwCD-z-M
+ef1wAfrMg5I eN-RZVkFGj0 KPV1hFJIXrg ss0CxHCCybE u1rRUwx_Vy4 iTjgWeJMUJo WL9EOfzoSsA xrCNwCD-z-M
 CC3AanQdQZA ZGLrP5eawdY HoOghpRTkvs N787WRdI35A Cw0d-nqSNE8 2vifO3_gjiM OeJ5xXrbkfU vkYBLYAGavM
 jP4gBqxfheI HHi8qOtHnhE oN8q7p57nZw 6vnxzfejWN4 gVamQ6jodK0 iU5QjAbuhec qLIU_90P4Ac z8k_ximc8Og
 ZFBoN7yIMZw 4mexI7cACZk bWG0rEB6gmc NDWpXTg3koc Vo2AcHSCRiQ UrfJgjQt1SY WXI7byeZk5s y8d7Ihe0IwE
@@ -84,7 +84,7 @@ nmm0zfspmos wUtgReo4pDM 7HDlompCs58 ZsMlXu09ghs iO_Me1wspYM jHyItjAKRdY F18YfQD3
 DOVsgCZoFLI kBbaAJMJC_k iyhP3voUf_s Ek7MAukn5P0 RpKLilRfFNE 7eN7zRJdfkM kk7tTjPOzt4 ryuJGfYs5VE
 t4NKrOr9lAY IL3990sA0ZE fVoMdt5MZKg eKWntyoSuzc kN3VMkM79c0 B6WFz8Zb9Oo avSd8c-m3Wc M3u4Mus9y_g
 Pd4H-TFjSkQ jMWKm-g5V3w ZR9YaU4EYjk nVcxbSw6o5k crgLdtAGgIQ tX2eOe-warM WhOt40A_IVI ft2ZNI7ON5U
-nNcWIiOm3cc ss0CxHCCybE DMoAn4E_p0c XyGcUXDuXVY
+nNcWIiOm3cc
 `
     .match(/\S+/g)!
     .map((videoId) => ({

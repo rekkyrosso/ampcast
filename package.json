@@ -16,7 +16,7 @@
         "start:dev": "node server.js",
         "start:pwa": "node server.js --pwa"
     },
-    "license": "ISC",
+    "license": "GPL-3.0",
     "dependencies": {
         "@ctrl/tinycolor": "^4.0.1",
         "audiomotion-analyzer": "^4.0.0",

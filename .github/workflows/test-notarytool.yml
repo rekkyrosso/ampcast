@@ -1,0 +1,22 @@
+name: Test mac notarytool
+
+on: workflow_dispatch
+
+jobs:
+  test:
+    name: Run mac notarytool
+    runs-on: macos-latest
+    timeout-minutes: 10
+
+    steps:
+      - name: change to app directory
+        run: cd ./app
+
+      - name: notarytool history
+        run: xcrun notarytool history --apple-id ${{secrets.APPLE_ID}} --password ${{secrets.APPLE_ID_PASSWORD}} --team-id ${{secrets.APPLE_TEAM_ID}}
+
+      #- name: notarytool last invalid run
+      #  run: xcrun notarytool log 59eda425-049f-48f0-ad42-0524b1cdc78f --apple-id ${{secrets.APPLE_ID}} --password ${{secrets.APPLE_ID_PASSWORD}} --team-id ${{secrets.APPLE_TEAM_ID}}
+
+      #- name: notarytool first inprogress run
+      #  run: xcrun notarytool log 6d75594c-f8d3-445c-903c-9e18f40e7ae6 --apple-id ${{secrets.APPLE_ID}} --password ${{secrets.APPLE_ID_PASSWORD}} --team-id ${{secrets.APPLE_TEAM_ID}}

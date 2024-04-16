@@ -1,0 +1,39 @@
+name: Release linux
+
+on: workflow_dispatch
+
+jobs:
+  release:
+    name: Build linux binaries
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    env:
+      AM_DEV_TOKEN: ${{secrets.AM_DEV_TOKEN}}
+      LF_API_KEY: ${{secrets.LF_API_KEY}}
+      LF_API_SECRET: ${{secrets.LF_API_SECRET}}
+      SPOTIFY_DISABLED: 'true'
+      GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: "20.x"
+
+      - name: Install web view dependencies
+        run: |
+          npm install
+
+      - name: build web view
+        run: |
+          npm run build:electron
+
+      - name: Install electron dependencies
+        run: |
+          cd ./app
+          npm install
+
+      - name: Build and package electron app
+        run: |
+          npm exec electron-builder -- --publish always --linux

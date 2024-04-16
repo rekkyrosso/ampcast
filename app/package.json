@@ -1,0 +1,99 @@
+{
+    "name": "ampcast-app",
+    "productName": "ampcast",
+    "version": "0.9.5",
+    "description": "Ampcast music player",
+    "homepage": "https://ampcast.app",
+    "author": {
+        "name": "rekkyrosso",
+        "email": "rekkyrosso@gmail.com"
+    },
+    "main": "./src/main.js",
+    "license": "GPL-3.0",
+    "scripts": {
+        "start": "electron .",
+        "build:mac": "electron-builder -m",
+        "build:win": "electron-builder -w",
+        "build:linux": "electron-builder -l"
+    },
+    "devDependencies": {
+        "@electron/notarize": "^2.2.1",
+        "electron": "github:castlabs/electron-releases#v28.2.2+wvcus",
+        "electron-builder": "^24.9.1"
+    },
+    "dependencies": {
+        "electron-context-menu": "^3.6.1",
+        "electron-log": "^5.1.2",
+        "electron-store": "^8.1.0",
+        "electron-unhandled": "^4.0.1",
+        "electron-updater": "^6.1.8",
+        "electron-window-state": "^5.0.3",
+        "express": "^4.18.1"
+    },
+    "build": {
+        "productName": "ampcast",
+        "appId": "org.rekkyrosso.ampcast",
+        "artifactName": "${productName}-${version}-${os}-${arch}.${ext}",
+        "files": [
+            "src",
+            "www",
+            "node_modules",
+            "package.json"
+        ],
+        "afterPack": "scripts/afterPack.js",
+        "afterSign": "scripts/afterSign.js",
+        "electronDownload": {
+            "mirror": "https://github.com/castlabs/electron-releases/releases/download/v"
+        },
+        "mac": {
+            "target": {
+                "target": "default",
+                "arch": [
+                    "arm64",
+                    "x64"
+                ]
+            },
+            "type": "distribution",
+            "category": "public.app-category.music",
+            "icon": "assets/icons/ampcast.png",
+            "hardenedRuntime": true,
+            "entitlements": "assets/entitlements.mac.plist",
+            "entitlementsInherit": "assets/entitlements.mac.plist",
+            "gatekeeperAssess": false
+        },
+        "win": {
+            "target": [
+                "nsis",
+                "zip"
+            ],
+            "icon": "assets/icons/ampcast.ico"
+        },
+        "linux": {
+            "target": [
+                "AppImage",
+                "tar.xz"
+            ],
+            "icon": "assets/icons/ampcast.png",
+            "category": "AudioVideo;Audio;Player"
+        },
+        "nsis": {
+            "oneClick": false,
+            "artifactName": "${productName}-${version}-${os}-${arch}.setup.${ext}",
+            "installerIcon": "assets/icons/setup.ico",
+            "allowToChangeInstallationDirectory": true,
+            "include": "scripts/uninstaller.nsh"
+        },
+        "directories": {
+            "buildResources": "assets"
+        },
+        "publish": {
+            "provider": "github",
+            "owner": "rekkyrosso",
+            "repo": "ampcast"
+        }
+    },
+    "devEngines": {
+        "node": ">=20.x",
+        "npm": ">=10.x"
+    }
+}

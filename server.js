@@ -5,7 +5,7 @@ const dotenv = require('dotenv').config();
 const host = 'localhost';
 const port = dotenv.parsed.DEV_PORT || 8000;
 const app = express();
-const wwwDir = resolve(__dirname, './www');
+const wwwDir = resolve(__dirname, './app/www');
 const devDir = resolve(__dirname, './www-dev');
 const runtimeDir = process.argv[2] === '--pwa' ? wwwDir : devDir;
 const webIndex = resolve(runtimeDir, './index.html');
@@ -29,8 +29,8 @@ app.use('/icon-192.png', express.static(resolve(wwwDir, './icon-192.png')));
 app.use('/icon-512.png', express.static(resolve(wwwDir, './icon-512.png')));
 app.use('/manifest.json', express.static(resolve(wwwDir, './manifest.json')));
 app.use('/auth', express.static(resolve(wwwDir, './auth')));
-app.get('/:version/bundle.css', async (req, res) =>
-    res.sendFile(resolve(runtimeDir, `./${req.params.version}/bundle.css`))
+app.get('/:version/:id.css', async (req, res) =>
+    res.sendFile(resolve(runtimeDir, `./${req.params.version}/${req.params.id}.css`))
 );
 app.get('/:version/:id.js', async (req, res) =>
     res.sendFile(resolve(runtimeDir, `./${req.params.version}/${req.params.id}.js`))

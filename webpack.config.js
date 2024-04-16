@@ -10,10 +10,11 @@ module.exports = (args) => {
     const {mode = 'production', target = 'pwa'} = args;
     const __dev__ = mode === 'development';
     const __electron__ = target === 'electron';
-    const wwwDir = resolve(__dirname, __dev__ ? 'www-dev' : __electron__ ? 'www-electron' : 'www');
-    const env = dotenv.config({
+    const wwwDir = resolve(__dirname, __dev__ ? 'www-dev' : 'app/www');
+    dotenv.config({
         path: __dev__ ? './.env' : __electron__ ? './.env.electron' : './.env.pwa',
-    }).parsed;
+    });
+    const env = process.env;
 
     return {
         mode,
@@ -48,7 +49,7 @@ module.exports = (args) => {
         },
         output: {
             chunkFilename: 'lib/[name].js',
-            path: __electron__ ? wwwDir : `${wwwDir}/v${packageJson.version}`,
+            path: `${wwwDir}/v${packageJson.version}`,
         },
         optimization: {
             runtimeChunk: 'single',
@@ -96,15 +97,15 @@ module.exports = (args) => {
             }),
             new webpack.DefinePlugin({
                 __dev__,
-                __app_name__: JSON.stringify(packageJson.name),
-                __app_version__: JSON.stringify(packageJson.version),
-                __app_contact__: JSON.stringify(packageJson.author.email),
-                __am_dev_token__: JSON.stringify(env.AM_DEV_TOKEN),
-                __lf_api_key__: JSON.stringify(env.LF_API_KEY),
-                __lf_api_secret__: JSON.stringify(env.LF_API_SECRET),
-                __sp_client_id__: JSON.stringify(env.SP_CLIENT_ID),
-                __yt_api_key__: JSON.stringify(env.YT_API_KEY),
-                __yt_client_id__: JSON.stringify(env.YT_CLIENT_ID),
+                __app_name__: JSON.stringify(packageJson.name || ''),
+                __app_version__: JSON.stringify(packageJson.version || ''),
+                __app_contact__: JSON.stringify(packageJson.author.email || ''),
+                __am_dev_token__: JSON.stringify(env.AM_DEV_TOKEN || ''),
+                __lf_api_key__: JSON.stringify(env.LF_API_KEY || ''),
+                __lf_api_secret__: JSON.stringify(env.LF_API_SECRET || ''),
+                __sp_client_id__: JSON.stringify(env.SP_CLIENT_ID || ''),
+                __yt_api_key__: JSON.stringify(env.YT_API_KEY || ''),
+                __yt_client_id__: JSON.stringify(env.YT_CLIENT_ID || ''),
                 __spotify_disabled__: env.SPOTIFY_DISABLED === 'true',
                 __youtube_disabled__: env.YOUTUBE_DISABLED === 'true',
                 __single_streaming_service__: env.SINGLE_STREAMING_SERVICE === 'true',
@@ -117,13 +118,13 @@ module.exports = (args) => {
                         transform(content) {
                             return String(content).replace(
                                 /%version%/g,
-                                __electron__ ? '' : `/v${packageJson.version}`
+                                `/v${packageJson.version}`
                             );
                         },
                     },
                 ],
             }),
-            __dev__ || __electron__
+            __dev__
                 ? undefined
                 : new CopyPlugin({
                       patterns: [
@@ -133,7 +134,7 @@ module.exports = (args) => {
                           },
                       ],
                   }),
-            __dev__ || __electron__
+            __dev__
                 ? undefined
                 : new CopyPlugin({
                       patterns: [

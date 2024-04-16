@@ -1,16 +1,7 @@
+.DS_Store
 .idea
 node_modules
-builds
 www-dev
-www-electron
-www/*.js
-www/*.html
-www/*.css
-www/*.zip
-www/v0*/*
-www/v1*/*
-www/v2*/*
-www/v3*/*
 .env
 .env.*
 !.env.example
