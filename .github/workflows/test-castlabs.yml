@@ -14,14 +14,14 @@ jobs:
         with:
           node-version: "20.x"
 
-      - name: change to app directory
-        run: cd ./app
-
       - name: Install castlabs-evs
+        working-directory: ./app
         run: python -m pip install --upgrade castlabs-evs
 
       - name: Test castlabs-evs
+        working-directory: ./app
         run: python -m castlabs_evs.account --version
 
       - name: Authorize
+        working-directory: ./app
         run: python -m castlabs_evs.account reauth -A ${{secrets.CASTLABS_ACCOUNT_NAME}} -P ${{secrets.CASTLABS_PASSWORD}}
