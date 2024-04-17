@@ -10,7 +10,6 @@ jobs:
 
     steps:
       - name: notarytool history
-        working-directory: ./app
         run: xcrun notarytool history --apple-id ${{secrets.APPLE_ID}} --password ${{secrets.APPLE_ID_PASSWORD}} --team-id ${{secrets.APPLE_TEAM_ID}}
 
       #- name: notarytool last invalid run

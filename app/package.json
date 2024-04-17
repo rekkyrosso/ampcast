@@ -19,7 +19,7 @@
     "devDependencies": {
         "@electron/notarize": "^2.2.1",
         "electron": "github:castlabs/electron-releases#v28.2.2+wvcus",
-        "electron-builder": "^24.9.1"
+        "electron-builder": "24.9.1"
     },
     "dependencies": {
         "electron-context-menu": "^3.6.1",
