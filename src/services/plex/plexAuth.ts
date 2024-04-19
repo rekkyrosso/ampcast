@@ -52,6 +52,7 @@ export async function login(): Promise<void> {
             serverToken$.next(serverToken);
         } catch (err) {
             logger.error(err);
+            await refreshPin();
         }
     }
 }
@@ -197,7 +198,7 @@ async function testConnection(server: plex.Device, connection: plex.Connection):
             host: connection.uri,
             path: '/library/sections',
             token: server.accessToken,
-            timeout: 5000,
+            timeout: 10_000,
         });
         connectionLogging$.next(`(${name}) ${connectionType} connection successful`);
         return true;
