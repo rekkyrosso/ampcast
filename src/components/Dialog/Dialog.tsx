@@ -6,6 +6,7 @@ import React, {
     useRef,
     useState,
 } from 'react';
+import {fromEvent} from 'rxjs';
 import {Except} from 'type-fest';
 import {stopPropagation} from 'utils';
 import Icon from 'components/Icon';
@@ -52,6 +53,14 @@ function Dialog(
         dialogPolyfill.registerDialog(dialog);
         dialog.showModal();
     }, []);
+
+    useEffect(() => {
+        const subscription = fromEvent(window, 'resize').subscribe(() => {
+            const newPosition = clampPosition(dialogRef.current!, position);
+            setPosition(newPosition);
+        });
+        return () => subscription.unsubscribe();
+    }, [position]);
 
     const close = useCallback(() => {
         dialogRef.current!.close();
@@ -100,10 +109,11 @@ function Dialog(
 
     const handleMouseUp = useCallback(
         (event: MouseEvent) => {
-            setPosition({
+            const newPosition = clampPosition(dialogRef.current!, {
                 left: position.left + (event.screenX - dragStart!.left),
                 top: position.top + (event.screenY - dragStart!.top),
             });
+            setPosition(newPosition);
             setDragPosition(startPosition);
             setDragStart(null);
         },
@@ -155,6 +165,21 @@ function Dialog(
             </div>
         </dialog>
     );
+}
+
+function clampPosition(dialog: HTMLDialogElement, position: DialogPosition): DialogPosition {
+    const body = document.body;
+    const clientWidth = body.clientWidth;
+    const clientHeight = body.clientHeight;
+    const dialogWidth = dialog.offsetWidth;
+    const dialogHeight = dialog.offsetHeight;
+    const minLeft = (dialogWidth - clientWidth) / 2;
+    const maxLeft = (clientWidth - dialogWidth) / 2;
+    const minTop = (dialogHeight - clientHeight) / 2;
+    const maxTop = (clientHeight - dialogHeight) / 2;
+    const left = Math.max(Math.min(position.left, maxLeft), minLeft);
+    const top = Math.max(Math.min(position.top, maxTop), minTop);
+    return {left, top};
 }
 
 export default forwardRef<DialogHandle, DialogProps>(Dialog);

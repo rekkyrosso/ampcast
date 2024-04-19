@@ -193,12 +193,11 @@ async function testConnection(server: plex.Device, connection: plex.Connection):
     const name = server.name;
     const connectionType = connection.local ? 'local' : 'public';
     try {
-        await plexApi.fetch({
+        await plexApi.fetchJSON({
             host: connection.uri,
-            path: '/',
-            method: 'HEAD',
+            path: '/library/sections',
             token: server.accessToken,
-            timeout: 3000,
+            timeout: 5000,
         });
         connectionLogging$.next(`(${name}) ${connectionType} connection successful`);
         return true;
