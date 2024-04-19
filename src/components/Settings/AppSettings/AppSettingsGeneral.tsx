@@ -66,9 +66,7 @@ export default function AppSettingsGeneral() {
                         <p>
                             <label htmlFor={`${id}-web`}>Web:</label>
                             <output id={`${id}-web`}>
-                                <ExternalLink href={location.origin}>
-                                    {location.origin}
-                                </ExternalLink>
+                                <ExternalLink href={location.origin} />
                             </output>
                         </p>
                     </div>
@@ -77,14 +75,14 @@ export default function AppSettingsGeneral() {
                 <fieldset>
                     <legend>Download</legend>
                     <p className="service-link">
-                        <ExternalLink href={downloadUrl}>{downloadUrl.slice(8)}</ExternalLink>
+                        <ExternalLink href={downloadUrl} />
                     </p>
                 </fieldset>
             )}
             <fieldset>
                 <legend>Support</legend>
                 <p className="service-link">
-                    <ExternalLink href={supportUrl}>{supportUrl.slice(8)}</ExternalLink>
+                    <ExternalLink href={supportUrl} />
                 </p>
             </fieldset>
             <DialogButtons />

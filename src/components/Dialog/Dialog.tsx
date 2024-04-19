@@ -169,13 +169,15 @@ function Dialog(
 
 function clampPosition(dialog: HTMLDialogElement, position: DialogPosition): DialogPosition {
     const body = document.body;
+    const dragRegion = body.querySelector('.electron .app-drag-region') as HTMLElement | null;
+    const dragRegionHeight = dragRegion?.offsetHeight || 0;
     const clientWidth = body.clientWidth;
     const clientHeight = body.clientHeight;
     const dialogWidth = dialog.offsetWidth;
     const dialogHeight = dialog.offsetHeight;
     const minLeft = (dialogWidth - clientWidth) / 2;
     const maxLeft = (clientWidth - dialogWidth) / 2;
-    const minTop = (dialogHeight - clientHeight) / 2;
+    const minTop = (dialogHeight - clientHeight) / 2 + dragRegionHeight;
     const maxTop = (clientHeight - dialogHeight) / 2;
     const left = Math.max(Math.min(position.left, maxLeft), minLeft);
     const top = Math.max(Math.min(position.top, maxTop), minTop);
