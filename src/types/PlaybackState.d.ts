@@ -7,4 +7,5 @@ export default interface PlaybackState {
     readonly endedAt: number; // Ms
     readonly duration: number;
     readonly paused: boolean;
+    readonly playbackId: string;
 }

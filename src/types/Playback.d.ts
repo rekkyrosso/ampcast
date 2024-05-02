@@ -15,6 +15,7 @@ export default interface Playback {
     setCurrentTime(currentTime: number): void;
     getDuration(): number;
     setDuration(duration: number): void;
+    getPlaybackId(): string;
     play(): void;
     pause(): void;
     ready(): void;

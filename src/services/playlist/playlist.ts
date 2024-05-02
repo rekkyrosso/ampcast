@@ -12,7 +12,6 @@ import {
 } from 'rxjs';
 import {get as dbRead, set as dbWrite, createStore} from 'idb-keyval';
 import {nanoid} from 'nanoid';
-import {Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
@@ -330,19 +329,7 @@ export default playlist;
         dbRead<string>('currently-playing-id', playlistStore),
     ]);
     setCurrentItemId(id);
-    setItems(
-        // Upgrade legacy Plex items.
-        // TODO: Delete this in a later version.
-        items.map((item: Writable<PlaylistItem & {plex?: {ratingKey?: string}}>) => {
-            if (item.plex?.ratingKey) {
-                const [, type, src] = item.src.split(':');
-                item.src = `plex:${type}:${item.plex.ratingKey}`;
-                item.srcs = [src];
-                delete item.plex.ratingKey;
-            }
-            return item;
-        })
-    );
+    setItems(items);
 })();
 
 items$

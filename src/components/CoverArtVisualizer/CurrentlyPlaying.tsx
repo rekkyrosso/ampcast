@@ -124,7 +124,7 @@ export default function CurrentlyPlaying({item, hidden, onPaletteChange}: Curren
     );
 }
 
-export function ProvidedBy({item}: {item: PlaylistItem}) {
+function ProvidedBy({item}: {item: PlaylistItem}) {
     const service = getServiceFromSrc(item);
     return service && isPublicMediaService(service) ? (
         <MediaSourceLabel icon={service.icon} text={`Provided by ${service.name}`} />

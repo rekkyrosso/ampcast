@@ -19,7 +19,7 @@ import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
-import StreamingQuality from 'types/StreamingQuality';
+import PlexTidalStreamingQuality from './PlexTidalStreamingQuality';
 import actionsStore from 'services/actions/actionsStore';
 import {NoTidalSubscriptionError} from 'services/errors';
 import SimplePager from 'services/pagers/SimplePager';
@@ -324,15 +324,15 @@ function getPlayableUrl(item: PlayableItem): string {
         const srcs = item.srcs || [];
         let src: string | undefined = srcs[0];
         switch (plexSettings.streamingQuality) {
-            case StreamingQuality.Lossless:
+            case PlexTidalStreamingQuality.Lossless:
                 src = srcs[0];
                 break;
 
-            case StreamingQuality.High:
+            case PlexTidalStreamingQuality.High:
                 src = srcs[1];
                 break;
 
-            case StreamingQuality.Low:
+            case PlexTidalStreamingQuality.Low:
                 src = srcs[2];
                 break;
         }

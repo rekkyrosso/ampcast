@@ -1,3 +1,4 @@
+import {nanoid} from 'nanoid';
 import type {Observable} from 'rxjs';
 import {
     BehaviorSubject,
@@ -20,10 +21,20 @@ export const defaultPlaybackState: PlaybackState = {
     endedAt: 0,
     duration: 0,
     paused: true,
+    playbackId: '',
 };
 
+const newSession = () => ({
+    startedAt: 0,
+    endedAt: 0,
+    playbackId: nanoid(),
+});
+
 const playbackReady$ = new BehaviorSubject(false);
-const playbackState$ = new BehaviorSubject<PlaybackState>(defaultPlaybackState);
+const playbackState$ = new BehaviorSubject<PlaybackState>({
+    ...defaultPlaybackState,
+    ...newSession(),
+});
 
 export function observePlaybackReady(): Observable<void> {
     return playbackReady$.pipe(
@@ -83,6 +94,11 @@ export function observePaused(): Observable<boolean> {
     );
 }
 
+export function getPlaybackId(): string {
+    const state = playbackState$.getValue();
+    return state.playbackId;
+}
+
 function getCurrentTime(): number {
     return playbackState$.getValue().currentTime;
 }
@@ -94,7 +110,10 @@ function setCurrentTime(currentTime: number): void {
         0
     );
     if (currentTime !== state.currentTime) {
-        playbackState$.next({...state, currentTime});
+        playbackState$.next({
+            ...state,
+            currentTime,
+        });
     }
 }
 
@@ -107,21 +126,31 @@ function setDuration(duration: number): void {
     duration = Math.max(Math.floor(isFinite(duration) ? duration : 0), 0);
     if (duration !== state.duration) {
         const currentTime = Math.min(state.currentTime, duration);
-        playbackState$.next({...state, duration, currentTime});
+        playbackState$.next({
+            ...state,
+            duration,
+            currentTime,
+        });
     }
 }
 
 function play(): void {
     const state = playbackState$.getValue();
     if (state.currentItem && state.paused) {
-        playbackState$.next({...state, paused: false});
+        playbackState$.next({
+            ...state,
+            paused: false,
+        });
     }
 }
 
 function pause(): void {
     const state = playbackState$.getValue();
     if (!state.paused) {
-        playbackState$.next({...state, paused: true});
+        playbackState$.next({
+            ...state,
+            paused: true,
+        });
     }
 }
 
@@ -144,7 +173,10 @@ function stop(): void {
         };
         playbackState$.next(endedState);
         if (state.startedAt) {
-            playbackState$.next({...endedState, startedAt: 0, endedAt: 0});
+            playbackState$.next({
+                ...endedState,
+                ...newSession(),
+            });
         }
     }
 }
@@ -152,7 +184,10 @@ function stop(): void {
 function started(): void {
     const state = playbackState$.getValue();
     if (!state.startedAt) {
-        playbackState$.next({...state, startedAt: Date.now()});
+        playbackState$.next({
+            ...state,
+            startedAt: Date.now(),
+        });
     }
 }
 
@@ -162,23 +197,28 @@ function ended(): void {
         if (!state.endedAt) {
             playbackState$.next({...state, endedAt: Date.now()});
         }
-        playbackState$.next({...state, startedAt: 0, endedAt: 0});
+        playbackState$.next({
+            ...state,
+            ...newSession(),
+        });
     }
 }
 
 observeCurrentItem().subscribe((currentItem) => {
     const state = playbackState$.getValue();
     if (currentItem?.id === state.currentItem?.id) {
+        // Refresh the item, but no play states have changed.
         playbackState$.next({...state, currentItem});
     } else {
-        ended();
+        if (state.startedAt && !state.endedAt) {
+            playbackState$.next({...state, endedAt: Date.now()});
+        }
         playbackState$.next({
             ...state,
+            ...newSession(),
             currentItem,
             currentTime: 0,
             duration: currentItem?.duration || 0,
-            startedAt: 0,
-            endedAt: 0,
         });
     }
 });
@@ -199,6 +239,7 @@ const playback: Playback = {
     setCurrentTime,
     getDuration,
     setDuration,
+    getPlaybackId,
     play,
     pause,
     ready,

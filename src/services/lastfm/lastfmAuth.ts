@@ -58,6 +58,8 @@ export async function logout(): Promise<void> {
 async function obtainAccessToken(): Promise<string> {
     return new Promise((resolve, reject) => {
         const lastfmApiAuth = `https://www.last.fm/api/auth`;
+        const callback = `${location.origin}/auth/lastfm/callback/`;
+
         let authWindow: Window | null = null;
 
         const receiveMessage = (event: {origin: string; data: {token: string}}) => {
@@ -79,7 +81,7 @@ async function obtainAccessToken(): Promise<string> {
         window.addEventListener('message', receiveMessage, false);
 
         authWindow = window.open(
-            `${lastfmApiAuth}?api_key=${lastfmSettings.apiKey}`,
+            `${lastfmApiAuth}?api_key=${lastfmSettings.apiKey}&cb=${callback}`,
             'last.fm',
             'popup'
         );

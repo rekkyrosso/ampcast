@@ -5,6 +5,7 @@ import {am_dev_token, lf_api_key, sp_client_id, yt_client_id} from 'services/cre
 import TabList, {TabItem} from 'components/TabList';
 import AppleBetaSettings from 'services/apple/components/AppleBetaSettings';
 import AppleCredentials from 'services/apple/components/AppleCredentials';
+import AppleStreamingSettings from 'services/apple/components/AppleStreamingSettings';
 import LastFmCredentials from 'services/lastfm/components/LastFmCredentials';
 import PlexMediaLibrarySettings from 'services/plex/components/PlexMediaLibrarySettings';
 import PlexTidalStreamingSettings from 'services/plex/components/PlexTidalStreamingSettings';
@@ -65,7 +66,12 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
                 panel: <ScrobblingSettings service={service} />,
             });
         }
-        if (service.id === 'plex-tidal') {
+        if (service.id === 'apple') {
+            tabs.push({
+                tab: 'Streaming',
+                panel: <AppleStreamingSettings />,
+            });
+        } else if (service.id === 'plex-tidal') {
             tabs.push({
                 tab: 'Streaming',
                 panel: <PlexTidalStreamingSettings />,

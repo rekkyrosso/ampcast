@@ -10,17 +10,20 @@ export default async function showDialog(
         const rootElement = document.createElement('div');
         const root = createRoot(rootElement);
         try {
-            const close = (returnValue: string) => {
-                root.unmount();
-                rootElement.remove();
-                resolve(returnValue);
-            };
             document
                 .getElementById(
                     document.fullscreenElement ? 'fullscreen-popup' : system ? 'system' : 'popup'
                 )!
                 .append(rootElement);
-            root.render(<Dialog onClose={close} />);
+            root.render(
+                <Dialog
+                    onClose={(returnValue: string) => {
+                        root.unmount();
+                        rootElement.remove();
+                        resolve(returnValue);
+                    }}
+                />
+            );
         } catch (err) {
             root.unmount();
             rootElement.remove();

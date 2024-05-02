@@ -77,13 +77,15 @@ export default function TreeView<T>({
     const busy = keyboardBusy && !atEnd;
     const [debouncedValue, setDebouncedValue] = useState<T>(() => selectedValue);
 
-    const focus = useCallback(() => containerRef.current!.focus(), []);
-
     useEffect(() => {
         if (treeViewRef) {
-            treeViewRef.current = {focus};
+            treeViewRef.current = {
+                focus() {
+                    containerRef.current?.focus();
+                },
+            };
         }
-    }, [treeViewRef, focus]);
+    }, [treeViewRef]);
 
     useEffect(() => {
         if (noSelection) {

@@ -6,9 +6,7 @@ import spotifySettings from './spotifySettings';
 
 const logger = new Logger('spotifyAuth');
 
-const host = location.hostname;
-const base = host === 'localhost' ? `http://${host}:${location.port}` : `https://${host}`;
-const redirect_uri = `${base}/auth/spotify/callback/`;
+const redirect_uri = `${location.origin}/auth/spotify/callback/`;
 const spotifyAccounts = `https://accounts.spotify.com`;
 
 let code_challenge: string;

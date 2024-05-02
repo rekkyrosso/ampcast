@@ -12,6 +12,7 @@ import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import ViewType from 'types/ViewType';
+import {getPlaybackId} from 'services/mediaPlayback/playback';
 import {canPlayVideo, getContentType, groupBy} from 'utils';
 import embySettings, {EmbySettings} from './embySettings';
 
@@ -161,7 +162,7 @@ async function embyFetch(
     init: RequestInit,
     settings: EmbySettings = embySettings
 ): Promise<Response> {
-    const {host, device, deviceId, token} = settings;
+    const {apiHost, device, deviceId, token} = settings;
     if (!token) {
         throw Error('No access token');
     }
@@ -174,7 +175,7 @@ async function embyFetch(
         Accept: 'application/json',
         'X-Emby-Authorization': `MediaBrowser Client="${__app_name__}", Version="${__app_version__}", Device="${device}", DeviceId="${deviceId}", Token="${token}"`,
     };
-    const response = await fetch(`${host}/${path}`, init);
+    const response = await fetch(`${apiHost}/${path}`, init);
     if (!response.ok) {
         throw response;
     }
@@ -182,10 +183,10 @@ async function embyFetch(
 }
 
 function getPlayableUrl(item: PlayableItem, settings: EmbySettings = embySettings): string {
-    const {host, userId, token, deviceId, sessionId} = settings;
-    if (host && userId && token && deviceId) {
+    const {apiHost, userId, token, deviceId} = settings;
+    if (apiHost && userId && token && deviceId) {
         const [, type, id, mediaSourceId] = item.src.split(':');
-        const PlaySessionId = `${sessionId}-${id}`;
+        const PlaySessionId = getPlaybackId();
         if (type === 'video') {
             if (item.playbackType === PlaybackType.Direct) {
                 const videoParams = new URLSearchParams({
@@ -196,7 +197,7 @@ function getPlayableUrl(item: PlayableItem, settings: EmbySettings = embySetting
                     api_key: token,
                     PlaySessionId,
                 });
-                return `${host}/Videos/${id}/stream?${videoParams}`;
+                return `${apiHost}/Videos/${id}/stream?${videoParams}`;
             } else {
                 const videoParams = new URLSearchParams({
                     MediaSourceId: mediaSourceId || id,
@@ -207,7 +208,7 @@ function getPlayableUrl(item: PlayableItem, settings: EmbySettings = embySetting
                     AudioCodec: 'mp3,aac',
                     PlaySessionId,
                 });
-                return `${host}/Videos/${id}/master.m3u8?${videoParams}`;
+                return `${apiHost}/Videos/${id}/master.m3u8?${videoParams}`;
             }
         } else {
             const audioParams = new URLSearchParams({
@@ -225,7 +226,7 @@ function getPlayableUrl(item: PlayableItem, settings: EmbySettings = embySetting
                 StartTimeTicks: '0',
                 PlaySessionId,
             });
-            return `${host}/Audio/${id}/universal?${audioParams}`;
+            return `${apiHost}/Audio/${id}/universal?${audioParams}`;
         }
     } else {
         throw Error('Not logged in');
@@ -238,7 +239,7 @@ async function getPlaybackType(
 ): Promise<PlaybackType> {
     try {
         if (item.mediaType === MediaType.Video) {
-            const {host, userId, token, deviceId} = settings;
+            const {apiHost, userId, token, deviceId} = settings;
             const [, , id, mediaSourceId] = item.src.split(':');
             const videoParams = new URLSearchParams({
                 MediaSourceId: mediaSourceId || id,
@@ -247,7 +248,7 @@ async function getPlaybackType(
                 DeviceId: deviceId,
                 api_key: token,
             });
-            const url = `${host}/Videos/${id}/stream?${videoParams}`;
+            const url = `${apiHost}/Videos/${id}/stream?${videoParams}`;
             const directPlay = await canPlayVideo(url);
             return directPlay ? PlaybackType.Direct : PlaybackType.HLS;
         } else {

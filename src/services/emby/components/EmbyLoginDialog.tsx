@@ -26,8 +26,9 @@ export default function EmbyLoginDialog({service, settings, ...props}: EmbyLogin
     const login = useCallback(
         async (host: string, userName: string, password: string) => {
             const {device, deviceId} = settings;
+            const apiHost = service.id === 'emby' ? `${host}/emby` : host;
             const authorization = `MediaBrowser Client="${__app_name__}", Version="${__app_version__}", Device="${device}", DeviceId="${deviceId}"`;
-            const response = await fetch(`${host}/Users/AuthenticateByName`, {
+            const response = await fetch(`${apiHost}/Users/AuthenticateByName`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
@@ -50,7 +51,7 @@ export default function EmbyLoginDialog({service, settings, ...props}: EmbyLogin
 
             return JSON.stringify({serverId, userId, token});
         },
-        [settings]
+        [service, settings]
     );
 
     return <LoginDialog {...props} service={service} settings={settings} login={login} />;

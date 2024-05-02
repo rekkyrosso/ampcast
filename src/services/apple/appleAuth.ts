@@ -86,6 +86,7 @@ const musicKitPromise = new Promise<MusicKit.MusicKitInstance>((resolve, reject)
                 },
                 sourceType: 8, // "WEBPLAYER"
                 suppressErrorDialog: true,
+                bitrate: appleSettings.bitrate
             } as any);
             musicKit.addEventListener(MusicKit.Events.authorizationStatusDidChange, async () => {
                 const isLoggedIn = musicKit.isAuthorized;

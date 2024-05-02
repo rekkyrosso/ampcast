@@ -46,7 +46,7 @@ export default function AppleBetaSettings() {
                         defaultChecked={appleSettings.useMusicKitBeta}
                         ref={betaRef}
                     />
-                    <label htmlFor={`${id}-musickit-beta`}>Beta version</label>
+                    <label htmlFor={`${id}-musickit-beta`}>Beta version (recommended)</label>
                 </p>
             </fieldset>
             <div className="note">

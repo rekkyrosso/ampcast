@@ -1,6 +1,6 @@
 import React, {useCallback, useId, useRef} from 'react';
-import StreamingQuality from 'types/StreamingQuality';
 import DialogButtons from 'components/Dialog/DialogButtons';
+import PlexTidalStreamingQuality from '../PlexTidalStreamingQuality';
 import plexSettings from '../plexSettings';
 
 export default function PlexTidalStreamingSettings() {
@@ -10,7 +10,7 @@ export default function PlexTidalStreamingSettings() {
 
     const handleSubmit = useCallback(() => {
         plexSettings.streamingQuality =
-            ref.current!['streaming-quality']?.value ?? StreamingQuality.Lossless;
+            ref.current!['streaming-quality']?.value ?? PlexTidalStreamingQuality.Lossless;
     }, []);
 
     return (
@@ -26,19 +26,19 @@ export default function PlexTidalStreamingSettings() {
                     <input
                         type="radio"
                         name="streaming-quality"
-                        id={`${id}-lossless`}
-                        value={StreamingQuality.Lossless}
-                        defaultChecked={streamingQuality === StreamingQuality.Lossless}
+                        id={`${id}-low`}
+                        value={PlexTidalStreamingQuality.Low}
+                        defaultChecked={streamingQuality === PlexTidalStreamingQuality.Low}
                     />
-                    <label htmlFor={`${id}-lossless`}>Lossless</label>
+                    <label htmlFor={`${id}-low`}>Low</label>
                 </p>
                 <p>
                     <input
                         type="radio"
                         name="streaming-quality"
                         id={`${id}-high`}
-                        value={StreamingQuality.High}
-                        defaultChecked={streamingQuality === StreamingQuality.High}
+                        value={PlexTidalStreamingQuality.High}
+                        defaultChecked={streamingQuality === PlexTidalStreamingQuality.High}
                     />
                     <label htmlFor={`${id}-high`}>High</label>
                 </p>
@@ -46,11 +46,11 @@ export default function PlexTidalStreamingSettings() {
                     <input
                         type="radio"
                         name="streaming-quality"
-                        id={`${id}-low`}
-                        value={StreamingQuality.Low}
-                        defaultChecked={streamingQuality === StreamingQuality.Low}
+                        id={`${id}-lossless`}
+                        value={PlexTidalStreamingQuality.Lossless}
+                        defaultChecked={streamingQuality === PlexTidalStreamingQuality.Lossless}
                     />
-                    <label htmlFor={`${id}-low`}>Low</label>
+                    <label htmlFor={`${id}-lossless`}>Lossless</label>
                 </p>
             </fieldset>
             <DialogButtons />

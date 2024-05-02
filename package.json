@@ -1,6 +1,6 @@
 {
     "name": "ampcast",
-    "version": "0.9.5",
+    "version": "0.9.6",
     "description": "Ampcast music player",
     "homepage": "https://ampcast.app",
     "author": {
@@ -13,8 +13,8 @@
         "build:dev": "webpack --env mode=development --progress",
         "build:pwa": "webpack --env mode=production --env target=pwa",
         "build:electron": "webpack --env mode=production --env target=electron",
-        "start:dev": "node server.js",
-        "start:pwa": "node server.js --pwa"
+        "start:dev": "node server.js --dev",
+        "start:prod": "node server.js"
     },
     "license": "GPL-3.0",
     "dependencies": {
@@ -82,6 +82,7 @@
         "eslint-webpack-plugin": "^4.0.0",
         "express": "^4.18.1",
         "mini-css-extract-plugin": "^2.6.1",
+        "minimist": "^1.2.8",
         "musickit-typescript": "^1.2.4",
         "postcss": "^8.4.19",
         "postcss-loader": "^8.0.0",

@@ -1,4 +1,5 @@
 import React, {useCallback} from 'react';
+import {stopPropagation} from 'utils';
 import {hasSelectedNode, TreeNode} from './TreeView';
 
 export interface TreeViewNodeProps<T> extends TreeNode<T> {
@@ -33,10 +34,6 @@ export default function TreeViewNode<T>({
     const classNames = `${expandable ? 'expandable' : ''} ${expanded ? 'expanded' : ''} ${
         selected ? 'selected' : ''
     } ${children.length === 0 ? 'empty' : ''}`;
-
-    const stopPropagation = useCallback((event: React.SyntheticEvent) => {
-        event.stopPropagation();
-    }, []);
 
     const handleMouseDown = useCallback(
         (event: React.MouseEvent) => {

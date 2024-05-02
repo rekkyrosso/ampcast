@@ -40,6 +40,14 @@ npm run start:dev
 
 Navigate to http://localhost:8000 to run the app.
 
+Start the server with a different host/port:
+
+```bash
+npm run start:dev -- --host 0.0.0.0 --port 8001
+```
+
+You may get CORS errors using anything other than `localhost` but you have the option anyway.
+
 You can optionally create a `.env` file ([example](https://github.com/rekkyrosso/ampcast/blob/main/.env.example)) to store API keys and other config options.
 
 ## Contributing

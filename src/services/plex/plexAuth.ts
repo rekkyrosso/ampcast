@@ -77,9 +77,7 @@ async function obtainUserToken(): Promise<{id: string; serverToken: string; user
 
 async function obtainServerToken(): Promise<{id: string; serverToken: string}> {
     return new Promise((resolve, reject) => {
-        const host = location.hostname;
-        const base = host === 'localhost' ? `http://${host}:${location.port}` : `https://${host}`;
-        const forwardUrl = `${base}/auth/plex/callback/`;
+        const forwardUrl = `${location.origin}/auth/plex/callback/`;
         const plexAuthHost = `https://app.plex.tv/auth`;
 
         let authWindow: Window | null = null;

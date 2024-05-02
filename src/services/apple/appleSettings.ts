@@ -1,9 +1,18 @@
 import {am_dev_token} from 'services/credentials';
 import {LiteStorage} from 'utils';
+import AppleBitrate from './AppleBitrate';
 
 const storage = new LiteStorage('apple');
 
 export default {
+    get bitrate(): AppleBitrate {
+        return storage.getNumber('bitrate', AppleBitrate.Standard);
+    },
+
+    set bitrate(bitrate: AppleBitrate) {
+        storage.setNumber('bitrate', bitrate);
+    },
+
     get connectedAt(): number {
         return storage.getNumber('connectedAt');
     },

@@ -22,7 +22,7 @@ export default function embyScrobble(service: MediaService, settings: EmbySettin
         .pipe(
             switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackStart() : EMPTY)),
             filter(isValidItem),
-            mergeMap(({currentItem}) => reportStart(currentItem!, settings))
+            mergeMap(({currentItem, playbackId}) => reportStart(currentItem!, playbackId, settings))
         )
         .subscribe(logger);
 
@@ -31,8 +31,8 @@ export default function embyScrobble(service: MediaService, settings: EmbySettin
         .pipe(
             switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackEnd() : EMPTY)),
             filter(isValidItem),
-            mergeMap(({currentItem, currentTime}) =>
-                reportStop(currentItem!, currentTime, settings)
+            mergeMap(({currentItem, currentTime, playbackId}) =>
+                reportStop(currentItem!, currentTime, playbackId, settings)
             )
         )
         .subscribe(logger);
@@ -43,8 +43,15 @@ export default function embyScrobble(service: MediaService, settings: EmbySettin
             switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackProgress(10_000) : EMPTY)),
             filter(isValidItem),
             filter(({currentTime}) => currentTime > 0),
-            mergeMap(({currentItem, currentTime, paused}) =>
-                reportProgress(currentItem!, currentTime, paused, 'timeupdate', settings)
+            mergeMap(({currentItem, currentTime, paused, playbackId}) =>
+                reportProgress(
+                    currentItem!,
+                    currentTime,
+                    paused,
+                    'timeupdate',
+                    playbackId,
+                    settings
+                )
             )
         )
         .subscribe(logger);
@@ -62,12 +69,13 @@ export default function embyScrobble(service: MediaService, settings: EmbySettin
                       )
                     : EMPTY
             ),
-            mergeMap(({currentItem, currentTime, paused}) =>
+            mergeMap(({currentItem, currentTime, paused, playbackId}) =>
                 reportProgress(
                     currentItem!,
                     currentTime,
                     paused,
                     paused ? 'pause' : 'unpause',
+                    playbackId,
                     settings
                 )
             )

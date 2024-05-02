@@ -9,11 +9,9 @@ const packageJson = require('./package.json');
 module.exports = (args) => {
     const {mode = 'production', target = 'pwa'} = args;
     const __dev__ = mode === 'development';
-    const __electron__ = target === 'electron';
     const wwwDir = resolve(__dirname, __dev__ ? 'www-dev' : 'app/www');
-    dotenv.config({
-        path: __dev__ ? './.env' : __electron__ ? './.env.electron' : './.env.pwa',
-    });
+    // Use a local `.env` file (if it exists) associated with the target environment.
+    dotenv.config({path: __dev__ ? './.env' : `./.env.${target}`});
     const env = process.env;
 
     return {
@@ -116,10 +114,7 @@ module.exports = (args) => {
                         from: './src/html/index.html',
                         to: wwwDir,
                         transform(content) {
-                            return String(content).replace(
-                                /%version%/g,
-                                `/v${packageJson.version}`
-                            );
+                            return String(content).replace(/%version%/g, `v${packageJson.version}`);
                         },
                     },
                 ],

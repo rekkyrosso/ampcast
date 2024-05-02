@@ -10,6 +10,7 @@ declare namespace MusicKit {
         readonly queue: Queue;
         readonly isPlaying: boolean;
         readonly version: string;
+        bitrate: number;
         volume: number;
         clearQueue(): Promise<void>;
         pause(): Promise<void>;
