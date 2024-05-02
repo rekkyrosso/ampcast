@@ -19,7 +19,7 @@
     "devDependencies": {
         "@electron/notarize": "^2.2.1",
         "electron": "github:castlabs/electron-releases#v26.6.10+wvcus",
-        "electron-builder": "24.9.1"
+        "electron-builder": "^24.13.3"
     },
     "dependencies": {
         "electron-context-menu": "^3.6.1",
@@ -63,7 +63,8 @@
             "hardenedRuntime": true,
             "entitlements": "assets/entitlements.mac.plist",
             "entitlementsInherit": "assets/entitlements.mac.plist",
-            "gatekeeperAssess": false
+            "gatekeeperAssess": false,
+            "notarize": false
         },
         "win": {
             "target": [
