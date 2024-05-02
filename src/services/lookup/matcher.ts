@@ -6,6 +6,7 @@ import lookupSettings from './lookupSettings';
 
 const regFeaturedArtists = /\s*[\s[({](with\s|featuring\s|feat[\s.]+|ft[\s.]+).+$/i;
 
+// TODO: This is too slow for a large amount of items.
 export function findBestMatch<T extends MediaItem>(
     items: readonly MediaItem[],
     item: T,

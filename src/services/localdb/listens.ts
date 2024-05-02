@@ -100,13 +100,12 @@ export function findScrobble(
     }
 }
 
-export function findListen(item: MediaItem, timeFuzziness?: number): MediaItem | undefined {
-    const listens = getListens();
-    return findListenByPlayedAt(listens, item, timeFuzziness) || findBestMatch(listens, item);
+export function findListen(item: MediaItem): MediaItem | undefined {
+    // This is slow if you have a lot of listens.
+    return findListenByPlayedAt(item) || findBestMatch(getListens(), item);
 }
 
-function findListenByPlayedAt(
-    listens: readonly Listen[],
+export function findListenByPlayedAt(
     item: MediaItem,
     timeFuzziness = 5
 ): Listen | undefined {
@@ -114,6 +113,7 @@ function findListenByPlayedAt(
     if (!playedAt) {
         return undefined;
     }
+    const listens = getListens();
     for (let i = 0; i < listens.length; i++) {
         const prevListen = listens[i - 1];
         if (prevListen && prevListen.playedAt < playedAt) {

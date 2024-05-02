@@ -6,7 +6,7 @@ import MediaAlbum from 'types/MediaAlbum';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import Thumbnail from 'types/Thumbnail';
-import {findListen} from 'services/localdb/listens';
+import {findListenByPlayedAt} from 'services/localdb/listens';
 import {getEnabledServices} from 'services/mediaServices';
 import {getCoverArtThumbnails} from 'services/musicbrainz/coverart';
 import {getYouTubeVideoInfo} from 'services/youtube';
@@ -41,7 +41,7 @@ export default function CoverArt({item, size, className = '', onLoad, onError}: 
     useEffect(() => {
         if (!hasThumbnails) {
             if (item.itemType === ItemType.Media) {
-                const listen = findListen(item);
+                const listen = findListenByPlayedAt(item);
                 const hasThumbnail = !!listen?.thumbnails?.[0];
                 if (hasThumbnail) {
                     setThumbnails(listen.thumbnails);
