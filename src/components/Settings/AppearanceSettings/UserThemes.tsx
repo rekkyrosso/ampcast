@@ -25,7 +25,7 @@ export default function UserThemes() {
         if (renamed) {
             const rowIndex = themes.findIndex((theme) => theme.name === renamed);
             if (rowIndex !== -1) {
-                listViewRef.current!.selectAt(rowIndex);
+                listViewRef.current!.scrollIntoView(rowIndex);
                 setRenamed('');
             }
         }
@@ -69,7 +69,6 @@ export default function UserThemes() {
             const confirmed = await confirmDeleteTheme(name);
             if (confirmed) {
                 await themeStore.remove(name);
-                setSelectedThemes([]);
             }
         }
     }, [selectedTheme]);

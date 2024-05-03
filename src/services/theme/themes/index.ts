@@ -6,10 +6,14 @@ import debug from './debug.json';
 import glacier from './glacier.json';
 import indigo from './indigo.json';
 import moodyblue from './moodyblue.json';
+import neon from './neon.json';
 import palepink from './palepink.json';
+import potpourri from './potpourri.json';
+import proton from './proton.json';
 import purplelicious from './purplelicious.json';
 import radioactive from './radioactive.json';
 import saddle from './saddle.json';
+import treasure from './treasure.json';
 import velvet from './velvet.json';
 import winampClassic from './winamp-classic.json';
 import winampModern from './winamp-modern.json';
@@ -47,10 +51,14 @@ const themes: readonly Theme[] = [
     glacier,
     indigo,
     moodyblue,
+    neon,
     palepink,
+    potpourri,
+    proton,
     purplelicious,
     radioactive,
     saddle,
+    treasure,
     velvet,
     winampClassic,
     winampModern,

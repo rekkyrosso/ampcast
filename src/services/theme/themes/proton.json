@@ -1,0 +1,14 @@
+{
+    "name": "Proton",
+    "backgroundColor": "#120f0c",
+    "textColor": "#c4c7b8",
+    "frameColor": "#121211",
+    "frameTextColor": "#72bba4",
+    "selectedBackgroundColor": "#27493f",
+    "selectedTextColor": "#e6e8de",
+    "mediaButtonColor": "#a5b361",
+    "mediaButtonTextColor": "#10100b",
+    "spacing": 0.375,
+    "roundness": 0.53125,
+    "flat": true
+}

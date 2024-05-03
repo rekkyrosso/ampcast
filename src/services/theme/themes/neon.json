@@ -1,0 +1,14 @@
+{
+    "name": "Neon",
+    "backgroundColor": "#010123",
+    "textColor": "#7edbdd",
+    "frameColor": "#610a51",
+    "frameTextColor": "#fec3f3",
+    "selectedBackgroundColor": "#43304b",
+    "selectedTextColor": "#ffffff",
+    "mediaButtonColor": "#f2d202",
+    "mediaButtonTextColor": "#160914",
+    "spacing": 0.59,
+    "roundness": 0.62,
+    "flat": false
+}

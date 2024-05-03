@@ -1,0 +1,14 @@
+{
+    "name": "Potpourri",
+    "backgroundColor": "#f9f8dd",
+    "textColor": "#000000",
+    "frameColor": "#beaee0",
+    "frameTextColor": "#000000",
+    "selectedBackgroundColor": "#fcccc2",
+    "selectedTextColor": "#000000",
+    "mediaButtonColor": "#dfd8f3",
+    "mediaButtonTextColor": "#000000",
+    "spacing": 0.38,
+    "roundness": 0.67,
+    "flat": true
+}
