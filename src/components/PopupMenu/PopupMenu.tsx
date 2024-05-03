@@ -32,7 +32,7 @@ export default function PopupMenu<T extends string>({
     const ref = useRef<HTMLUListElement>(null);
     const restoreRef = useRef<HTMLElement>(document.activeElement as HTMLElement);
     const [style, setStyle] = useState<React.CSSProperties>({visibility: 'hidden'});
-    const [buttons, setButtons] = useState<HTMLButtonElement[]>([]);
+    const [focusable, setFocusable] = useState(false);
     const [buttonId, setButtonId] = useState('');
 
     if (popupRef) {
@@ -42,9 +42,6 @@ export default function PopupMenu<T extends string>({
     useEffect(() => {
         const style: React.CSSProperties = {};
         const popup = ref.current!;
-        const buttons = Array.from(
-            popup.querySelectorAll<HTMLButtonElement>(':scope > li > button')
-        );
         if (align === 'right' || x + popup.offsetWidth > document.body.clientWidth) {
             style.left = `${x - popup.offsetWidth}px`;
         } else {
@@ -58,17 +55,20 @@ export default function PopupMenu<T extends string>({
         if (hidden) {
             style.visibility = 'hidden';
         }
-        setButtons(buttons);
         setStyle(style);
+        setFocusable(!hidden);
     }, [align, x, y, hidden]);
 
     useEffect(() => {
-        const button = buttons.find((button) => !button.disabled);
-        setButtonId(button?.id || '');
-        if (autoFocus && button) {
-            button.focus();
+        if (focusable && autoFocus) {
+            const buttons = getButtons(ref.current);
+            const button = buttons.find((button) => !button.disabled);
+            setButtonId(button?.id || '');
+            if (button) {
+                button.focus();
+            }
         }
-    }, [buttons, autoFocus]);
+    }, [focusable, autoFocus]);
 
     useEffect(() => {
         if (onClose) {
@@ -109,25 +109,23 @@ export default function PopupMenu<T extends string>({
         [onClose]
     );
 
-    const handleKeyDown = useCallback(
-        (event: React.KeyboardEvent) => {
-            let currentIndex = buttons.indexOf(document.activeElement as HTMLButtonElement);
-            if (event.code === 'ArrowDown') {
-                event.stopPropagation();
-                currentIndex++;
-            } else if (event.code === 'ArrowUp') {
-                event.stopPropagation();
-                currentIndex--;
-            }
-            currentIndex = Math.min(Math.max(currentIndex, 0), buttons.length - 1);
-            const button = buttons[currentIndex];
-            if (button && !button.disabled) {
-                button.focus();
-                setButtonId(button.id);
-            }
-        },
-        [buttons]
-    );
+    const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
+        const buttons = getButtons(ref.current);
+        let currentIndex = buttons.indexOf(document.activeElement as HTMLButtonElement);
+        if (event.code === 'ArrowDown') {
+            event.stopPropagation();
+            currentIndex++;
+        } else if (event.code === 'ArrowUp') {
+            event.stopPropagation();
+            currentIndex--;
+        }
+        currentIndex = Math.min(Math.max(currentIndex, 0), buttons.length - 1);
+        const button = buttons[currentIndex];
+        if (button && !button.disabled) {
+            button.focus();
+            setButtonId(button.id);
+        }
+    }, []);
 
     const handleMouseOver = useCallback((event: React.MouseEvent) => {
         let button: any = event.target;
@@ -159,4 +157,8 @@ export default function PopupMenu<T extends string>({
             {children}
         </ul>
     );
+}
+
+function getButtons(menu: HTMLElement | null): readonly HTMLButtonElement[] {
+    return menu ? Array.from(menu.querySelectorAll<HTMLButtonElement>(':scope > li > button')) : [];
 }
