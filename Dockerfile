@@ -33,4 +33,4 @@ USER node
 EXPOSE 8000
 
 # start app
-CMD ["npm", "run", "start:prod -- --host 0.0.0.0"]
+CMD ["npm", "run", "start:prod", "--host 0.0.0.0"]
