@@ -1,4 +1,5 @@
 import React, {Children, useCallback, useEffect, useRef, useState} from 'react';
+import {Subscription, fromEvent} from 'rxjs';
 import useFontSize from 'hooks/useFontSize';
 import useOnResize from 'hooks/useOnResize';
 import LayoutPane from './LayoutPane';
@@ -80,25 +81,28 @@ export default function Splitter({
         [vertical, primaryIndex, dragStartPos, dragStartSize, setSecondaryPaneSize]
     );
 
-    const handleMouseUp = useCallback(() => {
+    const endDrag = useCallback(() => {
         setDragStartPos(-1);
         setDragStartSize(0);
     }, []);
 
     useEffect(() => {
         if (dragging) {
-            document.documentElement.style.cursor = vertical ? 'ns-resize' : 'ew-resize';
-            document.body.classList.add('dragging');
-            document.addEventListener('mouseup', handleMouseUp);
-            document.addEventListener('mousemove', handleMouseMove);
+            const {documentElement: html, body} = document;
+            html.style.cursor = vertical ? 'ns-resize' : 'ew-resize';
+            body.classList.add('dragging');
+            const subscription = new Subscription();
+            const fromMouseEvent = (type: string) => fromEvent<MouseEvent>(document, type);
+            subscription.add(fromMouseEvent('mouseup').subscribe(endDrag));
+            subscription.add(fromMouseEvent('mousemove').subscribe(handleMouseMove));
+            subscription.add(fromEvent(window, 'blur').subscribe(endDrag));
             return () => {
-                document.documentElement.style.cursor = '';
-                document.body.classList.remove('dragging');
-                document.removeEventListener('mouseup', handleMouseUp);
-                document.removeEventListener('mousemove', handleMouseMove);
+                html.style.cursor = '';
+                body.classList.remove('dragging');
+                subscription.unsubscribe();
             };
         }
-    }, [vertical, dragging, handleMouseMove, handleMouseUp]);
+    }, [vertical, dragging, handleMouseMove, endDrag]);
 
     useOnResize(containerRef, ({width, height}) => {
         setContainerSize(vertical ? height : width);

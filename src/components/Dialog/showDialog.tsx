@@ -12,7 +12,7 @@ export default async function showDialog(
         try {
             document
                 .getElementById(
-                    document.fullscreenElement ? 'fullscreen-popup' : system ? 'system' : 'popup'
+                    document.fullscreenElement ? 'fullscreen-popup' : system ? 'system' : 'app'
                 )!
                 .append(rootElement);
             root.render(

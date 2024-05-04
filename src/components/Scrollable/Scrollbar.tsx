@@ -1,5 +1,16 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
-import {EMPTY, filter, fromEvent, map, merge, startWith, switchMap, takeUntil, timer} from 'rxjs';
+import {
+    EMPTY,
+    Subscription,
+    filter,
+    fromEvent,
+    map,
+    merge,
+    startWith,
+    switchMap,
+    takeUntil,
+    timer,
+} from 'rxjs';
 import {cancelEvent} from 'utils';
 import useOnResize from 'hooks/useOnResize';
 import useScrollbarState from './useScrollbarState';
@@ -101,7 +112,7 @@ function Scrollbar({
     const handleDecrementMouseDown = useCallback(
         (event: React.MouseEvent) => {
             if (event.button === 0) {
-                return startScroll(event.target as HTMLElement, -scrollAmount);
+                startScroll(event.target as HTMLElement, -scrollAmount);
             }
         },
         [scrollAmount, startScroll]
@@ -110,7 +121,7 @@ function Scrollbar({
     const handleIncrementMouseDown = useCallback(
         (event: React.MouseEvent) => {
             if (event.button === 0) {
-                return startScroll(event.target as HTMLElement, scrollAmount);
+                startScroll(event.target as HTMLElement, scrollAmount);
             }
         },
         [scrollAmount, startScroll]
@@ -120,7 +131,7 @@ function Scrollbar({
         (event: React.MouseEvent) => {
             if (event.button === 0) {
                 const position = vertical ? event.nativeEvent.offsetY : event.nativeEvent.offsetX;
-                return startScroll(
+                startScroll(
                     event.target as HTMLElement,
                     position < thumbPosition ? -clientSize : clientSize
                 );
@@ -149,7 +160,7 @@ function Scrollbar({
         [vertical, dragStart, dragThumbPosition, max, thumbSize, trackSize, scrollTo]
     );
 
-    const handleMouseUp = useCallback(() => {
+    const endDrag = useCallback(() => {
         setDragStart(-1);
         setDragThumbPosition(0);
     }, []);
@@ -157,15 +168,17 @@ function Scrollbar({
     useEffect(() => {
         if (dragging) {
             document.body.classList.add('dragging');
-            document.addEventListener('mouseup', handleMouseUp);
-            document.addEventListener('mousemove', handleMouseMove);
+            const subscription = new Subscription();
+            const fromMouseEvent = (type: string) => fromEvent<MouseEvent>(document, type);
+            subscription.add(fromMouseEvent('mouseup').subscribe(endDrag));
+            subscription.add(fromMouseEvent('mousemove').subscribe(handleMouseMove));
+            subscription.add(fromEvent(window, 'blur').subscribe(endDrag));
             return () => {
                 document.body.classList.remove('dragging');
-                document.removeEventListener('mouseup', handleMouseUp);
-                document.removeEventListener('mousemove', handleMouseMove);
+                subscription.unsubscribe();
             };
         }
-    }, [dragging, handleMouseMove, handleMouseUp]);
+    }, [dragging, handleMouseMove, endDrag]);
 
     return (
         <div

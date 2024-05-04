@@ -49,7 +49,7 @@
         "youtube-player": "^5.5.2"
     },
     "devDependencies": {
-        "@jellyfin/client-axios": "^10.7.8",
+        "@jellyfin/sdk": "^0.8.2",
         "@types/apple-music-api": "^0.4.1",
         "@types/d3-array": "^3.0.3",
         "@types/d3-interpolate": "^3.0.1",

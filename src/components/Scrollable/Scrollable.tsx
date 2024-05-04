@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import {interval} from 'rxjs';
 import {partition} from 'utils';
-import useOnResize from 'hooks/useOnResize';
+import useOnResize, {ResizeRect} from 'hooks/useOnResize';
 import FixedHeader from './FixedHeader';
 import Scrollbar, {ScrollbarHandle} from './Scrollbar';
 import './Scrollable.scss';
@@ -52,27 +52,22 @@ export default function Scrollable({
     const vScrollbarRef = useRef<ScrollbarHandle>(null);
     const [hScrollbarSize, setHScrollbarSize] = useState(0);
     const [vScrollbarSize, setVScrollbarSize] = useState(0);
-    const [offsetTop, setOffsetTop] = useState(0);
     const [scrollLeft, setScrollLeft] = useState(0);
     const [scrollTop, setScrollTop] = useState(0);
-    const [scrollWidth, setScrollWidth] = useState(initialScrollWidth);
-    const [scrollHeight, setScrollHeight] = useState(initialScrollHeight);
-    const [innerWidth, setInnerWidth] = useState(0);
-    const [innerHeight, setInnerHeight] = useState(0);
+    const [scrollRect, setScrollRect] = useState<ResizeRect>(() => ({
+        width: initialScrollWidth,
+        height: initialScrollHeight,
+    }));
+    const scrollWidth = scrollRect.width;
+    const scrollHeight = scrollRect.height;
+    const [innerRect, setInnerRect] = useState<ResizeRect>(() => ({width: 0, height: 0}));
+    const innerWidth = innerRect.width;
+    const innerHeight = innerRect.height;
     const [overflowX, setOverflowX] = useState(false);
     const [overflowY, setOverflowY] = useState(false);
     const [dragOver, setDragOver] = useState(0);
     const clientWidth = Math.max(innerWidth - (overflowY ? vScrollbarSize : 0), 0);
     const clientHeight = Math.max(innerHeight - (overflowX ? hScrollbarSize : 0), 0);
-
-    // TODO: Fix this component so that is doesn't re-layout so much.
-    const [scrollbarsHidden, setScrollbarsHidden] = useState(true);
-    useEffect(() => {
-        if (overflowX || overflowY) {
-            const timerId = setTimeout(() => setScrollbarsHidden(false), 50);
-            return () => clearTimeout(timerId);
-        }
-    }, [overflowX, overflowY]);
 
     useEffect(() => {
         if (scrollableRef) {
@@ -106,43 +101,28 @@ export default function Scrollable({
     }, [scrollHeight, clientHeight]);
 
     useEffect(() => {
-        if (initialScrollWidth === 0) {
-            setScrollWidth(contentRef.current?.scrollWidth || 0);
-        } else {
-            setScrollWidth(initialScrollWidth);
-        }
-    }, [initialScrollWidth]);
+        const width = initialScrollWidth || contentRef.current?.scrollWidth || 0;
+        const height = initialScrollHeight || contentRef.current?.scrollHeight || 0;
+        setScrollRect({width, height});
+    }, [initialScrollWidth, initialScrollHeight]);
 
-    useEffect(() => {
-        if (initialScrollHeight === 0) {
-            setScrollHeight(contentRef.current?.scrollHeight || 0);
-        } else {
-            setScrollHeight(initialScrollHeight);
-        }
-    }, [initialScrollHeight]);
-
-    const onContainerResize = useCallback(() => {
-        const container = containerRef.current!;
-        setInnerWidth(container.clientWidth);
-        setInnerHeight(container.clientHeight);
-        setOffsetTop(container.getBoundingClientRect().top);
-    }, []);
-
-    const onContentResize = useCallback(() => {
+    const onContentResize = () => {
         const content = contentRef.current!;
         const bodyContent = bodyContentRef.current!;
-        if (initialScrollWidth === 0) {
-            setScrollWidth(content.scrollWidth);
+        const width = initialScrollWidth === 0 ? content.scrollWidth : scrollWidth;
+        const height =
+            initialScrollHeight === 0
+                ? bodyContent.scrollHeight + (headRef.current?.clientHeight || 0)
+                : scrollHeight;
+        setScrollRect({width, height});
+        if (onResize) {
+            const {clientWidth, clientHeight} = content;
+            const {scrollWidth, scrollHeight} = bodyContent;
+            onResize({clientWidth, clientHeight, scrollWidth, scrollHeight});
         }
-        if (initialScrollHeight === 0) {
-            setScrollHeight(bodyContent.scrollHeight + (headRef.current?.clientHeight || 0));
-        }
-        const {clientWidth, clientHeight} = content;
-        const {scrollWidth, scrollHeight} = bodyContent;
-        onResize?.({clientWidth, clientHeight, scrollWidth, scrollHeight});
-    }, [initialScrollWidth, initialScrollHeight, onResize]);
+    };
 
-    useOnResize(containerRef, onContainerResize);
+    useOnResize(containerRef, setInnerRect);
     useOnResize(contentRef, onContentResize);
     useOnResize(bodyContentRef, onContentResize);
 
@@ -160,6 +140,7 @@ export default function Scrollable({
     const handleDragOver = useCallback(
         (event: React.DragEvent) => {
             const clientY = event.nativeEvent.clientY;
+            const offsetTop = containerRef.current!.getBoundingClientRect().top;
             const offsetY = clientY - offsetTop;
             if (offsetY + scrollAmount / 2 > innerHeight) {
                 setDragOver(scrollAmount);
@@ -167,7 +148,7 @@ export default function Scrollable({
                 setDragOver(-scrollAmount);
             }
         },
-        [offsetTop, innerHeight, scrollAmount]
+        [innerHeight, scrollAmount]
     );
 
     useEffect(() => {
@@ -190,7 +171,7 @@ export default function Scrollable({
         <div
             className={`scrollable ${overflowX ? 'overflow-x' : ''} ${
                 overflowY ? 'overflow-y' : ''
-            } ${scrollbarsHidden ? 'scrollbars-hidden' : ''}`}
+            }`}
             id={scrollableId}
             onWheel={handleWheel}
             ref={containerRef}

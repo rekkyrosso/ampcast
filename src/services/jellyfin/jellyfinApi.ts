@@ -2,7 +2,7 @@ import type {
     BaseItemDto,
     BaseItemDtoQueryResult,
     EndPointInfo,
-} from '@jellyfin/client-axios/dist/models';
+} from '@jellyfin/sdk/lib/generated-client';
 import {Primitive} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaFilter from 'types/MediaFilter';

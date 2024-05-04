@@ -132,7 +132,8 @@ export default function ListView<T>({
     const showTitles = layout.view === 'details' && layout.showTitles;
     const sizeable = layout.view === 'details' && layout.sizeable;
     const [rowIndex, setRowIndex] = useState(-1);
-    const [scrollTop, setScrollTop] = useState(0);
+    const [scrollPosition, setScrollPosition] = useState<ScrollablePosition>({left: 0, top: 0});
+    const scrollTop = scrollPosition.top;
     const [clientHeight, setClientHeight] = useState(0);
     const [clientWidth, setClientWidth] = useState(0);
     const [rowHeight, setRowHeight] = useState(0);
@@ -402,10 +403,6 @@ export default function ListView<T>({
         setClientHeight(clientHeight);
     }, []);
 
-    const handleScroll = useCallback(({top}: ScrollablePosition) => {
-        setScrollTop(top);
-    }, []);
-
     useOnResize(cursorRef, ({height}) => setRowHeight(height), 'border-box');
 
     // TODO: This should probably be on `MediaList`.
@@ -623,7 +620,7 @@ export default function ListView<T>({
                 scrollAmount={rowHeight}
                 droppable={droppable || (reorderable && isDragging)}
                 onResize={handleResize}
-                onScroll={handleScroll}
+                onScroll={setScrollPosition}
                 scrollableRef={scrollableRef}
             >
                 {showTitles && (

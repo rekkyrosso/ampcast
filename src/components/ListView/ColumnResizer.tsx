@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
+import {Subscription, fromEvent} from 'rxjs';
 import {Column} from './ListView';
 
 export interface ColumnResizerProps {
@@ -32,25 +33,28 @@ export default function ColumnResizer({col, onResize}: ColumnResizerProps) {
         [dragStartX, dragWidth, index, onResize]
     );
 
-    const handleMouseUp = useCallback(() => {
+    const endDrag = useCallback(() => {
         setDragStartX(-1);
         setDragWidth(0);
     }, []);
 
     useEffect(() => {
         if (dragging) {
-            document.documentElement.style.cursor = 'col-resize';
-            document.body.classList.add('dragging');
-            document.addEventListener('mouseup', handleMouseUp);
-            document.addEventListener('mousemove', handleMouseMove);
+            const {documentElement: html, body} = document;
+            html.style.cursor = 'col-resize';
+            body.classList.add('dragging');
+            const subscription = new Subscription();
+            const fromMouseEvent = (type: string) => fromEvent<MouseEvent>(document, type);
+            subscription.add(fromMouseEvent('mouseup').subscribe(endDrag));
+            subscription.add(fromMouseEvent('mousemove').subscribe(handleMouseMove));
+            subscription.add(fromEvent(window, 'blur').subscribe(endDrag));
             return () => {
-                document.documentElement.style.cursor = '';
-                document.body.classList.remove('dragging');
-                document.removeEventListener('mouseup', handleMouseUp);
-                document.removeEventListener('mousemove', handleMouseMove);
+                html.style.cursor = '';
+                body.classList.remove('dragging');
+                subscription.unsubscribe();
             };
         }
-    }, [dragging, handleMouseMove, handleMouseUp]);
+    }, [dragging, handleMouseMove, endDrag]);
 
     return (
         <span

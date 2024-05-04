@@ -6,7 +6,7 @@ import React, {
     useRef,
     useState,
 } from 'react';
-import {fromEvent} from 'rxjs';
+import {Subscription, fromEvent} from 'rxjs';
 import {Except} from 'type-fest';
 import {stopPropagation} from 'utils';
 import Icon from 'components/Icon';
@@ -122,15 +122,20 @@ function Dialog(
 
     useEffect(() => {
         if (dragStart) {
-            document.documentElement.style.cursor = 'default';
             document.body.classList.add('dragging');
-            document.addEventListener('mouseup', handleMouseUp);
-            document.addEventListener('mousemove', handleMouseMove);
+            const fromMouseEvent = (type: string) => fromEvent<MouseEvent>(document, type);
+            const subscription = new Subscription();
+            subscription.add(fromMouseEvent('mouseup').subscribe(handleMouseUp));
+            subscription.add(fromMouseEvent('mousemove').subscribe(handleMouseMove));
+            subscription.add(
+                fromEvent(window, 'blur').subscribe(() => {
+                    setDragPosition(startPosition);
+                    setDragStart(null);
+                })
+            );
             return () => {
-                document.documentElement.style.cursor = '';
                 document.body.classList.remove('dragging');
-                document.removeEventListener('mouseup', handleMouseUp);
-                document.removeEventListener('mousemove', handleMouseMove);
+                subscription.unsubscribe();
             };
         }
     }, [dragStart, handleMouseMove, handleMouseUp]);

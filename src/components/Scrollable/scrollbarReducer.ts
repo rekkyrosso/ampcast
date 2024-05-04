@@ -10,7 +10,10 @@ export type ScrollbarAction =
     | {type: 'scrollBy'; amount: number}
     | {type: 'scrollTo'; position: number};
 
-export default function scrollbarReducer(state: ScrollbarState, action: ScrollbarAction): ScrollbarState {
+export default function scrollbarReducer(
+    state: ScrollbarState,
+    action: ScrollbarAction
+): ScrollbarState {
     switch (action.type) {
         case 'resize': {
             const clientSize = Math.max(action.clientSize, 0);
