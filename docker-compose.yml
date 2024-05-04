@@ -1,0 +1,20 @@
+version: "3.8"
+
+x-logging:
+  &default-logging
+  driver: "json-file"
+  options:
+    max-size: "100m"
+    max-file: "10"
+    tag: "{{.Name}}"
+
+services:
+  ampcast:
+    container_name: ampcast
+    image: ghcr.io/rekkyrosso/ampcast:latest
+    restart: unless-stopped
+    #volumes:
+    #  - /path/to/.env:/app/.env
+    ports:
+      - 8000:8000
+    logging: *default-logging

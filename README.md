@@ -21,6 +21,19 @@ Download from https://github.com/rekkyrosso/ampcast/releases.
 
 ## Self-hosting
 
+### Docker
+
+Docker images are hosted on `ghcr.io` and are available to view [here](https://github.com/rekkyrosso/ampcast/pkgs/container/ampcast).
+
+Run the container:
+
+```bash
+# Run the latest version
+docker run --name ampcast -p 8000:8000 ghcr.io/rekkyrosso/ampcast:latest
+```
+
+### From source code
+
 Requires Node >= 20.
 
 ```bash
