@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import {
     EMPTY,
     Subscription,
@@ -62,7 +62,7 @@ function Scrollbar({
         [props.clientSize, props.scrollSize, resize]
     );
 
-    useEffect(() => onChange?.(position), [position, onChange]);
+    useLayoutEffect(() => onChange?.(position), [position, onChange]);
     useEffect(() => onResize?.(size), [size, onResize]);
 
     useOnResize(

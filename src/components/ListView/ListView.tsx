@@ -90,7 +90,6 @@ export interface ListViewProps<T> {
     listViewRef?: React.MutableRefObject<ListViewHandle | null>;
 }
 
-const emptyArray: any[] = [];
 const emptyString = () => '';
 
 const scrollKeys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown'];
@@ -143,11 +142,8 @@ export default function ListView<T>({
         ? Math.max(Math.floor(clientHeight / rowHeight), 1) - (showTitles ? 1 : 0)
         : 0;
     const size = items.length;
-    const {selectedItems, selectAll, selectAt, selectRange, toggleSelectionAt} = useSelectedItems(
-        items,
-        itemKey,
-        rowIndex
-    );
+    const {selectedItems, selectedIds, selectAll, selectAt, selectRange, toggleSelectionAt} =
+        useSelectedItems(items, itemKey, rowIndex);
     const hasSelection = selectedItems.length > 0;
     const fontSize = useFontSize();
     const [rangeSelectionStart, setRangeSelectionStart] = useState(-1);
@@ -167,10 +163,6 @@ export default function ListView<T>({
     const [dragItem1, dragItem2, dragItem3, dragItem4] =
         draggable || reorderable ? selectedItems : [];
     const selectedId = items[rowIndex] ? `${listViewId}-${items[rowIndex][itemKey]}` : '';
-    const selectedIds = useMemo(
-        () => selectedItems.map((item) => item[itemKey]),
-        [selectedItems, itemKey]
-    );
 
     const focus = useCallback(() => containerRef.current?.focus(), []);
 
@@ -307,13 +299,12 @@ export default function ListView<T>({
 
                 case 'Space':
                     event.preventDefault();
+                    event.stopPropagation();
                     if (!event.repeat) {
                         if (event[browser.ctrlKey]) {
-                            event.stopPropagation();
                             toggleSelectionAt(rowIndex); // toggle selected state
-                        } else if (!selectedItems.includes(items[rowIndex])) {
-                            event.stopPropagation();
-                            toggleSelectionAt(rowIndex, true); // force selected state
+                        } else {
+                            selectAt(rowIndex);
                         }
                     }
                     break;
@@ -645,7 +636,7 @@ export default function ListView<T>({
                     itemClassName={itemClassName}
                     listViewId={listViewId}
                     selectedId={selectedId}
-                    selectedIds={disabled ? emptyArray : selectedIds}
+                    selectedIds={disabled ? {} : selectedIds}
                     scrollTop={scrollTop}
                     dragIndex={dragIndex}
                     draggable={disabled ? false : draggable || reorderable}

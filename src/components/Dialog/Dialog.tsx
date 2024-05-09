@@ -174,7 +174,7 @@ function Dialog(
 
 function clampPosition(dialog: HTMLDialogElement, position: DialogPosition): DialogPosition {
     const body = document.body;
-    const dragRegion = body.querySelector('.electron .app-drag-region') as HTMLElement | null;
+    const dragRegion = body.querySelector('.app-drag-region') as HTMLElement | null;
     const dragRegionHeight = dragRegion?.offsetHeight || 0;
     const clientWidth = body.clientWidth;
     const clientHeight = body.clientHeight;

@@ -14,7 +14,7 @@ export interface ListViewBodyProps<T> {
     itemKey: ConditionalKeys<T, string | number>;
     itemClassName: (item: T) => string;
     selectedId: string;
-    selectedIds: T[ConditionalKeys<T, string | number>][];
+    selectedIds: Record<string, boolean>;
     scrollTop: number;
     overScan?: number;
     draggable?: boolean;
@@ -67,7 +67,7 @@ export default function ListViewBody<T>({
                     id={`${listViewId}-${item[itemKey]}`}
                     rowIndex={virtualStart + i}
                     height={rowHeight}
-                    selected={item ? selectedIds.includes(item[itemKey]) : false}
+                    selected={item ? (item[itemKey] as string) in selectedIds : false}
                     cols={cols}
                     item={item}
                     setSize={size}

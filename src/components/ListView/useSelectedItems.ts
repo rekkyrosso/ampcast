@@ -1,79 +1,105 @@
+import {useCallback, useEffect, useMemo, useState} from 'react';
+import {ConditionalKeys} from 'type-fest';
 import usePrevious from 'hooks/usePrevious';
-import {useCallback, useEffect, useState} from 'react';
 import {exists} from 'utils';
 
 export default function useSelectedItems<T>(
     items: readonly T[],
-    itemKey: keyof T,
+    itemKey: ConditionalKeys<T, string | number>,
     rowIndex: number
 ) {
-    const [selectedItems, setSelectedItems] = useState<readonly T[]>([]);
     const prevItems = usePrevious(items);
+    const [selectedItems, setSelectedItems] = useState<readonly T[]>([]);
+    const selectedIds = useMemo(
+        () => getSelectedIds(selectedItems, itemKey),
+        [selectedItems, itemKey]
+    );
 
     useEffect(() => {
         // Make sure that `selectedItems` is always a subset of `items`.
         if (items !== prevItems) {
-            const newSelectedItems = items.filter((item) =>
-                selectedItems.some((selectedItem) => selectedItem[itemKey] === item[itemKey])
-            );
-            if (!compareArrays(selectedItems, newSelectedItems)) {
+            setSelectedItems((selectedItems) => {
+                const selectedIds = getSelectedIds(selectedItems, itemKey);
+                const newSelectedItems = items.filter(
+                    (item) => (item[itemKey] as string) in selectedIds
+                );
+                if (compareArrays(selectedItems, newSelectedItems)) {
+                    return selectedItems;
+                }
                 const size = items.length;
                 if (size > 0 && newSelectedItems.length === 0) {
                     if (rowIndex < size) {
                         const item = items[rowIndex];
-                        setSelectedItems(item ? [item] : []);
+                        return item ? [item] : [];
                     } else {
                         const item = items[size - 1];
-                        setSelectedItems(item ? [item] : []);
+                        return item ? [item] : [];
                     }
                 } else {
-                    setSelectedItems(newSelectedItems);
+                    return newSelectedItems;
                 }
-            }
+            });
         }
-    }, [prevItems, items, selectedItems, itemKey, rowIndex]);
+    }, [prevItems, items, itemKey, rowIndex]);
 
     const selectAll = useCallback(() => {
-        setSelectedItems(items.filter(exists));
+        setSelectedItems((selectedItems) => {
+            const newSelectedItems = items.filter(exists);
+            if (compareArrays(selectedItems, newSelectedItems)) {
+                return selectedItems;
+            }
+            return newSelectedItems;
+        });
     }, [items]);
 
     const selectAt = useCallback(
         (index: number) => {
-            const item = items[index];
-            setSelectedItems(item ? [item] : []);
+            setSelectedItems((selectedItems) => {
+                const item = items[index];
+                const newSelectedItems = item ? [item] : [];
+                if (compareArrays(selectedItems, newSelectedItems)) {
+                    return selectedItems;
+                }
+                return newSelectedItems;
+            });
         },
         [items]
     );
 
     const selectRange = useCallback(
         (firstIndex: number, lastIndex: number) => {
-            const start = Math.min(firstIndex, lastIndex);
-            const end = Math.max(firstIndex, lastIndex);
-            const selectedItems = items.slice(start, end + 1).filter(exists);
-            setSelectedItems(selectedItems);
+            setSelectedItems((selectedItems) => {
+                const start = Math.min(firstIndex, lastIndex);
+                const end = Math.max(firstIndex, lastIndex);
+                const newSelectedItems = items.slice(start, end + 1).filter(exists);
+                if (compareArrays(selectedItems, newSelectedItems)) {
+                    return selectedItems;
+                }
+                return newSelectedItems;
+            });
         },
         [items]
     );
 
     const toggleSelectionAt = useCallback(
-        (index: number, force?: boolean) => {
-            const toggledItem = items[index];
-            const hasItem = selectedItems.includes(toggledItem);
-            if (hasItem !== force) {
+        (index: number) => {
+            setSelectedItems((selectedItems) => {
+                const toggledItem = items[index];
+                const hasItem = selectedItems.includes(toggledItem);
                 if (hasItem) {
-                    setSelectedItems(selectedItems.filter((selected) => selected !== toggledItem));
+                    return selectedItems.filter((selected) => selected !== toggledItem);
                 } else {
                     // Preserve item order in selected items
-                    setSelectedItems(
-                        items.filter((item) => selectedItems.includes(item) || item === toggledItem)
+                    return items.filter(
+                        (item) => selectedItems.includes(item) || item === toggledItem
                     );
                 }
-            }
+            });
         },
-        [items, selectedItems]
+        [items]
     );
 
-    return {selectedItems, selectAll, selectAt, selectRange, toggleSelectionAt};
+    return {selectedItems, selectedIds, selectAll, selectAt, selectRange, toggleSelectionAt};
 }
 
 function compareArrays<T>(array1: readonly T[], array2: readonly T[]): boolean {
@@ -81,4 +107,15 @@ function compareArrays<T>(array1: readonly T[], array2: readonly T[]): boolean {
         return false;
     }
     return array1.every((value, index) => array2[index] === value);
+}
+
+function getSelectedIds<T>(
+    items: readonly T[],
+    itemKey: ConditionalKeys<T, string | number>
+): Record<string, boolean> {
+    const selectedIds: Record<string, boolean> = {};
+    for (const item of items) {
+        selectedIds[item[itemKey] as string] = true;
+    }
+    return selectedIds;
 }

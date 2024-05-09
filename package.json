@@ -1,6 +1,6 @@
 {
     "name": "ampcast",
-    "version": "0.9.6",
+    "version": "0.9.7",
     "description": "Ampcast music player",
     "homepage": "https://ampcast.app",
     "author": {
@@ -75,7 +75,7 @@
         "@typescript-eslint/parser": "^7.0.1",
         "autoprefixer": "^10.4.13",
         "copy-webpack-plugin": "^12.0.0",
-        "css-loader": "^6.7.1",
+        "css-loader": "^7.1.1",
         "dotenv": "^16.4.5",
         "eslint": "^8.57.0",
         "eslint-plugin-react": "^7.31.8",
