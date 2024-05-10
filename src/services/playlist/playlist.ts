@@ -249,7 +249,7 @@ export function reverseAt(index: number, length: number): void {
     setItems(items);
 }
 
-export function shuffle(preserveCurrentlyPlaying?: boolean): void {
+export async function shuffle(preserveCurrentlyPlaying?: boolean): Promise<void> {
     const currentItems = getItems().slice();
     if (currentItems.length > 0) {
         const currentItem = getCurrentItem();

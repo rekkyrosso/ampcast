@@ -35,5 +35,5 @@ export default interface Playlist {
     reverseAt(index: number, length: number): void;
     next(): void;
     prev(): void;
-    shuffle(preserveCurrentlyPlaying?: boolean): void;
+    shuffle(preserveCurrentlyPlaying?: boolean): Promise<void>;
 }

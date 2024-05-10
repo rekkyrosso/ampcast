@@ -37,7 +37,7 @@ export default function usePlaylistMenu(
                     break;
 
                 case 'shuffle':
-                    playlist.shuffle(!mediaPlayback.paused);
+                    await playlist.shuffle(!mediaPlayback.paused);
                     listView.scrollIntoView(0);
                     break;
 

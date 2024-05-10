@@ -171,8 +171,8 @@ export function eject(): void {
     playlist.eject();
 }
 
-export function shuffle(preserveCurrentlyPlaying?: boolean): void {
-    playlist.shuffle(preserveCurrentlyPlaying);
+export async function shuffle(preserveCurrentlyPlaying?: boolean): Promise<void> {
+    return playlist.shuffle(preserveCurrentlyPlaying);
 }
 
 function observePlaylistAtEnd(): Observable<boolean> {

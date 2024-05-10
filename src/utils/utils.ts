@@ -104,15 +104,16 @@ export function uniqBy<T>(values: readonly T[], key: keyof T): T[] {
 
 export function shuffle<T>(items: T[]): T[] {
     // https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array#6274398
-    let counter = items.length;
+    const shuffled = items.slice();
+    let counter = shuffled.length;
     while (counter > 0) {
         const index = Math.floor(Math.random() * counter);
         counter--;
-        const item = items[counter];
-        items[counter] = items[index];
-        items[index] = item;
+        const item = shuffled[counter];
+        shuffled[counter] = shuffled[index];
+        shuffled[index] = item;
     }
-    return items;
+    return shuffled;
 }
 
 export function formatDate(date: number | string | Date = Date.now()): string {

@@ -188,19 +188,14 @@ export default function ListView<T>({
         [scrollTop, rowHeight, pageSize, showTitles, size]
     );
 
-    const scrollIntoView = useCallback(
-        (rowIndex: number) => {
-            scrollTo(rowIndex);
-            selectAt(rowIndex);
-            setRowIndex(rowIndex);
-        },
-        [scrollTo, selectAt]
-    );
-
     useEffect(() => {
         internalRef.current = {
             focus,
-            scrollIntoView,
+            scrollIntoView: (rowIndex: number) => {
+                scrollTo(rowIndex);
+                setRowIndex(rowIndex);
+                selectAt(rowIndex);
+            },
             scrollTo,
             selectAll,
             selectAt,
@@ -208,7 +203,7 @@ export default function ListView<T>({
         if (listViewRef) {
             listViewRef.current = Object.assign(listViewRef.current || {}, internalRef.current);
         }
-    }, [listViewRef, focus, scrollIntoView, scrollTo, selectAll, selectAt]);
+    }, [listViewRef, focus, scrollTo, selectAll, selectAt]);
 
     useEffect(() => {
         internalRef.current?.scrollIntoView(selectedIndex);
