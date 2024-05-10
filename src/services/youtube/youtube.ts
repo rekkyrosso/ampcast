@@ -1,4 +1,5 @@
 import getYouTubeID from 'get-youtube-id';
+import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import MediaItem from 'types/MediaItem';
 import ItemType from 'types/ItemType';
 import MediaPlaylist from 'types/MediaPlaylist';
@@ -14,11 +15,19 @@ import {getListens} from 'services/localdb/listens';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import {uniqBy} from 'utils';
-import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './youtubeAuth';
+import {
+    observeIsLoggedIn,
+    isConnected,
+    isLoggedIn,
+    login,
+    logout,
+    getGApiClient,
+} from './youtubeAuth';
 import YouTubePager from './YouTubePager';
 import youtubeSettings from './youtubeSettings';
 
 export const youtubeHost = `https://www.youtube.com`;
+export const youtubeApiHost = `https://www.googleapis.com/youtube/v3`;
 
 const defaultLayout: MediaSourceLayout<MediaItem> = {
     view: 'card',
@@ -155,7 +164,7 @@ const youtube: PublicMediaService = {
     id: 'youtube',
     name: 'YouTube',
     icon: 'youtube',
-    url: 'https://www.youtube.com',
+    url: youtubeHost,
     serviceType: ServiceType.PublicMedia,
     primaryMediaType: MediaType.Video,
     get disabled(): boolean {
@@ -165,6 +174,7 @@ const youtube: PublicMediaService = {
     defaultNoScrobble: true,
     internetRequired: true,
     restrictedAccess: true,
+    editablePlaylists: youtubePlaylists,
     roots: [
         {
             id: 'youtube/search/videos',
@@ -195,9 +205,11 @@ const youtube: PublicMediaService = {
         } as MediaSource<MediaItem>,
     ],
     sources: [youtubeLikes, youtubeRecentlyPlayed, youtubePlaylists],
+    addToPlaylist,
     canRate: () => false,
     canStore: () => false,
     compareForRating: () => false,
+    createPlaylist,
     createSourceFromPin,
     getPlaybackType,
     observeIsLoggedIn,
@@ -208,6 +220,73 @@ const youtube: PublicMediaService = {
 };
 
 export default youtube;
+
+async function addToPlaylist<T extends MediaItem>(
+    playlist: MediaPlaylist,
+    items: readonly T[]
+): Promise<void> {
+    if (items?.length) {
+        const client = await getGApiClient();
+        const [, , playlistId] = playlist.src.split(':');
+        let error: any;
+        for (const item of items) {
+            const [, , videoId] = item.src.split(':');
+            const {result, status, statusText} = await client.request({
+                path: `${youtubeApiHost}/playlistItems`,
+                method: 'POST',
+                params: {part: 'snippet'},
+                body: {
+                    snippet: {
+                        playlistId,
+                        resourceId: {
+                            kind: 'youtube#video',
+                            videoId,
+                        },
+                    },
+                },
+            });
+            if (!result && !error) {
+                error = new Error(statusText || `Error (${status})`);
+            }
+        }
+        if (error) {
+            throw error;
+        }
+    }
+}
+
+async function createPlaylist<T extends MediaItem>(
+    title: string,
+    {description = '', isPublic, items}: CreatePlaylistOptions<T> = {}
+): Promise<MediaPlaylist> {
+    const client = await getGApiClient();
+    const {
+        result: playlist,
+        status,
+        statusText,
+    } = await client.request({
+        path: `${youtubeApiHost}/playlists`,
+        method: 'POST',
+        params: {part: 'snippet,status'},
+        body: {
+            snippet: {title, description},
+            status: {privacyStatus: isPublic ? 'public' : 'private'},
+        },
+    });
+    if (!playlist) {
+        throw Error(statusText || `Error (${status})`);
+    }
+    const mediaPlaylist: MediaPlaylist = {
+        src: `youtube:playlist:${playlist.id}`,
+        title,
+        itemType: ItemType.Playlist,
+        pager: new SimplePager(),
+    };
+    if (items) {
+        await addToPlaylist(mediaPlaylist, items);
+    }
+    return mediaPlaylist;
+}
 
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     return {

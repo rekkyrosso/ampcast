@@ -17,7 +17,7 @@ import youtubeSettings from './youtubeSettings';
 
 const logger = new Logger('youtubeAuth');
 
-const scope = 'https://www.googleapis.com/auth/youtube.readonly';
+const scope = 'https://www.googleapis.com/auth/youtube';
 const discoveryDocs = ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'];
 
 const accessToken$ = new BehaviorSubject('');

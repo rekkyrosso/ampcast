@@ -9,7 +9,7 @@ import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
 import SequentialPager from 'services/pagers/SequentialPager';
 import pinStore from 'services/pins/pinStore';
-import {getYouTubeUrl, youtubeHost} from './youtube';
+import {getYouTubeUrl, youtubeApiHost, youtubeHost} from './youtube';
 import youtubeCache from './youtubeCache';
 import {getGApiClient} from './youtubeAuth';
 
@@ -29,8 +29,6 @@ interface YouTubePage<T extends YouTubeItem = YouTubeItem> extends YouTubeCachea
     readonly pageInfo?: gapi.client.youtube.PageInfo;
     readonly nextPageToken?: string | undefined;
 }
-
-const apiHost = `https://www.googleapis.com/youtube/v3`;
 
 export default class YouTubePager<T extends MediaObject> implements Pager<T> {
     static minPageSize = 5;
@@ -233,7 +231,7 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
         const client = await getGApiClient();
         const headers = cachedResult?.etag ? {'If-None-Match': cachedResult.etag} : undefined;
         const {result, status, statusText} = await client.request({
-            path: `${apiHost}${path}`,
+            path: `${youtubeApiHost}${path}`,
             params,
             headers,
         });
