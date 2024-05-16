@@ -18,9 +18,12 @@
         }
     }
 
-    &-butterchurn {
-        .light.frame-light & {
-            opacity: 0.5;
+    .media:not(:fullscreen) & {
+        &-ampshader,
+        &-butterchurn {
+            .light.frame-light & {
+                opacity: 0.5;
+            }
         }
     }
 

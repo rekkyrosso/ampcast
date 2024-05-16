@@ -4,8 +4,8 @@ import LookupStatus from 'types/LookupStatus';
 import {isPlayableSrc} from 'services/mediaServices';
 import playlistSettings from 'services/playlist/playlistSettings';
 import {ListViewLayout} from 'components/ListView';
-import {Duration} from 'components/MediaList/useMediaListLayout';
 import Icon, {IconName} from 'components/Icon';
+import Time from 'components/Time';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useObservable from 'hooks/useObservable';
 import usePaused from 'hooks/usePaused';
@@ -122,4 +122,8 @@ function RowTitle({title, artists}: PlaylistItem) {
     } else {
         return <span className="title-text">{title}</span>;
     }
+}
+
+function Duration({duration}: PlaylistItem) {
+    return <Time className="text" time={duration} />;
 }

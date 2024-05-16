@@ -25,6 +25,7 @@ export default function Playlists({source, ...props}: PagedItemsProps<MediaPlayl
     const playlistItems = (
         <MediaItemList
             title={selectedPlaylist ? `${selectedPlaylist.title}: Tracks` : ''}
+            storageId={`${source.id}/items`}
             className="playlist-items"
             pager={itemsPager}
             layout={source.secondaryLayout || defaultPlaylistItemsLayout}

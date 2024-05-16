@@ -45,6 +45,7 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
     const trackList = (
         <MediaItemList
             title={selectedAlbum ? `${selectedAlbum.title}: Tracks` : ''}
+            storageId={`${source.id}/tracks`}
             className={`album-tracks ${selectedAlbum?.multiDisc ? 'multi-disc' : ''}`}
             pager={tracksPager}
             layout={albumTracksLayout}

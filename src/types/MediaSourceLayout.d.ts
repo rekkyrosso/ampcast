@@ -5,7 +5,7 @@ export type Field =
     | 'Index'
     | 'Artist'
     | 'Title'
-    | 'IconTitle'
+    | 'PlaylistTitle'
     | 'Blurb'
     | 'Album'
     | 'AlbumArtist'

@@ -50,6 +50,8 @@ export default function Scrollable({
     const bodyContentRef = useRef<HTMLDivElement>(null);
     const hScrollbarRef = useRef<ScrollbarHandle>(null);
     const vScrollbarRef = useRef<ScrollbarHandle>(null);
+    const noInitialScrollWidth = initialScrollWidth === 0;
+    const noInitialScrollHeight = initialScrollHeight === 0;
     const [hScrollbarSize, setHScrollbarSize] = useState(0);
     const [vScrollbarSize, setVScrollbarSize] = useState(0);
     const [scrollLeft, setScrollLeft] = useState(0);
@@ -106,21 +108,21 @@ export default function Scrollable({
         setScrollRect({width, height});
     }, [initialScrollWidth, initialScrollHeight]);
 
-    const onContentResize = () => {
-        const content = contentRef.current!;
-        const bodyContent = bodyContentRef.current!;
-        const width = initialScrollWidth === 0 ? content.scrollWidth : scrollWidth;
-        const height =
-            initialScrollHeight === 0
+    useEffect(() => {
+        onResize?.({clientWidth, clientHeight, scrollWidth, scrollHeight});
+    }, [clientWidth, clientHeight, scrollWidth, scrollHeight, onResize]);
+
+    const onContentResize = useCallback(() => {
+        setScrollRect((scrollRect) => {
+            const content = contentRef.current!;
+            const bodyContent = bodyContentRef.current!;
+            const width = noInitialScrollWidth ? content.scrollWidth : scrollRect.width;
+            const height = noInitialScrollHeight
                 ? bodyContent.scrollHeight + (headRef.current?.clientHeight || 0)
-                : scrollHeight;
-        setScrollRect({width, height});
-        if (onResize) {
-            const {clientWidth, clientHeight} = content;
-            const {scrollWidth, scrollHeight} = bodyContent;
-            onResize({clientWidth, clientHeight, scrollWidth, scrollHeight});
-        }
-    };
+                : scrollRect.height;
+            return {width, height};
+        });
+    }, [noInitialScrollWidth, noInitialScrollHeight]);
 
     useOnResize(containerRef, setInnerRect);
     useOnResize(contentRef, onContentResize);

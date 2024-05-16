@@ -13,13 +13,20 @@ export default async function showPopupMenu<T extends string>(
         const rootElement = document.createElement('div');
         const root = createRoot(rootElement);
         try {
-            const close = (action?: T) => {
-                root.unmount();
-                rootElement.remove();
-                resolve(action);
-            };
             popupRoot.append(rootElement);
-            root.render(<PopupMenu x={x} y={y} align={align} onClose={close} autoFocus />);
+            root.render(
+                <PopupMenu
+                    x={x}
+                    y={y}
+                    align={align}
+                    onClose={(returnValue?: T) => {
+                        root.unmount();
+                        rootElement.remove();
+                        resolve(returnValue);
+                    }}
+                    autoFocus
+                />
+            );
         } catch (err) {
             root.unmount();
             rootElement.remove();

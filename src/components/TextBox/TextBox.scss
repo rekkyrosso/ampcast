@@ -5,7 +5,7 @@
         margin: 0 0 1em 0;
     }
 
-    .scrollable p {
-        margin-right: 1em;
+    .scrollable.overflow-y &-content {
+        padding-right: 1ex;
     }
 }

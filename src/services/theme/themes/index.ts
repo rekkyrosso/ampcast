@@ -2,6 +2,7 @@ import Theme from 'types/Theme';
 import astronaut from './astronaut.json';
 import blackgold from './blackgold.json';
 import boringDefault from './default.json';
+import contrast from './contrast.json';
 import debug from './debug.json';
 import glacier from './glacier.json';
 import indigo from './indigo.json';
@@ -21,7 +22,7 @@ import winampModern from './winamp-modern.json';
 
 export const emptyTheme: Required<Theme> = {
     name: '(none)',
-    // required colours
+    // required colors
     backgroundColor: 'black',
     textColor: 'white',
     frameColor: 'black',
@@ -49,8 +50,10 @@ const themes: readonly Theme[] = [
     defaultTheme,
     astronaut,
     blackgold,
+    contrast,
     glacier,
     indigo,
+    lego,
     moodyblue,
     neon,
     palepink,
@@ -64,7 +67,6 @@ const themes: readonly Theme[] = [
     winampClassic,
     winampModern,
     debug,
-    lego,
 ];
 
 export default themes;

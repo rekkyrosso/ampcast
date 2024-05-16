@@ -1,0 +1,14 @@
+{
+    "name": "Contrast",
+    "backgroundColor": "#051115",
+    "textColor": "#ddeff3",
+    "frameColor": "#c3c3c6",
+    "frameTextColor": "#000000",
+    "selectedBackgroundColor": "#1e25ae",
+    "selectedTextColor": "#ffffff",
+    "mediaButtonColor": "#202037",
+    "mediaButtonTextColor": "#f8f8fc",
+    "spacing": 0.75,
+    "roundness": 1,
+    "flat": true
+}

@@ -5,8 +5,8 @@ export interface ResizeRect {
     height: number;
 }
 
-export default function useOnResize<T extends HTMLElement>(
-    elementRef: React.MutableRefObject<T | null>,
+export default function useOnResize(
+    target: React.RefObject<HTMLElement> | HTMLElement | null,
     onResize: (rect: ResizeRect) => void,
     box: 'border-box' | 'content-box' = 'content-box'
 ): void {
@@ -17,10 +17,10 @@ export default function useOnResize<T extends HTMLElement>(
     }, [onResize]);
 
     useEffect(() => {
-        const element = elementRef.current;
+        const element = getElement(target);
         if (element) {
             const resizeObserver = new ResizeObserver((entries) => {
-                const element = elementRef.current;
+                const element = getElement(target); // make sure it's still attached
                 if (element) {
                     const entry = entries.find((entry) => entry.target === element);
                     if (entry) {
@@ -36,5 +36,9 @@ export default function useOnResize<T extends HTMLElement>(
             resizeObserver.observe(element, {box});
             return () => resizeObserver.disconnect();
         }
-    }, [elementRef, box]);
+    }, [target, box]);
+}
+
+function getElement(target: React.RefObject<HTMLElement> | HTMLElement | null): HTMLElement | null {
+    return target && 'current' in target ? target.current : target;
 }

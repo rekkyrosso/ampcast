@@ -11,7 +11,7 @@ import {
     takeUntil,
     timer,
 } from 'rxjs';
-import {cancelEvent} from 'utils';
+import {cancelEvent, preventDefault} from 'utils';
 import useOnResize from 'hooks/useOnResize';
 import useScrollbarState from './useScrollbarState';
 import './Scrollbar.scss';
@@ -172,6 +172,7 @@ function Scrollbar({
             const fromMouseEvent = (type: string) => fromEvent<MouseEvent>(document, type);
             subscription.add(fromMouseEvent('mouseup').subscribe(endDrag));
             subscription.add(fromMouseEvent('mousemove').subscribe(handleMouseMove));
+            subscription.add(fromEvent(document, 'selectstart').subscribe(preventDefault));
             subscription.add(fromEvent(window, 'blur').subscribe(endDrag));
             return () => {
                 document.body.classList.remove('dragging');

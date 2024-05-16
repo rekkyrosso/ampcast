@@ -14,13 +14,11 @@ export default function TextBox({className, children}: TextBoxProps) {
     );
 
     return (
-        <div
-            className={`text-box ${className}`}
-            style={{height: `${height}px`}}
-            ref={containerRef}
-        >
+        <div className={`text-box ${className}`} style={{height: `${height}px`}} ref={containerRef}>
             <div style={{position: 'relative', height: '100%'}}>
-                <Scrollable onResize={handleResize}>{children}</Scrollable>
+                <Scrollable onResize={handleResize}>
+                    <div className="text-box-content">{children}</div>
+                </Scrollable>
             </div>
         </div>
     );

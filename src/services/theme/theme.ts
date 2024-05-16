@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, filter, tap} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, filter, tap} from 'rxjs';
 import {TinyColor} from '@ctrl/tinycolor';
 import Theme from 'types/Theme';
 import {LiteStorage, Logger, browser} from 'utils';
@@ -39,6 +39,7 @@ class MainTheme implements CurrentTheme {
     private readonly popup = document.getElementById('popup') as HTMLElement;
     private readonly system = document.getElementById('system') as HTMLElement;
     private readonly theme$ = new BehaviorSubject<CurrentTheme>(defaultTheme);
+    private readonly fontSize$ = new BehaviorSubject(this.defaultFontSize);
     private applyingUpdate = false;
 
     constructor() {
@@ -58,6 +59,10 @@ class MainTheme implements CurrentTheme {
 
     observe(): Observable<CurrentTheme> {
         return this.theme$.pipe(filter(() => !this.applyingUpdate));
+    }
+
+    observeFontSize(): Observable<number> {
+        return this.fontSize$.pipe(distinctUntilChanged());
     }
 
     get backgroundColor(): string {
@@ -172,7 +177,7 @@ class MainTheme implements CurrentTheme {
     }
 
     get fontSize(): number {
-        return Number(this.rootStyle.getPropertyValue('--font-size')) || this.defaultFontSize;
+        return this.fontSize$.getValue();
     }
 
     set fontSize(fontSize: number) {
@@ -181,6 +186,7 @@ class MainTheme implements CurrentTheme {
         if (isElectron) {
             ampcastElectron?.setFontSize(fontSize);
         }
+        this.fontSize$.next(fontSize);
     }
 
     get frameColor(): string {

@@ -563,7 +563,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
         isPin: true,
         layout: {
             view: 'card',
-            fields: ['Thumbnail', 'IconTitle', 'TrackCount', 'Blurb'],
+            fields: ['Thumbnail', 'PlaylistTitle', 'TrackCount', 'Blurb'],
         },
 
         search(): Pager<MediaPlaylist> {

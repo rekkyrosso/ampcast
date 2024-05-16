@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import {ConditionalKeys} from 'type-fest';
 import globalDrag from 'services/globalDrag';
 import {browser} from 'utils';
@@ -19,6 +19,7 @@ import useSelectedItems from './useSelectedItems';
 import './ListView.scss';
 
 export interface ColumnSpec<T> {
+    readonly id?: string;
     readonly title?: React.ReactNode;
     readonly className?: string;
     readonly align?: 'left' | 'right' | 'center';
@@ -59,6 +60,7 @@ export interface ListViewProps<T> {
     items: readonly T[];
     itemKey: ConditionalKeys<T, string | number>;
     title: string;
+    storageId?: string;
     itemClassName?: (item: T) => string;
     selectedIndex?: number;
     sortable?: boolean;
@@ -98,6 +100,7 @@ export default function ListView<T>({
     items = [],
     itemKey,
     title,
+    storageId,
     itemClassName = emptyString,
     layout,
     className = '',
@@ -128,6 +131,7 @@ export default function ListView<T>({
     const scrollableRef = useRef<ScrollableHandle>(null);
     const cursorRef = useRef<HTMLDivElement>(null);
     const dragImageRef = useRef<HTMLUListElement>(null);
+    const fontSize = useFontSize(containerRef);
     const showTitles = layout.view === 'details' && layout.showTitles;
     const sizeable = layout.view === 'details' && layout.sizeable;
     const [rowIndex, setRowIndex] = useState(-1);
@@ -136,8 +140,8 @@ export default function ListView<T>({
     const [clientHeight, setClientHeight] = useState(0);
     const [clientWidth, setClientWidth] = useState(0);
     const [rowHeight, setRowHeight] = useState(0);
-    const [cols, handleColumnResize] = useColumns(layout);
-    const width = useMemo(() => cols.reduce((width, col) => (width += col.width), 0), [cols]);
+    const {cols, onColumnResize} = useColumns(layout, fontSize, storageId);
+    const width = cols.reduce((width, col) => (width += col.width), 0) * fontSize;
     const pageSize = rowHeight
         ? Math.max(Math.floor(clientHeight / rowHeight), 1) - (showTitles ? 1 : 0)
         : 0;
@@ -145,7 +149,6 @@ export default function ListView<T>({
     const {selectedItems, selectedIds, selectAll, selectAt, selectRange, toggleSelectionAt} =
         useSelectedItems(items, itemKey, rowIndex);
     const hasSelection = selectedItems.length > 0;
-    const fontSize = useFontSize();
     const [rangeSelectionStart, setRangeSelectionStart] = useState(-1);
     const [dragIndex, setDragIndex] = useState(-1);
     const [dragStartIndex, setDragStartIndex] = useState(-1);
@@ -278,7 +281,7 @@ export default function ListView<T>({
                     if (event[browser.ctrlKey] && !event.shiftKey) {
                         event.preventDefault();
                         event.stopPropagation();
-                        if (!event.repeat) {
+                        if (multiple && !event.repeat) {
                             selectAll();
                         }
                     }
@@ -616,7 +619,8 @@ export default function ListView<T>({
                             height={rowHeight}
                             sizeable={sizeable}
                             cols={cols}
-                            onColumnResize={handleColumnResize}
+                            fontSize={fontSize}
+                            onColumnResize={onColumnResize}
                         />
                     </FixedHeader>
                 )}

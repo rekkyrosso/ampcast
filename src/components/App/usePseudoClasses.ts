@@ -25,6 +25,7 @@ export default function usePseudoClasses(): void {
         subscription.add(
             fromEvent<MouseEvent>(document, 'mousedown', {capture: true}).subscribe(() => {
                 isFocusVisible = false;
+                document.body.classList.toggle('focus-visible', false);
             })
         );
         subscription.add(

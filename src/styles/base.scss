@@ -125,7 +125,6 @@ small {
 
 body.dragging {
     cursor: inherit !important;
-    user-select: none !important;
 
     > * {
         pointer-events: none;

@@ -1,7 +1,8 @@
 import React, {Children, useCallback, useEffect, useRef, useState} from 'react';
 import {Subscription, fromEvent} from 'rxjs';
-import useFontSize from 'hooks/useFontSize';
+import useBaseFontSize from 'hooks/useBaseFontSize';
 import useOnResize from 'hooks/useOnResize';
+import {preventDefault} from 'utils';
 import LayoutPane from './LayoutPane';
 import useSplitterState from './useSplitterState';
 import './Splitter.scss';
@@ -25,7 +26,7 @@ export default function Splitter({
     const [dragStartPos, setDragStartPos] = useState(-1);
     const [dragStartSize, setDragStartSize] = useState(0);
     const dragging = dragStartPos !== -1;
-    const fontSize = useFontSize();
+    const fontSize = useBaseFontSize();
     const vertical = arrange === 'rows';
 
     useEffect(() => {
@@ -95,6 +96,7 @@ export default function Splitter({
             const fromMouseEvent = (type: string) => fromEvent<MouseEvent>(document, type);
             subscription.add(fromMouseEvent('mouseup').subscribe(endDrag));
             subscription.add(fromMouseEvent('mousemove').subscribe(handleMouseMove));
+            subscription.add(fromEvent(document, 'selectstart').subscribe(preventDefault));
             subscription.add(fromEvent(window, 'blur').subscribe(endDrag));
             return () => {
                 html.style.cursor = '';

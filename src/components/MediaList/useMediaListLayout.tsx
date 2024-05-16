@@ -39,11 +39,12 @@ function createMediaListLayout<T extends MediaObject = MediaObject>(
     const {view, fields} = layout;
     const cols = fields.map((field) => mediaFields[field]);
     cols.push({
+        id: '...',
         title: <Icon name="menu" />,
         render: (item: T) => <Actions item={item} inline />,
         className: 'actions',
         align: 'right',
-        width: 80,
+        width: 5,
     });
     if (view === 'details') {
         return {view, cols, showTitles: true, sizeable: true};
@@ -55,11 +56,11 @@ function createMediaListLayout<T extends MediaObject = MediaObject>(
 type MediaFields<T extends MediaObject = MediaObject> = Record<Field, ColumnSpec<T>>;
 type RenderField<T extends MediaObject = MediaObject> = ColumnSpec<T>['render'];
 
-export const Index: RenderField = (_, rowIndex) => rowIndex + 1;
+const Index: RenderField = (_, rowIndex) => rowIndex + 1;
 
-export const Title: RenderField = (item) => <Text value={item.title} />;
+const Title: RenderField = (item) => <Text value={item.title} />;
 
-export const IconTitle: RenderField = (item) => {
+const PlaylistTitle: RenderField = (item) => {
     const service = getServiceFromSrc(item);
     return service ? (
         <MediaSourceLabel icon={service.icon} text={item.title} />
@@ -68,11 +69,11 @@ export const IconTitle: RenderField = (item) => {
     );
 };
 
-export const Blurb: RenderField<MediaPlaylist> = (item) => <Text value={item.description} />;
+const Blurb: RenderField<MediaPlaylist> = (item) => <Text value={item.description} />;
 
-export const Track: RenderField<MediaItem> = (item) => <Text value={item.track || '-'} />;
+const Track: RenderField<MediaItem> = (item) => <Text value={item.track || '-'} />;
 
-export const AlbumTrack: RenderField<MediaItem> = (item) => (
+const AlbumTrack: RenderField<MediaItem> = (item) => (
     <span className="text">
         {item.track ? (
             <>
@@ -85,46 +86,46 @@ export const AlbumTrack: RenderField<MediaItem> = (item) => (
     </span>
 );
 
-export const Artist: RenderField<MediaAlbum | MediaItem> = (item) => (
+const Artist: RenderField<MediaAlbum | MediaItem> = (item) => (
     <Text value={item.itemType === ItemType.Media ? item.artists?.join(', ') : item.artist} />
 );
 
-export const AlbumArtist: RenderField<MediaItem> = (item) => <Text value={item.albumArtist} />;
+const AlbumArtist: RenderField<MediaItem> = (item) => <Text value={item.albumArtist} />;
 
-export const Album: RenderField<MediaItem> = (item) => <Text value={item.album} />;
+const Album: RenderField<MediaItem> = (item) => <Text value={item.album} />;
 
-export const Duration: RenderField<MediaPlaylist | MediaItem> = (item) => (
+const Duration: RenderField<MediaPlaylist | MediaItem> = (item) => (
     <Time className="text" time={item.duration || 0} />
 );
 
-export const PlayCount: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => (
+const PlayCount: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => (
     <Text value={getCount(item.playCount)} />
 );
 
-export const TrackCount: RenderField<MediaPlaylist | MediaAlbum> = (item) => (
+const TrackCount: RenderField<MediaPlaylist | MediaAlbum> = (item) => (
     <Text value={getCount(item.trackCount)} />
 );
 
-export const Year: RenderField<MediaAlbum | MediaItem> = (item) => <Text value={item.year || ''} />;
+const Year: RenderField<MediaAlbum | MediaItem> = (item) => <Text value={item.year || ''} />;
 
-export const Genre: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => (
+const Genre: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => (
     <Text value={item.genres?.join(', ')} />
 );
 
-export const Owner: RenderField<MediaPlaylist | MediaItem> = (item) => (
+const Owner: RenderField<MediaPlaylist | MediaItem> = (item) => (
     <Text value={item.owner?.name} />
 );
 
-export const FileName: RenderField<MediaFolderItem> = (item) => <Text value={item.fileName} />;
+const FileName: RenderField<MediaFolderItem> = (item) => <Text value={item.fileName} />;
 
-export const Views: RenderField = (item) => {
+const Views: RenderField = (item) => {
     if (item.globalPlayCount == null) {
         return null;
     }
     return <Text value={getGlobalPlayCount(item.globalPlayCount, 'view')} />;
 };
 
-export const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
+const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
     if (!item.playedAt) {
         return <span className="text last-played">unplayed</span>;
     }
@@ -137,7 +138,7 @@ export const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
     );
 };
 
-export const AddedAt: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
+const AddedAt: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
     if (!item.addedAt) {
         return null;
     }
@@ -150,7 +151,7 @@ export const AddedAt: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (ite
     );
 };
 
-export const ListenDate: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
+const ListenDate: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
     if (!item.playedAt) {
         return '';
     }
@@ -164,13 +165,13 @@ export const ListenDate: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (
     );
 };
 
-export const AlbumAndYear: RenderField<MediaItem> = (item) => (
+const AlbumAndYear: RenderField<MediaItem> = (item) => (
     <Text
         value={item.album ? (item.year ? `${item.album} (${item.year})` : item.album) : item.year}
     />
 );
 
-export const FileIcon: RenderField<MediaFolderItem> = (item: MediaFolderItem, rowIndex: number) => {
+const FileIcon: RenderField<MediaFolderItem> = (item: MediaFolderItem, rowIndex: number) => {
     const icon =
         item.itemType === ItemType.Media
             ? item.mediaType === MediaType.Video
@@ -186,11 +187,11 @@ export const FileIcon: RenderField<MediaFolderItem> = (item: MediaFolderItem, ro
     );
 };
 
-export const Thumbnail: RenderField = (item) => {
+const Thumbnail: RenderField = (item) => {
     return <CoverArt item={item} />;
 };
 
-export const Rate: RenderField = (item) => {
+const Rate: RenderField = (item) => {
     return (
         <StarRating
             value={item.rating}
@@ -208,46 +209,85 @@ function Text({value = ''}: {value?: string | number}) {
 
 // TODO: Improve typing.
 const mediaFields: MediaFields<any> = {
-    Index: {title: '#', render: Index, className: 'index', align: 'right', width: 60},
-    Artist: {title: 'Artist', render: Artist, className: 'artist'},
-    AlbumArtist: {title: 'Album Artist', render: AlbumArtist, className: 'artist'},
-    AlbumTrack: {title: '#', render: AlbumTrack, align: 'right', width: 60, className: 'index'},
-    Title: {title: 'Title', render: Title, className: 'title'},
-    IconTitle: {title: 'Title', render: IconTitle, className: 'title'},
-    Blurb: {title: 'Description', render: Blurb, className: 'blurb'},
-    Album: {title: 'Album', render: Album, className: 'album'},
-    AlbumAndYear: {title: 'Album', render: AlbumAndYear, className: 'album'},
-    Track: {title: 'Track', render: Track, align: 'right', width: 80, className: 'track'},
-    Duration: {title: 'Time', render: Duration, align: 'right', width: 120, className: 'duration'},
-    FileIcon: {title: 'Thumbnail', render: FileIcon, className: 'thumbnail'},
-    FileName: {title: 'FileName', render: FileName, className: 'title'},
+    Index: {id: '#', title: '#', render: Index, className: 'index', align: 'right', width: 4},
+    Artist: {id: 'artist', title: 'Artist', render: Artist, className: 'artist'},
+    AlbumArtist: {
+        id: 'albumArtist',
+        title: 'Album Artist',
+        render: AlbumArtist,
+        className: 'artist',
+    },
+    AlbumTrack: {
+        id: '#',
+        title: '#',
+        render: AlbumTrack,
+        align: 'right',
+        width: 4,
+        className: 'index',
+    },
+    Title: {id: 'title', title: 'Title', render: Title, className: 'title'},
+    PlaylistTitle: {id: 'title', title: 'Title', render: PlaylistTitle, className: 'title'},
+    Blurb: {id: 'blurb', title: 'Description', render: Blurb, className: 'blurb'},
+    Album: {id: 'album', title: 'Album', render: Album, className: 'album'},
+    AlbumAndYear: {id: 'albumAndYear', title: 'Album', render: AlbumAndYear, className: 'album'},
+    Track: {
+        id: 'track',
+        title: 'Track',
+        render: Track,
+        align: 'right',
+        width: 5,
+        className: 'track',
+    },
+    Duration: {
+        id: 'duration',
+        title: 'Time',
+        render: Duration,
+        align: 'right',
+        width: 8,
+        className: 'duration',
+    },
+    FileIcon: {id: 'fileIcon', title: 'Thumbnail', render: FileIcon, className: 'thumbnail'},
+    FileName: {id: 'fileName', title: 'FileName', render: FileName, className: 'title'},
     PlayCount: {
+        id: 'playCount',
         title: 'Plays',
         render: PlayCount,
         align: 'right',
-        width: 80,
+        width: 5,
         className: 'play-count',
     },
     TrackCount: {
+        id: 'trackCount',
         title: 'Tracks',
         render: TrackCount,
         align: 'right',
-        width: 120,
+        width: 8,
         className: 'track-count',
     },
-    Year: {title: 'Year', render: Year, width: 120, className: 'year'},
-    Views: {title: 'Views', render: Views, className: 'views'},
-    Genre: {title: 'Genre', render: Genre, className: 'genre'},
-    Owner: {title: 'Owner', render: Owner, className: 'owner'},
-    AddedAt: {title: 'Date Added', render: AddedAt, className: 'added-at'},
-    LastPlayed: {title: 'Last played', render: LastPlayed, className: 'played-at'},
-    ListenDate: {title: 'Played On', render: ListenDate, className: 'played-at listen-date'},
-    Thumbnail: {title: 'Thumbnail', render: Thumbnail, className: 'thumbnail'},
+    Year: {id: 'year', title: 'Year', render: Year, width: 8, className: 'year'},
+    Views: {id: 'views', title: 'Views', render: Views, className: 'views'},
+    Genre: {id: 'genre', title: 'Genre', render: Genre, className: 'genre'},
+    Owner: {id: 'owner', title: 'Owner', render: Owner, className: 'owner'},
+    AddedAt: {id: 'addedAt', title: 'Date Added', render: AddedAt, className: 'added-at'},
+    LastPlayed: {
+        id: 'lastPlayed',
+        title: 'Last played',
+        render: LastPlayed,
+        className: 'played-at',
+    },
+    ListenDate: {
+        id: 'listenDate',
+        title: 'Played On',
+        render: ListenDate,
+        className: 'played-at listen-date',
+    },
+    Thumbnail: {id: 'thumbnail', title: 'Thumbnail', render: Thumbnail, className: 'thumbnail'},
     Rate: {
+        id: 'rate',
         title: <StarRating value={0} tabIndex={-1} />,
         render: Rate,
         align: 'right',
-        width: 120,
+        width: 8,
         className: 'rate',
     },
 };

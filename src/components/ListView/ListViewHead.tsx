@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {Column} from './ListView';
 import ListViewHeadCell from './ListViewHeadCell';
 import ColumnResizer from './ColumnResizer';
@@ -7,24 +7,19 @@ export interface ListViewHeadProps<T> {
     width: number;
     height: number;
     cols: readonly Column<T>[];
+    fontSize: number;
     sizeable?: boolean;
-    onColumnResize?: (index: number, width: number) => void;
+    onColumnResize: (index: number, width: number) => void;
 }
 
 export default function ListViewHead<T>({
     width,
     height,
     cols,
+    fontSize,
     sizeable,
     onColumnResize,
 }: ListViewHeadProps<T>) {
-    const handleResize = useCallback(
-        (index: number, width: number) => {
-            onColumnResize?.(index, width);
-        },
-        [onColumnResize]
-    );
-
     return (
         <header
             className="list-view-head"
@@ -44,7 +39,12 @@ export default function ListViewHead<T>({
                 ))}{' '}
                 {sizeable &&
                     cols.map((col) => (
-                        <ColumnResizer col={col} onResize={handleResize} key={col.index} />
+                        <ColumnResizer
+                            col={col}
+                            fontSize={fontSize}
+                            onResize={onColumnResize}
+                            key={col.index}
+                        />
                     ))}
             </div>
         </header>

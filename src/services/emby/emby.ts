@@ -528,7 +528,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
         itemType: ItemType.Playlist,
         layout: {
             view: 'card',
-            fields: ['Thumbnail', 'IconTitle', 'TrackCount', 'Genre'],
+            fields: ['Thumbnail', 'PlaylistTitle', 'TrackCount', 'Genre'],
         },
         id: pin.src,
         icon: 'pin',

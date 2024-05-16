@@ -1,10 +1,14 @@
 import {useEffect, useState} from 'react';
 import {debounceTime, fromEvent, merge, tap} from 'rxjs';
 
-export default function useMouseBusy(element: HTMLElement | null, idleTime = 200): boolean {
+export default function useMouseBusy(
+    target: React.RefObject<HTMLElement> | HTMLElement | null,
+    idleTime = 200
+): boolean {
     const [busy, setBusy] = useState(false);
 
     useEffect(() => {
+        const element = getElement(target);
         if (element) {
             const fromMouseEvent = (type: string) => fromEvent<MouseEvent>(element, type);
             const subscription = merge(
@@ -23,7 +27,11 @@ export default function useMouseBusy(element: HTMLElement | null, idleTime = 200
         } else {
             setBusy(false);
         }
-    }, [element, idleTime]);
+    }, [target, idleTime]);
 
     return busy;
+}
+
+function getElement(target: React.RefObject<HTMLElement> | HTMLElement | null): HTMLElement | null {
+    return target && 'current' in target ? target.current : target;
 }

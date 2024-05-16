@@ -1,5 +1,6 @@
 const {app, components, ipcMain, shell, BrowserWindow, Menu, nativeImage} = require('electron');
 const {autoUpdater} = require('electron-updater');
+const log = require('electron-log');
 const contextMenu = require('electron-context-menu');
 const unhandled = require('electron-unhandled');
 const windowStateKeeper = require('electron-window-state');
@@ -9,15 +10,6 @@ const store = require('./store');
 const menu = require('./menu');
 
 unhandled();
-
-module.exports = class AppUpdater {
-    constructor() {
-        const log = require('electron-log');
-        log.transports.file.level = 'info';
-        autoUpdater.logger = log;
-        autoUpdater.checkForUpdatesAndNotify();
-    }
-};
 
 if (!app.requestSingleInstanceLock()) {
     // Prevent multiple instances of the app
@@ -141,6 +133,16 @@ function createBridge() {
     });
 }
 
+function checkForUpdatesAndNotify() {
+    log.transports.file.level = 'info';
+    autoUpdater.logger = log;
+    try {
+        autoUpdater.checkForUpdatesAndNotify();
+    } catch (err) {
+        console.error(err);
+    }
+}
+
 app.whenReady().then(async () => {
     const splash = createSplashScreen();
     try {
@@ -163,6 +165,7 @@ app.whenReady().then(async () => {
 
         mainWindow.show();
         splash.close();
+        checkForUpdatesAndNotify();
     } catch (err) {
         splash.destroy();
         throw err;

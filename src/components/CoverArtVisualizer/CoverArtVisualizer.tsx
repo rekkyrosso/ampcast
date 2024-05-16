@@ -33,7 +33,7 @@ export default function CoverArtVisualizer() {
     const [width, setWidth] = useState(0);
     const [height, setHeight] = useState(0);
     const [thumbnailSize, setThumbnailSize] = useState(0);
-    const fontSize = useFontSize();
+    const fontSize = useFontSize(ref);
     const currentlyPlaying = useCurrentlyPlaying();
     const item = currentlyPlaying?.mediaType === MediaType.Video ? null : currentlyPlaying;
     const prevItem = usePrevious(item);
@@ -118,9 +118,9 @@ export default function CoverArtVisualizer() {
 
     return (
         <div
-            className={`visualizer visualizer-coverart arrange-${arrange} ${
-                ready ? 'ready' : ''
-            } ${animatedBackgroundEnabled ? 'animated-background-enabled' : ''}`}
+            className={`visualizer visualizer-coverart arrange-${arrange} ${ready ? 'ready' : ''} ${
+                animatedBackgroundEnabled ? 'animated-background-enabled' : ''
+            }`}
             style={
                 {
                     '--thumbnail-size': `${thumbnailSize}px`,
