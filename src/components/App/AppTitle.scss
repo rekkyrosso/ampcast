@@ -5,8 +5,8 @@
 
     .app-version {
         margin-left: 0.25em;
-        padding: 0.125em 0.25em;
-        font-size: 0.5625em;
+        padding: 0.125em 0.3125em;
+        font-size: max(0.5625em, 8px);
         vertical-align: super;
     }
 }

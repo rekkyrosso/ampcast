@@ -70,21 +70,20 @@ const spotifyRecentlyPlayed: MediaSource<MediaItem> = {
     },
 
     search(): Pager<MediaItem> {
-        return new SpotifyPager(
-            async (offset: number, limit: number): Promise<SpotifyPage> => {
-                const {items, total} = await spotifyApi.getMyRecentlyPlayedTracks({
-                    limit,
-                });
-                return {
-                    items: items.map(
-                        (item) => ({played_at: item.played_at, ...item.track} as SpotifyTrack)
-                    ),
-                    total,
-                    next: undefined, // deliberately ignore this
-                };
-            },
-            {maxSize: 50, pageSize: 50}
-        );
+        return new SpotifyPager(async (_, limit: number, before: string): Promise<SpotifyPage> => {
+            const options: Record<string, number | string> = {limit};
+            if (before) {
+                options.before = before;
+            }
+            const {items, total, cursors} = await spotifyApi.getMyRecentlyPlayedTracks(options);
+            return {
+                items: items.map(
+                    (item) => ({played_at: item.played_at, ...item.track} as SpotifyTrack)
+                ),
+                total,
+                next: cursors?.before,
+            };
+        });
     },
 };
 
@@ -107,6 +106,7 @@ const spotifyTopArtists: MediaSource<MediaArtist> = {
     title: 'Top Artists',
     icon: 'star',
     itemType: ItemType.Artist,
+    defaultHidden: true,
 
     search(): Pager<MediaArtist> {
         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
@@ -159,6 +159,34 @@ const spotifyLikedAlbums: MediaSource<MediaAlbum> = {
                 return {items: items.map((item) => item.album), total, next};
             },
             {pageSize: 20},
+            true
+        );
+    },
+};
+
+const spotifyFollowedArtists: MediaSource<MediaArtist> = {
+    id: 'spotify/followed-artists',
+    title: 'My Artists',
+    icon: 'heart',
+    itemType: ItemType.Artist,
+    lockActionsStore: true,
+
+    search(): Pager<MediaArtist> {
+        return new SpotifyPager(
+            async (_, limit: number, after: string): Promise<SpotifyPage> => {
+                const options: Record<string, number | string> = {
+                    type: 'artist',
+                    limit,
+                };
+                if (after) {
+                    options.after = after;
+                }
+                const {
+                    artists: {items, total, cursors},
+                } = await spotifyApi.getFollowedArtists(options);
+                return {items, total, next: cursors?.after};
+            },
+            undefined,
             true
         );
     },
@@ -293,6 +321,7 @@ const spotify: PublicMediaService = {
     sources: [
         spotifyLikedSongs,
         spotifyLikedAlbums,
+        spotifyFollowedArtists,
         spotifyPlaylists,
         spotifyRecentlyPlayed,
         spotifyTopTracks,
@@ -335,6 +364,7 @@ function canStore<T extends MediaObject>(item: T, inline?: boolean): boolean {
         case ItemType.Album:
             return !item.synthetic;
 
+        case ItemType.Artist:
         case ItemType.Media:
             return true;
 
@@ -425,6 +455,11 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     }
     const [, , id] = item.src.split(':');
     switch (item.itemType) {
+        case ItemType.Artist: {
+            const [inLibrary] = await spotifyApi.isFollowingArtists([id]);
+            return {...item, inLibrary};
+        }
+
         case ItemType.Album: {
             const [inLibrary] = await spotifyApi.containsMySavedAlbums([id]);
             return {...item, inLibrary};
@@ -510,12 +545,10 @@ async function bulkStore(items: readonly MediaObject[], inLibrary: boolean): Pro
     }
     let chunkSize = 0;
     switch (item.itemType) {
+        case ItemType.Artist:
+        case ItemType.Album:
         case ItemType.Media:
             chunkSize = 500;
-            break;
-
-        case ItemType.Album:
-            chunkSize = 200;
             break;
 
         case ItemType.Playlist:
@@ -543,14 +576,22 @@ async function storeMany(items: readonly MediaObject[], inLibrary: boolean): Pro
 
     const updateLibrary = async () => {
         switch (item.itemType) {
+            case ItemType.Artist:
+                if (inLibrary) {
+                    await Promise.all(chunk(ids, 50).map((ids) => spotifyApi.followArtists(ids)));
+                } else {
+                    await Promise.all(chunk(ids, 50).map((ids) => spotifyApi.unfollowArtists(ids)));
+                }
+                break;
+
             case ItemType.Album:
                 if (inLibrary) {
                     await Promise.all(
-                        chunk(ids, 20).map((ids) => spotifyApi.addToMySavedAlbums(ids))
+                        chunk(ids, 50).map((ids) => spotifyApi.addToMySavedAlbums(ids))
                     );
                 } else {
                     await Promise.all(
-                        chunk(ids, 20).map((ids) => spotifyApi.removeFromMySavedAlbums(ids))
+                        chunk(ids, 50).map((ids) => spotifyApi.removeFromMySavedAlbums(ids))
                     );
                 }
                 break;

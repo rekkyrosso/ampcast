@@ -99,6 +99,8 @@ async function obtainAccessToken(): Promise<TokenResponse> {
             // Library
             'user-library-read',
             'user-library-modify',
+            'user-follow-read',
+            'user-follow-modify',
         ];
 
         const params = new URLSearchParams({

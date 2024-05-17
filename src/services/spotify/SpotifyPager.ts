@@ -48,18 +48,20 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
     private subscriptions?: Subscription;
 
     constructor(
-        fetch: (offset: number, limit: number) => Promise<SpotifyPage>,
+        fetch: (offset: number, limit: number, cursor: string) => Promise<SpotifyPage>,
         options?: Partial<PagerConfig>,
         inLibrary?: boolean | undefined
     ) {
         this.config = {...this.defaultConfig, ...options};
 
+        let cursor = '';
         this.pager = new SequentialPager<T>(
             async (limit = this.defaultConfig.pageSize!): Promise<Page<T>> => {
                 const offset = (this.pageNumber - 1) * limit;
                 const fetchPage = async () => {
-                    const {items, total, next} = await fetch(offset, limit);
+                    const {items, total, next} = await fetch(offset, limit, cursor);
                     this.pageNumber++;
+                    cursor = next || '';
                     return {
                         items: items.map((item) => this.createMediaObject(item, inLibrary)),
                         total,
@@ -142,7 +144,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                 return this.createMediaItemFromEpisode(item) as T;
 
             case 'artist':
-                return this.createMediaArtist(item) as T;
+                return this.createMediaArtist(item, inLibrary) as T;
 
             case 'album':
                 return this.createMediaAlbum(item, inLibrary) as T;
@@ -188,7 +190,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         };
     }
 
-    private createMediaArtist(artist: SpotifyArtist): MediaArtist {
+    private createMediaArtist(artist: SpotifyArtist, inLibrary?: boolean | undefined): MediaArtist {
         return {
             itemType: ItemType.Artist,
             src: artist.uri,
@@ -197,6 +199,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             genres: artist.genres,
             thumbnails: artist.images as Thumbnail[],
             pager: this.createArtistAlbumsPager(artist),
+            inLibrary,
         };
     }
 
@@ -378,7 +381,10 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                 return;
             }
             let inLibrary: boolean[] = [];
-            if (item.itemType === ItemType.Album) {
+
+            if (item.itemType === ItemType.Artist) {
+                inLibrary = await spotifyApi.isFollowingArtists(ids);
+            } else if (item.itemType === ItemType.Album) {
                 inLibrary = await spotifyApi.containsMySavedAlbums(ids);
             } else {
                 inLibrary = await spotifyApi.containsMySavedTracks(ids);
