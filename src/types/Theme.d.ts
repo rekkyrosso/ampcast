@@ -10,6 +10,7 @@ export default interface Theme {
     readonly buttonTextColor?: string;
     readonly scrollbarColor?: string;
     readonly scrollbarTextColor?: string;
+    readonly scrollbarThickness?: number;
     readonly mediaButtonColor?: string;
     readonly mediaButtonTextColor?: string;
     readonly roundness: number;

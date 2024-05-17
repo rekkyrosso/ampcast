@@ -13,6 +13,7 @@ export interface ThemeColorPairProps {
     suggestedColors?: [string, string];
     nextSuggestion?: () => void;
     trackingColor?: string;
+    children?: React.ReactNode;
 }
 
 export default function ThemeColorPair({
@@ -24,6 +25,7 @@ export default function ThemeColorPair({
     suggestedColors,
     nextSuggestion,
     trackingColor = 'frame',
+    children,
 }: ThemeColorPairProps) {
     const currentTheme = useCurrentTheme();
     const lockable = defaultBackgroundColor && defaultTextColor;
@@ -73,12 +75,7 @@ export default function ThemeColorPair({
                 disabled={locked}
                 onChange={setOriginalBackgroundColor}
             />
-            <IconButton
-                icon="swap"
-                title="Swap"
-                onClick={swap}
-                disabled={locked}
-            />
+            <IconButton icon="swap" title="Swap" onClick={swap} disabled={locked} />
             <ThemeColor
                 colorName={textColorName}
                 value={textColor || defaultTextColor}
@@ -98,6 +95,7 @@ export default function ThemeColorPair({
                     Suggest
                 </button>
             ) : null}
+            {children}
         </p>
     );
 }

@@ -34,6 +34,7 @@ export const emptyTheme: Required<Theme> = {
     buttonTextColor: '',
     scrollbarColor: '',
     scrollbarTextColor: '',
+    scrollbarThickness: 1,
     mediaButtonColor: '',
     mediaButtonTextColor: '',
     spacing: 0,

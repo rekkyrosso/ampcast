@@ -46,6 +46,13 @@ export default function ThemeEditor() {
         theme.flat = event.target.checked;
     }, []);
 
+    const handleScrollbarThicknessChange = useCallback(
+        (event: React.ChangeEvent<HTMLSelectElement>) => {
+            theme.scrollbarThickness = Number(event.target.value) || 1;
+        },
+        []
+    );
+
     return (
         <form className="theme-editor" method="dialog" onSubmit={handleSubmit}>
             <div className="table-layout">
@@ -107,7 +114,17 @@ export default function ThemeEditor() {
                     defaultTextColor={theme.defaultScrollbarTextColor}
                     trackingColor="button"
                     key={`${themeKey}/scrollbar`}
-                />
+                >
+                    <select
+                        className="scrollbar-thickness"
+                        onChange={handleScrollbarThicknessChange}
+                        defaultValue={theme.scrollbarThickness}
+                    >
+                        <option value="0.67">Thin</option>
+                        <option value="1">Medium</option>
+                        <option value="1.33">Thick</option>
+                    </select>
+                </ThemeColorPair>
                 <p>
                     <label htmlFor={`${id}-theme-spacing`}>Spacing:</label>
                     <input

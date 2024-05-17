@@ -9,6 +9,7 @@
     "mediaButtonColor": "#202037",
     "mediaButtonTextColor": "#f8f8fc",
     "spacing": 0.75,
-    "roundness": 1,
+    "roundness": 0.85,
+    "scrollbarThickness": 1.33,
     "flat": true
 }

@@ -12,5 +12,6 @@
     "selectedTextColor": "#d2d2d2",
     "spacing": 0.21875,
     "roundness": 0.09375,
+    "scrollbarThickness": 0.67,
     "flat": false
 }

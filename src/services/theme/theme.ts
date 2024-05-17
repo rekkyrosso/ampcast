@@ -265,6 +265,15 @@ class MainTheme implements CurrentTheme {
         this.setColor('scrollbarColor', color, this.defaultScrollbarColor);
     }
 
+    get scrollbarThickness(): number {
+        return this.current.scrollbarThickness;
+    }
+
+    set scrollbarThickness(scrollbarScale: number) {
+        this.setProperty('scrollbar-thickness', scrollbarScale);
+        this.theme$.next({...this.current, scrollbarThickness: scrollbarScale});
+    }
+
     get scrollbarTextColor(): string {
         return this.current.scrollbarTextColor;
     }

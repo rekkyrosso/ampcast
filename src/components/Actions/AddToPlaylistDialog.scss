@@ -11,7 +11,7 @@
     }
 
     .scrollable {
-        --scrollbar-size: 1.25em;
+        --scrollbar-size: calc(1.25em * var(--scrollbar-thickness));
         --scrollbar-color-hi: var(--scrollbar-color);
         --scrollbar-color-lo: var(--scrollbar-color);
     }

@@ -1,5 +1,5 @@
 .scrollable {
-    --scrollbar-size: 1.5em;
+    --scrollbar-size: calc(1.5em * var(--scrollbar-thickness));
 
     overflow: hidden;
     border-radius: inherit;

@@ -10,5 +10,6 @@
     "selectedTextColor": "#ebebeb",
     "spacing": 0.85,
     "roundness": 0.45,
+    "scrollbarThickness": 1.33,
     "flat": true
 }
