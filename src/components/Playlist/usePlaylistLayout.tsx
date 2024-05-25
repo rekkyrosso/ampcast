@@ -2,12 +2,10 @@ import React, {useMemo} from 'react';
 import PlaylistItem from 'types/PlaylistItem';
 import LookupStatus from 'types/LookupStatus';
 import {isPlayableSrc} from 'services/mediaServices';
-import playlistSettings from 'services/playlist/playlistSettings';
 import {ListViewLayout} from 'components/ListView';
 import Icon, {IconName} from 'components/Icon';
 import Time from 'components/Time';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
-import useObservable from 'hooks/useObservable';
 import usePaused from 'hooks/usePaused';
 
 const playlistLayout: ListViewLayout<PlaylistItem> = {
@@ -26,54 +24,34 @@ export default function usePlaylistLayout(size: number): ListViewLayout<Playlist
     const currentId = item?.id;
     const paused = usePaused();
     const sizeExponent = String(size).length;
-    const {zeroPadLineNumbers, showLineNumbers, showSourceIcons} = useObservable(
-        playlistSettings.observe,
-        playlistSettings.get()
-    );
 
     return useMemo(() => {
         return {
             ...playlistLayout,
-            cols: playlistLayout.cols
-                .filter((col) => {
-                    switch (col.className) {
-                        case 'index':
-                            return showLineNumbers;
-
-                        case 'source':
-                            return showSourceIcons;
-
-                        default:
-                            return true;
-                    }
-                })
-                .map((col) => {
-                    if (col.className === 'index') {
-                        return {
-                            ...col,
-                            render: (item: PlaylistItem, rowIndex) => {
-                                const rowNumber = RowNumber(
-                                    rowIndex,
-                                    zeroPadLineNumbers ? sizeExponent : 0
+            cols: playlistLayout.cols.map((col) => {
+                if (col.className === 'index') {
+                    return {
+                        ...col,
+                        render: (item: PlaylistItem, rowIndex) => {
+                            const rowNumber = RowNumber(rowIndex, sizeExponent);
+                            if (item.id === currentId) {
+                                return (
+                                    <>
+                                        <Icon name={paused ? 'pause' : 'play'} />
+                                        {rowNumber}
+                                    </>
                                 );
-                                if (item.id === currentId) {
-                                    return (
-                                        <>
-                                            <Icon name={paused ? 'pause' : 'play'} />
-                                            {rowNumber}
-                                        </>
-                                    );
-                                } else {
-                                    return rowNumber;
-                                }
-                            },
-                        };
-                    } else {
-                        return col;
-                    }
-                }),
+                            } else {
+                                return rowNumber;
+                            }
+                        },
+                    };
+                } else {
+                    return col;
+                }
+            }),
         };
-    }, [zeroPadLineNumbers, showLineNumbers, showSourceIcons, sizeExponent, currentId, paused]);
+    }, [sizeExponent, currentId, paused]);
 }
 
 function RowNumber(rowIndex: number, numberOfDigits = 0) {

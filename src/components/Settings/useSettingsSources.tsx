@@ -13,7 +13,6 @@ import AppSettings from './AppSettings';
 import AppearanceSettings from './AppearanceSettings';
 import MediaServicesSettings from './MediaLibrarySettings/MediaServicesSettings';
 import MediaServiceSettings from './MediaLibrarySettings/MediaServiceSettings';
-import PlaylistSettings from './PlaylistSettings';
 import VisualizerSettings from './VisualizerSettings';
 import AdvancedSettings from './AdvancedSettings';
 
@@ -89,11 +88,6 @@ export default function useSettingsSources(): readonly TreeNode<React.ReactNode>
                 id: 'visualizer',
                 label: <MediaSourceLabel text="Visualizer" icon="visualizer" />,
                 value: <VisualizerSettings />,
-            },
-            {
-                id: 'playlist',
-                label: <MediaSourceLabel text="Playlist" icon="playlist" />,
-                value: <PlaylistSettings />,
             },
             {
                 id: 'appearance',

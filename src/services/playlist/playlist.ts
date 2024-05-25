@@ -29,7 +29,6 @@ import {
 } from 'services/lookup';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {bestOf, exists, removeUserData, shuffle as shuffleArray, Logger} from 'utils';
-import settings from './playlistSettings';
 
 const logger = new Logger('playlist');
 
@@ -167,13 +166,7 @@ export async function inject(items: PlayableType): Promise<void> {
 
 export async function injectAt(items: PlayableType, index: number): Promise<void> {
     const all = getItems();
-    const allowDuplicates = settings.get().allowDuplicates;
-    let additions = await createMediaItems(items);
-    if (!allowDuplicates) {
-        additions = additions.filter((addition) => {
-            return all.findIndex((item) => item.src === addition.src) === -1;
-        });
-    }
+    const additions = await createMediaItems(items);
     if (additions.length > 0) {
         const newItems = additions.map((item) => ({
             ...removeUserData(item),
