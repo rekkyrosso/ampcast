@@ -7,6 +7,7 @@ import debug from './debug.json';
 import glacier from './glacier.json';
 import indigo from './indigo.json';
 import lego from './lego.json';
+import mellowyellow from './mellowyellow.json';
 import moodyblue from './moodyblue.json';
 import neon from './neon.json';
 import palepink from './palepink.json';
@@ -55,6 +56,7 @@ const themes: readonly Theme[] = [
     glacier,
     indigo,
     lego,
+    mellowyellow,
     moodyblue,
     neon,
     palepink,

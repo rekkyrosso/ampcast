@@ -140,9 +140,12 @@ class MainTheme implements CurrentTheme {
     }
 
     get edited(): boolean {
-        const originalTheme = this.userTheme
-            ? themeStore.getUserTheme(this.name)
-            : themeStore.getDefaultTheme(this.name);
+        const originalTheme = {
+            ...emptyTheme,
+            ...(this.userTheme
+                ? themeStore.getUserTheme(this.name)
+                : themeStore.getDefaultTheme(this.name)),
+        };
         return originalTheme
             ? !Object.keys(originalTheme).every(
                   (propertyName) =>
@@ -163,16 +166,23 @@ class MainTheme implements CurrentTheme {
     }
 
     get focusRingColor(): string {
+        // TODO: This is mostly guesswork.
         if (this.isFrameDark) {
             return new TinyColor(
                 this.isMediaButtonLight ? this.mediaButtonColor : this.defaultMediaButtonColor
             )
-                .triad()[1]
                 .saturate(20)
+                .triad()[1]
                 .lighten(20)
                 .toHexString();
+        } else if (this.isMediaButtonLight) {
+            return new TinyColor(this.frameColor).saturate(33).triad()[2].darken(33).toHexString();
         } else {
-            return new TinyColor(this.frameColor).triad()[2].saturate(33).darken(50).toHexString();
+            return new TinyColor(this.mediaButtonColor)
+                .saturate(33)
+                .triad()[1]
+                .lighten(33)
+                .toHexString();
         }
     }
 
@@ -269,9 +279,9 @@ class MainTheme implements CurrentTheme {
         return this.current.scrollbarThickness;
     }
 
-    set scrollbarThickness(scrollbarScale: number) {
-        this.setProperty('scrollbar-thickness', scrollbarScale);
-        this.theme$.next({...this.current, scrollbarThickness: scrollbarScale});
+    set scrollbarThickness(scrollbarThickness: number) {
+        this.setProperty('scrollbar-thickness', scrollbarThickness);
+        this.theme$.next({...this.current, scrollbarThickness});
     }
 
     get scrollbarTextColor(): string {
@@ -454,6 +464,7 @@ class MainTheme implements CurrentTheme {
             buttonTextColor: 'string',
             scrollbarColor: 'string',
             scrollbarTextColor: 'string',
+            scrollbarThickness: 'number',
             spacing: 'number',
             roundness: 'number',
             flat: 'boolean',

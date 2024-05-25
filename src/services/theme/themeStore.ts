@@ -25,7 +25,13 @@ class ThemeStore extends Dexie {
             themes: `&name`,
         });
 
-        liveQuery(() => this.themes.toArray()).subscribe(this.themes$);
+        liveQuery(() => this.themes.toArray()).subscribe((themes) =>
+            this.themes$.next(
+                themes.sort((a, b) =>
+                    a.name.localeCompare(b.name, undefined, {sensitivity: 'base'})
+                )
+            )
+        );
     }
 
     observeUserThemes(): Observable<readonly UserTheme[]> {
@@ -70,7 +76,7 @@ class ThemeStore extends Dexie {
         try {
             const theme = await this.themes.get(oldName);
             if (!theme) {
-                throw Error(`Theme '${oldName}' not found.`)
+                throw Error(`Theme '${oldName}' not found.`);
             }
             await this.themes.delete(oldName);
             await this.themes.put({...theme, name: newName, userTheme: true});

@@ -160,9 +160,7 @@ export default function ListView<T>({
     const atEnd = rowIndex === size - 1;
     const busy = keyboardBusy && !(atStart || atEnd);
     const prevItems = usePrevious(items);
-    const [debouncedSelectedItems, setDebouncedSelectedItems] = useState<readonly T[]>(
-        () => selectedItems
-    );
+    const [debouncedSelectedItems, setDebouncedSelectedItems] = useState(selectedItems);
     const [dragItem1, dragItem2, dragItem3, dragItem4] =
         draggable || reorderable ? selectedItems : [];
     const selectedId = items[rowIndex] ? `${listViewId}-${items[rowIndex][itemKey]}` : '';
@@ -369,16 +367,17 @@ export default function ListView<T>({
 
     const handleMouseUp = useCallback(
         (event: React.MouseEvent) => {
-            if (event.button === 0) {
-                const rowIndex = getRowIndexFromMouseEvent(event);
-                if (rowIndex !== -1) {
-                    if (multiple && !event[browser.ctrlKey] && !event.shiftKey) {
-                        selectAt(rowIndex);
-                    }
-                }
+            if (
+                event.button === 0 &&
+                rowIndex !== -1 &&
+                multiple &&
+                !event[browser.ctrlKey] &&
+                !event.shiftKey
+            ) {
+                selectAt(rowIndex);
             }
         },
-        [selectAt, multiple]
+        [selectAt, multiple, rowIndex]
     );
 
     const handleKeyUp = useCallback((event: React.KeyboardEvent) => {
@@ -427,13 +426,16 @@ export default function ListView<T>({
                     );
                 }
             } else {
-                onContextMenu?.(
-                    selectedItems,
-                    event.pageX,
-                    event.pageY,
-                    getRowIndexFromMouseEvent(event),
-                    event.button
-                );
+                const newRowIndex = getRowIndexFromMouseEvent(event);
+                if (newRowIndex !== -1) {
+                    onContextMenu?.(
+                        selectedItems,
+                        event.pageX,
+                        event.pageY,
+                        newRowIndex,
+                        event.button
+                    );
+                }
             }
         },
         [rowIndex, selectedItems, onContextMenu, clientWidth]

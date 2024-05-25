@@ -6,10 +6,12 @@
     "frameTextColor": "#000000",
     "selectedBackgroundColor": "#1e25ae",
     "selectedTextColor": "#ffffff",
+    "scrollbarColor": "#85858a",
+    "scrollbarTextColor": "#000000",
+    "scrollbarThickness": 1.33,
     "mediaButtonColor": "#202037",
     "mediaButtonTextColor": "#f8f8fc",
     "spacing": 0.75,
     "roundness": 0.85,
-    "scrollbarThickness": 1.33,
     "flat": true
 }

@@ -90,11 +90,11 @@
     }
 
     &-horizontal &-thumb {
-        min-width: calc(var(--scrollbar-size) / 2);
+        min-width: calc(var(--scrollbar-size) * 0.67);
     }
 
     &-vertical &-thumb {
-        min-height: calc(var(--scrollbar-size) / 2);
+        min-height: calc(var(--scrollbar-size) * 0.67);
     }
 
     .overflow-x > &-horizontal,

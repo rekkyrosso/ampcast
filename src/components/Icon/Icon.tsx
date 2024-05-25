@@ -318,7 +318,7 @@ export default function Icon({name, className = ''}: IconProps) {
 
         case 'tick':
             return (
-                <svg className={className} viewBox="0 0 16 16">
+                <svg className={className} viewBox="0 0 17 17">
                     <path
                         stroke="none"
                         d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"
@@ -332,7 +332,7 @@ export default function Icon({name, className = ''}: IconProps) {
 
         case 'plus':
             return (
-                <svg className={className} viewBox="0 0 16 16">
+                <svg className={className} viewBox="0 0 17 17">
                     <path
                         stroke="none"
                         d="M14 1a1 1 0 0 1 1 1v12a1 1 0 0 1-1 1H2a1 1 0 0 1-1-1V2a1 1 0 0 1 1-1h12zM2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2z"
@@ -346,7 +346,7 @@ export default function Icon({name, className = ''}: IconProps) {
 
         case 'tick-fill':
             return (
-                <svg className={className} viewBox="0 0 16 16">
+                <svg className={className} viewBox="0 0 17 17">
                     <path
                         stroke="none"
                         d="M2 0a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V2a2 2 0 0 0-2-2H2zm10.03 4.97a.75.75 0 0 1 .011 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.75.75 0 0 1 1.08-.022z"
@@ -503,7 +503,7 @@ export default function Icon({name, className = ''}: IconProps) {
 
         case 'link':
             return (
-                <svg className={className} viewBox="0 0 512 512">
+                <svg className={className} viewBox="0 0 520 520">
                     <path
                         stroke="none"
                         d="M320 0c-17.7 0-32 14.3-32 32s14.3 32 32 32h82.7L201.4 265.4c-12.5 12.5-12.5 32.8 0 45.3s32.8 12.5 45.3 0L448 109.3V192c0 17.7 14.3 32 32 32s32-14.3 32-32V32c0-17.7-14.3-32-32-32H320zM80 32C35.8 32 0 67.8 0 112V432c0 44.2 35.8 80 80 80H400c44.2 0 80-35.8 80-80V320c0-17.7-14.3-32-32-32s-32 14.3-32 32V432c0 8.8-7.2 16-16 16H80c-8.8 0-16-7.2-16-16V112c0-8.8 7.2-16 16-16H192c17.7 0 32-14.3 32-32s-14.3-32-32-32H80z"

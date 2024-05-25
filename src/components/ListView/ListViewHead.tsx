@@ -1,4 +1,5 @@
 import React from 'react';
+import {cancelEvent} from 'utils';
 import {Column} from './ListView';
 import ListViewHeadCell from './ListViewHeadCell';
 import ColumnResizer from './ColumnResizer';
@@ -26,6 +27,7 @@ export default function ListViewHead<T>({
             style={{
                 width: `${width}px`,
             }}
+            onContextMenu={cancelEvent}
         >
             <div
                 className="list-view-row"

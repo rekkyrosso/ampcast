@@ -147,6 +147,31 @@ const tidalPlexPicks: MediaSource<MediaAlbum> = {
     },
 };
 
+const tidalNewTracks: MediaSource<MediaItem> = {
+    id: `${serviceId}/new-tracks`,
+    title: 'New Tracks',
+    icon: 'audio',
+    itemType: ItemType.Media,
+    defaultHidden: true,
+    layout: defaultLayout,
+
+    search(): Pager<MediaItem> {
+        return createPager('/hubs/sections/tidal/newTracks');
+    },
+};
+
+const tidalNewAlbums: MediaSource<MediaAlbum> = {
+    id: `${serviceId}/new-albums`,
+    title: 'New Albums',
+    icon: 'album',
+    itemType: ItemType.Album,
+    defaultHidden: true,
+
+    search(): Pager<MediaAlbum> {
+        return createPager('/hubs/sections/tidal/newAlbums');
+    },
+};
+
 const tidalNewPlaylists: MediaSource<MediaPlaylist> = {
     id: `${serviceId}/new-playlists`,
     title: 'New Playlists',
@@ -182,6 +207,8 @@ const tidal: PublicMediaService = {
         tidalLibraryPlaylists,
         tidalLibraryVideos,
         tidalMyMixes,
+        tidalNewTracks,
+        tidalNewAlbums,
         tidalNewPlaylists,
         tidalPlexPicks,
     ],

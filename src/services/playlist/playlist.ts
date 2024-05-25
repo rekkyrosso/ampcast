@@ -218,7 +218,11 @@ export function prev(): void {
 export function remove(item: PlaylistItem | readonly PlaylistItem[]): void {
     const items = getItems();
     const removals = Array.isArray(item) ? item : [item];
-    const newItems = items.filter((item) => !removals.includes(item));
+    const removalIds: Record<string, boolean> = {};
+    for (const removal of removals) {
+        removalIds[removal.id] = true;
+    }
+    const newItems = items.filter((item) => !(item.id in removalIds));
     if (newItems.length !== items.length) {
         const currentIndex = getCurrentIndex();
         const currentlyPlayingId = getCurrentItemId();

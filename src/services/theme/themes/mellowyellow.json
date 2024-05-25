@@ -1,0 +1,14 @@
+{
+    "name": "Mellow Yellow",
+    "backgroundColor": "#f5f2d1",
+    "textColor": "#111103",
+    "frameColor": "#fef4c3",
+    "frameTextColor": "#513506",
+    "selectedBackgroundColor": "#fdeb91",
+    "selectedTextColor": "#000000",
+    "mediaButtonColor": "#fffae1",
+    "mediaButtonTextColor": "#513506",
+    "spacing": 0.32,
+    "roundness": 0.29,
+    "flat": true
+}
