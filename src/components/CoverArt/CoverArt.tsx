@@ -73,7 +73,6 @@ export default function CoverArt({item, size, className = '', onLoad, onError}: 
     return (
         <figure
             className={`cover-art ${className} ${overlayIcon ? 'cover-art-' + overlayIcon : ''}`}
-            key={item.src}
         >
             {src && !inError ? (
                 <>

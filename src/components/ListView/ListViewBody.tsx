@@ -60,18 +60,18 @@ export default function ListViewBody<T>({
             aria-activedescendant={selectedId}
             ref={ref}
         >
-            {virtualItems.map((item, virtualIndex) => (
+            {virtualItems.map((item, i) => (
                 <ListViewBodyRow<T>
                     className={itemClassName(item)}
                     id={`${listViewId}-${item[itemKey]}`}
-                    rowIndex={virtualStart + virtualIndex}
+                    rowIndex={virtualStart + i}
                     height={rowHeight}
                     selected={(item[itemKey] as string) in selectedIds}
                     cols={cols}
                     item={item}
                     setSize={size}
                     dragIndex={dragIndex}
-                    key={virtualIndex}
+                    key={item[itemKey] as any}
                 />
             ))}
         </ol>
