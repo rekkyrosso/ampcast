@@ -78,7 +78,7 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
         const offset = (pageNumber - 1) * this.pageSize;
 
         page.items.forEach((item, index) => (items[index + offset] = item));
-        items.length = size;
+        items.length = size; // sparse array
 
         if (page.items.length === size) {
             for (let i = 0; i <= pageCount; i++) {

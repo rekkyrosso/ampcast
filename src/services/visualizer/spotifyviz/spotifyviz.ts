@@ -7,7 +7,8 @@ import visualizers from './visualizers';
 const spotifyviz: VisualizerProvider<SpotifyVizVisualizer> = {
     id: 'spotifyviz',
     name: 'spotify-viz',
-    externalUrl: 'https://github.com/zachwinter/spotify-viz/',
+    // 404 now (used to work)
+    // externalUrl: 'https://github.com/zachwinter/spotify-viz/',
     visualizers,
     observeVisualizers: () => of(visualizers),
     createPlayer() {

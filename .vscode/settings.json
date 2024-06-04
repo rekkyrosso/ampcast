@@ -1,12 +1,14 @@
 {
     "cSpell.words": [
         "albumartist",
+        "albumid",
         "ambientvideo",
         "ambilight",
         "ampcast",
         "Ampcast",
         "ampshader",
         "analysers",
+        "artistid",
         "audiobooks",
         "audiomotion",
         "autocorrect",
@@ -129,6 +131,7 @@
         "tinycolor",
         "topalbums",
         "toptracks",
+        "trackid",
         "tracklist",
         "tracknumber",
         "unfollow",

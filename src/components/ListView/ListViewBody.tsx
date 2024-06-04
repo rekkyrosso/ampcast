@@ -7,7 +7,7 @@ export interface ListViewBodyProps<T> {
     listViewId: string;
     title: string;
     width?: number;
-    height: number;
+    pageSize: number;
     rowHeight: number;
     cols: readonly Column<T>[];
     items: readonly T[];
@@ -26,7 +26,7 @@ export default function ListViewBody<T>({
     listViewId,
     title,
     width,
-    height,
+    pageSize,
     rowHeight,
     cols,
     items,
@@ -43,7 +43,6 @@ export default function ListViewBody<T>({
     const ref = useRef<HTMLOListElement>(null);
     const size = items.length;
     const topIndex = Math.floor(scrollTop / rowHeight);
-    const pageSize = Math.floor(height / rowHeight);
     const virtualStart = Math.max(0, topIndex - overScan);
     const virtualSize = Math.min(size, pageSize + 2 * overScan);
     const virtualItems = items.slice(virtualStart, virtualStart + virtualSize);
@@ -61,18 +60,18 @@ export default function ListViewBody<T>({
             aria-activedescendant={selectedId}
             ref={ref}
         >
-            {virtualItems.map((item, i) => (
+            {virtualItems.map((item, virtualIndex) => (
                 <ListViewBodyRow<T>
                     className={itemClassName(item)}
                     id={`${listViewId}-${item[itemKey]}`}
-                    rowIndex={virtualStart + i}
+                    rowIndex={virtualStart + virtualIndex}
                     height={rowHeight}
-                    selected={item ? (item[itemKey] as string) in selectedIds : false}
+                    selected={(item[itemKey] as string) in selectedIds}
                     cols={cols}
                     item={item}
                     setSize={size}
                     dragIndex={dragIndex}
-                    key={item[itemKey] as any}
+                    key={virtualIndex}
                 />
             ))}
         </ol>

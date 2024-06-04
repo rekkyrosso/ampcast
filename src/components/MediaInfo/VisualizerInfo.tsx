@@ -53,7 +53,7 @@ function VisualizerDetail({visualizer}: VisualizerInfoProps) {
 }
 
 function YouTubeVideoInfo({visualizer}: {visualizer: AmbientVideoVisualizer}) {
-    const video = useYouTubeVideoInfo(visualizer!.src);
+    const video = useYouTubeVideoInfo(visualizer.src);
     return video ? (
         <div className="youtube-video-info">
             <h4>Title: {video.title}</h4>

@@ -143,7 +143,7 @@ export default function ListView<T>({
     const {cols, onColumnResize} = useColumns(layout, fontSize, storageId);
     const width = cols.reduce((width, col) => (width += col.width), 0) * fontSize;
     const pageSize = rowHeight
-        ? Math.max(Math.floor(clientHeight / rowHeight), 1) - (showTitles ? 1 : 0)
+        ? Math.max(Math.ceil(clientHeight / rowHeight), 1) - (showTitles ? 1 : 0)
         : 0;
     const size = items.length;
     const {selectedItems, selectedIds, selectAll, selectAt, selectRange, toggleSelectionAt} =
@@ -175,7 +175,7 @@ export default function ListView<T>({
                 // too far below
                 const scrollHeight = (size + (showTitles ? 1 : 0)) * rowHeight;
                 const lastIndex = size - pageSize - 1;
-                const seekIndex = Math.min(size - 1, rowIndex + 1);
+                const seekIndex = Math.min(size - 1, rowIndex + 2);
                 const topIndex = seekIndex - pageSize;
                 const top = topIndex === lastIndex ? scrollHeight : topIndex * rowHeight;
                 scrollable.scrollTo({top});
@@ -629,7 +629,7 @@ export default function ListView<T>({
                 <ListViewBody
                     title={title}
                     width={sizeable ? width : undefined}
-                    height={clientHeight}
+                    pageSize={pageSize}
                     rowHeight={rowHeight}
                     cols={cols}
                     items={items}
@@ -734,17 +734,15 @@ function getDropData<T>(
     droppableTypes: string[]
 ): readonly T[] | readonly File[] | DataTransferItem | null {
     const dataTransfer = event.dataTransfer;
-    switch (dataTransfer.types[0]) {
-        case 'Files':
-            return Array.from(dataTransfer.files).filter((item) =>
-                droppableTypes.some((type) => compareTypes(type, item.type))
-            );
-
-        case 'text/ampcast-items':
-            return globalDrag.getData(event);
-
-        default:
-            return getDroppableItem(dataTransfer, droppableTypes);
+    const types = dataTransfer.types;
+    if (types.includes('text/ampcast-items')) {
+        return globalDrag.getData(event);
+    } else if (types.includes('Files')) {
+        return Array.from(dataTransfer.files).filter((item) =>
+            droppableTypes.some((type) => compareTypes(type, item.type))
+        );
+    } else {
+        return getDroppableItem(dataTransfer, droppableTypes);
     }
 }
 

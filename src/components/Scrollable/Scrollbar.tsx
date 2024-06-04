@@ -13,6 +13,7 @@ import {
 } from 'rxjs';
 import {cancelEvent, preventDefault} from 'utils';
 import useOnResize from 'hooks/useOnResize';
+import usePrevious from 'hooks/usePrevious';
 import useScrollbarState from './useScrollbarState';
 import './Scrollbar.scss';
 
@@ -52,6 +53,9 @@ function Scrollbar({
     const dragging = dragStart !== -1;
     const vertical = orientation === 'vertical';
     const thumbPosition = Math.ceil((trackSize - thumbSize) * (position / max));
+    const prevPosition = usePrevious(position) || 0;
+    const positionDiff = Math.abs(prevPosition - position);
+    const smallChange = positionDiff <= scrollAmount;
 
     useEffect(() => {
         scrollbarRef.current = {scrollBy, scrollTo};
@@ -62,7 +66,20 @@ function Scrollbar({
         [props.clientSize, props.scrollSize, resize]
     );
 
-    useLayoutEffect(() => onChange?.(position), [position, onChange]);
+    useLayoutEffect(() => {
+        // Perform single-line scrolls a bit faster.
+        // Avoids some flickering when scrolling with arrow keys in `ListView`.
+        if (smallChange && onChange) {
+            onChange(position);
+        }
+    }, [position, onChange, smallChange]);
+
+    useEffect(() => {
+        if (!smallChange && onChange) {
+            onChange(position);
+        }
+    }, [position, onChange, smallChange]);
+
     useEffect(() => onResize?.(size), [size, onResize]);
 
     useOnResize(

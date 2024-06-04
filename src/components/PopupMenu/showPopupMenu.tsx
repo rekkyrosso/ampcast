@@ -19,12 +19,12 @@ export default async function showPopupMenu<T extends string>(
                     x={x}
                     y={y}
                     align={align}
+                    autoFocus
                     onClose={(returnValue?: T) => {
                         root.unmount();
                         rootElement.remove();
                         resolve(returnValue);
                     }}
-                    autoFocus
                 />
             );
         } catch (err) {

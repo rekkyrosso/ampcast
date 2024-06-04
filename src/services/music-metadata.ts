@@ -4,8 +4,26 @@ import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
+import {Logger} from 'utils';
 
-const options: IOptions = {duration: true, skipCovers: true, skipPostHeaders: true};
+const logger = new Logger('music-metadata');
+
+const options: IOptions = {
+    duration: true,
+    skipCovers: true,
+    skipPostHeaders: true,
+};
+
+const noMetadata: IAudioMetadata = {
+    common: {
+        track: {no: null, of: null},
+        disk: {no: null, of: null},
+        movementIndex: {},
+    },
+    format: {trackInfo: []},
+    native: {},
+    quality: {warnings: []},
+};
 
 export async function createMediaItemFromFile(file: File): Promise<MediaItem> {
     const {parseBlob} = await import(
@@ -13,8 +31,12 @@ export async function createMediaItemFromFile(file: File): Promise<MediaItem> {
         /* webpackMode: "lazy-once" */
         'music-metadata-browser'
     );
-
-    const metadata = await parseBlob(file, options);
+    let metadata = noMetadata;
+    try {
+        metadata = await parseBlob(file, options);
+    } catch (err) {
+        logger.error(err);
+    }
     const {format} = metadata;
     const isVideo = file.type.startsWith('video');
     const duration = format.duration || 0;
@@ -33,7 +55,12 @@ export async function createMediaItemFromFile(file: File): Promise<MediaItem> {
 }
 
 export async function createMediaItemFromUrl(url: string): Promise<MediaItem> {
-    const metadata = await fetchFromUrl(url, options);
+    let metadata = noMetadata;
+    try {
+        metadata = await fetchFromUrl(url, options);
+    } catch (err) {
+        logger.error(err);
+    }
     const {format} = metadata;
     const isVideo = false; // TODO
     const duration = format.duration || 0;
@@ -105,6 +132,9 @@ function createMediaItem(
         rating: Number(common.rating) || 0,
         isrc: common.isrc?.[0],
         recording_mbid: common.musicbrainz_recordingid,
+        artist_mbids: common.musicbrainz_artistid,
+        track_mbid: common.musicbrainz_trackid,
+        release_mbid: common.musicbrainz_albumid,
         playedAt: 0,
         noScrobble: !common.title,
     };

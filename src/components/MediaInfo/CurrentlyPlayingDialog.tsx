@@ -8,7 +8,6 @@ import useFirstValue from 'hooks/useFirstValue';
 import MediaInfo from './MediaInfo';
 import VisualizerInfo from './VisualizerInfo';
 import useMediaInfoDialog from './useMediaInfoDialog';
-import './CurrentlyPlayingDialog.scss';
 
 export default function CurrentlyPlayingDialog(props: DialogProps) {
     const ref = useRef<HTMLDialogElement>(null);

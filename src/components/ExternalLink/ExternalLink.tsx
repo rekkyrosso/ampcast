@@ -7,7 +7,7 @@ export type ExternalLinkProps = JSX.IntrinsicElements['a'];
 export default function ExternalLink({
     href,
     className = '',
-    children = href,
+    children = trimUrl(href),
     ...props
 }: ExternalLinkProps) {
     return (
@@ -23,4 +23,13 @@ export default function ExternalLink({
             <Icon name="link" />
         </a>
     );
+}
+
+function trimUrl(href: string | undefined): string | undefined {
+    if (!href || href.length < 80) {
+        return href;
+    }
+    const url = new URL(href);
+    const path = url.pathname.split('/').pop();
+    return path ? `${url.origin}/.../${path}` : url.origin;
 }
