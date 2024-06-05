@@ -4,6 +4,7 @@ import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
+import MediaFilter from 'types/MediaFilter';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
@@ -15,6 +16,7 @@ import ParentOf from 'types/ParentOf';
 import Pin from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
+import ViewType from 'types/ViewType';
 import {NoFavoritesPlaylistError} from 'services/errors';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
@@ -196,6 +198,153 @@ const appleFavoriteSongs: MediaSource<MediaItem> = {
     },
 };
 
+const appleSongCharts: MediaSource<MediaItem> = {
+    id: 'apple/top-songs',
+    title: 'Top Songs',
+    icon: 'star',
+    itemType: ItemType.Media,
+    viewType: ViewType.ByGenre,
+    layout: defaultLayout,
+
+    search(genre?: MediaFilter): Pager<MediaItem> {
+        if (genre) {
+            return new MusicKitPager(
+                '/v1/catalog/{{storefrontId}}/charts',
+                {types: 'songs', genre: genre.id},
+                {maxSize: 200, pageSize: 50},
+                undefined,
+                (response: any): MusicKitPage => {
+                    const result = response.results?.songs?.[0] || {data: []};
+                    const nextPageUrl = result.next;
+                    return {items: result.data, nextPageUrl};
+                }
+            );
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const appleAlbumCharts: MediaSource<MediaAlbum> = {
+    id: 'apple/top-albums',
+    title: 'Top Albums',
+    icon: 'star',
+    itemType: ItemType.Album,
+    viewType: ViewType.ByGenre,
+
+    search(genre?: MediaFilter): Pager<MediaAlbum> {
+        if (genre) {
+            return new MusicKitPager(
+                '/v1/catalog/{{storefrontId}}/charts',
+                {types: 'albums', genre: genre.id},
+                {maxSize: 200, pageSize: 50},
+                undefined,
+                (response: any): MusicKitPage => {
+                    const result = response.results?.albums?.[0] || {data: []};
+                    const nextPageUrl = result.next;
+                    return {items: result.data, nextPageUrl};
+                }
+            );
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const applePlaylistCharts: MediaSource<MediaPlaylist> = {
+    id: 'apple/top-playlists',
+    title: 'Top Playlists',
+    icon: 'star',
+    itemType: ItemType.Playlist,
+    defaultHidden: true,
+
+    search(): Pager<MediaPlaylist> {
+        return new MusicKitPager(
+            '/v1/catalog/{{storefrontId}}/charts',
+            {types: 'playlists'},
+            {maxSize: 200, pageSize: 50},
+            undefined,
+            (response: any): MusicKitPage => {
+                const result = response.results?.playlists?.[0] || {data: []};
+                const nextPageUrl = result.next;
+                return {items: result.data, nextPageUrl};
+            }
+        );
+    },
+};
+
+const appleMusicVideoCharts: MediaSource<MediaItem> = {
+    id: 'apple/top-videos',
+    title: 'Top Videos',
+    icon: 'star',
+    itemType: ItemType.Media,
+    mediaType: MediaType.Video,
+    viewType: ViewType.ByGenre,
+    layout: defaultLayout,
+    defaultHidden: true,
+
+    search(genre?: MediaFilter): Pager<MediaItem> {
+        if (genre) {
+            return new MusicKitPager(
+                '/v1/catalog/{{storefrontId}}/charts',
+                {types: 'music-videos', genre: genre.id},
+                {maxSize: 200, pageSize: 50},
+                undefined,
+                (response: any): MusicKitPage => {
+                    const result = response.results?.['music-videos']?.[0] || {data: []};
+                    const nextPageUrl = result.next;
+                    return {items: result.data, nextPageUrl};
+                }
+            );
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const appleGlobalCharts: MediaSource<MediaPlaylist> = {
+    id: 'apple/global-charts',
+    title: 'Daily Top 100',
+    icon: 'chart',
+    itemType: ItemType.Playlist,
+
+    search(): Pager<MediaPlaylist> {
+        return new MusicKitPager(
+            '/v1/catalog/{{storefrontId}}/charts',
+            {chartId: 'daily-global-top', with: 'dailyGlobalTopCharts'},
+            {pageSize: 50},
+            undefined,
+            (response: any): MusicKitPage => {
+                const result = response.results?.dailyGlobalTopCharts?.[0] || {data: []};
+                const nextPageUrl = result.next;
+                return {items: result.data, nextPageUrl};
+            }
+        );
+    },
+};
+
+const appleCityCharts: MediaSource<MediaPlaylist> = {
+    id: 'apple/city-charts',
+    title: 'City Charts',
+    icon: 'chart',
+    itemType: ItemType.Playlist,
+    defaultHidden: true,
+
+    search(): Pager<MediaPlaylist> {
+        return new MusicKitPager(
+            '/v1/catalog/{{storefrontId}}/charts',
+            {chartId: 'city-top', with: 'cityCharts'},
+            {pageSize: 50},
+            undefined,
+            (response: any): MusicKitPage => {
+                const result = response.results?.cityCharts?.[0] || {data: []};
+                const nextPageUrl = result.next;
+                return {items: result.data, nextPageUrl};
+            }
+        );
+    },
+};
+
 const apple: PublicMediaService = {
     id: 'apple',
     name: 'Apple Music',
@@ -225,6 +374,12 @@ const apple: PublicMediaService = {
         appleLibraryVideos,
         appleFavoriteSongs,
         appleRecentlyPlayed,
+        appleSongCharts,
+        appleAlbumCharts,
+        applePlaylistCharts,
+        appleMusicVideoCharts,
+        appleGlobalCharts,
+        appleCityCharts,
         appleRecommendations,
     ],
     icons: {
@@ -242,6 +397,7 @@ const apple: PublicMediaService = {
     compareForRating,
     createPlaylist,
     createSourceFromPin,
+    getFilters,
     getMetadata,
     getPlaybackType,
     lookup,
@@ -346,6 +502,34 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
             );
         },
     };
+}
+
+let appleGenres: readonly MediaFilter[];
+
+async function getFilters(
+    viewType: ViewType.ByDecade | ViewType.ByGenre
+): Promise<readonly MediaFilter[]> {
+    if (viewType === ViewType.ByGenre) {
+        if (!appleGenres) {
+            const musicKit = MusicKit.getInstance();
+            const {
+                data: {data},
+            } = await musicKit.api.music('/v1/catalog/{{storefrontId}}/genres', {
+                limit: 200,
+            });
+            appleGenres = data
+                .map(({id, attributes}: any) => ({
+                    id,
+                    title: attributes.parentId ? attributes.name : '(all)',
+                }))
+                .sort((a: MediaFilter, b: MediaFilter) => {
+                    return a.title.localeCompare(b.title);
+                });
+        }
+        return appleGenres;
+    } else {
+        throw Error('Not supported');
+    }
 }
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {

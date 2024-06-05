@@ -62,6 +62,7 @@ export type IconName =
     | 'search'
     | 'swap'
     | 'genre'
+    | 'chart'
     | 'playlist-add'
     | 'lookup-pending'
     | 'lookup-looking'
@@ -271,6 +272,17 @@ export default function Icon({name, className = ''}: IconProps) {
                     <path stroke="none" d="m12 2-5.5 9h11z" />
                     <circle stroke="none" cx="17.5" cy="17.5" r="4.5" />
                     <path stroke="none" d="M3 13.5h8v8H3z" />
+                </svg>
+            );
+
+        case 'chart':
+            return (
+                <svg className={className} viewBox="0 0 16 16">
+                    <path
+                        strokeWidth={0.5}
+                        fillRule="evenodd"
+                        d="M0 0h1v15h15v1H0zm10 3.5a.5.5 0 0 1 .5-.5h4a.5.5 0 0 1 .5.5v4a.5.5 0 0 1-1 0V4.9l-3.613 4.417a.5.5 0 0 1-.74.037L7.06 6.767l-3.656 5.027a.5.5 0 0 1-.808-.588l4-5.5a.5.5 0 0 1 .758-.06l2.609 2.61L13.445 4H10.5a.5.5 0 0 1-.5-.5"
+                    />
                 </svg>
             );
 
@@ -859,11 +871,7 @@ export default function Icon({name, className = ''}: IconProps) {
         case 'apple-logo':
             return (
                 // From: https://github.com/Remix-Design/RemixIcon
-                <svg
-                    className={className}
-                    viewBox="0 0 24 24"
-                    transform="translate(0 -1)"
-                >
+                <svg className={className} viewBox="0 0 24 24" transform="translate(0 -1)">
                     <path
                         fillRule="nonzero"
                         d="M11.624 7.222c-.876 0-2.232-.996-3.66-.96-1.884.024-3.612 1.092-4.584 2.784-1.956 3.396-.504 8.412 1.404 11.172.936 1.344 2.04 2.856 3.504 2.808 1.404-.06 1.932-.912 3.636-.912 1.692 0 2.172.912 3.66.876 1.512-.024 2.472-1.368 3.396-2.724 1.068-1.56 1.512-3.072 1.536-3.156-.036-.012-2.94-1.128-2.976-4.488-.024-2.808 2.292-4.152 2.4-4.212-1.32-1.932-3.348-2.148-4.056-2.196-1.848-.144-3.396 1.008-4.26 1.008zm3.12-2.832c.78-.936 1.296-2.244 1.152-3.54-1.116.048-2.46.744-3.264 1.68-.72.828-1.344 2.16-1.176 3.432 1.236.096 2.508-.636 3.288-1.572z"
