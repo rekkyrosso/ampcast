@@ -27,7 +27,7 @@ export default function useRecentlyPlayedPager(
 ) {
     const startAt = useMemo(() => Math.floor(Date.now() / 1000), []);
     const [pager, setPager] = useState<Pager<MediaItem> | null>(null);
-    const [total, seTotal] = useState<number | undefined>(undefined);
+    const [total, setTotal] = useState<number | undefined>(undefined);
 
     useEffect(() => {
         const recentPager = new SubjectPager<MediaItem>();
@@ -61,7 +61,7 @@ export default function useRecentlyPlayedPager(
                 .subscribe(logger)
         );
 
-        subscription.add(pager.observeSize().pipe(tap(seTotal)).subscribe(logger));
+        subscription.add(pager.observeSize().pipe(tap(setTotal)).subscribe(logger));
 
         recentPager.next([]);
         setPager(pager);

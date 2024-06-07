@@ -29,8 +29,9 @@ export default function HistoryBrowser({
     const pager = useHistoryPager(source, startAt);
 
     const handleDateChange = useCallback((value: string) => {
+        // Use local times.
         const today = new Date();
-        const date = new Date(value);
+        const date = new Date(`${value}T23:59:59.999`);
         if (
             date.getFullYear() === today.getFullYear() &&
             date.getMonth() === today.getMonth() &&

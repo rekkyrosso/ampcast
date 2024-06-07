@@ -228,11 +228,21 @@ async function createCodeVerifier(): Promise<void> {
 }
 
 async function getUserInfo(): Promise<void> {
-    if (!spotifySettings.userId) {
-        const me = await spotifyApi.getMe();
-        spotifySettings.userId = me.id;
-        spotifySettings.market = me.country;
-    }
+    const getMe = async () => {
+        if (!spotifySettings.userId) {
+            const me = await spotifyApi.getMe();
+            spotifySettings.userId = me.id;
+            spotifySettings.market = me.country;
+        }
+    };
+    const getCategories = async () => {
+        if (!spotifySettings.chartsCategoryId) {
+            const {categories} = await spotifyApi.getCategories({limit: 50, locale: 'en_GB'});
+            const chartsCategory = categories.items.find((category) => category.name === 'Charts');
+            spotifySettings.chartsCategoryId = chartsCategory?.id || '';
+        }
+    };
+    await Promise.all([getMe(), getCategories()]);
 }
 
 (async () => {

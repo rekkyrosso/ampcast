@@ -22,7 +22,8 @@ export default function FilterSelector({
     const id = useId();
     const [filters, setFilters] = useState<readonly MediaFilter[]>([]);
     const [filter, setFilter] = useState<MediaFilter | undefined>();
-    const title = viewType === ViewType.ByDecade ? 'Decade' : 'Genre';
+    const title =
+        viewType === ViewType.ByDecade ? 'Decade' : service.id === 'spotify' ? 'Category' : 'Genre';
 
     useEffect(() => {
         if (filter && onSelect) {

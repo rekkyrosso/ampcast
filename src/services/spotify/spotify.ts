@@ -5,6 +5,7 @@ import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
+import MediaFilter from 'types/MediaFilter';
 import MediaType from 'types/MediaType';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
@@ -15,7 +16,9 @@ import Pin from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
+import ViewType from 'types/ViewType';
 import actionsStore from 'services/actions/actionsStore';
+import {NoSpotifyChartsError} from 'services/errors';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import {chunk, partition} from 'utils';
@@ -53,6 +56,11 @@ const defaultLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
 };
 
+const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
+    view: 'card compact',
+    fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb'],
+};
+
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
     fields: ['Index', 'Artist', 'Title', 'Album', 'Track', 'Duration'],
@@ -63,7 +71,6 @@ const spotifyRecentlyPlayed: MediaSource<MediaItem> = {
     title: 'Recently Played',
     icon: 'clock',
     itemType: ItemType.Media,
-    defaultHidden: true,
     layout: {
         view: 'card',
         fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'LastPlayed'],
@@ -252,10 +259,12 @@ const spotifyEditablePlaylists: MediaSource<MediaPlaylist> = {
 
 const spotifyFeaturedPlaylists: MediaSource<MediaPlaylist> = {
     id: 'spotify/featured-playlists',
-    title: 'Recommended',
+    title: 'Popular Playlists',
     icon: 'playlist',
     itemType: ItemType.Playlist,
+    layout: playlistLayout,
     secondaryLayout: playlistItemsLayout,
+    defaultHidden: true,
 
     search(): Pager<MediaPlaylist> {
         const market = getMarket();
@@ -295,6 +304,59 @@ const spotifyNewReleases: MediaSource<MediaAlbum> = {
     },
 };
 
+const spotifyPlaylistsByCategory: MediaSource<MediaPlaylist> = {
+    id: 'spotify/playlists-by-category',
+    title: 'Browse Playlists',
+    icon: 'playlist',
+    itemType: ItemType.Playlist,
+    viewType: ViewType.ByGenre,
+    layout: playlistLayout,
+    secondaryLayout: playlistItemsLayout,
+
+    search(category?: MediaFilter): Pager<MediaPlaylist> {
+        if (category) {
+            const market = getMarket();
+            return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
+                const {
+                    playlists: {items, total, next},
+                } = await spotifyApi.getCategoryPlaylists(category.id, {
+                    offset,
+                    limit,
+                    market,
+                });
+                return {items: items as SpotifyPlaylist[], total, next};
+            });
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const spotifyCharts: MediaSource<MediaPlaylist> = {
+    id: 'spotify/charts',
+    title: 'Charts',
+    icon: 'chart',
+    itemType: ItemType.Playlist,
+
+    search(): Pager<MediaPlaylist> {
+        const market = getMarket();
+        const categoryId = spotifySettings.chartsCategoryId;
+        if (!categoryId) {
+            throw new NoSpotifyChartsError();
+        }
+        return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
+            const {
+                playlists: {items, total, next},
+            } = await spotifyApi.getCategoryPlaylists(categoryId, {
+                offset,
+                limit,
+                market,
+            });
+            return {items: items as SpotifyPlaylist[], total, next};
+        });
+    },
+};
+
 const spotify: PublicMediaService = {
     id: 'spotify',
     name: 'Spotify',
@@ -326,7 +388,9 @@ const spotify: PublicMediaService = {
         spotifyRecentlyPlayed,
         spotifyTopTracks,
         spotifyTopArtists,
+        spotifyCharts,
         spotifyFeaturedPlaylists,
+        spotifyPlaylistsByCategory,
         spotifyNewReleases,
     ],
     icons: {
@@ -343,6 +407,7 @@ const spotify: PublicMediaService = {
     compareForRating,
     createPlaylist,
     createSourceFromPin,
+    getFilters,
     getMetadata,
     getPlaybackType,
     getTracksById,
@@ -443,6 +508,40 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
             });
         },
     };
+}
+
+let spotifyCategories: MediaFilter[];
+
+async function getFilters(
+    viewType: ViewType.ByDecade | ViewType.ByGenre
+): Promise<readonly MediaFilter[]> {
+    if (viewType === ViewType.ByGenre) {
+        // TODO: Spotify also has genres and I may have to re-think this.
+        if (!spotifyCategories) {
+            const limit = 50; // max
+            const locale = navigator.language.replace('-', '_');
+            const {
+                categories: {items, next},
+            } = await spotifyApi.getCategories({limit, locale});
+            if (next) {
+                const offset = limit;
+                const {categories: next} = await spotifyApi.getCategories({limit, locale, offset});
+                items.push(...next.items);
+            }
+            spotifyCategories = items.map(({id, name: title}: any) => ({id, title}));
+            const firstCategory = spotifyCategories.shift();
+            if (firstCategory) {
+                spotifyCategories.sort((a: MediaFilter, b: MediaFilter) => {
+                    return a.title.localeCompare(b.title);
+                });
+                // Keep "Made For You" at the top.
+                spotifyCategories.unshift(firstCategory);
+            }
+        }
+        return spotifyCategories;
+    } else {
+        throw Error('Not supported');
+    }
 }
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {

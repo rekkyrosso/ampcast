@@ -149,6 +149,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
     }
 
     protected set size(size: number) {
+        size = Math.min(size, this.maxSize ?? Infinity);
         this.size$.next(size);
     }
 

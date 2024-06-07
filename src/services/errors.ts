@@ -22,3 +22,7 @@ export class NoTidalSubscriptionError extends FullScreenError {
 export class NoFavoritesPlaylistError extends FullScreenError {
     readonly message = t('No favorites playlist found.');
 }
+
+export class NoSpotifyChartsError extends FullScreenError {
+    readonly message = 'Spotify Charts not found.';
+}

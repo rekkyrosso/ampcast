@@ -43,7 +43,8 @@ export const listenbrainzRecentlyPlayed: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
 
     search(): Pager<MediaItem> {
-        return new ListenBrainzHistoryPager();
+        // This doesn't get called (intercepted by `Router`).
+        return new SimplePager();
     },
 };
 

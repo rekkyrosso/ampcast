@@ -11,6 +11,7 @@ import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
+import SimplePager from 'services/pagers/SimplePager';
 import {getTextFromHtml} from 'utils';
 import lastfmApi from './lastfmApi';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './lastfmAuth';
@@ -56,7 +57,8 @@ export const lastfmRecentlyPlayed: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
 
     search(): Pager<MediaItem> {
-        return new LastFmHistoryPager();
+        // This doesn't get called (intercepted by `Router`).
+        return new SimplePager();
     },
 };
 

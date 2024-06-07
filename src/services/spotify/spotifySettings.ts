@@ -11,6 +11,14 @@ const authStorage = new LiteStorage('spotify/auth');
 const userStorage = new LiteStorage('spotify/user', 'memory');
 
 const spotifySettings = {
+    get chartsCategoryId(): string {
+        return storage.getString('chartsCategoryId');
+    },
+
+    set chartsCategoryId(id: string) {
+        storage.setString('chartsCategoryId', id);
+    },
+
     get clientId(): string {
         return sp_client_id || authStorage.getString('clientId');
     },
@@ -57,6 +65,7 @@ const spotifySettings = {
 
     clear(): void {
         authStorage.removeItem('token');
+        storage.removeItem('chartsCategoryId');
         userStorage.clear();
     },
 };
