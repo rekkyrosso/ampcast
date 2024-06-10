@@ -73,6 +73,13 @@
         }
     }
 
+    &-airsonic {
+        .airsonic-connected &,
+        &:not(.show-connectivity) {
+            fill: #2f7bd9;
+        }
+    }
+
     &-apple {
         &-inner {
             fill: none;

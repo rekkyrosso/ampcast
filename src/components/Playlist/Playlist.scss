@@ -15,6 +15,7 @@
             justify-content: center;
             width: 100%;
 
+            .airsonic-not-connected &.source-airsonic,
             .apple-not-connected &.source-apple,
             .emby-not-connected &.source-emby,
             .jellyfin-not-connected &.source-jellyfin,
@@ -29,6 +30,7 @@
                 }
             }
 
+            .airsonic-connected &.source-airsonic,
             .apple-connected &.source-apple,
             .emby-connected &.source-emby,
             .jellyfin-connected &.source-jellyfin,

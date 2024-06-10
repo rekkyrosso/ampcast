@@ -151,6 +151,6 @@ declare namespace Subsonic {
     }
 
     interface CreatePlaylistResponse {
-        playlist: Playlist;
+        playlist?: Playlist;
     }
 }

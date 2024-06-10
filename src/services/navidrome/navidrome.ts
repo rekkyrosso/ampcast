@@ -20,13 +20,13 @@ import ViewType from 'types/ViewType';
 import actionsStore from 'services/actions/actionsStore';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
-import subsonicApi from 'services/subsonic/subsonicApi';
 import {t} from 'services/i18n';
 import {bestOf, getTextFromHtml} from 'utils';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './navidromeAuth';
 import NavidromePager from './NavidromePager';
 import navidromeSettings from './navidromeSettings';
 import navidromeApi from './navidromeApi';
+import subsonicApi from './subsonicApi';
 
 const serviceId: MediaServiceId = 'navidrome';
 
@@ -91,6 +91,20 @@ const navidromeLikedArtists: MediaSource<MediaArtist> = {
         return new NavidromePager(ItemType.Artist, 'artist', {
             starred: true,
             _sort: 'starred_at',
+            _order: 'DESC',
+        });
+    },
+};
+
+const navidromeRecentlyAdded: MediaSource<MediaAlbum> = {
+    id: 'navidrome/recently-added',
+    title: 'Recently Added',
+    icon: 'recently-added',
+    itemType: ItemType.Album,
+
+    search(): Pager<MediaAlbum> {
+        return new NavidromePager(ItemType.Album, 'album', {
+            _sort: 'recently_added',
             _order: 'DESC',
         });
     },
@@ -236,7 +250,7 @@ const navidrome: PersonalMediaService = {
     id: serviceId,
     icon: serviceId,
     name: 'Navidrome',
-    url: 'https://www.navidrome.org/',
+    url: 'https://www.navidrome.org',
     serviceType: ServiceType.PersonalMedia,
     defaultHidden: true,
     roots: [
@@ -253,6 +267,7 @@ const navidrome: PersonalMediaService = {
         navidromeLikedSongs,
         navidromeLikedAlbums,
         navidromeLikedArtists,
+        navidromeRecentlyAdded,
         navidromeRecentlyPlayed,
         navidromeMostPlayed,
         navidromePlaylists,
@@ -350,7 +365,11 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
 async function getFilters(
     viewType: ViewType.ByDecade | ViewType.ByGenre
 ): Promise<readonly MediaFilter[]> {
-    return navidromeApi.getFilters(viewType);
+    if (viewType === ViewType.ByDecade) {
+        return subsonicApi.getDecades();
+    } else {
+        return navidromeApi.getGenres();
+    }
 }
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
@@ -361,7 +380,7 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
             return item;
         }
         if (item.description === undefined) {
-            const info = await subsonicApi.getAlbumInfo(id, false, navidromeSettings);
+            const info = await subsonicApi.getAlbumInfo(id, false);
             item = {
                 ...item,
                 description: getTextFromHtml(info.notes),
@@ -369,7 +388,7 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
             };
         }
     } else if (itemType === ItemType.Artist && item.description === undefined) {
-        const info = await subsonicApi.getArtistInfo(id, navidromeSettings);
+        const info = await subsonicApi.getArtistInfo(id);
         item = {
             ...item,
             description: getTextFromHtml(info.biography),
@@ -393,8 +412,8 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     return bestOf(item, items[0]);
 }
 
-function getPlayableUrl({src}: PlayableItem): string {
-    return navidromeApi.getPlayableUrl(src);
+function getPlayableUrl(item: PlayableItem): string {
+    return subsonicApi.getPlayableUrl(item);
 }
 
 function getThumbnailUrl(url: string): string {
@@ -428,15 +447,15 @@ async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
     const method = inLibrary ? 'star' : 'unstar';
     switch (item.itemType) {
         case ItemType.Media:
-            await subsonicApi.get(method, {id}, navidromeSettings);
+            await subsonicApi.get(method, {id});
             break;
 
         case ItemType.Album:
-            await subsonicApi.get(method, {albumId: id}, navidromeSettings);
+            await subsonicApi.get(method, {albumId: id});
             break;
 
         case ItemType.Artist:
-            await subsonicApi.get(method, {artistId: id}, navidromeSettings);
+            await subsonicApi.get(method, {artistId: id});
             break;
     }
 }

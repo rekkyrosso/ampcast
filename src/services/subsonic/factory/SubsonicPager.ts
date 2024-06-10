@@ -17,8 +17,9 @@ import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
-import subsonicApi from './subsonicApi';
-import subsonicSettings from './subsonicSettings';
+import {canPlayType} from 'utils';
+import SubsonicApi from './SubsonicApi';
+import SubsonicService from './SubsonicService';
 
 export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
     static minPageSize = 10;
@@ -29,6 +30,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
     private pageNumber = 1;
 
     constructor(
+        private readonly service: SubsonicService,
         itemType: ItemType,
         fetch: (offset: number, count: number) => Promise<Page<Subsonic.MediaObject>>,
         options?: Partial<PagerConfig>,
@@ -78,6 +80,10 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
         this.pager.fetchAt(index, length);
     }
 
+    private get api(): SubsonicApi {
+        return this.service.api;
+    }
+
     private createMediaObject(itemType: ItemType, item: Subsonic.MediaObject): T {
         let mediaObject: T;
         switch (itemType) {
@@ -124,7 +130,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             playbackType: PlaybackType.Direct,
-            src: `subsonic:audio:${song.id}`,
+            src: `${this.service.id}:audio:${song.id}`,
             fileName: this.getFileName(song.path || '') || '[unknown]',
             title: song.title,
             artists: [song.artist],
@@ -145,8 +151,10 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Media,
             mediaType: MediaType.Video,
-            playbackType: PlaybackType.Direct,
-            src: `subsonic:video:${video.id}`,
+            playbackType: canPlayType('video', video.contentType)
+                ? PlaybackType.Direct
+                : PlaybackType.HLS,
+            src: `${this.service.id}:video:${video.id}`,
             fileName: this.getFileName(video.path || '') || '[unknown]',
             title: video.title,
             duration: video.duration,
@@ -160,7 +168,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
     private createMediaAlbum(album: Subsonic.Album): MediaAlbum {
         return {
             itemType: ItemType.Album,
-            src: `subsonic:album:${album.id}`,
+            src: `${this.service.id}:album:${album.id}`,
             title: album.name,
             addedAt: this.parseDate(album.created),
             artist: album.artist,
@@ -179,7 +187,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
     private createMediaArtist(artist: Subsonic.Artist): MediaArtist {
         return {
             itemType: ItemType.Artist,
-            src: `subsonic:artist:${artist.id}`,
+            src: `${this.service.id}:artist:${artist.id}`,
             title: artist.name,
             pager: this.createArtistAlbumsPager(artist),
             thumbnails: this.createThumbnails(artist.coverArt),
@@ -188,7 +196,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaPlaylist(playlist: Subsonic.Playlist): MediaPlaylist {
-        const src = `subsonic:playlist:${playlist.id}`;
+        const src = `${this.service.id}:playlist:${playlist.id}`;
         return {
             src,
             itemType: ItemType.Playlist,
@@ -200,7 +208,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             pager: this.createPlaylistItemsPager(playlist),
             thumbnails: this.createThumbnails(playlist.coverArt),
             isPinned: pinStore.isPinned(src),
-            isOwn: playlist.owner === subsonicSettings.userName,
+            isOwn: playlist.owner === this.service.settings.userName,
             owner: {
                 name: playlist.owner,
             },
@@ -211,7 +219,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
         const fileName = folder.title || '[unknown]';
         const mediaFolder: Writable<SetOptional<MediaFolder, 'pager'>> = {
             itemType: ItemType.Folder,
-            src: `subsonic:folder:${folder.id}`,
+            src: `${this.service.id}:folder:${folder.id}`,
             title: fileName,
             fileName,
             path:
@@ -239,7 +247,9 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createThumbnail(id: string, width: number, height = width): Thumbnail {
-        const url = `${subsonicSettings.host}/rest/getCoverArt?id=${id}&size=${width}&{subsonic-credentials}`; // not a typo
+        const service = this.service;
+        const host = service.settings.host;
+        const url = `${host}/rest/getCoverArt?id=${id}&size=${width}&{${service.id}-credentials}`;
         return {url, width, height};
     }
 
@@ -254,9 +264,10 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             );
         } else {
             return new SubsonicPager(
+                this.service,
                 ItemType.Media,
                 async (): Promise<Page<Subsonic.MediaItem>> => {
-                    const items = await subsonicApi.getAlbumTracks(album.id, album.isDir);
+                    const items = await this.api.getAlbumTracks(album.id, album.isDir);
                     return {items, atEnd: true};
                 }
             );
@@ -273,9 +284,10 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
                   )
               )
             : new SubsonicPager<MediaAlbum>(
+                  this.service,
                   ItemType.Album,
                   async () => {
-                      const items = await subsonicApi.getArtistAlbums(artist.id);
+                      const items = await this.api.getArtistAlbums(artist.id);
                       return {items, atEnd: true};
                   },
                   undefined
@@ -286,7 +298,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
     private createArtistTopTracks(artist: Subsonic.Artist): MediaAlbum {
         return {
             itemType: ItemType.Album,
-            src: `subsonic:top-tracks:${artist.id}`,
+            src: `${this.service.id}:top-tracks:${artist.id}`,
             title: 'Top Songs',
             artist: artist.name,
             thumbnails: this.createThumbnails(artist.coverArt),
@@ -296,8 +308,8 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createTopTracksPager(artist: Subsonic.Artist): Pager<MediaItem> {
-        return new SubsonicPager(ItemType.Media, async () => {
-            const items = await subsonicApi.getArtistTopTracks(artist.name);
+        return new SubsonicPager(this.service, ItemType.Media, async () => {
+            const items = await this.api.getArtistTopTracks(artist.name);
             return {items, atEnd: true};
         });
     }
@@ -310,8 +322,8 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
                 )
             );
         } else {
-            return new SubsonicPager(ItemType.Media, async () => {
-                const items = await subsonicApi.getPlaylistItems(playlist.id);
+            return new SubsonicPager(this.service, ItemType.Media, async () => {
+                const items = await this.api.getPlaylistItems(playlist.id);
                 return {items, atEnd: true};
             });
         }
@@ -320,9 +332,10 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
     private createFolderPager(folder: MediaFolder): Pager<MediaFolderItem> {
         const [, , id] = folder.src.split(':');
         const folderPager = new SubsonicPager<MediaFolderItem>(
+            this.service,
             ItemType.Folder,
             async (): Promise<Page<Subsonic.DirectoryItem>> => {
-                const items = await subsonicApi.getMusicDirectoryItems(id);
+                const items = await this.api.getMusicDirectoryItems(id);
                 return {items, atEnd: true};
             },
             {pageSize: this.pageSize},

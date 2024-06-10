@@ -510,38 +510,51 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     };
 }
 
-let spotifyCategories: MediaFilter[];
-
 async function getFilters(
     viewType: ViewType.ByDecade | ViewType.ByGenre
 ): Promise<readonly MediaFilter[]> {
     if (viewType === ViewType.ByGenre) {
-        // TODO: Spotify also has genres and I may have to re-think this.
-        if (!spotifyCategories) {
-            const limit = 50; // max
-            const locale = navigator.language.replace('-', '_');
-            const {
-                categories: {items, next},
-            } = await spotifyApi.getCategories({limit, locale});
-            if (next) {
-                const offset = limit;
-                const {categories: next} = await spotifyApi.getCategories({limit, locale, offset});
-                items.push(...next.items);
-            }
-            spotifyCategories = items.map(({id, name: title}: any) => ({id, title}));
-            const firstCategory = spotifyCategories.shift();
-            if (firstCategory) {
-                spotifyCategories.sort((a: MediaFilter, b: MediaFilter) => {
-                    return a.title.localeCompare(b.title);
-                });
-                // Keep "Made For You" at the top.
-                spotifyCategories.unshift(firstCategory);
+        try {
+            // TODO: Spotify also has genres and I may have to re-think this.
+            return getCategories();
+        } catch (err: any) {
+            if (err.status === 401) {
+                await refreshToken();
+                return getCategories();
+            } else {
+                throw err;
             }
         }
-        return spotifyCategories;
     } else {
         throw Error('Not supported');
     }
+}
+
+let spotifyCategories: MediaFilter[];
+
+async function getCategories(): Promise<readonly MediaFilter[]> {
+    if (!spotifyCategories) {
+        const limit = 50; // max
+        const locale = navigator.language.replace('-', '_');
+        const {
+            categories: {items, next},
+        } = await spotifyApi.getCategories({limit, locale});
+        if (next) {
+            const offset = limit;
+            const {categories: next} = await spotifyApi.getCategories({limit, locale, offset});
+            items.push(...next.items);
+        }
+        spotifyCategories = items.map(({id, name: title}: any) => ({id, title}));
+        const firstCategory = spotifyCategories.shift();
+        if (firstCategory) {
+            spotifyCategories.sort((a: MediaFilter, b: MediaFilter) => {
+                return a.title.localeCompare(b.title);
+            });
+            // Keep "Made For You" at the top.
+            spotifyCategories.unshift(firstCategory);
+        }
+    }
+    return spotifyCategories;
 }
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {

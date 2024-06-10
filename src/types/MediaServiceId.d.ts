@@ -1,4 +1,5 @@
 type MediaServiceId =
+    | 'airsonic'
     | 'apple'
     | 'emby'
     | 'jellyfin'

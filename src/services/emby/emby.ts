@@ -410,7 +410,7 @@ const emby: PersonalMediaService = {
     id: serviceId,
     icon: serviceId,
     name: 'Emby',
-    url: 'https://emby.media/',
+    url: 'https://emby.media',
     serviceType: ServiceType.PersonalMedia,
     defaultHidden: true,
     roots: [

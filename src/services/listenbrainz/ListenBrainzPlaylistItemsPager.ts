@@ -75,7 +75,7 @@ export default class ListenBrainzPlaylistItemsPager implements Pager<MediaItem> 
     }
 
     private createMediaItem(item: ListenBrainz.PlaylistItem): MediaItem {
-        const mbid = item.identifier.split('/').pop()!;
+        const mbid = item.identifier[0].split('/').pop()!;
         const track = item.extension?.['https://musicbrainz.org/doc/jspf#track'];
         const metadata = track?.['additional_metadata'];
         return {

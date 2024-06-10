@@ -62,6 +62,14 @@ export async function getSupportedDrm(): Promise<DRMType> {
     return supportedDrm;
 }
 
+const audio = document.createElement('audio');
+const video = document.createElement('video');
+
+export function canPlayType(type: 'audio' | 'video', contentType: string): boolean {
+    const element = type === 'video' ? video : audio;
+    return !!element.canPlayType(contentType).replace('no', '');
+}
+
 export function canPlayAudio(src: string): Promise<boolean> {
     return canPlayMedia('audio', src);
 }

@@ -133,7 +133,7 @@ export function Blurb<T extends MediaPlaylist>({description}: Pick<T, 'descripti
     const paragraphs = description?.trim().split(/[\n\r]+/);
     return paragraphs?.length ? (
         <TextBox className="blurb">
-            {paragraphs!.map((text, index) => (
+            {paragraphs.map((text, index) => (
                 <p key={index}>{text}</p>
             ))}
         </TextBox>

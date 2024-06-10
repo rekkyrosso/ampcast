@@ -1,3 +1,4 @@
+import 'services/airsonic/airsonicScrobbler';
 import 'services/emby/embyScrobbler';
 import 'services/jellyfin/jellyfinScrobbler';
 import 'services/lastfm/lastfmScrobbler';

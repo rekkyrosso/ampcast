@@ -3,18 +3,26 @@ import {nanoid} from 'nanoid';
 import md5 from 'md5';
 import {showDialog, DialogProps} from 'components/Dialog';
 import LoginDialog from 'components/Login/LoginDialog';
-import subsonicSettings from '../subsonicSettings';
-import subsonic from '../subsonic';
 import {Logger} from 'utils';
+import SubsonicService from '../SubsonicService';
 import './SubsonicLoginDialog.scss';
 
 const logger = new Logger('SubsonicLoginDialog');
 
-export async function showSubsonicLoginDialog(): Promise<string> {
-    return showDialog(SubsonicLoginDialog, true);
+export async function showSubsonicLoginDialog(service: SubsonicService): Promise<string> {
+    return showDialog(
+        (props: DialogProps) => <SubsonicLoginDialog {...props} service={service} />,
+        true
+    );
 }
 
-export default function SubsonicLoginDialog(props: DialogProps) {
+export type SubsonicLoginDialogProps = DialogProps & {
+    service: SubsonicService;
+};
+
+export default function SubsonicLoginDialog({service, ...props}: SubsonicLoginDialogProps) {
+    const settings = service.settings;
+
     const login = useCallback(async (host: string, userName: string, password: string) => {
         const ping = async (params: Record<string, string>): Promise<string> => {
             const credentials = new URLSearchParams({
@@ -22,7 +30,7 @@ export default function SubsonicLoginDialog(props: DialogProps) {
                 ...params,
                 c: __app_name__,
                 f: 'json',
-            }).toString();
+            });
 
             const response = await fetch(`${host}/rest/ping?${credentials}`);
             if (!response.ok) {
@@ -34,7 +42,9 @@ export default function SubsonicLoginDialog(props: DialogProps) {
                 throw data.error;
             }
 
-            return JSON.stringify({userName, credentials});
+            credentials.set('v', data.version || credentials.get('v'));
+
+            return JSON.stringify({userName, credentials: credentials.toString()});
         };
 
         try {
@@ -48,11 +58,14 @@ export default function SubsonicLoginDialog(props: DialogProps) {
             return details;
         } catch (err: any) {
             if (err.code === 40) {
+                // Wrong username or password.
                 throw err;
             }
             logger.log('Login failed. Attempting legacy login....');
             const details = await ping({
-                p: password,
+                p: `enc:${Array.from(new TextEncoder().encode(password))
+                    .map((byte) => byte.toString(16).padStart(2, '0'))
+                    .join('')}`,
                 v: '1.12.0',
             });
             return details;
@@ -62,9 +75,9 @@ export default function SubsonicLoginDialog(props: DialogProps) {
     return (
         <LoginDialog
             {...props}
-            service={subsonic}
-            settings={subsonicSettings}
-            userName={subsonicSettings.userName}
+            service={service}
+            settings={settings}
+            userName={settings.userName}
             login={login}
         />
     );

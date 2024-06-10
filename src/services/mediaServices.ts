@@ -9,6 +9,7 @@ import DataService from 'types/DataService';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
 import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
+import airsonic from 'services/airsonic';
 import apple from 'services/apple';
 import emby from 'services/emby';
 import jellyfin from 'services/jellyfin';
@@ -32,6 +33,7 @@ function getAllServices(): readonly MediaService[] {
     return [
         apple,
         spotify,
+        airsonic,
         emby,
         jellyfin,
         navidrome,

@@ -187,7 +187,7 @@ export function getTextFromHtml(html = ''): string {
     const element = document.createElement('p');
     const paragraphs = String(html ?? '')
         .trim()
-        .split(/[\n\r]+/);
+        .split(/\s*[\n\r]+\s*/);
     return paragraphs
         ?.map((html) => {
             element.innerHTML = html;

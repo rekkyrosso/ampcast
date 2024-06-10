@@ -1,5 +1,5 @@
-import subsonicScrobble from 'services/subsonic/subsonicScrobble';
-import navidromeSettings from './navidromeSettings';
+import subsonicScrobble from 'services/subsonic/factory/subsonicScrobble';
 import navidrome from './navidrome';
+import subsonicApi from './subsonicApi';
 
-subsonicScrobble(navidrome, navidromeSettings);
+subsonicScrobble(navidrome, subsonicApi);
