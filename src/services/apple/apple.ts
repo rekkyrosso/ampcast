@@ -34,6 +34,16 @@ const defaultLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
 };
 
+const chartsLayoutLarge: MediaSourceLayout<MediaItem> = {
+    view: 'card',
+    fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
+};
+
+const chartsLayoutSmall: MediaSourceLayout<MediaItem> = {
+    view: 'card small',
+    fields: ['Index', 'Thumbnail', 'Title', 'Artist'],
+};
+
 const appleRecommendations: MediaSource<MediaPlaylist> = {
     id: 'apple/recommendations',
     title: 'Recommended',
@@ -201,10 +211,10 @@ const appleFavoriteSongs: MediaSource<MediaItem> = {
 const appleSongCharts: MediaSource<MediaItem> = {
     id: 'apple/top-songs',
     title: 'Top Songs',
-    icon: 'star',
+    icon: 'chart',
     itemType: ItemType.Media,
     viewType: ViewType.ByGenre,
-    layout: defaultLayout,
+    layout: chartsLayoutLarge,
 
     search(genre?: MediaFilter): Pager<MediaItem> {
         if (genre) {
@@ -228,9 +238,13 @@ const appleSongCharts: MediaSource<MediaItem> = {
 const appleAlbumCharts: MediaSource<MediaAlbum> = {
     id: 'apple/top-albums',
     title: 'Top Albums',
-    icon: 'star',
+    icon: 'chart',
     itemType: ItemType.Album,
     viewType: ViewType.ByGenre,
+    layout: {
+        view: 'card compact',
+        fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'Year'],
+    },
 
     search(genre?: MediaFilter): Pager<MediaAlbum> {
         if (genre) {
@@ -254,9 +268,13 @@ const appleAlbumCharts: MediaSource<MediaAlbum> = {
 const applePlaylistCharts: MediaSource<MediaPlaylist> = {
     id: 'apple/top-playlists',
     title: 'Top Playlists',
-    icon: 'star',
+    icon: 'chart',
     itemType: ItemType.Playlist,
     defaultHidden: true,
+    layout: {
+        view: 'card compact',
+        fields: ['Index', 'Thumbnail', 'Title', 'TrackCount', 'Owner'],
+    },
 
     search(): Pager<MediaPlaylist> {
         return new MusicKitPager(
@@ -276,11 +294,11 @@ const applePlaylistCharts: MediaSource<MediaPlaylist> = {
 const appleMusicVideoCharts: MediaSource<MediaItem> = {
     id: 'apple/top-videos',
     title: 'Top Videos',
-    icon: 'star',
+    icon: 'chart',
     itemType: ItemType.Media,
     mediaType: MediaType.Video,
     viewType: ViewType.ByGenre,
-    layout: defaultLayout,
+    layout: chartsLayoutLarge,
     defaultHidden: true,
 
     search(genre?: MediaFilter): Pager<MediaItem> {
@@ -307,6 +325,7 @@ const appleGlobalCharts: MediaSource<MediaPlaylist> = {
     title: 'Daily Top 100',
     icon: 'chart',
     itemType: ItemType.Playlist,
+    secondaryLayout: chartsLayoutSmall,
 
     search(): Pager<MediaPlaylist> {
         return new MusicKitPager(
@@ -329,6 +348,7 @@ const appleCityCharts: MediaSource<MediaPlaylist> = {
     icon: 'chart',
     itemType: ItemType.Playlist,
     defaultHidden: true,
+    secondaryLayout: chartsLayoutSmall,
 
     search(): Pager<MediaPlaylist> {
         return new MusicKitPager(

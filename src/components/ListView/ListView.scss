@@ -110,7 +110,11 @@
     }
 
     &-card.compact &-cursor {
-        height: 4.5em;
+        height: 4.75em;
+    }
+
+    &-card.small &-cursor {
+        height: 3.25em;
     }
 
     &-card.minimal &-cursor {

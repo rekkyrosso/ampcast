@@ -18,7 +18,9 @@ export default function useViewClassName(layout: ListViewLayout<any>): string {
                 }
             });
         }
-        setClassName(clip ? `clip-${clip}` : '');
+        const indexed = layout.cols.find((col) => col.id === '#') ? 'indexed' : '';
+        const clipped = clip ? `clip-${clip}` : '';
+        setClassName(`${indexed} ${clipped}`.trim());
     }, [layout]);
 
     return className;

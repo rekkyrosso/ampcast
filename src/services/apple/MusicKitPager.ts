@@ -189,6 +189,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             owner: item.curatorName ? {name: item.curatorName} : undefined,
             modifiedAt: Math.floor(new Date(item.lastModifiedDate).valueOf() / 1000) || undefined,
             unplayable: !item.playParams || undefined,
+            isChart: item.isChart,
             isPinned: pinStore.isPinned(src),
             inLibrary: isLibraryPlaylist,
             apple: {catalogId},

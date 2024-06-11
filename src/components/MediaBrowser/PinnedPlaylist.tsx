@@ -19,10 +19,18 @@ const defaultPlaylistItemsLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
 };
 
+const chartPlaylistItemsLayout: MediaSourceLayout<MediaItem> = {
+    view: 'card compact',
+    fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
+};
+
 export default function PinnedPlaylist({source, ...props}: PagedItemsProps<MediaPlaylist>) {
     const [error, setError] = useState<unknown>();
     const [selectedPlaylist, setSelectedPlaylist] = useState<MediaPlaylist | null>(null);
     const itemsPager = selectedPlaylist?.pager || null;
+    const defaultSecondaryLayout = selectedPlaylist?.isChart
+        ? chartPlaylistItemsLayout
+        : defaultPlaylistItemsLayout;
 
     useEffect(() => () => pinStore.unlock(), [source]);
 
@@ -60,7 +68,7 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
                 title={`${source.title}: Tracks`}
                 className="playlist-items"
                 pager={itemsPager}
-                layout={source.secondaryLayout || defaultPlaylistItemsLayout}
+                layout={source.secondaryLayout || defaultSecondaryLayout}
                 onError={setError}
             />
         </div>

@@ -36,7 +36,9 @@ import spotifySettings from './spotifySettings';
 
 export type SpotifyArtist = SpotifyApi.ArtistObjectFull;
 export type SpotifyAlbum = SpotifyApi.AlbumObjectFull;
-export type SpotifyPlaylist = SpotifyApi.PlaylistObjectFull;
+export type SpotifyPlaylist = SpotifyApi.PlaylistObjectFull & {
+    isChart?: boolean;
+};
 export type SpotifyTrack = SpotifyApi.TrackObjectSimplified &
     Partial<SpotifyApi.TrackObjectFull> & {
         played_at?: string; // ISO string
@@ -337,6 +339,10 @@ const spotifyCharts: MediaSource<MediaPlaylist> = {
     title: 'Charts',
     icon: 'chart',
     itemType: ItemType.Playlist,
+    secondaryLayout: {
+        view: 'card small',
+        fields: ['Index', 'Thumbnail', 'Title', 'Artist'],
+    },
 
     search(): Pager<MediaPlaylist> {
         const market = getMarket();
@@ -352,7 +358,11 @@ const spotifyCharts: MediaSource<MediaPlaylist> = {
                 limit,
                 market,
             });
-            return {items: items as SpotifyPlaylist[], total, next};
+            return {
+                items: items.map((item) => ({...item, isChart: true} as SpotifyPlaylist)),
+                total,
+                next,
+            };
         });
     },
 };
@@ -504,7 +514,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
                     market,
                     fields: 'id,type,external_urls,name,description,images,owner,uri,tracks.total',
                 });
-                return {items: [playlist], total: 1};
+                return {items: [{...playlist, isChart: pin.isChart}], total: 1};
             });
         },
     };

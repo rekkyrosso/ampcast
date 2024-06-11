@@ -56,7 +56,7 @@ function createMediaListLayout<T extends MediaObject = MediaObject>(
 type MediaFields<T extends MediaObject = MediaObject> = Record<Field, ColumnSpec<T>>;
 type RenderField<T extends MediaObject = MediaObject> = ColumnSpec<T>['render'];
 
-const Index: RenderField = (_, rowIndex) => rowIndex + 1;
+const Index: RenderField = (_, rowIndex) => <Text value={rowIndex + 1} />;
 
 const Title: RenderField = (item) => <Text value={item.title} />;
 

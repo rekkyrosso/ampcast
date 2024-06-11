@@ -75,12 +75,25 @@
             padding: 0;
         }
 
+        .index {
+            top: 2.125em;
+            font-weight: bold;
+            font-style: italic;
+            width: 2em;
+            min-width: 2em;
+            text-align: center;
+        }
+
         .thumbnail {
             left: 0;
             width: 6em;
             height: 6em;
             padding: 0;
             color: var(--grey2-color);
+
+            .indexed & {
+                left: 2em;
+            }
         }
 
         .cover-art {
@@ -102,6 +115,10 @@
         .views {
             left: 6.375em;
             right: 0.375em;
+
+            .indexed & {
+                left: 8.375em;
+            }
 
             .clip-1 & {
                 right: 4em;
@@ -197,7 +214,7 @@
         }
 
         .actions {
-            right: 0.625em;
+            right: 0.5em;
             bottom: 0.5em;
             padding: 0;
         }
@@ -212,14 +229,15 @@
             font-style: italic;
         }
 
+        &.small,
         &.compact {
-            .thumbnail {
-                width: 4.5em;
-                height: 4.5em;
+            .index {
+                top: 1.625em;
             }
 
-            .cover-art {
-                inset: 0.375em;
+            .thumbnail {
+                width: 4.75em;
+                height: 4.75em;
             }
 
             .title,
@@ -230,11 +248,15 @@
             .album,
             .year,
             .views {
-                left: 4.75em;
+                left: 5em;
+
+                .indexed & {
+                    left: 7em;
+                }
             }
 
             .title {
-                top: 0.125em;
+                top: 0.375em;
 
                 .text {
                     font-size: 1em;
@@ -244,7 +266,7 @@
             .artist,
             .genre,
             .owner {
-                top: 1.25em;
+                top: 1.5em;
             }
 
             .artist .text {
@@ -255,7 +277,7 @@
             .blurb,
             .year,
             .views {
-                top: 2.5em;
+                top: 2.75em;
 
                 .text {
                     font-size: 0.75em;
@@ -264,13 +286,13 @@
 
             .playlists & .blurb {
                 @include line-clamp(2);
-                top: 1.675em;
+                top: 2em;
                 line-height: 1;
             }
 
             .year {
                 .artist-albums & {
-                    top: 1.375em;
+                    top: 1.625em;
 
                     .text {
                         font-size: 0.875em;
@@ -281,13 +303,50 @@
             .rate {
                 .artists & {
                     right: auto;
-                    top: 2.75em;
+                    top: 3em;
                     left: 4.75em;
                 }
             }
 
             .actions {
-                font-size: 0.875em;
+                .icon-buttons {
+                    font-size: 0.875em;
+                }
+            }
+        }
+
+        &.small {
+            .index {
+                top: 0.875em;
+            }
+
+            .thumbnail {
+                width: 3.25em;
+                height: 3.25em;
+            }
+
+            .title,
+            .artist,
+            .genre,
+            .owner {
+                top: 1.375em;
+                left: 3.5em;
+
+                .indexed & {
+                    left: 5.5em;
+                }
+            }
+
+            .title {
+                top: 0.25em;
+            }
+
+            .actions {
+                bottom: 0.375em;
+            }
+
+            .playlists & .blurb {
+                @include line-clamp(1);
             }
         }
 
@@ -359,6 +418,10 @@
                     top: calc(0.5em + 1px);
                     color: var(--soft-white) !important;
                     background-color: rgba(0, 0, 0, 0.75);
+
+                    .indexed & {
+                        display: none;
+                    }
                 }
 
                 .duration,
@@ -394,8 +457,18 @@
                 .play-count,
                 .played-at,
                 .added-at {
-                    right: calc(100% - 4.125em + 1px);
+                    right: calc(100% - 4.25em + 1px);
                     top: calc(0.375em + 1px);
+                }
+            }
+
+            &.small {
+                .duration,
+                .track-count,
+                .play-count,
+                .played-at,
+                .added-at {
+                    display: none;
                 }
             }
 
@@ -414,11 +487,16 @@
                 justify-content: center;
             }
 
+            .index,
             .title,
             .duration,
             .track-count,
             .play-count {
                 position: static;
+            }
+
+            .index {
+                flex: initial;
             }
 
             .title {

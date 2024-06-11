@@ -41,7 +41,7 @@ export interface ListViewDetailsLayout<T> {
 }
 
 export interface ListViewCardLayout<T> {
-    readonly view: 'card' | 'card compact' | 'card minimal';
+    readonly view: 'card' | 'card compact' | 'card small' | 'card minimal';
     readonly cols: ColumnSpec<T>[];
 }
 

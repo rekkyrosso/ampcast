@@ -222,6 +222,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                 name: playlist.owner.display_name || '',
                 url: playlist.owner.external_urls.spotify,
             },
+            isChart: playlist.isChart,
             isPinned: pinStore.isPinned(playlist.uri),
             isOwn,
             inLibrary: isOwn ? false : inLibrary,
