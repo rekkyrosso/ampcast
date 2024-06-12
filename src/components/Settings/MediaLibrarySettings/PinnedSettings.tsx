@@ -17,11 +17,14 @@ export default function PinnedSettings({service}: PinnedSettingsProps) {
 
     const handleSubmit = useCallback(async () => {
         const originalPins = pinStore.getPinsForService(service.id);
-        await pinStore.unpin(
-            originalPins.filter(
-                (originalPin) => pins.findIndex((pin) => pin.src === originalPin.src) === -1
-            )
+        const pinsToRemove = originalPins.filter(
+            (originalPin) => pins.findIndex((pin) => pin.src === originalPin.src) === -1
         );
+        const shouldUnlock = pinsToRemove.some((pin) => pinStore.isLocked(pin.src));
+        if (shouldUnlock) {
+            pinStore.unlock();
+        }
+        await pinStore.unpin(pinsToRemove);
     }, [service, pins]);
 
     const handleRemoveClick = useCallback(() => {

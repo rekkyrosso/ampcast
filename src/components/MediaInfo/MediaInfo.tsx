@@ -130,10 +130,9 @@ export function Title<T extends MediaObject>({title}: Pick<T, 'title'>) {
 }
 
 export function Blurb<T extends MediaPlaylist>({description}: Pick<T, 'description'>) {
-    const paragraphs = description?.trim().split(/[\n\r]+/);
-    return paragraphs?.length ? (
+    return description ? (
         <TextBox className="blurb">
-            {paragraphs.map((text, index) => (
+            {description.split(/\n+/).map((text, index) => (
                 <p key={index}>{text}</p>
             ))}
         </TextBox>

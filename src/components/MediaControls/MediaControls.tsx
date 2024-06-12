@@ -46,16 +46,14 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
     const handlePrevClick = useCallback(async () => {
         if (!playlist.atStart) {
             mediaPlayback.prev();
-            const listView = listViewRef.current!;
-            listView.scrollIntoView(currentIndex - 1);
+            listViewRef.current?.scrollIntoView(currentIndex - 1);
         }
     }, [listViewRef, currentIndex]);
 
     const handleNextClick = useCallback(async () => {
         if (!playlist.atEnd) {
             mediaPlayback.next();
-            const listView = listViewRef.current!;
-            listView.scrollIntoView(currentIndex + 1);
+            listViewRef.current?.scrollIntoView(currentIndex + 1);
         }
     }, [listViewRef, currentIndex]);
 

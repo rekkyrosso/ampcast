@@ -19,10 +19,9 @@ class PinStore extends Dexie {
     constructor() {
         super('ampcast/pins');
 
-        this.version(2)
-            .stores({
-                pins: `&src`,
-            })
+        this.version(2).stores({
+            pins: `&src`,
+        });
 
         liveQuery(() => this.pins.toArray()).subscribe(this.pins$);
     }
@@ -76,6 +75,11 @@ class PinStore extends Dexie {
         } catch (err) {
             logger.error(err);
         }
+    }
+
+    isLocked(src: string): boolean {
+        const lockedPin = this.lockedPin$.getValue();
+        return lockedPin?.src === src;
     }
 
     isPinned(src: string): boolean {

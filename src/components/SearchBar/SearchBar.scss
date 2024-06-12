@@ -1,4 +1,5 @@
 .search-bar {
+    font-size: 1.125em;
     margin-bottom: calc(var(--gutter-width) / 2);
 
     .text-with-button > .icon {
@@ -14,6 +15,7 @@
 
     input {
         text-indent: calc(1.5em + var(--roundness) * 0.25em);
+        padding: 0.25em;
     }
 
     button {
@@ -21,7 +23,7 @@
         flex-direction: row;
         align-items: center;
         justify-content: center;
-        padding: 0.25em;
+        padding: 0.5em;
         aspect-ratio: 1;
     }
 }

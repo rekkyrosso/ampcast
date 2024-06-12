@@ -256,7 +256,7 @@
             }
 
             .title {
-                top: 0.375em;
+                top: 0.25em;
 
                 .text {
                     font-size: 1em;
@@ -346,7 +346,7 @@
             }
 
             .playlists & .blurb {
-                @include line-clamp(1);
+                -webkit-line-clamp: 1;
             }
         }
 
@@ -458,7 +458,7 @@
                 .played-at,
                 .added-at {
                     right: calc(100% - 4.25em + 1px);
-                    top: calc(0.375em + 1px);
+                    top: calc(0.5em + 1px);
                 }
             }
 

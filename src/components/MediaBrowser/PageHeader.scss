@@ -1,6 +1,7 @@
 @import 'styles/mixins.scss';
 
 .page-header {
+    font-size: 1.125em;
     background: linear-gradient(
         to bottom,
         var(--frame2-color) 80%,
@@ -14,14 +15,13 @@
         var(--frame-color-lo)
         var(--frame-color-lo)
         var(--frame-color-hi);
-    padding: calc(0.125em - 2px) 0.25em;
+    padding: 0.25em;
     margin-bottom: var(--gutter-width);
     border-radius: calc(var(--roundness) * 1em);
     text-indent: calc(1.5em + var(--roundness) * 0.25em);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
-    font-weight: bold;
     user-select: none;
 
     .themed.flat & {
@@ -43,18 +43,16 @@
         select {
             background: var(--frame2-color);
             color: var(--frame-text-color);
-            padding: 0;
+            padding: 0 0.125em;
             border: 0;
+            border-radius: 0;
             text-indent: 0;
             min-width: 3em;
             cursor: pointer;
 
-            & + select {
-                margin-left: 1em;
-            }
-
             &:hover {
-                filter: brightness(1.1);
+                background: var(--frame-text-color);
+                color: var(--frame2-color);
             }
         }
     }

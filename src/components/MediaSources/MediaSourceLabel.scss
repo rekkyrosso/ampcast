@@ -11,6 +11,20 @@
         &-folder-up {
             margin-top: -0.125em;
         }
+
+        &-pin {
+            transition: transform 0.5s;
+        }
+    }
+
+    &.unpinned {
+        .icon-pin {
+            transform: rotate(0.5turn);
+
+            & + .text {
+                text-decoration: line-through;
+            }
+        }
     }
 
     .text {

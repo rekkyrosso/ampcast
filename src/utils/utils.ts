@@ -167,7 +167,7 @@ export function bestOf<T extends object>(a: T, b: Partial<T> = {}): T {
             result[key] = b[key]!;
         }
         return result;
-    }, {} as unknown as T);
+    }, {} as T);
 }
 
 export function filterNotEmpty<T>(
@@ -189,7 +189,7 @@ export function getTextFromHtml(html = ''): string {
         .trim()
         .split(/\s*[\n\r]+\s*/);
     return paragraphs
-        ?.map((html) => {
+        .map((html) => {
             element.innerHTML = html;
             return element.textContent;
         })

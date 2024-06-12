@@ -12,7 +12,6 @@ import MediaBrowser from 'components/MediaBrowser';
 import {TreeNode} from 'components/TreeView';
 import MediaServiceLabel from './MediaServiceLabel';
 import MediaSourceLabel from './MediaSourceLabel';
-import {exists} from 'utils';
 
 export default function useMediaSources() {
     const [sources, setSources] = useState<TreeNode<React.ReactNode>[]>();
@@ -70,15 +69,24 @@ function getSources(service: MediaService): TreeNode<React.ReactNode>[] {
 }
 
 function getPins(service: MediaService): TreeNode<React.ReactNode>[] {
-    return pinStore
-        .getPinsForService(service.id)
-        .map((pin) => service.createSourceFromPin?.(pin))
-        .filter(exists)
-        .map((source) => ({
-            id: source.id,
-            label: <MediaSourceLabel icon={source.icon} text={source.title} />,
-            value: <MediaBrowser service={service} sources={[source]} key={source.id} />,
-        }));
+    if (service.createSourceFromPin) {
+        return pinStore.getPinsForService(service.id).map((pin) => {
+            const source = service.createSourceFromPin!(pin);
+            return {
+                id: source.id,
+                label: (
+                    <MediaSourceLabel
+                        className={pin.isPinned ? '' : 'unpinned'}
+                        icon={source.icon}
+                        text={source.title}
+                    />
+                ),
+                value: <MediaBrowser service={service} sources={[source]} key={source.id} />,
+            };
+        });
+    } else {
+        return [];
+    }
 }
 
 function getServiceKey(service: MediaService): string {

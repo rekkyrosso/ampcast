@@ -526,7 +526,7 @@ async function getFilters(
     if (viewType === ViewType.ByGenre) {
         try {
             // TODO: Spotify also has genres and I may have to re-think this.
-            return getCategories();
+            return await getCategories();
         } catch (err: any) {
             if (err.status === 401) {
                 await refreshToken();

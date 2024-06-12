@@ -11,13 +11,13 @@ A music player inspired by Winamp.
 
 ## Web app / PWA
 
-Available at https://ampcast.app.
+Available at https://ampcast.app
 
-## Downloadable app
+## Desktop app
 
 Windows, Mac and Linux builds available.
 
-Download from https://github.com/rekkyrosso/ampcast/releases.
+Download from https://github.com/rekkyrosso/ampcast/releases/latest
 
 ## Self-hosting
 
