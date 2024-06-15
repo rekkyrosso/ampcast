@@ -24,7 +24,7 @@ export async function login(): Promise<void> {
     if (!isLoggedIn()) {
         logger.log('connect');
         try {
-            const musicKit = MusicKit.getInstance(); // let this throw
+            const musicKit = await getMusicKitInstance();
             const token = await musicKit.authorize();
             isLoggedIn$.next(!!token);
         } catch (err) {
@@ -110,6 +110,9 @@ export async function getMusicKitInstance(): Promise<MusicKit.MusicKitInstance> 
     if (window.MusicKit) {
         return MusicKit.getInstance();
     } else {
+        if (!appleSettings.devToken) {
+            throw Error('No developer token');
+        }
         return new Promise((resolve, reject) => {
             const version = appleSettings.useMusicKitBeta ? 3 : 1;
             loadScript(`https://js-cdn.music.apple.com/musickit/v${version}/musickit.js`).then(

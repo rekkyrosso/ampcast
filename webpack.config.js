@@ -11,7 +11,7 @@ module.exports = (args) => {
     const __dev__ = mode === 'development';
     const wwwDir = resolve(__dirname, __dev__ ? 'www-dev' : 'app/www');
     // Use a local `.env` file (if it exists) associated with the target environment.
-    dotenv.config({path: __dev__ ? './.env' : `./.env.${target}`});
+    dotenv.config({path: __dev__ || mode === 'docker' ? './.env' : `./.env.${target}`});
     const env = process.env;
 
     return {
@@ -127,12 +127,6 @@ module.exports = (args) => {
                               from: './src/html/privacy-policy.html',
                               to: wwwDir,
                           },
-                      ],
-                  }),
-            __dev__
-                ? undefined
-                : new CopyPlugin({
-                      patterns: [
                           {
                               from: './src/service-worker.js',
                               to: wwwDir,

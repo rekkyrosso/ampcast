@@ -1,9 +1,19 @@
-const {app, components, ipcMain, shell, BrowserWindow, Menu, nativeImage} = require('electron');
+const {
+    app,
+    components,
+    ipcMain,
+    safeStorage,
+    shell,
+    BrowserWindow,
+    Menu,
+    nativeImage,
+} = require('electron');
 const {autoUpdater} = require('electron-updater');
 const log = require('electron-log');
 const contextMenu = require('electron-context-menu');
 const unhandled = require('electron-unhandled');
 const windowStateKeeper = require('electron-window-state');
+const Store = require('electron-store');
 const path = require('path');
 const server = require('./server');
 const store = require('./store');
@@ -21,11 +31,6 @@ if (!app.isPackaged) {
     app.commandLine.appendSwitch('disable-features', 'WidgetLayering');
 }
 
-contextMenu({
-    showSaveImageAs: true,
-    showSelectAll: false,
-});
-
 const loginUrls = [
     'https://authorize.music.apple.com/',
     'https://accounts.spotify.com/authorize',
@@ -36,28 +41,28 @@ const loginUrls = [
 
 let mainWindow;
 
-function createSplashScreen() {
+async function createSplashScreen(mainWindowState) {
+    const {x, y, width, height} = mainWindowState;
+
     const splash = new BrowserWindow({
+        x: x + Math.floor((width - 512) / 2),
+        y: y + Math.floor((height - 512) / 2),
         width: 512,
         height: 512,
         transparent: true,
         frame: false,
         alwaysOnTop: true,
+        skipTaskbar: true,
     });
-    splash.loadFile(path.join(__dirname, 'splash.html'));
-    splash.center();
+    await splash.loadFile(path.join(__dirname, 'splash.html'));
     splash.show();
     return splash;
 }
 
-function createMainWindow(url) {
+async function createMainWindow(url, mainWindowState) {
     const image = nativeImage.createFromPath(path.join(__dirname, 'icon.png'));
     image.setTemplateImage(true);
 
-    const mainWindowState = windowStateKeeper({
-        defaultWidth: 1024,
-        defaultHeight: 768,
-    });
     const {x, y, width, height} = mainWindowState;
 
     mainWindow = new BrowserWindow({
@@ -94,26 +99,24 @@ function createMainWindow(url) {
 
     mainWindowState.manage(mainWindow);
 
-    mainWindow.loadURL(url);
+    await mainWindow.loadURL(url);
+    mainWindow.show();
 }
 
 function createBridge() {
-    ipcMain.handle('quit', () => app.quit());
+    ipcMain.on('quit', () => app.quit());
 
     // Synch the window chrome with the app theme.
-    ipcMain.handle('setFrameColor', (_, color) => {
+    ipcMain.on('setFrameColor', (_, color) => {
         mainWindow.setTitleBarOverlay({color});
     });
-    ipcMain.handle('setFrameTextColor', (_, symbolColor) => {
+    ipcMain.on('setFrameTextColor', (_, symbolColor) => {
         mainWindow.setTitleBarOverlay({symbolColor});
     });
-    ipcMain.handle('setFontSize', (_, fontSize) => {
+    ipcMain.on('setFontSize', (_, fontSize) => {
         const dragRegionRemSize = 1.5; // defined in web client CSS
         const height = Math.max(Math.round(fontSize * dragRegionRemSize), 24);
         mainWindow.setTitleBarOverlay({height});
-    });
-    ipcMain.handle('setTheme', () => {
-        // ignore for now
     });
 
     // Switch port
@@ -128,44 +131,67 @@ function createBridge() {
                 mainWindow.loadURL(url);
             }
         } else {
-            console.error(TypeError(`Invalid port: '${newPort}'`));
+            throw TypeError(`Invalid port: '${newPort}'`);
         }
+    });
+
+    // Credentials
+    const credentials = new Store({
+        name: 'ampcast-credentials',
+    });
+    ipcMain.handle('getCredential', (_, key) => {
+        const value = credentials.get(key);
+        if (value) {
+            const buffer = Buffer.from(value, 'latin1');
+            return safeStorage.decryptString(buffer);
+        }
+        return '';
+    });
+    ipcMain.handle('setCredential', (_, key, value) => {
+        const buffer = safeStorage.encryptString(value);
+        credentials.set(key, buffer.toString('latin1'));
+    });
+    ipcMain.handle('clearCredentials', () => {
+        credentials.clear();
     });
 }
 
-function checkForUpdatesAndNotify() {
+async function checkForUpdatesAndNotify() {
     log.transports.file.level = 'info';
     autoUpdater.logger = log;
     try {
-        autoUpdater.checkForUpdatesAndNotify();
+        await autoUpdater.checkForUpdatesAndNotify();
     } catch (err) {
         console.error(err);
     }
 }
 
 app.whenReady().then(async () => {
-    const splash = createSplashScreen();
+    const mainWindowState = windowStateKeeper({
+        defaultWidth: 1024,
+        defaultHeight: 768,
+    });
+    const splash = await createSplashScreen(mainWindowState);
     try {
         let [port] = await Promise.all([server.start(), components.whenReady()]);
         let url = `http://localhost:${port}/`;
 
+        contextMenu({showSaveImageAs: true, showSelectAll: false});
         Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
-        createMainWindow(url);
         createBridge();
 
         // For mac apparently.
-        app.on('activate', () => {
+        app.on('activate', async () => {
             if (BrowserWindow.getAllWindows().length === 0) {
                 if (!mainWindow) {
-                    createMainWindow(url);
-                    mainWindow.show();
+                    await createMainWindow(url, mainWindowState);
                 }
             }
         });
 
-        mainWindow.show();
+        await createMainWindow(url, mainWindowState);
+        await checkForUpdatesAndNotify();
         splash.close();
-        checkForUpdatesAndNotify();
     } catch (err) {
         splash.destroy();
         throw err;

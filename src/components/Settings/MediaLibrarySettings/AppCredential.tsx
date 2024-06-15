@@ -12,17 +12,19 @@ export default function AppCredential({
     inputRef,
     ...props
 }: AppCredentialProps) {
-    const id = useId();
+    const uid = useId();
+    const id = `${uid}-${name}`;
 
     return (
         <p>
-            <label htmlFor={`${id}-${name}`}>{label}:</label>
+            <label htmlFor={id}>{label}:</label>
             <input
                 {...props}
                 type={type}
                 name={name}
-                id={`${id}-${name}`}
+                id={id}
                 spellCheck={false}
+                autoComplete="off"
                 autoCapitalize="off"
                 ref={inputRef}
             />

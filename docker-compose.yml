@@ -1,0 +1,9 @@
+# docker-compose --env-file ./path/to/my/.env up -d
+
+services:
+  ampcast:
+    container_name: ampcast
+    image: ghcr.io/rekkyrosso/ampcast:latest
+    restart: unless-stopped
+    ports:
+      - 8000:8000

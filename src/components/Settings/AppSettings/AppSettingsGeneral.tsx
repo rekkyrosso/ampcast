@@ -1,17 +1,17 @@
 import React, {useCallback, useId, useRef} from 'react';
 import {downloadUrl, supportUrl} from 'services/constants';
+import ampcastElectron from 'services/ampcastElectron';
 import electronSettings from 'services/electronSettings';
 import {confirm} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import ExternalLink from 'components/ExternalLink';
-import {browser} from 'utils';
 
 export default function AppSettingsGeneral() {
     const portRef = useRef<HTMLInputElement>(null);
     const id = useId();
 
     const handleSubmit = useCallback(async () => {
-        if (browser.isElectron) {
+        if (ampcastElectron) {
             const port = portRef.current!.value;
             if (port !== location.port) {
                 const confirmed = await confirm({
@@ -30,7 +30,7 @@ export default function AppSettingsGeneral() {
 
                 if (confirmed) {
                     electronSettings.port = port;
-                    window.ampcastElectron?.setPort(Number(port));
+                    ampcastElectron.setPort(Number(port));
                 }
             }
         }
@@ -47,7 +47,7 @@ export default function AppSettingsGeneral() {
                     </p>
                 </div>
             </fieldset>
-            {browser.isElectron ? (
+            {ampcastElectron ? (
                 <fieldset>
                     <legend>Server</legend>
                     <div className="table-layout">

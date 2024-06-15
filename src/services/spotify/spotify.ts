@@ -21,7 +21,7 @@ import actionsStore from 'services/actions/actionsStore';
 import {NoSpotifyChartsError} from 'services/errors';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
-import {chunk, partition} from 'utils';
+import {browser, chunk, partition} from 'utils';
 import {
     observeIsLoggedIn,
     isConnected,
@@ -379,7 +379,7 @@ const spotify: PublicMediaService = {
     },
     defaultHidden: true,
     internetRequired: true,
-    restrictedAccess: true,
+    restrictedAccess: location.host === 'ampcast.app' || browser.isElectron,
     editablePlaylists: spotifyEditablePlaylists,
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),

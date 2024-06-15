@@ -82,9 +82,7 @@ export default function AmbientVideoSettings({
                         onChange={handleSourceChange}
                         ref={useAmbientVideoSourceRef}
                     />
-                    <label htmlFor={`${id}-source-youtube`}>
-                        YouTube video or playlist:
-                    </label>
+                    <label htmlFor={`${id}-source-youtube`}>YouTube video or playlist:</label>
                 </p>
                 <p>
                     <input
@@ -107,7 +105,7 @@ export default function AmbientVideoSettings({
                 />
                 <label htmlFor={`${id}-beats-overlay`}>Show &quot;beats&quot; overlay</label>
             </p>
-            <DialogButtons onSubmit={onSubmit} />
+            <DialogButtons onSubmitClick={onSubmit} />
         </form>
     );
 }

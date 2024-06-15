@@ -1,17 +1,17 @@
 import React, {useCallback, useId, useRef} from 'react';
 import {appleCreateAppUrl} from 'services/constants';
-import {am_dev_token} from 'services/credentials';
 import AppCredentials from 'components/Settings/MediaLibrarySettings/AppCredentials';
 import AppCredential from 'components/Settings/MediaLibrarySettings/AppCredential';
 import ExternalLink from 'components/ExternalLink';
 import Icon from 'components/Icon';
 import appleSettings from '../appleSettings';
 import apple from '../apple';
+import useCredentials from './useCredentials';
 
 export default function AppleCredentials() {
     const id = useId();
+    const {devToken} = useCredentials();
     const devTokenRef = useRef<HTMLInputElement>(null);
-    const readOnly = !!am_dev_token;
 
     const handleSubmit = useCallback(async () => {
         const devToken = devTokenRef.current!.value;
@@ -30,8 +30,7 @@ export default function AppleCredentials() {
                 <AppCredential
                     label="Developer Token"
                     name="apple-dev-token"
-                    defaultValue={appleSettings.devToken}
-                    readOnly={readOnly}
+                    defaultValue={devToken}
                     inputRef={devTokenRef}
                     autoFocus
                 />

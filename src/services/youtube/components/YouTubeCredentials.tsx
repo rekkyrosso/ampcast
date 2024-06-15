@@ -1,25 +1,34 @@
 import React, {useCallback, useId, useRef} from 'react';
-import {yt_client_id} from 'services/credentials';
+import {error} from 'components/Dialog';
 import AppCredentials from 'components/Settings/MediaLibrarySettings/AppCredentials';
 import AppCredential from 'components/Settings/MediaLibrarySettings/AppCredential';
 import ExternalLink from 'components/ExternalLink';
 import Icon from 'components/Icon';
 import youtubeSettings from '../youtubeSettings';
 import youtube from '../youtube';
+import useCredentials from './useCredentials';
 
 export default function YouTubeCredentials() {
     const id = useId();
+    const {apiKey, clientId} = useCredentials();
     const apiKeyRef = useRef<HTMLInputElement>(null);
     const clientIdRef = useRef<HTMLInputElement>(null);
-    const readOnly = !!yt_client_id;
     const url = 'https://console.cloud.google.com/apis/credentials';
 
     const handleSubmit = useCallback(async () => {
         const apiKey = apiKeyRef.current!.value;
         const clientId = clientIdRef.current!.value;
-        if (apiKey !== youtubeSettings.apiKey || clientId !== youtubeSettings.clientId) {
-            youtubeSettings.apiKey = apiKey;
+        const currentApiKey = await youtubeSettings.getApiKey();
+        if (apiKey !== currentApiKey || clientId !== youtubeSettings.clientId) {
             youtubeSettings.clientId = clientId;
+            if (apiKey !== currentApiKey) {
+                try {
+                    await youtubeSettings.setApiKey(apiKey);
+                } catch (err: any) {
+                    console.error(err);
+                    await error('Failed to store API key.');
+                }
+            }
             if (youtube.isLoggedIn()) {
                 await youtube.logout();
             }
@@ -31,19 +40,17 @@ export default function YouTubeCredentials() {
             <fieldset>
                 <legend>Your App</legend>
                 <AppCredential
-                    label="Client ID"
-                    name="youtube-client-id"
-                    defaultValue={youtubeSettings.clientId}
-                    readOnly={readOnly}
-                    inputRef={clientIdRef}
+                    label="API Key"
+                    name="youtube-api-key"
+                    defaultValue={apiKey}
+                    inputRef={apiKeyRef}
                     autoFocus
                 />
                 <AppCredential
-                    label="API Key"
-                    name="youtube-api-key"
-                    defaultValue={youtubeSettings.apiKey}
-                    readOnly={readOnly}
-                    inputRef={apiKeyRef}
+                    label="Client ID"
+                    name="youtube-client-id"
+                    defaultValue={clientId}
+                    inputRef={clientIdRef}
                 />
             </fieldset>
             <fieldset>

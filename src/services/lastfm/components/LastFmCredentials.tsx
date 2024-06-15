@@ -1,25 +1,34 @@
 import React, {useCallback, useId, useRef} from 'react';
 import {lastfmCreateAppUrl} from 'services/constants';
-import {lf_api_key} from 'services/credentials';
+import {error} from 'components/Dialog';
 import AppCredentials from 'components/Settings/MediaLibrarySettings/AppCredentials';
 import AppCredential from 'components/Settings/MediaLibrarySettings/AppCredential';
 import ExternalLink from 'components/ExternalLink';
 import Icon from 'components/Icon';
 import lastfmSettings from '../lastfmSettings';
 import lastfm from '../lastfm';
+import useCredentials from './useCredentials';
 
 export default function LastFmCredentials() {
     const id = useId();
+    const {apiKey, secret} = useCredentials();
     const apiKeyRef = useRef<HTMLInputElement>(null);
     const secretRef = useRef<HTMLInputElement>(null);
-    const readOnly = !!lf_api_key;
 
     const handleSubmit = useCallback(async () => {
         const apiKey = apiKeyRef.current!.value;
         const secret = secretRef.current!.value;
-        if (apiKey !== lastfmSettings.apiKey || secret !== lastfmSettings.secret) {
+        const currentSecret = await lastfmSettings.getSecret();
+        if (apiKey !== lastfmSettings.apiKey || secret !== currentSecret) {
             lastfmSettings.apiKey = apiKey;
-            lastfmSettings.secret = secret;
+            if (secret !== currentSecret) {
+                try {
+                    await lastfmSettings.setSecret(secret);
+                } catch (err: any) {
+                    console.error(err);
+                    await error('Failed to store secret.');
+                }
+            }
             if (lastfm.isLoggedIn()) {
                 await lastfm.logout();
             }
@@ -33,17 +42,14 @@ export default function LastFmCredentials() {
                 <AppCredential
                     label="API Key"
                     name="lastfm-api-key"
-                    defaultValue={lastfmSettings.apiKey}
-                    readOnly={readOnly}
+                    defaultValue={apiKey}
                     inputRef={apiKeyRef}
                     autoFocus
                 />
                 <AppCredential
                     label="Shared Secret"
-                    type="password"
                     name="lastfm-secret"
-                    defaultValue={lastfmSettings.secret}
-                    readOnly={readOnly}
+                    defaultValue={secret}
                     inputRef={secretRef}
                 />
             </fieldset>

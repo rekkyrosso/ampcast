@@ -7,26 +7,28 @@ export default async function showDialog(
     system = false
 ): Promise<string> {
     return new Promise((resolve, reject) => {
+        const dialogRoot = document.getElementById(
+            document.fullscreenElement ? 'fullscreen-popup' : system ? 'system' : 'app'
+        );
         const rootElement = document.createElement('div');
         const root = createRoot(rootElement);
+        const unmount = () => {
+            rootElement.remove();
+            root.unmount();
+        };
         try {
-            document
-                .getElementById(
-                    document.fullscreenElement ? 'fullscreen-popup' : system ? 'system' : 'app'
-                )!
-                .append(rootElement);
+            dialogRoot!.append(rootElement);
             root.render(
                 <Dialog
                     onClose={(returnValue: string) => {
-                        root.unmount();
-                        rootElement.remove();
+                        unmount();
                         resolve(returnValue);
                     }}
                 />
             );
         } catch (err) {
-            root.unmount();
-            rootElement.remove();
+            console.error(err);
+            unmount();
             reject(err);
         }
     });

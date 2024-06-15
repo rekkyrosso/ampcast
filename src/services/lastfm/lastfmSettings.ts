@@ -1,15 +1,27 @@
+import type {Observable} from 'rxjs';
+import {BehaviorSubject} from 'rxjs';
+import ampcastElectron from 'services/ampcastElectron';
 import {lf_api_key, lf_api_secret} from 'services/credentials';
 import {LiteStorage} from 'utils';
 
-const storage = new LiteStorage('lastfm');
+export interface LastFmCredentials {
+    readonly apiKey: string;
+    readonly secret: string;
+}
 
-export default {
+const storage = new LiteStorage('lastfm');
+const credentials$ = new BehaviorSubject<LastFmCredentials>({apiKey: '', secret: ''});
+
+const lastfmSettings = {
     get apiKey(): string {
         return lf_api_key || storage.getString('apiKey');
     },
 
     set apiKey(apiKey: string) {
-        storage.setString('apiKey', apiKey);
+        if (!lf_api_key) {
+            storage.setString('apiKey', apiKey);
+            credentials$.next({...credentials$.value, apiKey});
+        }
     },
 
     get token(): string {
@@ -52,15 +64,49 @@ export default {
         storage.setNumber('playCount', count);
     },
 
-    get secret(): string {
-        return lf_api_secret || storage.getString('secret');
+    observeCredentials(this: unknown): Observable<LastFmCredentials> {
+        return credentials$;
     },
 
-    set secret(secret: string) {
-        storage.setString('secret', secret);
+    getCredentials(this: unknown): LastFmCredentials {
+        return credentials$.value;
+    },
+
+    async getSecret(): Promise<string> {
+        if (lf_api_secret) {
+            return lf_api_secret;
+        } else if (ampcastElectron) {
+            return ampcastElectron.getCredential('lastfm/secret');
+        } else {
+            return storage.getString('secret');
+        }
+    },
+
+    async setSecret(secret: string): Promise<void> {
+        if (!lf_api_secret) {
+            if (ampcastElectron) {
+                await ampcastElectron.setCredential('lastfm/secret', secret);
+            } else {
+                storage.setString('secret', secret);
+            }
+            credentials$.next({...credentials$.value, secret});
+        }
     },
 
     clear(): void {
         storage.clear();
+        // Restore credentials
+        if (!lf_api_key) {
+            storage.setString('apiKey', credentials$.value.apiKey);
+        }
+        if (!lf_api_secret && !ampcastElectron) {
+            storage.setString('secret', credentials$.value.secret);
+        }
     },
 };
+
+lastfmSettings
+    .getSecret()
+    .then((secret) => credentials$.next({apiKey: lastfmSettings.apiKey, secret}), console.error);
+
+export default lastfmSettings;

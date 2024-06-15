@@ -2,13 +2,12 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, filter, tap} from 'rxjs';
 import {TinyColor} from '@ctrl/tinycolor';
 import Theme from 'types/Theme';
-import {LiteStorage, Logger, browser} from 'utils';
+import ampcastElectron from 'services/ampcastElectron';
+import {LiteStorage, Logger} from 'utils';
 import {emptyTheme, defaultTheme} from './themes';
 import themeStore from './themeStore';
 
 const logger = new Logger('theme');
-const isElectron = browser.isElectron;
-const ampcastElectron = window.ampcastElectron;
 
 export interface CurrentTheme extends Required<Theme> {
     readonly userTheme?: boolean;
@@ -193,9 +192,7 @@ class MainTheme implements CurrentTheme {
     set fontSize(fontSize: number) {
         this.rootStyle.setProperty('--font-size', String(fontSize));
         this.createPlayheadSmiley();
-        if (isElectron) {
-            ampcastElectron?.setFontSize(fontSize);
-        }
+        ampcastElectron?.setFontSize(fontSize);
         this.fontSize$.next(fontSize);
     }
 
@@ -207,8 +204,8 @@ class MainTheme implements CurrentTheme {
         this.setColor('frameColor', color);
         this.buttonColor = this.current.buttonColor;
         this.mediaButtonColor = this.current.mediaButtonColor;
-        if (isElectron) {
-            ampcastElectron?.setFrameColor(color);
+        if (ampcastElectron) {
+            ampcastElectron.setFrameColor(color);
         } else {
             let themeColorMeta = document.head.querySelector('meta[name="theme-color"]');
             if (!themeColorMeta) {
@@ -227,9 +224,7 @@ class MainTheme implements CurrentTheme {
     set frameTextColor(color: string) {
         this.setColor('frameTextColor', color);
         this.buttonTextColor = this.current.buttonTextColor;
-        if (isElectron) {
-            ampcastElectron?.setFrameTextColor(color);
-        }
+        ampcastElectron?.setFrameTextColor(color);
     }
 
     get mediaButtonColor(): string {
@@ -416,9 +411,6 @@ class MainTheme implements CurrentTheme {
         Object.assign(this, values);
         this.applyingUpdate = false;
         this.theme$.next(this.current);
-        if (isElectron) {
-            ampcastElectron?.setTheme(this.current);
-        }
     }
 
     private applyAppStyles(): void {

@@ -99,7 +99,7 @@ async function obtainSessionKey(token: string): Promise<string> {
     const api_key = lastfmSettings.apiKey;
     const method = 'auth.getSession';
     const params = {api_key, token, method};
-    const api_sig = lastfmApi.getSignature(params);
+    const api_sig = await lastfmApi.getSignature(params);
     const response = await fetch(
         `${lastfmApiHost}?method=${method}&api_key=${api_key}&token=${token}&api_sig=${api_sig}&format=json`
     );

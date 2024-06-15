@@ -1,10 +1,12 @@
 const {contextBridge, ipcRenderer} = require('electron');
 
 contextBridge.exposeInMainWorld('ampcastElectron', {
-    quit: () => ipcRenderer.invoke('quit'),
-    setFontSize: (fontSize) => ipcRenderer.invoke('setFontSize', fontSize),
-    setFrameColor: (color) => ipcRenderer.invoke('setFrameColor', color),
-    setFrameTextColor: (color) => ipcRenderer.invoke('setFrameTextColor', color),
+    quit: () => ipcRenderer.send('quit'),
+    getCredential: (key) => ipcRenderer.invoke('getCredential', key),
+    setCredential: (key, value) => ipcRenderer.invoke('setCredential', key, value),
+    clearCredentials: () => ipcRenderer.invoke('clearCredentials'),
+    setFontSize: (fontSize) => ipcRenderer.send('setFontSize', fontSize),
+    setFrameColor: (color) => ipcRenderer.send('setFrameColor', color),
+    setFrameTextColor: (color) => ipcRenderer.send('setFrameTextColor', color),
     setPort: (port) => ipcRenderer.invoke('setPort', port),
-    setTheme: (theme) => ipcRenderer.invoke('setTheme', theme),
 });

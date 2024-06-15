@@ -14,7 +14,7 @@ import ServiceType from 'types/ServiceType';
 import {getListens} from 'services/localdb/listens';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
-import {uniqBy} from 'utils';
+import {browser, uniqBy} from 'utils';
 import {
     observeIsLoggedIn,
     isConnected,
@@ -173,7 +173,7 @@ const youtube: PublicMediaService = {
     defaultHidden: true,
     defaultNoScrobble: true,
     internetRequired: true,
-    restrictedAccess: true,
+    restrictedAccess: location.host === 'ampcast.app' || browser.isElectron,
     editablePlaylists: youtubePlaylists,
     roots: [
         {

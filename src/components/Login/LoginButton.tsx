@@ -7,14 +7,10 @@ export interface LoginButtonProps
     service: MediaService;
 }
 
-export default function LoginButton({
-    service,
-    onClick = service.login,
-    ...props
-}: LoginButtonProps) {
+export default function LoginButton({service, ...props}: LoginButtonProps) {
     return (
         <p>
-            <button {...props} className="branded login" onClick={onClick}>
+            <button {...props} className="branded login" onClick={service.login}>
                 Connect to {service.name}…
             </button>
         </p>

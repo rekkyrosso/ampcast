@@ -11,14 +11,16 @@ export class LastFmApi {
     private readonly host = `https://ws.audioscrobbler.com/2.0`;
     private readonly placeholderImage = '2a96cbd8b46e442fc41c2b86b821562f.png';
 
-    getSignature(params: Record<string, string>): string {
+    async getSignature(params: Record<string, string>): Promise<string> {
         const keys = Object.keys(params);
         let string = '';
 
         keys.sort();
         keys.forEach((key) => (string += key + params[key]));
 
-        string += lastfmSettings.secret;
+        const secret = await lastfmSettings.getSecret()
+
+        string += secret;
 
         return md5(string);
     }
@@ -98,7 +100,7 @@ export class LastFmApi {
         const api_key = lastfmSettings.apiKey;
         params = {...params, api_key, token, sk};
         const headers = {'Content-Type': 'application/x-www-form-urlencoded'};
-        const api_sig = this.getSignature(params);
+        const api_sig = await this.getSignature(params);
         const body = `${new URLSearchParams(params)}&api_sig=${api_sig}`;
         const response = await fetch(this.host, {method: 'POST', headers, body});
         if (!response.ok) {

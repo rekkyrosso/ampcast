@@ -15,7 +15,7 @@ COPY . /app
 RUN npm i
 
 # build the web view
-RUN npm run build:pwa
+RUN npm run build:docker
 
 # ---- Release ----
 FROM node:20-alpine as release

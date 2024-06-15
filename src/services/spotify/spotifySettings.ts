@@ -1,5 +1,11 @@
+import type {Observable} from 'rxjs';
+import {BehaviorSubject} from 'rxjs';
 import {sp_client_id} from 'services/credentials';
 import {LiteStorage} from 'utils';
+
+export interface SpotifyCredentials {
+    readonly clientId: string;
+}
 
 interface TokenStore {
     access_token: string;
@@ -9,6 +15,7 @@ interface TokenStore {
 const storage = new LiteStorage('spotify');
 const authStorage = new LiteStorage('spotify/auth');
 const userStorage = new LiteStorage('spotify/user', 'memory');
+const credentials$ = new BehaviorSubject<SpotifyCredentials>({clientId: ''});
 
 const spotifySettings = {
     get chartsCategoryId(): string {
@@ -24,7 +31,10 @@ const spotifySettings = {
     },
 
     set clientId(clientId: string) {
-        authStorage.setString('clientId', clientId);
+        if (!sp_client_id) {
+            authStorage.setString('clientId', clientId);
+            credentials$.next({clientId});
+        }
     },
 
     get codeVerifier(): string {
@@ -63,11 +73,21 @@ const spotifySettings = {
         userStorage.setString('userId', userId);
     },
 
+    observeCredentials(this: unknown): Observable<SpotifyCredentials> {
+        return credentials$;
+    },
+
+    getCredentials(this: unknown): SpotifyCredentials {
+        return credentials$.value;
+    },
+
     clear(): void {
         authStorage.removeItem('token');
         storage.removeItem('chartsCategoryId');
         userStorage.clear();
     },
 };
+
+credentials$.next({clientId: spotifySettings.clientId});
 
 export default spotifySettings;

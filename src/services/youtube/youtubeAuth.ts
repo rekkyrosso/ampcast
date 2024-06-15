@@ -86,10 +86,11 @@ export async function getGApiClient(): Promise<typeof gapi.client> {
     if (gapi.client) {
         return gapi.client;
     }
+    const apiKey = await youtubeSettings.getApiKey();
+    const clientId = youtubeSettings.clientId;
     return new Promise((resolve, reject) => {
         gapi.load('client', {
             callback: () => {
-                const {apiKey, clientId} = youtubeSettings;
                 const config = {apiKey, clientId, discoveryDocs, scope};
                 gapi.client.init(config).then(() => resolve(gapi.client), reject);
             },

@@ -48,7 +48,7 @@ export default function VisualizerSettingsGeneral({
                     <label htmlFor={`${id}-fullscreen-progress`}>Show progress bar</label>
                 </p>
             </fieldset>
-            <DialogButtons onSubmit={onSubmit} />
+            <DialogButtons onSubmitClick={onSubmit} />
         </form>
     );
 }

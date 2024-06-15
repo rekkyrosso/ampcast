@@ -30,6 +30,7 @@ type BaseMediaService = Auth & {
     readonly icons?: Partial<Record<LibraryAction, IconName>>;
     readonly labels?: Partial<Record<LibraryAction, string>>;
     readonly editablePlaylists?: MediaSource<MediaPlaylist>;
+    readonly restrictedAccess?: boolean; // Approved users only (testers)
     addToPlaylist?: (
         playlist: MediaPlaylist,
         items: readonly MediaItem[],

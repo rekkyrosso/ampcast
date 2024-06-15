@@ -1,20 +1,21 @@
 import React, {useCallback, useId, useRef} from 'react';
 import {spotifyCreateAppUrl} from 'services/constants';
-import {sp_client_id} from 'services/credentials';
 import AppCredentials from 'components/Settings/MediaLibrarySettings/AppCredentials';
 import AppCredential from 'components/Settings/MediaLibrarySettings/AppCredential';
 import ExternalLink from 'components/ExternalLink';
 import Icon from 'components/Icon';
 import spotifySettings from '../spotifySettings';
 import spotify from '../spotify';
+import useCredentials from './useCredentials';
 
 export default function SpotifyCredentials() {
     const id = useId();
+    const {clientId} = useCredentials();
     const clientIdRef = useRef<HTMLInputElement>(null);
-    const readOnly = !!sp_client_id;
 
     const handleSubmit = useCallback(async () => {
         const clientId = clientIdRef.current!.value;
+        console.log('SpotifyCredentials::handleSubmit', clientId, spotifySettings.clientId);
         if (clientId !== spotifySettings.clientId) {
             spotifySettings.clientId = clientId;
             if (spotify.isLoggedIn()) {
@@ -30,8 +31,7 @@ export default function SpotifyCredentials() {
                 <AppCredential
                     label="Client ID"
                     name="spotify-client-id"
-                    defaultValue={spotifySettings.clientId}
-                    readOnly={readOnly}
+                    defaultValue={clientId}
                     inputRef={clientIdRef}
                     autoFocus
                 />

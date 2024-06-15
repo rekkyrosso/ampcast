@@ -9,7 +9,7 @@ export default async function importThemeFromFile(file: File): Promise<void> {
         const data = await file.text();
         const importedTheme: Theme = JSON.parse(data);
         if (!theme.validate(importedTheme)) {
-            await error('Not a valid theme.', true);
+            await error('Not a valid theme.');
             return;
         }
         let name = importedTheme.name;
@@ -30,6 +30,6 @@ export default async function importThemeFromFile(file: File): Promise<void> {
         }
     } catch (err) {
         console.error(err);
-        await error('Could not load theme.', true);
+        await error('Could not load theme.');
     }
 }

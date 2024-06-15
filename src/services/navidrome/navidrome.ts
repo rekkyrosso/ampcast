@@ -101,6 +101,7 @@ const navidromeRecentlyAdded: MediaSource<MediaAlbum> = {
     title: 'Recently Added',
     icon: 'recently-added',
     itemType: ItemType.Album,
+    defaultHidden: true,
 
     search(): Pager<MediaAlbum> {
         return new NavidromePager(ItemType.Album, 'album', {

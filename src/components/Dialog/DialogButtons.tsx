@@ -4,16 +4,16 @@ export interface DialogButtonsProps {
     value?: string;
     disabled?: boolean;
     submitText?: React.ReactNode;
-    onCancel?: (event: React.MouseEvent) => void;
-    onSubmit?: (event: React.MouseEvent) => void;
+    onCancelClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
+    onSubmitClick?: (event: React.MouseEvent<HTMLButtonElement>) => void;
 }
 
 export default function DialogButtons({
     value = '',
     disabled,
     submitText = 'Confirm',
-    onCancel,
-    onSubmit,
+    onCancelClick,
+    onSubmitClick,
 }: DialogButtonsProps) {
     return (
         <footer className="dialog-buttons">
@@ -21,7 +21,7 @@ export default function DialogButtons({
                 className="dialog-button-cancel"
                 type="button"
                 value="#cancel"
-                onClick={onCancel}
+                onClick={onCancelClick}
             >
                 Cancel
             </button>
@@ -29,7 +29,7 @@ export default function DialogButtons({
                 className="dialog-button-submit"
                 value={value}
                 disabled={disabled}
-                onClick={onSubmit}
+                onClick={onSubmitClick}
             >
                 {submitText}
             </button>

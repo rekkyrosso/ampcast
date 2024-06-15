@@ -11,6 +11,7 @@
     "scripts": {
         "test": "echo \"Error: no test specified\" && exit 1",
         "build:dev": "webpack --env mode=development --progress",
+        "build:docker": "webpack --env mode=production --env target=docker",
         "build:pwa": "webpack --env mode=production --env target=pwa",
         "build:electron": "webpack --env mode=production --env target=electron",
         "start:dev": "node server.js --dev",

@@ -1,4 +1,5 @@
 import React from 'react';
+import ampcastElectron from 'services/ampcastElectron';
 import {getEnabledServices} from 'services/mediaServices';
 import {confirm} from 'components/Dialog';
 import {exists} from 'utils';
@@ -37,6 +38,11 @@ export default async function showFactoryReset(): Promise<void> {
                     .filter(exists)
                     .map((name) => indexedDB.deleteDatabase(name))
             );
+        } catch (err) {
+            console.error(err);
+        }
+        try {
+            await ampcastElectron?.clearCredentials();
         } catch (err) {
             console.error(err);
         }

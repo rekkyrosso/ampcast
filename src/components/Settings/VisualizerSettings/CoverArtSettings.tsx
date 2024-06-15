@@ -33,9 +33,11 @@ export default function CoverArtSettings({
                     defaultChecked={visualizerSettings.coverArtAnimatedBackground}
                     ref={animatedBackgroundEnabledRef}
                 />
-                <label htmlFor={`${id}-animated-background`}>Animated background (experimental)</label>
+                <label htmlFor={`${id}-animated-background`}>
+                    Animated background (experimental)
+                </label>
             </p>
-            <DialogButtons onSubmit={onSubmit} />
+            <DialogButtons onSubmitClick={onSubmit} />
         </form>
     );
 }

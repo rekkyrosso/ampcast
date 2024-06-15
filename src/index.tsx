@@ -8,7 +8,7 @@ window.onerror = new Logger('window').error;
 
 if (location.protocol === 'https:') {
     window.addEventListener('load', () => {
-        navigator.serviceWorker?.register('/service-worker.js');
+        navigator.serviceWorker.register('/service-worker.js');
     });
 }
 

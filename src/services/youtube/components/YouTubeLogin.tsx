@@ -1,49 +1,48 @@
-import React, {useCallback} from 'react';
-import {yt_client_id} from 'services/credentials';
-import {showDialog} from 'components/Dialog';
+import React from 'react';
 import {LoginProps} from 'components/Login';
+import CredentialsButton from 'components/Login/CredentialsButton';
 import CredentialsRequired from 'components/Login/CredentialsRequired';
-import DevMode from 'components/Login/DevMode';
+import RestrictedAccessWarning from 'components/Login/RestrictedAccessWarning';
 import LoginButton from 'components/Login/LoginButton';
 import ServiceLink from 'components/Login/ServiceLink';
 import useGoogleClientLibrary from './useGoogleClientLibrary';
 import YouTubeCredentialsDialog from './YouTubeCredentialsDialog';
-import youtubeSettings from '../youtubeSettings';
+import useCredentials from './useCredentials';
 
 export default function YouTubeLogin({service: youtube}: LoginProps) {
     const {client, error} = useGoogleClientLibrary();
-    const hasCredentials = youtubeSettings.apiKey && youtubeSettings.clientId;
-
-    const login = useCallback(async () => {
-        if (!youtubeSettings.apiKey || !youtubeSettings.clientId) {
-            await showDialog(YouTubeCredentialsDialog, true);
-        }
-        if (youtubeSettings.apiKey && youtubeSettings.clientId) {
-            await youtube.login();
-        }
-    }, [youtube]);
+    const {apiKey, clientId} = useCredentials();
 
     return (
         <>
-            {hasCredentials ? (
-                yt_client_id ? (
-                    <DevMode service={youtube} />
-                ) : null
+            {apiKey && clientId ? (
+                <>
+                    <RestrictedAccessWarning service={youtube} />
+                    <LoginNotRequired />
+                    <LoginButton service={youtube} disabled={!client} />
+                    {error ? <p className="error">Could not load Google client library.</p> : null}
+                </>
             ) : (
-                <CredentialsRequired
-                    service={youtube}
-                    url="https://developers.google.com/youtube/registering_an_application"
-                />
+                <>
+                    <CredentialsRequired
+                        service={youtube}
+                        url="https://developers.google.com/youtube/registering_an_application"
+                    />
+                    <CredentialsButton dialog={YouTubeCredentialsDialog} />
+                    <LoginNotRequired />
+                </>
             )}
-            <p>
-                You can still play YouTube videos without being logged in.
-                <br />
-                But you need to be logged in to search for music and access your playlists.
-            </p>
-            <LoginButton service={youtube} disabled={!client} onClick={login} />
-            {error ? <p className="error">Could not load Google client library.</p> : null}
-            {/* <AddYouTubeVideo /> */}
             <ServiceLink service={youtube} />
         </>
+    );
+}
+
+function LoginNotRequired() {
+    return (
+        <p>
+            You can still play YouTube videos without being logged in.
+            <br />
+            But you need to be logged in to search for music and access your playlists.
+        </p>
     );
 }

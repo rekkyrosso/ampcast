@@ -1,4 +1,5 @@
 import React, {useCallback, useId, useRef} from 'react';
+import ampcastElectron from 'services/ampcastElectron';
 import electronSettings from 'services/electronSettings';
 import AppTitle from './AppTitle';
 import './PortUnavailable.scss';
@@ -13,17 +14,16 @@ export default function PortUnavailable({onDismiss}: PortUnavailableProps) {
     const port = electronSettings.port;
 
     const handleSubmit = useCallback(() => {
-        const ampcastElectron = window.ampcastElectron;
-        const decision = ampcastElectron ? ref.current![id]?.value : 'continue';
+        const decision = ampcastElectron ? ref.current![id]?.value : 'dismiss';
 
         switch (decision) {
             case 'switch':
                 electronSettings.port = location.port;
-                ampcastElectron.setPort(Number(location.port));
+                ampcastElectron!.setPort(Number(location.port));
                 break;
 
             case 'quit':
-                ampcastElectron.quit();
+                ampcastElectron!.quit();
                 break;
 
             default:

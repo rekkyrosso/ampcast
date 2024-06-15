@@ -9,11 +9,15 @@ export default async function showPopupMenu<T extends string>(
     align?: 'left' | 'right'
 ): Promise<T | undefined> {
     return new Promise((resolve, reject) => {
-        const popupRoot = document.getElementById('popup')!;
+        const popupRoot = document.getElementById('popup');
         const rootElement = document.createElement('div');
         const root = createRoot(rootElement);
+        const unmount = () => {
+            rootElement.remove();
+            root.unmount();
+        };
         try {
-            popupRoot.append(rootElement);
+            popupRoot!.append(rootElement);
             root.render(
                 <PopupMenu
                     x={x}
@@ -21,15 +25,14 @@ export default async function showPopupMenu<T extends string>(
                     align={align}
                     autoFocus
                     onClose={(returnValue?: T) => {
-                        root.unmount();
-                        rootElement.remove();
+                        unmount();
                         resolve(returnValue);
                     }}
                 />
             );
         } catch (err) {
-            root.unmount();
-            rootElement.remove();
+            console.error(err);
+            unmount();
             reject(err);
         }
     });

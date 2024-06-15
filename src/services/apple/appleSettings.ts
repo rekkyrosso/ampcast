@@ -1,10 +1,17 @@
+import type {Observable} from 'rxjs';
+import {BehaviorSubject} from 'rxjs';
 import {am_dev_token} from 'services/credentials';
 import {LiteStorage} from 'utils';
 import AppleBitrate from './AppleBitrate';
 
-const storage = new LiteStorage('apple');
+export interface AppleCredentials {
+    readonly devToken: string;
+}
 
-export default {
+const storage = new LiteStorage('apple');
+const credentials$ = new BehaviorSubject<AppleCredentials>({devToken: ''});
+
+const appleSettings = {
     get bitrate(): AppleBitrate {
         return storage.getNumber('bitrate', AppleBitrate.Standard);
     },
@@ -26,7 +33,10 @@ export default {
     },
 
     set devToken(devToken: string) {
-        storage.setString('devToken', devToken);
+        if (!am_dev_token) {
+            storage.setString('devToken', devToken);
+            credentials$.next({devToken});
+        }
     },
 
     get favoriteSongsId(): string {
@@ -44,4 +54,16 @@ export default {
     set useMusicKitBeta(beta: boolean) {
         storage.setBoolean('useMusicKitBeta', beta);
     },
+
+    observeCredentials(this: unknown): Observable<AppleCredentials> {
+        return credentials$;
+    },
+
+    getCredentials(this: unknown): AppleCredentials {
+        return credentials$.value;
+    },
 };
+
+credentials$.next({devToken: appleSettings.devToken});
+
+export default appleSettings;
