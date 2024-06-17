@@ -9,12 +9,11 @@ import spotifyPlayer, {SpotifyPlayer} from './spotifyPlayer';
 import spotifyApi from './spotifyApi';
 import {samplePitches} from './samplePitches';
 
+// This repo has since been deleted but I'll leave the link here anyway.
 // Based on: https://github.com/zachwinter/spotify-viz/blob/master/client/classes/sync.js
 
 type SimpleAudioAnalyser = Pick<
     AnalyserNode,
-    | 'fftSize'
-    | 'frequencyBinCount'
     | 'getByteFrequencyData'
     | 'getByteTimeDomainData'
     | 'getFloatFrequencyData'
@@ -68,8 +67,7 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
         tatums: {},
     } as ActiveIntervals);
     #volume = 0;
-    public fftSize = 2048;
-    public volumeSmoothing = 100;
+    volumeSmoothing = 10;
 
     constructor(spotifyPlayer: SpotifyPlayer) {
         spotifyPlayer
@@ -111,10 +109,6 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
 
     get beat(): ActiveIntervals['beats'] {
         return this.activeIntervals.beats;
-    }
-
-    get frequencyBinCount(): number {
-        return this.fftSize / 2;
     }
 
     get section(): ActiveIntervals['sections'] {
@@ -183,21 +177,21 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
         if (pitches) {
             const beat = interpolateBasis([0.5, 1, 0.5])(this.beat.progress) * this.volume;
             const brightness = this.segment.timbre[1];
-            const centre = (brightness - 180) / 360;
-            const bufferSize = this.frequencyBinCount;
+            const centre = (brightness - 360) / 360;
+            const bufferSize = array.length;
+            const sampleSize = 22_050 / bufferSize;
             for (let i = 0; i < bufferSize; i++) {
                 let radian = (i - bufferSize / 2 - centre * bufferSize) / bufferSize + 1;
                 if (radian < 0 || radian > 2) {
                     radian = 0;
                 }
                 const max = Math.sin(radian * (Math.PI / 2));
-                const sample = samplePitches(pitches, i, this.sampleSize);
+                const sample = samplePitches(pitches, i, sampleSize);
                 array[i] = ((sample + max) / 2) * 255 * beat;
             }
-            return;
+        } else {
+            array.fill(0);
         }
-
-        array.fill(0);
     }
 
     getFloatFrequencyData(array: Float32Array): void {
@@ -209,7 +203,7 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
         const uint8 = new Uint8Array(bufferSize);
         this.getByteFrequencyData(uint8);
         for (let i = 0; i < bufferSize; i++) {
-            array[i] = uint8[i] - 128;
+            array[i] = (uint8[i] - 128) / 128;
         }
     }
 
@@ -221,9 +215,8 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
         const bufferSize = array.length;
         const float32 = new Float32Array(bufferSize);
         this.getFloatTimeDomainData(float32);
-        const uint8 = Uint8Array.from(float32);
         for (let i = 0; i < bufferSize; i++) {
-            array[i] = uint8[i];
+            array[i] = float32[i] * 128 + 128;
         }
     }
 
@@ -233,21 +226,18 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
             return;
         }
         // More made up maths.
+        // The `ifft` function provides some noise but not much else.
         const bufferSize = array.length;
         const float32 = new Float32Array(bufferSize);
         this.getFloatFrequencyData(float32);
         const {real, imag} = ifft(float32);
         for (let i = 0; i < bufferSize; i++) {
-            array[i] = Math.sqrt(real[i] * real[i] + imag[i] * imag[i]) - 128;
+            array[i] = Math.sqrt(real[i] * real[i] + imag[i] * imag[i]);
         }
     }
 
     private get activeIntervals(): ActiveIntervals {
         return this.activeIntervals$.getValue();
-    }
-
-    private get sampleSize(): number {
-        return 22_050 / this.frequencyBinCount;
     }
 
     private observeActiveIntervals(): Observable<ActiveIntervals> {
@@ -264,7 +254,6 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
             const type = this.trackAnalysis[t];
             type[0].duration = type[0].start + type[0].duration;
             type[0].start = 0;
-            // type[type.length - 1].duration = state.duration / 1000 - type[type.length - 1].start;
             type.forEach((interval) => {
                 if (this.isSegment(interval)) {
                     interval.loudness_max_time = interval.loudness_max_time * 1000;
@@ -354,6 +343,8 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
         if (!this.active) {
             return;
         }
+
+        // Comments by zachwinter.
 
         /** Set track progress and active intervals. */
         this.trackProgress = now - this.initialStart + this.initialTrackProgress;

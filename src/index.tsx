@@ -4,7 +4,9 @@ import 'styles/index.scss';
 import App from 'components/App';
 import {Logger} from 'utils';
 
-window.onerror = new Logger('window').error;
+const uncaught = new Logger('uncaught');
+
+window.onerror = __dev__ ? uncaught.error : uncaught.warn;
 
 if (location.protocol === 'https:') {
     window.addEventListener('load', () => {

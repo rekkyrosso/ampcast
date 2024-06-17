@@ -45,6 +45,7 @@ declare module 'jsfft' {
         imag: Float32Array;
     }
 
+    function FFT(input: Float32Array): ComplexArray;
     function InvFFT(input: Float32Array): ComplexArray;
 }
 

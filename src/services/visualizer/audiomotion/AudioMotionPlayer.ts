@@ -29,6 +29,7 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
             showScaleX: false,
             showScaleY: false,
             connectSpeakers: false,
+            start: false,
         });
 
         theme
@@ -81,7 +82,7 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
 
     stop(): void {
         logger.log('stop');
-        this.visualizer.toggleAnalyzer(true); // `hidden` will disconnect
+        this.visualizer.toggleAnalyzer(false);
     }
 
     resize(width: number, height: number): void {

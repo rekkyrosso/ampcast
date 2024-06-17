@@ -12,6 +12,7 @@ export default class BeatsPlayer extends WaveformPlayer {
         config: {
             onPaint: ({context2D, width, height, analyser}) => {
                 const barCount = 12;
+                const visualBarCount = barCount - 2;
                 const gapWidth = 4;
                 const bufferSize = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferSize);
@@ -20,17 +21,17 @@ export default class BeatsPlayer extends WaveformPlayer {
                 context2D.fillStyle = this.color;
                 context2D.strokeStyle = 'rgba(0, 0, 0, .9)';
                 context2D.lineWidth = document.fullscreenElement ? 2 : 1;
-                const barWidth = (width - gapWidth * barCount) / barCount;
+                const barWidth = (width - gapWidth * visualBarCount) / visualBarCount;
                 const heightFactor = height * 0.0075;
                 const chunkSize = bufferSize / barCount;
-                let barHeight;
+                const stop = bufferSize -  2 * chunkSize;
                 let x = gapWidth;
-                for (let i = 0; i < bufferSize; i += chunkSize) {
+                for (let i = 0; i < stop; i += chunkSize) {
                     const chunkAverageValue =
                         dataArray
                             .slice(i, i + chunkSize)
                             .reduce((total, value) => total + value, 0) / chunkSize;
-                    barHeight = heightFactor * chunkAverageValue;
+                    const barHeight = heightFactor * chunkAverageValue;
                     context2D.fillRect(x, height - barHeight / 2, barWidth, barHeight / 2 + 4);
                     context2D.strokeRect(x, height - barHeight / 2, barWidth, barHeight / 2 + 4);
                     x += barWidth + gapWidth;

@@ -36,7 +36,6 @@ const visualizers: WaveformVisualizer[] = [
                     }
                     x += sliceWidth;
                 }
-                context2D.lineTo(width, height / 2);
                 context2D.stroke();
             },
         },
@@ -46,24 +45,25 @@ const visualizers: WaveformVisualizer[] = [
         name: 'bars',
         config: {
             onPaint: ({context2D, width, height, analyser}) => {
-                const barCount = 16;
+                const barCount = 18;
+                const visualBarCount = barCount - 2;
                 const gapWidth = document.fullscreenElement ? 8 : 4;
                 const bufferSize = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferSize);
                 analyser.getByteFrequencyData(dataArray);
                 context2D.clearRect(0, 0, width, height);
                 context2D.fillStyle = getThemeColor();
-                const barWidth = (width - gapWidth * (barCount - 1)) / barCount;
+                const barWidth = (width - gapWidth * (visualBarCount - 1)) / visualBarCount;
                 const heightFactor = height * 0.0075;
                 const chunkSize = bufferSize / barCount;
-                let barHeight;
+                const stop = bufferSize - 2 * chunkSize;
                 let x = 0;
-                for (let i = 0; i < bufferSize; i += chunkSize) {
+                for (let i = 0; i < stop; i += chunkSize) {
                     const chunkAverageValue =
                         dataArray
                             .slice(i, i + chunkSize)
                             .reduce((total, value) => total + value, 0) / chunkSize;
-                    barHeight = heightFactor * chunkAverageValue;
+                    const barHeight = heightFactor * chunkAverageValue;
                     context2D.fillRect(x, height - barHeight / 2, barWidth, barHeight / 2);
                     x += barWidth + gapWidth;
                 }
