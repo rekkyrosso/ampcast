@@ -102,7 +102,6 @@ module.exports = (args) => {
                 __lf_api_key__: JSON.stringify(env.LF_API_KEY || ''),
                 __lf_api_secret__: JSON.stringify(env.LF_API_SECRET || ''),
                 __sp_client_id__: JSON.stringify(env.SP_CLIENT_ID || ''),
-                __yt_api_key__: JSON.stringify(env.YT_API_KEY || ''),
                 __yt_client_id__: JSON.stringify(env.YT_CLIENT_ID || ''),
                 __spotify_disabled__: env.SPOTIFY_DISABLED === 'true',
                 __youtube_disabled__: env.YOUTUBE_DISABLED === 'true',

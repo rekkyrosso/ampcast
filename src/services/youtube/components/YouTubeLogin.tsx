@@ -1,4 +1,5 @@
 import React from 'react';
+import {youtubeCreateAppUrl} from 'services/constants';
 import {LoginProps} from 'components/Login';
 import CredentialsButton from 'components/Login/CredentialsButton';
 import CredentialsRequired from 'components/Login/CredentialsRequired';
@@ -11,11 +12,11 @@ import useCredentials from './useCredentials';
 
 export default function YouTubeLogin({service: youtube}: LoginProps) {
     const {client, error} = useGoogleClientLibrary();
-    const {apiKey, clientId} = useCredentials();
+    const {clientId} = useCredentials();
 
     return (
         <>
-            {apiKey && clientId ? (
+            {clientId ? (
                 <>
                     <RestrictedAccessWarning service={youtube} />
                     <LoginNotRequired />
@@ -24,10 +25,7 @@ export default function YouTubeLogin({service: youtube}: LoginProps) {
                 </>
             ) : (
                 <>
-                    <CredentialsRequired
-                        service={youtube}
-                        url="https://developers.google.com/youtube/registering_an_application"
-                    />
+                    <CredentialsRequired service={youtube} url={youtubeCreateAppUrl} />
                     <CredentialsButton dialog={YouTubeCredentialsDialog} />
                     <LoginNotRequired />
                 </>

@@ -44,7 +44,7 @@ export default function AppleCredentials() {
                     </ExternalLink>
                 </p>
             </fieldset>
-            <fieldset className="apple-credentials-requirements note">
+            <fieldset className="app-credentials-requirements note">
                 <legend>Requirements</legend>
                 <p>Enabled Services:</p>
                 <ul>

@@ -1,34 +1,21 @@
 import type {Observable} from 'rxjs';
-import {
-    BehaviorSubject,
-    Subject,
-    distinctUntilChanged,
-    filter,
-    from,
-    map,
-    mergeMap,
-    skipWhile,
-    take,
-    takeUntil,
-    tap,
-} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
 import {loadScript, Logger} from 'utils';
 import youtubeSettings from './youtubeSettings';
+import youtubeApi from './youtubeApi';
 
 const logger = new Logger('youtubeAuth');
 
 const scope = 'https://www.googleapis.com/auth/youtube';
-const discoveryDocs = ['https://www.googleapis.com/discovery/v1/apis/youtube/v3/rest'];
 
 const accessToken$ = new BehaviorSubject('');
-const disconnected$ = new Subject<void>();
 
 function observeAccessToken(): Observable<string> {
     return accessToken$.pipe(distinctUntilChanged());
 }
 
 export function isConnected(): boolean {
-    return !!youtubeSettings.connectedAt;
+    return !!youtubeSettings.token;
 }
 
 export function isLoggedIn(): boolean {
@@ -43,15 +30,15 @@ export function observeIsLoggedIn(): Observable<boolean> {
 }
 
 function getAccessToken(): string {
-    return accessToken$.getValue();
+    return accessToken$.value;
 }
 
 export async function login(): Promise<void> {
     if (!isLoggedIn()) {
         logger.log('connect');
         try {
-            const accessToken = await obtainAccessToken();
-            accessToken$.next(accessToken);
+            const token = await obtainAccessToken();
+            setAccessToken(token);
         } catch (err) {
             logger.error(err);
         }
@@ -60,43 +47,41 @@ export async function login(): Promise<void> {
 
 export async function logout(): Promise<void> {
     logger.log('disconnect');
-    disconnected$.next(undefined);
     try {
-        const accessToken = getAccessToken();
-        if (accessToken) {
-            const oauth2 = await getGsiClient();
-            oauth2.revoke(accessToken, () => accessToken$.next(''));
-        }
+        await revokeAccessToken();
     } catch (err) {
-        // oauth2 not loaded.
+        logger.error(err);
     }
-    youtubeSettings.connectedAt = 0;
-    accessToken$.next('');
+    clearAccessToken();
 }
 
-async function getGApi(): Promise<typeof gapi> {
-    if (!window.gapi) {
-        await loadScript('https://apis.google.com/js/api.js');
-    }
-    return window.gapi;
+export async function refreshToken(): Promise<void> {
+    // I don't know how to do this yet (without annoying popups).
+    clearAccessToken();
+    throw Error('Unauthorized');
 }
 
-export async function getGApiClient(): Promise<typeof gapi.client> {
-    const gapi = await getGApi();
-    if (gapi.client) {
-        return gapi.client;
-    }
-    const apiKey = await youtubeSettings.getApiKey();
-    const clientId = youtubeSettings.clientId;
-    return new Promise((resolve, reject) => {
-        gapi.load('client', {
-            callback: () => {
-                const config = {apiKey, clientId, discoveryDocs, scope};
-                gapi.client.init(config).then(() => resolve(gapi.client), reject);
-            },
-            onerror: reject,
+export function clearAccessToken(): void {
+    setAccessToken('');
+}
+
+function setAccessToken(token: string): void {
+    youtubeSettings.token = token;
+    accessToken$.next(token);
+}
+
+async function revokeAccessToken(): Promise<void> {
+    const token = getAccessToken();
+    if (token) {
+        const oauth2 = await getGsiClient();
+        return new Promise((resolve, reject) => {
+            try {
+                oauth2.revoke(token, resolve);
+            } catch (err) {
+                reject(err);
+            }
         });
-    });
+    }
 }
 
 export async function getGsiClient(): Promise<typeof google.accounts.oauth2> {
@@ -128,38 +113,24 @@ async function obtainAccessToken(): Promise<string> {
     });
 }
 
-observeIsLoggedIn()
-    .pipe(skipWhile((isLoggedIn) => !isLoggedIn))
-    .subscribe((isLoggedIn) => (youtubeSettings.connectedAt = isLoggedIn ? Date.now() : 0));
-
-observeIsLoggedIn()
-    .pipe(
-        filter((isLoggedIn) => isLoggedIn),
-        take(1),
-        mergeMap(() => Promise.all([getGApi(), getGApiClient()])),
-        tap(([gapi, client]) => {
-            gapi.load('client:auth2', () => {
-                // This will probably stop working soon.
-                gapi.auth2.getAuthInstance().isSignedIn.listen((isLoggedIn) => {
-                    if (isLoggedIn) {
-                        const token = client.getToken();
-                        accessToken$.next(token?.access_token || '');
-                    } else {
-                        accessToken$.next('');
-                    }
-                });
-            });
-        })
-    )
-    .subscribe(logger);
-
-if (!youtubeSettings.disabled && isConnected()) {
-    from(getGApiClient())
-        .pipe(
-            // This might stop working.
-            map((client) => client.getToken()),
-            tap((token) => accessToken$.next(token?.access_token || '')),
-            takeUntil(disconnected$)
-        )
-        .subscribe(logger);
+async function checkConnection(): Promise<any> {
+    // The cheapest API call (value of 1).
+    return youtubeApi.get({
+        path: 'videoCategories',
+        params: {regionCode: 'us'},
+    });
 }
+
+(async () => {
+    if (!youtubeSettings.disabled && isConnected()) {
+        try {
+            await checkConnection();
+            accessToken$.next(youtubeSettings.token);
+        } catch (err: any) {
+            if (err.status !== 401) {
+                logger.error(err);
+            }
+            youtubeSettings.token = '';
+        }
+    }
+})();

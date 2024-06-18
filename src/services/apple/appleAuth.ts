@@ -63,10 +63,9 @@ export async function logout(): Promise<void> {
 }
 
 export async function refreshToken(): Promise<void> {
-    logger.log('refreshToken');
     // Apple Music doesn't support token refresh so we'll force a new login.
     await logout();
-    throw Error(`Access token refresh is not supported.`);
+    throw Error('Unauthorized');
 }
 
 const musicKitPromise = new Promise<MusicKit.MusicKitInstance>((resolve, reject) => {

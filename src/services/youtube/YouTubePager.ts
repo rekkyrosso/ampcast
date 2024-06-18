@@ -9,9 +9,10 @@ import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
 import SequentialPager from 'services/pagers/SequentialPager';
 import pinStore from 'services/pins/pinStore';
-import {getYouTubeUrl, youtubeApiHost, youtubeHost} from './youtube';
+import {getYouTubeUrl, youtubeHost} from './youtube';
+import {refreshToken} from './youtubeAuth';
+import youtubeApi from './youtubeApi';
 import youtubeCache from './youtubeCache';
-import {getGApiClient} from './youtubeAuth';
 
 type YouTubeVideo = gapi.client.youtube.Video;
 type YouTubePlaylist = gapi.client.youtube.Playlist;
@@ -181,7 +182,7 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
     private async fetchPage(path: string, params: Record<string, string>): Promise<Page<T>> {
         const cacheKey = this.createCacheKey(path, params, this.pageNumber);
         const cachedResult = await this.getFromCache<YouTubeCacheable<YouTubePage>>(cacheKey);
-        const pageToken = this.nextPageToken;
+        const pageToken = this.nextPageToken || '';
         const result = await this.fetch<YouTubePage>(
             path,
             {
@@ -228,19 +229,20 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
         params: Record<string, unknown>,
         cachedResult?: T | undefined
     ): Promise<T> {
-        const client = await getGApiClient();
-        const headers = cachedResult?.etag ? {'If-None-Match': cachedResult.etag} : undefined;
-        const {result, status, statusText} = await client.request({
-            path: `${youtubeApiHost}${path}`,
-            params,
-            headers,
-        });
-        if (result) {
-            return result;
-        } else if (status === 304 && cachedResult) {
-            return cachedResult;
-        } else {
-            throw Error(statusText || `Error (${status})`);
+        const etag = cachedResult?.etag;
+        const headers = etag ? {'If-None-Match': etag} : undefined;
+        try {
+            return await youtubeApi.get({path, params, headers});
+        } catch (err: any) {
+            if (err.status === 401) {
+                await refreshToken(); // this throws
+                // We'll never get here.
+                return youtubeApi.get({path, params, headers});
+            } else if (err.status === 304 && etag) {
+                return cachedResult;
+            } else {
+                throw err;
+            }
         }
     }
 

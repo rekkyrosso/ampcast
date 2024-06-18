@@ -55,6 +55,9 @@ async function createSplashScreen(mainWindowState) {
         skipTaskbar: true,
     });
     await splash.loadFile(path.join(__dirname, 'splash.html'));
+    if (mainWindowState.isMaximized) {
+        splash.center();
+    }
     splash.show();
     return splash;
 }

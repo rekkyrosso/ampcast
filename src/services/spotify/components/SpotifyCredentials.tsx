@@ -45,7 +45,7 @@ export default function SpotifyCredentials() {
                     </ExternalLink>
                 </p>
             </fieldset>
-            <fieldset className="spotify-credentials-requirements note">
+            <fieldset className="app-credentials-requirements note">
                 <legend>Requirements</legend>
                 <p>
                     <label htmlFor={`${id}-callback`}>Redirect URI:</label>

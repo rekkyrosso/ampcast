@@ -21,13 +21,13 @@ import {
     isLoggedIn,
     login,
     logout,
-    getGApiClient,
+    clearAccessToken,
 } from './youtubeAuth';
 import YouTubePager from './YouTubePager';
 import youtubeSettings from './youtubeSettings';
+import youtubeApi from './youtubeApi';
 
 export const youtubeHost = `https://www.youtube.com`;
-export const youtubeApiHost = `https://www.googleapis.com/youtube/v3`;
 
 const defaultLayout: MediaSourceLayout<MediaItem> = {
     view: 'card',
@@ -226,27 +226,32 @@ async function addToPlaylist<T extends MediaItem>(
     items: readonly T[]
 ): Promise<void> {
     if (items?.length) {
-        const client = await getGApiClient();
         const [, , playlistId] = playlist.src.split(':');
         let error: any;
         for (const item of items) {
             const [, , videoId] = item.src.split(':');
-            const {result, status, statusText} = await client.request({
-                path: `${youtubeApiHost}/playlistItems`,
-                method: 'POST',
-                params: {part: 'snippet'},
-                body: {
-                    snippet: {
-                        playlistId,
-                        resourceId: {
-                            kind: 'youtube#video',
-                            videoId,
+            try {
+                await youtubeApi.post({
+                    path: 'playlistItems',
+                    params: {part: 'snippet'},
+                    body: {
+                        snippet: {
+                            playlistId,
+                            resourceId: {
+                                kind: 'youtube#video',
+                                videoId,
+                            },
                         },
                     },
-                },
-            });
-            if (!result && !error) {
-                error = new Error(statusText || `Error (${status})`);
+                });
+            } catch (err: any) {
+                if (err.status === 401) {
+                    clearAccessToken();
+                    throw err;
+                }
+                if (!error) {
+                    error = err;
+                }
             }
         }
         if (error) {
@@ -259,33 +264,31 @@ async function createPlaylist<T extends MediaItem>(
     title: string,
     {description = '', isPublic, items}: CreatePlaylistOptions<T> = {}
 ): Promise<MediaPlaylist> {
-    const client = await getGApiClient();
-    const {
-        result: playlist,
-        status,
-        statusText,
-    } = await client.request({
-        path: `${youtubeApiHost}/playlists`,
-        method: 'POST',
-        params: {part: 'snippet,status'},
-        body: {
-            snippet: {title, description},
-            status: {privacyStatus: isPublic ? 'public' : 'private'},
-        },
-    });
-    if (!playlist) {
-        throw Error(statusText || `Error (${status})`);
+    try {
+        const playlist = await youtubeApi.post({
+            path: 'playlists',
+            params: {part: 'snippet,status'},
+            body: {
+                snippet: {title, description},
+                status: {privacyStatus: isPublic ? 'public' : 'private'},
+            },
+        });
+        const mediaPlaylist: MediaPlaylist = {
+            src: `youtube:playlist:${playlist.id}`,
+            title,
+            itemType: ItemType.Playlist,
+            pager: new SimplePager(),
+        };
+        if (items) {
+            await addToPlaylist(mediaPlaylist, items);
+        }
+        return mediaPlaylist;
+    } catch (err: any) {
+        if (err.status === 401) {
+            clearAccessToken();
+        }
+        throw err;
     }
-    const mediaPlaylist: MediaPlaylist = {
-        src: `youtube:playlist:${playlist.id}`,
-        title,
-        itemType: ItemType.Playlist,
-        pager: new SimplePager(),
-    };
-    if (items) {
-        await addToPlaylist(mediaPlaylist, items);
-    }
-    return mediaPlaylist;
 }
 
 function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
