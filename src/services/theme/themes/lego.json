@@ -1,5 +1,6 @@
 {
     "name": "LEGO",
+    "fontName": "Open Sans",
     "backgroundColor": "#252222",
     "textColor": "#fcfcfc",
     "frameColor": "#1b80f1",

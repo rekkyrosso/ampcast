@@ -1,5 +1,6 @@
 {
     "name": "Contrast",
+    "fontName": "Verdana",
     "backgroundColor": "#051115",
     "textColor": "#ddeff3",
     "frameColor": "#c3c3c6",

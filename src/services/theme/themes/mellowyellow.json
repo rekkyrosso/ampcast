@@ -1,7 +1,8 @@
 {
     "name": "Mellow Yellow",
+    "fontName": "Poppins",
     "backgroundColor": "#f5f2d1",
-    "textColor": "#111103",
+    "textColor": "#1c1302",
     "frameColor": "#fef4c3",
     "frameTextColor": "#513506",
     "selectedBackgroundColor": "#fdeb91",

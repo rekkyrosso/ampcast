@@ -1,5 +1,6 @@
 {
     "name": "(boring default)",
+    "fontName": "Arial",
     "backgroundColor": "#0d0f12",
     "textColor": "#8facbc",
     "frameColor": "#32312f",

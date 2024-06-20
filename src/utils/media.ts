@@ -41,13 +41,18 @@ export const drmKeySystems: Record<DRMType, DRMKeySystem> = {
 export async function getSupportedDrm(): Promise<DRMType> {
     if (!supportedDrm) {
         const keySystems = Object.entries(drmKeySystems);
-        const config = {
-            initDataTypes: ['cenc'],
-            audioCapabilities: [{contentType: 'audio/mp4;codecs="mp4a.40.2"'}],
-            videoCapabilities: [{contentType: 'video/mp4;codecs="avc1.42E01E"'}],
-        };
         for (const [key, keySystem] of keySystems) {
             try {
+                const robustness = key === 'widevine' ? {robustness: 'SW_SECURE_CRYPTO'} : {};
+                const config: MediaKeySystemConfiguration = {
+                    initDataTypes: ['cenc'],
+                    audioCapabilities: [
+                        {contentType: 'audio/mp4;codecs="mp4a.40.2"', ...robustness},
+                    ],
+                    videoCapabilities: [
+                        {contentType: 'video/mp4;codecs="avc1.42E01E"', ...robustness},
+                    ],
+                };
                 await navigator.requestMediaKeySystemAccess(keySystem, [config]);
                 supportedDrm = key as DRMType;
                 break;

@@ -4,6 +4,7 @@
 
     --font-size: 17.2;
     --font-family: Arial, sans-serif;
+    --system-font-family: Arial, sans-serif;
 
     --background-color-h: 0;
     --background-color-s: 0%;
@@ -145,7 +146,6 @@
 
     --gutter-width: calc(var(--spacing) * 1rem);
     --app-border-radius: calc(var(--roundness) * var(--roundness) * 0.75rem);
-
 }
 
 .themed.light {
@@ -227,18 +227,18 @@
 .system.dark {
     --background-color-h: 0;
     --background-color-s: 0%;
-    --background-color-l: 8%;
+    --background-color-l: 12%;
 
     --text-color: var(--soft-white);
     --grey1-color: dimgray;
 
     --frame-color-h: 0;
     --frame-color-s: 0%;
-    --frame-color-l: 24%;
+    --frame-color-l: 28%;
 
     --button-color-h: 0;
-    --button-color-s: 2.5%;
-    --button-color-l: 26.5%;
+    --button-color-s: 0%;
+    --button-color-l: 31%;
 
     --frame-text-color: var(--soft-white);
     --button-text-color: var(--soft-white);

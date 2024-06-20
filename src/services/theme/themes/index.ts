@@ -23,6 +23,7 @@ import winampModern from './winamp-modern.json';
 
 export const emptyTheme: Required<Theme> = {
     name: '(none)',
+    fontName: 'Arial',
     // required colors
     backgroundColor: 'black',
     textColor: 'white',

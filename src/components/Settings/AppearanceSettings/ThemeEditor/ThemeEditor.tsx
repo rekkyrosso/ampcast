@@ -1,5 +1,6 @@
 import React, {useCallback, useId, useEffect} from 'react';
 import theme from 'services/theme';
+import fonts, {loadAllFonts} from 'services/theme/fonts';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import ThemeColorPair from './ThemeColorPair';
 import useCurrentTheme from '../useCurrentTheme';
@@ -15,6 +16,10 @@ export default function ThemeEditor() {
     const [suggestedSelectionColors, nextSuggestedSelectionColors] = useSuggestedColors(
         currentTheme.frameColor
     );
+
+    useEffect(() => {
+        loadAllFonts(); // no point in cancelling this
+    }, []);
 
     useEffect(() => {
         // Lock `font-size` for this dialog.
@@ -33,6 +38,10 @@ export default function ThemeEditor() {
     const handleSaveAsClick = useCallback(() => {
         saveTheme(currentTheme.name);
     }, [currentTheme]);
+
+    const handleFontChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
+        theme.fontName = event.target.value;
+    }, []);
 
     const handleSpacingChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         theme.spacing = event.target.valueAsNumber;
@@ -57,10 +66,10 @@ export default function ThemeEditor() {
         <form className="theme-editor" method="dialog" onSubmit={handleSubmit}>
             <div className="table-layout">
                 <p className="theme-name">
-                    <label htmlFor={`${id}-theme-name`}>Name:</label>
+                    <label htmlFor={`${id}-name`}>Name:</label>
                     <input
                         type="text"
-                        id={`${id}-theme-name`}
+                        id={`${id}-name`}
                         value={themeName}
                         spellCheck={false}
                         readOnly
@@ -69,6 +78,21 @@ export default function ThemeEditor() {
                     <button className="small" type="button" onClick={handleSaveAsClick}>
                         Save as…
                     </button>
+                </p>
+                <p key={`${themeKey}/font`}>
+                    <label htmlFor={`${id}-font`}>Font:</label>
+                    <select
+                        className="font-selector"
+                        id={`${id}-font`}
+                        defaultValue={currentTheme.fontName}
+                        onChange={handleFontChange}
+                    >
+                        {fonts.map(({name, loaded}) => (
+                            <option value={name} disabled={loaded === false} key={name}>
+                                {name}
+                            </option>
+                        ))}
+                    </select>
                 </p>
                 <ThemeColorPair
                     label="Frame"
@@ -118,7 +142,7 @@ export default function ThemeEditor() {
                     <select
                         className="scrollbar-thickness"
                         onChange={handleScrollbarThicknessChange}
-                        defaultValue={theme.scrollbarThickness}
+                        defaultValue={currentTheme.scrollbarThickness}
                     >
                         <option value="0.67">Thin</option>
                         <option value="1">Medium</option>
@@ -126,10 +150,10 @@ export default function ThemeEditor() {
                     </select>
                 </ThemeColorPair>
                 <p>
-                    <label htmlFor={`${id}-theme-spacing`}>Spacing:</label>
+                    <label htmlFor={`${id}-spacing`}>Spacing:</label>
                     <input
                         type="range"
-                        id={`${id}-theme-spacing`}
+                        id={`${id}-spacing`}
                         min={0}
                         max={1}
                         step={0.01}
@@ -138,10 +162,10 @@ export default function ThemeEditor() {
                     />
                 </p>
                 <p>
-                    <label htmlFor={`${id}-theme-roundness`}>Roundness:</label>
+                    <label htmlFor={`${id}-roundness`}>Roundness:</label>
                     <input
                         type="range"
-                        id={`${id}-theme-roundness`}
+                        id={`${id}-roundness`}
                         min={0}
                         max={1}
                         step={0.01}
@@ -150,10 +174,10 @@ export default function ThemeEditor() {
                     />
                 </p>
                 <p>
-                    <label htmlFor={`${id}-theme-flat`}>Flat:</label>
+                    <label htmlFor={`${id}-flat`}>Flat:</label>
                     <input
                         type="checkbox"
-                        id={`${id}-theme-flat`}
+                        id={`${id}-flat`}
                         checked={currentTheme.flat}
                         onChange={handleFlatChange}
                     />

@@ -1,5 +1,6 @@
 export default interface Theme {
     readonly name: string;
+    readonly fontName?: string;
     readonly frameColor: string;
     readonly frameTextColor: string;
     readonly backgroundColor: string;

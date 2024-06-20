@@ -28,6 +28,10 @@
         background: var(--frame2-color);
     }
 
+    .themed.frame-dark.flat & {
+        border-color: var(--black);
+    }
+
     .icon {
         position: absolute;
         left: calc(0.375em + var(--roundness) * 0.25em);

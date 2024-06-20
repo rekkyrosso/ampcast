@@ -6,6 +6,7 @@ import ampcastElectron from 'services/ampcastElectron';
 import {LiteStorage, Logger} from 'utils';
 import {emptyTheme, defaultTheme} from './themes';
 import themeStore from './themeStore';
+import fonts, {loadFont} from './fonts';
 
 const logger = new Logger('theme');
 
@@ -183,6 +184,17 @@ class MainTheme implements CurrentTheme {
                 .lighten(33)
                 .toHexString();
         }
+    }
+
+    get fontName(): string {
+        return this.current.fontName;
+    }
+
+    set fontName(fontName: string) {
+        const font = fonts.find((font) => font.name === fontName) || fonts[0];
+        this.rootStyle.setProperty('--font-family', font.value);
+        this.theme$.next({...this.current, fontName});
+        loadFont(font);
     }
 
     get fontSize(): number {
@@ -403,9 +415,10 @@ class MainTheme implements CurrentTheme {
         return [primaryLightColor, ...brightColor.tetrad().map((color) => color.toRgbString())];
     }
 
-    apply(theme: Theme): void {
+    apply(theme: Theme & {userTheme?: boolean}): void {
         this.applyingUpdate = true;
-        const values = {...emptyTheme, userTheme: undefined, ...theme};
+        const defaultValues = theme.userTheme ? {} : themeStore.getDefaultTheme(theme.name) || {};
+        const values = {...emptyTheme, ...defaultValues, userTheme: undefined, ...theme};
         this.frameColor = values.frameColor;
         this.frameTextColor = values.frameTextColor;
         Object.assign(this, values);
@@ -421,7 +434,7 @@ class MainTheme implements CurrentTheme {
     }
 
     restore(): void {
-        const theme = this.storage.getJson<Theme>('current', defaultTheme);
+        const theme = this.storage.getJson<CurrentTheme>('current', defaultTheme);
         this.apply(theme);
         this.fontSize = this.storage.getNumber('fontSize', this.defaultFontSize);
         this.system.classList.toggle('dark', this.isDark);
@@ -450,6 +463,7 @@ class MainTheme implements CurrentTheme {
             selectedTextColor: 'string',
         };
         const optional: ThemeSchema = {
+            fontName: 'string',
             mediaButtonColor: 'string',
             mediaButtonTextColor: 'string',
             buttonColor: 'string',

@@ -1,5 +1,6 @@
 {
     "name": "Indigo",
+    "fontName": "Poppins",
     "backgroundColor": "#06181e",
     "textColor": "#d1d3f5",
     "frameColor": "#43477a",

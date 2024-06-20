@@ -1,5 +1,6 @@
 {
     "name": "Proton",
+    "fontName": "System UI",
     "backgroundColor": "#120f0c",
     "textColor": "#c4c7b8",
     "frameColor": "#121211",
@@ -8,6 +9,9 @@
     "selectedTextColor": "#e6e8de",
     "mediaButtonColor": "#a5b361",
     "mediaButtonTextColor": "#10100b",
+    "buttonColor": "#292924",
+    "buttonTextColor": "#72bba4",
+    "scrollbarThickness": 0.67,
     "spacing": 0.375,
     "roundness": 0.53125,
     "flat": true

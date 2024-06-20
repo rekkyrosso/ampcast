@@ -1,5 +1,6 @@
 {
     "name": "Black Gold",
+    "fontName": "Inter",
     "backgroundColor": "#0d0c0c",
     "textColor": "#a9aa92",
     "frameColor": "#1c1c12",

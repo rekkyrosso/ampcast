@@ -27,7 +27,6 @@ button,
 input,
 select,
 textarea {
-    font-size: 1em;
     padding: 0.125em 0.25em;
     border: 0;
     border-radius: calc(var(--roundness) * 1em);
@@ -189,7 +188,7 @@ button,
     @include pressable;
     -webkit-appearance: none;
     appearance: none;
-    padding: calc(0.125em - 1px) 1em;
+    padding: 0.125em 1em;
     text-align: center;
     white-space: nowrap;
     user-select: none;

@@ -4,7 +4,7 @@
     margin: 0.5em 0;
 
     .scrollable {
-        --scrollbar-size: calc(1.25em * var(--scrollbar-thickness));
+        --scrollbar-size: max(10px, calc(1.25em * var(--scrollbar-thickness)));
     }
 
     .list-view-cell {

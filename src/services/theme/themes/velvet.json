@@ -1,5 +1,6 @@
 {
     "name": "Velvet",
+    "fontName": "Lato",
     "backgroundColor": "#160916",
     "textColor": "#c2d7ea",
     "frameColor": "#280b1f",
@@ -8,8 +9,9 @@
     "mediaButtonTextColor": "#0d0b04",
     "selectedBackgroundColor": "#412438",
     "selectedTextColor": "#ebebeb",
+    "scrollbarTextColor": "#d7bd3c",
     "spacing": 0.85,
-    "roundness": 0.45,
+    "roundness": 0.67,
     "scrollbarThickness": 1.33,
     "flat": true
 }

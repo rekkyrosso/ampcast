@@ -1,5 +1,6 @@
 {
     "name": "Astronaut",
+    "fontName": "Roboto",
     "backgroundColor": "#000000",
     "textColor": "#95a5d6",
     "frameColor": "#141415",

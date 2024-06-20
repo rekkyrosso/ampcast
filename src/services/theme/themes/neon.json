@@ -1,5 +1,6 @@
 {
     "name": "Neon",
+    "fontName": "Roboto",
     "backgroundColor": "#010123",
     "textColor": "#7edbdd",
     "frameColor": "#610a51",

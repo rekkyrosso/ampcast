@@ -1,5 +1,6 @@
 {
     "name": "Winamp Classic",
+    "fontName": "Arial",
     "backgroundColor": "#000000",
     "textColor": "#00e200",
     "frameColor": "#383757",

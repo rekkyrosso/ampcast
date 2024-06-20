@@ -1,15 +1,15 @@
 @import './mixins.scss';
 
 html {
+    background: #32312f;
+    font-family: var(--font-family);
     font-size: calc(var(--font-size) * 1px);
     -webkit-font-smoothing: antialiased;
-    background: #32312f;
 }
 
 body {
     position: fixed;
     inset: 0;
-    font-size: 1em;
 }
 
 body,
@@ -17,7 +17,8 @@ button,
 input,
 select,
 textarea {
-    font-family: var(--font-family);
+    font-family: inherit;
+    font-size: inherit;
     font-weight: 400;
     line-height: 1.5;
 }
@@ -96,8 +97,8 @@ small {
     inset: 0;
 }
 
-#popup,
 #system,
+#popup,
 #fullscreen-popup {
     position: absolute;
     isolation: isolate;
@@ -116,6 +117,7 @@ small {
 
 #system {
     contain: layout style size;
+    font-family: var(--system-font-family);
     font-size: min(max(calc(var(--font-size) * 1px), 12px), 2vw, 3vh, 22px);
 }
 

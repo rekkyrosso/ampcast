@@ -1,5 +1,6 @@
 {
     "name": "Winamp Modern (WACUP)",
+    "fontName": "Inter",
     "backgroundColor": "#14121c",
     "textColor": "#8ac440",
     "frameColor": "#1f1f36",

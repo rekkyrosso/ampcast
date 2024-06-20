@@ -1,5 +1,6 @@
 {
     "name": "Radioactive",
+    "fontName": "Ubuntu",
     "backgroundColor": "#0f0f10",
     "textColor": "#d1f5d2",
     "frameColor": "#322724",

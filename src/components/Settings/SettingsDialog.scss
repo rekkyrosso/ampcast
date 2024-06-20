@@ -1,6 +1,7 @@
 .settings-dialog {
     width: 45em;
     height: 36.5em; /* For the tallest tab */
+    font-family: var(--system-font-family);
 
     &::backdrop,
     & + .backdrop {

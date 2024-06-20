@@ -1,6 +1,8 @@
 @import 'styles/mixins.scss';
 
 .media-controls {
+    font-family: var(--system-font-family);
+
     .current-time-control,
     .playback-control,
     .volume-control,

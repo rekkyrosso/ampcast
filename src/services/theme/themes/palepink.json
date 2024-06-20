@@ -1,9 +1,10 @@
 {
     "name": "Pale Pink",
+    "fontName": "Proxima Nova",
     "backgroundColor": "#f7f7f7",
-    "textColor": "#120f0c",
+    "textColor": "#150e0e",
     "frameColor": "#cfbdd0",
-    "frameTextColor": "#121211",
+    "frameTextColor": "#121111",
     "selectedBackgroundColor": "#b9d8f3",
     "selectedTextColor": "#000000",
     "spacing": 0.375,

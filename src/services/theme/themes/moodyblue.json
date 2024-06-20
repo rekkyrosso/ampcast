@@ -1,5 +1,6 @@
 {
     "name": "Moody Blue",
+    "fontName": "Inter",
     "backgroundColor": "#051a23",
     "textColor": "#bec1c0",
     "frameColor": "#125673",

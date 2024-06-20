@@ -1,5 +1,6 @@
 {
     "name": "Treasure",
+    "fontName": "Nunito Sans",
     "backgroundColor": "#040323",
     "textColor": "#dee5e8",
     "frameColor": "#64211c",
