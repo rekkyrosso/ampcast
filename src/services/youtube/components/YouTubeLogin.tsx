@@ -1,5 +1,4 @@
 import React from 'react';
-import {youtubeCreateAppUrl} from 'services/constants';
 import {LoginProps} from 'components/Login';
 import CredentialsButton from 'components/Login/CredentialsButton';
 import CredentialsRequired from 'components/Login/CredentialsRequired';
@@ -25,7 +24,7 @@ export default function YouTubeLogin({service: youtube}: LoginProps) {
                 </>
             ) : (
                 <>
-                    <CredentialsRequired service={youtube} url={youtubeCreateAppUrl} />
+                    <CredentialsRequired service={youtube} />
                     <CredentialsButton dialog={YouTubeCredentialsDialog} />
                     <LoginNotRequired />
                 </>

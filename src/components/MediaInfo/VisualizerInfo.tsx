@@ -38,16 +38,16 @@ function VisualizerDetail({visualizer}: VisualizerInfoProps) {
 
             return isYouTubeVideo ? (
                 <YouTubeVideoInfo visualizer={visualizer} />
-            ) : visualizer.name ? (
+            ) : (
                 <>
-                    <h4>Name: {visualizer.name}</h4>
+                    {visualizer.name ? <h4>Name: {visualizer.name}</h4> : null}
                     {externalUrl ? (
                         <p className="external-view">
                             <span>Url:</span> <ExternalLink href={externalUrl} />
                         </p>
                     ) : null}
                 </>
-            ) : null;
+            );
         }
     }
 }
@@ -85,8 +85,8 @@ function getNoVisualizerReason(visualizer: Visualizer | null): string {
             case 'not supported':
                 return 'Visualizer not supported for this media';
 
-            case 'not found':
-                return 'Visualizer not found';
+            case 'not loaded':
+                return 'Visualizer not loaded';
 
             case 'error':
                 return 'Visualizer error';

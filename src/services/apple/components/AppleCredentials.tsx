@@ -1,5 +1,4 @@
 import React, {useCallback, useId, useRef} from 'react';
-import {appleCreateAppUrl} from 'services/constants';
 import AppCredentials from 'components/Settings/MediaLibrarySettings/AppCredentials';
 import AppCredential from 'components/Settings/MediaLibrarySettings/AppCredential';
 import ExternalLink from 'components/ExternalLink';
@@ -38,9 +37,9 @@ export default function AppleCredentials() {
             <fieldset>
                 <legend>Registration</legend>
                 <p className="apple-link service-link">
-                    <ExternalLink href={appleCreateAppUrl}>
+                    <ExternalLink href={apple.credentialsUrl}>
                         <Icon name="apple-logo" />
-                        {appleCreateAppUrl}
+                        {apple.credentialsUrl}
                     </ExternalLink>
                 </p>
             </fieldset>

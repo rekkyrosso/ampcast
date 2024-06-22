@@ -16,7 +16,8 @@
         "build:electron": "webpack --env mode=production --env target=electron",
         "start:dev": "node server.js --dev",
         "start:prod": "node server.js",
-        "start:docker": "node server.js --host 0.0.0.0"
+        "start:docker": "node server.js --host 0.0.0.0",
+        "stats": "webpack --profile --json > stats.json"
     },
     "license": "GPL-3.0",
     "dependencies": {

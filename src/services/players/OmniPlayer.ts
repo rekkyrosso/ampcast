@@ -29,12 +29,12 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
     #height = 0;
 
     constructor(
-        className: string,
+        id: string,
         private readonly selectPlayer: SetReturnType<Player<T>['load'], Player<S> | null>,
         private readonly loadPlayer: (player: Player<S>, src: T) => void,
         private readonly audio?: Pick<AudioManager, 'volume'>
     ) {
-        this.element.className = className;
+        this.element.id = id;
     }
 
     get autoplay(): boolean {

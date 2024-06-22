@@ -165,6 +165,7 @@ const youtube: PublicMediaService = {
     name: 'YouTube',
     icon: 'youtube',
     url: youtubeHost,
+    credentialsUrl: 'https://console.cloud.google.com/apis/credentials',
     serviceType: ServiceType.PublicMedia,
     primaryMediaType: MediaType.Video,
     get disabled(): boolean {

@@ -1,5 +1,4 @@
 import React, {useCallback, useId, useRef} from 'react';
-import {youtubeCreateAppUrl} from 'services/constants';
 import AppCredentials from 'components/Settings/MediaLibrarySettings/AppCredentials';
 import AppCredential from 'components/Settings/MediaLibrarySettings/AppCredential';
 import ExternalLink from 'components/ExternalLink';
@@ -38,9 +37,9 @@ export default function YouTubeCredentials() {
             <fieldset>
                 <legend>Registration</legend>
                 <p className="youtube-link service-link">
-                    <ExternalLink href={youtubeCreateAppUrl}>
+                    <ExternalLink href={youtube.credentialsUrl}>
                         <Icon name="google-cloud" />
-                        {youtubeCreateAppUrl}
+                        {youtube.credentialsUrl}
                     </ExternalLink>
                 </p>
             </fieldset>

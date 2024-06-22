@@ -71,7 +71,7 @@ export default memo(function Media() {
             onDoubleClick={toggleFullScreen}
             ref={ref}
         >
-            <div className="players" ref={playbackRef} />
+            <div id="players" ref={playbackRef} />
             <CoverArtVisualizer />
             <Interstitial />
             {fullscreenProgressEnabled && fullScreen ? <ProgressBar /> : null}

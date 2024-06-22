@@ -1,7 +1,7 @@
-import React, {useId, useMemo} from 'react';
-import {getAllVisualizerProviders} from 'services/visualizer/visualizerProviders';
+import React, {useId} from 'react';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
+import useVisualizerProviders from './useVisualizerProviders';
 
 export interface VisualizerSettingsGeneralProps {
     providerRef: React.RefObject<HTMLSelectElement>;
@@ -18,13 +18,18 @@ export default function VisualizerSettingsGeneral({
 }: VisualizerSettingsGeneralProps) {
     const id = useId();
     const provider = visualizerSettings.provider;
-    const providers = useMemo(getAllVisualizerProviders, []);
+    const providers = useVisualizerProviders();
 
     return (
         <form className="visualizer-settings-general" method="dialog">
             <p>
-                <label htmlFor={`${id}-visualizer-provider`}>Provider:</label>
-                <select id={`${id}-visualizer-provider`} defaultValue={provider} ref={providerRef}>
+                <label htmlFor={`${id}-provider`}>Provider:</label>
+                <select
+                    id={`${id}-provider`}
+                    defaultValue={provider}
+                    ref={providerRef}
+                    key={providers.length} // refresh the selected option
+                >
                     <option value="none">(none)</option>
                     {providers.length > 1 ? <option value="">(random)</option> : null}
                     {providers

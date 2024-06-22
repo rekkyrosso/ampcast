@@ -370,6 +370,7 @@ const apple: PublicMediaService = {
     name: 'Apple Music',
     icon: 'apple',
     url: 'https://music.apple.com',
+    credentialsUrl: 'https://developer.apple.com',
     serviceType: ServiceType.PublicMedia,
     primaryMediaType: MediaType.Audio,
     defaultHidden: true,

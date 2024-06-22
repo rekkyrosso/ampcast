@@ -4,7 +4,7 @@ import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
-import {Logger} from 'utils';
+import {Logger, loadScript} from 'utils';
 
 const logger = new Logger('music-metadata');
 
@@ -26,11 +26,7 @@ const noMetadata: IAudioMetadata = {
 };
 
 export async function createMediaItemFromFile(file: File): Promise<MediaItem> {
-    const {parseBlob} = await import(
-        /* webpackChunkName: "music-metadata-browser" */
-        /* webpackMode: "lazy-once" */
-        'music-metadata-browser'
-    );
+    const {parseBlob} = await loadMusicMetadata();
     let metadata = noMetadata;
     try {
         metadata = await parseBlob(file, options);
@@ -75,11 +71,7 @@ export async function createMediaItemFromUrl(url: string): Promise<MediaItem> {
 // From: https://github.com/Borewit/music-metadata-browser/blob/master/lib/index.ts
 // Adapted to add a timeout.
 async function fetchFromUrl(url: string, options?: IOptions): Promise<IAudioMetadata> {
-    const {parseBlob, parseReadableStream} = await import(
-        /* webpackChunkName: "music-metadata-browser" */
-        /* webpackMode: "lazy-once" */
-        'music-metadata-browser'
-    );
+    const {parseBlob, parseReadableStream} = await loadMusicMetadata();
     const response = await fetch(url, {signal: AbortSignal.timeout(3000)});
     if (response.ok) {
         if (response.body) {
@@ -138,4 +130,12 @@ function createMediaItem(
         playedAt: 0,
         noScrobble: !common.title,
     };
+}
+
+async function loadMusicMetadata() {
+    await loadScript(`/v${__app_version__}/lib/music-metadata-browser.js`);
+    return import(
+        /* webpackMode: "weak" */
+        'music-metadata-browser'
+    );
 }

@@ -61,7 +61,7 @@ function getMediaSource(item: PlaylistItem | null): PlayableItem {
 }
 
 const mediaPlayer = new OmniPlayer<PlaylistItem | null, PlayableItem>(
-    'media-player',
+    'mediaPlayer',
     selectPlayer,
     loadPlayer,
     audio

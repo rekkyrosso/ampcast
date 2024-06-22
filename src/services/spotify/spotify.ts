@@ -372,6 +372,7 @@ const spotify: PublicMediaService = {
     name: 'Spotify',
     icon: 'spotify',
     url: 'https://www.spotify.com',
+    credentialsUrl: 'https://developer.spotify.com/dashboard/create',
     serviceType: ServiceType.PublicMedia,
     primaryMediaType: MediaType.Audio,
     get disabled(): boolean {

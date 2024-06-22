@@ -25,9 +25,9 @@ import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import lookup from 'services/lookup';
 import {hasPlayableSrc, getPlaybackType} from 'services/mediaServices';
 import playlist from 'services/playlist';
-import visualizerPlayer from 'services/visualizer/visualizerPlayer';
 import {formatTime, LiteStorage, Logger} from 'utils';
 import mediaPlayer from './mediaPlayer';
+import visualizerPlayer from './visualizerPlayer';
 import playback, {observePlaybackReady} from './playback';
 import './scrobbler';
 

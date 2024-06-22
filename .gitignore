@@ -5,3 +5,4 @@ www-dev
 .env
 .env.*
 !.env.example
+stats.json

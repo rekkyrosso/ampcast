@@ -95,7 +95,6 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
     }
 
     play(): void {
-        logger.log('play');
         this.videoPlayer.play();
         if (visualizerSettings.ambientVideoBeats) {
             this.beatsPlayer.play();
@@ -103,13 +102,11 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
     }
 
     pause(): void {
-        logger.log('pause');
         this.videoPlayer.pause();
         this.beatsPlayer.pause();
     }
 
     stop(): void {
-        logger.log('stop');
         this.videoPlayer.stop();
         this.beatsPlayer.stop();
     }
@@ -150,7 +147,7 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
         };
 
         const videoPlayer = new OmniPlayer<AmbientVideoVisualizer, PlayableItem>(
-            'ambient-video-player',
+            'ambientVideoPlayer',
             selectPlayer,
             loadPlayer
         );

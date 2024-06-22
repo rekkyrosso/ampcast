@@ -2,7 +2,7 @@ import AmpcastElectron from 'types/AmpcastElectron';
 import {browser} from 'utils';
 
 const ampcastElectron: AmpcastElectron | undefined = browser.isElectron
-    ? (window as any)['ampcastElectron']
+    ? (globalThis as any)['ampcastElectron']
     : undefined;
 
 export default ampcastElectron;

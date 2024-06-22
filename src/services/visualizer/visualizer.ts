@@ -5,7 +5,9 @@ import {
     debounce,
     debounceTime,
     distinctUntilChanged,
+    filter,
     map,
+    mergeMap,
     of,
     skipWhile,
     switchMap,
@@ -21,11 +23,9 @@ import Visualizer, {NoVisualizer} from 'types/Visualizer';
 import VisualizerProvider from 'types/VisualizerProvider';
 import VisualizerProviderId from 'types/VisualizerProviderId';
 import audio from 'services/audio';
-import {observePlaybackReady} from 'services/mediaPlayback/playback';
 import {observeCurrentItem} from 'services/playlist';
-import {getRandomValue, Logger} from 'utils';
-import {getVisualizerProvider, getVisualizer, getVisualizers} from './visualizerProviders';
-import visualizerPlayer from './visualizerPlayer';
+import {exists, getRandomValue, Logger} from 'utils';
+import {getVisualizerProvider, observeVisualizerProviders} from './visualizerProviders';
 import visualizerSettings, {
     observeVisualizerSettings,
     VisualizerSettings,
@@ -79,7 +79,7 @@ export function observeLocked(): Observable<boolean> {
     );
 }
 
-export function observeProvider(): Observable<VisualizerProvider<Visualizer> | undefined> {
+export function observeProvider(): Observable<VisualizerProvider | undefined> {
     return observeProviderId().pipe(
         map((id) => getVisualizerProvider(id)),
         distinctUntilChanged()
@@ -112,14 +112,14 @@ export function unlock(): void {
     visualizerSettings.lockedVisualizer = null;
 }
 
-observePlaybackReady()
+observeVisualizerProviders()
     .pipe(
         switchMap(() => observeCurrentItem()),
         distinctUntilChanged((a, b) => a?.id === b?.id),
         debounceTime(200)
     )
     .subscribe(() => nextVisualizer('item'));
-visualizerPlayer.observeError().subscribe(() => nextVisualizer('error'));
+
 observeCurrentVisualizers().subscribe(() => nextVisualizer('provider'));
 
 observeNextVisualizerReason()
@@ -129,9 +129,13 @@ observeNextVisualizerReason()
     )
     .subscribe(currentVisualizer$);
 
-observeCurrentVisualizer()
-    .pipe(tap((visualizer) => visualizerPlayer.load(visualizer)))
-    .subscribe(logger);
+function getVisualizers(providerId: string): readonly Visualizer[] {
+    return getVisualizerProvider(providerId)?.visualizers || [];
+}
+
+function getVisualizer(providerId: string, name: string): Visualizer | undefined {
+    return getVisualizers(providerId).find((visualizer) => visualizer.name === name);
+}
 
 function getCurrentVisualizer(): Visualizer {
     return currentVisualizer$.getValue();
@@ -169,7 +173,7 @@ function getNextVisualizer(
         return isError
             ? createNoVisualizer(providerId, 'error')
             : getVisualizer(lockedVisualizer.providerId, lockedVisualizer.name) ||
-                  createNoVisualizer(providerId, 'not found');
+                  createNoVisualizer(providerId, 'not loaded');
     }
     const currentVisualizer = getCurrentVisualizer();
     providerId = settings.provider;
@@ -198,6 +202,9 @@ function getNextVisualizer(
         return createNoVisualizer(providerId, 'not supported');
     }
     const visualizers = getVisualizers(providerId);
+    if (visualizers.length === 0) {
+        return createNoVisualizer(providerId, 'not loaded');
+    }
     if (isError && settings.provider && visualizers.length === 1) {
         // Prevent further errors.
         return createNoVisualizer(providerId, 'error');
@@ -216,17 +223,25 @@ function createNoVisualizer(
 
 // If the user has locked a visualizer then make sure it loads once it's available.
 function handleLazyLoads(providerId: VisualizerProviderId, loadCount = 1) {
-    getVisualizerProvider(providerId)
-        ?.observeVisualizers()
+    observeVisualizerProviders()
         .pipe(
-            skipWhile((visualizers) => visualizers.length === 0),
-            withLatestFrom(observeCurrentVisualizer()),
-            tap(([, currentVisualizer]) => {
-                if (currentVisualizer === noVisualizer) {
-                    nextVisualizer('sync');
-                }
-            }),
-            take(loadCount)
+            map(() => getVisualizerProvider(providerId)),
+            filter(exists),
+            mergeMap((provider) =>
+                provider.observeVisualizers().pipe(
+                    skipWhile((visualizers) => visualizers.length === 0),
+                    withLatestFrom(observeCurrentVisualizer()),
+                    tap(([, currentVisualizer]) => {
+                        if (
+                            currentVisualizer.providerId === 'none' &&
+                            currentVisualizer.reason === 'not loaded'
+                        ) {
+                            nextVisualizer('sync');
+                        }
+                    }),
+                    take(loadCount)
+                )
+            )
         )
         .subscribe(logger);
 }

@@ -1,5 +1,4 @@
 import React from 'react';
-import {appleCreateAppUrl} from 'services/constants';
 import {LoginProps} from 'components/Login';
 import CredentialsButton from 'components/Login/CredentialsButton';
 import CredentialsRequired from 'components/Login/CredentialsRequired';
@@ -24,7 +23,7 @@ export default function AppleLogin({service: apple}: LoginProps) {
                 </>
             ) : (
                 <>
-                    <CredentialsRequired service={apple} url={appleCreateAppUrl} />
+                    <CredentialsRequired service={apple} />
                     <CredentialsButton dialog={AppleCredentialsDialog} />
                 </>
             )}

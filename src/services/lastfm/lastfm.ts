@@ -95,6 +95,7 @@ const lastfm: DataService = {
     name: 'last.fm',
     icon: 'lastfm',
     url: 'https://www.last.fm',
+    credentialsUrl: 'https://www.last.fm/api/account/create',
     serviceType: ServiceType.DataService,
     canScrobble: true,
     defaultHidden: true,

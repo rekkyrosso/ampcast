@@ -1,5 +1,4 @@
 import React from 'react';
-import {spotifyCreateAppUrl} from 'services/constants';
 import {LoginProps} from 'components/Login';
 import CredentialsButton from 'components/Login/CredentialsButton';
 import CredentialsRequired from 'components/Login/CredentialsRequired';
@@ -25,7 +24,7 @@ export default function SpotifyLogin({service: spotify}: LoginProps) {
                 </>
             ) : (
                 <>
-                    <CredentialsRequired service={spotify} url={spotifyCreateAppUrl} />
+                    <CredentialsRequired service={spotify} />
                     <CredentialsButton dialog={SpotifyCredentialsDialog} />
                 </>
             )}

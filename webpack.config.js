@@ -17,11 +17,9 @@ module.exports = (args) => {
     return {
         mode,
         entry: {
-            'lib/butterchurn': 'butterchurn',
+            'lib/music-metadata-browser': 'music-metadata-browser',
             'lib/unidecode': 'unidecode',
             'lib/vendors': [
-                '@ctrl/tinycolor',
-                'audiomotion-analyzer',
                 'colorjs.io',
                 'colorthief',
                 'd3-array',
@@ -32,6 +30,8 @@ module.exports = (args) => {
                 'libs/dialog-polyfill',
                 'fullscreen-api-polyfill',
                 'jsfft',
+                'idb-keyval',
+                'is-electron',
                 'md5',
                 'react',
                 'react-dom',
@@ -39,10 +39,18 @@ module.exports = (args) => {
                 'spotify-web-api-js',
                 'string-score',
                 'youtube-player',
+                // These are always included in `bundle.js`.
+                // Tree-shaking?
+                // '@ctrl/tinycolor',
+                // 'rxjs',
             ],
+            'lib/visualizers': {
+                import: './src/services/visualizer/visualizers.ts',
+                dependOn: ['lib/vendors', 'bundle'],
+            },
             bundle: {
                 import: './src/index.tsx',
-                dependOn: ['lib/butterchurn', 'lib/unidecode', 'lib/vendors'],
+                dependOn: ['lib/unidecode', 'lib/vendors'],
             },
         },
         output: {
@@ -85,7 +93,7 @@ module.exports = (args) => {
                 extensions: ['.tsx', '.ts'],
             }),
             new MiniCssExtractPlugin({
-                filename: 'bundle.css',
+                filename: '[name].css',
             }),
             new webpack.ProvidePlugin({
                 Buffer: ['buffer', 'Buffer'],

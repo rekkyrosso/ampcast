@@ -3,7 +3,7 @@ import AudioManager from './AudioManager';
 import Player from './Player';
 import Visualizer from './Visualizer';
 
-export default interface VisualizerProvider<T extends Visualizer> {
+export default interface VisualizerProvider<T extends Visualizer = Visualizer> {
     readonly id: T['providerId'];
     readonly name: string;
     readonly player?: Player<T>;

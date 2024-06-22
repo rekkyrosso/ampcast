@@ -1,5 +1,4 @@
 import React, {useCallback, useId, useRef} from 'react';
-import {spotifyCreateAppUrl} from 'services/constants';
 import AppCredentials from 'components/Settings/MediaLibrarySettings/AppCredentials';
 import AppCredential from 'components/Settings/MediaLibrarySettings/AppCredential';
 import ExternalLink from 'components/ExternalLink';
@@ -15,7 +14,6 @@ export default function SpotifyCredentials() {
 
     const handleSubmit = useCallback(async () => {
         const clientId = clientIdRef.current!.value;
-        console.log('SpotifyCredentials::handleSubmit', clientId, spotifySettings.clientId);
         if (clientId !== spotifySettings.clientId) {
             spotifySettings.clientId = clientId;
             if (spotify.isLoggedIn()) {
@@ -39,9 +37,9 @@ export default function SpotifyCredentials() {
             <fieldset>
                 <legend>Registration</legend>
                 <p className="spotify-link service-link">
-                    <ExternalLink href={spotifyCreateAppUrl}>
+                    <ExternalLink href={spotify.credentialsUrl}>
                         <Icon name="spotify" />
-                        {spotifyCreateAppUrl}
+                        {spotify.credentialsUrl}
                     </ExternalLink>
                 </p>
             </fieldset>

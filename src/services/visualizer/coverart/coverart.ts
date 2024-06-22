@@ -2,8 +2,7 @@ import {of} from 'rxjs';
 import VisualizerProvider from 'types/VisualizerProvider';
 import {CoverArtVisualizer} from 'types/Visualizer';
 import CovertArtPlayer from './CovertArtPlayer';
-
-const visualizers: CoverArtVisualizer[] = [{providerId: 'coverart', name: ''}];
+import visualizers from './visualizers';
 
 const coverart: VisualizerProvider<CoverArtVisualizer> = {
     id: 'coverart',

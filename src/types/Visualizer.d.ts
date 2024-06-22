@@ -1,11 +1,12 @@
-import {Options as AudioMotionOptions} from 'audiomotion-analyzer';
-import {SpotifyVizConfig} from 'services/visualizer/spotifyviz/SpotifyVizPlayer';
-import {WaveformConfig} from 'services/visualizer/waveform/WaveformPlayer';
+import type React from 'react';
+import type {Options as AudioMotionOptions} from 'audiomotion-analyzer';
+import type {SpotifyVizConfig} from 'services/visualizer/spotifyviz/SpotifyVizPlayer';
+import type {WaveformConfig} from 'services/visualizer/waveform/WaveformPlayer';
 import BaseVisualizer from './BaseVisualizer';
 
 export interface NoVisualizer extends BaseVisualizer {
     providerId: 'none';
-    reason?: 'not found' | 'not supported' | 'error';
+    reason?: 'not loaded' | 'not supported' | 'error';
 }
 
 export interface AmbientVideoVisualizer extends BaseVisualizer {
@@ -30,6 +31,7 @@ export interface ButterchurnVisualizer extends BaseVisualizer {
 
 export interface CoverArtVisualizer extends BaseVisualizer {
     providerId: 'coverart';
+    component: React.FC;
 }
 
 export interface SpotifyVizVisualizer extends BaseVisualizer {

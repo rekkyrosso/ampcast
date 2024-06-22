@@ -1,5 +1,4 @@
 import React, {useCallback, useId, useRef} from 'react';
-import {lastfmCreateAppUrl} from 'services/constants';
 import {error} from 'components/Dialog';
 import AppCredentials from 'components/Settings/MediaLibrarySettings/AppCredentials';
 import AppCredential from 'components/Settings/MediaLibrarySettings/AppCredential';
@@ -56,9 +55,9 @@ export default function LastFmCredentials() {
             <fieldset>
                 <legend>Registration</legend>
                 <p className="lastfm-link service-link">
-                    <ExternalLink href={lastfmCreateAppUrl}>
+                    <ExternalLink href={lastfm.credentialsUrl}>
                         <Icon name="lastfm" />
-                        {lastfmCreateAppUrl}
+                        {lastfm.credentialsUrl}
                     </ExternalLink>
                 </p>
             </fieldset>

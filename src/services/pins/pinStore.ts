@@ -39,7 +39,6 @@ class PinStore extends Dexie {
     async pin(playlist: readonly MediaPlaylist[] | MediaPlaylist): Promise<void> {
         try {
             const playlists: MediaPlaylist[] = Array.isArray(playlist) ? playlist : [playlist];
-            logger.log('pin', {playlists});
             await this.pins.bulkPut(
                 playlists.map((playlist) => {
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -64,7 +63,6 @@ class PinStore extends Dexie {
     async unpin(playlist: readonly Pin[] | Pin | {src: string}): Promise<void> {
         try {
             const playlists: {src: string}[] = Array.isArray(playlist) ? playlist : [playlist];
-            logger.log('unpin', {playlists});
             await this.pins.bulkDelete(playlists.map((playlist) => playlist.src));
             dispatchMediaObjectChanges(
                 playlists.map((playlist) => ({

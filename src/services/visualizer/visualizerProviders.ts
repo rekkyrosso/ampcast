@@ -1,51 +1,54 @@
-import {from, map, mergeMap, skipWhile, tap} from 'rxjs';
-import Player from 'types/Player';
-import Visualizer from 'types/Visualizer';
+import type {Observable} from 'rxjs';
+import {BehaviorSubject, map, mergeMap, skipWhile, take, tap} from 'rxjs';
 import VisualizerProvider from 'types/VisualizerProvider';
-import ambientvideo from './ambientvideo';
-import ampshader from './ampshader';
-import audiomotion from './audiomotion';
-import butterchurn from './butterchurn';
-import coverart from './coverart';
-import spotifyviz from './spotifyviz';
-import waveform from './waveform';
+import audio from 'services/audio';
+import {Logger, loadScript} from 'utils';
 import visualizerSettings from './visualizerSettings';
-import {Logger} from 'utils';
 
 const logger = new Logger('visualizerProviders');
 
-export function getAllVisualizerProviders(): readonly VisualizerProvider<Visualizer>[] {
-    return [ambientvideo, ampshader, audiomotion, butterchurn, coverart, spotifyviz, waveform];
+const visualizerProviders$ = new BehaviorSubject<readonly VisualizerProvider[]>([]);
+
+export function observeVisualizerProviders(): Observable<readonly VisualizerProvider[]> {
+    return visualizerProviders$.pipe(
+        skipWhile((providers) => providers.length === 0),
+        take(1)
+    );
 }
 
-export function getEnabledVisualizerProviders(): readonly VisualizerProvider<Visualizer>[] {
+export function getAllVisualizerProviders(): readonly VisualizerProvider[] {
+    return visualizerProviders$.value;
+}
+
+export function getEnabledVisualizerProviders(): readonly VisualizerProvider[] {
     return getAllVisualizerProviders().filter(
         (provider) => provider.id !== 'ambientvideo' || visualizerSettings.ambientVideoEnabled
     );
 }
 
-export function getVisualizerProvider(
-    providerId: string
-): VisualizerProvider<Visualizer> | undefined {
+export function getVisualizerProvider(providerId: string): VisualizerProvider | undefined {
     return getAllVisualizerProviders().find((provider) => provider.id === providerId);
 }
 
-export function getVisualizers(providerId: string): readonly Visualizer[] {
-    return getVisualizerProvider(providerId)?.visualizers || [];
+export async function loadVisualizers(): Promise<readonly VisualizerProvider[]> {
+    await loadScript(`/v${__app_version__}/lib/visualizers.js`);
+    const {default: visualizers} = await import(
+        /* webpackMode: "weak" */
+        './visualizers'
+    );
+    return visualizers;
 }
 
-export function getVisualizer(providerId: string, name: string): Visualizer | undefined {
-    return getVisualizers(providerId).find((visualizer) => visualizer.name === name);
-}
-
-export function getVisualizerPlayer(providerId: string): Player<Visualizer> | undefined {
-    return getVisualizerProvider(providerId)?.player;
-}
+audio
+    .observeReady()
+    .pipe(mergeMap(() => loadVisualizers()))
+    .subscribe(visualizerProviders$);
 
 // Size logging.
 
-from(getAllVisualizerProviders())
+observeVisualizerProviders()
     .pipe(
+        mergeMap((providers) => providers),
         mergeMap((provider) =>
             provider.observeVisualizers().pipe(
                 map((visualizers) => visualizers.length),

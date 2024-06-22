@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import {ButterchurnVisualizer} from 'types/Visualizer';
+import visualizerSettings from 'services/visualizer/visualizerSettings';
 
 const visualizers$ = new BehaviorSubject<readonly ButterchurnVisualizer[]>([]);
 
@@ -12,7 +13,7 @@ export function observeVisualizers(): Observable<readonly ButterchurnVisualizer[
     return visualizers$;
 }
 
-setTimeout(async () => {
+async function loadVisualizers(): Promise<void> {
     const providerId = 'butterchurn';
     const {default: presets} = await import(
         /* webpackChunkName: "butterchurn-presets" */
@@ -40,4 +41,10 @@ setTimeout(async () => {
             );
         }
     }
-}, 1000);
+}
+
+if (visualizerSettings.provider === 'butterchurn') {
+    loadVisualizers();
+} else {
+    setTimeout(loadVisualizers, 1000);
+}

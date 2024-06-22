@@ -1,5 +1,4 @@
 import React from 'react';
-import {lastfmCreateAppUrl} from 'services/constants';
 import {LoginProps} from 'components/Login';
 import CredentialsButton from 'components/Login/CredentialsButton';
 import CredentialsRequired from 'components/Login/CredentialsRequired';
@@ -21,7 +20,7 @@ export default function LastFmLogin({service: lastfm}: LoginProps) {
                 </>
             ) : (
                 <>
-                    <CredentialsRequired service={lastfm} url={lastfmCreateAppUrl} />
+                    <CredentialsRequired service={lastfm} />
                     <CredentialsButton dialog={LastFmCredentialsDialog} />
                 </>
             )}
