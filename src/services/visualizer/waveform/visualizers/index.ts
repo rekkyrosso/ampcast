@@ -18,14 +18,14 @@ const visualizers: WaveformVisualizer[] = [
                 const bufferSize = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferSize);
                 const sliceWidth = width / bufferSize;
-                let x = 0;
+                analyser.getByteTimeDomainData(dataArray);
                 context2D.lineWidth = Math.round(
                     theme.fontSize / (document.fullscreenElement ? 2 : 4)
                 );
                 context2D.clearRect(0, 0, width, height);
                 context2D.strokeStyle = getThemeColor();
                 context2D.beginPath();
-                analyser.getByteTimeDomainData(dataArray);
+                let x = 0;
                 for (let i = 0; i < bufferSize; i++) {
                     const v = dataArray[i] / 128;
                     const y = (v * height) / 2;
@@ -50,13 +50,13 @@ const visualizers: WaveformVisualizer[] = [
                 const gapWidth = document.fullscreenElement ? 8 : 4;
                 const bufferSize = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferSize);
+                const barWidth = (width - gapWidth * (visualBarCount - 1)) / visualBarCount;
+                const heightFactor = height / 128;
+                const chunkSize = bufferSize / barCount;
+                const stop = bufferSize - 2 * chunkSize;
                 analyser.getByteFrequencyData(dataArray);
                 context2D.clearRect(0, 0, width, height);
                 context2D.fillStyle = getThemeColor();
-                const barWidth = (width - gapWidth * (visualBarCount - 1)) / visualBarCount;
-                const heightFactor = height * 0.0075;
-                const chunkSize = bufferSize / barCount;
-                const stop = bufferSize - 2 * chunkSize;
                 let x = 0;
                 for (let i = 0; i < stop; i += chunkSize) {
                     const chunkAverageValue =

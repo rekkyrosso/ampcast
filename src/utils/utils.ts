@@ -196,10 +196,9 @@ export function bestOf<T extends object>(a: T, b: Partial<T> = {}): T {
 
 export function filterNotEmpty<T>(
     values: T[],
-    predicate: (value: T, index: number, array: readonly T[]) => unknown,
-    thisArg?: any
+    predicate: (value: T, index: number, array: readonly T[]) => unknown
 ): T[] {
-    const newValues = values.filter(predicate, thisArg);
+    const newValues = values.filter(predicate);
     return newValues.length === 0 ? values.slice() : newValues;
 }
 

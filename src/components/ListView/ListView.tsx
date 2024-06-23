@@ -295,12 +295,10 @@ export default function ListView<T>({
 
                 case 'Space':
                     event.preventDefault();
-                    event.stopPropagation();
-                    if (!event.repeat) {
-                        if (event[browser.ctrlKey]) {
+                    if (event[browser.ctrlKey]) {
+                        event.stopPropagation();
+                        if (!event.repeat) {
                             toggleSelectionAt(rowIndex); // toggle selected state
-                        } else {
-                            selectAt(rowIndex);
                         }
                     }
                     break;

@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import {Subscription, fromEvent} from 'rxjs';
 import {Except} from 'type-fest';
-import {stopPropagation} from 'utils';
+import {preventDefault, stopPropagation} from 'utils';
 import Icon from 'components/Icon';
 import dialogPolyfill from 'libs/dialog-polyfill';
 import 'libs/dialog-polyfill/dialog-polyfill.css';
@@ -92,6 +92,7 @@ function Dialog(
 
     const handleMouseDown = useCallback((event: React.MouseEvent) => {
         event.preventDefault();
+        event.stopPropagation();
         if (event.button === 0) {
             setDragStart({left: event.screenX, top: event.screenY});
         }
@@ -146,6 +147,7 @@ function Dialog(
             className={`dialog ${className}`}
             onClose={handleClose}
             onKeyDown={handleKeyDown}
+            onMouseDown={preventDefault}
             style={{
                 transform: `translate(${position.left + dragPosition.left}px, ${
                     position.top + dragPosition.top
@@ -165,7 +167,7 @@ function Dialog(
                     <Icon name="close" />
                 </div>
             </header>
-            <div className="dialog-body" onClick={handleBodyClick}>
+            <div className="dialog-body" onMouseDown={stopPropagation} onClick={handleBodyClick}>
                 {children}
             </div>
         </dialog>

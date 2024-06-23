@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, map, mergeMap, skipWhile, take, tap} from 'rxjs';
+import {BehaviorSubject, map, mergeMap, skipWhile, switchMap, tap} from 'rxjs';
 import VisualizerProvider from 'types/VisualizerProvider';
 import audio from 'services/audio';
 import {Logger, loadScript} from 'utils';
@@ -10,10 +10,7 @@ const logger = new Logger('visualizerProviders');
 const visualizerProviders$ = new BehaviorSubject<readonly VisualizerProvider[]>([]);
 
 export function observeVisualizerProviders(): Observable<readonly VisualizerProvider[]> {
-    return visualizerProviders$.pipe(
-        skipWhile((providers) => providers.length === 0),
-        take(1)
-    );
+    return visualizerProviders$;
 }
 
 export function getAllVisualizerProviders(): readonly VisualizerProvider[] {
@@ -44,16 +41,15 @@ audio
     .pipe(mergeMap(() => loadVisualizers()))
     .subscribe(visualizerProviders$);
 
-// Size logging.
-
+// Log visualizer counts.
 observeVisualizerProviders()
     .pipe(
-        mergeMap((providers) => providers),
+        switchMap((providers) => providers),
         mergeMap((provider) =>
             provider.observeVisualizers().pipe(
                 map((visualizers) => visualizers.length),
-                skipWhile((size) => size === 0),
-                tap((size) => logger.log(`${provider.id} (total=${size})`))
+                skipWhile((count) => count === 0),
+                tap((count) => logger.log(`${provider.id} (count=${count})`))
             )
         )
     )

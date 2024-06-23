@@ -1,4 +1,4 @@
-import {tap, withLatestFrom} from 'rxjs';
+import {skipWhile, tap, withLatestFrom} from 'rxjs';
 import Player from 'types/Player';
 import Visualizer from 'types/Visualizer';
 import audio from 'services/audio';
@@ -40,6 +40,7 @@ visualizerPlayer
 
 observeVisualizerProviders()
     .pipe(
+        skipWhile((providers) => providers.length === 0),
         withLatestFrom(audio.observeReady()),
         tap(([providers, audio]) =>
             visualizerPlayer.registerPlayers(

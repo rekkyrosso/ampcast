@@ -4,6 +4,7 @@
     border: 1px solid var(--thumbnail-border-color);
     border-radius: var(--app-border-radius);
     overflow: hidden;
+    user-select: none;
 
     &-image {
         object-fit: cover;

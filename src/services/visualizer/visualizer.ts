@@ -20,7 +20,6 @@ import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
 import Visualizer, {NoVisualizer} from 'types/Visualizer';
-import VisualizerProvider from 'types/VisualizerProvider';
 import VisualizerProviderId from 'types/VisualizerProviderId';
 import audio from 'services/audio';
 import {observeCurrentItem} from 'services/playlist';
@@ -66,22 +65,21 @@ export function observeCurrentVisualizer(): Observable<Visualizer> {
 }
 
 export function observeCurrentVisualizers(): Observable<readonly Visualizer[]> {
-    return observeProviderId().pipe(
-        map((id) => getVisualizerProvider(id)),
-        switchMap((provider) => (provider ? provider.observeVisualizers() : of([])))
+    return observeVisualizerProviders().pipe(
+        switchMap((providers) =>
+            providers.length === 0
+                ? of([])
+                : observeProviderId().pipe(
+                      map((id) => getVisualizerProvider(id)),
+                      switchMap((provider) => (provider ? provider.observeVisualizers() : of([])))
+                  )
+        )
     );
 }
 
 export function observeLocked(): Observable<boolean> {
     return observeVisualizerSettings().pipe(
         map((settings) => !!settings.lockedVisualizer),
-        distinctUntilChanged()
-    );
-}
-
-export function observeProvider(): Observable<VisualizerProvider | undefined> {
-    return observeProviderId().pipe(
-        map((id) => getVisualizerProvider(id)),
         distinctUntilChanged()
     );
 }
@@ -114,6 +112,7 @@ export function unlock(): void {
 
 observeVisualizerProviders()
     .pipe(
+        skipWhile((providers) => providers.length === 0),
         switchMap(() => observeCurrentItem()),
         distinctUntilChanged((a, b) => a?.id === b?.id),
         debounceTime(200)
@@ -234,6 +233,7 @@ function handleLazyLoads(providerId: VisualizerProviderId, loadCount = 1) {
                     tap(([, currentVisualizer]) => {
                         if (
                             currentVisualizer.providerId === 'none' &&
+                            currentVisualizer.name === providerId &&
                             currentVisualizer.reason === 'not loaded'
                         ) {
                             nextVisualizer('sync');

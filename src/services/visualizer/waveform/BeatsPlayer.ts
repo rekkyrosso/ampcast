@@ -16,16 +16,16 @@ export default class BeatsPlayer extends WaveformPlayer {
                 const gapWidth = 4;
                 const bufferSize = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferSize);
+                const barWidth = (width - gapWidth * visualBarCount) / visualBarCount;
+                const heightFactor = height * 0.0075;
+                const chunkSize = bufferSize / barCount;
+                const stop = bufferSize -  2 * chunkSize;
                 analyser.getByteFrequencyData(dataArray);
                 context2D.clearRect(0, 0, width, height);
                 context2D.fillStyle = this.color;
                 context2D.strokeStyle = 'rgba(0, 0, 0, .9)';
                 context2D.lineWidth = document.fullscreenElement ? 2 : 1;
-                const barWidth = (width - gapWidth * visualBarCount) / visualBarCount;
-                const heightFactor = height * 0.0075;
-                const chunkSize = bufferSize / barCount;
-                const stop = bufferSize -  2 * chunkSize;
-                let x = gapWidth;
+                let x = 2;
                 for (let i = 0; i < stop; i += chunkSize) {
                     const chunkAverageValue =
                         dataArray

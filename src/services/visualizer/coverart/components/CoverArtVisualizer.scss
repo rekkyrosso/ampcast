@@ -77,7 +77,7 @@
     }
 
     .thumbnail {
-        --size: min(var(--thumbnail-size), 50vh);
+        --size: min(var(--thumbnail-size), 30vh);
 
         .media:fullscreen & {
             --size: min(var(--thumbnail-size), 67vh);

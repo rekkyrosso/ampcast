@@ -8,6 +8,9 @@ import {observePaused} from 'services/mediaPlayback/playback';
 import spotifyPlayer, {SpotifyPlayer} from './spotifyPlayer';
 import spotifyApi from './spotifyApi';
 import {samplePitches} from './samplePitches';
+import {Logger} from 'utils';
+
+const logger = new Logger('spotifyAudioAnalyser');
 
 // This repo has since been deleted but I'll leave the link here anyway.
 // Based on: https://github.com/zachwinter/spotify-viz/blob/master/client/classes/sync.js
@@ -46,8 +49,7 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
     ];
     private animationFrameId = 0;
     private currentTrackId = '';
-    private currentTrackAnalysis: SpotifyApi.AudioAnalysisObject | null = null;
-    private trackAnalysis = {} as SpotifyApi.AudioAnalysisObject & ActiveIntervals;
+    private trackAnalysis: (SpotifyApi.AudioAnalysisObject & ActiveIntervals) | null = null;
     private initialTrackProgress = 0;
     private initialStart = 0;
     private trackProgress = 0;
@@ -76,24 +78,17 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
                 const trackId = state?.track_window?.current_track?.id;
                 if (trackId && this.currentTrackId !== trackId) {
                     this.currentTrackId = trackId;
-                    this.currentTrackAnalysis = null;
                     try {
-                        this.currentTrackAnalysis = await spotifyApi.getAudioAnalysisForTrack(
-                            trackId
-                        );
+                        this.trackAnalysis = await spotifyApi.getAudioAnalysisForTrack(trackId);
                         state = await spotifyPlayer.getCurrentState();
+                        this.updateState(state);
                     } catch (err) {
-                        console.error(err);
-                        this.currentTrackAnalysis = null;
-                        state = null;
+                        logger.error(err);
+                        this.trackAnalysis = null;
                     }
                 }
-                if (state && this.currentTrackAnalysis) {
-                    this.updateState(state);
-                }
 
-                this.active =
-                    !!this.currentTrackAnalysis && !!state && !state.paused && !state.loading;
+                this.active = !!this.trackAnalysis && !!state && !state.paused && !state.loading;
 
                 if (this.active) {
                     this.start();
@@ -247,14 +242,10 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
         );
     }
 
-    private async updateState(state: Spotify.PlaybackState): Promise<void> {
-        this.trackAnalysis = JSON.parse(JSON.stringify(this.currentTrackAnalysis));
-
-        this.intervalTypes.forEach((t: IntervalType) => {
-            const type = this.trackAnalysis[t];
-            type[0].duration = type[0].start + type[0].duration;
-            type[0].start = 0;
-            type.forEach((interval) => {
+    private async updateState(state: Spotify.PlaybackState | null): Promise<void> {
+        this.intervalTypes.forEach((intervalType) => {
+            const intervals = this.trackAnalysis?.[intervalType];
+            intervals?.forEach((interval) => {
                 if (this.isSegment(interval)) {
                     interval.loudness_max_time = interval.loudness_max_time * 1000;
                 }
@@ -263,8 +254,8 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
             });
         });
 
-        this.initialTrackProgress = state.position;
-        this.trackProgress = state.position;
+        this.initialTrackProgress = state?.position || 0;
+        this.trackProgress = state?.position || 0;
         this.initialStart = window.performance.now();
     }
 
@@ -272,7 +263,7 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
         const activeIntervals = this.activeIntervals;
 
         const determineInterval = (type: IntervalType): number => {
-            const analysis = this.trackAnalysis[type];
+            const analysis = this.trackAnalysis![type];
             const progress = this.trackProgress;
             for (let i = 0; i < analysis.length; i++) {
                 if (i === analysis.length - 1) {
@@ -289,11 +280,11 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
             const index = determineInterval(type);
             if (activeIntervals[type].start == null || index !== activeIntervals[type].index) {
                 activeIntervals[type] = <any>{
-                    ...this.trackAnalysis[type][index],
+                    ...this.trackAnalysis![type][index],
                     index,
                 };
             }
-            const {start, duration} = activeIntervals[type];
+            const {start = 0, duration = 0} = activeIntervals[type];
             const elapsed = this.trackProgress - start;
             activeIntervals[type].elapsed = elapsed;
             activeIntervals[type].progress = this.easeOutQuart(elapsed / duration);
@@ -306,11 +297,11 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
         const {loudness_max, loudness_start, loudness_max_time, duration, elapsed, start, index} =
             this.activeIntervals.segments;
 
-        if (!this.trackAnalysis.segments[index + 1]) {
+        if (!this.trackAnalysis!.segments[index + 1]) {
             return 0;
         }
 
-        const next = this.trackAnalysis.segments[index + 1].loudness_start;
+        const next = this.trackAnalysis!.segments[index + 1].loudness_start;
         const current = start + elapsed;
 
         if (elapsed < loudness_max_time) {
