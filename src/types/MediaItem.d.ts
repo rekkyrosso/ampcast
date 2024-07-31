@@ -6,9 +6,10 @@ import PlaybackType from './PlaybackType';
 export default interface MediaItem extends BaseMediaObject {
     readonly itemType: ItemType.Media;
     readonly mediaType: MediaType;
-    readonly playbackType?: PlaybackType;
-    readonly duration: number;
+    readonly duration: number; // Seconds
     readonly playedAt: number; // UTC
+    // Everything below here should be optional.
+    readonly playbackType?: PlaybackType;
     readonly artists?: readonly string[];
     readonly albumArtist?: string;
     readonly album?: string;
@@ -26,7 +27,10 @@ export default interface MediaItem extends BaseMediaObject {
     readonly artist_mbids?: readonly string[];
     readonly fileName?: string;
     readonly blob?: Blob;
-    // Playable sources that can be derived from `src`.
+    readonly blobUrl?: string;
+    readonly startTime?: number;
+    // Playable sources that can't be derived from `src`.
+    // Currently used by TIDAL(via Plex) audio quality sources.
     readonly srcs?: string[];
     // For YouTube videos mainly.
     readonly owner?: {

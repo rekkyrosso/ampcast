@@ -1,71 +1,37 @@
-import type {Observable} from 'rxjs';
-import {
-    BehaviorSubject,
-    distinctUntilChanged,
-    filter,
-    map,
-    pairwise,
-    switchMap,
-    take,
-    tap,
-} from 'rxjs';
-import {SetOptional} from 'type-fest';
+import {distinctUntilChanged, filter, map, pairwise, startWith, tap} from 'rxjs';
 import AudioManager from 'types/AudioManager';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
-import {observePlaybackReady, observePlaybackStart} from 'services/mediaPlayback/playback';
+import {observePlaybackStart} from 'services/mediaPlayback/playback';
+import mediaPlaybackSettings from 'services/mediaPlayback/mediaPlaybackSettings';
 import {Logger, browser, exists} from 'utils';
 import OmniAudioContext from './OmniAudioContext';
 
 const logger = new Logger('audio');
 
-class Audio implements SetOptional<AudioManager, 'context' | 'source'> {
-    private readonly ready$ = new BehaviorSubject(false);
-    private readonly sourceNodes = new WeakMap<HTMLAudioElement, MediaElementAudioSourceNode>();
-    private readonly sourceNode$ = new BehaviorSubject<MediaElementAudioSourceNode | undefined>(
-        undefined
-    );
-    #context?: AudioContext;
-    #input?: DelayNode;
-    #output?: GainNode;
-    #volume = 1;
+class Audio implements AudioManager {
+    #sourceNodes = new WeakMap<HTMLAudioElement, MediaElementAudioSourceNode>();
+    #context = new OmniAudioContext();
+    #input = this.#context.createDelay();
+    #output = this.#context.createGain();
 
     // Safari doesn't currently support web audio for streamed media.
     // https://developer.apple.com/forums/thread/56362
     readonly streamingSupported = browser.name !== 'safari';
 
     constructor() {
-        // Wait until the user has initiated media playback.
-        observePlaybackReady()
-            .pipe(
-                tap(() => {
-                    // Create audio nodes.
-                    const context = new OmniAudioContext();
-                    this.#context = context;
-                    this.#input = context.createDelay();
-                    this.#output = context.createGain();
-                    this.#output.gain.value = this.#volume;
-                    this.#input.connect(this.#output);
-                    this.#output.connect(context.destination);
-                    this.ready$.next(true);
-                })
-            )
-            .subscribe(logger);
+        this.#output.gain.value = mediaPlaybackSettings.volume;
+        this.#input.connect(this.#output);
+        this.#output.connect(this.#context.destination);
 
         // Map the current <audio> element to a source node that can be used by analysers.
         observePlaybackStart()
             .pipe(
                 map((state) => state.currentItem),
                 filter(exists),
-                map((item) => this.getSourceNode(item))
-            )
-            .subscribe(this.sourceNode$);
-
-        // Start watching the current source when we have a context.
-        this.observeReady()
-            .pipe(
-                switchMap(() => this.sourceNode$),
+                map((item) => this.getSourceNode(item)),
+                startWith(undefined),
                 distinctUntilChanged(),
                 pairwise(),
                 tap(([prevSourceNode, nextSourceNode]) => {
@@ -76,41 +42,30 @@ class Audio implements SetOptional<AudioManager, 'context' | 'source'> {
             .subscribe(logger);
     }
 
-    get context(): AudioContext | undefined {
+    get context(): AudioContext {
         return this.#context;
     }
 
-    get source(): AudioNode | undefined {
+    get source(): AudioNode {
         return this.#input;
     }
 
     get volume(): number {
-        return this.#volume;
+        return this.#output.gain.value;
     }
 
     set volume(volume: number) {
-        this.#volume = volume;
-        if (this.#output) {
-            this.#output.gain.value = volume;
-        }
-    }
-
-    observeReady(): Observable<AudioManager> {
-        return this.ready$.pipe(
-            filter((ready) => ready),
-            take(1),
-            map(() => this as AudioManager)
-        );
+        this.#output.gain.value = volume;
     }
 
     private getSourceNode(item: PlaylistItem): MediaElementAudioSourceNode | undefined {
         const audio = this.getAudioElement(item);
         if (audio) {
-            if (!this.sourceNodes.has(audio)) {
+            if (!this.#sourceNodes.has(audio)) {
                 const sourceNode = this.context!.createMediaElementSource(audio);
-                this.sourceNodes.set(audio, sourceNode);
+                this.#sourceNodes.set(audio, sourceNode);
             }
-            return this.sourceNodes.get(audio);
+            return this.#sourceNodes.get(audio);
         }
     }
 

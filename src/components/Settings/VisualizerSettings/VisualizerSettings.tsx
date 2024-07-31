@@ -21,7 +21,7 @@ export default function VisualizerSettings() {
     );
 
     const handleSubmit = useCallback(() => {
-        visualizerSettings.provider = providerRef.current!.value as VisualizerProviderId;
+        const provider = providerRef.current!.value as VisualizerProviderId;
         visualizerSettings.ambientVideoEnabled = ambientVideoEnabledRef.current!.checked;
         visualizerSettings.useAmbientVideoSource = useAmbientVideoSourceRef.current!.checked;
         visualizerSettings.ambientVideoSource = ambientVideoSourceRef.current!.value;
@@ -30,6 +30,10 @@ export default function VisualizerSettings() {
             coverArtAnimatedBackgroundRef.current!.checked;
         visualizerSettings.coverArtBeats = coverArtBeatsEnabledRef.current!.checked;
         visualizerSettings.fullscreenProgress = fullscreenProgressRef.current!.checked;
+        if (visualizerSettings.provider !== provider) {
+            visualizerSettings.lockedVisualizer = null;
+            visualizerSettings.provider = provider;
+        }
     }, []);
 
     const tabs: TabItem[] = useMemo(

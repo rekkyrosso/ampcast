@@ -50,7 +50,7 @@ class MainTheme implements CurrentTheme {
         this.appStyle = this.createStyle('.app');
         this.playheadStyle = this.createStyle('#playhead');
         this.system.classList.toggle('selection-dark', true);
-        this.restore();
+        this.load();
 
         this.observe()
             .pipe(tap(() => this.applyAppStyles()))
@@ -433,7 +433,7 @@ class MainTheme implements CurrentTheme {
         this.toggleClasses(this.popup);
     }
 
-    restore(): void {
+    load(): void {
         const theme = this.storage.getJson<CurrentTheme>('current', defaultTheme);
         this.apply(theme);
         this.fontSize = this.storage.getNumber('fontSize', this.defaultFontSize);

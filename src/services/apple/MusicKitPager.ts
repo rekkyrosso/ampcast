@@ -14,12 +14,11 @@ import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
-import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import pinStore from 'services/pins/pinStore';
 import {bestOf, getTextFromHtml, Logger} from 'utils';
-import {addUserData, isMusicKitBeta} from './apple';
+import {addUserData} from './apple';
 import {refreshToken} from './appleAuth';
 
 const logger = new Logger('MusicKitPager');
@@ -365,22 +364,16 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             return albumsPager;
         }
         const topTracks = this.createArtistTopTracks(artist);
-        const supportsVideo = isMusicKitBeta();
-        let topPager: Pager<MediaAlbum>;
-        if (supportsVideo) {
-            const videos = this.createArtistVideos(artist);
-            topPager = new SimpleMediaPager<MediaAlbum>(async () => {
-                try {
-                    const items = await fetchFirstPage(videos.pager, {keepAlive: true});
-                    return items.length === 0 ? [topTracks] : [topTracks, videos];
-                } catch (err) {
-                    logger.error(err);
-                    return [topTracks];
-                }
-            });
-        } else {
-            topPager = new SimplePager<MediaAlbum>([topTracks]);
-        }
+        const videos = this.createArtistVideos(artist);
+        const topPager = new SimpleMediaPager<MediaAlbum>(async () => {
+            try {
+                const items = await fetchFirstPage(videos.pager, {keepAlive: true});
+                return items.length === 0 ? [topTracks] : [topTracks, videos];
+            } catch (err) {
+                logger.error(err);
+                return [topTracks];
+            }
+        });
         return new WrappedPager(topPager, albumsPager);
     }
 

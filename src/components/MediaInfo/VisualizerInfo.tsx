@@ -83,13 +83,13 @@ function getNoVisualizerReason(visualizer: Visualizer | null): string {
     if (isNoVisualizer(visualizer)) {
         switch (visualizer.reason) {
             case 'not supported':
-                return 'Visualizer not supported for this media';
+                return 'Visualizer not supported for this media.';
 
             case 'not loaded':
-                return 'Visualizer not loaded';
+                return 'Visualizer not loaded.';
 
             case 'error':
-                return 'Visualizer error';
+                return 'Visualizer error.';
         }
     }
     return '';

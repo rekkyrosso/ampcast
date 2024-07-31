@@ -19,160 +19,176 @@ import {
     withLatestFrom,
 } from 'rxjs';
 import MediaPlayback from 'types/MediaPlayback';
-import PlaybackState from 'types/PlaybackState';
+import Player from 'types/Player';
+import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
+import {formatTime, isMiniPlayer, Logger} from 'utils';
 import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import lookup from 'services/lookup';
-import {hasPlayableSrc, getPlaybackType} from 'services/mediaServices';
+import {hasPlayableSrc, getServiceFromSrc} from 'services/mediaServices';
 import playlist from 'services/playlist';
-import {formatTime, LiteStorage, Logger} from 'utils';
+import {observeCurrentVisualizer, lockVisualizer, setCurrentVisualizer} from 'services/visualizer';
+import mediaPlaybackSettings from './mediaPlaybackSettings';
 import mediaPlayer from './mediaPlayer';
+import miniPlayer from './miniPlayer';
+import miniPlayerRemote from './miniPlayerRemote';
+import playback from './playback';
 import visualizerPlayer from './visualizerPlayer';
-import playback, {observePlaybackReady} from './playback';
 import './scrobbler';
 
 const logger = new Logger('mediaPlayback');
-
-const appSettings = new LiteStorage('mediaPlayback');
-const sessionSettings = new LiteStorage('mediaPlayback', 'session');
-
-const loadingLocked$ = new BehaviorSubject(true);
+const loadingLocked$ = new BehaviorSubject(!isMiniPlayer);
 const killed$ = new Subject<void>();
 
-let direction: 'backward' | 'forward' = 'forward';
+let _autoplay = false;
+let currentNavigation: 'prev' | 'next' = 'next';
 
-export function observeCurrentItem(): Observable<PlaylistItem | null> {
-    return playlist.observeCurrentItem();
-}
-
-export function observeNextItem(): Observable<PlaylistItem | null> {
-    return playlist.observeNextItem();
-}
-
-function observeCurrentTime(): Observable<number> {
+export function observeCurrentTime(): Observable<number> {
     return playback.observeCurrentTime();
 }
 
-function observeDuration(): Observable<number> {
+export function observeDuration(): Observable<number> {
     return playback.observeDuration();
 }
 
+function observeActivePlayer(): Observable<
+    Pick<Player<any>, 'observeEnded' | 'observeError' | 'observePlaying'>
+> {
+    return miniPlayer.observeActive().pipe(map((active) => (active ? miniPlayer : mediaPlayer)));
+}
+
 export function observeEnded(): Observable<void> {
-    return mediaPlayer.observeEnded();
+    return observeActivePlayer().pipe(switchMap((player) => player.observeEnded()));
 }
 
 export function observeError(): Observable<unknown> {
-    return mediaPlayer.observeError();
-}
-
-function observePaused(): Observable<boolean> {
-    return playback.observePaused();
-}
-
-function observePlaybackStart(): Observable<PlaybackState> {
-    return playback.observePlaybackStart();
-}
-
-function observePlaybackEnd(): Observable<PlaybackState> {
-    return playback.observePlaybackEnd();
-}
-
-function observePlaybackProgress(interval: number): Observable<PlaybackState> {
-    return playback.observePlaybackProgress(interval);
-}
-
-function observePlaybackState(): Observable<PlaybackState> {
-    return playback.observePlaybackState();
+    return observeActivePlayer().pipe(switchMap((player) => player.observeError()));
 }
 
 export function observePlaying(): Observable<void> {
-    return mediaPlayer.observePlaying();
+    return observeActivePlayer().pipe(switchMap((player) => player.observePlaying()));
 }
 
-export function appendTo(parentElement: HTMLElement): void {
+function appendTo(parentElement: HTMLElement): void {
     mediaPlayer.appendTo(parentElement);
     visualizerPlayer.appendTo(parentElement);
 }
 
+export function eject(): void {
+    logger.log('eject');
+    if (mediaPlayback.stopAfterCurrent) {
+        stop();
+    } else {
+        // Ejecting will load the next item.
+        lockLoading();
+    }
+    playlist.eject();
+}
+
 export function load(item: PlaylistItem | null): void {
     logger.log('load', {item});
-    if (mediaPlayer.autoplay) {
-        playback.ready();
+    if (miniPlayer.active) {
+        miniPlayer.load(item);
+    } else {
+        playback.currentItem = item;
+        mediaPlayer.load(item);
+        if (mediaPlayback.autoplay) {
+            playback.play();
+            visualizerPlayer.play();
+        }
     }
-    mediaPlayer.load(item);
-    if (mediaPlayer.autoplay) {
-        playback.play();
+}
+
+export function loadAndPlay(item: PlaylistItem): void {
+    logger.log('loadAndPlay', {item});
+    if (!isMiniPlayer) {
+        if (item.id === playback.currentItem?.id) {
+            play();
+        } else {
+            mediaPlayback.autoplay = true;
+            mediaPlayback.stopAfterCurrent = false;
+            lockLoading();
+            playlist.setCurrentItem(item);
+        }
     }
 }
 
 export function play(): void {
     logger.log('play');
-    playback.ready();
-    direction = 'forward';
-    unlockLoading();
-    playback.play();
-    if (!playback.paused) {
-        mediaPlayer.play();
-        visualizerPlayer.play();
+    mediaPlayback.autoplay = true;
+    if (miniPlayer.active) {
+        miniPlayer.play();
+    } else {
+        unlockLoading();
+        playback.play();
+        if (!playback.paused) {
+            mediaPlayer.play();
+            visualizerPlayer.play();
+        }
     }
 }
 
 export function pause(): void {
     logger.log('pause');
-    mediaPlayback.stopAfterCurrent = false;
-    unlockLoading();
-    playback.pause();
-    mediaPlayer.pause();
-    visualizerPlayer.pause();
+    mediaPlayback.autoplay = false;
+    if (miniPlayer.active) {
+        miniPlayer.pause();
+    } else {
+        unlockLoading();
+        playback.pause();
+        mediaPlayer.pause();
+        visualizerPlayer.pause();
+    }
 }
 
 export function seek(time: number): void {
-    logger.log('seek', {time: formatTime(time)});
-    mediaPlayer.seek(time);
+    logger.log('seek', formatTime(time));
+    if (miniPlayer.active) {
+        miniPlayer.seek(time);
+    } else {
+        mediaPlayer.seek(time);
+    }
 }
 
 export function stop(): void {
     logger.log('stop');
+    mediaPlayback.autoplay = false;
     mediaPlayback.stopAfterCurrent = false;
-    unlockLoading();
-    playback.stop();
-    mediaPlayer.stop();
-    visualizerPlayer.stop();
+    if (miniPlayer.active) {
+        miniPlayer.stop();
+    } else {
+        unlockLoading();
+        playback.stop();
+        mediaPlayer.stop();
+        visualizerPlayer.stop();
+    }
 }
 
-export function resize(width: number, height: number): void {
+function resize(width: number, height: number): void {
     mediaPlayer.resize(width, height);
     visualizerPlayer.resize(width, height);
 }
 
 export function prev(): void {
     logger.log('prev');
-    direction = 'backward';
-    if (!playlist.atStart) {
+    if (isMiniPlayer) {
+        miniPlayerRemote.prev();
+    } else if (!playlist.atStart) {
         mediaPlayback.stopAfterCurrent = false;
-        lockLoading();
+        lockLoading('prev');
         playlist.prev();
     }
 }
 
 export function next(): void {
     logger.log('next');
-    direction = 'forward';
-    if (!playlist.atEnd) {
+    if (isMiniPlayer) {
+        miniPlayerRemote.next();
+    } else if (!playlist.atEnd) {
         mediaPlayback.stopAfterCurrent = false;
-        lockLoading();
+        lockLoading('next');
         playlist.next();
     }
-}
-
-export function eject(): void {
-    mediaPlayback.stopAfterCurrent = false;
-    lockLoading();
-    playlist.eject();
-}
-
-export async function shuffle(preserveCurrentlyPlaying?: boolean): Promise<void> {
-    return playlist.shuffle(preserveCurrentlyPlaying);
 }
 
 function observePlaylistAtEnd(): Observable<boolean> {
@@ -189,16 +205,30 @@ function observePlaylistAtStart(): Observable<boolean> {
     );
 }
 
-function lockLoading() {
-    if (!playback.paused && loadingLocked$.getValue() === false) {
-        playback.stop();
-        mediaPlayer.stop();
-        playback.play();
+function lockLoading(navigation: 'prev' | 'next' = 'next') {
+    currentNavigation = navigation;
+    miniPlayer.lock();
+    if (loadingLocked$.value === false) {
+        const {paused, currentTime} = playback;
+        if (!paused || currentTime > 0) {
+            playback.stop();
+            mediaPlayer.stop();
+        }
+        if (!paused) {
+            // We're still playing even if the media player is temporarily stopped
+            // while we click through the playlist.
+            // So resume the playback session.
+            playback.play();
+        }
     }
+    // Re-trigger locking.
     loadingLocked$.next(true);
 }
 
 function unlockLoading(): void {
+    currentNavigation = 'next';
+    miniPlayer.unlock();
+    mediaPlayer.autoplay = _autoplay;
     loadingLocked$.next(false);
 }
 
@@ -209,6 +239,7 @@ function kill(): void {
 
 async function getPlayableItem(item: PlaylistItem): Promise<PlaylistItem> {
     if (!hasPlayableSrc(item)) {
+        // Lookup the item if it's not from a playable source (e.g last.fm).
         const foundItem = await lookup(item);
         if (foundItem) {
             item = {...item, ...foundItem};
@@ -217,19 +248,43 @@ async function getPlayableItem(item: PlaylistItem): Promise<PlaylistItem> {
         }
     }
     if (item.playbackType === undefined) {
+        // Whether to use HLS, Dash, etc.
         const playbackType = await getPlaybackType(item);
         item = {...item, playbackType};
     }
     return item;
 }
 
+async function getPlaybackType(item: PlaylistItem): Promise<PlaybackType> {
+    let playbackType = item.playbackType;
+    if (playbackType === undefined) {
+        const service = getServiceFromSrc(item);
+        if (service?.isLoggedIn() === false) {
+            // Don't dispatch if we're not logged in.
+            return PlaybackType.Direct;
+        }
+        if (service?.getPlaybackType) {
+            playbackType = await service.getPlaybackType(item);
+        } else {
+            playbackType = PlaybackType.Direct;
+        }
+        dispatchMediaObjectChanges({
+            match: (object) => object.src === item.src,
+            values: {playbackType},
+        });
+    }
+    return playbackType;
+}
+
 const mediaPlayback: MediaPlayback = {
     stopAfterCurrent: false,
     get autoplay(): boolean {
-        return mediaPlayer.autoplay;
+        return _autoplay;
     },
     set autoplay(autoplay: boolean) {
+        _autoplay = autoplay;
         mediaPlayer.autoplay = autoplay;
+        miniPlayer.autoplay = autoplay;
         visualizerPlayer.autoplay = autoplay;
     },
     get hidden(): boolean {
@@ -242,32 +297,27 @@ const mediaPlayback: MediaPlayback = {
         return mediaPlayer.muted;
     },
     set muted(muted: boolean) {
-        sessionSettings.setBoolean('muted', muted);
         mediaPlayer.muted = muted;
-    },
-    get paused(): boolean {
-        return playback.paused;
+        miniPlayer.muted = muted;
+        mediaPlaybackSettings.muted = muted;
     },
     get volume(): number {
         return mediaPlayer.volume;
     },
     set volume(volume: number) {
-        appSettings.setNumber('volume', volume);
         mediaPlayer.volume = volume;
+        miniPlayer.volume = volume;
+        mediaPlaybackSettings.volume = volume;
     },
-    observeCurrentItem,
     observeCurrentTime,
     observeDuration,
     observeEnded,
     observeError,
-    observePaused,
     observePlaying,
-    observePlaybackStart,
-    observePlaybackEnd,
-    observePlaybackProgress,
-    observePlaybackState,
     appendTo,
+    eject,
     load,
+    loadAndPlay,
     play,
     pause,
     stop,
@@ -275,73 +325,80 @@ const mediaPlayback: MediaPlayback = {
     resize,
     next,
     prev,
-    shuffle,
 };
 
 export default mediaPlayback;
 
-mediaPlayback.muted = sessionSettings.getBoolean('muted');
-mediaPlayback.volume = appSettings.getNumber('volume', 1);
+mediaPlayback.muted = mediaPlaybackSettings.muted;
+mediaPlayback.volume = mediaPlaybackSettings.volume;
 
-mediaPlayer.observeCurrentTime().subscribe((time) => playback.setCurrentTime(time));
-mediaPlayer.observeDuration().subscribe((duration) => playback.setDuration(duration));
+if (isMiniPlayer) {
+    miniPlayerRemote.connect(mediaPlayback, lockLoading, unlockLoading, observeCurrentVisualizer);
+} else {
+    miniPlayer.connect(mediaPlayback, playback, lockVisualizer, setCurrentVisualizer);
+}
+
+// Synch playback state with media player events.
 mediaPlayer.observePlaying().subscribe(() => playback.started());
+mediaPlayer.observeDuration().subscribe((duration) => (playback.duration = duration));
+mediaPlayer.observeCurrentTime().subscribe((time) => (playback.currentTime = time));
 mediaPlayer.observeEnded().subscribe(() => playback.ended());
-mediaPlayer.observePlaying().subscribe(() => (direction = 'forward'));
 
-mediaPlayer
-    .observeEnded()
-    .pipe(withLatestFrom(observePlaylistAtEnd()), takeUntil(killed$))
-    .subscribe(([, atEnd]) => {
-        if (atEnd) {
-            stop();
-        } else {
-            if (mediaPlayback.stopAfterCurrent) {
+if (!isMiniPlayer) {
+    // Stop/next after playback ended.
+    observeEnded()
+        .pipe(withLatestFrom(observePlaylistAtEnd()), takeUntil(killed$))
+        .subscribe(([, atEnd]) => {
+            if (atEnd) {
                 stop();
             } else {
-                playlist.next();
-            }
-        }
-    });
-
-// Continue playing if we get a playback error (move to the next track)
-observeCurrentItem()
-    .pipe(
-        distinctUntilChanged((a, b) => a?.id === b?.id),
-        switchMap((item) =>
-            item
-                ? mediaPlayer
-                      .observeError()
-                      .pipe(
-                          debounceTime(2000),
-                          withLatestFrom(
-                              observePaused(),
-                              observePlaylistAtStart(),
-                              observePlaylistAtEnd()
-                          )
-                      )
-                : EMPTY
-        ),
-        takeUntil(killed$)
-    )
-    .subscribe(([, paused, atStart, atEnd]) => {
-        if (!paused) {
-            if (direction === 'backward') {
-                if (atStart) {
-                    stop();
-                } else {
-                    playlist.prev();
-                }
-            } else {
-                if (atEnd) {
+                if (mediaPlayback.stopAfterCurrent) {
                     stop();
                 } else {
                     playlist.next();
                 }
             }
-        }
-    });
+        });
 
+    // Continue playing if we get a playback error (move to the next track)
+    playlist
+        .observeCurrentItem()
+        .pipe(
+            distinctUntilChanged((a, b) => a?.id === b?.id),
+            switchMap((item) =>
+                item
+                    ? observeError().pipe(
+                          debounceTime(750), // delay before moving on
+                          withLatestFrom(
+                              playback.observePaused(),
+                              observePlaylistAtStart(),
+                              observePlaylistAtEnd()
+                          )
+                      )
+                    : EMPTY
+            ),
+            takeUntil(killed$)
+        )
+        .subscribe(([, paused, atStart, atEnd]) => {
+            if (!paused) {
+                if (currentNavigation === 'prev') {
+                    if (atStart) {
+                        stop();
+                    } else {
+                        playlist.prev();
+                    }
+                } else {
+                    if (atEnd) {
+                        stop();
+                    } else {
+                        playlist.next();
+                    }
+                }
+            }
+        });
+}
+
+// Stop if the playlist is cleared.
 playlist
     .observeSize()
     .pipe(
@@ -353,11 +410,14 @@ playlist
     .subscribe(stop);
 
 // Use `duration` from media playback if it's missing in metadata.
-observeCurrentItem()
+playlist
+    .observeCurrentItem()
     .pipe(
         switchMap((item) =>
             item?.duration === 0
-                ? observeDuration().pipe(
+                ? playback.observePlaybackState().pipe(
+                      filter(({currentItem}) => currentItem?.id === item?.id),
+                      map(({duration}) => duration),
                       filter((duration) => duration !== 0),
                       take(1),
                       tap((duration) =>
@@ -372,60 +432,58 @@ observeCurrentItem()
     )
     .subscribe(logger);
 
-// Unlock loading after 300ms.
-// `mediaPlayer` won't actually load anything until then.
-// This avoids spamming media services with play/lookup requests that will soon be skipped over.
-// This can happen if you click the prev/next buttons quickly or you rapidly delete the
-// currently playing item (eject).
-loadingLocked$
-    .pipe(
-        debounceTime(300),
-        filter((locked) => locked)
-    )
-    .subscribe(() => {
-        mediaPlayback.autoplay = !playback.paused;
-        loadingLocked$.next(false);
-    });
+// Mini player doesn't have a playlist (just the currently loaded item).
+if (!isMiniPlayer) {
+    // Unlock loading after 300ms. Nothing wil be loaded until then.
+    // This avoids spamming media services with play/lookup requests that will soon be skipped over.
+    // e.g. clicking the prev/next buttons quickly.
+    loadingLocked$
+        .pipe(
+            debounceTime(300),
+            filter((locked) => locked),
+            tap(() => unlockLoading())
+        )
+        .subscribe(logger);
 
-loadingLocked$
-    .pipe(
-        distinctUntilChanged(),
-        switchMap((locked) => (locked ? EMPTY : observeCurrentItem())),
-        distinctUntilChanged((a, b) => a?.id === b?.id),
-        switchMap((item) => (item ? getPlayableItem(item) : of(null))),
-        skipWhile((item) => !item),
-        tap(load)
-    )
-    .subscribe(logger);
+    loadingLocked$
+        .pipe(
+            distinctUntilChanged(),
+            switchMap((locked) => (locked ? EMPTY : playlist.observeCurrentItem())),
+            distinctUntilChanged((a, b) => a?.id === b?.id),
+            switchMap((item) => (item ? getPlayableItem(item) : of(null))),
+            skipWhile((item) => !item),
+            tap(load)
+        )
+        .subscribe(logger);
 
-// Read ahead.
-observeNextItem()
-    .pipe(
-        distinctUntilChanged((a, b) => a?.id === b?.id),
-        debounceTime(3_000),
-        concatMap((item) => (item ? getPlayableItem(item) : of(null)))
-    )
-    .subscribe(logger);
+    // Read ahead.
+    playlist
+        .observeNextItem()
+        .pipe(
+            distinctUntilChanged((a, b) => a?.id === b?.id),
+            debounceTime(3_000),
+            // `getPlayableItem` can trigger updates to the playlist.
+            concatMap((item) => (item ? getPlayableItem(item) : of(null)))
+        )
+        .subscribe(logger);
+}
 
 fromEvent(window, 'pagehide').subscribe(kill);
 
 // logging
-observePlaybackReady().subscribe(logger.rx('playbackReady'));
-observePlaybackStart().subscribe(logger.rx('playbackStart'));
-observePlaybackEnd().subscribe(logger.rx('playbackEnd'));
+// if (__dev__) {
+//     playback.observePlaybackState().subscribe(logger.rx('playbackState'));
+// }
 observePlaying().subscribe(logger.rx('playing'));
-observeEnded().subscribe(logger.rx('ended'));
-observeError().subscribe(logger.error);
-observeDuration()
+playback.observePlaybackStart().subscribe(logger.rx('playbackStart'));
+observeDuration().pipe(map(formatTime), distinctUntilChanged()).subscribe(logger.rx('duration'));
+observeCurrentTime()
     .pipe(
-        skipWhile((duration) => !duration),
+        filter((time) => Math.floor(time) % 30 === 0),
         map(formatTime),
         distinctUntilChanged()
     )
-    .subscribe(logger.rx('duration'));
-observeCurrentTime()
-    .pipe(
-        filter((time) => Math.round(time) % 30 === 0),
-        map(formatTime)
-    )
     .subscribe(logger.rx('currentTime'));
+playback.observePlaybackEnd().subscribe(logger.rx('playbackEnd'));
+observeEnded().subscribe(logger.rx('ended'));
+observeError().subscribe(logger.error);

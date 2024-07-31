@@ -22,31 +22,34 @@ type BaseMediaService = Auth & {
     readonly url: string;
     readonly roots: readonly MediaSource<MediaObject>[];
     readonly sources: readonly MediaSource<MediaObject>[];
+    canRate: (item: MediaObject, inline?: boolean) => boolean;
+    canStore: (item: MediaObject, inline?: boolean) => boolean;
+    compareForRating: <T extends MediaObject>(a: T, b: T) => boolean;
+    // Everything below here should be optional.
     readonly disabled?: boolean;
     readonly defaultHidden?: boolean; // `true` for most services
     readonly internetRequired?: boolean;
     readonly authService?: MediaService; // Different `MediaService` for `Auth`
+    readonly credentialsRequired?: boolean;
     readonly credentialsUrl?: string;
+    readonly restrictedAccess?: boolean; // Approved users only (testers)
     readonly defaultNoScrobble?: boolean;
     readonly icons?: Partial<Record<LibraryAction, IconName>>;
     readonly labels?: Partial<Record<LibraryAction, string>>;
     readonly editablePlaylists?: MediaSource<MediaPlaylist>;
-    readonly restrictedAccess?: boolean; // Approved users only (testers)
     addToPlaylist?: (
         playlist: MediaPlaylist,
         items: readonly MediaItem[],
         position?: number
     ) => Promise<void>;
     removeFromPlaylist?: (playlist: MediaPlaylist, items: readonly MediaItem[]) => Promise<void>;
-    canRate: (item: MediaObject, inline?: boolean) => boolean;
-    canStore: (item: MediaObject, inline?: boolean) => boolean;
-    compareForRating: <T extends MediaObject>(a: T, b: T) => boolean;
     createPlaylist?: <T extends MediaItem>(
         name: string,
         options?: CreatePlaylistOptions<T>
     ) => Promise<MediaPlaylist>;
     createSourceFromPin?: (pin: Pin) => MediaSource<MediaPlaylist>;
     getDrmInfo?: (item?: PlayableItem) => DRMInfo | undefined;
+    getDroppedItems?: <T extends MediaObject>(data: DataTransferItem) => Promise<readonly T[]>;
     getFilters?: (
         viewType: ViewType.ByDecade | ViewType.ByGenre,
         itemType: ItemType
@@ -55,7 +58,6 @@ type BaseMediaService = Auth & {
     getPlaybackType?: (item: MediaItem) => Promise<PlaybackType>;
     getPlayableUrl?: (item: PlayableItem) => string;
     getThumbnailUrl?: (url: string) => string;
-    getTracksById?: (ids: readonly string[]) => Promise<readonly MediaItem[]>;
     lookup?: (
         artist: string,
         title: string,
@@ -71,6 +73,7 @@ type BaseMediaService = Auth & {
     bulkRate?: (items: readonly MediaObject[], rating: number) => Promise<void>;
     store?: (item: MediaObject, inLibrary: boolean) => Promise<void>;
     bulkStore?: (items: readonly MediaObject[], inLibrary: boolean) => Promise<void>;
+    scrobble?: () => void;
 };
 
 export default BaseMediaService;

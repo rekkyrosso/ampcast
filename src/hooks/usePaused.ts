@@ -1,4 +1,4 @@
-import {observePaused} from 'services/mediaPlayback';
+import {observePaused} from 'services/mediaPlayback/playback';
 import useObservable from './useObservable';
 
 export default function usePaused(): boolean {

@@ -4,6 +4,16 @@
     color: var(--soft-white);
     text-align: center;
 
+    &-buttons {
+        position: absolute;
+        right: 0.25em;
+        top: 0.25em;
+    }
+
+    .icon-button-link {
+        padding: 0.25em;
+    }
+
     &::before,
     .currently-playing {
         position: absolute;
@@ -16,6 +26,10 @@
     &::before {
         content: "";
         background-color: var(--black);
+
+        .mini-player-active & {
+            background-color: var(--terminal--black);
+        }
 
         .media:fullscreen & {
             background-color: black;
@@ -31,7 +45,11 @@
         text-shadow: 1px 1px 0 rgba(16, 16, 16, 0.8);
         background: radial-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
 
-        .media:fullscreen & {
+        .mini-player-active & {
+            background: none;
+        }
+
+        .media.fullscreen & {
             text-shadow: 2px 2px 0 rgba(16, 16, 16, 0.8);
         }
     }
@@ -80,18 +98,20 @@
         font-size: 0.75em;
     }
 
-    .media.is-showing-cover-art & .playback-state:not(.error) {
+    /* TODO: This CSS is stupidly hard. */
+
+    .media:not(.paused):not(.error).is-showing-cover-art & .playback-state {
         display: none;
     }
 
-    .media-playback:not(.paused) .media:not(.is-showing-cover-art):hover & .currently-playing {
+    .media:not(.paused):not(.is-showing-cover-art):hover & .currently-playing {
         opacity: 1;
         transition: opacity 400ms linear;
     }
 
     /* (fullscreen & idle) this is a bit different to the other `opacity` changes. */
 
-    .media-playback:not(.paused) .media:not(.no-visualizer.is-playing-audio):not(.is-new-item):fullscreen.idle & {
+    .media:not(.paused):not(.no-visualizer.is-playing-audio):not(.is-new-item).fullscreen.idle & {
         opacity: 0; /* Hide but prevent interaction with anything behind. */
     }
 }

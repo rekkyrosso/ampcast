@@ -11,7 +11,7 @@ export interface NoVisualizer extends BaseVisualizer {
 
 export interface AmbientVideoVisualizer extends BaseVisualizer {
     providerId: 'ambientvideo';
-    src: string;
+    src: string; // TODO: Convert to `PlayableItem`.
 }
 
 export interface AmpShaderVisualizer extends BaseVisualizer {

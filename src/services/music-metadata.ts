@@ -120,7 +120,7 @@ function createMediaItem(
         disc: floor(common.disk?.no),
         // bpm: floor(common.bpm),
         year: floor(common.year),
-        mood: common.mood || '',
+        // mood: common.mood || '',
         rating: Number(common.rating) || 0,
         isrc: common.isrc?.[0],
         recording_mbid: common.musicbrainz_recordingid,

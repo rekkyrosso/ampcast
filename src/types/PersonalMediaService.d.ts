@@ -7,5 +7,6 @@ export default interface PersonalMediaService
     extends BaseMediaService,
         Partial<PersonalMediaLibrarySettings> {
     readonly serviceType: ServiceType.PersonalMedia;
+    // Everything below here should be optional.
     getLibraries?: () => Promise<readonly PersonalMediaLibrary[]>;
 }

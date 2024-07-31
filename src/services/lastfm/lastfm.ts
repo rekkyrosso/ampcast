@@ -18,6 +18,7 @@ import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './lastf
 import LastFmPager from './LastFmPager';
 import LastFmHistoryPager from './LastFmHistoryPager';
 import lastfmSettings from './lastfmSettings';
+import {scrobble} from './lastfmScrobbler';
 
 const topTracksLayout: MediaSourceLayout<MediaItem> = {
     view: 'card compact',
@@ -100,6 +101,9 @@ const lastfm: DataService = {
     canScrobble: true,
     defaultHidden: true,
     internetRequired: true,
+    get credentialsRequired(): boolean {
+        return lastfmSettings.credentialsRequired;
+    },
     roots: [lastfmRecentlyPlayed],
     sources: [
         createTopView('user.getTopTracks', {
@@ -129,6 +133,7 @@ const lastfm: DataService = {
     canStore,
     compareForRating,
     getMetadata,
+    scrobble,
     store,
     observeIsLoggedIn,
     isConnected,

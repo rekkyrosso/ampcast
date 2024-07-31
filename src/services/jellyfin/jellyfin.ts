@@ -24,6 +24,7 @@ import Pin from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import ViewType from 'types/ViewType';
 import actionsStore from 'services/actions/actionsStore';
+import embyScrobbler from 'services/emby/embyScrobbler';
 import {NoMusicLibraryError, NoMusicVideoLibraryError} from 'services/errors';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
@@ -472,6 +473,7 @@ const jellyfin: PersonalMediaService = {
     getPlayableUrl,
     getPlaybackType,
     lookup,
+    scrobble,
     store,
     observeIsLoggedIn,
     isConnected,
@@ -585,6 +587,10 @@ async function lookup(
     const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit, lookup: true};
     const pager = createSearchPager<MediaItem>(ItemType.Media, title, {Artists: artist}, options);
     return fetchFirstPage(pager, {timeout});
+}
+
+function scrobble(): void {
+    embyScrobbler.scrobble(jellyfin, jellyfinSettings);
 }
 
 async function store(item: MediaObject, inLibrary: boolean): Promise<void> {

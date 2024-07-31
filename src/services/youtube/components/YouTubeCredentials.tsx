@@ -1,13 +1,13 @@
 import React, {useCallback, useId, useRef} from 'react';
-import AppCredentials from 'components/Settings/MediaLibrarySettings/AppCredentials';
-import AppCredential from 'components/Settings/MediaLibrarySettings/AppCredential';
+import DialogButtons from 'components/Dialog/DialogButtons';
+import Credentials from 'components/Settings/MediaLibrarySettings/Credentials';
+import {MediaServiceCredentialsProps} from 'components/Settings/MediaLibrarySettings/MediaServiceCredentials';
 import ExternalLink from 'components/ExternalLink';
 import Icon from 'components/Icon';
 import youtubeSettings from '../youtubeSettings';
-import youtube from '../youtube';
 import useCredentials from './useCredentials';
 
-export default function YouTubeCredentials() {
+export default function YouTubeCredentials({service: youtube}: MediaServiceCredentialsProps) {
     const id = useId();
     const {clientId} = useCredentials();
     const clientIdRef = useRef<HTMLInputElement>(null);
@@ -20,13 +20,13 @@ export default function YouTubeCredentials() {
                 await youtube.logout();
             }
         }
-    }, []);
+    }, [youtube]);
 
     return (
-        <AppCredentials className="youtube-credentials" onSubmit={handleSubmit}>
+        <form className="youtube-credentials" method="dialog" onSubmit={handleSubmit}>
             <fieldset>
                 <legend>Your App</legend>
-                <AppCredential
+                <Credentials
                     label="Client ID"
                     name="youtube-client-id"
                     defaultValue={clientId}
@@ -43,13 +43,14 @@ export default function YouTubeCredentials() {
                     </ExternalLink>
                 </p>
             </fieldset>
-            <fieldset className="app-credentials-requirements note">
+            <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
                 <p>
                     <label htmlFor={`${id}-origin`}>Authorized JavaScript origin:</label>
                     <input type="text" id={`${id}-origin`} value={location.origin} readOnly />
                 </p>
             </fieldset>
-        </AppCredentials>
+            <DialogButtons />
+        </form>
     );
 }

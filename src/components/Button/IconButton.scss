@@ -1,7 +1,7 @@
 .icon-button {
     all: unset;
     display: inline-flex;
-    flex-direction: row;
+    flex-direction: column;
     align-items: center;
     justify-content: center;
     text-align: center;
@@ -20,18 +20,6 @@
         .focus-visible &:focus,
         &:hover {
             opacity: 1;
-        }
-    }
-
-    &.with-overlay {
-        padding: 0.25em;
-        border-radius: 50%;
-        background: radial-gradient(rgba(0, 0, 0, 0.8) 50%, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0));
-        box-shadow: 0px 0px 2px 1px rgba(0, 0, 0, 0.3);
-        color: var(--soft-white);
-
-        &:enabled:hover {
-            background: radial-gradient(rgba(0, 0, 0, 0.92) 50%, rgba(0, 0, 0, 0.92), rgba(0, 0, 0, 0));
         }
     }
 

@@ -8,7 +8,7 @@ import SubsonicService from './SubsonicService';
 import SubsonicSettings from './SubsonicSettings';
 
 export default class SubsonicAuth implements Auth {
-    private logger = new Logger(`${this.service.id}Auth'`);
+    private logger = new Logger(`${this.service.id}Auth`);
     private credentials$ = new BehaviorSubject('');
     private isLoggedIn$ = new BehaviorSubject(false);
 

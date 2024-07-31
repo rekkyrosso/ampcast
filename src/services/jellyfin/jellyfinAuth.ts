@@ -69,7 +69,7 @@ async function checkConnection(): Promise<boolean> {
             jellyfinApi.getEndpointInfo(),
             jellyfinApi.getMusicLibraries(),
         ]);
-        jellyfinSettings.isLocal = !!endpoint.IsLocal;
+        jellyfinSettings.isLocal = !!(endpoint.IsLocal || endpoint.IsInNetwork);
         jellyfinSettings.libraries = libraries;
         return true;
     } catch (err: any) {

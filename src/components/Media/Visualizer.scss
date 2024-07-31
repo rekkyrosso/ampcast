@@ -34,16 +34,16 @@
         transform: translateX(-50%);
         background: none;
 
-        .media:fullscreen & {
-            bottom: 0.5em;
+        .media.fullscreen & {
+            bottom: 0.75em;
             background: none;
         }
 
-        .media-playback.paused & {
+        .media.paused & {
             display: none;
         }
 
-        .media:fullscreen:not(.idle):hover & {
+        .media.fullscreen:not(.idle):hover & {
             visibility: hidden;
         }
     }

@@ -8,12 +8,15 @@ import {
     BehaviorSubject,
     combineLatest,
     mergeMap,
+    skipWhile,
+    take,
+    tap,
 } from 'rxjs';
 import Dexie, {liveQuery} from 'dexie';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import MediaService from 'types/MediaService';
-import {getService, getServiceFromSrc} from 'services/mediaServices';
+import {getService, getServiceFromSrc, observeEnabledServices} from 'services/mediaServices';
 import {Logger, chunk, groupBy} from 'utils';
 import {dispatchMediaObjectChanges} from './mediaObjectChanges';
 
@@ -42,6 +45,14 @@ class ActionsStore extends Dexie {
 
         liveQuery(() => this.inLibraryChanges.toArray()).subscribe(this.inLibraryChanges$);
         liveQuery(() => this.ratingChanges.toArray()).subscribe(this.ratingChanges$);
+
+        observeEnabledServices()
+            .pipe(
+                skipWhile((services) => services.length === 0),
+                tap((services) => this.registerServices(services)),
+                take(1)
+            )
+            .subscribe(this.logger);
     }
 
     registerServices(services: readonly MediaService[]): void {

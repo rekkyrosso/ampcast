@@ -1,17 +1,19 @@
 import type {Observable} from 'rxjs';
 import {
-    Subject,
+    EMPTY,
     BehaviorSubject,
+    Subject,
     catchError,
     combineLatest,
     distinctUntilChanged,
     filter,
+    firstValueFrom,
     from,
     map,
     mergeMap,
     of,
+    race,
     skip,
-    skipWhile,
     switchMap,
     take,
     takeUntil,
@@ -19,21 +21,17 @@ import {
     timer,
 } from 'rxjs';
 import YouTubeFactory from 'youtube-player';
-import getYouTubeID from 'get-youtube-id';
 import PlayableItem from 'types/PlayableItem';
 import Player from 'types/Player';
 import {Logger} from 'utils';
-import {getYouTubeVideoInfo} from './youtube';
-
-interface LoadError {
-    readonly src: string;
-    readonly error: unknown;
-}
+import youtubeApi from './youtubeApi';
 
 interface Size {
     readonly width: number;
     readonly height: number;
 }
+
+const host = 'https://www.youtube-nocookie.com';
 
 const compareSize = (a: Size, b: Size) => a.width === b.width && a.height === b.height;
 
@@ -53,33 +51,27 @@ const playerVars: YT.PlayerVars = {
     showinfo: 0,
 };
 
-// This enum doesn't seem importable. So duplicating here.
-export const enum PlayerState {
-    UNSTARTED = -1,
-    ENDED = 0,
-    PLAYING = 1,
-    PAUSED = 2,
-    BUFFERING = 3,
-    CUED = 5,
-}
-
 export default class YouTubePlayer implements Player<PlayableItem> {
-    protected readonly logger: Logger;
-    protected readonly player: YT.Player | null = null;
-    private readonly src$ = new BehaviorSubject('');
+    static readonly host = host;
+    static readonly playerVars = playerVars;
+    private readonly logger: Logger;
+    private readonly player: YT.Player | null = null;
+    private Player: ReturnType<typeof YouTubeFactory> | null = null;
+    private readonly item$ = new BehaviorSubject<PlayableItem | null>(null);
+    private readonly paused$ = new BehaviorSubject(true);
     private readonly size$ = new BehaviorSubject<Size>({width: 0, height: 0});
     private readonly error$ = new Subject<unknown>();
-    private readonly ready$ = new Subject<void>();
-    private readonly state$ = new Subject<PlayerState>();
+    private readonly youtubePlayerLoaded$ = new BehaviorSubject(false);
+    private readonly state$ = new Subject<YT.PlayerState>();
     private readonly videoId$ = new BehaviorSubject('');
     private readonly element: HTMLElement;
     private readonly targetId: string;
-    private loadError?: LoadError;
-    private playerLoading = false;
-    #muted = true;
-    #volume = 1;
+    private loadedSrc = '';
+    private hasWaited = false;
     autoplay = false;
     loop = false;
+    #muted = true;
+    #volume = 1;
 
     constructor(id: string) {
         const element = (this.element = document.createElement('div'));
@@ -96,66 +88,47 @@ export default class YouTubePlayer implements Player<PlayableItem> {
         wrapper.append(target);
         element.append(wrapper);
 
-        this.observeReady()
+        // Load new videos.
+        this.observePaused()
             .pipe(
-                mergeMap(() => this.observeSrc()),
-                skipWhile((src) => !src),
-                tap((src) => {
-                    const player = this.player!;
-                    const [, type, id, offset = '0'] = src.split(':');
-                    const startAt = Number(offset) || 0;
-                    if (id) {
-                        if (type === 'playlist') {
-                            const args: YT.IPlaylistSettings = {
-                                list: id,
-                                listType: type,
-                                index: startAt,
-                            };
-                            if (this.autoplay) {
-                                player.loadPlaylist(args);
-                            } else {
-                                player.cuePlaylist(args);
-                            }
-                        } else {
-                            if (this.autoplay) {
-                                player.loadVideoById(id, startAt);
-                            } else {
-                                player.cueVideoById(id, startAt);
-                            }
-                        }
-                        this.loadError = undefined;
+                switchMap((paused) => (paused ? EMPTY : this.observeItem())),
+                switchMap((item) => {
+                    if (item && item.src !== this.loadedSrc) {
+                        return of(undefined).pipe(
+                            mergeMap(() => this.createPlayer()),
+                            mergeMap(() => this.loadAndPlay(item)),
+                            catchError((error) => {
+                                this.loadedSrc = '';
+                                this.error$.next(error);
+                                return EMPTY;
+                            }),
+                            take(1)
+                        );
                     } else {
-                        player.stopVideo();
+                        return EMPTY;
                     }
                 })
             )
-            .subscribe(logger);
+            .subscribe(this.logger);
 
-        this.observeReady()
+        this.observeVideoSize()
             .pipe(
-                mergeMap(() => this.observeVideoSize()),
-                tap(({width, height}) => this.player!.setSize(width, height))
+                filter(({width, height}) => width * height > 0),
+                tap(({width, height}) => this.player?.setSize(width, height))
             )
             .subscribe(logger);
 
         this.observeState()
             .pipe(
-                filter((state) => state === PlayerState.ENDED && this.loop),
-                tap(() => this.player!.seekTo(0, true))
+                filter((state) => state === YT.PlayerState.ENDED && this.loop),
+                tap(() => this.player?.seekTo(0, true))
             )
             .subscribe(logger);
 
         this.observeState()
             .pipe(
-                filter((state) => state === PlayerState.PLAYING),
+                filter((state) => state === YT.PlayerState.PLAYING),
                 tap(() => (this.element.style.visibility = ''))
-            )
-            .subscribe(logger);
-
-        this.observeState()
-            .pipe(
-                map(() => this.getVideoId(this.player?.getVideoUrl() || '')),
-                tap((videoId) => this.videoId$.next(videoId))
             )
             .subscribe(logger);
 
@@ -211,7 +184,7 @@ export default class YouTubePlayer implements Player<PlayableItem> {
     observeCurrentTime(): Observable<number> {
         return this.observeState().pipe(
             switchMap((state) =>
-                state === PlayerState.PLAYING
+                state === YT.PlayerState.PLAYING
                     ? timer(
                           250 - (Math.round(this.player!.getCurrentTime() * 1000) % 250),
                           250
@@ -219,7 +192,7 @@ export default class YouTubePlayer implements Player<PlayableItem> {
                           map(() => this.player!.getCurrentTime()),
                           takeUntil(this.observeState())
                       )
-                    : of(this.player?.getCurrentTime() || 0)
+                    : EMPTY
             )
         );
     }
@@ -234,7 +207,7 @@ export default class YouTubePlayer implements Player<PlayableItem> {
 
     observeEnded(): Observable<void> {
         return this.observeState().pipe(
-            filter((state) => state === PlayerState.ENDED && !this.loop),
+            filter((state) => state === YT.PlayerState.ENDED && !this.loop),
             map(() => undefined)
         );
     }
@@ -245,7 +218,7 @@ export default class YouTubePlayer implements Player<PlayableItem> {
 
     observePlaying(): Observable<void> {
         return this.observeState().pipe(
-            filter((state) => state === PlayerState.PLAYING),
+            filter((state) => state === YT.PlayerState.PLAYING),
             map(() => undefined)
         );
     }
@@ -256,41 +229,44 @@ export default class YouTubePlayer implements Player<PlayableItem> {
 
     appendTo(parentElement: HTMLElement): void {
         parentElement.appendChild(this.element);
-        this.createPlayer();
     }
 
-    load({src}: PlayableItem): void {
-        this.logger.log('load', {src});
-        if (!this.player) {
-            this.createPlayer();
-        }
-        if (this.autoplay && this.player && src === this.src) {
-            this.player.playVideo();
-        } else {
-            this.src$.next(src);
+    load(item: PlayableItem): void {
+        this.logger.log('load', item.src);
+        this.item$.next(item);
+        this.paused$.next(!this.autoplay);
+        if (item.src === this.loadedSrc) {
+            this.player?.seekTo(item.startTime || 0, true);
+            if (this.autoplay) {
+                this.player?.playVideo();
+            }
         }
     }
 
     play(): void {
         this.logger.log('play');
-        if (this.player) {
-            if (this.src === this.loadError?.src) {
-                this.error$.next(this.loadError.error);
-            } else {
-                this.player.playVideo();
-            }
-        } else if (!this.playerLoading) {
-            this.error$.next(Error('YouTube player not loaded'));
+        this.paused$.next(false);
+        if (this.src === this.loadedSrc) {
+            this.player?.playVideo();
         }
     }
 
     pause(): void {
         this.logger.log('pause');
-        this.player?.pauseVideo();
+        this.paused$.next(true);
+        if (this.player?.getCurrentTime()) {
+            this.player?.pauseVideo();
+        } else {
+            this.player?.stopVideo();
+        }
     }
 
     stop(): void {
         this.logger.log('stop');
+        this.paused$.next(true);
+        if (this.item?.startTime) {
+            this.item$.next({...this.item, startTime: 0});
+        }
         this.player?.stopVideo();
     }
 
@@ -307,39 +283,46 @@ export default class YouTubePlayer implements Player<PlayableItem> {
         this.element.remove();
     }
 
-    protected get src(): string {
-        return this.src$.getValue();
+    private get item(): PlayableItem | null {
+        return this.item$.value;
     }
 
-    protected observeAspectRatio(): Observable<number> {
+    private get paused(): boolean {
+        return this.paused$.value;
+    }
+
+    private get src(): string | undefined {
+        return this.item?.src;
+    }
+
+    private observeItem(): Observable<PlayableItem | null> {
+        return this.item$.pipe(distinctUntilChanged());
+    }
+
+    private observePaused(): Observable<boolean> {
+        return this.paused$.pipe(distinctUntilChanged());
+    }
+
+    private observeAspectRatio(): Observable<number> {
         return this.observeVideoId().pipe(
             switchMap((videoId) =>
                 videoId ? this.getAspectRatio(videoId) : of(defaultAspectRatio)
-            ),
-            distinctUntilChanged()
+            )
         );
     }
 
-    protected observeReady(): Observable<void> {
-        return this.ready$.pipe(take(1));
-    }
-
-    protected observeSize(): Observable<Size> {
+    private observeSize(): Observable<Size> {
         return this.size$.pipe(
             distinctUntilChanged(compareSize),
             filter(({width, height}) => width * height > 0)
         );
     }
 
-    protected observeSrc(): Observable<string> {
-        return this.src$.pipe(distinctUntilChanged());
-    }
-
-    protected observeState(): Observable<PlayerState> {
+    private observeState(): Observable<YT.PlayerState> {
         return this.state$;
     }
 
-    protected observeVideoSize(): Observable<Size> {
+    private observeVideoSize(): Observable<Size> {
         return combineLatest([this.observeSize(), this.observeAspectRatio()]).pipe(
             map(([{width, height}, aspectRatio]) => {
                 const newHeight = Math.max(Math.round(width / aspectRatio), height);
@@ -350,69 +333,101 @@ export default class YouTubePlayer implements Player<PlayableItem> {
         );
     }
 
-    private createPlayer(): void {
-        if (!this.player && this.element.isConnected) {
-            this.playerLoading = true;
-
-            const youtube = YouTubeFactory(this.targetId, {
-                playerVars,
-                host: 'https://www.youtube-nocookie.com',
-            } as any);
-
-            youtube.on('ready', ({target}: any) => {
-                (this as any).player = target;
-
-                target.setVolume(this.volume * 100);
-
-                if (this.muted || this.volume === 0) {
-                    target.mute();
-                }
-
-                this.playerLoading = false;
-                this.ready$.next(undefined);
-            });
-
-            youtube.on('stateChange', ({data: state}: {data: PlayerState}) => {
-                this.state$.next(state);
-            });
-
-            youtube.on('error', (error) => {
-                this.loadError = {src: this.src, error};
-                this.error$.next(error);
-            });
+    private async createPlayer(): Promise<void> {
+        if (this.player) {
+            return;
+        }
+        await this.loadPlayer();
+        const loaded = await this.waitForPlayer();
+        if (!loaded) {
+            throw Error('YouTube player not loaded');
         }
     }
 
+    private async loadAndPlay(item: PlayableItem): Promise<void> {
+        if (this.paused) {
+            return;
+        }
+        const [, , videoId] = item.src.split(':');
+        this.player!.loadVideoById(videoId, item.startTime);
+        this.loadedSrc = item.src;
+        this.videoId$.next(videoId);
+    }
+
     private getAspectRatio(videoId: string): Observable<number> {
-        return from(getYouTubeVideoInfo(videoId)).pipe(
+        return from(youtubeApi.getVideoInfo(videoId)).pipe(
             takeUntil(timer(3000)),
             takeUntil(this.observeVideoId().pipe(skip(1))),
             map(({aspectRatio}) => aspectRatio || defaultAspectRatio),
             catchError((error) => {
-                this.logger.log(
+                this.logger.warn(
                     `Could not obtain oembed info (videoId=${videoId}): ${error.message}`
                 );
-                this.loadError = {src: this.src, error};
                 this.error$.next(error);
                 return of(defaultAspectRatio);
             })
         );
     }
 
-    protected getPlayerState(): PlayerState {
-        if (this.player) {
-            return this.player.getPlayerState() as unknown as PlayerState;
-        } else {
-            return PlayerState.UNSTARTED;
+    private async loadPlayer(): Promise<void> {
+        if (this.Player) {
+            return;
         }
+
+        const isConnected = await this.waitForConnection();
+        if (!isConnected) {
+            throw Error('YouTube player not loaded');
+        }
+
+        const Player = YouTubeFactory(this.targetId, {playerVars, host} as any);
+
+        Player.on('ready', ({target}: any) => {
+            (this as any).player = target;
+            target.setVolume(this.volume * 100);
+            if (this.muted || this.volume === 0) {
+                target.mute();
+            }
+            this.youtubePlayerLoaded$.next(true);
+        });
+
+        Player.on('stateChange', ({data}) => this.state$.next(data));
+        Player.on('error', (error) => this.error$.next(error));
+
+        this.Player = Player;
     }
 
-    protected getVideoId(src: string): string {
-        if (src.startsWith('youtube:video')) {
-            const [, , videoId] = src.split(':');
-            return videoId;
-        } else {
-            return getYouTubeID(src) || '';
+    private async waitForConnection(): Promise<boolean> {
+        if (this.element.isConnected) {
+            return true;
         }
+        if (this.hasWaited) {
+            return false;
+        }
+        return new Promise((resolve) => {
+            const observer = new MutationObserver(() => {
+                if (this.element.isConnected) {
+                    clearTimeout(timeoutId);
+                    observer.disconnect();
+                    resolve(true);
+                }
+            });
+            const timeoutId = setTimeout(() => {
+                observer.disconnect();
+                resolve(false);
+            }, 2000);
+            observer.observe(document, {childList: true, subtree: true});
+        });
+    }
+
+    private async waitForPlayer(): Promise<boolean> {
+        const youtubePlayerLoaded$ = this.youtubePlayerLoaded$;
+        let loaded = youtubePlayerLoaded$.value;
+        if (!loaded && !this.hasWaited) {
+            const loaded$ = youtubePlayerLoaded$.pipe(filter((loaded) => loaded));
+            const timeout$ = timer(3000).pipe(map(() => false));
+            loaded = await firstValueFrom(race(loaded$, timeout$));
+            this.hasWaited = true;
+        }
+        return loaded;
     }
 }

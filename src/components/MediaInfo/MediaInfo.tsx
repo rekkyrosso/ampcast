@@ -281,7 +281,7 @@ export function Country<T extends MediaArtist>({country}: Pick<T, 'country'>) {
 export function Thumbnail(props: CoverArtProps) {
     return (
         <div className="thumbnail">
-            <CoverArt {...props} />
+            <CoverArt {...props} size={480} />
         </div>
     );
 }

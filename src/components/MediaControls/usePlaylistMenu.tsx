@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import mediaPlayback from 'services/mediaPlayback';
+import playback from 'services/mediaPlayback/playback';
 import playlist from 'services/playlist';
 import {prompt} from 'components/Dialog';
 import {ListViewHandle} from 'components/ListView';
@@ -37,7 +38,7 @@ export default function usePlaylistMenu(
                     break;
 
                 case 'shuffle':
-                    await playlist.shuffle(!mediaPlayback.paused);
+                    await playlist.shuffle(!playback.paused);
                     listView.scrollIntoView(0);
                     break;
 

@@ -265,11 +265,15 @@ export default class SubsonicApi {
 
     getPlayableUrl({src, playbackType}: PlayableItem): string {
         const {host, credentials} = this.settings;
-        const [, , id] = src.split(':');
-        if (playbackType === PlaybackType.HLS) {
-            return `${host}/rest/hls.m3u8?id=${id}&${credentials}`;
+        if (host && credentials) {
+            const [, , id] = src.split(':');
+            if (playbackType === PlaybackType.HLS) {
+                return `${host}/rest/hls.m3u8?id=${id}&${credentials}`;
+            } else {
+                return `${host}/rest/stream?id=${id}&${credentials}&format=raw`;
+            }
         } else {
-            return `${host}/rest/stream?id=${id}&${credentials}&format=raw`;
+            throw Error('Not logged in');
         }
     }
 

@@ -9,7 +9,7 @@ import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
 import SequentialPager from 'services/pagers/SequentialPager';
 import pinStore from 'services/pins/pinStore';
-import {getYouTubeUrl, youtubeHost} from './youtube';
+import youtube from './youtube';
 import {refreshToken} from './youtubeAuth';
 import youtubeApi from './youtubeApi';
 import youtubeCache from './youtubeCache';
@@ -112,7 +112,7 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
         return {
             src,
             itemType: ItemType.Playlist,
-            externalUrl: `${youtubeHost}/playlist?list=${playlist.id}`,
+            externalUrl: `${youtube.url}/playlist?list=${playlist.id}`,
             title: playlist.snippet?.title || playlist.id!,
             thumbnails: this.mapThumbnails(playlist.snippet?.thumbnails),
             trackCount: playlist.contentDetails?.itemCount,
@@ -128,7 +128,7 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
             mediaType: MediaType.Video,
             playbackType: PlaybackType.IFrame,
             src: `youtube:video:${video.id}`,
-            externalUrl: getYouTubeUrl(video.id!),
+            externalUrl: youtubeApi.getVideoUrl(video.id!),
             title: video.snippet?.title || video.id!,
             duration: this.parseDuration(video.contentDetails?.duration),
             thumbnails: this.mapThumbnails(video.snippet?.thumbnails),
@@ -149,7 +149,7 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
         return channelId
             ? {
                   name: channelTitle,
-                  url: `${youtubeHost}/channel/${channelId}`,
+                  url: `${youtube.url}/channel/${channelId}`,
               }
             : undefined;
     }

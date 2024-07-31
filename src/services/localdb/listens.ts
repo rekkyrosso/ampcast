@@ -4,9 +4,10 @@ import Dexie, {liveQuery} from 'dexie';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import PlaybackState from 'types/PlaybackState';
-import {findBestMatch} from 'services/lookup';
+import {findBestMatch, fuzzyCompare} from 'services/lookup';
 import {addMetadata} from 'services/musicbrainz/musicbrainzApi';
-import {fuzzyCompare, Logger} from 'utils';
+import session from 'services/session';
+import {Logger} from 'utils';
 
 const logger = new Logger('localdb/listens');
 
@@ -53,9 +54,10 @@ export async function addListen(state: PlaybackState): Promise<void> {
             }
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const {id, lookupStatus, blob, ...listen} = item;
-            logger.log('add', {listen});
+            logger.log('add', {state});
             await store.items.add({
                 ...listen,
+                sessionId: session.id,
                 playedAt: Math.floor(state.startedAt / 1000),
                 lastfmScrobbledAt: 0,
                 listenbrainzScrobbledAt: 0,
@@ -105,10 +107,7 @@ export function findListen(item: MediaItem): MediaItem | undefined {
     return findListenByPlayedAt(item) || findBestMatch(getListens(), item);
 }
 
-export function findListenByPlayedAt(
-    item: MediaItem,
-    timeFuzziness = 5
-): Listen | undefined {
+export function findListenByPlayedAt(item: MediaItem, timeFuzziness = 5): Listen | undefined {
     const playedAt = item.playedAt;
     if (!playedAt) {
         return undefined;

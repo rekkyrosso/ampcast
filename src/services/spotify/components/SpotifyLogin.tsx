@@ -5,7 +5,6 @@ import CredentialsRequired from 'components/Login/CredentialsRequired';
 import RestrictedAccessWarning from 'components/Login/RestrictedAccessWarning';
 import LoginButton from 'components/Login/LoginButton';
 import ServiceLink from 'components/Login/ServiceLink';
-import SpotifyCredentialsDialog from './SpotifyCredentialsDialog';
 import useCredentials from './useCredentials';
 
 export default function SpotifyLogin({service: spotify}: LoginProps) {
@@ -25,7 +24,7 @@ export default function SpotifyLogin({service: spotify}: LoginProps) {
             ) : (
                 <>
                     <CredentialsRequired service={spotify} />
-                    <CredentialsButton dialog={SpotifyCredentialsDialog} />
+                    <CredentialsButton service={spotify} />
                 </>
             )}
             <ServiceLink service={spotify} />

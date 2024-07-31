@@ -38,7 +38,8 @@ dialog {
          background: rgba(0, 0, 0, 0.1);
 
          .app & {
-             background: rgba(0, 0, 0, 0.2);
+            background: var(--black);
+            opacity: 0.33;
          }
      }
 

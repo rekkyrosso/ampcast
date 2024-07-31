@@ -2,7 +2,6 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, skipWhile} from 'rxjs';
 import {loadScript, Logger} from 'utils';
 import appleSettings from './appleSettings';
-import MusicKitV1Wrapper from './MusicKitV1Wrapper';
 
 const logger = new Logger('appleAuth');
 
@@ -39,16 +38,6 @@ export async function logout(): Promise<void> {
         if (window.MusicKit) {
             const musicKit = await getMusicKitInstance();
             try {
-                if (musicKit.isPlaying) {
-                    musicKit.stop();
-                }
-                if (!musicKit.queue.isEmpty) {
-                    await musicKit.setQueue({});
-                }
-            } catch (err) {
-                logger.error(err);
-            }
-            try {
                 await musicKit.unauthorize();
             } catch (err) {
                 logger.error(err);
@@ -71,10 +60,6 @@ export async function refreshToken(): Promise<void> {
 const musicKitPromise = new Promise<MusicKit.MusicKitInstance>((resolve, reject) => {
     document.addEventListener('musickitloaded', async () => {
         logger.log(`Loaded MusicKit version`, MusicKit.version);
-        // Wrap MusicKit v1.
-        if (MusicKit.version.startsWith('1') && !MusicKit.isWrapper) {
-            window.MusicKit = new MusicKitV1Wrapper(MusicKit) as any;
-        }
         try {
             // MusicKit v3 is async but the types are still v1.
             const musicKit = await MusicKit.configure({
@@ -85,7 +70,10 @@ const musicKitPromise = new Promise<MusicKit.MusicKitInstance>((resolve, reject)
                 },
                 sourceType: 8, // "WEBPLAYER"
                 suppressErrorDialog: true,
-                bitrate: appleSettings.bitrate
+                bitrate: appleSettings.bitrate,
+                // These look like they should do something but they don't.
+                // logInfo: false,
+                // isQA: false,
             } as any);
             musicKit.addEventListener(MusicKit.Events.authorizationStatusDidChange, async () => {
                 const isLoggedIn = musicKit.isAuthorized;
@@ -113,8 +101,7 @@ export async function getMusicKitInstance(): Promise<MusicKit.MusicKitInstance> 
             throw Error('No developer token');
         }
         return new Promise((resolve, reject) => {
-            const version = appleSettings.useMusicKitBeta ? 3 : 1;
-            loadScript(`https://js-cdn.music.apple.com/musickit/v${version}/musickit.js`).then(
+            loadScript('https://js-cdn.music.apple.com/musickit/v3/musickit.js').then(
                 () => musicKitPromise.then(resolve, reject),
                 reject
             );

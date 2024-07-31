@@ -1,14 +1,19 @@
 import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
+import MediaService from 'types/MediaService';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import usePlexMediaServers, {PlexMediaServer} from './usePlexMediaServers';
 import plexSettings from '../plexSettings';
 
-export default function PlexMediaLibrarySettings() {
+export interface PlexMediaLibrarySettingsProps {
+    service: MediaService;
+}
+
+export default function PlexMediaLibrarySettings({service: plex}: PlexMediaLibrarySettingsProps) {
     const id = useId();
     const serverIdRef = useRef<HTMLSelectElement>(null);
     const libraryIdRef = useRef<HTMLSelectElement>(null);
-    const servers = usePlexMediaServers();
+    const servers = usePlexMediaServers(plex);
     const [server, setServer] = useState<PlexMediaServer | null>(null);
     const [libraries, setLibraries] = useState<readonly PersonalMediaLibrary[]>([]);
     const [libraryId, setLibraryId] = useState(plexSettings.libraryId);

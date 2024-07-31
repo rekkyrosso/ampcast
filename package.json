@@ -45,7 +45,7 @@
         "react-dom": "^18.2.0",
         "react-error-boundary": "^4.0.0",
         "rxjs": "^7.5.6",
-        "shaka-player": "3.3.1",
+        "shaka-player": "^4.10.3",
         "spotify-web-api-js": "^1.5.2",
         "string-score": "^1.0.1",
         "unidecode": "^1.0.1",
@@ -94,7 +94,7 @@
         "sass-loader": "^14.0.0",
         "ts-loader": "^9.3.1",
         "type-fest": "^4.0.0",
-        "typescript": "5.4.5",
+        "typescript": "^5.5.3",
         "webpack": "^5.74.0",
         "webpack-cli": "^5.0.0"
     },

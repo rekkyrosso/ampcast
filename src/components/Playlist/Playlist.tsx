@@ -161,10 +161,7 @@ export default function Playlist({
             if (data instanceof DataTransferItem) {
                 switch (data.type) {
                     case 'text/x-spotify-tracks': {
-                        data.getAsString(async (string) => {
-                            const trackIds = string.split(/\s+/).map((uri) => uri.split(':')[2]);
-                            await inject.spotifyTracks(trackIds, atIndex);
-                        });
+                        await inject.spotifyTracks(data, atIndex);
                         break;
                     }
 

@@ -1,9 +1,9 @@
 import React, {useCallback, useId, useState} from 'react';
 import MediaObject from 'types/MediaObject';
+import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import PageHeader from 'components/MediaBrowser/PageHeader';
 import PagedItems from 'components/MediaBrowser/PagedItems';
-import lastfm from '../lastfm';
 import usePeriod from './usePeriod';
 
 export type LastFMPeriod = 'overall' | '7day' | '1month' | '3month' | '6month' | '12month';
@@ -21,10 +21,12 @@ const options: LastFMPeriodOption[] = [
 ];
 
 export interface LastFmTopBrowserProps<T extends MediaObject> {
+    service: MediaService;
     source: MediaSource<T>;
 }
 
 export default function LastFmTopBrowser<T extends MediaObject>({
+    service: lastfm,
     source,
     ...props
 }: LastFmTopBrowserProps<T>) {

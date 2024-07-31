@@ -10,5 +10,7 @@
         padding: 0.125em 0.3125em;
         font-size: max(0.5625em, 8px);
         vertical-align: super;
+        background-color: var(--frame2-color);
+        border-radius: var(--app-border-radius);
     }
 }

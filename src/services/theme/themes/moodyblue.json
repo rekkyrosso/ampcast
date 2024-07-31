@@ -7,7 +7,7 @@
     "frameTextColor": "#d8eee7",
     "selectedBackgroundColor": "#124373",
     "selectedTextColor": "#ffffff",
-    "spacing": 0.53125,
-    "roundness": 0.40625,
+    "spacing": 0.5,
+    "roundness": 1,
     "flat": false
 }

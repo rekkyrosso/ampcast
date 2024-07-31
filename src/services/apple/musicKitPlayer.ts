@@ -6,8 +6,9 @@ import {
     catchError,
     distinctUntilChanged,
     filter,
-    from,
     map,
+    mergeMap,
+    of,
     skipWhile,
     switchMap,
     take,
@@ -16,12 +17,10 @@ import {
 import PlayableItem from 'types/PlayableItem';
 import Player from 'types/Player';
 import audio from 'services/audio';
+import {observeMediaServices, waitForLogin} from 'services/mediaServices';
 import {Logger} from 'utils';
-import {observeIsLoggedIn, refreshToken} from './appleAuth';
 
 const logger = new Logger('MusicKitPlayer');
-
-const ERR_NOT_CONNECTED = 'Apple Music player not connected';
 
 export class MusicKitPlayer implements Player<PlayableItem> {
     private player?: MusicKit.MusicKitInstance;
@@ -31,85 +30,37 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     private readonly ended$ = new Subject<void>();
     private readonly playing$ = new Subject<void>();
     private readonly error$ = new Subject<unknown>();
-    private readonly playerLoaded$ = new Subject<void>();
-    private readonly playerActivated$ = new BehaviorSubject(false);
     private readonly element: HTMLElement;
-    private readonly src$ = new BehaviorSubject('');
+    private readonly item$ = new BehaviorSubject<PlayableItem | null>(null);
     private loadedSrc = '';
-    private isLoggedIn = false;
-    private hasPlayed = false;
-    public loop = false;
-    public autoplay = false;
+    private hasWaited = false;
+    private stopped = false;
+    autoplay = false;
+    loop = false;
     #muted = true;
     #volume = 1;
 
-    constructor(private readonly isLoggedIn$: Observable<boolean>) {
+    constructor() {
         const element = (this.element = document.createElement('div'));
-
         element.hidden = true;
         element.className = 'apple-video';
         element.id = 'apple-music-video-container';
 
-        this.observeIsLoggedIn()
+        // Load new tracks.
+        this.observePaused()
             .pipe(
-                filter((isLoggedIn) => isLoggedIn),
-                tap(() => {
-                    const player = (this.player = MusicKit.getInstance());
-                    const events = MusicKit.Events;
-
-                    this.synchVolume();
-
-                    player.addEventListener(
-                        events.playbackStateDidChange,
-                        this.onPlaybackStateChange
-                    );
-                    player.addEventListener(
-                        events.playbackDurationDidChange,
-                        this.onPlaybackDurationChange
-                    );
-                    player.addEventListener(
-                        events.playbackTimeDidChange,
-                        this.onPlaybackTimeChange
-                    );
-                    player.addEventListener(events.mediaPlaybackError, this.onPlaybackError);
-
-                    this.playerLoaded$.next(undefined);
-                }),
-                take(1)
-            )
-            .subscribe(logger);
-
-        this.observeReady()
-            .pipe(
-                switchMap(() => this.observeIsLoggedIn()),
-                switchMap((isLoggedIn) => (isLoggedIn ? this.observePaused() : EMPTY)),
-                switchMap((paused) => (paused ? EMPTY : this.observeSrc())),
-                switchMap((src) => {
-                    if (src && src !== this.loadedSrc) {
-                        if (!this.canPlay(src)) {
-                            this.error$.next(Error(this.getUnplayableReason(src)));
-                            return EMPTY;
-                        }
-                        const [, type, id] = src.split(':');
-                        // "(library-)?music-videos" => " musicVideo"
-                        const kind = type
-                            .replace('library-', '')
-                            .replace(/s$/, '')
-                            .replace(/-([a-z])/g, (_, char) => char.toUpperCase());
-                        return from(this.player!.setQueue({[kind]: id})).pipe(
-                            switchMap(() => {
-                                this.loadedSrc = src;
-                                if (this.autoplay) {
-                                    return this.safePlay();
-                                } else {
-                                    return EMPTY;
-                                }
-                            }),
-                            catchError((err) => {
+                switchMap((paused) => (paused ? EMPTY : this.observeItem())),
+                switchMap((item) => {
+                    if (item && item.src !== this.loadedSrc) {
+                        return of(undefined).pipe(
+                            mergeMap(() => this.createPlayer()),
+                            mergeMap(() => this.loadAndPlay(item)),
+                            catchError((error) => {
                                 this.loadedSrc = '';
-                                this.error$.next(err);
+                                this.error$.next(error);
                                 return EMPTY;
-                            })
+                            }),
+                            take(1)
                         );
                     } else {
                         return EMPTY;
@@ -118,31 +69,19 @@ export class MusicKitPlayer implements Player<PlayableItem> {
             )
             .subscribe(logger);
 
+        // Stop and emit an error on logout.
+        // The media player will only emit the error if MusicKit is the current player.
         this.observeIsLoggedIn()
             .pipe(
-                skipWhile((isLoggedIn) => isLoggedIn === this.isLoggedIn),
-                tap((isLoggedIn) => {
-                    this.isLoggedIn = isLoggedIn;
-                    if (!isLoggedIn) {
-                        this.loadedSrc = '';
-                        if (!this.paused || this.player?.isPlaying) {
-                            this.stop();
-                            this.error$.next(Error(ERR_NOT_CONNECTED));
-                        }
-                    }
-                })
+                skipWhile((isLoggedIn) => !isLoggedIn),
+                filter((isLoggedIn) => !isLoggedIn),
+                mergeMap(() => this.unload()),
+                tap(() => this.error$.next(Error('Not logged in')))
             )
             .subscribe(logger);
 
+        // Log errors.
         this.observeError().subscribe(logger.error);
-
-        this.observeError()
-            .pipe(
-                filter(() => this.player?.isAuthorized === false),
-                switchMap(() => refreshToken()),
-                catchError(() => EMPTY)
-            )
-            .subscribe(logger);
     }
 
     get hidden(): boolean {
@@ -195,58 +134,41 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         parentElement.appendChild(this.element);
     }
 
-    load({src}: PlayableItem): void {
-        logger.log('load', {src});
+    load(item: PlayableItem): void {
+        logger.log('load', item.src);
         if (this.autoplay) {
-            this.playerActivated$.next(true);
+            this.stopped = false;
         }
-        this.src$.next(src);
-        this.synchVolume();
-        if (this.autoplay) {
-            this.paused$.next(false);
-        }
-        if (this.player && this.isLoggedIn) {
-            if (this.autoplay) {
-                if (src === this.loadedSrc) {
-                    this.safePlay();
-                } else if (!this.canPlay(src)) {
-                    this.error$.next(Error(this.getUnplayableReason(src)));
-                }
-            }
-        } else if (this.autoplay) {
-            this.error$.next(Error(ERR_NOT_CONNECTED));
+        this.item$.next(item);
+        this.paused$.next(!this.autoplay);
+        if (item.src === this.loadedSrc) {
+            this.safeReload(item);
         }
     }
 
     play(): void {
         logger.log('play');
-        this.playerActivated$.next(true);
+        this.stopped = false;
         this.paused$.next(false);
-        if (this.player && this.isLoggedIn) {
-            if (this.src === this.loadedSrc) {
-                this.safePlay();
-            } else if (!this.canPlay(this.src)) {
-                this.error$.next(Error(this.getUnplayableReason(this.src)));
-            }
-        } else if (!this.isLoggedIn) {
-            this.error$.next(Error(ERR_NOT_CONNECTED));
+        if (this.src === this.loadedSrc) {
+            this.safePlay();
         }
     }
 
     pause(): void {
         logger.log('pause');
         this.paused$.next(true);
-        if (this.player?.isPlaying) {
-            this.player.pause();
-        }
+        this.safePause();
     }
 
     stop(): void {
         logger.log('stop');
+        this.stopped = true;
         this.paused$.next(true);
-        if (this.hasPlayed) {
-            this.player!.stop();
+        if (this.item?.startTime) {
+            this.item$.next({...this.item, startTime: 0});
         }
+        this.safeStop();
     }
 
     seek(time: number): void {
@@ -258,66 +180,154 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         this.element.style.height = `${height}px`;
     }
 
-    private get paused(): boolean {
-        return this.paused$.getValue();
+    private get item(): PlayableItem | null {
+        return this.item$.value;
     }
 
-    private get src(): string {
-        return this.src$.getValue();
+    private get paused(): boolean {
+        return this.paused$.value;
+    }
+
+    private get src(): string | undefined {
+        return this.item?.src;
     }
 
     private observeIsLoggedIn(): Observable<boolean> {
-        return this.isLoggedIn$;
+        return observeMediaServices().pipe(
+            map((services) => services.find((service) => service.id === 'apple')),
+            switchMap((service) => (service ? service.observeIsLoggedIn() : of(false))),
+            distinctUntilChanged()
+        );
+    }
+
+    private observeItem(): Observable<PlayableItem | null> {
+        return this.item$.pipe(distinctUntilChanged());
     }
 
     private observePaused(): Observable<boolean> {
         return this.paused$.pipe(distinctUntilChanged());
     }
 
-    private observeReady(): Observable<void> {
-        return this.playerLoaded$.pipe(
-            switchMap(() => this.playerActivated$),
-            filter((activated) => activated),
-            map(() => undefined),
-            take(1)
-        );
+    private async createPlayer(): Promise<void> {
+        if (!this.player) {
+            const isLoggedIn = await this.waitForLogin();
+            if (isLoggedIn) {
+                const player = (this.player = MusicKit.getInstance());
+                const Events = MusicKit.Events;
+
+                this.synchVolume();
+
+                player.addEventListener(Events.playbackStateDidChange, this.onPlaybackStateChange);
+                player.addEventListener(Events.playbackDurationDidChange, this.onDurationChange);
+                player.addEventListener(Events.playbackTimeDidChange, this.onTimeChange);
+                player.addEventListener(Events.mediaPlaybackError, this.onError);
+            } else {
+                throw Error('Not logged in');
+            }
+        }
     }
 
-    private observeSrc(): Observable<string> {
-        return this.src$.pipe(distinctUntilChanged());
+    private async loadAndPlay(item: PlayableItem): Promise<void> {
+        if (this.paused) {
+            return;
+        }
+
+        if (!this.player?.isAuthorized) {
+            throw Error('Not logged in');
+        }
+
+        const {src, startTime = 0} = item;
+        const [, type, id] = src.split(':');
+
+        // "(library-)?music-videos" => "musicVideo"
+        const kind = type
+            .replace('library-', '')
+            .replace(/s$/, '')
+            .replace(/-([a-z])/g, (_, char) => char.toUpperCase());
+
+        await this.player.setQueue({[kind]: id, startTime, startPlaying: true});
+
+        this.loadedSrc = item.src;
+
+        try {
+            if (this.paused) {
+                // Pause/stop button clicked during the play request.
+                if (this.stopped) {
+                    await this.player.stop();
+                } else {
+                    await this.player.pause();
+                }
+            } else {
+                this.playing$.next();
+            }
+        } catch (err) {
+            if (!this.paused) {
+                throw err;
+            }
+        }
     }
 
-    private canPlay(src: string): boolean {
-        return !this.getUnplayableReason(src);
-    }
-
-    private getUnplayableReason(src: string): string {
-        const [, type] = src.split(':');
-        if (/video/i.test(type) && this.player?.version.startsWith('1')) {
-            return 'Video playback not supported';
-        } else {
-            return '';
+    private async safePause(): Promise<void> {
+        try {
+            if (this.player) {
+                if (this.player.playbackState !== MusicKit.PlaybackStates.paused) {
+                    await this.player.pause();
+                }
+            }
+        } catch (err) {
+            logger.error(err);
         }
     }
 
     private async safePlay(): Promise<void> {
         try {
-            if (this.src && this.src === this.loadedSrc && this.player?.isPlaying === false) {
-                await this.player.play();
-                if (!this.hasPlayed) {
-                    this.hasPlayed = true;
-                    if (this.player.isPlaying) {
-                        this.playing$.next(undefined);
+            if (this.player) {
+                if (!this.player.isPlaying) {
+                    await this.player.play();
+                    if (this.paused) {
+                        // Pause/stop button clicked during the play request.
+                        if (this.stopped) {
+                            await this.player.stop();
+                        } else {
+                            await this.player.pause();
+                        }
+                    } else {
+                        this.playing$.next();
                     }
                 }
             }
         } catch (err) {
-            this.error$.next(err);
+            if (!this.paused) {
+                this.error$.next(err);
+            }
+        }
+    }
+
+    protected async safeReload(item: PlayableItem): Promise<void> {
+        try {
+            await this.player?.seekToTime(item.startTime || 0);
+        } catch (err) {
+            logger.error(err);
+        }
+        if (this.autoplay) {
+            await this.safePlay();
+        }
+    }
+
+    private async safeStop(): Promise<void> {
+        try {
+            if (this.player) {
+                if (this.player.playbackState !== MusicKit.PlaybackStates.stopped) {
+                    await this.player.stop();
+                }
+            }
+        } catch (err) {
+            logger.error(err);
         }
     }
 
     private synchVolume(): void {
-        if (this.player) {
+        if (this.player && this.src) {
             const [, type] = this.src.split(':');
             this.player.volume =
                 // Audio volume is handled by a `GainNode`.
@@ -329,45 +339,65 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         }
     }
 
+    private async unload(): Promise<void> {
+        try {
+            await this.safeStop();
+            await this.player?.setQueue({});
+            this.loadedSrc = '';
+        } catch (err) {
+            logger.error(err);
+        }
+    }
+
+    private async waitForLogin(): Promise<boolean> {
+        const waitTime = this.hasWaited ? 0 : 3000; // Only wait once.
+        const isLoggedIn = await waitForLogin('apple', waitTime);
+        this.hasWaited = true;
+        return isLoggedIn;
+    }
+
     // The MusicKit typings for these callbacks are a bit lacking so they are all `any` for now.
 
-    private readonly onPlaybackStateChange: any = ({state}: {state: MusicKit.PlaybackStates}) => {
+    private readonly onPlaybackStateChange: any = async ({
+        state,
+    }: {
+        state: MusicKit.PlaybackStates;
+    }) => {
         switch (state) {
             case MusicKit.PlaybackStates.playing: {
-                const [, , id] = this.src.split(':');
+                const [, , id] = this.src?.split(':') ?? [];
                 const nowPlayingItem = this.player!.nowPlayingItem;
-                if (nowPlayingItem?.isPlayable === false && nowPlayingItem?.id === id) {
-                    // Apple Music plays silence for unplayable tracks.
+                if (nowPlayingItem?.isPlayable === false && nowPlayingItem.id === id) {
+                    // Apple Music plays 30 seconds of silence for unplayable tracks.
                     this.error$.next(Error('Unplayable'));
                     this.stop();
-                } else if (this.paused) {
-                    this.pause();
-                } else if (this.hasPlayed) {
-                    this.playing$.next(undefined);
                 }
+                // We can't emit the `playing` event here.
+                // It causes problems in Firefox (possibly related to DRM and visualizers).
+                // Emitting the event after a successful call to `player.play()` works just as well.
                 break;
             }
             case MusicKit.PlaybackStates.ended:
-                this.ended$.next(undefined);
+                this.ended$.next();
                 break;
         }
     };
 
-    private readonly onPlaybackDurationChange: any = ({duration}: {duration: number}) => {
+    private readonly onDurationChange: any = ({duration}: {duration: number}) => {
         this.duration$.next(duration);
     };
 
-    private readonly onPlaybackTimeChange: any = ({
-        currentPlaybackTime,
-    }: {
-        currentPlaybackTime: number;
-    }) => {
-        this.currentTime$.next(currentPlaybackTime);
+    private readonly onTimeChange: any = ({currentPlaybackTime}: {currentPlaybackTime: number}) => {
+        const playbackState = this.player?.playbackState || 0;
+        // Skip the playback states that always emits zero.
+        if (playbackState && playbackState !== MusicKit.PlaybackStates.stopped) {
+            this.currentTime$.next(currentPlaybackTime);
+        }
     };
 
-    private readonly onPlaybackError: any = (err: any) => {
+    private readonly onError: any = (err: any) => {
         this.error$.next(err);
     };
 }
 
-export default new MusicKitPlayer(observeIsLoggedIn());
+export default new MusicKitPlayer();

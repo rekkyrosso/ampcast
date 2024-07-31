@@ -28,6 +28,10 @@ const appleSettings = {
         storage.setNumber('connectedAt', connectedAt);
     },
 
+    get credentialsRequired(): boolean {
+        return !am_dev_token;
+    },
+
     get devToken(): string {
         return am_dev_token || storage.getString('devToken');
     },
@@ -45,14 +49,6 @@ const appleSettings = {
 
     set favoriteSongsId(id: string) {
         storage.setString('favoriteSongsId', id);
-    },
-
-    get useMusicKitBeta(): boolean {
-        return storage.getBoolean('useMusicKitBeta', true);
-    },
-
-    set useMusicKitBeta(beta: boolean) {
-        storage.setBoolean('useMusicKitBeta', beta);
     },
 
     observeCredentials(this: unknown): Observable<AppleCredentials> {

@@ -1,0 +1,19 @@
+.mini-player {
+    position: absolute;
+    inset: 0;
+    overflow: hidden;
+
+    .app-title {
+        position: absolute;
+        left: var(--gutter-width);
+        top: calc(var(--gutter-width) / 2);
+    }
+
+    .app-drag-region {
+        height: 2rem;
+    }
+
+    .media {
+        top: calc(var(--gutter-width) / 2 + 2rem);
+    }
+}

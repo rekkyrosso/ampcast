@@ -2,14 +2,19 @@ import React, {memo, useCallback, useEffect, useState} from 'react';
 import {timer} from 'rxjs';
 import MediaType from 'types/MediaType';
 import Visualizer from 'types/Visualizer';
+import {browser, isMiniPlayer} from 'utils';
+import miniPlayer from 'services/mediaPlayback/miniPlayer';
 import {
-    observeLocked,
-    lock,
-    unlock,
+    lockVisualizer,
+    unlockVisualizer,
     nextVisualizer,
-    observeProviderId,
     observeCurrentVisualizers,
 } from 'services/visualizer';
+import {
+    observeVisualizerProviderId,
+    observeLockedVisualizer,
+} from 'services/visualizer/visualizerSettings';
+import AppTitle from 'components/App/AppTitle';
 import Icon from 'components/Icon';
 import IconButton from 'components/Button/IconButton';
 import IconButtons from 'components/Button/IconButtons';
@@ -19,6 +24,7 @@ import {VisualizerSettingsDialog} from 'components/Settings';
 import CurrentlyPlayingDialog from 'components/MediaInfo/CurrentlyPlayingDialog';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
+import usePreferences from 'hooks/usePreferences';
 import usePrevious from 'hooks/usePrevious';
 import usePaused from 'hooks/usePaused';
 import useVideoSourceIcon from './useVideoSourceIcon';
@@ -27,11 +33,19 @@ import ProgressBar from './ProgressBar';
 import Static from './Static';
 import './VisualizerControls.scss';
 
-export default memo(function VisualizerControls() {
+export interface VisualizerControlsProps {
+    fullscreen: boolean;
+    onFullscreenToggle: () => void;
+}
+
+export default memo(function VisualizerControls({
+    fullscreen,
+    onFullscreenToggle,
+}: VisualizerControlsProps) {
     const currentVisualizers = useObservable(observeCurrentVisualizers, []);
     const currentVisualizer = useCurrentVisualizer();
-    const locked = useObservable(observeLocked, false);
-    const providerId = useObservable(observeProviderId, '');
+    const locked = useObservable(observeLockedVisualizer, false);
+    const providerId = useObservable(observeVisualizerProviderId, '');
     const prevProviderId = usePrevious(providerId);
     const hasVisualizers = providerId !== 'none';
     const isRandom = !providerId;
@@ -40,8 +54,11 @@ export default memo(function VisualizerControls() {
     const videoSourceIcon = useVideoSourceIcon();
     const [nextClicked, setNextClicked] = useState(0);
     const paused = usePaused();
-    const isPlayingVideo = useCurrentlyPlaying()?.mediaType === MediaType.Video;
+    const currentlyPlaying = useCurrentlyPlaying();
+    const isPlayingVideo = currentlyPlaying?.mediaType === MediaType.Video;
     const noVisualizerReason = getNoVisualizerReason(currentVisualizer);
+    const preferences = usePreferences();
+    const miniPlayerEnabled = preferences.miniPlayer && !isMiniPlayer && !browser.isElectron;
 
     const openInfoDialog = useCallback(() => {
         showDialog(CurrentlyPlayingDialog);
@@ -54,7 +71,7 @@ export default memo(function VisualizerControls() {
     const handleNextClick = useCallback(() => {
         setNextClicked(nextClicked + 1);
         if (nextClicked === 0) {
-            setTimeout(() => nextVisualizer('click'));
+            setTimeout(() => nextVisualizer('next-clicked'));
         }
     }, [nextClicked]);
 
@@ -76,36 +93,42 @@ export default memo(function VisualizerControls() {
     return (
         <div className="visualizer-controls" style={nextClicked ? {opacity: '1'} : undefined}>
             {hasVisualizers && nextClicked && !paused ? <Static /> : null}
+            {isMiniPlayer ? <AppTitle /> : null}
             <IconButtons className="visualizer-buttons visualizer-controls-settings">
+                <IconButton icon="info" title="Info" tabIndex={-1} onClick={openInfoDialog} />
                 <IconButton
-                    className="with-overlay"
-                    icon="info"
-                    title="Info"
-                    tabIndex={-1}
-                    onClick={openInfoDialog}
-                />
-                <IconButton
-                    className="with-overlay"
                     icon="settings"
                     title="Settings"
                     tabIndex={-1}
                     onClick={openSettingsDialog}
                 />
+                <IconButton
+                    icon={fullscreen ? 'collapse' : 'expand'}
+                    title={fullscreen ? 'Restore' : 'Fullscreen'}
+                    tabIndex={-1}
+                    onClick={onFullscreenToggle}
+                />
+                {miniPlayerEnabled ? (
+                    <IconButton
+                        icon="link"
+                        title="Open playback in new window"
+                        tabIndex={-1}
+                        onClick={miniPlayer.open}
+                    />
+                ) : null}
             </IconButtons>
             {hasVisualizers ? (
                 <IconButtons className="visualizer-buttons visualizer-controls-selector">
-                    {canLock ? (
+                    {canLock || locked ? (
                         <IconButton
-                            className="with-overlay"
                             icon={locked ? 'locked' : 'unlocked'}
                             title={`${locked ? 'Unlock' : 'Lock the current visualizer'}`}
                             tabIndex={-1}
-                            onClick={locked ? unlock : lock}
+                            onClick={locked ? unlockVisualizer : lockVisualizer}
                         />
                     ) : null}
                     {hasNext ? (
                         <IconButton
-                            className="with-overlay"
                             icon="right"
                             title="Next visualizer"
                             tabIndex={-1}

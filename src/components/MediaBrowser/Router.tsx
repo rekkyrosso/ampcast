@@ -1,5 +1,6 @@
 import React, {useEffect} from 'react';
 import MediaFolderItem from 'types/MediaFolderItem';
+import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaSource from 'types/MediaSource';
 import ViewType from 'types/ViewType';
@@ -34,24 +35,41 @@ export default function Router<T extends MediaObject>({service, sources}: MediaB
         case 'lastfm/top/tracks':
         case 'lastfm/top/albums':
         case 'lastfm/top/artists':
-            return <LastFmTopBrowser source={source} />;
+            return <LastFmTopBrowser service={service} source={source} />;
 
         case 'listenbrainz/top/tracks':
         case 'listenbrainz/top/albums':
         case 'listenbrainz/top/artists':
-            return <ListenBrainzTopBrowser source={source} />;
+            return <ListenBrainzTopBrowser service={service} source={source} />;
 
         case 'lastfm/history':
-            return <LastFmHistoryBrowser />;
+            return (
+                <LastFmHistoryBrowser service={service} source={source as MediaSource<MediaItem>} />
+            );
 
         case 'listenbrainz/history':
-            return <ListenBrainzHistoryBrowser />;
+            return (
+                <ListenBrainzHistoryBrowser
+                    service={service}
+                    source={source as MediaSource<MediaItem>}
+                />
+            );
 
         case 'lastfm/recently-played':
-            return <LastFmRecentlyPlayedBrowser />;
+            return (
+                <LastFmRecentlyPlayedBrowser
+                    service={service}
+                    source={source as MediaSource<MediaItem>}
+                />
+            );
 
         case 'listenbrainz/recently-played':
-            return <ListenBrainzRecentlyPlayedBrowser />;
+            return (
+                <ListenBrainzRecentlyPlayedBrowser
+                    service={service}
+                    source={source as MediaSource<MediaItem>}
+                />
+            );
 
         default:
             switch (source?.viewType) {

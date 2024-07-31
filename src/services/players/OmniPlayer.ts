@@ -6,7 +6,6 @@ import {
     distinctUntilChanged,
     filter,
     merge,
-    of,
     switchMap,
 } from 'rxjs';
 import {SetReturnType} from 'type-fest';
@@ -96,7 +95,7 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
 
     observeCurrentTime(): Observable<number> {
         return this.observeCurrentPlayer().pipe(
-            switchMap((player) => (player ? player.observeCurrentTime() : of(0))),
+            switchMap((player) => (player ? player.observeCurrentTime() : EMPTY)),
             distinctUntilChanged()
         );
     }

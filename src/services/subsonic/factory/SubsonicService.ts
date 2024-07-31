@@ -32,6 +32,7 @@ import SubsonicApi from './SubsonicApi';
 import SubsonicSettings from './SubsonicSettings';
 import LibraryAction from 'types/LibraryAction';
 import SubsonicAuth from './SubsonicAuth';
+import subsonicScrobbler from './subsonicScrobbler';
 
 const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
     view: 'card compact',
@@ -564,10 +565,10 @@ export default class SubsonicService implements PersonalMediaService {
         if (itemType === ItemType.Album) {
             const id = await this.getAlbumDirectoryId(item);
             const directory = await this.api.getMusicDirectory(id);
-            return {...item, inLibrary: directory.starred};
+            return {...item, inLibrary: !!directory.starred};
         } else {
             const song = await this.api.getSong(id);
-            return {...item, inLibrary: song.starred};
+            return {...item, inLibrary: !!song.starred};
         }
     }
 
@@ -617,6 +618,10 @@ export default class SubsonicService implements PersonalMediaService {
                 break;
             }
         }
+    }
+
+    scrobble(): void {
+        subsonicScrobbler.scrobble(this, this.api);
     }
 
     private createRoot<T extends MediaObject>(

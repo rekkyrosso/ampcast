@@ -1,4 +1,5 @@
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
+import ItemType from 'types/ItemType';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
@@ -7,7 +8,6 @@ import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import {getService} from 'services/mediaServices';
 import {addMetadata} from 'services/musicbrainz/musicbrainzApi';
 import {Logger, partition} from 'utils';
-import {compareForRating} from './listenbrainz';
 import listenbrainzSettings from './listenbrainzSettings';
 
 const logger = new Logger('listenbrainzApi');
@@ -39,7 +39,7 @@ export class ListenBrainzApi {
 
             dispatchMediaObjectChanges(
                 items.map((item, index) => ({
-                    match: (object: MediaObject) => compareForRating(object, item),
+                    match: (object: MediaObject) => this.compareForRating(object, item),
                     values: {inLibrary: inLibrary[index]},
                 }))
             );
@@ -58,6 +58,27 @@ export class ListenBrainzApi {
                 track: items.map((item) => this.createTrack(item)),
             },
         });
+    }
+
+    compareForRating<T extends MediaObject>(a: T, b: T): boolean {
+        const [aService] = a.src.split(':');
+        const [bService] = b.src.split(':');
+
+        if (aService !== bService) {
+            return false;
+        }
+
+        switch (a.itemType) {
+            case ItemType.Media:
+                return (
+                    a.itemType === b.itemType &&
+                    ((!!a.recording_mbid && a.recording_mbid === b.recording_mbid) ||
+                        (!!a.recording_msid && a.recording_msid === b.recording_msid))
+                );
+
+            default:
+                return false;
+        }
     }
 
     async createPlaylist<T extends MediaItem>(

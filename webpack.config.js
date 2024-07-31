@@ -39,18 +39,21 @@ module.exports = (args) => {
                 'spotify-web-api-js',
                 'string-score',
                 'youtube-player',
-                // These are always included in `bundle.js`.
-                // Tree-shaking?
+                // These are always included in `bundle.js`. Tree-shaking?
                 // '@ctrl/tinycolor',
                 // 'rxjs',
             ],
-            'lib/visualizers': {
-                import: './src/services/visualizer/visualizers.ts',
-                dependOn: ['lib/vendors', 'bundle'],
-            },
             bundle: {
                 import: './src/index.tsx',
                 dependOn: ['lib/unidecode', 'lib/vendors'],
+            },
+            'lib/services': {
+                import: './src/services/services.ts',
+                dependOn: ['lib/vendors', 'bundle'],
+            },
+            'lib/visualizers': {
+                import: './src/services/visualizer/visualizers.ts',
+                dependOn: ['lib/vendors', 'bundle'],
             },
         },
         output: {
@@ -59,6 +62,18 @@ module.exports = (args) => {
         },
         optimization: {
             runtimeChunk: 'single',
+            // Concatenate CSS output into one file.
+            // The order is dependent on the order of the JS imports above.
+            splitChunks: {
+                cacheGroups: {
+                    styles: {
+                        name: 'styles',
+                        type: 'css/mini-extract',
+                        chunks: 'all',
+                        enforce: true,
+                    },
+                },
+            },
         },
         module: {
             rules: [
@@ -93,7 +108,7 @@ module.exports = (args) => {
                 extensions: ['.tsx', '.ts'],
             }),
             new MiniCssExtractPlugin({
-                filename: '[name].css',
+                filename: 'bundle.css',
             }),
             new webpack.ProvidePlugin({
                 Buffer: ['buffer', 'Buffer'],

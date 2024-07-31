@@ -1,5 +1,7 @@
 import type {Observable} from 'rxjs';
 
+// All times are in seconds.
+
 export default interface Player<T> {
     autoplay: boolean;
     hidden: boolean;

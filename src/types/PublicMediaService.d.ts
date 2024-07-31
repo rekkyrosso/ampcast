@@ -4,5 +4,6 @@ import ServiceType from './ServiceType';
 
 export default interface PublicMediaService extends BaseMediaService {
     readonly serviceType: ServiceType.PublicMedia;
-    readonly primaryMediaType: MediaType;
+    // Everything below here should be optional.
+    readonly primaryMediaType?: MediaType;
 }

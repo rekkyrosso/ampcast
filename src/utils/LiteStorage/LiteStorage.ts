@@ -1,12 +1,13 @@
-import Logger from '../Logger';
+import type {Observable} from 'rxjs';
+import {filter, fromEvent, map, merge, Subject} from 'rxjs';
 import memoryStorage from './memoryStorage';
-
-const logger = new Logger('LiteStorage');
 
 export default class LiteStorage {
     private static readonly ids: string[] = [];
+    private static readonly event$ = fromEvent<StorageEvent>(window, 'storage');
     readonly id: string;
     private readonly storage: Storage;
+    private readonly changes$ = new Subject<void>();
 
     constructor(id: string, storage: 'local' | 'session' | 'memory' = 'local') {
         const storageId = `${storage}-${id}`;
@@ -33,6 +34,19 @@ export default class LiteStorage {
         }
     }
 
+    observeChanges(): Observable<void> {
+        return merge(
+            this.changes$,
+            LiteStorage.event$.pipe(
+                filter(
+                    (event) =>
+                        !!event.key?.startsWith(`${this.id}/`) && event.storageArea === this.storage
+                ),
+                map(() => undefined)
+            )
+        );
+    }
+
     getBoolean(key: string, defaultValue = false): boolean {
         const value = this.getItem(key) ?? defaultValue;
         return !!value && value !== 'false';
@@ -49,7 +63,7 @@ export default class LiteStorage {
         try {
             return json ? JSON.parse(json) : defaultValue;
         } catch (err) {
-            logger.error(err);
+            console.error(err);
         }
         return defaultValue;
     }
@@ -62,7 +76,7 @@ export default class LiteStorage {
                 this.setItem(key, JSON.stringify(value));
             }
         } catch (err) {
-            logger.error(err);
+            console.error(err);
         }
     }
 
@@ -98,10 +112,12 @@ export default class LiteStorage {
         } else {
             this.storage.setItem(key, value);
         }
+        this.changes$.next();
     }
 
     removeItem(key: string): void {
         this.storage.removeItem(`${this.id}/${key}`);
+        this.changes$.next();
     }
 
     clear(): void {
@@ -114,5 +130,6 @@ export default class LiteStorage {
             }
         }
         keys.forEach((key) => this.storage.removeItem(key));
+        this.changes$.next();
     }
 }

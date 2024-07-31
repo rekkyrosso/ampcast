@@ -1,16 +1,19 @@
-import {skipWhile, tap, withLatestFrom} from 'rxjs';
+import {fromEvent, of, skipWhile, switchMap, takeUntil, tap} from 'rxjs';
 import Player from 'types/Player';
 import Visualizer from 'types/Visualizer';
 import audio from 'services/audio';
 import OmniPlayer from 'services/players/OmniPlayer';
-import {Logger} from 'utils';
 import {
     getVisualizerProvider,
     observeVisualizerProviders,
 } from 'services/visualizer/visualizerProviders';
-import {nextVisualizer, observeCurrentVisualizer} from 'services/visualizer';
+import {nextVisualizer, noVisualizer, observeCurrentVisualizer} from 'services/visualizer';
+import {Logger} from 'utils';
+import miniPlayer from './miniPlayer';
 
 const logger = new Logger('visualizerPlayer');
+
+const killed$ = fromEvent(window, 'pagehide');
 
 function selectPlayer(visualizer: Visualizer): Player<Visualizer> | null {
     return getVisualizerProvider(visualizer.providerId)?.player || null;
@@ -30,28 +33,28 @@ visualizerPlayer.loop = true;
 visualizerPlayer.muted = true;
 visualizerPlayer.volume = 0.07;
 
+observeVisualizerProviders()
+    .pipe(
+        skipWhile((providers) => providers.length === 0),
+        tap((providers) =>
+            visualizerPlayer.registerPlayers(
+                providers.map((provider) => provider.createPlayer(audio))
+            )
+        ),
+        switchMap(() => miniPlayer.observeActive()),
+        switchMap((active) => (active ? of(noVisualizer) : observeCurrentVisualizer())),
+        tap((visualizer) => visualizerPlayer.load(visualizer)),
+        takeUntil(killed$)
+    )
+    .subscribe(logger);
+
 visualizerPlayer
     .observeError()
     .pipe(
         tap(logger.error),
-        tap(() => nextVisualizer('error'))
+        tap(() => nextVisualizer('error')),
+        takeUntil(killed$)
     )
-    .subscribe(logger);
-
-observeVisualizerProviders()
-    .pipe(
-        skipWhile((providers) => providers.length === 0),
-        withLatestFrom(audio.observeReady()),
-        tap(([providers, audio]) =>
-            visualizerPlayer.registerPlayers(
-                providers.map((provider) => provider.createPlayer(audio))
-            )
-        )
-    )
-    .subscribe(logger);
-
-observeCurrentVisualizer()
-    .pipe(tap((visualizer) => visualizerPlayer.load(visualizer)))
     .subscribe(logger);
 
 export default visualizerPlayer;

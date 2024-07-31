@@ -23,7 +23,7 @@ export default function AppearanceSettingsGeneral() {
         const systemStyle = document.getElementById('system')!.style;
         systemStyle.setProperty('--font-size', String(theme.fontSize));
         return () => {
-            theme.restore();
+            theme.load();
             systemStyle.removeProperty('--font-size');
         };
     }, []);

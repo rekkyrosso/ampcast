@@ -1,13 +1,13 @@
 import React, {useCallback, useId, useRef} from 'react';
-import AppCredentials from 'components/Settings/MediaLibrarySettings/AppCredentials';
-import AppCredential from 'components/Settings/MediaLibrarySettings/AppCredential';
+import DialogButtons from 'components/Dialog/DialogButtons';
+import Credentials from 'components/Settings/MediaLibrarySettings/Credentials';
+import {MediaServiceCredentialsProps} from 'components/Settings/MediaLibrarySettings/MediaServiceCredentials';
 import ExternalLink from 'components/ExternalLink';
 import Icon from 'components/Icon';
 import appleSettings from '../appleSettings';
-import apple from '../apple';
 import useCredentials from './useCredentials';
 
-export default function AppleCredentials() {
+export default function AppleCredentials({service: apple}: MediaServiceCredentialsProps) {
     const id = useId();
     const {devToken} = useCredentials();
     const devTokenRef = useRef<HTMLInputElement>(null);
@@ -20,13 +20,13 @@ export default function AppleCredentials() {
                 await apple.logout();
             }
         }
-    }, []);
+    }, [apple]);
 
     return (
-        <AppCredentials className="apple-credentials" onSubmit={handleSubmit}>
+        <form className="apple-credentials" method="dialog" onSubmit={handleSubmit}>
             <fieldset>
                 <legend>Your App</legend>
-                <AppCredential
+                <Credentials
                     label="Developer Token"
                     name="apple-dev-token"
                     defaultValue={devToken}
@@ -43,7 +43,7 @@ export default function AppleCredentials() {
                     </ExternalLink>
                 </p>
             </fieldset>
-            <fieldset className="app-credentials-requirements note">
+            <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
                 <p>Enabled Services:</p>
                 <ul>
@@ -53,6 +53,7 @@ export default function AppleCredentials() {
                     </li>
                 </ul>
             </fieldset>
-        </AppCredentials>
+            <DialogButtons />
+        </form>
     );
 }

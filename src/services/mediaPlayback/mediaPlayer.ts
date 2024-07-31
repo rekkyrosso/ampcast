@@ -45,16 +45,18 @@ function selectPlayer(item: PlaylistItem | null): Player<PlayableItem> | null {
 }
 
 function loadPlayer(player: Player<PlayableItem>, item: PlaylistItem | null): void {
-    player.load(getMediaSource(item));
+    player.load(getPlayableItem(item));
 }
 
-function getMediaSource(item: PlaylistItem | null): PlayableItem {
+function getPlayableItem(item: PlaylistItem | null): PlayableItem {
     if (!item) {
         throw Error('No source');
     } else if (item.unplayable) {
         throw Error('Unplayable');
+    } else if (item.blobUrl) {
+        return {...item, src: item.blobUrl};
     } else if (item.blob) {
-        return {src: URL.createObjectURL(item.blob)};
+        return {...item, src: URL.createObjectURL(item.blob)};
     } else {
         return item;
     }

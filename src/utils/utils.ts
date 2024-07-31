@@ -1,4 +1,12 @@
-import stringScore from 'string-score';
+export const isMiniPlayer = !!(
+    opener?.origin === location.origin &&
+    window.name === sessionStorage.getItem('ampcast/session/miniPlayerId') &&
+    location.hash === '#mini-player'
+);
+
+export function isFullscreenMedia(): boolean {
+    return document.fullscreenElement?.id === 'media' || isMiniPlayer;
+}
 
 export function exists<T>(value: T): value is NonNullable<T> {
     return value != null;
@@ -202,10 +210,6 @@ export function filterNotEmpty<T>(
     return newValues.length === 0 ? values.slice() : newValues;
 }
 
-export function fuzzyCompare(a: string, b: string, tolerance = 0.9): boolean {
-    return Math.max(stringScore(a, b, 0.99), stringScore(b, a, 0.99)) >= tolerance;
-}
-
 export function getTextFromHtml(html = ''): string {
     const element = document.createElement('p');
     const paragraphs = String(html ?? '')
@@ -221,7 +225,7 @@ export function getTextFromHtml(html = ''): string {
 
 export function saveTextToFile(fileName: string, text: string, type = 'text/json'): void {
     const link = document.createElement('a');
-    link.href = window.URL.createObjectURL(new Blob([text], {type}));
+    link.href = URL.createObjectURL(new Blob([text], {type}));
     link.download = fileName;
     link.type = type;
     link.click();

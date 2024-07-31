@@ -1,13 +1,13 @@
 import React, {useCallback, useId, useRef} from 'react';
-import AppCredentials from 'components/Settings/MediaLibrarySettings/AppCredentials';
-import AppCredential from 'components/Settings/MediaLibrarySettings/AppCredential';
+import DialogButtons from 'components/Dialog/DialogButtons';
+import Credentials from 'components/Settings/MediaLibrarySettings/Credentials';
+import {MediaServiceCredentialsProps} from 'components/Settings/MediaLibrarySettings/MediaServiceCredentials';
 import ExternalLink from 'components/ExternalLink';
 import Icon from 'components/Icon';
 import spotifySettings from '../spotifySettings';
-import spotify from '../spotify';
 import useCredentials from './useCredentials';
 
-export default function SpotifyCredentials() {
+export default function SpotifyCredentials({service: spotify}: MediaServiceCredentialsProps) {
     const id = useId();
     const {clientId} = useCredentials();
     const clientIdRef = useRef<HTMLInputElement>(null);
@@ -20,13 +20,13 @@ export default function SpotifyCredentials() {
                 await spotify.logout();
             }
         }
-    }, []);
+    }, [spotify]);
 
     return (
-        <AppCredentials className="spotify-credentials" onSubmit={handleSubmit}>
+        <form className="spotify-credentials" method="dialog" onSubmit={handleSubmit}>
             <fieldset>
                 <legend>Your App</legend>
-                <AppCredential
+                <Credentials
                     label="Client ID"
                     name="spotify-client-id"
                     defaultValue={clientId}
@@ -43,7 +43,7 @@ export default function SpotifyCredentials() {
                     </ExternalLink>
                 </p>
             </fieldset>
-            <fieldset className="app-credentials-requirements note">
+            <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
                 <p>
                     <label htmlFor={`${id}-callback`}>Redirect URI:</label>
@@ -66,6 +66,7 @@ export default function SpotifyCredentials() {
                     </li>
                 </ul>
             </fieldset>
-        </AppCredentials>
+            <DialogButtons />
+        </form>
     );
 }

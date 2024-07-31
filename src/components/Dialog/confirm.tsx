@@ -47,7 +47,7 @@ export type ConfirmDialogProps = DialogProps & ConfirmOptions;
 export function ConfirmDialog({
     title = 'Confirm',
     message,
-    okLabel = 'OK',
+    okLabel = 'Confirm',
     storageId,
     ...props
 }: ConfirmDialogProps) {

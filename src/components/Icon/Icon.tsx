@@ -42,6 +42,8 @@ export type IconName =
     | 'plus'
     | 'tick'
     | 'tick-fill'
+    | 'expand'
+    | 'collapse'
     | 'folder'
     | 'folder-up'
     | 'file-audio'
@@ -170,7 +172,7 @@ export default function Icon({name, className = ''}: IconProps) {
 
         case 'info':
             return (
-                <svg className={className} viewBox="0 0 512 512">
+                <svg className={className} viewBox="0 0 526 512">
                     <path d="M256 8C119.043 8 8 119.083 8 256c0 136.997 111.043 248 248 248s248-111.003 248-248C504 119.083 392.957 8 256 8zm0 110c23.196 0 42 18.804 42 42s-18.804 42-42 42-42-18.804-42-42 18.804-42 42-42zm56 254c0 6.627-5.373 12-12 12h-88c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h12v-64h-12c-6.627 0-12-5.373-12-12v-24c0-6.627 5.373-12 12-12h64c6.627 0 12 5.373 12 12v100h12c6.627 0 12 5.373 12 12v24z" />
                 </svg>
             );
@@ -376,9 +378,29 @@ export default function Icon({name, className = ''}: IconProps) {
                 </svg>
             );
 
+        case 'expand':
+            return (
+                <svg className={className} viewBox="0 0 24 24" transform="scale(1.2)">
+                    <path
+                        stroke="none"
+                        d="M7 14H5v5h5v-2H7zm-2-4h2V7h3V5H5zm12 7h-3v2h5v-5h-2zM14 5v2h3v3h2V5z"
+                    />
+                </svg>
+            );
+
+        case 'collapse':
+            return (
+                <svg className={className} viewBox="0 0 24 24" transform="scale(1.2)">
+                    <path
+                        stroke="none"
+                        d="M5 16h3v3h2v-5H5zm3-8H5v2h5V5H8zm6 11h2v-3h3v-2h-5zm2-11V5h-2v5h5V8z"
+                    />
+                </svg>
+            );
+
         case 'folder':
             return (
-                <svg className={className} viewBox="0 0 24 24" transform="scale(1.25)">
+                <svg className={className} viewBox="0 0 24 24" transform="scale(1.2)">
                     <path
                         stroke="none"
                         d="m9.17 6 2 2H20v10H4V6h5.17M10 4H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2h-8l-2-2z"
@@ -388,7 +410,7 @@ export default function Icon({name, className = ''}: IconProps) {
 
         case 'folder-up':
             return (
-                <svg className={className} viewBox="0 0 24 24" transform="scale(1.25)">
+                <svg className={className} viewBox="0 0 24 24" transform="scale(1.2)">
                     <path
                         stroke="none"
                         d="M20 6h-8l-2-2H4c-1.1 0-1.99.9-1.99 2L2 18c0 1.1.9 2 2 2h16c1.1 0 2-.9 2-2V8c0-1.1-.9-2-2-2zm0 12H4V6h5.17l2 2H20v10zM9.41 14.42 11 12.84V17h2v-4.16l1.59 1.59L16 13.01 12.01 9 8 13.01l1.41 1.41z"

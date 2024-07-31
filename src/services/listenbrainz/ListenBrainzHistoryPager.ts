@@ -16,7 +16,7 @@ import Pager, {Page} from 'types/Pager';
 import {getLookupServices} from 'services/mediaServices';
 import {musicBrainzHost} from 'services/musicbrainz';
 import SequentialPager from 'services/pagers/SequentialPager';
-import {getYouTubeSrc, getYouTubeUrl} from 'services/youtube';
+import youtubeApi from 'services/youtube/youtubeApi';
 import {Logger} from 'utils';
 import listenbrainzApi from './listenbrainzApi';
 import listenbrainzSettings from './listenbrainzSettings';
@@ -159,7 +159,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             if (/youtu\.?be/.test(url)) {
                 const videoId = getYouTubeID(url);
                 if (videoId) {
-                    return getYouTubeUrl(videoId);
+                    return youtubeApi.getVideoUrl(videoId);
                 }
             }
         }
@@ -185,7 +185,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
                     return 'tidal:';
                 }
                 if (/youtu\.?be/.test(url)) {
-                    return getYouTubeSrc(url);
+                    return youtubeApi.getVideoSrc(url);
                 }
             }
             const musicServiceName = info.music_service_name?.toLowerCase() || '';

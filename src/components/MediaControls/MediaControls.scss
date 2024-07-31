@@ -78,21 +78,17 @@
             .app.flat & {
                 background-image: var(--smiley);
             }
-
-            .media-playback.paused & {
-                background-image: var(--media-button-background);
-            }
         }
 
         &:disabled {
             pointer-events: none;
         }
 
-        &:not([value="0"])::-webkit-slider-thumb {
+        &:not(:disabled):not([value="0"])::-webkit-slider-thumb {
             @include smiley-thumb;
         }
 
-        &:not([value="0"])::-moz-range-thumb {
+        &:not(:disabled):not([value="0"])::-moz-range-thumb {
             @include smiley-thumb;
         }
     }

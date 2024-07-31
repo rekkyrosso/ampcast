@@ -236,10 +236,16 @@ async function getUserInfo(): Promise<void> {
         }
     };
     const getCategories = async () => {
-        if (!spotifySettings.chartsCategoryId) {
-            const {categories} = await spotifyApi.getCategories({limit: 50, locale: 'en_GB'});
-            const chartsCategory = categories.items.find((category) => category.name === 'Charts');
-            spotifySettings.chartsCategoryId = chartsCategory?.id || '';
+        try {
+            if (!spotifySettings.chartsCategoryId) {
+                const {categories} = await spotifyApi.getCategories({limit: 50, locale: 'en_GB'});
+                const chartsCategory = categories.items.find(
+                    (category) => category.name === 'Charts'
+                );
+                spotifySettings.chartsCategoryId = chartsCategory?.id || '';
+            }
+        } catch (err) {
+            logger.error(err);
         }
     };
     await Promise.all([getMe(), getCategories()]);

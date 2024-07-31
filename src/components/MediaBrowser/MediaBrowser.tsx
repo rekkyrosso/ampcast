@@ -4,7 +4,7 @@ import MediaObject from 'types/MediaObject';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import Login from 'components/Login';
-import useObservable from 'hooks/useObservable';
+import useIsLoggedIn from 'hooks/useIsLoggedIn';
 import useIsOnLine from 'hooks/useIsOnLine';
 import NoInternetError from './NoInternetError';
 import useErrorScreen from './useErrorScreen';
@@ -21,7 +21,7 @@ export default function MediaBrowser<T extends MediaObject>({
     sources,
 }: MediaBrowserProps<T>) {
     const isOnLine = useIsOnLine();
-    const isLoggedIn = useObservable(service.observeIsLoggedIn, service.isLoggedIn());
+    const isLoggedIn = useIsLoggedIn(service);
     const renderError = useErrorScreen(service, sources);
 
     return (

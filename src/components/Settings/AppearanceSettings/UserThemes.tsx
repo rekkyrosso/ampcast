@@ -114,7 +114,7 @@ export default function UserThemes() {
                 </button>
             </p>
             <fieldset className="user-themes-import">
-                <legend>Import themes</legend>
+                <legend>Import theme</legend>
                 <p>
                     <input
                         type="file"

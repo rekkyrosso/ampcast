@@ -1,7 +1,6 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import {AmpShaderVisualizer} from 'types/Visualizer';
-import visualizerSettings from 'services/visualizer/visualizerSettings';
 
 const visualizers$ = new BehaviorSubject<readonly AmpShaderVisualizer[]>([]);
 
@@ -24,8 +23,4 @@ async function loadVisualizers(): Promise<void> {
     }
 }
 
-if (visualizerSettings.provider === 'ampshader') {
-    loadVisualizers();
-} else {
-    setTimeout(loadVisualizers, 1000);
-}
+loadVisualizers();

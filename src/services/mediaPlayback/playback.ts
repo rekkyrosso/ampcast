@@ -1,4 +1,3 @@
-import {nanoid} from 'nanoid';
 import type {Observable} from 'rxjs';
 import {
     BehaviorSubject,
@@ -6,23 +5,15 @@ import {
     filter,
     map,
     switchMap,
-    take,
     takeUntil,
     throttleTime,
 } from 'rxjs';
-import PlaybackState from 'types/PlaybackState';
+import {nanoid} from 'nanoid';
+import PlaylistItem from 'types/PlaylistItem';
 import Playback from 'types/Playback';
-import {observeCurrentItem} from 'services/playlist';
-
-export const defaultPlaybackState: PlaybackState = {
-    currentItem: null,
-    currentTime: 0,
-    startedAt: 0,
-    endedAt: 0,
-    duration: 0,
-    paused: true,
-    playbackId: '',
-};
+import PlaybackState from 'types/PlaybackState';
+import miniPlayer from './miniPlayer';
+import defaultPlaybackState from './defaultPlaybackState';
 
 const newSession = () => ({
     startedAt: 0,
@@ -30,22 +21,18 @@ const newSession = () => ({
     playbackId: nanoid(),
 });
 
-const playbackReady$ = new BehaviorSubject(false);
 const playbackState$ = new BehaviorSubject<PlaybackState>({
     ...defaultPlaybackState,
     ...newSession(),
 });
 
-export function observePlaybackReady(): Observable<void> {
-    return playbackReady$.pipe(
-        filter((ready) => ready),
-        take(1),
-        map(() => undefined)
-    );
-}
+let suspended = false;
 
 export function observePlaybackState(): Observable<PlaybackState> {
-    return playbackState$;
+    return miniPlayer.observeActive().pipe(
+        switchMap((active) => (active ? miniPlayer.observePlaybackState() : playbackState$)),
+        filter(() => !suspended)
+    );
 }
 
 export function observePlaybackStart(): Observable<PlaybackState> {
@@ -73,6 +60,13 @@ export function observePlaybackProgress(interval = 10_000): Observable<PlaybackS
     );
 }
 
+export function observeCurrentItem(): Observable<PlaylistItem | null> {
+    return observePlaybackState().pipe(
+        map((state) => state.currentItem),
+        distinctUntilChanged()
+    );
+}
+
 export function observeCurrentTime(): Observable<number> {
     return observePlaybackState().pipe(
         map((state) => state.currentTime),
@@ -95,20 +89,45 @@ export function observePaused(): Observable<boolean> {
 }
 
 export function getPlaybackId(): string {
-    const state = playbackState$.getValue();
-    return state.playbackId;
+    return miniPlayer.active ? miniPlayer.playbackId : playbackState$.value.playbackId;
+}
+
+export function getPlaybackState(): PlaybackState {
+    return miniPlayer.active ? miniPlayer.getPlaybackState() : playbackState$.value;
+}
+
+function getCurrentItem(): PlaylistItem | null {
+    return miniPlayer.active ? miniPlayer.currentItem : playbackState$.value.currentItem;
+}
+
+function setCurrentItem(currentItem: PlaylistItem | null): void {
+    const state = playbackState$.value;
+    const startTime = currentItem?.startTime;
+    if (currentItem?.id === state.currentItem?.id) {
+        // Refresh the item, but no play states have changed.
+        const currentTime = startTime === undefined ? state.currentTime : startTime;
+        playbackState$.next({...state, currentItem, currentTime});
+    } else {
+        if (state.startedAt && !state.endedAt) {
+            playbackState$.next({...state, endedAt: Date.now()});
+        }
+        playbackState$.next({
+            ...state,
+            ...newSession(),
+            currentItem,
+            currentTime: startTime || 0,
+            duration: currentItem?.duration || 0,
+        });
+    }
 }
 
 function getCurrentTime(): number {
-    return playbackState$.getValue().currentTime;
+    return miniPlayer.active ? miniPlayer.currentTime : playbackState$.value.currentTime;
 }
 
 function setCurrentTime(currentTime: number): void {
-    const state = playbackState$.getValue();
-    currentTime = Math.max(
-        Math.min(Math.floor(isFinite(currentTime) ? currentTime : 0), state.duration),
-        0
-    );
+    const state = playbackState$.value;
+    currentTime = Math.max(Math.min(isFinite(currentTime) ? currentTime : 0, state.duration), 0);
     if (currentTime !== state.currentTime) {
         playbackState$.next({
             ...state,
@@ -118,12 +137,12 @@ function setCurrentTime(currentTime: number): void {
 }
 
 function getDuration(): number {
-    return playbackState$.getValue().duration;
+    return miniPlayer.active ? miniPlayer.duration : playbackState$.value.duration;
 }
 
 function setDuration(duration: number): void {
-    const state = playbackState$.getValue();
-    duration = Math.max(Math.floor(isFinite(duration) ? duration : 0), 0);
+    const state = playbackState$.value;
+    duration = Math.max(isFinite(duration) ? duration : 0, 0);
     if (duration !== state.duration) {
         const currentTime = Math.min(state.currentTime, duration);
         playbackState$.next({
@@ -135,7 +154,7 @@ function setDuration(duration: number): void {
 }
 
 function play(): void {
-    const state = playbackState$.getValue();
+    const state = playbackState$.value;
     if (state.currentItem && state.paused) {
         playbackState$.next({
             ...state,
@@ -145,7 +164,7 @@ function play(): void {
 }
 
 function pause(): void {
-    const state = playbackState$.getValue();
+    const state = playbackState$.value;
     if (!state.paused) {
         playbackState$.next({
             ...state,
@@ -154,12 +173,8 @@ function pause(): void {
     }
 }
 
-function ready(): void {
-    playbackReady$.next(true);
-}
-
 function stop(): void {
-    const state = playbackState$.getValue();
+    const state = playbackState$.value;
     if (
         !state.paused ||
         state.currentTime !== 0 ||
@@ -182,7 +197,7 @@ function stop(): void {
 }
 
 function started(): void {
-    const state = playbackState$.getValue();
+    const state = playbackState$.value;
     if (!state.startedAt) {
         playbackState$.next({
             ...state,
@@ -192,7 +207,7 @@ function started(): void {
 }
 
 function ended(): void {
-    const state = playbackState$.getValue();
+    const state = playbackState$.value;
     if (state.startedAt) {
         if (!state.endedAt) {
             playbackState$.next({...state, endedAt: Date.now()});
@@ -204,48 +219,53 @@ function ended(): void {
     }
 }
 
-observeCurrentItem().subscribe((currentItem) => {
-    const state = playbackState$.getValue();
-    if (currentItem?.id === state.currentItem?.id) {
-        // Refresh the item, but no play states have changed.
-        playbackState$.next({...state, currentItem});
-    } else {
-        if (state.startedAt && !state.endedAt) {
-            playbackState$.next({...state, endedAt: Date.now()});
-        }
-        playbackState$.next({
-            ...state,
-            ...newSession(),
-            currentItem,
-            currentTime: 0,
-            duration: currentItem?.duration || 0,
-        });
-    }
-});
+function suspend(): void {
+    suspended = true;
+}
+
+function unsuspend(): void {
+    suspended = false;
+}
 
 const playback: Playback = {
-    get paused(): boolean {
-        return playbackState$.getValue().paused;
+    get currentItem(): PlaylistItem | null {
+        return getCurrentItem();
     },
-    observePlaybackReady,
+    set currentItem(currentItem: PlaylistItem | null) {
+        setCurrentItem(currentItem);
+    },
+    get currentTime(): number {
+        return getCurrentTime();
+    },
+    set currentTime(currentTime: number) {
+        setCurrentTime(currentTime);
+    },
+    get duration(): number {
+        return getDuration();
+    },
+    set duration(duration: number) {
+        setDuration(duration);
+    },
+    get paused(): boolean {
+        return miniPlayer.active ? miniPlayer.paused : playbackState$.value.paused;
+    },
     observePlaybackState,
     observePlaybackStart,
     observePlaybackEnd,
     observePlaybackProgress,
+    observeCurrentItem,
     observeCurrentTime,
     observeDuration,
     observePaused,
-    getCurrentTime,
-    setCurrentTime,
-    getDuration,
-    setDuration,
     getPlaybackId,
+    getPlaybackState,
+    ended,
     play,
     pause,
-    ready,
-    stop,
     started,
-    ended,
+    stop,
+    suspend,
+    unsuspend,
 };
 
 export default playback;

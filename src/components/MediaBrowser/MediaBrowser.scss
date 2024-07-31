@@ -55,6 +55,8 @@
     }
 
     .options {
+        margin-bottom: calc(var(--gutter-width) / 2);
+
         ul {
             display: block;
             text-align: center;
@@ -65,8 +67,6 @@
             vertical-align: middle;
             margin: 0 0.5em;
         }
-
-        margin-bottom: calc(var(--gutter-width) / 2);
     }
 
     &.plex-browser .source-plex-tidal .star-rating {

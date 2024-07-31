@@ -6,7 +6,6 @@ import RestrictedAccessWarning from 'components/Login/RestrictedAccessWarning';
 import LoginButton from 'components/Login/LoginButton';
 import ServiceLink from 'components/Login/ServiceLink';
 import useGoogleClientLibrary from './useGoogleClientLibrary';
-import YouTubeCredentialsDialog from './YouTubeCredentialsDialog';
 import useCredentials from './useCredentials';
 
 export default function YouTubeLogin({service: youtube}: LoginProps) {
@@ -25,7 +24,7 @@ export default function YouTubeLogin({service: youtube}: LoginProps) {
             ) : (
                 <>
                     <CredentialsRequired service={youtube} />
-                    <CredentialsButton dialog={YouTubeCredentialsDialog} />
+                    <CredentialsButton service={youtube} />
                     <LoginNotRequired />
                 </>
             )}

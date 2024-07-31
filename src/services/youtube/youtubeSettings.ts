@@ -22,6 +22,10 @@ const youtubeSettings = {
         }
     },
 
+    get credentialsRequired(): boolean {
+        return !yt_client_id;
+    },
+
     get disabled(): boolean {
         return __youtube_disabled__ && !storage.getBoolean('enabled');
     },

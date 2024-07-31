@@ -1,4 +1,3 @@
-import getYouTubeID from 'get-youtube-id';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import MediaItem from 'types/MediaItem';
 import ItemType from 'types/ItemType';
@@ -26,8 +25,6 @@ import {
 import YouTubePager from './YouTubePager';
 import youtubeSettings from './youtubeSettings';
 import youtubeApi from './youtubeApi';
-
-export const youtubeHost = `https://www.youtube.com`;
 
 const defaultLayout: MediaSourceLayout<MediaItem> = {
     view: 'card',
@@ -91,80 +88,11 @@ const youtubePlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
-export function getYouTubeSrc(url = ''): string {
-    if (url.startsWith('youtube:')) {
-        return url;
-    }
-    const videoId = getYouTubeID(url);
-    if (videoId) {
-        return `youtube:video:${videoId}`;
-    }
-    if (/youtu\.?be/.test(url)) {
-        const params = new URLSearchParams(new URL(url).search);
-        const playlistId = params.get('list') || '';
-        if (playlistId) {
-            return `youtube:playlist:${playlistId}`;
-        }
-    }
-    return '';
-}
-
-export function getYouTubeUrl(videoId: string): string {
-    return `${youtubeHost}/watch?v=${videoId}`;
-}
-
-export async function getYouTubeVideoInfo(videoId: string): Promise<MediaItem> {
-    const url = getYouTubeUrl(videoId);
-    const response = await fetch(`${youtubeHost}/oembed?url=${url}&format=json`);
-
-    if (!response.ok) {
-        switch (response.status) {
-            case 401:
-                throw Error('Embedding prevented by channel owner');
-
-            case 403:
-                throw Error('Private video');
-
-            case 404:
-                throw Error('Video does not exist');
-
-            default:
-                throw Error(`${response.statusText} (${response.status})`);
-        }
-    }
-
-    const video = await response.json();
-
-    return {
-        itemType: ItemType.Media,
-        mediaType: MediaType.Video,
-        playbackType: PlaybackType.IFrame,
-        src: `youtube:video:${videoId}`,
-        externalUrl: url,
-        title: video.title,
-        aspectRatio: video.width / video.height || 16 / 9,
-        duration: 0,
-        track: 0,
-        thumbnails: [
-            {
-                url: video.thumbnail_url,
-                width: video.thumbnail_width,
-                height: video.thumbnail_height,
-            },
-        ],
-        owner: {
-            name: video.author_name,
-            url: video.author_url,
-        },
-        playedAt: 0,
-    };
-}
-
 const youtube: PublicMediaService = {
     id: 'youtube',
     name: 'YouTube',
     icon: 'youtube',
-    url: youtubeHost,
+    url: 'https://www.youtube.com',
     credentialsUrl: 'https://console.cloud.google.com/apis/credentials',
     serviceType: ServiceType.PublicMedia,
     primaryMediaType: MediaType.Video,
@@ -174,6 +102,9 @@ const youtube: PublicMediaService = {
     defaultHidden: true,
     defaultNoScrobble: true,
     internetRequired: true,
+    get credentialsRequired(): boolean {
+        return youtubeSettings.credentialsRequired;
+    },
     restrictedAccess: location.host === 'ampcast.app' || browser.isElectron,
     editablePlaylists: youtubePlaylists,
     roots: [

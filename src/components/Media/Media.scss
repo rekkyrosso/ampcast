@@ -1,18 +1,25 @@
 .media {
+    --progress-bar-height: 6px;
+    --progress-bar-background-color: rgba(128, 128, 128, 0.5);
+    --progress-bar-color: rgba(255, 255, 255, 0.8);
     background: var(--black);
     border-radius: calc(var(--roundness) * 1rem);
     user-select: none;
     contain: strict;
     overflow: hidden;
 
-    &:fullscreen {
-        background: black;
-        border-radius: 0;
-        inset: 0;
-        font-size: 3vw;
-        border-radius: 0;
+    /* Fullscreen or mini-player. */
+    &.fullscreen {
+        font-size: max(3vw, 3vh, 1rem);
 
-        &.idle {
+        /* Actual fullscreen. */
+        &:fullscreen {
+            background: black;
+            border-radius: 0;
+            inset: 0;
+        }
+
+        &:not(.paused).idle {
             cursor: none;
         }
     }
@@ -52,7 +59,7 @@
 
     &-state {
         position: absolute;
-        bottom: 0.5em;
+        bottom: 1em;
         width: 100%;
         font-size: 0.75em;
         color: rgba(238, 238, 238, 0.6);
@@ -60,14 +67,14 @@
         line-height: 1;
     }
 
-    &:fullscreen &-state {
-        bottom: 0.375em;
-        font-size: 0.375em;
+    &.fullscreen &-state {
+        bottom: 1.5em;
+        font-size: max(0.375em, 12px);
     }
 
-    &.loaded .playback-state {
+    &:not(.paused):not(.mini-player-active).loaded .playback-state {
         opacity: 0;
-        transition: opacity linear 1s;
+        transition: opacity 1s linear;
     }
 
     &.error .playback-state {

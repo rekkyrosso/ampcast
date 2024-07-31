@@ -28,7 +28,7 @@ import {
     observeLookupCancelledEvents,
 } from 'services/lookup';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
-import {bestOf, exists, removeUserData, shuffle as shuffleArray, Logger} from 'utils';
+import {bestOf, exists, isMiniPlayer, removeUserData, shuffle as shuffleArray, Logger} from 'utils';
 
 const logger = new Logger('playlist');
 
@@ -43,7 +43,7 @@ const items$ = new BehaviorSubject<PlaylistItem[]>(UNINITIALIZED);
 const currentItemId$ = new BehaviorSubject('');
 
 export function getItems(): PlaylistItem[] {
-    return items$.getValue();
+    return items$.value;
 }
 
 function setItems(items: PlaylistItem[]): void {
@@ -65,7 +65,7 @@ export function observe(): Observable<readonly PlaylistItem[]> {
 }
 
 function getCurrentItemId(): string {
-    return currentItemId$.getValue();
+    return currentItemId$.value;
 }
 
 function setCurrentItemId(id: string): void {
@@ -78,8 +78,8 @@ export function getCurrentItem(): PlaylistItem | null {
     return items.find((item) => item.id === currentItemId) || null;
 }
 
-export function setCurrentItem(item: PlaylistItem): void {
-    setCurrentItemId(item.id);
+export function setCurrentItem(item: PlaylistItem | null): void {
+    setCurrentItemId(item?.id || '');
 }
 
 export function observeCurrentItem(): Observable<PlaylistItem | null> {
@@ -110,9 +110,14 @@ export function observeCurrentIndex(): Observable<number> {
 }
 
 export function getCurrentIndex(): number {
-    const items = items$.getValue();
+    const items = items$.value;
     const currentItemId = getCurrentItemId();
     return items.findIndex((item) => item.id === currentItemId);
+}
+
+export function setCurrentIndex(index: number): void {
+    const items = items$.value;
+    setCurrentItem(items[index]);
 }
 
 export function observeSize(): Observable<number> {
@@ -123,7 +128,7 @@ export function observeSize(): Observable<number> {
 }
 
 function getSize(): number {
-    return items$.getValue().length;
+    return items$.value.length;
 }
 
 function moveCurrentIndexBy(amount: -1 | 1): void {
@@ -288,6 +293,14 @@ async function createMediaItemsFromAlbum(album: MediaAlbum): Promise<readonly Me
     return fetchFirstPage(album.pager, {keepAlive: true});
 }
 
+async function safeWrite(key: string, value: any): Promise<void> {
+    try {
+        dbWrite(key, value, playlistStore);
+    } catch (err) {
+        logger.error(err);
+    }
+}
+
 const playlist: Playlist = {
     get atEnd(): boolean {
         return getCurrentIndex() === getSize() - 1;
@@ -295,15 +308,20 @@ const playlist: Playlist = {
     get atStart(): boolean {
         return getSize() === 0 || getCurrentIndex() === 0;
     },
+    get size(): number {
+        return getSize();
+    },
     observe,
     observeCurrentIndex,
     observeCurrentItem,
     observeNextItem,
     observeSize,
     getCurrentIndex,
+    setCurrentIndex,
     getCurrentItem,
     setCurrentItem,
     getItems,
+    setItems,
     add,
     clear,
     eject,
@@ -320,103 +338,114 @@ const playlist: Playlist = {
 
 export default playlist;
 
-(async () => {
-    const [items = [], id = ''] = await Promise.all([
-        dbRead<PlaylistItem[]>('items', playlistStore),
-        dbRead<string>('currently-playing-id', playlistStore),
-    ]);
-    setCurrentItemId(id);
-    setItems(items);
-})();
+if (isMiniPlayer) {
+    setCurrentItemId('');
+    setItems([]);
+} else {
+    (async () => {
+        try {
+            const [items = [], id = ''] = await Promise.all([
+                dbRead<PlaylistItem[]>('items', playlistStore),
+                dbRead<string>('currently-playing-id', playlistStore),
+            ]);
+            setCurrentItemId(id);
+            setItems(items);
+        } catch (err) {
+            logger.error(err);
+            setCurrentItemId('');
+            setItems([]);
+        }
+    })();
 
-items$
-    .pipe(
-        skip(2),
-        debounceTime(delayWriteTime),
-        mergeMap((items: PlaylistItem[]) => {
-            items = items.map((item) => {
-                if ('lookupStatus' in item) {
-                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    const {lookupStatus: _, ...rest} = item;
-                    return rest;
+    items$
+        .pipe(
+            skip(2),
+            debounceTime(delayWriteTime),
+            mergeMap((items: PlaylistItem[]) => {
+                items = items.map((item) => {
+                    if ('lookupStatus' in item) {
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        const {lookupStatus: _, ...rest} = item;
+                        return rest;
+                    }
+                    return item;
+                });
+                return safeWrite('items', items);
+            })
+        )
+        .subscribe(logger);
+
+    currentItemId$
+        .pipe(
+            skip(2),
+            debounceTime(delayWriteTime),
+            mergeMap((id) => safeWrite('currently-playing-id', id))
+        )
+        .subscribe(logger);
+
+    observeLookupStartEvents()
+        .pipe(
+            tap(({lookupItem}: LookupStartEvent) => {
+                const items = getItems();
+                const index = items.findIndex((item) => item.id === lookupItem.id);
+                if (index !== -1) {
+                    items[index] = {...lookupItem, lookupStatus: LookupStatus.Looking};
+                    setItems(items);
                 }
-                return item;
-            });
-            return dbWrite('items', items, playlistStore);
-        })
-    )
-    .subscribe(logger);
+            })
+        )
+        .subscribe(logger);
 
-currentItemId$
-    .pipe(
-        skip(2),
-        debounceTime(delayWriteTime),
-        mergeMap((id) => dbWrite('currently-playing-id', id, playlistStore))
-    )
-    .subscribe(logger);
+    observeLookupEndEvents()
+        .pipe(
+            tap(({lookupItem, foundItem}: LookupEndEvent) => {
+                const items = getItems();
+                const index = items.findIndex((item) => item.id === lookupItem.id);
+                if (index !== -1) {
+                    items[index] = foundItem
+                        ? {...bestOf(foundItem, lookupItem), id: lookupItem.id}
+                        : {...lookupItem, lookupStatus: LookupStatus.NotFound};
+                    setItems(items);
+                }
+            })
+        )
+        .subscribe(logger);
 
-observeLookupStartEvents()
-    .pipe(
-        tap(({lookupItem}: LookupStartEvent) => {
-            const items = getItems();
-            const index = items.findIndex((item) => item.id === lookupItem.id);
-            if (index !== -1) {
-                items[index] = {...lookupItem, lookupStatus: LookupStatus.Looking};
-                setItems(items);
-            }
-        })
-    )
-    .subscribe(logger);
+    observeLookupCancelledEvents()
+        .pipe(
+            tap(({lookupItem}: LookupCancelledEvent) => {
+                const items = getItems();
+                const index = items.findIndex((item) => item.id === lookupItem.id);
+                if (index !== -1) {
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    const {lookupStatus: _, ...item} = lookupItem;
+                    items[index] = item;
+                    setItems(items);
+                }
+            })
+        )
+        .subscribe(logger);
 
-observeLookupEndEvents()
-    .pipe(
-        tap(({lookupItem, foundItem}: LookupEndEvent) => {
-            const items = getItems();
-            const index = items.findIndex((item) => item.id === lookupItem.id);
-            if (index !== -1) {
-                items[index] = foundItem
-                    ? {...bestOf(foundItem, lookupItem), id: lookupItem.id}
-                    : {...lookupItem, lookupStatus: LookupStatus.NotFound};
-                setItems(items);
-            }
-        })
-    )
-    .subscribe(logger);
-
-observeLookupCancelledEvents()
-    .pipe(
-        tap(({lookupItem}: LookupCancelledEvent) => {
-            const items = getItems();
-            const index = items.findIndex((item) => item.id === lookupItem.id);
-            if (index !== -1) {
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const {lookupStatus: _, ...item} = lookupItem;
-                items[index] = item;
-                setItems(items);
-            }
-        })
-    )
-    .subscribe(logger);
-
-observeMediaObjectChanges<MediaItem>()
-    .pipe(
-        tap((changes) => {
-            let changed = false;
-            const items = getItems().map((item) => {
-                for (const {match, values} of changes) {
-                    if (match(item)) {
-                        const nonUserData = removeUserData(values);
-                        if (Object.keys(nonUserData).length > 0) {
-                            changed = true;
-                            return {...item, ...nonUserData};
+    observeMediaObjectChanges<MediaItem>()
+        .pipe(
+            tap((changes) => {
+                let changed = false;
+                const items = getItems().map((item) => {
+                    for (const {match, values} of changes) {
+                        if (match(item)) {
+                            const nonUserData = removeUserData(values);
+                            if (Object.keys(nonUserData).length > 0) {
+                                changed = true;
+                                return {...item, ...nonUserData};
+                            }
                         }
                     }
+                    return item;
+                });
+                if (changed) {
+                    setItems(items);
                 }
-                return item;
-            });
-            if (changed) {
-                setItems(items);
-            }
-        })
-    )
-    .subscribe(logger);
+            })
+        )
+        .subscribe(logger);
+}

@@ -5,7 +5,6 @@ import CredentialsRequired from 'components/Login/CredentialsRequired';
 import LoginButton from 'components/Login/LoginButton';
 import LoginRequired from 'components/Login/LoginRequired';
 import ServiceLink from 'components/Login/ServiceLink';
-import AppleCredentialsDialog from './AppleCredentialsDialog';
 import useCredentials from './useCredentials';
 import useMusicKit from './useMusicKit';
 
@@ -24,7 +23,7 @@ export default function AppleLogin({service: apple}: LoginProps) {
             ) : (
                 <>
                     <CredentialsRequired service={apple} />
-                    <CredentialsButton dialog={AppleCredentialsDialog} />
+                    <CredentialsButton service={apple} />
                 </>
             )}
             <ServiceLink service={apple} />

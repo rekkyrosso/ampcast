@@ -5,9 +5,9 @@
 
     &-main {
         position: relative;
-        padding-left: 9em;
+        padding-left: 11.25em;
         padding-bottom: 1em;
-        min-height: 8em;
+        min-height: 10em;
         margin-bottom: 1em;
 
         .external-link:any-link {
@@ -28,8 +28,8 @@
     .thumbnail {
         position: absolute;
         left: 0;
-        width: 8em;
-        height: 8em;
+        width: 10em;
+        height: 10em;
         padding: 0;
         color: var(--grey2-color);
 
@@ -98,7 +98,7 @@
         margin-top: 1em;
         font-size: 0.75em;
         min-height: 1em;
-        max-height: 14.5em;
+        max-height: 10em;
         text-align: justify;
 
         .scrollable {

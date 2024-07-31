@@ -185,7 +185,6 @@ textarea {
 button,
 [role="button"] {
     @include button;
-    @include pressable;
     -webkit-appearance: none;
     appearance: none;
     padding: 0.125em 1em;
@@ -194,6 +193,7 @@ button,
     user-select: none;
     overflow: hidden;
     text-overflow: ellipsis;
+    @include pressable;
 
     &:disabled {
         filter: grayscale(1);

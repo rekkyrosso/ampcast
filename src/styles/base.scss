@@ -104,6 +104,7 @@ small {
     isolation: isolate;
     width: 100vw;
     background: none;
+    font-family: var(--system-font-family);
 
     &:empty {
         pointer-events: none;
@@ -117,12 +118,11 @@ small {
 
 #system {
     contain: layout style size;
-    font-family: var(--system-font-family);
     font-size: min(max(calc(var(--font-size) * 1px), 12px), 2vw, 3vh, 22px);
 }
 
 #fullscreen-popup {
-    font-size: 1.5vw;
+    font-size: max(1.5vw, 12px);
 }
 
 body.dragging {

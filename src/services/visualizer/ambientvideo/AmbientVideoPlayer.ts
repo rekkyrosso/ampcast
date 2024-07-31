@@ -107,7 +107,7 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
     }
 
     stop(): void {
-        this.videoPlayer.stop();
+        this.videoPlayer.pause();
         this.beatsPlayer.stop();
     }
 
@@ -140,7 +140,7 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
                 const key = this.getProgressKey();
                 const progress = this.storage.getJson<ProgressRecord>(key, {});
                 const startTime = progress[videoId] || (key === 'progress' ? 120 : 0);
-                player.load({src: `${src}:${startTime}`});
+                player.load({src, startTime});
             } else {
                 player.load({src});
             }

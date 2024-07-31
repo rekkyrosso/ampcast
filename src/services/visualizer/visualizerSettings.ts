@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
+import {distinctUntilChanged, map, startWith} from 'rxjs';
 import Visualizer from 'types/Visualizer';
 import VisualizerProviderId from 'types/VisualizerProviderId';
 import {LiteStorage} from 'utils';
@@ -36,7 +36,6 @@ const visualizerSettings: VisualizerSettings = {
                     storage.removeItem('lockedVisualizer');
                 }
             }
-            settings$.next(this);
         }
     },
 
@@ -50,7 +49,6 @@ const visualizerSettings: VisualizerSettings = {
             if (this.lockedVisualizer?.providerId === 'ambientvideo') {
                 storage.removeItem('lockedVisualizer');
             }
-            settings$.next(this);
         }
     },
 
@@ -61,7 +59,6 @@ const visualizerSettings: VisualizerSettings = {
     set ambientVideoBeats(ambientVideoBeats: boolean) {
         if (ambientVideoBeats !== this.ambientVideoBeats) {
             storage.setBoolean('ambientVideoBeats', ambientVideoBeats);
-            settings$.next(this);
         }
     },
 
@@ -75,7 +72,6 @@ const visualizerSettings: VisualizerSettings = {
             if (this.lockedVisualizer?.providerId === 'ambientvideo') {
                 storage.removeItem('lockedVisualizer');
             }
-            settings$.next(this);
         }
     },
 
@@ -86,7 +82,6 @@ const visualizerSettings: VisualizerSettings = {
     set coverArtAnimatedBackground(coverArtAnimatedBackground: boolean) {
         if (coverArtAnimatedBackground !== this.coverArtAnimatedBackground) {
             storage.setBoolean('coverArtAnimatedBackground', coverArtAnimatedBackground);
-            settings$.next(this);
         }
     },
 
@@ -97,7 +92,6 @@ const visualizerSettings: VisualizerSettings = {
     set coverArtBeats(coverArtBeats: boolean) {
         if (coverArtBeats !== this.coverArtBeats) {
             storage.setBoolean('coverArtBeats', coverArtBeats);
-            settings$.next(this);
         }
     },
 
@@ -108,7 +102,6 @@ const visualizerSettings: VisualizerSettings = {
     set fullscreenProgress(fullscreenProgress: boolean) {
         if (fullscreenProgress !== this.fullscreenProgress) {
             storage.setBoolean('fullscreenProgress', fullscreenProgress);
-            settings$.next(this);
         }
     },
 
@@ -123,7 +116,6 @@ const visualizerSettings: VisualizerSettings = {
         } else {
             storage.removeItem('lockedVisualizer');
         }
-        settings$.next(this);
     },
 
     get provider(): VisualizerProviderId {
@@ -136,17 +128,31 @@ const visualizerSettings: VisualizerSettings = {
             if (provider && this.lockedVisualizer?.providerId !== provider) {
                 storage.removeItem('lockedVisualizer');
             }
-            settings$.next(this);
         }
     },
 };
 
-const settings$ = new BehaviorSubject<VisualizerSettings>(visualizerSettings);
-
 export default visualizerSettings;
 
-export function observeVisualizerSettings(): Observable<VisualizerSettings> {
-    return settings$;
+export function observeVisualizerSettings(): Observable<Readonly<VisualizerSettings>> {
+    return storage.observeChanges().pipe(
+        startWith(undefined),
+        map(() => ({...visualizerSettings}))
+    );
+}
+
+export function observeLockedVisualizer(): Observable<boolean> {
+    return observeVisualizerSettings().pipe(
+        map((settings) => !!settings.lockedVisualizer),
+        distinctUntilChanged()
+    );
+}
+
+export function observeVisualizerProviderId(): Observable<VisualizerProviderId | ''> {
+    return observeVisualizerSettings().pipe(
+        map((settings) => settings.provider),
+        distinctUntilChanged()
+    );
 }
 
 export function observeFullscreenProgressEnabled(): Observable<boolean> {

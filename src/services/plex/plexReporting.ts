@@ -1,16 +1,17 @@
 import MediaItem from 'types/MediaItem';
-import {Logger} from 'utils';
+import {LiteStorage, Logger} from 'utils';
 import plexSettings from './plexSettings';
 import plexApi, {musicPlayHost, musicProviderHost} from './plexApi';
 
 const logger = new Logger('plexReporting');
 
-let playQueueItemID = ''; // TODO: Do this better.
+const session = new LiteStorage('plexReporting', 'session');
 
 export async function reportStart(item: MediaItem): Promise<void> {
     try {
-        playQueueItemID = '';
-        playQueueItemID = await createPlayQueueItemId(item);
+        session.removeItem('queueId');
+        const playQueueItemID = await createPlayQueueItemId(item);
+        session.setString('queueId', playQueueItemID);
         await reportState(item, 0, 'playing');
     } catch (err) {
         logger.error(err);
@@ -43,6 +44,7 @@ async function reportState(
     state: 'stopped' | 'paused' | 'playing' | 'buffering' | 'error',
     keepalive?: boolean
 ): Promise<void> {
+    const playQueueItemID = session.getString('queueId');
     if (!playQueueItemID) {
         logger.warn('reportState: `playQueueItemID` not defined', {state});
     }

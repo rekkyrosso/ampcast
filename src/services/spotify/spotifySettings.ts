@@ -45,6 +45,10 @@ const spotifySettings = {
         authStorage.setString('code_verifier', code_verifier);
     },
 
+    get credentialsRequired(): boolean {
+        return !sp_client_id;
+    },
+
     get disabled(): boolean {
         return __spotify_disabled__ && !storage.getBoolean('enabled');
     },

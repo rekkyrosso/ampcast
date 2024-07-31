@@ -26,6 +26,9 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
             width: 400,
             height: 200,
         });
+
+        // Log errors.
+        this.error$.subscribe(logger.error);
     }
 
     get hidden(): boolean {
@@ -102,16 +105,10 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
     }
 
     private render(): void {
-        // try/catch on first render only
-        if (!this.animationFrameId) {
-            try {
-                this.visualizer.render();
-            } catch (err) {
-                logger.error(err);
-                this.error$.next(err);
-            }
-        } else {
+        try {
             this.visualizer.render();
+        } catch (err) {
+            this.error$.next(err);
         }
         if (this.autoplay && !this.canvas.hidden) {
             this.animationFrameId = requestAnimationFrame(() => this.render());

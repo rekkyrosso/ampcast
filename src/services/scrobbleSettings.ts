@@ -1,5 +1,6 @@
 import {BehaviorSubject} from 'rxjs';
 import MediaService from 'types/MediaService';
+import MediaServiceId from 'types/MediaServiceId';
 import {LiteStorage} from 'utils';
 
 export interface ScrobblingOptions {
@@ -14,24 +15,24 @@ const storage = new LiteStorage('scrobbling');
 const noScrobble$ = new BehaviorSubject<NoScrobbleSettings>(storage.getJson('noScrobble', {}));
 const options$ = new BehaviorSubject<ScrobblingOptionsSettings>(storage.getJson('options', {}));
 
-export function canScrobble(scrobbler: MediaService, service: MediaService): boolean {
+export function canScrobble(scrobblerId: MediaServiceId, service: MediaService): boolean {
     const settings = noScrobble$.getValue();
-    const scrobblerSettings = settings[scrobbler.id];
+    const scrobblerSettings = settings[scrobblerId];
     return !(scrobblerSettings?.[service.id] ?? service.defaultNoScrobble);
 }
 
-export function setNoScrobble(scrobbler: MediaService, updates: Record<string, boolean>): void {
+export function setNoScrobble(scrobblerId: MediaServiceId, updates: Record<string, boolean>): void {
     const settings = noScrobble$.getValue();
-    const scrobblerSettings = settings[scrobbler.id];
+    const scrobblerSettings = settings[scrobblerId];
     const newScrobblerSettings = {...scrobblerSettings, ...updates};
-    const newSettings = {...settings, ...{[scrobbler.id]: newScrobblerSettings}};
+    const newSettings = {...settings, ...{[scrobblerId]: newScrobblerSettings}};
     storage.setJson('noScrobble', newSettings);
     noScrobble$.next(newSettings);
 }
 
-export function canUpdateNowPlaying(scrobbler: MediaService): boolean {
+export function canUpdateNowPlaying(scrobblerId: MediaServiceId): boolean {
     const settings = options$.getValue();
-    return !!settings[scrobbler.id]?.updateNowPlaying;
+    return !!settings[scrobblerId]?.updateNowPlaying;
 }
 
 export function updateOptions(scrobbler: MediaService, options: Partial<ScrobblingOptions>): void {

@@ -7,7 +7,7 @@ import mediaPlayback, {
     observeCurrentTime,
     observeDuration,
 } from 'services/mediaPlayback';
-import playlist, {observeCurrentIndex} from 'services/playlist';
+import {observeCurrentIndex} from 'services/playlist';
 import {ListViewHandle} from 'components/ListView';
 import Time from 'components/Time';
 import usePlaylistInject from 'components/Playlist/usePlaylistInject';
@@ -44,17 +44,15 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
     );
 
     const handlePrevClick = useCallback(async () => {
-        if (!playlist.atStart) {
-            mediaPlayback.prev();
-            listViewRef.current?.scrollIntoView(currentIndex - 1);
-        }
+        mediaPlayback.prev();
+        listViewRef.current?.scrollIntoView(currentIndex - 1);
+        listViewRef.current?.focus();
     }, [listViewRef, currentIndex]);
 
     const handleNextClick = useCallback(async () => {
-        if (!playlist.atEnd) {
-            mediaPlayback.next();
-            listViewRef.current?.scrollIntoView(currentIndex + 1);
-        }
+        mediaPlayback.next();
+        listViewRef.current?.scrollIntoView(currentIndex + 1);
+        listViewRef.current?.focus();
     }, [listViewRef, currentIndex]);
 
     const handleFileImport = useCallback(

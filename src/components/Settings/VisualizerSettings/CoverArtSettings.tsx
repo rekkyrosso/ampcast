@@ -17,26 +17,29 @@ export default function CoverArtSettings({
 
     return (
         <form className="cover-art-settings" method="dialog">
-            <p>
-                <input
-                    id={`${id}-beats-overlay`}
-                    type="checkbox"
-                    defaultChecked={visualizerSettings.coverArtBeats}
-                    ref={beatsOverlayEnabledRef}
-                />
-                <label htmlFor={`${id}-beats-overlay`}>Show &quot;beats&quot; overlay</label>
-            </p>
-            <p>
-                <input
-                    id={`${id}-animated-background`}
-                    type="checkbox"
-                    defaultChecked={visualizerSettings.coverArtAnimatedBackground}
-                    ref={animatedBackgroundEnabledRef}
-                />
-                <label htmlFor={`${id}-animated-background`}>
-                    Animated background (experimental)
-                </label>
-            </p>
+            <fieldset>
+                <legend>Options</legend>
+                <p>
+                    <input
+                        id={`${id}-beats-overlay`}
+                        type="checkbox"
+                        defaultChecked={visualizerSettings.coverArtBeats}
+                        ref={beatsOverlayEnabledRef}
+                    />
+                    <label htmlFor={`${id}-beats-overlay`}>Show &quot;beats&quot; overlay</label>
+                </p>
+                <p>
+                    <input
+                        id={`${id}-animated-background`}
+                        type="checkbox"
+                        defaultChecked={visualizerSettings.coverArtAnimatedBackground}
+                        ref={animatedBackgroundEnabledRef}
+                    />
+                    <label htmlFor={`${id}-animated-background`}>
+                        Animated background (experimental)
+                    </label>
+                </p>
+            </fieldset>
             <DialogButtons onSubmitClick={onSubmit} />
         </form>
     );

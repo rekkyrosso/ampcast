@@ -1,40 +1,52 @@
 import type {Observable} from 'rxjs';
 import {
-    Subject,
+    EMPTY,
     BehaviorSubject,
-    debounce,
-    debounceTime,
+    Subject,
     distinctUntilChanged,
     filter,
     map,
-    mergeMap,
     of,
+    skip,
     skipWhile,
     switchMap,
     take,
     tap,
-    timer,
-    withLatestFrom,
 } from 'rxjs';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
-import PlaylistItem from 'types/PlaylistItem';
 import Visualizer, {NoVisualizer} from 'types/Visualizer';
 import VisualizerProviderId from 'types/VisualizerProviderId';
 import audio from 'services/audio';
-import {observeCurrentItem} from 'services/playlist';
-import {exists, getRandomValue, Logger} from 'utils';
-import {getVisualizerProvider, observeVisualizerProviders} from './visualizerProviders';
-import visualizerSettings, {
-    observeVisualizerSettings,
-    VisualizerSettings,
-} from './visualizerSettings';
+import playback, {observeCurrentItem} from 'services/mediaPlayback/playback';
+import {exists, getRandomValue, isMiniPlayer, Logger} from 'utils';
+import {
+    getVisualizerProvider,
+    loadVisualizers,
+    observeVisualizerProviders,
+} from './visualizerProviders';
+import visualizerSettings, {observeVisualizerProviderId} from './visualizerSettings';
 
 const logger = new Logger('visualizer');
 
-type NextVisualizerReason = 'click' | 'item' | 'provider' | 'sync' | 'error';
+type NextVisualizerReason =
+    | 'new-media-item'
+    | 'new-provider'
+    | 'new-visualizers'
+    | 'next-clicked'
+    | 'error';
 
-const noVisualizer: NoVisualizer = {
+interface ErrorRecord {
+    providerId: VisualizerProviderId;
+    count: number;
+}
+
+const errorRecord: ErrorRecord = {
+    providerId: 'none',
+    count: 0,
+};
+
+export const noVisualizer: NoVisualizer = {
     providerId: 'none',
     name: '',
 };
@@ -61,33 +73,30 @@ const randomVideo: VisualizerProviderId[] = Array(10).fill('ambientvideo');
 const spotifyRandomVideo: VisualizerProviderId[] = Array(20).fill('ambientvideo');
 
 export function observeCurrentVisualizer(): Observable<Visualizer> {
-    return currentVisualizer$;
-}
-
-export function observeCurrentVisualizers(): Observable<readonly Visualizer[]> {
-    return observeVisualizerProviders().pipe(
-        switchMap((providers) =>
-            providers.length === 0
-                ? of([])
-                : observeProviderId().pipe(
-                      map((id) => getVisualizerProvider(id)),
-                      switchMap((provider) => (provider ? provider.observeVisualizers() : of([])))
-                  )
+    return currentVisualizer$.pipe(
+        distinctUntilChanged(
+            (a: any, b: any) =>
+                a.providerId === b.providerId && a.name === b.name && a.reason === b.reason
         )
     );
 }
 
-export function observeLocked(): Observable<boolean> {
-    return observeVisualizerSettings().pipe(
-        map((settings) => !!settings.lockedVisualizer),
-        distinctUntilChanged()
+export function observeCurrentVisualizers(): Observable<readonly Visualizer[]> {
+    return observeVisualizerProviderId().pipe(
+        switchMap((providerId) => observeVisualizersByProvider(providerId))
     );
 }
 
-export function observeProviderId(): Observable<VisualizerProviderId | ''> {
-    return observeVisualizerSettings().pipe(
-        map((settings) => settings.provider || ''),
-        distinctUntilChanged()
+export function getCurrentVisualizer(): Visualizer {
+    return currentVisualizer$.value;
+}
+
+export function setCurrentVisualizer({
+    providerId,
+    name,
+}: Pick<Visualizer, 'providerId' | 'name'>): void {
+    currentVisualizer$.next(
+        getVisualizer(providerId, name) || createNoVisualizer(providerId, 'not loaded')
     );
 }
 
@@ -95,60 +104,62 @@ export function nextVisualizer(reason: NextVisualizerReason): void {
     nextVisualizerReason$.next(reason);
 }
 
-export function observeNextVisualizerReason(): Observable<NextVisualizerReason> {
-    // Give the UI time to update after clicks.
-    return nextVisualizerReason$.pipe(
-        debounce((reason) => (reason === 'click' ? timer(50) : of(undefined)))
-    );
-}
-
-export function lock(): void {
+export function lockVisualizer(): void {
     visualizerSettings.lockedVisualizer = getCurrentVisualizer();
 }
 
-export function unlock(): void {
+export function unlockVisualizer(): void {
     visualizerSettings.lockedVisualizer = null;
 }
 
-observeVisualizerProviders()
-    .pipe(
-        skipWhile((providers) => providers.length === 0),
-        switchMap(() => observeCurrentItem()),
-        distinctUntilChanged((a, b) => a?.id === b?.id),
-        debounceTime(200)
-    )
-    .subscribe(() => nextVisualizer('item'));
-
-observeCurrentVisualizers().subscribe(() => nextVisualizer('provider'));
-
-observeNextVisualizerReason()
-    .pipe(
-        withLatestFrom(observeCurrentItem(), observeVisualizerSettings()),
-        map(([reason, item, settings]) => getNextVisualizer(reason, item, settings))
-    )
-    .subscribe(currentVisualizer$);
-
-function getVisualizers(providerId: string): readonly Visualizer[] {
-    return getVisualizerProvider(providerId)?.visualizers || [];
+export function observeVisualizersByProvider(
+    providerId: VisualizerProviderId | ''
+): Observable<readonly Visualizer[]> {
+    return observeVisualizerProviders().pipe(
+        switchMap((providers) =>
+            providers.length === 0
+                ? of([])
+                : of(getVisualizerProvider(providerId)).pipe(
+                      switchMap((provider) => (provider ? provider.observeVisualizers() : of([])))
+                  )
+        )
+    );
 }
 
-function getVisualizer(providerId: string, name: string): Visualizer | undefined {
-    return getVisualizers(providerId).find((visualizer) => visualizer.name === name);
+function observeNextVisualizerReason(): Observable<NextVisualizerReason> {
+    return nextVisualizerReason$;
 }
 
-function getCurrentVisualizer(): Visualizer {
-    return currentVisualizer$.getValue();
-}
+function getNextVisualizer(reason: NextVisualizerReason): Visualizer {
+    const currentVisualizer = getCurrentVisualizer();
+    const state = playback.getPlaybackState();
 
-function getNextVisualizer(
-    reason: NextVisualizerReason,
-    item: PlaylistItem | null,
-    settings: VisualizerSettings
-): Visualizer {
+    if (state.miniPlayer && !isMiniPlayer) {
+        return currentVisualizer;
+    }
+
+    const item = state.currentItem;
+
     if (!item || item.mediaType === MediaType.Video) {
         return noVisualizer;
     }
+
+    const settings = visualizerSettings;
+
+    // Keep track of *consecutive* errors.
     const isError = reason === 'error';
+    if (isError) {
+        if (errorRecord.providerId === currentVisualizer.providerId) {
+            errorRecord.count++;
+        } else {
+            errorRecord.providerId = currentVisualizer.providerId;
+            errorRecord.count = 1;
+        }
+    } else {
+        errorRecord.providerId = currentVisualizer.providerId;
+        errorRecord.count = 0;
+    }
+
     const isSpotify = item.src.startsWith('spotify:');
     const lockedVisualizer = settings.lockedVisualizer;
     let providerId: VisualizerProviderId | '' = lockedVisualizer?.providerId || settings.provider;
@@ -168,14 +179,20 @@ function getNextVisualizer(
         case 'none':
             return noVisualizer;
     }
+
     if (lockedVisualizer) {
         return isError
             ? createNoVisualizer(providerId, 'error')
             : getVisualizer(lockedVisualizer.providerId, lockedVisualizer.name) ||
                   createNoVisualizer(providerId, 'not loaded');
     }
-    const currentVisualizer = getCurrentVisualizer();
+
     providerId = settings.provider;
+    if (!providerId) {
+        if (currentVisualizer.providerId === 'none' && currentVisualizer.reason === 'not loaded') {
+            providerId = currentVisualizer.name as VisualizerProviderId;
+        }
+    }
     if (!providerId) {
         // Random provider.
         let providers = isSpotify ? spotifyRandomProviders : randomProviders;
@@ -184,13 +201,14 @@ function getNextVisualizer(
         }
         providerId = getRandomValue(providers, isError ? currentVisualizer.providerId : undefined);
         if (
-            reason === 'click' &&
+            reason === 'next-clicked' &&
             providerId === currentVisualizer.providerId &&
             getVisualizers(providerId).length === 1
         ) {
             providerId = getRandomValue(providers, providerId);
         }
     }
+
     // Fix for Safari.
     // If the Web Audio API is not supported for streaming media then we can't use a visualizer.
     if (
@@ -200,51 +218,85 @@ function getNextVisualizer(
     ) {
         return createNoVisualizer(providerId, 'not supported');
     }
+
     const visualizers = getVisualizers(providerId);
+
     if (visualizers.length === 0) {
         return createNoVisualizer(providerId, 'not loaded');
     }
-    if (isError && settings.provider && visualizers.length === 1) {
-        // Prevent further errors.
-        return createNoVisualizer(providerId, 'error');
+
+    // Prevent further errors.
+    if (isError) {
+        if (
+            (settings.provider && visualizers.length === 1) ||
+            (errorRecord.providerId === providerId && errorRecord.count >= 3)
+        ) {
+            errorRecord.providerId = 'none';
+            errorRecord.count = 0;
+            return createNoVisualizer(providerId, 'error');
+        }
     }
+
     return getRandomValue(visualizers, currentVisualizer) || noVisualizer;
+}
+
+function getVisualizer(providerId: string, name: string): Visualizer | undefined {
+    return getVisualizers(providerId).find((visualizer) => visualizer.name === name);
+}
+
+function getVisualizers(providerId: string): readonly Visualizer[] {
+    return getVisualizerProvider(providerId)?.visualizers || [];
 }
 
 function createNoVisualizer(
     providerId: VisualizerProviderId | '',
     reason: NoVisualizer['reason']
 ): NoVisualizer {
-    const visualizer = getVisualizerProvider(providerId);
-    const name = visualizer?.name || providerId;
-    return {providerId: 'none', name, reason};
+    return {providerId: 'none', name: providerId, reason};
 }
 
-// If the user has locked a visualizer then make sure it loads once it's available.
-function handleLazyLoads(providerId: VisualizerProviderId, loadCount = 1) {
-    observeVisualizerProviders()
-        .pipe(
-            map(() => getVisualizerProvider(providerId)),
-            filter(exists),
-            mergeMap((provider) =>
-                provider.observeVisualizers().pipe(
-                    skipWhile((visualizers) => visualizers.length === 0),
-                    withLatestFrom(observeCurrentVisualizer()),
-                    tap(([, currentVisualizer]) => {
-                        if (
-                            currentVisualizer.providerId === 'none' &&
-                            currentVisualizer.name === providerId &&
-                            currentVisualizer.reason === 'not loaded'
-                        ) {
-                            nextVisualizer('sync');
-                        }
-                    }),
-                    take(loadCount)
-                )
-            )
-        )
-        .subscribe(logger);
-}
+observeCurrentItem()
+    .pipe(
+        filter(exists),
+        take(1),
+        tap(() => loadVisualizers())
+    )
+    .subscribe(logger);
 
-handleLazyLoads('ampshader');
-handleLazyLoads('butterchurn', 2);
+observeCurrentItem()
+    .pipe(
+        skipWhile((item) => !item),
+        distinctUntilChanged((a, b) => a?.id === b?.id),
+        tap(() => nextVisualizer('new-media-item'))
+    )
+    .subscribe(logger);
+
+observeVisualizerProviderId()
+    .pipe(
+        tap(() => nextVisualizer('new-provider')),
+        switchMap((providerId) =>
+            providerId
+                ? observeVisualizersByProvider(providerId).pipe(skip(1))
+                : observeCurrentVisualizer().pipe(
+                      switchMap((visualizer) =>
+                          visualizer.providerId === 'none' && visualizer.reason === 'not loaded'
+                              ? observeVisualizersByProvider(
+                                    visualizer.name as VisualizerProviderId
+                                ).pipe(
+                                    skipWhile((visualizers) => visualizers.length === 0),
+                                    take(2)
+                                )
+                              : EMPTY
+                      )
+                  )
+        ),
+        tap(() => nextVisualizer('new-visualizers'))
+    )
+    .subscribe(logger);
+
+observeNextVisualizerReason()
+    .pipe(
+        map((reason) => getNextVisualizer(reason)),
+        tap((visualizer) => currentVisualizer$.next(visualizer))
+    )
+    .subscribe(logger);

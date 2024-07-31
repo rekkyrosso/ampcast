@@ -2,12 +2,11 @@ import React, {useCallback} from 'react';
 import MediaService from 'types/MediaService';
 import {showDialog, DialogProps} from 'components/Dialog';
 import LoginDialog from 'components/Login/LoginDialog';
-import embySettings, {EmbySettings} from '../embySettings';
-import emby from '../emby';
+import {EmbySettings} from '../embySettings';
 
 export async function showEmbyLoginDialog(
-    service: MediaService = emby,
-    settings: EmbySettings = embySettings
+    service: MediaService,
+    settings: EmbySettings
 ): Promise<string> {
     return showDialog(
         (props: DialogProps) => (

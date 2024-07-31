@@ -6,7 +6,7 @@ import Pager from './Pager';
 export default interface MediaAlbum extends BaseMediaObject {
     readonly itemType: ItemType.Album;
     readonly pager: Pager<MediaItem>;
-    // Everything below here should be optional
+    // Everything below here should be optional.
     readonly artist?: string;
     readonly multiDisc?: boolean;
     readonly year?: number;

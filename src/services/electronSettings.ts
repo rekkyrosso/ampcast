@@ -2,7 +2,7 @@ import {LiteStorage} from 'utils';
 
 const storage = new LiteStorage('electron');
 
-export default {
+const electronSettings = {
     get port(): string {
         let port = storage.getString('port');
         if (port) {
@@ -17,3 +17,5 @@ export default {
         storage.setString('port', port);
     },
 };
+
+export default electronSettings;

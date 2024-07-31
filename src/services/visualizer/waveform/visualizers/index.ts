@@ -1,4 +1,5 @@
 import {WaveformVisualizer} from 'types/Visualizer';
+import {isFullscreenMedia} from 'utils';
 import theme from 'services/theme';
 
 function getThemeColor(): string {
@@ -19,9 +20,7 @@ const visualizers: WaveformVisualizer[] = [
                 const dataArray = new Uint8Array(bufferSize);
                 const sliceWidth = width / bufferSize;
                 analyser.getByteTimeDomainData(dataArray);
-                context2D.lineWidth = Math.round(
-                    theme.fontSize / (document.fullscreenElement ? 2 : 4)
-                );
+                context2D.lineWidth = Math.round(theme.fontSize / (isFullscreenMedia() ? 2 : 4));
                 context2D.clearRect(0, 0, width, height);
                 context2D.strokeStyle = getThemeColor();
                 context2D.beginPath();
@@ -47,7 +46,7 @@ const visualizers: WaveformVisualizer[] = [
             onPaint: ({context2D, width, height, analyser}) => {
                 const barCount = 18;
                 const visualBarCount = barCount - 2;
-                const gapWidth = document.fullscreenElement ? 8 : 4;
+                const gapWidth = isFullscreenMedia() ? 8 : 4;
                 const bufferSize = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferSize);
                 const barWidth = (width - gapWidth * (visualBarCount - 1)) / visualBarCount;

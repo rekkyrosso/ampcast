@@ -9,7 +9,7 @@ import Thumbnail from 'types/Thumbnail';
 import {findListenByPlayedAt} from 'services/localdb/listens';
 import {getEnabledServices} from 'services/mediaServices';
 import {getCoverArtThumbnails} from 'services/musicbrainz/coverart';
-import {getYouTubeVideoInfo} from 'services/youtube';
+import youtubeApi from 'services/youtube/youtubeApi';
 import Icon, {IconName} from 'components/Icon';
 import {Logger} from 'utils';
 import './CoverArt.scss';
@@ -103,7 +103,7 @@ async function lookupThumbnails(item: MediaObject): Promise<Thumbnail[] | undefi
             const videoId = getYouTubeID(item.link?.externalUrl);
             if (videoId) {
                 try {
-                    const video = await getYouTubeVideoInfo(videoId);
+                    const video = await youtubeApi.getVideoInfo(videoId);
                     return video.thumbnails;
                 } catch (err) {
                     logger.error(err);

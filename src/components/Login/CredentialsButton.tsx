@@ -1,21 +1,24 @@
 import React, {useCallback} from 'react';
-import {Except} from 'type-fest';
-import {DialogProps, showDialog} from 'components/Dialog';
+import MediaService from 'types/MediaService';
+import {showCredentialsDialog} from 'components/Settings/MediaLibrarySettings/CredentialsDialog';
 
-export interface CredentialsButtonProps
-    extends Except<React.ButtonHTMLAttributes<HTMLButtonElement>, 'children'> {
-    dialog: React.FC<DialogProps>;
+export interface CredentialsButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+    service: MediaService;
 }
 
-export default function CredentialsButton({dialog, ...props}: CredentialsButtonProps) {
+export default function CredentialsButton({
+    service,
+    children = 'Enter credentials…',
+    ...props
+}: CredentialsButtonProps) {
     const handleClick = useCallback(() => {
-        showDialog(dialog, true);
-    }, [dialog]);
+        showCredentialsDialog(service);
+    }, [service]);
 
     return (
         <p>
-            <button {...props} className="credentials" onClick={handleClick}>
-                Enter credentials…
+            <button {...props} className="credentials-button" onClick={handleClick}>
+                {children}
             </button>
         </p>
     );

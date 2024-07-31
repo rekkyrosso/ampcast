@@ -26,7 +26,7 @@ export default function ScrobblingSettings({service: scrobbler}: ScrobblingSetti
         for (const input of scrobbleInputs) {
             scrobbleSettings[input.value] = !input.checked;
         }
-        setNoScrobble(scrobbler, scrobbleSettings);
+        setNoScrobble(scrobbler.id, scrobbleSettings);
 
         const optionsInputs = optionsRef.current!.elements as HTMLInputElements;
         const optionsSettings: Partial<ScrobblingOptions> = {};
@@ -47,7 +47,7 @@ export default function ScrobblingSettings({service: scrobbler}: ScrobblingSetti
                                 id={`${id}-${service.id}`}
                                 type="checkbox"
                                 value={service.id}
-                                defaultChecked={canScrobble(scrobbler, service)}
+                                defaultChecked={canScrobble(scrobbler.id, service)}
                                 disabled={service.id === 'youtube'}
                             />
                             <label htmlFor={`${id}-${service.id}`}>{service.name}</label>
@@ -63,7 +63,7 @@ export default function ScrobblingSettings({service: scrobbler}: ScrobblingSetti
                             id={`${id}-scrobbling-options`}
                             type="checkbox"
                             value="updateNowPlaying"
-                            defaultChecked={canUpdateNowPlaying(scrobbler)}
+                            defaultChecked={canUpdateNowPlaying(scrobbler.id)}
                         />
                         <label htmlFor={`${id}-scrobbling-options`}>
                             Update &quot;Now Playing&quot;

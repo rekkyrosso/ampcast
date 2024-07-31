@@ -27,6 +27,7 @@ export default function DefaultBrowser<T extends MediaObject>({
             ) : null}
             {searchable ? (
                 <SearchBar
+                    name={`search-${service.id}`}
                     icon={service.icon}
                     placeholder={`Search ${service.name}`}
                     onSubmit={setQuery}

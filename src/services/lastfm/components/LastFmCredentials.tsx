@@ -1,14 +1,14 @@
 import React, {useCallback, useId, useRef} from 'react';
 import {error} from 'components/Dialog';
-import AppCredentials from 'components/Settings/MediaLibrarySettings/AppCredentials';
-import AppCredential from 'components/Settings/MediaLibrarySettings/AppCredential';
+import DialogButtons from 'components/Dialog/DialogButtons';
+import Credentials from 'components/Settings/MediaLibrarySettings/Credentials';
+import {MediaServiceCredentialsProps} from 'components/Settings/MediaLibrarySettings/MediaServiceCredentials';
 import ExternalLink from 'components/ExternalLink';
 import Icon from 'components/Icon';
 import lastfmSettings from '../lastfmSettings';
-import lastfm from '../lastfm';
 import useCredentials from './useCredentials';
 
-export default function LastFmCredentials() {
+export default function LastFmCredentials({service: lastfm}: MediaServiceCredentialsProps) {
     const id = useId();
     const {apiKey, secret} = useCredentials();
     const apiKeyRef = useRef<HTMLInputElement>(null);
@@ -32,20 +32,20 @@ export default function LastFmCredentials() {
                 await lastfm.logout();
             }
         }
-    }, []);
+    }, [lastfm]);
 
     return (
-        <AppCredentials className="lastfm-credentials" onSubmit={handleSubmit}>
+        <form className="lastfm-credentials" method="dialog" onSubmit={handleSubmit}>
             <fieldset>
                 <legend>Your App</legend>
-                <AppCredential
+                <Credentials
                     label="API Key"
                     name="lastfm-api-key"
                     defaultValue={apiKey}
                     inputRef={apiKeyRef}
                     autoFocus
                 />
-                <AppCredential
+                <Credentials
                     label="Shared Secret"
                     name="lastfm-secret"
                     defaultValue={secret}
@@ -61,7 +61,7 @@ export default function LastFmCredentials() {
                     </ExternalLink>
                 </p>
             </fieldset>
-            <fieldset className="app-credentials-requirements note">
+            <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
                 <p>
                     <label htmlFor={`${id}-callback`}>Callback URL:</label>
@@ -73,6 +73,7 @@ export default function LastFmCredentials() {
                     />
                 </p>
             </fieldset>
-        </AppCredentials>
+            <DialogButtons />
+        </form>
     );
 }

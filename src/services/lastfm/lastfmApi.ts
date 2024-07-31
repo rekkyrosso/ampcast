@@ -18,7 +18,7 @@ export class LastFmApi {
         keys.sort();
         keys.forEach((key) => (string += key + params[key]));
 
-        const secret = await lastfmSettings.getSecret()
+        const secret = await lastfmSettings.getSecret();
 
         string += secret;
 
@@ -26,26 +26,28 @@ export class LastFmApi {
     }
 
     async scrobble(items: Listen[]): Promise<void> {
-        logger.log('scrobble', {items});
-        const method = 'track.scrobble';
-        if (items.length === 1) {
-            const item = items[0];
-            const timestamp = String(item.playedAt);
-            await this.post({
-                method,
-                timestamp,
-                ...this.getScrobbleParams(item),
-            });
-        } else if (items.length > 0) {
-            const body: Record<string, string> = {};
-            items.forEach((item, index) => {
-                const params = this.getScrobbleParams(item);
-                body[`timestamp[${index}]`] = String(item.playedAt);
-                Object.keys(params).forEach((key) => {
-                    body[`${key}[${index}]`] = params[key];
+        if (items.length > 0) {
+            logger.log('scrobble', {items});
+            const method = 'track.scrobble';
+            if (items.length === 1) {
+                const item = items[0];
+                const timestamp = String(item.playedAt);
+                await this.post({
+                    method,
+                    timestamp,
+                    ...this.getScrobbleParams(item),
                 });
-            });
-            await this.post({method, ...body});
+            } else {
+                const body: Record<string, string> = {};
+                items.forEach((item, index) => {
+                    const params = this.getScrobbleParams(item);
+                    body[`timestamp[${index}]`] = String(item.playedAt);
+                    Object.keys(params).forEach((key) => {
+                        body[`${key}[${index}]`] = params[key];
+                    });
+                });
+                await this.post({method, ...body});
+            }
         }
     }
 

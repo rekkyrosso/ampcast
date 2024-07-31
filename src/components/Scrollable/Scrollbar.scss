@@ -40,11 +40,11 @@
                 transparent 0.125rem);
         border: 1px solid var(--black);
         border-radius: calc(var(--roundness) * 1em);
-        @include pressable;
         position: absolute;
         width: var(--scrollbar-size);
         height: var(--scrollbar-size);
         border-radius: var(--app-border-radius);
+        @include pressable;
 
         .browser-firefox &:active {
             transform: none;

@@ -10,8 +10,8 @@ import {
 } from 'rxjs';
 import {AmbientVideoVisualizer} from 'types/Visualizer';
 import {observeVisualizerSettings} from 'services/visualizer/visualizerSettings';
-import {getYouTubeSrc} from 'services/youtube';
-import {loadYouTubePlaylist} from 'services/youtube/YouTubeLoader';
+import youtubeApi from 'services/youtube/youtubeApi';
+import {loadYouTubePlaylist} from 'services/youtube/YouTubePlaylistLoader';
 import {Logger} from 'utils';
 import defaultAmbientVideos from './defaultAmbientVideos';
 
@@ -61,11 +61,11 @@ function observeUserAmbientVideos(): Observable<readonly AmbientVideoVisualizer[
 }
 
 async function getUserAmbientVideos(url: string): Promise<AmbientVideoVisualizer[]> {
-    const src = getYouTubeSrc(url);
+    const src = youtubeApi.getVideoSrc(url);
     const [, type, id] = src.split(':');
-    let videoIds = [id];
+    let videoIds: readonly string[] = [id];
     if (type === 'playlist') {
-        videoIds = await loadYouTubePlaylist(src);
+        videoIds = await loadYouTubePlaylist(id);
     }
     return videoIds.map((videoId) => ({
         providerId: 'ambientvideo',

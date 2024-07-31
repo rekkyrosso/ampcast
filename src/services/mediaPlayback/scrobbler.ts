@@ -1,18 +1,23 @@
-import 'services/airsonic/airsonicScrobbler';
-import 'services/emby/embyScrobbler';
-import 'services/jellyfin/jellyfinScrobbler';
-import 'services/lastfm/lastfmScrobbler';
-import 'services/listenbrainz/listenbrainzScrobbler';
-import 'services/navidrome/navidromeScrobbler';
-import 'services/plex/plexScrobbler';
-import 'services/subsonic/subsonicScrobbler';
-import {mergeMap} from 'rxjs';
+import {filter, mergeMap, tap} from 'rxjs';
+import {isMiniPlayer, Logger} from 'utils';
 import {addListen} from 'services/localdb/listens';
-import {Logger} from 'utils';
+import {observeMediaServices} from 'services/mediaServices';
 import {observePlaybackEnd} from './playback';
 
-const logger = new Logger('mediaPlayback/scrobbler');
+if (!isMiniPlayer) {
+    const logger = new Logger('mediaPlayback/scrobbler');
+    const registeredScrobblers: Record<string, boolean> = {};
 
-observePlaybackEnd()
-    .pipe(mergeMap((state) => addListen(state)))
-    .subscribe(logger);
+    observePlaybackEnd()
+        .pipe(mergeMap((state) => addListen(state)))
+        .subscribe(logger);
+
+    observeMediaServices()
+        .pipe(
+            mergeMap((services) => services),
+            filter((service) => !registeredScrobblers[service.id]),
+            tap((service) => (registeredScrobblers[service.id] = true)),
+            tap((service) => service.scrobble?.())
+        )
+        .subscribe(logger);
+}

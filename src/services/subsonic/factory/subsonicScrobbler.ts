@@ -7,7 +7,7 @@ import {observePlaybackStart, observePlaybackEnd} from 'services/mediaPlayback/p
 import {Logger} from 'utils';
 import SubsonicApi from './SubsonicApi';
 
-export default function subsonicScrobble(service: MediaService, api: SubsonicApi): void {
+export function scrobble(service: MediaService, api: SubsonicApi): void {
     const logger = new Logger(`${service.id}Scrobbler`);
 
     const isValidItem = (state: PlaybackState): boolean =>
@@ -51,3 +51,5 @@ export default function subsonicScrobble(service: MediaService, api: SubsonicApi
         )
         .subscribe(logger);
 }
+
+export default {scrobble};

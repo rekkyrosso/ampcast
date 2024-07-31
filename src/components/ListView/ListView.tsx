@@ -80,13 +80,13 @@ export interface ListViewProps<T> {
         rowIndex: number,
         button: number
     ) => void;
-    onDrop?: (data: readonly T[] | readonly File[] | DataTransferItem, atIndex: number) => void;
+    onDrop?: (items: readonly T[] | readonly File[] | DataTransferItem, atIndex: number) => void;
     onMove?: (items: readonly T[], toIndex: number) => void;
     onDelete?: (items: readonly T[]) => void;
     onEnter?: (items: readonly T[], ctrlKey: boolean, shiftKey: boolean) => void;
     onInfo?: (items: readonly T[]) => void;
     onRowIndexChange?: (rowIndex: number) => void;
-    onScrollIndexChange?: (rowIndex: number) => void;
+    onScrollIndexChange?: (scrollIndex: number) => void;
     onPageSizeChange?: (pageSize: number) => void;
     onSelect?: (items: readonly T[]) => void;
     listViewRef?: React.MutableRefObject<ListViewHandle | null>;
@@ -169,6 +169,7 @@ export default function ListView<T>({
 
     const scrollTo = useCallback(
         (rowIndex: number) => {
+            rowIndex = Math.min(Math.max(rowIndex, 0), size - 1);
             const scrollable = scrollableRef.current!;
             const topIndex = Math.floor(scrollTop / rowHeight);
             if (rowIndex >= topIndex + pageSize - 1) {
@@ -193,6 +194,7 @@ export default function ListView<T>({
         internalRef.current = {
             focus,
             scrollIntoView: (rowIndex: number) => {
+                rowIndex = Math.min(Math.max(rowIndex, 0), size - 1);
                 scrollTo(rowIndex);
                 setRowIndex(rowIndex);
                 selectAt(rowIndex);
@@ -204,7 +206,7 @@ export default function ListView<T>({
         if (listViewRef) {
             listViewRef.current = Object.assign(listViewRef.current || {}, internalRef.current);
         }
-    }, [listViewRef, focus, scrollTo, selectAll, selectAt]);
+    }, [listViewRef, focus, scrollTo, selectAll, selectAt, size]);
 
     useEffect(() => {
         internalRef.current?.scrollIntoView(selectedIndex);

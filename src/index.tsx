@@ -1,8 +1,8 @@
+import {Logger} from 'utils';
 import React, {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import 'styles/index.scss';
 import App from 'components/App';
-import {Logger} from 'utils';
 
 const uncaught = new Logger('uncaught');
 

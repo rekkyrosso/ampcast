@@ -1,25 +1,27 @@
 import type {Observable} from 'rxjs';
+import PlaylistItem from './PlaylistItem';
 import PlaybackState from './PlaybackState';
 
 export default interface Playback {
     paused: boolean;
-    observePlaybackReady(): Observable<void>;
+    currentItem: PlaylistItem | null;
+    currentTime: number;
+    duration: number;
     observePlaybackState(): Observable<PlaybackState>;
     observePlaybackStart(): Observable<PlaybackState>;
     observePlaybackEnd(): Observable<PlaybackState>;
     observePlaybackProgress(interval: number): Observable<PlaybackState>;
+    observeCurrentItem(): Observable<PlaylistItem | null>;
     observeCurrentTime(): Observable<number>;
     observeDuration(): Observable<number>;
     observePaused(): Observable<boolean>;
-    getCurrentTime(): number;
-    setCurrentTime(currentTime: number): void;
-    getDuration(): number;
-    setDuration(duration: number): void;
     getPlaybackId(): string;
-    play(): void;
-    pause(): void;
-    ready(): void;
-    stop(): void;
-    started(): void;
+    getPlaybackState(): PlaybackState;
     ended(): void;
+    pause(): void;
+    play(): void;
+    started(): void;
+    stop(): void;
+    suspend(): void;
+    unsuspend(): void;
 }

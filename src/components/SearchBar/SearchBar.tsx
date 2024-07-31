@@ -3,12 +3,13 @@ import Icon, {IconName} from 'components/Icon';
 import './SearchBar.scss';
 
 export interface SearchBarProps {
+    name?: string;
     icon?: IconName;
     placeholder?: string;
     onSubmit?: (query: string) => void;
 }
 
-export default function SearchBar({icon, placeholder = 'Search', onSubmit}: SearchBarProps) {
+export default function SearchBar({name, icon, placeholder = 'Search', onSubmit}: SearchBarProps) {
     const inputRef = useRef<HTMLInputElement>(null);
 
     const handleSubmit = useCallback(
@@ -26,6 +27,7 @@ export default function SearchBar({icon, placeholder = 'Search', onSubmit}: Sear
                 {icon ? <Icon name={icon} /> : null}
                 <input
                     type="search"
+                    name={name}
                     placeholder={placeholder}
                     spellCheck={false}
                     autoComplete="off"

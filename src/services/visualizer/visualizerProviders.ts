@@ -1,7 +1,6 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, map, mergeMap, skipWhile, switchMap, tap} from 'rxjs';
 import VisualizerProvider from 'types/VisualizerProvider';
-import audio from 'services/audio';
 import {Logger, loadScript} from 'utils';
 import visualizerSettings from './visualizerSettings';
 
@@ -13,33 +12,33 @@ export function observeVisualizerProviders(): Observable<readonly VisualizerProv
     return visualizerProviders$;
 }
 
-export function getAllVisualizerProviders(): readonly VisualizerProvider[] {
+function getVisualizerProviders(): readonly VisualizerProvider[] {
     return visualizerProviders$.value;
 }
 
 export function getEnabledVisualizerProviders(): readonly VisualizerProvider[] {
-    return getAllVisualizerProviders().filter(
+    return getVisualizerProviders().filter(
         (provider) => provider.id !== 'ambientvideo' || visualizerSettings.ambientVideoEnabled
     );
 }
 
 export function getVisualizerProvider(providerId: string): VisualizerProvider | undefined {
-    return getAllVisualizerProviders().find((provider) => provider.id === providerId);
+    return getVisualizerProviders().find((provider) => provider.id === providerId);
 }
 
 export async function loadVisualizers(): Promise<readonly VisualizerProvider[]> {
-    await loadScript(`/v${__app_version__}/lib/visualizers.js`);
-    const {default: visualizers} = await import(
-        /* webpackMode: "weak" */
-        './visualizers'
-    );
-    return visualizers;
+    if (getVisualizerProviders().length === 0) {
+        await loadScript(`/v${__app_version__}/lib/visualizers.js`);
+        const {default: visualizers} = await import(
+            /* webpackMode: "weak" */
+            './visualizers'
+        );
+        if (getVisualizerProviders().length === 0) {
+            visualizerProviders$.next(visualizers);
+        }
+    }
+    return getVisualizerProviders();
 }
-
-audio
-    .observeReady()
-    .pipe(mergeMap(() => loadVisualizers()))
-    .subscribe(visualizerProviders$);
 
 // Log visualizer counts.
 observeVisualizerProviders()

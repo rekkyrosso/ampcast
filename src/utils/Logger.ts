@@ -1,10 +1,17 @@
 import type {Observer} from 'rxjs';
 
 type AnyObserver = Partial<Observer<any>>;
-type BasicConsole = Pick<Console, 'log' | 'warn' | 'error'>;
+type BasicConsole = Pick<Console, 'info' | 'log' | 'warn' | 'error'>;
+
+const startedAt = performance.now();
+
+if (__dev__) {
+    console.log('# Logger:', 'startedAt', startedAt);
+}
 
 export default class Logger implements BasicConsole, AnyObserver {
     private static only = '';
+    readonly info: BasicConsole['info'];
     readonly log: BasicConsole['log'];
     readonly warn: BasicConsole['warn'];
     readonly error: BasicConsole['error'];
@@ -27,6 +34,7 @@ export default class Logger implements BasicConsole, AnyObserver {
         };
 
         // Basic console.
+        this.info = (...args: any[]) => log(`#${prefix}`, ...args);
         this.log = (...args: any[]) => log(`##${prefix}`, ...args);
         this.warn = (...args: any[]) => log(`###${prefix}`, ...args);
         this.error = (err: unknown) => {
@@ -38,8 +46,8 @@ export default class Logger implements BasicConsole, AnyObserver {
 
         // For RxJS debugging.
         if (rx) {
-            this.next = this.log;
-            this.complete = () => this.log('***complete***');
+            this.next = this.info;
+            this.complete = () => this.info('***complete***');
         }
 
         // For cloning.
@@ -53,5 +61,10 @@ export default class Logger implements BasicConsole, AnyObserver {
             }
             return this;
         };
+
+        // For more noise.
+        // if (__dev__ && id && !rx) {
+        //     this.info('createdAt', performance.now() - startedAt);
+        // }
     }
 }

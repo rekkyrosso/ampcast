@@ -6,7 +6,6 @@ import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaFilter from 'types/MediaFilter';
-import MediaType from 'types/MediaType';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSource from 'types/MediaSource';
@@ -374,12 +373,14 @@ const spotify: PublicMediaService = {
     url: 'https://www.spotify.com',
     credentialsUrl: 'https://developer.spotify.com/dashboard/create',
     serviceType: ServiceType.PublicMedia,
-    primaryMediaType: MediaType.Audio,
     get disabled(): boolean {
         return spotifySettings.disabled;
     },
     defaultHidden: true,
     internetRequired: true,
+    get credentialsRequired(): boolean {
+        return spotifySettings.credentialsRequired;
+    },
     restrictedAccess: location.host === 'ampcast.app' || browser.isElectron,
     editablePlaylists: spotifyEditablePlaylists,
     roots: [
@@ -418,10 +419,10 @@ const spotify: PublicMediaService = {
     compareForRating,
     createPlaylist,
     createSourceFromPin,
+    getDroppedItems,
     getFilters,
     getMetadata,
     getPlaybackType,
-    getTracksById,
     lookup,
     lookupByISRC,
     store,
@@ -568,6 +569,31 @@ async function getCategories(): Promise<readonly MediaFilter[]> {
     return spotifyCategories;
 }
 
+async function getDroppedItems<T extends MediaObject>(
+    data: DataTransferItem
+): Promise<readonly T[]> {
+    return new Promise((resolve, reject) => {
+        switch (data.type) {
+            case 'text/x-spotify-tracks': {
+                data.getAsString(async (stringData) => {
+                    try {
+                        const trackIds = stringData.split(/\s+/).map((uri) => uri.split(':')[2]);
+                        const tracks = await getTracksById(trackIds);
+                        resolve(tracks as readonly T[]);
+                    } catch (err) {
+                        reject(err);
+                    }
+                });
+                break;
+            }
+
+            default:
+                reject(`Unsupported drop type: ${data.type}`);
+                break;
+        }
+    });
+}
+
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     if (!canStore(item) || item.inLibrary !== undefined) {
         return item;
@@ -608,7 +634,7 @@ async function getPlaybackType(): Promise<PlaybackType> {
 }
 
 async function getTracksById(trackIds: readonly string[]): Promise<readonly MediaItem[]> {
-    const maxSize = 50; // TODO: chunk
+    const maxSize = 50;
     const ids = trackIds.slice(0, maxSize);
     const market = getMarket();
     const pager = new SpotifyPager<MediaItem>(

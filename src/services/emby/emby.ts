@@ -35,6 +35,7 @@ import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './embyA
 import EmbyPager from './EmbyPager';
 import embySettings from './embySettings';
 import embyApi from './embyApi';
+import embyScrobbler from './embyScrobbler';
 
 const serviceId: MediaServiceId = 'emby';
 
@@ -474,6 +475,7 @@ const emby: PersonalMediaService = {
     getPlayableUrl,
     getPlaybackType,
     lookup,
+    scrobble,
     store,
     observeIsLoggedIn,
     isConnected,
@@ -587,6 +589,10 @@ async function lookup(
     const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit, lookup: true};
     const pager = createSearchPager<MediaItem>(ItemType.Media, title, {Artists: artist}, options);
     return fetchFirstPage(pager, {timeout});
+}
+
+function scrobble(): void {
+    embyScrobbler.scrobble(emby, embySettings);
 }
 
 async function store(item: MediaObject, inLibrary: boolean): Promise<void> {

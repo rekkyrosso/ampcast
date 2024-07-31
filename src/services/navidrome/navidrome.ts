@@ -21,6 +21,7 @@ import actionsStore from 'services/actions/actionsStore';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {t} from 'services/i18n';
+import subsonicScrobbler from 'services/subsonic/factory/subsonicScrobbler';
 import {bestOf, getTextFromHtml} from 'utils';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './navidromeAuth';
 import NavidromePager from './NavidromePager';
@@ -294,6 +295,7 @@ const navidrome: PersonalMediaService = {
     getPlayableUrl,
     getThumbnailUrl,
     lookup,
+    scrobble,
     store,
     observeIsLoggedIn,
     isConnected,
@@ -405,7 +407,7 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     }
     const type =
         itemType === ItemType.Artist ? 'artist' : itemType === ItemType.Album ? 'album' : 'song';
-    const pager = new NavidromePager<T>(itemType, `${type}/${id}`, {
+    const pager = new NavidromePager<T>(itemType, `${type}/${id}`, undefined, {
         pageSize: 1,
         maxSize: 1,
     });
@@ -441,6 +443,10 @@ async function lookup(
         options
     );
     return fetchFirstPage(pager, {timeout});
+}
+
+function scrobble(): void {
+    subsonicScrobbler.scrobble(navidrome, subsonicApi);
 }
 
 async function store(item: MediaObject, inLibrary: boolean): Promise<void> {

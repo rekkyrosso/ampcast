@@ -53,11 +53,6 @@
         .electron & {
             @include chromeless;
         }
-
-        .app-version {
-            background-color: var(--frame2-color);
-            border-radius: var(--app-border-radius);
-        }
     }
 
     &-body {

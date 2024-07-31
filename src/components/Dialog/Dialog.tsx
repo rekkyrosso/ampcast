@@ -90,7 +90,7 @@ function Dialog(
         }
     }, []);
 
-    const handleMouseDown = useCallback((event: React.MouseEvent) => {
+    const handleDragStart = useCallback((event: React.MouseEvent) => {
         event.preventDefault();
         event.stopPropagation();
         if (event.button === 0) {
@@ -98,48 +98,34 @@ function Dialog(
         }
     }, []);
 
-    const handleMouseMove = useCallback(
-        (event: MouseEvent) => {
-            setDragPosition({
-                left: event.screenX - dragStart!.left,
-                top: event.screenY - dragStart!.top,
-            });
-        },
-        [dragStart]
-    );
-
-    const handleMouseUp = useCallback(
-        (event: MouseEvent) => {
-            const newPosition = clampPosition(dialogRef.current!, {
-                left: position.left + (event.screenX - dragStart!.left),
-                top: position.top + (event.screenY - dragStart!.top),
-            });
-            setPosition(newPosition);
-            setDragPosition(startPosition);
-            setDragStart(null);
-        },
-        [position, dragStart]
-    );
-
     useEffect(() => {
         if (dragStart) {
-            document.body.classList.add('dragging');
-            const fromMouseEvent = (type: string) => fromEvent<MouseEvent>(document, type);
+            let dragPosition = {left: 0, top: 0};
+            const endDrag = () => {
+                setPosition((position) =>
+                    clampPosition(dialogRef.current!, {
+                        left: position.left + dragPosition.left,
+                        top: position.top + dragPosition.top,
+                    })
+                );
+                setDragPosition({left: 0, top: 0});
+                setDragStart(null);
+            };
             const subscription = new Subscription();
-            subscription.add(fromMouseEvent('mouseup').subscribe(handleMouseUp));
-            subscription.add(fromMouseEvent('mousemove').subscribe(handleMouseMove));
             subscription.add(
-                fromEvent(window, 'blur').subscribe(() => {
-                    setDragPosition(startPosition);
-                    setDragStart(null);
+                fromEvent<MouseEvent>(document, 'mousemove').subscribe((event) => {
+                    dragPosition = {
+                        left: event.screenX - dragStart!.left,
+                        top: event.screenY - dragStart!.top,
+                    };
+                    setDragPosition(dragPosition);
                 })
             );
-            return () => {
-                document.body.classList.remove('dragging');
-                subscription.unsubscribe();
-            };
+            subscription.add(fromEvent(document, 'mouseup').subscribe(endDrag));
+            subscription.add(fromEvent(window, 'blur').subscribe(endDrag));
+            return () => subscription.unsubscribe();
         }
-    }, [dragStart, handleMouseMove, handleMouseUp]);
+    }, [dragStart]);
 
     return (
         <dialog
@@ -155,7 +141,7 @@ function Dialog(
             }}
             ref={dialogRef}
         >
-            <header className="dialog-head" onMouseDown={handleMouseDown}>
+            <header className="dialog-head" onMouseDown={handleDragStart}>
                 <h2>{title}</h2>
                 <div
                     className="dialog-close"
@@ -186,9 +172,13 @@ function clampPosition(dialog: HTMLDialogElement, position: DialogPosition): Dia
     const maxLeft = (clientWidth - dialogWidth) / 2;
     const minTop = (dialogHeight - clientHeight) / 2 + dragRegionHeight;
     const maxTop = (clientHeight - dialogHeight) / 2;
-    const left = Math.max(Math.min(position.left, maxLeft), minLeft);
-    const top = Math.max(Math.min(position.top, maxTop), minTop);
+    const left = clamp(position.left, maxLeft, minLeft);
+    const top = clamp(position.top, maxTop, minTop);
     return {left, top};
+}
+
+function clamp(value: number, max: number, min = 0): number {
+    return Math.max(Math.min(value, max), min);
 }
 
 export default forwardRef<DialogHandle, DialogProps>(Dialog);

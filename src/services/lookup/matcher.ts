@@ -1,7 +1,8 @@
+import stringScore from 'string-score';
 import unidecode from 'unidecode';
 import MediaItem from 'types/MediaItem';
 import {getServiceFromSrc, isPersonalMediaService} from 'services/mediaServices';
-import {filterNotEmpty, fuzzyCompare} from 'utils';
+import {filterNotEmpty} from 'utils';
 import lookupSettings from './lookupSettings';
 
 const regFeaturedArtists = /\s*[\s[({](with\s|featuring\s|feat[\s.]+|ft[\s.]+).+$/i;
@@ -64,6 +65,10 @@ export function findMatches<T extends MediaItem>(
         (match) => compareAlbum(match, item) && match.track === item.track
     );
     return matches;
+}
+
+export function fuzzyCompare(a: string, b: string, tolerance = 0.9): boolean {
+    return Math.max(stringScore(a, b, 0.99), stringScore(b, a, 0.99)) >= tolerance;
 }
 
 function compare<T extends MediaItem>(

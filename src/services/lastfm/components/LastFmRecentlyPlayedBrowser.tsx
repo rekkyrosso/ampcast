@@ -1,10 +1,20 @@
 import React, {useCallback} from 'react';
+import MediaItem from 'types/MediaItem';
+import MediaService from 'types/MediaService';
+import MediaSource from 'types/MediaSource';
 import RecentlyPlayedBrowser from 'components/MediaBrowser/RecentlyPlayedBrowser';
 import useRecentlyPlayedPager from 'components/MediaBrowser/useRecentlyPlayedPager';
 import LastFmHistoryPager from '../LastFmHistoryPager';
-import lastfm, {lastfmRecentlyPlayed} from '../lastfm';
 
-export default function LastFmRecentlyPlayedBrowser() {
+export interface LastFmRecentlyPlayedBrowserProps {
+    service: MediaService;
+    source: MediaSource<MediaItem>;
+}
+
+export default function LastFmRecentlyPlayedBrowser({
+    service: lastfm,
+    source: recentlyPlayed,
+}: LastFmRecentlyPlayedBrowserProps) {
     const createHistoryPager = useCallback((from?: number, to?: number) => {
         return new LastFmHistoryPager(from ? {from} : {to});
     }, []);
@@ -13,7 +23,7 @@ export default function LastFmRecentlyPlayedBrowser() {
     return (
         <RecentlyPlayedBrowser
             service={lastfm}
-            source={lastfmRecentlyPlayed}
+            source={recentlyPlayed}
             pager={pager}
             total={total}
         />

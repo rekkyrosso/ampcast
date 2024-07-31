@@ -2,8 +2,8 @@
     text-align: center;
     bottom: var(--gutter-width);
 
-    button.login,
-    button.credentials {
+    .login-button,
+    .credentials-button {
         padding: 1em 3em;
         font-family: var(--system-font-family);
         font-weight: bold;
@@ -11,7 +11,7 @@
         cursor: pointer;
     }
 
-    button.branded {
+    .login-button.branded {
         text-shadow: 1px 1px 0 rgba(16, 16, 16, 0.6);
         box-shadow: 1px 1px 0 rgba(16, 16, 16, 0.25);
         color: white;
@@ -77,18 +77,18 @@
         }
     }
 
-    a.external-link {
-        white-space: pre-wrap;
-        overflow-wrap: anywhere;
-    }
-
     &-download {
         a.external-link {
             color: inherit;
+            text-decoration: underline;
 
             &:hover {
                 color: var(--link-color);
             }
+        }
+
+        .icon-link {
+            display: none;
         }
     }
 }

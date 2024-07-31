@@ -1,8 +1,9 @@
 import getYouTubeID from 'get-youtube-id';
+import MediaItem from 'types/MediaItem';
 import {getService} from 'services/mediaServices';
 import {createMediaItemFromFile, createMediaItemFromUrl} from 'services/music-metadata';
 import {injectAt} from 'services/playlist';
-import {getYouTubeVideoInfo} from 'services/youtube';
+import youtubeApi from 'services/youtube/youtubeApi';
 import {error} from 'components/Dialog';
 import {partition, Logger} from 'utils';
 
@@ -20,11 +21,11 @@ export default function usePlaylistInject() {
 }
 
 async function injectUrls(urls: readonly string[], atIndex: number): Promise<void> {
-    const [youtubeUrls, otherUrls] = partition(urls, (url) => !!getYouTubeID(url));
+    const [youtubeUrls, otherUrls] = partition(urls, (url) => /youtu\.?be/.test(url));
     const youtubeIds = youtubeUrls.map((url) => getYouTubeID(url)!);
     try {
         const items = await Promise.all([
-            Promise.all(youtubeIds.map((id) => getYouTubeVideoInfo(id))),
+            Promise.all(youtubeIds.map((id) => youtubeApi.getVideoInfo(id))),
             Promise.all(otherUrls.map((url) => createMediaItemFromUrl(url))),
         ]);
         await injectAt(items.flat(), atIndex);
@@ -45,11 +46,11 @@ async function injectFiles(files: FileList | readonly File[], atIndex: number): 
     }
 }
 
-async function injectSpotifyTracks(trackIds: readonly string[], atIndex: number): Promise<void> {
+async function injectSpotifyTracks(data: DataTransferItem, atIndex: number): Promise<void> {
     try {
         const spotify = getService('spotify');
         if (spotify?.isConnected()) {
-            const items = await spotify.getTracksById!(trackIds);
+            const items = await spotify.getDroppedItems!<MediaItem>(data);
             await injectAt(items, atIndex);
         } else {
             await showError(Error('Not connected to Spotify.'));

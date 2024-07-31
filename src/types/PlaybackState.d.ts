@@ -8,4 +8,5 @@ export default interface PlaybackState {
     readonly duration: number;
     readonly paused: boolean;
     readonly playbackId: string;
+    readonly miniPlayer: boolean; // State comes from miniPlayer.
 }

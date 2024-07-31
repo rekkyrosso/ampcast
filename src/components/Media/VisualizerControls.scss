@@ -1,10 +1,48 @@
 .visualizer-controls {
     position: absolute;
     inset: 0;
-    color: white;
+    color: var(--soft-white);
 
-    .media:fullscreen.idle & {
-        visibility: hidden;
+    .icon-button {
+        padding: 0.25em;
+        border-radius: 50%;
+
+        .themed.light & {
+            background: rgba(0, 0, 0, 0.92);
+        }
+
+        &,
+        .media:fullscreen & {
+            background: #242424;
+        }
+
+        .media:not(.paused) & {
+            background: rgba(0, 0, 0, 0.8);
+
+            &:enabled:hover {
+                background: rgba(0, 0, 0, 0.92)
+            }
+        }
+    }
+
+    .app-title {
+        position: absolute;
+        left: 0.5em;
+        top: 0.25em;
+        font-size: max(1.5vw, 1rem);
+        text-shadow: 2px 2px 0 rgba(16, 16, 16, 0.8);
+
+        .media:not(:fullscreen) & {
+            display: none;
+        }
+    }
+
+    .app-version {
+        background-color: transparent;
+    }
+
+    .media.fullscreen & .icon-buttons {
+        font-size: max(3vw, 1.25rem);
     }
 
     .icon-button {
@@ -14,6 +52,17 @@
 
         &:hover {
             filter: brightness(1);
+        }
+
+        &-link {
+            .media:fullscreen & {
+                display: none;
+            }
+
+            & .icon {
+                width: 1em;
+                height: 1em;
+            }
         }
     }
 
@@ -29,13 +78,11 @@
     }
 
     .media-buttons {
-        bottom: 0.5em;
+        bottom: 1.5em;
         left: 50%;
         transform: translateX(-50%);
 
-        .icon-button {
-            font-size: 0.625em;
-            padding: 0.625em;
+        .icon {
             width: 1em;
             height: 1em;
         }
@@ -45,7 +92,7 @@
         left: 0.25em;
         bottom: 0.375em;
 
-        .media-playback.paused &,
+        .media.paused &,
         .media.is-playing-video & {
             display: none;
         }
@@ -57,33 +104,26 @@
         width: 1.5em;
         height: 1.5em;
 
-        .media:fullscreen & {
+        .media:not(.is-playing-video) & {
+            filter: grayscale(1);
+        }
+
+        .media.fullscreen & {
             font-size: 0.75em;
+            margin-bottom: var(--progress-bar-background-height);
         }
 
         &.icon-apple-logo {
             fill: white;
         }
 
-        .media-playback.paused & {
-            display: none;
-        }
-    }
-
-    .no-visualizer-reason {
-        .media:fullscreen & {
-            bottom: 0.875rem;
-        }
-    }
-
-    .progress-bar {
-        .is-showing-cover-art & {
+        .media.paused & {
             display: none;
         }
     }
 
     /* Show buttons on hover. */
-
+    .app-title,
     .visualizer-buttons,
     .media-buttons,
     .video-source-icon,
@@ -92,15 +132,17 @@
         visibility: hidden;
     }
 
-    &:hover {
+    .media:not(.idle) &:hover {
         .visualizer-buttons,
         .video-source-icon {
             visibility: inherit;
         }
     }
 
-    .media:fullscreen &:hover {
+    .media.fullscreen:not(.idle) &:hover,
+    .media.fullscreen.paused & {
         .media-buttons,
+        .app-title,
         .progress-bar {
             visibility: inherit;
         }
@@ -108,5 +150,15 @@
 
     .media.loaded.no-visualizer &:hover .no-visualizer-reason {
         visibility: inherit;
+    }
+
+    .no-visualizer-reason {
+        opacity: 1;
+        transition: opacity 300ms linear 1s;
+    }
+
+    .media.paused & .no-visualizer-reason {
+        opacity: 0;
+        transition: none;
     }
 }

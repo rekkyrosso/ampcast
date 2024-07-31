@@ -372,9 +372,11 @@ const apple: PublicMediaService = {
     url: 'https://music.apple.com',
     credentialsUrl: 'https://developer.apple.com',
     serviceType: ServiceType.PublicMedia,
-    primaryMediaType: MediaType.Audio,
     defaultHidden: true,
     internetRequired: true,
+    get credentialsRequired(): boolean {
+        return appleSettings.credentialsRequired;
+    },
     roots: [
         createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createRoot(ItemType.Album, {title: 'Albums'}),
@@ -432,10 +434,6 @@ const apple: PublicMediaService = {
 };
 
 export default apple;
-
-export function isMusicKitBeta(): boolean | undefined {
-    return window.MusicKit?.version.startsWith('3');
-}
 
 function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.src === b.src;

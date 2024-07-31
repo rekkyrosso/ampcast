@@ -191,7 +191,6 @@ const tidal: PublicMediaService = {
     icon: serviceId,
     url: 'https://tidal.com',
     serviceType: ServiceType.PublicMedia,
-    primaryMediaType: MediaType.Audio,
     authService: plex,
     internetRequired: true,
     defaultHidden: true,
@@ -456,11 +455,13 @@ function createSearchPager<T extends MediaObject>(
     limit = 100,
     options?: Partial<PlexPagerConfig>
 ): Pager<T> {
+    const searchTypes = 'music';
+    const searchProviders = 'tidal';
     return new PlexPager<T>(
         {
             host: musicSearchHost,
             path: '/library/search',
-            params: {query, limit, type, searchTypes: 'music'},
+            params: {query, limit, type, searchTypes, searchProviders},
         },
         {...options, serviceId}
     );

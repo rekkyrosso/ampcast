@@ -1,17 +1,17 @@
 import React, {useId} from 'react';
 
-export type AppCredentialProps = React.InputHTMLAttributes<HTMLInputElement> & {
+export type CredentialsProps = React.InputHTMLAttributes<HTMLInputElement> & {
     label: string;
     inputRef: React.RefObject<HTMLInputElement>;
 };
 
-export default function AppCredential({
+export default function Credentials({
     type = 'text',
     name = '',
     label,
     inputRef,
     ...props
-}: AppCredentialProps) {
+}: CredentialsProps) {
     const uid = useId();
     const id = `${uid}-${name}`;
 

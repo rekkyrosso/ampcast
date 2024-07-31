@@ -1,5 +1,5 @@
 import React, {useCallback, useId, useState} from 'react';
-import {getYouTubeSrc} from 'services/youtube';
+import youtubeApi from 'services/youtube/youtubeApi';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
 
@@ -38,7 +38,7 @@ export default function AmbientVideoSettings({
         let validityMessage = 'Not a valid YouTube url.';
         if (/^https?/.test(url) && /youtu\.?be/.test(url)) {
             validityMessage = 'Not a YouTube video or playlist.';
-            if (getYouTubeSrc(url)) {
+            if (youtubeApi.getVideoSrc(url)) {
                 validityMessage = '';
             }
         }

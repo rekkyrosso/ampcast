@@ -1,6 +1,8 @@
 import {useEffect} from 'react';
-import {observePlaybackState, pause, play, seek, stop, prev, next} from 'services/mediaPlayback';
 import PlaybackState from 'types/PlaybackState';
+import {pause, play, seek, stop, prev, next} from 'services/mediaPlayback';
+import {observePlaybackState} from 'services/mediaPlayback/playback';
+import miniPlayer from 'services/mediaPlayback/miniPlayer';
 import {getThumbnailUrl} from 'components/CoverArt';
 import useObservable from 'hooks/useObservable';
 
@@ -19,18 +21,22 @@ function updateSession({
 }: Partial<PlaybackState> = {}): void {
     const mediaSession = navigator.mediaSession;
 
-    mediaSession.playbackState = paused ? (position ? 'paused' : 'none') : 'playing';
-    mediaSession.setPositionState({duration, position, playbackRate: 1});
+    if (miniPlayer.active) {
+        mediaSession.metadata = null;
+    } else {
+        mediaSession.playbackState = paused ? (position ? 'paused' : 'none') : 'playing';
+        mediaSession.setPositionState({duration, position, playbackRate: 1});
 
-    mediaSession.metadata = new MediaMetadata({
-        title: item?.title,
-        artist: item?.artists?.join(', '),
-        album: item?.album,
-        artwork: item?.thumbnails?.map((thumbnail) => ({
-            src: getThumbnailUrl(thumbnail),
-            sizes: `${thumbnail.width}x${thumbnail.height}`,
-        })),
-    });
+        mediaSession.metadata = new MediaMetadata({
+            title: item?.title,
+            artist: item?.artists?.join(', '),
+            album: item?.album,
+            artwork: item?.thumbnails?.map((thumbnail) => ({
+                src: getThumbnailUrl(thumbnail),
+                sizes: `${thumbnail.width}x${thumbnail.height}`,
+            })),
+        });
+    }
 
     // These might get overwritten by MusicKit so keep them updated.
     mediaSession.setActionHandler('play', play);

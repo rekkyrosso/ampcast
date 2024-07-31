@@ -2,7 +2,6 @@
 
 declare namespace MusicKit {
     function configure(configuration: Configuration): Promise<MusicKitInstance>;
-    const isWrapper: boolean | undefined;
 
     interface MusicKitInstance {
         readonly player: never;
@@ -12,8 +11,10 @@ declare namespace MusicKit {
         readonly version: string;
         bitrate: number;
         volume: number;
+        // TODO: These overrides don't work well enough.
         clearQueue(): Promise<void>;
         pause(): Promise<void>;
+        stop(): Promise<void>;
     }
 
     interface API {
@@ -26,5 +27,7 @@ declare namespace MusicKit {
 
     interface SetQueueOptions {
         items?: descriptor[];
+        startTime?: number;
+        startPlaying?: boolean;
     }
 }

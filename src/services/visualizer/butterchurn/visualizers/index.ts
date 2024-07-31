@@ -1,7 +1,6 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import {ButterchurnVisualizer} from 'types/Visualizer';
-import visualizerSettings from 'services/visualizer/visualizerSettings';
 
 const visualizers$ = new BehaviorSubject<readonly ButterchurnVisualizer[]>([]);
 
@@ -43,8 +42,4 @@ async function loadVisualizers(): Promise<void> {
     }
 }
 
-if (visualizerSettings.provider === 'butterchurn') {
-    loadVisualizers();
-} else {
-    setTimeout(loadVisualizers, 1000);
-}
+loadVisualizers();

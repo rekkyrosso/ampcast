@@ -1,9 +1,10 @@
 import React, {useEffect, useState} from 'react';
-import {map, merge, switchMap, take} from 'rxjs';
+import {map, merge, of, skipWhile, switchMap, take} from 'rxjs';
 import MediaService from 'types/MediaService';
 import {
     getEnabledServices,
     isPersonalMediaService,
+    observeMediaServices,
     observePersonalMediaLibraryIdChanges,
 } from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
@@ -22,12 +23,18 @@ export default function useMediaSources() {
             observePersonalMediaLibraryIdChanges(),
             pinStore.observe()
         );
-        const subscription = pinStore
-            .observe()
+        const subscription = observeMediaServices()
             .pipe(
-                take(1),
-                switchMap(() => refresh$),
-                map(() => getServices())
+                skipWhile((services) => services.length === 0),
+                switchMap((services) =>
+                    services.length === 0
+                        ? of([])
+                        : pinStore.observe().pipe(
+                              take(1),
+                              switchMap(() => refresh$),
+                              map(() => getServices())
+                          )
+                )
             )
             .subscribe(setSources);
         return () => subscription.unsubscribe();

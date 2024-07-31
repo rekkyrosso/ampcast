@@ -19,6 +19,7 @@ import ListenBrainzLikesPager from './ListenBrainzLikesPager';
 import ListenBrainzPlaylistsPager from './ListenBrainzPlaylistsPager';
 import ListenBrainzStatsPager from './ListenBrainzStatsPager';
 import listenbrainzSettings from './listenbrainzSettings';
+import {scrobble} from './listenbrainzScrobbler';
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
@@ -176,6 +177,7 @@ const listenbrainz: DataService = {
     canStore,
     compareForRating,
     createPlaylist,
+    scrobble,
     store,
     observeIsLoggedIn,
     isConnected,
@@ -190,25 +192,8 @@ function canStore<T extends MediaObject>(item: T): boolean {
     return item.itemType === ItemType.Media && !!(item.recording_mbid || item.recording_msid);
 }
 
-export function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
-    const [aService] = a.src.split(':');
-    const [bService] = b.src.split(':');
-
-    if (aService !== bService) {
-        return false;
-    }
-
-    switch (a.itemType) {
-        case ItemType.Media:
-            return (
-                a.itemType === b.itemType &&
-                ((!!a.recording_mbid && a.recording_mbid === b.recording_mbid) ||
-                    (!!a.recording_msid && a.recording_msid === b.recording_msid))
-            );
-
-        default:
-            return false;
-    }
+function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
+    return listenbrainzApi.compareForRating(a, b);
 }
 
 async function addToPlaylist<T extends MediaItem>(

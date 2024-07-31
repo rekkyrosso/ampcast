@@ -24,6 +24,10 @@ const lastfmSettings = {
         }
     },
 
+    get credentialsRequired(): boolean {
+        return !lf_api_key;
+    },
+
     get token(): string {
         return storage.getString('token');
     },

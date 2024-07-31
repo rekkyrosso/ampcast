@@ -1,7 +1,7 @@
 import React, {useId} from 'react';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
-import useVisualizerProviders from './useVisualizerProviders';
+import useVisualizerProviders from 'hooks/useVisualizerProviders';
 
 export interface VisualizerSettingsGeneralProps {
     providerRef: React.RefObject<HTMLSelectElement>;
@@ -42,7 +42,7 @@ export default function VisualizerSettingsGeneral({
                 </select>
             </p>
             <fieldset>
-                <legend>Fullscreen</legend>
+                <legend>Options</legend>
                 <p>
                     <input
                         type="checkbox"
@@ -50,7 +50,7 @@ export default function VisualizerSettingsGeneral({
                         defaultChecked={visualizerSettings.fullscreenProgress}
                         ref={fullscreenProgressRef}
                     />
-                    <label htmlFor={`${id}-fullscreen-progress`}>Show progress bar</label>
+                    <label htmlFor={`${id}-fullscreen-progress`}>Fullscreen progress bar</label>
                 </p>
             </fieldset>
             <DialogButtons onSubmitClick={onSubmit} />

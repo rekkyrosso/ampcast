@@ -9,7 +9,6 @@ type BaseMediaObject = UserData & {
     readonly description?: string;
     readonly addedAt?: number; // unix
     readonly genres?: readonly string[];
-    readonly mood?: string;
     readonly thumbnails?: Thumbnail[];
     readonly apple?: {
         readonly catalogId: string;

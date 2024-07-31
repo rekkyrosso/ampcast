@@ -4,6 +4,7 @@ import {Logger} from 'utils';
 import {showEmbyLoginDialog} from './components/EmbyLoginDialog';
 import embySettings from './embySettings';
 import embyApi from './embyApi';
+import emby from './emby';
 
 const logger = new Logger('embyAuth');
 
@@ -30,7 +31,7 @@ export async function login(): Promise<void> {
     if (!isLoggedIn()) {
         logger.log('connect');
         try {
-            const returnValue = await showEmbyLoginDialog();
+            const returnValue = await showEmbyLoginDialog(emby, embySettings);
             if (returnValue) {
                 const {serverId, userId, token} = JSON.parse(returnValue);
                 embySettings.serverId = serverId;
@@ -68,7 +69,7 @@ async function checkConnection(): Promise<boolean> {
             embyApi.getEndpointInfo(),
             embyApi.getMusicLibraries(),
         ]);
-        embySettings.isLocal = !!endpoint.IsLocal;
+        embySettings.isLocal = !!(endpoint.IsLocal || endpoint.IsInNetwork);
         embySettings.libraries = libraries;
         return true;
     } catch (err: any) {

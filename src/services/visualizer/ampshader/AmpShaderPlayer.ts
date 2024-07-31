@@ -1,3 +1,5 @@
+import type {Observable} from 'rxjs';
+import {Subject} from 'rxjs';
 import Color from 'colorjs.io';
 import AudioManager from 'types/AudioManager';
 import {AmpShaderVisualizer} from 'types/Visualizer';
@@ -17,7 +19,9 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     private readonly offscreenCanvas: OffscreenCanvas | HTMLCanvasElement;
     private readonly gl: WebGL2RenderingContext;
     private readonly outputGl: CanvasRenderingContext2D;
+    private readonly error$ = new Subject<unknown>();
     private animationFrameId = 0;
+    private compileFrameId = 0;
     private fragFrameColor: WebGLUniformLocation | null = null;
     private fragBackgroundColor: WebGLUniformLocation | null = null;
     private fragColor: WebGLUniformLocation | null = null;
@@ -98,6 +102,10 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
         }
     }
 
+    observeError(): Observable<unknown> {
+        return this.error$;
+    }
+
     appendTo(parentElement: HTMLElement): void {
         parentElement.append(this.canvas);
     }
@@ -109,14 +117,11 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
             this.cancelAnimation();
             this.createShader(`${header}\n${visualizer.shader}\n${footer}`);
         }
-        if (this.autoplay && !this.animationFrameId) {
-            this.render();
-        }
     }
 
     play(): void {
         this.logger.log('play');
-        if (!this.animationFrameId) {
+        if (!this.animationFrameId && this.program) {
             this.render();
         }
     }
@@ -195,7 +200,12 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     }
 
     private createShader(fragmentShaderSrc: string): void {
+        this.cancelAnimation();
+        cancelAnimationFrame(this.compileFrameId);
+        this.clear();
+
         const gl = this.gl;
+        const ext = gl.getExtension('KHR_parallel_shader_compile');
 
         if (this.program) {
             gl.detachShader(this.program, this.vertexShader!);
@@ -220,28 +230,48 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
         gl.attachShader(program, fragmentShader);
 
         gl.linkProgram(program);
-        if (!gl.getProgramParameter(program, gl.LINK_STATUS)) {
-            throw Error(`Link failed: ${gl.getProgramInfoLog(program)}`);
+
+        const tryProgram = () => {
+            if (gl.getProgramParameter(program, gl.LINK_STATUS) === true) {
+                gl.useProgram(program);
+
+                const position = gl.getAttribLocation(program, 'as_Position');
+                gl.enableVertexAttribArray(position);
+                gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
+
+                this.startTime = performance.now();
+                this.fragFrameColor = gl.getUniformLocation(program, 'iFrameColor');
+                this.fragBackgroundColor = gl.getUniformLocation(program, 'iBackgroundColor');
+                this.fragColor = gl.getUniformLocation(program, 'iColor');
+                this.fragTime = gl.getUniformLocation(program, 'iTime');
+                this.fragChannelTime = gl.getUniformLocation(program, 'iChannelTime');
+                this.fragDate = gl.getUniformLocation(program, 'iDate');
+
+                const fragResolution = gl.getUniformLocation(program, 'iResolution');
+                gl.uniform2f(fragResolution, this.canvas.width, this.canvas.height);
+
+                this.program = program;
+
+                if (this.autoplay) {
+                    this.render();
+                }
+            } else {
+                this.error$.next(Error('Failed to create shader'));
+            }
+        };
+
+        if (ext) {
+            const checkComplete = () => {
+                if (gl.getProgramParameter(program, ext.COMPLETION_STATUS_KHR) === true) {
+                    tryProgram();
+                } else {
+                    this.compileFrameId = requestAnimationFrame(checkComplete);
+                }
+            };
+            this.compileFrameId = requestAnimationFrame(checkComplete);
+        } else {
+            tryProgram();
         }
-
-        gl.useProgram(program);
-
-        const position = gl.getAttribLocation(program, 'as_Position');
-        gl.enableVertexAttribArray(position);
-        gl.vertexAttribPointer(position, 2, gl.FLOAT, false, 0, 0);
-
-        this.startTime = performance.now();
-        this.fragFrameColor = gl.getUniformLocation(program, 'iFrameColor');
-        this.fragBackgroundColor = gl.getUniformLocation(program, 'iBackgroundColor');
-        this.fragColor = gl.getUniformLocation(program, 'iColor');
-        this.fragTime = gl.getUniformLocation(program, 'iTime');
-        this.fragChannelTime = gl.getUniformLocation(program, 'iChannelTime');
-        this.fragDate = gl.getUniformLocation(program, 'iDate');
-
-        const fragResolution = gl.getUniformLocation(program, 'iResolution');
-        gl.uniform2f(fragResolution, this.canvas.width, this.canvas.height);
-
-        this.program = program;
     }
 
     private render(): void {

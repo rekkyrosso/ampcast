@@ -1,5 +1,6 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
+import {isFullscreenMedia} from 'utils';
 import {DialogProps} from './Dialog';
 
 export default async function showDialog(
@@ -8,7 +9,7 @@ export default async function showDialog(
 ): Promise<string> {
     return new Promise((resolve, reject) => {
         const dialogRoot = document.getElementById(
-            document.fullscreenElement ? 'fullscreen-popup' : system ? 'system' : 'app'
+            isFullscreenMedia() ? 'fullscreen-popup' : system ? 'system' : 'app'
         );
         const rootElement = document.createElement('div');
         const root = createRoot(rootElement);

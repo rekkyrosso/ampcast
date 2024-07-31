@@ -8,6 +8,6 @@ export default interface MediaFolder extends BaseMediaObject {
     readonly fileName: string;
     readonly path: string;
     readonly pager: Pager<MediaFolderItem>;
-    // Everything below here should be optional
+    // Everything below here should be optional.
     readonly parent?: MediaFolder;
 }

@@ -25,7 +25,7 @@ export default function CurrentlyPlayingDialog(props: DialogProps) {
             ref={ref}
         >
             <form method="dialog">
-                {item ? <MediaInfo item={item} debug={debug} /> : <p>The playlist is empty.</p>}
+                {item ? <MediaInfo item={item} debug={debug} /> : <p>No media loaded.</p>}
                 {item && item.mediaType !== MediaType.Video ? (
                     <VisualizerInfo visualizer={visualizer} />
                 ) : null}

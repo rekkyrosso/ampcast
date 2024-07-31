@@ -72,7 +72,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
                 if (__dev__) {
                     pagerCount--;
                     if (pagerCount === 0) {
-                        logger.log(`All pagers disconnected. Connected pagers=${pagerCount}.`);
+                        logger.info(`All pagers disconnected. Connected pagers=${pagerCount}.`);
                     }
                 }
             }

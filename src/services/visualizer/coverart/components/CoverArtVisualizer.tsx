@@ -15,6 +15,7 @@ import usePrevious from 'hooks/usePrevious';
 import coverart from '../coverart';
 import CurrentlyPlaying from './CurrentlyPlaying';
 import {filterNotEmpty} from 'utils';
+import './CoverArtVisualizer.scss';
 
 const observeAnimatedBackgroundEnabled = () =>
     observeVisualizerSettings().pipe(
@@ -58,12 +59,9 @@ export default function CoverArtVisualizer() {
     }, [loadingState]);
 
     useEffect(() => {
-        const subscription = audio.observeReady().subscribe((audio) => {
-            const player = coverart.createPlayer(audio) as CovertArtPlayer;
-            player.appendTo(ref.current!);
-            setPlayer(player);
-        });
-        return () => subscription.unsubscribe();
+        const player = coverart.createPlayer(audio) as CovertArtPlayer;
+        player.appendTo(ref.current!);
+        setPlayer(player);
     }, []);
 
     useEffect(() => {

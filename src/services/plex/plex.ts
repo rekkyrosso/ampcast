@@ -39,6 +39,7 @@ import plexApi, {getMusicLibraryId, getMusicLibraryPath, getPlexMediaType} from 
 import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
 import PlexPager from './PlexPager';
+import {scrobble} from './plexScrobbler';
 
 const tracksLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
@@ -501,6 +502,7 @@ const plex: PersonalMediaService = {
     getThumbnailUrl,
     lookup,
     rate,
+    scrobble,
     observeConnectionLogging,
     observeIsLoggedIn,
     isConnected,

@@ -12,14 +12,17 @@ import Dialog, {DialogProps} from 'components/Dialog';
 import MediaServiceList from 'components/Settings/MediaLibrarySettings/MediaServiceList';
 import {IconName} from 'components/Icon';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
+import useMediaServices from 'hooks/useMediaServices';
 import './StartupWizard.scss';
 
 export default function StartupWizard(props: DialogProps) {
+    const services = useMediaServices();
     const [pageNumber, setPageNumber] = useState(0);
-    const pages = useMemo(
-        () => [<StreamingMedia key={0} />, <DataServices key={1} />, <PersonalMedia key={2} />],
-        []
-    );
+    const pages = useMemo(() => {
+        return services.length === 0
+            ? []
+            : [<StreamingMedia key={0} />, <DataServices key={1} />, <PersonalMedia key={2} />];
+    }, [services]);
 
     const prev = useCallback(() => {
         setPageNumber((pageNumber) => pageNumber - 1);
@@ -30,7 +33,11 @@ export default function StartupWizard(props: DialogProps) {
     }, []);
 
     return (
-        <Dialog {...props} className="settings-dialog startup-wizard" title="Media Services">
+        <Dialog
+            {...props}
+            className="settings-dialog startup-wizard"
+            title={<MediaSourceLabel icon="settings" text="Select Services" />}
+        >
             <form method="dialog">
                 {pages[pageNumber]}
                 <footer className="dialog-buttons">
@@ -48,25 +55,30 @@ export default function StartupWizard(props: DialogProps) {
 }
 
 function StreamingMedia() {
-    const services = useMemo(getPublicMediaServices, []);
     return (
         <Services
             icon="globe"
             title="Streaming Media"
-            services={services}
+            services={getPublicMediaServices()}
             multiSelect={allowMultiSelect}
         />
     );
 }
 
 function PersonalMedia() {
-    const services = useMemo(getPersonalMediaServices, []);
-    return <Services icon="network" title="Personal Media Server" services={services} />;
+    return (
+        <Services
+            icon="network"
+            title="Personal Media Server"
+            services={getPersonalMediaServices()}
+        />
+    );
 }
 
 function DataServices() {
-    const services = useMemo(getScrobblers, []);
-    return <Services icon="data" title="Listening History" services={services} multiSelect />;
+    return (
+        <Services icon="data" title="Listening History" services={getScrobblers()} multiSelect />
+    );
 }
 
 interface ServicesProps {

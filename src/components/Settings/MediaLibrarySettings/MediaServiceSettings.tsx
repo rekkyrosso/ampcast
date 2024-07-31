@@ -1,17 +1,12 @@
 import React, {useMemo} from 'react';
 import MediaService from 'types/MediaService';
 import ServiceType from 'types/ServiceType';
-import {am_dev_token, lf_api_key, sp_client_id, yt_client_id} from 'services/credentials';
 import TabList, {TabItem} from 'components/TabList';
-import AppleBetaSettings from 'services/apple/components/AppleBetaSettings';
-import AppleCredentials from 'services/apple/components/AppleCredentials';
 import AppleStreamingSettings from 'services/apple/components/AppleStreamingSettings';
-import LastFmCredentials from 'services/lastfm/components/LastFmCredentials';
 import PlexMediaLibrarySettings from 'services/plex/components/PlexMediaLibrarySettings';
 import PlexTidalStreamingSettings from 'services/plex/components/PlexTidalStreamingSettings';
-import SpotifyCredentials from 'services/spotify/components/SpotifyCredentials';
-import YouTubeCredentials from 'services/youtube/components/YouTubeCredentials';
 import MediaServiceSettingsGeneral from './MediaServiceSettingsGeneral';
+import MediaServiceCredentials from './MediaServiceCredentials';
 import PersonalMediaLibrarySettings from './PersonalMediaLibrarySettings';
 import PinnedSettings from './PinnedSettings';
 import ScrobblingSettings from './ScrobblingSettings';
@@ -28,25 +23,10 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
                 panel: <MediaServiceSettingsGeneral service={service} />,
             },
         ];
-        if (service.id === 'apple' && !am_dev_token) {
+        if (service.credentialsRequired) {
             tabs.push({
                 tab: 'Credentials',
-                panel: <AppleCredentials />,
-            });
-        } else if (service.id === 'lastfm' && !lf_api_key) {
-            tabs.push({
-                tab: 'Credentials',
-                panel: <LastFmCredentials />,
-            });
-        } else if (service.id === 'spotify' && !sp_client_id) {
-            tabs.push({
-                tab: 'Credentials',
-                panel: <SpotifyCredentials />,
-            });
-        } else if (service.id === 'youtube' && !yt_client_id) {
-            tabs.push({
-                tab: 'Credentials',
-                panel: <YouTubeCredentials />,
+                panel: <MediaServiceCredentials service={service} />,
             });
         }
         if ('libraryId' in service) {
@@ -54,7 +34,7 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
                 tab: 'Library',
                 panel:
                     service.id === 'plex' ? (
-                        <PlexMediaLibrarySettings />
+                        <PlexMediaLibrarySettings service={service} />
                     ) : (
                         <PersonalMediaLibrarySettings service={service} />
                     ),
@@ -81,12 +61,6 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
             tabs.push({
                 tab: 'Pinned',
                 panel: <PinnedSettings service={service} />,
-            });
-        }
-        if (service.id === 'apple') {
-            tabs.push({
-                tab: 'Beta',
-                panel: <AppleBetaSettings />,
             });
         }
         return tabs;

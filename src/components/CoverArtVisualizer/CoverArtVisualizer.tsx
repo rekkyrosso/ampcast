@@ -3,7 +3,6 @@ import {filter, firstValueFrom, map, mergeMap} from 'rxjs';
 import {CoverArtVisualizer as CoverArt} from 'types/Visualizer';
 import VisualizerProvider from 'types/VisualizerProvider';
 import {observeVisualizerProviders} from 'services/visualizer/visualizerProviders';
-import 'services/visualizer/coverart/components/CoverArtVisualizer.scss';
 
 const LazyCoverArtVisualizer = lazy(() => getCoverArtVisualizer());
 

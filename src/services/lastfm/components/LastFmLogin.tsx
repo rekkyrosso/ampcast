@@ -5,7 +5,6 @@ import CredentialsRequired from 'components/Login/CredentialsRequired';
 import LoginButton from 'components/Login/LoginButton';
 import LoginRequired from 'components/Login/LoginRequired';
 import ServiceLink from 'components/Login/ServiceLink';
-import LastFmCredentialsDialog from './LastFmCredentialsDialog';
 import useCredentials from './useCredentials';
 
 export default function LastFmLogin({service: lastfm}: LoginProps) {
@@ -21,7 +20,7 @@ export default function LastFmLogin({service: lastfm}: LoginProps) {
             ) : (
                 <>
                     <CredentialsRequired service={lastfm} />
-                    <CredentialsButton dialog={LastFmCredentialsDialog} />
+                    <CredentialsButton service={lastfm} />
                 </>
             )}
             <ServiceLink service={lastfm} />

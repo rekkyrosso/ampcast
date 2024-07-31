@@ -1,9 +1,9 @@
 import React, {useCallback, useId, useState} from 'react';
 import MediaObject from 'types/MediaObject';
+import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import PageHeader from 'components/MediaBrowser/PageHeader';
 import PagedItems from 'components/MediaBrowser/PagedItems';
-import listenbrainz from '../listenbrainz';
 import useRange from './useRange';
 
 export type ListenBrainzRange =
@@ -30,10 +30,12 @@ const options: ListenBrainzRangeOption[] = [
 ];
 
 export interface ListenBrainzTopBrowserProps<T extends MediaObject> {
+    service: MediaService;
     source: MediaSource<T>;
 }
 
 export default function ListenBrainzTopBrowser<T extends MediaObject>({
+    service: listenbrainz,
     source,
 }: ListenBrainzTopBrowserProps<T>) {
     const id = useId();

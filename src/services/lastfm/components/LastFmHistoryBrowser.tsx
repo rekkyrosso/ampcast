@@ -1,10 +1,20 @@
 import React from 'react';
+import MediaItem from 'types/MediaItem';
+import MediaService from 'types/MediaService';
+import MediaSource from 'types/MediaSource';
 import HistoryBrowser from 'components/MediaBrowser/HistoryBrowser';
-import lastfm, {lastfmHistory} from '../lastfm';
 import useHistoryStart from './useHistoryStart';
 
-export default function LastFmHistoryBrowser() {
+export interface LastFmHistoryBrowserProps {
+    service: MediaService;
+    source: MediaSource<MediaItem>;
+}
+
+export default function LastFmHistoryBrowser({
+    service: lastfm,
+    source: history,
+}: LastFmHistoryBrowserProps) {
     const minDate = useHistoryStart();
 
-    return <HistoryBrowser service={lastfm} source={lastfmHistory} minDate={minDate} />;
+    return <HistoryBrowser service={lastfm} source={history} minDate={minDate} />;
 }

@@ -155,7 +155,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             ),
             enhance(
                 tidalItems.filter((item) =>
-                    [ItemType.Media, ItemType.Artist].includes(item.itemType)
+                    [ItemType.Media, ItemType.Album, ItemType.Artist].includes(item.itemType)
                 ),
                 musicProviderHost
             ),
