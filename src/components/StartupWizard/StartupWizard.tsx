@@ -36,7 +36,8 @@ export default function StartupWizard(props: DialogProps) {
         <Dialog
             {...props}
             className="settings-dialog startup-wizard"
-            title={<MediaSourceLabel icon="settings" text="Select Services" />}
+            icon="settings"
+            title="Select Services"
         >
             <form method="dialog">
                 {pages[pageNumber]}

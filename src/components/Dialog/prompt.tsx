@@ -26,7 +26,7 @@ export default async function prompt({
 export type PromptDialogProps = DialogProps & PromptOptions;
 
 export function PromptDialog({
-    title = 'Input',
+    title = 'Input Required',
     type = 'text',
     placeholder = '',
     label,

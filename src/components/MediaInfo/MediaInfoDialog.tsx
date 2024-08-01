@@ -2,7 +2,6 @@ import React, {useRef} from 'react';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import Dialog, {DialogProps, showDialog} from 'components/Dialog';
-import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import MediaInfo from './MediaInfo';
 import useMediaInfoDialog from './useMediaInfoDialog';
 import './MediaInfoDialog.scss';
@@ -24,12 +23,7 @@ export default function MediaInfoDialog<T extends MediaObject>({
     const title = useTitle(item);
 
     return (
-        <Dialog
-            {...props}
-            className="media-info-dialog"
-            title={<MediaSourceLabel icon="info" text={title} />}
-            ref={ref}
-        >
+        <Dialog {...props} className="media-info-dialog" icon="info" title={title} ref={ref}>
             <form method="dialog">
                 <MediaInfo item={item} debug={debug} />
                 <footer className="dialog-buttons">

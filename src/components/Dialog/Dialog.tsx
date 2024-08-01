@@ -9,11 +9,13 @@ import React, {
 import {Subscription, fromEvent} from 'rxjs';
 import {Except} from 'type-fest';
 import {preventDefault, stopPropagation} from 'utils';
-import Icon from 'components/Icon';
+import Icon, {IconName} from 'components/Icon';
+import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import './Dialog.scss';
 
 export interface DialogProps
     extends Except<React.DialogHTMLAttributes<HTMLDialogElement>, 'title' | 'onClose'> {
+    icon?: IconName;
     title?: React.ReactNode;
     onClose: (returnValue: string) => void;
 }
@@ -30,7 +32,7 @@ interface DialogPosition {
 const startPosition: DialogPosition = {left: 0, top: 0};
 
 function Dialog(
-    {title, className = '', children, onClose, ...props}: DialogProps,
+    {icon, title, className = '', children, onClose, ...props}: DialogProps,
     ref: React.ForwardedRef<DialogHandle>
 ) {
     const dialogRef = useRef<HTMLDialogElement>(null);
@@ -138,7 +140,7 @@ function Dialog(
             ref={dialogRef}
         >
             <header className="dialog-head" onMouseDown={handleDragStart}>
-                <h2>{title}</h2>
+                <h2>{icon ? <MediaSourceLabel icon={icon} text={title} /> : title}</h2>
                 <div
                     className="dialog-close"
                     role="button"

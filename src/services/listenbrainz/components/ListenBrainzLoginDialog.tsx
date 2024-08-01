@@ -3,7 +3,6 @@ import Dialog, {showDialog, DialogProps} from 'components/Dialog';
 import ExternalLink from 'components/ExternalLink';
 import Icon from 'components/Icon';
 import DialogButtons from 'components/Dialog/DialogButtons';
-import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import listenbrainzSettings from '../listenbrainzSettings';
 import listenbrainz from '../listenbrainz';
 import './ListenBrainzLoginDialog.scss';
@@ -20,10 +19,6 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
     const userNameRef = useRef<HTMLInputElement>(null);
     const tokenRef = useRef<HTMLInputElement>(null);
     const profileUrl = 'https://listenbrainz.org/profile/';
-
-    const title = (
-        <MediaSourceLabel icon={listenbrainz.icon} text={`Log in to ${listenbrainz.name}`} />
-    );
 
     const login = useCallback(async () => {
         try {
@@ -78,7 +73,8 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
         <Dialog
             {...props}
             className="listenbrainz-login-dialog login-dialog"
-            title={title}
+            icon={listenbrainz.icon}
+            title={`Log in to ${listenbrainz.name}`}
             ref={dialogRef}
         >
             <form id={`${id}-login`} method="dialog" onSubmit={handleSubmit}>

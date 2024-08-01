@@ -1,7 +1,6 @@
 import React from 'react';
 import MediaService from 'types/MediaService';
 import Dialog, {DialogProps, showDialog} from 'components/Dialog';
-import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import MediaServiceCredentials from './MediaServiceCredentials';
 import './CredentialsDialog.scss';
 
@@ -21,7 +20,8 @@ export default function CredentialsDialog({service, ...props}: CredentialsDialog
         <Dialog
             {...props}
             className="settings-dialog credentials-dialog"
-            title={<MediaSourceLabel icon={service.icon} text={`${service.name} Credentials`} />}
+            icon={service.icon}
+            title={`${service.name} Credentials`}
         >
             <MediaServiceCredentials service={service} />
         </Dialog>

@@ -24,9 +24,6 @@ export default async function confirm({
     if (storageId && storage.getBoolean(storageId)) {
         return true;
     }
-    if (typeof message === 'string') {
-        message = <p>{message}</p>;
-    }
     const result = await showDialog(
         (props: DialogProps) => (
             <ConfirmDialog
@@ -53,6 +50,9 @@ export function ConfirmDialog({
 }: ConfirmDialogProps) {
     const id = useId();
     const storageRef = useRef<HTMLInputElement>(null);
+    if (typeof message === 'string') {
+        message = <p>{message}</p>;
+    }
 
     const handleSubmit = useCallback(() => {
         if (storageId && storageRef.current!.checked) {

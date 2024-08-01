@@ -1,5 +1,3 @@
-import React from 'react';
-import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import alert, {AlertOptions} from './alert';
 
 export default function error(err: Error): Promise<void>;
@@ -13,7 +11,8 @@ export default async function error(
     }
     const {title = 'Error', message = 'Unknown error', system = true} = err as any;
     await alert({
-        title: <MediaSourceLabel icon="error" text={title} />,
+        icon: 'error',
+        title,
         message,
         system,
     });

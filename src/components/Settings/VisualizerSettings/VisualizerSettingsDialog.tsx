@@ -1,6 +1,5 @@
 import React from 'react';
 import Dialog, {DialogProps} from 'components/Dialog';
-import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import VisualizerSettings from './VisualizerSettings';
 
 export default function VisualizerSettingsDialog(props: DialogProps) {
@@ -8,7 +7,8 @@ export default function VisualizerSettingsDialog(props: DialogProps) {
         <Dialog
             {...props}
             className="settings-dialog visualizer-settings-dialog"
-            title={<MediaSourceLabel icon="settings" text="Visualizer Settings" />}
+            icon="settings"
+            title="Visualizer Settings"
         >
             <VisualizerSettings />
         </Dialog>

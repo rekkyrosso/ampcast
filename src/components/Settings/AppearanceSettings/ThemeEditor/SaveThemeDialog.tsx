@@ -51,6 +51,7 @@ export default function SaveThemeDialog({suggestedName, ...props}: SaveThemeDial
         <Dialog
             {...props}
             className="save-theme-dialog"
+            icon="unsaved"
             title="Save Theme"
             onSubmit={handleSubmitClick}
             ref={dialogRef}

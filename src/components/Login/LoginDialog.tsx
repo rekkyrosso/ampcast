@@ -2,7 +2,6 @@ import React, {useCallback, useRef, useState} from 'react';
 import MediaService from 'types/MediaService';
 import Dialog, {DialogProps} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
-import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import './LoginDialog.scss';
 
 export interface LoginDialogProps extends DialogProps {
@@ -26,8 +25,6 @@ export default function LoginDialog({
     const hostRef = useRef<HTMLInputElement>(null);
     const userNameRef = useRef<HTMLInputElement>(null);
     const passwordRef = useRef<HTMLInputElement>(null);
-
-    const title = <MediaSourceLabel icon={service.icon} text={`Log in to ${service.name}`} />;
 
     const submit = useCallback(async () => {
         try {
@@ -70,7 +67,8 @@ export default function LoginDialog({
         <Dialog
             {...props}
             className={`login-dialog login-dialog-${service.id}`}
-            title={title}
+            icon={service.icon}
+            title={`Log in to ${service.name}`}
             ref={dialogRef}
         >
             <form id={`${id}-login`} method="dialog" onSubmit={handleSubmit}>
