@@ -3,9 +3,9 @@ import {Subject} from 'rxjs';
 import Color from 'colorjs.io';
 import AudioManager from 'types/AudioManager';
 import {AmpShaderVisualizer} from 'types/Visualizer';
-import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
 import theme from 'services/theme';
 import {Logger} from 'utils';
+import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 import header from './header.frag';
 import footer from './footer.frag';
 

@@ -1,7 +1,7 @@
 import {SpotifyVizVisualizer} from 'types/Visualizer';
 import {ActiveIntervals, SpotifyAudioAnalyser} from 'services/spotify/spotifyAudioAnalyser';
-import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
 import spotifyAudioAnalyser from 'services/spotify/spotifyAudioAnalyser';
+import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 import {Logger} from 'utils';
 
 const logger = new Logger('SpotifyVizPlayer');

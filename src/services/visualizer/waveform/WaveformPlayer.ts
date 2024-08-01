@@ -1,6 +1,6 @@
 import AudioManager from 'types/AudioManager';
 import {WaveformVisualizer} from 'types/Visualizer';
-import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
+import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 import {Logger} from 'utils';
 
 export interface WaveformConfig {

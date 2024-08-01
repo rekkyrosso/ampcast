@@ -10,8 +10,6 @@ import {Subscription, fromEvent} from 'rxjs';
 import {Except} from 'type-fest';
 import {preventDefault, stopPropagation} from 'utils';
 import Icon from 'components/Icon';
-import dialogPolyfill from 'libs/dialog-polyfill';
-import 'libs/dialog-polyfill/dialog-polyfill.css';
 import './Dialog.scss';
 
 export interface DialogProps
@@ -49,9 +47,7 @@ function Dialog(
     }));
 
     useEffect(() => {
-        const dialog = dialogRef.current!;
-        dialogPolyfill.registerDialog(dialog);
-        dialog.showModal();
+        dialogRef.current?.showModal();
     }, []);
 
     useEffect(() => {

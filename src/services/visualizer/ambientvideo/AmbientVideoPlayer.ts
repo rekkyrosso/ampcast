@@ -4,11 +4,11 @@ import AudioManager from 'types/AudioManager';
 import PlayableItem from 'types/PlayableItem';
 import Player from 'types/Player';
 import {AmbientVideoVisualizer} from 'types/Visualizer';
-import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
-import HTML5Player from 'services/players/HTML5Player';
+import HTML5Player from 'services/mediaPlayback/players/HTML5Player';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
-import OmniPlayer from 'services/players/OmniPlayer';
+import OmniPlayer from 'services/mediaPlayback/players/OmniPlayer';
 import {LiteStorage, Logger} from 'utils';
+import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 import visualizerSettings, {observeVisualizerSettings} from '../visualizerSettings';
 import BeatsPlayer from '../waveform/BeatsPlayer';
 

@@ -2,13 +2,13 @@ import {fromEvent, of, skipWhile, switchMap, takeUntil, tap} from 'rxjs';
 import Player from 'types/Player';
 import Visualizer from 'types/Visualizer';
 import audio from 'services/audio';
-import OmniPlayer from 'services/players/OmniPlayer';
 import {
     getVisualizerProvider,
     observeVisualizerProviders,
 } from 'services/visualizer/visualizerProviders';
 import {nextVisualizer, noVisualizer, observeCurrentVisualizer} from 'services/visualizer';
 import {Logger} from 'utils';
+import OmniPlayer from './players/OmniPlayer';
 import miniPlayer from './miniPlayer';
 
 const logger = new Logger('visualizerPlayer');

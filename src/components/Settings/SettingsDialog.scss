@@ -2,8 +2,7 @@
     width: 45em;
     height: 36.5em; /* For the tallest tab */
 
-    &::backdrop,
-    & + .backdrop {
+    &::backdrop {
         /* This helps with theme editing. */
         background: none;
     }

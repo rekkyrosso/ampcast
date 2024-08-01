@@ -3,8 +3,8 @@ import AudioMotionAnalyzer from 'audiomotion-analyzer';
 import {TinyColor} from '@ctrl/tinycolor';
 import AudioManager from 'types/AudioManager';
 import {AudioMotionVisualizer} from 'types/Visualizer';
-import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
 import theme from 'services/theme';
+import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 import {Logger} from 'utils';
 
 const logger = new Logger('AudioMotionPlayer');

@@ -4,13 +4,13 @@ import PlaybackType from 'types/PlaybackType';
 import Player from 'types/Player';
 import PlaylistItem from 'types/PlaylistItem';
 import audio from 'services/audio';
-import HLSPlayer from 'services/players/HLSPlayer';
-import HTML5Player from 'services/players/HTML5Player';
-import ShakaPlayer from 'services/players/ShakaPlayer';
-import OmniPlayer from 'services/players/OmniPlayer';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
 import musicKitPlayer from 'services/apple/musicKitPlayer';
 import spotifyPlayer from 'services/spotify/spotifyPlayer';
+import HLSPlayer from './players/HLSPlayer';
+import HTML5Player from './players/HTML5Player';
+import ShakaPlayer from './players/ShakaPlayer';
+import OmniPlayer from './players/OmniPlayer';
 
 const dashAudioPlayer = new ShakaPlayer('audio', 'dash');
 const hlsAudioPlayer = new HLSPlayer('audio', 'hls');

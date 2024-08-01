@@ -3,7 +3,7 @@ import {Subject} from 'rxjs';
 import butterchurn from 'butterchurn';
 import AudioManager from 'types/AudioManager';
 import {ButterchurnVisualizer} from 'types/Visualizer';
-import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
+import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 import {Logger} from 'utils';
 
 const logger = new Logger('ButterchurnPlayer');

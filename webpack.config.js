@@ -27,7 +27,6 @@ module.exports = (args) => {
                 'd3-scale',
                 'detect-browser',
                 'dexie',
-                'libs/dialog-polyfill',
                 'fullscreen-api-polyfill',
                 'jsfft',
                 'idb-keyval',

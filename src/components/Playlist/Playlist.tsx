@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Except} from 'type-fest';
 import Action from 'types/Action';
 import LookupStatus from 'types/LookupStatus';
@@ -49,6 +49,16 @@ export default function Playlist({
     const [selectedItems, setSelectedItems] = useState<readonly PlaylistItem[]>([]);
     const onDragStart = useOnDragStart(selectedItems);
     const inject = usePlaylistInject();
+    const [startIndex, setStartIndex] = useState(-1);
+    const noStartIndex = startIndex === -1
+
+    useEffect(() => {
+        if (noStartIndex && item) {
+            const selectedId = item.id;
+            const rowIndex = items.findIndex((item) => item.id === selectedId);
+            setStartIndex(rowIndex);
+        }
+    }, [noStartIndex, item, items]);
 
     const itemClassName = useCallback(
         (item: PlaylistItem) => {
@@ -191,7 +201,7 @@ export default function Playlist({
                 items={items}
                 itemKey="id"
                 itemClassName={itemClassName}
-                selectedIndex={items.length === 0 ? -1 : 0}
+                selectedIndex={startIndex}
                 draggable={true}
                 droppable={true}
                 droppableTypes={droppableTypes}

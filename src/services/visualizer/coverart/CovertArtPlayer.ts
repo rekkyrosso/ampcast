@@ -1,7 +1,7 @@
 import {distinctUntilChanged, map, tap} from 'rxjs';
 import AudioManager from 'types/AudioManager';
 import {CoverArtVisualizer} from 'types/Visualizer';
-import AbstractVisualizerPlayer from 'services/players/AbstractVisualizerPlayer';
+import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 import visualizerSettings, {observeVisualizerSettings} from '../visualizerSettings';
 import BeatsPlayer from '../waveform/BeatsPlayer';
 import AnimatedBackgroundPlayer from './AnimatedBackgroundPlayer';
