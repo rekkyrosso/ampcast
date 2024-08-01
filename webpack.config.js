@@ -17,7 +17,6 @@ module.exports = (args) => {
     return {
         mode,
         entry: {
-            'lib/music-metadata-browser': 'music-metadata-browser',
             'lib/unidecode': 'unidecode',
             'lib/vendors': [
                 'colorjs.io',
@@ -108,12 +107,6 @@ module.exports = (args) => {
             }),
             new MiniCssExtractPlugin({
                 filename: 'bundle.css',
-            }),
-            new webpack.ProvidePlugin({
-                Buffer: ['buffer', 'Buffer'],
-            }),
-            new webpack.ProvidePlugin({
-                process: 'process/browser',
             }),
             new webpack.DefinePlugin({
                 __dev__,
