@@ -284,6 +284,9 @@ const navidrome: PersonalMediaService = {
         [Action.RemoveFromLibrary]: t('Remove from Navidrome Favorites'),
     },
     editablePlaylists: navidromePlaylists,
+    get host(): string {
+        return navidromeSettings.host;
+    },
     addToPlaylist,
     canRate: () => false,
     canStore,

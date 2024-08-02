@@ -38,8 +38,13 @@ async function loadVisualizers(): Promise<void> {
 function addPresets(presets: Record<string, MilkdropRawData>) {
     const providerId = 'butterchurn';
     const ignore = [
-        // This one never works.
+        // These don't seem to work.
         'flexi - inter state',
+        // These come from "imagePresets".
+        // Maybe they work better as overlays?
+        'Zylot - In death there is life (Geiss Layered Mix) (Jelly)',
+        'martin - attack of the beast',
+        '_Mig_009'
     ];
     visualizers$.next(
         getVisualizers().concat(

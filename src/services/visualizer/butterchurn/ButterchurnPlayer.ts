@@ -94,7 +94,6 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
         height = Math.ceil(height);
         this.canvas.width = width;
         this.canvas.height = height;
-        this.visualizer.render(); // Need to render at least once before we resize
         this.visualizer.setRendererSize(width, height);
         this.visualizer.render();
     }

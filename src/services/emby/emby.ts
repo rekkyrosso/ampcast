@@ -449,6 +449,9 @@ const emby: PersonalMediaService = {
     get audioLibraries(): readonly PersonalMediaLibrary[] {
         return embySettings.audioLibraries;
     },
+    get host(): string {
+        return embySettings.host;
+    },
     get libraryId(): string {
         return embySettings.libraryId;
     },

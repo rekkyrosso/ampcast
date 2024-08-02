@@ -3,6 +3,7 @@ import MediaService from 'types/MediaService';
 import ServiceType from 'types/ServiceType';
 import TabList, {TabItem} from 'components/TabList';
 import AppleStreamingSettings from 'services/apple/components/AppleStreamingSettings';
+import NavidromeMediaLibrarySettings from 'services/navidrome/components/NavidromeMediaLibrarySettings';
 import PlexMediaLibrarySettings from 'services/plex/components/PlexMediaLibrarySettings';
 import PlexTidalStreamingSettings from 'services/plex/components/PlexTidalStreamingSettings';
 import MediaServiceSettingsGeneral from './MediaServiceSettingsGeneral';
@@ -29,11 +30,13 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
                 panel: <MediaServiceCredentials service={service} />,
             });
         }
-        if ('libraryId' in service) {
+        if (service.serviceType === ServiceType.PersonalMedia) {
             tabs.push({
-                tab: 'Library',
+                tab: 'Server',
                 panel:
-                    service.id === 'plex' ? (
+                    service.id === 'navidrome' ? (
+                        <NavidromeMediaLibrarySettings service={service} />
+                    ) : service.id === 'plex' ? (
                         <PlexMediaLibrarySettings service={service} />
                     ) : (
                         <PersonalMediaLibrarySettings service={service} />

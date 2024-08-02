@@ -424,6 +424,10 @@ export default class SubsonicService implements PersonalMediaService {
         return this.settings.audioLibraries;
     }
 
+    get host(): string {
+        return this.settings.host;
+    }
+
     get libraryId(): string {
         return this.settings.libraryId;
     }

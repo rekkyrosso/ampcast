@@ -1,12 +1,13 @@
 import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
-import MediaService from 'types/MediaService';
+import PersonalMediaService from 'types/PersonalMediaService';
 import DialogButtons from 'components/Dialog/DialogButtons';
+import ExternalLink from 'components/ExternalLink';
 import usePlexMediaServers, {PlexMediaServer} from './usePlexMediaServers';
 import plexSettings from '../plexSettings';
 
 export interface PlexMediaLibrarySettingsProps {
-    service: MediaService;
+    service: PersonalMediaService;
 }
 
 export default function PlexMediaLibrarySettings({service: plex}: PlexMediaLibrarySettingsProps) {
@@ -55,37 +56,44 @@ export default function PlexMediaLibrarySettings({service: plex}: PlexMediaLibra
 
     return (
         <form className="personal-media-library-settings" method="dialog" onSubmit={handleSubmit}>
-            <p>
-                <label htmlFor={`${id}-servers`}>Preferred Server:</label>
-                <select
-                    id={`${id}-servers`}
-                    value={server?.id}
-                    onChange={handleServerChange}
-                    ref={serverIdRef}
-                >
-                    {servers.map(({id, device, connection}) => (
-                        <option value={id} key={id}>
-                            {`${device.name}${connection ? '' : ' (offline)'}`}
-                        </option>
-                    ))}
-                </select>
-            </p>
-            <p>
-                <label htmlFor={`${id}-libraries`}>Preferred Library:</label>
-                <select
-                    id={`${id}-libraries`}
-                    value={libraryId}
-                    onChange={handleLibraryChange}
-                    ref={libraryIdRef}
-                    key={server?.id}
-                >
-                    {libraries.map(({id, title}) => (
-                        <option value={id} key={id}>
-                            {title}
-                        </option>
-                    ))}
-                </select>
-            </p>
+            <fieldset>
+                <legend>Host</legend>
+                <ExternalLink href={plex.host} />
+            </fieldset>
+            <fieldset>
+                <legend>Preferences</legend>
+                <p>
+                    <label htmlFor={`${id}-servers`}>Server:</label>
+                    <select
+                        id={`${id}-servers`}
+                        value={server?.id}
+                        onChange={handleServerChange}
+                        ref={serverIdRef}
+                    >
+                        {servers.map(({id, device, connection}) => (
+                            <option value={id} key={id}>
+                                {`${device.name}${connection ? '' : ' (offline)'}`}
+                            </option>
+                        ))}
+                    </select>
+                </p>
+                <p>
+                    <label htmlFor={`${id}-libraries`}>Library:</label>
+                    <select
+                        id={`${id}-libraries`}
+                        value={libraryId}
+                        onChange={handleLibraryChange}
+                        ref={libraryIdRef}
+                        key={server?.id}
+                    >
+                        {libraries.map(({id, title}) => (
+                            <option value={id} key={id}>
+                                {title}
+                            </option>
+                        ))}
+                    </select>
+                </p>
+            </fieldset>
             <DialogButtons />
         </form>
     );

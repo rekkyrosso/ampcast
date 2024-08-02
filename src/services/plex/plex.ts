@@ -474,6 +474,9 @@ const plex: PersonalMediaService = {
     get audioLibraries(): readonly PersonalMediaLibrary[] {
         return plexSettings.audioLibraries;
     },
+    get host(): string {
+        return plexSettings.host;
+    },
     get libraryId(): string {
         return plexSettings.libraryId;
     },

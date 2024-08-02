@@ -447,6 +447,9 @@ const jellyfin: PersonalMediaService = {
     get audioLibraries(): readonly PersonalMediaLibrary[] {
         return jellyfinSettings.audioLibraries;
     },
+    get host(): string {
+        return jellyfinSettings.host;
+    },
     get libraryId(): string {
         return jellyfinSettings.libraryId;
     },

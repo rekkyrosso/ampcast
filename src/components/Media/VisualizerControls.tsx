@@ -94,6 +94,9 @@ export default memo(function VisualizerControls({
         <div className="visualizer-controls" style={nextClicked ? {opacity: '1'} : undefined}>
             {hasVisualizers && nextClicked && !paused ? <Static /> : null}
             {isMiniPlayer ? <AppTitle /> : null}
+            {videoSourceIcon ? <Icon className="video-source-icon" name={videoSourceIcon} /> : null}
+            <p className="media-state no-visualizer-reason">{noVisualizerReason}</p>
+            <ProgressBar />
             <IconButtons className="visualizer-buttons visualizer-controls-settings">
                 <IconButton icon="info" title="Info" tabIndex={-1} onClick={openInfoDialog} />
                 <IconButton
@@ -138,9 +141,6 @@ export default memo(function VisualizerControls({
                 </IconButtons>
             ) : null}
             <MediaButtons />
-            {videoSourceIcon ? <Icon className="video-source-icon" name={videoSourceIcon} /> : null}
-            <p className="media-state no-visualizer-reason">{noVisualizerReason}</p>
-            <ProgressBar />
         </div>
     );
 });
