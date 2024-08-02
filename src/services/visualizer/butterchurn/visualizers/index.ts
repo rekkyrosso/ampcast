@@ -5,7 +5,7 @@ import {ButterchurnVisualizer} from 'types/Visualizer';
 const visualizers$ = new BehaviorSubject<readonly ButterchurnVisualizer[]>([]);
 
 export function getVisualizers(): readonly ButterchurnVisualizer[] {
-    return visualizers$.getValue();
+    return visualizers$.value;
 }
 
 export function observeVisualizers(): Observable<readonly ButterchurnVisualizer[]> {
@@ -13,33 +13,41 @@ export function observeVisualizers(): Observable<readonly ButterchurnVisualizer[
 }
 
 async function loadVisualizers(): Promise<void> {
-    const providerId = 'butterchurn';
-    const {default: presets} = await import(
+    const {default: basePresets} = await import(
         /* webpackChunkName: "butterchurn-presets" */
         /* webpackMode: "lazy-once" */
-        'butterchurn-presets'
+        'butterchurn-presets/dist/base.min'
     );
-    if (presets) {
-        visualizers$.next(
-            Object.keys(presets).map((name) => {
-                return {providerId, name, data: presets[name]};
-            })
-        );
-        const {default: extras} = await import(
-            /* webpackChunkName: "butterchurn-presets-extra" */
-            /* webpackMode: "lazy-once" */
-            'butterchurn-presets/dist/extra'
-        );
-        if (extras) {
-            visualizers$.next(
-                getVisualizers().concat(
-                    Object.keys(extras).map((name) => {
-                        return {providerId, name, data: extras[name]};
-                    })
-                )
-            );
-        }
-    }
+    addPresets(basePresets);
+
+    const {default: extraPresets} = await import(
+        /* webpackChunkName: "butterchurn-presets-extra" */
+        /* webpackMode: "lazy-once" */
+        'butterchurn-presets/dist/extra.min'
+    );
+    addPresets(extraPresets);
+
+    const {default: imagePresets} = await import(
+        /* webpackChunkName: "butterchurn-presets-image" */
+        /* webpackMode: "lazy-once" */
+        'butterchurn-presets/dist/image.min'
+    );
+    addPresets(imagePresets);
+}
+
+function addPresets(presets: Record<string, MilkdropRawData>) {
+    const providerId = 'butterchurn';
+    const ignore = [
+        // This one never works.
+        'flexi - inter state',
+    ];
+    visualizers$.next(
+        getVisualizers().concat(
+            Object.keys(presets)
+                .filter((name) => !ignore.includes(name))
+                .map((name) => ({providerId, name, data: presets[name]}))
+        )
+    );
 }
 
 loadVisualizers();

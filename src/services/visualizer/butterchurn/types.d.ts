@@ -23,12 +23,16 @@ declare module 'butterchurn' {
     }
 }
 
-declare module 'butterchurn-presets' {
-    export default 'butterchurn-presets' as Record<string, MilkdropRawData>;
+declare module 'butterchurn-presets/dist/base.min' {
+    export default 'presets' as Record<string, MilkdropRawData>;
 }
 
-declare module 'butterchurn-presets/dist/extra' {
-    export default 'butterchurn-presets' as Record<string, MilkdropRawData>;
+declare module 'butterchurn-presets/dist/extra.min' {
+    export default 'presets' as Record<string, MilkdropRawData>;
+}
+
+declare module 'butterchurn-presets/dist/image.min' {
+    export default 'presets' as Record<string, MilkdropRawData>;
 }
 
 type MilkdropRawData = any;

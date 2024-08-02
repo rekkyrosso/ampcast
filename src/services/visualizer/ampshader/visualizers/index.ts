@@ -5,7 +5,7 @@ import {AmpShaderVisualizer} from 'types/Visualizer';
 const visualizers$ = new BehaviorSubject<readonly AmpShaderVisualizer[]>([]);
 
 export function getVisualizers(): readonly AmpShaderVisualizer[] {
-    return visualizers$.getValue();
+    return visualizers$.value;
 }
 
 export function observeVisualizers(): Observable<readonly AmpShaderVisualizer[]> {
@@ -18,9 +18,7 @@ async function loadVisualizers(): Promise<void> {
         /* webpackMode: "lazy-once" */
         './presets'
     );
-    if (presets) {
-        visualizers$.next(presets);
-    }
+    visualizers$.next(presets);
 }
 
 loadVisualizers();

@@ -3,7 +3,7 @@ import AudioManager from 'types/AudioManager';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
-import {observePlaybackStart} from 'services/mediaPlayback/playback';
+import {observePlaybackState} from 'services/mediaPlayback/playback';
 import mediaPlaybackSettings from 'services/mediaPlayback/mediaPlaybackSettings';
 import {Logger, browser, exists} from 'utils';
 import OmniAudioContext from './OmniAudioContext';
@@ -26,7 +26,7 @@ class Audio implements AudioManager {
         this.#output.connect(this.#context.destination);
 
         // Map the current <audio> element to a source node that can be used by analysers.
-        observePlaybackStart()
+        observePlaybackState()
             .pipe(
                 map((state) => state.currentItem),
                 filter(exists),

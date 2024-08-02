@@ -284,7 +284,7 @@ observeVisualizerProviderId()
                                     visualizer.name as VisualizerProviderId
                                 ).pipe(
                                     skipWhile((visualizers) => visualizers.length === 0),
-                                    take(2)
+                                    take(3)
                                 )
                               : EMPTY
                       )
