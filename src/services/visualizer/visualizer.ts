@@ -126,7 +126,7 @@ export function observeVisualizersByProvider(
     );
 }
 
-function observeNextVisualizerReason(): Observable<NextVisualizerReason> {
+export function observeNextVisualizerReason(): Observable<NextVisualizerReason> {
     return nextVisualizerReason$;
 }
 

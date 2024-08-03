@@ -1,5 +1,5 @@
 import PlaybackState from 'types/PlaybackState';
-import {getPlaybackState, observePlaybackStart} from 'services/mediaPlayback/playback';
+import {getPlaybackState, observePlaybackState} from 'services/mediaPlayback/playback';
 import spotifyAudioAnalyser from 'services/spotify/spotifyAudioAnalyser';
 
 export default class OmniAnalyserNode extends AnalyserNode {
@@ -13,7 +13,7 @@ export default class OmniAnalyserNode extends AnalyserNode {
 
         this.isPlayingSpotify = isPlayingSpotify(getPlaybackState());
 
-        observePlaybackStart().subscribe((state) => {
+        observePlaybackState().subscribe((state) => {
             this.isPlayingSpotify = isPlayingSpotify(state);
         });
     }

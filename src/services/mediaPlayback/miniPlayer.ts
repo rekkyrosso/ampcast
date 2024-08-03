@@ -214,6 +214,8 @@ const load = (item: PlaylistItem | null): void => {
 
 const lock = (): void => sendCommand('lock');
 
+const nextVisualizer = (): void => sendCommand('next-visualizer');
+
 const open = (): void => {
     logger.log('open');
     if (isMiniPlayer) {
@@ -336,6 +338,7 @@ const miniPlayer = {
     getPlaybackState,
     load,
     lock,
+    nextVisualizer,
     open,
     pause,
     play,

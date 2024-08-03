@@ -161,4 +161,16 @@
         opacity: 0;
         transition: none;
     }
+
+    .mini-player-active & .icon-button-link {
+        visibility: visible;
+    }
+
+    .mini-player-active &:not(:hover) .icon-button-link {
+        background: none;
+    }
+
+    .mini-player-active & .video-source-icon {
+        display: none;
+    }
 }

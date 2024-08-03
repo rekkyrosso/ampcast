@@ -1,5 +1,5 @@
 import React, {memo, useCallback, useEffect, useState} from 'react';
-import {timer} from 'rxjs';
+import {debounceTime, filter, tap} from 'rxjs';
 import MediaType from 'types/MediaType';
 import Visualizer from 'types/Visualizer';
 import {browser, isMiniPlayer} from 'utils';
@@ -9,6 +9,7 @@ import {
     unlockVisualizer,
     nextVisualizer,
     observeCurrentVisualizers,
+    observeNextVisualizerReason,
 } from 'services/visualizer';
 import {
     observeVisualizerProviderId,
@@ -24,8 +25,8 @@ import {VisualizerSettingsDialog} from 'components/Settings';
 import CurrentlyPlayingDialog from 'components/MediaInfo/CurrentlyPlayingDialog';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
+import useMiniPlayerActive from 'hooks/useMiniPlayerActive';
 import usePreferences from 'hooks/usePreferences';
-import usePrevious from 'hooks/usePrevious';
 import usePaused from 'hooks/usePaused';
 import useVideoSourceIcon from './useVideoSourceIcon';
 import MediaButtons from './MediaButtons';
@@ -46,19 +47,21 @@ export default memo(function VisualizerControls({
     const currentVisualizer = useCurrentVisualizer();
     const locked = useObservable(observeLockedVisualizer, false);
     const providerId = useObservable(observeVisualizerProviderId, '');
-    const prevProviderId = usePrevious(providerId);
     const hasVisualizers = providerId !== 'none';
     const isRandom = !providerId;
     const canLock = isRandom || currentVisualizers.length > 1;
     const hasNext = canLock && !locked;
     const videoSourceIcon = useVideoSourceIcon();
-    const [nextClicked, setNextClicked] = useState(0);
+    const [nextClicked, setNextClicked] = useState(false);
     const paused = usePaused();
     const currentlyPlaying = useCurrentlyPlaying();
     const isPlayingVideo = currentlyPlaying?.mediaType === MediaType.Video;
     const noVisualizerReason = getNoVisualizerReason(currentVisualizer);
     const preferences = usePreferences();
     const miniPlayerEnabled = preferences.miniPlayer && !isMiniPlayer && !browser.isElectron;
+    const miniPlayerActive = useMiniPlayerActive();
+    const showStatic =
+        hasVisualizers && nextClicked && !paused && !isPlayingVideo && !miniPlayerActive;
 
     const openInfoDialog = useCallback(() => {
         showDialog(CurrentlyPlayingDialog);
@@ -69,30 +72,28 @@ export default memo(function VisualizerControls({
     }, []);
 
     const handleNextClick = useCallback(() => {
-        setNextClicked(nextClicked + 1);
-        if (nextClicked === 0) {
-            setTimeout(() => nextVisualizer('next-clicked'));
+        if (miniPlayer.active) {
+            miniPlayer.nextVisualizer();
+        } else {
+            nextVisualizer('next-clicked');
         }
-    }, [nextClicked]);
+    }, []);
 
     useEffect(() => {
-        // Don't show static while the page is loading.
-        if (prevProviderId && prevProviderId !== providerId && !isPlayingVideo) {
-            // Changed via Settings.
-            setNextClicked((nextClicked) => nextClicked + 1);
-        }
-    }, [prevProviderId, providerId, isPlayingVideo]);
-
-    useEffect(() => {
-        if (nextClicked) {
-            const subscription = timer(500).subscribe(() => setNextClicked(0));
-            return () => subscription.unsubscribe();
-        }
-    }, [nextClicked]);
+        const subscription = observeNextVisualizerReason()
+            .pipe(
+                filter((reason) => reason === 'next-clicked' || reason === 'new-provider'),
+                tap(() => setNextClicked(true)),
+                debounceTime(500),
+                tap(() => setNextClicked(false))
+            )
+            .subscribe();
+        return () => subscription.unsubscribe();
+    }, []);
 
     return (
         <div className="visualizer-controls" style={nextClicked ? {opacity: '1'} : undefined}>
-            {hasVisualizers && nextClicked && !paused ? <Static /> : null}
+            {showStatic ? <Static /> : null}
             {isMiniPlayer ? <AppTitle /> : null}
             {videoSourceIcon ? <Icon className="video-source-icon" name={videoSourceIcon} /> : null}
             <p className="media-state no-visualizer-reason">{noVisualizerReason}</p>
@@ -105,16 +106,18 @@ export default memo(function VisualizerControls({
                     tabIndex={-1}
                     onClick={openSettingsDialog}
                 />
-                <IconButton
-                    icon={fullscreen ? 'collapse' : 'expand'}
-                    title={fullscreen ? 'Restore' : 'Fullscreen'}
-                    tabIndex={-1}
-                    onClick={onFullscreenToggle}
-                />
+                {miniPlayerActive ? null : (
+                    <IconButton
+                        icon={fullscreen ? 'collapse' : 'expand'}
+                        title={fullscreen ? 'Restore' : 'Fullscreen'}
+                        tabIndex={-1}
+                        onClick={onFullscreenToggle}
+                    />
+                )}
                 {miniPlayerEnabled ? (
                     <IconButton
                         icon="link"
-                        title="Open playback in new window"
+                        title={miniPlayerActive ? 'Playback window' : 'Open playback in new window'}
                         tabIndex={-1}
                         onClick={miniPlayer.open}
                     />

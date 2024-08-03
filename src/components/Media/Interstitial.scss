@@ -4,16 +4,6 @@
     color: var(--soft-white);
     text-align: center;
 
-    &-buttons {
-        position: absolute;
-        right: 0.25em;
-        top: 0.25em;
-    }
-
-    .icon-button-link {
-        padding: 0.25em;
-    }
-
     &::before,
     .currently-playing {
         position: absolute;
@@ -100,18 +90,18 @@
 
     /* TODO: This CSS is stupidly hard. */
 
-    .media:not(.paused):not(.error).is-showing-cover-art & .playback-state {
+    .media:not(.mini-player-active, .paused, .error).is-showing-cover-art & .playback-state {
         display: none;
     }
 
-    .media:not(.paused):not(.is-showing-cover-art):hover & .currently-playing {
+    .media:not(.paused, .is-showing-cover-art):hover & .currently-playing {
         opacity: 1;
         transition: opacity 400ms linear;
     }
 
     /* (fullscreen & idle) this is a bit different to the other `opacity` changes. */
 
-    .media:not(.paused):not(.no-visualizer.is-playing-audio):not(.is-new-item).fullscreen.idle & {
+    .media:not(.paused, .is-new-item, .no-visualizer.is-playing-audio).fullscreen.idle & {
         opacity: 0; /* Hide but prevent interaction with anything behind. */
     }
 }

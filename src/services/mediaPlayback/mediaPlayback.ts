@@ -27,7 +27,7 @@ import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import lookup from 'services/lookup';
 import {hasPlayableSrc, getServiceFromSrc} from 'services/mediaServices';
 import playlist from 'services/playlist';
-import {observeCurrentVisualizer, lockVisualizer, setCurrentVisualizer} from 'services/visualizer';
+import {lockVisualizer, setCurrentVisualizer} from 'services/visualizer';
 import mediaPlaybackSettings from './mediaPlaybackSettings';
 import mediaPlayer from './mediaPlayer';
 import miniPlayer from './miniPlayer';
@@ -333,7 +333,7 @@ mediaPlayback.muted = mediaPlaybackSettings.muted;
 mediaPlayback.volume = mediaPlaybackSettings.volume;
 
 if (isMiniPlayer) {
-    miniPlayerRemote.connect(mediaPlayback, lockLoading, unlockLoading, observeCurrentVisualizer);
+    miniPlayerRemote.connect(mediaPlayback, lockLoading, unlockLoading);
 } else {
     miniPlayer.connect(mediaPlayback, playback, lockVisualizer, setCurrentVisualizer);
 }

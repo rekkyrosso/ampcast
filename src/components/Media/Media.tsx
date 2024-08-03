@@ -94,9 +94,7 @@ export default memo(function Media() {
             <CoverArtVisualizer />
             <Interstitial />
             {(fullscreen || isMiniPlayer) && fullscreenProgressEnabled ? <ProgressBar /> : null}
-            {miniPlayerActive ? null : (
-                <VisualizerControls fullscreen={fullscreen} onFullscreenToggle={toggleFullscreen} />
-            )}
+            <VisualizerControls fullscreen={fullscreen} onFullscreenToggle={toggleFullscreen} />
         </div>
     );
 });

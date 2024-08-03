@@ -72,7 +72,7 @@
         font-size: max(0.375em, 12px);
     }
 
-    &:not(.paused):not(.mini-player-active).loaded .playback-state {
+    &:not(.paused, .mini-player-active).loaded .playback-state {
         opacity: 0;
         transition: opacity 1s linear;
     }

@@ -1,13 +1,12 @@
-import type {Observable} from 'rxjs';
 import {filter, firstValueFrom, fromEvent, map, merge, race, takeUntil, timer} from 'rxjs';
 import {Writable} from 'type-fest';
 import MediaPlayback from 'types/MediaPlayback';
 import PlaybackState from 'types/PlaybackState';
 import PlaylistItem from 'types/PlaylistItem';
-import Visualizer from 'types/Visualizer';
 import {Logger, isMiniPlayer} from 'utils';
 import playlist from 'services/playlist';
 import theme from 'services/theme';
+import {nextVisualizer, observeCurrentVisualizer} from 'services/visualizer';
 import mediaPlayer from './mediaPlayer';
 import playback from './playback';
 
@@ -18,8 +17,7 @@ const defaultTitle = `${__app_name__} mini player`;
 const connect = (
     mediaPlayback: MediaPlayback,
     lockLoading: () => void,
-    unlockLoading: () => void,
-    observeCurrentVisualizer: () => Observable<Visualizer>
+    unlockLoading: () => void
 ): void => {
     if (!isMiniPlayer) {
         return;
@@ -152,6 +150,10 @@ const connect = (
 
             case 'stop':
                 mediaPlayback.stop();
+                break;
+
+            case 'next-visualizer':
+                nextVisualizer('next-clicked');
                 break;
 
             case 'set-autoplay':
