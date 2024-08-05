@@ -393,7 +393,6 @@ export default function ListView<T>({
 
     useOnResize(cursorRef, ({height}) => setRowHeight(height), 'border-box');
 
-    // TODO: This should probably be on `MediaList`.
     useEffect(() => {
         containerRef.current!.classList.toggle('thin', fontSize * 20 > clientWidth);
     }, [fontSize, clientWidth]);

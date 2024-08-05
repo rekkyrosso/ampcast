@@ -1,8 +1,10 @@
 import {Logger} from 'utils';
 import React, {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
+import {ErrorBoundary} from 'react-error-boundary';
 import 'styles/index.scss';
 import App from 'components/App';
+import BSOD from 'components/BSOD';
 
 const uncaught = new Logger('uncaught');
 
@@ -16,6 +18,8 @@ if (location.protocol === 'https:') {
 
 createRoot(document.getElementById('app')!).render(
     <StrictMode>
-        <App />
+        <ErrorBoundary FallbackComponent={BSOD}>
+            <App />
+        </ErrorBoundary>
     </StrictMode>
 );

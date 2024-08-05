@@ -1,0 +1,39 @@
+.bsod {
+    position: absolute;
+    inset: 0;
+    background: blue;
+    color: #bfbfff;
+    font-size: max(2vw, 2vh, 1rem);
+    font-family: monospace;
+    padding: 2em;
+    accent-color: #bfbfff;
+
+    form {
+        max-width: 30em;
+        margin: auto;
+    }
+
+    fieldset {
+        color: inherit;
+        border-color: #bfbfff;
+    }
+
+    .note {
+        font-size: max(0.75em, 1rem);
+    }
+
+    &-buttons {
+        margin-top: 2em;
+    }
+
+    button {
+        padding: 0.75em 3em;
+        font-family: var(--system-font-family);
+        font-weight: bold;
+        white-space: normal;
+        cursor: pointer;
+        box-shadow: 1px 1px 0 rgba(16, 16, 16, 0.25);
+        background: #bfbfff;
+        color: #222;
+    }
+}

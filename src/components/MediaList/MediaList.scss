@@ -48,6 +48,10 @@
         filter: brightness(0.25) grayscale(1);
     }
 
+    .index {
+        font-family: monospace;
+    }
+
     &-details {
         .actions,
         .icon-buttons {
@@ -77,7 +81,6 @@
 
         .index {
             top: 2.125em;
-            font-family: monospace;
             font-weight: bold;
             font-style: italic;
             width: 2em;
