@@ -55,7 +55,7 @@ async function injectSpotifyTracks(data: DataTransferItem, atIndex: number): Pro
         } else {
             await showError(Error('Not connected to Spotify.'));
         }
-    } catch (err: any) {
+    } catch {
         await showError(Error('Failed to load Spotify tracks.'));
     }
 }

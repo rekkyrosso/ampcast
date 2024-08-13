@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import type {BaseItemDto} from '@jellyfin/sdk/lib/generated-client';
+import type {BaseItemDto} from '@jellyfin/sdk/lib/generated-client/models';
 import {SetOptional, Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';

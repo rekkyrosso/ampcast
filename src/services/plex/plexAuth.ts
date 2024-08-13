@@ -70,7 +70,7 @@ async function obtainUserToken(): Promise<{id: string; serverToken: string; user
     try {
         const {authToken: userToken} = await plexApi.getAccount(serverToken);
         return {id, serverToken, userToken};
-    } catch (err) {
+    } catch {
         return {id, serverToken, userToken: ''};
     }
 }
@@ -200,7 +200,7 @@ async function testConnection(server: plex.Device, connection: plex.Connection):
         });
         connectionLogging$.next(`(${name}) ${connectionType} connection successful`);
         return true;
-    } catch (err) {
+    } catch {
         connectionLogging$.next(`(${name}) ${connectionType} connection failed`);
     }
     return false;

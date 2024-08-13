@@ -337,7 +337,7 @@ async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
             url
         );
         return directPlay ? PlaybackType.Direct : PlaybackType.HLS;
-    } catch (err) {
+    } catch {
         return PlaybackType.Direct;
     }
 }

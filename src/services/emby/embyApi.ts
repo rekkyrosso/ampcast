@@ -259,7 +259,7 @@ async function getPlaybackType(
                 ? PlaybackType.HLS
                 : PlaybackType.Direct;
         }
-    } catch (err) {
+    } catch {
         return PlaybackType.Direct;
     }
 }

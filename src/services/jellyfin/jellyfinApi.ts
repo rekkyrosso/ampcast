@@ -2,7 +2,7 @@ import type {
     BaseItemDto,
     BaseItemDtoQueryResult,
     EndPointInfo,
-} from '@jellyfin/sdk/lib/generated-client';
+} from '@jellyfin/sdk/lib/generated-client/models';
 import {Primitive} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaFilter from 'types/MediaFilter';

@@ -18,9 +18,8 @@ const noMetadata: IAudioMetadata = {
     common: {
         track: {no: null, of: null},
         disk: {no: null, of: null},
-        movementIndex: {},
-    },
-    format: {trackInfo: []},
+    } as any,
+    format: {trackInfo: []} as any,
     native: {},
     quality: {warnings: []},
 };

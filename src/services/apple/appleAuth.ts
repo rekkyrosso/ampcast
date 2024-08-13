@@ -43,7 +43,7 @@ export async function logout(): Promise<void> {
                 logger.error(err);
             }
         }
-    } catch (err) {
+    } catch {
         // MusicKit not loaded.
     }
     appleSettings.connectedAt = 0;

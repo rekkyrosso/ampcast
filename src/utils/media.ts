@@ -103,7 +103,7 @@ export function canPlayMedia(type: 'audio' | 'video', src: string): Promise<bool
             media.ontimeupdate = resolveTrue;
             media.setAttribute('src', src);
             media.play().then(undefined, resolveFalse);
-        } catch (err) {
+        } catch {
             resolveFalse();
         }
     });

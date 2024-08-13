@@ -288,7 +288,6 @@ export default class HTML5Player implements Player<PlayableItem> {
 
     protected async safePlay(): Promise<void> {
         try {
-            this.element.disableRemotePlayback;
             await this.element.play();
         } catch (err) {
             if (!this.paused) {
