@@ -19,26 +19,16 @@
         display: flex;
         flex-direction: row;
         align-items: center;
-
-        > .icon {
-            margin-right: 0.25em;
-            margin-left: 0.25em;
-        }
     }
 
-    .external-link:any-link {
-        color: inherit;
+    .external-link {
         margin-left: 0.25em;
 
-        .icon-link {
-            color: inherit;
+        &-text {
+            max-width: 24em;
+            text-overflow: ellipsis;
+            overflow: hidden;
+            text-decoration: underline;
         }
-    }
-
-    .external-link-text {
-        max-width: 24em;
-        text-overflow: ellipsis;
-        overflow: hidden;
-        text-decoration: underline;
     }
 }

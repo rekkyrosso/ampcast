@@ -2,7 +2,6 @@ import React from 'react';
 import Visualizer, {AmbientVideoVisualizer, NoVisualizer} from 'types/Visualizer';
 import {getVisualizerProvider} from 'services/visualizer/visualizerProviders';
 import ExternalLink from 'components/ExternalLink';
-import Icon from 'components/Icon';
 import useYouTubeVideoInfo from 'hooks/useYouTubeVideoInfo';
 import {Owner} from './MediaInfo';
 import './VisualizerInfo.scss';
@@ -43,7 +42,7 @@ function VisualizerDetail({visualizer}: VisualizerInfoProps) {
                     {visualizer.name ? <h4>Name: {visualizer.name}</h4> : null}
                     {externalUrl ? (
                         <p className="external-view">
-                            <span>Url:</span> <ExternalLink href={externalUrl} />
+                            Url: <ExternalLink href={externalUrl} />
                         </p>
                     ) : null}
                 </>
@@ -59,7 +58,7 @@ function YouTubeVideoInfo({visualizer}: {visualizer: AmbientVideoVisualizer}) {
             <h4>Title: {video.title}</h4>
             <Owner owner={video.owner} src={video.src} />
             <p className="external-view">
-                View on YouTube: <Icon name="youtube" /> <ExternalLink href={video.externalUrl} />
+                View on YouTube: <ExternalLink icon="youtube" href={video.externalUrl} />
             </p>
         </div>
     ) : null;

@@ -1,7 +1,6 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import Dialog, {showDialog, DialogProps} from 'components/Dialog';
 import ExternalLink from 'components/ExternalLink';
-import Icon from 'components/Icon';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import listenbrainzSettings from '../listenbrainzSettings';
 import listenbrainz from '../listenbrainz';
@@ -69,6 +68,10 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
         [login]
     );
 
+    useEffect(() => {
+        userNameRef.current?.focus();
+    }, []);
+
     return (
         <Dialog
             {...props}
@@ -78,6 +81,9 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
             ref={dialogRef}
         >
             <form id={`${id}-login`} method="dialog" onSubmit={handleSubmit}>
+                <p className="listenbrainz-link">
+                    <ExternalLink icon="listenbrainz" href={profileUrl} />
+                </p>
                 <div className="table-layout">
                     <p>
                         <label htmlFor={`${id}-username`}>User:</label>
@@ -105,12 +111,6 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
                     </p>
                 </div>
                 <p className={`message ${connecting ? '' : 'error'}`}>{message}</p>
-                <p className="listenbrainz-link service-link">
-                    <ExternalLink href={profileUrl}>
-                        <Icon name="listenbrainz" />
-                        {profileUrl}
-                    </ExternalLink>
-                </p>
                 <DialogButtons submitText="Login" />
             </form>
         </Dialog>

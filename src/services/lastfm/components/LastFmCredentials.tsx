@@ -4,7 +4,6 @@ import DialogButtons from 'components/Dialog/DialogButtons';
 import Credentials from 'components/Settings/MediaLibrarySettings/Credentials';
 import {MediaServiceCredentialsProps} from 'components/Settings/MediaLibrarySettings/MediaServiceCredentials';
 import ExternalLink from 'components/ExternalLink';
-import Icon from 'components/Icon';
 import lastfmSettings from '../lastfmSettings';
 import useCredentials from './useCredentials';
 
@@ -52,13 +51,10 @@ export default function LastFmCredentials({service: lastfm}: MediaServiceCredent
                     inputRef={secretRef}
                 />
             </fieldset>
-            <fieldset>
+            <fieldset className="credentials-registration">
                 <legend>Registration</legend>
-                <p className="lastfm-link service-link">
-                    <ExternalLink href={lastfm.credentialsUrl}>
-                        <Icon name="lastfm" />
-                        {lastfm.credentialsUrl}
-                    </ExternalLink>
+                <p>
+                    <ExternalLink icon="lastfm" href={lastfm.credentialsUrl} />
                 </p>
             </fieldset>
             <fieldset className="credentials-requirements note">

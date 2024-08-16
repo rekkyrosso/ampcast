@@ -68,23 +68,22 @@
     }
 
     .service-link {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
         margin-top: 2em;
-        color: var(--link-color);
 
         > .icon {
             font-size: 2em;
             min-width: 0.5em;
+            margin-right: 0.375em;
         }
     }
 
     &-download {
-        a.external-link {
-            color: inherit;
+        .external-link-text {
             text-decoration: underline;
-
-            &:hover {
-                color: var(--link-color);
-            }
         }
 
         .icon-link {

@@ -44,7 +44,8 @@ function addPresets(presets: Record<string, MilkdropRawData>) {
         // Maybe they work better as overlays?
         'Zylot - In death there is life (Geiss Layered Mix) (Jelly)',
         'martin - attack of the beast',
-        '_Mig_009'
+        '_Mig_009',
+        'cope - soar (v2.0)'
     ];
     visualizers$.next(
         getVisualizers().concat(

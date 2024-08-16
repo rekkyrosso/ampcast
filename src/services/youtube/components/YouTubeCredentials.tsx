@@ -3,7 +3,6 @@ import DialogButtons from 'components/Dialog/DialogButtons';
 import Credentials from 'components/Settings/MediaLibrarySettings/Credentials';
 import {MediaServiceCredentialsProps} from 'components/Settings/MediaLibrarySettings/MediaServiceCredentials';
 import ExternalLink from 'components/ExternalLink';
-import Icon from 'components/Icon';
 import youtubeSettings from '../youtubeSettings';
 import useCredentials from './useCredentials';
 
@@ -34,13 +33,10 @@ export default function YouTubeCredentials({service: youtube}: MediaServiceCrede
                     autoFocus
                 />
             </fieldset>
-            <fieldset>
+            <fieldset className="credentials-registration">
                 <legend>Registration</legend>
-                <p className="youtube-link service-link">
-                    <ExternalLink href={youtube.credentialsUrl}>
-                        <Icon name="google-cloud" />
-                        {youtube.credentialsUrl}
-                    </ExternalLink>
+                <p>
+                    <ExternalLink icon="google-cloud" href={youtube.credentialsUrl} />
                 </p>
             </fieldset>
             <fieldset className="credentials-requirements note">

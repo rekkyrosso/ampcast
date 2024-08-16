@@ -139,7 +139,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
             year: album.wiki?.published
                 ? new Date(album.wiki.published).getFullYear() || undefined
                 : undefined,
-            pager: this.createAlbumPager(album),
+            pager: this.createAlbumTracksPager(album),
         };
     }
 
@@ -197,7 +197,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
         return new WrappedPager(topTracksPager, albumsPager);
     }
 
-    private createAlbumPager(album: LastFm.Album): Pager<MediaItem> {
+    private createAlbumTracksPager(album: LastFm.Album): Pager<MediaItem> {
         return new LastFmPager(
             {
                 method: 'album.getInfo',

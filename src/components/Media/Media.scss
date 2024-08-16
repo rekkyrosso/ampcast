@@ -10,8 +10,6 @@
 
     /* Fullscreen or mini-player. */
     &.fullscreen {
-        font-size: max(3vw, 3vh, 1rem);
-
         /* Actual fullscreen. */
         &:fullscreen {
             background: black;
@@ -61,15 +59,14 @@
         position: absolute;
         bottom: 1em;
         width: 100%;
-        font-size: 0.75em;
+        font-size: max(0.5em, 12px);
         color: rgba(238, 238, 238, 0.6);
         text-align: center;
         line-height: 1;
     }
 
     &.fullscreen &-state {
-        bottom: 1.5em;
-        font-size: max(0.375em, 12px);
+        margin-bottom: var(--progress-bar-height);
     }
 
     &:not(.paused, .mini-player-active).loaded .playback-state {

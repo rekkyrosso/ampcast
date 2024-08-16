@@ -1,4 +1,4 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import MediaService from 'types/MediaService';
 import Dialog, {DialogProps} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
@@ -28,9 +28,9 @@ export default function LoginDialog({
 
     const submit = useCallback(async () => {
         try {
-            const host = hostRef.current!.value.replace(/\/+$/, '');
-            const userName = userNameRef.current!.value;
-            const password = passwordRef.current!.value;
+            const host = hostRef.current!.value.trim().replace(/\/+$/, '');
+            const userName = userNameRef.current!.value.trim();
+            const password = passwordRef.current!.value.trim();
 
             settings.host = host;
 
@@ -63,6 +63,12 @@ export default function LoginDialog({
         [submit]
     );
 
+    useEffect(() => {
+        if (settings.host) {
+            userNameRef.current?.focus();
+        }
+    }, [settings]);
+
     return (
         <Dialog
             {...props}
@@ -79,7 +85,6 @@ export default function LoginDialog({
                             type="url"
                             id={`${id}-host`}
                             name={`${id}-host`}
-                            autoFocus={!settings.host}
                             defaultValue={settings.host}
                             placeholder={`${location.protocol}//`}
                             required
@@ -92,8 +97,7 @@ export default function LoginDialog({
                             type="text"
                             id={`${id}-username`}
                             name={`${id}-username`}
-                            autoFocus={!!settings.host}
-                            defaultValue={userName}
+                            defaultValue={userName || ''}
                             spellCheck={false}
                             autoComplete="off"
                             autoCapitalize="off"

@@ -2,10 +2,9 @@ import React, {useCallback, useEffect, useState} from 'react';
 import ColorThief, {RGBColor} from 'colorthief';
 import {TinyColor, mostReadable} from '@ctrl/tinycolor';
 import PlaylistItem from 'types/PlaylistItem';
-import {getServiceFromSrc, isPublicMediaService} from 'services/mediaServices';
 import {observeFullscreenProgressEnabled} from 'services/visualizer/visualizerSettings';
 import {Artist, Thumbnail, Title} from 'components/MediaInfo/MediaInfo';
-import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
+import ProvidedBy from 'components/MediaSources/ProvidedBy';
 import PlaybackState from 'components/Media/PlaybackState';
 import ProgressBar from 'components/Media/ProgressBar';
 import useObservable from 'hooks/useObservable';
@@ -122,11 +121,4 @@ export default function CurrentlyPlaying({item, hidden, onPaletteChange}: Curren
             {fullscreenProgressEnabled ? <ProgressBar /> : null}
         </div>
     );
-}
-
-function ProvidedBy({item}: {item: PlaylistItem}) {
-    const service = getServiceFromSrc(item);
-    return service && isPublicMediaService(service) ? (
-        <MediaSourceLabel icon={service.icon} text={`Provided by ${service.name}`} />
-    ) : null;
 }

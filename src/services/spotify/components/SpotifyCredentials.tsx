@@ -3,7 +3,6 @@ import DialogButtons from 'components/Dialog/DialogButtons';
 import Credentials from 'components/Settings/MediaLibrarySettings/Credentials';
 import {MediaServiceCredentialsProps} from 'components/Settings/MediaLibrarySettings/MediaServiceCredentials';
 import ExternalLink from 'components/ExternalLink';
-import Icon from 'components/Icon';
 import spotifySettings from '../spotifySettings';
 import useCredentials from './useCredentials';
 
@@ -34,13 +33,10 @@ export default function SpotifyCredentials({service: spotify}: MediaServiceCrede
                     autoFocus
                 />
             </fieldset>
-            <fieldset>
+            <fieldset className="credentials-registration">
                 <legend>Registration</legend>
-                <p className="spotify-link service-link">
-                    <ExternalLink href={spotify.credentialsUrl}>
-                        <Icon name="spotify" />
-                        {spotify.credentialsUrl}
-                    </ExternalLink>
+                <p>
+                    <ExternalLink icon="spotify" href={spotify.credentialsUrl} />
                 </p>
             </fieldset>
             <fieldset className="credentials-requirements note">

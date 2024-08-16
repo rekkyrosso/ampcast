@@ -1,8 +1,12 @@
 .interstitial {
+    --shadow-color: rgba(16, 16, 16, 0.8);
+    --shadow-small: 1px 1px 0 var(--shadow-color);
+    --shadow-large: 2px 2px 0 var(--shadow-color);
     position: absolute;
     inset: 0;
     color: var(--soft-white);
     text-align: center;
+    text-rendering: optimizeLegibility;
 
     &::before,
     .currently-playing {
@@ -32,7 +36,7 @@
         align-items: center;
         justify-content: center;
         padding: 2em;
-        text-shadow: 1px 1px 0 rgba(16, 16, 16, 0.8);
+        text-shadow: var(--shadow-small);
         background: radial-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
 
         .mini-player-active & {
@@ -40,7 +44,34 @@
         }
 
         .media.fullscreen & {
-            text-shadow: 2px 2px 0 rgba(16, 16, 16, 0.8);
+            text-shadow: var(--shadow-large);
+            padding-bottom: 4em;
+        }
+    
+        h3 {
+            font-size: max(0.75em, 12px);
+        }
+
+        .by {
+            font-size: max(0.5em, 10px);
+        }
+
+        .media-source-label {
+            font-size: max(0.5em, 11px);
+            margin-top: 1.5em;
+
+            .text {
+                color: #ababab;
+            }
+        }
+
+        .icon-tidal,
+        .icon-plex-tidal {
+            filter: var(--shadow-small);         
+
+            .media.fullscreen & {
+                filter: var(--shadow-large);
+            }
         }
     }
 
@@ -78,14 +109,6 @@
             opacity: 0;
             transition: opacity 10s linear;
         }
-    }
-
-    .by {
-        font-size: 0.5em;
-    }
-
-    h3 {
-        font-size: 0.75em;
     }
 
     /* TODO: This CSS is stupidly hard. */

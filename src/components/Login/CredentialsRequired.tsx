@@ -10,7 +10,7 @@ export default function CredentialsRequired({service}: LoginProps) {
         <div className="credentials-required note">
             <p>Please register a client application to continue.</p>
             {credentialsUrl ? (
-                <p className={`${service.id}-link service-link`}>
+                <p>
                     <ExternalLink href={credentialsUrl}>{credentialsUrl}</ExternalLink>
                 </p>
             ) : null}

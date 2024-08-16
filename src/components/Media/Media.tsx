@@ -7,6 +7,7 @@ import miniPlayer from 'services/mediaPlayback/miniPlayer';
 import {observeFullscreenProgressEnabled} from 'services/visualizer/visualizerSettings';
 import './Visualizer.scss';
 import CoverArtVisualizer from 'components/CoverArtVisualizer';
+import useBaseFontSize from 'hooks/useBaseFontSize';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
 import useMiniPlayerActive from 'hooks/useMiniPlayerActive';
@@ -23,6 +24,8 @@ import './Media.scss';
 
 export default memo(function Media() {
     const ref = useRef<HTMLDivElement>(null);
+    const [style, setStyle] = useState<React.CSSProperties>({});
+    const baseFontSize = useBaseFontSize();
     const playbackRef = useRef<HTMLDivElement>(null);
     const fullscreenProgressEnabled = useObservable(observeFullscreenProgressEnabled, false);
     const miniPlayerActive = useMiniPlayerActive();
@@ -56,6 +59,9 @@ export default memo(function Media() {
     }, []);
 
     useOnResize(ref, ({width, height}) => {
+        setStyle({
+            fontSize: `${Math.max(Math.sqrt(width * height) * 0.03, baseFontSize)}px`,
+        } as React.CSSProperties);
         mediaPlayback.resize(width, height);
     });
 
@@ -88,6 +94,7 @@ export default memo(function Media() {
             } ${miniPlayerActive ? 'mini-player-active' : ''}`}
             id="media"
             onDoubleClick={handleDoubleClick}
+            style={style}
             ref={ref}
         >
             <div id="players" ref={playbackRef} />

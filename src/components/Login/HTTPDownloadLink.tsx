@@ -15,7 +15,7 @@ export default function HTTPDownloadLink({service}: LoginProps) {
                 Download the <ExternalLink href={downloadUrl}>desktop app</ExternalLink> if you are unable
                 to login via HTTPS
                 <br />
-                or use the <ExternalLink href={dockerUrl}>docker image</ExternalLink>
+                or use the <ExternalLink href={dockerUrl}>docker image</ExternalLink>.
             </p>
         </>
     ) : null;

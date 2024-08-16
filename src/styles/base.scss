@@ -23,8 +23,10 @@ textarea {
     line-height: 1.5;
 }
 
-a:any-link {
-    color: var(--link-color);
+a {
+    &:link {
+        color: var(--link-color);
+    }
 
     &:visited {
         color: var(--link-visited-color);
@@ -32,17 +34,6 @@ a:any-link {
 
     &:active {
         color: var(--link-active-color);
-    }
-}
-
-.service-link {
-    display: flex;
-    flex-direction: row;
-    align-items: center;
-    justify-content: center;
-
-    .icon {
-        margin-right: 0.375em;
     }
 }
 

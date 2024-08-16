@@ -10,18 +10,8 @@
         min-height: 10em;
         margin-bottom: 1em;
 
-        .external-link:any-link {
-            color: inherit;
+        .external-link-text {
             text-decoration: underline;
-
-            .icon-link {
-                color: inherit;
-            }
-
-            &:active,
-            &:active > .icon {
-                color: var(--link-active-color);
-            }
         }
     }
 
@@ -73,17 +63,7 @@
         display: flex;
         flex-direction: row;
         align-items: center;
-        white-space: nowrap;
-        overflow: hidden;
-        text-overflow: ellipsis;
         margin-top: 1.625em;
-        padding: 1px 0;
-        color: var(--link-color);
-
-        > .icon {
-            font-size: 1.625em;
-            margin-right: 0.25em;
-        }
     }
 
     .genre {

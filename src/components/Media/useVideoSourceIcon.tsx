@@ -1,10 +1,10 @@
 import {useEffect, useState} from 'react';
 import MediaType from 'types/MediaType';
+import ServiceType from 'types/ServiceType';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {MediaSourceIconName} from 'components/Icon';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
-import ServiceType from 'types/ServiceType';
 
 export default function useVideoSourceIcon(): MediaSourceIconName | '' {
     const item = useCurrentlyPlaying();

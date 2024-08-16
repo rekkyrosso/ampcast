@@ -29,7 +29,7 @@
         position: absolute;
         left: 0.5em;
         top: 0.25em;
-        font-size: max(1.5vw, 1rem);
+        font-size: max(1vw, 1rem);
         text-shadow: 2px 2px 0 rgba(16, 16, 16, 0.8);
 
         .media:not(:fullscreen) & {
@@ -39,10 +39,6 @@
 
     .app-version {
         background-color: transparent;
-    }
-
-    .media.fullscreen & .icon-buttons {
-        font-size: max(3vw, 1.25rem);
     }
 
     .icon-button {
@@ -82,6 +78,10 @@
         left: 50%;
         transform: translateX(-50%);
 
+        .media.fullscreen & {
+            font-size: max(3vw, 1.25rem);
+        }
+
         .icon {
             width: 1em;
             height: 1em;
@@ -91,6 +91,10 @@
     &-selector {
         left: 0.25em;
         bottom: 0.375em;
+
+        .media.fullscreen & {
+            margin-bottom: var(--progress-bar-height);
+        }
 
         .media.paused &,
         .media.is-playing-video & {
@@ -104,17 +108,16 @@
         width: 1.5em;
         height: 1.5em;
 
+        &.icon-apple-logo {
+            fill: white;
+        }
+
         .media:not(.is-playing-video) & {
             filter: grayscale(1);
         }
 
         .media.fullscreen & {
-            font-size: 0.75em;
-            margin-bottom: var(--progress-bar-background-height);
-        }
-
-        &.icon-apple-logo {
-            fill: white;
+            margin-bottom: var(--progress-bar-height);
         }
 
         .media.paused & {

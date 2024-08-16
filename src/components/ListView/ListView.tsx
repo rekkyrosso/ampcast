@@ -411,7 +411,7 @@ export default function ListView<T>({
     const handleContextMenu = useCallback(
         (event: React.MouseEvent) => {
             event.preventDefault();
-            if (event.button === -1) {
+            if (event.button === -1 || (browser.os !== 'Mac OS' && event.button === 0)) {
                 // Not mouse-driven.
                 const row = getRowByIndex(containerRef.current!, rowIndex);
                 if (row) {
@@ -421,7 +421,7 @@ export default function ListView<T>({
                         Math.min(rect.left + clientWidth, rect.right),
                         rect.bottom,
                         rowIndex,
-                        event.button
+                        -1
                     );
                 }
             } else {

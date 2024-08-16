@@ -1,6 +1,7 @@
 .visualizer-coverart {
     --thumbnail-size: 45%;
     background-color: var(--background-color);
+    text-rendering: optimizeLegibility;
 
     .currently-playing {
         position: absolute;
@@ -111,7 +112,7 @@
         font-size: max(0.5em, 12px);
         margin-top: 0.5em;
         color: var(--grey2-color);
-        line-height: normal;
+        align-items: normal;
 
         .media.fullscreen & {
             font-size: max(0.25em, 1rem);

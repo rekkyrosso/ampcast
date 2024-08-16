@@ -1,5 +1,6 @@
 import React from 'react';
 import {isMiniPlayer} from 'utils';
+import ProvidedBy from 'components/MediaSources/ProvidedBy';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import PlaybackState from './PlaybackState';
 import useInterstitialState from './useInterstitialState';
@@ -21,6 +22,9 @@ export default function Interstitial() {
                                 <h3>{item.artists.join(', ')}</h3>
                             </>
                         ) : null}
+                        <p>
+                            <ProvidedBy item={item} />
+                        </p>
                     </>
                 ) : (
                     <p>{isMiniPlayer ? 'No media loaded.' : 'The playlist is empty.'}</p>

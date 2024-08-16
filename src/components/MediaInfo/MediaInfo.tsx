@@ -6,11 +6,12 @@ import MediaFolder from 'types/MediaFolder';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
+import MediaServiceId from 'types/MediaServiceId';
 import {getService} from 'services/mediaServices';
 import Actions from 'components/Actions';
 import CoverArt, {CoverArtProps} from 'components/CoverArt';
 import ExternalLink from 'components/ExternalLink';
-import Icon, {MediaSourceIconName} from 'components/Icon';
+import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import TextBox from 'components/TextBox';
 import useFirstValue from 'hooks/useFirstValue';
 import {formatTime} from 'utils';
@@ -206,13 +207,15 @@ export function ExternalView({src, url = ''}: {src: string; url?: string | undef
 
     return (
         <p className="external-view">
-            <Icon name={serviceId as MediaSourceIconName} />
             {url ? (
-                <ExternalLink href={url}>View on {serviceName}</ExternalLink>
+                <ExternalLink icon={serviceId as MediaServiceId} href={url}>
+                    View on {serviceName}
+                </ExternalLink>
             ) : (
-                <span className="external-provider">
-                    Provided by {serviceId === 'plex-tidal' ? 'TIDAL' : serviceName}
-                </span>
+                <MediaSourceLabel
+                    icon={serviceId as MediaServiceId}
+                    text={`Provided by ${serviceId === 'plex-tidal' ? 'TIDAL' : serviceName}`}
+                />
             )}
         </p>
     );

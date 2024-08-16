@@ -185,7 +185,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             year: new Date(album.release_date).getFullYear(),
             thumbnails: album.images as Thumbnail[],
             trackCount: album.tracks?.total,
-            pager: this.createAlbumPager(album),
+            pager: this.createAlbumTracksPager(album),
             inLibrary,
         };
     }
@@ -309,7 +309,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         );
     }
 
-    private createAlbumPager(album: SpotifyAlbum): Pager<MediaItem> {
+    private createAlbumTracksPager(album: SpotifyAlbum): Pager<MediaItem> {
         const tracks = album.tracks?.items;
         if (tracks && tracks.length === album.total_tracks) {
             return new SimpleMediaPager(async () => {

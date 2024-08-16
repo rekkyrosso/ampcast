@@ -3,6 +3,7 @@ import PersonalMediaService from 'types/PersonalMediaService';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import ExternalLink from 'components/ExternalLink';
 import useAudioLibraries from './useAudioLibraries';
+import './PersonalMediaLibrarySettings.scss';
 
 export interface PersonalMediaLibrarySettingsProps {
     service: PersonalMediaService;

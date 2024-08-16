@@ -94,7 +94,7 @@ export default memo(function VisualizerControls({
     return (
         <div className="visualizer-controls" style={nextClicked ? {opacity: '1'} : undefined}>
             {showStatic ? <Static /> : null}
-            {isMiniPlayer ? <AppTitle /> : null}
+            <AppTitle />
             {videoSourceIcon ? <Icon className="video-source-icon" name={videoSourceIcon} /> : null}
             <p className="media-state no-visualizer-reason">{noVisualizerReason}</p>
             <ProgressBar />

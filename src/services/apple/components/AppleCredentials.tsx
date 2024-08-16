@@ -3,7 +3,6 @@ import DialogButtons from 'components/Dialog/DialogButtons';
 import Credentials from 'components/Settings/MediaLibrarySettings/Credentials';
 import {MediaServiceCredentialsProps} from 'components/Settings/MediaLibrarySettings/MediaServiceCredentials';
 import ExternalLink from 'components/ExternalLink';
-import Icon from 'components/Icon';
 import appleSettings from '../appleSettings';
 import useCredentials from './useCredentials';
 
@@ -34,13 +33,10 @@ export default function AppleCredentials({service: apple}: MediaServiceCredentia
                     autoFocus
                 />
             </fieldset>
-            <fieldset>
+            <fieldset className="credentials-registration">
                 <legend>Registration</legend>
-                <p className="apple-link service-link">
-                    <ExternalLink href={apple.credentialsUrl}>
-                        <Icon name="apple-logo" />
-                        {apple.credentialsUrl}
-                    </ExternalLink>
+                <p>
+                    <ExternalLink icon="apple-logo" href={apple.credentialsUrl} />
                 </p>
             </fieldset>
             <fieldset className="credentials-requirements note">

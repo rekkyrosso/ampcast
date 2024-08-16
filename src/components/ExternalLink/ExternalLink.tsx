@@ -1,12 +1,15 @@
 import React from 'react';
-import Icon from 'components/Icon';
+import Icon, {IconName} from 'components/Icon';
 import './ExternalLink.scss';
 
-export type ExternalLinkProps = JSX.IntrinsicElements['a'];
+export type ExternalLinkProps = JSX.IntrinsicElements['a'] & {
+    icon?: IconName;
+};
 
 export default function ExternalLink({
     href,
     className = '',
+    icon,
     children = trimUrl(href),
     ...props
 }: ExternalLinkProps) {
@@ -19,7 +22,10 @@ export default function ExternalLink({
             target="_blank"
             rel="noopener"
         >
-            <span className="external-link-text">{children}</span>
+            <span className="external-link-content">
+                {icon ? <Icon name={icon} /> : null}
+                <span className="external-link-text">{children}</span>
+            </span>
             <Icon name="link" />
         </a>
     );

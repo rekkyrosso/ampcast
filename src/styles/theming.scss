@@ -30,9 +30,9 @@
 
     --focus-ring-color: #3390ff;
 
-    --link-color: var(--soft-white);
-    --link-visited-color: var(--soft-white);
-    --link-active-color: #ff9e9e;
+    --link-color: currentColor;
+    --link-visited-color: var(--link-color);
+    --link-active-color: rgb(255, 40, 40);
     --currently-playing-color-light: yellow;
     --currently-playing-color-dark: blue;
 
@@ -161,9 +161,7 @@
             calc(var(--text-color-s) * 0.5),
             calc(var(--text-color-l) + (100% - var(--text-color-l)) * 0.25));
 
-    --link-color: #222222;
-    --link-visited-color: #222222;
-    --link-active-color: #ff0000;
+    --link-active-color: red;
 }
 
 .app,

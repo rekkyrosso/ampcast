@@ -58,7 +58,7 @@ export default function PlexMediaLibrarySettings({service: plex}: PlexMediaLibra
         <form className="personal-media-library-settings" method="dialog" onSubmit={handleSubmit}>
             <fieldset>
                 <legend>Host</legend>
-                <ExternalLink href={plex.host} />
+                {plex.host ? <ExternalLink href={plex.host} /> : 'Not configured'}
             </fieldset>
             <fieldset>
                 <legend>Preferences</legend>

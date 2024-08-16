@@ -62,7 +62,7 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
         }
         if (service.createSourceFromPin) {
             tabs.push({
-                tab: 'Pinned',
+                tab: 'Pins',
                 panel: <PinnedSettings service={service} />,
             });
         }

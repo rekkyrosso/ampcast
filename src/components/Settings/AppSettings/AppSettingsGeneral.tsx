@@ -74,14 +74,14 @@ export default function AppSettingsGeneral() {
             ) : (
                 <fieldset>
                     <legend>Download</legend>
-                    <p className="service-link">
+                    <p>
                         <ExternalLink href={downloadUrl} />
                     </p>
                 </fieldset>
             )}
             <fieldset>
                 <legend>Support</legend>
-                <p className="service-link">
+                <p>
                     <ExternalLink href={supportUrl} />
                 </p>
             </fieldset>
