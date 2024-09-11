@@ -5,7 +5,7 @@ import Subtract from 'types/Subtract';
 import UserData from 'types/UserData';
 import browser from './browser';
 
-const userDataKeys: (keyof MediaItem | 'lookupStatus')[] = [
+const userDataKeys: (keyof UserData | 'lookupStatus')[] = [
     'rating',
     'globalRating',
     'playCount',

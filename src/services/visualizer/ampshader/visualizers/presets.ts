@@ -43,6 +43,7 @@ import fractalBrownian from './fractalBrownian.frag';
 import fractalLand from './fractalLand.frag';
 import gauges from './gauges.frag';
 import goatranceTrip from './goatranceTrip.frag';
+import hilbertColor from './hilbertColor.frag';
 import inversionsKreis from './inversionsKreis.frag';
 import io from './io.frag';
 import issues from './issues.frag';
@@ -56,6 +57,7 @@ import musicVisualizer3 from './musicVisualizer3.frag';
 import myLightShow from './myLightShow.frag';
 import nanoKontrol2 from './nanoKontrol2.frag';
 import nautilus from './nautilus.frag';
+import neonRiverVisualizer from './neonRiverVisualizer.frag';
 import noiseNoiseRaymarching from './noiseNoiseRaymarching.frag';
 import ocassionalSpectators from './ocassionalSpectators.frag';
 import oscEqualizer from './oscEqualizer.frag';
@@ -65,6 +67,7 @@ import phonk from './phonk.frag';
 import pinwheel from './pinwheel.frag';
 import plasmaGlobe from './plasmaGlobe.frag';
 import playingAroundWithSpirals from './playingAroundWithSpirals.frag';
+import popShift from './popShift.frag';
 import psyTrance from './psyTrance.frag';
 import psychedelicEye from './psychedelicEye.frag';
 import psychedelicLines from './psychedelicLines.frag';
@@ -88,14 +91,34 @@ import spaceshipConsole from './spaceshipConsole.frag';
 import speaker from './speaker.frag';
 import swirlyRainbowSoundVisualizer from './swirlyRainbowSoundVisualizer.frag';
 import symmetricalSoundVisualiser from './symmetricalSoundVisualiser.frag';
-import tangerineDreamVisualizer2 from './tangerineDreamVisualizer2.frag';
 import technoCore from './technoCore.frag';
 import tequillaRainbow from './tequillaRainbow.frag';
 import trippyVisualizer from './trippyVisualizer.frag';
 import violentEyeSimulator314 from './violentEyeSimulator314.frag';
+import wavesRemix from './wavesRemix.frag';
 import yearOfTruchets018 from './yearOfTruchets018.frag';
 
 const presets: AmpShaderVisualizer[] = [
+    {
+        id: '4ljGD1',
+        name: 'Waves Remix by ADOB',
+        shader: wavesRemix,
+    },
+    {
+        id: '4f2fWD',
+        name: '"Hilbert Color" Visualizer by sed4906',
+        shader: hilbertColor,
+    },
+    {
+        id: 'Xfy3D3',
+        name: 'Neon River Visualizer by FatLenny',
+        shader: neonRiverVisualizer,
+    },
+    {
+        id: 'cdcBWs',
+        name: 'Pop Shift by QuantumSuper',
+        shader: popShift,
+    },
     {
         id: 'ldSGRW',
         name: '25 boxes and a tunnel by movAX13h',
@@ -240,11 +263,6 @@ const presets: AmpShaderVisualizer[] = [
         id: 'WdKyzd',
         name: 'swirly rainbow sound visualizer by TonyIlersich',
         shader: swirlyRainbowSoundVisualizer,
-    },
-    {
-        id: '7ldczN',
-        name: 'Tangerine Dream Visualizer 2 by gurudevbk',
-        shader: tangerineDreamVisualizer2,
     },
     {
         id: 'Wll3Df',

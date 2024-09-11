@@ -19,7 +19,7 @@ export default class BeatsPlayer extends WaveformPlayer {
                 const bufferSize = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferSize);
                 const barWidth = (width - gapWidth * visualBarCount) / visualBarCount;
-                const heightFactor = height * 0.0075;
+                const heightFactor = height / 128;
                 const chunkSize = bufferSize / barCount;
                 const stop = bufferSize - 2 * chunkSize;
                 const minHeight = isFullscreen ? 12 : 8;

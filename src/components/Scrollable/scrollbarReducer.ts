@@ -1,3 +1,5 @@
+import {clamp} from 'utils';
+
 export interface ScrollbarState {
     position: number;
     max: number;
@@ -20,14 +22,14 @@ export default function scrollbarReducer(
             const scrollSize = Math.max(action.scrollSize, clientSize);
             if (clientSize !== state.clientSize || scrollSize !== state.scrollSize) {
                 const max = scrollSize - clientSize;
-                const position = clampPosition(state.position, max);
+                const position = clamp(0, state.position, max);
                 return {...state, position, max, clientSize, scrollSize};
             }
             return state;
         }
 
         case 'scrollBy': {
-            const position = clampPosition(state.position + action.amount, state.max);
+            const position = clamp(0, state.position + action.amount, state.max);
             if (position !== state.position) {
                 return {...state, position};
             }
@@ -35,7 +37,7 @@ export default function scrollbarReducer(
         }
 
         case 'scrollTo': {
-            const position = clampPosition(action.position, state.max);
+            const position = clamp(0, action.position, state.max);
             if (position !== state.position) {
                 return {...state, position};
             }
@@ -45,8 +47,4 @@ export default function scrollbarReducer(
         default:
             return state;
     }
-}
-
-function clampPosition(position: number, max: number): number {
-    return Math.min(Math.max(position, 0), max);
 }

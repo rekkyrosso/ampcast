@@ -1,6 +1,14 @@
 import type {Observable} from 'rxjs';
-import {EMPTY, BehaviorSubject, distinctUntilChanged, filter, map, switchMap} from 'rxjs';
-import {interpolateBasis} from 'd3-interpolate';
+import {
+    EMPTY,
+    BehaviorSubject,
+    concatMap,
+    distinctUntilChanged,
+    filter,
+    map,
+    switchMap,
+} from 'rxjs';
+import {interpolateBasis, interpolateNumber} from 'd3-interpolate';
 import {min} from 'd3-array';
 import {scaleLog} from 'd3-scale';
 import {InvFFT as ifft} from 'jsfft';
@@ -8,7 +16,7 @@ import {observePaused} from 'services/mediaPlayback/playback';
 import spotifyPlayer, {SpotifyPlayer} from './spotifyPlayer';
 import spotifyApi from './spotifyApi';
 import {samplePitches} from './samplePitches';
-import {Logger} from 'utils';
+import {clamp, Logger} from 'utils';
 
 const logger = new Logger('spotifyAudioAnalyser');
 
@@ -40,6 +48,9 @@ export interface ActiveIntervals {
 }
 
 export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
+    private readonly maxDecibels = -30;
+    private readonly minDecibels = -100;
+    private readonly volumeSmoothing = 100;
     private readonly intervalTypes: IntervalType[] = [
         'bars',
         'beats',
@@ -49,6 +60,7 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
     ];
     private animationFrameId = 0;
     private currentTrackId = '';
+    private currentTrackAnalysis: SpotifyApi.AudioAnalysisObject | null = null;
     private trackAnalysis: (SpotifyApi.AudioAnalysisObject & ActiveIntervals) | null = null;
     private initialTrackProgress = 0;
     private initialStart = 0;
@@ -58,10 +70,10 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
         volume: number[];
         beat: number[];
     } = {
-        volume: [],
-        beat: [],
+        volume: [0],
+        beat: [0],
     };
-    private activeIntervals$ = new BehaviorSubject<ActiveIntervals>({
+    private readonly activeIntervals$ = new BehaviorSubject<ActiveIntervals>({
         bars: {},
         beats: {},
         sections: {},
@@ -69,33 +81,12 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
         tatums: {},
     } as ActiveIntervals);
     #volume = 0;
-    volumeSmoothing = 10;
 
     constructor(spotifyPlayer: SpotifyPlayer) {
         spotifyPlayer
             .observeCurrentTrackState()
-            .subscribe(async (state: Spotify.PlaybackState | null) => {
-                const trackId = state?.track_window?.current_track?.id;
-                if (trackId && this.currentTrackId !== trackId) {
-                    this.currentTrackId = trackId;
-                    try {
-                        this.trackAnalysis = await spotifyApi.getAudioAnalysisForTrack(trackId);
-                        state = await spotifyPlayer.getCurrentState();
-                        this.updateState(state);
-                    } catch (err) {
-                        logger.error(err);
-                        this.trackAnalysis = null;
-                    }
-                }
-
-                this.active = !!this.trackAnalysis && !!state && !state.paused && !state.loading;
-
-                if (this.active) {
-                    this.start();
-                } else {
-                    this.stop();
-                }
-            });
+            .pipe(concatMap((state) => this.updateTrackAnalysis(state)))
+            .subscribe(logger);
     }
 
     get bar(): ActiveIntervals['bars'] {
@@ -123,116 +114,115 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
     }
 
     observeBar(): Observable<ActiveIntervals['bars']> {
-        return this.observeActiveIntervals().pipe(
-            map((activeIntervals) => activeIntervals['bars']),
-            distinctUntilChanged()
-        );
+        return this.observeActiveInterval('bars') as Observable<ActiveIntervals['bars']>;
     }
 
     observeBeat(): Observable<ActiveIntervals['beats']> {
-        return this.observeActiveIntervals().pipe(
-            map((activeIntervals) => activeIntervals['beats']),
-            distinctUntilChanged()
-        );
+        return this.observeActiveInterval('beats') as Observable<ActiveIntervals['beats']>;
     }
 
     observeSection(): Observable<ActiveIntervals['sections']> {
-        return this.observeActiveIntervals().pipe(
-            map((activeIntervals) => activeIntervals['sections']),
-            distinctUntilChanged()
-        );
+        return this.observeActiveInterval('sections') as Observable<ActiveIntervals['sections']>;
     }
 
     observeSegment(): Observable<ActiveIntervals['segments']> {
-        return this.observeActiveIntervals().pipe(
-            map((activeIntervals) => activeIntervals['segments']),
-            distinctUntilChanged()
-        );
+        return this.observeActiveInterval('segments') as Observable<ActiveIntervals['segments']>;
     }
 
     observeTatum(): Observable<ActiveIntervals['tatums']> {
-        return this.observeActiveIntervals().pipe(
-            map((activeIntervals) => activeIntervals['tatums']),
-            distinctUntilChanged()
-        );
+        return this.observeActiveInterval('tatums') as Observable<ActiveIntervals['tatums']>;
     }
 
-    getByteFrequencyData(array: Uint8Array): void {
+    getByteFrequencyData(data: Uint8Array): void {
         if (!this.active) {
-            array.fill(0);
+            data.fill(0);
             return;
         }
-
-        // This isn't real!
-        // This is an attempt to get data suitable for visualizers.
-        // It's based on some completely made up maths. :)
-
-        const pitches = this.segment.pitches;
-
-        if (pitches) {
-            const beat = interpolateBasis([0.5, 1, 0.5])(this.beat.progress) * this.volume;
-            const brightness = this.segment.timbre[1];
-            const centre = (brightness - 360) / 360;
-            const bufferSize = array.length;
-            const sampleSize = 22_050 / bufferSize;
-            for (let i = 0; i < bufferSize; i++) {
-                let radian = (i - bufferSize / 2 - centre * bufferSize) / bufferSize + 1;
-                if (radian < 0 || radian > 2) {
-                    radian = 0;
-                }
-                const max = Math.sin(radian * (Math.PI / 2));
-                const sample = samplePitches(pitches, i, sampleSize);
-                array[i] = ((sample + max) / 2) * 255 * beat;
-            }
-        } else {
-            array.fill(0);
-        }
-    }
-
-    getFloatFrequencyData(array: Float32Array): void {
-        if (!this.active) {
-            array.fill(0);
-            return;
-        }
-        const bufferSize = array.length;
-        const uint8 = new Uint8Array(bufferSize);
-        this.getByteFrequencyData(uint8);
+        const bufferSize = data.length;
+        const float32 = new Float32Array(bufferSize);
+        const {minDecibels, maxDecibels} = this;
+        this.getFloatFrequencyData(float32);
         for (let i = 0; i < bufferSize; i++) {
-            array[i] = (uint8[i] - 128) / 128;
+            // https://webaudio.github.io/web-audio-api/#dom-analysernode-getbytefrequencydata
+            const value = (255 / (maxDecibels - minDecibels)) * (float32[i] - minDecibels);
+            data[i] = clamp(0, value, 255);
         }
     }
 
-    getByteTimeDomainData(array: Uint8Array): void {
+    getByteTimeDomainData(data: Uint8Array): void {
         if (!this.active) {
-            array.fill(0);
+            data.fill(128);
             return;
         }
-        const bufferSize = array.length;
+        const bufferSize = data.length;
         const float32 = new Float32Array(bufferSize);
         this.getFloatTimeDomainData(float32);
         for (let i = 0; i < bufferSize; i++) {
-            array[i] = float32[i] * 128 + 128;
+            // https://webaudio.github.io/web-audio-api/#dom-analysernode-getbytetimedomaindata
+            const value = 128 * (float32[i] + 1);
+            data[i] = clamp(0, value, 255);
         }
     }
 
-    getFloatTimeDomainData(array: Float32Array): void {
+    getFloatFrequencyData(data: Float32Array): void {
         if (!this.active) {
-            array.fill(0);
+            data.fill(-Infinity);
+            return;
+        }
+        const bufferSize = data.length;
+        const values = this.getFrequencyData(bufferSize);
+        for (let i = 0; i < bufferSize; i++) {
+            const value = values[i] * (this.maxDecibels - this.minDecibels) + this.minDecibels;
+            data[i] = clamp(-180, value, 0);
+        }
+    }
+
+    getFloatTimeDomainData(data: Float32Array): void {
+        if (!this.active) {
+            data.fill(0);
             return;
         }
         // More made up maths.
-        // The `ifft` function provides some noise but not much else.
-        const bufferSize = array.length;
-        const float32 = new Float32Array(bufferSize);
-        this.getFloatFrequencyData(float32);
-        const {real, imag} = ifft(float32);
+        const bufferSize = data.length;
+        // const values = this.frequencyData.map((value) => clamp(-1, value * 2 - 1, 1));
+        const values = this.getFrequencyData(bufferSize).map((value) => value * 2 - 1);
+        const {real, imag} = ifft(values);
         for (let i = 0; i < bufferSize; i++) {
-            array[i] = Math.sqrt(real[i] * real[i] + imag[i] * imag[i]);
+            data[i] = Math.sqrt(real[i] * real[i] + imag[i] * imag[i]);
         }
     }
 
+    getFrequencyData(bufferSize: number): Float32Array {
+        const data = new Float32Array(bufferSize);
+        const pitches = this.segment.pitches;
+        if (pitches) {
+            const beat = interpolateBasis([0.3, 0.9, 0.3])(this.beat.progress) * this.volume;
+            const brightness = this.segment.timbre[1];
+            const centre = (brightness - 360) / 360;
+            const bufferSize = data.length;
+            const sampleSize = 22_050 / bufferSize;
+            for (let i = 0; i < bufferSize; i++) {
+                const radian = clamp(0, i / bufferSize - centre, 2);
+                const amp = Math.sin((radian * Math.PI) / 2);
+                const sample = samplePitches(pitches, i, sampleSize);
+                const value = ((amp + sample) / 2) * beat;
+                data[i] = value;
+            }
+        } else {
+            data.fill(0);
+        }
+        return data;
+    }
+
     private get activeIntervals(): ActiveIntervals {
-        return this.activeIntervals$.getValue();
+        return this.activeIntervals$.value;
+    }
+
+    private observeActiveInterval(interval: IntervalType): Observable<ActiveInterval> {
+        return this.observeActiveIntervals().pipe(
+            map((activeIntervals) => activeIntervals[interval]),
+            distinctUntilChanged()
+        );
     }
 
     private observeActiveIntervals(): Observable<ActiveIntervals> {
@@ -242,7 +232,67 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
         );
     }
 
-    private async updateState(state: Spotify.PlaybackState | null): Promise<void> {
+    private start(): void {
+        if (!this.animationFrameId) {
+            this.animationFrameId = requestAnimationFrame((now) => this.tick(now));
+        }
+    }
+
+    private stop(): void {
+        if (this.animationFrameId) {
+            cancelAnimationFrame(this.animationFrameId);
+            this.animationFrameId = 0;
+        }
+    }
+
+    private tick(now: number): void {
+        if (!this.active) {
+            return;
+        }
+        this.updateQueues(now);
+        this.animationFrameId = requestAnimationFrame((now) => this.tick(now));
+    }
+
+    private async updateTrackAnalysis(state: Spotify.PlaybackState | null): Promise<void> {
+        const trackId = state?.track_window?.current_track?.id;
+        if (trackId && this.currentTrackId !== trackId) {
+            this.currentTrackId = trackId;
+            this.trackAnalysis = null;
+            this.queues = {
+                volume: [0],
+                beat: [0],
+            };
+            try {
+                this.currentTrackAnalysis = await spotifyApi.getAudioAnalysisForTrack(trackId);
+                state = await spotifyPlayer.getCurrentState();
+            } catch (err) {
+                logger.error(err);
+                this.currentTrackAnalysis = null;
+            }
+        }
+
+        if (this.currentTrackAnalysis && state) {
+            this.updateTrackState(this.currentTrackAnalysis, state);
+            this.active = !state.paused && !state.loading;
+        } else {
+            this.active = false;
+        }
+
+        if (this.active) {
+            this.start();
+        } else {
+            this.stop();
+        }
+    }
+
+    // The code below is based on code by zachwinter.
+
+    private async updateTrackState(
+        analysis: SpotifyApi.AudioAnalysisObject,
+        state: Spotify.PlaybackState
+    ): Promise<void> {
+        this.trackAnalysis = structuredClone(analysis) as SpotifyApi.AudioAnalysisObject &
+            ActiveIntervals;
         this.intervalTypes.forEach((intervalType) => {
             const intervals = this.trackAnalysis?.[intervalType];
             intervals?.forEach((interval) => {
@@ -253,9 +303,8 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
                 interval.duration = (interval.duration || 0) * 1000;
             });
         });
-
-        this.initialTrackProgress = state?.position || 0;
-        this.trackProgress = state?.position || 0;
+        this.initialTrackProgress = state.position || 0;
+        this.trackProgress = state.position || 0;
         this.initialStart = window.performance.now();
     }
 
@@ -276,6 +325,11 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
             return 0;
         };
 
+        const easeOutQuart = (t: number): number => {
+            t = clamp(0, t, 1);
+            return 1 - --t * t * t * t;
+        };
+
         this.intervalTypes.forEach((type: IntervalType) => {
             const index = determineInterval(type);
             if (activeIntervals[type].start == null || index !== activeIntervals[type].index) {
@@ -287,7 +341,7 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
             const {start = 0, duration = 0} = activeIntervals[type];
             const elapsed = this.trackProgress - start;
             activeIntervals[type].elapsed = elapsed;
-            activeIntervals[type].progress = this.easeOutQuart(elapsed / duration);
+            activeIntervals[type].progress = easeOutQuart(elapsed / duration);
         });
 
         this.activeIntervals$.next(activeIntervals);
@@ -297,44 +351,21 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
         const {loudness_max, loudness_start, loudness_max_time, duration, elapsed, start, index} =
             this.activeIntervals.segments;
 
-        if (!this.trackAnalysis!.segments[index + 1]) {
-            return 0;
-        }
-
-        const next = this.trackAnalysis!.segments[index + 1].loudness_start;
-        const current = start + elapsed;
-
         if (elapsed < loudness_max_time) {
-            const progress = Math.min(1, elapsed / loudness_max_time);
-            return this.interpolate(loudness_start, loudness_max)(progress);
+            const progress = clamp(0, elapsed / loudness_max_time, 1);
+            return interpolateNumber(loudness_start, loudness_max)(progress);
         } else {
+            const next = this.trackAnalysis?.segments[index + 1]?.loudness_start || 0;
+            const current = start + elapsed;
             const _start = start + loudness_max_time;
             const _elapsed = current - _start;
             const _duration = duration - loudness_max_time;
-            const progress = Math.min(1, _elapsed / _duration);
-            return this.interpolate(loudness_max, next)(progress);
+            const progress = clamp(0, _elapsed / _duration, 1);
+            return interpolateNumber(loudness_max, next)(progress);
         }
     }
 
-    private start(): void {
-        if (!this.animationFrameId) {
-            this.animationFrameId = requestAnimationFrame((now) => this.tick(now));
-        }
-    }
-
-    private stop(): void {
-        if (this.animationFrameId) {
-            cancelAnimationFrame(this.animationFrameId);
-            this.animationFrameId = 0;
-        }
-    }
-
-    private tick(now: number): void {
-        this.animationFrameId = requestAnimationFrame((now) => this.tick(now));
-        if (!this.active) {
-            return;
-        }
-
+    private updateQueues(now: number): void {
         // Comments by zachwinter.
 
         /** Set track progress and active intervals. */
@@ -375,17 +406,8 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
         this.#volume = sizeScale(beat) || 0;
     }
 
-    private interpolate(a: number, b: number): (t: number) => number {
-        return (t: number): number => a * (1 - t) + b * t;
-    }
-
     private isSegment(segment: any): segment is SpotifyApi.AudioAnalysisSegment {
         return 'loudness_max_time' in segment;
-    }
-
-    private easeOutQuart(t: number): number {
-        t = Math.min(Math.max(0, t), 1);
-        return 1 - --t * t * t * t;
     }
 }
 

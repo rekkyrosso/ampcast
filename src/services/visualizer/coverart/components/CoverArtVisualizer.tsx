@@ -1,11 +1,12 @@
 import React, {useEffect, useRef, useState} from 'react';
-import {distinctUntilChanged, map} from 'rxjs';
 import Color from 'colorjs.io';
 import MediaType from 'types/MediaType';
 import PlaylistItem from 'types/PlaylistItem';
 import type CovertArtPlayer from '../CovertArtPlayer';
 import audio from 'services/audio';
-import {observeVisualizerSettings} from 'services/visualizer';
+import visualizerSettings, {
+    observeVisualizerSettings,
+} from 'services/visualizer/visualizerSettings';
 import useLoadingState from 'components/Media/useLoadingState';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useFontSize from 'hooks/useFontSize';
@@ -17,15 +18,12 @@ import CurrentlyPlaying from './CurrentlyPlaying';
 import {filterNotEmpty} from 'utils';
 import './CoverArtVisualizer.scss';
 
-const observeAnimatedBackgroundEnabled = () =>
-    observeVisualizerSettings().pipe(
-        map((settings) => settings.coverArtAnimatedBackground),
-        distinctUntilChanged()
-    );
-
 export default function CoverArtVisualizer() {
     const ref = useRef<HTMLDivElement>(null);
-    const animatedBackgroundEnabled = useObservable(observeAnimatedBackgroundEnabled, false);
+    const {coverArtAnimatedBackground, coverArtBeats} = useObservable(
+        observeVisualizerSettings,
+        visualizerSettings
+    );
     const [player, setPlayer] = useState<CovertArtPlayer | null>(null);
     const [arrange, setArrange] = useState<'row' | 'column'>('row');
     const [palette, setPalette] = useState<readonly string[]>(['#000000']);
@@ -66,7 +64,7 @@ export default function CoverArtVisualizer() {
 
     useEffect(() => {
         if (width > height) {
-            const maxHeight = height - 5 * fontSize;
+            const maxHeight = height - (coverArtBeats ? 6 : 3) * fontSize;
             setThumbnailSize(Math.min(Math.floor(width * 0.45), maxHeight));
             setArrange('row');
         } else {
@@ -74,7 +72,7 @@ export default function CoverArtVisualizer() {
             setThumbnailSize(Math.min(Math.floor(height * 0.45), maxWidth));
             setArrange('column');
         }
-    }, [width, height, fontSize]);
+    }, [width, height, fontSize, coverArtBeats]);
 
     useOnResize(ref, ({width, height}) => {
         setWidth(width);
@@ -116,7 +114,7 @@ export default function CoverArtVisualizer() {
     return (
         <div
             className={`visualizer visualizer-coverart arrange-${arrange} ${ready ? 'ready' : ''} ${
-                animatedBackgroundEnabled ? 'animated-background-enabled' : ''
+                coverArtAnimatedBackground ? 'animated-background-enabled' : ''
             }`}
             style={
                 {

@@ -8,7 +8,7 @@ import React, {
 } from 'react';
 import {Subscription, fromEvent} from 'rxjs';
 import {Except} from 'type-fest';
-import {preventDefault, stopPropagation} from 'utils';
+import {clamp, preventDefault, stopPropagation} from 'utils';
 import Icon, {IconName} from 'components/Icon';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import './Dialog.scss';
@@ -170,13 +170,9 @@ function clampPosition(dialog: HTMLDialogElement, position: DialogPosition): Dia
     const maxLeft = (clientWidth - dialogWidth) / 2;
     const minTop = (dialogHeight - clientHeight) / 2 + dragRegionHeight;
     const maxTop = (clientHeight - dialogHeight) / 2;
-    const left = clamp(position.left, maxLeft, minLeft);
-    const top = clamp(position.top, maxTop, minTop);
+    const left = clamp(minLeft, position.left, maxLeft);
+    const top = clamp(minTop, position.top, maxTop);
     return {left, top};
-}
-
-function clamp(value: number, max: number, min = 0): number {
-    return Math.max(Math.min(value, max), min);
 }
 
 export default forwardRef<DialogHandle, DialogProps>(Dialog);

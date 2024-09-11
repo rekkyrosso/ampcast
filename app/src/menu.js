@@ -59,9 +59,8 @@ const menu = [
         submenu: [
             {role: 'reload'},
             {role: 'forceReload'},
-            ...(app.isPackaged
-                ? [{type: 'separator'}]
-                : [{role: 'toggleDevTools'}, {type: 'separator'}]),
+            {role: 'toggleDevTools'},
+            {type: 'separator'},
             {role: 'togglefullscreen'},
         ],
     },

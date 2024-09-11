@@ -3,6 +3,7 @@ import {Subject} from 'rxjs';
 import butterchurn from 'butterchurn';
 import AudioManager from 'types/AudioManager';
 import {ButterchurnVisualizer} from 'types/Visualizer';
+import spotifyAudioAnalyser from 'services/spotify/spotifyAudioAnalyser';
 import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 import {Logger} from 'utils';
 
@@ -26,6 +27,17 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
             width: 400,
             height: 200,
         });
+
+        const {analyser, fft} = (this.visualizer as any).audio;
+        const timeToFrequencyDomain = fft.timeToFrequencyDomain;
+
+        fft.timeToFrequencyDomain = (waveDataIn: Uint8Array): Float32Array => {
+            if (analyser.isPlayingSpotify) {
+                return spotifyAudioAnalyser.getFrequencyData(waveDataIn.length / 2);
+            } else {
+                return timeToFrequencyDomain.call(fft, waveDataIn);
+            }
+        };
 
         // Log errors.
         this.error$.subscribe(logger.error);

@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
 import {from} from 'rxjs';
-import MediaService from 'types/MediaService';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
+import PersonalMediaService from 'types/PersonalMediaService';
 import useObservable from 'hooks/useObservable';
 import plexApi from '../plexApi';
 import {getConnection} from '../plexAuth';
@@ -14,7 +14,7 @@ export interface PlexMediaServer {
     libraries: readonly PersonalMediaLibrary[];
 }
 
-export default function usePlexMediaServers(plex: MediaService) {
+export default function usePlexMediaServers(plex: PersonalMediaService) {
     const isLoggedIn = useObservable(plex.observeIsLoggedIn, false);
     const [servers, setServers] = useState<readonly PlexMediaServer[]>(() => {
         const {server, connection, libraries} = plexSettings;

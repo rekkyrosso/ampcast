@@ -13,6 +13,8 @@ import {
     take,
     tap,
 } from 'rxjs';
+import isElectron from 'is-electron';
+import MediaServiceId from 'types/MediaServiceId';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import Visualizer, {NoVisualizer} from 'types/Visualizer';
@@ -63,10 +65,11 @@ const randomProviders: VisualizerProviderId[] = [
 ];
 
 const spotifyRandomProviders: VisualizerProviderId[] = [
-    ...Array(58).fill('ampshader'), // most of the time use this one
-    ...Array(10).fill('butterchurn'),
-    ...Array(10).fill('spotifyviz'),
-    ...Array(2).fill('coverart'),
+    ...Array(60).fill('ampshader'), // most of the time use this one
+    ...Array(9).fill('audiomotion'),
+    ...Array(6).fill('spotifyviz'),
+    ...Array(4).fill('butterchurn'),
+    ...Array(1).fill('coverart'),
 ];
 
 const randomVideo: VisualizerProviderId[] = Array(10).fill('ambientvideo');
@@ -144,7 +147,10 @@ function getNextVisualizer(reason: NextVisualizerReason): Visualizer {
         return noVisualizer;
     }
 
+    const isDev = location.hostname === 'localhost' && !isElectron;
     const settings = visualizerSettings;
+    const [serviceId]: [MediaServiceId] = item.src.split(':') as [MediaServiceId];
+    const ambientVideoSupported = !/^(spotify)$/.test(serviceId) || isDev;
 
     // Keep track of *consecutive* errors.
     const isError = reason === 'error';
@@ -160,7 +166,7 @@ function getNextVisualizer(reason: NextVisualizerReason): Visualizer {
         errorRecord.count = 0;
     }
 
-    const isSpotify = item.src.startsWith('spotify:');
+    const isSpotify = serviceId === 'spotify';
     const lockedVisualizer = settings.lockedVisualizer;
     let providerId: VisualizerProviderId | '' = lockedVisualizer?.providerId || settings.provider;
     switch (providerId) {
@@ -170,8 +176,8 @@ function getNextVisualizer(reason: NextVisualizerReason): Visualizer {
             }
             break;
 
-        case 'audiomotion':
-            if (isSpotify) {
+        case 'ambientvideo':
+            if (!ambientVideoSupported) {
                 return createNoVisualizer(providerId, 'not supported');
             }
             break;
@@ -196,7 +202,7 @@ function getNextVisualizer(reason: NextVisualizerReason): Visualizer {
     if (!providerId) {
         // Random provider.
         let providers = isSpotify ? spotifyRandomProviders : randomProviders;
-        if (settings.ambientVideoEnabled) {
+        if (ambientVideoSupported && settings.ambientVideoEnabled) {
             providers = providers.concat(isSpotify ? spotifyRandomVideo : randomVideo);
         }
         providerId = getRandomValue(providers, isError ? currentVisualizer.providerId : undefined);

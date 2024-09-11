@@ -10,8 +10,6 @@ let prevColor = '';
 let nextColor = '';
 
 const example: SpotifyVizConfig = {
-    volumeSmoothing: 10,
-
     onBar() {
         const colors = theme.getVisualizerColors();
         prevColor = nextColor || getRandomValue(colors);
@@ -47,11 +45,10 @@ function circle(
     radius: number,
     start = 0,
     end = 2 * Math.PI
-): CanvasRenderingContext2D {
+): void {
     context2D.beginPath();
     context2D.arc(x, y, radius, start, end);
     context2D.closePath();
-    return context2D;
 }
 
 function sin(
@@ -61,7 +58,7 @@ function sin(
     amplitude: number,
     frequency: number,
     tick = 5
-): CanvasRenderingContext2D {
+): void {
     const y = (x: number) => amplitude * Math.sin(x / frequency + xOffset) + yOffset;
     const {width} = context2D.canvas;
     context2D.beginPath();
@@ -72,5 +69,4 @@ function sin(
             context2D.lineTo(x, y(x));
         }
     }
-    return context2D;
 }

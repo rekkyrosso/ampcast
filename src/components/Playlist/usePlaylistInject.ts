@@ -1,4 +1,3 @@
-import getYouTubeID from 'get-youtube-id';
 import MediaItem from 'types/MediaItem';
 import {getService} from 'services/mediaServices';
 import {createMediaItemFromFile, createMediaItemFromUrl} from 'services/music-metadata';
@@ -22,10 +21,9 @@ export default function usePlaylistInject() {
 
 async function injectUrls(urls: readonly string[], atIndex: number): Promise<void> {
     const [youtubeUrls, otherUrls] = partition(urls, (url) => /youtu\.?be/.test(url));
-    const youtubeIds = youtubeUrls.map((url) => getYouTubeID(url)!);
     try {
         const items = await Promise.all([
-            Promise.all(youtubeIds.map((id) => youtubeApi.getVideoInfo(id))),
+            Promise.all(youtubeUrls.map((url) => youtubeApi.getVideoInfo(url))),
             Promise.all(otherUrls.map((url) => createMediaItemFromUrl(url))),
         ]);
         await injectAt(items.flat(), atIndex);

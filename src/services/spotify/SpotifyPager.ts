@@ -288,7 +288,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             src: `spotify:top-tracks:${artist.id}`,
             title: 'Top Tracks',
             artist: artist.name,
-            thumbnails: artist.images as Thumbnail[],
+            // thumbnails: artist.images as Thumbnail[], // Spotify branding
             pager: this.createTopTracksPager(artist),
             synthetic: true,
         };

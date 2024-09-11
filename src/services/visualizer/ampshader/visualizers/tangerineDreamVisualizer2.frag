@@ -1,4 +1,5 @@
 // https://www.shadertoy.com/view/7ldczN
+/* NOT CURRENTLY USED */
 #define freq(f) texture(iChannel0, vec2(f, 0.25)).x * 0.8
 
 float avgBassFreq() {

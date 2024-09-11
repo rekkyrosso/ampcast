@@ -49,7 +49,7 @@ export default class LiteStorage {
 
     getBoolean(key: string, defaultValue = false): boolean {
         const value = this.getItem(key) ?? defaultValue;
-        return !!value && value !== 'false';
+        return value === true || value === 'true';
     }
 
     setBoolean(key: string, value: boolean): void {

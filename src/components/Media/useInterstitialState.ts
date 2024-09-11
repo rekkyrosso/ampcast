@@ -12,7 +12,7 @@ export default function useInterstitialState(): InterstitialState {
     const isPlayingVideo = currentItem?.mediaType === MediaType.Video;
     const visualizerProvider = useCurrentVisualizer()?.providerId || 'none';
     const [isNewItem, setIsNewItem] = useState(true);
-    const playbackStarted = currentTime > 0;
+    const playbackStarted = currentTime >= 1;
     const miniPlayerActive = useMiniPlayerActive();
 
     useEffect(() => {

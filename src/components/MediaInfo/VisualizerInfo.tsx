@@ -67,12 +67,11 @@ function YouTubeVideoInfo({visualizer}: {visualizer: AmbientVideoVisualizer}) {
 function getProviderName(visualizer: Visualizer | null): string {
     if (visualizer) {
         if (isNoVisualizer(visualizer)) {
-            return visualizer.name || 'none';
+            const provider = getVisualizerProvider(visualizer.name);
+            return provider?.name || visualizer.name || 'none';
         } else {
             const provider = getVisualizerProvider(visualizer.providerId);
-            if (provider) {
-                return provider.name;
-            }
+            return provider?.name || visualizer.providerId || 'none';
         }
     }
     return 'none';

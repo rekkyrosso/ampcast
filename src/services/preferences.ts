@@ -4,12 +4,12 @@ import {LiteStorage} from 'utils';
 
 export interface Preferences {
     miniPlayer: boolean;
-    spacebarToggle: boolean;
+    spacebarTogglePlay: boolean;
 }
 
 const storage = new LiteStorage('preferences');
 
-const preferences = {
+const preferences: Preferences = {
     get miniPlayer(): boolean {
         return storage.getBoolean('miniPlayer');
     },
@@ -18,12 +18,12 @@ const preferences = {
         storage.setBoolean('miniPlayer', enabled);
     },
 
-    get spacebarToggle(): boolean {
-        return storage.getBoolean('spacebarToggle');
+    get spacebarTogglePlay(): boolean {
+        return storage.getBoolean('spacebarTogglePlay');
     },
 
-    set spacebarToggle(enabled: boolean) {
-        storage.setBoolean('spacebarToggle', enabled);
+    set spacebarTogglePlay(enabled: boolean) {
+        storage.setBoolean('spacebarTogglePlay', enabled);
     },
 };
 

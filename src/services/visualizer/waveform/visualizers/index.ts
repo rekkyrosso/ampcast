@@ -26,8 +26,7 @@ const visualizers: WaveformVisualizer[] = [
                 context2D.beginPath();
                 let x = 0;
                 for (let i = 0; i < bufferSize; i++) {
-                    const v = dataArray[i] / 128;
-                    const y = (v * height) / 2;
+                    const y = (dataArray[i] / 255) * height;
                     if (i === 0) {
                         context2D.moveTo(x, y);
                     } else {
@@ -50,7 +49,6 @@ const visualizers: WaveformVisualizer[] = [
                 const bufferSize = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferSize);
                 const barWidth = (width - gapWidth * (visualBarCount - 1)) / visualBarCount;
-                const heightFactor = height / 128;
                 const chunkSize = bufferSize / barCount;
                 const stop = bufferSize - 2 * chunkSize;
                 analyser.getByteFrequencyData(dataArray);
@@ -58,13 +56,35 @@ const visualizers: WaveformVisualizer[] = [
                 context2D.fillStyle = getThemeColor();
                 let x = 0;
                 for (let i = 0; i < stop; i += chunkSize) {
-                    const chunkAverageValue =
+                    const value =
                         dataArray
                             .slice(i, i + chunkSize)
                             .reduce((total, value) => total + value, 0) / chunkSize;
-                    const barHeight = heightFactor * chunkAverageValue;
+                    const barHeight = height * (value / 128);
                     context2D.fillRect(x, height - barHeight / 2, barWidth, barHeight / 2);
                     x += barWidth + gapWidth;
+                }
+            },
+        },
+    },
+    {
+        providerId: 'waveform',
+        name: 'graph',
+        config: {
+            onPaint: ({context2D, width, height, analyser}) => {
+                const {minDecibels, maxDecibels, frequencyBinCount: bufferSize} = analyser;
+                const dataArray = new Float32Array(bufferSize);
+                const visualBarCount = Math.floor(bufferSize * 0.875);
+                const barWidth = width / visualBarCount;
+                analyser.getFloatFrequencyData(dataArray);
+                context2D.clearRect(0, 0, width, height);
+                context2D.fillStyle = getThemeColor();
+                let x = 0;
+                for (let i = 0; i < visualBarCount; i++) {
+                    const value = dataArray[i];
+                    const barHeight = height * (-(value - minDecibels) / maxDecibels) + maxDecibels;
+                    context2D.fillRect(x, height - barHeight / 2, barWidth, barHeight / 2);
+                    x += barWidth;
                 }
             },
         },

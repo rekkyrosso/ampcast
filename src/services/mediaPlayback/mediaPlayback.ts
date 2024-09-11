@@ -339,9 +339,9 @@ if (isMiniPlayer) {
 }
 
 // Synch playback state with media player events.
-mediaPlayer.observePlaying().subscribe(() => playback.started());
+mediaPlayer.observePlaying().subscribe(() => playback.playing());
 mediaPlayer.observeDuration().subscribe((duration) => (playback.duration = duration));
-mediaPlayer.observeCurrentTime().subscribe((time) => (playback.currentTime = time));
+mediaPlayer.observeCurrentTime().subscribe((currentTime) => (playback.currentTime = currentTime));
 mediaPlayer.observeEnded().subscribe(() => playback.ended());
 
 if (!isMiniPlayer) {
@@ -471,9 +471,6 @@ if (!isMiniPlayer) {
 fromEvent(window, 'pagehide').subscribe(kill);
 
 // logging
-// if (__dev__) {
-//     playback.observePlaybackState().subscribe(logger.rx('playbackState'));
-// }
 observePlaying().subscribe(logger.rx('playing'));
 playback.observePlaybackStart().subscribe(logger.rx('playbackStart'));
 observeDuration().pipe(map(formatTime), distinctUntilChanged()).subscribe(logger.rx('duration'));

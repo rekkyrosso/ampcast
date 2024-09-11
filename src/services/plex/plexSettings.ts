@@ -49,13 +49,7 @@ const plexSettings = {
     },
 
     get host(): string {
-        const connection = this.connection;
-        if (!connection) {
-            return '';
-        }
-        return connection.local && location.protocol === 'http:'
-            ? `http://${connection.address}:${connection.port}`
-            : connection.uri;
+        return this.connection?.uri || '';
     },
 
     get internetRequired() {

@@ -7,7 +7,6 @@ import {Logger} from 'utils';
 const logger = new Logger('SpotifyVizPlayer');
 
 export interface SpotifyVizConfig {
-    volumeSmoothing?: number;
     onPaint?: (data: SpotifyVizPaintData) => void;
     onBar?: (bar: ActiveIntervals['bars']) => void;
     onBeat?: (beat: ActiveIntervals['beats']) => void;
@@ -87,7 +86,6 @@ export default class SpotifyVizPlayer extends AbstractVisualizerPlayer<SpotifyVi
             this.currentVisualizer = visualizer.name;
             this.cancelAnimation();
             this.config = visualizer.config;
-            this.analyser.volumeSmoothing = visualizer.config?.volumeSmoothing ?? 100;
         }
         if (this.autoplay && !this.animationFrameId) {
             this.render();

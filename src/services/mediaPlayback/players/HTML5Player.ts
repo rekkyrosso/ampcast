@@ -261,9 +261,12 @@ export default class HTML5Player implements Player<PlayableItem> {
     }
 
     protected getMediaSrc(item: PlayableItem): string {
-        // This should throw if you're not logged in.
         const service = getServiceFromSrc(item);
+        // This should throw if you're not logged in.
         const src = service?.getPlayableUrl?.(item) ?? item.src;
+        if (!src) {
+            throw Error('No media source');
+        }
         return src;
     }
 

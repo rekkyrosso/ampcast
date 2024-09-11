@@ -196,7 +196,7 @@ function stop(): void {
     }
 }
 
-function started(): void {
+function playing(): void {
     const state = playbackState$.value;
     if (!state.startedAt) {
         playbackState$.next({
@@ -261,8 +261,8 @@ const playback: Playback = {
     getPlaybackState,
     ended,
     play,
+    playing,
     pause,
-    started,
     stop,
     suspend,
     unsuspend,

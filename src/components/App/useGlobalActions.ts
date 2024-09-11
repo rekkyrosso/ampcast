@@ -17,7 +17,7 @@ function handleKeyDown(event: KeyboardEvent) {
     
     switch (event.code) {
         case 'Space':
-            if (!isFormControl && preferences.spacebarToggle) {
+            if (!isFormControl && preferences.spacebarTogglePlay) {
                 event.preventDefault();
                 togglePlayPause();
             }

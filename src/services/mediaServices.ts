@@ -120,9 +120,13 @@ export function isPersonalMediaService(service: MediaService): service is Person
 }
 
 export function isPlayableSrc(src: string): boolean {
-    const [serviceId] = String(src).split(':');
-    const service = getService(serviceId);
-    return service ? service.serviceType !== ServiceType.DataService : true;
+    if (src) {
+        const [serviceId] = String(src).split(':');
+        const service = getService(serviceId);
+        return service ? service.serviceType !== ServiceType.DataService : serviceId !== 'musicbrainz';
+    } else {
+        return false;
+    }
 }
 
 export function isPublicMediaService(service: MediaService): service is PublicMediaService {

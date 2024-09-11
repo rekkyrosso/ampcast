@@ -10,7 +10,7 @@ export default function AppPreferences() {
 
     const handleSubmit = useCallback(() => {
         preferences.miniPlayer = !!miniPlayerRef.current?.checked;
-        preferences.spacebarToggle = spacebarToggleRef.current!.checked;
+        preferences.spacebarTogglePlay = spacebarToggleRef.current!.checked;
     }, []);
 
     return (
@@ -21,7 +21,7 @@ export default function AppPreferences() {
                     <input
                         type="checkbox"
                         id={`${id}-spacebar-toggle`}
-                        defaultChecked={preferences.spacebarToggle}
+                        defaultChecked={preferences.spacebarTogglePlay}
                         ref={spacebarToggleRef}
                     />
                     <label htmlFor={`${id}-spacebar-toggle`}>

@@ -1,5 +1,6 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
+import {nanoid} from 'nanoid';
 import {Logger} from 'utils';
 import spotifyApi from './spotifyApi';
 import spotifySettings from './spotifySettings';
@@ -28,7 +29,7 @@ export function isConnected(): boolean {
 }
 
 export function isLoggedIn(): boolean {
-    return accessToken$.getValue() !== '';
+    return accessToken$.value !== '';
 }
 
 export function observeIsLoggedIn(): Observable<boolean> {
@@ -42,7 +43,8 @@ export async function login(): Promise<void> {
     if (!isLoggedIn()) {
         logger.log('connect');
         try {
-            const token = await obtainAccessToken();
+            const secret = nanoid();
+            const token = await obtainAccessToken(secret);
             await storeAccessToken(token);
         } catch (err) {
             logger.error(err);
@@ -52,16 +54,17 @@ export async function login(): Promise<void> {
 
 export async function logout(): Promise<void> {
     logger.log('disconnect');
+    spotifySettings.clear();
     await clearAccessToken();
 }
 
-// From: https://github.com/JMPerez/spotify-dedup/blob/master/dedup/oauthManager.ts
+// Based on: https://github.com/JMPerez/spotify-dedup/blob/master/dedup/oauthManager.ts
 
-async function obtainAccessToken(): Promise<TokenResponse> {
+async function obtainAccessToken(state: string): Promise<TokenResponse> {
     return new Promise((resolve, reject) => {
         let authWindow: Window | null = null;
 
-        const receiveMessage = (event: {origin: string; data: {code: string}}) => {
+        const receiveMessage = (event: {origin: string; data: {code: string; state: string}}) => {
             if (/(localhost|ampcast)/.test(event.origin)) {
                 clearInterval(pollAuthWindowClosed);
                 window.removeEventListener('message', receiveMessage, false);
@@ -70,6 +73,11 @@ async function obtainAccessToken(): Promise<TokenResponse> {
 
                 if (event.origin !== location.origin) {
                     reject({message: `Origin ${event.origin} does not match ${location.origin}`});
+                    return;
+                }
+
+                if (event.data.state !== state) {
+                    reject({message: 'State mismatch'});
                     return;
                 }
 
@@ -88,15 +96,15 @@ async function obtainAccessToken(): Promise<TokenResponse> {
             'user-read-playback-state',
             'user-modify-playback-state',
             'user-read-currently-playing',
-            // Playback SDK requirements
+            // Spotify Playback SDK requirements
             'streaming',
             'user-read-email',
             'user-read-private',
-            // Playlists
+            // Manage Playlists
             'playlist-read-private',
             'playlist-modify-private',
             'playlist-modify-public',
-            // Library
+            // Manage Library
             'user-library-read',
             'user-library-modify',
             'user-follow-read',
@@ -107,6 +115,7 @@ async function obtainAccessToken(): Promise<TokenResponse> {
             client_id: spotifySettings.clientId,
             scope: spotifyScopes.join(' '),
             redirect_uri,
+            state,
             response_type: 'code',
             code_challenge_method: 'S256',
             code_challenge,
@@ -200,25 +209,24 @@ export async function refreshToken(): Promise<string> {
 
 async function storeAccessToken(token: TokenResponse): Promise<void> {
     try {
-        const {access_token} = token;
         spotifySettings.token = token;
-        spotifyApi.setAccessToken(access_token);
-        await getUserInfo();
-        nextAccessToken(access_token);
+        await nextAccessToken(token.access_token);
     } catch (err) {
         logger.error(err);
         await clearAccessToken();
     }
 }
 
-function nextAccessToken(access_token: string): void {
+async function nextAccessToken(access_token: string): Promise<void> {
+    spotifyApi.setAccessToken(access_token);
+    await checkConnection();
     accessToken$.next(access_token);
 }
 
 async function clearAccessToken(): Promise<void> {
-    spotifySettings.clear();
-    accessToken$.next('');
+    spotifySettings.token = null;
     await createCodeVerifier();
+    accessToken$.next('');
 }
 
 async function createCodeVerifier(): Promise<void> {
@@ -227,18 +235,16 @@ async function createCodeVerifier(): Promise<void> {
     code_challenge = await generateCodeChallenge(codeVerifier);
 }
 
-async function getUserInfo(): Promise<void> {
-    const getMe = async () => {
-        if (!spotifySettings.userId) {
-            const me = await spotifyApi.getMe();
-            spotifySettings.userId = me.id;
-            spotifySettings.market = me.country;
-        }
+async function checkConnection(): Promise<void> {
+    const getUserId = async () => {
+        const me = await spotifyApi.getMe();
+        spotifySettings.userId = me.id;
+        spotifySettings.market = me.country;
     };
-    const getCategories = async () => {
+    const getChartsCategoryId = async () => {
         try {
             if (!spotifySettings.chartsCategoryId) {
-                const {categories} = await spotifyApi.getCategories({limit: 50, locale: 'en_GB'});
+                const {categories} = await spotifyApi.getCategories({limit: 50, locale: 'sv_SE'});
                 const chartsCategory = categories.items.find(
                     (category) => category.name === 'Charts'
                 );
@@ -248,22 +254,18 @@ async function getUserInfo(): Promise<void> {
             logger.error(err);
         }
     };
-    await Promise.all([getMe(), getCategories()]);
+    await Promise.all([getUserId(), getChartsCategoryId()]);
 }
 
 (async () => {
     if (!spotifySettings.disabled) {
-        const token = spotifySettings.token;
+        const access_token = spotifySettings.token?.access_token;
         try {
-            if (token) {
+            if (access_token) {
                 try {
-                    spotifyApi.setAccessToken(token.access_token);
-                    await getUserInfo();
-                    if (isConnected()) {
-                        nextAccessToken(token.access_token);
-                    }
+                    await nextAccessToken(access_token);
                 } catch (err: any) {
-                    if (err.status === 401 && isConnected()) {
+                    if (err.status === 401) {
                         await refreshToken();
                     } else {
                         throw err;

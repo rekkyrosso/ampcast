@@ -29,6 +29,7 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
             showScaleX: false,
             showScaleY: false,
             connectSpeakers: false,
+            fftSize: 2048,
             start: false,
         });
 

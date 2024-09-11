@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
 import DialogButtons from 'components/Dialog/DialogButtons';
-import ExternalLink from 'components/ExternalLink';
+import PlexHost from './PlexHost';
 import usePlexMediaServers, {PlexMediaServer} from './usePlexMediaServers';
 import plexSettings from '../plexSettings';
 
@@ -58,7 +58,7 @@ export default function PlexMediaLibrarySettings({service: plex}: PlexMediaLibra
         <form className="personal-media-library-settings" method="dialog" onSubmit={handleSubmit}>
             <fieldset>
                 <legend>Host</legend>
-                {plex.host ? <ExternalLink href={plex.host} /> : 'Not configured'}
+                <PlexHost service={plex} />
             </fieldset>
             <fieldset>
                 <legend>Preferences</legend>

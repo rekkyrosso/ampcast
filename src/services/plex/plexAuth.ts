@@ -178,7 +178,29 @@ async function establishConnection(authToken: string): Promise<void> {
 
 export async function getConnection(server: plex.Device): Promise<plex.Connection | null> {
     // Prefer local connections.
-    const connections = partition(server.connections, (connection) => connection.local).flat();
+    const [localConnections, remoteConnections] = partition(
+        server.connections,
+        (connection) => connection.local
+    );
+    const httpConnections: plex.Connection[] = [];
+    if (location.protocol === 'http:' && !server.httpsRequired) {
+        for (const connection of localConnections) {
+            httpConnections.push({
+                ...connection,
+                address: 'localhost',
+                protocol: 'http',
+                uri: `http://localhost:${connection.port}`,
+            });
+        }
+        for (const connection of localConnections) {
+            httpConnections.push({
+                ...connection,
+                protocol: 'http',
+                uri: `http://${connection.address}:${connection.port}`,
+            });
+        }
+    }
+    const connections = httpConnections.concat(localConnections, remoteConnections);
     for (const connection of connections) {
         const canConnect = await testConnection(server, connection);
         if (canConnect) {
@@ -189,21 +211,25 @@ export async function getConnection(server: plex.Device): Promise<plex.Connectio
 }
 
 async function testConnection(server: plex.Device, connection: plex.Connection): Promise<boolean> {
-    const name = server.name;
-    const connectionType = connection.local ? 'local' : 'public';
+    const log = (result: string) =>
+        connectionLogging$.next(
+            `[Server: ${server.name}] ${
+                connection.local ? 'local' : 'public'
+            } connection ${result} (${connection.uri})`
+        );
     try {
         await plexApi.fetchJSON({
             host: connection.uri,
             path: '/library/sections',
             token: server.accessToken,
-            timeout: 10_000,
+            timeout: connection.protocol === 'http' ? 3_000 : 10_000,
         });
-        connectionLogging$.next(`(${name}) ${connectionType} connection successful`);
+        log('successful');
         return true;
     } catch {
-        connectionLogging$.next(`(${name}) ${connectionType} connection failed`);
+        log('failed');
+        return false;
     }
-    return false;
 }
 
 observeServerToken()

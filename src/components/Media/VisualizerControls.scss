@@ -127,7 +127,7 @@
 
     /* Show buttons on hover. */
     .app-title,
-    .visualizer-buttons,
+    .visualizer-buttons:not(:hover),
     .media-buttons,
     .video-source-icon,
     .no-visualizer-reason,

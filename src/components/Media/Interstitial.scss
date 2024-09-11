@@ -59,6 +59,7 @@
         .media-source-label {
             font-size: max(0.5em, 11px);
             margin-top: 1.5em;
+            line-height: normal;
 
             .text {
                 color: #ababab;
@@ -117,7 +118,7 @@
         display: none;
     }
 
-    .media:not(.paused, .is-showing-cover-art):hover & .currently-playing {
+    .media:not(.paused, .is-showing-cover-art, .idle):hover &.hide .currently-playing {
         opacity: 1;
         transition: opacity 400ms linear;
     }

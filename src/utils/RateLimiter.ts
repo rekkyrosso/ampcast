@@ -1,5 +1,6 @@
 import {Subject, filter, firstValueFrom, mergeMap} from 'rxjs';
-import {anySignal, partition} from './utils';
+import {partition} from './array';
+import {anySignal} from './fetch';
 
 interface RequestWithTimeout extends Request {
     timeout?: number;

@@ -20,7 +20,7 @@ export default interface Playback {
     ended(): void;
     pause(): void;
     play(): void;
-    started(): void;
+    playing(): void;
     stop(): void;
     suspend(): void;
     unsuspend(): void;

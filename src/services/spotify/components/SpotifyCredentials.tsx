@@ -42,7 +42,7 @@ export default function SpotifyCredentials({service: spotify}: MediaServiceCrede
             <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
                 <p>
-                    <label htmlFor={`${id}-callback`}>Redirect URI:</label>
+                    <label htmlFor={`${id}-callback`}>Redirect URIs:</label>
                     <input
                         type="text"
                         id={`${id}-callback`}
