@@ -14,8 +14,8 @@ export default function SearchBar({name, icon, placeholder = 'Search', onSubmit}
 
     const handleSubmit = useCallback(
         (event: React.FormEvent) => {
-            const query = inputRef.current!.value;
             event.preventDefault();
+            const query = inputRef.current!.value;
             onSubmit?.(query);
         },
         [onSubmit]

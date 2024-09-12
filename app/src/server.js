@@ -1,42 +1,58 @@
-const {resolve} = require('path');
-const {createServer} = require('net');
-const express = require('express');
+const path = require('path');
+const fs = require('fs');
+const net = require('net');
+const http = require('http');
 const store = require('./store');
-
+const staticDir = path.resolve(__dirname, '../www');
 const host = 'localhost';
 const defaultPort = 29292;
-const app = express();
-const wwwDir = resolve(__dirname, '../www');
-const webIndex = resolve(wwwDir, './index.html');
 
-express.static.mime.define({
-    'application/javascript': ['js'],
-    'application/json': ['json'],
-    'image/vnd.microsoft.icon': ['ico'],
-    'image/png': ['png'],
-    'image/svg+xml': ['svg'],
-    'text/css': ['css'],
-    'text/html': ['html'],
+const mimeTypes = {
+    js: 'application/javascript',
+    json: 'application/json',
+    ico: 'image/vnd.microsoft.icon',
+    png: 'image/png',
+    svg: 'image/svg+xml',
+    css: 'text/css',
+    html: 'text/html',
+    text: 'text/plain',
+};
+
+const app = http.createServer(async (req, res) => {
+    try {
+        const method = req.method;
+        const url = req.url.replace(/[?#].*$/, '');
+        let pathname = url;
+        if (pathname.endsWith('/')) {
+            pathname += 'index.html';
+        }
+        const filePath = path.join(staticDir, pathname);
+        const pathTraversal = !filePath.startsWith(staticDir);
+        const exists =
+            !pathTraversal &&
+            (await fs.promises.access(filePath).then(
+                () => true,
+                () => false
+            ));
+        if (exists) {
+            const ext = path.extname(pathname).substring(1).toLowerCase();
+            const mimeType = mimeTypes[ext] || mimeTypes.text;
+            const stream = fs.createReadStream(filePath);
+            res.writeHead(200, {'Content-Type': mimeType});
+            stream.pipe(res);
+            console.info(`${method} ${url} OK`);
+        } else {
+            console.warn(`${method} ${url} NOT FOUND`);
+            res.writeHead(404, {'Content-Type': mimeTypes.text});
+            res.end('Not found');
+        }
+    } catch (err) {
+        console.error(`${method} ${url} ERROR`);
+        console.error(err);
+        res.writeHead(500, {'Content-Type': mimeTypes.text});
+        res.end('Internal server error');
+    }
 });
-
-app.get('/', (_, res) => res.sendFile(webIndex));
-app.use('/apple-touch-icon.png', express.static(resolve(wwwDir, './apple-touch-icon.png')));
-app.use('/favicon.ico', express.static(resolve(wwwDir, './favicon.ico')));
-app.use('/favicon.svg', express.static(resolve(wwwDir, './favicon.svg')));
-app.use('/icon-192.png', express.static(resolve(wwwDir, './icon-192.png')));
-app.use('/icon-512.png', express.static(resolve(wwwDir, './icon-512.png')));
-app.use('/manifest.json', express.static(resolve(wwwDir, './manifest.json')));
-app.use('/auth', express.static(resolve(wwwDir, './auth')));
-app.get('/:version/:id.css', async (req, res) =>
-    res.sendFile(resolve(wwwDir, `./${req.params.version}/${req.params.id}.css`))
-);
-app.get('/:version/:id.js', async (req, res) =>
-    res.sendFile(resolve(wwwDir, `./${req.params.version}/${req.params.id}.js`))
-);
-app.get('/:version/lib/:id.js', async (req, res) =>
-    res.sendFile(resolve(wwwDir, `./${req.params.version}/lib/${req.params.id}.js`))
-);
-app.get('*', (_, res) => res.redirect('/'));
 
 let server = null;
 
@@ -113,7 +129,7 @@ async function getFreePort(port = defaultPort, endPort = port + 20) {
 
 async function checkPort(port) {
     return new Promise((resolve, reject) => {
-        const server = createServer();
+        const server = net.createServer();
         server.unref();
         server.on('error', reject);
         server.listen({host, port}, () => {
@@ -123,6 +139,9 @@ async function checkPort(port) {
 }
 
 module.exports = {
+    get port() {
+        return server?.address().port || 0;
+    },
     start,
     stop,
 };

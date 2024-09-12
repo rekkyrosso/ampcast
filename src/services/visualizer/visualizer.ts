@@ -13,7 +13,6 @@ import {
     take,
     tap,
 } from 'rxjs';
-import isElectron from 'is-electron';
 import MediaServiceId from 'types/MediaServiceId';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
@@ -21,7 +20,7 @@ import Visualizer, {NoVisualizer} from 'types/Visualizer';
 import VisualizerProviderId from 'types/VisualizerProviderId';
 import audio from 'services/audio';
 import playback, {observeCurrentItem} from 'services/mediaPlayback/playback';
-import {exists, getRandomValue, isMiniPlayer, Logger} from 'utils';
+import {browser, exists, getRandomValue, isMiniPlayer, Logger} from 'utils';
 import {
     getVisualizerProvider,
     loadVisualizers,
@@ -147,7 +146,7 @@ function getNextVisualizer(reason: NextVisualizerReason): Visualizer {
         return noVisualizer;
     }
 
-    const isDev = location.hostname === 'localhost' && !isElectron;
+    const isDev = location.hostname === 'localhost' && !browser.isElectron;
     const settings = visualizerSettings;
     const [serviceId]: [MediaServiceId] = item.src.split(':') as [MediaServiceId];
     const ambientVideoSupported = !/^(spotify)$/.test(serviceId) || isDev;

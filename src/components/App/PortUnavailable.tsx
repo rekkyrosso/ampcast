@@ -1,6 +1,5 @@
-import React, {useCallback, useId, useRef} from 'react';
+import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import ampcastElectron from 'services/ampcastElectron';
-import electronSettings from 'services/electronSettings';
 import AppTitle from './AppTitle';
 import './PortUnavailable.scss';
 
@@ -11,15 +10,16 @@ export interface PortUnavailableProps {
 export default function PortUnavailable({onDismiss}: PortUnavailableProps) {
     const id = useId();
     const ref = useRef<HTMLFormElement>(null);
-    const port = electronSettings.port;
+    const [preferredPort, setPreferredPort] = useState(0);
 
-    const handleSubmit = useCallback(() => {
+    const handleSubmit = useCallback(async (event: React.FormEvent) => {
+        event.preventDefault();
+        
         const decision = ampcastElectron ? ref.current![id]?.value : 'dismiss';
 
         switch (decision) {
             case 'switch':
-                electronSettings.port = location.port;
-                ampcastElectron!.setPort(Number(location.port));
+                await ampcastElectron!.setPreferredPort(Number(location.port));
                 break;
 
             case 'quit':
@@ -31,11 +31,25 @@ export default function PortUnavailable({onDismiss}: PortUnavailableProps) {
         }
     }, [onDismiss, id]);
 
+    useEffect(() => {
+        ampcastElectron?.getPreferredPort().then(setPreferredPort)
+    }, []);
+
+    useEffect(() => {
+        if (location.port === String(preferredPort)) {
+            onDismiss();
+        }
+    }, [preferredPort, onDismiss]);
+
+    if (!preferredPort || location.port === String(preferredPort)) {
+        return null;
+    }
+
     return (
         <form className="port-unavailable" onSubmit={handleSubmit} ref={ref}>
             <AppTitle />
             <h2>
-                <span className="error">Port unavailable:</span> {port}
+                <span className="error">Port unavailable:</span> {preferredPort}
             </h2>
             <p>
                 The port this application uses is currently unavailable. <br />

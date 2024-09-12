@@ -1,6 +1,5 @@
 import React, {useCallback, useState} from 'react';
 import {browser, LiteStorage} from 'utils';
-import electronSettings from 'services/electronSettings';
 import SvgDefs from 'components/Icon/SvgDefs';
 import AppContent from './AppContent';
 import DesktopWarning from './DesktopWarning';
@@ -13,7 +12,7 @@ export default function App() {
         () => browser.desktop || settings.getBoolean('dismissed')
     );
     const [portUnavailableDismissed, setPortUnavailableDismissed] = useState(
-        () => !browser.isElectron || electronSettings.port === location.port
+        () => !browser.isElectron
     );
 
     const dismissDesktopWarning = useCallback(() => {

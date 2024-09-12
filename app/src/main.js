@@ -122,14 +122,17 @@ function createBridge() {
         mainWindow.setTitleBarOverlay({height});
     });
 
-    // Switch port
-    ipcMain.handle('setPort', async (_, newPort) => {
+    // Preferred port.
+    ipcMain.handle('getPreferredPort', () => {
+        return store.port;
+    });
+    ipcMain.handle('setPreferredPort', async (_, newPort) => {
         parsedPort = parseInt(newPort, 10);
         if (parsedPort) {
             store.port = parsedPort; // possibly confirmation of change of port from the ui
-            if (port !== parsedPort) {
+            if (server.port !== parsedPort) {
                 await server.stop();
-                port = await server.start();
+                const port = await server.start();
                 url = `http://localhost:${port}/`;
                 mainWindow.loadURL(url);
             }
@@ -138,7 +141,7 @@ function createBridge() {
         }
     });
 
-    // Credentials
+    // Credentials.
     const credentials = new Store({
         name: 'ampcast-credentials',
     });

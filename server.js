@@ -1,44 +1,59 @@
-const {resolve} = require('path');
-const express = require('express');
+const path = require('path');
+const fs = require('fs');
+const http = require('http');
 const argv = require('minimist')(process.argv.slice(2));
 const {host = 'localhost', port = 8000} = argv;
-const app = express();
-const wwwDir = resolve(__dirname, './app/www');
-const devDir = resolve(__dirname, './www-dev');
+const wwwDir = path.resolve(__dirname, './app/www');
+const devDir = path.resolve(__dirname, './www-dev');
 const runtimeDir = argv.dev ? devDir : wwwDir;
-const webIndex = resolve(runtimeDir, './index.html');
 
-express.static.mime.define({
-    'application/javascript': ['js'],
-    'application/json': ['json'],
-    'image/vnd.microsoft.icon': ['ico'],
-    'image/png': ['png'],
-    'image/svg+xml': ['svg'],
-    'text/css': ['css'],
-    'text/html': ['html'],
+const mimeTypes = {
+    js: 'application/javascript',
+    json: 'application/json',
+    ico: 'image/vnd.microsoft.icon',
+    png: 'image/png',
+    svg: 'image/svg+xml',
+    css: 'text/css',
+    html: 'text/html',
+    text: 'text/plain',
+};
+
+const server = http.createServer(async (req, res) => {
+    try {
+        let pathname = req.url.replace(/[?#].*$/, '');
+        const staticDir = pathname === '/' || /\.(css|js)$/.test(pathname) ? runtimeDir : wwwDir;
+        if (pathname.endsWith('/')) {
+            pathname += 'index.html';
+        }
+        const filePath = path.join(staticDir, pathname);
+        const pathTraversal = !filePath.startsWith(staticDir);
+        const exists =
+            !pathTraversal &&
+            (await fs.promises.access(filePath).then(
+                () => true,
+                () => false
+            ));
+        if (exists) {
+            const ext = path.extname(pathname).substring(1).toLowerCase();
+            const mimeType = mimeTypes[ext] || mimeTypes.text;
+            const stream = fs.createReadStream(filePath);
+            res.writeHead(200, {'Content-Type': mimeType});
+            stream.pipe(res);
+            // console.info(`${req.method} ${req.url} OK`);
+        } else {
+            console.warn(`${req.method} ${req.url} NOT FOUND`);
+            res.writeHead(404, {'Content-Type': mimeTypes.text});
+            res.end('Not found');
+        }
+    } catch (err) {
+        console.error(`${req.method} ${req.url} ERROR`);
+        console.error(err);
+        res.writeHead(500, {'Content-Type': mimeTypes.text});
+        res.end('Internal server error');
+    }
 });
 
-app.get('/', (_, res) => res.sendFile(webIndex));
-app.get('/privacy-policy.html', (_, res) => res.sendFile(resolve(wwwDir, './privacy-policy.html')));
-app.use('/apple-touch-icon.png', express.static(resolve(wwwDir, './apple-touch-icon.png')));
-app.use('/favicon.ico', express.static(resolve(wwwDir, './favicon.ico')));
-app.use('/favicon.svg', express.static(resolve(wwwDir, './favicon.svg')));
-app.use('/icon-192.png', express.static(resolve(wwwDir, './icon-192.png')));
-app.use('/icon-512.png', express.static(resolve(wwwDir, './icon-512.png')));
-app.use('/manifest.json', express.static(resolve(wwwDir, './manifest.json')));
-app.use('/auth', express.static(resolve(wwwDir, './auth')));
-app.get('/:version/:id.css', async (req, res) =>
-    res.sendFile(resolve(runtimeDir, `./${req.params.version}/${req.params.id}.css`))
-);
-app.get('/:version/:id.js', async (req, res) =>
-    res.sendFile(resolve(runtimeDir, `./${req.params.version}/${req.params.id}.js`))
-);
-app.get('/:version/lib/:id.js', async (req, res) =>
-    res.sendFile(resolve(runtimeDir, `./${req.params.version}/lib/${req.params.id}.js`))
-);
-app.get('*', (_, res) => res.redirect('/'));
-
-app.listen(port, host, () => {
+server.listen(port, host, () => {
     const timestamp = new Date().toLocaleString();
     console.info(`Serving from: http://${host}:${port}`);
     console.info(`Using files from: ${runtimeDir}`);

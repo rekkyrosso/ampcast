@@ -244,7 +244,7 @@ async function checkConnection(): Promise<void> {
     const getChartsCategoryId = async () => {
         try {
             if (!spotifySettings.chartsCategoryId) {
-                const {categories} = await spotifyApi.getCategories({limit: 50, locale: 'sv_SE'});
+                const {categories} = await spotifyApi.getCategories({limit: 50, locale: 'en_US'});
                 const chartsCategory = categories.items.find(
                     (category) => category.name === 'Charts'
                 );

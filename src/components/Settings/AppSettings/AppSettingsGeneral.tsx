@@ -1,7 +1,6 @@
 import React, {useCallback, useId, useRef} from 'react';
 import {downloadUrl, supportUrl} from 'services/constants';
 import ampcastElectron from 'services/ampcastElectron';
-import electronSettings from 'services/electronSettings';
 import {confirm} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import ExternalLink from 'components/ExternalLink';
@@ -12,8 +11,8 @@ export default function AppSettingsGeneral() {
 
     const handleSubmit = useCallback(async () => {
         if (ampcastElectron) {
-            const port = portRef.current!.value;
-            if (port !== location.port) {
+            const port = portRef.current!.valueAsNumber;
+            if (String(port) !== location.port) {
                 const confirmed = await confirm({
                     title: 'Change Port',
                     message: (
@@ -29,8 +28,7 @@ export default function AppSettingsGeneral() {
                 });
 
                 if (confirmed) {
-                    electronSettings.port = port;
-                    ampcastElectron.setPort(Number(port));
+                    await ampcastElectron.setPreferredPort(port);
                 }
             }
         }
