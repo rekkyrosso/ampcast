@@ -1,10 +1,10 @@
-import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged} from 'rxjs';
-import {nanoid} from 'nanoid';
+import type { Observable } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged } from 'rxjs';
+import { nanoid } from 'nanoid';
 import MediaServiceId from 'types/MediaServiceId';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaLibrarySettings from 'types/PersonalMediaLibrarySettings';
-import {LiteStorage, stringContainsMusic} from 'utils';
+import { LiteStorage, stringContainsMusic } from 'utils';
 
 export class EmbySettings implements PersonalMediaLibrarySettings {
     private readonly serviceId: MediaServiceId;
@@ -43,7 +43,13 @@ export class EmbySettings implements PersonalMediaLibrarySettings {
     }
 
     set host(host: string) {
-        this.storage.setString('host', host);
+        // Validate and store the host, assuming it's either a domain or an IP with an optional port
+        const urlPattern = /^(https?:\/\/)?(([a-zA-Z0-9-]+\.)+[a-zA-Z]{2,}|((\d{1,3}\.){3}\d{1,3}))(:\d+)?(\/.*)?$/;
+        if (urlPattern.test(host)) {
+            this.storage.setString('host', host);
+        } else {
+            throw new Error('Invalid host format');
+        }
     }
 
     get isLocal(): boolean {
