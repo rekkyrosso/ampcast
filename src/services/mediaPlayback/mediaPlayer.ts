@@ -7,6 +7,7 @@ import audio from 'services/audio';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
 import musicKitPlayer from 'services/apple/musicKitPlayer';
 import spotifyPlayer from 'services/spotify/spotifyPlayer';
+import tidalPlayer from 'services/tidal/tidalPlayer';
 import HLSPlayer from './players/HLSPlayer';
 import HTML5Player from './players/HTML5Player';
 import ShakaPlayer from './players/ShakaPlayer';
@@ -27,6 +28,8 @@ function selectPlayer(item: PlaylistItem | null): Player<PlayableItem> | null {
             return musicKitPlayer;
         } else if (item.src.startsWith('spotify:')) {
             return spotifyPlayer;
+        } else if (item.src.startsWith('tidal:')) {
+            return tidalPlayer;
         } else {
             const isVideo = item.mediaType === MediaType.Video;
             switch (item.playbackType) {
@@ -78,6 +81,7 @@ mediaPlayer.registerPlayers([
     youtubePlayer,
     musicKitPlayer,
     spotifyPlayer,
+    tidalPlayer,
 ]);
 
 export default mediaPlayer;

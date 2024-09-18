@@ -7,9 +7,11 @@ declare const __am_dev_token__: string;
 declare const __lf_api_key__: string;
 declare const __lf_api_secret__: string;
 declare const __sp_client_id__: string;
+declare const __td_client_id__: string;
 declare const __yt_client_id__: string;
 
 declare const __spotify_disabled__: boolean;
+declare const __tidal_disabled__: boolean;
 declare const __youtube_disabled__: boolean;
 declare const __single_streaming_service__: boolean;
 
@@ -38,6 +40,8 @@ declare module 'shaka-player/dist/shaka-player.compiled' {
     export = shaka;
 }
 
+declare type TidalMusicPlayer = typeof import('@tidal-music/player');
+
 declare module 'jsfft' {
     interface ComplexArray {
         real: Float32Array;
@@ -51,3 +55,5 @@ declare module 'jsfft' {
 type HTMLInputElements = {
     [Symbol.iterator](): Iterator<HTMLInputElement>;
 };
+
+type Subtract<T, V> = Pick<T, Exclude<keyof T, keyof V>>;

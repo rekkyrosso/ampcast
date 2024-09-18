@@ -1,7 +1,6 @@
 import DRMKeySystem from 'types/DRMKeySystem';
 import DRMType from 'types/DRMType';
 import MediaItem from 'types/MediaItem';
-import Subtract from 'types/Subtract';
 import UserData from 'types/UserData';
 import browser from './browser';
 

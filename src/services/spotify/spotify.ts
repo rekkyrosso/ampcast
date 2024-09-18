@@ -20,7 +20,7 @@ import actionsStore from 'services/actions/actionsStore';
 import {NoSpotifyChartsError} from 'services/errors';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
-import {browser, chunk, partition} from 'utils';
+import {browser, chunk, exists, partition} from 'utils';
 import {
     observeIsLoggedIn,
     isConnected,
@@ -85,9 +85,9 @@ const spotifyRecentlyPlayed: MediaSource<MediaItem> = {
             }
             const {items, total, cursors} = await spotifyApi.getMyRecentlyPlayedTracks(options);
             return {
-                items: items.map(
-                    (item) => ({played_at: item.played_at, ...item.track} as SpotifyTrack)
-                ),
+                items: items
+                    .filter(exists)
+                    .map((item) => ({played_at: item.played_at, ...item.track} as SpotifyTrack)),
                 total,
                 next: cursors?.before,
             };
@@ -140,7 +140,7 @@ const spotifyLikedSongs: MediaSource<MediaItem> = {
                     limit,
                     market,
                 });
-                return {items: items.map((item) => item.track), total, next};
+                return {items: items.filter(exists).map((item) => item.track), total, next};
             },
             undefined,
             true
@@ -164,7 +164,7 @@ const spotifyLikedAlbums: MediaSource<MediaAlbum> = {
                     limit,
                     market,
                 });
-                return {items: items.map((item) => item.album), total, next};
+                return {items: items.filter(exists).map((item) => item.album), total, next};
             },
             {pageSize: 20},
             true
@@ -243,7 +243,7 @@ const spotifyEditablePlaylists: MediaSource<MediaPlaylist> = {
                 });
                 const [editable, nonEditable] = partition(
                     items,
-                    (item) => item.owner.id === userId
+                    (item) => item?.owner.id === userId
                 );
                 nonEditableTotal += nonEditable.length;
                 return {
@@ -358,7 +358,9 @@ const spotifyCharts: MediaSource<MediaPlaylist> = {
                 market,
             });
             return {
-                items: items.map((item) => ({...item, isChart: true} as SpotifyPlaylist)),
+                items: items
+                    .filter(exists)
+                    .map((item) => ({...item, isChart: true} as SpotifyPlaylist)),
                 total,
                 next,
             };

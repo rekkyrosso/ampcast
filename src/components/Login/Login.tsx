@@ -5,6 +5,7 @@ import LastFmLogin from 'services/lastfm/components/LastFmLogin';
 import PlexLogin from 'services/plex/components/PlexLogin';
 import PlexTidalLogin from 'services/plex/components/PlexTidalLogin';
 import SpotifyLogin from 'services/spotify/components/SpotifyLogin';
+import TidalLogin from 'services/tidal/components/TidalLogin';
 import YouTubeLogin from 'services/youtube/components/YouTubeLogin';
 import DefaultLogin from './DefaultLogin';
 import './Login.scss';
@@ -39,6 +40,9 @@ function ServiceLogin({service}: LoginProps) {
 
         case 'spotify':
             return <SpotifyLogin service={service} />;
+
+        case 'tidal':
+            return <TidalLogin service={service} />;
 
         case 'youtube':
             return <YouTubeLogin service={service} />;

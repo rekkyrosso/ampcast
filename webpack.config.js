@@ -17,6 +17,8 @@ module.exports = (args) => {
     return {
         mode,
         entry: {
+            'lib/music-metadata': 'music-metadata',
+            'lib/tidal-player': '@tidal-music/player',
             'lib/unidecode': 'unidecode',
             'lib/vendors': [
                 'colorjs.io',
@@ -60,13 +62,26 @@ module.exports = (args) => {
         },
         optimization: {
             runtimeChunk: 'single',
-            // Concatenate CSS output into one file.
-            // The order is dependent on the order of the JS imports above.
             splitChunks: {
                 cacheGroups: {
+                    // Concatenate CSS output into one file.
+                    // The order is dependent on the order of the JS imports above.
                     styles: {
                         name: 'styles',
                         type: 'css/mini-extract',
+                        chunks: 'all',
+                        enforce: true,
+                    },
+                    // Prevent imported libraries from splitting.
+                    'lib/music-metadata': {
+                        name: 'lib/music-metadata',
+                        test: /[\\/]node_modules[\\/](music\-metadata)[\\/]/,
+                        chunks: 'all',
+                        enforce: true,
+                    },
+                    'lib/tidal-player': {
+                        name: 'lib/tidal-player',
+                        test: /[\\/]node_modules[\\/](@tidal\-music[\\/]player)[\\/]/,
                         chunks: 'all',
                         enforce: true,
                     },
@@ -117,8 +132,10 @@ module.exports = (args) => {
                 __lf_api_key__: JSON.stringify(env.LF_API_KEY || ''),
                 __lf_api_secret__: JSON.stringify(env.LF_API_SECRET || ''),
                 __sp_client_id__: JSON.stringify(env.SP_CLIENT_ID || ''),
+                __td_client_id__: JSON.stringify(env.TD_CLIENT_ID || ''),
                 __yt_client_id__: JSON.stringify(env.YT_CLIENT_ID || ''),
                 __spotify_disabled__: env.SPOTIFY_DISABLED === 'true',
+                __tidal_disabled__: true, // env.TIDAL_DISABLED === 'true',
                 __youtube_disabled__: env.YOUTUBE_DISABLED === 'true',
                 __single_streaming_service__: env.SINGLE_STREAMING_SERVICE === 'true',
             }),

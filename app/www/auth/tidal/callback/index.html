@@ -1,0 +1,26 @@
+<!doctype html>
+<html lang="en">
+<meta charset="utf-8">
+<title>Ampcast Redirect</title>
+<link rel="icon" sizes="any" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAyNCAyNCI+DQo8Y2lyY2xlIGN4PSIxMiIgY3k9IjEyIiByPSI4IiBzdHJva2Utd2lkdGg9IjQiIHN0cm9rZT0ib3JhbmdlIiBmaWxsPSJibGFjayIvPg0KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMiIgc3Ryb2tlLXdpZHRoPSJub25lIiBmaWxsPSJ3aGl0ZSIvPg0KPC9zdmc+">
+<style>
+    body {
+        font-family: helvetica, arial, sans-serif;
+        background: linear-gradient(215deg, #171d26 15%, #000 85%) no-repeat 50% fixed;
+        color: white;
+    }
+</style>
+<h1>Redirecting....</h1>
+<script>
+const key = 'ampcast/tidal/auth/callback';
+const params = new URLSearchParams(location.search);
+const state = params.get('state');
+const code = params.get('code');
+const callbackStatus = localStorage.getItem(`${key}/${state}`);
+if (callbackStatus === '(pending)') {
+    localStorage.setItem(`${key}/${state}`, code);
+    close();
+} else {
+    document.querySelector('h1').textContent = 'Expired';
+}
+</script>

@@ -82,7 +82,9 @@ export default function AmbientVideoSettings({
                         onChange={handleSourceChange}
                         ref={useAmbientVideoSourceRef}
                     />
-                    <label htmlFor={`${id}-source-youtube`}>YouTube video or playlist:</label>
+                    <label id={`${id}-source-youtube-label`} htmlFor={`${id}-source-youtube`}>
+                        YouTube video or playlist:
+                    </label>
                 </p>
                 <p>
                     <input

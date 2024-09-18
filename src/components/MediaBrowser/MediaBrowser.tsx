@@ -26,15 +26,15 @@ export default function MediaBrowser<T extends MediaObject>({
 
     return (
         <div className={`media-browser ${service.id}-browser`}>
-            <ErrorBoundary fallbackRender={renderError}>
-                {service.internetRequired && !isOnLine ? (
-                    <NoInternetError />
-                ) : isLoggedIn ? (
+            {service.internetRequired && !isOnLine ? (
+                <NoInternetError />
+            ) : isLoggedIn ? (
+                <ErrorBoundary fallbackRender={renderError}>
                     <Router service={service} sources={sources} />
-                ) : (
-                    <Login service={service} />
-                )}
-            </ErrorBoundary>
+                </ErrorBoundary>
+            ) : (
+                <Login service={service} />
+            )}
         </div>
     );
 }

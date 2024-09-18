@@ -96,7 +96,7 @@ export default function CoverArt({item, size, className = '', onLoad, onError}: 
     );
 }
 
-async function lookupThumbnails(item: MediaObject): Promise<Thumbnail[] | undefined> {
+async function lookupThumbnails(item: MediaObject): Promise<readonly Thumbnail[] | undefined> {
     if (item.itemType === ItemType.Media) {
         const externalUrl = item.link?.externalUrl;
         if (externalUrl) {
@@ -115,7 +115,7 @@ async function lookupThumbnails(item: MediaObject): Promise<Thumbnail[] | undefi
     return getCoverArtThumbnails(item);
 }
 
-function findBestThumbnail(thumbnails: Thumbnail[], size = 240): Thumbnail {
+function findBestThumbnail(thumbnails: readonly Thumbnail[], size = 240): Thumbnail {
     if (thumbnails.length === 1) {
         return thumbnails[0];
     }
@@ -123,7 +123,7 @@ function findBestThumbnail(thumbnails: Thumbnail[], size = 240): Thumbnail {
     if (matches.length === 0) {
         matches = thumbnails.filter((thumbnail) => getAspectRatio(thumbnail) < 1.5);
         if (matches.length === 0) {
-            matches = thumbnails;
+            matches = thumbnails.slice();
         }
     }
     size *= window.devicePixelRatio || 1;

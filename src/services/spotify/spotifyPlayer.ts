@@ -33,7 +33,7 @@ interface LoadError {
     readonly error: unknown;
 }
 
-const logger = new Logger('SpotifyPlayer');
+const logger = new Logger('spotifyPlayer');
 
 const spotifyApi = 'https://api.spotify.com/v1';
 const spotifyPlayerSdk = 'https://sdk.scdn.co/spotify-player.js';

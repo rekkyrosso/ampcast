@@ -16,3 +16,9 @@ export function formatTime(seconds: number): string {
         .slice(11, 19) // time portion of: YYYY-MM-DDTHH:mm:ss.sssZ
         .replace(/^[0:]+(.{4,})$/, '$1'); // remove leading zeroes
 }
+
+export function parseISO8601(value: string): number {
+    const pattern = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/;
+    const [, hours = 0, minutes = 0, seconds = 0] = pattern.exec(value) || [];
+    return Number(hours) * 60 * 60 + Number(minutes) * 60 + Number(seconds) || 0;
+}

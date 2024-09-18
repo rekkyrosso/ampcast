@@ -10,6 +10,7 @@ export default function ExternalLink({
     href,
     className = '',
     icon,
+    rel = 'noopener',
     children = trimUrl(href),
     ...props
 }: ExternalLinkProps) {
@@ -20,7 +21,7 @@ export default function ExternalLink({
             className={`external-link ${className}`}
             href={href}
             target="_blank"
-            rel="noopener"
+            rel={rel}
         >
             <span className="external-link-content">
                 {icon ? <Icon name={icon} /> : null}

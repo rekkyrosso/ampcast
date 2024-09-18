@@ -71,9 +71,9 @@ class Audio implements AudioManager {
 
     private getAudioElement(item: PlaylistItem): HTMLAudioElement | null {
         if (this.canUseWebAudio(item)) {
-            const id = this.getAudioElementId(item);
-            if (id) {
-                return document.querySelector<HTMLAudioElement>(`audio#${id}`);
+            const selector = this.getAudioElementSelector(item);
+            if (selector) {
+                return document.querySelector<HTMLAudioElement>(selector);
             }
         }
         return null;
@@ -87,19 +87,21 @@ class Audio implements AudioManager {
         );
     }
 
-    private getAudioElementId(item: PlaylistItem): string {
+    private getAudioElementSelector(item: PlaylistItem): string {
         if (item.src.startsWith('apple:')) {
-            return 'apple-music-player';
+            return 'audio#apple-music-player';
+        } else if (item.src.startsWith('tidal:')) {
+            return '#tidal-player-root #video-one';
         } else {
             switch (item.playbackType) {
                 case PlaybackType.DASH:
-                    return 'ampcast-audio-dash';
+                    return '#ampcast-audio-dash';
 
                 case PlaybackType.HLS:
-                    return 'ampcast-audio-hls';
+                    return '#ampcast-audio-hls';
 
                 default:
-                    return 'ampcast-audio-main';
+                    return '#ampcast-audio-main';
             }
         }
     }

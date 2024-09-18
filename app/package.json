@@ -1,7 +1,7 @@
 {
     "name": "ampcast-app",
     "productName": "ampcast",
-    "version": "0.9.8",
+    "version": "0.9.9",
     "description": "Ampcast music player",
     "homepage": "https://ampcast.app",
     "author": {

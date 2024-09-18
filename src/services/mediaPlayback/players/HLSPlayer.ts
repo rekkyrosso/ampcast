@@ -42,7 +42,7 @@ export default class HLSPlayer extends HTML5Player {
 
     load(item: PlayableItem): void {
         if (!this.hasNativeSupport) {
-            this.loadScript();
+            this.loadPlayer();
         }
         super.load(item);
     }
@@ -54,7 +54,7 @@ export default class HLSPlayer extends HTML5Player {
         if (this.player) {
             return;
         }
-        const Hls = await this.loadScript();
+        const Hls = await this.loadPlayer();
         if (!Hls.isSupported()) {
             throw Error('HLS player not supported');
         }
@@ -107,7 +107,12 @@ export default class HLSPlayer extends HTML5Player {
         }
     }
 
-    private async loadScript(): Promise<typeof Hls> {
+    protected safeStop(): void {
+        this.element.pause();
+        this.element.currentTime = 0;
+    }
+
+    private async loadPlayer(): Promise<typeof Hls> {
         if (this.Hls) {
             return this.Hls;
         }
@@ -118,10 +123,5 @@ export default class HLSPlayer extends HTML5Player {
         );
         this.Hls = Hls;
         return Hls;
-    }
-
-    protected safeStop(): void {
-        this.element.pause();
-        this.element.currentTime = 0;
     }
 }

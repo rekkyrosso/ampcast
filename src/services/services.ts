@@ -10,11 +10,13 @@ import plex from 'services/plex';
 import plexTidal from 'services/plex/tidal';
 import spotify from 'services/spotify';
 import subsonic from 'services/subsonic';
+import tidal from 'services/tidal';
 import youtube from 'services/youtube';
 
 const services: readonly MediaService[] = [
     apple,
     spotify,
+    tidal,
     airsonic,
     emby,
     jellyfin,

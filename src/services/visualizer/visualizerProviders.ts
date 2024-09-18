@@ -1,7 +1,7 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, map, mergeMap, skipWhile, switchMap, tap} from 'rxjs';
 import VisualizerProvider from 'types/VisualizerProvider';
-import {Logger, loadScript} from 'utils';
+import {loadLibrary, Logger} from 'utils';
 import visualizerSettings from './visualizerSettings';
 
 const logger = new Logger('visualizerProviders');
@@ -28,7 +28,7 @@ export function getVisualizerProvider(providerId: string): VisualizerProvider | 
 
 export async function loadVisualizers(): Promise<readonly VisualizerProvider[]> {
     if (getVisualizerProviders().length === 0) {
-        await loadScript(`/v${__app_version__}/lib/visualizers.js`);
+        await loadLibrary('visualizers');
         const {default: visualizers} = await import(
             /* webpackMode: "weak" */
             './visualizers'

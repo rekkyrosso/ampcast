@@ -43,7 +43,7 @@ export default class ShakaPlayer extends HTML5Player {
 
     load(item: PlayableItem): void {
         if (!this.hasNativeSupport) {
-            this.loadScript();
+            this.loadPlayer();
         }
         super.load(item);
     }
@@ -55,7 +55,7 @@ export default class ShakaPlayer extends HTML5Player {
         if (this.player) {
             return;
         }
-        const shaka = await this.loadScript();
+        const shaka = await this.loadPlayer();
         if (!shaka.Player.isBrowserSupported()) {
             throw Error('Shaka player not supported');
         }
@@ -158,7 +158,7 @@ export default class ShakaPlayer extends HTML5Player {
         };
     }
 
-    private async loadScript(): Promise<typeof shaka> {
+    private async loadPlayer(): Promise<typeof shaka> {
         if (this.shaka) {
             return this.shaka;
         }

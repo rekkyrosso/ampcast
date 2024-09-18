@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
 import {
     BehaviorSubject,
+    distinctUntilChanged,
     filter,
     firstValueFrom,
     map,
@@ -19,7 +20,7 @@ import MediaService from 'types/MediaService';
 import PersonalMediaService from 'types/PersonalMediaService';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
-import {Logger, loadScript} from 'utils';
+import {loadLibrary, Logger} from 'utils';
 
 const logger = new Logger('mediaServices');
 
@@ -35,10 +36,18 @@ export function observeEnabledServices(): Observable<readonly MediaService[]> {
     );
 }
 
+export function observeIsLoggedIn(service: MediaService | string): Observable<boolean> {
+    const id = typeof service === 'string' ? service : service.id;
+    return observeMediaServices().pipe(
+        map((services) => services.find((service) => service.id === id)),
+        switchMap((service) => (service ? service.observeIsLoggedIn() : of(false))),
+        distinctUntilChanged()
+    );
+}
+
 export async function loadServices(): Promise<readonly MediaService[]> {
     if (getServices().length === 0) {
-        logger.log('loadServices');
-        await loadScript(`/v${__app_version__}/lib/services.js`);
+        await loadLibrary('services');
         const {default: services} = await import(
             /* webpackMode: "weak" */
             './services'
@@ -123,7 +132,9 @@ export function isPlayableSrc(src: string): boolean {
     if (src) {
         const [serviceId] = String(src).split(':');
         const service = getService(serviceId);
-        return service ? service.serviceType !== ServiceType.DataService : serviceId !== 'musicbrainz';
+        return service
+            ? service.serviceType !== ServiceType.DataService
+            : serviceId !== 'musicbrainz';
     } else {
         return false;
     }

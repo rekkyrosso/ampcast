@@ -7,6 +7,7 @@ import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
+import {parseISO8601} from 'utils';
 import SequentialPager from 'services/pagers/SequentialPager';
 import pinStore from 'services/pins/pinStore';
 import youtube from './youtube';
@@ -130,7 +131,7 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
             src: `youtube:video:${video.id}`,
             externalUrl: youtubeApi.getVideoUrl(video.id!),
             title: video.snippet?.title || video.id!,
-            duration: this.parseDuration(video.contentDetails?.duration),
+            duration: parseISO8601(video.contentDetails?.duration || ''),
             thumbnails: this.mapThumbnails(video.snippet?.thumbnails),
             owner: this.createOwner(video.snippet!),
             globalRating: this.parseNumber(video.statistics?.likeCount),
@@ -171,12 +172,6 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
                     thumbnails[sizeName as keyof gapi.client.youtube.ThumbnailDetails] as Thumbnail
             );
         }
-    }
-
-    private parseDuration(duration = ''): number {
-        const pattern = /PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?/;
-        const [, hours = 0, minutes = 0, seconds = 0] = pattern.exec(duration) || [];
-        return Number(hours) * 60 * 60 + Number(minutes) * 60 + Number(seconds) || 0;
     }
 
     private async fetchPage(path: string, params: Record<string, string>): Promise<Page<T>> {

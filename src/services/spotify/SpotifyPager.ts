@@ -63,7 +63,9 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                     this.pageNumber++;
                     cursor = next || '';
                     return {
-                        items: items.map((item) => this.createMediaObject(item, inLibrary)),
+                        items: items
+                            .filter(exists)
+                            .map((item) => this.createMediaObject(item, inLibrary)),
                         total,
                         atEnd: !next,
                     };

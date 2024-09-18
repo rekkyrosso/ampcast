@@ -6,7 +6,6 @@ import {
     catchError,
     distinctUntilChanged,
     filter,
-    map,
     mergeMap,
     of,
     skipWhile,
@@ -17,7 +16,7 @@ import {
 import PlayableItem from 'types/PlayableItem';
 import Player from 'types/Player';
 import audio from 'services/audio';
-import {observeMediaServices, waitForLogin} from 'services/mediaServices';
+import {observeIsLoggedIn, waitForLogin} from 'services/mediaServices';
 import {Logger} from 'utils';
 
 const logger = new Logger('MusicKitPlayer');
@@ -70,8 +69,8 @@ export class MusicKitPlayer implements Player<PlayableItem> {
             .subscribe(logger);
 
         // Stop and emit an error on logout.
-        // The media player will only emit the error if MusicKit is the current player.
-        this.observeIsLoggedIn()
+        // The media player will only emit the error if this player is the current player.
+        observeIsLoggedIn('apple')
             .pipe(
                 skipWhile((isLoggedIn) => !isLoggedIn),
                 filter((isLoggedIn) => !isLoggedIn),
@@ -190,14 +189,6 @@ export class MusicKitPlayer implements Player<PlayableItem> {
 
     private get src(): string | undefined {
         return this.item?.src;
-    }
-
-    private observeIsLoggedIn(): Observable<boolean> {
-        return observeMediaServices().pipe(
-            map((services) => services.find((service) => service.id === 'apple')),
-            switchMap((service) => (service ? service.observeIsLoggedIn() : of(false))),
-            distinctUntilChanged()
-        );
     }
 
     private observeItem(): Observable<PlayableItem | null> {

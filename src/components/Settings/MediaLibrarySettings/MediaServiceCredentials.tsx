@@ -3,6 +3,7 @@ import MediaService from 'types/MediaService';
 import AppleCredentials from 'services/apple/components/AppleCredentials';
 import LastFmCredentials from 'services/lastfm/components/LastFmCredentials';
 import SpotifyCredentials from 'services/spotify/components/SpotifyCredentials';
+import TidalCredentials from 'services/tidal/components/TidalCredentials';
 import YouTubeCredentials from 'services/youtube/components/YouTubeCredentials';
 import './MediaServiceCredentials.scss';
 
@@ -29,6 +30,9 @@ function Credentials({service}: MediaServiceCredentialsProps) {
 
             case 'spotify':
                 return <SpotifyCredentials service={service} />;
+
+            case 'tidal':
+                return <TidalCredentials service={service} />;
 
             case 'youtube':
                 return <YouTubeCredentials service={service} />;

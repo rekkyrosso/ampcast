@@ -4,7 +4,7 @@ import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
-import {Logger} from 'utils';
+import {loadLibrary, Logger} from 'utils';
 
 const logger = new Logger('music-metadata');
 
@@ -25,9 +25,9 @@ const noMetadata: IAudioMetadata = {
 };
 
 export async function createMediaItemFromFile(file: File): Promise<MediaItem> {
+    await loadLibrary('music-metadata');
     const {parseBlob} = await import(
-        /* webpackChunkName: "music-metadata" */
-        /* webpackMode: "lazy-once" */
+        /* webpackMode: "weak" */
         'music-metadata'
     );
     let metadata = noMetadata;
@@ -72,9 +72,9 @@ export async function createMediaItemFromUrl(url: string): Promise<MediaItem> {
 }
 
 async function fetchFromUrl(url: string, options?: IOptions): Promise<IAudioMetadata> {
+    await loadLibrary('music-metadata');
     const {parseBlob, parseWebStream} = await import(
-        /* webpackChunkName: "music-metadata" */
-        /* webpackMode: "lazy-once" */
+        /* webpackMode: "weak" */
         'music-metadata'
     );
     const response = await fetch(url, {signal: AbortSignal.timeout(3000)});

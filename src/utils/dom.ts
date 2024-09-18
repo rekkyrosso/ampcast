@@ -11,6 +11,10 @@ export function getTextFromHtml(html = ''): string {
         .join('\n');
 }
 
+export async function loadLibrary(name: string): Promise<void> {
+    return loadScript(`/v${__app_version__}/lib/${name}.js`);
+}
+
 export async function loadScript(src: string): Promise<void> {
     return new Promise((resolve, reject) => {
         const loadedAttribute = 'ampcast-loaded';

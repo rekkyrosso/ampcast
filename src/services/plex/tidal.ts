@@ -189,7 +189,7 @@ const tidal: PublicMediaService = {
     id: serviceId,
     name: 'TIDAL',
     icon: serviceId,
-    url: 'https://tidal.com',
+    url: 'https://listen.tidal.com',
     serviceType: ServiceType.PublicMedia,
     authService: plex,
     internetRequired: true,

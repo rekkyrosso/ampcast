@@ -30,8 +30,8 @@ const app = http.createServer(async (req, res) => {
         const pathTraversal = !filePath.startsWith(staticDir);
         const exists =
             !pathTraversal &&
-            (await fs.promises.access(filePath).then(
-                () => true,
+            (await fs.promises.stat(filePath).then(
+                (stat) => stat.isFile(),
                 () => false
             ));
         if (exists) {
