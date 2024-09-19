@@ -6,15 +6,15 @@ import RecentlyPlayedBrowser from 'components/MediaBrowser/RecentlyPlayedBrowser
 import useRecentlyPlayedPager from 'components/MediaBrowser/useRecentlyPlayedPager';
 import ListenBrainzHistoryPager from '../ListenBrainzHistoryPager';
 
-export interface ListenBrainzRecentlyPlayedBrowserProps {
+export interface ListenBrainzScrobblesBrowserProps {
     service: MediaService;
     source: MediaSource<MediaItem>;
 }
 
-export default function ListenBrainzRecentlyPlayedBrowser({
+export default function ListenBrainzScrobblesBrowser({
     service: listenbrainz,
-    source: recentlyPlayed,
-}: ListenBrainzRecentlyPlayedBrowserProps) {
+    source: scrobbles,
+}: ListenBrainzScrobblesBrowserProps) {
     const createHistoryPager = useCallback((min_ts?: number, max_ts?: number) => {
         return new ListenBrainzHistoryPager(min_ts ? {min_ts} : {max_ts}, true);
     }, []);
@@ -23,7 +23,7 @@ export default function ListenBrainzRecentlyPlayedBrowser({
     return (
         <RecentlyPlayedBrowser
             service={listenbrainz}
-            source={recentlyPlayed}
+            source={scrobbles}
             pager={pager}
             total={total}
         />

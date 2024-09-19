@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
 import {Except, SetOptional, Writable} from 'type-fest';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
+import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -10,7 +11,7 @@ import MediaItem from 'types/MediaItem';
 import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import MediaSource from 'types/MediaSource';
+import MediaSource, {MediaMultiSource} from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
@@ -20,7 +21,6 @@ import Pin from 'types/Pin';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
-import ViewType from 'types/ViewType';
 import actionsStore from 'services/actions/actionsStore';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
@@ -40,6 +40,10 @@ import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
 import PlexPager from './PlexPager';
 import {scrobble} from './plexScrobbler';
+import FilterBrowser from 'components/MediaBrowser/FilterBrowser';
+import FolderBrowser from 'components/MediaBrowser/FolderBrowser';
+import Login from './components/PlexLogin';
+import ServerSettings from './components/PlexServerSettings';
 
 const tracksLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
@@ -73,6 +77,22 @@ const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
         'Genre',
         'PlayCount',
         'Rate',
+    ],
+};
+
+const plexSearch: MediaMultiSource = {
+    id: 'plex/search',
+    title: 'Search',
+    icon: 'search',
+    sources: [
+        createSearch<MediaItem>(ItemType.Media, {title: 'Tracks', layout: tracksLayout}),
+        createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
+        createSearch<MediaArtist>(ItemType.Artist, {title: 'Artists'}),
+        createSearch<MediaPlaylist>(ItemType.Playlist, {
+            title: 'Playlists',
+            layout: playlistLayout,
+            secondaryLayout: playlistItemsLayout,
+        }),
     ],
 };
 
@@ -258,7 +278,8 @@ const plexAlbumsByGenre: MediaSource<MediaAlbum> = {
     title: 'Albums by Genre',
     icon: 'genre',
     itemType: ItemType.Album,
-    viewType: ViewType.ByGenre,
+    filterType: FilterType.ByGenre,
+    component: FilterBrowser,
 
     search(genre?: MediaFilter): Pager<MediaAlbum> {
         if (genre) {
@@ -280,7 +301,8 @@ const plexArtistsByGenre: MediaSource<MediaArtist> = {
     title: 'Artists by Genre',
     icon: 'genre',
     itemType: ItemType.Artist,
-    viewType: ViewType.ByGenre,
+    filterType: FilterType.ByGenre,
+    component: FilterBrowser,
     defaultHidden: true,
 
     search(genre?: MediaFilter): Pager<MediaArtist> {
@@ -303,7 +325,8 @@ const plexAlbumsByDecade: MediaSource<MediaAlbum> = {
     title: 'Albums by Decade',
     icon: 'calendar',
     itemType: ItemType.Album,
-    viewType: ViewType.ByDecade,
+    filterType: FilterType.ByDecade,
+    component: FilterBrowser,
 
     search(decade?: MediaFilter): Pager<MediaAlbum> {
         if (decade) {
@@ -390,7 +413,7 @@ const plexFolders: MediaSource<MediaFolderItem> = {
     title: 'Folders',
     icon: 'folder',
     itemType: ItemType.Folder,
-    viewType: ViewType.Folders,
+    component: FolderBrowser,
 
     search(): Pager<MediaFolderItem> {
         const root: Writable<SetOptional<MediaFolder, 'pager'>> = {
@@ -441,19 +464,11 @@ const plex: PersonalMediaService = {
     url: 'https://www.plex.tv',
     serviceType: ServiceType.PersonalMedia,
     defaultHidden: true,
+    components: {Login, ServerSettings},
     get internetRequired() {
         return plexSettings.internetRequired;
     },
-    roots: [
-        createRoot(ItemType.Media, {title: 'Tracks', layout: tracksLayout}),
-        createRoot(ItemType.Album, {title: 'Albums'}),
-        createRoot(ItemType.Artist, {title: 'Artists'}),
-        createRoot(ItemType.Playlist, {
-            title: 'Playlists',
-            layout: playlistLayout,
-            secondaryLayout: playlistItemsLayout,
-        }),
-    ],
+    root: plexSearch,
     sources: [
         plexTopTracks,
         plexTopAlbums,
@@ -584,10 +599,10 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
 }
 
 async function getFilters(
-    viewType: ViewType.ByDecade | ViewType.ByGenre,
+    filterType: FilterType,
     itemType: ItemType
 ): Promise<readonly MediaFilter[]> {
-    return plexApi.getFilters(viewType, itemType);
+    return plexApi.getFilters(filterType, itemType);
 }
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
@@ -653,14 +668,14 @@ async function rate(item: MediaObject, rating: number): Promise<void> {
     });
 }
 
-function createRoot<T extends MediaObject>(
-    itemType: ItemType,
+function createSearch<T extends MediaObject>(
+    itemType: T['itemType'],
     props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
 ): MediaSource<T> {
     return {
         ...props,
         itemType,
-        id: `plex/search/${props.title.toLowerCase()}`,
+        id: props.title,
         icon: 'search',
         searchable: true,
 

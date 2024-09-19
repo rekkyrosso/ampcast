@@ -1,6 +1,7 @@
 import {Except, Writable} from 'type-fest';
 import Action from 'types/Action';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
+import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -8,7 +9,7 @@ import MediaFilter from 'types/MediaFilter';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import MediaSource from 'types/MediaSource';
+import MediaSource, {MediaMultiSource} from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
@@ -16,7 +17,6 @@ import ParentOf from 'types/ParentOf';
 import Pin from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
-import ViewType from 'types/ViewType';
 import {NoFavoritesPlaylistError} from 'services/errors';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
@@ -28,6 +28,10 @@ import {bestOf} from 'utils';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './appleAuth';
 import MusicKitPager, {MusicKitPage} from './MusicKitPager';
 import appleSettings from './appleSettings';
+import FilterBrowser from 'components/MediaBrowser/FilterBrowser';
+import Credentials from './components/AppleCredentials';
+import Login from './components/AppleLogin';
+import StreamingSettings from './components/AppleStreamingSettings';
 
 const defaultLayout: MediaSourceLayout<MediaItem> = {
     view: 'card',
@@ -42,6 +46,24 @@ const chartsLayoutLarge: MediaSourceLayout<MediaItem> = {
 const chartsLayoutSmall: MediaSourceLayout<MediaItem> = {
     view: 'card small',
     fields: ['Index', 'Thumbnail', 'Title', 'Artist'],
+};
+
+const appleSearch: MediaMultiSource = {
+    id: 'apple/search',
+    title: 'Search',
+    icon: 'search',
+    sources: [
+        createSearch<MediaItem>(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
+        createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
+        createSearch<MediaArtist>(ItemType.Artist, {title: 'Artists'}),
+        createSearch<MediaPlaylist>(ItemType.Playlist, {title: 'Playlists'}),
+        createSearch<MediaItem>(
+            ItemType.Media,
+            {title: 'Videos', layout: defaultLayout, mediaType: MediaType.Video},
+            {types: 'music-videos'},
+            {maxSize: 250}
+        ),
+    ],
 };
 
 const appleRecommendations: MediaSource<MediaPlaylist> = {
@@ -213,8 +235,9 @@ const appleSongCharts: MediaSource<MediaItem> = {
     title: 'Top Songs',
     icon: 'chart',
     itemType: ItemType.Media,
-    viewType: ViewType.ByGenre,
+    filterType: FilterType.ByGenre,
     layout: chartsLayoutLarge,
+    component: FilterBrowser,
 
     search(genre?: MediaFilter): Pager<MediaItem> {
         if (genre) {
@@ -240,7 +263,8 @@ const appleAlbumCharts: MediaSource<MediaAlbum> = {
     title: 'Top Albums',
     icon: 'chart',
     itemType: ItemType.Album,
-    viewType: ViewType.ByGenre,
+    filterType: FilterType.ByGenre,
+    component: FilterBrowser,
     layout: {
         view: 'card compact',
         fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'Year'],
@@ -297,7 +321,8 @@ const appleMusicVideoCharts: MediaSource<MediaItem> = {
     icon: 'chart',
     itemType: ItemType.Media,
     mediaType: MediaType.Video,
-    viewType: ViewType.ByGenre,
+    filterType: FilterType.ByGenre,
+    component: FilterBrowser,
     layout: chartsLayoutLarge,
     defaultHidden: true,
 
@@ -374,21 +399,11 @@ const apple: PublicMediaService = {
     serviceType: ServiceType.PublicMedia,
     defaultHidden: true,
     internetRequired: true,
+    components: {Credentials, Login, StreamingSettings},
     get credentialsRequired(): boolean {
         return appleSettings.credentialsRequired;
     },
-    roots: [
-        createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
-        createRoot(ItemType.Album, {title: 'Albums'}),
-        createRoot(ItemType.Artist, {title: 'Artists'}),
-        createRoot(ItemType.Playlist, {title: 'Playlists'}),
-        createRoot<MediaItem>(
-            ItemType.Media,
-            {title: 'Videos', layout: defaultLayout, mediaType: MediaType.Video},
-            {types: 'music-videos'},
-            {maxSize: 250}
-        ),
-    ],
+    root: appleSearch,
     sources: [
         appleLibrarySongs,
         appleLibraryAlbums,
@@ -525,10 +540,8 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
 
 let appleGenres: readonly MediaFilter[];
 
-async function getFilters(
-    viewType: ViewType.ByDecade | ViewType.ByGenre
-): Promise<readonly MediaFilter[]> {
-    if (viewType === ViewType.ByGenre) {
+async function getFilters(filterType: FilterType): Promise<readonly MediaFilter[]> {
+    if (filterType === FilterType.ByGenre) {
         if (!appleGenres) {
             const musicKit = MusicKit.getInstance();
             const {
@@ -638,8 +651,8 @@ async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
     }
 }
 
-function createRoot<T extends MediaObject>(
-    itemType: ItemType,
+function createSearch<T extends MediaObject>(
+    itemType: T['itemType'],
     props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>,
     filters?: MusicKit.QueryParameters,
     options?: Partial<PagerConfig>
@@ -647,7 +660,7 @@ function createRoot<T extends MediaObject>(
     return {
         ...props,
         itemType,
-        id: `apple/search/${props.title.toLowerCase()}`,
+        id: props.title,
         icon: 'search',
         searchable: true,
 

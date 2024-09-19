@@ -1,16 +1,12 @@
 import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
-import PersonalMediaService from 'types/PersonalMediaService';
+import {PersonalMediaServerSettingsProps} from 'components/Settings/MediaLibrarySettings/PersonalMediaServerSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import PlexHost from './PlexHost';
 import usePlexMediaServers, {PlexMediaServer} from './usePlexMediaServers';
 import plexSettings from '../plexSettings';
 
-export interface PlexMediaLibrarySettingsProps {
-    service: PersonalMediaService;
-}
-
-export default function PlexMediaLibrarySettings({service: plex}: PlexMediaLibrarySettingsProps) {
+export default function PlexServerSettings({service: plex}: PersonalMediaServerSettingsProps) {
     const id = useId();
     const serverIdRef = useRef<HTMLSelectElement>(null);
     const libraryIdRef = useRef<HTMLSelectElement>(null);
@@ -55,7 +51,7 @@ export default function PlexMediaLibrarySettings({service: plex}: PlexMediaLibra
     }, [server, libraryId]);
 
     return (
-        <form className="personal-media-library-settings" method="dialog" onSubmit={handleSubmit}>
+        <form className="personal-media-server-settings" method="dialog" onSubmit={handleSubmit}>
             <fieldset>
                 <legend>Host</legend>
                 <PlexHost service={plex} />

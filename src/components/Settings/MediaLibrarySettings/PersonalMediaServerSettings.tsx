@@ -3,13 +3,13 @@ import PersonalMediaService from 'types/PersonalMediaService';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import ExternalLink from 'components/ExternalLink';
 import useAudioLibraries from './useAudioLibraries';
-import './PersonalMediaLibrarySettings.scss';
+import './PersonalMediaServerSettings.scss';
 
-export interface PersonalMediaLibrarySettingsProps {
+export interface PersonalMediaServerSettingsProps {
     service: PersonalMediaService;
 }
 
-export default function PersonalMediaLibrarySettings({service}: PersonalMediaLibrarySettingsProps) {
+export default function PersonalMediaServerSettings({service}: PersonalMediaServerSettingsProps) {
     const id = useId();
     const ref = useRef<HTMLSelectElement>(null);
     const preferredLibraryId = service.libraryId;
@@ -20,7 +20,7 @@ export default function PersonalMediaLibrarySettings({service}: PersonalMediaLib
     }, [service]);
 
     return (
-        <form className="personal-media-library-settings" method="dialog" onSubmit={handleSubmit}>
+        <form className="personal-media-server-settings" method="dialog" onSubmit={handleSubmit}>
             <fieldset>
                 <legend>Host</legend>
                 {service.host ? <ExternalLink href={service.host} /> : 'Not configured'}

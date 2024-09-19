@@ -25,10 +25,40 @@ import {
 import YouTubePager from './YouTubePager';
 import youtubeSettings from './youtubeSettings';
 import youtubeApi from './youtubeApi';
+import Credentials from './components/YouTubeCredentials';
+import Login from './components/YouTubeLogin';
 
 const defaultLayout: MediaSourceLayout<MediaItem> = {
     view: 'card',
     fields: ['Thumbnail', 'Title', 'Duration', 'Owner', 'Views'],
+};
+
+const youtubeSearch: MediaSource<MediaItem> = {
+    id: 'youtube/search/videos',
+    title: 'Video',
+    icon: 'search',
+    itemType: ItemType.Media,
+    mediaType: MediaType.Video,
+    layout: defaultLayout,
+    searchable: true,
+
+    search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
+        if (q) {
+            return new YouTubePager(
+                '/search',
+                {
+                    q,
+                    type: 'video',
+                    videoCategoryId: '10', // music,
+                    part: 'id',
+                    fields: 'items(id(videoId))',
+                },
+                {maxSize: YouTubePager.maxPageSize, noCache: true}
+            );
+        } else {
+            return new SimplePager();
+        }
+    },
 };
 
 const youtubeLikes: MediaSource<MediaItem> = {
@@ -96,6 +126,7 @@ const youtube: PublicMediaService = {
     credentialsUrl: 'https://console.cloud.google.com/apis/credentials',
     serviceType: ServiceType.PublicMedia,
     primaryMediaType: MediaType.Video,
+    components: {Credentials, Login},
     get disabled(): boolean {
         return youtubeSettings.disabled;
     },
@@ -107,35 +138,7 @@ const youtube: PublicMediaService = {
     },
     restrictedAccess: location.host === 'ampcast.app' || browser.isElectron,
     editablePlaylists: youtubePlaylists,
-    roots: [
-        {
-            id: 'youtube/search/videos',
-            title: 'Video',
-            icon: 'search',
-            itemType: ItemType.Media,
-            mediaType: MediaType.Video,
-            layout: defaultLayout,
-            searchable: true,
-
-            search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
-                if (q) {
-                    return new YouTubePager(
-                        '/search',
-                        {
-                            q,
-                            type: 'video',
-                            videoCategoryId: '10', // music,
-                            part: 'id',
-                            fields: 'items(id(videoId))',
-                        },
-                        {maxSize: YouTubePager.maxPageSize, noCache: true}
-                    );
-                } else {
-                    return new SimplePager();
-                }
-            },
-        } as MediaSource<MediaItem>,
-    ],
+    root: youtubeSearch,
     sources: [youtubeLikes, youtubeRecentlyPlayed, youtubePlaylists],
     addToPlaylist,
     canRate: () => false,

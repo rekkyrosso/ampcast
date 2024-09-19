@@ -10,7 +10,7 @@ import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import MediaSource from 'types/MediaSource';
+import MediaSource, {MediaMultiSource} from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
@@ -33,6 +33,8 @@ import plexMediaType from './plexMediaType';
 import PlexPager, {PlexPagerConfig} from './PlexPager';
 import plexApi, {getPlexItemType, musicProviderHost, musicSearchHost} from './plexApi';
 import plex from './plex';
+import Login from './components/PlexTidalLogin';
+import StreamingSettings from './components/PlexTidalStreamingSettings';
 
 const serviceId = 'plex-tidal';
 
@@ -44,6 +46,17 @@ const defaultLayout: MediaSourceLayout<MediaItem> = {
 const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
     view: 'card compact',
     fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb'],
+};
+
+const tidalSearch: MediaMultiSource = {
+    id: `${serviceId}/search`,
+    title: 'Search',
+    icon: 'search',
+    sources: [
+        createSearch<MediaItem>(ItemType.Media, {title: 'Tracks', layout: defaultLayout}),
+        createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
+        createSearch<MediaArtist>(ItemType.Artist, {title: 'Artists'}),
+    ],
 };
 
 const tidalLibraryTracks: MediaSource<MediaItem> = {
@@ -194,11 +207,8 @@ const tidal: PublicMediaService = {
     authService: plex,
     internetRequired: true,
     defaultHidden: true,
-    roots: [
-        createRoot(ItemType.Media, {title: 'Tracks', layout: defaultLayout}),
-        createRoot(ItemType.Album, {title: 'Albums'}),
-        createRoot(ItemType.Artist, {title: 'Artists'}),
-    ],
+    components: {Login, StreamingSettings},
+    root: tidalSearch,
     sources: [
         tidalLibraryTracks,
         tidalLibraryAlbums,
@@ -422,14 +432,14 @@ async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
     });
 }
 
-function createRoot<T extends MediaObject>(
+function createSearch<T extends MediaObject>(
     itemType: T['itemType'],
     props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
 ): MediaSource<T> {
     return {
         ...props,
         itemType,
-        id: `${serviceId}/search/${props.title.toLowerCase()}`,
+        id: props.title,
         icon: 'search',
         searchable: true,
 

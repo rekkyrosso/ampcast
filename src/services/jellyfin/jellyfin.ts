@@ -2,6 +2,7 @@ import type {Observable} from 'rxjs';
 import {Except, SetOptional, Writable} from 'type-fest';
 import Action from 'types/Action';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
+import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -12,7 +13,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
-import MediaSource from 'types/MediaSource';
+import MediaSource, {MediaMultiSource} from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
@@ -22,7 +23,6 @@ import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import Pin from 'types/Pin';
 import ServiceType from 'types/ServiceType';
-import ViewType from 'types/ViewType';
 import actionsStore from 'services/actions/actionsStore';
 import embyScrobbler from 'services/emby/embyScrobbler';
 import {NoMusicLibraryError, NoMusicVideoLibraryError} from 'services/errors';
@@ -36,6 +36,8 @@ import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './jelly
 import jellyfinSettings from './jellyfinSettings';
 import JellyfinPager from './JellyfinPager';
 import jellyfinApi from './jellyfinApi';
+import FilterBrowser from 'components/MediaBrowser/FilterBrowser';
+import FolderBrowser from 'components/MediaBrowser/FolderBrowser';
 
 const serviceId: MediaServiceId = 'jellyfin';
 
@@ -47,6 +49,22 @@ const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
     fields: ['Index', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'Genre', 'PlayCount'],
+};
+
+const jellyfinSearch: MediaMultiSource = {
+    id: 'jellyfin/search',
+    title: 'Search',
+    icon: 'search',
+    sources: [
+        createSearch<MediaItem>(ItemType.Media, {title: 'Songs'}),
+        createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
+        createSearch<MediaArtist>(ItemType.Artist, {title: 'Artists'}),
+        createSearch<MediaPlaylist>(ItemType.Playlist, {
+            title: 'Playlists',
+            layout: playlistLayout,
+            secondaryLayout: playlistItemsLayout,
+        }),
+    ],
 };
 
 const jellyfinLikedSongs: MediaSource<MediaItem> = {
@@ -180,7 +198,8 @@ const jellyfinTracksByGenre: MediaSource<MediaItem> = {
     title: 'Songs by Genre',
     icon: 'genre',
     itemType: ItemType.Media,
-    viewType: ViewType.ByGenre,
+    filterType: FilterType.ByGenre,
+    component: FilterBrowser,
     defaultHidden: true,
 
     search(genre?: MediaFilter): Pager<MediaItem> {
@@ -202,7 +221,8 @@ const jellyfinAlbumsByGenre: MediaSource<MediaAlbum> = {
     title: 'Albums by Genre',
     icon: 'genre',
     itemType: ItemType.Album,
-    viewType: ViewType.ByGenre,
+    filterType: FilterType.ByGenre,
+    component: FilterBrowser,
 
     search(genre?: MediaFilter): Pager<MediaAlbum> {
         if (genre) {
@@ -223,7 +243,8 @@ const jellyfinArtistsByGenre: MediaSource<MediaArtist> = {
     title: 'Artists by Genre',
     icon: 'genre',
     itemType: ItemType.Artist,
-    viewType: ViewType.ByGenre,
+    filterType: FilterType.ByGenre,
+    component: FilterBrowser,
     defaultHidden: true,
 
     search(genre?: MediaFilter): Pager<MediaArtist> {
@@ -244,7 +265,8 @@ const jellyfinTracksByDecade: MediaSource<MediaItem> = {
     title: 'Songs by Decade',
     icon: 'calendar',
     itemType: ItemType.Media,
-    viewType: ViewType.ByDecade,
+    filterType: FilterType.ByDecade,
+    component: FilterBrowser,
     defaultHidden: true,
 
     search(decade?: MediaFilter): Pager<MediaItem> {
@@ -266,7 +288,8 @@ const jellyfinAlbumsByDecade: MediaSource<MediaAlbum> = {
     title: 'Albums by Decade',
     icon: 'calendar',
     itemType: ItemType.Album,
-    viewType: ViewType.ByDecade,
+    filterType: FilterType.ByDecade,
+    component: FilterBrowser,
 
     search(decade?: MediaFilter): Pager<MediaAlbum> {
         if (decade) {
@@ -355,7 +378,7 @@ const jellyfinFolders: MediaSource<MediaFolderItem> = {
     title: 'Folders',
     icon: 'folder',
     itemType: ItemType.Folder,
-    viewType: ViewType.Folders,
+    component: FolderBrowser,
 
     search(): Pager<MediaFolderItem> {
         const root: Writable<SetOptional<MediaFolder, 'pager'>> = {
@@ -412,16 +435,7 @@ const jellyfin: PersonalMediaService = {
     url: 'https://jellyfin.org',
     serviceType: ServiceType.PersonalMedia,
     defaultHidden: true,
-    roots: [
-        createRoot(ItemType.Media, {title: 'Songs'}),
-        createRoot(ItemType.Album, {title: 'Albums'}),
-        createRoot(ItemType.Artist, {title: 'Artists'}),
-        createRoot(ItemType.Playlist, {
-            title: 'Playlists',
-            layout: playlistLayout,
-            secondaryLayout: playlistItemsLayout,
-        }),
-    ],
+    root: jellyfinSearch,
     sources: [
         jellyfinLikedSongs,
         jellyfinLikedAlbums,
@@ -547,10 +561,10 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
 }
 
 async function getFilters(
-    viewType: ViewType.ByDecade | ViewType.ByGenre,
+    filterType: FilterType,
     itemType: ItemType
 ): Promise<readonly MediaFilter[]> {
-    return jellyfinApi.getFilters(viewType, itemType);
+    return jellyfinApi.getFilters(filterType, itemType);
 }
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
@@ -606,14 +620,14 @@ async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
     }
 }
 
-function createRoot<T extends MediaObject>(
-    itemType: ItemType,
+function createSearch<T extends MediaObject>(
+    itemType: T['itemType'],
     props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
 ): MediaSource<T> {
     return {
         ...props,
         itemType,
-        id: `jellyfin/search/${props.title.toLowerCase()}`,
+        id: props.title,
         icon: 'search',
         searchable: true,
 

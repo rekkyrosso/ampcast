@@ -2,8 +2,10 @@ import type {Observable} from 'rxjs';
 import {Except, SetOptional, Writable} from 'type-fest';
 import Action from 'types/Action';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
+import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
+import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaFilter from 'types/MediaFilter';
 import MediaFolderItem from 'types/MediaFolderItem';
@@ -11,7 +13,7 @@ import MediaFolder from 'types/MediaFolder';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
-import MediaSource from 'types/MediaSource';
+import MediaSource, {MediaMultiSource} from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
@@ -20,7 +22,6 @@ import PersonalMediaService from 'types/PersonalMediaService';
 import PlayableItem from 'types/PlayableItem';
 import Pin from 'types/Pin';
 import ServiceType from 'types/ServiceType';
-import ViewType from 'types/ViewType';
 import actionsStore from 'services/actions/actionsStore';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
@@ -33,6 +34,8 @@ import SubsonicSettings from './SubsonicSettings';
 import LibraryAction from 'types/LibraryAction';
 import SubsonicAuth from './SubsonicAuth';
 import subsonicScrobbler from './subsonicScrobbler';
+import FilterBrowser from 'components/MediaBrowser/FilterBrowser';
+import FolderBrowser from 'components/MediaBrowser/FolderBrowser';
 
 const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
     view: 'card compact',
@@ -51,8 +54,8 @@ export default class SubsonicService implements PersonalMediaService {
     readonly serviceType = ServiceType.PersonalMedia;
     readonly defaultHidden = true;
     readonly icon = this.serviceId;
-    readonly roots: readonly MediaSource<MediaObject>[];
-    readonly sources: readonly MediaSource<MediaObject>[];
+    readonly root: MediaMultiSource;
+    readonly sources: PersonalMediaService['sources'];
     readonly labels: Partial<Record<LibraryAction, string>>;
     readonly editablePlaylists: MediaSource<MediaPlaylist>;
     readonly observeIsLoggedIn: (this: unknown) => Observable<boolean>;
@@ -77,6 +80,17 @@ export default class SubsonicService implements PersonalMediaService {
         this.isLoggedIn = auth.isLoggedIn.bind(auth);
         this.login = auth.login.bind(auth);
         this.logout = auth.logout.bind(auth);
+
+        const search: MediaMultiSource = {
+            id: `${serviceId}/search`,
+            title: 'Search',
+            icon: 'search',
+            sources: [
+                this.createSearch<MediaItem>(ItemType.Media, {title: 'Songs'}),
+                this.createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
+                this.createSearch<MediaArtist>(ItemType.Artist, {title: 'Artists'}),
+            ],
+        };
 
         const likedSongs: MediaSource<MediaItem> = {
             id: `${serviceId}/liked-songs`,
@@ -189,7 +203,8 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'Songs by Genre',
             icon: 'genre',
             itemType: ItemType.Media,
-            viewType: ViewType.ByGenre,
+            filterType: FilterType.ByGenre,
+            component: FilterBrowser,
             defaultHidden: true,
             layout: {
                 view: 'details',
@@ -220,7 +235,8 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'Albums by Genre',
             icon: 'genre',
             itemType: ItemType.Album,
-            viewType: ViewType.ByGenre,
+            filterType: FilterType.ByGenre,
+            component: FilterBrowser,
 
             search(genre?: MediaFilter): Pager<MediaAlbum> {
                 if (genre) {
@@ -243,7 +259,8 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'Albums by Decade',
             icon: 'calendar',
             itemType: ItemType.Album,
-            viewType: ViewType.ByDecade,
+            filterType: FilterType.ByDecade,
+            component: FilterBrowser,
 
             search(decade?: MediaFilter): Pager<MediaAlbum> {
                 if (decade) {
@@ -322,7 +339,7 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'Folders',
             icon: 'folder',
             itemType: ItemType.Folder,
-            viewType: ViewType.Folders,
+            component: FolderBrowser,
 
             search(): Pager<MediaFolderItem> {
                 const root: Writable<SetOptional<MediaFolder, 'pager'>> = {
@@ -391,11 +408,7 @@ export default class SubsonicService implements PersonalMediaService {
             },
         };
 
-        this.roots = [
-            this.createRoot(ItemType.Media, {title: 'Songs'}),
-            this.createRoot(ItemType.Album, {title: 'Albums'}),
-            this.createRoot(ItemType.Artist, {title: 'Artists'}),
-        ];
+        this.root = search;
 
         this.sources = [
             likedSongs,
@@ -529,11 +542,8 @@ export default class SubsonicService implements PersonalMediaService {
         };
     }
 
-    async getFilters(
-        viewType: ViewType.ByDecade | ViewType.ByGenre,
-        itemType: ItemType
-    ): Promise<readonly MediaFilter[]> {
-        return this.api.getFilters(viewType, itemType);
+    async getFilters(filterType: FilterType, itemType: ItemType): Promise<readonly MediaFilter[]> {
+        return this.api.getFilters(filterType, itemType);
     }
 
     async getMetadata<T extends MediaObject>(item: T): Promise<T> {
@@ -628,8 +638,8 @@ export default class SubsonicService implements PersonalMediaService {
         subsonicScrobbler.scrobble(this, this.api);
     }
 
-    private createRoot<T extends MediaObject>(
-        itemType: ItemType,
+    private createSearch<T extends MediaObject>(
+        itemType: T['itemType'],
         props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
     ): MediaSource<T> {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
@@ -639,7 +649,7 @@ export default class SubsonicService implements PersonalMediaService {
         return {
             ...props,
             itemType,
-            id: `${this.serviceId}/search/${props.title.toLowerCase()}`,
+            id: props.title,
             icon: 'search',
             searchable: true,
 

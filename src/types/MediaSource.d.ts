@@ -1,11 +1,18 @@
+import type React from 'react';
 import type {IconName} from 'components/Icon';
+import ChildOf from './ChildOf';
+import FilterType from './FilterType';
 import ItemType from './ItemType';
+import MediaAlbum from './MediaAlbum';
+import MediaArtist from './MediaArtist';
 import MediaFilter from './MediaFilter';
+import MediaFolderItem from './MediaFolderItem';
+import MediaItem from './MediaItem';
 import MediaObject from './MediaObject';
+import MediaPlaylist from './MediaPlaylist';
 import MediaSourceLayout from './MediaSourceLayout';
 import MediaType from './MediaType';
 import Pager from './Pager';
-import ViewType from './ViewType';
 
 export default interface MediaSource<T extends MediaObject> {
     readonly id: string;
@@ -13,13 +20,30 @@ export default interface MediaSource<T extends MediaObject> {
     readonly icon: IconName;
     readonly itemType: T['itemType'];
     readonly mediaType?: T['itemType'] extends ItemType.Media ? MediaType : never;
-    readonly viewType?: ViewType;
+    readonly filterType?: FilterType;
     readonly layout?: MediaSourceLayout<T>;
-    readonly secondaryLayout?: MediaSourceLayout<MediaObject>;
-    readonly tertiaryLayout?: MediaSourceLayout<MediaObject>;
+    readonly secondaryLayout?: MediaSourceLayout<ChildOf<T>>;
+    readonly tertiaryLayout?: MediaSourceLayout<ChildOf<ChildOf<T>>>;
     readonly searchable?: boolean;
     readonly defaultHidden?: boolean;
     readonly isPin?: boolean;
     readonly lockActionsStore?: boolean;
+    readonly component?: React.FC<{
+        source: MediaSource<T>;
+        service: MediaService;
+    }>;
     search(params?: MediaFilter | Record<string, unknown>): Pager<T>;
 }
+
+export type MediaMultiSource = Pick<
+    MediaSource<any>,
+    'id' | 'title' | 'icon' | 'searchable' | 'defaultHidden' | 'lockActionsStore' | 'component'
+> & {
+    readonly sources: readonly (
+        | MediaSource<MediaAlbum>
+        | MediaSource<MediaArtist>
+        | MediaSource<MediaItem>
+        | MediaSource<MediaFolderItem>
+        | MediaSource<MediaPlaylist>
+    )[];
+};

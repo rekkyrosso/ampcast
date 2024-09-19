@@ -26,7 +26,6 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
         if (!this.disconnected && !this.connected) {
             super.connect();
 
-            // TODO: better error handling.
             this.subscribeTo(
                 this.observeFetches().pipe(
                     throttleTime(200, undefined, {leading: false, trailing: true}),

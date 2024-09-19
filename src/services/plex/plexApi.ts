@@ -1,3 +1,4 @@
+import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import MediaFilter from 'types/MediaFilter';
 import MediaItem from 'types/MediaItem';
@@ -6,7 +7,6 @@ import MediaType from 'types/MediaType';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
-import ViewType from 'types/ViewType';
 import {NoMusicLibraryError} from 'services/errors';
 import {browser, canPlayMedia, partition} from 'utils';
 import plexItemType from './plexItemType';
@@ -214,10 +214,10 @@ async function getDecades(): Promise<readonly MediaFilter[]> {
 }
 
 async function getFilters(
-    viewType: ViewType.ByDecade | ViewType.ByGenre,
+    filterType: FilterType,
     itemType: ItemType
 ): Promise<readonly MediaFilter[]> {
-    if (viewType === ViewType.ByDecade) {
+    if (filterType === FilterType.ByDecade) {
         return getDecades();
     } else {
         return getGenres(itemType);

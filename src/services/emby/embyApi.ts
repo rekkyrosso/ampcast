@@ -4,6 +4,7 @@ import type {
     EndPointInfo,
 } from '@jellyfin/sdk/lib/generated-client';
 import {Primitive} from 'type-fest';
+import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import MediaFilter from 'types/MediaFilter';
 import MediaItem from 'types/MediaItem';
@@ -11,7 +12,6 @@ import MediaType from 'types/MediaType';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
-import ViewType from 'types/ViewType';
 import {getPlaybackId} from 'services/mediaPlayback/playback';
 import {canPlayVideo, getContentType, groupBy} from 'utils';
 import embySettings, {EmbySettings} from './embySettings';
@@ -80,11 +80,11 @@ async function getDecades(
 }
 
 async function getFilters(
-    viewType: ViewType.ByDecade | ViewType.ByGenre,
+    filterType: FilterType,
     itemType: ItemType,
     settings?: EmbySettings
 ): Promise<readonly MediaFilter[]> {
-    if (viewType === ViewType.ByDecade) {
+    if (filterType === FilterType.ByDecade) {
         return getDecades(itemType, settings);
     } else {
         return getGenres(itemType, settings);

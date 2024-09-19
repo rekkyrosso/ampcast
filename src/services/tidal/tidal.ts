@@ -1,10 +1,12 @@
 import {Except} from 'type-fest';
 import ItemType from 'types/ItemType';
+import MediaAlbum from 'types/MediaAlbum';
+import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
-import MediaSource from 'types/MediaSource';
+import MediaSource, {MediaMultiSource} from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
@@ -15,6 +17,8 @@ import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './tidal
 import TidalPager, {TidalPage} from './TidalPager';
 import tidalApi from './tidalApi';
 import tidalSettings from './tidalSettings';
+import Credentials from './components/TidalCredentials';
+import Login from './components/TidalLogin';
 
 const serviceId: MediaServiceId = 'tidal';
 
@@ -26,6 +30,22 @@ const defaultLayout: MediaSourceLayout<MediaItem> = {
 const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
     view: 'card compact',
     fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb'],
+};
+
+const tidalSearch: MediaMultiSource = {
+    id: `${serviceId}/search`,
+    title: 'Search',
+    icon: 'search',
+    sources: [
+        createSearch<MediaItem>(ItemType.Media, {title: 'Tracks', layout: defaultLayout}),
+        createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
+        createSearch<MediaArtist>(ItemType.Artist, {title: 'Artists'}),
+        createSearch<MediaItem>(ItemType.Media, {
+            title: 'Videos',
+            mediaType: MediaType.Video,
+            layout: defaultLayout,
+        }),
+    ],
 };
 
 const tidalPlaylists: MediaSource<MediaPlaylist> = {
@@ -84,6 +104,7 @@ const tidal: PublicMediaService = {
     url: 'https://listen.tidal.com',
     credentialsUrl: 'https://developer.tidal.com/dashboard',
     serviceType: ServiceType.PublicMedia,
+    components: {Credentials, Login},
     get disabled(): boolean {
         return tidalSettings.disabled;
     },
@@ -91,16 +112,7 @@ const tidal: PublicMediaService = {
     get credentialsRequired(): boolean {
         return tidalSettings.credentialsRequired;
     },
-    roots: [
-        createRoot(ItemType.Media, {title: 'Tracks', layout: defaultLayout}),
-        createRoot(ItemType.Album, {title: 'Albums'}),
-        createRoot(ItemType.Artist, {title: 'Artists'}),
-        createRoot<MediaItem>(ItemType.Media, {
-            title: 'Videos',
-            mediaType: MediaType.Video,
-            layout: defaultLayout,
-        }),
-    ],
+    root: tidalSearch,
     sources: [tidalPlaylists, tidalMyMixes, tidalDailyDiscovery, tidalNewArrivals],
     canRate: () => false,
     canStore: () => false,
@@ -118,14 +130,14 @@ function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.src === b.src;
 }
 
-function createRoot<T extends MediaObject>(
-    itemType: ItemType,
+function createSearch<T extends MediaObject>(
+    itemType: T['itemType'],
     props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
 ): MediaSource<T> {
     return {
         ...props,
         itemType,
-        id: `${serviceId}/search/${props.title.toLowerCase()}`,
+        id: props.title,
         icon: 'search',
         searchable: true,
 

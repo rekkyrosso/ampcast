@@ -1,6 +1,7 @@
 import {Except} from 'type-fest';
 import Action from 'types/Action';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
+import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -9,14 +10,13 @@ import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
-import MediaSource from 'types/MediaSource';
+import MediaSource, {MediaMultiSource} from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
 import PersonalMediaService from 'types/PersonalMediaService';
 import PlayableItem from 'types/PlayableItem';
 import Pin from 'types/Pin';
 import ServiceType from 'types/ServiceType';
-import ViewType from 'types/ViewType';
 import actionsStore from 'services/actions/actionsStore';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
@@ -28,6 +28,8 @@ import NavidromePager from './NavidromePager';
 import navidromeSettings from './navidromeSettings';
 import navidromeApi from './navidromeApi';
 import subsonicApi from './subsonicApi';
+import FilterBrowser from 'components/MediaBrowser/FilterBrowser';
+import ServerSettings from './components/NavidromeServerSettings';
 
 const serviceId: MediaServiceId = 'navidrome';
 
@@ -42,6 +44,22 @@ const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
     fields: ['Index', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'Genre', 'PlayCount'],
+};
+
+const navidromeSearch: MediaMultiSource = {
+    id: 'navidrome/search',
+    title: 'Search',
+    icon: 'search',
+    sources: [
+        createSearch<MediaItem>(ItemType.Media, {title: 'Songs'}),
+        createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
+        createSearch<MediaArtist>(ItemType.Artist, {title: 'Artists'}),
+        createSearch<MediaPlaylist>(ItemType.Playlist, {
+            title: 'Playlists',
+            layout: playlistLayout,
+            secondaryLayout: playlistItemsLayout,
+        }),
+    ],
 };
 
 const navidromeLikedSongs: MediaSource<MediaItem> = {
@@ -168,7 +186,8 @@ const navidromeTracksByGenre: MediaSource<MediaItem> = {
     title: 'Songs by Genre',
     icon: 'genre',
     itemType: ItemType.Media,
-    viewType: ViewType.ByGenre,
+    filterType: FilterType.ByGenre,
+    component: FilterBrowser,
     defaultHidden: true,
 
     search(genre?: MediaFilter): Pager<MediaItem> {
@@ -188,7 +207,8 @@ const navidromeAlbumsByGenre: MediaSource<MediaAlbum> = {
     title: 'Albums by Genre',
     icon: 'genre',
     itemType: ItemType.Album,
-    viewType: ViewType.ByGenre,
+    filterType: FilterType.ByGenre,
+    component: FilterBrowser,
 
     search(genre?: MediaFilter): Pager<MediaAlbum> {
         if (genre) {
@@ -207,7 +227,8 @@ const navidromeArtistsByGenre: MediaSource<MediaArtist> = {
     title: 'Artists by Genre',
     icon: 'genre',
     itemType: ItemType.Artist,
-    viewType: ViewType.ByGenre,
+    filterType: FilterType.ByGenre,
+    component: FilterBrowser,
     defaultHidden: true,
 
     search(genre?: MediaFilter): Pager<MediaArtist> {
@@ -254,17 +275,9 @@ const navidrome: PersonalMediaService = {
     name: 'Navidrome',
     url: 'https://www.navidrome.org',
     serviceType: ServiceType.PersonalMedia,
+    components: {ServerSettings},
     defaultHidden: true,
-    roots: [
-        createRoot(ItemType.Media, {title: 'Songs'}),
-        createRoot(ItemType.Album, {title: 'Albums'}),
-        createRoot(ItemType.Artist, {title: 'Artists'}),
-        createRoot(ItemType.Playlist, {
-            title: 'Playlists',
-            layout: playlistLayout,
-            secondaryLayout: playlistItemsLayout,
-        }),
-    ],
+    root: navidromeSearch,
     sources: [
         navidromeLikedSongs,
         navidromeLikedAlbums,
@@ -368,10 +381,8 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     };
 }
 
-async function getFilters(
-    viewType: ViewType.ByDecade | ViewType.ByGenre
-): Promise<readonly MediaFilter[]> {
-    if (viewType === ViewType.ByDecade) {
+async function getFilters(filterType: FilterType): Promise<readonly MediaFilter[]> {
+    if (filterType === FilterType.ByDecade) {
         return subsonicApi.getDecades();
     } else {
         return navidromeApi.getGenres();
@@ -470,14 +481,14 @@ async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
     }
 }
 
-function createRoot<T extends MediaObject>(
-    itemType: ItemType,
+function createSearch<T extends MediaObject>(
+    itemType: T['itemType'],
     props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
 ): MediaSource<T> {
     return {
         ...props,
         itemType,
-        id: `navidrome/search/${props.title.toLowerCase()}`,
+        id: props.title,
         icon: 'search',
         searchable: true,
 
@@ -503,7 +514,7 @@ function createRoot<T extends MediaObject>(
                     return new NavidromePager(itemType, 'playlist', {q, _sort: 'name'});
 
                 default:
-                    return new SimplePager();
+                    throw TypeError('Search not supported for this type of media');
             }
         },
     };

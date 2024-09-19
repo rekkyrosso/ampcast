@@ -1,14 +1,14 @@
 import {Primitive} from 'type-fest';
+import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import MediaFilter from 'types/MediaFilter';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
-import PersonalMediaLibrarySettings from 'types/PersonalMediaLibrarySettings';
+import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
-import ViewType from 'types/ViewType';
 import {chunk, shuffle} from 'utils';
 
-export interface SubsonicApiSettings extends Partial<PersonalMediaLibrarySettings> {
+export interface SubsonicApiSettings extends Partial<PersonalMediaServerSettings> {
     host: string;
     credentials: string;
 }
@@ -165,11 +165,8 @@ export default class SubsonicApi {
         return decades;
     }
 
-    async getFilters(
-        viewType: ViewType.ByDecade | ViewType.ByGenre,
-        itemType: ItemType
-    ): Promise<readonly MediaFilter[]> {
-        if (viewType === ViewType.ByDecade) {
+    async getFilters(filterType: FilterType, itemType: ItemType): Promise<readonly MediaFilter[]> {
+        if (filterType === FilterType.ByDecade) {
             return this.getDecades();
         } else {
             return this.getGenres(itemType);

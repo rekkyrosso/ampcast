@@ -1,17 +1,13 @@
 import React from 'react';
-import PersonalMediaService from 'types/PersonalMediaService';
+import {PersonalMediaServerSettingsProps} from 'components/Settings/MediaLibrarySettings/PersonalMediaServerSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import ExternalLink from 'components/ExternalLink';
 
-export interface PersonalMediaLibrarySettingsProps {
-    service: PersonalMediaService;
-}
-
-export default function NavidromeMediaLibrarySettings({
+export default function NavidromeServerSettings({
     service: navidrome,
-}: PersonalMediaLibrarySettingsProps) {
+}: PersonalMediaServerSettingsProps) {
     return (
-        <form className="personal-media-library-settings" method="dialog">
+        <form className="personal-media-server-settings" method="dialog">
             <fieldset>
                 <legend>Host</legend>
                 {navidrome.host ? <ExternalLink href={navidrome.host} /> : 'Not configured'}

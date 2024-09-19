@@ -20,6 +20,9 @@ import ListenBrainzPlaylistsPager from './ListenBrainzPlaylistsPager';
 import ListenBrainzStatsPager from './ListenBrainzStatsPager';
 import listenbrainzSettings from './listenbrainzSettings';
 import {scrobble} from './listenbrainzScrobbler';
+import ListenBrainzHistoryBrowser from './components/ListenBrainzHistoryBrowser';
+import ListenBrainzScrobblesBrowser from './components/ListenBrainzScrobblesBrowser';
+import ListenBrainzTopBrowser from './components/ListenBrainzTopBrowser';
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
@@ -31,20 +34,22 @@ export const listenbrainzHistory: MediaSource<MediaItem> = {
     title: 'History',
     icon: 'clock',
     itemType: ItemType.Media,
+    component: ListenBrainzHistoryBrowser,
 
     search({startAt: max_ts = 0}: {startAt?: number} = {}): Pager<MediaItem> {
         return new ListenBrainzHistoryPager(max_ts ? {max_ts} : undefined);
     },
 };
 
-export const listenbrainzRecentlyPlayed: MediaSource<MediaItem> = {
-    id: 'listenbrainz/recently-played',
-    title: 'Recently Played',
+export const listenbrainzScrobbles: MediaSource<MediaItem> = {
+    id: 'listenbrainz/scrobbles',
+    title: 'Scrobbles',
     icon: 'clock',
     itemType: ItemType.Media,
+    component: ListenBrainzScrobblesBrowser,
 
     search(): Pager<MediaItem> {
-        // This doesn't get called (intercepted by `Router`).
+        // This doesn't get called (intercepted by `ListenBrainzScrobblesBrowser`).
         return new SimplePager();
     },
 };
@@ -70,6 +75,7 @@ const listenbrainzTopTracks: MediaSource<MediaItem> = {
     title: 'Top Tracks',
     icon: 'star',
     itemType: ItemType.Media,
+    component: ListenBrainzTopBrowser,
     layout: {
         view: 'card compact',
         fields: ['Thumbnail', 'Title', 'Artist', 'PlayCount'],
@@ -88,6 +94,7 @@ const listenbrainzTopAlbums: MediaSource<MediaAlbum> = {
     title: 'Top Albums',
     icon: 'star',
     itemType: ItemType.Album,
+    component: ListenBrainzTopBrowser,
     layout: {
         view: 'card compact',
         fields: ['Thumbnail', 'Title', 'Artist', 'Year', 'PlayCount'],
@@ -106,6 +113,7 @@ const listenbrainzTopArtists: MediaSource<MediaArtist> = {
     title: 'Top Artists',
     icon: 'star',
     itemType: ItemType.Artist,
+    component: ListenBrainzTopBrowser,
     layout: {
         view: 'card minimal',
         fields: ['Thumbnail', 'Title', 'PlayCount'],
@@ -157,7 +165,7 @@ const listenbrainz: DataService = {
     canScrobble: true,
     defaultHidden: true,
     internetRequired: true,
-    roots: [listenbrainzRecentlyPlayed],
+    root: listenbrainzScrobbles,
     sources: [
         listenbrainzTopTracks,
         listenbrainzTopAlbums,

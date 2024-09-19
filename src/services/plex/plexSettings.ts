@@ -3,7 +3,7 @@ import {BehaviorSubject, distinctUntilChanged} from 'rxjs';
 import {nanoid} from 'nanoid';
 import DRMType from 'types/DRMType';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
-import PersonalMediaLibrarySettings from 'types/PersonalMediaLibrarySettings';
+import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
 import PlexTidalStreamingQuality from './PlexTidalStreamingQuality';
 import {LiteStorage, stringContainsMusic} from 'utils';
 
@@ -134,4 +134,4 @@ const plexSettings = {
     },
 };
 
-export default plexSettings satisfies PersonalMediaLibrarySettings;
+export default plexSettings satisfies PersonalMediaServerSettings;

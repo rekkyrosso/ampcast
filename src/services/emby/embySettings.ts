@@ -3,10 +3,10 @@ import {BehaviorSubject, distinctUntilChanged} from 'rxjs';
 import {nanoid} from 'nanoid';
 import MediaServiceId from 'types/MediaServiceId';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
-import PersonalMediaLibrarySettings from 'types/PersonalMediaLibrarySettings';
+import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
 import {LiteStorage, stringContainsMusic} from 'utils';
 
-export class EmbySettings implements PersonalMediaLibrarySettings {
+export class EmbySettings implements PersonalMediaServerSettings {
     private readonly serviceId: MediaServiceId;
     private readonly storage: LiteStorage;
     private readonly libraryId$: BehaviorSubject<string>;

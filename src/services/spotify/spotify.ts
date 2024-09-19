@@ -1,6 +1,7 @@
 import {Except} from 'type-fest';
 import Action from 'types/Action';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
+import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -8,14 +9,13 @@ import MediaItem from 'types/MediaItem';
 import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import MediaSource from 'types/MediaSource';
+import MediaSource, {MediaMultiSource} from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
 import Pin from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
-import ViewType from 'types/ViewType';
 import actionsStore from 'services/actions/actionsStore';
 import {NoSpotifyChartsError} from 'services/errors';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
@@ -32,6 +32,9 @@ import {
 import spotifyApi from './spotifyApi';
 import SpotifyPager, {SpotifyPage} from './SpotifyPager';
 import spotifySettings from './spotifySettings';
+import FilterBrowser from 'components/MediaBrowser/FilterBrowser';
+import Credentials from './components/SpotifyCredentials';
+import Login from './components/SpotifyLogin';
 
 export type SpotifyArtist = SpotifyApi.ArtistObjectFull;
 export type SpotifyAlbum = SpotifyApi.AlbumObjectFull;
@@ -65,6 +68,21 @@ const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
     fields: ['Index', 'Artist', 'Title', 'Album', 'Track', 'Duration'],
+};
+
+const spotifySearch: MediaMultiSource = {
+    id: 'spotify/search',
+    title: 'Search',
+    icon: 'search',
+    sources: [
+        createSearch<MediaItem>(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
+        createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
+        createSearch<MediaArtist>(ItemType.Artist, {title: 'Artists'}),
+        createSearch<MediaPlaylist>(ItemType.Playlist, {
+            title: 'Playlists',
+            secondaryLayout: playlistItemsLayout,
+        }),
+    ],
 };
 
 const spotifyRecentlyPlayed: MediaSource<MediaItem> = {
@@ -310,7 +328,8 @@ const spotifyPlaylistsByCategory: MediaSource<MediaPlaylist> = {
     title: 'Browse Playlists',
     icon: 'playlist',
     itemType: ItemType.Playlist,
-    viewType: ViewType.ByGenre,
+    filterType: FilterType.ByGenre,
+    component: FilterBrowser,
     layout: playlistLayout,
     secondaryLayout: playlistItemsLayout,
 
@@ -375,6 +394,7 @@ const spotify: PublicMediaService = {
     url: 'https://www.spotify.com',
     credentialsUrl: 'https://developer.spotify.com/dashboard/create',
     serviceType: ServiceType.PublicMedia,
+    components: {Credentials, Login},
     get disabled(): boolean {
         return spotifySettings.disabled;
     },
@@ -385,15 +405,7 @@ const spotify: PublicMediaService = {
     },
     restrictedAccess: location.host === 'ampcast.app' || browser.isElectron,
     editablePlaylists: spotifyEditablePlaylists,
-    roots: [
-        createRoot(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
-        createRoot(ItemType.Album, {title: 'Albums'}),
-        createRoot(ItemType.Artist, {title: 'Artists'}),
-        createRoot(ItemType.Playlist, {
-            title: 'Playlists',
-            secondaryLayout: playlistItemsLayout,
-        }),
-    ],
+    root: spotifySearch,
     sources: [
         spotifyLikedSongs,
         spotifyLikedAlbums,
@@ -524,10 +536,8 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
     };
 }
 
-async function getFilters(
-    viewType: ViewType.ByDecade | ViewType.ByGenre
-): Promise<readonly MediaFilter[]> {
-    if (viewType === ViewType.ByGenre) {
+async function getFilters(filterType: FilterType): Promise<readonly MediaFilter[]> {
+    if (filterType === FilterType.ByGenre) {
         try {
             // TODO: Spotify also has genres and I may have to re-think this.
             return await getCategories();
@@ -781,14 +791,14 @@ async function storeMany(items: readonly MediaObject[], inLibrary: boolean): Pro
     }
 }
 
-function createRoot<T extends MediaObject>(
-    itemType: ItemType,
+function createSearch<T extends MediaObject>(
+    itemType: T['itemType'],
     props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
 ): MediaSource<T> {
     return {
         ...props,
         itemType,
-        id: `spotify/search/${props.title.toLowerCase()}`,
+        id: props.title,
         icon: 'search',
         searchable: true,
 

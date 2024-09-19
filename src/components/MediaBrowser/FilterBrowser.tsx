@@ -4,22 +4,19 @@ import MediaObject from 'types/MediaObject';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import useSource from 'hooks/useSource';
-import ViewType from 'types/ViewType';
 import PageHeader from './PageHeader';
 import PagedItems from './PagedItems';
-import FilterSelector from './FilterSelector';
+import FilterSelect from './FilterSelect';
 
-type FilterType = ViewType.ByDecade | ViewType.ByGenre;
-
-export interface FilteredBrowserProps<T extends MediaObject> {
+export interface FilterBrowserProps<T extends MediaObject> {
     service: MediaService;
     source: MediaSource<T>;
 }
 
-export default function FilteredBrowser<T extends MediaObject>({
+export default function FilterBrowser<T extends MediaObject>({
     service,
     source,
-}: FilteredBrowserProps<T>) {
+}: FilterBrowserProps<T>) {
     const [filter, setFilter] = useState<MediaFilter | undefined>();
     const pager = useSource(source, filter);
 
@@ -28,18 +25,13 @@ export default function FilteredBrowser<T extends MediaObject>({
             <PageHeader icon={service.icon}>
                 {service.name}: {source.title}
             </PageHeader>
-            <FilterSelector
+            <FilterSelect
                 service={service}
-                viewType={source.viewType as FilterType}
+                filterType={source.filterType!}
                 itemType={source.itemType}
                 onSelect={setFilter}
             />
-            <PagedItems
-                service={service}
-                source={source}
-                pager={pager}
-                layout={source.layout}
-            />
+            <PagedItems service={service} source={source} pager={pager} layout={source.layout} />
         </>
     );
 }

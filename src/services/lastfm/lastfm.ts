@@ -19,6 +19,11 @@ import LastFmPager from './LastFmPager';
 import LastFmHistoryPager from './LastFmHistoryPager';
 import lastfmSettings from './lastfmSettings';
 import {scrobble} from './lastfmScrobbler';
+import LastFmHistoryBrowser from './components/LastFmHistoryBrowser';
+import LastFmScrobblesBrowser from './components/LastFmScrobblesBrowser';
+import LastFmTopBrowser from './components/LastFmTopBrowser';
+import Credentials from './components/LastFmCredentials';
+import Login from './components/LastFmLogin';
 
 const topTracksLayout: MediaSourceLayout<MediaItem> = {
     view: 'card compact',
@@ -45,20 +50,22 @@ export const lastfmHistory: MediaSource<MediaItem> = {
     title: 'History',
     icon: 'clock',
     itemType: ItemType.Media,
+    component: LastFmHistoryBrowser,
 
     search({startAt: to = 0}: {startAt?: number} = {}): Pager<MediaItem> {
         return new LastFmHistoryPager(to ? {to} : undefined);
     },
 };
 
-export const lastfmRecentlyPlayed: MediaSource<MediaItem> = {
-    id: 'lastfm/recently-played',
-    title: 'Recently Played',
+export const lastfmScrobbles: MediaSource<MediaItem> = {
+    id: 'lastfm/scrobbles',
+    title: 'Scrobbles',
     icon: 'clock',
     itemType: ItemType.Media,
+    component: LastFmScrobblesBrowser,
 
     search(): Pager<MediaItem> {
-        // This doesn't get called (intercepted by `Router`).
+        // This doesn't get called (intercepted by `LastFmScrobblesBrowser`).
         return new SimplePager();
     },
 };
@@ -101,22 +108,23 @@ const lastfm: DataService = {
     canScrobble: true,
     defaultHidden: true,
     internetRequired: true,
+    components: {Credentials, Login},
     get credentialsRequired(): boolean {
         return lastfmSettings.credentialsRequired;
     },
-    roots: [lastfmRecentlyPlayed],
+    root: lastfmScrobbles,
     sources: [
-        createTopView('user.getTopTracks', {
+        createTopView<MediaItem>('user.getTopTracks', {
             title: 'Top Tracks',
             itemType: ItemType.Media,
             layout: topTracksLayout,
         }),
-        createTopView('user.getTopAlbums', {
+        createTopView<MediaAlbum>('user.getTopAlbums', {
             title: 'Top Albums',
             itemType: ItemType.Album,
             layout: albumLayout,
         }),
-        createTopView('user.getTopArtists', {
+        createTopView<MediaArtist>('user.getTopArtists', {
             title: 'Top Artists',
             itemType: ItemType.Artist,
             layout: artistLayout,
@@ -244,6 +252,7 @@ function createTopView<T extends MediaObject>(
 ): MediaSource<T> {
     return {
         ...props,
+        component: LastFmTopBrowser,
         id: `lastfm/top/${method.slice(11).toLowerCase()}`,
         icon: 'star',
         searchable: false,

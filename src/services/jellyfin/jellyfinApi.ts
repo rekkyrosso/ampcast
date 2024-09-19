@@ -4,13 +4,13 @@ import type {
     EndPointInfo,
 } from '@jellyfin/sdk/lib/generated-client/models';
 import {Primitive} from 'type-fest';
+import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import MediaFilter from 'types/MediaFilter';
 import MediaItem from 'types/MediaItem';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
-import ViewType from 'types/ViewType';
 import embyApi from 'services/emby/embyApi';
 import jellyfinSettings from './jellyfinSettings';
 
@@ -38,10 +38,10 @@ async function createPlaylist(
 }
 
 async function getFilters(
-    viewType: ViewType.ByDecade | ViewType.ByGenre,
+    filterType: FilterType,
     itemType: ItemType
 ): Promise<readonly MediaFilter[]> {
-    return embyApi.getFilters(viewType, itemType, jellyfinSettings);
+    return embyApi.getFilters(filterType, itemType, jellyfinSettings);
 }
 
 async function getEndpointInfo(): Promise<EndPointInfo> {

@@ -2,13 +2,9 @@ import React, {useMemo} from 'react';
 import MediaService from 'types/MediaService';
 import ServiceType from 'types/ServiceType';
 import TabList, {TabItem} from 'components/TabList';
-import AppleStreamingSettings from 'services/apple/components/AppleStreamingSettings';
-import NavidromeMediaLibrarySettings from 'services/navidrome/components/NavidromeMediaLibrarySettings';
-import PlexMediaLibrarySettings from 'services/plex/components/PlexMediaLibrarySettings';
-import PlexTidalStreamingSettings from 'services/plex/components/PlexTidalStreamingSettings';
 import MediaServiceSettingsGeneral from './MediaServiceSettingsGeneral';
 import MediaServiceCredentials from './MediaServiceCredentials';
-import PersonalMediaLibrarySettings from './PersonalMediaLibrarySettings';
+import PersonalMediaServerSettings from './PersonalMediaServerSettings';
 import PinnedSettings from './PinnedSettings';
 import ScrobblingSettings from './ScrobblingSettings';
 
@@ -31,16 +27,11 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
             });
         }
         if (service.serviceType === ServiceType.PersonalMedia) {
+            const ServerSettings =
+                service.components?.ServerSettings || PersonalMediaServerSettings;
             tabs.push({
                 tab: 'Server',
-                panel:
-                    service.id === 'navidrome' ? (
-                        <NavidromeMediaLibrarySettings service={service} />
-                    ) : service.id === 'plex' ? (
-                        <PlexMediaLibrarySettings service={service} />
-                    ) : (
-                        <PersonalMediaLibrarySettings service={service} />
-                    ),
+                panel: <ServerSettings service={service} />,
             });
         }
         if (service.serviceType === ServiceType.DataService && service.canScrobble) {
@@ -49,15 +40,11 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
                 panel: <ScrobblingSettings service={service} />,
             });
         }
-        if (service.id === 'apple') {
+        const StreamingSettings = service.components?.StreamingSettings;
+        if (StreamingSettings) {
             tabs.push({
                 tab: 'Streaming',
-                panel: <AppleStreamingSettings />,
-            });
-        } else if (service.id === 'plex-tidal') {
-            tabs.push({
-                tab: 'Streaming',
-                panel: <PlexTidalStreamingSettings />,
+                panel: <StreamingSettings service={service} />,
             });
         }
         if (service.createSourceFromPin) {

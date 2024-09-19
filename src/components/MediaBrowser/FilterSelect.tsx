@@ -1,29 +1,28 @@
 import React, {useCallback, useEffect, useId, useState} from 'react';
 import {from} from 'rxjs';
+import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import MediaFilter from 'types/MediaFilter';
 import MediaService from 'types/MediaService';
-import ViewType from 'types/ViewType';
-import './FilterSelector.scss';
+import './FilterSelect.scss';
 
-export interface FilterSelectorProps {
+export interface FilterSelectProps {
     service: MediaService;
-    viewType: ViewType.ByDecade | ViewType.ByGenre;
+    filterType: FilterType;
     itemType: ItemType;
     onSelect?: (filter: MediaFilter) => void;
 }
 
-export default function FilterSelector({
-    service,
-    viewType,
-    itemType,
-    onSelect,
-}: FilterSelectorProps) {
+export default function FilterSelect({service, filterType, itemType, onSelect}: FilterSelectProps) {
     const id = useId();
     const [filters, setFilters] = useState<readonly MediaFilter[]>([]);
     const [filter, setFilter] = useState<MediaFilter | undefined>();
     const title =
-        viewType === ViewType.ByDecade ? 'Decade' : service.id === 'spotify' ? 'Category' : 'Genre';
+        filterType === FilterType.ByDecade
+            ? 'Decade'
+            : service.id === 'spotify'
+            ? 'Category'
+            : 'Genre';
 
     useEffect(() => {
         if (filter && onSelect) {
@@ -32,9 +31,9 @@ export default function FilterSelector({
     }, [filter, onSelect]);
 
     useEffect(() => {
-        const subscription = from(service.getFilters!(viewType, itemType)).subscribe(setFilters);
+        const subscription = from(service.getFilters!(filterType, itemType)).subscribe(setFilters);
         return () => subscription.unsubscribe();
-    }, [service, viewType, itemType]);
+    }, [service, filterType, itemType]);
 
     useEffect(() => {
         if (!filter) {
@@ -50,7 +49,7 @@ export default function FilterSelector({
     );
 
     return (
-        <div className="filter-selector">
+        <div className="filter-select">
             <label htmlFor={id}>{title}:</label>
             <select id={id} onChange={handleChange}>
                 {filters.map((filter, index) => (

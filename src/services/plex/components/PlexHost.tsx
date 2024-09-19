@@ -1,10 +1,10 @@
 import React from 'react';
+import {PersonalMediaServerSettingsProps} from 'components/Settings/MediaLibrarySettings/PersonalMediaServerSettings';
 import ExternalLink from 'components/ExternalLink';
-import {PlexMediaLibrarySettingsProps} from './PlexMediaLibrarySettings';
 
 const plexHost = 'https://app.plex.tv';
 
-export default function PlexHost({service: plex}: PlexMediaLibrarySettingsProps) {
+export default function PlexHost({service: plex}: PersonalMediaServerSettingsProps) {
     const host = plex.host;
     return host ? (
         /plex\.direct/.test(host) ? (

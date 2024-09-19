@@ -2,6 +2,7 @@ import type {Observable} from 'rxjs';
 import {Except, SetOptional, Writable} from 'type-fest';
 import Action from 'types/Action';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
+import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -12,7 +13,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
-import MediaSource from 'types/MediaSource';
+import MediaSource, {MediaMultiSource} from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
@@ -22,7 +23,6 @@ import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import Pin from 'types/Pin';
 import ServiceType from 'types/ServiceType';
-import ViewType from 'types/ViewType';
 import actionsStore from 'services/actions/actionsStore';
 import {NoMusicLibraryError, NoMusicVideoLibraryError} from 'services/errors';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
@@ -36,6 +36,8 @@ import EmbyPager from './EmbyPager';
 import embySettings from './embySettings';
 import embyApi from './embyApi';
 import embyScrobbler from './embyScrobbler';
+import FilterBrowser from 'components/MediaBrowser/FilterBrowser';
+import FolderBrowser from 'components/MediaBrowser/FolderBrowser';
 
 const serviceId: MediaServiceId = 'emby';
 
@@ -49,6 +51,22 @@ const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
     fields: ['Index', 'Artist', 'Title', 'Album', 'Duration', 'Genre', 'PlayCount'],
+};
+
+const embySearch: MediaMultiSource = {
+    id: 'emby/search',
+    title: 'Search',
+    icon: 'search',
+    sources: [
+        createSearch<MediaItem>(ItemType.Media, {title: 'Songs'}),
+        createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
+        createSearch<MediaArtist>(ItemType.Artist, {title: 'Artists'}),
+        createSearch<MediaPlaylist>(ItemType.Playlist, {
+            title: 'Playlists',
+            layout: playlistLayout,
+            secondaryLayout: playlistItemsLayout,
+        }),
+    ],
 };
 
 const embyLikedSongs: MediaSource<MediaItem> = {
@@ -182,7 +200,8 @@ const embyTracksByGenre: MediaSource<MediaItem> = {
     title: 'Songs by Genre',
     icon: 'genre',
     itemType: ItemType.Media,
-    viewType: ViewType.ByGenre,
+    filterType: FilterType.ByGenre,
+    component: FilterBrowser,
     defaultHidden: true,
 
     search(genre?: MediaFilter): Pager<MediaItem> {
@@ -204,7 +223,8 @@ const embyAlbumsByGenre: MediaSource<MediaAlbum> = {
     title: 'Albums by Genre',
     icon: 'genre',
     itemType: ItemType.Album,
-    viewType: ViewType.ByGenre,
+    filterType: FilterType.ByGenre,
+    component: FilterBrowser,
 
     search(genre?: MediaFilter): Pager<MediaAlbum> {
         if (genre) {
@@ -225,7 +245,8 @@ const embyArtistsByGenre: MediaSource<MediaArtist> = {
     title: 'Artists by Genre',
     icon: 'genre',
     itemType: ItemType.Artist,
-    viewType: ViewType.ByGenre,
+    filterType: FilterType.ByGenre,
+    component: FilterBrowser,
     defaultHidden: true,
 
     search(genre?: MediaFilter): Pager<MediaArtist> {
@@ -246,7 +267,8 @@ const embyTracksByDecade: MediaSource<MediaItem> = {
     title: 'Songs by Decade',
     icon: 'calendar',
     itemType: ItemType.Media,
-    viewType: ViewType.ByDecade,
+    filterType: FilterType.ByDecade,
+    component: FilterBrowser,
     defaultHidden: true,
 
     search(decade?: MediaFilter): Pager<MediaItem> {
@@ -268,7 +290,8 @@ const embyAlbumsByDecade: MediaSource<MediaAlbum> = {
     title: 'Albums by Decade',
     icon: 'calendar',
     itemType: ItemType.Album,
-    viewType: ViewType.ByDecade,
+    filterType: FilterType.ByDecade,
+    component: FilterBrowser,
 
     search(decade?: MediaFilter): Pager<MediaAlbum> {
         if (decade) {
@@ -357,7 +380,7 @@ const embyFolders: MediaSource<MediaFolderItem> = {
     title: 'Folders',
     icon: 'folder',
     itemType: ItemType.Folder,
-    viewType: ViewType.Folders,
+    component: FolderBrowser,
 
     search(): Pager<MediaFolderItem> {
         const root: Writable<SetOptional<MediaFolder, 'pager'>> = {
@@ -414,16 +437,7 @@ const emby: PersonalMediaService = {
     url: 'https://emby.media',
     serviceType: ServiceType.PersonalMedia,
     defaultHidden: true,
-    roots: [
-        createRoot(ItemType.Media, {title: 'Songs'}),
-        createRoot(ItemType.Album, {title: 'Albums'}),
-        createRoot(ItemType.Artist, {title: 'Artists'}),
-        createRoot(ItemType.Playlist, {
-            title: 'Playlists',
-            layout: playlistLayout,
-            secondaryLayout: playlistItemsLayout,
-        }),
-    ],
+    root: embySearch,
     sources: [
         embyLikedSongs,
         embyLikedAlbums,
@@ -549,10 +563,10 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
 }
 
 async function getFilters(
-    viewType: ViewType.ByDecade | ViewType.ByGenre,
+    filterType: FilterType,
     itemType: ItemType
 ): Promise<readonly MediaFilter[]> {
-    return embyApi.getFilters(viewType, itemType);
+    return embyApi.getFilters(filterType, itemType);
 }
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
@@ -608,14 +622,14 @@ async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
     }
 }
 
-function createRoot<T extends MediaObject>(
-    itemType: ItemType,
+function createSearch<T extends MediaObject>(
+    itemType: T['itemType'],
     props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
 ): MediaSource<T> {
     return {
         ...props,
         itemType,
-        id: `emby/search/${props.title.toLowerCase()}`,
+        id: props.title,
         icon: 'search',
         searchable: true,
 

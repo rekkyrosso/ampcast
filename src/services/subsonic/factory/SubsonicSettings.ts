@@ -2,10 +2,10 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged} from 'rxjs';
 import MediaServiceId from 'types/MediaServiceId';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
-import PersonalMediaLibrarySettings from 'types/PersonalMediaLibrarySettings';
+import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
 import {LiteStorage} from 'utils';
 
-export default class SubsonicSettings implements PersonalMediaLibrarySettings {
+export default class SubsonicSettings implements PersonalMediaServerSettings {
     private readonly storage: LiteStorage;
     private readonly libraryId$: BehaviorSubject<string>;
 

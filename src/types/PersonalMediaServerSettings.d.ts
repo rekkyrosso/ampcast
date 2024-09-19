@@ -1,7 +1,7 @@
 import type {Observable} from 'rxjs';
 import PersonalMediaLibrary from './PersonalMediaLibrary';
 
-export default interface PersonalMediaLibrarySettings {
+export default interface PersonalMediaServerSettings {
     readonly audioLibraries: readonly PersonalMediaLibrary[];
     readonly host: string;
     libraryId: string;
