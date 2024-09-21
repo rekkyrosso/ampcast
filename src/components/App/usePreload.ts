@@ -1,11 +1,11 @@
 import {useEffect} from 'react';
 import {isMiniPlayer} from 'utils';
-import {loadServices} from 'services/mediaServices';
+import {loadMediaServices} from 'services/mediaServices';
 import {loadVisualizers} from 'services/visualizer/visualizerProviders';
 
 export default function usePreload(): void {
     useEffect(() => {
-        loadServices();
+        loadMediaServices();
         if (isMiniPlayer) {
             loadVisualizers();
         }

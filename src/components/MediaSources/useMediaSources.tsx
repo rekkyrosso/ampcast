@@ -8,7 +8,7 @@ import {
     observePersonalMediaLibraryIdChanges,
 } from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
-import {isSourceVisible, observeVisibilityChanges} from 'services/servicesSettings';
+import {isSourceVisible, observeVisibilityChanges} from 'services/mediaServices/servicesSettings';
 import MediaBrowser from 'components/MediaBrowser';
 import {TreeNode} from 'components/TreeView';
 import MediaServiceLabel from './MediaServiceLabel';

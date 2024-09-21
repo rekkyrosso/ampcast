@@ -25,6 +25,11 @@
             .plex-tidal-not-connected &.source-plex-tidal,
             .spotify-not-connected &.source-spotify,
             .tidal-not-connected &.source-tidal {
+                &.selected .icon.show-connectivity {
+                    filter: grayscale(1);
+                    opacity: 0.5;
+                }
+                
                 &:not(.selected) {
                     color: var(--grey1-color);
                 }

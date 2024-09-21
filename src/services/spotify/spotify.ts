@@ -35,6 +35,7 @@ import spotifySettings from './spotifySettings';
 import FilterBrowser from 'components/MediaBrowser/FilterBrowser';
 import Credentials from './components/SpotifyCredentials';
 import Login from './components/SpotifyLogin';
+import './bootstrap';
 
 export type SpotifyArtist = SpotifyApi.ArtistObjectFull;
 export type SpotifyAlbum = SpotifyApi.AlbumObjectFull;
@@ -748,11 +749,11 @@ async function storeMany(items: readonly MediaObject[], inLibrary: boolean): Pro
             case ItemType.Album:
                 if (inLibrary) {
                     await Promise.all(
-                        chunk(ids, 50).map((ids) => spotifyApi.addToMySavedAlbums(ids))
+                        chunk(ids, 50).map((ids) => spotifyApi.addToMySavedAlbums({ids} as any))
                     );
                 } else {
                     await Promise.all(
-                        chunk(ids, 50).map((ids) => spotifyApi.removeFromMySavedAlbums(ids))
+                        chunk(ids, 50).map((ids) => spotifyApi.removeFromMySavedAlbums({ids} as any))
                     );
                 }
                 break;
@@ -760,11 +761,11 @@ async function storeMany(items: readonly MediaObject[], inLibrary: boolean): Pro
             case ItemType.Media:
                 if (inLibrary) {
                     await Promise.all(
-                        chunk(ids, 50).map((ids) => spotifyApi.addToMySavedTracks(ids))
+                        chunk(ids, 50).map((ids) => spotifyApi.addToMySavedTracks({ids} as any))
                     );
                 } else {
                     await Promise.all(
-                        chunk(ids, 50).map((ids) => spotifyApi.removeFromMySavedTracks(ids))
+                        chunk(ids, 50).map((ids) => spotifyApi.removeFromMySavedTracks({ids} as any))
                     );
                 }
                 break;

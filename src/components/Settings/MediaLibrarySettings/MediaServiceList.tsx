@@ -1,6 +1,6 @@
 import React, {useId} from 'react';
 import MediaService from 'types/MediaService';
-import {isSourceVisible} from 'services/servicesSettings';
+import {isSourceVisible} from 'services/mediaServices/servicesSettings';
 import MediaServiceLabel from 'components/MediaSources/MediaServiceLabel';
 import './MediaServiceList.scss';
 

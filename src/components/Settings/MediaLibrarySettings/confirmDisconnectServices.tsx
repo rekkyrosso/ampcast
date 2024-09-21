@@ -3,7 +3,7 @@ import MediaService from 'types/MediaService';
 import {confirm} from 'components/Dialog';
 import MediaServiceLabel from 'components/MediaSources/MediaServiceLabel';
 import {getEnabledServices} from 'services/mediaServices';
-import {isSourceVisible} from 'services/servicesSettings';
+import {isSourceVisible} from 'services/mediaServices/servicesSettings';
 import {Logger} from 'utils';
 import './confirmDisconnectServices.scss';
 

@@ -13,7 +13,7 @@ import {min} from 'd3-array';
 import {scaleLog} from 'd3-scale';
 import {InvFFT as ifft} from 'jsfft';
 import {observePaused} from 'services/mediaPlayback/playback';
-import spotifyPlayer, {SpotifyPlayer} from './spotifyPlayer';
+import type {SpotifyPlayer} from './spotifyPlayer';
 import spotifyApi from './spotifyApi';
 import {samplePitches} from './samplePitches';
 import {clamp, Logger} from 'utils';
@@ -80,14 +80,8 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
         segments: {},
         tatums: {},
     } as ActiveIntervals);
+    #player: SpotifyPlayer | undefined;
     #volume = 0;
-
-    constructor(spotifyPlayer: SpotifyPlayer) {
-        spotifyPlayer
-            .observeCurrentTrackState()
-            .pipe(concatMap((state) => this.updateTrackAnalysis(state)))
-            .subscribe(logger);
-    }
 
     get bar(): ActiveIntervals['bars'] {
         return this.activeIntervals.bars;
@@ -95,6 +89,18 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
 
     get beat(): ActiveIntervals['beats'] {
         return this.activeIntervals.beats;
+    }
+
+    get player(): SpotifyPlayer | undefined {
+        return this.#player;
+    }
+
+    set player(player: SpotifyPlayer | undefined) {
+        this.#player = player;
+        player
+            ?.observeCurrentTrackState()
+            .pipe(concatMap((state) => this.updateTrackAnalysis(state)))
+            .subscribe(logger);
     }
 
     get section(): ActiveIntervals['sections'] {
@@ -264,7 +270,7 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
             };
             try {
                 this.currentTrackAnalysis = await spotifyApi.getAudioAnalysisForTrack(trackId);
-                state = await spotifyPlayer.getCurrentState();
+                state = await this.player!.getCurrentState(); // synch after fetch
             } catch (err) {
                 logger.error(err);
                 this.currentTrackAnalysis = null;
@@ -411,4 +417,4 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
     }
 }
 
-export default new SpotifyAudioAnalyser(spotifyPlayer);
+export default new SpotifyAudioAnalyser();

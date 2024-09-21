@@ -32,6 +32,7 @@ import FilterBrowser from 'components/MediaBrowser/FilterBrowser';
 import Credentials from './components/AppleCredentials';
 import Login from './components/AppleLogin';
 import StreamingSettings from './components/AppleStreamingSettings';
+import './bootstrap';
 
 const defaultLayout: MediaSourceLayout<MediaItem> = {
     view: 'card',

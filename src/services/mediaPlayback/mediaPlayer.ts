@@ -5,9 +5,6 @@ import Player from 'types/Player';
 import PlaylistItem from 'types/PlaylistItem';
 import audio from 'services/audio';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
-import musicKitPlayer from 'services/apple/musicKitPlayer';
-import spotifyPlayer from 'services/spotify/spotifyPlayer';
-import tidalPlayer from 'services/tidal/tidalPlayer';
 import HLSPlayer from './players/HLSPlayer';
 import HTML5Player from './players/HTML5Player';
 import ShakaPlayer from './players/ShakaPlayer';
@@ -19,33 +16,6 @@ const hlsVideoPlayer = new HLSPlayer('video', 'hls');
 const html5AudioPlayer = new HTML5Player('audio', 'main');
 const html5VideoPlayer = new HTML5Player('video', 'main');
 const youtubePlayer = new YouTubePlayer('main');
-
-function selectPlayer(item: PlaylistItem | null): Player<PlayableItem> | null {
-    if (item) {
-        if (item.src.startsWith('youtube:')) {
-            return youtubePlayer;
-        } else if (item.src.startsWith('apple:')) {
-            return musicKitPlayer;
-        } else if (item.src.startsWith('spotify:')) {
-            return spotifyPlayer;
-        } else if (item.src.startsWith('tidal:')) {
-            return tidalPlayer;
-        } else {
-            const isVideo = item.mediaType === MediaType.Video;
-            switch (item.playbackType) {
-                case PlaybackType.DASH:
-                    // DASH video not used.
-                    return isVideo ? html5VideoPlayer : dashAudioPlayer;
-                case PlaybackType.HLS:
-                    return isVideo ? hlsVideoPlayer : hlsAudioPlayer;
-                default:
-                    return isVideo ? html5VideoPlayer : html5AudioPlayer;
-            }
-        }
-    } else {
-        return null;
-    }
-}
 
 function loadPlayer(player: Player<PlayableItem>, item: PlaylistItem | null): void {
     player.load(getPlayableItem(item));
@@ -67,21 +37,28 @@ function getPlayableItem(item: PlaylistItem | null): PlayableItem {
 
 const mediaPlayer = new OmniPlayer<PlaylistItem | null, PlayableItem>(
     'mediaPlayer',
-    selectPlayer,
     loadPlayer,
     audio
 );
 
 mediaPlayer.registerPlayers([
-    dashAudioPlayer,
-    hlsAudioPlayer,
-    hlsVideoPlayer,
-    html5AudioPlayer,
-    html5VideoPlayer,
-    youtubePlayer,
-    musicKitPlayer,
-    spotifyPlayer,
-    tidalPlayer,
+    // These selectors get evaluated in reverse order.
+    // So put defaults first.
+    [html5AudioPlayer, (item) => item?.mediaType === MediaType.Audio],
+    [html5VideoPlayer, (item) => item?.mediaType === MediaType.Video],
+    [
+        dashAudioPlayer,
+        (item) => item?.mediaType === MediaType.Audio && item.playbackType === PlaybackType.DASH,
+    ],
+    [
+        hlsAudioPlayer,
+        (item) => item?.mediaType === MediaType.Audio && item.playbackType === PlaybackType.HLS,
+    ],
+    [
+        hlsVideoPlayer,
+        (item) => item?.mediaType === MediaType.Video && item.playbackType === PlaybackType.HLS,
+    ],
+    [youtubePlayer, (item) => !!item?.src.startsWith('youtube:')],
 ]);
 
 export default mediaPlayer;

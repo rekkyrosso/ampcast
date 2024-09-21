@@ -24,7 +24,7 @@ import actionsStore from 'services/actions/actionsStore';
 import {NoTidalSubscriptionError} from 'services/errors';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
-import {isSourceVisible, observeSourceVisibility} from 'services/servicesSettings';
+import {isSourceVisible, observeSourceVisibility} from 'services/mediaServices/servicesSettings';
 import {drmKeySystems} from 'utils';
 import {login, logout} from './plexAuth';
 import plexSettings from './plexSettings';

@@ -45,12 +45,12 @@ export function observeIsLoggedIn(service: MediaService | string): Observable<bo
     );
 }
 
-export async function loadServices(): Promise<readonly MediaService[]> {
+export async function loadMediaServices(): Promise<readonly MediaService[]> {
     if (getServices().length === 0) {
-        await loadLibrary('services');
+        await loadLibrary('media-services');
         const {default: services} = await import(
             /* webpackMode: "weak" */
-            './services'
+            './all'
         );
         // Don't emit twice.
         if (getServices().length === 0) {

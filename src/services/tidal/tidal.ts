@@ -19,6 +19,7 @@ import tidalApi from './tidalApi';
 import tidalSettings from './tidalSettings';
 import Credentials from './components/TidalCredentials';
 import Login from './components/TidalLogin';
+import './bootstrap';
 
 const serviceId: MediaServiceId = 'tidal';
 

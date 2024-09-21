@@ -7,7 +7,7 @@ import {
     getScrobblers,
     getService,
 } from 'services/mediaServices';
-import {allowMultiSelect, isSourceVisible, setHiddenSources} from 'services/servicesSettings';
+import {allowMultiSelect, isSourceVisible, setHiddenSources} from 'services/mediaServices/servicesSettings';
 import Dialog, {DialogProps} from 'components/Dialog';
 import MediaServiceList from 'components/Settings/MediaLibrarySettings/MediaServiceList';
 import {IconName} from 'components/Icon';

@@ -47,13 +47,13 @@ module.exports = (args) => {
                 import: './src/index.tsx',
                 dependOn: ['lib/unidecode', 'lib/vendors'],
             },
-            'lib/services': {
-                import: './src/services/services.ts',
-                dependOn: ['lib/vendors', 'bundle'],
+            'lib/media-services': {
+                import: './src/services/mediaServices/all.ts',
+                dependOn: ['bundle'],
             },
             'lib/visualizers': {
                 import: './src/services/visualizer/visualizers.ts',
-                dependOn: ['lib/vendors', 'bundle'],
+                dependOn: ['bundle'],
             },
         },
         output: {

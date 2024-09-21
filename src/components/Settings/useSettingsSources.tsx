@@ -5,7 +5,7 @@ import {
     getPublicMediaServices,
     getDataServices,
 } from 'services/mediaServices';
-import {isSourceVisible} from 'services/servicesSettings';
+import {isSourceVisible} from 'services/mediaServices/servicesSettings';
 import {TreeNode} from 'components/TreeView';
 import MediaServiceLabel from 'components/MediaSources/MediaServiceLabel';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';

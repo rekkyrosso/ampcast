@@ -3,7 +3,7 @@ import MediaService from 'types/MediaService';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
 import {getService} from 'services/mediaServices';
-import {allowMultiSelect, isSourceVisible, setHiddenSources} from 'services/servicesSettings';
+import {allowMultiSelect, isSourceVisible, setHiddenSources} from 'services/mediaServices/servicesSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import MediaServiceList from './MediaServiceList';
 import confirmDisconnectServices from './confirmDisconnectServices';

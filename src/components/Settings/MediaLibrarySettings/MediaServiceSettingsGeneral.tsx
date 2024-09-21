@@ -1,6 +1,6 @@
 import React, {useCallback, useId, useRef} from 'react';
 import MediaService from 'types/MediaService';
-import {isSourceVisible, setHiddenSources} from 'services/servicesSettings';
+import {isSourceVisible, setHiddenSources} from 'services/mediaServices/servicesSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import DisconnectButton from './DisconnectButton';
 import './MediaServiceSettingsGeneral.scss';

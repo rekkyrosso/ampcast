@@ -2,10 +2,7 @@ import {fromEvent, of, skipWhile, switchMap, takeUntil, tap} from 'rxjs';
 import Player from 'types/Player';
 import Visualizer from 'types/Visualizer';
 import audio from 'services/audio';
-import {
-    getVisualizerProvider,
-    observeVisualizerProviders,
-} from 'services/visualizer/visualizerProviders';
+import {observeVisualizerProviders} from 'services/visualizer/visualizerProviders';
 import {nextVisualizer, noVisualizer, observeCurrentVisualizer} from 'services/visualizer';
 import {Logger} from 'utils';
 import OmniPlayer from './players/OmniPlayer';
@@ -15,19 +12,11 @@ const logger = new Logger('visualizerPlayer');
 
 const killed$ = fromEvent(window, 'pagehide');
 
-function selectPlayer(visualizer: Visualizer): Player<Visualizer> | null {
-    return getVisualizerProvider(visualizer.providerId)?.player || null;
-}
-
 function loadVisualizer(player: Player<Visualizer>, visualizer: Visualizer): void {
     player.load(visualizer);
 }
 
-const visualizerPlayer = new OmniPlayer<Visualizer>(
-    'visualizerPlayer',
-    selectPlayer,
-    loadVisualizer
-);
+const visualizerPlayer = new OmniPlayer<Visualizer>('visualizerPlayer', loadVisualizer);
 
 visualizerPlayer.loop = true;
 visualizerPlayer.muted = true;
@@ -38,7 +27,10 @@ observeVisualizerProviders()
         skipWhile((providers) => providers.length === 0),
         tap((providers) =>
             visualizerPlayer.registerPlayers(
-                providers.map((provider) => provider.createPlayer(audio))
+                providers.map((provider) => [
+                    provider.createPlayer(audio),
+                    (visualizer) => visualizer.providerId === provider.id,
+                ])
             )
         ),
         switchMap(() => miniPlayer.observeActive()),

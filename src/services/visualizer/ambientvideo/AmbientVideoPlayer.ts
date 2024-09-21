@@ -120,16 +120,6 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
         const html5Player = new HTML5Player('video', 'ambient');
         const youtubePlayer = this.createYouTubePlayer();
 
-        const selectPlayer = (visualizer: AmbientVideoVisualizer): Player<PlayableItem> | null => {
-            if (visualizer) {
-                if (visualizer.src.startsWith('youtube:')) {
-                    return youtubePlayer;
-                }
-                return html5Player;
-            }
-            return null;
-        };
-
         const loadPlayer = (
             player: Player<PlayableItem>,
             visualizer: AmbientVideoVisualizer
@@ -148,7 +138,6 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
 
         const videoPlayer = new OmniPlayer<AmbientVideoVisualizer, PlayableItem>(
             'ambientVideoPlayer',
-            selectPlayer,
             loadPlayer
         );
 
@@ -158,8 +147,16 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
 
         // Register the beats player so that it gets appended to the DOM.
         // But we don't really want it controlled after that.
-        videoPlayer.registerPlayers([html5Player, youtubePlayer, beatsPlayer]);
-        videoPlayer.unregisterPlayers([beatsPlayer]);
+        videoPlayer.registerPlayers(
+            // These selectors get evaluated in reverse order.
+            // So put defaults first.
+            [
+                [html5Player, (item) => !!item],
+                [youtubePlayer, (item) => !!item?.src.startsWith('youtube:')],
+                [beatsPlayer, () => false],
+            ]
+        );
+        videoPlayer.unregisterPlayer(beatsPlayer);
 
         return videoPlayer;
     }

@@ -8,17 +8,17 @@ import {
     merge,
     switchMap,
 } from 'rxjs';
-import {SetReturnType} from 'type-fest';
 import AudioManager from 'types/AudioManager';
 import Player from 'types/Player';
-import {partition} from 'utils';
+
+export type CanPlay<T> = (src: T) => boolean;
 
 export default class OmniPlayer<T, S = T> implements Player<T> {
     private readonly element = document.createElement('div');
-    private readonly players: Player<S>[] = [];
     private readonly player$ = new BehaviorSubject<Player<S> | null>(null);
     private readonly error$ = new Subject<unknown>();
     private stopped = true;
+    #players: Map<Player<S>, CanPlay<T>> = new Map();
     #loadError: Error | null = null;
     #autoplay = false;
     #loop = false;
@@ -29,7 +29,6 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
 
     constructor(
         id: string,
-        private readonly selectPlayer: SetReturnType<Player<T>['load'], Player<S> | null>,
         private readonly loadPlayer: (player: Player<S>, src: T) => void,
         private readonly audio?: Pick<AudioManager, 'volume'>
     ) {
@@ -64,7 +63,9 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
 
     set loop(loop: boolean) {
         this.#loop = loop;
-        this.players.forEach((player) => (player.loop = loop));
+        for (const player of this.players) {
+            player.loop = loop;
+        }
     }
 
     get muted(): boolean {
@@ -87,7 +88,9 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
 
     set volume(volume: number) {
         this.#volume = volume;
-        this.players.forEach((player) => (player.volume = volume));
+        for (const player of this.players) {
+            player.volume = volume;
+        }
         if (this.audio) {
             this.audio.volume = this.muted ? 0 : volume;
         }
@@ -149,7 +152,7 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
 
         this.loadError = null;
 
-        if (nextPlayer && !this.players.includes(nextPlayer)) {
+        if (nextPlayer && !this.#players.has(nextPlayer)) {
             this.loadError = Error('Player not registered');
             return;
         }
@@ -199,35 +202,53 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
         this.#width = width;
         this.#height = height;
         if (width * height > 0) {
-            this.players.forEach((player) => player.resize(width, height));
+            for (const player of this.players) {
+                player.resize(width, height);
+            }
         }
     }
 
-    registerPlayers(players: readonly Player<S>[]): void {
-        players
-            .filter((player) => !this.players.includes(player))
-            .forEach((player) => {
-                player.muted = true;
-                player.hidden = true;
-                player.autoplay = this.autoplay;
-                player.loop = this.loop;
-                player.volume = this.volume;
-                if (this.#width * this.#height > 0) {
-                    player.resize(this.#width, this.#height);
-                }
-                player.appendTo(this.element);
-                this.players.push(player);
-            });
+    registerPlayer(player: Player<S>, canPlay: CanPlay<T>): void {
+        if (!this.#players.has(player)) {
+            player.muted = true;
+            player.hidden = true;
+            player.autoplay = this.autoplay;
+            player.loop = this.loop;
+            player.volume = this.volume;
+            if (this.#width * this.#height > 0) {
+                player.resize(this.#width, this.#height);
+            }
+            player.appendTo(this.element);
+            this.#players.set(player, canPlay);
+        }
     }
 
-    unregisterPlayers(players: readonly Player<S>[]): void {
-        const playersToRemove = players.filter((player) => this.players.includes(player));
-        const [removed, remaining] = partition(this.players, (player) =>
-            playersToRemove.includes(player)
-        );
-        removed.forEach((player) => player.stop());
-        this.players.length = 0;
-        this.players.push(...remaining);
+    registerPlayers(players: [Player<S>, CanPlay<T>][]): void {
+        for (const [player, canPlay] of players) {
+            this.registerPlayer(player, canPlay);
+        }
+    }
+
+    selectPlayer(src: T): Player<S> | null {
+        // Test most recent entries first.
+        // > The Map object holds key-value pairs and remembers the original insertion order of the keys.
+        // https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Map
+        const entries = [...this.#players.entries()].reverse();
+        for (const [player, canPlay] of entries) {
+            if (canPlay(src)) {
+                return player;
+            }
+        }
+        return null;
+    }
+
+    unregisterPlayer(player: Player<S>): void {
+        if (this.#players.has(player)) {
+            if (this.currentPlayer === player) {
+                player.stop();
+            }
+            this.#players.delete(player);
+        }
     }
 
     private get currentPlayer(): Player<S> | null {
@@ -243,6 +264,10 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
         if (error) {
             this.error$.next(error);
         }
+    }
+
+    private get players(): IterableIterator<Player<S>> {
+        return this.#players.keys();
     }
 
     private observeCurrentPlayer(): Observable<Player<S> | null> {
