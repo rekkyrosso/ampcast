@@ -1,5 +1,6 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, map, mergeMap, skipWhile, switchMap, tap} from 'rxjs';
+import {BehaviorSubject, map, mergeMap, of, skipWhile, switchMap, tap} from 'rxjs';
+import Visualizer from 'types/Visualizer';
 import VisualizerProvider from 'types/VisualizerProvider';
 import {loadLibrary, Logger} from 'utils';
 import visualizerSettings from './visualizerSettings';
@@ -12,6 +13,20 @@ export function observeVisualizerProviders(): Observable<readonly VisualizerProv
     return visualizerProviders$;
 }
 
+export function observeVisualizersByProviderId(
+    providerId: string
+): Observable<readonly Visualizer[]> {
+    return observeVisualizerProviders().pipe(
+        switchMap((providers) =>
+            providers.length === 0
+                ? of([])
+                : of(getVisualizerProvider(providerId)).pipe(
+                      switchMap((provider) => (provider ? provider.observeVisualizers() : of([])))
+                  )
+        )
+    );
+}
+
 function getVisualizerProviders(): readonly VisualizerProvider[] {
     return visualizerProviders$.value;
 }
@@ -20,6 +35,14 @@ export function getEnabledVisualizerProviders(): readonly VisualizerProvider[] {
     return getVisualizerProviders().filter(
         (provider) => provider.id !== 'ambientvideo' || visualizerSettings.ambientVideoEnabled
     );
+}
+
+export function getVisualizer(providerId: string, name: string): Visualizer | undefined {
+    return getVisualizers(providerId).find((visualizer) => visualizer.name === name);
+}
+
+export function getVisualizers(providerId: string): readonly Visualizer[] {
+    return getVisualizerProvider(providerId)?.visualizers || [];
 }
 
 export function getVisualizerProvider(providerId: string): VisualizerProvider | undefined {

@@ -1,10 +1,12 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import VisualizerProviderId from 'types/VisualizerProviderId';
+import {t} from 'services/i18n';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
 import TabList, {TabItem} from 'components/TabList';
 import VisualizerSettingsGeneral from './VisualizerSettingsGeneral';
 import AmbientVideoSettings from './AmbientVideoSettings';
 import CoverArtSettings from './CoverArtSettings';
+import VisualizerFavorites from './VisualizerFavorites';
 import './VisualizerSettings.scss';
 
 export default function VisualizerSettings() {
@@ -71,6 +73,10 @@ export default function VisualizerSettings() {
                         onSubmit={handleSubmit}
                     />
                 ),
+            },
+            {
+                tab: t('Favorites'),
+                panel: <VisualizerFavorites />,
             },
         ],
         [ambientVideoEnabled, handleSubmit]

@@ -8,13 +8,9 @@ import {
     lockVisualizer,
     unlockVisualizer,
     nextVisualizer,
-    observeCurrentVisualizers,
     observeNextVisualizerReason,
 } from 'services/visualizer';
-import {
-    observeVisualizerProviderId,
-    observeLockedVisualizer,
-} from 'services/visualizer/visualizerSettings';
+import {observeVisualizerLocked} from 'services/visualizer/visualizerSettings';
 import AppTitle from 'components/App/AppTitle';
 import Icon from 'components/Icon';
 import IconButton from 'components/Button/IconButton';
@@ -28,10 +24,11 @@ import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
 import useMiniPlayerActive from 'hooks/useMiniPlayerActive';
 import usePreferences from 'hooks/usePreferences';
 import usePaused from 'hooks/usePaused';
-import useVideoSourceIcon from './useVideoSourceIcon';
 import MediaButtons from './MediaButtons';
 import ProgressBar from './ProgressBar';
 import Static from './Static';
+import useCanLockVisualizer from './useCanLockVisualizer';
+import useVideoSourceIcon from './useVideoSourceIcon';
 import './VisualizerControls.scss';
 
 export interface VisualizerControlsProps {
@@ -43,13 +40,9 @@ export default memo(function VisualizerControls({
     fullscreen,
     onFullscreenToggle,
 }: VisualizerControlsProps) {
-    const currentVisualizers = useObservable(observeCurrentVisualizers, []);
     const currentVisualizer = useCurrentVisualizer();
-    const locked = useObservable(observeLockedVisualizer, false);
-    const providerId = useObservable(observeVisualizerProviderId, '');
-    const hasVisualizers = providerId !== 'none';
-    const isRandom = !providerId;
-    const canLock = isRandom || currentVisualizers.length > 1;
+    const locked = useObservable(observeVisualizerLocked, false);
+    const canLock = useCanLockVisualizer();
     const hasNext = canLock && !locked;
     const videoSourceIcon = useVideoSourceIcon();
     const [nextClicked, setNextClicked] = useState(false);
@@ -60,8 +53,7 @@ export default memo(function VisualizerControls({
     const preferences = usePreferences();
     const miniPlayerEnabled = preferences.miniPlayer && !isMiniPlayer && !browser.isElectron;
     const miniPlayerActive = useMiniPlayerActive();
-    const showStatic =
-        hasVisualizers && nextClicked && !paused && !isPlayingVideo && !miniPlayerActive;
+    const showStatic = nextClicked && !paused && !isPlayingVideo && !miniPlayerActive;
 
     const openInfoDialog = useCallback(() => {
         showDialog(CurrentlyPlayingDialog);
@@ -123,26 +115,24 @@ export default memo(function VisualizerControls({
                     />
                 ) : null}
             </IconButtons>
-            {hasVisualizers ? (
-                <IconButtons className="visualizer-buttons visualizer-controls-selector">
-                    {canLock || locked ? (
-                        <IconButton
-                            icon={locked ? 'locked' : 'unlocked'}
-                            title={`${locked ? 'Unlock' : 'Lock the current visualizer'}`}
-                            tabIndex={-1}
-                            onClick={locked ? unlockVisualizer : lockVisualizer}
-                        />
-                    ) : null}
-                    {hasNext ? (
-                        <IconButton
-                            icon="right"
-                            title="Next visualizer"
-                            tabIndex={-1}
-                            onClick={handleNextClick}
-                        />
-                    ) : null}
-                </IconButtons>
-            ) : null}
+            <IconButtons className="visualizer-buttons visualizer-controls-selector">
+                {canLock || locked ? (
+                    <IconButton
+                        icon={locked ? 'locked' : 'unlocked'}
+                        title={`${locked ? 'Unlock' : 'Lock the current visualizer'}`}
+                        tabIndex={-1}
+                        onClick={locked ? unlockVisualizer : lockVisualizer}
+                    />
+                ) : null}
+                {hasNext ? (
+                    <IconButton
+                        icon="right"
+                        title="Next visualizer"
+                        tabIndex={-1}
+                        onClick={handleNextClick}
+                    />
+                ) : null}
+            </IconButtons>
             <MediaButtons />
         </div>
     );

@@ -6,6 +6,7 @@ import contrast from './contrast.json';
 import debug from './debug.json';
 import glacier from './glacier.json';
 import indigo from './indigo.json';
+import jeep from './jeep.json';
 import lego from './lego.json';
 import mellowyellow from './mellowyellow.json';
 import moodyblue from './moodyblue.json';
@@ -56,6 +57,7 @@ const themes: readonly Theme[] = [
     contrast,
     glacier,
     indigo,
+    jeep,
     lego,
     mellowyellow,
     moodyblue,

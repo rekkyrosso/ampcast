@@ -1,0 +1,14 @@
+{
+    "name": "Jeep",
+    "fontName": "Overpass",
+    "backgroundColor": "#101202",
+    "textColor": "#8ebf88",
+    "frameColor": "#1c2103",
+    "frameTextColor": "#cbcdb1",
+    "selectedBackgroundColor": "#594203",
+    "selectedTextColor": "#ffffff",
+    "scrollbarThickness": 1,
+    "spacing": 0.72,
+    "roundness": 0.84,
+    "flat": false
+}

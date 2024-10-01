@@ -21,7 +21,7 @@ export default function useVideoSourceIcon(): MediaSourceIconName | '' {
             }
         } else if (
             visualizer?.providerId === 'ambientvideo' &&
-            visualizer.src.startsWith('youtube:')
+            visualizer.video.src.startsWith('youtube:')
         ) {
             setIcon('youtube');
         } else {

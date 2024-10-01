@@ -7,7 +7,7 @@ import {LiteStorage} from 'utils';
 type VisualizerKeys = Pick<Visualizer, 'providerId' | 'name'>;
 
 export interface VisualizerSettings {
-    provider: VisualizerProviderId | '';
+    provider: VisualizerProviderId | 'favorites' | 'random';
     ambientVideoBeats: boolean;
     ambientVideoEnabled: boolean;
     ambientVideoSource: string;
@@ -30,7 +30,7 @@ const visualizerSettings: VisualizerSettings = {
             storage.setBoolean('ambientVideoEnabled', ambientVideoEnabled);
             if (!ambientVideoEnabled) {
                 if (this.provider === 'ambientvideo') {
-                    storage.setString('provider', '');
+                    storage.setString('provider', 'random');
                 }
                 if (this.lockedVisualizer?.providerId === 'ambientvideo') {
                     storage.removeItem('lockedVisualizer');
@@ -118,11 +118,11 @@ const visualizerSettings: VisualizerSettings = {
         }
     },
 
-    get provider(): VisualizerProviderId {
-        return storage.getString('provider');
+    get provider(): VisualizerSettings['provider'] {
+        return storage.getString('provider') || 'random';
     },
 
-    set provider(provider: VisualizerProviderId) {
+    set provider(provider: VisualizerSettings['provider']) {
         if (provider !== this.provider) {
             storage.setString('provider', provider);
             if (provider && this.lockedVisualizer?.providerId !== provider) {
@@ -141,14 +141,14 @@ export function observeVisualizerSettings(): Observable<Readonly<VisualizerSetti
     );
 }
 
-export function observeLockedVisualizer(): Observable<boolean> {
+export function observeVisualizerLocked(): Observable<boolean> {
     return observeVisualizerSettings().pipe(
         map((settings) => !!settings.lockedVisualizer),
         distinctUntilChanged()
     );
 }
 
-export function observeVisualizerProviderId(): Observable<VisualizerProviderId | ''> {
+export function observeVisualizerProvider(): Observable<VisualizerSettings['provider']> {
     return observeVisualizerSettings().pipe(
         map((settings) => settings.provider),
         distinctUntilChanged()

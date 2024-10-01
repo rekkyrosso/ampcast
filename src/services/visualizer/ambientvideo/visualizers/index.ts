@@ -67,9 +67,5 @@ async function getUserAmbientVideos(url: string): Promise<AmbientVideoVisualizer
     if (type === 'playlist') {
         videoIds = await loadYouTubePlaylist(id);
     }
-    return videoIds.map((videoId) => ({
-        providerId: 'ambientvideo',
-        name: videoId,
-        src: `youtube:video:${videoId}`,
-    }));
+    return videoIds.map((videoId) => youtubeApi.createAmbientVideo(videoId));
 }

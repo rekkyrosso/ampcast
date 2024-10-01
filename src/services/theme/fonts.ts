@@ -26,6 +26,7 @@ const fonts: readonly Font[] = [
     googleFont('Montserrat'),
     googleFont('Nunito Sans'),
     googleFont('Open Sans'),
+    googleFont('Overpass'),
     googleFont('Poppins'),
     googleFont('Proxima Nova'),
     googleFont('Roboto'),

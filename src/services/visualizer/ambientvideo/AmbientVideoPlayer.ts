@@ -116,15 +116,15 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
         this.beatsPlayer.resize(width);
     }
 
-    private createVideoPlayer(beatsPlayer: Player<any>): Player<PlayableItem> {
+    private createVideoPlayer(beatsPlayer: Player<any>): Player<AmbientVideoVisualizer> {
         const html5Player = new HTML5Player('video', 'ambient');
         const youtubePlayer = this.createYouTubePlayer();
 
         const loadPlayer = (
             player: Player<PlayableItem>,
-            visualizer: AmbientVideoVisualizer
+            {video}: AmbientVideoVisualizer
         ): void => {
-            const src = visualizer.src;
+            const src = video.src;
             if (src.startsWith('youtube:')) {
                 const [, , videoId] = src.split(':');
                 const key = this.getProgressKey();
@@ -132,7 +132,7 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
                 const startTime = progress[videoId] || (key === 'progress' ? 120 : 0);
                 player.load({src, startTime});
             } else {
-                player.load({src});
+                player.load(video);
             }
         };
 
@@ -152,7 +152,7 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
             // So put defaults first.
             [
                 [html5Player, (item) => !!item],
-                [youtubePlayer, (item) => !!item?.src.startsWith('youtube:')],
+                [youtubePlayer, (item) => !!item?.video.src.startsWith('youtube:')],
                 [beatsPlayer, () => false],
             ]
         );

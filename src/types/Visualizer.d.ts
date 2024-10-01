@@ -3,6 +3,7 @@ import type {Options as AudioMotionOptions} from 'audiomotion-analyzer';
 import type {SpotifyVizConfig} from 'services/visualizer/spotifyviz/SpotifyVizPlayer';
 import type {WaveformConfig} from 'services/visualizer/waveform/WaveformPlayer';
 import BaseVisualizer from './BaseVisualizer';
+import PlayableItem from './PlayableItem';
 
 export interface NoVisualizer extends BaseVisualizer {
     providerId: 'none';
@@ -11,7 +12,7 @@ export interface NoVisualizer extends BaseVisualizer {
 
 export interface AmbientVideoVisualizer extends BaseVisualizer {
     providerId: 'ambientvideo';
-    src: string; // TODO: Convert to `PlayableItem`.
+    video: PlayableItem;
 }
 
 export interface AmpShaderVisualizer extends BaseVisualizer {

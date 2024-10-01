@@ -380,7 +380,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
 
     private readonly onTimeChange: any = ({currentPlaybackTime}: {currentPlaybackTime: number}) => {
         const playbackState = this.player?.playbackState || 0;
-        // Skip the playback states that always emits zero.
+        // Skip the playback states that always emit zero.
         if (playbackState && playbackState !== MusicKit.PlaybackStates.stopped) {
             this.currentTime$.next(currentPlaybackTime);
         }

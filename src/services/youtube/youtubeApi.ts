@@ -1,5 +1,6 @@
 import {Except} from 'type-fest';
 import getYouTubeID from 'get-youtube-id';
+import {AmbientVideoVisualizer} from 'types/Visualizer';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
@@ -32,6 +33,15 @@ async function post<T = any>({
         body = JSON.stringify(body);
     }
     return youtubeFetch({method: 'POST', headers, body, ...request});
+}
+
+function createAmbientVideo(videoId: string, startTime?: number): AmbientVideoVisualizer {
+    return {
+        providerId: 'ambientvideo',
+        name: videoId,
+        externalUrl: getVideoUrl(videoId),
+        video: {src: `youtube:video:${videoId}`, startTime},
+    };
 }
 
 async function youtubeFetch<T = any>({
@@ -141,12 +151,18 @@ function getVideoUrl(videoId: string): string {
     return `${youtubeHost}/watch?v=${videoId}`;
 }
 
+function isVideoId(id: string): boolean {
+    return /[\w-]{11}/.test(id)
+}
+
 const youtubeApi = {
     get,
+    post,
+    createAmbientVideo,
     getVideoInfo,
     getVideoSrc,
     getVideoUrl,
-    post,
+    isVideoId,
 };
 
 export default youtubeApi;

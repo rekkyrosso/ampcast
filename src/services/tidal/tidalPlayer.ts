@@ -170,8 +170,8 @@ export class TidalPlayer implements Player<PlayableItem> {
         this.player?.seek(time);
     }
 
-    resize(width: number, height: number): void {
-        console.log({width, height}); // TODO
+    resize(): void {
+        // TODO
     }
 
     private get item(): PlayableItem | null {
@@ -208,15 +208,13 @@ export class TidalPlayer implements Player<PlayableItem> {
             } = event as CustomEvent;
             const context = player.getPlaybackContext();
             const duration = context?.actualDuration || 0;
-            console.log('playback-state-change', {state, duration});
             this.duration$.next(duration);
             if (state === 'PLAYING') {
                 this.playing$.next();
             }
         });
 
-        events.addEventListener('ended', (event) => {
-            console.log('ended', {event});
+        events.addEventListener('ended', () => {
             if (!this.paused) {
                 this.ended$.next();
             }
@@ -228,7 +226,7 @@ export class TidalPlayer implements Player<PlayableItem> {
             await waitForLogin('tidal', 3000);
             this.hasWaited = true;
         }
-        
+
         const {credentialsProvider} = await import(
             /* webpackMode: "weak" */
             '@tidal-music/auth'

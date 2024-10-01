@@ -1,6 +1,8 @@
 import React, {useId} from 'react';
+import {t} from 'services/i18n';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
+import useVisualizerFavorites from 'hooks/useVisualizerFavorites';
 import useVisualizerProviders from 'hooks/useVisualizerProviders';
 
 export interface VisualizerSettingsGeneralProps {
@@ -17,6 +19,7 @@ export default function VisualizerSettingsGeneral({
     onSubmit,
 }: VisualizerSettingsGeneralProps) {
     const id = useId();
+    const favorites = useVisualizerFavorites();
     const provider = visualizerSettings.provider;
     const providers = useVisualizerProviders();
 
@@ -31,7 +34,10 @@ export default function VisualizerSettingsGeneral({
                     key={providers.length} // refresh the selected option
                 >
                     <option value="none">(none)</option>
-                    {providers.length > 1 ? <option value="">(random)</option> : null}
+                    <option value="favorites" disabled={favorites.length === 0}>
+                        ({t('favorites')})
+                    </option>
+                    {providers.length > 1 ? <option value="random">(random)</option> : null}
                     {providers
                         .filter((provider) => provider.id !== 'ambientvideo' || ambientVideoEnabled)
                         .map((provider) => (

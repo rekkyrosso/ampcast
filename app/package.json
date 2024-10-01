@@ -4,6 +4,10 @@
     "version": "0.9.9",
     "description": "Ampcast music player",
     "homepage": "https://ampcast.app",
+    "repository": {
+        "type": "git",
+        "url": "git+https://github.com/rekkyrosso/ampcast.git"
+    },
     "author": {
         "name": "rekkyrosso",
         "email": "rekkyrosso@gmail.com"
