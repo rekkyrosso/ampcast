@@ -33,6 +33,17 @@ export default class WrappedPager<T extends MediaObject> implements Pager<T> {
         return undefined;
     }
 
+    observeBusy(): Observable<boolean> {
+        return combineLatest([
+            this.headerPager?.observeBusy() || of(false),
+            this.bodyPager.observeBusy(),
+            this.footerPager?.observeBusy() || of(false),
+        ]).pipe(
+            map(([headerBusy, bodyBusy, footerBusy]) => headerBusy || bodyBusy || footerBusy),
+            distinctUntilChanged()
+        );
+    }
+
     observeItems(): Observable<readonly T[]> {
         return combineLatest([
             this.headerPager?.observeItems() || of([]),

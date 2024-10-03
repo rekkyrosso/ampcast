@@ -11,16 +11,11 @@
     text-overflow: ellipsis;
     user-select: none;
 
-    .message {
-        display: inline-block;
-    }
-
-    .error {
+    .message.error {
         color: inherit;
     }
 
     .icon {
         margin-right: 0.25em;
-        min-width: 1em;
     }
 }

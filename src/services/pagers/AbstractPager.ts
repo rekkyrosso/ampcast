@@ -31,10 +31,11 @@ let pagerCount = 0;
 
 export default abstract class AbstractPager<T extends MediaObject> implements Pager<T> {
     private readonly additions$ = new BehaviorSubject<readonly T[]>(UNINITIALIZED);
-    private readonly error$ = new BehaviorSubject<unknown>(UNINITIALIZED);
+    private readonly error$ = new BehaviorSubject<unknown>(undefined);
     private readonly items$ = new BehaviorSubject<readonly T[]>(UNINITIALIZED);
     private readonly fetches$ = new BehaviorSubject<PageFetch>({index: 0, length: 0});
-    private readonly size$ = new BehaviorSubject<number>(-1);
+    private readonly size$ = new BehaviorSubject(-1);
+    private readonly busy$ = new BehaviorSubject(false);
     private readonly srcs = new Set<string>();
     private subscriptions?: Subscription;
     #disconnected = false;
@@ -49,8 +50,15 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
         return this.additions$.pipe(skipWhile((additions) => additions === UNINITIALIZED));
     }
 
+    observeBusy(): Observable<boolean> {
+        return this.busy$.pipe(distinctUntilChanged());
+    }
+
     observeError(): Observable<unknown> {
-        return this.error$.pipe(skipWhile((error) => error === UNINITIALIZED));
+        return this.error$.pipe(
+            skipWhile((error) => error === undefined),
+            distinctUntilChanged()
+        );
     }
 
     observeItems(): Observable<readonly T[]> {
@@ -101,6 +109,14 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
         this.fetches$.next({index, length});
     }
 
+    protected get busy(): boolean {
+        return this.busy$.value;
+    }
+
+    protected set busy(busy: boolean) {
+        this.busy$.next(busy);
+    }
+
     protected get connected(): boolean {
         return !!this.subscriptions;
     }
@@ -110,8 +126,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
     }
 
     protected get error(): unknown {
-        const error = this.error$.getValue();
-        return error === UNINITIALIZED ? undefined : error;
+        return this.error$.value;
     }
 
     protected set error(error: unknown) {
@@ -119,7 +134,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
     }
 
     protected get items(): readonly T[] {
-        return this.items$.getValue();
+        return this.items$.value;
     }
 
     protected set items(items: readonly T[]) {
@@ -144,7 +159,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
     }
 
     protected get size(): number | undefined {
-        const size = this.size$.getValue();
+        const size = this.size$.value;
         return size === -1 ? undefined : size;
     }
 

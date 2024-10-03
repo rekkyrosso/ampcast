@@ -1,16 +1,15 @@
 import {useEffect, useMemo, useState} from 'react';
 import {
     Subscription,
+    concatMap,
     delay,
     interval,
     map,
     merge,
-    mergeMap,
     skip,
     skipWhile,
     switchMap,
     take,
-    tap,
 } from 'rxjs';
 import MediaItem from 'types/MediaItem';
 import Pager from 'types/Pager';
@@ -53,17 +52,18 @@ export default function useRecentlyPlayedPager(
                     map((items) => items[0].playedAt),
                     switchMap((playedAt) =>
                         refresh$.pipe(
-                            mergeMap(() => fetchRecentlyPlayed(playedAt + 1)),
-                            tap((items) => recentPager.next(items))
+                            concatMap(() =>
+                                recentPager.next(() => fetchRecentlyPlayed(playedAt + 1))
+                            )
                         )
                     )
                 )
                 .subscribe(logger)
         );
 
-        subscription.add(pager.observeSize().pipe(tap(setTotal)).subscribe(logger));
+        subscription.add(pager.observeSize().subscribe(setTotal));
 
-        recentPager.next([]);
+        recentPager.next(async () => []);
         setPager(pager);
 
         return () => subscription.unsubscribe();

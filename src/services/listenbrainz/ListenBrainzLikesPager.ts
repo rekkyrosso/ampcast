@@ -48,6 +48,10 @@ export default class ListenBrainzLikesPager implements Pager<MediaItem> {
         return this.pager.maxSize;
     }
 
+    observeBusy(): Observable<boolean> {
+        return this.pager.observeBusy();
+    }
+
     observeItems(): Observable<readonly MediaItem[]> {
         return this.pager.observeItems();
     }

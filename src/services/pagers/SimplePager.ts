@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, NEVER, map} from 'rxjs';
+import {NEVER, BehaviorSubject, map, of} from 'rxjs';
 import Pager from 'types/Pager';
 
 export default class SimplePager<T> implements Pager<T> {
@@ -8,6 +8,10 @@ export default class SimplePager<T> implements Pager<T> {
 
     constructor(items: readonly T[] = []) {
         this.items$.next(items);
+    }
+
+    observeBusy(): Observable<boolean> {
+        return of(false);
     }
 
     observeItems(): Observable<readonly T[]> {
@@ -31,6 +35,6 @@ export default class SimplePager<T> implements Pager<T> {
     }
 
     private get items(): readonly T[] {
-        return this.items$.getValue();
+        return this.items$.value;
     }
 }

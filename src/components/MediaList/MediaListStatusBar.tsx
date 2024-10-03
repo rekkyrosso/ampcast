@@ -1,12 +1,14 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import MediaObject from 'types/MediaObject';
+import {clamp} from 'utils';
 import StatusBar from 'components/StatusBar';
-import Icon from 'components/Icon';
+import ProgressRing from './ProgressRing';
 
 export interface MediaListStatusBarProps {
     items: readonly MediaObject[];
     size?: number;
     maxSize?: number;
+    busy?: boolean;
     error?: unknown;
     loading?: boolean;
     loadingText?: string; // e.g. "Loading", "Searching"
@@ -19,6 +21,7 @@ export default function MediaListStatusBar({
     items,
     size,
     maxSize,
+    busy,
     error,
     loading,
     loadingText = 'Loading',
@@ -26,13 +29,28 @@ export default function MediaListStatusBar({
     itemName = 'item',
     itemNamePlural = itemName + 's',
 }: MediaListStatusBarProps) {
+    const [pageSize, setPageSize] = useState(0);
+    const itemCount = getArrayCount(items);
+    const progress = getProgress(itemCount, size === undefined ? maxSize : size, pageSize || 50);
     let statusText: React.ReactNode = '';
+
+    useEffect(() => {
+        if (!pageSize && itemCount) {
+            setPageSize(itemCount);
+        }
+    }, [pageSize, itemCount]);
 
     if (loading) {
         statusText = <span className="message">{loadingText}…</span>;
     } else {
-        if (items.length > 0) {
-            const itemCount = getArrayCount(items);
+        if (error) {
+            const message = getErrorMessage(error);
+            statusText = (
+                <span className="message error">{message ? `Error: ${message}` : 'Error'}</span>
+            );
+        } else if (itemCount === 0) {
+            statusText = <span className="message">0 {itemNamePlural}</span>;
+        } else {
             const selection = (
                 <span className="selected">({formatNumber(selectedCount)} selected)</span>
             );
@@ -51,20 +69,15 @@ export default function MediaListStatusBar({
                     {message} {selection}
                 </span>
             );
-        } else if (error) {
-            const message = getErrorMessage(error);
-            statusText = (
-                <>
-                    <Icon name="error" />
-                    <span className="message error">{message ? `Error: ${message}` : 'Error'}</span>
-                </>
-            );
-        } else {
-            statusText = <span className="message">0 {itemNamePlural}</span>;
         }
     }
 
-    return <StatusBar>{statusText}</StatusBar>;
+    return (
+        <StatusBar>
+            <ProgressRing busy={busy} error={!!error} progress={progress} />
+            {statusText}
+        </StatusBar>
+    );
 }
 
 function getArrayCount(array: readonly any[]): number {
@@ -78,6 +91,18 @@ function formatNumber(value = 0): string {
         return String(value);
     } else {
         return value.toLocaleString();
+    }
+}
+
+function getProgress(count: number, size: number | undefined, pageSize: number) {
+    if (count === size) {
+        return 1;
+    } else if (count === 0) {
+        return 0;
+    } else if (size) {
+        return clamp(0.05, count / size, 0.95);
+    } else {
+        return clamp(0.1, count / (pageSize * 10), 0.9);
     }
 }
 

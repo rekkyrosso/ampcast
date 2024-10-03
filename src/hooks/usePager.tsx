@@ -10,6 +10,7 @@ export interface PagerState<T> {
     size?: number | undefined;
     maxSize?: number | undefined;
     error: unknown;
+    busy: boolean;
     loaded: boolean;
 }
 
@@ -19,10 +20,11 @@ export default function usePager<T>(pager: Pager<T> | null) {
     const [size, setSize] = useState<number | undefined>(undefined);
     const [maxSize, setMaxSize] = useState<number | undefined>(undefined);
     const [error, setError] = useState<unknown>();
+    const [busy, setBusy] = useState(false);
     const [loaded, setLoaded] = useState(false);
     const state: PagerState<T> = useMemo(
-        () => ({items, size, maxSize, error, loaded}),
-        [items, size, maxSize, error, loaded]
+        () => ({items, size, maxSize, error, busy, loaded}),
+        [items, size, maxSize, error, busy, loaded]
     );
 
     const fetchAt = useCallback(
@@ -34,9 +36,10 @@ export default function usePager<T>(pager: Pager<T> | null) {
 
     useEffect(() => {
         setItems([]);
-        setSize(undefined);
+        setSize(pager ? undefined : 0);
         setMaxSize(undefined);
         setError(undefined);
+        setBusy(false);
         setLoaded(false);
 
         if (!pager) {
@@ -46,6 +49,7 @@ export default function usePager<T>(pager: Pager<T> | null) {
         const items$ = pager.observeItems();
         const size$ = pager.observeSize();
         const error$ = pager.observeError();
+        const busy$ = pager.observeBusy();
         const loaded$ = merge(items$, error$).pipe(
             take(1),
             map(() => true)
@@ -60,10 +64,13 @@ export default function usePager<T>(pager: Pager<T> | null) {
         subscription.add(concat(flush$, items$).subscribe(setItems));
         subscription.add(size$.subscribe(setSize));
         subscription.add(error$.subscribe(setError));
+        subscription.add(busy$.subscribe(setBusy));
         subscription.add(loaded$.subscribe(setLoaded));
-        subscription.add(fetch$.subscribe(([index, length]) => {
-            pager.fetchAt(index, length);
-        }));
+        subscription.add(
+            fetch$.subscribe(([index, length]) => {
+                pager.fetchAt(index, length);
+            })
+        );
 
         setMaxSize(pager.maxSize);
 

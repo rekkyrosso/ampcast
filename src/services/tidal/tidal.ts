@@ -41,6 +41,7 @@ const tidalSearch: MediaMultiSource = {
         createSearch<MediaItem>(ItemType.Media, {title: 'Tracks', layout: defaultLayout}),
         createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
         createSearch<MediaArtist>(ItemType.Artist, {title: 'Artists'}),
+        createSearch<MediaPlaylist>(ItemType.Playlist, {title: 'Playlists'}),
         createSearch<MediaItem>(ItemType.Media, {
             title: 'Videos',
             mediaType: MediaType.Video,
@@ -161,6 +162,9 @@ function createSearch<T extends MediaObject>(
 
                         case ItemType.Artist:
                             return tidalApi.searchArtists(q, cursor);
+
+                        case ItemType.Playlist:
+                            return tidalApi.searchPlaylists(q, cursor);
 
                         default:
                             throw TypeError('Search not supported for this type of media');

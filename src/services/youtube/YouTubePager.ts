@@ -38,7 +38,7 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
     static videoFields = `items(id,snippet(title,thumbnails,channelId,channelTitle),contentDetails(duration),statistics(viewCount,likeCount))`;
     static playlistFields = `items(id,snippet(title,thumbnails,channelId,channelTitle),contentDetails(itemCount))`;
 
-    private readonly pager: Pager<T>;
+    private readonly pager: SequentialPager<T>;
     private readonly defaultConfig: PagerConfig = {
         pageSize: YouTubePager.maxPageSize,
     };
@@ -57,6 +57,10 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
 
     get maxSize(): number | undefined {
         return this.pager.maxSize;
+    }
+
+    observeBusy(): Observable<boolean> {
+        return this.pager.observeBusy();
     }
 
     observeItems(): Observable<readonly T[]> {

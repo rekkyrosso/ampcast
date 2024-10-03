@@ -25,7 +25,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
     static minPageSize = 10;
     static maxPageSize = 500;
 
-    private readonly pager: Pager<T>;
+    private readonly pager: SequentialPager<T>;
     private readonly pageSize: number;
     private pageNumber = 1;
 
@@ -58,6 +58,10 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
 
     get maxSize(): number | undefined {
         return this.pager.maxSize;
+    }
+
+    observeBusy(): Observable<boolean> {
+        return this.pager.observeBusy();
     }
 
     observeItems(): Observable<readonly T[]> {

@@ -41,6 +41,10 @@ export default class TidalPager<T extends MediaObject> implements Pager<T> {
         return this.pager.maxSize;
     }
 
+    observeBusy(): Observable<boolean> {
+        return this.pager.observeBusy();
+    }
+
     observeItems(): Observable<readonly T[]> {
         return this.pager.observeItems();
     }

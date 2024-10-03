@@ -5,6 +5,7 @@
     stroke: currentColor;
     pointer-events: none;
     vertical-align: middle;
+    overflow: visible;
 
     &-star-inner {
         fill: none;
@@ -52,7 +53,9 @@
     }
 
     &-error {
-        fill: var(--error-color);
+        circle {
+            fill: var(--error-color);
+        }
     }
 
     &-palette,

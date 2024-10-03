@@ -24,7 +24,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     static minPageSize = 10;
     static maxPageSize = 1000;
 
-    private readonly pager: Pager<T>;
+    private readonly pager: OffsetPager<T>;
     private readonly pageSize: number;
 
     constructor(
@@ -45,6 +45,10 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
 
     get maxSize(): number | undefined {
         return this.pager.maxSize;
+    }
+
+    observeBusy(): Observable<boolean> {
+        return this.pager.observeBusy();
     }
 
     observeItems(): Observable<readonly T[]> {

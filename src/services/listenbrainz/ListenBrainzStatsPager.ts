@@ -50,6 +50,10 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
         return this.pager.maxSize;
     }
 
+    observeBusy(): Observable<boolean> {
+        return this.pager.observeBusy();
+    }
+
     observeItems(): Observable<readonly T[]> {
         return this.pager.observeItems();
     }

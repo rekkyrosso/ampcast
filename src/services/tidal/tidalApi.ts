@@ -1,6 +1,6 @@
 import {credentialsProvider} from '@tidal-music/auth';
 import {createCatalogueClient, components as CatalogueComponents} from '@tidal-music/catalogue';
-import {createPlaylistClient, components as PlaylistComponents} from '@tidal-music/playlist';
+import {createPlaylistClient} from '@tidal-music/playlist';
 import {createSearchClient} from '@tidal-music/search';
 import {createUserClient, components as UserComponents} from '@tidal-music/user';
 import ItemType from 'types/ItemType';
@@ -15,24 +15,40 @@ import tidalSettings from './tidalSettings';
 import TidalPager, {TidalPage} from './TidalPager';
 
 type CatalogueSchema = CatalogueComponents['schemas'];
-type PlaylistSchema = PlaylistComponents['schemas'];
 type UserSchema = UserComponents['schemas'];
 
-type TidalAlbum = CatalogueSchema['Album_Resource'];
-type TidalArtist = CatalogueSchema['Artist_Resource'];
-type TidalTrack = CatalogueSchema['Track_Resource'];
-type TidalVideo = CatalogueSchema['Video_Resource'];
-type TidalPlaylist = PlaylistSchema['Playlist_Resource'];
-type TidalProvider = CatalogueSchema['Provider_Resource'];
+type TidalAlbum = CatalogueSchema['Albums_Resource'];
+type TidalArtist = CatalogueSchema['Artists_Resource'];
+type TidalTrack = CatalogueSchema['Tracks_Resource'];
+type TidalVideo = CatalogueSchema['Videos_Resource'];
+type TidalPlaylist = CatalogueSchema['Playlists_Resource'];
+type TidalProvider = CatalogueSchema['Providers_Resource'];
 type TidalRecommendations = UserSchema['User_Recommendations_Resource'];
-type TidalUser = UserSchema['User_Resource'];
+type TidalUser = CatalogueSchema['Users_Resource'];
 type TidalError = CatalogueSchema['Error_Object'];
-type Included = (TidalAlbum | TidalArtist | TidalTrack | TidalVideo | TidalProvider)[];
+type Included = (
+    | TidalAlbum
+    | TidalArtist
+    | TidalTrack
+    | TidalVideo
+    | TidalPlaylist
+    | TidalProvider
+    | TidalUser
+)[];
 
 interface TidalRecommendationsData {
     data?: TidalRecommendations;
-    included?: TidalPlaylist[];
+    included?: (
+        | UserSchema['Playlists_Resource']
+        | UserSchema['Tracks_Resource']
+        | UserSchema['Videos_Resource']
+        | UserSchema['Users_Resource']
+    )[];
 }
+
+type ImageLink =
+    | CatalogueSchema['Catalogue_Item_Image_Link']
+    | CatalogueSchema['Playlists_Image_Link'];
 
 const logger = new Logger('tidalApi');
 
@@ -163,7 +179,7 @@ async function getDailyDiscovery(cursor?: string): Promise<TidalPage<MediaItem>>
     return getRecommendedPlaylistItems('discoveryMixes', cursor);
 }
 
-async function getMe(): Promise<TidalUser> {
+async function getMe(): Promise<UserSchema['Users_Resource']> {
     const {data, error, response} = await userApi.GET('/users/me');
     if (!response.ok || error) {
         throwError(response, error);
@@ -295,16 +311,19 @@ async function getRecommendedPlaylistItems(
     if (!recommendations) {
         throw Error('User recommendations not loaded');
     }
-    let playlist: Pick<TidalPlaylist, 'id' | 'attributes'> | undefined =
-        recommendations.data?.relationships?.[name]?.data?.[0];
+    const playlist = recommendations.data?.relationships?.[name]?.data?.[0];
     if (!playlist) {
         throw Error('Failed to load playlist');
     }
-    const included: TidalPlaylist[] | undefined = recommendations?.included;
+    let numberOfItems: number | undefined = undefined;
+    const included: TidalRecommendationsData['included'] | undefined = recommendations?.included;
     if (included) {
-        playlist = included.find((included) => included.id === playlist!.id) || playlist;
+        const includedPlaylist = included.find(
+            (included) => included.type === 'playlists' && included.id === playlist.id
+        ) as UserSchema['Playlists_Resource'] | undefined;
+        numberOfItems = includedPlaylist?.attributes?.numberOfItems;
     }
-    return getPlaylistItems(playlist.id, playlist.attributes?.numberOfItems, cursor);
+    return getPlaylistItems(playlist.id, numberOfItems, cursor);
 }
 
 async function getRecommendedPlaylists(
@@ -328,9 +347,11 @@ async function getRecommendedPlaylists(
     const included = recommendations?.included;
     if (included) {
         const items = ids
-            .map((id) => included.find((playlist) => playlist.id === id))
+            .map((id) =>
+                included.find((playlist) => playlist.type === 'playlists' && playlist.id === id)
+            )
             .filter(exists)
-            .map((playlist) => createMediaPlaylist(playlist));
+            .map((playlist) => createMediaPlaylist(playlist as TidalPlaylist));
         return {items};
     } else {
         const items = await getPlaylists(ids);
@@ -417,14 +438,14 @@ async function searchAlbums(query: string, cursor = ''): Promise<TidalPage<Media
         {
             params: {
                 path: {query},
-                query: {countryCode, include: ['albums'], 'page%5Bcursor%5D': cursor},
+                query: {countryCode, 'page%5Bcursor%5D': cursor},
             },
         }
     );
     if (!response.ok || error) {
         throwError(response, error);
     }
-    const ids = data.included?.map((album) => album.id) || [];
+    const ids = data.data?.map((album) => album.id) || [];
     const items = await getAlbums(ids);
     const next = data.links?.next;
     return {items, next};
@@ -444,11 +465,44 @@ async function searchArtists(query: string, cursor = ''): Promise<TidalPage<Medi
     if (!response.ok || error) {
         throwError(response, error);
     }
-    const ids =
-        data.included
-            ?.sort((a, b) => (b.attributes?.popularity || 0) - (a.attributes?.popularity || 0))
-            .map((artist) => artist.id) || [];
-    const items = await getArtists(ids);
+    const included = data.included;
+    const items =
+        data.data
+            ?.map((data) => {
+                const artist = included?.find((artist) => artist.id === data.id);
+                if (artist) {
+                    return createMediaArtist(artist as TidalArtist);
+                }
+            })
+            .filter(exists) || [];
+    const next = data.links?.next;
+    return {items, next};
+}
+
+async function searchPlaylists(query: string, cursor = ''): Promise<TidalPage<MediaPlaylist>> {
+    const {countryCode} = tidalSettings;
+    const {data, error, response} = await searchApi.GET(
+        '/searchresults/{query}/relationships/playlists',
+        {
+            params: {
+                path: {query},
+                query: {countryCode, include: ['playlists'], 'page%5Bcursor%5D': cursor},
+            },
+        }
+    );
+    if (!response.ok || error) {
+        throwError(response, error);
+    }
+    const included = data.included;
+    const items =
+        data.data
+            ?.map((data) => {
+                const playlist = included?.find((playlist) => playlist.id === data.id);
+                if (playlist) {
+                    return createMediaPlaylist(playlist as TidalPlaylist);
+                }
+            })
+            .filter(exists) || [];
     const next = data.links?.next;
     return {items, next};
 }
@@ -460,14 +514,14 @@ async function searchTracks(query: string, cursor = ''): Promise<TidalPage<Media
         {
             params: {
                 path: {query},
-                query: {countryCode, include: ['tracks'], 'page%5Bcursor%5D': cursor},
+                query: {countryCode, 'page%5Bcursor%5D': cursor},
             },
         }
     );
     if (!response.ok || error) {
         throwError(response, error);
     }
-    const ids = data.included?.map((track) => track.id) || [];
+    const ids = data.data?.map((track) => track.id) || [];
     const items = await getTracks(ids);
     const next = data.links?.next;
     return {items, next};
@@ -480,14 +534,14 @@ async function searchVideos(query: string, cursor = ''): Promise<TidalPage<Media
         {
             params: {
                 path: {query},
-                query: {countryCode, include: ['videos'], 'page%5Bcursor%5D': cursor},
+                query: {countryCode, 'page%5Bcursor%5D': cursor},
             },
         }
     );
     if (!response.ok || error) {
         throwError(response, error);
     }
-    const ids = data.included?.map((video) => video.id) || [];
+    const ids = data.data?.map((video) => video.id) || [];
     const items = await getVideos(ids);
     const next = data.links?.next;
     return {items, next};
@@ -573,16 +627,17 @@ function createMediaPlaylist(playlist: TidalPlaylist): MediaPlaylist {
         isOwn: playlist.attributes?.privacy === 'PRIVATE',
         addedAt: createdAt ? new Date(createdAt).valueOf() / 1000 || undefined : undefined,
         duration: duration ? parseISO8601(duration) : 0,
+        trackCount: attributes?.numberOfItems,
         pager: new TidalPager((cursor) =>
             getPlaylistItems(playlist.id, attributes?.numberOfItems, cursor)
         ),
     };
 }
 
-function createThumbnails(
-    imageLinks: CatalogueSchema['Image_Link'][] | undefined
-): readonly Thumbnail[] | undefined {
-    return imageLinks?.map(({href: url, meta: {width, height}}) => ({url, width, height}));
+function createThumbnails(imageLinks: ImageLink[] | undefined): readonly Thumbnail[] | undefined {
+    return imageLinks
+        ?.filter((link) => !!link.meta) // TODO
+        .map(({href: url, meta}) => ({url, width: meta!.width, height: meta!.height}));
 }
 
 function findAlbum(
@@ -658,6 +713,7 @@ const tidalApi = {
     getVideos,
     searchAlbums,
     searchArtists,
+    searchPlaylists,
     searchTracks,
     searchVideos,
 };

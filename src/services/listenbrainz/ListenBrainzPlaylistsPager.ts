@@ -35,6 +35,10 @@ export default class ListenBrainzPlaylistsPager implements Pager<MediaPlaylist> 
         return this.pager.maxSize;
     }
 
+    observeBusy(): Observable<boolean> {
+        return this.pager.observeBusy();
+    }
+
     observeItems(): Observable<readonly MediaPlaylist[]> {
         return this.pager.observeItems();
     }

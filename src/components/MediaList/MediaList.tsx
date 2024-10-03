@@ -44,7 +44,7 @@ export default function MediaList<T extends MediaObject>({
     const layout = useMediaListLayout(props.layout);
     const [scrollIndex, setScrollIndex] = useState(0);
     const [pageSize, setPageSize] = useState(0);
-    const [{items, loaded, error, size, maxSize}, fetchAt] = usePager(pager);
+    const [{items, loaded, busy, error, size, maxSize}, fetchAt] = usePager(pager);
     const [selectedItems, setSelectedItems] = useState<readonly T[]>([]);
     const item = useCurrentlyPlaying();
     const currentSrc = item?.src;
@@ -175,6 +175,7 @@ export default function MediaList<T extends MediaObject>({
                     maxSize={maxSize}
                     loading={!!pager && !loaded}
                     loadingText={loadingText}
+                    busy={busy}
                     selectedCount={selectedItems.length}
                 />
             ) : null}

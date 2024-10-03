@@ -1,3 +1,4 @@
+import './MediaBrowser.scss';
 import React, {useEffect} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
 import MediaObject from 'types/MediaObject';
@@ -10,9 +11,6 @@ import useIsOnLine from 'hooks/useIsOnLine';
 import DefaultBrowser from './DefaultBrowser';
 import NoInternetError from './NoInternetError';
 import useErrorScreen from './useErrorScreen';
-import './MediaBrowser.scss';
-
-// TODO: This is still not that good but better than it was (2024-09-19).
 
 export interface MediaBrowserProps<T extends MediaObject> {
     service: MediaService;

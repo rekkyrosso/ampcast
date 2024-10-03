@@ -13,7 +13,7 @@ enum FetchState {
 const logger = new Logger('OffsetPager');
 
 export default class OffsetPager<T extends MediaObject> extends AbstractPager<T> {
-    private readonly fetchStates: Record<number, FetchState> = {};
+    private readonly fetchStates = new Map<number, FetchState>();
 
     constructor(
         private readonly fetch: (pageNumber: number, pageSize: number) => Promise<Page<T>>,
@@ -35,7 +35,7 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
                     mergeMap((pageNumber) => this.fetchPage(pageNumber)),
                     catchError((err: unknown) => {
                         logger.error(err);
-                        this.error = err;
+                        this.error = err ?? Error('Unknown');
                         return of(undefined);
                     }),
                     takeUntil(this.observeComplete())
@@ -45,26 +45,39 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
         }
     }
 
+    private get isFetching(): boolean {
+        for (const pageNumber of this.fetchStates.keys()) {
+            if (this.fetchStates.get(pageNumber) === FetchState.Pending) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private get pageSize(): number {
         return this.config.pageSize || 20;
     }
 
     private async fetchPage(pageNumber: number): Promise<void> {
         if (
-            this.fetchStates[pageNumber] === FetchState.Fulfilled ||
-            this.fetchStates[pageNumber] === FetchState.Pending
+            this.fetchStates.get(pageNumber) === FetchState.Fulfilled ||
+            this.fetchStates.get(pageNumber) === FetchState.Pending
         ) {
             return;
         }
 
-        this.fetchStates[pageNumber] = FetchState.Pending;
+        this.fetchStates.set(pageNumber, FetchState.Pending);
 
         try {
+            this.busy = true;
+            this.error = undefined
             const page = await this.fetch(pageNumber, this.pageSize);
-            this.fetchStates[pageNumber] = FetchState.Fulfilled;
+            this.fetchStates.set(pageNumber, FetchState.Fulfilled);
             this.insertPage(pageNumber, page);
+            this.busy = this.isFetching;
         } catch (err: unknown) {
-            this.fetchStates[pageNumber] = FetchState.Rejected;
+            this.fetchStates.set(pageNumber, FetchState.Rejected);
+            this.busy = this.isFetching;
             throw err;
         }
     }
@@ -81,7 +94,7 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
 
         if (page.items.length === size) {
             for (let i = 0; i <= pageCount; i++) {
-                this.fetchStates[i + 1] = FetchState.Fulfilled;
+                this.fetchStates.set(i + 1, FetchState.Fulfilled);
             }
         }
 

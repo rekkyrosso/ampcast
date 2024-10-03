@@ -25,7 +25,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
     static minPageSize = 10;
     static maxPageSize = 200;
 
-    private readonly pager: Pager<T>;
+    private readonly pager: SequentialPager<T>;
     private readonly defaultConfig: PagerConfig = {
         pageSize: 50,
     };
@@ -65,6 +65,10 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
 
     get maxSize(): number | undefined {
         return this.pager.maxSize;
+    }
+
+    observeBusy(): Observable<boolean> {
+        return this.pager.observeBusy();
     }
 
     observeItems(): Observable<readonly T[]> {
