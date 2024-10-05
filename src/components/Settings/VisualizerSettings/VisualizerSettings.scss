@@ -2,6 +2,10 @@
     &-dialog {
         width: 32em;
         height: 28em;
+
+        .visualizer-favorites .list-view {
+            height: 12em;
+        }
     }
 
     .ambient-video-settings {

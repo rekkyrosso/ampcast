@@ -1,0 +1,17 @@
+.media-list-status-bar {
+    line-height: normal;
+    
+    p {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+    }
+
+    .progress-ring {
+        margin-right: 0.25em;
+    }
+
+    .message.error {
+        color: inherit;
+    }
+}

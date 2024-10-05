@@ -101,34 +101,25 @@ export default class WrappedPager<T extends MediaObject> implements Pager<T> {
             this.subscriptions = new Subscription();
 
             if (this.headerPager) {
-                this.subscriptions.add(
-                    this.observeFetches()
-                        .pipe(
-                            take(1),
-                            tap(({index, length}) => this.headerPager!.fetchAt(index, length))
-                        )
-                        .subscribe(logger)
+                this.subscribeTo(
+                    this.observeFetches().pipe(
+                        tap(({index, length}) => this.headerPager!.fetchAt(index, length)),
+                        take(1)
+                    )
                 );
             }
 
-            this.subscriptions.add(
-                combineLatest([this.observeHeaderSize(), this.observeFetches()])
-                    .pipe(
-                        tap(([headerSize, fetch]) =>
-                            this.bodyPager.fetchAt(
-                                Math.max(fetch.index - headerSize, 0),
-                                fetch.length
-                            )
-                        )
+            this.subscribeTo(
+                combineLatest([this.observeHeaderSize(), this.observeFetches()]).pipe(
+                    tap(([headerSize, fetch]) =>
+                        this.bodyPager.fetchAt(Math.max(fetch.index - headerSize, 0), fetch.length)
                     )
-                    .subscribe(logger)
+                )
             );
 
             if (this.footerPager) {
-                this.subscriptions.add(
-                    this.observeComplete()
-                        .pipe(tap(() => this.footerPager!.fetchAt(0)))
-                        .subscribe(logger)
+                this.subscribeTo(
+                    this.observeComplete().pipe(tap(() => this.footerPager!.fetchAt(0)))
                 );
             }
         }
@@ -154,5 +145,9 @@ export default class WrappedPager<T extends MediaObject> implements Pager<T> {
                 distinctUntilChanged()
             ) || of(0)
         );
+    }
+
+    private subscribeTo<T>(observable$: Observable<T>): void {
+        this.subscriptions!.add(observable$.subscribe(logger));
     }
 }

@@ -221,28 +221,6 @@ button,
     margin-top: 1em;
 }
 
-.text-with-button {
-    display: flex;
-    flex: initial;
-    flex-direction: row;
-    align-items: center;
-
-    input {
-        flex: auto;
-        min-width: 4em;
-        text-indent: calc(var(--roundness) * 0.5em);
-
-        &::-webkit-search-cancel-button {
-            display: none;
-        }
-    }
-
-    button {
-        flex: initial;
-        margin-left: var(--gutter-width);
-    }
-}
-
 .table-layout {
     display: table;
     width: 100%;

@@ -3,6 +3,7 @@ import MediaObject from 'types/MediaObject';
 import {clamp} from 'utils';
 import StatusBar from 'components/StatusBar';
 import ProgressRing from './ProgressRing';
+import './MediaListStatusBar.scss';
 
 export interface MediaListStatusBarProps {
     items: readonly MediaObject[];
@@ -73,9 +74,11 @@ export default function MediaListStatusBar({
     }
 
     return (
-        <StatusBar>
-            <ProgressRing busy={busy} error={!!error} progress={progress} />
-            {statusText}
+        <StatusBar className="media-list-status-bar">
+            <p>
+                <ProgressRing busy={busy} error={!!error} progress={progress} />
+                {statusText}
+            </p>
         </StatusBar>
     );
 }

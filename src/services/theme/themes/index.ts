@@ -2,6 +2,7 @@ import Theme from 'types/Theme';
 import astronaut from './astronaut.json';
 import blackgold from './blackgold.json';
 import boringDefault from './default.json';
+import carbon from './carbon.json';
 import contrast from './contrast.json';
 import debug from './debug.json';
 import glacier from './glacier.json';
@@ -54,6 +55,7 @@ const themes: readonly Theme[] = [
     defaultTheme,
     astronaut,
     blackgold,
+    carbon,
     contrast,
     glacier,
     indigo,

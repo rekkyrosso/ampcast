@@ -17,7 +17,7 @@ export default function fetchFirstPage<T>(
                 .observeError()
                 .pipe(
                     map((error: any) =>
-                        error instanceof Error ? error : Error(String(error?.message || 'unknown'))
+                        error instanceof Error ? error : Error(error?.message || 'unknown')
                     )
                 ),
             timer(timeout).pipe(map(() => Error('timeout')))

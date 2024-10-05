@@ -1,12 +1,14 @@
-export function cancelEvent(event: Event | React.SyntheticEvent): void {
+type AnyEvent = Pick<Event, 'preventDefault' | 'stopPropagation'>;
+
+export function cancelEvent(event: AnyEvent): void {
     event.preventDefault();
     event.stopPropagation();
 }
 
-export function preventDefault(event: Event | React.SyntheticEvent): void {
+export function preventDefault(event: AnyEvent): void {
     event.preventDefault();
 }
 
-export function stopPropagation(event: Event | React.SyntheticEvent): void {
+export function stopPropagation(event: AnyEvent): void {
     event.stopPropagation();
 }

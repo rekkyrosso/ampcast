@@ -1,4 +1,6 @@
 import React, {useCallback, useId, useEffect, useMemo, useRef} from 'react';
+import {TinyColor} from '@ctrl/tinycolor';
+import {partition} from 'utils';
 import theme from 'services/theme';
 import themeStore from 'services/theme/themeStore';
 import DialogButtons from 'components/Dialog/DialogButtons';
@@ -10,13 +12,20 @@ import './AppearanceSettingsGeneral.scss';
 export default function AppearanceSettingsGeneral() {
     const id = useId();
     const currentTheme = useCurrentTheme();
-    const defaultThemesRef = useRef<HTMLSelectElement>(null);
+    const darkThemesRef = useRef<HTMLSelectElement>(null);
+    const lightThemesRef = useRef<HTMLSelectElement>(null);
+    const lightThemeRef = useRef<HTMLInputElement>(null);
     const userThemesRef = useRef<HTMLSelectElement>(null);
     const userThemeRef = useRef<HTMLInputElement>(null);
     const initialFontSize = useMemo(() => theme.fontSize, []);
     const defaultThemes = useDefaultThemes();
     const userThemes = useUserThemes();
-    const userTheme = !!currentTheme.userTheme;
+    const isUserTheme = !!currentTheme.userTheme;
+    const isLightTheme = new TinyColor(currentTheme.backgroundColor).isLight();
+    const isDarkTheme = !isLightTheme;
+    const [lightThemes, darkThemes] = partition(defaultThemes, (theme) =>
+        new TinyColor(theme.backgroundColor).isLight()
+    );
 
     useEffect(() => {
         // Lock `font-size` for this dialog.
@@ -33,7 +42,9 @@ export default function AppearanceSettingsGeneral() {
     const handleThemeChange = useCallback(() => {
         const newTheme = userThemeRef.current!.checked
             ? themeStore.getUserTheme(userThemesRef.current!.value)
-            : themeStore.getDefaultTheme(defaultThemesRef.current!.value);
+            : lightThemeRef.current!.checked
+            ? themeStore.getDefaultTheme(lightThemesRef.current!.value)
+            : themeStore.getDefaultTheme(darkThemesRef.current!.value);
         if (newTheme) {
             theme.apply(newTheme);
         }
@@ -52,19 +63,43 @@ export default function AppearanceSettingsGeneral() {
                         <input
                             type="radio"
                             name="theme-source"
-                            id={`${id}-default-themes`}
-                            value=""
-                            checked={!userTheme}
+                            id={`${id}-dark-themes`}
+                            value="dark"
+                            checked={isDarkTheme && !isUserTheme}
                             onChange={handleThemeChange}
                         />
-                        <label htmlFor={`${id}-default-themes`}>Default themes:</label>
+                        <label htmlFor={`${id}-dark-themes`}>Dark themes:</label>
                         <select
-                            value={userTheme ? undefined : currentTheme.name}
-                            disabled={userTheme}
+                            value={isUserTheme || isLightTheme ? undefined : currentTheme.name}
+                            disabled={isUserTheme || isLightTheme}
                             onChange={handleThemeChange}
-                            ref={defaultThemesRef}
+                            ref={darkThemesRef}
                         >
-                            {defaultThemes.map(({name}) => (
+                            {darkThemes.map(({name}) => (
+                                <option value={name} key={name}>
+                                    {name}
+                                </option>
+                            ))}
+                        </select>
+                    </p>
+                    <p>
+                        <input
+                            type="radio"
+                            name="theme-source"
+                            id={`${id}-light-themes`}
+                            value="light"
+                            checked={isLightTheme && !isUserTheme}
+                            onChange={handleThemeChange}
+                            ref={lightThemeRef}
+                        />
+                        <label htmlFor={`${id}-light-themes`}>Light themes:</label>
+                        <select
+                            value={isUserTheme || isDarkTheme ? undefined : currentTheme.name}
+                            disabled={isUserTheme || isDarkTheme}
+                            onChange={handleThemeChange}
+                            ref={lightThemesRef}
+                        >
+                            {lightThemes.map(({name}) => (
                                 <option value={name} key={name}>
                                     {name}
                                 </option>
@@ -77,16 +112,16 @@ export default function AppearanceSettingsGeneral() {
                             name="theme-source"
                             id={`${id}-user-themes`}
                             value="user"
-                            checked={userTheme}
+                            checked={isUserTheme}
                             disabled={userThemes.length === 0}
                             onChange={handleThemeChange}
                             ref={userThemeRef}
                         />
                         <label htmlFor={`${id}-user-themes`}>My themes:</label>
                         <select
-                            value={userTheme ? currentTheme.name : undefined}
+                            value={isUserTheme ? currentTheme.name : undefined}
                             onChange={handleThemeChange}
-                            disabled={!userTheme}
+                            disabled={!isUserTheme}
                             ref={userThemesRef}
                         >
                             {userThemes.map(({name}) => (
@@ -109,7 +144,7 @@ export default function AppearanceSettingsGeneral() {
                             id="theme-fontSize"
                             min={12}
                             max={28}
-                            step={0.4}
+                            step={0.2}
                             defaultValue={initialFontSize}
                             onChange={handleFontSizeChange}
                         />

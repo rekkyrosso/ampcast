@@ -1,0 +1,16 @@
+{
+    "name": "Carbon",
+    "fontName": "Proxima Nova",
+    "backgroundColor": "#252429",
+    "textColor": "#dbe5eb",
+    "frameColor": "#2f2e33",
+    "frameTextColor": "#d1d1d1",
+    "selectedBackgroundColor": "#244b70",
+    "selectedTextColor": "#ffffff",
+    "scrollbarThickness": 1,
+    "mediaButtonColor": "#a5adbb",
+    "mediaButtonTextColor": "#000000",
+    "spacing": 0.38,
+    "roundness": 0.67,
+    "flat": true
+}

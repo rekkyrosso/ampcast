@@ -21,9 +21,7 @@ export default function ProgressRing({progress, busy, error}: ProgressRingProps)
 
     return (
         <svg
-            className={`progress-ring icon ${
-                complete ? 'complete' : error ? 'error' : busy ? 'busy' : ''
-            }`}
+            className={`progress-ring icon ${busy ? 'busy' : ''}`}
             viewBox={`0 0 ${2 * radius} ${2 * radius}`}
         >
             <circle

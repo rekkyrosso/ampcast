@@ -42,6 +42,7 @@ export default function MediaBrowser<T extends MediaObject>({
 
 function Browser<T extends MediaObject>({service, sources}: MediaBrowserProps<T>) {
     const source = sources.length === 1 ? sources[0] : null;
+    const SourceComponent = source?.component;
 
     useEffect(() => {
         if (source?.lockActionsStore) {
@@ -54,8 +55,6 @@ function Browser<T extends MediaObject>({service, sources}: MediaBrowserProps<T>
     useEffect(() => {
         return () => actionsStore.unlock(); // Teardown
     }, [service]);
-
-    const SourceComponent = source?.component;
 
     if (SourceComponent) {
         return <SourceComponent service={service} source={source} />;
