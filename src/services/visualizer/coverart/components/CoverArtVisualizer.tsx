@@ -118,19 +118,13 @@ export default function CoverArtVisualizer() {
             }`}
             style={
                 {
+                    '--background-color': backgroundColor,
                     '--thumbnail-size': `${thumbnailSize}px`,
                 } as React.CSSProperties
             }
             ref={ref}
         >
-            <div
-                className="animated-background"
-                style={
-                    {
-                        '--background-color': backgroundColor,
-                    } as React.CSSProperties
-                }
-            />
+            <div className="animated-background" />
             <CurrentlyPlaying
                 item={item0}
                 hidden={!isItem0}

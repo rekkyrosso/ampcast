@@ -33,6 +33,10 @@ export default function usePlaylistMenu(
                     mediaPlayback.stopAfterCurrent = !mediaPlayback.stopAfterCurrent;
                     break;
 
+                case 'loop':
+                    mediaPlayback.loop = !mediaPlayback.loop;
+                    break;
+
                 case 'clear':
                     playlist.clear();
                     break;

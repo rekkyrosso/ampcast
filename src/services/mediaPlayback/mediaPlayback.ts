@@ -41,6 +41,7 @@ const loadingLocked$ = new BehaviorSubject(!isMiniPlayer);
 const killed$ = new Subject<void>();
 
 let _autoplay = false;
+let _loop = mediaPlaybackSettings.loop;
 let currentNavigation: 'prev' | 'next' = 'next';
 
 export function observeCurrentTime(): Observable<number> {
@@ -291,7 +292,11 @@ const mediaPlayback: MediaPlayback = {
         return false;
     },
     get loop(): boolean {
-        return false;
+        return _loop;
+    },
+    set loop(loop: boolean) {
+        _loop = loop;
+        mediaPlaybackSettings.loop = loop;
     },
     get muted(): boolean {
         return mediaPlayer.muted;
@@ -347,10 +352,19 @@ mediaPlayer.observeEnded().subscribe(() => playback.ended());
 if (!isMiniPlayer) {
     // Stop/next after playback ended.
     observeEnded()
-        .pipe(withLatestFrom(observePlaylistAtEnd()), takeUntil(killed$))
-        .subscribe(([, atEnd]) => {
-            if (atEnd) {
-                stop();
+        .pipe(takeUntil(killed$))
+        .subscribe(() => {
+            if (playlist.atEnd) {
+                if (_loop && !mediaPlayback.stopAfterCurrent) {
+                    if (playlist.atStart) {
+                        play();
+                    } else {
+                        const [start] = playlist.getItems();
+                        playlist.setCurrentItem(start);
+                    }
+                } else {
+                    stop();
+                }
             } else {
                 if (mediaPlayback.stopAfterCurrent) {
                     stop();

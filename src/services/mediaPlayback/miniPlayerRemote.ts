@@ -4,6 +4,7 @@ import MediaPlayback from 'types/MediaPlayback';
 import PlaybackState from 'types/PlaybackState';
 import PlaylistItem from 'types/PlaylistItem';
 import {Logger, isMiniPlayer} from 'utils';
+import {loadMediaServices} from 'services/mediaServices';
 import playlist from 'services/playlist';
 import theme from 'services/theme';
 import {nextVisualizer, observeCurrentVisualizer} from 'services/visualizer';
@@ -44,6 +45,7 @@ const connect = (
     const transferPlayback = async (transferredState: PlaybackState) => {
         const {currentItem, currentTime, paused, playbackId, startedAt} = transferredState;
         suspended = true;
+        await loadMediaServices();
         setItem(currentItem);
         mediaPlayback.autoplay = !paused;
         if (!currentItem) {

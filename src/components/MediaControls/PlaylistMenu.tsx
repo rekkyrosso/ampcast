@@ -43,6 +43,13 @@ export default function PlaylistMenu(props: PopupMenuProps) {
             <PopupMenuItem label="Add from file…" value="add-from-file" key="add-from-file" />
             <PopupMenuItem label="Add from url…" value="add-from-url" key="add-from-url" />
             <PopupMenuSeparator />
+            <PopupMenuItemCheckbox
+                label="Loop"
+                value="loop"
+                checked={mediaPlayback.loop}
+                key="loop"
+            />
+            <PopupMenuSeparator />
             <PopupMenuItem label="Clear" value="clear" disabled={isEmpty} key="clear" />
         </PopupMenu>
     );

@@ -50,7 +50,7 @@ export interface ActiveIntervals {
 export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
     private readonly maxDecibels = -30;
     private readonly minDecibels = -100;
-    private readonly volumeSmoothing = 100;
+    private readonly volumeSmoothing = 10;
     private readonly intervalTypes: IntervalType[] = [
         'bars',
         'beats',
