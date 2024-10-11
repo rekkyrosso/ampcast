@@ -14,7 +14,7 @@ class VisualizerStore extends Dexie {
     private readonly favorites$ = new BehaviorSubject<readonly VisualizerFavorite[]>([]);
 
     constructor() {
-        super('ampcast/visualizers');
+        super('ampcast/visualizer');
 
         this.version(1).stores({
             favorites: '[providerId+name]',

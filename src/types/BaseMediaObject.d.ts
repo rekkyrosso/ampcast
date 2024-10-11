@@ -2,6 +2,16 @@ import Thumbnail from './Thumbnail';
 import UserData from './UserData';
 
 type BaseMediaObject = UserData & {
+    /*
+        | `http:*`
+        | `https:*`
+        | `file:*`
+        | `blob:{nanoid}`
+        | `{service}:{type}:{id}`
+            - service: `MediaServiceId`
+            - type: readable string (platform specific). e.g. 'track', 'video', 'album', 'albums', 'playlist'
+            - id: unique identifier (platform specific)
+    */
     readonly src: string;
     readonly title: string;
     // Everything below here should be optional

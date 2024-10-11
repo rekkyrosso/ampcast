@@ -1,5 +1,3 @@
-# docker-compose --env-file ./path/to/my/.env up -d
-
 services:
   ampcast:
     container_name: ampcast

@@ -4,6 +4,7 @@ node_modules
 dist
 www/*.js
 www/*.html
+!www/404.html
 www/*.css
 www/*.zip
 www/v*/*
