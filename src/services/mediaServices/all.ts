@@ -1,7 +1,9 @@
 import MediaService from 'types/MediaService';
 import airsonic from 'services/airsonic';
+import ampache from 'services/ampache';
 import apple from 'services/apple';
 import emby from 'services/emby';
+import gonic from 'services/gonic';
 import jellyfin from 'services/jellyfin';
 import lastfm from 'services/lastfm';
 import listenbrainz from 'services/listenbrainz';
@@ -18,7 +20,9 @@ const services: readonly MediaService[] = [
     spotify,
     tidal,
     airsonic,
+    ampache,
     emby,
+    gonic,
     jellyfin,
     navidrome,
     plex,

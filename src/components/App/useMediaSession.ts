@@ -1,5 +1,6 @@
 import {useEffect} from 'react';
 import PlaybackState from 'types/PlaybackState';
+import {MAX_DURATION} from 'services/constants';
 import {pause, play, seek, stop, prev, next} from 'services/mediaPlayback';
 import {observePlaybackState} from 'services/mediaPlayback/playback';
 import miniPlayer from 'services/mediaPlayback/miniPlayer';
@@ -20,12 +21,21 @@ function updateSession({
     paused = true,
 }: Partial<PlaybackState> = {}): void {
     const mediaSession = navigator.mediaSession;
+    const isLiveStreaming = duration === MAX_DURATION;
+    if (isLiveStreaming) {
+        duration = 1;
+        position = position && 1;
+    }
 
     if (miniPlayer.active) {
         mediaSession.metadata = null;
     } else {
         mediaSession.playbackState = paused ? (position ? 'paused' : 'none') : 'playing';
-        mediaSession.setPositionState({duration, position, playbackRate: 1});
+        if (position > duration) {
+            console.warn(`MediaSession: position(${position}) > duration(${duration})`);
+        } else {
+            mediaSession.setPositionState({duration, position, playbackRate: 1});
+        }
 
         mediaSession.metadata = new MediaMetadata({
             title: item?.title,
@@ -45,7 +55,7 @@ function updateSession({
     mediaSession.setActionHandler('previoustrack', prev);
     mediaSession.setActionHandler('nexttrack', next);
     mediaSession.setActionHandler('seekto', (details) => {
-        if (details.seekTime != null) {
+        if (!isLiveStreaming && details.seekTime != null) {
             seek(details.seekTime);
         }
     });

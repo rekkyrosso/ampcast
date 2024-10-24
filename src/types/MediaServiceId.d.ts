@@ -1,7 +1,9 @@
 type MediaServiceId =
     | 'airsonic'
+    | 'ampache'
     | 'apple'
     | 'emby'
+    | 'gonic'
     | 'jellyfin'
     | 'lastfm'
     | 'listenbrainz'

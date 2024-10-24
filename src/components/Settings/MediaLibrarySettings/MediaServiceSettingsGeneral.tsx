@@ -35,6 +35,7 @@ export default function MediaServiceSettingsGeneral({service}: MediaServiceSetti
                                 type="checkbox"
                                 value={source.id}
                                 defaultChecked={isSourceVisible(source)}
+                                disabled={source.disabled}
                             />
                             <label htmlFor={`${id}-${source.id}`}>{source.title}</label>
                         </li>

@@ -6,6 +6,7 @@ import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
+import type SubsonicSettings from './SubsonicSettings';
 import {chunk, shuffle} from 'utils';
 
 export interface SubsonicApiSettings extends Partial<PersonalMediaServerSettings> {
@@ -16,8 +17,11 @@ export interface SubsonicApiSettings extends Partial<PersonalMediaServerSettings
 export default class SubsonicApi {
     constructor(private readonly settings: SubsonicApiSettings) {}
 
-    async get<T>(path: string, params?: Record<string, Primitive>): Promise<T> {
-        const {host, credentials} = this.settings;
+    async get<T>(
+        path: string,
+        params?: Record<string, Primitive>,
+        {host, credentials}: Pick<SubsonicSettings, 'host' | 'credentials'> = this.settings
+    ): Promise<T> {
         if (!credentials) {
             throw Error('No credentials');
         }
@@ -99,7 +103,7 @@ export default class SubsonicApi {
                 'getMusicDirectory',
                 {id}
             );
-            return data.directory.child || [];
+            return (data.directory.child || []).sort((a, b) => a.track - b.track);
         } else {
             const data = await this.get<{album: {song: Subsonic.Song[]}}>('getAlbum', {id});
             return data.album.song || [];
@@ -314,6 +318,15 @@ export default class SubsonicApi {
         return this.getAlbumList({type: 'recent', size, offset});
     }
 
+    async getServerInfo(): Promise<Record<string, string>> {
+        const data = await this.ping();
+        return {
+            'Server type': data.type || '',
+            'Server version': data.serverVersion || '',
+            'Subsonic version': data.version || '',
+        };
+    }
+
     async getSong(id: string): Promise<Subsonic.Song> {
         const data = await this.get<{song: Subsonic.Song}>('getSong', {id});
         return data.song;
@@ -332,6 +345,13 @@ export default class SubsonicApi {
     async getVideos(): Promise<Subsonic.Video[]> {
         const data = await this.get<{videos: {video: Subsonic.Video[]}}>('getVideos');
         return data.videos.video || [];
+    }
+
+    async ping(
+        host = this.settings.host,
+        credentials = this.settings.credentials
+    ): Promise<Subsonic.PingResponse> {
+        return this.get<Subsonic.PingResponse>('ping', undefined, {host, credentials});
     }
 
     async scrobble(params: Subsonic.ScrobbleParams): Promise<Response> {

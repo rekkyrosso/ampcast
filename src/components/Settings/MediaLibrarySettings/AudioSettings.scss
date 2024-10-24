@@ -1,0 +1,14 @@
+.audio-settings {
+    select,
+    input {
+        max-width: 6em;
+    }
+
+    input::-webkit-inner-spin-button {
+        opacity: 1;
+    }
+
+    .warning {
+        margin-top: 1em;
+    }
+}

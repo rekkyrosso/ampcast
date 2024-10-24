@@ -1,4 +1,5 @@
 import React, {useCallback, useRef} from 'react';
+import {MAX_DURATION} from 'services/constants';
 import mediaPlayback, {
     pause,
     play,
@@ -27,6 +28,7 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
     const currentIndex = useObservable(observeCurrentIndex, -1);
     const currentTime = useObservable(observeCurrentTime, 0);
     const duration = useObservable(observeDuration, 0);
+    const isLiveStreaming = duration === MAX_DURATION;
     const paused = usePaused();
     const {showPlaylistMenu} = usePlaylistMenu(listViewRef, fileRef);
     const inject = usePlaylistInject();
@@ -75,10 +77,11 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
                     type="range"
                     aria-label="Seek"
                     min={0}
-                    max={duration}
+                    max={isLiveStreaming ? 1 : duration}
                     step={1}
-                    value={currentTime}
+                    value={isLiveStreaming ? currentTime && 1 : currentTime}
                     disabled={paused}
+                    readOnly={isLiveStreaming}
                     onChange={handleSeekChange}
                 />
             </div>

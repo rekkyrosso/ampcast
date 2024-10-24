@@ -1,12 +1,16 @@
-import {distinctUntilChanged, filter, map, pairwise, startWith, tap} from 'rxjs';
+import {combineLatest, distinctUntilChanged, filter, map, pairwise, startWith, tap} from 'rxjs';
 import AudioManager from 'types/AudioManager';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
+import ReplayGainMode from 'types/ReplayGainMode';
+import ServiceType from 'types/ServiceType';
+import {Logger, browser, exists} from 'utils';
 import {observePlaybackState} from 'services/mediaPlayback/playback';
 import mediaPlaybackSettings from 'services/mediaPlayback/mediaPlaybackSettings';
-import {Logger, browser, exists} from 'utils';
+import {getServiceFromSrc} from 'services/mediaServices';
 import OmniAudioContext from './OmniAudioContext';
+import {AudioSettings, observeAudioSettings} from './audioSettings';
 
 const logger = new Logger('audio');
 
@@ -14,6 +18,7 @@ class Audio implements AudioManager {
     #sourceNodes = new WeakMap<HTMLAudioElement, MediaElementAudioSourceNode>();
     #context = new OmniAudioContext();
     #input = this.#context.createDelay();
+    #replayGain = this.#context.createGain();
     #output = this.#context.createGain();
 
     // Safari doesn't currently support web audio for streamed media.
@@ -22,14 +27,19 @@ class Audio implements AudioManager {
 
     constructor() {
         this.#output.gain.value = mediaPlaybackSettings.volume;
-        this.#input.connect(this.#output);
+        this.#input.connect(this.#replayGain);
+        this.#replayGain.connect(this.#output);
         this.#output.connect(this.#context.destination);
 
+        const currentItem$ = observePlaybackState().pipe(
+            map((state) => state.currentItem),
+            filter(exists),
+            distinctUntilChanged()
+        );
+
         // Map the current <audio> element to a source node that can be used by analysers.
-        observePlaybackState()
+        currentItem$
             .pipe(
-                map((state) => state.currentItem),
-                filter(exists),
                 map((item) => this.getSourceNode(item)),
                 startWith(undefined),
                 distinctUntilChanged(),
@@ -38,6 +48,15 @@ class Audio implements AudioManager {
                     prevSourceNode?.disconnect(this.#input!);
                     nextSourceNode?.connect(this.#input!);
                 })
+            )
+            .subscribe(logger);
+
+        // Calculate ReplayGain
+        combineLatest([currentItem$, observeAudioSettings()])
+            .pipe(
+                map(([item, settings]) => this.calculateReplayGain(item, settings)),
+                distinctUntilChanged(),
+                tap((value) => (this.#replayGain.gain.value = value))
             )
             .subscribe(logger);
     }
@@ -56,6 +75,39 @@ class Audio implements AudioManager {
 
     set volume(volume: number) {
         this.#output.gain.value = volume;
+    }
+
+    private calculateReplayGain(item: PlaylistItem, settings: AudioSettings): number {
+        const mode: ReplayGainMode = settings.replayGainMode;
+        if (!mode) {
+            return 1;
+        }
+
+        // TODO: Maybe add some form of `preAmp` for public media.
+        // This might enable volume levelling across services.
+        const service = getServiceFromSrc(item);
+        if (service?.serviceType === ServiceType.PublicMedia) {
+            return 1;
+        }
+
+        const {albumGain, albumPeak, trackGain, trackPeak} = item;
+        const isAlbumMode = mode === 'album';
+        // prettier-ignore
+        const gain = isAlbumMode ? (albumGain ?? trackGain) : (trackGain ?? albumGain);
+        const peak = (isAlbumMode ? albumPeak ?? trackPeak : trackPeak ?? albumPeak) ?? 1;
+        const preAmp = settings.replayGainPreAmp;
+        const preventClipping = true;
+
+        if (gain == null) {
+            return 1;
+        }
+
+        // https://wiki.hydrogenaud.io/?title=ReplayGain
+        let replayGain = 10 ** ((gain + preAmp) / 20);
+        if (preventClipping) {
+            replayGain = Math.min(replayGain, 1 / peak);
+        }
+        return replayGain;
     }
 
     private getSourceNode(item: PlaylistItem): MediaElementAudioSourceNode | undefined {

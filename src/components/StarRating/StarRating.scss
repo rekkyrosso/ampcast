@@ -1,4 +1,4 @@
-@import 'styles/mixins.scss';
+@use 'styles/effects.scss';
 
 .star-rating {
     font-family: Arial, sans-serif;
@@ -20,6 +20,6 @@
     }
 
     .focus-visible &:focus .selected {
-        @include outline;
+        @include effects.outline;
     }
 }

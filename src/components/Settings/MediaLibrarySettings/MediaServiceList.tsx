@@ -27,20 +27,25 @@ export default function MediaServiceList({services, multiSelect}: MediaServiceLi
                     <label htmlFor={`${id}-none`}>None</label>
                 </li>
             ) : null}
-            {services.map((service) => (
-                <li key={service.id}>
-                    <input
-                        id={`${id}-${service.id}`}
-                        type={type}
-                        name={multiSelect ? undefined : id}
-                        value={service.id}
-                        defaultChecked={isSourceVisible(service)}
-                    />
-                    <label htmlFor={`${id}-${service.id}`}>
-                        <MediaServiceLabel service={service} showRestrictedAccess />
-                    </label>
-                </li>
-            ))}
+            {services
+                .map((service) => ({
+                    ...service,
+                    name: service.listingName || service.name,
+                }))
+                .map((service) => (
+                    <li key={service.id}>
+                        <input
+                            id={`${id}-${service.id}`}
+                            type={type}
+                            name={multiSelect ? undefined : id}
+                            value={service.id}
+                            defaultChecked={isSourceVisible(service)}
+                        />
+                        <label htmlFor={`${id}-${service.id}`}>
+                            <MediaServiceLabel service={service} showRestrictedAccess />
+                        </label>
+                    </li>
+                ))}
         </ul>
     );
 }

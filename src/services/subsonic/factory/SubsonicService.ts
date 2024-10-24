@@ -67,7 +67,8 @@ export default class SubsonicService implements PersonalMediaService {
     constructor(
         private readonly serviceId: MediaServiceId,
         readonly name: string,
-        readonly url: string
+        readonly url: string,
+        readonly listingName?: string
     ) {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const service = this;
@@ -283,6 +284,7 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'Random Songs',
             icon: 'shuffle',
             itemType: ItemType.Media,
+            defaultHidden: true,
             layout: {
                 view: 'card',
                 fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
@@ -301,6 +303,7 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'Random Albums',
             icon: 'shuffle',
             itemType: ItemType.Album,
+            defaultHidden: true,
 
             search(): Pager<MediaAlbum> {
                 return new SubsonicPager(service, ItemType.Album, async () => {
@@ -317,6 +320,7 @@ export default class SubsonicService implements PersonalMediaService {
             itemType: ItemType.Media,
             mediaType: MediaType.Video,
             defaultHidden: true,
+            disabled: serviceId === 'gonic',
             layout: {
                 view: 'card compact',
                 fields: ['Thumbnail', 'Title', 'Duration'],
@@ -557,8 +561,12 @@ export default class SubsonicService implements PersonalMediaService {
                 const info = await this.api.getAlbumInfo(id, item.subsonic?.isDir);
                 item = {
                     ...item,
-                    description: getTextFromHtml(info.notes),
-                    release_mbid: info.musicBrainzId,
+                    // These values sometimes come through as `{}` from Ampache.
+                    description:
+                        typeof info.notes === 'string' ? getTextFromHtml(info.notes) : undefined,
+                    release_mbid:
+                        item.release_mbid ||
+                        (typeof info.musicBrainzId === 'string' ? info.musicBrainzId : undefined),
                 };
             }
         } else if (itemType === ItemType.Artist && item.description === undefined) {
@@ -588,6 +596,10 @@ export default class SubsonicService implements PersonalMediaService {
 
     getPlayableUrl(item: PlayableItem): string {
         return this.api.getPlayableUrl(item);
+    }
+
+    getServerInfo(): Promise<Record<string, string>> {
+        return this.api.getServerInfo();
     }
 
     getThumbnailUrl(url: string): string {
@@ -655,35 +667,37 @@ export default class SubsonicService implements PersonalMediaService {
 
             search({q = ''}: {q?: string} = {}): Pager<T> {
                 q = q.trim();
-                if (q) {
-                    return new SubsonicPager(
-                        service,
-                        itemType,
-                        async (offset: number, count: number) => {
-                            switch (itemType) {
-                                case ItemType.Media: {
-                                    const items = await api.searchSongs(q, offset, count);
-                                    return {items};
-                                }
-
-                                case ItemType.Album: {
-                                    const items = await api.searchAlbums(q, offset, count);
-                                    return {items};
-                                }
-
-                                case ItemType.Artist: {
-                                    const items = await api.searchArtists(q, offset, count);
-                                    return {items};
-                                }
-
-                                default:
-                                    throw TypeError('Search not supported for this type of media');
+                return new SubsonicPager(
+                    service,
+                    itemType,
+                    async (offset: number, count: number) => {
+                        switch (itemType) {
+                            case ItemType.Media: {
+                                const items = await (q
+                                    ? api.searchSongs(q, offset, count)
+                                    : api.getRandomSongs());
+                                return {items};
                             }
+
+                            case ItemType.Album: {
+                                const items = await (q
+                                    ? api.searchAlbums(q, offset, count)
+                                    : api.getRandomAlbums());
+                                return {items};
+                            }
+
+                            case ItemType.Artist: {
+                                const items = await (q
+                                    ? api.searchArtists(q, offset, count)
+                                    : api.getRandomArtists());
+                                return {items};
+                            }
+
+                            default:
+                                throw TypeError('Search not supported for this type of media');
                         }
-                    );
-                } else {
-                    return new SimplePager();
-                }
+                    }
+                );
             },
         };
     }

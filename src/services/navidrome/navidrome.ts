@@ -309,6 +309,7 @@ const navidrome: PersonalMediaService = {
     getFilters,
     getMetadata,
     getPlayableUrl,
+    getServerInfo,
     getThumbnailUrl,
     lookup,
     scrobble,
@@ -431,6 +432,10 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
 
 function getPlayableUrl(item: PlayableItem): string {
     return subsonicApi.getPlayableUrl(item);
+}
+
+async function getServerInfo(): Promise<Record<string, string>> {
+    return subsonicApi.getServerInfo();
 }
 
 function getThumbnailUrl(url: string): string {

@@ -1,4 +1,4 @@
-@import './mixins.scss';
+@use './effects.scss';
 
 fieldset {
     position: relative;
@@ -34,7 +34,7 @@ textarea {
 
 input,
 textarea {
-    @include inset;
+    @include effects.inset;
 }
 
 input {
@@ -52,7 +52,7 @@ select,
 textarea,
 input:not([type="range"]) {
     .focus-visible &:focus {
-        @include outline;
+        @include effects.outline;
     }
 }
 
@@ -143,11 +143,11 @@ input[type="range"] {
     }
 
     .focus-visible &:focus::-webkit-slider-thumb {
-        @include outline;
+        @include effects.outline;
     }
 
     .focus-visible &:focus::-moz-range-thumb {
-        @include outline;
+        @include effects.outline;
     }
 }
 
@@ -184,7 +184,7 @@ textarea {
 
 button,
 [role="button"] {
-    @include button;
+    @include effects.button;
     -webkit-appearance: none;
     appearance: none;
     padding: 0.125em 1em;
@@ -193,7 +193,7 @@ button,
     user-select: none;
     overflow: hidden;
     text-overflow: ellipsis;
-    @include pressable;
+    @include effects.pressable;
 
     &:disabled {
         filter: grayscale(1);
@@ -203,7 +203,7 @@ button,
     }
 
     .focus-visible &:focus {
-        @include outline;
+        @include effects.outline;
     }
 
     & + & {

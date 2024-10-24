@@ -4,6 +4,7 @@ import MediaPlayback from 'types/MediaPlayback';
 import PlaybackState from 'types/PlaybackState';
 import PlaylistItem from 'types/PlaylistItem';
 import {Logger, isMiniPlayer} from 'utils';
+import {MAX_DURATION} from 'services/constants';
 import {loadMediaServices} from 'services/mediaServices';
 import playlist from 'services/playlist';
 import theme from 'services/theme';
@@ -43,7 +44,9 @@ const connect = (
     };
 
     const transferPlayback = async (transferredState: PlaybackState) => {
-        const {currentItem, currentTime, paused, playbackId, startedAt} = transferredState;
+        const {currentItem, duration, currentTime, paused, playbackId, startedAt} =
+            transferredState;
+        const isLiveStreaming = duration === MAX_DURATION;
         suspended = true;
         await loadMediaServices();
         setItem(currentItem);
@@ -51,7 +54,10 @@ const connect = (
         if (!currentItem) {
             mediaPlayback.load(currentItem);
         } else {
-            mediaPlayback.load({...currentItem, startTime: currentTime});
+            mediaPlayback.load({
+                ...currentItem,
+                startTime: isLiveStreaming ? undefined : currentTime,
+            });
         }
         // Mutate the playback state to use the same `playbackId`.
         let playbackState: Writable<PlaybackState> = playback.getPlaybackState();

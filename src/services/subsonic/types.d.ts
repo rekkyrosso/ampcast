@@ -6,6 +6,8 @@ declare namespace Subsonic {
         name: string;
         starred?: string;
         album?: Album[];
+        // OpenSubsonic extensions
+        musicBrainzId?: string;
     }
 
     interface SimilarArtist {
@@ -38,6 +40,8 @@ declare namespace Subsonic {
         starred?: string;
         year?: number;
         song?: Song[];
+        // OpenSubsonic extensions
+        musicBrainzId?: string;
     }
 
     interface AlbumInfo {
@@ -74,6 +78,12 @@ declare namespace Subsonic {
         track: number;
         type: 'music';
         year?: number;
+        // OpenSubsonic extensions
+        musicBrainzId?: string;
+        replayGain?: {
+            albumGain: number;
+            trackGain: number;
+        };
     }
 
     interface Video {
@@ -152,5 +162,12 @@ declare namespace Subsonic {
 
     interface CreatePlaylistResponse {
         playlist?: Playlist;
+    }
+
+    interface PingResponse {
+        version: string;
+        openSubsonic?: boolean;
+        serverVersion?: string;
+        type?: string;
     }
 }

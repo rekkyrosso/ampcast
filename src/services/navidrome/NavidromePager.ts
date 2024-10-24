@@ -126,6 +126,10 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
             release_mbid: song.mbzAlbumId,
             track_mbid: song.mbzReleaseTrackId,
             artist_mbids: song.mbzArtistId ? [song.mbzArtistId] : undefined,
+            albumGain: song.rgAlbumGain,
+            albumPeak: song.rgAlbumPeak,
+            trackGain: song.rgTrackGain,
+            trackPeak: song.rgTrackPeak,
         };
     }
 

@@ -12,6 +12,7 @@ import lego from './lego.json';
 import mellowyellow from './mellowyellow.json';
 import moodyblue from './moodyblue.json';
 import neon from './neon.json';
+import notebook from './notebook.json';
 import palepink from './palepink.json';
 import potpourri from './potpourri.json';
 import proton from './proton.json';
@@ -64,6 +65,7 @@ const themes: readonly Theme[] = [
     mellowyellow,
     moodyblue,
     neon,
+    notebook,
     palepink,
     potpourri,
     proton,

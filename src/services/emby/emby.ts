@@ -491,6 +491,7 @@ const emby: PersonalMediaService = {
     getMetadata,
     getPlayableUrl,
     getPlaybackType,
+    getServerInfo,
     lookup,
     scrobble,
     store,
@@ -592,6 +593,16 @@ function getPlayableUrl(item: PlayableItem): string {
 
 async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
     return embyApi.getPlaybackType(item);
+}
+
+async function getServerInfo(): Promise<Record<string, string>> {
+    const system = await embyApi.getSystemInfo();
+    const info: Record<string, string> = {};
+    if (system.ProductName) {
+        info['Server type'] = system.ProductName;
+    }
+    info['Server version'] = system.Version || '';
+    return info;
 }
 
 async function lookup(

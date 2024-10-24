@@ -5,7 +5,7 @@ import {findListen} from 'services/localdb/listens';
 import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import {
     canPlayNow,
-    getLookupServices,
+    getMediaLookupServices,
     getService,
     getServiceFromSrc,
     hasPlayableSrc,
@@ -171,7 +171,7 @@ class Lookup {
         excludedService?: MediaService
     ): Promise<readonly MediaItem[]> {
         this.throwIfCancelled();
-        const services = getLookupServices().filter(
+        const services = getMediaLookupServices().filter(
             (service) => service !== excludedService && service.isLoggedIn()
         );
         if (services.length === 0) {
@@ -212,7 +212,7 @@ class Lookup {
     }
 
     private getISRCServices(): readonly MediaService[] {
-        return getLookupServices().filter(
+        return getMediaLookupServices().filter(
             (service) => !!service.lookupByISRC && service.isLoggedIn()
         );
     }

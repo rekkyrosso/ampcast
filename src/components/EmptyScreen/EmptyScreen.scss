@@ -1,7 +1,7 @@
-@import 'styles/mixins.scss';
+@use 'styles/effects.scss';
 
 .empty-screen {
-    @include inset;
+    @include effects.inset;
     flex: auto;
     padding: var(--gutter-width);
 

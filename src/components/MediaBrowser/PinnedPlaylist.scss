@@ -1,4 +1,4 @@
-@import 'styles/mixins.scss';
+@use 'styles/effects.scss';
 
 .pinned-playlist {
     .playlists {
@@ -18,7 +18,7 @@
         }
 
         .blurb {
-            @include line-clamp(2);
+            @include effects.line-clamp(2);
             top: 2em;
             line-height: 1.25;
         }

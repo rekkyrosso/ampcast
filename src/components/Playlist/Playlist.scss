@@ -16,8 +16,10 @@
             width: 100%;
 
             .airsonic-not-connected &.source-airsonic,
+            .ampache-not-connected &.source-ampache,
             .apple-not-connected &.source-apple,
             .emby-not-connected &.source-emby,
+            .gonic-not-connected &.source-gonic,
             .jellyfin-not-connected &.source-jellyfin,
             .navidrome-not-connected &.source-navidrome,
             .subsonic-not-connected &.source-subsonic,
@@ -36,8 +38,10 @@
             }
 
             .airsonic-connected &.source-airsonic,
+            .ampache-connected &.source-ampache,
             .apple-connected &.source-apple,
             .emby-connected &.source-emby,
+            .gonic-connected &.source-gonic,
             .jellyfin-connected &.source-jellyfin,
             .navidrome-connected &.source-navidrome,
             .subsonic-connected &.source-subsonic,

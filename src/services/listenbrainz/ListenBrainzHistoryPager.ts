@@ -13,7 +13,7 @@ import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import Pager, {Page} from 'types/Pager';
-import {getLookupServices} from 'services/mediaServices';
+import {getMediaLookupServices} from 'services/mediaServices';
 import {musicBrainzHost} from 'services/musicbrainz';
 import SequentialPager from 'services/pagers/SequentialPager';
 import youtubeApi from 'services/youtube/youtubeApi';
@@ -193,7 +193,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
                 }
             }
             const musicServiceName = info.music_service_name?.toLowerCase() || '';
-            const lookupServiceIds = getLookupServices().map((service) => service.id);
+            const lookupServiceIds = getMediaLookupServices().map((service) => service.id);
             for (const serviceId of lookupServiceIds) {
                 if (musicServiceName.includes(serviceId)) {
                     return `${serviceId}:`;

@@ -1,4 +1,4 @@
-@import 'styles/mixins.scss';
+@use 'styles/effects.scss';
 
 dialog {
     border: 0;
@@ -94,7 +94,7 @@ dialog {
     }
 
     &-body {
-        @include inset;
+        @include effects.inset;
         position: relative;
         flex: initial;
         margin: 0 0.375em 0.375em 0.375em;

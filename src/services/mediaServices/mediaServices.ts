@@ -87,8 +87,10 @@ export function getDataServices(): readonly DataService[] {
     return getEnabledServices().filter(isDataService);
 }
 
-export function getLookupServices(): readonly MediaService[] {
-    return getEnabledServices().filter((service) => !!service.lookup);
+export function getMediaLookupServices(): readonly MediaService[] {
+    return getEnabledServices().filter(
+        (service) => service.serviceType !== ServiceType.DataService && !!service.lookup
+    );
 }
 
 export function getPersonalMediaServices(): readonly PersonalMediaService[] {

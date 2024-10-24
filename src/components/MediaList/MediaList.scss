@@ -1,4 +1,4 @@
-@import 'styles/mixins.scss';
+@use 'styles/effects.scss';
 
 .media-list.list-view {
     .list-view-row.playing .list-view-cell {
@@ -289,7 +289,7 @@
             }
 
             .playlists & .blurb {
-                @include line-clamp(2);
+                @include effects.line-clamp(2);
                 top: 2em;
                 line-height: normal;
             }

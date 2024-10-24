@@ -1,4 +1,4 @@
-@import 'styles/mixins.scss';
+@use 'styles/effects.scss';
 
 .error-screen {
     display: flex;
@@ -6,7 +6,7 @@
     flex: auto;
 
     &-content {
-        @include inset;
+        @include effects.inset;
         flex: auto;
         padding: var(--gutter-width);
     }

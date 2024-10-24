@@ -44,6 +44,7 @@ type BaseMediaService = Auth & {
     canStore: (item: MediaObject, inline?: boolean) => boolean;
     compareForRating: <T extends MediaObject>(a: T, b: T) => boolean;
     // Everything below here should be optional.
+    readonly listingName?: string; // Longer name for disambiguation
     readonly disabled?: boolean;
     readonly defaultHidden?: boolean; // `true` for most services
     readonly internetRequired?: boolean;
@@ -56,9 +57,9 @@ type BaseMediaService = Auth & {
     readonly labels?: Partial<Record<LibraryAction, string>>;
     readonly editablePlaylists?: MediaSource<MediaPlaylist>;
     readonly components?: {
+        AudioSettings?: React.FC<{service: MediaService}>;
         Credentials?: React.FC<{service: MediaService}>;
         Login?: React.FC<{service: MediaService}>;
-        StreamingSettings?: React.FC<{service: MediaService}>;
     };
     addToPlaylist?: (
         playlist: MediaPlaylist,

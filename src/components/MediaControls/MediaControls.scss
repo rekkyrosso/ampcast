@@ -1,4 +1,4 @@
-@import 'styles/mixins.scss';
+@use 'styles/effects.scss';
 
 .media-controls {
     font-family: var(--system-font-family);
@@ -52,7 +52,7 @@
     }
 
     time {
-        @include inset;
+        @include effects.inset;
         display: flex;
         flex: initial;
         justify-content: center;

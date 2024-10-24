@@ -7,7 +7,11 @@ import {
     getScrobblers,
     getService,
 } from 'services/mediaServices';
-import {allowMultiSelect, isSourceVisible, setHiddenSources} from 'services/mediaServices/servicesSettings';
+import {
+    allowMultiSelect,
+    isSourceVisible,
+    setHiddenSources,
+} from 'services/mediaServices/servicesSettings';
 import Dialog, {DialogProps} from 'components/Dialog';
 import MediaServiceList from 'components/Settings/MediaLibrarySettings/MediaServiceList';
 import {IconName} from 'components/Icon';
@@ -69,6 +73,7 @@ function StreamingMedia() {
 function PersonalMedia() {
     return (
         <Services
+            className="personal-media-services"
             icon="network"
             title="Personal Media Server"
             services={getPersonalMediaServices()}
@@ -86,10 +91,11 @@ interface ServicesProps {
     icon: IconName;
     title: string;
     services: readonly MediaService[];
+    className?: string;
     multiSelect?: boolean;
 }
 
-function Services({icon, title, multiSelect, services}: ServicesProps) {
+function Services({icon, title, className, multiSelect, services}: ServicesProps) {
     const ref = useRef<HTMLFieldSetElement>(null);
     const [restrictedAccess, setRestrictedAccess] = useState(() =>
         services.filter(isSourceVisible).some(hasRestrictedAccess)
@@ -114,7 +120,7 @@ function Services({icon, title, multiSelect, services}: ServicesProps) {
     }, []);
 
     return (
-        <div className="startup-wizard-services">
+        <div className={className}>
             <h3>
                 <MediaSourceLabel icon={icon} text={title} />
             </h3>

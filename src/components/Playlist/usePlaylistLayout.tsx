@@ -1,6 +1,7 @@
 import React, {useMemo} from 'react';
 import PlaylistItem from 'types/PlaylistItem';
 import LookupStatus from 'types/LookupStatus';
+import {MAX_DURATION} from 'services/constants';
 import {isPlayableSrc} from 'services/mediaServices';
 import {ListViewLayout} from 'components/ListView';
 import Icon, {IconName} from 'components/Icon';
@@ -103,5 +104,9 @@ function RowTitle({title, artists}: PlaylistItem) {
 }
 
 function Duration({duration}: PlaylistItem) {
-    return <Time className="text" time={duration} />;
+    return duration === MAX_DURATION ? (
+        <span className="text">–:––</span>
+    ) : (
+        <Time className="text" time={duration} />
+    );
 }

@@ -29,6 +29,10 @@ export default interface MediaItem extends BaseMediaObject {
     readonly blob?: Blob;
     readonly blobUrl?: string;
     readonly startTime?: number;
+    readonly albumGain?: number;
+    readonly albumPeak?: number;
+    readonly trackGain?: number;
+    readonly trackPeak?: number;
     // Playable sources that can't be derived from `src`.
     // Currently used by TIDAL(via Plex) audio quality sources.
     readonly srcs?: string[];

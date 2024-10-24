@@ -24,12 +24,24 @@
             background: #2f7bd9;
         }
 
+        .ampache-browser & {
+            background: #ff8300;
+            color: #422506;
+            text-shadow: none;
+        }
+
         .apple-browser & {
             background: #d60017;
         }
 
         .emby-browser & {
             background: #52b54b;
+        }
+
+        .gonic-browser & {
+            background: #fdc71b;
+            color: #4f3d09;
+            text-shadow: none;
         }
 
         .jellyfin-browser & {
@@ -59,7 +71,9 @@
         }
 
         .spotify-browser & {
-            background: #1db954;
+            background: #1ed760;
+            color: black;
+            text-shadow: none;
         }
 
         .tidal-browser & {
@@ -73,11 +87,14 @@
     }
 
     .service-link {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: center;
         margin-top: 2em;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+
+        .external-link-content {
+            display: inline;
+        }
 
         > .icon {
             font-size: 2em;

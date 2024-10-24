@@ -34,17 +34,17 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
                 panel: <ServerSettings service={service} />,
             });
         }
+        const AudioSettings = service.components?.AudioSettings;
+        if (AudioSettings) {
+            tabs.push({
+                tab: 'Audio',
+                panel: <AudioSettings service={service} />,
+            });
+        }
         if (service.serviceType === ServiceType.DataService && service.canScrobble) {
             tabs.push({
                 tab: 'Scrobbling',
                 panel: <ScrobblingSettings service={service} />,
-            });
-        }
-        const StreamingSettings = service.components?.StreamingSettings;
-        if (StreamingSettings) {
-            tabs.push({
-                tab: 'Streaming',
-                panel: <StreamingSettings service={service} />,
             });
         }
         if (service.createSourceFromPin) {

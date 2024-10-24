@@ -86,7 +86,7 @@ export default class LiteStorage {
     }
 
     setNumber(key: string, value: number): void {
-        this.setItem(key, String(Number(value) || 0));
+        this.setItem(key, String(Number(value)));
     }
 
     getString<T extends string | ''>(key: string, defaultValue: T | '' = ''): T {

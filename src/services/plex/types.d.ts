@@ -179,11 +179,33 @@ declare namespace plex {
 
     interface Part {
         readonly id: number;
+        readonly Stream: readonly Stream[];
         readonly key: string;
         readonly duration: number;
         readonly file: string;
         readonly size: number;
         readonly container: string;
+    }
+
+    interface Stream {
+        readonly id: number;
+        readonly albumGain: string;
+        readonly albumPeak: string;
+        readonly albumRange: string;
+        readonly audioChannelLayout: string;
+        readonly bitrate: number;
+        readonly channels: number;
+        readonly codec: string;
+        readonly displayTitle: string;
+        readonly extendedDisplayTitle: string;
+        readonly gain: string;
+        readonly index: number;
+        readonly loudness: string;
+        readonly lra: string;
+        readonly peak: string;
+        readonly samplingRate: number;
+        readonly selected: boolean;
+        readonly streamType: number;
     }
 
     interface Guid {
@@ -211,6 +233,7 @@ declare namespace plex {
         readonly connections: readonly Connection[];
         readonly name: string;
         readonly product: string;
+        readonly productVersion: string;
         readonly platform: string;
         readonly platformVersion: string;
         readonly device: string;

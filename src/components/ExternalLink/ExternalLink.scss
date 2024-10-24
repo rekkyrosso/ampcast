@@ -1,4 +1,4 @@
-@import 'styles/mixins.scss';
+@use 'styles/effects.scss';
 
 .external-link {
     white-space: nowrap;
@@ -26,7 +26,7 @@
     }
 
     .focus-visible &:focus &-text {
-        @include outline;
+        @include effects.outline;
         outline-width: 2px;
     }
 

@@ -86,42 +86,35 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
         };
 
         const data = await embyApi.get(this.path, params);
-
-        if ((data as BaseItemDto).Type) {
-            return {
-                items: [this.createMediaObject(data as BaseItemDto)],
-                total: 1,
-            };
-        } else {
-            return {
-                items: data.Items?.map((item: BaseItemDto) => this.createMediaObject(item)) || [],
-                total: data.TotalRecordCount || data.Items?.length,
-            };
-        }
+        const page = (data as BaseItemDto).Type
+            ? {
+                  items: [data as BaseItemDto],
+                  total: 1,
+              }
+            : {
+                  items: data.Items || [],
+                  total: data.TotalRecordCount || data.Items?.length,
+              };
+        return {...page, items: page.items.map((item) => this.createMediaObject(item))};
     }
 
     private createMediaObject(item: BaseItemDto): T {
         if (this.parent?.itemType === ItemType.Folder && item.IsFolder) {
             return this.createMediaFolder(item) as T;
         } else {
-            let mediaObject: T;
             switch (item.Type) {
                 case 'MusicArtist':
-                    mediaObject = this.createMediaArtist(item) as T;
-                    break;
+                    return this.createMediaArtist(item) as T;
 
                 case 'MusicAlbum':
-                    mediaObject = this.createMediaAlbum(item) as T;
-                    break;
+                    return this.createMediaAlbum(item) as T;
 
                 case 'Playlist':
-                    mediaObject = this.createMediaPlaylist(item) as T;
-                    break;
+                    return this.createMediaPlaylist(item) as T;
 
                 default:
-                    mediaObject = this.createMediaItem(item) as T;
+                    return this.createMediaItem(item) as T;
             }
-            return mediaObject;
         }
     }
 

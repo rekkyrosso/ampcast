@@ -14,4 +14,5 @@ export default interface PersonalMediaService
     };
     // Everything below here should be optional.
     getLibraries?: () => Promise<readonly PersonalMediaLibrary[]>;
+    getServerInfo?: () => Promise<Record<string, string>>;
 }

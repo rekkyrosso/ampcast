@@ -26,6 +26,7 @@ export default interface MediaSource<T extends MediaObject> {
     readonly tertiaryLayout?: MediaSourceLayout<ChildOf<ChildOf<T>>>;
     readonly searchable?: boolean;
     readonly defaultHidden?: boolean;
+    readonly disabled?: boolean;
     readonly isPin?: boolean;
     readonly lockActionsStore?: boolean;
     readonly component?: React.FC<{
@@ -37,7 +38,14 @@ export default interface MediaSource<T extends MediaObject> {
 
 export type MediaMultiSource = Pick<
     MediaSource<any>,
-    'id' | 'title' | 'icon' | 'searchable' | 'defaultHidden' | 'lockActionsStore' | 'component'
+    | 'id'
+    | 'title'
+    | 'icon'
+    | 'searchable'
+    | 'defaultHidden'
+    | 'disabled'
+    | 'lockActionsStore'
+    | 'component'
 > & {
     readonly sources: readonly (
         | MediaSource<MediaAlbum>

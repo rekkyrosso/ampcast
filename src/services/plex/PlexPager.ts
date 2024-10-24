@@ -259,6 +259,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     private createMediaItemFromTrack(track: plex.Track, album: plex.Album | undefined): MediaItem {
         const [media] = track.Media || [];
         const [part] = media?.Part || [];
+        const [stream] = part?.Stream || [];
         let title = (track.title || '').trim();
         const hasMetadata = !!title;
         const albumTitle = hasMetadata
@@ -273,6 +274,11 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         } else {
             title = title || fileName.replace(/\.\w+/, '');
         }
+        const parseNumber = (value: string): number | undefined => {
+            const gain = parseFloat(value);
+            return isNaN(gain) ? undefined : gain;
+        };
+
         return {
             src: this.getSrc('audio', track),
             srcs: track.Media?.map(({Part: [part]}) => part.key),
@@ -308,6 +314,10 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             release_mbid: album ? this.getMbid(album) : undefined,
             track_mbid: this.getMbid(track),
             unplayable: part ? undefined : true,
+            albumGain: parseNumber(stream?.albumGain),
+            albumPeak: parseNumber(stream?.albumPeak),
+            trackGain: parseNumber(stream?.gain),
+            trackPeak: parseNumber(stream?.peak),
         };
     }
 

@@ -48,7 +48,7 @@ export default function LoginDialog({
             console.error(err);
             setConnecting(false);
             if (err instanceof TypeError) {
-                setMessage('Host not found');
+                setMessage('Host not available');
             } else {
                 setMessage(err.message || err.statusText || 'Error');
             }

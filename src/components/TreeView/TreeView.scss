@@ -1,7 +1,7 @@
-@import 'styles/mixins.scss';
+@use 'styles/effects.scss';
 
 .tree-view {
-    @include inset;
+    @include effects.inset;
     position: relative;
     isolation: isolate;
     display: flex;

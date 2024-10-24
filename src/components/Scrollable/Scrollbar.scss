@@ -1,4 +1,4 @@
-@import 'styles/mixins.scss';
+@use 'styles/effects.scss';
 
 .scrollbar {
     position: absolute;
@@ -44,7 +44,7 @@
         width: var(--scrollbar-size);
         height: var(--scrollbar-size);
         border-radius: var(--app-border-radius);
-        @include pressable;
+        @include effects.pressable;
 
         .browser-firefox &:active {
             transform: none;

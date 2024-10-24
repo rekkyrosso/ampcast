@@ -1,0 +1,15 @@
+{
+    "name": "Notebook",
+    "fontName": "Muli",
+    "backgroundColor": "#f7f7f7",
+    "textColor": "#150e0e",
+    "frameColor": "#d1d1d1",
+    "frameTextColor": "#121111",
+    "selectedBackgroundColor": "#feffbd",
+    "selectedTextColor": "#000000",
+    "mediaButtonColor": "#c5e0e7",
+    "mediaButtonTextColor": "#1b121c",
+    "spacing": 0.48,
+    "roundness": 0.14,
+    "flat": true
+}

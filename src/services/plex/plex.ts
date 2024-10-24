@@ -517,6 +517,7 @@ const plex: PersonalMediaService = {
     getMetadata,
     getPlayableUrl,
     getPlaybackType,
+    getServerInfo,
     getThumbnailUrl,
     lookup,
     rate,
@@ -624,6 +625,20 @@ function getPlayableUrl(item: PlayableItem): string {
 
 async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
     return plexApi.getPlaybackType(item);
+}
+
+async function getServerInfo(): Promise<Record<string, string>> {
+    let server = plexSettings.server;
+    if (server) {
+        const servers = await plexApi.getServers();
+        server = servers.find((s) => s.id === server!.id) || server;
+        return {
+            'Server type': server.product || '',
+            'Server version': server.productVersion?.replace(/-.*$/, '') || '',
+        };
+    } else {
+        return {};
+    }
 }
 
 function getThumbnailUrl(url: string): string {

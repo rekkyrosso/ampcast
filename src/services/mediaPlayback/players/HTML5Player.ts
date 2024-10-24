@@ -19,6 +19,7 @@ import {
 import MediaService from 'types/MediaService';
 import PlayableItem from 'types/PlayableItem';
 import Player from 'types/Player';
+import {MAX_DURATION} from 'services/constants';
 import {getServiceFromSrc, waitForLogin} from 'services/mediaServices';
 import {Logger} from 'utils';
 
@@ -151,7 +152,9 @@ export default class HTML5Player implements Player<PlayableItem> {
                 fromEvent(element, 'durationchange').pipe(
                     startWith(element),
                     map(() => element.duration),
-                    filter((duration) => isFinite(duration))
+                    map((duration) =>
+                        isNaN(duration) ? 0 : isFinite(duration) ? duration : MAX_DURATION
+                    )
                 )
             )
         );

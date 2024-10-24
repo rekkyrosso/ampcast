@@ -1,6 +1,6 @@
 .startup-wizard {
     width: 24em;
-    height: 32em;
+    height: 34em;
 
     h3 {
         font-size: 1.375em;
@@ -9,5 +9,9 @@
 
     form {
         width: 100%;
+    }
+
+    .personal-media-services .media-service-list {
+        font-size: 1.125em;
     }
 }

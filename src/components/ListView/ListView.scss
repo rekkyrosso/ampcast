@@ -1,7 +1,7 @@
-@import 'styles/mixins.scss';
+@use 'styles/effects.scss';
 
 .list-view {
-    @include inset;
+    @include effects.inset;
     position: relative;
     isolation: isolate;
     display: flex;
@@ -58,7 +58,7 @@
     }
 
     &-head &-cell {
-        @include button;
+        @include effects.button;
         padding: 0 calc(0.5em - 1px);
         border-radius: var(--app-border-radius);
         height: inherit;

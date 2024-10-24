@@ -13,12 +13,15 @@ import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import ParentOf from 'types/ParentOf';
 import Thumbnail from 'types/Thumbnail';
+import {uniq} from 'utils';
 import OffsetPager from 'services/pagers/OffsetPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
 import jellyfinSettings from './jellyfinSettings';
 import jellyfinApi from './jellyfinApi';
+
+type LegacyBaseItemDto = BaseItemDto & {LUFS?: number | null};
 
 export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     static minPageSize = 10;
@@ -86,42 +89,38 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         };
 
         const data = await jellyfinApi.get(this.path, params);
-
-        if ((data as BaseItemDto).Type) {
-            return {
-                items: [this.createMediaObject(data as BaseItemDto)],
-                total: 1,
-            };
-        } else {
-            return {
-                items: data.Items?.map((item: BaseItemDto) => this.createMediaObject(item)) || [],
-                total: data.TotalRecordCount || data.Items?.length,
-            };
-        }
+        const page = (data as BaseItemDto).Type
+            ? {
+                  items: [data as BaseItemDto],
+                  total: 1,
+              }
+            : {
+                  items: data.Items || [],
+                  total: data.TotalRecordCount || data.Items?.length,
+              };
+        const albums = await this.getAlbums(page.items);
+        return {...page, items: page.items.map((item) => this.createMediaObject(item, albums))};
     }
 
-    private createMediaObject(item: BaseItemDto): T {
+    private createMediaObject(item: BaseItemDto, albums: readonly BaseItemDto[]): T {
         if (this.parent?.itemType === ItemType.Folder && item.IsFolder) {
             return this.createMediaFolder(item) as T;
         } else {
-            let mediaObject: T;
             switch (item.Type) {
                 case 'MusicArtist':
-                    mediaObject = this.createMediaArtist(item) as T;
-                    break;
+                    return this.createMediaArtist(item) as T;
 
                 case 'MusicAlbum':
-                    mediaObject = this.createMediaAlbum(item) as T;
-                    break;
+                    return this.createMediaAlbum(item) as T;
 
                 case 'Playlist':
-                    mediaObject = this.createMediaPlaylist(item) as T;
-                    break;
+                    return this.createMediaPlaylist(item) as T;
 
-                default:
-                    mediaObject = this.createMediaItem(item) as T;
+                default: {
+                    const album = albums.find((album) => album.Id === item.AlbumId);
+                    return this.createMediaItem(item, album) as T;
+                }
             }
-            return mediaObject;
         }
     }
 
@@ -135,7 +134,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             genres: artist.Genres || undefined,
             thumbnails: this.createThumbnails(artist),
             inLibrary: artist.UserData?.IsFavorite,
-            artist_mbid: artist.ProviderIds?.['MusicBrainzArtist'],
+            artist_mbid: artist.ProviderIds?.MusicBrainzArtist,
             pager: this.createArtistAlbumsPager(artist),
         };
     }
@@ -157,7 +156,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             trackCount: album.ChildCount || undefined,
             pager: this.createAlbumTracksPager(album),
             artist: album.AlbumArtist || undefined,
-            release_mbid: album.ProviderIds?.['MusicBrainzAlbum'],
+            release_mbid: album.ProviderIds?.MusicBrainzAlbum,
             year: album.ProductionYear || undefined,
         };
     }
@@ -198,9 +197,15 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         return mediaFolder as MediaFolder;
     }
 
-    private createMediaItem(track: BaseItemDto): MediaItem {
+    private createMediaItem(
+        track: LegacyBaseItemDto,
+        album?: LegacyBaseItemDto | undefined
+    ): MediaItem {
         const isVideo = track.MediaType === 'Video';
         const artist_mbid = track.ProviderIds?.['MusicBrainzArtist'];
+        const getGain = (item: LegacyBaseItemDto | undefined): number | undefined => {
+            return item?.NormalizationGain ?? (item?.LUFS == null ? undefined : -18 - item.LUFS);
+        };
         return {
             itemType: ItemType.Media,
             mediaType: isVideo ? MediaType.Video : MediaType.Audio,
@@ -226,9 +231,11 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             album: track.Album || undefined,
             disc: track.Album ? track.ParentIndexNumber || undefined : undefined,
             track: track.Album ? track.IndexNumber || 0 : 0,
-            track_mbid: track.ProviderIds?.['MusicBrainzTrack'],
-            release_mbid: track.ProviderIds?.['MusicBrainzAlbum'],
+            track_mbid: track.ProviderIds?.MusicBrainzTrack,
+            release_mbid: track.ProviderIds?.MusicBrainzAlbum,
             artist_mbids: artist_mbid ? [artist_mbid] : undefined,
+            albumGain: isVideo ? undefined : getGain(album),
+            trackGain: isVideo ? undefined : getGain(track),
         };
     }
 
@@ -326,6 +333,20 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         } else {
             return folderPager;
         }
+    }
+
+    private async getAlbums(items: readonly BaseItemDto[]): Promise<readonly BaseItemDto[]> {
+        const tracks = items.filter((item) => item.Type === 'Audio');
+        const albumIds = uniq(tracks.map((track) => track.AlbumId));
+        if (albumIds.length > 0) {
+            const data = await jellyfinApi.get(`Users/${jellyfinSettings.userId}/Items`, {
+                Ids: albumIds.join(','),
+                IncludeItemTypes: 'MusicAlbum',
+                Limit: String(albumIds.length),
+            });
+            return data.Items || [];
+        }
+        return [];
     }
 
     private getExternalUrl(item: BaseItemDto): string {

@@ -1,4 +1,4 @@
-@import './mixins.scss';
+@use './effects.scss';
 
 html {
     background: #32312f;
@@ -71,7 +71,7 @@ small {
 }
 
 .page {
-    @include inset;
+    @include effects.inset;
     padding: 1rem;
     border-radius: var(--app-border-radius);
     overflow: hidden;
@@ -149,4 +149,8 @@ body.dragging {
 
 .error {
     color: var(--error-color);
+}
+
+.warning {
+    font-style: italic;
 }

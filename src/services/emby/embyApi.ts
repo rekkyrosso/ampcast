@@ -2,6 +2,7 @@ import type {
     BaseItemDto,
     BaseItemDtoQueryResult,
     EndPointInfo,
+    PublicSystemInfo
 } from '@jellyfin/sdk/lib/generated-client';
 import {Primitive} from 'type-fest';
 import FilterType from 'types/FilterType';
@@ -264,6 +265,11 @@ async function getPlaybackType(
     }
 }
 
+async function getSystemInfo(settings: EmbySettings = embySettings): Promise<PublicSystemInfo> {
+    const info = await get<PublicSystemInfo>(`System/Info/Public`, undefined, settings);
+    return info;
+}
+
 const embyApi = {
     addToPlaylist,
     createPlaylist,
@@ -272,9 +278,10 @@ const embyApi = {
     getFilters,
     getEndpointInfo,
     getMusicLibraries,
-    post,
     getPlayableUrl,
     getPlaybackType,
+    getSystemInfo,
+    post,
 };
 
 export default embyApi;

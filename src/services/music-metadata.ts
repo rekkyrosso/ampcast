@@ -48,7 +48,7 @@ export async function createMediaItemFromFile(file: File): Promise<MediaItem> {
 
     return {
         ...item,
-        duration: duration ? Number(duration.toFixed(3)) : 0,
+        duration: Number(duration.toFixed(3)),
         blob: file,
     };
 }
@@ -67,7 +67,7 @@ export async function createMediaItemFromUrl(url: string): Promise<MediaItem> {
 
     return {
         ...item,
-        duration: duration ? Number(duration.toFixed(3)) : 0,
+        duration: Number(duration.toFixed(3)),
     };
 }
 
@@ -134,5 +134,9 @@ function createMediaItem(
         release_mbid: common.musicbrainz_albumid,
         playedAt: 0,
         noScrobble: !common.title,
+        albumGain: common.replaygain_album_gain?.dB,
+        albumPeak: common.replaygain_album_peak?.dB,
+        trackGain: common.replaygain_track_gain?.dB,
+        trackPeak: common.replaygain_track_peak?.dB,
     };
 }

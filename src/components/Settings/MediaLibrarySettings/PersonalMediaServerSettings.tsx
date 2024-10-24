@@ -2,6 +2,7 @@ import React, {useCallback, useId, useRef} from 'react';
 import PersonalMediaService from 'types/PersonalMediaService';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import ExternalLink from 'components/ExternalLink';
+import PersonalMediaServerInfo from './PersonalMediaServerInfo';
 import useAudioLibraries from './useAudioLibraries';
 import './PersonalMediaServerSettings.scss';
 
@@ -25,6 +26,7 @@ export default function PersonalMediaServerSettings({service}: PersonalMediaServ
                 <legend>Host</legend>
                 {service.host ? <ExternalLink href={service.host} /> : 'Not configured'}
             </fieldset>
+            <PersonalMediaServerInfo service={service} />
             <fieldset>
                 <legend>Preferences</legend>
                 <p>

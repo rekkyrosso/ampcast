@@ -21,6 +21,7 @@ import PlaylistItem from 'types/PlaylistItem';
 import PlaybackState from 'types/PlaybackState';
 import Visualizer from 'types/Visualizer';
 import {Logger, isMiniPlayer} from 'utils';
+import {MAX_DURATION} from 'services/constants';
 import playlist from 'services/playlist';
 import session from 'services/session';
 import theme from 'services/theme';
@@ -66,7 +67,7 @@ const connect = (
         return;
     }
     logger.log('connect');
-    
+
     fromEvent(window, 'pagehide').subscribe(() => sendCommand('close'));
     theme.observe().subscribe(() => sendCommand('refresh-theme'));
     playlist.observeCurrentItem().subscribe(setItem);
@@ -131,8 +132,11 @@ const connect = (
 
     const handleOpen = async (): Promise<void> => {
         const state = playback.getPlaybackState();
+        const isLiveStreaming = state.duration === MAX_DURATION;
         playback.suspend();
-        if (!state.paused) {
+        if (isLiveStreaming) {
+            mediaPlayback.stop();
+        } else if (!state.paused) {
             mediaPlayback.pause();
         }
         firstPlay = true;
@@ -161,6 +165,7 @@ const connect = (
     const handleClose = async (): Promise<void> => {
         const state: Writable<PlaybackState> = playback.getPlaybackState();
         const {currentItem, currentTime, duration, playbackId, startedAt} = state;
+        const isLiveStreaming = duration === MAX_DURATION;
         state.paused = true; // pause after transfer back
         playbackState$.next(state);
         playback.suspend();
@@ -169,7 +174,11 @@ const connect = (
         active$.next(false);
         mediaPlayback.autoplay = false; // remain paused
         if (currentItem) {
-            mediaPlayback.load({...currentItem, duration, startTime: currentTime});
+            mediaPlayback.load({
+                ...currentItem,
+                duration,
+                startTime: isLiveStreaming ? undefined : currentTime,
+            });
             const state: Writable<PlaybackState> = playback.getPlaybackState();
             state.playbackId = playbackId;
             state.startedAt = startedAt;

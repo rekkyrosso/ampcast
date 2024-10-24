@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import MediaService from 'types/MediaService';
 import ServiceType from 'types/ServiceType';
 import TabList, {TabItem} from 'components/TabList';
+import AudioSettings from './AudioSettings';
 import LookupSettings from './LookupSettings';
 import MediaServicesSettingsGeneral from './MediaServicesSettingsGeneral';
 
@@ -25,7 +26,12 @@ export default function MediaServicesSettings({
                 ),
             },
         ];
-        if (serviceType === ServiceType.DataService) {
+        if (serviceType === ServiceType.PersonalMedia) {
+            tabs.push({
+                tab: 'Audio',
+                panel: <AudioSettings />,
+            });
+        } else if (serviceType === ServiceType.DataService) {
             tabs.push({
                 tab: 'Lookup',
                 panel: <LookupSettings />,

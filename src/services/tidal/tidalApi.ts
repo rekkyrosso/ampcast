@@ -9,8 +9,12 @@ import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
+import Pager from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
 import {exists, parseISO8601, Logger} from 'utils';
+import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
+import WrappedPager from 'services/pagers/WrappedPager';
+import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import tidalSettings from './tidalSettings';
 import TidalPager, {TidalPage} from './TidalPager';
 
@@ -167,6 +171,52 @@ async function getArtistAlbums(artist: TidalArtist, cursor = ''): Promise<TidalP
     if (albumData?.length) {
         const ids = albumData.map((data) => data.id);
         const items = await getAlbums(ids);
+        // const total = artist.attributes?.numberOfItems;
+        const next = data.links?.next;
+        return {items, next};
+    } else {
+        return {items: []};
+    }
+}
+
+async function getArtistTopTracks(artist: TidalArtist, cursor = ''): Promise<TidalPage<MediaItem>> {
+    const {countryCode} = tidalSettings;
+    const {data, error, response} = await catalogueApi.GET('/artists/{id}/relationships/tracks', {
+        params: {
+            path: {id: artist.id},
+            query: {countryCode, 'page%5Bcursor%5D': cursor},
+        },
+    });
+    if (!response.ok || error) {
+        throwError(response, error);
+    }
+    const trackData = data.data?.flat();
+    if (trackData?.length) {
+        const ids = trackData.map((data) => data.id);
+        const items = await getTracks(ids);
+        // const total = artist.attributes?.numberOfItems;
+        const next = data.links?.next;
+        return {items, next};
+    } else {
+        return {items: []};
+    }
+}
+
+async function getArtistVideos(artist: TidalArtist, cursor = ''): Promise<TidalPage<MediaItem>> {
+    const {countryCode} = tidalSettings;
+    const {data, error, response} = await catalogueApi.GET('/artists/{id}/relationships/videos', {
+        params: {
+            path: {id: artist.id},
+            query: {countryCode, 'page%5Bcursor%5D': cursor},
+        },
+    });
+    if (!response.ok || error) {
+        throwError(response, error);
+    }
+    const videoData = data.data?.flat();
+    if (videoData?.length) {
+        const ids = videoData.map((data) => data.id);
+        const items = await getVideos(ids);
         // const total = artist.attributes?.numberOfItems;
         const next = data.links?.next;
         return {items, next};
@@ -574,7 +624,49 @@ function createMediaArtist(artist: TidalArtist): MediaArtist {
         externalUrl: attributes?.externalLinks?.[0]?.href,
         title: attributes?.name || 'Unknown',
         thumbnails: createThumbnails(attributes?.imageLinks),
-        pager: new TidalPager((cursor) => getArtistAlbums(artist, cursor)),
+        pager: createArtistAlbumsPager(artist),
+    };
+}
+
+function createArtistAlbumsPager(artist: TidalArtist): Pager<MediaAlbum> {
+    const albumsPager = new TidalPager((cursor) => getArtistAlbums(artist, cursor));
+    const topTracks = createArtistTopTracks(artist);
+    const videos = createArtistVideos(artist);
+    const topPager = new SimpleMediaPager<MediaAlbum>(async () => {
+        try {
+            const items = await fetchFirstPage(videos.pager, {keepAlive: true});
+            return items.length === 0 ? [topTracks] : [topTracks, videos];
+        } catch (err) {
+            logger.error(err);
+            return [topTracks];
+        }
+    });
+    return new WrappedPager(topPager, albumsPager);
+}
+
+function createArtistTopTracks(artist: TidalArtist): MediaAlbum {
+    const attributes = artist.attributes;
+    return {
+        itemType: ItemType.Album,
+        src: `tidal:top-tracks:${artist.id}`,
+        title: 'Top Tracks',
+        thumbnails: createThumbnails(attributes?.imageLinks),
+        artist: attributes?.name,
+        pager: new TidalPager((cursor) => getArtistTopTracks(artist, cursor)),
+        synthetic: true,
+    };
+}
+
+function createArtistVideos(artist: TidalArtist): MediaAlbum {
+    const attributes = artist.attributes;
+    return {
+        itemType: ItemType.Album,
+        src: `tidal:videos:${artist.id}`,
+        title: 'Music Videos',
+        thumbnails: createThumbnails(attributes?.imageLinks),
+        artist: attributes?.name,
+        pager: new TidalPager((cursor) => getArtistVideos(artist, cursor)),
+        synthetic: true,
     };
 }
 

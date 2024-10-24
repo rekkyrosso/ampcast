@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import {PersonalMediaServerSettingsProps} from 'components/Settings/MediaLibrarySettings/PersonalMediaServerSettings';
+import PersonalMediaServerInfo from 'components/Settings/MediaLibrarySettings/PersonalMediaServerInfo';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import PlexHost from './PlexHost';
 import usePlexMediaServers, {PlexMediaServer} from './usePlexMediaServers';
@@ -56,6 +57,7 @@ export default function PlexServerSettings({service: plex}: PersonalMediaServerS
                 <legend>Host</legend>
                 <PlexHost service={plex} />
             </fieldset>
+            <PersonalMediaServerInfo service={plex} />
             <fieldset>
                 <legend>Preferences</legend>
                 <p>

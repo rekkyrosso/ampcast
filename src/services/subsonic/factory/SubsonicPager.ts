@@ -148,6 +148,10 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             inLibrary: !!song.starred,
             genres: song.genre ? [song.genre] : undefined,
             thumbnails: this.createThumbnails(song.coverArt),
+            // OpenSubsonic extensions
+            recording_mbid: typeof song.musicBrainzId === 'string' ? song.musicBrainzId : undefined,
+            albumGain: song.replayGain?.albumGain,
+            trackGain: song.replayGain?.trackGain,
         };
     }
 
@@ -185,6 +189,8 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             subsonic: {
                 isDir: album.isDir,
             },
+            // OpenSubsonic extensions
+            release_mbid: typeof album.musicBrainzId === 'string' ? album.musicBrainzId : undefined,
         };
     }
 
@@ -196,6 +202,9 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             pager: this.createArtistAlbumsPager(artist),
             thumbnails: this.createThumbnails(artist.coverArt),
             inLibrary: !!artist.starred,
+            // OpenSubsonic extensions
+            artist_mbid:
+                typeof artist.musicBrainzId === 'string' ? artist.musicBrainzId : undefined,
         };
     }
 
@@ -279,8 +288,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createArtistAlbumsPager(artist: Subsonic.Artist): Pager<MediaAlbum> {
-        const topTracks = this.createArtistTopTracks(artist);
-        const topTracksPager = new SimplePager([topTracks]);
+        const topSongsSupported = this.service.id !== 'gonic';
         const albumsPager = artist.album
             ? new SimplePager(
                   artist.album.map(
@@ -296,7 +304,13 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
                   },
                   undefined
               );
-        return new WrappedPager(topTracksPager, albumsPager);
+        if (topSongsSupported) {
+            const topTracks = this.createArtistTopTracks(artist);
+            const topTracksPager = new SimplePager([topTracks]);
+            return new WrappedPager(topTracksPager, albumsPager);
+        } else {
+            return albumsPager;
+        }
     }
 
     private createArtistTopTracks(artist: Subsonic.Artist): MediaAlbum {

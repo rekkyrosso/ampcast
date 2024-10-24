@@ -82,6 +82,25 @@
         }
     }
 
+    &-ampache {        
+        circle {
+            fill-opacity: 0.2;
+        }
+
+        .ampache-connected &,
+        &:not(.show-connectivity) {
+            circle {
+                stroke: #422506;
+                fill: #ff8300;
+                fill-opacity: 1;
+            }
+
+            path {
+                fill: #422506;
+            }
+        }
+    }
+
     &-apple {
         &-inner {
             fill: none;
@@ -116,6 +135,36 @@
                 &-outer {
                     fill: #52b54b;
                 }
+            }
+        }
+    }
+
+    &-gonic {
+        stroke: #303030;
+        fill: #303030;
+
+        &-white {
+            fill: white;
+            fill-opacity: 0.75;
+        }
+
+        &-primary {
+            fill: currentColor;
+            fill-opacity: 0.5;
+        }
+
+        .gonic-connected &,
+        &:not(.show-connectivity) {
+            stroke: #3d2f25;
+            fill: #3d2f25;
+
+            .icon-gonic-white {
+                fill-opacity: 1;
+            }
+
+            .icon-gonic-primary {
+                fill: #fcbe00;
+                fill-opacity: 1;
             }
         }
     }
