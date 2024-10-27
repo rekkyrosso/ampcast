@@ -1,0 +1,13 @@
+.details-box {
+    width: 100%;
+    height: 10em;
+    margin: 0.5em 0;
+
+    .list-view-cell.value {
+        font-family: monospace;
+    }
+
+    .scrollable {
+        --scrollbar-size: max(10px, calc(1.25em * var(--scrollbar-thickness)));
+    }
+}

@@ -3,16 +3,11 @@ import visualizerSettings from 'services/visualizer/visualizerSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
 
 export interface CoverArtSettingsProps {
-    animatedBackgroundEnabledRef: React.RefObject<HTMLInputElement>;
-    beatsOverlayEnabledRef: React.RefObject<HTMLInputElement>;
+    onCancel: () => void;
     onSubmit: () => void;
 }
 
-export default function CoverArtSettings({
-    animatedBackgroundEnabledRef,
-    beatsOverlayEnabledRef,
-    onSubmit,
-}: CoverArtSettingsProps) {
+export default function CoverArtSettings({onCancel, onSubmit}: CoverArtSettingsProps) {
     const id = useId();
 
     return (
@@ -24,7 +19,7 @@ export default function CoverArtSettings({
                         id={`${id}-beats-overlay`}
                         type="checkbox"
                         defaultChecked={visualizerSettings.coverArtBeats}
-                        ref={beatsOverlayEnabledRef}
+                        onChange={(e) => (visualizerSettings.coverArtBeats = e.target.checked)}
                     />
                     <label htmlFor={`${id}-beats-overlay`}>Show &quot;beats&quot; overlay</label>
                 </p>
@@ -33,14 +28,16 @@ export default function CoverArtSettings({
                         id={`${id}-animated-background`}
                         type="checkbox"
                         defaultChecked={visualizerSettings.coverArtAnimatedBackground}
-                        ref={animatedBackgroundEnabledRef}
+                        onChange={(e) =>
+                            (visualizerSettings.coverArtAnimatedBackground = e.target.checked)
+                        }
                     />
                     <label htmlFor={`${id}-animated-background`}>
                         Animated background (experimental)
                     </label>
                 </p>
             </fieldset>
-            <DialogButtons onSubmitClick={onSubmit} />
+            <DialogButtons onCancelClick={onCancel} onSubmitClick={onSubmit} />
         </form>
     );
 }

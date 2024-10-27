@@ -247,6 +247,8 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             year: new Date(item.releaseDate).getFullYear() || 0,
             unplayable: !item.playParams || undefined,
             inLibrary: album.type.startsWith('library-') || undefined,
+            copyright: item?.copyright,
+            explicit: item?.contentRating === 'explicit',
             apple: {catalogId},
         };
         mediaAlbum.pager = new MusicKitPager(
@@ -303,6 +305,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             playedAt: 0,
             inLibrary: (isLibraryItem && !isPlaylistItem) || undefined,
             apple: {catalogId},
+            explicit: item?.contentRating === 'explicit',
         };
         return mediaItem;
     }

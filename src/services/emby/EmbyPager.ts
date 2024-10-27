@@ -74,7 +74,7 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
     private async fetch(pageNumber: number): Promise<Page<T>> {
         const params = {
             IncludeItemTypes: 'Audio',
-            Fields: 'AudioInfo,ChildCount,DateCreated,Genres,ParentIndexNumber,Path,ProductionYear,Overview,PresentationUniqueKey,ProviderIds,,UserDataPlayCount,UserDataLastPlayedDate',
+            Fields: 'AudioInfo,ChildCount,DateCreated,Genres,MediaSources,ParentIndexNumber,Path,ProductionYear,Overview,PresentationUniqueKey,ProviderIds,,UserDataPlayCount,UserDataLastPlayedDate',
             EnableUserData: true,
             Recursive: true,
             ImageTypeLimit: 1,
@@ -129,7 +129,7 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
             genres: artist.Genres || undefined,
             inLibrary: artist.UserData?.IsFavorite,
             thumbnails: this.createThumbnails(artist),
-            artist_mbid: artist.ProviderIds?.['MusicBrainzArtist'],
+            artist_mbid: artist.ProviderIds?.MusicBrainzArtist,
             pager: this.createArtistAlbumsPager(artist),
         };
     }
@@ -151,7 +151,7 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
             trackCount: album.ChildCount || undefined,
             artist: album.AlbumArtist || undefined,
             year: album.ProductionYear || undefined,
-            release_mbid: album.ProviderIds?.['MusicBrainzAlbum'],
+            release_mbid: album.ProviderIds?.MusicBrainzAlbum,
             pager: this.createAlbumTracksPager(album),
         };
     }
@@ -194,7 +194,8 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
 
     private createMediaItem(track: BaseItemDto): MediaItem {
         const isVideo = track.MediaType === 'Video';
-        const artist_mbid = track.ProviderIds?.['MusicBrainzArtist'];
+        const [source] = track.MediaSources || [];
+        const artist_mbid = track.ProviderIds?.MusicBrainzArtist;
         return {
             itemType: ItemType.Media,
             mediaType: isVideo ? MediaType.Video : MediaType.Audio,
@@ -222,9 +223,17 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
             album: track.Album || undefined,
             disc: track.Album ? track.ParentIndexNumber || undefined : undefined,
             track: track.Album ? track.IndexNumber || 0 : 0,
-            track_mbid: track.ProviderIds?.['MusicBrainzTrack'],
-            release_mbid: track.ProviderIds?.['MusicBrainzAlbum'],
+            track_mbid: track.ProviderIds?.MusicBrainzTrack,
+            release_mbid: track.ProviderIds?.MusicBrainzAlbum,
             artist_mbids: artist_mbid ? [artist_mbid] : undefined,
+            bitRate: Math.floor((source.Bitrate || 0) / 1000) || undefined,
+            badge: isVideo
+                ? track.IsHD === true
+                    ? 'hd'
+                    : track.IsHD === false
+                    ? 'sd'
+                    : undefined
+                : track.Container || undefined,
         };
     }
 

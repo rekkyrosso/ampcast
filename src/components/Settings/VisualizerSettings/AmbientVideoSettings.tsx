@@ -8,7 +8,7 @@ export interface AmbientVideoSettingsProps {
     ambientVideoEnabledRef: React.RefObject<HTMLInputElement>;
     ambientVideoSourceRef: React.RefObject<HTMLInputElement>;
     useAmbientVideoSourceRef: React.RefObject<HTMLInputElement>;
-    beatsOverlayEnabledRef: React.RefObject<HTMLInputElement>;
+    onCancel: () => void;
     onSubmit: () => void;
 }
 
@@ -16,8 +16,8 @@ export default function AmbientVideoSettings({
     ambientVideoEnabledRef,
     ambientVideoSourceRef,
     useAmbientVideoSourceRef,
-    beatsOverlayEnabledRef,
     onAmbientVideoEnabledChange,
+    onCancel,
     onSubmit,
 }: AmbientVideoSettingsProps) {
     const id = useId();
@@ -103,11 +103,11 @@ export default function AmbientVideoSettings({
                     id={`${id}-beats-overlay`}
                     type="checkbox"
                     defaultChecked={visualizerSettings.ambientVideoBeats}
-                    ref={beatsOverlayEnabledRef}
+                    onChange={(e) => (visualizerSettings.ambientVideoBeats = e.target.checked)}
                 />
                 <label htmlFor={`${id}-beats-overlay`}>Show &quot;beats&quot; overlay</label>
             </p>
-            <DialogButtons onSubmitClick={onSubmit} />
+            <DialogButtons onCancelClick={onCancel} onSubmitClick={onSubmit} />
         </form>
     );
 }

@@ -16,7 +16,6 @@ export default interface MediaItem extends BaseMediaObject {
     readonly disc?: number;
     readonly track?: number;
     readonly year?: number;
-    readonly aspectRatio?: number;
     readonly unplayable?: boolean;
     readonly noScrobble?: boolean;
     readonly isrc?: string;
@@ -33,9 +32,15 @@ export default interface MediaItem extends BaseMediaObject {
     readonly albumPeak?: number;
     readonly trackGain?: number;
     readonly trackPeak?: number;
+    readonly bitRate?: number;
+    readonly copyright?: string;
+    readonly explicit?: boolean;
+    readonly badge?: string;
     // Playable sources that can't be derived from `src`.
     // Currently used by TIDAL(via Plex) audio quality sources.
     readonly srcs?: string[];
+    // For video
+    readonly aspectRatio?: number;
     // For YouTube videos mainly.
     readonly owner?: {
         readonly name: string;

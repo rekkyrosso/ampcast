@@ -9,43 +9,37 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
 import {getService} from 'services/mediaServices';
 import Actions from 'components/Actions';
+import Badges from 'components/Badges';
 import CoverArt, {CoverArtProps} from 'components/CoverArt';
 import ExternalLink from 'components/ExternalLink';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import TextBox from 'components/TextBox';
-import useFirstValue from 'hooks/useFirstValue';
 import {formatTime} from 'utils';
 import useCurrentItem from './useCurrentItem';
 import './MediaInfo.scss';
 
 export interface MediaInfoProps<T extends MediaObject> {
     item: T;
-    debug?: boolean;
 }
 
 export default function MediaInfo<T extends MediaObject>(props: MediaInfoProps<T>) {
     const item = useCurrentItem(props.item);
-    const originalItem = useFirstValue(item);
 
-    if (props.debug) {
-        return <Debug item={originalItem} />;
-    } else {
-        switch (item.itemType) {
-            case ItemType.Media:
-                return <MediaItemInfo item={item} />;
+    switch (item.itemType) {
+        case ItemType.Media:
+            return <MediaItemInfo item={item} />;
 
-            case ItemType.Artist:
-                return <ArtistInfo item={item} />;
+        case ItemType.Artist:
+            return <ArtistInfo item={item} />;
 
-            case ItemType.Album:
-                return <AlbumInfo item={item} />;
+        case ItemType.Album:
+            return <AlbumInfo item={item} />;
 
-            case ItemType.Playlist:
-                return <PlaylistInfo item={item} />;
+        case ItemType.Playlist:
+            return <PlaylistInfo item={item} />;
 
-            case ItemType.Folder:
-                return <FolderInfo item={item} />;
-        }
+        case ItemType.Folder:
+            return <FolderInfo item={item} />;
     }
 }
 
@@ -59,6 +53,7 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
                 <AlbumAndYear album={item.album} year={item.year} />
                 <Track album={item.album} disc={item.disc} track={item.track} />
                 <Owner owner={item.owner} src={item.src} />
+                <Badges item={item} />
                 <Actions item={item} />
             </div>
             <Blurb description={item.description} />
@@ -75,6 +70,7 @@ function AlbumInfo({item: album}: MediaInfoProps<MediaAlbum>) {
                 <Title title={album.title} />
                 <Artist artist={album.artist} />
                 <Year year={album.year} />
+                <Badges item={album} />
                 <Actions item={album} />
             </div>
             <Blurb description={album.description} />
@@ -286,16 +282,5 @@ export function Thumbnail(props: CoverArtProps) {
         <div className="thumbnail">
             <CoverArt {...props} size={480} />
         </div>
-    );
-}
-
-function Debug(props: MediaInfoProps<MediaObject>) {
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {pager, parent, ...item} = props.item as any;
-    return (
-        <article className="media-info debug">
-            <pre>{JSON.stringify(item, undefined, 2)}</pre>
-            <ExternalView url={item.externalUrl} src={item.src} />
-        </article>
     );
 }

@@ -130,6 +130,8 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
             albumPeak: song.rgAlbumPeak,
             trackGain: song.rgTrackGain,
             trackPeak: song.rgTrackPeak,
+            bitRate: song.bitRate,
+            badge: song.suffix,
         };
     }
 

@@ -177,6 +177,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             playedAt: episode.played_at
                 ? Math.floor((new Date(episode.played_at).getTime() || 0) / 1000)
                 : 0,
+            explicit: episode.explicit,
         };
     }
 
@@ -193,6 +194,11 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             trackCount: album.tracks?.total,
             pager: this.createAlbumTracksPager(album),
             inLibrary,
+            copyright:
+                album.copyrights
+                    ?.map((copyright) => copyright.text)
+                    .filter((text) => !!text)
+                    .join(' | ') || undefined,
         };
     }
 
@@ -266,6 +272,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             isrc: track.external_ids?.isrc,
             thumbnails: track.album?.images as Thumbnail[],
             unplayable: track.is_playable === false ? true : undefined,
+            explicit: track.explicit,
             inLibrary,
         };
     }

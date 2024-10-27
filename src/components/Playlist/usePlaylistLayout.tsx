@@ -3,8 +3,9 @@ import PlaylistItem from 'types/PlaylistItem';
 import LookupStatus from 'types/LookupStatus';
 import {MAX_DURATION} from 'services/constants';
 import {isPlayableSrc} from 'services/mediaServices';
-import {ListViewLayout} from 'components/ListView';
+import {ExplicitBadge} from 'components/Badges/Badge';
 import Icon, {IconName} from 'components/Icon';
+import {ListViewLayout} from 'components/ListView';
 import Time from 'components/Time';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import usePaused from 'hooks/usePaused';
@@ -89,18 +90,24 @@ function RowIcon({src, lookupStatus}: PlaylistItem) {
     );
 }
 
-function RowTitle({title, artists}: PlaylistItem) {
-    if (artists?.length) {
-        return (
-            <>
-                <span className="artist-text">{artists.join('/')}</span>
-                <span role="separator">-</span>
-                <span className="title-text">{title}</span>
-            </>
-        );
-    } else {
-        return <span className="title-text">{title}</span>;
-    }
+function RowTitle(item: PlaylistItem) {
+    const {title, artists} = item;
+    return (
+        <span className="row-title">
+            <span className="row-title-text">
+                {artists?.length ? (
+                    <>
+                        <span className="artist-text">{artists.join('/')}</span>
+                        <span role="separator">-</span>
+                        <span className="title-text">{title}</span>
+                    </>
+                ) : (
+                    <span className="title-text">{title}</span>
+                )}
+            </span>{' '}
+            <ExplicitBadge item={item} />
+        </span>
+    );
 }
 
 function Duration({duration}: PlaylistItem) {

@@ -8,19 +8,9 @@ import './AudioSettings.scss';
 export default function AudioSettings() {
     const id = useId();
     const submitted = useRef(false);
-    const modeRef = useRef<HTMLSelectElement>(null);
-    const preAmpRef = useRef<HTMLInputElement>(null);
     const originalSettings = useMemo(() => ({...audioSettings}), []);
     const currentItem = useCurrentlyPlaying();
     const hasReplayGainMetadata = (currentItem?.albumGain ?? currentItem?.trackGain) != null;
-
-    const handleModeChange = useCallback((event: React.ChangeEvent<HTMLSelectElement>) => {
-        audioSettings.replayGainMode = event.target.value as ReplayGainMode;
-    }, []);
-
-    const handlePreAmpChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        audioSettings.replayGainPreAmp = event.target.valueAsNumber;
-    }, []);
 
     const handleSubmit = useCallback(() => {
         submitted.current = true;
@@ -45,8 +35,9 @@ export default function AudioSettings() {
                             className="rg-mode-selector"
                             id={`${id}-mode`}
                             defaultValue={originalSettings.replayGainMode}
-                            onChange={handleModeChange}
-                            ref={modeRef}
+                            onChange={(e) =>
+                                (audioSettings.replayGainMode = e.target.value as ReplayGainMode)
+                            }
                         >
                             <option value="" key="">
                                 Off
@@ -67,8 +58,9 @@ export default function AudioSettings() {
                             min="-15"
                             max="15"
                             step="0.2"
-                            onChange={handlePreAmpChange}
-                            ref={preAmpRef}
+                            onChange={(e) =>
+                                (audioSettings.replayGainPreAmp = e.target.valueAsNumber)
+                            }
                         />
                     </p>
                 </div>

@@ -574,7 +574,9 @@ export default class SubsonicService implements PersonalMediaService {
             item = {
                 ...item,
                 description: getTextFromHtml(info.biography),
-                artist_mbid: info.musicBrainzId,
+                artist_mbid:
+                    item.artist_mbid ||
+                    (typeof info.musicBrainzId === 'string' ? info.musicBrainzId : undefined),
             };
         }
         if (!this.canStore(item) || item.inLibrary !== undefined) {

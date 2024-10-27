@@ -4,6 +4,7 @@ import PlaybackType from 'types/PlaybackType';
 import Player from 'types/Player';
 import PlaylistItem from 'types/PlaylistItem';
 import audio from 'services/audio';
+import preferences from 'services/preferences';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
 import HLSPlayer from './players/HLSPlayer';
 import HTML5Player from './players/HTML5Player';
@@ -24,7 +25,7 @@ function loadPlayer(player: Player<PlayableItem>, item: PlaylistItem | null): vo
 function getPlayableItem(item: PlaylistItem | null): PlayableItem {
     if (!item) {
         throw Error('No source');
-    } else if (item.unplayable) {
+    } else if (item.unplayable || (preferences.disableExplicitContent && item.explicit)) {
         throw Error('Unplayable');
     } else if (item.blobUrl) {
         return {...item, src: item.blobUrl};

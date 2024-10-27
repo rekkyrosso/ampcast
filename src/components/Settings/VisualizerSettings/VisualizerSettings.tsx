@@ -10,28 +10,24 @@ import VisualizerFavorites from './VisualizerFavorites';
 import './VisualizerSettings.scss';
 
 export default function VisualizerSettings() {
+    const originalSettings = useMemo(() => ({...visualizerSettings}), []);
     const providerRef = useRef<HTMLSelectElement>(null);
     const ambientVideoEnabledRef = useRef<HTMLInputElement>(null);
     const ambientVideoSourceRef = useRef<HTMLInputElement>(null);
     const useAmbientVideoSourceRef = useRef<HTMLInputElement>(null);
-    const ambientVideoBeatsEnabledRef = useRef<HTMLInputElement>(null);
-    const coverArtAnimatedBackgroundRef = useRef<HTMLInputElement>(null);
-    const coverArtBeatsEnabledRef = useRef<HTMLInputElement>(null);
-    const fullscreenProgressRef = useRef<HTMLInputElement>(null);
     const [ambientVideoEnabled, setAmbientVideoEnabled] = useState(
         visualizerSettings.ambientVideoEnabled
     );
+
+    const handleCancel = useCallback(() => {
+        Object.assign(visualizerSettings, originalSettings);
+    }, [originalSettings]);
 
     const handleSubmit = useCallback(() => {
         const provider = providerRef.current!.value as VisualizerProviderId;
         visualizerSettings.ambientVideoEnabled = ambientVideoEnabledRef.current!.checked;
         visualizerSettings.useAmbientVideoSource = useAmbientVideoSourceRef.current!.checked;
         visualizerSettings.ambientVideoSource = ambientVideoSourceRef.current!.value;
-        visualizerSettings.ambientVideoBeats = ambientVideoBeatsEnabledRef.current!.checked;
-        visualizerSettings.coverArtAnimatedBackground =
-            coverArtAnimatedBackgroundRef.current!.checked;
-        visualizerSettings.coverArtBeats = coverArtBeatsEnabledRef.current!.checked;
-        visualizerSettings.fullscreenProgress = fullscreenProgressRef.current!.checked;
         if (visualizerSettings.provider !== provider) {
             visualizerSettings.lockedVisualizer = null;
             visualizerSettings.provider = provider;
@@ -45,8 +41,8 @@ export default function VisualizerSettings() {
                 panel: (
                     <VisualizerSettingsGeneral
                         providerRef={providerRef}
-                        fullscreenProgressRef={fullscreenProgressRef}
                         ambientVideoEnabled={ambientVideoEnabled}
+                        onCancel={handleCancel}
                         onSubmit={handleSubmit}
                     />
                 ),
@@ -58,28 +54,22 @@ export default function VisualizerSettings() {
                         ambientVideoEnabledRef={ambientVideoEnabledRef}
                         ambientVideoSourceRef={ambientVideoSourceRef}
                         useAmbientVideoSourceRef={useAmbientVideoSourceRef}
-                        beatsOverlayEnabledRef={ambientVideoBeatsEnabledRef}
                         onAmbientVideoEnabledChange={setAmbientVideoEnabled}
+                        onCancel={handleCancel}
                         onSubmit={handleSubmit}
                     />
                 ),
             },
             {
                 tab: 'Cover Art',
-                panel: (
-                    <CoverArtSettings
-                        animatedBackgroundEnabledRef={coverArtAnimatedBackgroundRef}
-                        beatsOverlayEnabledRef={coverArtBeatsEnabledRef}
-                        onSubmit={handleSubmit}
-                    />
-                ),
+                panel: <CoverArtSettings onCancel={handleCancel} onSubmit={handleSubmit} />,
             },
             {
                 tab: t('Favorites'),
-                panel: <VisualizerFavorites />,
+                panel: <VisualizerFavorites onCancel={handleCancel} onSubmit={handleSubmit} />,
             },
         ],
-        [ambientVideoEnabled, handleSubmit]
+        [ambientVideoEnabled, handleCancel, handleSubmit]
     );
 
     return <TabList className="visualizer-settings" items={tabs} label="Visualizers" />;

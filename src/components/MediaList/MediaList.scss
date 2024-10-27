@@ -48,8 +48,38 @@
         filter: brightness(0.25) grayscale(1);
     }
 
+    .badge.explicit {
+        display: none;
+    }
+
+    .disable-explicit-content & .unplayable.selected,
+    .mark-explicit-content & {
+        .badge.explicit {
+            display: inline-flex;
+        }
+    }
+
+    .unplayable:not(.selected) .badge.explicit {
+        background-color: var(--grey1-color);
+        color: var(--background-color);
+    }
+
     .index {
         font-family: monospace;
+    }
+
+    .title .text {
+        display: flex;
+        align-items: center;
+
+        .title-text {
+			overflow: hidden;
+			text-overflow: ellipsis;
+        }
+
+        .badge {
+            margin-left: 0.5em;
+        }
     }
 
     &-details {
@@ -261,6 +291,12 @@
 
             .title {
                 top: 0.25em;
+
+                &-text {                    
+                    white-space: nowrap;
+                    overflow: hidden;
+                    text-overflow: ellipsis;
+                }
 
                 .text {
                     font-size: 1em;

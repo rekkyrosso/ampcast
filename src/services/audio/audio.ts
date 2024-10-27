@@ -3,10 +3,9 @@ import AudioManager from 'types/AudioManager';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
-import ReplayGainMode from 'types/ReplayGainMode';
 import ServiceType from 'types/ServiceType';
 import {Logger, browser, exists} from 'utils';
-import {observePlaybackState} from 'services/mediaPlayback/playback';
+import {observeCurrentItem, observePlaybackState} from 'services/mediaPlayback/playback';
 import mediaPlaybackSettings from 'services/mediaPlayback/mediaPlaybackSettings';
 import {getServiceFromSrc} from 'services/mediaServices';
 import OmniAudioContext from './OmniAudioContext';
@@ -31,15 +30,11 @@ class Audio implements AudioManager {
         this.#replayGain.connect(this.#output);
         this.#output.connect(this.#context.destination);
 
-        const currentItem$ = observePlaybackState().pipe(
-            map((state) => state.currentItem),
-            filter(exists),
-            distinctUntilChanged()
-        );
-
         // Map the current <audio> element to a source node that can be used by analysers.
-        currentItem$
+        observePlaybackState()
             .pipe(
+                map((state) => state.currentItem),
+                filter(exists),
                 map((item) => this.getSourceNode(item)),
                 startWith(undefined),
                 distinctUntilChanged(),
@@ -52,7 +47,7 @@ class Audio implements AudioManager {
             .subscribe(logger);
 
         // Calculate ReplayGain
-        combineLatest([currentItem$, observeAudioSettings()])
+        combineLatest([observeCurrentItem(), observeAudioSettings()])
             .pipe(
                 map(([item, settings]) => this.calculateReplayGain(item, settings)),
                 distinctUntilChanged(),
@@ -77,25 +72,26 @@ class Audio implements AudioManager {
         this.#output.gain.value = volume;
     }
 
-    private calculateReplayGain(item: PlaylistItem, settings: AudioSettings): number {
-        const mode: ReplayGainMode = settings.replayGainMode;
-        if (!mode) {
+    private calculateReplayGain(
+        item: PlaylistItem | null,
+        {replayGainMode, replayGainPreAmp}: AudioSettings
+    ): number {
+        if (!item || !replayGainMode) {
             return 1;
         }
 
-        // TODO: Maybe add some form of `preAmp` for public media.
-        // This might enable volume levelling across services.
+        // TODO: Maybe add some form of preAmp for public media.
+        // That might enable volume levelling across services.
         const service = getServiceFromSrc(item);
         if (service?.serviceType === ServiceType.PublicMedia) {
             return 1;
         }
 
         const {albumGain, albumPeak, trackGain, trackPeak} = item;
-        const isAlbumMode = mode === 'album';
+        const isAlbumMode = replayGainMode === 'album';
         // prettier-ignore
         const gain = isAlbumMode ? (albumGain ?? trackGain) : (trackGain ?? albumGain);
         const peak = (isAlbumMode ? albumPeak ?? trackPeak : trackPeak ?? albumPeak) ?? 1;
-        const preAmp = settings.replayGainPreAmp;
         const preventClipping = true;
 
         if (gain == null) {
@@ -103,7 +99,7 @@ class Audio implements AudioManager {
         }
 
         // https://wiki.hydrogenaud.io/?title=ReplayGain
-        let replayGain = 10 ** ((gain + preAmp) / 20);
+        let replayGain = 10 ** ((gain + replayGainPreAmp) / 20);
         if (preventClipping) {
             replayGain = Math.min(replayGain, 1 / peak);
         }

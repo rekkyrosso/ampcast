@@ -8,6 +8,7 @@ import Pager from 'types/Pager';
 import ListView, {ListViewProps} from 'components/ListView';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import usePager from 'hooks/usePager';
+import usePreferences from 'hooks/usePreferences';
 import {performAction} from 'components/Actions';
 import MediaListStatusBar from './MediaListStatusBar';
 import useMediaListLayout from './useMediaListLayout';
@@ -51,6 +52,7 @@ export default function MediaList<T extends MediaObject>({
     const viewClassName = useViewClassName(layout);
     const hasItems = loaded ? items.length > 0 : undefined;
     const onDragStart = useOnDragStart(selectedItems);
+    const {disableExplicitContent} = usePreferences();
 
     useEffect(() => {
         if (error && onError) {
@@ -140,13 +142,16 @@ export default function MediaList<T extends MediaObject>({
             if (item?.itemType === ItemType.Media) {
                 const [source] = item.src.split(':');
                 const playing = item.src === currentSrc ? 'playing' : '';
-                const unplayable = item.unplayable ? 'unplayable' : '';
+                const unplayable =
+                    item.unplayable || (disableExplicitContent && item.explicit)
+                        ? 'unplayable'
+                        : '';
                 return `source-${source} ${playing} ${unplayable}`;
             } else {
                 return '';
             }
         },
-        [currentSrc]
+        [currentSrc, disableExplicitContent]
     );
 
     return (

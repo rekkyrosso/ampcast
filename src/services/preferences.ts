@@ -3,6 +3,9 @@ import {map, startWith} from 'rxjs';
 import {LiteStorage} from 'utils';
 
 export interface Preferences {
+    disableExplicitContent: boolean;
+    markExplicitContent: boolean;
+    mediaInfoTabs: boolean;
     miniPlayer: boolean;
     spacebarTogglePlay: boolean;
 }
@@ -10,6 +13,30 @@ export interface Preferences {
 const storage = new LiteStorage('preferences');
 
 const preferences: Preferences = {
+    get disableExplicitContent(): boolean {
+        return storage.getBoolean('disableExplicitContent');
+    },
+
+    set disableExplicitContent(enabled: boolean) {
+        storage.setBoolean('disableExplicitContent', enabled);
+    },
+
+    get markExplicitContent(): boolean {
+        return storage.getBoolean('markExplicitContent');
+    },
+
+    set markExplicitContent(enabled: boolean) {
+        storage.setBoolean('markExplicitContent', enabled);
+    },
+
+    get mediaInfoTabs(): boolean {
+        return storage.getBoolean('mediaInfoTabs');
+    },
+
+    set mediaInfoTabs(enabled: boolean) {
+        storage.setBoolean('mediaInfoTabs', enabled);
+    },
+
     get miniPlayer(): boolean {
         return storage.getBoolean('miniPlayer');
     },

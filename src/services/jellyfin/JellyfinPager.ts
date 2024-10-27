@@ -77,7 +77,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     private async fetch(pageNumber: number): Promise<Page<T>> {
         const params = {
             IncludeItemTypes: 'Audio',
-            Fields: 'AudioInfo,ChildCount,DateCreated,Genres,Path,ProviderIds',
+            Fields: 'AudioInfo,ChildCount,DateCreated,Genres,MediaSources,Path,ProviderIds',
             EnableUserData: true,
             Recursive: true,
             ImageTypeLimit: 1,
@@ -202,7 +202,8 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
         album?: LegacyBaseItemDto | undefined
     ): MediaItem {
         const isVideo = track.MediaType === 'Video';
-        const artist_mbid = track.ProviderIds?.['MusicBrainzArtist'];
+        const [source] = track.MediaSources || [];
+        const artist_mbid = track.ProviderIds?.MusicBrainzArtist;
         const getGain = (item: LegacyBaseItemDto | undefined): number | undefined => {
             return item?.NormalizationGain ?? (item?.LUFS == null ? undefined : -18 - item.LUFS);
         };
@@ -236,6 +237,14 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             artist_mbids: artist_mbid ? [artist_mbid] : undefined,
             albumGain: isVideo ? undefined : getGain(album),
             trackGain: isVideo ? undefined : getGain(track),
+            bitRate: Math.floor((source?.Bitrate || 0) / 1000) || undefined,
+            badge: isVideo
+                ? track.IsHD === true
+                    ? 'hd'
+                    : track.IsHD === false
+                    ? 'sd'
+                    : undefined
+                : track.Container || undefined,
         };
     }
 

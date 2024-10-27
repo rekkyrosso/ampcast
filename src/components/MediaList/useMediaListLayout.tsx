@@ -12,6 +12,7 @@ import {getServiceFromSrc} from 'services/mediaServices';
 import {performAction} from 'components/Actions';
 import {ColumnSpec, ListViewLayout} from 'components/ListView';
 import Actions from 'components/Actions';
+import {ExplicitBadge} from 'components/Badges/Badge';
 import CoverArt from 'components/CoverArt';
 import Icon from 'components/Icon';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
@@ -58,7 +59,19 @@ type RenderField<T extends MediaObject = MediaObject> = ColumnSpec<T>['render'];
 
 const Index: RenderField = (_, rowIndex) => <Text value={rowIndex + 1} />;
 
-const Title: RenderField = (item) => <Text value={item.title} />;
+const Title: RenderField = (item) => {
+    return (
+        <span className="text">
+            {item.itemType === ItemType.Media || item.itemType === ItemType.Album ? (
+                <>
+                    <span className="title-text">{item.title}</span> <ExplicitBadge item={item} />
+                </>
+            ) : (
+                item.title
+            )}
+        </span>
+    );
+};
 
 const PlaylistTitle: RenderField = (item) => {
     const service = getServiceFromSrc(item);
@@ -112,9 +125,7 @@ const Genre: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => (
     <Text value={item.genres?.join(', ')} />
 );
 
-const Owner: RenderField<MediaPlaylist | MediaItem> = (item) => (
-    <Text value={item.owner?.name} />
-);
+const Owner: RenderField<MediaPlaylist | MediaItem> = (item) => <Text value={item.owner?.name} />;
 
 const FileName: RenderField<MediaFolderItem> = (item) => <Text value={item.fileName} />;
 

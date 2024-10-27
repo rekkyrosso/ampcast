@@ -10,11 +10,11 @@ import useMediaInfoDialog from './useMediaInfoDialog';
 
 export default function CurrentlyPlayingDialog(props: DialogProps) {
     const ref = useRef<HTMLDialogElement>(null);
-    const {debug} = useMediaInfoDialog(ref);
     const currentlyPlaying = useCurrentlyPlaying();
     const currentVisualizer = useCurrentVisualizer();
     const item = useFirstValue(currentlyPlaying);
     const visualizer = useFirstValue(currentVisualizer);
+    useMediaInfoDialog(ref);
 
     return (
         <Dialog
@@ -25,7 +25,7 @@ export default function CurrentlyPlayingDialog(props: DialogProps) {
             ref={ref}
         >
             <form method="dialog">
-                {item ? <MediaInfo item={item} debug={debug} /> : <p>No media loaded.</p>}
+                {item ? <MediaInfo item={item} /> : <p>No media loaded.</p>}
                 {item && item.mediaType !== MediaType.Video ? (
                     <VisualizerInfo visualizer={visualizer} />
                 ) : null}

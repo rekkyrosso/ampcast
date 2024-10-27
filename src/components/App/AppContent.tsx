@@ -4,6 +4,7 @@ import MiniPlayer from 'components/MiniPlayer';
 import MediaLibrary from 'components/MediaLibrary';
 import MediaPlayback from 'components/MediaPlayback';
 import Splitter from 'components/Splitter';
+import useAppSettings from './useAppSettings';
 import useBrowser from './useBrowser';
 import useConnectivity from './useConnectivity';
 import usePseudoClasses from './usePseudoClasses';
@@ -14,6 +15,7 @@ import useGlobalActions from './useGlobalActions';
 import 'styles/layout.scss';
 
 export default function AppContent() {
+    useAppSettings();
     useBrowser();
     useConnectivity();
     usePseudoClasses();

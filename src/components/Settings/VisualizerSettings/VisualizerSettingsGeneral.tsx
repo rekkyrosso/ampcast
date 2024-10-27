@@ -7,15 +7,15 @@ import useVisualizerProviders from 'hooks/useVisualizerProviders';
 
 export interface VisualizerSettingsGeneralProps {
     providerRef: React.RefObject<HTMLSelectElement>;
-    fullscreenProgressRef: React.RefObject<HTMLInputElement>;
     ambientVideoEnabled: boolean;
+    onCancel: () => void;
     onSubmit: () => void;
 }
 
 export default function VisualizerSettingsGeneral({
     providerRef,
-    fullscreenProgressRef,
     ambientVideoEnabled,
+    onCancel,
     onSubmit,
 }: VisualizerSettingsGeneralProps) {
     const id = useId();
@@ -54,12 +54,12 @@ export default function VisualizerSettingsGeneral({
                         type="checkbox"
                         id={`${id}-fullscreen-progress`}
                         defaultChecked={visualizerSettings.fullscreenProgress}
-                        ref={fullscreenProgressRef}
+                        onChange={(e) => (visualizerSettings.fullscreenProgress = e.target.checked)}
                     />
                     <label htmlFor={`${id}-fullscreen-progress`}>Fullscreen progress bar</label>
                 </p>
             </fieldset>
-            <DialogButtons onSubmitClick={onSubmit} />
+            <DialogButtons onCancelClick={onCancel} onSubmitClick={onSubmit} />
         </form>
     );
 }

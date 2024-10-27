@@ -17,4 +17,7 @@ export default interface MediaAlbum extends BaseMediaObject {
     readonly synthetic?: boolean; // a fake album (e.g. "Top Tracks")
     readonly release_mbid?: string;
     readonly artist_mbids?: readonly string[];
+    readonly copyright?: string;
+    readonly explicit?: boolean;
+    readonly badge?: string;
 }

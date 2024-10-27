@@ -1,8 +1,10 @@
 import React, {useRef} from 'react';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
+import preferences from 'services/preferences';
 import Dialog, {DialogProps, showDialog} from 'components/Dialog';
 import MediaInfo from './MediaInfo';
+import MediaInfoTabs from './MediaInfoTabs';
 import useMediaInfoDialog from './useMediaInfoDialog';
 import './MediaInfoDialog.scss';
 
@@ -19,13 +21,17 @@ export default function MediaInfoDialog<T extends MediaObject>({
     ...props
 }: MediaInfoDialogProps<T>) {
     const ref = useRef<HTMLDialogElement>(null);
-    const {debug} = useMediaInfoDialog(ref);
     const title = useTitle(item);
+    useMediaInfoDialog(ref);
 
     return (
         <Dialog {...props} className="media-info-dialog" icon="info" title={title} ref={ref}>
             <form method="dialog">
-                <MediaInfo item={item} debug={debug} />
+                {preferences.mediaInfoTabs ? (
+                    <MediaInfoTabs item={item} />
+                ) : (
+                    <MediaInfo item={item} />
+                )}
                 <footer className="dialog-buttons">
                     <button>Close</button>
                 </footer>

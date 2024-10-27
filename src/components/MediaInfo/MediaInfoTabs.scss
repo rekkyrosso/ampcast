@@ -1,0 +1,19 @@
+.media-info-tabs {
+    .tab-list-tabs {
+        font-size: 0.875em;
+    }
+
+    .tab-panel {
+        position: absolute;
+        inset: 0;
+
+        &:first-child {
+            position: static;
+            
+            &[hidden] {
+                display: block;
+                visibility: hidden;
+            }
+        }
+    }
+}

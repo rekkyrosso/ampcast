@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {filter, fromEvent, merge, switchMap, timer} from 'rxjs';
 import {preventDefault} from 'utils';
+import useBaseFontSize from 'hooks/useBaseFontSize';
 import './PopupMenu.scss';
 
 export interface PopupMenuProps<T extends string = string> {
@@ -34,6 +35,7 @@ export default function PopupMenu<T extends string>({
     const [style, setStyle] = useState<React.CSSProperties>({visibility: 'hidden'});
     const [focusable, setFocusable] = useState(false);
     const [buttonId, setButtonId] = useState('');
+    const baseFontSize = useBaseFontSize();
 
     if (popupRef) {
         popupRef.current = ref.current;
@@ -42,12 +44,12 @@ export default function PopupMenu<T extends string>({
     useEffect(() => {
         const style: React.CSSProperties = {};
         const popup = ref.current!;
-        if (align === 'right' || x + popup.offsetWidth > document.body.clientWidth) {
+        if (align === 'right' || x + popup.offsetWidth >= document.body.clientWidth) {
             style.left = `${x - popup.offsetWidth}px`;
         } else {
             style.left = `${x}px`;
         }
-        if (y + popup.offsetHeight > document.body.clientHeight) {
+        if (y + popup.offsetHeight + baseFontSize >= document.body.clientHeight) {
             style.top = `${y - popup.offsetHeight}px`;
         } else {
             style.top = `${y}px`;
@@ -57,7 +59,7 @@ export default function PopupMenu<T extends string>({
         }
         setStyle(style);
         setFocusable(!hidden);
-    }, [align, x, y, hidden]);
+    }, [align, x, y, hidden, baseFontSize]);
 
     useEffect(() => {
         if (focusable && autoFocus) {

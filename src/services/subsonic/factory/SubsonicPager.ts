@@ -152,10 +152,13 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             recording_mbid: typeof song.musicBrainzId === 'string' ? song.musicBrainzId : undefined,
             albumGain: song.replayGain?.albumGain,
             trackGain: song.replayGain?.trackGain,
+            bitRate: song.bitRate,
+            badge: song.suffix,
         };
     }
 
     private createMediaItemFromVideo(video: Subsonic.Video): SetRequired<MediaItem, 'fileName'> {
+        const height = video.originalHeight || 0;
         return {
             itemType: ItemType.Media,
             mediaType: MediaType.Video,
@@ -170,6 +173,8 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             playCount: video.playCount,
             inLibrary: !!video.starred,
             thumbnails: this.createThumbnails(video.id),
+            bitRate: video.bitRate,
+            badge: height > 1080 ? 'uhd' : height >= 720 ? 'hd' : height > 0 ? 'sd' : undefined,
         };
     }
 

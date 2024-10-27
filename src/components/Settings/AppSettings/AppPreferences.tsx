@@ -1,17 +1,24 @@
-import React, {useCallback, useId, useRef} from 'react';
+import React, {useCallback, useEffect, useId, useMemo, useRef} from 'react';
 import {browser} from 'utils';
 import preferences from 'services/preferences';
 import DialogButtons from 'components/Dialog/DialogButtons';
 
 export default function AppPreferences() {
-    const miniPlayerRef = useRef<HTMLInputElement>(null);
-    const spacebarToggleRef = useRef<HTMLInputElement>(null);
     const id = useId();
+    const submitted = useRef(false);
+    const originalPreferences = useMemo(() => ({...preferences}), []);
 
     const handleSubmit = useCallback(() => {
-        preferences.miniPlayer = !!miniPlayerRef.current?.checked;
-        preferences.spacebarTogglePlay = spacebarToggleRef.current!.checked;
+        submitted.current = true;
     }, []);
+
+    useEffect(() => {
+        return () => {
+            if (!submitted.current) {
+                Object.assign(preferences, originalPreferences);
+            }
+        };
+    }, [originalPreferences]);
 
     return (
         <form className="app-preferences" method="dialog" onSubmit={handleSubmit}>
@@ -21,8 +28,8 @@ export default function AppPreferences() {
                     <input
                         type="checkbox"
                         id={`${id}-spacebar-toggle`}
-                        defaultChecked={preferences.spacebarTogglePlay}
-                        ref={spacebarToggleRef}
+                        defaultChecked={originalPreferences.spacebarTogglePlay}
+                        onChange={(e) => (preferences.spacebarTogglePlay = e.target.checked)}
                     />
                     <label htmlFor={`${id}-spacebar-toggle`}>
                         Use <kbd>spacebar</kbd> to toggle play/pause
@@ -33,12 +40,49 @@ export default function AppPreferences() {
                         <input
                             type="checkbox"
                             id={`${id}-mini-player`}
-                            defaultChecked={preferences.miniPlayer}
-                            ref={miniPlayerRef}
+                            defaultChecked={originalPreferences.miniPlayer}
+                            onChange={(e) => (preferences.miniPlayer = e.target.checked)}
                         />
                         <label htmlFor={`${id}-mini-player`}>Enable popout playback window</label>
                     </p>
                 )}
+            </fieldset>
+            <fieldset>
+                <legend>Explicit content</legend>
+                <p>
+                    <input
+                        type="checkbox"
+                        id={`${id}-mark-explicit`}
+                        defaultChecked={originalPreferences.markExplicitContent}
+                        onChange={(e) => (preferences.markExplicitContent = e.target.checked)}
+                    />
+                    <label htmlFor={`${id}-mark-explicit`}>Visibly mark explicit content</label>
+                </p>
+                <p>
+                    <input
+                        type="checkbox"
+                        id={`${id}-disable-explicit`}
+                        defaultChecked={originalPreferences.disableExplicitContent}
+                        onChange={(e) => (preferences.disableExplicitContent = e.target.checked)}
+                    />
+                    <label htmlFor={`${id}-disable-explicit`}>
+                        Disable playback of explicit content
+                    </label>
+                </p>
+            </fieldset>
+            <fieldset>
+                <legend>Media info</legend>
+                <p>
+                    <input
+                        type="checkbox"
+                        id={`${id}-media-info-tabs`}
+                        defaultChecked={originalPreferences.mediaInfoTabs}
+                        onChange={(e) => (preferences.mediaInfoTabs = e.target.checked)}
+                    />
+                    <label htmlFor={`${id}-media-info-tabs`}>
+                        Enable &quot;Details&quot; panel
+                    </label>
+                </p>
             </fieldset>
             <DialogButtons />
         </form>

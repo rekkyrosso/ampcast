@@ -8,6 +8,11 @@ import ListView, {ListViewLayout} from 'components/ListView';
 import useVisualizerFavorites, {KeyedVisualizerFavorite} from 'hooks/useVisualizerFavorites';
 import './VisualizerFavorites.scss';
 
+export interface VisualizerFavoritesProps {
+    onCancel: () => void;
+    onSubmit: () => void;
+}
+
 const layout: ListViewLayout<KeyedVisualizerFavorite> = {
     view: 'details',
     sizeable: true,
@@ -29,7 +34,7 @@ const layout: ListViewLayout<KeyedVisualizerFavorite> = {
     ],
 };
 
-export default function VisualizerFavorites() {
+export default function VisualizerFavorites({onCancel, onSubmit}: VisualizerFavoritesProps) {
     const favorites = useVisualizerFavorites();
     const [selectedFavorites, setSelectedFavorites] = useState<readonly KeyedVisualizerFavorite[]>(
         []
@@ -71,7 +76,7 @@ export default function VisualizerFavorites() {
                     Remove
                 </button>
             </p>
-            <DialogButtons />
+            <DialogButtons onCancelClick={onCancel} onSubmitClick={onSubmit} />
         </form>
     );
 }

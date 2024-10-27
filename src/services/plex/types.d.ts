@@ -129,6 +129,7 @@ declare namespace plex {
         readonly parentTitle: string;
         readonly parentYear: number;
         readonly year?: number;
+        readonly contentRating?: string;
     }
 
     interface MusicVideo extends BaseRatingObject {
@@ -139,6 +140,7 @@ declare namespace plex {
         readonly duration: number;
         readonly grandparentRatingKey: string;
         readonly grandparentTitle: string;
+        readonly contentRating?: string;
     }
 
     interface Playlist {
@@ -172,7 +174,10 @@ declare namespace plex {
         readonly bitrate?: number;
         readonly audioChannels: string;
         readonly audioCodec: string;
+        readonly videoCodec?: string;
+        readonly videoResolution?: string;
         readonly audioProfile?: string;
+        readonly aspectRatio?: number;
         readonly container: string;
         readonly optimizedForStreaming?: boolean;
     }

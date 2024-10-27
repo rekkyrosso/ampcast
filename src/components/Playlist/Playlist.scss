@@ -67,18 +67,33 @@
                 flex: auto;
                 min-width: 0;
 
-                > .artist-text,
-                > .title-text {
+                .row-title {
+                    display: flex;
+                    align-items: center;
                     overflow: hidden;
-                    text-overflow: ellipsis;
-                    /* Prevents italic text from being clipped on the right. */
-                    padding-right: 0.1em;
-                }
-
-                > [role="separator"] {
-                    flex: initial;
-                    /* Different left/right because of the padding above. */
-                    margin: 0 0.25rem 0 0.15rem;
+    
+                    &-text {
+                        display: flex;
+                        overflow: hidden;
+    
+                        > .artist-text,
+                        > .title-text {
+                            overflow: hidden;
+                            text-overflow: ellipsis;
+                            /* Prevents italic text from being clipped on the right. */
+                            padding-right: 0.1em;
+                        }
+    
+                        > [role="separator"] {
+                            flex: initial;
+                            /* Different left/right because of the padding above. */
+                            margin: 0 0.25rem 0 0.15rem;
+                        }
+                    }
+            
+                    .badge {
+                        margin-left: 0.5em;
+                    }
                 }
             }
 

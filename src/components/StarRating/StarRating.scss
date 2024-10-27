@@ -22,4 +22,12 @@
     .focus-visible &:focus .selected {
         @include effects.outline;
     }
+
+    .list-view & {
+        pointer-events: none;
+    }
+
+    .list-view:focus .list-view-row.selected & {
+        pointer-events: auto;
+    }
 }

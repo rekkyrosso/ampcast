@@ -257,9 +257,9 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaItemFromTrack(track: plex.Track, album: plex.Album | undefined): MediaItem {
-        const [media] = track.Media || [];
-        const [part] = media?.Part || [];
-        const [stream] = part?.Stream || [];
+        const media = track.Media?.[0];
+        const part = media?.Part?.[0];
+        const stream = part?.Stream?.find((stream) => stream.streamType === 2);
         let title = (track.title || '').trim();
         const hasMetadata = !!title;
         const albumTitle = hasMetadata
@@ -274,7 +274,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         } else {
             title = title || fileName.replace(/\.\w+/, '');
         }
-        const parseNumber = (value: string): number | undefined => {
+        const parseNumber = (value = ''): number | undefined => {
             const gain = parseFloat(value);
             return isNaN(gain) ? undefined : gain;
         };
@@ -318,6 +318,9 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             albumPeak: parseNumber(stream?.albumPeak),
             trackGain: parseNumber(stream?.gain),
             trackPeak: parseNumber(stream?.peak),
+            bitRate: media.bitrate,
+            badge: media.audioCodec,
+            explicit: track.contentRating === 'explicit',
         };
     }
 
@@ -369,8 +372,8 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaItemFromVideo(video: plex.MusicVideo): MediaItem {
-        const [media] = video.Media || [];
-        const [part] = media?.Part || [];
+        const media = video.Media?.[0];
+        const part = media?.Part?.[0];
         const isTidal = video.attribution === 'com.tidal';
 
         return {
@@ -391,6 +394,10 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             inLibrary: this.getInLibrary(video),
             thumbnails: this.createThumbnails(video.thumb),
             unplayable: part ? undefined : true,
+            bitRate: media.bitrate,
+            badge: media.videoResolution,
+            aspectRatio: media.aspectRatio,
+            explicit: video.contentRating === 'explicit',
         };
     }
 

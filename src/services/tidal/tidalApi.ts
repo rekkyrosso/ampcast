@@ -613,6 +613,9 @@ function createMediaAlbum(album: TidalAlbum, included: Included): MediaAlbum {
         year: releaseDate ? new Date(releaseDate).getUTCFullYear() || undefined : undefined,
         thumbnails: createThumbnails(attributes?.imageLinks),
         pager: new TidalPager((cursor) => getAlbumTracks(album, cursor)),
+        copyright: attributes?.copyright,
+        explicit: attributes?.explicit,
+        badge: getBadge(attributes?.mediaTags),
     };
 }
 
@@ -702,6 +705,9 @@ function createMediaItem(
         year: releaseDate ? new Date(releaseDate).getUTCFullYear() || undefined : undefined,
         isrc: attributes?.isrc,
         thumbnails: createThumbnails(imageLinks),
+        copyright: attributes?.copyright,
+        explicit: attributes?.explicit,
+        badge: getBadge((attributes as TidalTrack['attributes'])?.mediaTags),
     };
 }
 
@@ -772,6 +778,19 @@ function findArtists(
     } else {
         return [];
     }
+}
+
+function getBadge(mediaTags: string[] | undefined): string | undefined {
+    if (!mediaTags) {
+        return undefined;
+    }
+    return mediaTags.includes('HIRES_LOSSLESS')
+        ? 'max'
+        : mediaTags.includes('LOSSLESS')
+        ? 'high'
+        : mediaTags.length === 0
+        ? 'low'
+        : undefined;
 }
 
 function isTidalVideo(item: TidalTrack | TidalVideo): item is TidalVideo {

@@ -12,6 +12,7 @@ import MediaListStatusBar from 'components/MediaList/MediaListStatusBar';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useObservable from 'hooks/useObservable';
 import useOnDragStart from 'components/MediaList/useOnDragStart';
+import usePreferences from 'hooks/usePreferences';
 import {showMediaInfoDialog} from 'components/MediaInfo/MediaInfoDialog';
 import showActionsMenu from './showActionsMenu';
 import usePlaylistInject from './usePlaylistInject';
@@ -50,7 +51,8 @@ export default function Playlist({
     const onDragStart = useOnDragStart(selectedItems);
     const inject = usePlaylistInject();
     const [startIndex, setStartIndex] = useState(-1);
-    const noStartIndex = startIndex === -1
+    const noStartIndex = startIndex === -1;
+    const {disableExplicitContent} = usePreferences();
 
     useEffect(() => {
         if (noStartIndex && item) {
@@ -64,12 +66,15 @@ export default function Playlist({
         (item: PlaylistItem) => {
             const [service] = item.src.split(':');
             const playing = item.id === currentId;
-            const unplayable = item.unplayable || item.lookupStatus === LookupStatus.NotFound;
+            const unplayable =
+                item.unplayable ||
+                (disableExplicitContent && item.explicit) ||
+                item.lookupStatus === LookupStatus.NotFound;
             return `source-${service} ${playing ? 'playing' : ''} ${
                 unplayable ? 'unplayable' : ''
             }`;
         },
-        [currentId]
+        [currentId, disableExplicitContent]
     );
 
     const handleSelect = useCallback(

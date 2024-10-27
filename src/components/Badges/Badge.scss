@@ -1,0 +1,40 @@
+.badge {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    font-size: max(0.5em, 9px);
+    padding: 0.25em 0.5em;
+    background-color: var(--text-color);
+    color: var(--background-color);
+    border: 1px solid var(--black);
+    border-radius: calc(var(--roundness)* 0.75em);
+    font-style: normal;
+    font-weight: bold;
+    line-height: normal;
+    text-transform: uppercase;
+    user-select: none;
+    min-width: 1em;
+    height: 2em;
+
+    &.bit-rate {
+        background-color: transparent;
+        color: var(--text-color);
+        border-color: var(--text-color);
+        font-weight: normal;
+
+        .themed.dark & {
+            height: calc(2em - 2px);
+        }
+    }
+
+    &.explicit {
+        background-color: orangered;
+        color: white;
+    }
+
+    & ~ .badge {
+        margin-left: 0.5em;
+    }
+}
