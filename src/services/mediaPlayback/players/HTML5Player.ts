@@ -183,7 +183,7 @@ export default class HTML5Player implements Player<PlayableItem> {
     }
 
     load(item: PlayableItem): void {
-        this.logger.log('load', item.src, item.startTime);
+        this.logger.log('load', item.src);
         this.item$.next(item);
         this.paused$.next(!this.autoplay);
         if (item.src === this.loadedSrc) {

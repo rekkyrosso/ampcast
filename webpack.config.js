@@ -155,10 +155,6 @@ module.exports = (args) => {
                 : new CopyPlugin({
                       patterns: [
                           {
-                              from: './src/html/privacy-policy.html',
-                              to: wwwDir,
-                          },
-                          {
                               from: './src/service-worker.js',
                               to: wwwDir,
                               transform(content) {

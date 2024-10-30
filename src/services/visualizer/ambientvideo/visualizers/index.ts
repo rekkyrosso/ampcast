@@ -1,13 +1,5 @@
 import type {Observable} from 'rxjs';
-import {
-    BehaviorSubject,
-    catchError,
-    debounceTime,
-    distinctUntilChanged,
-    map,
-    of,
-    switchMap,
-} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, map, of, switchMap} from 'rxjs';
 import {AmbientVideoVisualizer} from 'types/Visualizer';
 import {observeVisualizerSettings} from 'services/visualizer/visualizerSettings';
 import youtubeApi from 'services/youtube/youtubeApi';
@@ -29,18 +21,7 @@ export function observeVisualizers(): Observable<readonly AmbientVideoVisualizer
     return visualizers$;
 }
 
-observeVisualizerSettings()
-    .pipe(
-        debounceTime(1),
-        map((settings) => !!settings.ambientVideoEnabled),
-        distinctUntilChanged(),
-        switchMap((ambientVideoEnabled) => (ambientVideoEnabled ? observeAmbientVideos() : of([]))),
-        catchError((err) => {
-            logger.error(err);
-            return of([]);
-        })
-    )
-    .subscribe(visualizers$);
+observeAmbientVideos().subscribe(visualizers$);
 
 function observeAmbientVideos(): Observable<readonly AmbientVideoVisualizer[]> {
     return observeVisualizerSettings().pipe(

@@ -12,7 +12,6 @@
 
 @mixin button {
     color: var(--button-text-color);
-    background-clip: padding-box;
     background-color: var(--button-color);
     background-image: var(--button-background);
     border: 1px solid var(--black);

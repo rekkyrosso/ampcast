@@ -1,37 +1,33 @@
-import React, {useCallback, useId, useState} from 'react';
-import youtubeApi from 'services/youtube/youtubeApi';
+import React, {useCallback, useId, useRef, useState} from 'react';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
-import DialogButtons from 'components/Dialog/DialogButtons';
+import youtubeApi from 'services/youtube/youtubeApi';
 
 export interface AmbientVideoSettingsProps {
-    onAmbientVideoEnabledChange: (enabled: boolean) => void;
-    ambientVideoEnabledRef: React.RefObject<HTMLInputElement>;
-    ambientVideoSourceRef: React.RefObject<HTMLInputElement>;
-    useAmbientVideoSourceRef: React.RefObject<HTMLInputElement>;
-    onCancel: () => void;
-    onSubmit: () => void;
+    onAmbientVideoSourceChange: (ambientVideoSource: string) => void;
+    onUseAmbientVideoSourceChange: (useAmbientVideoSource: boolean) => void;
 }
 
 export default function AmbientVideoSettings({
-    ambientVideoEnabledRef,
-    ambientVideoSourceRef,
-    useAmbientVideoSourceRef,
-    onAmbientVideoEnabledChange,
-    onCancel,
-    onSubmit,
+    onAmbientVideoSourceChange,
+    onUseAmbientVideoSourceChange,
 }: AmbientVideoSettingsProps) {
     const id = useId();
+    const ambientVideoSourceRef = useRef<HTMLInputElement>(null);
+    const useAmbientVideoSourceRef = useRef<HTMLInputElement>(null);
     const [useSource, setUseSource] = useState(() => !!visualizerSettings.useAmbientVideoSource);
 
     const handleSourceChange = useCallback(() => {
+        const useAmbientVideoSource = useAmbientVideoSourceRef.current!.checked;
         if (
             !ambientVideoSourceRef.current!.validity.valid &&
             !useAmbientVideoSourceRef.current!.checked
         ) {
             ambientVideoSourceRef.current!.value = '';
         }
-        setUseSource(useAmbientVideoSourceRef.current!.checked);
-    }, [ambientVideoSourceRef, useAmbientVideoSourceRef]);
+        setUseSource(useAmbientVideoSource);
+        onUseAmbientVideoSourceChange(useAmbientVideoSource);
+        onAmbientVideoSourceChange(ambientVideoSourceRef.current!.value);
+    }, [onAmbientVideoSourceChange, onUseAmbientVideoSourceChange]);
 
     const handleSourceInput = useCallback(() => {
         const url = ambientVideoSourceRef.current!.value;
@@ -43,24 +39,22 @@ export default function AmbientVideoSettings({
             }
         }
         ambientVideoSourceRef.current!.setCustomValidity(validityMessage);
-    }, [ambientVideoSourceRef]);
-
-    const handleAmbientVideoEnabledChange = useCallback(() => {
-        onAmbientVideoEnabledChange(ambientVideoEnabledRef.current!.checked);
-    }, [ambientVideoEnabledRef, onAmbientVideoEnabledChange]);
+    }, []);
 
     return (
-        <form className="ambient-video-settings" method="dialog">
-            <p>
-                <input
-                    id={`${id}-ambient-video-enabled`}
-                    type="checkbox"
-                    defaultChecked={visualizerSettings.ambientVideoEnabled}
-                    onChange={handleAmbientVideoEnabledChange}
-                    ref={ambientVideoEnabledRef}
-                />
-                <label htmlFor={`${id}-ambient-video-enabled`}>Enable ambient video</label>
-            </p>
+        <div className="ambient-video-settings">
+            <fieldset>
+                <legend>Options</legend>
+                <p>
+                    <input
+                        id={`${id}-beats-overlay`}
+                        type="checkbox"
+                        defaultChecked={visualizerSettings.ambientVideoBeats}
+                        onChange={(e) => (visualizerSettings.ambientVideoBeats = e.target.checked)}
+                    />
+                    <label htmlFor={`${id}-beats-overlay`}>Show &quot;beats&quot; overlay</label>
+                </p>
+            </fieldset>
             <fieldset>
                 <legend>Source</legend>
                 <p>
@@ -98,16 +92,6 @@ export default function AmbientVideoSettings({
                     />
                 </p>
             </fieldset>
-            <p>
-                <input
-                    id={`${id}-beats-overlay`}
-                    type="checkbox"
-                    defaultChecked={visualizerSettings.ambientVideoBeats}
-                    onChange={(e) => (visualizerSettings.ambientVideoBeats = e.target.checked)}
-                />
-                <label htmlFor={`${id}-beats-overlay`}>Show &quot;beats&quot; overlay</label>
-            </p>
-            <DialogButtons onCancelClick={onCancel} onSubmitClick={onSubmit} />
-        </form>
+        </div>
     );
 }

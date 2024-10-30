@@ -21,7 +21,7 @@
     .media:not(:fullscreen) & {
         &-ampshader,
         &-butterchurn {
-            .light.frame-light & {
+            .light.frame-light &:not(.opaque) {
                 opacity: 0.5;
             }
         }

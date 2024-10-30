@@ -6,7 +6,8 @@ const visualizers: SpotifyVizVisualizer[] = [
         providerId: 'spotifyviz',
         name: 'example by zachwinter',
         config: example,
-        externalUrl: 'https://github.com/zachwinter/spotify-viz/blob/master/client/example.js',
+        // Dead link.
+        // externalUrl: 'https://github.com/zachwinter/spotify-viz/blob/master/client/example.js',
     },
 ];
 

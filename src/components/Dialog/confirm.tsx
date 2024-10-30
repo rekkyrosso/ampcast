@@ -68,7 +68,7 @@ export function ConfirmDialog({
                 {storageId ? (
                     <footer className="confirm-dialog-storage">
                         <input id={id} type="checkbox" ref={storageRef} />
-                        <label htmlFor={id}>Don&apos;t show this message again.</label>
+                        <label htmlFor={id}>Don&apos;t show this message again</label>
                     </footer>
                 ) : null}
             </form>

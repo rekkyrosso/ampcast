@@ -6,39 +6,48 @@ import {LiteStorage} from 'utils';
 
 type VisualizerKeys = Pick<Visualizer, 'providerId' | 'name'>;
 
+export type Randomness = Readonly<Record<VisualizerProviderId, number>>;
+
 export interface VisualizerSettings {
     provider: VisualizerProviderId | 'favorites' | 'random';
     ambientVideoBeats: boolean;
-    ambientVideoEnabled: boolean;
     ambientVideoSource: string;
     useAmbientVideoSource: boolean;
+    ampshaderTransparency: boolean;
+    butterchurnTransparency: boolean;
     coverArtAnimatedBackground: boolean;
     coverArtBeats: boolean;
     fullscreenProgress: boolean;
     lockedVisualizer: VisualizerKeys | null;
+    randomness: Randomness;
+    spotifyRandomness: Randomness;
 }
+
+const defaultRandomness: Randomness = {
+    none: 0,
+    ambientvideo: 0,
+    ampshader: 10,
+    audiomotion: 4,
+    butterchurn: 74,
+    coverart: 1,
+    spotifyviz: 0,
+    waveform: 1,
+};
+
+const defaultSpotifyRandomness: Randomness = {
+    none: 0,
+    ambientvideo: 0,
+    ampshader: 60,
+    audiomotion: 9,
+    butterchurn: 4,
+    coverart: 1,
+    spotifyviz: 6,
+    waveform: 0,
+};
 
 const storage = new LiteStorage('visualizer/settings');
 
 const visualizerSettings: VisualizerSettings = {
-    get ambientVideoEnabled(): boolean {
-        return storage.getBoolean('ambientVideoEnabled');
-    },
-
-    set ambientVideoEnabled(ambientVideoEnabled: boolean) {
-        if (ambientVideoEnabled !== this.ambientVideoEnabled) {
-            storage.setBoolean('ambientVideoEnabled', ambientVideoEnabled);
-            if (!ambientVideoEnabled) {
-                if (this.provider === 'ambientvideo') {
-                    storage.setString('provider', 'random');
-                }
-                if (this.lockedVisualizer?.providerId === 'ambientvideo') {
-                    storage.removeItem('lockedVisualizer');
-                }
-            }
-        }
-    },
-
     get ambientVideoSource(): string {
         return storage.getString('ambientVideoSource');
     },
@@ -72,6 +81,26 @@ const visualizerSettings: VisualizerSettings = {
             if (this.lockedVisualizer?.providerId === 'ambientvideo') {
                 storage.removeItem('lockedVisualizer');
             }
+        }
+    },
+
+    get ampshaderTransparency(): boolean {
+        return storage.getBoolean('ampshaderTransparency', true);
+    },
+
+    set ampshaderTransparency(ampshaderTransparency: boolean) {
+        if (ampshaderTransparency !== this.ampshaderTransparency) {
+            storage.setBoolean('ampshaderTransparency', ampshaderTransparency);
+        }
+    },
+
+    get butterchurnTransparency(): boolean {
+        return storage.getBoolean('butterchurnTransparency', true);
+    },
+
+    set butterchurnTransparency(butterchurnTransparency: boolean) {
+        if (butterchurnTransparency !== this.butterchurnTransparency) {
+            storage.setBoolean('butterchurnTransparency', butterchurnTransparency);
         }
     },
 
@@ -129,6 +158,22 @@ const visualizerSettings: VisualizerSettings = {
                 storage.removeItem('lockedVisualizer');
             }
         }
+    },
+
+    get randomness(): Randomness {
+        return storage.getJson('randomness', defaultRandomness);
+    },
+
+    set randomness(randomness: Randomness) {
+        storage.setJson('randomness', randomness);
+    },
+
+    get spotifyRandomness(): Randomness {
+        return storage.getJson('spotifyRandomness', defaultSpotifyRandomness);
+    },
+
+    set spotifyRandomness(randomness: Randomness) {
+        storage.setJson('spotifyRandomness', randomness);
     },
 };
 

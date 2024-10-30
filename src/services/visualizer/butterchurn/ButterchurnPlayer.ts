@@ -1,11 +1,14 @@
 import type {Observable} from 'rxjs';
-import {Subject} from 'rxjs';
+import {distinctUntilChanged, map, Subject, tap} from 'rxjs';
 import butterchurn from 'butterchurn';
 import AudioManager from 'types/AudioManager';
 import {ButterchurnVisualizer} from 'types/Visualizer';
-import spotifyAudioAnalyser from 'services/spotify/spotifyAudioAnalyser';
-import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 import {Logger} from 'utils';
+import spotifyAudioAnalyser from 'services/spotify/spotifyAudioAnalyser';
+import visualizerSettings, {
+    observeVisualizerSettings,
+} from 'services/visualizer/visualizerSettings';
+import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 
 const logger = new Logger('ButterchurnPlayer');
 
@@ -16,7 +19,7 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
     private readonly visualizer: butterchurn.Visualizer;
     private readonly error$ = new Subject<unknown>();
     private animationFrameId = 0;
-    private currentVisualizer = '';
+    private currentVisualizer: ButterchurnVisualizer | null = null;
 
     constructor({context, source}: AudioManager) {
         super();
@@ -38,6 +41,14 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
                 return timeToFrequencyDomain.call(fft, waveDataIn);
             }
         };
+
+        observeVisualizerSettings()
+            .pipe(
+                map((settings) => settings.butterchurnTransparency),
+                distinctUntilChanged(),
+                tap(() => this.toggleOpacity())
+            )
+            .subscribe(logger);
 
         // Log errors.
         this.error$.subscribe(logger.error);
@@ -73,10 +84,11 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
 
     load(visualizer: ButterchurnVisualizer): void {
         logger.log('load', visualizer.name);
-        if (this.currentVisualizer !== visualizer.name) {
-            this.currentVisualizer = visualizer.name;
+        if (visualizer.name !== this.currentVisualizer?.name) {
+            this.currentVisualizer = visualizer;
             this.cancelAnimation();
             this.visualizer.loadPreset(visualizer.data, 0.5);
+            this.toggleOpacity();
         }
         if (this.autoplay && !this.animationFrameId) {
             this.render();
@@ -106,7 +118,14 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
         height = Math.ceil(height);
         this.canvas.width = width;
         this.canvas.height = height;
-        this.visualizer.setRendererSize(width, height);
+        try {
+            // TODO: This spams error messages if no audio has played yet.
+            this.visualizer.setRendererSize(width, height);
+        } catch (err) {
+            if (__dev__) {
+                logger.warn(err);
+            }
+        }
     }
 
     private clear(): void {
@@ -130,5 +149,12 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
             cancelAnimationFrame(this.animationFrameId);
             this.animationFrameId = 0;
         }
+    }
+
+    private toggleOpacity(): void {
+        this.canvas.classList.toggle(
+            'opaque',
+            !visualizerSettings.butterchurnTransparency || !!this.currentVisualizer?.opaque
+        );
     }
 }

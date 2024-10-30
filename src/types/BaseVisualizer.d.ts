@@ -6,8 +6,9 @@ export default interface BaseVisualizer {
     readonly name: string;
     // Everything below here should be optional.
     readonly title?: string; // Readable title
-    readonly rating?: number;
     readonly externalUrl?: string;
     readonly thumbnails?: Thumbnail[];
     readonly duration?: number;
+    readonly spotifyExcluded?: boolean;
+    readonly opaque?: boolean;
 }

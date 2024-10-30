@@ -6,12 +6,13 @@
     }
 
     &-buttons {
-        text-align: right;
         display: flex;
         flex-direction: row;
+        align-items: baseline;
     }
 
     &-delete {
+        margin-top: 0.5em;
         margin-left: auto;
     }
 }

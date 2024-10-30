@@ -45,6 +45,10 @@ export function observeIsLoggedIn(service: MediaService | string): Observable<bo
     );
 }
 
+export function getServices(): readonly MediaService[] {
+    return services$.value;
+}
+
 export async function loadMediaServices(): Promise<readonly MediaService[]> {
     if (getServices().length === 0) {
         await loadLibrary('media-services');
@@ -168,10 +172,6 @@ export async function waitForLogin(
         const mediaService = typeof service === 'string' ? getService(service) : service;
         return mediaService?.isLoggedIn() ?? true;
     }
-}
-
-function getServices(): readonly MediaService[] {
-    return services$.value;
 }
 
 function isMediaService(service: any): service is MediaService {

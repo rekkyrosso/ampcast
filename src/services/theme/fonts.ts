@@ -43,7 +43,7 @@ export async function loadFont(font: Writable<Font>): Promise<void> {
         try {
             await loadStyleSheet(font.url);
         } catch (err) {
-            console.log('Failed to load font:', font.name);
+            console.warn('Failed to load font:', font.name);
             console.error(err);
             font.loaded = false;
         }

@@ -1,0 +1,51 @@
+.visualizer-randomness {
+    .view-selector {
+        display: block;
+        margin: 0.5em 0 1em 0;
+
+        li {
+            display: inline-block;
+            line-height: normal;
+
+            & + li {
+                margin-left: 1em;
+            }
+        }
+    }
+
+    .weightings {
+        margin-left: 0.5em;
+        padding-bottom: 0.5em;
+        
+        &[hidden] {
+            position: absolute;
+            display: block;
+            visibility: hidden;
+        }
+
+        p {
+            &.is-zero label {
+                color: var(--grey1-color);
+            }
+
+            &.disabled {
+                color: var(--grey1-color);
+            }
+
+            &[hidden] {
+                display: none;
+            }
+        }
+
+        input {
+            display: inline-block;
+            width: 15em;
+        }
+    }
+
+    .relative-weight {
+        margin-left: 1em;
+        font-size: 0.75em;
+        vertical-align: middle;
+    }
+}

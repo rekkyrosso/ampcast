@@ -1,20 +1,35 @@
 .visualizer-settings {
     &-dialog {
-        width: 32em;
-        height: 28em;
+        width: 33.5em;
+        height: 36.5em;
+    }
 
-        .visualizer-favorites .list-view {
-            height: 12.5em;
-        }
+    select + button {
+        margin-left: 1em;
     }
 
     .ambient-video-settings {
         input[type="url"] {
             width: 100%;
         }
+
+        fieldset + p {
+            margin-top: 1.5em;
+        }
     }
 
     &-general fieldset {
         margin-top: 1.5em;
+    }
+
+    .use-provider.in-use {
+        opacity: 1;
+        color: var(--background-color);
+        background: var(--text-color);
+    }
+
+    .compatibility {
+        margin-top: 2em;
+        font-style: italic;
     }
 }

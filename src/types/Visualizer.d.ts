@@ -4,10 +4,16 @@ import type {SpotifyVizConfig} from 'services/visualizer/spotifyviz/SpotifyVizPl
 import type {WaveformConfig} from 'services/visualizer/waveform/WaveformPlayer';
 import BaseVisualizer from './BaseVisualizer';
 import PlayableItem from './PlayableItem';
+import VisualizerProviderId from './VisualizerProviderId';
 
 export interface NoVisualizer extends BaseVisualizer {
     providerId: 'none';
-    reason?: 'not loaded' | 'not supported' | 'error';
+    name: '' | 'not loaded' | 'not supported' | 'error';
+    // Link to the visualizer that isn't working.
+    readonly link: {
+        readonly providerId: VisualizerProviderId;
+        readonly name?: string;
+    };
 }
 
 export interface AmbientVideoVisualizer extends BaseVisualizer {

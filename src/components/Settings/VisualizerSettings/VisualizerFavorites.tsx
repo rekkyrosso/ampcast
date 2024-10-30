@@ -5,13 +5,10 @@ import visualizerStore from 'services/visualizer/visualizerStore';
 import {confirm} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import ListView, {ListViewLayout} from 'components/ListView';
-import useVisualizerFavorites, {KeyedVisualizerFavorite} from 'hooks/useVisualizerFavorites';
+import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
+import useIsPlaying from 'hooks/useIsPlaying';
+import useVisualizerFavorites, {KeyedVisualizerFavorite} from './useVisualizerFavorites';
 import './VisualizerFavorites.scss';
-
-export interface VisualizerFavoritesProps {
-    onCancel: () => void;
-    onSubmit: () => void;
-}
 
 const layout: ListViewLayout<KeyedVisualizerFavorite> = {
     view: 'details',
@@ -22,24 +19,41 @@ const layout: ListViewLayout<KeyedVisualizerFavorite> = {
             title: 'Provider',
             render: ({providerId}) => {
                 const provider = getVisualizerProvider(providerId);
-                return provider?.name || providerId;
+                return provider?.shortName || provider?.name || providerId;
             },
-            width: 12,
+            width: 8,
         },
         {
             title: 'Name',
             render: ({title, name}) => title || name,
-            width: 24,
+            width: 12,
+        },
+        {
+            title: '', // status is mostly empty so leave the title empty
+            render: ({status}) => status,
+            width: 16,
         },
     ],
 };
 
-export default function VisualizerFavorites({onCancel, onSubmit}: VisualizerFavoritesProps) {
+export default function VisualizerFavorites() {
+    const isPlaying = useIsPlaying();
+    const currentVisualizer = useCurrentVisualizer();
     const favorites = useVisualizerFavorites();
     const [selectedFavorites, setSelectedFavorites] = useState<readonly KeyedVisualizerFavorite[]>(
         []
     );
     const [selectedFavorite] = selectedFavorites;
+    const canAddCurrentVisualizer =
+        currentVisualizer &&
+        currentVisualizer.providerId !== 'none' &&
+        !visualizerStore.hasFavorite(currentVisualizer);
+
+    const handleAddClick = useCallback(async () => {
+        if (currentVisualizer) {
+            await visualizerStore.addFavorite(currentVisualizer);
+        }
+    }, [currentVisualizer]);
 
     const handleDeleteClick = useCallback(async () => {
         if (selectedFavorite) {
@@ -67,16 +81,26 @@ export default function VisualizerFavorites({onCancel, onSubmit}: VisualizerFavo
                 onSelect={setSelectedFavorites}
             />
             <p className="visualizer-favorites-buttons">
+                {isPlaying ? (
+                    <button
+                        className="visualizer-favorites-add"
+                        type="button"
+                        disabled={!canAddCurrentVisualizer}
+                        onClick={handleAddClick}
+                    >
+                        Add current visualizer
+                    </button>
+                ) : null}
                 <button
                     className="visualizer-favorites-delete"
                     type="button"
-                    onClick={handleDeleteClick}
                     disabled={!selectedFavorite}
+                    onClick={handleDeleteClick}
                 >
                     Remove
                 </button>
             </p>
-            <DialogButtons onCancelClick={onCancel} onSubmitClick={onSubmit} />
+            <DialogButtons />
         </form>
     );
 }

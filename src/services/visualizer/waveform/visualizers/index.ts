@@ -14,6 +14,7 @@ const visualizers: WaveformVisualizer[] = [
     {
         providerId: 'waveform',
         name: 'wave',
+        spotifyExcluded: true,
         config: {
             onPaint: ({context2D, width, height, analyser}) => {
                 const bufferSize = analyser.frequencyBinCount;

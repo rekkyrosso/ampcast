@@ -3,7 +3,6 @@ import {BehaviorSubject, map, mergeMap, of, skipWhile, switchMap, tap} from 'rxj
 import Visualizer from 'types/Visualizer';
 import VisualizerProvider from 'types/VisualizerProvider';
 import {loadLibrary, Logger} from 'utils';
-import visualizerSettings from './visualizerSettings';
 
 const logger = new Logger('visualizerProviders');
 
@@ -27,14 +26,8 @@ export function observeVisualizersByProviderId(
     );
 }
 
-function getVisualizerProviders(): readonly VisualizerProvider[] {
+export function getVisualizerProviders(): readonly VisualizerProvider[] {
     return visualizerProviders$.value;
-}
-
-export function getEnabledVisualizerProviders(): readonly VisualizerProvider[] {
-    return getVisualizerProviders().filter(
-        (provider) => provider.id !== 'ambientvideo' || visualizerSettings.ambientVideoEnabled
-    );
 }
 
 export function getVisualizer(providerId: string, name: string): Visualizer | undefined {

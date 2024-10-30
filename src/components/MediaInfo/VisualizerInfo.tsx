@@ -89,7 +89,11 @@ function ToggleFavorite({visualizer}: {visualizer: Visualizer}) {
         <IconButtons>
             <IconButton
                 icon={isFavorite ? 'tick-fill' : 'plus'}
-                title={isFavorite ? t('Remove from favorite visualizers') : t('Add to favorite visualizers')}
+                title={
+                    isFavorite
+                        ? t('Remove from favorite visualizers')
+                        : t('Add to favorite visualizers')
+                }
                 onClick={handleClick}
             />
         </IconButtons>
@@ -99,11 +103,13 @@ function ToggleFavorite({visualizer}: {visualizer: Visualizer}) {
 function getProviderName(visualizer: Visualizer | null): string {
     if (visualizer) {
         if (isNoVisualizer(visualizer)) {
-            const provider = getVisualizerProvider(visualizer.name);
-            return provider?.name || visualizer.name || 'none';
+            const providerId = visualizer.link.providerId;
+            const provider = getVisualizerProvider(providerId);
+            return provider?.name || providerId || 'none';
         } else {
-            const provider = getVisualizerProvider(visualizer.providerId);
-            return provider?.name || visualizer.providerId || 'none';
+            const providerId = visualizer.providerId;
+            const provider = getVisualizerProvider(providerId);
+            return provider?.name || providerId;
         }
     }
     return 'none';
@@ -111,7 +117,7 @@ function getProviderName(visualizer: Visualizer | null): string {
 
 function getNoVisualizerReason(visualizer: Visualizer | null): string {
     if (isNoVisualizer(visualizer)) {
-        switch (visualizer.reason) {
+        switch (visualizer.name) {
             case 'not supported':
                 return 'Visualizer not supported for this media.';
 

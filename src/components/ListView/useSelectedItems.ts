@@ -23,13 +23,13 @@ export default function useSelectedItems<T>(
                 const newSelectedItems = items.filter(
                     (item) => (item[itemKey] as string) in selectedIds
                 );
-                if (compareArrays(selectedItems, newSelectedItems)) {
+                if (compareArrays(selectedItems, newSelectedItems) && prevItems?.length) {
                     return selectedItems;
                 }
                 const size = items.length;
                 if (size > 0 && newSelectedItems.length === 0) {
                     if (rowIndex < size) {
-                        const item = items[rowIndex];
+                        const item = items[Math.max(rowIndex, 0)];
                         return item ? [item] : [];
                     } else {
                         const item = items[size - 1];

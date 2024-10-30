@@ -1,14 +1,6 @@
 // https://www.shadertoy.com/view/Wll3Df
 #define hue(h) clamp( abs( fract(h + vec4(3,2,1,0)/3.) * 6. - 3.) -1. , 0., 1.)
-#define BLACK_COL vec3(32,43,51)/255.
-
-float line(vec2 p,vec2 size){
-	float mask =
-        smoothstep(size.x, size.x-.1, abs(p.x)) *
-        smoothstep(size.y, size.y-.1, abs(p.y));
-
-    return smoothstep(.45, .5, mask);
-}
+#define BLACK_COL vec3(0,0,0)/255.
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord )
 {

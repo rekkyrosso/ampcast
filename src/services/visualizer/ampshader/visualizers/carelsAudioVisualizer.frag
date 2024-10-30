@@ -6,11 +6,11 @@
  Also, uses the energy for additional effects.
 */
 
-#define SAMPLERATE iSampleRate
+// #define SAMPLERATE iSampleRate
 // These brackets are required because the preprocessor is dumb
-#define MAX_F (0.25*SAMPLERATE)
+// #define MAX_F (0.25*SAMPLERATE)
 // Reference note for the conversions between note/octave and frequency, a good default is C4, aka middle C, 261.63 Hz
-#define REF_NOTE 261.63
+// #define REF_NOTE 261.63
 
 vec3 pal( in float t, in vec3 a, in vec3 b, in vec3 c, in vec3 d ) {
     return a + b*cos( 6.28318*(c*t+d) );

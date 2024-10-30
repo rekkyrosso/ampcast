@@ -6,6 +6,7 @@ import {getVisualizers, observeVisualizers} from './visualizers';
 const butterchurn: VisualizerProvider<ButterchurnVisualizer> = {
     id: 'butterchurn',
     name: 'Butterchurn (Milkdrop)',
+    shortName: 'Butterchurn',
     externalUrl: 'https://butterchurnviz.com/',
     get visualizers() {
         return getVisualizers();

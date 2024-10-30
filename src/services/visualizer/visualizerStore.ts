@@ -2,12 +2,15 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import Dexie, {liveQuery} from 'dexie';
 import Visualizer from 'types/Visualizer';
-import VisualizerProviderId from 'types/VisualizerProviderId';
 import {Logger} from 'utils';
+import youtubeApi from 'services/youtube/youtubeApi';
 
 const logger = new Logger('visualizerStore');
 
-export type VisualizerFavorite = Pick<Visualizer, 'providerId' | 'name' | 'title'>;
+export type VisualizerFavorite = Pick<
+    Visualizer,
+    'providerId' | 'name' | 'title' | 'spotifyExcluded'
+>;
 
 class VisualizerStore extends Dexie {
     private readonly favorites!: Dexie.Table<VisualizerFavorite, [string, string]>;
@@ -29,22 +32,20 @@ class VisualizerStore extends Dexie {
         return this.favorites$;
     }
 
-    addFavorite(visualizer: VisualizerFavorite): Promise<void>;
-    addFavorite(providerId: VisualizerProviderId, name: string, title?: string): Promise<void>;
-    async addFavorite(
-        providerId: VisualizerProviderId | VisualizerFavorite,
-        name = '',
-        title?: string
-    ): Promise<void> {
-        if (typeof providerId !== 'string') {
-            const visualizer = providerId;
-            providerId = visualizer.providerId;
-            name = visualizer.name;
-            title = visualizer.title;
-        }
+    async addFavorite(visualizer: VisualizerFavorite): Promise<void> {
+        const {providerId, name, spotifyExcluded} = visualizer;
         try {
-            logger.log('addFavorite', {providerId, name, title});
-            await this.favorites.put({providerId, name, title});
+            logger.log('addFavorite', {providerId, name});
+            let title = visualizer.title;
+            if (providerId === 'ambientvideo' && !title) {
+                try {
+                    const video = await youtubeApi.getVideoInfo(name);
+                    title = video.title;
+                } catch (err) {
+                    logger.error(err);
+                }
+            }
+            await this.favorites.put({providerId, name, title, spotifyExcluded});
         } catch (err) {
             logger.error(err);
         }

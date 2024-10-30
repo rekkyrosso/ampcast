@@ -4,5 +4,5 @@ import useObservable from 'hooks/useObservable';
 
 export default function useUserThemes() {
     const observeUserThemes = useMemo(() => () => themeStore.observeUserThemes(), []);
-    return useObservable(observeUserThemes, []);
+    return useObservable(observeUserThemes, themeStore.getUserThemes());
 }

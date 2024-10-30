@@ -29,7 +29,7 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord )
                    e(vec3(o+g*t+r.ggr)) );
     vec3 v=vec3(dot(vec3(0,0,-.5),n)+dot(vec3(0.0,-.5,.5),n));
     // edited below (ampcast)
-    vec2 uv = fragCoord.xy / iResolution;
+    vec2 uv = fragCoord.xy / iResolution.xy;
     vec2 p = uv - 0.5;
     p.x *= iResolution.x / iResolution.y;
     float l = 0.1 * length(p);

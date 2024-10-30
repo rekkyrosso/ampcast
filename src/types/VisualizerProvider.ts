@@ -6,6 +6,7 @@ import Visualizer from './Visualizer';
 export default interface VisualizerProvider<T extends Visualizer = Visualizer> {
     readonly id: T['providerId'];
     readonly name: string;
+    readonly shortName?: string;
     readonly player?: Player<T>;
     readonly visualizers: readonly T[];
     readonly externalUrl?: string;

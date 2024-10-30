@@ -134,7 +134,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             genres: artist.Genres || undefined,
             thumbnails: this.createThumbnails(artist),
             inLibrary: artist.UserData?.IsFavorite,
-            artist_mbid: artist.ProviderIds?.MusicBrainzArtist,
+            artist_mbid: artist.ProviderIds?.MusicBrainzArtist ?? undefined,
             pager: this.createArtistAlbumsPager(artist),
         };
     }
@@ -156,7 +156,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             trackCount: album.ChildCount || undefined,
             pager: this.createAlbumTracksPager(album),
             artist: album.AlbumArtist || undefined,
-            release_mbid: album.ProviderIds?.MusicBrainzAlbum,
+            release_mbid: album.ProviderIds?.MusicBrainzAlbum ?? undefined,
             year: album.ProductionYear || undefined,
         };
     }
@@ -232,8 +232,8 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             album: track.Album || undefined,
             disc: track.Album ? track.ParentIndexNumber || undefined : undefined,
             track: track.Album ? track.IndexNumber || 0 : 0,
-            track_mbid: track.ProviderIds?.MusicBrainzTrack,
-            release_mbid: track.ProviderIds?.MusicBrainzAlbum,
+            track_mbid: track.ProviderIds?.MusicBrainzTrack ?? undefined,
+            release_mbid: track.ProviderIds?.MusicBrainzAlbum ?? undefined,
             artist_mbids: artist_mbid ? [artist_mbid] : undefined,
             albumGain: isVideo ? undefined : getGain(album),
             trackGain: isVideo ? undefined : getGain(track),

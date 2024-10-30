@@ -7,6 +7,7 @@ import visualizers from './visualizers';
 const audiomotion: VisualizerProvider<AudioMotionVisualizer> = {
     id: 'audiomotion',
     name: 'audioMotion-analyzer',
+    shortName: 'audioMotion',
     externalUrl: 'https://audiomotion.dev/',
     visualizers,
     observeVisualizers: () => of(visualizers),

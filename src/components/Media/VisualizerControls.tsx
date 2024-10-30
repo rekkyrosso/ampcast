@@ -139,8 +139,8 @@ export default memo(function VisualizerControls({
 });
 
 function getNoVisualizerReason(visualizer: Visualizer | null): string {
-    if (visualizer?.providerId === 'none' && visualizer.reason) {
-        return `visualizer ${visualizer.reason}`;
+    if (visualizer?.providerId === 'none' && visualizer.name) {
+        return `visualizer ${visualizer.name}`;
     }
     return '';
 }

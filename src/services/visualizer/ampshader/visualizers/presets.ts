@@ -1,9 +1,12 @@
 import {AmpShaderVisualizer} from 'types/Visualizer';
+import _20221105_inercia from './20221105_inercia.frag';
 import _25boxes from './25boxes.frag';
+import _3dAudioVisualizer2 from './3dAudioVisualizer2.frag';
 import abstract_audio_react from './abstract_audio_react.frag';
 import abstractMusic from './abstractMusic.frag';
 import allNight from './allNight.frag';
 import ambilight from './ambilight.frag';
+import attemptAtVdjEffects from './attemptAtVdjEffects.frag';
 import audioFlightV2 from './audioFlightV2.frag';
 import audioPulsar from './audioPulsar.frag';
 import audioReactiveFractal from './audioReactiveFractal.frag';
@@ -23,33 +26,41 @@ import burnSoundWave from './burnSoundWave.frag';
 import carelsAudioVisualizer from './carelsAudioVisualizer.frag';
 import cavitation from './cavitation.frag';
 import chromaticResonance from './chromaticResonance.frag';
+import circuits from './circuits.frag';
 import cityAtNight from './cityAtNight.frag';
 import clairDeLune from './clairDeLune.frag';
 import convertedPlasma from './convertedPlasma.frag';
 import creation from './creation.frag';
 import cylonsJam from './cylonsJam.frag';
 import dancingDots from './dancingDots.frag';
+import dancingGlowLights from './dancingGlowLights.frag';
+import dancingJellyfish from './dancingJellyfish.frag';
 import dancingOctopus from './dancingOctopus.frag';
 import disco2000 from './disco2000.frag';
 import diveIntoGeometry from './diveIntoGeometry.frag';
+import eyeOfHajiSauron from './eyeOfHajiSauron.frag';
 import fftIfs from './fft-ifs.frag';
 import firstShaderTest from './firstShaderTest.frag';
 import firstVisualiser_globaldusk from './firstVisualiser_globaldusk.frag';
+import forkFractal77 from './forkFractal77.frag';
 import forkSoundEclipNobody012 from './forkSoundEclipNobody012.frag';
 import forkSoundEclipReverland340 from './forkSoundEclipReverland340.frag';
 import forkWaves from './forkWaves.frag';
 import fractalAudio01 from './fractalAudio01.frag';
 import fractalBrownian from './fractalBrownian.frag';
 import fractalLand from './fractalLand.frag';
+import gameboy from './gameboy.frag';
+import gatoNegroPasa from './gatoNegroPasa.frag';
 import gauges from './gauges.frag';
 import goatranceTrip from './goatranceTrip.frag';
 import hilbertColor from './hilbertColor.frag';
-import inversionsKreis from './inversionsKreis.frag';
 import io from './io.frag';
 import issues from './issues.frag';
 import lelabah from './lelabah.frag';
+import lightningStorm from './lightningStorm.frag';
 import mandelKoch from './mandelKoch.frag';
 import mellowRainbowBlob from './mellowRainbowBlob.frag';
+import morph from './morph.frag';
 import music_Spheres from './music_Spheres.frag';
 import musicMandelBoxColour from './musicMandelBoxColour.frag';
 import musicVisualiser from './musicVisualiser.frag';
@@ -57,48 +68,136 @@ import musicVisualizer3 from './musicVisualizer3.frag';
 import myLightShow from './myLightShow.frag';
 import nanoKontrol2 from './nanoKontrol2.frag';
 import nautilus from './nautilus.frag';
+import neonPyramid from './neonPyramid.frag';
 import neonRiverVisualizer from './neonRiverVisualizer.frag';
 import noiseNoiseRaymarching from './noiseNoiseRaymarching.frag';
-import ocassionalSpectators from './ocassionalSpectators.frag';
 import oscEqualizer from './oscEqualizer.frag';
 import otherworldy from './otherworldy.frag';
 import particlesDance from './particlesDance.frag';
-import phonk from './phonk.frag';
-import pinwheel from './pinwheel.frag';
 import plasmaGlobe from './plasmaGlobe.frag';
 import playingAroundWithSpirals from './playingAroundWithSpirals.frag';
 import popShift from './popShift.frag';
-import psyTrance from './psyTrance.frag';
 import psychedelicEye from './psychedelicEye.frag';
 import psychedelicLines from './psychedelicLines.frag';
-import purpleSoundVisualizer from './purpleSoundVisualizer.frag';
 import purpleSpaghetti from './purpleSpaghetti.frag';
-import quasicrystal from './quasicrystal.frag';
 import radialSoundVisualizer from './radialSoundVisualizer.frag';
-import radiant from './radiant.frag';
 import rainbow from './rainbow.frag';
+import russianRoulette from './russianRoulette.frag';
 import sailingBeyond from './sailingBeyond.frag';
 import shadowDancing from './shadowDancing.frag';
-import shamosis from './shamosis.frag';
 import shimmy from './shimmy.frag';
 import simpleRainbow from './simpleRainbow.frag';
 import skulls from './skulls.frag';
 import soapBubble from './soapBubble.frag';
 import solarDance from './solarDance.frag';
+import solumObject from './solumObject.frag';
 import soundEclipseRpm from './soundEclipseRpm.frag';
 import soundSinusWave from './soundSinusWave.frag';
+import spaceWithMusic from './spaceWithMusic.frag';
 import spaceshipConsole from './spaceshipConsole.frag';
 import speaker from './speaker.frag';
-import swirlyRainbowSoundVisualizer from './swirlyRainbowSoundVisualizer.frag';
 import symmetricalSoundVisualiser from './symmetricalSoundVisualiser.frag';
 import technoCore from './technoCore.frag';
-import tequillaRainbow from './tequillaRainbow.frag';
-import trippyVisualizer from './trippyVisualizer.frag';
+import uctumi from './uctumi.frag';
 import violentEyeSimulator314 from './violentEyeSimulator314.frag';
+import voyager from './voyager.frag';
 import wavesRemix from './wavesRemix.frag';
 import yearOfTruchets018 from './yearOfTruchets018.frag';
 
 const presets: AmpShaderVisualizer[] = [
+    {
+        id: 'Dtj3zW',
+        name: '3D Audio Visualizer #2 by kishimisu',
+        shader: _3dAudioVisualizer2,
+        spotifyExcluded: true,
+    },
+    {
+        id: 'XdlGzr',
+        name: 'Gameboy by iq',
+        shader: gameboy,
+        spotifyExcluded: true,
+        opaque: true,
+    },
+    {
+        id: 'lcc3zr',
+        name: 'lightning storm by orblivius',
+        shader: lightningStorm,
+    },
+    {
+        id: 'MfG3Ry',
+        name: 'Russian Roulette (Audio Viz) by orblivius',
+        shader: russianRoulette,
+    },
+    {
+        id: 'X3K3zG',
+        name: 'space with music by nnew',
+        shader: spaceWithMusic,
+    },
+    {
+        id: 'lfffzM',
+        name: 'Morph by DinoDaredevil',
+        shader: morph,
+    },
+    {
+        id: 'lXXyDM',
+        name: 'Dancing Jellyfish by DarkReaper231',
+        shader: dancingJellyfish,
+    },
+    {
+        id: 'DtsBWH',
+        name: 'Fork: Dancing Glow Lights by QuantumSuper',
+        shader: dancingGlowLights,
+    },
+    {
+        id: 'XcBcR3',
+        name: 'Fork Fractal 77 NikolaErce 454 by NikolaErceg',
+        shader: forkFractal77,
+    },
+    {
+        id: 'M33XDH',
+        name: 'Voyager [426 chars] by kishimisu',
+        shader: voyager,
+    },
+    {
+        id: 'XXXyRH',
+        name: 'Neon Pyramid Viz by orblivius',
+        shader: neonPyramid,
+    },
+    {
+        id: 'cs2GWD',
+        name: '20221105_inercia intended one by 0b5vr',
+        shader: _20221105_inercia,
+    },
+    {
+        id: 'mtKGRW',
+        name: 'Solum Object by QuantumSuper',
+        shader: solumObject,
+    },
+    {
+        id: 'XlX3Rj',
+        name: 'Circuits by Kali',
+        shader: circuits,
+    },
+    {
+        id: '3slfR4',
+        name: 'Uctumi - Seed of Eucalyptus by Kali',
+        shader: uctumi,
+    },
+    {
+        id: 'XctGzf',
+        name: 'Attempt at VDJ effects by mrange',
+        shader: attemptAtVdjEffects,
+    },
+    {
+        id: 'WdB3zz',
+        name: 'Gato Negro Pasa by Kali',
+        shader: gatoNegroPasa,
+    },
+    {
+        id: 'M32yDw',
+        name: 'EyeOfHajiSauron AudioVisualizer by ArthurTent',
+        shader: eyeOfHajiSauron,
+    },
     {
         id: '4ljGD1',
         name: 'Waves Remix by ADOB',
@@ -140,11 +239,6 @@ const presets: AmpShaderVisualizer[] = [
         shader: nautilus,
     },
     {
-        id: '4sXfzj',
-        name: 'Quasicrystal Visualizer by Ebanflo',
-        shader: quasicrystal,
-    },
-    {
         id: 'ttfGzH',
         name: '🎶 Rainbow soundviz 🎶 by avin',
         shader: rainbow,
@@ -153,11 +247,6 @@ const presets: AmpShaderVisualizer[] = [
         id: 'wd3XzS',
         name: 'Audio-Visualizer by CoolerZ',
         shader: audioVisualizer,
-    },
-    {
-        id: '4sVBWy',
-        name: 'Radiant by Hazel Quantock',
-        shader: radiant,
     },
     {
         id: 'ltc3WH',
@@ -230,11 +319,6 @@ const presets: AmpShaderVisualizer[] = [
         shader: barebones,
     },
     {
-        id: 'tlcGRH',
-        name: 'Inversions Kreis by ShadingAlpaca',
-        shader: inversionsKreis,
-    },
-    {
         id: 'cslSRr',
         name: 'Audio-reactive scene 1st attempt by kishimisu',
         shader: audioReactiveScene1,
@@ -245,39 +329,14 @@ const presets: AmpShaderVisualizer[] = [
         shader: clairDeLune,
     },
     {
-        id: 'dd2Xzm',
-        name: 'PHONK by Poisson',
-        shader: phonk,
-    },
-    {
-        id: 'fsKyzd',
-        name: 'purple sound visualizer by TonyIlersich',
-        shader: purpleSoundVisualizer,
-    },
-    {
         id: '4t2cR1',
         name: '♫ Sailing Beyond - Hyper Tunnel by patu',
         shader: sailingBeyond,
     },
     {
-        id: 'WdKyzd',
-        name: 'swirly rainbow sound visualizer by TonyIlersich',
-        shader: swirlyRainbowSoundVisualizer,
-    },
-    {
         id: 'Wll3Df',
         name: 'Simple rainbow by avin',
         shader: simpleRainbow,
-    },
-    {
-        id: 'ddy3DD',
-        name: '🎶 Tequilla Rainbow by wj',
-        shader: tequillaRainbow,
-    },
-    {
-        id: 'WtV3Dd',
-        name: 'Trippy Visualizer by MinimilisticBits',
-        shader: trippyVisualizer,
     },
     {
         id: 'Mst3Wl',
@@ -298,11 +357,6 @@ const presets: AmpShaderVisualizer[] = [
         id: '4ltcDj',
         name: 'skulls by nabr',
         shader: skulls,
-    },
-    {
-        id: 'WlSyWt',
-        name: 'PsyTrance by arminkz',
-        shader: psyTrance,
     },
     {
         id: 'ssXfD7',
@@ -328,11 +382,6 @@ const presets: AmpShaderVisualizer[] = [
         id: '3sfXRj',
         name: 'Issues - Don Toliver by IsaacAndersen',
         shader: issues,
-    },
-    {
-        id: '3t3yRl',
-        name: 'Shamosis - Dinopwaur by z0rg',
-        shader: shamosis,
     },
     {
         id: 'fd2GD1',
@@ -403,11 +452,6 @@ const presets: AmpShaderVisualizer[] = [
         id: 'llB3W1',
         name: 'Fractal Audio 01 by relampago2048',
         shader: fractalAudio01,
-    },
-    {
-        id: 'Ws2fWG',
-        name: 'Ocassional Spectators by Kali',
-        shader: ocassionalSpectators,
     },
     {
         id: '7tfyRl',
@@ -535,11 +579,6 @@ const presets: AmpShaderVisualizer[] = [
         shader: burnSoundWave,
     },
     {
-        id: 'MsdXzl',
-        name: 'Pinwheel by bwestlin',
-        shader: pinwheel,
-    },
-    {
         id: '4dXcWB',
         name: 'Mellow rainbow blob by bwestlin',
         shader: mellowRainbowBlob,
@@ -589,10 +628,9 @@ const presets: AmpShaderVisualizer[] = [
         name: 'Plasma Globe by nimitz',
         shader: plasmaGlobe,
     },
-].map(({id, name, shader}) => ({
+].map(({id, ...props}) => ({
+    ...props,
     providerId: 'ampshader',
-    name,
-    shader,
     externalUrl: `https://www.shadertoy.com/view/${id}`,
 }));
 

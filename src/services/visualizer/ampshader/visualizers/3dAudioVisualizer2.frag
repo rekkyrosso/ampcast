@@ -1,5 +1,4 @@
 // https://www.shadertoy.com/view/Dtj3zW
-/* NOT CURRENTLY USED (spotify) */
 /* @kishimisu - 2023
 
    An audio-reactive scene that maps the frequencies of the input music

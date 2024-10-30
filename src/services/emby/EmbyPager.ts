@@ -129,7 +129,7 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
             genres: artist.Genres || undefined,
             inLibrary: artist.UserData?.IsFavorite,
             thumbnails: this.createThumbnails(artist),
-            artist_mbid: artist.ProviderIds?.MusicBrainzArtist,
+            artist_mbid: artist.ProviderIds?.MusicBrainzArtist ?? undefined,
             pager: this.createArtistAlbumsPager(artist),
         };
     }
@@ -151,7 +151,7 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
             trackCount: album.ChildCount || undefined,
             artist: album.AlbumArtist || undefined,
             year: album.ProductionYear || undefined,
-            release_mbid: album.ProviderIds?.MusicBrainzAlbum,
+            release_mbid: album.ProviderIds?.MusicBrainzAlbum ?? undefined,
             pager: this.createAlbumTracksPager(album),
         };
     }
@@ -223,8 +223,8 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
             album: track.Album || undefined,
             disc: track.Album ? track.ParentIndexNumber || undefined : undefined,
             track: track.Album ? track.IndexNumber || 0 : 0,
-            track_mbid: track.ProviderIds?.MusicBrainzTrack,
-            release_mbid: track.ProviderIds?.MusicBrainzAlbum,
+            track_mbid: track.ProviderIds?.MusicBrainzTrack ?? undefined,
+            release_mbid: track.ProviderIds?.MusicBrainzAlbum ?? undefined,
             artist_mbids: artist_mbid ? [artist_mbid] : undefined,
             bitRate: Math.floor((source.Bitrate || 0) / 1000) || undefined,
             badge: isVideo

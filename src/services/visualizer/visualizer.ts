@@ -3,6 +3,7 @@ import {
     EMPTY,
     BehaviorSubject,
     Subject,
+    delay,
     distinctUntilChanged,
     filter,
     map,
@@ -11,8 +12,9 @@ import {
     switchMap,
     take,
     tap,
+    withLatestFrom,
 } from 'rxjs';
-import MediaServiceId from 'types/MediaServiceId';
+import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import Visualizer, {NoVisualizer} from 'types/Visualizer';
@@ -20,7 +22,7 @@ import VisualizerProviderId from 'types/VisualizerProviderId';
 import audio from 'services/audio';
 import playback, {observeCurrentItem} from 'services/mediaPlayback/playback';
 import youtubeApi from 'services/youtube/youtubeApi';
-import {browser, exists, filterNotEmpty, getRandomValue, isMiniPlayer, Logger} from 'utils';
+import {browser, exists, getRandomValue, isMiniPlayer, Logger} from 'utils';
 import {
     getVisualizer,
     getVisualizers,
@@ -28,7 +30,7 @@ import {
     observeVisualizersByProviderId,
 } from './visualizerProviders';
 import visualizerSettings, {observeVisualizerProvider} from './visualizerSettings';
-import visualizerStore from './visualizerStore';
+import visualizerStore, {VisualizerFavorite} from './visualizerStore';
 
 const logger = new Logger('visualizer');
 
@@ -52,28 +54,11 @@ const errorRecord: ErrorRecord = {
 export const noVisualizer: NoVisualizer = {
     providerId: 'none',
     name: '',
+    link: {providerId: 'none', name: ''},
 };
 
 const currentVisualizer$ = new BehaviorSubject<Visualizer>(noVisualizer);
 const nextVisualizerReason$ = new Subject<NextVisualizerReason>();
-
-const randomProviders: VisualizerProviderId[] = [
-    ...Array(74).fill('butterchurn'), // most of the time use this one
-    ...Array(10).fill('ampshader'),
-    ...Array(4).fill('audiomotion'),
-    ...Array(1).fill('coverart'),
-    ...Array(1).fill('waveform'),
-];
-
-const spotifyRandomProviders: VisualizerProviderId[] = [
-    ...Array(60).fill('ampshader'), // most of the time use this one
-    ...Array(9).fill('audiomotion'),
-    ...Array(6).fill('spotifyviz'),
-    ...Array(4).fill('butterchurn'),
-    ...Array(1).fill('coverart'),
-];
-
-const randomVideo: VisualizerProviderId[] = Array(10).fill('ambientvideo');
 
 export function observeCurrentVisualizer(): Observable<Visualizer> {
     return currentVisualizer$.pipe(
@@ -93,7 +78,42 @@ export function setCurrentVisualizer({
     name,
 }: Pick<Visualizer, 'providerId' | 'name'>): void {
     currentVisualizer$.next(
-        getVisualizer(providerId, name) || createNoVisualizer(providerId, 'not loaded')
+        getVisualizer(providerId, name) || createNoVisualizer('not loaded', providerId, name)
+    );
+}
+
+export function isProviderSupported(providerId: string, item: MediaItem): boolean {
+    const isDev = location.hostname === 'localhost' && !browser.isElectron;
+    const [serviceId] = item.src.split(':');
+    const ambientVideoSupported = !/^(spotify)$/.test(serviceId) || isDev;
+
+    switch (providerId) {
+        case 'spotifyviz':
+            return serviceId === 'spotify';
+
+        case 'ambientvideo':
+            return ambientVideoSupported;
+
+        default:
+            // For Safari.
+            // If the Web Audio API is not supported for streaming media then we can't use a visualizer.
+            return (
+                audio.streamingSupported ||
+                (item.playbackType !== PlaybackType.DASH && item.playbackType !== PlaybackType.HLS)
+            );
+    }
+}
+
+export function isVisualizerLoaded({providerId, name}: Visualizer | VisualizerFavorite): boolean {
+    return !!getVisualizer(providerId, name);
+}
+
+export function isVisualizerSupported(
+    visualizer: Visualizer | VisualizerFavorite,
+    item: MediaItem
+): boolean {
+    return (
+        isProviderSupported(visualizer.providerId, item) && !isVisualizerExcluded(visualizer, item)
     );
 }
 
@@ -127,52 +147,19 @@ function getNextVisualizer(reason: NextVisualizerReason): Visualizer {
         return noVisualizer;
     }
 
-    const isDev = location.hostname === 'localhost' && !browser.isElectron;
-    const [serviceId]: [MediaServiceId] = item.src.split(':') as [MediaServiceId];
-    const ambientVideoSupported = !/^(spotify)$/.test(serviceId) || isDev;
-    const isError = reason === 'error';
+    const [serviceId] = item.src.split(':');
     const isSpotify = serviceId === 'spotify';
+    const isError = reason === 'error';
 
-    const isProviderSupported = (providerId: VisualizerProviderId): boolean => {
-        switch (providerId) {
-            case 'spotifyviz':
-                return isSpotify;
-
-            case 'ambientvideo':
-                return ambientVideoSupported;
-
-            default:
-                // For Safari.
-                // If the Web Audio API is not supported for streaming media then we can't use a visualizer.
-                return (
-                    audio.streamingSupported ||
-                    (item.playbackType !== PlaybackType.DASH &&
-                        item.playbackType !== PlaybackType.HLS)
-                );
-        }
-    };
-
-    // Keep track of *consecutive* errors.
-    if (isError) {
-        if (errorRecord.providerId === currentVisualizer.providerId) {
-            errorRecord.count++;
-        } else {
-            errorRecord.providerId = currentVisualizer.providerId;
-            errorRecord.count = 1;
-        }
-    } else {
-        errorRecord.providerId = currentVisualizer.providerId;
-        errorRecord.count = 0;
-    }
-
-    if (settings.lockedVisualizer) {
-        const {providerId, name} = settings.lockedVisualizer;
+    const lockedVisualizer = settings.lockedVisualizer;
+    if (lockedVisualizer) {
+        const {providerId, name} = lockedVisualizer;
         if (isError) {
-            return createNoVisualizer(providerId, 'error');
-        } else if (isProviderSupported(providerId)) {
+            return createNoVisualizer('error', providerId, name);
+        } else if (isVisualizerSupported(lockedVisualizer, item)) {
             return getOrCreateVisualizer(providerId, name);
         } else {
-            return createNoVisualizer(providerId, 'not supported');
+            return createNoVisualizer('not supported', providerId, name);
         }
     }
 
@@ -187,29 +174,39 @@ function getNextVisualizer(reason: NextVisualizerReason): Visualizer {
             if (favorites.length === 0) {
                 return noVisualizer;
             }
-            const supportedFavorites = favorites.filter(({providerId}) =>
-                isProviderSupported(providerId)
+            const currentFavorite = favorites.find(
+                (favorite) =>
+                    favorite.providerId === currentVisualizer.providerId &&
+                    favorite.name === currentVisualizer.name
+            );
+            const supportedFavorites = favorites.filter((favorite) =>
+                isVisualizerSupported(favorite, item)
             );
             if (supportedFavorites.length === 0) {
-                const unsupported = getRandomValue(favorites);
-                return createNoVisualizer(unsupported.providerId, 'not supported');
-            } else {
-                const {providerId, name} = getRandomValue(
-                    filterNotEmpty(
-                        supportedFavorites,
-                        (favorite) =>
-                            favorite.providerId !== currentVisualizer.providerId ||
-                            favorite.name !== currentVisualizer.name
-                    )
+                return createNoVisualizerFromList(
+                    'not supported',
+                    reason,
+                    favorites,
+                    currentFavorite
                 );
-                return getOrCreateVisualizer(providerId, name);
             }
+            const loadedFavorites = favorites.filter((favorite) => isVisualizerLoaded(favorite));
+            if (loadedFavorites.length === 0) {
+                return createNoVisualizerFromList(
+                    'not loaded',
+                    reason,
+                    supportedFavorites,
+                    currentFavorite
+                );
+            }
+            const {providerId, name} = pickNextVisualizer(reason, loadedFavorites, currentFavorite);
+            return getOrCreateVisualizer(providerId, name);
         }
 
         case 'random': {
-            let providerIds = isSpotify ? spotifyRandomProviders : randomProviders;
-            if (ambientVideoSupported && settings.ambientVideoEnabled) {
-                providerIds = providerIds.concat(randomVideo);
+            const providerIds = getRandomProviderIds(isSpotify);
+            if (providerIds.length === 0) {
+                return noVisualizer;
             }
             providerId = getRandomValue(
                 providerIds,
@@ -229,17 +226,55 @@ function getNextVisualizer(reason: NextVisualizerReason): Visualizer {
             providerId = settings.provider;
     }
 
-    if (!isProviderSupported(providerId)) {
-        return createNoVisualizer(providerId, 'not supported');
-    }
-
     const visualizers = getVisualizers(providerId);
-
     if (visualizers.length === 0) {
-        return createNoVisualizer(providerId, 'not loaded');
+        return createNoVisualizer('not loaded', providerId);
     }
+    const supportedVisualizers = visualizers.filter((visualizer) =>
+        isVisualizerSupported(visualizer, item)
+    );
+    if (supportedVisualizers.length === 0) {
+        return createNoVisualizerFromList('not supported', reason, visualizers, currentVisualizer);
+    }
+    return pickNextVisualizer(reason, supportedVisualizers, currentVisualizer) || noVisualizer;
+}
 
-    return getRandomValue(visualizers, currentVisualizer) || noVisualizer;
+function pickNextVisualizer<T extends Visualizer | VisualizerFavorite>(
+    reason: NextVisualizerReason,
+    visualizers: readonly T[],
+    currentVisualizer: T | undefined
+): T {
+    if (visualizers.length === 1) {
+        return visualizers[0];
+    }
+    if (reason === 'next-clicked' && visualizerSettings.provider !== 'random') {
+        const index = visualizers.findIndex((visualizer) => visualizer === currentVisualizer);
+        if (index === visualizers.length - 1) {
+            return visualizers[0];
+        } else {
+            return visualizers[index + 1];
+        }
+    } else {
+        return getRandomValue(visualizers, currentVisualizer);
+    }
+}
+
+function createNoVisualizer(
+    reason: NoVisualizer['name'],
+    providerId: VisualizerProviderId,
+    name?: string
+): NoVisualizer {
+    return {providerId: 'none', name: reason, link: {providerId, name}};
+}
+
+function createNoVisualizerFromList<T extends Visualizer | VisualizerFavorite>(
+    noVisualizerReason: NoVisualizer['name'],
+    nextReason: NextVisualizerReason,
+    visualizers: readonly T[],
+    currentVisualizer: T | undefined
+): NoVisualizer {
+    const {providerId, name} = pickNextVisualizer(nextReason, visualizers, currentVisualizer);
+    return createNoVisualizer(noVisualizerReason, providerId, name);
 }
 
 function getOrCreateVisualizer(providerId: VisualizerProviderId, name: string): Visualizer {
@@ -248,17 +283,26 @@ function getOrCreateVisualizer(providerId: VisualizerProviderId, name: string): 
         if (providerId === 'ambientvideo' && youtubeApi.isVideoId(name)) {
             visualizer = youtubeApi.createAmbientVideo(name);
         } else {
-            visualizer = createNoVisualizer(providerId, 'not loaded');
+            visualizer = createNoVisualizer('not loaded', providerId, name);
         }
     }
     return visualizer;
 }
 
-function createNoVisualizer(
-    providerId: VisualizerProviderId,
-    reason: NoVisualizer['reason']
-): NoVisualizer {
-    return {providerId: 'none', name: providerId, reason};
+function getRandomProviderIds(isSpotify: boolean): readonly VisualizerProviderId[] {
+    const randomness = isSpotify
+        ? visualizerSettings.spotifyRandomness
+        : visualizerSettings.randomness;
+    const providerIds = Object.keys(randomness) as VisualizerProviderId[];
+    return providerIds.map((id) => Array(randomness[id]).fill(id)).flat();
+}
+
+function isVisualizerExcluded(
+    visualizer: Visualizer | VisualizerFavorite,
+    item: MediaItem
+): boolean {
+    const [serviceId] = item.src.split(':');
+    return serviceId === 'spotify' && !!visualizer.spotifyExcluded;
 }
 
 observeCurrentItem()
@@ -284,8 +328,8 @@ observeVisualizerProvider()
             provider === 'random' || provider === 'favorites'
                 ? observeCurrentVisualizer().pipe(
                       switchMap((visualizer) =>
-                          visualizer.providerId === 'none' && visualizer.reason === 'not loaded'
-                              ? observeVisualizersByProviderId(visualizer.name).pipe(
+                          visualizer.providerId === 'none' && visualizer.name === 'not loaded'
+                              ? observeVisualizersByProviderId(visualizer.link.providerId).pipe(
                                     skipWhile((visualizers) => visualizers.length === 0),
                                     take(1)
                                 )
@@ -294,19 +338,35 @@ observeVisualizerProvider()
                   )
                 : observeVisualizersByProviderId(provider).pipe(skip(1))
         ),
+        distinctUntilChanged(),
         tap(() => nextVisualizer('new-visualizers'))
     )
     .subscribe(logger);
 
 observeNextVisualizerReason()
     .pipe(
-        map((reason) => getNextVisualizer(reason)),
+        delay(16), // Allow interstitial static to appear
+        withLatestFrom(observeCurrentVisualizer()),
+        tap(([reason, {providerId}]) => {
+            if (reason === 'error') {
+                if (errorRecord.providerId === providerId) {
+                    errorRecord.count++;
+                } else {
+                    errorRecord.providerId = providerId;
+                    errorRecord.count = 1;
+                }
+            } else {
+                errorRecord.providerId = providerId;
+                errorRecord.count = 0;
+            }
+        }),
+        map(([reason]) => getNextVisualizer(reason)),
         map((visualizer) => {
             // Prevent further errors.
             if (errorRecord.providerId === visualizer.providerId && errorRecord.count >= 3) {
                 errorRecord.providerId = 'none';
                 errorRecord.count = 0;
-                return createNoVisualizer(visualizer.providerId, 'error');
+                return createNoVisualizer('error', visualizer.providerId, visualizer.name);
             }
             return visualizer;
         }),
