@@ -4,6 +4,7 @@ import PlaybackType from 'types/PlaybackType';
 import Player from 'types/Player';
 import PlaylistItem from 'types/PlaylistItem';
 import audio from 'services/audio';
+import {getServiceFromSrc} from 'services/mediaServices';
 import preferences from 'services/preferences';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
 import HLSPlayer from './players/HLSPlayer';
@@ -25,7 +26,7 @@ function loadPlayer(player: Player<PlayableItem>, item: PlaylistItem | null): vo
 function getPlayableItem(item: PlaylistItem | null): PlayableItem {
     if (!item) {
         throw Error('No source');
-    } else if (item.unplayable || (preferences.disableExplicitContent && item.explicit)) {
+    } else if (!isPlayable(item)) {
         throw Error('Unplayable');
     } else if (item.blobUrl) {
         return {...item, src: item.blobUrl};
@@ -34,6 +35,15 @@ function getPlayableItem(item: PlaylistItem | null): PlayableItem {
     } else {
         return item;
     }
+}
+
+function isPlayable(item: PlaylistItem): boolean {
+    const service = getServiceFromSrc(item);
+    return !(
+        service?.disabled ||
+        item.unplayable ||
+        (preferences.disableExplicitContent && item.explicit)
+    );
 }
 
 const mediaPlayer = new OmniPlayer<PlaylistItem | null, PlayableItem>(

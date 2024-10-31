@@ -1,12 +1,12 @@
 import {useEffect} from 'react';
 import {combineLatest, mergeMap, switchMap, tap} from 'rxjs';
-import {observeEnabledServices} from 'services/mediaServices';
+import {observeMediaServices} from 'services/mediaServices';
 import {observeIsOnLine} from 'services/online';
 
 export default function useConnectivity(): void {
     useEffect(() => {
         const isOnLine$ = observeIsOnLine();
-        const subscription = observeEnabledServices()
+        const subscription = observeMediaServices()
             .pipe(
                 switchMap((services) => services),
                 mergeMap((service) =>

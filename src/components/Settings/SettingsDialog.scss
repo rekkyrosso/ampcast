@@ -17,6 +17,10 @@
         flex: initial;
         width: 11em;
         min-width: 11em;
+
+        .icon-settings {
+            fill: var(--grey2-color);
+        }
     }
 
     &-source {
@@ -34,6 +38,14 @@
             margin-top: 1em;
             font-style: italic;
         }
+    }
+
+    .checkbox-list {
+        max-height: 18em;
+    }
+
+    .scrobbling-settings .checkbox-list {
+        max-height: 16em;        
     }
 
     .icon-globe {

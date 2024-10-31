@@ -40,7 +40,7 @@ export default function ScrobblingSettings({service: scrobbler}: ScrobblingSetti
         <form className="scrobbling-settings" method="dialog" onSubmit={handleSubmit}>
             <fieldset ref={scrobbleRef}>
                 <legend>Scrobble</legend>
-                <ul>
+                <ul className="checkbox-list">
                     {services.map((service) => (
                         <li key={service.id}>
                             <input

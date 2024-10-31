@@ -9,7 +9,7 @@ import lastfm from 'services/lastfm';
 import listenbrainz from 'services/listenbrainz';
 import navidrome from 'services/navidrome';
 import plex from 'services/plex';
-import plexTidal from 'services/plex/tidal';
+import plexTidal from 'services/plex/tidal-disabled';
 import spotify from 'services/spotify';
 import subsonic from 'services/subsonic';
 import tidal from 'services/tidal';

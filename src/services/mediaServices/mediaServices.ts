@@ -102,7 +102,7 @@ export function getPersonalMediaServices(): readonly PersonalMediaService[] {
 }
 
 export function getPlayableServices(): readonly MediaService[] {
-    return getServices().filter((service) => !isDataService(service));
+    return getServices().filter((service) => !isDataService(service) && !service.disabled);
 }
 
 export function getPublicMediaServices(): readonly PublicMediaService[] {
