@@ -1,8 +1,10 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
+import {LiteStorage, Logger} from 'utils';
 import ampcastElectron from 'services/ampcastElectron';
 import {lf_api_key, lf_api_secret} from 'services/credentials';
-import {LiteStorage} from 'utils';
+
+const logger = new Logger('lastfmSettings');
 
 export interface LastFmCredentials {
     readonly apiKey: string;
@@ -111,6 +113,6 @@ const lastfmSettings = {
 
 lastfmSettings
     .getSecret()
-    .then((secret) => credentials$.next({apiKey: lastfmSettings.apiKey, secret}), console.error);
+    .then((secret) => credentials$.next({apiKey: lastfmSettings.apiKey, secret}), logger.error);
 
 export default lastfmSettings;

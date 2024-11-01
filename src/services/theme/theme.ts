@@ -28,6 +28,32 @@ export type ThemeColorName =
     | 'selectedTextColor'
     | 'textColor';
 
+type ThemeSchema = Partial<Record<keyof Theme, 'string' | 'number' | 'boolean'>>;
+
+const requiredProperties: ThemeSchema = {
+    name: 'string',
+    frameColor: 'string',
+    frameTextColor: 'string',
+    backgroundColor: 'string',
+    textColor: 'string',
+    selectedBackgroundColor: 'string',
+    selectedTextColor: 'string',
+};
+
+const optionalProperties: ThemeSchema = {
+    fontName: 'string',
+    mediaButtonColor: 'string',
+    mediaButtonTextColor: 'string',
+    buttonColor: 'string',
+    buttonTextColor: 'string',
+    scrollbarColor: 'string',
+    scrollbarTextColor: 'string',
+    scrollbarThickness: 'number',
+    spacing: 'number',
+    roundness: 'number',
+    flat: 'boolean',
+};
+
 class MainTheme implements CurrentTheme {
     readonly defaultFontSize = 17.2;
     private readonly storage = new LiteStorage('theme');
@@ -452,37 +478,33 @@ class MainTheme implements CurrentTheme {
         if (!data || typeof data !== 'object' || 'length' in data) {
             return false;
         }
-        type ThemeSchema = Partial<Record<keyof Theme, 'string' | 'number' | 'boolean'>>;
-        const required: ThemeSchema = {
-            name: 'string',
-            frameColor: 'string',
-            frameTextColor: 'string',
-            backgroundColor: 'string',
-            textColor: 'string',
-            selectedBackgroundColor: 'string',
-            selectedTextColor: 'string',
-        };
-        const optional: ThemeSchema = {
-            fontName: 'string',
-            mediaButtonColor: 'string',
-            mediaButtonTextColor: 'string',
-            buttonColor: 'string',
-            buttonTextColor: 'string',
-            scrollbarColor: 'string',
-            scrollbarTextColor: 'string',
-            scrollbarThickness: 'number',
-            spacing: 'number',
-            roundness: 'number',
-            flat: 'boolean',
-        };
         return (
-            Object.keys(required).every(
-                (key) => key in data && typeof data[key] === required[key as keyof Theme]
+            Object.keys(requiredProperties).every(
+                (key) => key in data && typeof data[key] === requiredProperties[key as keyof Theme]
             ) &&
             Object.keys(data).every(
-                (key) => key in required || typeof data[key] === optional[key as keyof Theme]
+                (key) =>
+                    key in requiredProperties ||
+                    typeof data[key] === optionalProperties[key as keyof Theme]
             )
         );
+    }
+
+    toJSON(prettify?: boolean): string {
+        return this.stringify(this, prettify);
+    }
+
+    stringify(theme: Theme, prettify?: boolean): string {
+        const data = Object.keys(requiredProperties).reduce((data, key) => {
+            data[key] = theme[key as keyof Theme];
+            return data;
+        }, {} as any);
+        Object.keys(optionalProperties).forEach((key) => {
+            if (this[key as keyof Theme] !== defaultTheme[key as keyof Theme]) {
+                data[key] = theme[key as keyof Theme];
+            }
+        });
+        return JSON.stringify(data, undefined, prettify ? 4 : undefined);
     }
 
     private toggleClasses(root: HTMLElement): void {

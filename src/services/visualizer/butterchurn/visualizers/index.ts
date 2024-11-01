@@ -1,6 +1,9 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import {ButterchurnVisualizer} from 'types/Visualizer';
+import {Logger} from 'utils';
+
+const logger = new Logger('butterchurnVisualizers');
 
 const visualizers$ = new BehaviorSubject<readonly ButterchurnVisualizer[]>([]);
 
@@ -46,7 +49,7 @@ async function loadBasePresets(): Promise<Record<string, MilkdropRawData>> {
         );
         return presets;
     } catch (err) {
-        console.error(err);
+        logger.error(err);
         return {};
     }
 }
@@ -60,7 +63,7 @@ async function loadExtraPresets(): Promise<Record<string, MilkdropRawData>> {
         );
         return presets;
     } catch (err) {
-        console.error(err);
+        logger.error(err);
         return {};
     }
 }
@@ -74,7 +77,7 @@ async function loadImagePresets(): Promise<Record<string, MilkdropRawData>> {
         );
         return presets;
     } catch (err) {
-        console.error(err);
+        logger.error(err);
         return {};
     }
 }

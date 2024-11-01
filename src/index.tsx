@@ -2,9 +2,12 @@ import {Logger} from 'utils';
 import React, {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import {ErrorBoundary} from 'react-error-boundary';
+import {createErrorReport} from 'services/reporting';
 import 'styles/index.scss';
 import App from 'components/App';
-import BSOD from 'components/BSOD';
+import BSOD from 'components/ErrorScreen/BSOD';
+
+Logger.createErrorReport = createErrorReport;
 
 const uncaught = new Logger('uncaught');
 

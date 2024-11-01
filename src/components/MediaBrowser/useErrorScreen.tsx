@@ -14,12 +14,14 @@ export default function useErrorScreen<T extends MediaObject>(
 ) {
     return useMemo(() => {
         return function MediaBrowserError({error}: FallbackProps) {
+            const reportingId = sources?.length === 1 ? sources[0]?.id : service?.id;
+
             return error instanceof FullScreenError ? (
                 <>
-                    <PageHeader icon={service.icon}>
-                        {sources.length === 1
-                            ? `${service.name}: ${sources[0].title}`
-                            : service.name}
+                    <PageHeader icon={service?.icon}>
+                        {sources?.length === 1
+                            ? `${service?.name}: ${sources[0]?.title}`
+                            : service?.name}
                     </PageHeader>
                     <EmptyScreen>
                         <div className="note">
@@ -28,7 +30,7 @@ export default function useErrorScreen<T extends MediaObject>(
                     </EmptyScreen>
                 </>
             ) : (
-                <ErrorScreen error={error}>
+                <ErrorScreen error={error} reportingId={reportingId}>
                     {service && (
                         <p className="buttons">
                             <button className="disconnect" onClick={service.logout}>

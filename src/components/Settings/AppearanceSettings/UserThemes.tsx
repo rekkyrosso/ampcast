@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Theme from 'types/Theme';
+import theme from 'services/theme';
 import themeStore from 'services/theme/themeStore';
 import {prompt} from 'components/Dialog';
 import ListBox from 'components/ListView/ListBox';
@@ -54,11 +55,9 @@ export default function UserThemes() {
     const handleExportClick = useCallback(async () => {
         if (selectedTheme) {
             const name = selectedTheme.name;
-            const theme = themeStore.getUserTheme(name);
-            if (theme) {
-                // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                const {userTheme, ...data} = theme;
-                saveTextToFile(`${name}.json`, JSON.stringify(data, undefined, 4));
+            const userTheme = themeStore.getUserTheme(name);
+            if (userTheme) {
+                saveTextToFile(`${name}.json`, theme.stringify(userTheme, true));
             }
         }
     }, [selectedTheme]);

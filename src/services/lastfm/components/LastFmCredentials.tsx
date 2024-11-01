@@ -1,4 +1,5 @@
 import React, {useCallback, useId, useRef} from 'react';
+import {Logger} from 'utils';
 import {error} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import Credentials from 'components/Settings/MediaLibrarySettings/Credentials';
@@ -6,6 +7,8 @@ import {MediaServiceCredentialsProps} from 'components/Settings/MediaLibrarySett
 import ExternalLink from 'components/ExternalLink';
 import lastfmSettings from '../lastfmSettings';
 import useCredentials from './useCredentials';
+
+const logger = new Logger('LastFmCredentials');
 
 export default function LastFmCredentials({service: lastfm}: MediaServiceCredentialsProps) {
     const id = useId();
@@ -23,7 +26,7 @@ export default function LastFmCredentials({service: lastfm}: MediaServiceCredent
                 try {
                     await lastfmSettings.setSecret(secret);
                 } catch (err: any) {
-                    console.error(err);
+                    logger.error(err);
                     await error('Failed to store secret.');
                 }
             }

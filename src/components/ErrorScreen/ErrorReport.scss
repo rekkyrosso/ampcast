@@ -1,0 +1,12 @@
+.error-report {
+    font-size: max(0.75em, 1rem);
+
+    pre {
+        white-space: pre-wrap;
+
+        & + p {
+            text-align: right;
+            margin-top: 1em;
+        }
+    }
+}

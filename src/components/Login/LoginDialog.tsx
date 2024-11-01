@@ -1,8 +1,11 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import MediaService from 'types/MediaService';
+import {Logger} from 'utils';
 import Dialog, {DialogProps} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import './LoginDialog.scss';
+
+const logger = new Logger('LoginDialog');
 
 export interface LoginDialogProps extends DialogProps {
     service: MediaService;
@@ -45,7 +48,7 @@ export default function LoginDialog({
 
             dialogRef.current!.close(credentials);
         } catch (err: any) {
-            console.error(err);
+            logger.error(err);
             setConnecting(false);
             if (err instanceof TypeError) {
                 setMessage('Host not available');

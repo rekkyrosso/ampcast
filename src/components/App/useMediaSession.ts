@@ -1,11 +1,14 @@
 import {useEffect} from 'react';
 import PlaybackState from 'types/PlaybackState';
+import {Logger} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import {pause, play, seek, stop, prev, next} from 'services/mediaPlayback';
 import {observePlaybackState} from 'services/mediaPlayback/playback';
 import miniPlayer from 'services/mediaPlayback/miniPlayer';
 import {getThumbnailUrl} from 'components/CoverArt';
 import useObservable from 'hooks/useObservable';
+
+const logger = new Logger('useMediaSession');
 
 // This doesn't really work for Spotify and YouTube because they play in an iframe.
 
@@ -32,7 +35,7 @@ function updateSession({
     } else {
         mediaSession.playbackState = paused ? (position ? 'paused' : 'none') : 'playing';
         if (position > duration) {
-            console.warn(`MediaSession: position(${position}) > duration(${duration})`);
+            logger.warn(`position(${position}) > duration(${duration})`);
         } else {
             mediaSession.setPositionState({duration, position, playbackRate: 1});
         }

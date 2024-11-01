@@ -1,7 +1,9 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
-import {isFullscreenMedia} from 'utils';
+import {isFullscreenMedia, Logger} from 'utils';
 import {DialogProps} from './Dialog';
+
+const logger = new Logger('showDialog');
 
 export default async function showDialog(
     Dialog: React.FC<DialogProps>,
@@ -28,7 +30,7 @@ export default async function showDialog(
                 />
             );
         } catch (err) {
-            console.error(err);
+            logger.error(err);
             unmount();
             reject(err);
         }

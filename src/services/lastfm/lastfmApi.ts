@@ -27,7 +27,10 @@ export class LastFmApi {
 
     async scrobble(items: Listen[]): Promise<void> {
         if (items.length > 0) {
-            logger.log('scrobble', {items});
+            logger.log(
+                'scrobble',
+                items.map((item) => item.src)
+            );
             const method = 'track.scrobble';
             if (items.length === 1) {
                 const item = items[0];
@@ -52,16 +55,16 @@ export class LastFmApi {
     }
 
     async updateNowPlaying(item: MediaItem): Promise<void> {
-        logger.log('updateNowPlaying', {item});
         try {
             if (this.canScrobble(item)) {
+                logger.log('updateNowPlaying', item.src);
                 await this.post({
                     method: 'track.updateNowPlaying',
                     ...this.getScrobbleParams(item),
                 });
             }
         } catch (err) {
-            logger.log('Failed to update "now playing":', {item});
+            logger.log('Failed to update "now playing":', item?.src);
             logger.error(err);
         }
     }

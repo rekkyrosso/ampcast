@@ -28,10 +28,7 @@ export default function CurrentlyPlaying({item, hidden, onPaletteChange}: Curren
     const handleThumbnailLoad = useCallback((src: string) => {
         const colorThief = new ColorThief();
         const img = new Image();
-        const onerror = (err: any) => {
-            console.warn('Could not load image.', {err});
-            setPalette(defaultPalette);
-        };
+        const onerror = () => setPalette(defaultPalette);
         const onload = (img: HTMLImageElement) => {
             try {
                 const toRGB = (color: RGBColor) => `rgb(${color.map(Number)})`;
@@ -46,8 +43,8 @@ export default function CurrentlyPlaying({item, hidden, onPaletteChange}: Curren
                         size: 'large',
                     })?.toHexString() || (isDark ? '#ffffff' : '#000000');
                 setPalette(uniq([backgroundColor, textColor, ...palette]));
-            } catch (err) {
-                onerror(err);
+            } catch {
+                onerror();
             }
         };
         img.crossOrigin = 'anonymous';

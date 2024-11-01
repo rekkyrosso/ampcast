@@ -46,7 +46,7 @@ async function reportState(
 ): Promise<void> {
     const playQueueItemID = session.getString('queueId');
     if (!playQueueItemID) {
-        logger.warn('reportState: `playQueueItemID` not defined', {state});
+        logger.warn('reportState: `playQueueItemID` not defined', `state=${state}`);
     }
     const [serviceId, , ratingKey] = item.src.split(':');
     const isTidal = serviceId === 'plex-tidal';

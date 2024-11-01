@@ -1,5 +1,8 @@
 import React, {useCallback, useId, useRef} from 'react';
 import type {FallbackProps} from 'react-error-boundary';
+import ampcastElectron from 'services/ampcastElectron';
+import {getServices} from 'services/mediaServices';
+import ErrorReport from './ErrorReport';
 import './BSOD.scss';
 
 export default function BSOD({error}: FallbackProps) {
@@ -11,6 +14,14 @@ export default function BSOD({error}: FallbackProps) {
         switch (ref.current?.['bsod-decision'].value) {
             case 'clear-playlist':
                 indexedDB.deleteDatabase('ampcast/playlist');
+                break;
+
+            case 'logout':
+                try {
+                    await Promise.all(getServices().map((service) => service.logout()));
+                } catch (err) {
+                    console.error(err);
+                }
                 break;
 
             case 'factory-reset':
@@ -36,7 +47,7 @@ export default function BSOD({error}: FallbackProps) {
         <div className="bsod">
             <form onSubmit={handleSubmit} ref={ref}>
                 <h2>ampcast fatal error</h2>
-                <pre className="note error">{error?.message || String(error)}</pre>
+                <ErrorReport error={error} reportedBy="BSOD" />
                 <fieldset>
                     <legend>Recovery</legend>
                     <ul>
@@ -63,6 +74,15 @@ export default function BSOD({error}: FallbackProps) {
                             <input
                                 type="radio"
                                 name="bsod-decision"
+                                id={`${id}-logout`}
+                                value="logout"
+                            />
+                            <label htmlFor={`${id}-logout`}>Logout of all services</label>
+                        </li>
+                        <li>
+                            <input
+                                type="radio"
+                                name="bsod-decision"
                                 id={`${id}-factory-reset`}
                                 value="factory-reset"
                             />
@@ -72,6 +92,11 @@ export default function BSOD({error}: FallbackProps) {
                 </fieldset>
                 <footer className="bsod-buttons">
                     <button>Reload</button>
+                    {ampcastElectron ? (
+                        <button type="button" onClick={() => ampcastElectron!.quit()}>
+                            Exit
+                        </button>
+                    ) : null}
                 </footer>
             </form>
         </div>

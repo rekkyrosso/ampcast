@@ -113,7 +113,7 @@ dialog {
             margin: 0.5em 0;
         }
 
-        legend + p {
+        legend + p:not(:last-child) {
             margin-top: 0;
         }
     }

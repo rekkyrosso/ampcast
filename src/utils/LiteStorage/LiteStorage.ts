@@ -1,6 +1,9 @@
 import type {Observable} from 'rxjs';
 import {filter, fromEvent, map, merge, Subject} from 'rxjs';
+import Logger from '../Logger';
 import memoryStorage from './memoryStorage';
+
+const logger = new Logger('LiteStorage');
 
 export default class LiteStorage {
     private static readonly ids: string[] = [];
@@ -63,9 +66,10 @@ export default class LiteStorage {
         try {
             return json ? JSON.parse(json) : defaultValue;
         } catch (err) {
-            console.error(err);
+            logger.info('JSON.parse:', key);
+            logger.error(err);
+            return defaultValue;
         }
-        return defaultValue;
     }
 
     setJson<T>(key: string, value: T): void {
@@ -76,7 +80,8 @@ export default class LiteStorage {
                 this.setItem(key, JSON.stringify(value));
             }
         } catch (err) {
-            console.error(err);
+            logger.info('JSON.stringify:', key);
+            logger.error(err);
         }
     }
 

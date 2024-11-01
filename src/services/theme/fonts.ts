@@ -1,5 +1,7 @@
 import {Writable} from 'type-fest';
-import {loadStyleSheet} from 'utils';
+import {loadStyleSheet, Logger} from 'utils';
+
+const logger = new Logger('fonts');
 
 export interface Font {
     readonly name: string;
@@ -43,9 +45,9 @@ export async function loadFont(font: Writable<Font>): Promise<void> {
         try {
             await loadStyleSheet(font.url);
         } catch (err) {
-            console.warn('Failed to load font:', font.name);
-            console.error(err);
             font.loaded = false;
+            logger.info('Load font:', font.name);
+            logger.error(err);
         }
     }
 }

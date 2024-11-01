@@ -1,10 +1,13 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
+import {Logger} from 'utils';
 import Dialog, {showDialog, DialogProps} from 'components/Dialog';
 import ExternalLink from 'components/ExternalLink';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import listenbrainzSettings from '../listenbrainzSettings';
 import listenbrainz from '../listenbrainz';
 import './ListenBrainzLoginDialog.scss';
+
+const logger = new Logger('ListenBrainzLoginDialog');
 
 export async function showListenBrainzLoginDialog(): Promise<string> {
     return showDialog(ListenBrainzLoginDialog, true);
@@ -54,7 +57,7 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
 
             dialogRef.current!.close(JSON.stringify({userId, token}));
         } catch (err: any) {
-            console.error(err);
+            logger.error(err);
             setMessage(err.message || err.statusText || 'Error');
         }
         setConnecting(false);

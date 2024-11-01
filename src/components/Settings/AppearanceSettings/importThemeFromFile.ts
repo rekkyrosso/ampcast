@@ -1,8 +1,11 @@
 import Theme from 'types/Theme';
+import {Logger} from 'utils';
 import theme from 'services/theme';
 import themeStore from 'services/theme/themeStore';
 import {error, prompt} from 'components/Dialog';
 import confirmOverwriteTheme from './confirmOverwriteTheme';
+
+const logger = new Logger('importThemeFromFile');
 
 export default async function importThemeFromFile(file: File): Promise<void> {
     try {
@@ -29,7 +32,7 @@ export default async function importThemeFromFile(file: File): Promise<void> {
             }
         }
     } catch (err) {
-        console.error(err);
+        logger.error(err);
         await error('Could not load theme.');
     }
 }

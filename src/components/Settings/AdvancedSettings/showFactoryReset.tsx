@@ -1,6 +1,6 @@
 import React from 'react';
 import ampcastElectron from 'services/ampcastElectron';
-import {getEnabledServices} from 'services/mediaServices';
+import {getServices} from 'services/mediaServices';
 import {confirm} from 'components/Dialog';
 import {exists} from 'utils';
 
@@ -20,11 +20,7 @@ export default async function showFactoryReset(): Promise<void> {
 
     if (confirmed) {
         try {
-            await Promise.all(
-                getEnabledServices()
-                    .filter((service) => service.isConnected())
-                    .map((service) => service.logout())
-            );
+            await Promise.all(getServices().map((service) => service.logout()));
         } catch (err) {
             console.error(err);
         }

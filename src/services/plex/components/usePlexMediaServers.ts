@@ -2,10 +2,13 @@ import {useEffect, useState} from 'react';
 import {from} from 'rxjs';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
+import {Logger} from 'utils';
 import useObservable from 'hooks/useObservable';
 import plexApi from '../plexApi';
 import {getConnection} from '../plexAuth';
 import plexSettings from '../plexSettings';
+
+const logger = new Logger('usePlexMediaServers');
 
 export interface PlexMediaServer {
     id: string; // `server.clientIdentifier`
@@ -53,7 +56,7 @@ async function getPlexMediaServer(device: plex.Device): Promise<PlexMediaServer>
             try {
                 libraries = await plexApi.getMusicLibraries(connection.uri, device.accessToken);
             } catch (err) {
-                console.error(err);
+                logger.error(err);
             }
         }
         return {id, device, connection, libraries};

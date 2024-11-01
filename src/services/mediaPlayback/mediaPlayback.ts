@@ -87,7 +87,7 @@ export function eject(): void {
 }
 
 export function load(item: PlaylistItem | null): void {
-    logger.log('load', {item});
+    logger.log('load', item?.src);
     if (miniPlayer.active) {
         miniPlayer.load(item);
     } else {
@@ -101,7 +101,7 @@ export function load(item: PlaylistItem | null): void {
 }
 
 export function loadAndPlay(item: PlaylistItem): void {
-    logger.log('loadAndPlay', {item});
+    logger.log('loadAndPlay', item?.src);
     if (!isMiniPlayer) {
         if (item.id === playback.currentItem?.id) {
             play();
@@ -485,8 +485,11 @@ if (!isMiniPlayer) {
 fromEvent(window, 'pagehide').subscribe(kill);
 
 // logging
-observePlaying().subscribe(logger.rx('playing'));
-playback.observePlaybackStart().subscribe(logger.rx('playbackStart'));
+observePlaying().subscribe(() => logger.log('playing'));
+playback
+    .observePlaybackStart()
+    .pipe(map((state) => state.currentItem?.src))
+    .subscribe(logger.rx('playbackStart'));
 observeDuration().pipe(map(formatTime), distinctUntilChanged()).subscribe(logger.rx('duration'));
 observeCurrentTime()
     .pipe(
@@ -495,6 +498,9 @@ observeCurrentTime()
         distinctUntilChanged()
     )
     .subscribe(logger.rx('currentTime'));
-playback.observePlaybackEnd().subscribe(logger.rx('playbackEnd'));
-observeEnded().subscribe(logger.rx('ended'));
+playback
+    .observePlaybackEnd()
+    .pipe(map((state) => state.currentItem?.src))
+    .subscribe(logger.rx('playbackEnd'));
+observeEnded().subscribe(() => logger.log('ended'));
 observeError().subscribe(logger.error);

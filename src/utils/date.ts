@@ -1,3 +1,35 @@
+export function getElapsedTimeText(date: number | string | Date): string {
+    const elapsedTime = Date.now() - new Date(date).valueOf();
+    const minute = 60_000;
+    if (elapsedTime < minute * 2) {
+        return 'just now';
+    }
+    const hour = 60 * minute;
+    if (elapsedTime < hour * 1.5) {
+        return `${Math.round(elapsedTime / minute)} mins ago`;
+    }
+    const day = 24 * hour;
+    if (elapsedTime < day * 1.5) {
+        return `${Math.round(elapsedTime / hour)} hours ago`;
+    }
+    if (elapsedTime < day * 12) {
+        return `${Math.round(elapsedTime / day)} days ago`;
+    }
+    const week = 7 * day;
+    if (elapsedTime < week * 10) {
+        return `${Math.round(elapsedTime / week)} weeks ago`;
+    }
+    const month = 30 * day;
+    const year = 365 * day;
+    if (elapsedTime < year) {
+        return `${Math.round(elapsedTime / month)} months ago`;
+    }
+    if (elapsedTime < 2 * year) {
+        return `1 year ago`;
+    }
+    return `${Math.floor(elapsedTime / year)} years ago`;
+}
+
 export function formatDate(date: number | string | Date = Date.now()): string {
     date = new Date(date);
     return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(

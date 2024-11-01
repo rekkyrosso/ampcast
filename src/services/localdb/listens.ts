@@ -54,7 +54,7 @@ export async function addListen(state: PlaybackState): Promise<void> {
             }
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const {id, lookupStatus, blob, ...listen} = item;
-            logger.log('add', {state});
+            logger.log('add', item.src);
             await store.items.add({
                 ...listen,
                 sessionId: session.id,

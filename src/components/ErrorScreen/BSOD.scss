@@ -5,12 +5,19 @@
     color: #bfbfff;
     font-size: max(2vw, 2vh, 1rem);
     font-family: monospace;
-    padding: 2em;
+    padding: 1.25em 2em;
     accent-color: #bfbfff;
+    overflow: auto;
+    scrollbar-color:  #bfbfff blue;
 
     form {
         max-width: 30em;
         margin: auto;
+    }
+
+    h2 {
+        font-weight: bold;
+        margin-bottom: 1.25em;
     }
 
     fieldset {
@@ -18,16 +25,14 @@
         border-color: #bfbfff;
     }
 
-    .note {
-        font-size: max(0.75em, 1rem);
-    }
-
     &-buttons {
+        display: flex;
         margin-top: 2em;
+        text-align: right;
     }
 
     button {
-        padding: 0.75em 3em;
+        padding: 0.25em 1.25em;
         font-family: var(--system-font-family);
         font-weight: bold;
         white-space: normal;
@@ -35,5 +40,13 @@
         box-shadow: 1px 1px 0 rgba(16, 16, 16, 0.25);
         background: #bfbfff;
         color: #222;
+
+        & + button {            
+            margin-left: auto;
+        }
+    }
+
+    .error-report-button {
+        font-size: 0.75em;
     }
 }

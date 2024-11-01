@@ -60,7 +60,8 @@
 
     &-palette,
     &-globe,
-    &-visualizer {
+    &-visualizer,
+    &-settings {
         .tree-view-row.selected-text & {
             fill: white;
         }

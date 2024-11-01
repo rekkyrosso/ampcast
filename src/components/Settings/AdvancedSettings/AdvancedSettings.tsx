@@ -1,12 +1,17 @@
 import React from 'react';
 import TabList, {TabItem} from 'components/TabList';
-import AdvancedSettingsGeneral from './AdvancedSettingsGeneral';
+import Logs from './Logs';
+import Troubleshooting from './Troubleshooting';
 import './AdvancedSettings.scss';
 
 const tabs: TabItem[] = [
     {
-        tab: 'General',
-        panel: <AdvancedSettingsGeneral />,
+        tab: 'Logs',
+        panel: <Logs />,
+    },
+    {
+        tab: 'Troubleshooting',
+        panel: <Troubleshooting />,
     },
 ];
 

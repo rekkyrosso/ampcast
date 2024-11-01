@@ -1,6 +1,7 @@
 import React, {useCallback, useId, useRef, useState} from 'react';
 import MediaItem from 'types/MediaItem';
 import MediaServiceId from 'types/MediaServiceId';
+import {Logger} from 'utils';
 import {getService} from 'services/mediaServices';
 import {addRecentPlaylist} from 'services/recentPlaylists';
 import Dialog, {DialogProps, alert, error, showDialog} from 'components/Dialog';
@@ -8,6 +9,8 @@ import DialogButtons from 'components/Dialog/DialogButtons';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import usePlaylistItemsByService from './usePlaylistItemsByService';
 import './CreatePlaylistDialog.scss';
+
+const logger = new Logger('CreatePlaylistDialog');
 
 export async function showCreatePlaylistDialog<T extends MediaItem>(
     items: readonly T[]
@@ -49,7 +52,7 @@ export default function CreatePlaylistDialog<T extends MediaItem>({
                 });
                 addRecentPlaylist(playlist);
             } catch (err) {
-                console.error(err);
+                logger.error(err);
                 await error('An error occurred while creating your playlist.');
             }
         }

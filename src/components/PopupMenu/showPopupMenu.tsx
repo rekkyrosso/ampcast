@@ -1,6 +1,9 @@
 import React from 'react';
 import {createRoot} from 'react-dom/client';
+import {Logger} from 'utils';
 import {PopupMenuProps} from './PopupMenu';
+
+const logger = new Logger('showPopupMenu');
 
 export default async function showPopupMenu<T extends string>(
     PopupMenu: React.FC<PopupMenuProps<T>>,
@@ -31,7 +34,7 @@ export default async function showPopupMenu<T extends string>(
                 />
             );
         } catch (err) {
-            console.error(err);
+            logger.error(err);
             unmount();
             reject(err);
         }
