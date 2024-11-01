@@ -1,37 +1,39 @@
 import React, {useCallback} from 'react';
+import {confirm} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
-import showFactoryReset from './showFactoryReset';
-import ErrorReportButton from 'components/ErrorScreen/ErrorReportButton';
-import {createSnapshot} from 'services/reporting';
+import useFactoryReset from 'hooks/useFactoryReset';
 
 export default function Troubleshooting() {
-    const factoryReset = useCallback((event: React.FormEvent) => {
-        event.preventDefault();
-        showFactoryReset();
-    }, []);
+    const factoryReset = useFactoryReset();
 
-    const handleSnapshotClick = useCallback(async () => {
-        const snapshot = createSnapshot();
-        await navigator.clipboard.writeText(JSON.stringify({snapshot}, undefined, 2));
-    }, []);
+    const showFactoryReset = useCallback(async () => {
+        const confirmed = await confirm({
+            title: 'Factory Reset',
+            message: (
+                <p>
+                    This will delete all of your current settings
+                    <br />
+                    and disconnect you from all services.
+                </p>
+            ),
+            okLabel: 'Continue',
+            system: true,
+        });
+
+        if (confirmed) {
+            await factoryReset();
+            location.reload();
+        }
+    }, [factoryReset]);
 
     return (
         <form className="troubleshooting" method="dialog">
             <fieldset>
                 <legend>Options</legend>
                 <p>
-                    <button onClick={factoryReset}>Factory Reset…</button>
-                </p>
-            </fieldset>
-            <fieldset>
-                <legend>App state</legend>
-                <p>
-                    <ErrorReportButton
-                        title="Copy a snapshot at the current time"
-                        onClick={handleSnapshotClick}
-                    >
-                        Copy snapshot
-                    </ErrorReportButton>
+                    <button type="button" onClick={showFactoryReset}>
+                        Factory Reset…
+                    </button>
                 </p>
             </fieldset>
             <DialogButtons />

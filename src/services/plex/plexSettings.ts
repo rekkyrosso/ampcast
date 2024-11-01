@@ -41,11 +41,7 @@ const plexSettings = {
     },
 
     get hasTidal(): boolean {
-        return storage.getBoolean('hasTidal');
-    },
-
-    set hasTidal(hasTidal: boolean) {
-        storage.setBoolean('hasTidal', hasTidal);
+        return false;
     },
 
     get host(): string {

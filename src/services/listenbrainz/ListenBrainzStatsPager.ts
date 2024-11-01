@@ -159,7 +159,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
             externalUrl: mbid ? `${musicBrainzHost}/recording/${mbid}` : undefined,
             title: item.track_name,
             artists: item.artist_name ? [item.artist_name] : undefined,
-            album: item.release_name,
+            album: item.release_name ?? undefined,
             duration: 0,
             recording_mbid: mbid,
             release_mbid: item.release_mbid || undefined,

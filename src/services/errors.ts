@@ -15,10 +15,6 @@ export class NoMusicVideoLibraryError extends FullScreenError {
     readonly message = 'No music video library found.';
 }
 
-export class NoTidalSubscriptionError extends FullScreenError {
-    readonly message = 'No TIDAL subscription found.';
-}
-
 export class NoFavoritesPlaylistError extends FullScreenError {
     readonly message = t('No favorites playlist found.');
 }

@@ -5,11 +5,13 @@ import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
+import {FullScreenError} from 'services/errors';
 import ListView, {ListViewProps} from 'components/ListView';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import usePager from 'hooks/usePager';
 import usePreferences from 'hooks/usePreferences';
 import {performAction} from 'components/Actions';
+import HandledError from 'components/ErrorScreen/HandledError';
 import MediaListStatusBar from './MediaListStatusBar';
 import useMediaListLayout from './useMediaListLayout';
 import useOnDragStart from './useOnDragStart';
@@ -154,7 +156,9 @@ export default function MediaList<T extends MediaObject>({
         [currentSrc, disableExplicitContent]
     );
 
-    return (
+    return error instanceof FullScreenError ? (
+        <HandledError error={error} />
+    ) : (
         <div className={`panel ${className} ${viewClassName}`} onDragStart={onDragStart}>
             <ListView
                 {...props}

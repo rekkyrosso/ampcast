@@ -17,6 +17,7 @@ export default function FolderBrowser({service, source}: FolderBrowserProps) {
     const [path, setPath] = useState('/');
 
     useEffect(() => {
+        throw Error('Not again!');
         const pager = source.search();
         setPager(pager);
         setPath('/');

@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
-import {Subscription, concat, delay, map, merge, of, take} from 'rxjs';
+import {Subscription, map, merge, take} from 'rxjs';
 import Pager from 'types/Pager';
 import useSubject from './useSubject';
 
@@ -46,6 +46,8 @@ export default function usePager<T>(pager: Pager<T> | null) {
             return;
         }
 
+        setMaxSize(pager.maxSize);
+
         const items$ = pager.observeItems();
         const size$ = pager.observeSize();
         const error$ = pager.observeError();
@@ -55,13 +57,9 @@ export default function usePager<T>(pager: Pager<T> | null) {
             map(() => true)
         );
 
-        // TODO: Make sure this is still needed.
-        // Make sure we emit an empty array whenever we change pager.
-        const flush$ = concat(of([]), of([]).pipe(delay(0)));
-
         const subscription = new Subscription();
 
-        subscription.add(concat(flush$, items$).subscribe(setItems));
+        subscription.add(items$.subscribe(setItems));
         subscription.add(size$.subscribe(setSize));
         subscription.add(error$.subscribe(setError));
         subscription.add(busy$.subscribe(setBusy));
@@ -71,8 +69,6 @@ export default function usePager<T>(pager: Pager<T> | null) {
                 pager.fetchAt(index, length);
             })
         );
-
-        setMaxSize(pager.maxSize);
 
         return () => subscription.unsubscribe();
     }, [pager, fetch$]);

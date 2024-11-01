@@ -2,46 +2,39 @@ import React, {useCallback, useId, useRef} from 'react';
 import type {FallbackProps} from 'react-error-boundary';
 import ampcastElectron from 'services/ampcastElectron';
 import {getServices} from 'services/mediaServices';
+import useFactoryReset from 'hooks/useFactoryReset';
 import ErrorReport from './ErrorReport';
 import './BSOD.scss';
 
 export default function BSOD({error}: FallbackProps) {
     const id = useId();
     const ref = useRef<HTMLFormElement>(null);
+    const factoryReset = useFactoryReset();
 
-    const handleSubmit = useCallback(async (event: React.FormEvent) => {
-        event.preventDefault();
-        switch (ref.current?.['bsod-decision'].value) {
-            case 'clear-playlist':
-                indexedDB.deleteDatabase('ampcast/playlist');
-                break;
+    const handleSubmit = useCallback(
+        async (event: React.FormEvent) => {
+            event.preventDefault();
+            switch (ref.current?.['bsod-decision'].value) {
+                case 'clear-playlist':
+                    indexedDB.deleteDatabase('ampcast/playlist');
+                    break;
 
-            case 'logout':
-                try {
-                    await Promise.all(getServices().map((service) => service.logout()));
-                } catch (err) {
-                    console.error(err);
-                }
-                break;
+                case 'logout':
+                    try {
+                        await Promise.all(getServices().map((service) => service.logout()));
+                    } catch (err) {
+                        console.error(err);
+                    }
+                    break;
 
-            case 'factory-reset':
-                localStorage.clear();
-                sessionStorage.clear();
-                try {
-                    const databases = await indexedDB.databases();
-                    await Promise.all(
-                        databases
-                            .map((db) => db.name)
-                            .filter((name) => name != null)
-                            .map((name) => indexedDB.deleteDatabase(name))
-                    );
-                } catch (err) {
-                    console.error(err);
-                }
-                break;
-        }
-        location.reload();
-    }, []);
+                case 'factory-reset':
+                    await factoryReset();
+                    break;
+            }
+            location.reload();
+        },
+        [factoryReset]
+    );
 
     return (
         <div className="bsod">

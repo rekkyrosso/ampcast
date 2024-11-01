@@ -1,3 +1,5 @@
+@use 'styles/effects.scss';
+
 .media-library {
     display: flex;
     flex-direction: column;
@@ -58,5 +60,9 @@
     &-body {
         flex: auto;
         position: relative;
+    }
+
+    .panel.empty {
+        @include effects.inset;
     }
 }

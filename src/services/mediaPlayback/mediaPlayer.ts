@@ -27,7 +27,11 @@ function getPlayableItem(item: PlaylistItem | null): PlayableItem {
     if (!item) {
         throw Error('No source');
     } else if (!isPlayable(item)) {
-        throw Error('Unplayable');
+        if (preferences.disableExplicitContent && item.explicit) {
+            throw Error('Not playable (explicit content)');
+        } else {
+            throw Error('Not playable');
+        }
     } else if (item.blobUrl) {
         return {...item, src: item.blobUrl};
     } else if (item.blob) {

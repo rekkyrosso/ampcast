@@ -42,7 +42,7 @@ function addLog(level: LogLevel, args: any[], loggerId: string): void {
     let log = createLog(level, args, loggerId);
     if (log.level === prevLog?.level && log.message === prevLog.message) {
         if (prevLog.repeats) {
-            logs[0] = {...log, repeats: prevLog.repeats + 1, timeStamp: Date.now()};
+            logs[0] = {...log, repeats: prevLog.repeats + 1, timeStamp: performance.now()};
             logs$.next(logs);
             return;
         } else {
@@ -61,7 +61,6 @@ function createLog(level: LogLevel, args: any[], loggerId: string): Log {
     const log = {id, timeStamp, level, message};
     if (level === 4) {
         const errorReport = Logger.createErrorReport?.(args[0], 'Logger', loggerId);
-        console.log({errorReport});
         return {...log, errorReport};
     } else {
         return log;

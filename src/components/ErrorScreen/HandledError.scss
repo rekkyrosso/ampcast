@@ -1,12 +1,12 @@
 @use 'styles/effects.scss';
 
-.empty-screen {
+.handled-error {
     @include effects.inset;
     flex: auto;
     padding: var(--gutter-width);
 
     .note:only-child {
-        padding: 1rem;
-        margin: 1rem;
+        padding: 1em;
+        margin: 1em;
     }
 }

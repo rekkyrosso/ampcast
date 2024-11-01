@@ -21,7 +21,7 @@ import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
 import PlexTidalStreamingQuality from './PlexTidalStreamingQuality';
 import actionsStore from 'services/actions/actionsStore';
-import {NoTidalSubscriptionError} from 'services/errors';
+import {FullScreenError} from 'services/errors';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {isSourceVisible, observeSourceVisibility} from 'services/mediaServices/servicesSettings';
@@ -37,6 +37,10 @@ import AudioSettings from './components/PlexTidalAudioSettings';
 import Login from './components/PlexTidalLogin';
 
 const serviceId = 'plex-tidal';
+
+class NoTidalSubscriptionError extends FullScreenError {
+    readonly message = 'No TIDAL subscription found.';
+}
 
 const defaultLayout: MediaSourceLayout<MediaItem> = {
     view: 'card',
@@ -251,6 +255,27 @@ const tidal: PublicMediaService = {
 };
 
 export default tidal;
+
+export async function hasTidalSubscription(): Promise<boolean> {
+    try {
+        if (plexSettings.userToken) {
+            await plexApi.fetchJSON({
+                host: musicProviderHost,
+                path: '/playlists/all',
+                params: {librarySectionID: 'tidal'},
+                headers: {
+                    'X-Plex-Container-Size': '1',
+                },
+            });
+            return true;
+        }
+    } catch (err: any) {
+        if (err.status !== 406) {
+            console.error(err);
+        }
+    }
+    return false;
+}
 
 function observeIsLoggedIn(): Observable<boolean> {
     return combineLatest([plex.observeIsLoggedIn(), observeSourceVisibility(tidal)]).pipe(

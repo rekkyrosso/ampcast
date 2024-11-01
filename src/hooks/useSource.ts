@@ -3,6 +3,8 @@ import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
 import MediaSource from 'types/MediaSource';
 import Pager from 'types/Pager';
+import {FullScreenError} from 'services/errors';
+import ErrorPager from 'services/pagers/ErrorPager';
 
 export default function useSource<T extends MediaObject>(
     source: MediaSource<T> | null,
@@ -11,9 +13,18 @@ export default function useSource<T extends MediaObject>(
     const [pager, setPager] = useState<Pager<T> | null>(null);
 
     useEffect(() => {
-        const pager = source?.search(params) || null;
-        setPager(pager);
-        return () => pager?.disconnect();
+        try {
+            const pager = source?.search(params) || null;
+            setPager(pager);
+            return () => pager?.disconnect();
+        } catch (err) {
+            if (err instanceof FullScreenError) {
+                const pager = new ErrorPager<T>(err);
+                setPager(pager);
+            } else {
+                throw err;
+            }
+        }
     }, [source, params]);
 
     return pager;

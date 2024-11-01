@@ -2,7 +2,7 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject, Subject, distinctUntilChanged, filter, mergeMap} from 'rxjs';
 import {getSupportedDrm, Logger, partition} from 'utils';
 import plexSettings from './plexSettings';
-import plexApi, {apiHost, musicProviderHost} from './plexApi';
+import plexApi, {apiHost} from './plexApi';
 
 const logger = new Logger('plexAuth');
 
@@ -244,7 +244,6 @@ async function checkConnection(): Promise<boolean> {
         const [libraries] = await Promise.all([
             plexApi.getMusicLibraries(),
             getDrm(),
-            checkTidalSubscription(),
         ]);
         plexSettings.libraries = libraries;
         return true;
@@ -268,28 +267,6 @@ async function getDrm(): Promise<void> {
         plexSettings.drm = drm;
     } catch (err) {
         logger.error(err);
-    }
-}
-
-async function checkTidalSubscription(): Promise<void> {
-    try {
-        if (plexSettings.userToken) {
-            await plexApi.fetchJSON({
-                host: musicProviderHost,
-                path: '/playlists/all',
-                params: {librarySectionID: 'tidal'},
-                headers: {
-                    'X-Plex-Container-Size': '1',
-                },
-            });
-            plexSettings.hasTidal = true;
-        }
-    } catch (err: any) {
-        if (err.status === 406) {
-            plexSettings.hasTidal = false;
-        } else {
-            logger.error(err);
-        }
     }
 }
 

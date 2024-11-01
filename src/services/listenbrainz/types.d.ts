@@ -110,8 +110,9 @@ declare namespace ListenBrainz {
     }
 
     interface Recording extends Release {
-        readonly recording_mbid: string;
+        readonly recording_mbid: string | null;
         readonly recording_msid: string | null;
+        readonly release_name: string | null;
         readonly track_name: string;
     }
 

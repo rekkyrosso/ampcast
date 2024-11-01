@@ -6,7 +6,6 @@ import {showDialog} from 'components/Dialog';
 import AppDragRegion from 'components/App/AppDragRegion';
 import IconButton from 'components/Button/IconButton';
 import MediaSources from 'components/MediaSources';
-import EmptyScreen from 'components/EmptyScreen';
 import './MediaLibrary.scss';
 
 export default memo(function MediaLibrary() {
@@ -31,7 +30,7 @@ export default memo(function MediaLibrary() {
             <div className="media-library-body">
                 <Splitter id="media-library-layout" arrange="columns" primaryIndex={1}>
                     <MediaSources onSelect={setSource} />
-                    {source || <EmptyScreen />}
+                    {source || <div className="panel empty" />}
                 </Splitter>
             </div>
         </div>
