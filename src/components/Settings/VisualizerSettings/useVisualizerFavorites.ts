@@ -1,9 +1,10 @@
 import type {Observable} from 'rxjs';
 import {combineLatest, map} from 'rxjs';
 import PlaylistItem from 'types/PlaylistItem';
+import VisualizerFavorite from 'types/VisualizerFavorite';
 import {getCurrentItem, observeCurrentItem} from 'services/playlist';
 import {isVisualizerLoaded, isVisualizerSupported} from 'services/visualizer';
-import visualizerStore, {VisualizerFavorite} from 'services/visualizer/visualizerStore';
+import visualizerStore from 'services/visualizer/visualizerStore';
 import useObservable from 'hooks/useObservable';
 
 export type KeyedVisualizerFavorite = VisualizerFavorite & {

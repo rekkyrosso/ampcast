@@ -50,7 +50,7 @@ export async function addListen(state: PlaybackState): Promise<void> {
             try {
                 item = await addMetadata(item, true);
             } catch (err) {
-                logger.error(err);
+                logger.warn(err);
             }
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const {id, lookupStatus, blob, ...listen} = item;

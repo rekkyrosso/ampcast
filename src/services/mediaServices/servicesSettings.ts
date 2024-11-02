@@ -35,6 +35,10 @@ export function isSourceVisible(source: AnyMediaSource): boolean {
     return !isSourceHidden(source);
 }
 
+export function getHiddenSources(): HiddenSettings {
+    return hidden$.value;
+}
+
 export function setHiddenSources(updates: Record<string, boolean>): void {
     const settings = hidden$.getValue();
     const newSettings = {...settings, ...updates};

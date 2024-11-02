@@ -1,0 +1,9 @@
+.backup {
+    .checkbox-list {
+        max-height: 8em;
+
+        & + p {
+            margin-top: 1.25em;
+        }
+    }
+}

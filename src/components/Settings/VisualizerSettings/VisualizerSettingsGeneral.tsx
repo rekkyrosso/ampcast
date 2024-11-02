@@ -1,10 +1,10 @@
 import React, {useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
 import MediaType from 'types/MediaType';
+import VisualizerSettings from 'types/VisualizerSettings';
 import {t} from 'services/i18n';
 import {isProviderSupported} from 'services/visualizer';
 import visualizerSettings, {
     observeVisualizerProvider,
-    VisualizerSettings,
 } from 'services/visualizer/visualizerSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';

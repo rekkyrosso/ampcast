@@ -490,21 +490,22 @@ class MainTheme implements CurrentTheme {
         );
     }
 
-    toJSON(prettify?: boolean): string {
-        return this.stringify(this, prettify);
-    }
-
-    stringify(theme: Theme, prettify?: boolean): string {
+    toJSON(theme: Theme | string = this): Theme {
+        if (typeof theme === 'string') {
+            // This function was invoked by `JSON.stringify`.
+            // eslint-disable-next-line @typescript-eslint/no-this-alias
+            theme = this;
+        }
         const data = Object.keys(requiredProperties).reduce((data, key) => {
             data[key] = theme[key as keyof Theme];
             return data;
         }, {} as any);
         Object.keys(optionalProperties).forEach((key) => {
-            if (this[key as keyof Theme] !== defaultTheme[key as keyof Theme]) {
+            if (theme[key as keyof Theme] !== emptyTheme[key as keyof Theme]) {
                 data[key] = theme[key as keyof Theme];
             }
         });
-        return JSON.stringify(data, undefined, prettify ? 4 : undefined);
+        return data;
     }
 
     private toggleClasses(root: HTMLElement): void {

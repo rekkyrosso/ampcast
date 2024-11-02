@@ -29,7 +29,7 @@ export default function useSelectedItems<T>(
                 const size = items.length;
                 if (size > 0 && newSelectedItems.length === 0) {
                     if (rowIndex < size) {
-                        const item = items[Math.max(rowIndex, 0)];
+                        const item = items[rowIndex];
                         return item ? [item] : [];
                     } else {
                         const item = items[size - 1];

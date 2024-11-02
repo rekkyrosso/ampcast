@@ -2,14 +2,12 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import Dexie, {liveQuery} from 'dexie';
 import Theme from 'types/Theme';
+import UserTheme from 'types/UserTheme';
 import {Logger} from 'utils';
+import theme from './theme';
 import themes from './themes';
 
 const logger = new Logger('themeStore');
-
-export interface UserTheme extends Theme {
-    readonly userTheme: true;
-}
 
 class ThemeStore extends Dexie {
     private readonly defaultThemes = new Map<string, Theme>(
@@ -25,11 +23,14 @@ class ThemeStore extends Dexie {
             themes: `&name`,
         });
 
-        liveQuery(() => this.themes.toArray()).subscribe((themes) =>
+        liveQuery(() => this.themes.toArray()).subscribe((userThemes) =>
             this.themes$.next(
-                themes.sort((a, b) =>
-                    a.name.localeCompare(b.name, undefined, {sensitivity: 'base'})
-                )
+                userThemes
+                    .sort((a, b) => a.name.localeCompare(b.name, undefined, {sensitivity: 'base'}))
+                    .map((userTheme) => ({
+                        ...userTheme,
+                        toJSON: () => theme.toJSON(userTheme),
+                    }))
             )
         );
     }
@@ -54,25 +55,34 @@ class ThemeStore extends Dexie {
         return this.themes$.getValue();
     }
 
-    async save(theme: Theme): Promise<void> {
+    async addUserTheme(theme: Theme): Promise<void> {
         try {
-            logger.log('save', {theme});
+            logger.log('addUserTheme', theme.name);
             await this.themes.put({...theme, userTheme: true});
         } catch (err) {
             logger.error(err);
         }
     }
 
-    async remove(name: string): Promise<void> {
+    async addUserThemes(themes: readonly Theme[]): Promise<void> {
         try {
-            logger.log('remove', {name});
+            logger.log('addUserThemes', themes.length);
+            await this.themes.bulkPut(themes.map((theme) => ({...theme, userTheme: true})));
+        } catch (err) {
+            logger.error(err);
+        }
+    }
+
+    async removeUserTheme(name: string): Promise<void> {
+        try {
+            logger.log('removeUserTheme', name);
             await this.themes.delete(name);
         } catch (err) {
             logger.error(err);
         }
     }
 
-    async rename(oldName: string, newName: string): Promise<void> {
+    async renameUserTheme(oldName: string, newName: string): Promise<void> {
         try {
             const theme = await this.themes.get(oldName);
             if (!theme) {

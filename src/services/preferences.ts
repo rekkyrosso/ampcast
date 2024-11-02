@@ -1,14 +1,7 @@
 import type {Observable} from 'rxjs';
 import {map, startWith} from 'rxjs';
+import Preferences from 'types/Preferences';
 import {LiteStorage} from 'utils';
-
-export interface Preferences {
-    disableExplicitContent: boolean;
-    markExplicitContent: boolean;
-    mediaInfoTabs: boolean;
-    miniPlayer: boolean;
-    spacebarTogglePlay: boolean;
-}
 
 const storage = new LiteStorage('preferences');
 
@@ -17,8 +10,8 @@ const preferences: Preferences = {
         return storage.getBoolean('disableExplicitContent');
     },
 
-    set disableExplicitContent(enabled: boolean) {
-        storage.setBoolean('disableExplicitContent', enabled);
+    set disableExplicitContent(disabled: boolean) {
+        storage.setBoolean('disableExplicitContent', disabled);
     },
 
     get markExplicitContent(): boolean {

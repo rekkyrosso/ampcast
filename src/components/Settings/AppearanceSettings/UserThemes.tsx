@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import Theme from 'types/Theme';
-import theme from 'services/theme';
 import themeStore from 'services/theme/themeStore';
 import {prompt} from 'components/Dialog';
 import ListBox from 'components/ListView/ListBox';
@@ -45,7 +44,7 @@ export default function UserThemes() {
             if (newName) {
                 const confirmed = await confirmOverwriteTheme(newName);
                 if (confirmed) {
-                    await themeStore.rename(oldName, newName);
+                    await themeStore.renameUserTheme(oldName, newName);
                     setRenamed(newName);
                 }
             }
@@ -57,7 +56,7 @@ export default function UserThemes() {
             const name = selectedTheme.name;
             const userTheme = themeStore.getUserTheme(name);
             if (userTheme) {
-                saveTextToFile(`${name}.json`, theme.stringify(userTheme, true));
+                saveTextToFile(`${name}.json`, JSON.stringify(userTheme, undefined, 4));
             }
         }
     }, [selectedTheme]);
@@ -67,7 +66,7 @@ export default function UserThemes() {
             const name = selectedTheme.name;
             const confirmed = await confirmDeleteTheme(name);
             if (confirmed) {
-                await themeStore.remove(name);
+                await themeStore.removeUserTheme(name);
             }
         }
     }, [selectedTheme]);

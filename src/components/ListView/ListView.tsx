@@ -104,7 +104,7 @@ export default function ListView<T>({
     itemClassName = emptyString,
     layout,
     className = '',
-    selectedIndex = -1,
+    selectedIndex = items.length === 0 ? -1 : 0,
     draggable,
     droppable,
     droppableTypes = [],
@@ -134,7 +134,7 @@ export default function ListView<T>({
     const fontSize = useFontSize(containerRef);
     const showTitles = layout.view === 'details' && layout.showTitles;
     const sizeable = layout.view === 'details' && layout.sizeable;
-    const [rowIndex, setRowIndex] = useState(-1);
+    const [rowIndex, setRowIndex] = useState(selectedIndex);
     const [scrollPosition, setScrollPosition] = useState<ScrollablePosition>({left: 0, top: 0});
     const scrollTop = scrollPosition.top;
     const [clientHeight, setClientHeight] = useState(0);
@@ -209,7 +209,9 @@ export default function ListView<T>({
     }, [listViewRef, focus, scrollTo, selectAll, selectAt, size]);
 
     useEffect(() => {
-        internalRef.current?.scrollIntoView(selectedIndex);
+        if (selectedIndex !== -1) {
+            internalRef.current?.scrollIntoView(selectedIndex);
+        }
     }, [selectedIndex]);
 
     useEffect(() => onRowIndexChange?.(rowIndex), [rowIndex, onRowIndexChange]);

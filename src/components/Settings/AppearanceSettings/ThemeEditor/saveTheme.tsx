@@ -12,6 +12,6 @@ export default async function saveTheme(suggestedName: string): Promise<void> {
     if (name) {
         theme.name = name;
         theme.userTheme = true;
-        await themeStore.save(theme.current);
+        await themeStore.addUserTheme(theme.current);
     }
 }

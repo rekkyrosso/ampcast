@@ -1,27 +1,10 @@
 import type {Observable} from 'rxjs';
 import {distinctUntilChanged, map, startWith} from 'rxjs';
 import Visualizer from 'types/Visualizer';
-import VisualizerProviderId from 'types/VisualizerProviderId';
+import VisualizerSettings, {Randomness} from 'types/VisualizerSettings';
 import {LiteStorage} from 'utils';
 
 type VisualizerKeys = Pick<Visualizer, 'providerId' | 'name'>;
-
-export type Randomness = Readonly<Record<VisualizerProviderId, number>>;
-
-export interface VisualizerSettings {
-    provider: VisualizerProviderId | 'favorites' | 'random';
-    ambientVideoBeats: boolean;
-    ambientVideoSource: string;
-    useAmbientVideoSource: boolean;
-    ampshaderTransparency: boolean;
-    butterchurnTransparency: boolean;
-    coverArtAnimatedBackground: boolean;
-    coverArtBeats: boolean;
-    fullscreenProgress: boolean;
-    lockedVisualizer: VisualizerKeys | null;
-    randomness: Randomness;
-    spotifyRandomness: Randomness;
-}
 
 const defaultRandomness: Randomness = {
     none: 0,

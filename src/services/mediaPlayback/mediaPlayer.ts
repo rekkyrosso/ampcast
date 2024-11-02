@@ -28,7 +28,7 @@ function getPlayableItem(item: PlaylistItem | null): PlayableItem {
         throw Error('No source');
     } else if (!isPlayable(item)) {
         if (preferences.disableExplicitContent && item.explicit) {
-            throw Error('Not playable (explicit content)');
+            throw Error('Not playable (explicit)');
         } else {
             throw Error('Not playable');
         }

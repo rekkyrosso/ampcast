@@ -4,7 +4,7 @@ import youtubeApi from 'services/youtube/youtubeApi';
 // Some sample ambient videos to get us started.
 const defaultAmbientVideos: AmbientVideoVisualizer[] = `
 9HI3UVKoesg rOSUaprXqiY etiatMRgFcM DYsMJiwiZSI _MZ7UZ5frCI HCx1Z92PjJE dIP7wWY4Znw SDxtzBm5vD4
-A1m0SEqmmbE 9uZ8CCa0t4Y 35CTu7dWzo8 wz_ItcoR0-c jS4-FmNEDKo Tz77vqH_LJw K73lfmxDVR0 W8ayfyRWUrg
+A1m0SEqmmbE 9uZ8CCa0t4Y 35CTu7dWzo8 wz_ItcoR0-c uBC14kdHpa4 Tz77vqH_LJw K73lfmxDVR0 W8ayfyRWUrg
 cbuldALGsaQ AJZon2grzmA H5ASEM9dMiA GE2YEq7vaLc MYGOdJNAzrI Oszl95YWfbs b0-IkxXyhmY QxE5VqaQ6oE
 H6Xy97CD9Hs p-OUNPqRzII XaTxLSPh_Is 1n3ezT1cvAM CWU1pZVw0xM ry1Q7KaQdxM VlC5LSTvoj0 DMoAn4E_p0c
 1bClbVe4QyI f6OZ01vvmko o4jE24WixcI BIej9P2LrzM dxw91a7C5BQ lN9LdcAQnjw VVkZKzTbWQs vXCB1zGGFiY
@@ -30,7 +30,7 @@ RZOcoZS_52Q pSP9_otXcTU H36qe8NatNQ qgfd-uWTVwg -jxB4sIgafY HeYMIBFtwh4 fb0QX7Db
 sh8l2-cCAGQ XDE5pd4V_xc C2BVXFIX7bY ySPxZpoqXZ8 hiEUaLX4cCM 3F4l-6GwkKM F399teRPBaY 2jw2eAIW8sU
 WsCCYv2adkM wmV7Po_E0pw 9Rvtm2zGEl4 DGlAMkUjcY0 h2s_WOkfTXk 0VhxPdtX0xg 6vuFh6NNa70 ukOHqdPbYYg
 H6OmEQ8RqVk JFMT1tU17TM FQqj6gN7M6M Xrwks9O2-JQ ipRwt3TDgY4 aVqRyfRviwA X33dmu12C5c QEwzFKoG7tk
-h98nR30UD8Q Z7WpAwRjprI ilqlSBYfCGs V6SoeDWDon0 d-Hwz42Vfw4 RCdAP0e4W4w c4OnR033eMk p7l6JQApzak
+h98nR30UD8Q Z7WpAwRjprI ilqlSBYfCGs tUNQL3KVUqA d-Hwz42Vfw4 RCdAP0e4W4w c4OnR033eMk p7l6JQApzak
 blSZ365wpfQ ADF4KgfhzPs jSRvD7Uma1g uLMC6bL_q38 k9DuPxFQ7HQ 7f2taFPyqxc vHf4WQtJvdI NXg0IKlrz-Q
 ORHIVufNfRM RT4hEmX5OJ0 H3GL5jO53NU acTsYqhq-AA vp2yiZnjK0w eR5vsN1Lq4E yyNl2HuCTHk 55w2VtMNuvY
 7qXiAaxxGBs fmsTHHtxAug l5jUOT0XiUM NLxwmtJSvk4 dv_QzcJGHAE kaPD4n9uQ2k r7HpeG2ofU0 O1AQcFpPs04
@@ -90,7 +90,7 @@ RqLDxm4zK2U DXkI0slJ1ds G9aK46YPegw 1TUl_M_5CQo b_yoK-RZ6u0 4uBKTkK1brY DeZT8aE7
 uBeX3oYCbuw 9udylvYXRJI Go-_MpbgOEs yK9TbffTUJM AhsU0_LORrE BYlyi4jQuas OptNpYyzg6o 6YdNdhr9DnA
 c4OnR033eMk oXZZ1rdiHsM NZrsxHgEli4 bmuqxFjoebE 1u8a7MtMN20 r4MGIgCyR_Y s0S5xtf0FdA Ov8IGLbSrg0
 r1VScNrvsCE iD7lqPLey0k WaNZ2JEb8Hc WRP5-moIi6k 0c964byRe2M sdyvi_2vJPc ibNrPjETR_k VbIWUz-hLgs
-tfbDfi7L3dM 5MP7Kba-j3M eSeWGEr5ACA Kf2-5tpsR6o sfwe6cqhajk ZK71ToxXDYg uBC14kdHpa4 tUNQL3KVUqA
+tfbDfi7L3dM 5MP7Kba-j3M eSeWGEr5ACA Kf2-5tpsR6o sfwe6cqhajk ZK71ToxXDYg  
 `
     .match(/\S+/g)!
     .map((videoId) => youtubeApi.createAmbientVideo(videoId, 120));

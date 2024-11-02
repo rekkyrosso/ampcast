@@ -1,5 +1,6 @@
 import React from 'react';
 import TabList, {TabItem} from 'components/TabList';
+import Backup from './Backup';
 import Logs from './Logs';
 import Troubleshooting from './Troubleshooting';
 import './AdvancedSettings.scss';
@@ -12,6 +13,10 @@ const tabs: TabItem[] = [
     {
         tab: 'Troubleshooting',
         panel: <Troubleshooting />,
+    },
+    {
+        tab: 'Backup',
+        panel: <Backup />,
     },
 ];
 

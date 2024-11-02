@@ -39,7 +39,7 @@ export function createSnapshot(): Snapshot {
         }
         delete (currentItem as any).thumbnails;
     }
-    const themeData = JSON.parse(theme.toJSON());
+    const themeData = theme.toJSON();
 
     return {
         appName: __app_name__,

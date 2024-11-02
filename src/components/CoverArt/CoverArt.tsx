@@ -106,7 +106,7 @@ async function lookupThumbnails(item: MediaObject): Promise<readonly Thumbnail[]
                     const video = await youtubeApi.getVideoInfo(videoId);
                     return video.thumbnails;
                 } catch (err) {
-                    logger.error(err);
+                    logger.warn(err);
                     return;
                 }
             }

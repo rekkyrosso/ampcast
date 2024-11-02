@@ -161,7 +161,7 @@ async function performLibraryAction<T extends MediaObject>(
                 break;
         }
     } catch (err) {
-        logger.warn('Failed to perform action:', {action, item, payload});
+        logger.info('Failed to perform action:', action);
         logger.error(err);
     }
 }

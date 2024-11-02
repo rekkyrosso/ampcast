@@ -27,7 +27,7 @@ export default async function importThemeFromFile(file: File): Promise<void> {
             if (name) {
                 confirmed = await confirmOverwriteTheme(name);
                 if (confirmed) {
-                    await themeStore.save({...importedTheme, name});
+                    await themeStore.addUserTheme({...importedTheme, name});
                 }
             }
         }

@@ -1,16 +1,11 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import Dexie, {liveQuery} from 'dexie';
-import Visualizer from 'types/Visualizer';
+import VisualizerFavorite from 'types/VisualizerFavorite';
 import {Logger} from 'utils';
 import youtubeApi from 'services/youtube/youtubeApi';
 
 const logger = new Logger('visualizerStore');
-
-export type VisualizerFavorite = Pick<
-    Visualizer,
-    'providerId' | 'name' | 'title' | 'spotifyExcluded'
->;
 
 class VisualizerStore extends Dexie {
     private readonly favorites!: Dexie.Table<VisualizerFavorite, [string, string]>;
@@ -35,7 +30,7 @@ class VisualizerStore extends Dexie {
     async addFavorite(visualizer: VisualizerFavorite): Promise<void> {
         const {providerId, name, spotifyExcluded} = visualizer;
         try {
-            logger.log('addFavorite', {providerId, name});
+            logger.log('addFavorite', providerId, name);
             let title = visualizer.title;
             if (providerId === 'ambientvideo' && !title) {
                 try {
@@ -46,6 +41,22 @@ class VisualizerStore extends Dexie {
                 }
             }
             await this.favorites.put({providerId, name, title, spotifyExcluded});
+        } catch (err) {
+            logger.error(err);
+        }
+    }
+
+    async addFavorites(visualizers: VisualizerFavorite[]): Promise<void> {
+        try {
+            logger.log('addFavorites', visualizers.length);
+            await this.favorites.bulkPut(
+                visualizers.map(({providerId, name, title, spotifyExcluded}) => ({
+                    providerId,
+                    name,
+                    title,
+                    spotifyExcluded,
+                }))
+            );
         } catch (err) {
             logger.error(err);
         }
@@ -87,7 +98,7 @@ class VisualizerStore extends Dexie {
             name = visualizer.name;
         }
         try {
-            logger.log('removeFavorite', {providerId, name});
+            logger.log('removeFavorite', providerId, name);
             await this.favorites.delete([providerId, name]);
         } catch (err) {
             logger.error(err);

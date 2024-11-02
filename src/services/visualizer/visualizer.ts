@@ -18,6 +18,7 @@ import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import Visualizer, {NoVisualizer} from 'types/Visualizer';
+import VisualizerFavorite from 'types/VisualizerFavorite';
 import VisualizerProviderId from 'types/VisualizerProviderId';
 import audio from 'services/audio';
 import playback, {observeCurrentItem} from 'services/mediaPlayback/playback';
@@ -30,7 +31,7 @@ import {
     observeVisualizersByProviderId,
 } from './visualizerProviders';
 import visualizerSettings, {observeVisualizerProvider} from './visualizerSettings';
-import visualizerStore, {VisualizerFavorite} from './visualizerStore';
+import visualizerStore from './visualizerStore';
 
 const logger = new Logger('visualizer');
 

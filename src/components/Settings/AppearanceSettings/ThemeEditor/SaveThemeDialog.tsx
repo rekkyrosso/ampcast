@@ -75,6 +75,7 @@ export default function SaveThemeDialog({suggestedName, ...props}: SaveThemeDial
                     items={userThemes}
                     itemKey="name"
                     renderItem={renderTheme}
+                    selectedIndex={-1}
                     onDoubleClick={submit}
                     onSelect={handleSelect}
                 />
