@@ -9,6 +9,8 @@ export default interface VisualizerSettings {
     ambientVideoSource: string;
     useAmbientVideoSource: boolean;
     ampshaderTransparency: boolean;
+    butterchurnTransitionDelay: number;
+    butterchurnTransitionDuration: number;
     butterchurnTransparency: boolean;
     coverArtAnimatedBackground: boolean;
     coverArtBeats: boolean;

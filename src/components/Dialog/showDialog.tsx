@@ -11,7 +11,7 @@ export default async function showDialog(
 ): Promise<string> {
     return new Promise((resolve, reject) => {
         const dialogRoot = document.getElementById(
-            isFullscreenMedia() ? 'fullscreen-popup' : system ? 'system' : 'app'
+            isFullscreenMedia() ? 'fullscreen-system' : system ? 'system' : 'app'
         );
         const rootElement = document.createElement('div');
         const root = createRoot(rootElement);

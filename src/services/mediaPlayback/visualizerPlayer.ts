@@ -1,9 +1,15 @@
 import {fromEvent, of, skipWhile, switchMap, takeUntil, tap} from 'rxjs';
+import NextVisualizerReason from 'types/NextVisualizerReason';
 import Player from 'types/Player';
-import Visualizer from 'types/Visualizer';
+import Visualizer, {VisualizerWithReason} from 'types/Visualizer';
 import audio from 'services/audio';
 import {observeVisualizerProviders} from 'services/visualizer/visualizerProviders';
-import {nextVisualizer, noVisualizer, observeCurrentVisualizer} from 'services/visualizer';
+import {
+    nextVisualizer,
+    noVisualizer,
+    observeCurrentVisualizer,
+    observeNextVisualizerReason,
+} from 'services/visualizer';
 import {Logger} from 'utils';
 import OmniPlayer from './players/OmniPlayer';
 import miniPlayer from './miniPlayer';
@@ -12,15 +18,22 @@ const logger = new Logger('visualizerPlayer');
 
 const killed$ = fromEvent(window, 'pagehide');
 
-function loadVisualizer(player: Player<Visualizer>, visualizer: Visualizer): void {
-    player.load(visualizer);
+let nextVisualizerReason: NextVisualizerReason;
+
+function loadVisualizer(player: Player<VisualizerWithReason>, visualizer: Visualizer): void {
+    player.load({...visualizer, reason: nextVisualizerReason});
 }
 
-const visualizerPlayer = new OmniPlayer<Visualizer>('visualizerPlayer', loadVisualizer);
+const visualizerPlayer = new OmniPlayer<VisualizerWithReason, Visualizer>(
+    'visualizerPlayer',
+    loadVisualizer
+);
 
 visualizerPlayer.loop = true;
 visualizerPlayer.muted = true;
 visualizerPlayer.volume = 0.07;
+
+observeNextVisualizerReason().subscribe((reason) => (nextVisualizerReason = reason));
 
 observeVisualizerProviders()
     .pipe(

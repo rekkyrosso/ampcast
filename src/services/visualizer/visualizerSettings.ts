@@ -77,6 +77,26 @@ const visualizerSettings: VisualizerSettings = {
         }
     },
 
+    get butterchurnTransitionDelay(): number {
+        return storage.getNumber('butterchurnTransitionDelay', 120);
+    },
+
+    set butterchurnTransitionDelay(delay: number) {
+        if (delay !== this.butterchurnTransitionDelay) {
+            storage.setNumber('butterchurnTransitionDelay', delay);
+        }
+    },
+
+    get butterchurnTransitionDuration(): number {
+        return storage.getNumber('butterchurnTransitionDuration', 5.5);
+    },
+
+    set butterchurnTransitionDuration(duration: number) {
+        if (duration !== this.butterchurnTransitionDuration) {
+            storage.setNumber('butterchurnTransitionDuration', duration);
+        }
+    },
+
     get butterchurnTransparency(): boolean {
         return storage.getBoolean('butterchurnTransparency', true);
     },

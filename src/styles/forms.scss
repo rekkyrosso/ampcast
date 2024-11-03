@@ -41,6 +41,10 @@ input {
     padding: calc(0.125em - 2px) 0 calc(0.125em - 2px) 0.25em;
 }
 
+input::-webkit-inner-spin-button {
+    opacity: 1;
+}
+
 select {
     border: 1px solid;
     user-select: none;
@@ -166,7 +170,8 @@ input + label {
     padding-left: 0.5em;
 }
 
-input:disabled + label {
+input:disabled + label,
+label:has(+ input:disabled) {
     color: var(--grey1-color);
 }
 

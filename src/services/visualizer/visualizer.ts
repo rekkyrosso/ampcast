@@ -3,6 +3,7 @@ import {
     EMPTY,
     BehaviorSubject,
     Subject,
+    combineLatest,
     delay,
     distinctUntilChanged,
     filter,
@@ -12,35 +13,37 @@ import {
     switchMap,
     take,
     tap,
+    timer,
     withLatestFrom,
 } from 'rxjs';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
+import NextVisualizerReason from 'types/NextVisualizerReason';
 import PlaybackType from 'types/PlaybackType';
 import Visualizer, {NoVisualizer} from 'types/Visualizer';
 import VisualizerFavorite from 'types/VisualizerFavorite';
 import VisualizerProviderId from 'types/VisualizerProviderId';
-import audio from 'services/audio';
-import playback, {observeCurrentItem} from 'services/mediaPlayback/playback';
-import youtubeApi from 'services/youtube/youtubeApi';
 import {browser, exists, getRandomValue, isMiniPlayer, Logger} from 'utils';
+import audio from 'services/audio';
+import {
+    getPlaybackState,
+    observeCurrentItem,
+    observePlaybackState,
+} from 'services/mediaPlayback/playback';
+import youtubeApi from 'services/youtube/youtubeApi';
 import {
     getVisualizer,
     getVisualizers,
     loadVisualizers,
     observeVisualizersByProviderId,
 } from './visualizerProviders';
-import visualizerSettings, {observeVisualizerProvider} from './visualizerSettings';
+import visualizerSettings, {
+    observeVisualizerProvider,
+    observeVisualizerSettings,
+} from './visualizerSettings';
 import visualizerStore from './visualizerStore';
 
 const logger = new Logger('visualizer');
-
-type NextVisualizerReason =
-    | 'new-media-item'
-    | 'new-provider'
-    | 'new-visualizers'
-    | 'next-clicked'
-    | 'error';
 
 interface ErrorRecord {
     providerId: VisualizerProviderId;
@@ -65,7 +68,7 @@ export function observeCurrentVisualizer(): Observable<Visualizer> {
     return currentVisualizer$.pipe(
         distinctUntilChanged(
             (a: any, b: any) =>
-                a.providerId === b.providerId && a.name === b.name && a.reason === b.reason
+                a.providerId === b.providerId && a.name === b.name && a.link === b.link
         )
     );
 }
@@ -136,7 +139,7 @@ export function observeNextVisualizerReason(): Observable<NextVisualizerReason> 
 
 function getNextVisualizer(reason: NextVisualizerReason): Visualizer {
     const currentVisualizer = getCurrentVisualizer();
-    const state = playback.getPlaybackState();
+    const state = getPlaybackState();
     const settings = visualizerSettings;
     const item = state.currentItem;
 
@@ -166,65 +169,75 @@ function getNextVisualizer(reason: NextVisualizerReason): Visualizer {
 
     let providerId: VisualizerProviderId = 'none';
 
-    switch (settings.provider) {
-        case 'none':
-            return noVisualizer;
-
-        case 'favorites': {
-            const favorites = visualizerStore.getFavorites();
-            if (favorites.length === 0) {
+    if (reason === 'transition') {
+        providerId = currentVisualizer.providerId;
+    } else {
+        switch (settings.provider) {
+            case 'none':
                 return noVisualizer;
-            }
-            const currentFavorite = favorites.find(
-                (favorite) =>
-                    favorite.providerId === currentVisualizer.providerId &&
-                    favorite.name === currentVisualizer.name
-            );
-            const supportedFavorites = favorites.filter((favorite) =>
-                isVisualizerSupported(favorite, item)
-            );
-            if (supportedFavorites.length === 0) {
-                return createNoVisualizerFromList(
-                    'not supported',
+
+            case 'favorites': {
+                const favorites = visualizerStore.getFavorites();
+                if (favorites.length === 0) {
+                    return noVisualizer;
+                }
+                const currentFavorite = favorites.find(
+                    (favorite) =>
+                        favorite.providerId === currentVisualizer.providerId &&
+                        favorite.name === currentVisualizer.name
+                );
+                const supportedFavorites = favorites.filter((favorite) =>
+                    isVisualizerSupported(favorite, item)
+                );
+                if (supportedFavorites.length === 0) {
+                    return createNoVisualizerFromList(
+                        'not supported',
+                        reason,
+                        favorites,
+                        currentFavorite
+                    );
+                }
+                const loadedFavorites = favorites.filter((favorite) =>
+                    isVisualizerLoaded(favorite)
+                );
+                if (loadedFavorites.length === 0) {
+                    return createNoVisualizerFromList(
+                        'not loaded',
+                        reason,
+                        supportedFavorites,
+                        currentFavorite
+                    );
+                }
+                const {providerId, name} = pickNextVisualizer(
                     reason,
-                    favorites,
+                    loadedFavorites,
                     currentFavorite
                 );
+                return getOrCreateVisualizer(providerId, name);
             }
-            const loadedFavorites = favorites.filter((favorite) => isVisualizerLoaded(favorite));
-            if (loadedFavorites.length === 0) {
-                return createNoVisualizerFromList(
-                    'not loaded',
-                    reason,
-                    supportedFavorites,
-                    currentFavorite
+
+            case 'random': {
+                const providerIds = getRandomProviderIds(isSpotify);
+                if (providerIds.length === 0) {
+                    return noVisualizer;
+                }
+                providerId = getRandomValue(
+                    providerIds,
+                    isError ? currentVisualizer.providerId : undefined
                 );
+                if (
+                    reason === 'next-clicked' &&
+                    providerId === currentVisualizer.providerId &&
+                    getVisualizers(providerId).length === 1
+                ) {
+                    providerId = getRandomValue(providerIds, providerId);
+                }
+                break;
             }
-            const {providerId, name} = pickNextVisualizer(reason, loadedFavorites, currentFavorite);
-            return getOrCreateVisualizer(providerId, name);
-        }
 
-        case 'random': {
-            const providerIds = getRandomProviderIds(isSpotify);
-            if (providerIds.length === 0) {
-                return noVisualizer;
-            }
-            providerId = getRandomValue(
-                providerIds,
-                isError ? currentVisualizer.providerId : undefined
-            );
-            if (
-                reason === 'next-clicked' &&
-                providerId === currentVisualizer.providerId &&
-                getVisualizers(providerId).length === 1
-            ) {
-                providerId = getRandomValue(providerIds, providerId);
-            }
-            break;
+            default:
+                providerId = settings.provider;
         }
-
-        default:
-            providerId = settings.provider;
     }
 
     const visualizers = getVisualizers(providerId);
@@ -341,6 +354,35 @@ observeVisualizerProvider()
         ),
         distinctUntilChanged(),
         tap(() => nextVisualizer('new-visualizers'))
+    )
+    .subscribe(logger);
+
+combineLatest([observePlaybackState(), observeVisualizerProvider(), observeVisualizerSettings()])
+    .pipe(
+        map(
+            ([state, provider, settings]) =>
+                !state.paused &&
+                state.currentTime > 0 &&
+                (provider === 'butterchurn' || provider === 'random') &&
+                !settings.lockedVisualizer &&
+                // Use a minimum delay of 10 seconds (the maximum blend time allowed by the UI).
+                settings.butterchurnTransitionDelay > 10
+        ),
+        distinctUntilChanged(),
+        switchMap((canTransition) =>
+            canTransition
+                ? observeCurrentVisualizer().pipe(
+                      withLatestFrom(observeVisualizerSettings()),
+                      map(([visualizer, settings]) =>
+                          visualizer.providerId === 'butterchurn'
+                              ? settings.butterchurnTransitionDelay
+                              : 0
+                      ),
+                      switchMap((delay) => (delay ? timer(delay * 1000) : EMPTY)),
+                      tap(() => nextVisualizer('transition'))
+                  )
+                : EMPTY
+        )
     )
     .subscribe(logger);
 

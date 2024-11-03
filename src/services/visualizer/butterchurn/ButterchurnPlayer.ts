@@ -2,6 +2,7 @@ import type {Observable} from 'rxjs';
 import {distinctUntilChanged, map, Subject, tap} from 'rxjs';
 import butterchurn from 'butterchurn';
 import AudioManager from 'types/AudioManager';
+import NextVisualizerReason from 'types/NextVisualizerReason';
 import {ButterchurnVisualizer} from 'types/Visualizer';
 import {Logger} from 'utils';
 import spotifyAudioAnalyser from 'services/spotify/spotifyAudioAnalyser';
@@ -82,12 +83,17 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
         parentElement.append(this.canvas);
     }
 
-    load(visualizer: ButterchurnVisualizer): void {
+    load(visualizer: ButterchurnVisualizer & {reason: NextVisualizerReason}): void {
         logger.log('load', visualizer.name);
         if (visualizer.name !== this.currentVisualizer?.name) {
             this.currentVisualizer = visualizer;
             this.cancelAnimation();
-            this.visualizer.loadPreset(visualizer.data, 0.5);
+            this.visualizer.loadPreset(
+                visualizer.data,
+                visualizer.reason === 'transition'
+                    ? visualizerSettings.butterchurnTransitionDuration
+                    : 0
+            );
             this.toggleOpacity();
         }
         if (this.autoplay && !this.animationFrameId) {
@@ -121,6 +127,9 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
         try {
             // TODO: This spams error messages if no audio has played yet.
             this.visualizer.setRendererSize(width, height);
+            if (this.animationFrameId) {
+                this.visualizer.render();
+            }
         } catch (err) {
             if (__dev__) {
                 logger.warn(err);
@@ -139,7 +148,7 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
         } catch (err) {
             this.error$.next(err);
         }
-        if (this.autoplay && !this.canvas.hidden) {
+        if (this.autoplay && !this.hidden) {
             this.animationFrameId = requestAnimationFrame(() => this.render());
         }
     }

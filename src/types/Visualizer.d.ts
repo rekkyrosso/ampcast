@@ -3,6 +3,7 @@ import type {Options as AudioMotionOptions} from 'audiomotion-analyzer';
 import type {SpotifyVizConfig} from 'services/visualizer/spotifyviz/SpotifyVizPlayer';
 import type {WaveformConfig} from 'services/visualizer/waveform/WaveformPlayer';
 import BaseVisualizer from './BaseVisualizer';
+import NextVisualizerReason from './NextVisualizerReason';
 import PlayableItem from './PlayableItem';
 import VisualizerProviderId from './VisualizerProviderId';
 
@@ -60,5 +61,9 @@ type Visualizer =
     | CoverArtVisualizer
     | SpotifyVizVisualizer
     | WaveformVisualizer;
+
+export type VisualizerWithReason = Visualizer & {
+    readonly reason?: NextVisualizerReason;
+}
 
 export default Visualizer;

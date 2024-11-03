@@ -59,7 +59,13 @@
         }
     }
 
-    .error-report-button:disabled .icon {
-        display: none;
+    .error-report-button:disabled {
+        opacity: 1;
+        color: var(--background-color);
+        background: var(--text-color);
+        
+        .icon {
+            display: none;
+        }
     }
 }

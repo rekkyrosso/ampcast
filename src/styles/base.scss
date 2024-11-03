@@ -88,9 +88,9 @@ small {
     inset: 0;
 }
 
-#system,
 #popup,
-#fullscreen-popup {
+#system,
+#fullscreen-system {
     position: absolute;
     isolation: isolate;
     width: 100vw;
@@ -112,7 +112,7 @@ small {
     font-size: min(max(calc(var(--font-size) * 1px), 12px), 2vw, 3vh, 22px);
 }
 
-#fullscreen-popup {
+#fullscreen-system {
     font-size: max(1.5vw, 12px);
 }
 
