@@ -1,17 +1,17 @@
 import React, {useCallback, useState} from 'react';
 import Icon from 'components/Icon';
-import './ErrorReportButton.scss';
+import './ReportButton.scss';
 
-export interface ErrorReportButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
+export interface ReportButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
     onClick: () => Promise<void>;
 }
 
-export default function ErrorReportButton({
+export default function ReportButton({
     onClick,
-    children = 'Copy error report',
+    children = 'Copy report',
     title = 'Copy to clipboard',
     ...props
-}: ErrorReportButtonProps) {
+}: ReportButtonProps) {
     const [copied, setCopied] = useState(false);
 
     const handleCopyClick = useCallback(async () => {
@@ -26,7 +26,7 @@ export default function ErrorReportButton({
     return (
         <button
             {...props}
-            className="error-report-button"
+            className="report-button"
             type="button"
             onClick={handleCopyClick}
             title={title}

@@ -27,9 +27,25 @@ export interface Log {
     readonly repeats?: number;
 }
 
+export type ReadableLog = Pick<Log, 'timeStamp' | 'errorReport' | 'repeats'> &
+    (
+        | {
+              info: string;
+          }
+        | {
+              log: string;
+          }
+        | {
+              Warn: string;
+          }
+        | {
+              ERROR: string;
+          }
+    );
+
 const logs$ = new BehaviorSubject<readonly Log[]>([]);
 
-const logLimit = 500;
+const logLimit = 200;
 let logCount = 0;
 
 function observeLogs(): Observable<readonly Log[]> {
