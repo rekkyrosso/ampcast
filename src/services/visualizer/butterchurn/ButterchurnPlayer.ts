@@ -2,8 +2,7 @@ import type {Observable} from 'rxjs';
 import {distinctUntilChanged, map, Subject, tap} from 'rxjs';
 import butterchurn from 'butterchurn';
 import AudioManager from 'types/AudioManager';
-import NextVisualizerReason from 'types/NextVisualizerReason';
-import {ButterchurnVisualizer} from 'types/Visualizer';
+import {ButterchurnVisualizer, VisualizerReason} from 'types/Visualizer';
 import {Logger} from 'utils';
 import spotifyAudioAnalyser from 'services/spotify/spotifyAudioAnalyser';
 import visualizerSettings, {
@@ -83,7 +82,7 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
         parentElement.append(this.canvas);
     }
 
-    load(visualizer: ButterchurnVisualizer & {reason: NextVisualizerReason}): void {
+    load(visualizer: ButterchurnVisualizer & VisualizerReason): void {
         logger.log('load', visualizer.name);
         if (visualizer.name !== this.currentVisualizer?.name) {
             this.currentVisualizer = visualizer;

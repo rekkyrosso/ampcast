@@ -10,6 +10,7 @@ import {
     map,
     skip,
     skipWhile,
+    startWith,
     switchMap,
     take,
     tap,
@@ -20,7 +21,7 @@ import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import NextVisualizerReason from 'types/NextVisualizerReason';
 import PlaybackType from 'types/PlaybackType';
-import Visualizer, {NoVisualizer} from 'types/Visualizer';
+import Visualizer, {NoVisualizer, NextVisualizer} from 'types/Visualizer';
 import VisualizerFavorite from 'types/VisualizerFavorite';
 import VisualizerProviderId from 'types/VisualizerProviderId';
 import {browser, exists, getRandomValue, isMiniPlayer, Logger} from 'utils';
@@ -37,11 +38,9 @@ import {
     loadVisualizers,
     observeVisualizersByProviderId,
 } from './visualizerProviders';
-import visualizerSettings, {
-    observeVisualizerProvider,
-    observeVisualizerSettings,
-} from './visualizerSettings';
+import visualizerSettings, {observeVisualizerSettings} from './visualizerSettings';
 import visualizerStore from './visualizerStore';
+import VisualizerSettings from 'types/VisualizerSettings';
 
 const logger = new Logger('visualizer');
 
@@ -70,6 +69,20 @@ export function observeCurrentVisualizer(): Observable<Visualizer> {
             (a: any, b: any) =>
                 a.providerId === b.providerId && a.name === b.name && a.link === b.link
         )
+    );
+}
+
+export function observeNextVisualizer(): Observable<NextVisualizer> {
+    return observeCurrentVisualizer().pipe(
+        withLatestFrom(observeNextVisualizerReason().pipe(startWith(undefined))),
+        map(([visualizer, reason]) => ({...visualizer, reason}))
+    );
+}
+
+export function observeVisualizerProvider(): Observable<VisualizerSettings['provider']> {
+    return observeVisualizerSettings().pipe(
+        map((settings) => settings.provider),
+        distinctUntilChanged()
     );
 }
 

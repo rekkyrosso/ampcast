@@ -10,12 +10,10 @@ import {
     nextVisualizer,
     observeNextVisualizerReason,
 } from 'services/visualizer';
-import {observeVisualizerLocked} from 'services/visualizer/visualizerSettings';
 import AppTitle from 'components/App/AppTitle';
 import Icon from 'components/Icon';
 import IconButton from 'components/Button/IconButton';
 import IconButtons from 'components/Button/IconButtons';
-import useObservable from 'hooks/useObservable';
 import {showDialog} from 'components/Dialog';
 import {VisualizerSettingsDialog} from 'components/Settings';
 import CurrentlyPlayingDialog from 'components/MediaInfo/CurrentlyPlayingDialog';
@@ -24,6 +22,7 @@ import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
 import useMiniPlayerActive from 'hooks/useMiniPlayerActive';
 import usePreferences from 'hooks/usePreferences';
 import usePaused from 'hooks/usePaused';
+import useVisualizerSettings from 'hooks/useVisualizerSettings';
 import MediaButtons from './MediaButtons';
 import ProgressBar from './ProgressBar';
 import Static from './Static';
@@ -41,7 +40,8 @@ export default memo(function VisualizerControls({
     onFullscreenToggle,
 }: VisualizerControlsProps) {
     const currentVisualizer = useCurrentVisualizer();
-    const locked = useObservable(observeVisualizerLocked, false);
+    const {lockedVisualizer} = useVisualizerSettings();
+    const locked = lockedVisualizer !== null;
     const canLock = useCanLockVisualizer();
     const hasNext = canLock && !locked;
     const videoSourceIcon = useVideoSourceIcon();

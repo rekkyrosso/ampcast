@@ -4,7 +4,6 @@ import MediaType from 'types/MediaType';
 import {isMiniPlayer} from 'utils';
 import mediaPlayback from 'services/mediaPlayback';
 import miniPlayer from 'services/mediaPlayback/miniPlayer';
-import {observeFullscreenProgressEnabled} from 'services/visualizer/visualizerSettings';
 import './Visualizer.scss';
 import CoverArtVisualizer from 'components/CoverArtVisualizer';
 import useBaseFontSize from 'hooks/useBaseFontSize';
@@ -12,12 +11,12 @@ import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
 import useMiniPlayerActive from 'hooks/useMiniPlayerActive';
 import useMouseBusy from 'hooks/useMouseBusy';
-import useObservable from 'hooks/useObservable';
 import useOnResize from 'hooks/useOnResize';
 import usePaused from 'hooks/usePaused';
-import VisualizerControls from './VisualizerControls';
+import useVisualizerSettings from 'hooks/useVisualizerSettings';
 import Interstitial from './Interstitial';
 import ProgressBar from './ProgressBar';
+import VisualizerControls from './VisualizerControls';
 import useLoadingState from './useLoadingState';
 import 'fullscreen-api-polyfill';
 import './Media.scss';
@@ -26,8 +25,8 @@ export default memo(function Media() {
     const ref = useRef<HTMLDivElement>(null);
     const [style, setStyle] = useState<React.CSSProperties>({});
     const baseFontSize = useBaseFontSize();
-    const playbackRef = useRef<HTMLDivElement>(null);
-    const fullscreenProgressEnabled = useObservable(observeFullscreenProgressEnabled, false);
+    const playersRef = useRef<HTMLDivElement>(null);
+    const {fullscreenProgress} = useVisualizerSettings();
     const miniPlayerActive = useMiniPlayerActive();
     const [fullscreen, setFullScreen] = useState(false);
     const [newItem, setNewItem] = useState(false);
@@ -48,7 +47,7 @@ export default memo(function Media() {
     }, [itemId]);
 
     useEffect(() => {
-        mediaPlayback.appendTo(playbackRef.current!);
+        mediaPlayback.appendTo(playersRef.current!);
     }, []);
 
     useEffect(() => {
@@ -97,10 +96,10 @@ export default memo(function Media() {
             style={style}
             ref={ref}
         >
-            <div id="players" ref={playbackRef} />
+            <div id="players" ref={playersRef} />
             <CoverArtVisualizer />
             <Interstitial />
-            {(fullscreen || isMiniPlayer) && fullscreenProgressEnabled ? <ProgressBar /> : null}
+            {(fullscreen || isMiniPlayer) && fullscreenProgress ? <ProgressBar /> : null}
             <VisualizerControls fullscreen={fullscreen} onFullscreenToggle={toggleFullscreen} />
         </div>
     );

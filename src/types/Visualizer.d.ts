@@ -52,6 +52,10 @@ export interface WaveformVisualizer extends BaseVisualizer {
     config: WaveformConfig;
 }
 
+export interface VisualizerReason {
+    readonly reason?: NextVisualizerReason;
+}
+
 type Visualizer =
     | NoVisualizer
     | AmbientVideoVisualizer
@@ -62,8 +66,6 @@ type Visualizer =
     | SpotifyVizVisualizer
     | WaveformVisualizer;
 
-export type VisualizerWithReason = Visualizer & {
-    readonly reason?: NextVisualizerReason;
-}
-
 export default Visualizer;
+
+export type NextVisualizer = Visualizer & VisualizerReason;

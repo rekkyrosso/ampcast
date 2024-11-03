@@ -1,7 +1,7 @@
 import type {Observable} from 'rxjs';
-import {map, switchMap, of} from 'rxjs';
+import {map, of, switchMap} from 'rxjs';
+import {observeVisualizerProvider} from 'services/visualizer';
 import {observeVisualizersByProviderId} from 'services/visualizer/visualizerProviders';
-import {observeVisualizerProvider} from 'services/visualizer/visualizerSettings';
 import visualizerStore from 'services/visualizer/visualizerStore';
 import useObservable from 'hooks/useObservable';
 

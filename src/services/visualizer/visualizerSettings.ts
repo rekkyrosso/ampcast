@@ -1,10 +1,7 @@
 import type {Observable} from 'rxjs';
-import {distinctUntilChanged, map, startWith} from 'rxjs';
-import Visualizer from 'types/Visualizer';
+import {map, startWith} from 'rxjs';
 import VisualizerSettings, {Randomness} from 'types/VisualizerSettings';
 import {LiteStorage} from 'utils';
-
-type VisualizerKeys = Pick<Visualizer, 'providerId' | 'name'>;
 
 const defaultRandomness: Randomness = {
     none: 0,
@@ -35,46 +32,32 @@ const visualizerSettings: VisualizerSettings = {
         return storage.getString('ambientVideoSource');
     },
 
-    set ambientVideoSource(ambientVideoSource: string) {
-        if (ambientVideoSource !== this.ambientVideoSource) {
-            storage.setString('ambientVideoSource', ambientVideoSource);
-            if (this.lockedVisualizer?.providerId === 'ambientvideo') {
-                storage.removeItem('lockedVisualizer');
-            }
-        }
+    set ambientVideoSource(source: string) {
+        storage.setString('ambientVideoSource', source);
     },
 
     get ambientVideoBeats(): boolean {
         return storage.getBoolean('ambientVideoBeats', true);
     },
 
-    set ambientVideoBeats(ambientVideoBeats: boolean) {
-        if (ambientVideoBeats !== this.ambientVideoBeats) {
-            storage.setBoolean('ambientVideoBeats', ambientVideoBeats);
-        }
+    set ambientVideoBeats(enabled: boolean) {
+        storage.setBoolean('ambientVideoBeats', enabled);
     },
 
     get useAmbientVideoSource(): boolean {
         return storage.getBoolean('useAmbientVideoSource');
     },
 
-    set useAmbientVideoSource(useAmbientVideoSource: boolean) {
-        if (useAmbientVideoSource !== this.useAmbientVideoSource) {
-            storage.setBoolean('useAmbientVideoSource', useAmbientVideoSource);
-            if (this.lockedVisualizer?.providerId === 'ambientvideo') {
-                storage.removeItem('lockedVisualizer');
-            }
-        }
+    set useAmbientVideoSource(enabled: boolean) {
+        storage.setBoolean('useAmbientVideoSource', enabled);
     },
 
     get ampshaderTransparency(): boolean {
         return storage.getBoolean('ampshaderTransparency', true);
     },
 
-    set ampshaderTransparency(ampshaderTransparency: boolean) {
-        if (ampshaderTransparency !== this.ampshaderTransparency) {
-            storage.setBoolean('ampshaderTransparency', ampshaderTransparency);
-        }
+    set ampshaderTransparency(enabled: boolean) {
+        storage.setBoolean('ampshaderTransparency', enabled);
     },
 
     get butterchurnTransitionDelay(): number {
@@ -82,9 +65,7 @@ const visualizerSettings: VisualizerSettings = {
     },
 
     set butterchurnTransitionDelay(delay: number) {
-        if (delay !== this.butterchurnTransitionDelay) {
-            storage.setNumber('butterchurnTransitionDelay', delay);
-        }
+        storage.setNumber('butterchurnTransitionDelay', delay);
     },
 
     get butterchurnTransitionDuration(): number {
@@ -92,59 +73,49 @@ const visualizerSettings: VisualizerSettings = {
     },
 
     set butterchurnTransitionDuration(duration: number) {
-        if (duration !== this.butterchurnTransitionDuration) {
-            storage.setNumber('butterchurnTransitionDuration', duration);
-        }
+        storage.setNumber('butterchurnTransitionDuration', duration);
     },
 
     get butterchurnTransparency(): boolean {
         return storage.getBoolean('butterchurnTransparency', true);
     },
 
-    set butterchurnTransparency(butterchurnTransparency: boolean) {
-        if (butterchurnTransparency !== this.butterchurnTransparency) {
-            storage.setBoolean('butterchurnTransparency', butterchurnTransparency);
-        }
+    set butterchurnTransparency(enabled: boolean) {
+        storage.setBoolean('butterchurnTransparency', enabled);
     },
 
     get coverArtAnimatedBackground(): boolean {
         return storage.getBoolean('coverArtAnimatedBackground');
     },
 
-    set coverArtAnimatedBackground(coverArtAnimatedBackground: boolean) {
-        if (coverArtAnimatedBackground !== this.coverArtAnimatedBackground) {
-            storage.setBoolean('coverArtAnimatedBackground', coverArtAnimatedBackground);
-        }
+    set coverArtAnimatedBackground(enabled: boolean) {
+        storage.setBoolean('coverArtAnimatedBackground', enabled);
     },
 
     get coverArtBeats(): boolean {
         return storage.getBoolean('coverArtBeats', true);
     },
 
-    set coverArtBeats(coverArtBeats: boolean) {
-        if (coverArtBeats !== this.coverArtBeats) {
-            storage.setBoolean('coverArtBeats', coverArtBeats);
-        }
+    set coverArtBeats(enabled: boolean) {
+        storage.setBoolean('coverArtBeats', enabled);
     },
 
     get fullscreenProgress(): boolean {
         return storage.getBoolean('fullscreenProgress');
     },
 
-    set fullscreenProgress(fullscreenProgress: boolean) {
-        if (fullscreenProgress !== this.fullscreenProgress) {
-            storage.setBoolean('fullscreenProgress', fullscreenProgress);
-        }
+    set fullscreenProgress(enabled: boolean) {
+        storage.setBoolean('fullscreenProgress', enabled);
     },
 
-    get lockedVisualizer(): VisualizerKeys | null {
+    get lockedVisualizer(): VisualizerSettings['lockedVisualizer'] {
         return storage.getJson('lockedVisualizer');
     },
 
-    set lockedVisualizer(lockedVisualizer: VisualizerKeys | null) {
-        if (lockedVisualizer) {
-            const {providerId, name} = lockedVisualizer;
-            storage.setJson<VisualizerKeys>('lockedVisualizer', {providerId, name});
+    set lockedVisualizer(visualizer: VisualizerSettings['lockedVisualizer']) {
+        if (visualizer) {
+            const {providerId, name} = visualizer;
+            storage.setJson('lockedVisualizer', {providerId, name});
         } else {
             storage.removeItem('lockedVisualizer');
         }
@@ -156,10 +127,8 @@ const visualizerSettings: VisualizerSettings = {
 
     set provider(provider: VisualizerSettings['provider']) {
         if (provider !== this.provider) {
+            storage.removeItem('lockedVisualizer');
             storage.setString('provider', provider);
-            if (provider && this.lockedVisualizer?.providerId !== provider) {
-                storage.removeItem('lockedVisualizer');
-            }
         }
     },
 
@@ -183,29 +152,8 @@ const visualizerSettings: VisualizerSettings = {
 export default visualizerSettings;
 
 export function observeVisualizerSettings(): Observable<Readonly<VisualizerSettings>> {
-    return storage.observeChanges().pipe(
+    return storage.observeChange().pipe(
         startWith(undefined),
         map(() => ({...visualizerSettings}))
-    );
-}
-
-export function observeVisualizerLocked(): Observable<boolean> {
-    return observeVisualizerSettings().pipe(
-        map((settings) => !!settings.lockedVisualizer),
-        distinctUntilChanged()
-    );
-}
-
-export function observeVisualizerProvider(): Observable<VisualizerSettings['provider']> {
-    return observeVisualizerSettings().pipe(
-        map((settings) => settings.provider),
-        distinctUntilChanged()
-    );
-}
-
-export function observeFullscreenProgressEnabled(): Observable<boolean> {
-    return observeVisualizerSettings().pipe(
-        map((settings) => settings.fullscreenProgress),
-        distinctUntilChanged()
     );
 }

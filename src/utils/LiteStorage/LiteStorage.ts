@@ -10,7 +10,7 @@ export default class LiteStorage {
     private static readonly event$ = fromEvent<StorageEvent>(window, 'storage');
     readonly id: string;
     private readonly storage: Storage;
-    private readonly changes$ = new Subject<void>();
+    private readonly change$ = new Subject<void>();
 
     constructor(id: string, storage: 'local' | 'session' | 'memory' = 'local') {
         const storageId = `${storage}-${id}`;
@@ -37,9 +37,9 @@ export default class LiteStorage {
         }
     }
 
-    observeChanges(): Observable<void> {
+    observeChange(): Observable<void> {
         return merge(
-            this.changes$,
+            this.change$,
             LiteStorage.event$.pipe(
                 filter(
                     (event) =>
@@ -110,19 +110,21 @@ export default class LiteStorage {
         return this.getItem(key) !== null;
     }
 
-    setItem(key: string, value: string | null): void {
+    setItem(key: string, value: string): void {
         key = `${this.id}/${key}`;
-        if (value == null) {
-            this.storage.removeItem(key);
-        } else {
+        value = String(value);
+        const prevValue = this.storage.getItem(key);
+        if (value !== prevValue) {
             this.storage.setItem(key, value);
+            this.change$.next();
         }
-        this.changes$.next();
     }
 
     removeItem(key: string): void {
-        this.storage.removeItem(`${this.id}/${key}`);
-        this.changes$.next();
+        if (this.hasItem(key)) {
+            this.storage.removeItem(`${this.id}/${key}`);
+            this.change$.next();
+        }
     }
 
     clear(): void {
@@ -134,7 +136,9 @@ export default class LiteStorage {
                 keys.push(key);
             }
         }
-        keys.forEach((key) => this.storage.removeItem(key));
-        this.changes$.next();
+        if (keys.length > 0) {
+            keys.forEach((key) => this.storage.removeItem(key));
+            this.change$.next();
+        }
     }
 }

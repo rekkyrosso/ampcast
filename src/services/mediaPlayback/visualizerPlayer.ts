@@ -1,16 +1,10 @@
 import {fromEvent, of, skipWhile, switchMap, takeUntil, tap} from 'rxjs';
-import NextVisualizerReason from 'types/NextVisualizerReason';
+import {NextVisualizer} from 'types/Visualizer';
 import Player from 'types/Player';
-import Visualizer, {VisualizerWithReason} from 'types/Visualizer';
-import audio from 'services/audio';
-import {observeVisualizerProviders} from 'services/visualizer/visualizerProviders';
-import {
-    nextVisualizer,
-    noVisualizer,
-    observeCurrentVisualizer,
-    observeNextVisualizerReason,
-} from 'services/visualizer';
 import {Logger} from 'utils';
+import audio from 'services/audio';
+import {nextVisualizer, noVisualizer, observeNextVisualizer} from 'services/visualizer';
+import {observeVisualizerProviders} from 'services/visualizer/visualizerProviders';
 import OmniPlayer from './players/OmniPlayer';
 import miniPlayer from './miniPlayer';
 
@@ -18,22 +12,15 @@ const logger = new Logger('visualizerPlayer');
 
 const killed$ = fromEvent(window, 'pagehide');
 
-let nextVisualizerReason: NextVisualizerReason;
-
-function loadVisualizer(player: Player<VisualizerWithReason>, visualizer: Visualizer): void {
-    player.load({...visualizer, reason: nextVisualizerReason});
+function loadVisualizer(player: Player<NextVisualizer>, visualizer: NextVisualizer): void {
+    player.load(visualizer);
 }
 
-const visualizerPlayer = new OmniPlayer<VisualizerWithReason, Visualizer>(
-    'visualizerPlayer',
-    loadVisualizer
-);
+const visualizerPlayer = new OmniPlayer<NextVisualizer>('visualizerPlayer', loadVisualizer);
 
 visualizerPlayer.loop = true;
 visualizerPlayer.muted = true;
 visualizerPlayer.volume = 0.07;
-
-observeNextVisualizerReason().subscribe((reason) => (nextVisualizerReason = reason));
 
 observeVisualizerProviders()
     .pipe(
@@ -47,7 +34,7 @@ observeVisualizerProviders()
             )
         ),
         switchMap(() => miniPlayer.observeActive()),
-        switchMap((active) => (active ? of(noVisualizer) : observeCurrentVisualizer())),
+        switchMap((active) => (active ? of(noVisualizer) : observeNextVisualizer())),
         tap((visualizer) => visualizerPlayer.load(visualizer)),
         takeUntil(killed$)
     )

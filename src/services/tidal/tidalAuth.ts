@@ -80,7 +80,7 @@ async function showLoginWindow(loginUrl: string, state: string): Promise<string>
         authCallbacks.setString(state, '(pending)');
 
         authCallbacks
-            .observeChanges()
+            .observeChange()
             .pipe(
                 map(() => authCallbacks.getString(state)),
                 filter((code) => code !== '(pending)'),

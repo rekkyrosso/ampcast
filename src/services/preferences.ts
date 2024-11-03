@@ -50,7 +50,7 @@ const preferences: Preferences = {
 export default preferences;
 
 export function observePreferences(): Observable<Readonly<Preferences>> {
-    return storage.observeChanges().pipe(
+    return storage.observeChange().pipe(
         startWith(undefined),
         map(() => ({...preferences}))
     );

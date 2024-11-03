@@ -31,7 +31,7 @@ const audioSettings: AudioSettings = {
 export default audioSettings;
 
 export function observeAudioSettings(): Observable<Readonly<AudioSettings>> {
-    return storage.observeChanges().pipe(
+    return storage.observeChange().pipe(
         startWith(undefined),
         map(() => ({...audioSettings}))
     );

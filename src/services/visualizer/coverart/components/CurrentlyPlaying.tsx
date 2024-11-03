@@ -2,12 +2,11 @@ import React, {useCallback, useEffect, useState} from 'react';
 import ColorThief, {RGBColor} from 'colorthief';
 import {TinyColor, mostReadable} from '@ctrl/tinycolor';
 import PlaylistItem from 'types/PlaylistItem';
-import {observeFullscreenProgressEnabled} from 'services/visualizer/visualizerSettings';
 import {Artist, Thumbnail, Title} from 'components/MediaInfo/MediaInfo';
 import ProvidedBy from 'components/MediaSources/ProvidedBy';
 import PlaybackState from 'components/Media/PlaybackState';
 import ProgressBar from 'components/Media/ProgressBar';
-import useObservable from 'hooks/useObservable';
+import useVisualizerSettings from 'hooks/useVisualizerSettings';
 import {uniq} from 'utils';
 
 const defaultPalette = ['#3e3e3e', '#ebebeb'];
@@ -19,7 +18,7 @@ export interface CurrentlyPlayingProps {
 }
 
 export default function CurrentlyPlaying({item, hidden, onPaletteChange}: CurrentlyPlayingProps) {
-    const fullscreenProgressEnabled = useObservable(observeFullscreenProgressEnabled, false);
+    const {fullscreenProgress} = useVisualizerSettings();
     const [palette, setPalette] = useState<string[]>(defaultPalette);
     const [tone, setTone] = useState<'light' | 'dark'>('dark');
     const [textTone, setTextTone] = useState<'light' | 'dark'>('light');
@@ -115,7 +114,7 @@ export default function CurrentlyPlaying({item, hidden, onPaletteChange}: Curren
                 </>
             ) : null}
             <PlaybackState />
-            {fullscreenProgressEnabled ? <ProgressBar /> : null}
+            {fullscreenProgress ? <ProgressBar /> : null}
         </div>
     );
 }
