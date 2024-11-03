@@ -7,13 +7,16 @@ import VisualizerSettings from './VisualizerSettings';
 
 export default interface BackupFile {
     readonly ampcastVersion: string;
-    readonly ampcastConfig: {
+    readonly backup: {
         readonly preferences?: Preferences;
-        readonly services?: Record<string, boolean>;
-        readonly visualizerSettings?: VisualizerSettings;
-        readonly visualizerFavorites?: VisualizerFavorite[];
-        readonly userThemes?: UserTheme[];
+        readonly services?: {
+            readonly localStorage: Record<string, string>;
+        };
+        readonly pins?: Pin[];
         readonly theme?: Theme | UserTheme;
+        readonly userThemes?: UserTheme[];
+        readonly visualizerFavorites?: VisualizerFavorite[];
+        readonly visualizerSettings?: VisualizerSettings;
         readonly listens?: Listen[];
     };
 }

@@ -26,12 +26,27 @@ class PinStore extends Dexie {
         liveQuery(() => this.pins.toArray()).subscribe(this.pins$);
     }
 
+    observe(): Observable<readonly Pin[]> {
+        return combineLatest([this.pins$, this.lockedPin$]).pipe(
+            filter(([pins]) => pins !== UNINITIALIZED),
+            map(([pins]) => pins)
+        );
+    }
+
     lock(pin: Pin): void {
         this.lockedPin$.next(pin);
     }
 
     unlock(): void {
         this.lockedPin$.next(null);
+    }
+
+    async addPins(pins: readonly Pin[]): Promise<void> {
+        try {
+            await this.pins.bulkPut(pins);
+        } catch (err) {
+            logger.error(err);
+        }
     }
 
     async pin(playlist: MediaPlaylist): Promise<void>;
@@ -85,11 +100,8 @@ class PinStore extends Dexie {
         return pins.findIndex((pin) => pin.src === src) !== -1;
     }
 
-    observe(): Observable<readonly Pin[]> {
-        return combineLatest([this.pins$, this.lockedPin$]).pipe(
-            filter(([pins]) => pins !== UNINITIALIZED),
-            map(([pins]) => pins)
-        );
+    getPins(): readonly Pin[] {
+        return this.pins$.value;
     }
 
     getPinsForService(serviceId: string): readonly Pin[] {

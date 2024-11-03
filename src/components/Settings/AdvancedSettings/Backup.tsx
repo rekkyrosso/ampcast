@@ -1,9 +1,9 @@
 import React, {useCallback, useId, useRef} from 'react';
 import {Writable} from 'type-fest';
 import BackupFile from 'types/BackupFile';
-import {saveTextToFile} from 'utils';
+import {Logger, saveTextToFile} from 'utils';
 import {updateListens} from 'services/localdb/listens';
-import {setHiddenSources} from 'services/mediaServices/servicesSettings';
+import pinStore from 'services/pins/pinStore';
 import preferences from 'services/preferences';
 import theme from 'services/theme';
 import themeStore from 'services/theme/themeStore';
@@ -14,6 +14,8 @@ import DialogButtons from 'components/Dialog/DialogButtons';
 import useBackupEntries from './useBackupEntries';
 import './Backup.scss';
 
+const logger = new Logger('Backup');
+
 export default function Backup() {
     const id = useId();
     const ref = useRef<HTMLFormElement>(null);
@@ -21,14 +23,14 @@ export default function Backup() {
 
     const handleExportClick = useCallback(async () => {
         const ampcastVersion = __app_version__;
-        const ampcastConfig: BackupFile['ampcastConfig'] = backupEntries.reduce((data, entry) => {
+        const ampcastConfig: BackupFile['backup'] = backupEntries.reduce((data, entry) => {
             if (ref.current?.[entry.key]?.checked) {
                 data[entry.key] = entry.data;
             }
             return data;
-        }, {} as Writable<BackupFile['ampcastConfig']>);
-        const backupFile: BackupFile = {ampcastVersion, ampcastConfig};
-        saveTextToFile('ampcast.json', JSON.stringify(backupFile, undefined, 2));
+        }, {} as Writable<BackupFile['backup']>);
+        const backupFile: BackupFile = {ampcastVersion, backup: ampcastConfig};
+        saveTextToFile('ampcast-backup.json', JSON.stringify(backupFile, undefined, 2));
     }, [backupEntries]);
 
     const handleImportClick = useCallback(() => {
@@ -40,42 +42,51 @@ export default function Backup() {
             if (file) {
                 try {
                     const data = await file.text();
-                    const {ampcastVersion, ampcastConfig}: BackupFile = JSON.parse(data);
-                    if (!ampcastVersion || !ampcastConfig) {
-                        await error('Not a valid settings file.');
+                    const {ampcastVersion, backup}: BackupFile = JSON.parse(data);
+                    if (!ampcastVersion || !backup) {
+                        await error('Not a valid backup file.');
                         return;
                     }
-                    if (ampcastConfig.preferences) {
-                        Object.assign(preferences, ampcastConfig.preferences);
+                    if (backup.preferences) {
+                        Object.assign(preferences, backup.preferences);
                     }
-                    if (ampcastConfig.services) {
-                        setHiddenSources(ampcastConfig.services);
+                    if (backup.services) {
+                        Object.assign(localStorage, backup.services.localStorage);
                     }
-                    if (ampcastConfig.theme) {
-                        theme.apply(ampcastConfig.theme);
-                        theme.save();
+                    if (backup.userThemes) {
+                        await themeStore.addUserThemes(backup.userThemes);
                     }
-                    if (ampcastConfig.userThemes) {
-                        await themeStore.addUserThemes(ampcastConfig.userThemes);
+                    if (backup.visualizerFavorites) {
+                        await visualizerStore.addFavorites(backup.visualizerFavorites);
                     }
-                    if (ampcastConfig.visualizerFavorites) {
-                        await visualizerStore.addFavorites(ampcastConfig.visualizerFavorites);
+                    if (backup.visualizerSettings) {
+                        Object.assign(visualizerSettings, backup.visualizerSettings);
                     }
-                    if (ampcastConfig.visualizerSettings) {
-                        Object.assign(visualizerSettings, ampcastConfig.visualizerSettings);
+                    if (backup.pins) {
+                        await pinStore.addPins(backup.pins);
                     }
-                    if (ampcastConfig.listens) {
-                        await updateListens(ampcastConfig.listens);
+                    if (backup.listens) {
+                        await updateListens(backup.listens);
                     }
-                    alert({
+                    await alert({
                         icon: 'settings',
                         title: 'Import',
-                        message: 'Settings successfully imported.',
+                        message: (
+                            <>
+                                <p>Settings successfully imported.</p>
+                                <p>The application will now reload.</p>
+                            </>
+                        ),
                         system: true,
                     });
+                    if (backup.theme) {
+                        theme.apply(backup.theme);
+                        theme.save();
+                    }
+                    location.reload();
                 } catch (err) {
-                    console.error(err);
-                    await error('Could not load settings.');
+                    logger.error(err);
+                    await error('Could not load backup file.');
                 }
             }
         });

@@ -2,7 +2,8 @@ import {useMemo} from 'react';
 import BackupFile from 'types/BackupFile';
 import {t} from 'services/i18n';
 import {getListens} from 'services/localdb/listens';
-import {getHiddenSources} from 'services/mediaServices/servicesSettings';
+import {getPersonalMediaServices} from 'services/mediaServices';
+import pinStore from 'services/pins/pinStore';
 import preferences from 'services/preferences';
 import theme from 'services/theme';
 import themeStore from 'services/theme/themeStore';
@@ -10,7 +11,7 @@ import visualizerSettings from 'services/visualizer/visualizerSettings';
 import visualizerStore from 'services/visualizer/visualizerStore';
 
 export interface BackupEntry {
-    key: keyof BackupFile['ampcastConfig'];
+    key: keyof BackupFile['backup'];
     title: string;
     defaultChecked: boolean;
     data: any;
@@ -18,7 +19,8 @@ export interface BackupEntry {
 
 export default function useBackupEntries(): readonly BackupEntry[] {
     return useMemo(() => {
-        const services = getHiddenSources();
+        const services = {localStorage: getServicesLocalStorage()};
+        const pins = pinStore.getPins();
         const userThemes = themeStore.getUserThemes();
         const visualizerFavorites = visualizerStore.getFavorites();
         const listens = getListens().map((listen) => {
@@ -36,6 +38,12 @@ export default function useBackupEntries(): readonly BackupEntry[] {
                 data: {...preferences},
             },
             {key: 'services', title: 'Services', defaultChecked: true, data: services},
+            {
+                key: 'pins',
+                title: `Pins (${pins.length})`,
+                defaultChecked: true,
+                data: pins,
+            },
             {key: 'theme', title: 'Theme', defaultChecked: true, data: theme},
             {
                 key: 'userThemes',
@@ -63,4 +71,23 @@ export default function useBackupEntries(): readonly BackupEntry[] {
             },
         ];
     }, []);
+}
+
+function getServicesLocalStorage(): Record<string, string> {
+    const record: Record<string, string> = {};
+    const keys = [
+        'scrobbling/noScrobble',
+        'scrobbling/options',
+        'services/hidden',
+        'lookup/preferPersonalMedia',
+        'apple/bitrate',
+        ...getPersonalMediaServices()
+            .map((service) => service.id)
+            .map((id) => [`${id}/host`, `${id}/libraries`, `${id}/libraryId`])
+            .flat(),
+    ].map((key) => `ampcast/${key}`);
+    for (const key of keys) {
+        record[key] = localStorage[key];
+    }
+    return record;
 }

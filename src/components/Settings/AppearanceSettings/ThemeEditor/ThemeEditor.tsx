@@ -21,16 +21,6 @@ export default function ThemeEditor() {
         loadAllFonts(); // no point in cancelling this
     }, []);
 
-    useEffect(() => {
-        // Lock `font-size` for this dialog.
-        const systemStyle = document.getElementById('system')!.style;
-        systemStyle.setProperty('--font-size', String(theme.fontSize));
-        return () => {
-            theme.load();
-            systemStyle.removeProperty('--font-size');
-        };
-    }, []);
-
     const handleSubmit = useCallback(() => {
         theme.save();
     }, []);
