@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
 import {copyErrorReportToClipboard} from 'services/reporting';
-import ReportButton from 'components/Button/ReportButton';
+import CopyButton from 'components/Button/CopyButton';
 import './ErrorReport.scss';
 
 export interface ErrorReportProps {
@@ -18,9 +18,9 @@ export default function ErrorReport({error, reportedBy, reportingId}: ErrorRepor
         <div className="error-report">
             <pre className="note error">{error?.message || String(error)}</pre>
             <p>
-                <ReportButton onClick={handleCopyClick}>
+                <CopyButton onClick={handleCopyClick}>
                     {`Copy ${reportedBy === 'BSOD' ? 'crash' : 'error'} report`}
-                </ReportButton>
+                </CopyButton>
             </p>
         </div>
     );

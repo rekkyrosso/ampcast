@@ -50,22 +50,22 @@ export default function Backup() {
                     if (backup.preferences) {
                         Object.assign(preferences, backup.preferences);
                     }
-                    if (backup.services) {
+                    if (backup.services?.localStorage) {
                         Object.assign(localStorage, backup.services.localStorage);
                     }
-                    if (backup.userThemes) {
+                    if (backup.pins?.length) {
+                        await pinStore.addPins(backup.pins);
+                    }
+                    if (backup.userThemes?.length) {
                         await themeStore.addUserThemes(backup.userThemes);
                     }
-                    if (backup.visualizerFavorites) {
+                    if (backup.visualizerFavorites?.length) {
                         await visualizerStore.addFavorites(backup.visualizerFavorites);
                     }
                     if (backup.visualizerSettings) {
                         Object.assign(visualizerSettings, backup.visualizerSettings);
                     }
-                    if (backup.pins) {
-                        await pinStore.addPins(backup.pins);
-                    }
-                    if (backup.listens) {
+                    if (backup.listens?.length) {
                         await updateListens(backup.listens);
                     }
                     await alert({

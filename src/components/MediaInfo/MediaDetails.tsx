@@ -3,6 +3,8 @@ import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
+import {copyMediaObjectToClipboard} from 'services/reporting';
+import CopyButton from 'components/Button/CopyButton';
 import DetailsBox from 'components/ListView/DetailsBox';
 import {MediaInfoProps} from './MediaInfo';
 import './MediaDetails.scss';
@@ -12,6 +14,10 @@ export default function MediaDetails<T extends MediaObject>({item}: MediaInfoPro
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const {pager, parent, ...object} = item as any;
         return object;
+    }, [item]);
+
+    const handleCopyClick = useCallback(async () => {
+        await copyMediaObjectToClipboard(item);
     }, [item]);
 
     const renderItem = useCallback((value: any, key: keyof T) => {
@@ -72,11 +78,11 @@ export default function MediaDetails<T extends MediaObject>({item}: MediaInfoPro
     }, []);
 
     return (
-        <DetailsBox
-            className="media-details"
-            object={object as T}
-            renderItem={renderItem}
-            title="Medial Details"
-        />
+        <div className="media-details">
+            <DetailsBox object={object as T} renderItem={renderItem} title="Medial Details" />
+            <p>
+                <CopyButton onClick={handleCopyClick}>Copy data</CopyButton>
+            </p>
+        </div>
     );
 }

@@ -80,7 +80,7 @@ export default function AppPreferences() {
                         onChange={(e) => (preferences.mediaInfoTabs = e.target.checked)}
                     />
                     <label htmlFor={`${id}-media-info-tabs`}>
-                        Enable &quot;Details&quot; panel
+                        Show &quot;Details&quot; panel
                     </label>
                 </p>
             </fieldset>

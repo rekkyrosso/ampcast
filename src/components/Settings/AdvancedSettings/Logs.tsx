@@ -2,9 +2,9 @@ import React, {useCallback} from 'react';
 import {formatTime} from 'utils';
 import Logger, {Log, LogLevel} from 'utils/Logger';
 import {copyLogsToClipboard} from 'services/reporting';
+import CopyButton from 'components/Button/CopyButton';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import ListView, {ListViewLayout} from 'components/ListView';
-import ReportButton from 'components/Button/ReportButton';
 import useLogs from './useLogs';
 import './Logs.scss';
 
@@ -48,16 +48,18 @@ export default function Logs() {
 
     return (
         <form className="logs" method="dialog">
-            <ListView
-                title="Logs"
-                items={logs}
-                itemKey="id"
-                itemClassName={itemClassName}
-                layout={layout}
-            />
-            <p>
-                <ReportButton onClick={copyLogsToClipboard}>Copy logs</ReportButton>
-            </p>
+            <div className="logs-view">
+                <ListView
+                    title="Logs"
+                    items={logs}
+                    itemKey="id"
+                    itemClassName={itemClassName}
+                    layout={layout}
+                />
+                <p>
+                    <CopyButton onClick={copyLogsToClipboard}>Copy logs</CopyButton>
+                </p>
+            </div>
             <DialogButtons />
         </form>
     );

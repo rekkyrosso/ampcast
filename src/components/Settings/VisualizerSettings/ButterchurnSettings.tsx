@@ -10,20 +10,6 @@ export default function ButterchurnSettings() {
     return (
         <div className="butterchurn-settings">
             <fieldset>
-                <legend>Options</legend>
-                <p>
-                    <input
-                        id={`${id}-transparency`}
-                        type="checkbox"
-                        defaultChecked={visualizerSettings.butterchurnTransparency}
-                        onChange={(e) =>
-                            (visualizerSettings.butterchurnTransparency = e.target.checked)
-                        }
-                    />
-                    <label htmlFor={`${id}-transparency`}>Use transparency for light themes</label>
-                </p>
-            </fieldset>
-            <fieldset>
                 <legend>Refresh</legend>
                 <div className="table-layout">
                     <p>
@@ -45,7 +31,6 @@ export default function ButterchurnSettings() {
                             <option value="180">Every 3 minutes</option>
                             <option value="240">Every 4 minutes</option>
                             <option value="300">Every 5 minutes</option>
-                            <option value="600">Every 10 minutes</option>
                         </select>
                     </p>
                     <p>
@@ -66,6 +51,20 @@ export default function ButterchurnSettings() {
                         />
                     </p>
                 </div>
+            </fieldset>
+            <fieldset>
+                <legend>Options</legend>
+                <p>
+                    <input
+                        id={`${id}-transparency`}
+                        type="checkbox"
+                        defaultChecked={visualizerSettings.butterchurnTransparency}
+                        onChange={(e) =>
+                            (visualizerSettings.butterchurnTransparency = e.target.checked)
+                        }
+                    />
+                    <label htmlFor={`${id}-transparency`}>Use transparency for light themes</label>
+                </p>
             </fieldset>
         </div>
     );

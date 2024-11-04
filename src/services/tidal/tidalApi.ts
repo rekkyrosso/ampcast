@@ -601,10 +601,11 @@ function createMediaAlbum(album: TidalAlbum, included: Included): MediaAlbum {
     const attributes = album.attributes;
     const albumArtist = findArtist(album.relationships, included);
     const releaseDate = attributes?.releaseDate;
+    const externalUrl = attributes?.externalLinks?.[0]?.href;
     return {
         itemType: ItemType.Album,
         src: `tidal:album:${album.id}`,
-        externalUrl: attributes?.externalLinks?.[0]?.href,
+        externalUrl,
         title: attributes?.title || 'No title',
         artist: albumArtist?.attributes?.name,
         multiDisc: (attributes?.numberOfVolumes || 0) > 1,
@@ -616,6 +617,7 @@ function createMediaAlbum(album: TidalAlbum, included: Included): MediaAlbum {
         copyright: attributes?.copyright,
         explicit: attributes?.explicit,
         badge: getBadge(attributes?.mediaTags),
+        shareLink: externalUrl ? `${externalUrl}/u` : undefined,
     };
 }
 
@@ -688,12 +690,13 @@ function createMediaItem(
     const releaseDate = albumAttributes?.releaseDate;
     const isVideo = isTidalVideo(track);
     const imageLinks = (track as TidalVideo).attributes?.imageLinks || albumAttributes?.imageLinks;
+    const externalUrl = attributes?.externalLinks?.[0]?.href;
     return {
         itemType: ItemType.Media,
         mediaType: isVideo ? MediaType.Video : MediaType.Audio,
         // playbackType: PlaybackType.HLS,
         src: `tidal:${isVideo ? 'video' : 'track'}:${track.id}`,
-        externalUrl: attributes?.externalLinks?.[0]?.href,
+        externalUrl,
         title: attributes?.title || 'No title',
         artists: artists.length > 0 ? artists : albumArtist ? [albumArtist] : undefined,
         albumArtist: albumArtist,
@@ -708,6 +711,7 @@ function createMediaItem(
         copyright: attributes?.copyright,
         explicit: attributes?.explicit,
         badge: getBadge((attributes as TidalTrack['attributes'])?.mediaTags),
+        shareLink: externalUrl && !isVideo ? `${externalUrl}/u` : undefined,
     };
 }
 

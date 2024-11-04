@@ -22,7 +22,7 @@ import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {t} from 'services/i18n';
 import subsonicScrobbler from 'services/subsonic/factory/subsonicScrobbler';
-import {bestOf, getTextFromHtml} from 'utils';
+import {bestOf, getTextFromHtml, Logger} from 'utils';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './navidromeAuth';
 import NavidromePager from './NavidromePager';
 import navidromeSettings from './navidromeSettings';
@@ -32,6 +32,8 @@ import FilterBrowser from 'components/MediaBrowser/FilterBrowser';
 import ServerSettings from './components/NavidromeServerSettings';
 
 const serviceId: MediaServiceId = 'navidrome';
+
+const logger = new Logger(serviceId);
 
 const songSort = 'order_album_artist_name,order_album_name,disc_number,track_number';
 const albumSort = 'order_album_artist_name,order_album_name';
@@ -412,6 +414,15 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
             description: getTextFromHtml(info.biography),
             artist_mbid: info.musicBrainzId,
         };
+    }
+    if ((itemType === ItemType.Media || itemType === ItemType.Album) && !item.shareLink) {
+        try {
+            const shareLink = await subsonicApi.createShare(id);
+            item = {...item, shareLink};
+        } catch (err) {
+            logger.warn(err);
+            logger.info('Could not create share link');
+        }
     }
     if (!canStore(item) || item.inLibrary !== undefined) {
         return item;

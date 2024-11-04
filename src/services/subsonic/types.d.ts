@@ -1,153 +1,153 @@
 declare namespace Subsonic {
     interface Artist {
-        albumCount: number;
-        coverArt: string;
-        id: string;
-        name: string;
-        starred?: string;
-        album?: Album[];
+        readonly albumCount: number;
+        readonly coverArt: string;
+        readonly id: string;
+        readonly name: string;
+        readonly starred?: string;
+        readonly album?: Album[];
         // OpenSubsonic extensions
-        musicBrainzId?: string;
+        readonly musicBrainzId?: string;
     }
 
     interface SimilarArtist {
-        id: string;
-        name: string;
+        readonly id: string;
+        readonly name: string;
     }
 
     interface ArtistInfo {
-        biography?: string;
-        musicBrainzId?: string;
-        lastFmUrl?: string;
-        smallImageUrl?: string;
-        mediumImageUrl?: string;
-        largeImageUrl?: string;
-        similarArtist?: SimilarArtist[];
+        readonly biography?: string;
+        readonly musicBrainzId?: string;
+        readonly lastFmUrl?: string;
+        readonly smallImageUrl?: string;
+        readonly mediumImageUrl?: string;
+        readonly largeImageUrl?: string;
+        readonly similarArtist?: SimilarArtist[];
     }
 
     interface Album {
-        artist: string;
-        artistId: string;
-        coverArt: string;
-        created: string;
-        duration: number;
-        genre?: string;
-        id: string;
-        isDir?: true; // `true` if the result is not based on ID3 tags. Missing otherwise.
-        name: string;
-        playCount: number;
-        songCount: number;
-        starred?: string;
-        year?: number;
-        song?: Song[];
+        readonly artist: string;
+        readonly artistId: string;
+        readonly coverArt: string;
+        readonly created: string;
+        readonly duration: number;
+        readonly genre?: string;
+        readonly id: string;
+        readonly isDir?: true; // `true` if the result is not based on ID3 tags. Missing otherwise.
+        readonly name: string;
+        readonly playCount: number;
+        readonly songCount: number;
+        readonly starred?: string;
+        readonly year?: number;
+        readonly song?: Song[];
         // OpenSubsonic extensions
-        musicBrainzId?: string;
+        readonly musicBrainzId?: string;
     }
 
     interface AlbumInfo {
-        notes?: string;
-        musicBrainzId?: string;
-        lastFmUrl?: string;
-        smallImageUrl?: string;
-        mediumImageUrl?: string;
-        largeImageUrl?: string;
+        readonly notes?: string;
+        readonly musicBrainzId?: string;
+        readonly lastFmUrl?: string;
+        readonly smallImageUrl?: string;
+        readonly mediumImageUrl?: string;
+        readonly largeImageUrl?: string;
     }
 
     interface Song {
-        album: string;
-        albumId: string;
-        artist: string;
-        artistId: string;
-        bitRate: number;
-        contentType: string;
-        coverArt: string;
-        created: string;
-        discNumber?: number;
-        duration: number;
-        genre?: string;
-        id: string;
-        isDir: boolean;
-        isVideo?: false;
-        parent: string;
-        path: string;
-        playCount: number;
-        size: number;
-        starred?: string;
-        suffix: string;
-        title: string;
-        track: number;
-        type: 'music';
-        year?: number;
+        readonly album: string;
+        readonly albumId: string;
+        readonly artist: string;
+        readonly artistId: string;
+        readonly bitRate: number;
+        readonly contentType: string;
+        readonly coverArt: string;
+        readonly created: string;
+        readonly discNumber?: number;
+        readonly duration: number;
+        readonly genre?: string;
+        readonly id: string;
+        readonly isDir: boolean;
+        readonly isVideo?: false;
+        readonly parent: string;
+        readonly path: string;
+        readonly playCount: number;
+        readonly size: number;
+        readonly starred?: string;
+        readonly suffix: string;
+        readonly title: string;
+        readonly track: number;
+        readonly type: 'music';
+        readonly year?: number;
         // OpenSubsonic extensions
-        musicBrainzId?: string;
-        replayGain?: {
-            albumGain: number;
-            trackGain: number;
+        readonly musicBrainzId?: string;
+        readonly replayGain?: {
+            readonly albumGain: number;
+            readonly trackGain: number;
         };
     }
 
     interface Video {
-        album: string;
-        bitRate: number;
-        contentType: string;
-        created: string;
+        readonly album: string;
+        readonly bitRate: number;
+        readonly contentType: string;
+        readonly created: string;
         duration: number;
-        id: string;
-        isDir: boolean;
-        isVideo: true;
-        originalHeight: number;
-        originalWidth: number;
-        parent: string;
-        path: string;
-        playCount: number;
-        size: number;
-        starred?: string;
-        suffix: string;
-        title: string;
-        type: 'video';
+        readonly id: string;
+        readonly isDir: boolean;
+        readonly isVideo: true;
+        readonly originalHeight: number;
+        readonly originalWidth: number;
+        readonly parent: string;
+        readonly path: string;
+        readonly playCount: number;
+        readonly size: number;
+        readonly starred?: string;
+        readonly suffix: string;
+        readonly title: string;
+        readonly type: 'video';
     }
 
     interface Playlist {
-        changed: string;
-        comment: string;
-        coverArt: string;
-        created: string;
-        duration: number;
-        id: string;
-        name: string;
-        owner: string;
-        public: true;
-        songCount: number;
-        entry?: MediaItem[];
+        readonly changed: string;
+        readonly comment: string;
+        readonly coverArt: string;
+        readonly created: string;
+        readonly duration: number;
+        readonly id: string;
+        readonly name: string;
+        readonly owner: string;
+        readonly public: true;
+        readonly songCount: number;
+        readonly entry?: MediaItem[];
     }
 
     interface Genre {
-        songCount: number;
-        albumCount: number;
-        value: string;
+        readonly songCount: number;
+        readonly albumCount: number;
+        readonly value: string;
     }
 
     interface MusicFolder {
-        id: string;
-        name: string;
+        readonly id: string;
+        readonly name: string;
     }
 
     interface Index {
-        name: string;
-        artist: MusicFolder[];
-        child: MediaItem[];
+        readonly name: string;
+        readonly artist: MusicFolder[];
+        readonly child: MediaItem[];
     }
 
     interface Directory {
-        id: string;
-        parent: string;
-        isDir: true;
-        title: string;
-        name: string;
-        playCount: number;
-        created: string;
-        starred?: string;
-        child: DirectoryItem[];
+        readonly id: string;
+        readonly parent: string;
+        readonly isDir: true;
+        readonly title: string;
+        readonly name: string;
+        readonly playCount: number;
+        readonly created: string;
+        readonly starred?: string;
+        readonly child: DirectoryItem[];
     }
 
     type MediaItem = Song | Video;
@@ -155,19 +155,28 @@ declare namespace Subsonic {
     type MediaObject = Album | Artist | Playlist | DirectoryItem;
 
     interface ScrobbleParams {
-        id: string;
-        time?: number;
-        submission?: boolean;
+        readonly id: string;
+        readonly time?: number;
+        readonly submission?: boolean;
     }
 
     interface CreatePlaylistResponse {
-        playlist?: Playlist;
+        readonly playlist?: Playlist;
+    }
+
+    interface Shares {
+        readonly share: Share[];
+    }
+
+    interface Share {
+        readonly url: string;
+        
     }
 
     interface PingResponse {
-        version: string;
-        openSubsonic?: boolean;
-        serverVersion?: string;
-        type?: string;
+        readonly version: string;
+        readonly openSubsonic?: boolean;
+        readonly serverVersion?: string;
+        readonly type?: string;
     }
 }

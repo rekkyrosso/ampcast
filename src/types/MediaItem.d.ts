@@ -36,6 +36,7 @@ export default interface MediaItem extends BaseMediaObject {
     readonly copyright?: string;
     readonly explicit?: boolean;
     readonly badge?: string;
+    readonly shareLink?: string;
     // Playable sources that can't be derived from `src`.
     // Currently used by TIDAL(via Plex) audio quality sources.
     readonly srcs?: string[];

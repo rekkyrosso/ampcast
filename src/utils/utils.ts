@@ -12,6 +12,13 @@ export function bestOf<T extends object>(a: T, b: Partial<T> = {}): T {
     }, {} as T);
 }
 
+export function copyToClipboard(data: any): Promise<void> {
+    if (data && typeof data === 'object') {
+        data = JSON.stringify(data, undefined, 2);
+    }
+    return navigator.clipboard.writeText(String(data));
+}
+
 export function exists<T>(value: T): value is NonNullable<T> {
     return value != null;
 }

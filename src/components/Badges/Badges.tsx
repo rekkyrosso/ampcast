@@ -3,7 +3,7 @@ import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
-import {Badge, BitRateBadge, ExplicitBadge, ReplayGainBadge} from './Badge';
+import {Badge, BitRateBadge, ExplicitBadge, ReplayGainBadge, ShareLink} from './Badge';
 import './Badges.scss';
 
 export interface BadgesProps {
@@ -19,6 +19,7 @@ export default function Badges({item}: BadgesProps) {
                 <BitRateBadge item={item} />
             ) : null}
             {item.itemType === ItemType.Media ? <ReplayGainBadge item={item} /> : null}
+            <ShareLink item={item} />
         </div>
     );
 }

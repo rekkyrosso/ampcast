@@ -22,12 +22,12 @@ import PersonalMediaService from 'types/PersonalMediaService';
 import PlayableItem from 'types/PlayableItem';
 import Pin from 'types/Pin';
 import ServiceType from 'types/ServiceType';
+import {getTextFromHtml, Logger} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
-import {getTextFromHtml} from 'utils';
 import SubsonicPager from './SubsonicPager';
 import SubsonicApi from './SubsonicApi';
 import SubsonicSettings from './SubsonicSettings';
@@ -50,6 +50,7 @@ const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
 export default class SubsonicService implements PersonalMediaService {
     readonly id = this.serviceId;
     readonly api: SubsonicApi;
+    readonly logger = new Logger(this.serviceId);
     readonly settings: SubsonicSettings;
     readonly serviceType = ServiceType.PersonalMedia;
     readonly defaultHidden = true;
@@ -465,6 +466,17 @@ export default class SubsonicService implements PersonalMediaService {
         return this.settings.observeLibraryId();
     }
 
+    async addToPlaylist<T extends MediaItem>(
+        playlist: MediaPlaylist,
+        items: readonly T[]
+    ): Promise<void> {
+        const playlistId = this.getIdFromSrc(playlist);
+        return this.api.addToPlaylist(
+            playlistId,
+            items.map((item) => this.getIdFromSrc(item))
+        );
+    }
+
     canRate(): boolean {
         return false;
     }
@@ -487,17 +499,6 @@ export default class SubsonicService implements PersonalMediaService {
         // The only way to fix it is to make this function async.
         // It works for the majority of cases though.
         return a.src === b.src;
-    }
-
-    async addToPlaylist<T extends MediaItem>(
-        playlist: MediaPlaylist,
-        items: readonly T[]
-    ): Promise<void> {
-        const playlistId = this.getIdFromSrc(playlist);
-        return this.api.addToPlaylist(
-            playlistId,
-            items.map((item) => this.getIdFromSrc(item))
-        );
     }
 
     async createPlaylist<T extends MediaItem>(
@@ -578,6 +579,15 @@ export default class SubsonicService implements PersonalMediaService {
                     item.artist_mbid ||
                     (typeof info.musicBrainzId === 'string' ? info.musicBrainzId : undefined),
             };
+        }
+        if ((itemType === ItemType.Media || itemType === ItemType.Album) && !item.shareLink) {
+            try {
+                const shareLink = await this.api.createShare(id);
+                item = {...item, shareLink};
+            } catch (err) {
+                this.logger.warn(err);
+                this.logger.info('Could not create share link');
+            }
         }
         if (!this.canStore(item) || item.inLibrary !== undefined) {
             return item;

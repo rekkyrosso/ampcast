@@ -84,6 +84,11 @@ export default class SubsonicApi {
         return playlist;
     }
 
+    async createShare(id: string): Promise<string> {
+        const data = await this.get<{shares: Subsonic.Shares}>('createShare', {id});
+        return data.shares.share[0].url;
+    }
+
     async getAlbum(id: string): Promise<Subsonic.Album> {
         const data = await this.get<{album: Subsonic.Album}>('getAlbum', {id});
         return data.album;

@@ -1,10 +1,9 @@
 .badge {
     display: inline-flex;
-    flex-direction: column;
+    flex-direction: row;
     align-items: center;
     justify-content: center;
     text-align: center;
-    font-size: max(0.5em, 9px);
     padding: 0.25em 0.5em;
     background-color: var(--text-color);
     color: var(--background-color);
@@ -32,6 +31,29 @@
     &.explicit {
         background-color: orangered;
         color: white;
+    }
+
+    &.share-link {
+        background: none;
+        color: var(--text-color);
+        border-color: var(--text-color);
+        text-align: left;
+        text-decoration: none;
+        text-transform: none;
+        font-size: inherit;
+        cursor: pointer;
+
+        &.copied {
+            cursor: default;
+        }
+
+        .themed.dark & {
+            height: calc(2em - 2px);
+        }
+
+        .icon {
+            margin-left: 0.25em;
+        }
     }
 
     & ~ .badge {

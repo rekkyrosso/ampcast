@@ -1,11 +1,14 @@
 .logs {
-    .list-view {
+    &-view {
         font-size: max(0.75em, 10px);
-        height: 22rem;
-        font-family: monospace;
 
-        & + p {
-            margin-top: 1em;
+        .list-view {
+            height: 24rem;
+            font-family: monospace;
+
+            & + p {
+                margin-top: 1em;
+            }
         }
     }
 

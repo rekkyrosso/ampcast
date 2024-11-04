@@ -1,9 +1,10 @@
 import ErrorReport from 'types/ErrorReport';
+import MediaObject from 'types/MediaObject';
 import PlaybackState from 'types/PlaybackState';
 import Report from 'types/Report';
 import Snapshot from 'types/Snapshot';
-import {LogLevel, ReadableLog} from 'utils/Logger';
-import {isMiniPlayer, browser, getElapsedTimeText, Logger} from 'utils';
+import {browser, copyToClipboard, getElapsedTimeText, isMiniPlayer} from 'utils';
+import Logger, {LogLevel, ReadableLog} from 'utils/Logger';
 import audioSettings from 'services/audio/audioSettings';
 import {getListens} from 'services/localdb/listens';
 import mediaPlayback from 'services/mediaPlayback';
@@ -19,7 +20,7 @@ import {getCurrentVisualizer} from 'services/visualizer';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
 import visualizerStore from 'services/visualizer/visualizerStore';
 
-export async function copyErrorReportToClipboard(
+export function copyErrorReportToClipboard(
     error: any,
     reportedBy: ErrorReport['reportedBy'],
     reportingId?: string
@@ -28,9 +29,15 @@ export async function copyErrorReportToClipboard(
     return copyReportToClipboard({errorReport});
 }
 
-export async function copyLogsToClipboard(): Promise<void> {
+export function copyLogsToClipboard(): Promise<void> {
     const logs = getReportableLogs();
     return copyReportToClipboard({logs});
+}
+
+export function copyMediaObjectToClipboard(item: MediaObject): Promise<void> {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const {pager, ...data} = item as any;
+    return copyToClipboard(data);
 }
 
 export function createErrorReport(
@@ -46,7 +53,7 @@ export function createErrorReport(
     };
 }
 
-async function copyReportToClipboard(entries: Pick<Report, 'errorReport' | 'logs'>): Promise<void> {
+function copyReportToClipboard(entries: Pick<Report, 'errorReport' | 'logs'>): Promise<void> {
     const services = getServices();
     const report: Report = {
         ampcastVersion: __app_version__,
@@ -89,7 +96,7 @@ async function copyReportToClipboard(entries: Pick<Report, 'errorReport' | 'logs
             visualizerFavorites: visualizerStore.getFavorites().length,
         },
     };
-    await navigator.clipboard.writeText(JSON.stringify(report, undefined, 2));
+    return copyToClipboard(report);
 }
 
 function getReportableError(error: any): ErrorReport['error'] {
@@ -108,14 +115,13 @@ function getReportableError(error: any): ErrorReport['error'] {
         : null;
 }
 
-const readableLogLevel: Record<LogLevel, 'info' | 'log' | 'Warn' | 'ERROR'> = {
-    [LogLevel.Info]: 'info',
-    [LogLevel.Log]: 'log',
-    [LogLevel.Warn]: 'Warn',
-    [LogLevel.Error]: 'ERROR',
-};
-
 function getReportableLogs(): readonly ReadableLog[] {
+    const readableLogLevel: Record<LogLevel, 'info' | 'log' | 'Warn' | 'ERROR'> = {
+        [LogLevel.Info]: 'info',
+        [LogLevel.Log]: 'log',
+        [LogLevel.Warn]: 'Warn',
+        [LogLevel.Error]: 'ERROR',
+    };
     return Logger.logs.map((entry) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const {id, level, message, timeStamp, ...log} = entry;

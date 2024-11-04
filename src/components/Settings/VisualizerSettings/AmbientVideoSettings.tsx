@@ -44,18 +44,6 @@ export default function AmbientVideoSettings({
     return (
         <div className="ambient-video-settings">
             <fieldset>
-                <legend>Options</legend>
-                <p>
-                    <input
-                        id={`${id}-beats-overlay`}
-                        type="checkbox"
-                        defaultChecked={visualizerSettings.ambientVideoBeats}
-                        onChange={(e) => (visualizerSettings.ambientVideoBeats = e.target.checked)}
-                    />
-                    <label htmlFor={`${id}-beats-overlay`}>Show &quot;beats&quot; overlay</label>
-                </p>
-            </fieldset>
-            <fieldset>
                 <legend>Source</legend>
                 <p>
                     <input
@@ -90,6 +78,18 @@ export default function AmbientVideoSettings({
                         aria-labelledby={`${id}-source-youtube-label`}
                         ref={ambientVideoSourceRef}
                     />
+                </p>
+            </fieldset>
+            <fieldset>
+                <legend>Options</legend>
+                <p>
+                    <input
+                        id={`${id}-beats-overlay`}
+                        type="checkbox"
+                        defaultChecked={visualizerSettings.ambientVideoBeats}
+                        onChange={(e) => (visualizerSettings.ambientVideoBeats = e.target.checked)}
+                    />
+                    <label htmlFor={`${id}-beats-overlay`}>Show &quot;beats&quot; overlay</label>
                 </p>
             </fieldset>
         </div>

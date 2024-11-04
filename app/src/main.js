@@ -111,15 +111,15 @@ function createBridge() {
 
     // Synch the window chrome with the app theme.
     ipcMain.on('setFrameColor', (_, color) => {
-        mainWindow.setTitleBarOverlay({color});
+        mainWindow?.setTitleBarOverlay({color});
     });
     ipcMain.on('setFrameTextColor', (_, symbolColor) => {
-        mainWindow.setTitleBarOverlay({symbolColor});
+        mainWindow?.setTitleBarOverlay({symbolColor});
     });
     ipcMain.on('setFontSize', (_, fontSize) => {
         const dragRegionRemSize = 1.5; // defined in web client CSS
         const height = Math.max(Math.round(fontSize * dragRegionRemSize), 24);
-        mainWindow.setTitleBarOverlay({height});
+        mainWindow?.setTitleBarOverlay({height});
     });
 
     // Preferred port.
@@ -186,6 +186,10 @@ app.whenReady().then(async () => {
         Menu.setApplicationMenu(Menu.buildFromTemplate(menu));
         createBridge();
 
+        await createMainWindow(url, mainWindowState);
+        await checkForUpdatesAndNotify();
+        splash.close();
+
         // For mac apparently.
         app.on('activate', async () => {
             if (BrowserWindow.getAllWindows().length === 0) {
@@ -194,12 +198,8 @@ app.whenReady().then(async () => {
                 }
             }
         });
-
-        await createMainWindow(url, mainWindowState);
-        await checkForUpdatesAndNotify();
-        splash.close();
     } catch (err) {
-        splash.destroy();
+        splash?.destroy();
         throw err;
     }
 });
