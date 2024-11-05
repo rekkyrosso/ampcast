@@ -58,14 +58,14 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
             {source.secondaryLayout?.view === 'none' ? (
                 artistList
             ) : source.tertiaryLayout?.view === 'none' ? (
-                <Splitter id="artist-album-browser-layout" arrange="rows" primaryIndex={0}>
+                <Splitter id="artists-albums-layout" arrange="rows">
                     {artistList}
                     {albumList}
                 </Splitter>
             ) : (
-                <Splitter id="artist-browser-layout" arrange="columns" primaryIndex={1}>
+                <Splitter id="artists-albums-tracks-layout" arrange="columns">
                     {artistList}
-                    <Splitter id="artist-album-browser-layout" arrange="rows" primaryIndex={0}>
+                    <Splitter id="artist-albums-tracks-layout" arrange="rows">
                         {albumList}
                         {trackList}
                     </Splitter>

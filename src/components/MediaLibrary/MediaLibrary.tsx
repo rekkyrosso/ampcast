@@ -28,7 +28,7 @@ export default memo(function MediaLibrary() {
                 />
             </header>
             <div className="media-library-body">
-                <Splitter id="media-library-layout" arrange="columns" primaryIndex={1}>
+                <Splitter id="media-library-layout" arrange="columns">
                     <MediaSources onSelect={setSource} />
                     {source || <div className="panel empty" />}
                 </Splitter>

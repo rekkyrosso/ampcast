@@ -33,7 +33,7 @@ export default function Albums({source, ...props}: PagedItemsProps<MediaAlbum>) 
             {source.secondaryLayout?.view === 'none' ? (
                 albumList
             ) : (
-                <Splitter id="album-browser-layout" arrange="rows" primaryIndex={0}>
+                <Splitter id="albums-tracks-layout" arrange="rows">
                     {albumList}
                     {trackList}
                 </Splitter>

@@ -1,7 +1,6 @@
 .splitter {
-    --layout-pane-min-size: 80px;
-    --layout-splitter-size: 4px;
-
+    --layout-pane-min-size: 5em;
+    --layout-splitter-size: 0.3125em;
     position: absolute;
     display: flex;
     flex-direction: row;
@@ -13,12 +12,16 @@
         position: relative;
         overflow: hidden;
 
-        &-primary {
-            flex: auto;
+        &-1 {
+            flex-grow: 0;
+			flex-shrink: 1;
+            flex-basis: 33%;
         }
 
-        &-secondary {
-            flex: none;
+        &-2 {
+            flex-grow: 1;
+			flex-shrink: 0;
+            flex-basis: auto;
         }
     }
 

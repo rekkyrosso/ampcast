@@ -1,6 +1,6 @@
 import {LiteStorage} from 'utils';
 
-const storage = new LiteStorage('layout');
+const storage = new LiteStorage('layout/2');
 
 export default {
     get(id: string, defaultValue = 0): number {

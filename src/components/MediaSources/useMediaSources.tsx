@@ -54,6 +54,7 @@ function getService(service: MediaService): TreeNode<React.ReactNode> {
     return {
         id: service.id,
         label: <MediaServiceLabel service={service} showConnectivity />,
+        tooltip: service.name,
         value: (
             <MediaBrowser
                 service={service}
@@ -70,6 +71,7 @@ function getSources(service: MediaService): TreeNode<React.ReactNode>[] {
     return service.sources.filter(isSourceVisible).map((source) => ({
         id: source.id,
         label: <MediaSourceLabel icon={source.icon} text={source.title} />,
+        tooltip: `${service.name}: ${source.title}`,
         value: (
             <MediaBrowser
                 service={service}
@@ -93,6 +95,7 @@ function getPins(service: MediaService): TreeNode<React.ReactNode>[] {
                         text={source.title}
                     />
                 ),
+                tooltip: `${service.name}: ${source.title}`,
                 value: <MediaBrowser service={service} sources={[source]} key={source.id} />,
             };
         });

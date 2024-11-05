@@ -6,6 +6,7 @@ import Scrollable, {
     ScrollableHandle,
     ScrollablePosition,
 } from 'components/Scrollable';
+import useFontSize from 'hooks/useFontSize';
 import useKeyboardBusy from 'hooks/useKeyboardBusy';
 import useOnResize from 'hooks/useOnResize';
 import usePrevious from 'hooks/usePrevious';
@@ -21,6 +22,7 @@ export interface TreeNode<T> {
     readonly children?: readonly TreeNode<T>[];
     readonly startExpanded?: boolean;
     readonly icon?: IconName;
+    readonly tooltip?: string;
 }
 
 export interface TreeViewHandle {
@@ -64,6 +66,8 @@ export default function TreeView<T>({
     const rowIndex = visibleIds.indexOf(selectedId);
     const prevRowIndex = usePrevious(rowIndex) || 0;
     const prevNodeId = visibleIds[prevRowIndex - 1];
+    const fontSize = useFontSize(containerRef);
+    const [clientWidth, setClientWidth] = useState(0);
     const [height, setHeight] = useState(0);
     const [rowHeight, setRowHeight] = useState(defaultRowHeight);
     const [scrollTop, setScrollTop] = useState(0);
@@ -76,6 +80,8 @@ export default function TreeView<T>({
     const busy = keyboardBusy && !atEnd;
     const [debouncedValue, setDebouncedValue] = useState<T>(() => selectedValue);
     const hasVisibleNodes = visibleIds.length > 0;
+    const showTooltip = fontSize * 8 > clientWidth;
+    const minimalWidth = fontSize * 4 > clientWidth;
 
     useEffect(() => {
         if (treeViewRef) {
@@ -86,6 +92,9 @@ export default function TreeView<T>({
             };
         }
     }, [treeViewRef]);
+
+    useOnResize(containerRef, ({width}) => setClientWidth(width));
+    useOnResize(cursorRef, ({height}) => setRowHeight(height), 'border-box');
 
     useEffect(() => {
         if (noSelection && hasVisibleNodes) {
@@ -114,7 +123,7 @@ export default function TreeView<T>({
                 const parentNodeId = getParentNodeId(roots, selectedId);
                 const topIndex = visibleIds.indexOf(parentNodeId || selectedId);
                 const top = topIndex * rowHeight;
-                scrollableRef.current?.scrollTo({top})
+                scrollableRef.current?.scrollTo({top});
             }
         }
     }, [roots, selectedId, visibleIds, pageSize, hasScrolled, rowHeight]);
@@ -235,11 +244,9 @@ export default function TreeView<T>({
 
     const handleScroll = useCallback(({top}: ScrollablePosition) => setScrollTop(top), []);
 
-    useOnResize(cursorRef, ({height}) => setRowHeight(height), 'border-box');
-
     return (
         <div
-            className={`tree-view ${className}`}
+            className={`tree-view ${className} ${minimalWidth ? 'minimal-width' : ''}`}
             tabIndex={0}
             onContextMenu={handleContextMenu}
             onKeyDown={handleKeyDown}
@@ -264,6 +271,7 @@ export default function TreeView<T>({
                             nodeIndex={nodeIndex}
                             setSize={roots.length}
                             emptyMarker={true}
+                            showTooltip={showTooltip}
                             onSelect={setSelectedId}
                             onToggle={toggle}
                             key={id}

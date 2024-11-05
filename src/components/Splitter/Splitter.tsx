@@ -1,91 +1,66 @@
 import React, {Children, useCallback, useEffect, useRef, useState} from 'react';
 import {Subscription, fromEvent} from 'rxjs';
-import useBaseFontSize from 'hooks/useBaseFontSize';
+import {clamp, preventDefault} from 'utils';
+import layoutSettings from 'services/layoutSettings';
 import useOnResize from 'hooks/useOnResize';
-import {preventDefault} from 'utils';
-import LayoutPane from './LayoutPane';
-import useSplitterState from './useSplitterState';
 import './Splitter.scss';
 
 export interface SplitterProps {
     id?: string;
     arrange?: 'rows' | 'columns';
-    primaryIndex?: number;
     children: React.ReactNode;
 }
 
-export default function Splitter({
-    id,
-    arrange = 'columns',
-    primaryIndex = 0,
-    children,
-}: SplitterProps) {
+export default function Splitter({id = '', arrange = 'columns', children}: SplitterProps) {
     const containerRef = useRef<HTMLDivElement>(null);
-    const {secondaryPaneSize, setContainerSize, setSecondaryPaneSize, setMinSizes} =
-        useSplitterState(id);
+    const [containerSize, setContainerSize] = useState(0);
+    const [firstPaneSize, setFirstPaneSize] = useState(() => layoutSettings.get(id));
     const [dragStartPos, setDragStartPos] = useState(-1);
-    const [dragStartSize, setDragStartSize] = useState(0);
+    const [dragStartPaneSize, setDragStartPaneSize] = useState(0);
     const dragging = dragStartPos !== -1;
-    const fontSize = useBaseFontSize();
     const vertical = arrange === 'rows';
+    const noFirstPaneSize = !firstPaneSize;
 
     useEffect(() => {
-        if (fontSize > 0) {
-            let primaryMinSize = 0;
-            let secondaryMinSize = 0;
-            let splitterSize = 0;
+        if (noFirstPaneSize) {
             const container = containerRef.current!;
-            const minSize: keyof CSSStyleDeclaration = vertical ? 'minHeight' : 'minWidth';
-            const primaryPane = container.querySelector(
-                ':scope > .layout-pane-primary'
-            ) as HTMLElement;
-            if (primaryPane) {
-                primaryMinSize = parseInt(getComputedStyle(primaryPane)[minSize], 10) || 0;
+            const firstPane = container.querySelector(':scope > .layout-pane-1') as HTMLElement;
+            if (firstPane) {
+                const flexBasis = parseFloat(getComputedStyle(firstPane).flexBasis) || 0;
+                setFirstPaneSize(flexBasis / 100);
             }
-            const secondaryPane = container.querySelector(
-                ':scope > .layout-pane-secondary'
-            ) as HTMLElement;
-            if (secondaryPane) {
-                secondaryPane.style[minSize] = '';
-                secondaryMinSize = parseInt(getComputedStyle(secondaryPane)[minSize], 10) || 0;
-                secondaryPane.style[minSize] = 'unset';
-                const clientSize: keyof HTMLElement = vertical ? 'offsetHeight' : 'offsetWidth';
-                const splitter = container.querySelector(
-                    ':scope > .layout-splitter'
-                ) as HTMLElement;
-                splitterSize = splitter?.[clientSize] ?? 4;
-            }
-            setMinSizes(primaryMinSize, secondaryMinSize, splitterSize);
         }
-    }, [vertical, fontSize, setMinSizes]);
+    }, [noFirstPaneSize]);
 
     const handleMouseDown = useCallback(
         (event: React.MouseEvent) => {
             if (event.button === 0) {
                 const dragStartPos = vertical ? event.screenY : event.screenX;
+                const firstPaneSize = getFirstPaneSize(containerRef.current!, vertical);
                 setDragStartPos(dragStartPos);
-                setDragStartSize(secondaryPaneSize);
+                setDragStartPaneSize(firstPaneSize);
                 event.preventDefault();
             }
         },
-        [vertical, secondaryPaneSize]
+        [vertical]
     );
 
     const handleMouseMove = useCallback(
         (event: MouseEvent) => {
             const dragEndPos = vertical ? event.screenY : event.screenX;
             const dragDistance = dragEndPos - dragStartPos;
-            const size =
-                primaryIndex === 0 ? dragStartSize - dragDistance : dragStartSize + dragDistance;
-            setSecondaryPaneSize(size);
+            const size = clamp(0.0001, dragStartPaneSize + dragDistance / containerSize, 1);
+            setFirstPaneSize(size);
         },
-        [vertical, primaryIndex, dragStartPos, dragStartSize, setSecondaryPaneSize]
+        [vertical, dragStartPos, dragStartPaneSize, containerSize]
     );
 
     const endDrag = useCallback(() => {
+        const firstPaneSize = getFirstPaneSize(containerRef.current!, vertical);
+        layoutSettings.set(id, firstPaneSize);
         setDragStartPos(-1);
-        setDragStartSize(0);
-    }, []);
+        setDragStartPaneSize(0);
+    }, [id, vertical]);
 
     useEffect(() => {
         if (dragging) {
@@ -114,9 +89,7 @@ export default function Splitter({
         <div className={`splitter splitter-${arrange}`} id={id} ref={containerRef}>
             {Children.toArray(children)
                 .slice(0, 2)
-                .map((child, index) => {
-                    const primary = index === primaryIndex;
-                    const size = primary ? 0 : secondaryPaneSize;
+                .map((pane, index) => {
                     const nodes = [];
                     if (index === 1) {
                         nodes.push(
@@ -129,12 +102,31 @@ export default function Splitter({
                         );
                     }
                     nodes.push(
-                        <LayoutPane vertical={vertical} primary={primary} size={size} key={index}>
-                            {child}
-                        </LayoutPane>
+                        <div
+                            className={`layout-pane layout-pane-${index + 1}`}
+                            style={
+                                index === 0 && firstPaneSize
+                                    ? {flexBasis: `${firstPaneSize * 100}%`}
+                                    : undefined
+                            }
+                            key={index}
+                        >
+                            {pane}
+                        </div>
                     );
                     return nodes;
-                })}
+                })
+                .flat()}
         </div>
     );
+}
+
+function getFirstPaneSize(layout: HTMLElement, vertical: boolean): number {
+    const firstPane = layout.querySelector(':scope > .layout-pane-1') as HTMLElement;
+    if (firstPane) {
+        return vertical
+            ? firstPane.clientHeight / layout.clientHeight
+            : firstPane.clientWidth / layout.clientWidth;
+    }
+    return 0;
 }

@@ -10,6 +10,7 @@ export interface TreeViewNodeProps<T> extends TreeNode<T> {
     nodeIndex: number;
     setSize: number;
     emptyMarker?: boolean;
+    showTooltip?: boolean;
     onSelect?: (id: string) => void;
     onToggle?: (id: string) => void;
 }
@@ -25,6 +26,8 @@ export default function TreeViewNode<T>({
     nodeIndex,
     setSize,
     emptyMarker,
+    showTooltip,
+    tooltip,
     onSelect,
     onToggle,
 }: TreeViewNodeProps<T>) {
@@ -74,6 +77,7 @@ export default function TreeViewNode<T>({
             aria-setsize={setSize}
             aria-posinset={nodeIndex + 1}
             onMouseDown={handleMouseDown}
+            title={showTooltip && tooltip ? tooltip : undefined}
         >
             <span
                 className={`tree-view-row ${selected ? 'selected-text' : ''}`}
@@ -122,6 +126,7 @@ export default function TreeViewNode<T>({
                             rowHeight={rowHeight}
                             nodeIndex={nodeIndex}
                             setSize={children.length}
+                            showTooltip={showTooltip}
                             onSelect={onSelect}
                             onToggle={onToggle}
                             key={id}

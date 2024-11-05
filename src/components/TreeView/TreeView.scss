@@ -10,6 +10,13 @@
     user-select: none;
     cursor: default;
 
+    &.minimal-width {
+        .text,
+        .scrollbar {
+            display: none;
+        }
+    }
+
     &-node,
     &-node-children {
         display: block;

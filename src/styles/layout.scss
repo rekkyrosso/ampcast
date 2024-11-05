@@ -1,20 +1,57 @@
-.splitter {
-    --layout-pane-min-size: 15rem;
-    --layout-splitter-size: 0.3125rem;
+#app-layout {
+    & > .layout-pane-1 {
+        min-width: 20rem;
+        flex-basis: 78%;
+    }
+
+    & > .layout-pane-2 {
+        min-width: 20rem;
+    }
 }
 
-#media-library-layout > .layout-pane-secondary {
-    min-width: 10rem;
+#media-library-layout {
+    & > .layout-pane-1 {
+        min-width: 4rem;
+        flex-basis: 17%;
+    }
+    
+    & > .layout-pane-2 {
+        min-width: 14rem;
+    }
 }
 
-#media-playback-layout > .layout-pane-secondary {
-    min-height: 12rem;
+#media-playback-layout {
+    & > .layout-pane-1 {
+        min-height: 14.5rem;
+        flex-basis: 73.5%;
+    }
+
+    & > .layout-pane-2 {
+        min-height: 12rem;
+    }
 }
 
-#main-layout > .layout-pane-primary {
-    min-width: calc(10rem + var(--layout-pane-min-size) + var(--layout-splitter-size));
+#albums-tracks-layout,
+#artist-albums-tracks-layout,
+#artists-albums-layout,
+#playlists-items-layout {
+    & > .layout-pane-1 {
+        min-height: 12.5rem;
+        flex-basis: 50%;
+    }
+
+    & > .layout-pane-2 {
+        min-height: 13rem;
+    }
 }
 
-#main-layout > .layout-pane-secondary {
-    min-width: 20rem;
+#artists-albums-tracks-layout {
+    & > .layout-pane-1 {
+        min-width: 12rem;
+        flex-basis: 33%;
+    }
+
+    & > .layout-pane-2 {
+        min-width: 12rem;
+    }
 }

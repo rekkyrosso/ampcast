@@ -38,7 +38,7 @@ export default function Playlists({source, ...props}: PagedItemsProps<MediaPlayl
             {source.secondaryLayout?.view === 'none' ? (
                 playlistList
             ) : (
-                <Splitter id="playlist-browser-layout" arrange="rows" primaryIndex={0}>
+                <Splitter id="playlists-items-layout" arrange="rows">
                     {playlistList}
                     {playlistItems}
                 </Splitter>

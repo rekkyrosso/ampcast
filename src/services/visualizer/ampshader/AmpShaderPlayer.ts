@@ -247,17 +247,17 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
 
         const vertexShaderSrc = `#version 300 es\nin vec4 as_Position;void main(void){gl_Position=as_Position;}`;
         const vertexShader = gl.createShader(gl.VERTEX_SHADER)!;
-        gl.shaderSource(vertexShader, vertexShaderSrc);
-        gl.compileShader(vertexShader);
-
         const fragmentShader = gl.createShader(gl.FRAGMENT_SHADER)!;
+
+        gl.shaderSource(vertexShader, vertexShaderSrc);
         gl.shaderSource(fragmentShader, fragmentShaderSrc);
+
+        gl.compileShader(vertexShader);
         gl.compileShader(fragmentShader);
 
         const program = gl.createProgram()!;
         gl.attachShader(program, vertexShader);
         gl.attachShader(program, fragmentShader);
-
         gl.linkProgram(program);
 
         const tryProgram = () => {

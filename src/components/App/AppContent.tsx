@@ -27,7 +27,7 @@ export default function AppContent() {
     return isMiniPlayer ? (
         <MiniPlayer />
     ) : (
-        <Splitter id="main-layout" arrange="columns">
+        <Splitter id="app-layout" arrange="columns">
             <MediaLibrary />
             <MediaPlayback />
         </Splitter>

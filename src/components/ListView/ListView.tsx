@@ -164,6 +164,7 @@ export default function ListView<T>({
     const [dragItem1, dragItem2, dragItem3, dragItem4] =
         draggable || reorderable ? selectedItems : [];
     const selectedId = items[rowIndex] ? `${listViewId}-${items[rowIndex][itemKey]}` : '';
+    const isThin = fontSize * 20 > clientWidth;
 
     const focus = useCallback(() => containerRef.current?.focus(), []);
 
@@ -395,10 +396,6 @@ export default function ListView<T>({
 
     useOnResize(cursorRef, ({height}) => setRowHeight(height), 'border-box');
 
-    useEffect(() => {
-        containerRef.current!.classList.toggle('thin', fontSize * 20 > clientWidth);
-    }, [fontSize, clientWidth]);
-
     const handleClick = useCallback(
         (event: React.MouseEvent) => {
             const rowIndex = getRowIndexFromMouseEvent(event);
@@ -588,7 +585,9 @@ export default function ListView<T>({
 
     return (
         <div
-            className={`list-view list-view-${layout.view} ${className}`}
+            className={`list-view list-view-${layout.view} ${className} ${
+                isThin ? 'thin' : ''
+            }`}
             tabIndex={disabled ? undefined : isEmpty ? -1 : 0}
             onClick={handleClick}
             onContextMenu={handleContextMenu}
