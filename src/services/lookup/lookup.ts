@@ -6,7 +6,6 @@ import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import {
     canPlayNow,
     getMediaLookupServices,
-    getService,
     getServiceFromSrc,
     hasPlayableSrc,
 } from 'services/mediaServices';
