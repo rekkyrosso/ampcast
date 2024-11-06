@@ -116,12 +116,6 @@ class Lookup {
             const service = getServiceFromSrc(link);
             if (service) {
                 matches = await this.serviceLookup(service, item, isrcs);
-                if (matches.length === 0 && (service.id === 'plex' || service.id === 'tidal')) {
-                    const plexTidal = getService('plex-tidal');
-                    if (plexTidal) {
-                        matches = await this.serviceLookup(plexTidal, item, isrcs);
-                    }
-                }
             }
             if (matches.length === 0 && isrcs.length > 0) {
                 matches = await this.lookupByISRC(isrcs);

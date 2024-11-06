@@ -1,6 +1,6 @@
 #app-layout {
     & > .layout-pane-1 {
-        min-width: 20rem;
+        min-width: 18rem;
         flex-basis: 78%;
     }
 
@@ -22,7 +22,7 @@
 
 #media-playback-layout {
     & > .layout-pane-1 {
-        min-height: 14.5rem;
+        min-height: 11rem;
         flex-basis: 73.5%;
     }
 

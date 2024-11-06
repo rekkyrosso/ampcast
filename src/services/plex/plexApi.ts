@@ -26,9 +26,6 @@ export interface PlexRequest {
 }
 
 export const apiHost = `https://plex.tv/api/v2`;
-export const musicPlayHost = 'https://play.provider.plex.tv';
-export const musicProviderHost = 'https://music.provider.plex.tv';
-export const musicSearchHost = 'https://discover.provider.plex.tv';
 
 async function fetchJSON<T = any>({headers, body, ...request}: PlexRequest): Promise<T> {
     headers = {...headers, Accept: 'application/json'};
@@ -99,16 +96,10 @@ async function addToPlaylist(
     host = plexSettings.host
 ): Promise<void> {
     const ratingKey = getRatingKeyFromSrc(playlist);
-    const [tidalItems, plexItems] = partition(items, (item) => item.src.startsWith('plex-tidal:'));
-    const isTidalPlaylist = host === musicProviderHost;
     const method = 'PUT';
     const path = `/playlists/${ratingKey}/items`;
-    if (plexItems.length > 0 && !isTidalPlaylist) {
-        const uri = toPlexUri(plexItems);
-        await fetchJSON<plex.Playlist>({host, method, path, params: {uri}});
-    }
-    if (tidalItems.length > 0) {
-        const uri = toTidalUri(tidalItems);
+    if (items.length > 0) {
+        const uri = toPlexUri(items);
         await fetchJSON<plex.Playlist>({host, method, path, params: {uri}});
     }
 }
@@ -120,9 +111,7 @@ async function createPlaylist(
     host = plexSettings.host
 ): Promise<plex.Playlist> {
     const type = 'audio';
-    const isTidalPlaylist = host === musicProviderHost;
-    const [tidalItems, plexItems] = partition(items, (item) => item.src.startsWith('plex-tidal:'));
-    const uri = isTidalPlaylist ? toTidalUri(tidalItems) : toPlexUri(plexItems);
+    const uri = toPlexUri(items);
     const {
         MediaContainer: {Metadata: [playlist] = []},
     } = await fetchJSON<plex.MetadataResponse>({
@@ -140,26 +129,12 @@ async function createPlaylist(
             params: {summary},
         });
     }
-    if (!isTidalPlaylist && tidalItems.length > 0) {
-        // TODO: Put playlist items back into the original order (not easy).
-        await fetchJSON<plex.Playlist>({
-            host,
-            method: 'PUT',
-            path: `/playlists/${playlist.ratingKey}/items`,
-            params: {uri: toTidalUri(tidalItems)},
-        });
-    }
     return playlist as plex.Playlist;
 }
 
 function toPlexUri(items: readonly MediaItem[]): string {
     const ids = items.map(getRatingKeyFromSrc).join(',');
     return `server://${plexSettings.serverId}/com.plexapp.plugins.library/library/metadata/${ids}`;
-}
-
-function toTidalUri(items: readonly MediaItem[]): string {
-    const ids = items.map(getRatingKeyFromSrc).join(',');
-    return `provider://tv.plex.provider.music/library/metadata/${ids}`;
 }
 
 async function getAccount(token: string): Promise<plex.Account> {
@@ -251,26 +226,12 @@ async function search<T extends plex.MediaObject>({
     params: {type, ...params} = {},
     ...request
 }: PlexRequest): Promise<readonly T[]> {
-    let results: readonly plex.SearchResult[] = [];
-    const isTidal = request.host === musicSearchHost;
-    if (isTidal) {
-        const {
-            MediaContainer: {
-                SearchResults: [{SearchResult = []}],
-            },
-        } = await fetchJSON<plex.SearchResultsResponse>({...request, params});
-        results = SearchResult;
-    } else {
-        const {
-            MediaContainer: {SearchResult = []},
-        } = await fetchJSON<plex.SearchResultResponse>({...request, params});
-        results = SearchResult;
-    }
-
-    const items = results.map((result) => result.Metadata).filter((item) => item.type === type);
+    const {
+        MediaContainer: {SearchResult = []},
+    } = await fetchJSON<plex.SearchResultResponse>({...request, params});
+    const items = SearchResult.map((result) => result.Metadata).filter((item) => item.type === type);
     return getMetadata(
         items.map((item) => item.ratingKey),
-        isTidal ? musicProviderHost : undefined
     );
 }
 

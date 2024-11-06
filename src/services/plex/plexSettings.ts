@@ -4,7 +4,6 @@ import {nanoid} from 'nanoid';
 import DRMType from 'types/DRMType';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
-import PlexTidalStreamingQuality from './PlexTidalStreamingQuality';
 import {LiteStorage, stringContainsMusic} from 'utils';
 
 const storage = new LiteStorage('plex');
@@ -95,14 +94,6 @@ const plexSettings = {
 
     get serverToken(): string {
         return this.server?.accessToken || '';
-    },
-
-    get streamingQuality(): PlexTidalStreamingQuality {
-        return storage.getNumber('streamingQuality', PlexTidalStreamingQuality.High);
-    },
-
-    set streamingQuality(streamingQuality: PlexTidalStreamingQuality) {
-        storage.setNumber('streamingQuality', streamingQuality);
     },
 
     get userId(): string {

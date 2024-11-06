@@ -68,13 +68,6 @@ export function getPlaylistItemsByService<T extends MediaItem>(
         return service?.id || '';
     });
 
-    const plexItems = byService['plex'];
-    const plexTidalItems = byService['plex-tidal'];
-
-    if (plexTidalItems) {
-        byService['plex'] = plexItems?.concat(plexTidalItems) || plexTidalItems;
-    }
-
     const itemsByService = Object.keys(byService)
         .filter((id) => id !== '' && id !== 'listenbrainz')
         .map((id) => ({
