@@ -1,29 +1,30 @@
 import {useMemo} from 'react';
 import BackupFile from 'types/BackupFile';
 import {t} from 'services/i18n';
+import audioSettings from 'services/audio/audioSettings';
 import {getListens} from 'services/localdb/listens';
 import {getPersonalMediaServices} from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
 import preferences from 'services/preferences';
-import theme from 'services/theme';
 import themeStore from 'services/theme/themeStore';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
 import visualizerStore from 'services/visualizer/visualizerStore';
 
-export interface BackupEntry {
-    key: keyof BackupFile['backup'];
+type Backup = BackupFile['backup'];
+
+export interface BackupEntry<K extends keyof Backup> {
+    key: K;
     title: string;
     defaultChecked: boolean;
-    data: any;
+    data: Backup[K];
 }
 
-export default function useBackupEntries(): readonly BackupEntry[] {
+export default function useBackupEntries(): readonly BackupEntry<keyof Backup>[] {
     return useMemo(() => {
-        const services = {localStorage: getServicesLocalStorage()};
-        const pins = pinStore.getPins();
-        const userThemes = themeStore.getUserThemes();
-        const visualizerFavorites = visualizerStore.getFavorites();
-        const listens = getListens().map((listen) => {
+        const pins: Backup['pins'] = pinStore.getPins();
+        const userThemes: Backup['userThemes'] = themeStore.getUserThemes();
+        const visualizerFavorites: Backup['visualizerFavorites'] = visualizerStore.getFavorites();
+        const listens: Backup['listens'] = getListens().map((listen) => {
             if (!listen.lastfmScrobbledAt || !listen.listenbrainzScrobbledAt) {
                 return {...listen, lastfmScrobbledAt: -1, listenbrainzScrobbledAt: -1};
             }
@@ -35,16 +36,29 @@ export default function useBackupEntries(): readonly BackupEntry[] {
                 key: 'preferences',
                 title: 'Preferences',
                 defaultChecked: true,
-                data: {...preferences},
+                data: {
+                    app: {...preferences},
+                    audio: {...audioSettings},
+                },
             },
-            {key: 'services', title: 'Services', defaultChecked: true, data: services},
+            {
+                key: 'services',
+                title: 'Services',
+                defaultChecked: true,
+                data: {localStorage: getServicesLocalStorage()},
+            },
             {
                 key: 'pins',
                 title: `Pins (${pins.length})`,
                 defaultChecked: true,
                 data: pins,
             },
-            {key: 'theme', title: 'Theme', defaultChecked: true, data: theme},
+            {
+                key: 'theme',
+                title: 'Theme',
+                defaultChecked: true,
+                data: localStorage.getItem('ampcast/theme/current') || '',
+            },
             {
                 key: 'userThemes',
                 title: `User themes (${userThemes.length})`,
@@ -74,7 +88,7 @@ export default function useBackupEntries(): readonly BackupEntry[] {
 }
 
 function getServicesLocalStorage(): Record<string, string> {
-    const record: Record<string, string> = {};
+    const storage: Record<string, string> = {};
     const keys = [
         'scrobbling/noScrobble',
         'scrobbling/options',
@@ -87,7 +101,7 @@ function getServicesLocalStorage(): Record<string, string> {
             .flat(),
     ].map((key) => `ampcast/${key}`);
     for (const key of keys) {
-        record[key] = localStorage[key];
+        storage[key] = localStorage[key];
     }
-    return record;
+    return storage;
 }

@@ -26,26 +26,34 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
                 panel: <MediaServiceCredentials service={service} />,
             });
         }
-        if (service.serviceType === ServiceType.PersonalMedia) {
-            const ServerSettings =
-                service.components?.ServerSettings || PersonalMediaServerSettings;
-            tabs.push({
-                tab: 'Server',
-                panel: <ServerSettings service={service} />,
-            });
-        }
-        const AudioSettings = service.components?.AudioSettings;
-        if (AudioSettings) {
-            tabs.push({
-                tab: 'Audio',
-                panel: <AudioSettings service={service} />,
-            });
-        }
-        if (service.serviceType === ServiceType.DataService && service.canScrobble) {
-            tabs.push({
-                tab: 'Scrobbling',
-                panel: <ScrobblingSettings service={service} />,
-            });
+        switch (service.serviceType) {
+            case ServiceType.PublicMedia: {
+                const StreamingSettings = service.components?.StreamingSettings;
+                if (StreamingSettings) {
+                    tabs.push({
+                        tab: 'Streaming',
+                        panel: <StreamingSettings service={service} />,
+                    });
+                }
+                break;
+            }
+            case ServiceType.PersonalMedia: {
+                const ServerSettings =
+                    service.components?.ServerSettings || PersonalMediaServerSettings;
+                tabs.push({
+                    tab: 'Server',
+                    panel: <ServerSettings service={service} />,
+                });
+                break;
+            }
+            case ServiceType.DataService:
+                if (service.canScrobble) {
+                    tabs.push({
+                        tab: 'Scrobbling',
+                        panel: <ScrobblingSettings service={service} />,
+                    });
+                }
+                break;
         }
         if (service.createSourceFromPin) {
             tabs.push({

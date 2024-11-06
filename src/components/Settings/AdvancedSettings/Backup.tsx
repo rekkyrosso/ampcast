@@ -2,10 +2,10 @@ import React, {useCallback, useId, useRef} from 'react';
 import {Writable} from 'type-fest';
 import BackupFile from 'types/BackupFile';
 import {Logger, saveTextToFile} from 'utils';
+import audioSettings from 'services/audio/audioSettings';
 import {updateListens} from 'services/localdb/listens';
 import pinStore from 'services/pins/pinStore';
 import preferences from 'services/preferences';
-import theme from 'services/theme';
 import themeStore from 'services/theme/themeStore';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
 import visualizerStore from 'services/visualizer/visualizerStore';
@@ -22,14 +22,15 @@ export default function Backup() {
     const backupEntries = useBackupEntries();
 
     const handleExportClick = useCallback(async () => {
+        type Backup = BackupFile['backup'];
         const ampcastVersion = __app_version__;
-        const ampcastConfig: BackupFile['backup'] = backupEntries.reduce((data, entry) => {
+        const backup: Backup = backupEntries.reduce((data, entry) => {
             if (ref.current?.[entry.key]?.checked) {
-                data[entry.key] = entry.data;
+                data[entry.key] = entry.data as any;
             }
             return data;
-        }, {} as Writable<BackupFile['backup']>);
-        const backupFile: BackupFile = {ampcastVersion, backup: ampcastConfig};
+        }, {} as Writable<Backup>);
+        const backupFile: BackupFile = {ampcastVersion, backup};
         saveTextToFile('ampcast-backup.json', JSON.stringify(backupFile, undefined, 2));
     }, [backupEntries]);
 
@@ -48,13 +49,17 @@ export default function Backup() {
                         return;
                     }
                     if (backup.preferences) {
-                        Object.assign(preferences, backup.preferences);
+                        Object.assign(preferences, backup.preferences.app);
+                        Object.assign(audioSettings, backup.preferences.audio);
                     }
                     if (backup.services?.localStorage) {
                         Object.assign(localStorage, backup.services.localStorage);
                     }
                     if (backup.pins?.length) {
                         await pinStore.addPins(backup.pins);
+                    }
+                    if (backup.theme) {
+                        localStorage.setItem('ampcast/theme/current', backup.theme);
                     }
                     if (backup.userThemes?.length) {
                         await themeStore.addUserThemes(backup.userThemes);
@@ -79,10 +84,6 @@ export default function Backup() {
                         ),
                         system: true,
                     });
-                    if (backup.theme) {
-                        theme.apply(backup.theme);
-                        theme.save();
-                    }
                     location.reload();
                 } catch (err) {
                     logger.error(err);

@@ -1,5 +1,6 @@
 import {combineLatest, distinctUntilChanged, filter, map, pairwise, startWith, tap} from 'rxjs';
 import AudioManager from 'types/AudioManager';
+import AudioSettings from 'types/AudioSettings';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
@@ -9,7 +10,7 @@ import {observeCurrentItem, observePlaybackState} from 'services/mediaPlayback/p
 import mediaPlaybackSettings from 'services/mediaPlayback/mediaPlaybackSettings';
 import {getServiceFromSrc} from 'services/mediaServices';
 import OmniAudioContext from './OmniAudioContext';
-import {AudioSettings, observeAudioSettings} from './audioSettings';
+import {observeAudioSettings} from './audioSettings';
 
 const logger = new Logger('audio');
 

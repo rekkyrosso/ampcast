@@ -68,7 +68,7 @@ export async function addListen(state: PlaybackState): Promise<void> {
     }
 }
 
-export async function updateListens(items: Listen[]): Promise<void> {
+export async function updateListens(items: readonly Listen[]): Promise<void> {
     try {
         if (items.length > 0) {
             await store.items.bulkPut(items);

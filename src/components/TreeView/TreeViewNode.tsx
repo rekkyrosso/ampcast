@@ -70,6 +70,7 @@ export default function TreeViewNode<T>({
             className={`tree-view-node ${classNames}`}
             id={`tree-view-node-${id}`}
             role="treeitem"
+            title={showTooltip && tooltip ? tooltip : undefined}
             aria-selected={selected ? 'true' : undefined}
             aria-expanded={expanded ? 'true' : undefined}
             aria-labelledby={`tree-view-node-label-${id}`}
@@ -77,7 +78,6 @@ export default function TreeViewNode<T>({
             aria-setsize={setSize}
             aria-posinset={nodeIndex + 1}
             onMouseDown={handleMouseDown}
-            title={showTooltip && tooltip ? tooltip : undefined}
         >
             <span
                 className={`tree-view-row ${selected ? 'selected-text' : ''}`}

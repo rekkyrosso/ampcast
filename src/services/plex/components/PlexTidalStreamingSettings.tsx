@@ -3,7 +3,7 @@ import DialogButtons from 'components/Dialog/DialogButtons';
 import PlexTidalStreamingQuality from '../PlexTidalStreamingQuality';
 import plexSettings from '../plexSettings';
 
-export default function PlexTidalAudioSettings() {
+export default function PlexTidalStreamingSettings() {
     const id = useId();
     const ref = useRef<HTMLFormElement>(null);
     const streamingQuality = plexSettings.streamingQuality;
@@ -15,13 +15,13 @@ export default function PlexTidalAudioSettings() {
 
     return (
         <form
-            className="plex-tidal-audio-settings"
+            className="plex-tidal-streaming-settings"
             method="dialog"
             onSubmit={handleSubmit}
             ref={ref}
         >
             <fieldset>
-                <legend>Streaming quality</legend>
+                <legend>Quality</legend>
                 <p>
                     <input
                         type="radio"

@@ -1,12 +1,8 @@
 import type {Observable} from 'rxjs';
 import {map, startWith} from 'rxjs';
+import AudioSettings from 'types/AudioSettings';
 import ReplayGainMode from 'types/ReplayGainMode';
 import {LiteStorage} from 'utils';
-
-export interface AudioSettings {
-    replayGainMode: ReplayGainMode;
-    replayGainPreAmp: number;
-}
 
 const storage = new LiteStorage('audio');
 

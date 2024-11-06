@@ -1,6 +1,6 @@
+import AudioSettings from './AudioSettings';
 import Listen from './Listen';
 import Preferences from './Preferences';
-import Theme from './Theme';
 import UserTheme from './UserTheme';
 import VisualizerFavorite from './VisualizerFavorite';
 import VisualizerSettings from './VisualizerSettings';
@@ -8,15 +8,18 @@ import VisualizerSettings from './VisualizerSettings';
 export default interface BackupFile {
     readonly ampcastVersion: string;
     readonly backup: {
-        readonly preferences?: Preferences;
+        readonly preferences?: {
+            readonly app: Preferences;
+            readonly audio: AudioSettings;
+        };
         readonly services?: {
             readonly localStorage: Record<string, string>;
         };
-        readonly pins?: Pin[];
-        readonly theme?: Theme | UserTheme;
-        readonly userThemes?: UserTheme[];
-        readonly visualizerFavorites?: VisualizerFavorite[];
+        readonly pins?: readonly Pin[];
+        readonly theme?: string;
+        readonly userThemes?: readonly UserTheme[];
+        readonly visualizerFavorites?: readonly VisualizerFavorite[];
         readonly visualizerSettings?: VisualizerSettings;
-        readonly listens?: Listen[];
+        readonly listens?: readonly Listen[];
     };
 }

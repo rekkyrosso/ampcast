@@ -3,7 +3,7 @@ import DialogButtons from 'components/Dialog/DialogButtons';
 import appleSettings from '../appleSettings';
 import AppleBitrate from '../AppleBitrate';
 
-export default function AppleAudioSettings() {
+export default function AppleStreamingSettings() {
     const id = useId();
     const ref = useRef<HTMLFormElement>(null);
     const bitrate = appleSettings.bitrate;
@@ -21,13 +21,13 @@ export default function AppleAudioSettings() {
 
     return (
         <form
-            className="apple-audio-settings"
+            className="apple-streaming-settings"
             method="dialog"
             onSubmit={handleSubmit}
             ref={ref}
         >
             <fieldset>
-                <legend>Streaming quality</legend>
+                <legend>Quality</legend>
                 <p>
                     <input
                         type="radio"

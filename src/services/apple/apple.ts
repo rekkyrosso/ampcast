@@ -29,7 +29,7 @@ import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './apple
 import MusicKitPager, {MusicKitPage} from './MusicKitPager';
 import appleSettings from './appleSettings';
 import FilterBrowser from 'components/MediaBrowser/FilterBrowser';
-import AudioSettings from './components/AppleAudioSettings';
+import StreamingSettings from './components/AppleStreamingSettings';
 import Credentials from './components/AppleCredentials';
 import Login from './components/AppleLogin';
 import './bootstrap';
@@ -400,7 +400,7 @@ const apple: PublicMediaService = {
     serviceType: ServiceType.PublicMedia,
     defaultHidden: true,
     internetRequired: true,
-    components: {Credentials, Login, AudioSettings},
+    components: {Credentials, Login, StreamingSettings},
     get credentialsRequired(): boolean {
         return appleSettings.credentialsRequired;
     },

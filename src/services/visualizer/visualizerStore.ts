@@ -46,7 +46,7 @@ class VisualizerStore extends Dexie {
         }
     }
 
-    async addFavorites(visualizers: VisualizerFavorite[]): Promise<void> {
+    async addFavorites(visualizers: readonly VisualizerFavorite[]): Promise<void> {
         try {
             logger.log('addFavorites', visualizers.length);
             await this.favorites.bulkPut(

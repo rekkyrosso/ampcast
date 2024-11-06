@@ -33,7 +33,7 @@ import plexMediaType from './plexMediaType';
 import PlexPager, {PlexPagerConfig} from './PlexPager';
 import plexApi, {getPlexItemType, musicProviderHost, musicSearchHost} from './plexApi';
 import plex from './plex';
-import AudioSettings from './components/PlexTidalAudioSettings';
+import StreamingSettings from './components/PlexTidalStreamingSettings';
 import Login from './components/PlexTidalLogin';
 
 const serviceId = 'plex-tidal';
@@ -211,7 +211,7 @@ const tidal: PublicMediaService = {
     authService: plex,
     internetRequired: true,
     defaultHidden: true,
-    components: {Login, AudioSettings},
+    components: {Login, StreamingSettings},
     root: tidalSearch,
     sources: [
         tidalLibraryTracks,
