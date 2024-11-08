@@ -15,7 +15,14 @@ export default function Albums({source, ...props}: PagedItemsProps<MediaAlbum>) 
         setSelectedAlbum(album || null);
     }, []);
 
-    const albumList = <AlbumList {...props} title={source.title} onSelect={handleSelect} />;
+    const albumList = (
+        <AlbumList
+            {...props}
+            title={source.title}
+            onSelect={handleSelect}
+            reportingId={source.id}
+        />
+    );
 
     const trackList = (
         <MediaItemList
@@ -24,6 +31,7 @@ export default function Albums({source, ...props}: PagedItemsProps<MediaAlbum>) 
             className={`album-tracks ${selectedAlbum?.multiDisc ? 'multi-disc' : ''}`}
             pager={tracksPager}
             layout={albumTracksLayout}
+            reportingId={`${source.id}/tracks`}
             key={selectedAlbum?.src}
         />
     );

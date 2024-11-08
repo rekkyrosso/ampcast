@@ -10,10 +10,17 @@ export interface FilterSelectProps {
     service: MediaService;
     filterType: FilterType;
     itemType: ItemType;
+    onError?: (error: unknown) => void;
     onSelect?: (filter: MediaFilter) => void;
 }
 
-export default function FilterSelect({service, filterType, itemType, onSelect}: FilterSelectProps) {
+export default function FilterSelect({
+    service,
+    filterType,
+    itemType,
+    onError,
+    onSelect,
+}: FilterSelectProps) {
     const id = useId();
     const [filters, setFilters] = useState<readonly MediaFilter[]>([]);
     const [filter, setFilter] = useState<MediaFilter | undefined>();
@@ -31,9 +38,12 @@ export default function FilterSelect({service, filterType, itemType, onSelect}: 
     }, [filter, onSelect]);
 
     useEffect(() => {
-        const subscription = from(service.getFilters!(filterType, itemType)).subscribe(setFilters);
+        const subscription = from(service.getFilters!(filterType, itemType)).subscribe({
+            next: setFilters,
+            error: onError,
+        });
         return () => subscription.unsubscribe();
-    }, [service, filterType, itemType]);
+    }, [service, filterType, itemType, onError]);
 
     useEffect(() => {
         if (!filter) {

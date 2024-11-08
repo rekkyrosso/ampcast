@@ -73,7 +73,7 @@ export default function Playlist({
                 item.unplayable ||
                 (disableExplicitContent && item.explicit) ||
                 item.lookupStatus === LookupStatus.NotFound;
-            return `source-${serviceId} ${playing ? 'playing' : ''} ${
+            return `service-${serviceId} ${playing ? 'playing' : ''} ${
                 unplayable ? 'unplayable' : ''
             }`;
         },

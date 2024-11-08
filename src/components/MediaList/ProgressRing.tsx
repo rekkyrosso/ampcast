@@ -4,7 +4,7 @@ import './ProgressRing.scss';
 export interface ProgressRingProps {
     progress: number;
     busy?: boolean;
-    error?: boolean;
+    error?: unknown;
 }
 
 export default function ProgressRing({progress, busy, error}: ProgressRingProps) {
@@ -15,7 +15,7 @@ export default function ProgressRing({progress, busy, error}: ProgressRingProps)
     const complete = progress === 1;
 
     if (complete) {
-        error = false;
+        error = undefined;
         busy = false;
     }
 

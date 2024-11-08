@@ -15,18 +15,18 @@
             justify-content: center;
             width: 100%;
 
-            .airsonic-not-connected &.source-airsonic,
-            .ampache-not-connected &.source-ampache,
-            .apple-not-connected &.source-apple,
-            .emby-not-connected &.source-emby,
-            .gonic-not-connected &.source-gonic,
-            .jellyfin-not-connected &.source-jellyfin,
-            .navidrome-not-connected &.source-navidrome,
-            .subsonic-not-connected &.source-subsonic,
-            .plex-not-connected &.source-plex,
-            .plex-tidal-not-connected &.source-plex-tidal,
-            .spotify-not-connected &.source-spotify,
-            .tidal-not-connected &.source-tidal {
+            .airsonic-not-connected &.service-airsonic,
+            .ampache-not-connected &.service-ampache,
+            .apple-not-connected &.service-apple,
+            .emby-not-connected &.service-emby,
+            .gonic-not-connected &.service-gonic,
+            .jellyfin-not-connected &.service-jellyfin,
+            .navidrome-not-connected &.service-navidrome,
+            .subsonic-not-connected &.service-subsonic,
+            .plex-not-connected &.service-plex,
+            .plex-tidal-not-connected &.service-plex-tidal,
+            .spotify-not-connected &.service-spotify,
+            .tidal-not-connected &.service-tidal {
                 &.selected .icon.show-connectivity {
                     filter: grayscale(1);
                     opacity: 0.5;
@@ -37,18 +37,18 @@
                 }
             }
 
-            .airsonic-connected &.source-airsonic,
-            .ampache-connected &.source-ampache,
-            .apple-connected &.source-apple,
-            .emby-connected &.source-emby,
-            .gonic-connected &.source-gonic,
-            .jellyfin-connected &.source-jellyfin,
-            .navidrome-connected &.source-navidrome,
-            .subsonic-connected &.source-subsonic,
-            .plex-connected &.source-plex,
-            .plex-tidal-connected &.source-plex-tidal,
-            .spotify-connected &.source-spotify,
-            .tidal-connected &.source-tidal {
+            .airsonic-connected &.service-airsonic,
+            .ampache-connected &.service-ampache,
+            .apple-connected &.service-apple,
+            .emby-connected &.service-emby,
+            .gonic-connected &.service-gonic,
+            .jellyfin-connected &.service-jellyfin,
+            .navidrome-connected &.service-navidrome,
+            .subsonic-connected &.service-subsonic,
+            .plex-connected &.service-plex,
+            .plex-tidal-connected &.service-plex-tidal,
+            .spotify-connected &.service-spotify,
+            .tidal-connected &.service-tidal {
                 &.unplayable .icon.show-connectivity {
                     opacity: 0.5;
                 }

@@ -29,7 +29,14 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
         setSelectedAlbum(album || null);
     }, []);
 
-    const artistList = <ArtistList {...props} title={source.title} onSelect={handleArtistSelect} />;
+    const artistList = (
+        <ArtistList
+            {...props}
+            title={source.title}
+            onSelect={handleArtistSelect}
+            reportingId={source.id}
+        />
+    );
 
     const albumList = (
         <AlbumList
@@ -38,6 +45,7 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
             pager={albumsPager}
             layout={source.secondaryLayout || defaultAlbumsLayout}
             onSelect={handleAlbumSelect}
+            reportingId={`${source.id}/albums`}
             key={selectedArtist?.src}
         />
     );
@@ -49,6 +57,7 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
             className={`album-tracks ${selectedAlbum?.multiDisc ? 'multi-disc' : ''}`}
             pager={tracksPager}
             layout={albumTracksLayout}
+            reportingId={`${source.id}/albums/tracks`}
             key={selectedAlbum?.src}
         />
     );

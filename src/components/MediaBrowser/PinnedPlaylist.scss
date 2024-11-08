@@ -40,23 +40,31 @@
             font-size: 1em;
             line-height: 1.5;
         }
-
-        &-error {
-            padding: 1em;
-
-            .message {
-                display: flex;
-                flex-direction: row;
-                align-items: center;
-
-                .icon {
-                    margin-right: 0.25em;
-                }
-            }
-        }
     }
 
     .playlist-items {
         top: calc(var(--gutter-width) + 6.25em);
+    }
+
+    .error-box {
+        .message {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+
+            .icon {
+                margin-right: 0.25em;
+            }
+
+            .text {
+                white-space: nowrap;
+                overflow: hidden;
+                text-overflow: ellipsis;
+            }
+        }
+
+        .buttons {
+            text-align: right;
+        }
     }
 }

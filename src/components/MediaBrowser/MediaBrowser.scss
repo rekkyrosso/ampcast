@@ -12,11 +12,6 @@
     > .panel {
         position: static;
         flex: auto;
-
-        &.empty-screen,
-        &.error-screen {
-            margin-bottom: var(--gutter-width);
-        }
     }
 
     .splitter-rows {
@@ -67,5 +62,9 @@
             vertical-align: middle;
             margin: 0 0.5em;
         }
+    }
+
+    .error-screen {
+        margin-bottom: var(--gutter-width);
     }
 }

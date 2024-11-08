@@ -3,7 +3,7 @@ import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
 import MediaSource from 'types/MediaSource';
 import Pager from 'types/Pager';
-import {FullScreenError} from 'services/errors';
+import {MediaSourceError} from 'services/errors';
 import ErrorPager from 'services/pagers/ErrorPager';
 
 export default function useSource<T extends MediaObject>(
@@ -18,7 +18,7 @@ export default function useSource<T extends MediaObject>(
             setPager(pager);
             return () => pager?.disconnect();
         } catch (err) {
-            if (err instanceof FullScreenError) {
+            if (err instanceof MediaSourceError) {
                 const pager = new ErrorPager<T>(err);
                 setPager(pager);
             } else {

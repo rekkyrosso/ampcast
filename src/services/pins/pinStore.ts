@@ -57,7 +57,7 @@ class PinStore extends Dexie {
             await this.pins.bulkPut(
                 playlists.map((playlist) => {
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    const {pager, ...pin} = playlist;
+                    const {pager, trackCount, ...pin} = playlist;
                     return {...pin, isPinned: true};
                 })
             );

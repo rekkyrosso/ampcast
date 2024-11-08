@@ -4,6 +4,7 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import pinStore from 'services/pins/pinStore';
 import Icon from 'components/Icon';
+import {ErrorBoxProps} from 'components/Errors/ErrorBox';
 import MediaItemList from 'components/MediaList/MediaItemList';
 import PlaylistList from 'components/MediaList/PlaylistList';
 import {PagedItemsProps} from './PagedItems';
@@ -32,7 +33,10 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
         ? chartPlaylistItemsLayout
         : defaultPlaylistItemsLayout;
 
-    useEffect(() => () => pinStore.unlock(), [source]);
+    useEffect(() => {
+        // Teardown
+        return () => pinStore.unlock();
+    }, [source]);
 
     useEffect(() => {
         if (selectedPlaylist) {
@@ -44,21 +48,16 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
         setSelectedPlaylist(item || null);
     }, []);
 
-    const handleNotFound = useCallback(() => {
-        setError(Error('Not found'));
-    }, []);
-
     return (
         <div className="panel pinned-playlist">
             {error ? (
-                <PinnedPlaylistError src={source.id} />
+                <PinnedPlaylistError error={error} reportingId={source.id} />
             ) : (
                 <PlaylistList
                     {...props}
                     title={source.title}
                     layout={source.layout || defaultLayout}
                     onError={setError}
-                    onNoContent={handleNotFound}
                     onSelect={handleSelect}
                     statusBar={false}
                     disabled
@@ -69,27 +68,27 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
                 className="playlist-items"
                 pager={itemsPager}
                 layout={source.secondaryLayout || defaultSecondaryLayout}
+                emptyMessage="Empty playlist"
                 onError={setError}
+                reportingId={`${source.id}/items`}
             />
         </div>
     );
 }
 
-interface PinnedPlaylistErrorProps {
-    src: string;
-}
-
-function PinnedPlaylistError({src}: PinnedPlaylistErrorProps) {
+function PinnedPlaylistError({reportingId: src}: ErrorBoxProps) {
     const unpin = useCallback(() => {
-        pinStore.unlock();
-        pinStore.unpin({src});
+        if (src) {
+            pinStore.unlock();
+            pinStore.unpin({src});
+        }
     }, [src]);
 
     return (
-        <div className="playlists playlists-error">
+        <div className="panel playlists error-box">
             <p className="message">
                 <Icon name="error" />
-                <span className="text">Failed to load playlist.</span>
+                <span className="text">Failed to load playlist</span>
             </p>
             <p className="buttons">
                 <button onClick={unpin}>Unpin</button>

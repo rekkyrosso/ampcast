@@ -3,6 +3,7 @@ import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
+import ErrorBox from 'components/Errors/ErrorBox';
 import useSource from 'hooks/useSource';
 import PageHeader from './PageHeader';
 import PagedItems from './PagedItems';
@@ -17,6 +18,7 @@ export default function FilterBrowser<T extends MediaObject>({
     service,
     source,
 }: FilterBrowserProps<T>) {
+    const [error, setError] = useState<unknown>();
     const [filter, setFilter] = useState<MediaFilter | undefined>();
     const pager = useSource(source, filter);
 
@@ -29,9 +31,19 @@ export default function FilterBrowser<T extends MediaObject>({
                 service={service}
                 filterType={source.filterType!}
                 itemType={source.itemType}
+                onError={setError}
                 onSelect={setFilter}
             />
-            <PagedItems service={service} source={source} pager={pager} layout={source.layout} />
+            {error ? (
+                <ErrorBox error={error} reportedBy="FilterSelect" reportingId={source.id} />
+            ) : (
+                <PagedItems
+                    service={service}
+                    source={source}
+                    pager={pager}
+                    layout={source.layout}
+                />
+            )}
         </>
     );
 }

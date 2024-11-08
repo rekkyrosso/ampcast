@@ -7,10 +7,10 @@ import MediaSource from 'types/MediaSource';
 import actionsStore from 'services/actions/actionsStore';
 import Login from 'components/Login';
 import useIsLoggedIn from 'hooks/useIsLoggedIn';
-import useIsOnLine from 'hooks/useIsOnLine';
 import DefaultBrowser from './DefaultBrowser';
-import NoInternetError from './NoInternetError';
+import ErrorScreen from './ErrorScreen';
 import useErrorScreen from './useErrorScreen';
+import useNoInternetError from './useNoInternetError';
 
 export interface MediaBrowserProps<T extends MediaObject> {
     service: MediaService;
@@ -21,14 +21,14 @@ export default function MediaBrowser<T extends MediaObject>({
     service,
     sources,
 }: MediaBrowserProps<T>) {
-    const isOnLine = useIsOnLine();
     const isLoggedIn = useIsLoggedIn(service);
     const renderError = useErrorScreen(service, sources);
+    const noInternetError = useNoInternetError(service);
 
     return (
         <div className={`media-browser ${service.id}-browser`}>
-            {service.internetRequired && !isOnLine ? (
-                <NoInternetError />
+            {noInternetError ? (
+                <ErrorScreen error={noInternetError} reportingId={service?.id} service={service} />
             ) : isLoggedIn ? (
                 <ErrorBoundary fallbackRender={renderError}>
                     <Browser service={service} sources={sources} />
@@ -56,9 +56,9 @@ function Browser<T extends MediaObject>({service, sources}: MediaBrowserProps<T>
         return () => actionsStore.unlock(); // Teardown
     }, [service]);
 
-    if (SourceComponent) {
-        return <SourceComponent service={service} source={source} />;
-    } else {
-        return <DefaultBrowser service={service} sources={sources} />;
-    }
+    return SourceComponent ? (
+        <SourceComponent service={service} source={source} />
+    ) : (
+        <DefaultBrowser service={service} sources={sources} />
+    );
 }

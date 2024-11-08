@@ -51,6 +51,7 @@ export default function FolderBrowser({service, source}: FolderBrowserProps) {
                     pager={pager}
                     onEnter={handleEnter}
                     onDoubleClick={handleDoubleClick}
+                    reportingId={source.id}
                 />
             </div>
         </>

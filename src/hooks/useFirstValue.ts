@@ -1,13 +1,9 @@
-import {useEffect, useState} from 'react';
+import {useRef} from 'react';
 
 export default function useFirstValue<T>(value: T) {
-    const [firstValue, setFirstValue] = useState<T>(value);
-
-    useEffect(() => {
-        if (firstValue == null && value != null) {
-            setFirstValue(value);
-        }
-    }, [firstValue, value]);
-
-    return firstValue;
+    const valueRef = useRef<T>(value);
+    if (valueRef.current == null && value != null) {
+        valueRef.current = value;
+    }
+    return valueRef.current;
 }

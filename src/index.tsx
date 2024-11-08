@@ -5,7 +5,7 @@ import {ErrorBoundary} from 'react-error-boundary';
 import {createErrorReport} from 'services/reporting';
 import 'styles/index.scss';
 import App from 'components/App';
-import BSOD from 'components/ErrorScreen/BSOD';
+import BSOD from 'components/Errors/BSOD';
 
 Logger.createErrorReport = createErrorReport;
 

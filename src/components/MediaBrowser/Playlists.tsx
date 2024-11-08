@@ -20,7 +20,14 @@ export default function Playlists({source, ...props}: PagedItemsProps<MediaPlayl
         setSelectedPlaylist(item || null);
     }, []);
 
-    const playlistList = <PlaylistList {...props} title={source.title} onSelect={handleSelect} />;
+    const playlistList = (
+        <PlaylistList
+            {...props}
+            title={source.title}
+            onSelect={handleSelect}
+            reportingId={source.id}
+        />
+    );
 
     const playlistItems = (
         <MediaItemList
@@ -29,6 +36,8 @@ export default function Playlists({source, ...props}: PagedItemsProps<MediaPlayl
             className="playlist-items"
             pager={itemsPager}
             layout={source.secondaryLayout || defaultPlaylistItemsLayout}
+            emptyMessage="Empty playlist"
+            reportingId={`${source.id}/items`}
             key={selectedPlaylist?.src}
         />
     );

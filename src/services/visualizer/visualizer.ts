@@ -332,6 +332,7 @@ function isVisualizerExcluded(
     return serviceId === 'spotify' && !!visualizer.spotifyExcluded;
 }
 
+// Load visualizers as soon as the playlist is not empty.
 observeCurrentItem()
     .pipe(
         filter(exists),
@@ -340,6 +341,7 @@ observeCurrentItem()
     )
     .subscribe(logger);
 
+// New track.
 observeCurrentItem()
     .pipe(
         skipWhile((item) => !item),
@@ -348,6 +350,7 @@ observeCurrentItem()
     )
     .subscribe(logger);
 
+// New providers/visualizers.
 observeVisualizerProvider()
     .pipe(
         tap(() => nextVisualizer('new-provider')),
@@ -370,6 +373,7 @@ observeVisualizerProvider()
     )
     .subscribe(logger);
 
+// Butterchurn transitions.
 combineLatest([observePlaybackState(), observeVisualizerProvider(), observeVisualizerSettings()])
     .pipe(
         map(
@@ -378,8 +382,7 @@ combineLatest([observePlaybackState(), observeVisualizerProvider(), observeVisua
                 state.currentTime > 0 &&
                 (provider === 'butterchurn' || provider === 'random') &&
                 !settings.lockedVisualizer &&
-                // Use a minimum delay of 10 seconds (the maximum blend time allowed by the UI).
-                settings.butterchurnTransitionDelay > 10
+                settings.butterchurnTransitionDelay > 10 // Otherwise it changes too quickly.
         ),
         distinctUntilChanged(),
         switchMap((canTransition) =>

@@ -111,6 +111,7 @@ const tidal: PublicMediaService = {
         return tidalSettings.disabled;
     },
     defaultHidden: true,
+    internetRequired: true,
     get credentialsRequired(): boolean {
         return tidalSettings.credentialsRequired;
     },

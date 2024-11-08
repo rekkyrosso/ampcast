@@ -9,14 +9,17 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
+import Pin from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import DataService from 'types/DataService';
 import SimplePager from 'services/pagers/SimplePager';
+import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import listenbrainzApi from './listenbrainzApi';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './listenbrainzAuth';
 import ListenBrainzHistoryPager from './ListenBrainzHistoryPager';
 import ListenBrainzLikesPager from './ListenBrainzLikesPager';
 import ListenBrainzPlaylistsPager from './ListenBrainzPlaylistsPager';
+import ListenBrainzPlaylistItemsPager from './ListenBrainzPlaylistItemsPager';
 import ListenBrainzStatsPager from './ListenBrainzStatsPager';
 import listenbrainzSettings from './listenbrainzSettings';
 import {scrobble} from './listenbrainzScrobbler';
@@ -185,6 +188,7 @@ const listenbrainz: DataService = {
     canStore,
     compareForRating,
     createPlaylist,
+    createSourceFromPin,
     scrobble,
     store,
     observeIsLoggedIn,
@@ -221,6 +225,23 @@ async function createPlaylist<T extends MediaItem>(
         title: name,
         itemType: ItemType.Playlist,
         pager: new SimplePager(),
+    };
+}
+
+function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
+    return {
+        title: pin.title,
+        itemType: ItemType.Playlist,
+        id: pin.src,
+        icon: 'pin',
+        isPin: true,
+
+        search(): Pager<MediaPlaylist> {
+            const [, , playlist_mbid] = pin.src.split(':');
+            const pager = new ListenBrainzPlaylistItemsPager(playlist_mbid);
+            const playlist = {...pin, pager};
+            return new SimpleMediaPager(async () => [playlist]);
+        },
     };
 }
 

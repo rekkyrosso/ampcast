@@ -1,6 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import MediaObject from 'types/MediaObject';
 import {clamp} from 'utils';
+import {getReadableErrorMessage, MediaSourceError} from 'services/errors';
 import StatusBar from 'components/StatusBar';
 import ProgressRing from './ProgressRing';
 import './MediaListStatusBar.scss';
@@ -33,6 +34,7 @@ export default function MediaListStatusBar({
     const [pageSize, setPageSize] = useState(0);
     const itemCount = getArrayCount(items);
     const progress = getProgress(itemCount, size === undefined ? maxSize : size, pageSize || 50);
+    const isWarning = error instanceof MediaSourceError;
     let statusText: React.ReactNode = '';
 
     useEffect(() => {
@@ -44,10 +46,12 @@ export default function MediaListStatusBar({
     if (loading) {
         statusText = <span className="message">{loadingText}…</span>;
     } else {
-        if (error) {
-            const message = getErrorMessage(error);
+        if (isWarning) {
+            statusText = <span className="message">{error.message}</span>;
+        } else if (error) {
+            const message = getReadableErrorMessage(error);
             statusText = (
-                <span className="message error">{message ? `Error: ${message}` : 'Error'}</span>
+                <span className="message error">{`Error: ${message}`}</span>
             );
         } else if (itemCount === 0) {
             statusText = <span className="message">0 {itemNamePlural}</span>;
@@ -76,7 +80,7 @@ export default function MediaListStatusBar({
     return (
         <StatusBar className="media-list-status-bar">
             <p>
-                <ProgressRing busy={busy} error={!!error} progress={progress} />
+                {isWarning ? null : <ProgressRing busy={busy} error={error} progress={progress} />}
                 {statusText}
             </p>
         </StatusBar>
@@ -107,22 +111,4 @@ function getProgress(count: number, size: number | undefined, pageSize: number) 
     } else {
         return clamp(0.1, count / (pageSize * 10), 0.9);
     }
-}
-
-const statusCodes: Record<number, string> = {
-    401: 'Unauthorized',
-    403: 'Forbidden',
-    404: 'Not found',
-    408: 'Timeout',
-    429: 'Too many requests',
-    500: 'Internal server error',
-    502: 'Bad gateway',
-    503: 'Service unavailable',
-    504: 'Timeout',
-};
-
-function getErrorMessage(error: any): string {
-    return String(
-        error.message || error.statusText || statusCodes[error.status] || error.status || ''
-    );
 }

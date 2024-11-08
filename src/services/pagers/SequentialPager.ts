@@ -1,4 +1,4 @@
-import {catchError, concatMap, mergeMap, of, take, takeUntil, tap} from 'rxjs';
+import {catchError, concatMap, delayWhen, mergeMap, of, take, takeUntil, tap, timer} from 'rxjs';
 import MediaObject from 'types/MediaObject';
 import {Page, PagerConfig} from 'types/Pager';
 import {exists, Logger, uniqBy} from 'utils';
@@ -25,7 +25,6 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
 
             this.subscribeTo(
                 this.observeFetches().pipe(
-                    tap(() => (this.busy = true)),
                     concatMap(({index, length}) => {
                         if (
                             index + length + 2 >= this.items.length &&
@@ -33,21 +32,27 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
                         ) {
                             this.fetchCount++;
                             return of(undefined).pipe(
-                                tap(() => (this.error = undefined)),
+                                tap(() => (this.busy = true)),
                                 mergeMap(() => this.fetchNext(this.config.pageSize)),
-                                tap((page) => this.addPage(page)),
+                                tap({
+                                    next: (page) => {
+                                        this.error = undefined;
+                                        this.addPage(page);
+                                    },
+                                }),
                                 catchError((err: unknown) => {
                                     logger.error(err);
                                     this.error = err ?? Error('Unknown');
                                     return of(undefined);
                                 }),
-                                take(1)
+                                take(1),
+                                tap(() => (this.busy = false)),
+                                delayWhen(() => (this.error ? timer(5000) : of(0)))
                             );
                         } else {
                             return of(undefined);
                         }
                     }),
-                    tap(() => (this.busy = false)),
                     takeUntil(this.observeComplete())
                 ),
                 logger

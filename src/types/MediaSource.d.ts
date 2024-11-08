@@ -10,9 +10,15 @@ import MediaFolderItem from './MediaFolderItem';
 import MediaItem from './MediaItem';
 import MediaObject from './MediaObject';
 import MediaPlaylist from './MediaPlaylist';
+import MediaService from './MediaService';
 import MediaSourceLayout from './MediaSourceLayout';
 import MediaType from './MediaType';
 import Pager from './Pager';
+
+export type MediaSourceComponent<T extends MediaObject> = React.FC<{
+    service: MediaService;
+    source: MediaSource<T>;
+}>;
 
 export default interface MediaSource<T extends MediaObject> {
     readonly id: string;
@@ -29,10 +35,7 @@ export default interface MediaSource<T extends MediaObject> {
     readonly disabled?: boolean;
     readonly isPin?: boolean;
     readonly lockActionsStore?: boolean;
-    readonly component?: React.FC<{
-        source: MediaSource<T>;
-        service: MediaService;
-    }>;
+    readonly component?: MediaSourceComponent<T>;
     search(params?: MediaFilter | Record<string, unknown>): Pager<T>;
 }
 

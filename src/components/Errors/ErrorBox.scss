@@ -1,15 +1,11 @@
 @use 'styles/effects.scss';
 
-.error-screen {
-    display: flex;
-    flex-direction: column;
+.error-box {
+    @include effects.inset;
     flex: auto;
-
-    &-content {
-        @include effects.inset;
-        flex: auto;
-        padding: var(--gutter-width);
-    }
+    padding: 1em;
+    border-radius: var(--app-border-radius);
+    overflow: hidden;
 
     h2 {
         font-size: 1.5em;

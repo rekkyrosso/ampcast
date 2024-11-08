@@ -1,17 +1,17 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {ComponentType, useCallback, useEffect, useState} from 'react';
 import {Except} from 'type-fest';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
-import {FullScreenError} from 'services/errors';
+import ErrorBox, {ErrorBoxProps} from 'components/Errors/ErrorBox';
 import ListView, {ListViewProps} from 'components/ListView';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
+import useFirstValue from 'hooks/useFirstValue';
 import usePager from 'hooks/usePager';
 import usePreferences from 'hooks/usePreferences';
 import {performAction} from 'components/Actions';
-import HandledError from 'components/ErrorScreen/HandledError';
 import MediaListStatusBar from './MediaListStatusBar';
 import useMediaListLayout from './useMediaListLayout';
 import useOnDragStart from './useOnDragStart';
@@ -25,9 +25,11 @@ export interface MediaListProps<T extends MediaObject>
     layout?: MediaSourceLayout<T>;
     statusBar?: boolean;
     loadingText?: string;
-    onError?: (error: any) => void;
+    emptyMessage?: React.ReactNode;
+    reportingId?: string;
+    onError?: (error: unknown) => void;
     onLoad?: () => void;
-    onNoContent?: () => void;
+    Error?: ComponentType<ErrorBoxProps>;
 }
 
 export default function MediaList<T extends MediaObject>({
@@ -35,44 +37,42 @@ export default function MediaList<T extends MediaObject>({
     pager = null,
     statusBar = true,
     loadingText,
+    emptyMessage,
+    reportingId,
     onContextMenu,
     onDoubleClick,
     onEnter,
     onError,
     onLoad,
-    onNoContent,
     onSelect,
+    Error = ErrorBox,
     ...props
 }: MediaListProps<T>) {
     const layout = useMediaListLayout(props.layout);
     const [scrollIndex, setScrollIndex] = useState(0);
     const [pageSize, setPageSize] = useState(0);
     const [{items, loaded, busy, error, size, maxSize}, fetchAt] = usePager(pager);
+    const empty = items.length === 0;
+    const initialError = useFirstValue(empty ? error : null);
+    const success = loaded && !initialError;
     const [selectedItems, setSelectedItems] = useState<readonly T[]>([]);
-    const item = useCurrentlyPlaying();
-    const currentSrc = item?.src;
+    const currentItem = useCurrentlyPlaying();
+    const currentSrc = currentItem?.src;
     const viewClassName = useViewClassName(layout);
-    const hasItems = loaded ? items.length > 0 : undefined;
-    const onDragStart = useOnDragStart(selectedItems);
     const {disableExplicitContent} = usePreferences();
+    const onDragStart = useOnDragStart(selectedItems);
 
     useEffect(() => {
-        if (error && onError) {
-            onError(error);
-        }
-    }, [error, onError]);
-
-    useEffect(() => {
-        if (loaded && onLoad) {
+        if (success && onLoad) {
             onLoad();
         }
-    }, [loaded, onLoad]);
+    }, [success, onLoad]);
 
     useEffect(() => {
-        if (hasItems === false && onNoContent) {
-            onNoContent();
+        if (initialError && onError) {
+            onError(initialError);
         }
-    }, [hasItems, onNoContent]);
+    }, [initialError, onError]);
 
     useEffect(() => {
         if (scrollIndex >= 0 && pageSize > 0) {
@@ -142,13 +142,13 @@ export default function MediaList<T extends MediaObject>({
     const itemClassName = useCallback(
         (item: T) => {
             if (item?.itemType === ItemType.Media) {
-                const [source] = item.src.split(':');
+                const [serviceId] = item.src.split(':');
                 const playing = item.src === currentSrc ? 'playing' : '';
                 const unplayable =
                     item.unplayable || (disableExplicitContent && item.explicit)
                         ? 'unplayable'
                         : '';
-                return `source-${source} ${playing} ${unplayable}`;
+                return `service-${serviceId} ${playing} ${unplayable}`;
             } else {
                 return '';
             }
@@ -156,26 +156,30 @@ export default function MediaList<T extends MediaObject>({
         [currentSrc, disableExplicitContent]
     );
 
-    return error instanceof FullScreenError ? (
-        <HandledError error={error} />
-    ) : (
+    return (
         <div className={`panel ${className} ${viewClassName}`} onDragStart={onDragStart}>
-            <ListView
-                {...props}
-                className="media-list"
-                layout={layout}
-                items={items}
-                itemClassName={itemClassName}
-                itemKey={'src' as any} // TODO: remove cast
-                selectedIndex={items.length === 0 ? -1 : 0}
-                onContextMenu={onContextMenu || handleContextMenu}
-                onDoubleClick={handleDoubleClick}
-                onEnter={handleEnter}
-                onInfo={handleInfo}
-                onPageSizeChange={setPageSize}
-                onScrollIndexChange={setScrollIndex}
-                onSelect={handleSelect}
-            />
+            {empty && error ? (
+                <Error error={error} reportedBy="MediaList" reportingId={reportingId} />
+            ) : loaded && empty && emptyMessage ? (
+                <Empty message={emptyMessage} />
+            ) : (
+                <ListView
+                    {...props}
+                    className="media-list"
+                    layout={layout}
+                    items={items}
+                    itemClassName={itemClassName}
+                    itemKey={'src' as any} // TODO: remove cast
+                    selectedIndex={items.length === 0 ? -1 : 0}
+                    onContextMenu={onContextMenu || handleContextMenu}
+                    onDoubleClick={handleDoubleClick}
+                    onEnter={handleEnter}
+                    onInfo={handleInfo}
+                    onPageSizeChange={setPageSize}
+                    onScrollIndexChange={setScrollIndex}
+                    onSelect={handleSelect}
+                />
+            )}
             {statusBar ? (
                 <MediaListStatusBar
                     items={items}
@@ -188,6 +192,14 @@ export default function MediaList<T extends MediaObject>({
                     selectedCount={selectedItems.length}
                 />
             ) : null}
+        </div>
+    );
+}
+
+function Empty<T extends MediaObject>({message}: {message: MediaListProps<T>['emptyMessage']}) {
+    return (
+        <div className="error-box empty">
+            <div className="note">{typeof message === 'string' ? <p>{message}</p> : message}</div>
         </div>
     );
 }
