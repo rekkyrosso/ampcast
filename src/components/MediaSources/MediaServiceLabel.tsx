@@ -16,7 +16,6 @@ export default function MediaServiceLabel({
     showConnectivity,
     showRestrictedAccess,
 }: MediaServiceLabelProps) {
-    const authService = service.authService || service;
     const restrictedAccess =
         showRestrictedAccess && isPublicMediaService(service) && service.restrictedAccess;
 
@@ -24,23 +23,7 @@ export default function MediaServiceLabel({
         <MediaSourceLabel
             className="media-service-label"
             icon={service.icon as MediaSourceIconName}
-            text={
-                service === authService ? (
-                    `${service.name}${restrictedAccess ? ' *' : ''}`
-                ) : (
-                    <>
-                        {service.name}{' '}
-                        <span
-                            className={`auth-service auth-service-${authService.id} ${
-                                showConnectivity ? 'show-connectivity' : ''
-                            }`}
-                            title={`via ${authService.name}`}
-                        >
-                            {authService.name}
-                        </span>
-                    </>
-                )
-            }
+            text={`${service.name}${restrictedAccess ? ' *' : ''}`}
             showConnectivity={showConnectivity}
         />
     );

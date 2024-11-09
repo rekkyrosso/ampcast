@@ -21,6 +21,7 @@ import PersonalMediaService from 'types/PersonalMediaService';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
 import {loadLibrary, Logger} from 'utils';
+import {observeSourceVisibility} from './servicesSettings';
 
 const logger = new Logger('mediaServices');
 
@@ -181,6 +182,21 @@ function isMediaService(service: any): service is MediaService {
 function isMediaServiceType(service: MediaService, type: ServiceType): boolean {
     return isMediaService(service) && service.serviceType === type;
 }
+
+observeMediaServices()
+    .pipe(
+        switchMap((services) => services),
+        mergeMap((service) =>
+            observeSourceVisibility(service).pipe(
+                tap((visible) => {
+                    if (service.isConnected() && !visible) {
+                        service.logout();
+                    }
+                })
+            )
+        )
+    )
+    .subscribe(logger);
 
 // Connectivity logging.
 observeMediaServices()

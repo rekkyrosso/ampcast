@@ -31,7 +31,6 @@ type BaseMediaService = Auth & {
     readonly disabled?: boolean;
     readonly defaultHidden?: boolean; // `true` for most services
     readonly internetRequired?: boolean;
-    readonly authService?: MediaService; // Different `MediaService` for `Auth`
     readonly credentialsRequired?: boolean;
     readonly credentialsUrl?: string;
     readonly restrictedAccess?: boolean; // Approved users only (testers)

@@ -3,13 +3,12 @@ import {MediaServiceSettingsGeneralProps} from './MediaServiceSettingsGeneral';
 import './DisconnectButton.scss';
 
 export default function DisconnectButton({service}: MediaServiceSettingsGeneralProps) {
-    const authService = service.authService || service;
-    const [connected, setConnected] = useState(() => authService.isConnected());
+    const [connected, setConnected] = useState(() => service.isConnected());
 
     const handleDisconnect = useCallback(async () => {
-        await authService.logout();
-        setConnected(authService.isConnected());
-    }, [authService]);
+        await service.logout();
+        setConnected(service.isConnected());
+    }, [service]);
 
     return (
         <p>
@@ -19,7 +18,7 @@ export default function DisconnectButton({service}: MediaServiceSettingsGeneralP
                 onClick={handleDisconnect}
                 disabled={!connected}
             >
-                {connected ? `Disconnect from ${authService.name}…` : 'Not connected'}
+                {connected ? `Disconnect from ${service.name}…` : 'Not connected'}
             </button>
         </p>
     );
