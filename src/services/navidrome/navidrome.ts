@@ -189,7 +189,7 @@ const navidromeTracksByGenre: MediaSource<MediaItem> = {
     icon: 'genre',
     itemType: ItemType.Media,
     filterType: FilterType.ByGenre,
-    component: FilterBrowser,
+    Component: FilterBrowser,
     defaultHidden: true,
 
     search(genre?: MediaFilter): Pager<MediaItem> {
@@ -210,7 +210,7 @@ const navidromeAlbumsByGenre: MediaSource<MediaAlbum> = {
     icon: 'genre',
     itemType: ItemType.Album,
     filterType: FilterType.ByGenre,
-    component: FilterBrowser,
+    Component: FilterBrowser,
 
     search(genre?: MediaFilter): Pager<MediaAlbum> {
         if (genre) {
@@ -230,7 +230,7 @@ const navidromeArtistsByGenre: MediaSource<MediaArtist> = {
     icon: 'genre',
     itemType: ItemType.Artist,
     filterType: FilterType.ByGenre,
-    component: FilterBrowser,
+    Component: FilterBrowser,
     defaultHidden: true,
 
     search(genre?: MediaFilter): Pager<MediaArtist> {

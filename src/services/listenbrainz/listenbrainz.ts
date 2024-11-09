@@ -1,3 +1,4 @@
+import {Except} from 'type-fest';
 import Action from 'types/Action';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import ItemType from 'types/ItemType';
@@ -6,7 +7,7 @@ import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import MediaSource from 'types/MediaSource';
+import MediaSource, {MediaMultiSource} from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
 import Pin from 'types/Pin';
@@ -25,7 +26,6 @@ import listenbrainzSettings from './listenbrainzSettings';
 import {scrobble} from './listenbrainzScrobbler';
 import ListenBrainzHistoryBrowser from './components/ListenBrainzHistoryBrowser';
 import ListenBrainzScrobblesBrowser from './components/ListenBrainzScrobblesBrowser';
-import ListenBrainzTopBrowser from './components/ListenBrainzTopBrowser';
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
@@ -37,7 +37,7 @@ export const listenbrainzHistory: MediaSource<MediaItem> = {
     title: 'History',
     icon: 'clock',
     itemType: ItemType.Media,
-    component: ListenBrainzHistoryBrowser,
+    Component: ListenBrainzHistoryBrowser,
 
     search({startAt: max_ts = 0}: {startAt?: number} = {}): Pager<MediaItem> {
         return new ListenBrainzHistoryPager(max_ts ? {max_ts} : undefined);
@@ -49,7 +49,7 @@ export const listenbrainzScrobbles: MediaSource<MediaItem> = {
     title: 'Scrobbles',
     icon: 'clock',
     itemType: ItemType.Media,
-    component: ListenBrainzScrobblesBrowser,
+    Component: ListenBrainzScrobblesBrowser,
 
     search(): Pager<MediaItem> {
         // This doesn't get called (intercepted by `ListenBrainzScrobblesBrowser`).
@@ -70,64 +70,6 @@ const listenbrainzLovedTracks: MediaSource<MediaItem> = {
 
     search(): Pager<MediaItem> {
         return new ListenBrainzLikesPager();
-    },
-};
-
-const listenbrainzTopTracks: MediaSource<MediaItem> = {
-    id: 'listenbrainz/top/tracks',
-    title: 'Top Tracks',
-    icon: 'star',
-    itemType: ItemType.Media,
-    component: ListenBrainzTopBrowser,
-    layout: {
-        view: 'card compact',
-        fields: ['Thumbnail', 'Title', 'Artist', 'PlayCount'],
-    },
-
-    search(params: {range: string}): Pager<MediaItem> {
-        return new ListenBrainzStatsPager(
-            `stats/user/${listenbrainzSettings.userId}/recordings`,
-            params
-        );
-    },
-};
-
-const listenbrainzTopAlbums: MediaSource<MediaAlbum> = {
-    id: 'listenbrainz/top/albums',
-    title: 'Top Albums',
-    icon: 'star',
-    itemType: ItemType.Album,
-    component: ListenBrainzTopBrowser,
-    layout: {
-        view: 'card compact',
-        fields: ['Thumbnail', 'Title', 'Artist', 'Year', 'PlayCount'],
-    },
-
-    search(params: {range: string}): Pager<MediaAlbum> {
-        return new ListenBrainzStatsPager(
-            `stats/user/${listenbrainzSettings.userId}/releases`,
-            params
-        );
-    },
-};
-
-const listenbrainzTopArtists: MediaSource<MediaArtist> = {
-    id: 'listenbrainz/top/artists',
-    title: 'Top Artists',
-    icon: 'star',
-    itemType: ItemType.Artist,
-    component: ListenBrainzTopBrowser,
-    layout: {
-        view: 'card minimal',
-        fields: ['Thumbnail', 'Title', 'PlayCount'],
-    },
-    secondaryLayout: {view: 'none'},
-
-    search(params: {range: string}): Pager<MediaArtist> {
-        return new ListenBrainzStatsPager(
-            `stats/user/${listenbrainzSettings.userId}/artists`,
-            params
-        );
     },
 };
 
@@ -170,9 +112,25 @@ const listenbrainz: DataService = {
     internetRequired: true,
     root: listenbrainzScrobbles,
     sources: [
-        listenbrainzTopTracks,
-        listenbrainzTopAlbums,
-        listenbrainzTopArtists,
+        createTopMultiSource<MediaItem>(ItemType.Media, 'Top Tracks', 'recordings', {
+            layout: {
+                view: 'card compact',
+                fields: ['Thumbnail', 'Title', 'Artist', 'PlayCount'],
+            },
+        }),
+        createTopMultiSource<MediaAlbum>(ItemType.Album, 'Top Albums', 'releases', {
+            layout: {
+                view: 'card compact',
+                fields: ['Thumbnail', 'Title', 'Artist', 'Year', 'PlayCount'],
+            },
+        }),
+        createTopMultiSource<MediaArtist>(ItemType.Artist, 'Top Artists', 'artists', {
+            layout: {
+                view: 'card minimal',
+                fields: ['Thumbnail', 'Title', 'PlayCount'],
+            },
+            secondaryLayout: {view: 'none'},
+        }),
         listenbrainzLovedTracks,
         listenbrainzHistory,
         listenbrainzPlaylists,
@@ -249,4 +207,68 @@ async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
     if (canStore(item)) {
         await listenbrainzApi.store(item as MediaItem, inLibrary);
     }
+}
+
+function createTopMultiSource<T extends MediaObject>(
+    itemType: T['itemType'],
+    title: string,
+    path: string,
+    layouts: Pick<MediaSource<T>, 'layout' | 'secondaryLayout' | 'tertiaryLayout'>
+): MediaMultiSource<T> {
+    const icon = 'star';
+    const sourceProps: Except<MediaSource<T>, 'id' | 'search' | 'title'> = {
+        icon,
+        itemType,
+        ...layouts,
+    };
+    return {
+        id: `listenbrainz/top/${path}`,
+        title,
+        icon,
+        searchable: false,
+        sources: [
+            createTopSource<T>(path, 'all_time', {
+                title: 'All time',
+                ...sourceProps,
+            }),
+            createTopSource<T>(path, 'this_year', {
+                title: 'Year',
+                ...sourceProps,
+            }),
+            createTopSource<T>(path, 'this_month', {
+                title: 'Month',
+                ...sourceProps,
+            }),
+            createTopSource<T>(path, 'this_week', {
+                title: 'Week',
+                ...sourceProps,
+            }),
+        ],
+    } as unknown as MediaMultiSource<T>; // ಠ_ಠ
+}
+
+function createTopSource<T extends MediaObject>(
+    path: string,
+    range:
+        | 'week'
+        | 'month'
+        | 'quarter'
+        | 'half_yearly'
+        | 'year'
+        | 'all_time'
+        | 'this_week'
+        | 'this_month'
+        | 'this_year',
+    props: Except<MediaSource<T>, 'id' | 'search'>
+): MediaSource<T> {
+    return {
+        ...props,
+        id: `listenbrainz/top/${path}/${range}`,
+
+        search(): Pager<T> {
+            return new ListenBrainzStatsPager(`stats/user/${listenbrainzSettings.userId}/${path}`, {
+                range,
+            });
+        },
+    };
 }

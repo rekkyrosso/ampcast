@@ -50,17 +50,12 @@ function getServices(): TreeNode<React.ReactNode>[] {
 }
 
 function getService(service: MediaService): TreeNode<React.ReactNode> {
-    const root = service.root;
     return {
         id: service.id,
         label: <MediaServiceLabel service={service} showConnectivity />,
         tooltip: service.name,
         value: (
-            <MediaBrowser
-                service={service}
-                sources={'sources' in root ? root.sources : [root]}
-                key={getServiceKey(service)}
-            />
+            <MediaBrowser service={service} source={service.root} key={getServiceKey(service)} />
         ),
         startExpanded: true,
         children: [...getSources(service), ...getPins(service)],
@@ -75,7 +70,7 @@ function getSources(service: MediaService): TreeNode<React.ReactNode>[] {
         value: (
             <MediaBrowser
                 service={service}
-                sources={'sources' in source ? source.sources : [source]}
+                source={source}
                 key={`${getServiceKey(service)}/${source.id}`}
             />
         ),
@@ -96,7 +91,7 @@ function getPins(service: MediaService): TreeNode<React.ReactNode>[] {
                     />
                 ),
                 tooltip: `${service.name}: ${source.title}`,
-                value: <MediaBrowser service={service} sources={[source]} key={source.id} />,
+                value: <MediaBrowser service={service} source={source} key={source.id} />,
             };
         });
     } else {

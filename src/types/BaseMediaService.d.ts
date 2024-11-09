@@ -11,27 +11,10 @@ import MediaItem from './MediaItem';
 import MediaObject from './MediaObject';
 import MediaPlaylist from './MediaPlaylist';
 import MediaService from './MediaService';
-import MediaSource, {MediaMultiSource} from './MediaSource';
+import MediaSource, {AnyMediaSource, AnyMediaSources} from './MediaSource';
 import PlayableItem from './PlayableItem';
 import PlaybackType from './PlaybackType';
 import Pin from './Pin';
-
-type AnyMediaSource =
-    | MediaSource<MediaAlbum>
-    | MediaSource<MediaArtist>
-    | MediaSource<MediaItem>
-    | MediaSource<MediaFolderItem>
-    | MediaSource<MediaPlaylist>
-    | MediaMultiSource;
-
-type AnyMediaSources = readonly (
-    | MediaSource<MediaAlbum>
-    | MediaSource<MediaArtist>
-    | MediaSource<MediaItem>
-    | MediaSource<MediaFolderItem>
-    | MediaSource<MediaPlaylist>
-    | MediaMultiSource
-)[];
 
 type BaseMediaService = Auth & {
     readonly id: MediaServiceId;
@@ -56,7 +39,7 @@ type BaseMediaService = Auth & {
     readonly icons?: Partial<Record<LibraryAction, IconName>>;
     readonly labels?: Partial<Record<LibraryAction, string>>;
     readonly editablePlaylists?: MediaSource<MediaPlaylist>;
-    readonly components?: {
+    readonly Components?: {
         Credentials?: React.FC<{service: MediaService}>;
         Login?: React.FC<{service: MediaService}>;
     };

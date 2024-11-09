@@ -15,4 +15,8 @@
         margin-right: 1px;
         cursor: pointer;
     }
+
+    & + .error-box {
+        margin-bottom: var(--gutter-width);
+    }
 }

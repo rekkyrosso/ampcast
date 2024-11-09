@@ -6,7 +6,7 @@ import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
-import MediaSource from 'types/MediaSource';
+import MediaSource, {MediaMultiSource} from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
 import ServiceType from 'types/ServiceType';
@@ -21,7 +21,6 @@ import lastfmSettings from './lastfmSettings';
 import {scrobble} from './lastfmScrobbler';
 import LastFmHistoryBrowser from './components/LastFmHistoryBrowser';
 import LastFmScrobblesBrowser from './components/LastFmScrobblesBrowser';
-import LastFmTopBrowser from './components/LastFmTopBrowser';
 import Credentials from './components/LastFmCredentials';
 import Login from './components/LastFmLogin';
 
@@ -50,7 +49,7 @@ export const lastfmHistory: MediaSource<MediaItem> = {
     title: 'History',
     icon: 'clock',
     itemType: ItemType.Media,
-    component: LastFmHistoryBrowser,
+    Component: LastFmHistoryBrowser,
 
     search({startAt: to = 0}: {startAt?: number} = {}): Pager<MediaItem> {
         return new LastFmHistoryPager(to ? {to} : undefined);
@@ -62,7 +61,7 @@ export const lastfmScrobbles: MediaSource<MediaItem> = {
     title: 'Scrobbles',
     icon: 'clock',
     itemType: ItemType.Media,
-    component: LastFmScrobblesBrowser,
+    Component: LastFmScrobblesBrowser,
 
     search(): Pager<MediaItem> {
         // This doesn't get called (intercepted by `LastFmScrobblesBrowser`).
@@ -108,25 +107,19 @@ const lastfm: DataService = {
     canScrobble: true,
     defaultHidden: true,
     internetRequired: true,
-    components: {Credentials, Login},
+    Components: {Credentials, Login},
     get credentialsRequired(): boolean {
         return lastfmSettings.credentialsRequired;
     },
     root: lastfmScrobbles,
     sources: [
-        createTopView<MediaItem>('user.getTopTracks', {
-            title: 'Top Tracks',
-            itemType: ItemType.Media,
+        createTopMultiSource<MediaItem>(ItemType.Media, 'Top Tracks', 'user.getTopTracks', {
             layout: topTracksLayout,
         }),
-        createTopView<MediaAlbum>('user.getTopAlbums', {
-            title: 'Top Albums',
-            itemType: ItemType.Album,
+        createTopMultiSource<MediaAlbum>(ItemType.Album, 'Top Albums', 'user.getTopAlbums', {
             layout: albumLayout,
         }),
-        createTopView<MediaArtist>('user.getTopArtists', {
-            title: 'Top Artists',
-            itemType: ItemType.Artist,
+        createTopMultiSource<MediaArtist>(ItemType.Artist, 'Top Artists', 'user.getTopArtists', {
             layout: artistLayout,
             secondaryLayout: albumLayout,
         }),
@@ -246,18 +239,54 @@ async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
     }
 }
 
-function createTopView<T extends MediaObject>(
+function createTopMultiSource<T extends MediaObject>(
+    itemType: T['itemType'],
+    title: string,
     method: string,
-    props: Except<MediaSource<T>, 'id' | 'icon' | 'search'>
+    layouts: Pick<MediaSource<T>, 'layout' | 'secondaryLayout' | 'tertiaryLayout'>
+): MediaMultiSource<T> {
+    const icon = 'star';
+    const sourceProps: Except<MediaSource<T>, 'id' | 'search' | 'title'> = {
+        icon,
+        itemType,
+        ...layouts,
+    };
+    return {
+        id: `lastfm/top/${method.slice(11).toLowerCase()}`,
+        title,
+        icon,
+        searchable: false,
+        sources: [
+            createTopSource<T>(method, 'overall', {
+                title: 'All time',
+                ...sourceProps,
+            }),
+            createTopSource<T>(method, '12month', {
+                title: 'Year',
+                ...sourceProps,
+            }),
+            createTopSource<T>(method, '1month', {
+                title: 'Month',
+                ...sourceProps,
+            }),
+            createTopSource<T>(method, '7day', {
+                title: 'Week',
+                ...sourceProps,
+            }),
+        ],
+    } as unknown as MediaMultiSource<T>; // ಠ_ಠ
+}
+
+function createTopSource<T extends MediaObject>(
+    method: string,
+    period: 'overall' | '7day' | '1month' | '3month' | '6month' | '12month',
+    props: Except<MediaSource<T>, 'id' | 'search'>
 ): MediaSource<T> {
     return {
         ...props,
-        component: LastFmTopBrowser,
-        id: `lastfm/top/${method.slice(11).toLowerCase()}`,
-        icon: 'star',
-        searchable: false,
+        id: `lastfm/top/${method.slice(11).toLowerCase()}/${period}`,
 
-        search({period = 'overall'}: {period?: string} = {}): Pager<T> {
+        search(): Pager<T> {
             return new LastFmPager(
                 {
                     method,

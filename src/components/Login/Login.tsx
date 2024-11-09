@@ -8,7 +8,7 @@ export interface LoginProps {
 }
 
 export default function Login({service}: LoginProps) {
-    const Login = service.components?.Login || DefaultLogin;
+    const Login = service.Components?.Login || DefaultLogin;
     return (
         <div className="panel">
             <div className={`page login login-${service.id}`}>

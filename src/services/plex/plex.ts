@@ -279,7 +279,7 @@ const plexAlbumsByGenre: MediaSource<MediaAlbum> = {
     icon: 'genre',
     itemType: ItemType.Album,
     filterType: FilterType.ByGenre,
-    component: FilterBrowser,
+    Component: FilterBrowser,
 
     search(genre?: MediaFilter): Pager<MediaAlbum> {
         if (genre) {
@@ -302,8 +302,8 @@ const plexArtistsByGenre: MediaSource<MediaArtist> = {
     icon: 'genre',
     itemType: ItemType.Artist,
     filterType: FilterType.ByGenre,
-    component: FilterBrowser,
     defaultHidden: true,
+    Component: FilterBrowser,
 
     search(genre?: MediaFilter): Pager<MediaArtist> {
         if (genre) {
@@ -326,7 +326,7 @@ const plexAlbumsByDecade: MediaSource<MediaAlbum> = {
     icon: 'calendar',
     itemType: ItemType.Album,
     filterType: FilterType.ByDecade,
-    component: FilterBrowser,
+    Component: FilterBrowser,
 
     search(decade?: MediaFilter): Pager<MediaAlbum> {
         if (decade) {
@@ -413,7 +413,7 @@ const plexFolders: MediaSource<MediaFolderItem> = {
     title: 'Folders',
     icon: 'folder',
     itemType: ItemType.Folder,
-    component: FolderBrowser,
+    Component: FolderBrowser,
 
     search(): Pager<MediaFolderItem> {
         const root: Writable<SetOptional<MediaFolder, 'pager'>> = {

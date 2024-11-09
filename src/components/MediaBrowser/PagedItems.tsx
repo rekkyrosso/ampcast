@@ -20,7 +20,7 @@ export interface PagedItemsProps<T extends MediaObject> {
 }
 
 export default function PagedItems<T extends MediaObject>(props: PagedItemsProps<T>) {
-    // TODO: Annoyed about the casting.
+    // TODO: Stop casting.
 
     switch (props.source.itemType) {
         case ItemType.Artist:

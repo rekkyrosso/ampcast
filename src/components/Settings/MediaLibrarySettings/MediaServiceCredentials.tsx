@@ -7,7 +7,7 @@ export interface MediaServiceCredentialsProps {
 }
 
 export default function MediaServiceCredentials({service}: MediaServiceCredentialsProps) {
-    const Credentials = service.components?.Credentials || NotFound;
+    const Credentials = service.Components?.Credentials || NotFound;
     return (
         <div className="media-service-credentials">
             {service.credentialsRequired ? (

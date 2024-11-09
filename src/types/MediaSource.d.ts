@@ -15,9 +15,9 @@ import MediaSourceLayout from './MediaSourceLayout';
 import MediaType from './MediaType';
 import Pager from './Pager';
 
-export type MediaSourceComponent<T extends MediaObject> = React.FC<{
+export type MediaSourceComponent = React.FC<{
     service: MediaService;
-    source: MediaSource<T>;
+    source: AnyMediaSource;
 }>;
 
 export default interface MediaSource<T extends MediaObject> {
@@ -35,12 +35,12 @@ export default interface MediaSource<T extends MediaObject> {
     readonly disabled?: boolean;
     readonly isPin?: boolean;
     readonly lockActionsStore?: boolean;
-    readonly component?: MediaSourceComponent<T>;
+    readonly Component?: MediaSourceComponent<T>;
     search(params?: MediaFilter | Record<string, unknown>): Pager<T>;
 }
 
-export type MediaMultiSource = Pick<
-    MediaSource<any>,
+export type MediaMultiSource<T extends MediaObject = any> = Pick<
+    MediaSource<T>,
     | 'id'
     | 'title'
     | 'icon'
@@ -48,13 +48,46 @@ export type MediaMultiSource = Pick<
     | 'defaultHidden'
     | 'disabled'
     | 'lockActionsStore'
-    | 'component'
-> & {
-    readonly sources: readonly (
-        | MediaSource<MediaAlbum>
-        | MediaSource<MediaArtist>
-        | MediaSource<MediaItem>
-        | MediaSource<MediaFolderItem>
-        | MediaSource<MediaPlaylist>
-    )[];
-};
+    | 'Component'
+> &
+    (T extends MediaAlbum
+        ? {
+              readonly sources: readonly MediaSource<MediaAlbum>[];
+          }
+        : T extends MediaArtist
+        ? {
+              readonly sources: readonly MediaSource<MediaArtist>[];
+          }
+        : T extends MediaItem
+        ? {
+              readonly sources: readonly MediaSource<MediaItem>[];
+          }
+        : T extends MediaPlaylist
+        ? {
+              readonly sources: readonly MediaSource<MediaPlaylist>[];
+          }
+        : {
+              readonly sources: readonly (
+                  | MediaSource<MediaAlbum>
+                  | MediaSource<MediaArtist>
+                  | MediaSource<MediaItem>
+                  | MediaSource<MediaPlaylist>
+              )[];
+          });
+
+export type AnyMediaSource =
+    | MediaSource<MediaAlbum>
+    | MediaSource<MediaArtist>
+    | MediaSource<MediaItem>
+    | MediaSource<MediaFolderItem>
+    | MediaSource<MediaPlaylist>
+    | MediaMultiSource;
+
+export type AnyMediaSources = readonly (
+    | MediaSource<MediaAlbum>
+    | MediaSource<MediaArtist>
+    | MediaSource<MediaItem>
+    | MediaSource<MediaFolderItem>
+    | MediaSource<MediaPlaylist>
+    | MediaMultiSource
+)[];

@@ -238,7 +238,7 @@ const appleSongCharts: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
     filterType: FilterType.ByGenre,
     layout: chartsLayoutLarge,
-    component: FilterBrowser,
+    Component: FilterBrowser,
 
     search(genre?: MediaFilter): Pager<MediaItem> {
         if (genre) {
@@ -265,7 +265,7 @@ const appleAlbumCharts: MediaSource<MediaAlbum> = {
     icon: 'chart',
     itemType: ItemType.Album,
     filterType: FilterType.ByGenre,
-    component: FilterBrowser,
+    Component: FilterBrowser,
     layout: {
         view: 'card compact',
         fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'Year'],
@@ -323,7 +323,7 @@ const appleMusicVideoCharts: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
     mediaType: MediaType.Video,
     filterType: FilterType.ByGenre,
-    component: FilterBrowser,
+    Component: FilterBrowser,
     layout: chartsLayoutLarge,
     defaultHidden: true,
 

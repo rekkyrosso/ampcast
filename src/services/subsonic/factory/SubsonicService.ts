@@ -206,7 +206,7 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'genre',
             itemType: ItemType.Media,
             filterType: FilterType.ByGenre,
-            component: FilterBrowser,
+            Component: FilterBrowser,
             defaultHidden: true,
             layout: {
                 view: 'details',
@@ -238,7 +238,7 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'genre',
             itemType: ItemType.Album,
             filterType: FilterType.ByGenre,
-            component: FilterBrowser,
+            Component: FilterBrowser,
 
             search(genre?: MediaFilter): Pager<MediaAlbum> {
                 if (genre) {
@@ -262,7 +262,7 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'calendar',
             itemType: ItemType.Album,
             filterType: FilterType.ByDecade,
-            component: FilterBrowser,
+            Component: FilterBrowser,
 
             search(decade?: MediaFilter): Pager<MediaAlbum> {
                 if (decade) {
@@ -344,7 +344,7 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'Folders',
             icon: 'folder',
             itemType: ItemType.Folder,
-            component: FolderBrowser,
+            Component: FolderBrowser,
 
             search(): Pager<MediaFolderItem> {
                 const root: Writable<SetOptional<MediaFolder, 'pager'>> = {

@@ -199,7 +199,7 @@ const jellyfinTracksByGenre: MediaSource<MediaItem> = {
     icon: 'genre',
     itemType: ItemType.Media,
     filterType: FilterType.ByGenre,
-    component: FilterBrowser,
+    Component: FilterBrowser,
     defaultHidden: true,
 
     search(genre?: MediaFilter): Pager<MediaItem> {
@@ -222,7 +222,7 @@ const jellyfinAlbumsByGenre: MediaSource<MediaAlbum> = {
     icon: 'genre',
     itemType: ItemType.Album,
     filterType: FilterType.ByGenre,
-    component: FilterBrowser,
+    Component: FilterBrowser,
 
     search(genre?: MediaFilter): Pager<MediaAlbum> {
         if (genre) {
@@ -244,7 +244,7 @@ const jellyfinArtistsByGenre: MediaSource<MediaArtist> = {
     icon: 'genre',
     itemType: ItemType.Artist,
     filterType: FilterType.ByGenre,
-    component: FilterBrowser,
+    Component: FilterBrowser,
     defaultHidden: true,
 
     search(genre?: MediaFilter): Pager<MediaArtist> {
@@ -266,7 +266,7 @@ const jellyfinTracksByDecade: MediaSource<MediaItem> = {
     icon: 'calendar',
     itemType: ItemType.Media,
     filterType: FilterType.ByDecade,
-    component: FilterBrowser,
+    Component: FilterBrowser,
     defaultHidden: true,
 
     search(decade?: MediaFilter): Pager<MediaItem> {
@@ -289,7 +289,7 @@ const jellyfinAlbumsByDecade: MediaSource<MediaAlbum> = {
     icon: 'calendar',
     itemType: ItemType.Album,
     filterType: FilterType.ByDecade,
-    component: FilterBrowser,
+    Component: FilterBrowser,
 
     search(decade?: MediaFilter): Pager<MediaAlbum> {
         if (decade) {
@@ -378,7 +378,7 @@ const jellyfinFolders: MediaSource<MediaFolderItem> = {
     title: 'Folders',
     icon: 'folder',
     itemType: ItemType.Folder,
-    component: FolderBrowser,
+    Component: FolderBrowser,
 
     search(): Pager<MediaFolderItem> {
         const root: Writable<SetOptional<MediaFolder, 'pager'>> = {

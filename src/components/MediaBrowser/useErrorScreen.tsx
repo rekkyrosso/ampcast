@@ -1,18 +1,16 @@
 import React, {useMemo} from 'react';
 import {FallbackProps} from 'react-error-boundary';
-import MediaObject from 'types/MediaObject';
 import MediaService from 'types/MediaService';
-import MediaSource from 'types/MediaSource';
+import {AnyMediaSource} from 'types/MediaSource';
 import ErrorScreen from './ErrorScreen';
 
-export default function useErrorScreen<T extends MediaObject>(
+export default function useErrorScreen(
     service: MediaService,
-    sources: readonly MediaSource<T>[]
+    source: AnyMediaSource
 ) {
     return useMemo(() => {
         return function MediaBrowserError({error}: FallbackProps) {
-            const reportingId = sources?.length === 1 ? sources[0]?.id : service?.id;
-            return <ErrorScreen error={error} reportingId={reportingId} service={service} />;
+            return <ErrorScreen error={error} reportingId={source.id} service={service} />;
         };
-    }, [service, sources]);
+    }, [service, source]);
 }

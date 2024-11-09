@@ -330,7 +330,7 @@ const spotifyPlaylistsByCategory: MediaSource<MediaPlaylist> = {
     icon: 'playlist',
     itemType: ItemType.Playlist,
     filterType: FilterType.ByGenre,
-    component: FilterBrowser,
+    Component: FilterBrowser,
     layout: playlistLayout,
     secondaryLayout: playlistItemsLayout,
 

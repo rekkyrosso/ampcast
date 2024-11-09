@@ -1,4 +1,5 @@
 import React, {useCallback, useRef} from 'react';
+import {preventDefault} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import mediaPlayback, {
     pause,
@@ -81,8 +82,8 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
                     step={1}
                     value={isLiveStreaming ? currentTime && 1 : currentTime}
                     disabled={paused}
-                    readOnly={isLiveStreaming}
                     onChange={handleSeekChange}
+                    onMouseDown={isLiveStreaming ? preventDefault : undefined}
                 />
             </div>
             <div className="playback-control">
