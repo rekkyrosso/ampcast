@@ -1,6 +1,7 @@
 // https://www.shadertoy.com/view/llcXW7
 // Made by k-mouse (2016-11-23)
 // Modified from David Hoskins (2013-07-07) and joltz0r (2013-07-04)
+// Modified even more by ampcast.app.
 
 #define TAU 6.28318530718
 
@@ -47,8 +48,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
     float c = waterHighlight(p, time, foaminess);
 	vec3 color = vec3(c * sampleMusic());
 
-    color = clamp(iBackgroundColor - color, 0.0, 1.0);
-    color = mix(iBackgroundColor, color, -clearness);
+    color = clamp((iBackgroundColor/255.) - color, 0.0, 1.0);
+    color = mix((iBackgroundColor/255.), color, -clearness);
 
 	fragColor = vec4(color, 1.0);
 }

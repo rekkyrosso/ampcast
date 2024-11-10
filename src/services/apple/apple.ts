@@ -53,6 +53,7 @@ const appleSearch: MediaMultiSource = {
     id: 'apple/search',
     title: 'Search',
     icon: 'search',
+    searchable: true,
     sources: [
         createSearch<MediaItem>(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
@@ -400,7 +401,7 @@ const apple: PublicMediaService = {
     serviceType: ServiceType.PublicMedia,
     defaultHidden: true,
     internetRequired: true,
-    components: {Credentials, Login, StreamingSettings},
+    Components: {Credentials, Login, StreamingSettings},
     get credentialsRequired(): boolean {
         return appleSettings.credentialsRequired;
     },
@@ -663,7 +664,6 @@ function createSearch<T extends MediaObject>(
         itemType,
         id: props.title,
         icon: 'search',
-        searchable: true,
 
         search({q = ''}: {q?: string} = {}): Pager<T> {
             return createSearchPager(itemType, q, filters, options);

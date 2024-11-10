@@ -84,6 +84,7 @@ const plexSearch: MediaMultiSource = {
     id: 'plex/search',
     title: 'Search',
     icon: 'search',
+    searchable: true,
     sources: [
         createSearch<MediaItem>(ItemType.Media, {title: 'Tracks', layout: tracksLayout}),
         createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
@@ -464,7 +465,7 @@ const plex: PersonalMediaService = {
     url: 'https://www.plex.tv',
     serviceType: ServiceType.PersonalMedia,
     defaultHidden: true,
-    components: {Login, ServerSettings},
+    Components: {Login, ServerSettings},
     get internetRequired() {
         return plexSettings.internetRequired;
     },
@@ -692,7 +693,6 @@ function createSearch<T extends MediaObject>(
         itemType,
         id: props.title,
         icon: 'search',
-        searchable: true,
 
         search({q = ''}: {q?: string} = {}): Pager<T> {
             return createSearchPager(itemType, q);

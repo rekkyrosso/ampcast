@@ -28,7 +28,7 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
         }
         switch (service.serviceType) {
             case ServiceType.PublicMedia: {
-                const StreamingSettings = service.components?.StreamingSettings;
+                const StreamingSettings = service.Components?.StreamingSettings;
                 if (StreamingSettings) {
                     tabs.push({
                         tab: 'Streaming',
@@ -39,7 +39,7 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
             }
             case ServiceType.PersonalMedia: {
                 const ServerSettings =
-                    service.components?.ServerSettings || PersonalMediaServerSettings;
+                    service.Components?.ServerSettings || PersonalMediaServerSettings;
                 tabs.push({
                     tab: 'Server',
                     panel: <ServerSettings service={service} />,

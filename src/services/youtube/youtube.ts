@@ -126,7 +126,7 @@ const youtube: PublicMediaService = {
     credentialsUrl: 'https://console.cloud.google.com/apis/credentials',
     serviceType: ServiceType.PublicMedia,
     primaryMediaType: MediaType.Video,
-    components: {Credentials, Login},
+    Components: {Credentials, Login},
     get disabled(): boolean {
         return youtubeSettings.disabled;
     },

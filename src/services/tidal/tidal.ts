@@ -37,6 +37,7 @@ const tidalSearch: MediaMultiSource = {
     id: `${serviceId}/search`,
     title: 'Search',
     icon: 'search',
+    searchable: true,
     sources: [
         createSearch<MediaItem>(ItemType.Media, {title: 'Tracks', layout: defaultLayout}),
         createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
@@ -106,7 +107,7 @@ const tidal: PublicMediaService = {
     url: 'https://listen.tidal.com',
     credentialsUrl: 'https://developer.tidal.com/dashboard',
     serviceType: ServiceType.PublicMedia,
-    components: {Credentials, Login},
+    Components: {Credentials, Login},
     get disabled(): boolean {
         return tidalSettings.disabled;
     },
@@ -142,7 +143,6 @@ function createSearch<T extends MediaObject>(
         itemType,
         id: props.title,
         icon: 'search',
-        searchable: true,
 
         search({q = ''}: {q?: string} = {}): Pager<T> {
             if (!q) {

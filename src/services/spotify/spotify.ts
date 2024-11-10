@@ -75,6 +75,7 @@ const spotifySearch: MediaMultiSource = {
     id: 'spotify/search',
     title: 'Search',
     icon: 'search',
+    searchable: true,
     sources: [
         createSearch<MediaItem>(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
         createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
@@ -395,7 +396,7 @@ const spotify: PublicMediaService = {
     url: 'https://www.spotify.com',
     credentialsUrl: 'https://developer.spotify.com/dashboard/create',
     serviceType: ServiceType.PublicMedia,
-    components: {Credentials, Login},
+    Components: {Credentials, Login},
     get disabled(): boolean {
         return spotifySettings.disabled;
     },
@@ -801,7 +802,6 @@ function createSearch<T extends MediaObject>(
         itemType,
         id: props.title,
         icon: 'search',
-        searchable: true,
 
         search({q = ''}: {q?: string} = {}): Pager<T> {
             return createSearchPager(itemType, q);

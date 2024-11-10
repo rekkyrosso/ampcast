@@ -9,7 +9,7 @@ export default interface PersonalMediaService
         Partial<PersonalMediaServerSettings> {
     readonly host: string;
     readonly serviceType: ServiceType.PersonalMedia;
-    readonly components?: BaseMediaService['Components'] & {
+    readonly Components?: BaseMediaService['Components'] & {
         ServerSettings?: React.FC<{service: PersonalMediaService}>;
     };
     // Everything below here should be optional.

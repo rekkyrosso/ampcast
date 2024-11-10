@@ -87,6 +87,7 @@ export default class SubsonicService implements PersonalMediaService {
             id: `${serviceId}/search`,
             title: 'Search',
             icon: 'search',
+            searchable: true,
             sources: [
                 this.createSearch<MediaItem>(ItemType.Media, {title: 'Songs'}),
                 this.createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
@@ -675,7 +676,6 @@ export default class SubsonicService implements PersonalMediaService {
             itemType,
             id: props.title,
             icon: 'search',
-            searchable: true,
 
             search({q = ''}: {q?: string} = {}): Pager<T> {
                 q = q.trim();

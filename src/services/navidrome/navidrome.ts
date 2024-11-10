@@ -52,6 +52,7 @@ const navidromeSearch: MediaMultiSource = {
     id: 'navidrome/search',
     title: 'Search',
     icon: 'search',
+    searchable: true,
     sources: [
         createSearch<MediaItem>(ItemType.Media, {title: 'Songs'}),
         createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
@@ -277,7 +278,7 @@ const navidrome: PersonalMediaService = {
     name: 'Navidrome',
     url: 'https://www.navidrome.org',
     serviceType: ServiceType.PersonalMedia,
-    components: {ServerSettings},
+    Components: {ServerSettings},
     defaultHidden: true,
     root: navidromeSearch,
     sources: [
@@ -506,7 +507,6 @@ function createSearch<T extends MediaObject>(
         itemType,
         id: props.title,
         icon: 'search',
-        searchable: true,
 
         search({q = ''}: {q?: string} = {}): Pager<T> {
             q = q.trim();

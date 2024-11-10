@@ -66,16 +66,30 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         toPage = MusicKitPager.defaultToPage
     ) {
         this.pager = new SequentialPager<T>(async (limit?: number): Promise<Page<T>> => {
-            const response = await this.fetchNext(
-                this.nextPageUrl || href,
-                limit ? (params ? {...params, limit} : {limit}) : params
-            );
-            const result = toPage(response.data);
-            const items = this.createItems(result.items);
-            const total = result.total;
-            const atEnd = !result.nextPageUrl;
-            this.nextPageUrl = result.nextPageUrl;
-            return {items, total, atEnd};
+            try {
+                const response = await this.fetchNext(
+                    this.nextPageUrl || href,
+                    limit ? (params ? {...params, limit} : {limit}) : params
+                );
+                const result = toPage(response.data);
+                const items = this.createItems(result.items);
+                const total = result.total;
+                const atEnd = !result.nextPageUrl;
+                this.nextPageUrl = result.nextPageUrl;
+                return {items, total, atEnd};
+            } catch (err: any) {
+                // Apple playlists return 404 if they are empty.
+                // If it's been deleted then it has no name/title.
+                if (
+                    err.name === 'NOT_FOUND' &&
+                    this.parent?.itemType === ItemType.Playlist &&
+                    this.parent.title
+                ) {
+                    return {items: [], total: 0, atEnd: true};
+                } else {
+                    throw err;
+                }
+            }
         }, options);
     }
 

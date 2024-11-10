@@ -57,6 +57,7 @@ const embySearch: MediaMultiSource = {
     id: 'emby/search',
     title: 'Search',
     icon: 'search',
+    searchable: true,
     sources: [
         createSearch<MediaItem>(ItemType.Media, {title: 'Songs'}),
         createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
@@ -642,7 +643,6 @@ function createSearch<T extends MediaObject>(
         itemType,
         id: props.title,
         icon: 'search',
-        searchable: true,
 
         search({q = ''}: {q?: string} = {}): Pager<T> {
             return createSearchPager(itemType, q);

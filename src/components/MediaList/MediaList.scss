@@ -48,6 +48,10 @@
         filter: brightness(0.25) grayscale(1);
     }
 
+    .badge {
+        font-size: max(0.5em, 9px);
+    }
+
     .badge.explicit {
         display: none;
     }
