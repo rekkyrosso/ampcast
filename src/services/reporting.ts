@@ -5,6 +5,7 @@ import Report from 'types/Report';
 import Snapshot from 'types/Snapshot';
 import {browser, copyToClipboard, getElapsedTimeText, isMiniPlayer} from 'utils';
 import Logger, {LogLevel, ReadableLog} from 'utils/Logger';
+import audio from 'services/audio';
 import audioSettings from 'services/audio/audioSettings';
 import {getListens} from 'services/localdb/listens';
 import mediaPlayback from 'services/mediaPlayback';
@@ -30,7 +31,7 @@ export function copyErrorReportToClipboard(
 }
 
 export function copyLogsToClipboard(): Promise<void> {
-    const logs = getReportableLogs();
+    const logs = getReadableLogs();
     return copyReportToClipboard({logs});
 }
 
@@ -115,7 +116,7 @@ function getReportableError(error: any): ErrorReport['error'] {
         : null;
 }
 
-function getReportableLogs(): readonly ReadableLog[] {
+function getReadableLogs(): readonly ReadableLog[] {
     const readableLogLevel: Record<LogLevel, 'info' | 'log' | 'Warn' | 'ERROR'> = {
         [LogLevel.Info]: 'info',
         [LogLevel.Log]: 'log',
@@ -168,6 +169,17 @@ function getSnapshot(): Snapshot {
     const playbackState = getPlaybackState();
 
     return {
+        audio: {
+            volume: audio.volume,
+            replayGain: audio.replayGain,
+            settings: {
+                replayGain: {
+                    mode: audioSettings.replayGainMode,
+                    preAmp: audioSettings.replayGainPreAmp,
+                },
+            },
+            streamingSupported: audio.streamingSupported,
+        },
         playback: {
             volume: mediaPlayback.volume,
             isMiniPlayer: isMiniPlayer,
@@ -175,10 +187,6 @@ function getSnapshot(): Snapshot {
             state: {
                 ...playbackState,
                 currentItem: getReportableMediaItem(playbackState),
-            },
-            replayGain: {
-                mode: audioSettings.replayGainMode,
-                preAmp: audioSettings.replayGainPreAmp,
             },
         },
         visualizer: {

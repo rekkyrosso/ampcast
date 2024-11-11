@@ -90,26 +90,34 @@
         }
     }
 
-    .icon-button {
-        border-radius: calc(var(--roundness) * 0.5em);
-        outline-offset: 2px;
-        outline-width: 2px;
+    &-icon-bar {
+        position: absolute;
+        bottom: -0.25em;
+        left: 11.25em;
+        right: 0;
+        text-align: right;
+        display: flex;
+        flex-direction: row;
     }
 
-    .badges {
-        position: absolute;
-        bottom: 0.125em;
+    .badge.explicit {
+        .themed.light & {
+            border-color: var(--black);
+        }
     }
 
     .icon-buttons {
-        position: absolute;
-        bottom: 0;
-        right: 0;
-        justify-content: right;
+        margin-left: auto;
         font-size: 1.375em;
 
         .star-rating {
             font-size: 1.25em;
         }
+    }
+
+    .icon-button {
+        border-radius: calc(var(--roundness) * 0.5em);
+        outline-offset: 2px;
+        outline-width: 2px;
     }
 }

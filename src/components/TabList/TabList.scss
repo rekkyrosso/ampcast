@@ -30,11 +30,11 @@
         border-color: #444; /* TODO: Where did this color come from? */
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
+        height: 2em;
 
         &[aria-selected="true"] {
             border-bottom: 1px solid var(--background-color);
             background-color: var(--background-color);
-            z-index: 1;
         }
 
         &:active {

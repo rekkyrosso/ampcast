@@ -3,6 +3,7 @@ import Color from 'colorjs.io';
 import MediaType from 'types/MediaType';
 import PlaylistItem from 'types/PlaylistItem';
 import type CovertArtPlayer from '../CovertArtPlayer';
+import {filterNotEmpty} from 'utils';
 import audio from 'services/audio';
 import visualizerSettings, {
     observeVisualizerSettings,
@@ -12,10 +13,10 @@ import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useFontSize from 'hooks/useFontSize';
 import useObservable from 'hooks/useObservable';
 import useOnResize from 'hooks/useOnResize';
+import usePlayingNext from 'hooks/usePlayingNext';
 import usePrevious from 'hooks/usePrevious';
 import coverart from '../coverart';
 import CurrentlyPlaying from './CurrentlyPlaying';
-import {filterNotEmpty} from 'utils';
 import './CoverArtVisualizer.scss';
 
 export default function CoverArtVisualizer() {
@@ -33,8 +34,10 @@ export default function CoverArtVisualizer() {
     const [thumbnailSize, setThumbnailSize] = useState(0);
     const fontSize = useFontSize(ref);
     const currentlyPlaying = useCurrentlyPlaying();
+    const playingNext = usePlayingNext();
     const item = currentlyPlaying?.mediaType === MediaType.Video ? null : currentlyPlaying;
     const prevItem = usePrevious(item);
+    const nextItem = playingNext?.mediaType === MediaType.Video ? null : playingNext;
     const id = item?.id || '';
     const indexRef = useRef(-1);
     const [item0, setItem0] = useState<PlaylistItem | null>(null);
@@ -124,6 +127,8 @@ export default function CoverArtVisualizer() {
             }
             ref={ref}
         >
+            {/* Preload next item thumbnail */}
+            <CurrentlyPlaying item={nextItem} hidden={true} key="nextItem" />
             <div className="animated-background" />
             <CurrentlyPlaying
                 item={item0}

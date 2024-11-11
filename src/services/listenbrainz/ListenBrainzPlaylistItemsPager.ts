@@ -88,6 +88,7 @@ export default class ListenBrainzPlaylistItemsPager implements Pager<MediaItem> 
             src: `listenbrainz:track:${mbid}`,
             externalUrl: item.identifier,
             title: item.title,
+            album: item.album,
             artists: metadata?.artists
                 ? metadata.artists.map((artist) => artist.artist_credit_name)
                 : item.creator

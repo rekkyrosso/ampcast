@@ -15,7 +15,7 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
     const [query, setQuery] = useState('');
     const pager = useSearch(selectedSource, query);
     const searchable = !!source.searchable;
-    const showPagerHeader = !searchable && !selectedSource.isPin;
+    const showPagerHeader = !searchable && !source.isPin;
 
     useEffect(() => {
         if (selectedSource?.lockActionsStore) {
@@ -53,11 +53,12 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
                 pager={pager}
                 layout={selectedSource.layout}
                 loadingText={query ? 'Searching' : undefined}
+                emptyMessage={query ? 'No results' : undefined}
             />
         </>
     );
 }
 
 function isMediaMultiSource(source: AnyMediaSource): source is MediaMultiSource {
-    return ('sources' in source);
+    return 'sources' in source;
 }

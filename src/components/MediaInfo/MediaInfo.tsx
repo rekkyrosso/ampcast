@@ -53,8 +53,10 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
                 <AlbumAndYear album={item.album} year={item.year} />
                 <Track album={item.album} disc={item.disc} track={item.track} />
                 <Owner owner={item.owner} src={item.src} />
-                <Badges item={item} />
-                <Actions item={item} />
+                <div className="media-info-icon-bar">
+                    <Badges item={item} />
+                    <Actions item={item} />
+                </div>
             </div>
             <Blurb description={item.description} />
             <ExternalView url={item.externalUrl} src={item.src} />
@@ -70,8 +72,10 @@ function AlbumInfo({item: album}: MediaInfoProps<MediaAlbum>) {
                 <Title title={album.title} />
                 <Artist artist={album.artist} />
                 <Year year={album.year} />
-                <Badges item={album} />
-                <Actions item={album} />
+                <div className="media-info-icon-bar">
+                    <Badges item={album} />
+                    <Actions item={album} />
+                </div>
             </div>
             <Blurb description={album.description} />
             <ExternalView url={album.externalUrl} src={album.src} />
@@ -87,7 +91,9 @@ function ArtistInfo({item: artist}: MediaInfoProps<MediaArtist>) {
                 <Title title={artist.title} />
                 <Genre genres={artist.genres} />
                 <Country country={artist.country} />
-                <Actions item={artist} />
+                <div className="media-info-icon-bar">
+                    <Actions item={artist} />
+                </div>
             </div>
             <Blurb description={artist.description} />
             <ExternalView url={artist.externalUrl} src={artist.src} />
@@ -103,7 +109,9 @@ function PlaylistInfo({item: playlist}: MediaInfoProps<MediaPlaylist>) {
                 <Title title={playlist.title} />
                 <Owner owner={playlist.owner} src={playlist.src} />
                 <Genre genres={playlist.genres} />
-                <Actions item={playlist} />
+                <div className="media-info-icon-bar">
+                    <Actions item={playlist} />
+                </div>
             </div>
             <Blurb description={playlist.description} />
             <ExternalView url={playlist.externalUrl} src={playlist.src} />
@@ -277,9 +285,9 @@ export function Country<T extends MediaArtist>({country}: Pick<T, 'country'>) {
     }
 }
 
-export function Thumbnail(props: CoverArtProps) {
+export function Thumbnail({className = '', ...props}: CoverArtProps) {
     return (
-        <div className="thumbnail">
+        <div className={`thumbnail ${className}`}>
             <CoverArt size={480} {...props} />
         </div>
     );

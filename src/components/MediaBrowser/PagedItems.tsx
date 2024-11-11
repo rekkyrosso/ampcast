@@ -1,6 +1,10 @@
 import React from 'react';
 import ItemType from 'types/ItemType';
+import MediaAlbum from 'types/MediaAlbum';
+import MediaArtist from 'types/MediaArtist';
+import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
+import MediaPlaylist from 'types/MediaPlaylist';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
@@ -17,26 +21,25 @@ export interface PagedItemsProps<T extends MediaObject> {
     pager: Pager<T> | null;
     layout?: MediaSourceLayout<T>;
     loadingText?: string;
+    emptyMessage?: string;
 }
 
-export default function PagedItems<T extends MediaObject>(props: PagedItemsProps<T>) {
-    // TODO: Stop casting.
-
+export default function PagedItems(props: PagedItemsProps<MediaObject>) {
     switch (props.source.itemType) {
         case ItemType.Artist:
-            return <Artists {...(props as any)} />;
+            return <Artists {...(props as PagedItemsProps<MediaArtist>)} />;
 
         case ItemType.Album:
-            return <Albums {...(props as any)} />;
+            return <Albums {...(props as PagedItemsProps<MediaAlbum>)} />;
 
         case ItemType.Playlist:
             if (props.source.isPin) {
-                return <PinnedPlaylist {...(props as any)} />;
+                return <PinnedPlaylist {...(props as PagedItemsProps<MediaPlaylist>)} />;
             } else {
-                return <Playlists {...(props as any)} />;
+                return <Playlists {...(props as PagedItemsProps<MediaPlaylist>)} />;
             }
 
         default:
-            return <MediaItems {...(props as any)} />;
+            return <MediaItems {...(props as PagedItemsProps<MediaItem>)} />;
     }
 }

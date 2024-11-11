@@ -2,30 +2,42 @@ import type {Observable} from 'rxjs';
 import ItemType from 'types/ItemType';
 import MediaPlaylist from 'types/MediaPlaylist';
 import Pager, {Page} from 'types/Pager';
-import SequentialPager from 'services/pagers/SequentialPager';
 import {getTextFromHtml} from 'utils';
+import SequentialPager from 'services/pagers/SequentialPager';
+import pinStore from 'services/pins/pinStore';
 import listenbrainzApi from './listenbrainzApi';
 import ListenBrainzPlaylistItemsPager from './ListenBrainzPlaylistItemsPager';
 
 export default class ListenBrainzPlaylistsPager implements Pager<MediaPlaylist> {
     private readonly pager: SequentialPager<MediaPlaylist>;
 
-    constructor(path: string) {
+    constructor(path: string, singleItem?: boolean) {
         const pageSize = 50;
         let offset = 0;
 
         this.pager = new SequentialPager<MediaPlaylist>(
             async (count = pageSize): Promise<Page<MediaPlaylist>> => {
-                const response = await listenbrainzApi.get<ListenBrainz.User.PlaylistsResponse>(
-                    path,
-                    {offset, count},
-                    true
-                );
-                offset += count;
-                const items = this.createItems(response.playlists);
-                const total = response.playlist_count;
-                const atEnd = response.offset + items.length >= total;
-                return {items, total, atEnd};
+                if (singleItem) {
+                    const {playlist} =
+                        await listenbrainzApi.get<ListenBrainz.PlaylistItemsResponse>(
+                            path,
+                            {fetch_metadata: false},
+                            true
+                        );
+                    const item = this.createItem(playlist);
+                    return {items: [item], total: 1, atEnd: true};
+                } else {
+                    const response = await listenbrainzApi.get<ListenBrainz.User.PlaylistsResponse>(
+                        path,
+                        {offset, count},
+                        true
+                    );
+                    offset += count;
+                    const items = this.createItems(response.playlists);
+                    const total = response.playlist_count;
+                    const atEnd = response.offset + items.length >= total;
+                    return {items, total, atEnd};
+                }
             },
             {pageSize}
         );
@@ -65,15 +77,17 @@ export default class ListenBrainzPlaylistsPager implements Pager<MediaPlaylist> 
 
     private createItem(playlist: ListenBrainz.Playlist): MediaPlaylist {
         const playlist_mbid = playlist.identifier.split('/').pop()!;
+        const src = `listenbrainz:playlist:${playlist_mbid}`;
         return {
             itemType: ItemType.Playlist,
-            src: `listenbrainz:playlist:${playlist_mbid}`,
+            src,
             title: playlist.title,
             description: this.getTextFromHtml(playlist.annotation),
             externalUrl: playlist.identifier,
             owner: {
                 name: playlist.creator,
             },
+            isPinned: pinStore.isPinned(src),
             pager: new ListenBrainzPlaylistItemsPager(playlist_mbid),
         };
     }

@@ -4,8 +4,18 @@ import PlaylistItem from './PlaylistItem';
 import Theme from './Theme';
 
 export default interface Snapshot {
-    readonly playback: {
+    readonly audio: {
+        readonly replayGain: number;
+        readonly settings: {
+            readonly replayGain: {
+                readonly mode: string;
+                readonly preAmp: number;
+            };
+        };
+        readonly streamingSupported: boolean;
         readonly volume: number;
+    };
+    readonly playback: {
         readonly isMiniPlayer: boolean;
         readonly isMiniPlayerRemote: boolean;
         readonly state: Except<PlaybackState, 'currentItem'> & {
@@ -25,21 +35,18 @@ export default interface Snapshot {
                 readonly blobUrl: boolean;
             } | null;
         };
-        readonly replayGain: {
-            readonly mode: string;
-            readonly preAmp: number;
-        };
-    };
-    readonly visualizer: {
-        readonly provider: string;
-        readonly current: {
-            readonly providerId: string;
-            readonly name: string;
-        } | null;
+        readonly volume: number;
     };
     readonly theme: Theme & {
+        readonly edited: boolean;
         readonly fontSize: number;
         readonly userTheme: boolean;
-        readonly edited: boolean;
+    };
+    readonly visualizer: {
+        readonly current: {
+            readonly name: string;
+            readonly providerId: string;
+        } | null;
+        readonly provider: string;
     };
 }

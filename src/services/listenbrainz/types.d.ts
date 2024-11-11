@@ -136,6 +136,7 @@ declare namespace ListenBrainz {
         readonly creator: string;
         readonly identifier: string;
         readonly title: string;
+        readonly album?: string;
         readonly extension: {
             'https://musicbrainz.org/doc/jspf#track': {
                 readonly added_at: string;

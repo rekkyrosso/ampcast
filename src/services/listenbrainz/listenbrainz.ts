@@ -14,13 +14,11 @@ import Pin from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import DataService from 'types/DataService';
 import SimplePager from 'services/pagers/SimplePager';
-import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import listenbrainzApi from './listenbrainzApi';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './listenbrainzAuth';
 import ListenBrainzHistoryPager from './ListenBrainzHistoryPager';
 import ListenBrainzLikesPager from './ListenBrainzLikesPager';
 import ListenBrainzPlaylistsPager from './ListenBrainzPlaylistsPager';
-import ListenBrainzPlaylistItemsPager from './ListenBrainzPlaylistItemsPager';
 import ListenBrainzStatsPager from './ListenBrainzStatsPager';
 import listenbrainzSettings from './listenbrainzSettings';
 import {scrobble} from './listenbrainzScrobbler';
@@ -196,9 +194,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
 
         search(): Pager<MediaPlaylist> {
             const [, , playlist_mbid] = pin.src.split(':');
-            const pager = new ListenBrainzPlaylistItemsPager(playlist_mbid);
-            const playlist = {...pin, pager};
-            return new SimpleMediaPager(async () => [playlist]);
+            return new ListenBrainzPlaylistsPager(`playlist/${playlist_mbid}`, true);
         },
     };
 }

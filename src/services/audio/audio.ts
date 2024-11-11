@@ -47,7 +47,7 @@ class Audio implements AudioManager {
             )
             .subscribe(logger);
 
-        // Calculate ReplayGain
+        // Calculate `replayGain`.
         combineLatest([observeCurrentItem(), observeAudioSettings()])
             .pipe(
                 map(([item, settings]) => this.calculateReplayGain(item, settings)),
@@ -59,6 +59,10 @@ class Audio implements AudioManager {
 
     get context(): AudioContext {
         return this.#context;
+    }
+
+    get replayGain(): number {
+        return this.#replayGain.gain.value;
     }
 
     get source(): AudioNode {

@@ -16,6 +16,7 @@ export default interface Playlist {
     setCurrentIndex(index: number): void;
     getCurrentItem(): PlaylistItem | null;
     setCurrentItem(item: PlaylistItem | null): void;
+    getNextItem(): PlaylistItem | null;
     getItems(): readonly PlaylistItem[];
     setItems(items: readonly PlaylistItem[]): void;
     add(album: MediaAlbum): Promise<void>;

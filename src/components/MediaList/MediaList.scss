@@ -54,6 +54,7 @@
 
     .badge.explicit {
         display: none;
+        border-color: var(--black);
     }
 
     .disable-explicit-content & .unplayable.selected,

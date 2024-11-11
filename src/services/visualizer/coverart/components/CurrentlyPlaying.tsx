@@ -57,7 +57,7 @@ export default function CurrentlyPlaying({item, hidden, onPaletteChange}: Curren
                 // Try again but break the cache.
                 const img = new Image();
                 img.crossOrigin = 'anonymous';
-                img.src = `${src}${src.includes('?') ? '&' : '?'}ampcast_ts=${Date.now()}`;
+                img.src = `${src}${src.includes('?') ? '&' : '?'}ampcast=1}`;
 
                 if (img.complete) {
                     onload(img);
@@ -85,7 +85,7 @@ export default function CurrentlyPlaying({item, hidden, onPaletteChange}: Curren
             '--text-color-l': `${Number(l) * 100}%`,
         } as React.CSSProperties);
         setTone(backgroundColor.isDark() ? 'dark' : 'light');
-        setTextTone(textColor.isDark() ? 'dark' : 'light');
+        setTextTone(textColor.getBrightness() < 148 ? 'dark' : 'light');
         onPaletteChange?.(palette);
     }, [palette, onPaletteChange]);
 

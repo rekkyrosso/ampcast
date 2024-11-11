@@ -89,6 +89,12 @@ export function observeCurrentItem(): Observable<PlaylistItem | null> {
     );
 }
 
+export function getNextItem(): PlaylistItem | null {
+    const items = getItems();
+    const index = getCurrentIndex();
+    return items[index + 1] || null;
+}
+
 export function observeNextItem(): Observable<PlaylistItem | null> {
     return combineLatest([items$, currentItemId$]).pipe(
         map(([items, id]) => {
@@ -320,6 +326,7 @@ const playlist: Playlist = {
     setCurrentIndex,
     getCurrentItem,
     setCurrentItem,
+    getNextItem,
     getItems,
     setItems,
     add,

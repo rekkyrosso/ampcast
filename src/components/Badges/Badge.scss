@@ -7,28 +7,25 @@
     padding: 0.25em 0.5em;
     background-color: var(--text-color);
     color: var(--background-color);
-    border: 1px solid var(--black);
-    border-radius: calc(var(--roundness)* 0.75em);
+    border: 1px solid var(--text-color);
+    border-radius: calc(var(--roundness) * 0.75em);
     font-style: normal;
     font-weight: bold;
     line-height: normal;
     text-transform: uppercase;
     user-select: none;
     min-width: 1em;
-    height: 2em;
+    height: calc(2em - 2px);
 
     &.bit-rate {
         background-color: transparent;
         color: var(--text-color);
         border-color: var(--text-color);
         font-weight: normal;
-
-        .themed.dark & {
-            height: calc(2em - 2px);
-        }
     }
 
     &.explicit {
+        border-color: orangered;
         background-color: orangered;
         color: white;
     }
@@ -46,17 +43,9 @@
         &.copied {
             cursor: default;
         }
-
-        .themed.dark & {
-            height: calc(2em - 2px);
-        }
-
-        .icon {
-            margin-left: 0.25em;
-        }
     }
 
     & ~ .badge {
-        margin-left: 0.5em;
+        margin-left: 0.75em;
     }
 }

@@ -530,7 +530,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
                 isLibraryItem
                     ? {
                           'include[library-playlists]': 'catalog',
-                          'fields[library-playlists]': 'name,playParams',
+                          'fields[library-playlists]': 'name,playParams,artwork',
                       }
                     : {
                           'omit[resource:playlists]': 'relationships',
