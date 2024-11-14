@@ -13,7 +13,7 @@ export default function usePseudoClasses(): void {
                 const prevActiveElement = root.querySelector('.focus');
                 if (prevActiveElement !== document.activeElement) {
                     prevActiveElement?.classList.toggle('focus', false);
-                    document.activeElement!.classList.toggle('focus', true);
+                    document.activeElement?.classList.toggle('focus', true);
                 }
             });
         document.activeElement!.classList.toggle('focus', true);

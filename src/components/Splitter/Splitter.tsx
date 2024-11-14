@@ -1,9 +1,10 @@
 import React, {Children, useCallback, useEffect, useRef, useState} from 'react';
 import {Subscription, fromEvent} from 'rxjs';
 import {clamp, preventDefault} from 'utils';
-import layoutSettings from 'services/layoutSettings';
 import useOnResize from 'hooks/useOnResize';
+import layoutSettings from './layoutSettings';
 import './Splitter.scss';
+import './layout.scss';
 
 export interface SplitterProps {
     id?: string;
@@ -36,13 +37,12 @@ export default function Splitter({id = '', arrange = 'columns', children}: Split
         (event: React.MouseEvent) => {
             if (event.button === 0) {
                 const dragStartPos = vertical ? event.screenY : event.screenX;
-                const firstPaneSize = getFirstPaneSize(containerRef.current!, vertical);
                 setDragStartPos(dragStartPos);
                 setDragStartPaneSize(firstPaneSize);
                 event.preventDefault();
             }
         },
-        [vertical]
+        [vertical, firstPaneSize]
     );
 
     const handleMouseMove = useCallback(

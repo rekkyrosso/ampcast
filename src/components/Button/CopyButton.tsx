@@ -23,7 +23,7 @@ export default function CopyButton({
                 const timerId = setTimeout(() => {
                     button.style.width = '';
                     setCopied(false);
-                }, 5000);
+                }, 4500);
                 button.style.width = width;
                 await onClick();
                 setCopied(true);
@@ -40,9 +40,9 @@ export default function CopyButton({
             {...props}
             className={`copy-button ${copied ? 'copied' : ''} ${className}`}
             type="button"
-            onClick={handleCopyClick}
             title={copied ? 'Copied to clipboard' : title}
             disabled={copied}
+            onClick={handleCopyClick}
         >
             <Icon name={copied ? 'clipboard-checked' : 'clipboard'} />
             <span className="text">{copied ? 'Copied' : children}</span>

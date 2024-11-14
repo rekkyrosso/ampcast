@@ -14,6 +14,7 @@ export default function AppSettingsGeneral() {
             const port = portRef.current!.valueAsNumber;
             if (String(port) !== location.port) {
                 const confirmed = await confirm({
+                    icon: 'settings',
                     title: 'Change Port',
                     message: (
                         <p>

@@ -21,7 +21,7 @@ export default function useMediaSources() {
         const refresh$ = merge(
             observeVisibilityChanges(),
             observePersonalMediaLibraryIdChanges(),
-            pinStore.observe()
+            pinStore.observePins()
         );
         const subscription = observeMediaServices()
             .pipe(
@@ -29,7 +29,7 @@ export default function useMediaSources() {
                 switchMap((services) =>
                     services.length === 0
                         ? of([])
-                        : pinStore.observe().pipe(
+                        : pinStore.observePins().pipe(
                               take(1),
                               switchMap(() => refresh$),
                               map(() => getServices())

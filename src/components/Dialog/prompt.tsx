@@ -1,11 +1,13 @@
 import React, {useCallback, useId, useState} from 'react';
+import {IconName} from 'components/Icon';
 import Dialog, {DialogProps} from './Dialog';
 import DialogButtons from './DialogButtons';
 import showDialog from './showDialog';
 import './prompt.scss';
 
 export interface PromptOptions {
-    title?: React.ReactNode;
+    icon?: IconName;
+    title?: string;
     type?: HTMLInputElement['type'];
     placeholder?: HTMLInputElement['placeholder'];
     label?: React.ReactNode;

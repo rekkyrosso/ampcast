@@ -237,6 +237,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
             if (item.itemType === ItemType.Album && item.multiDisc === undefined) {
                 this.subscribeTo(
                     item.pager.observeItems().pipe(
+                        skipWhile(items => !items[0]?.album),
                         take(1),
                         tap((tracks) => {
                             const src = item.src;

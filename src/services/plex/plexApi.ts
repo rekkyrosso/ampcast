@@ -1,14 +1,17 @@
+import unidecode from 'unidecode';
+import {Except} from 'type-fest';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import MediaFilter from 'types/MediaFilter';
 import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
+import {Page} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import {NoMusicLibraryError} from 'services/errors';
-import {browser, canPlayMedia, partition} from 'utils';
+import {browser, canPlayMedia, groupBy, partition, uniq, uniqBy} from 'utils';
 import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
 import plexSettings from './plexSettings';
@@ -26,6 +29,25 @@ export interface PlexRequest {
 }
 
 export const apiHost = `https://plex.tv/api/v2`;
+
+const emptyRatingObject: Except<plex.RatingObject, 'type'> = {
+    addedAt: 0,
+    art: '',
+    attribution: '',
+    deletedAt: 0,
+    guid: '',
+    index: 0,
+    key: '',
+    lastViewedAt: 0,
+    ratingKey: '',
+    userRating: 0,
+    summary: '',
+    thumb: '',
+    title: '',
+    titleSort: '',
+    updatedAt: 0,
+    viewCount: 0,
+};
 
 async function fetchJSON<T = any>({headers, body, ...request}: PlexRequest): Promise<T> {
     headers = {...headers, Accept: 'application/json'};
@@ -90,32 +112,25 @@ async function plexFetch({
     return response;
 }
 
-async function addToPlaylist(
-    playlist: MediaPlaylist,
-    items: readonly MediaItem[],
-    host = plexSettings.host
-): Promise<void> {
+async function addToPlaylist(playlist: MediaPlaylist, items: readonly MediaItem[]): Promise<void> {
     const ratingKey = getRatingKeyFromSrc(playlist);
-    const method = 'PUT';
     const path = `/playlists/${ratingKey}/items`;
     if (items.length > 0) {
         const uri = toPlexUri(items);
-        await fetchJSON<plex.Playlist>({host, method, path, params: {uri}});
+        await fetchJSON<plex.Playlist>({method: 'PUT', path, params: {uri}});
     }
 }
 
 async function createPlaylist(
     title: string,
     summary: string,
-    items: readonly MediaItem[],
-    host = plexSettings.host
+    items: readonly MediaItem[]
 ): Promise<plex.Playlist> {
     const type = 'audio';
     const uri = toPlexUri(items);
     const {
         MediaContainer: {Metadata: [playlist] = []},
     } = await fetchJSON<plex.MetadataResponse>({
-        host,
         method: 'POST',
         path: '/playlists',
         params: {type, title, uri, smart: 0},
@@ -123,7 +138,6 @@ async function createPlaylist(
     // Need to do these sequentially.
     if (summary) {
         await plexFetch({
-            host,
             method: 'PUT',
             path: `/playlists/${playlist.ratingKey}`,
             params: {summary},
@@ -222,22 +236,143 @@ export function getMusicLibraryId(): string {
     return libraryId;
 }
 
-async function search<T extends plex.MediaObject>({
-    params: {type, ...params} = {},
-    ...request
-}: PlexRequest): Promise<readonly T[]> {
+async function search<T extends plex.RatingObject>(request: PlexRequest): Promise<Page<T>> {
+    if (request.params?.originalTitle) {
+        return searchByOriginalTitle(request) as Promise<Page<T>>;
+    }
+    const pageSize = Number(request.headers?.['X-Plex-Container-Size']) || 100;
+    const itemType = getPlexItemTypeFromMediaType(request.params?.type);
+    const query = request.params?.title || '';
+    const [
+        {
+            MediaContainer: {SearchResult = []},
+        },
+        {
+            MediaContainer: {Metadata: libraryItems = [], size, totalSize},
+        },
+        {
+            MediaContainer: {Metadata: extraTracks = []},
+        },
+    ] = await Promise.all([
+        plexApi.fetchJSON<plex.SearchResultResponse<T>>({
+            path: `/library/search`,
+            params: {query, limit: pageSize, searchTypes: 'music'},
+        }),
+        plexApi.fetchJSON<plex.MetadataResponse<T>>(request),
+        itemType === plexItemType.Artist
+            ? plexApi.fetchJSON<plex.MetadataResponse<plex.Track>>({
+                  ...request,
+                  params: {
+                      title: query,
+                      type: plexMediaType.Track,
+                  },
+              })
+            : Promise.resolve({MediaContainer: {Metadata: []}}),
+    ]);
+    const total = totalSize || size;
+    if (total < pageSize) {
+        const decode = (name: string) => unidecode(name).toLowerCase();
+        const decodedQuery = decode(query);
+        const searchItems = SearchResult.map((result) => result.Metadata).filter(
+            (item) =>
+                item &&
+                item.type === itemType &&
+                item.librarySectionTitle === plexSettings.libraryTitle
+        );
+        // Supplement the underlying request with search results from other queries.
+        let items = uniqBy('ratingKey', searchItems.concat(libraryItems));
+        if (itemType === plexItemType.Track) {
+            const extraArtists = SearchResult.filter((result) => result.score > 0.3)
+                .map((result) => result.Metadata)
+                .filter(
+                    (item) =>
+                        item &&
+                        item.type === plexItemType.Artist &&
+                        item.librarySectionTitle === plexSettings.libraryTitle
+                )
+                .slice(0, 5);
+            if (extraArtists.length > 0) {
+                const extraItems = await Promise.all([
+                    ...extraArtists.map((extraArtist) =>
+                        plexApi.fetchJSON<plex.MetadataResponse<plex.Track>>({
+                            ...request,
+                            path: getMusicLibraryPath(),
+                            params: {'artist.id': extraArtist.ratingKey, type: plexMediaType.Track},
+                        })
+                    ),
+                ]);
+                const tracks = extraItems
+                    .map(({MediaContainer: {Metadata = []}}) => Metadata)
+                    .flat() as T[];
+                items = uniqBy('ratingKey', items.concat(tracks));
+            }
+        } else if (itemType === plexItemType.Artist) {
+            const artistNames = uniq(items.map((item) => item.title));
+            const extraArtistNames = Object.keys(groupBy(extraTracks, 'originalTitle'))
+                .filter((key) => key && key !== 'undefined')
+                .filter(
+                    (name) => !artistNames.includes(name) && decode(name).includes(decodedQuery)
+                );
+            const extraArtists: plex.Artist[] = extraArtistNames.map((artist) => ({
+                ...emptyRatingObject,
+                type: 'artist',
+                title: artist,
+            }));
+            items = items
+                // Sort the found Plex artists.
+                .sort((a, b) => a.title.localeCompare(b.title))
+                // Then add the sorted extra (synthetic) artists.
+                .concat(extraArtists.sort((a, b) => a.title.localeCompare(b.title)) as T[]);
+        }
+
+        return {items, total: items.length, atEnd: true};
+    } else {
+        // Use the existing query. There are lots of results and we need pagination.
+        return {items: libraryItems, total};
+    }
+}
+
+async function searchByOriginalTitle(request: PlexRequest): Promise<Page<plex.Track>> {
+    let items: readonly plex.Track[];
+    const originalTitle = request.params?.originalTitle || '';
+    // This whole function exists because the Plex API doesn't handle commas very well.
+    if (originalTitle.includes(',')) {
+        const pageSize = Number(request.headers?.['X-Plex-Container-Size']) || 100;
+        const searchItems = await librarySearch<plex.Track>(
+            plexItemType.Track,
+            originalTitle,
+            pageSize
+        );
+        items = searchItems.filter((item) => item.originalTitle === originalTitle);
+    } else {
+        const {
+            MediaContainer: {Metadata = []},
+        } = await fetchJSON<plex.MetadataResponse<plex.Track>>(request);
+        items = Metadata;
+    }
+    return {items, total: items.length, atEnd: true};
+}
+
+async function librarySearch<T extends plex.RatingObject>(
+    type: plexItemType,
+    query: string,
+    limit = 100
+): Promise<readonly T[]> {
+    limit = Math.max(100, limit);
     const {
         MediaContainer: {SearchResult = []},
-    } = await fetchJSON<plex.SearchResultResponse>({...request, params});
-    const items = SearchResult.map((result) => result.Metadata).filter((item) => item.type === type);
-    return getMetadata(
-        items.map((item) => item.ratingKey),
+    } = await plexApi.fetchJSON<plex.SearchResultResponse<T>>({
+        path: `/library/search`,
+        params: {query, limit, searchTypes: 'music'},
+    });
+    return SearchResult.map((result) => result.Metadata).filter(
+        (item) =>
+            item && item.type === type && item.librarySectionTitle === plexSettings.libraryTitle
     );
 }
 
 async function getMetadata<T extends plex.MediaObject>(
-    ratingKeys: readonly string[],
-    host = plexSettings.host
+    ratingKeys: readonly string[]
 ): Promise<readonly T[]> {
     if (ratingKeys.length === 0) {
         return [];
@@ -245,7 +380,6 @@ async function getMetadata<T extends plex.MediaObject>(
     const {
         MediaContainer: {Metadata = []},
     } = await fetchJSON<plex.MetadataResponse<T>>({
-        host,
         path: `/library/metadata/${ratingKeys.join(',')}`,
         headers: {
             'X-Plex-Container-Start': '0',
@@ -357,6 +491,26 @@ export function getPlexItemType(itemType: ItemType, mediaType?: MediaType): plex
 
         default:
             return mediaType === MediaType.Video ? plexItemType.Clip : plexItemType.Track;
+    }
+}
+
+export function getPlexItemTypeFromMediaType(itemType: plexMediaType): plexItemType | undefined {
+    switch (itemType) {
+        case plexMediaType.Album:
+            return plexItemType.Album;
+
+        case plexMediaType.Artist:
+            return plexItemType.Artist;
+
+        case plexMediaType.Track:
+            return plexItemType.Track;
+
+        case plexMediaType.Playlist:
+            return plexItemType.Playlist;
+
+        default:
+            // They don't really map one to one.
+            return undefined;
     }
 }
 

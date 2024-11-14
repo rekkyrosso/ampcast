@@ -12,7 +12,6 @@ import usePreload from './usePreload';
 import usePreventDrop from './usePreventDrop';
 import useMediaSession from './useMediaSession';
 import useGlobalActions from './useGlobalActions';
-import 'styles/layout.scss';
 
 export default function AppContent() {
     useAppSettings();

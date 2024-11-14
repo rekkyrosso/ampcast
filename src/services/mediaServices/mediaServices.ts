@@ -15,8 +15,8 @@ import {
     timer,
 } from 'rxjs';
 import DataService from 'types/DataService';
-import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
+import MediaServiceId from 'types/MediaServiceId';
 import PersonalMediaService from 'types/PersonalMediaService';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
@@ -26,6 +26,35 @@ import {observeSourceVisibility} from './servicesSettings';
 const logger = new Logger('mediaServices');
 
 const services$ = new BehaviorSubject<readonly MediaService[]>([]);
+
+const playabilityByServiceId: Record<
+    MediaServiceId | 'blob' | 'file' | 'http' | 'https',
+    boolean | undefined
+> = {
+    // Always playable.
+    blob: true,
+    file: true,
+    http: true,
+    https: true,
+    youtube: true,
+    // Playable if logged in.
+    airsonic: false,
+    ampache: false,
+    apple: false,
+    emby: false,
+    gonic: false,
+    jellyfin: false,
+    navidrome: false,
+    plex: false,
+    spotify: false,
+    subsonic: false,
+    tidal: false,
+    // No longer playable.
+    'plex-tidal': undefined,
+    // Not playable.
+    lastfm: undefined,
+    listenbrainz: undefined,
+};
 
 export function observeMediaServices(): Observable<readonly MediaService[]> {
     return services$;
@@ -79,15 +108,6 @@ export function observePersonalMediaLibraryIdChanges(): Observable<void> {
     );
 }
 
-export function canPlayNow<T extends MediaItem>(item: T): boolean {
-    const isAlwaysPlayable = /^(blob|file|https?|youtube):/;
-    if (isAlwaysPlayable.test(item.src)) {
-        return true;
-    }
-    const service = getServiceFromSrc(item);
-    return service?.isLoggedIn() ?? true;
-}
-
 export function getDataServices(): readonly DataService[] {
     return getEnabledServices().filter(isDataService);
 }
@@ -135,16 +155,28 @@ export function isPersonalMediaService(service: MediaService): service is Person
     return isMediaServiceType(service, ServiceType.PersonalMedia);
 }
 
-export function isPlayableSrc(src: string): boolean {
+export function isPlayableSrc(src: string, immediate?: boolean): boolean {
     if (src) {
-        const [serviceId] = String(src).split(':');
-        const service = getService(serviceId);
-        return service
-            ? service.serviceType !== ServiceType.DataService
-            : serviceId !== 'musicbrainz';
-    } else {
-        return false;
+        const [serviceId, type, id] = String(src).split(':');
+        const playability = playabilityByServiceId[serviceId as MediaServiceId];
+        const notPlayable = playability === undefined;
+        const playableNow = playability === true;
+        if (notPlayable) {
+            return false;
+        }
+        if (playableNow) {
+            return serviceId === 'youtube' ? !!(type && id) : true;
+        }
+        // Playable service.
+        if (type && id) {
+            if (!immediate) {
+                return true;
+            }
+            const service = getService(serviceId);
+            return !!service && service.isLoggedIn();
+        }
     }
+    return false;
 }
 
 export function isPublicMediaService(service: MediaService): service is PublicMediaService {
@@ -183,6 +215,7 @@ function isMediaServiceType(service: MediaService, type: ServiceType): boolean {
     return isMediaService(service) && service.serviceType === type;
 }
 
+// Disconnect services when they are hidden.
 observeMediaServices()
     .pipe(
         switchMap((services) => services),

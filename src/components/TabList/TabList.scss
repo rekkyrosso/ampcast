@@ -30,7 +30,9 @@
         border-color: #444; /* TODO: Where did this color come from? */
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
-        height: 2em;
+        padding-top: 0;
+        padding-bottom: 0;
+        height: 1.75em;
 
         &[aria-selected="true"] {
             border-bottom: 1px solid var(--background-color);

@@ -35,13 +35,14 @@ export default function UserThemes() {
         if (selectedTheme) {
             const oldName = selectedTheme.name;
             const newName = await prompt({
+                icon: 'palette',
                 title: 'My Themes',
                 label: 'Name',
                 suggestedValue: oldName,
                 okLabel: 'Rename',
                 system: true,
             });
-            if (newName) {
+            if (newName && newName !== oldName) {
                 const confirmed = await confirmOverwriteTheme(newName);
                 if (confirmed) {
                     await themeStore.renameUserTheme(oldName, newName);

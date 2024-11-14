@@ -6,20 +6,17 @@ import './alert.scss';
 
 export interface AlertOptions {
     icon?: IconName;
-    title?: React.ReactNode;
+    title?: string;
     message: React.ReactNode;
 }
 
 export default async function alert({
-    icon,
     title = 'Message',
-    message,
     system = false,
+    ...props
 }: AlertOptions & {system?: boolean}): Promise<void> {
     await showDialog(
-        (props: DialogProps) => (
-            <AlertDialog {...props} icon={icon} title={title} message={message} />
-        ),
+        (dialogProps: DialogProps) => <AlertDialog {...dialogProps} {...props} title={title} />,
         system
     );
 }

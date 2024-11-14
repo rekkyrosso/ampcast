@@ -63,6 +63,11 @@ const plexSettings = {
         libraryId$.next(libraryId);
     },
 
+    get libraryTitle(): string {
+        const library = this.libraries.find(library => library.id === this.libraryId);
+        return library?.title || '';
+    },
+
     observeLibraryId(): Observable<string> {
         return libraryId$.pipe(distinctUntilChanged());
     },

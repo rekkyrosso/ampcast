@@ -1,5 +1,6 @@
 import React, {useCallback, useId, useRef} from 'react';
 import {LiteStorage} from 'utils';
+import {IconName} from 'components/Icon';
 import Dialog, {DialogProps} from './Dialog';
 import DialogButtons from './DialogButtons';
 import showDialog from './showDialog';
@@ -8,31 +9,24 @@ import './confirm.scss';
 const storage = new LiteStorage('confirm');
 
 export interface ConfirmOptions {
-    title?: React.ReactNode;
+    icon?: IconName;
+    title?: string;
     message: React.ReactNode;
     okLabel?: React.ReactNode;
     storageId?: string;
 }
 
 export default async function confirm({
-    title,
-    message,
-    okLabel,
     storageId,
     system = false,
+    ...props
 }: ConfirmOptions & {system?: boolean}): Promise<boolean> {
     if (storageId && storage.getBoolean(storageId)) {
         return true;
     }
     const result = await showDialog(
-        (props: DialogProps) => (
-            <ConfirmDialog
-                {...props}
-                title={title}
-                message={message}
-                okLabel={okLabel}
-                storageId={storageId}
-            />
+        (dialogProps: DialogProps) => (
+            <ConfirmDialog {...dialogProps} {...props} storageId={storageId} />
         ),
         system
     );

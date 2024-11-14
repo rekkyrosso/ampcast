@@ -78,6 +78,6 @@ export function uniq<T>(values: readonly T[]): T[] {
     return [...new Set(values)];
 }
 
-export function uniqBy<T>(values: readonly T[], key: keyof T): T[] {
+export function uniqBy<T>(key: keyof T, values: readonly T[]): T[] {
     return values.filter((a, index, self) => index === self.findIndex((b) => a[key] === b[key]));
 }

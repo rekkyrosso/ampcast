@@ -36,7 +36,6 @@ import {
     logout,
 } from './plexAuth';
 import plexApi, {getMusicLibraryId, getMusicLibraryPath, getPlexMediaType} from './plexApi';
-import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
 import PlexPager from './PlexPager';
 import {scrobble} from './plexScrobbler';
@@ -538,13 +537,11 @@ function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
 }
 
 function canRate<T extends MediaObject>(item: T, inline?: boolean): boolean {
-    if (inline || !item.src.startsWith('plex:')) {
+    if (inline || !item.src.startsWith('plex:') || item.synthetic) {
         return false;
     }
     switch (item.itemType) {
         case ItemType.Album:
-            return !item.synthetic;
-
         case ItemType.Artist:
             return true;
 
@@ -656,18 +653,11 @@ async function lookup(
         return [];
     }
     return fetchFirstPage(
-        new PlexPager<MediaItem>(
-            {
-                path: `/library/search`,
-                params: {
-                    query: `${artist} ${title}`,
-                    searchTypes: 'music',
-                    limit: 50,
-                    type: plexItemType.Track,
-                },
-            },
-            {pageSize: limit, maxSize: limit, lookup: true}
-        ),
+        createSearchPager<MediaItem>(ItemType.Media, `${artist} ${title}`, {
+            pageSize: limit,
+            maxSize: limit,
+            lookup: true,
+        }),
         {timeout}
     );
 }
@@ -703,12 +693,11 @@ function createSearch<T extends MediaObject>(
 function createSearchPager<T extends MediaObject>(
     itemType: T['itemType'],
     q: string,
-    filters?: Record<string, string>,
     options?: Partial<PagerConfig>
 ): Pager<T> {
     getMusicLibraryId(); // Make sure to throw even if not needed
     const path = itemType === ItemType.Playlist ? '/playlists/all' : getMusicLibraryPath();
-    const params: Record<string, string> = {...filters};
+    const params: Record<string, string> = {};
     if (q) {
         params.title = q.trim();
     }

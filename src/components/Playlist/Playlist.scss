@@ -15,18 +15,19 @@
             justify-content: center;
             width: 100%;
 
-            .airsonic-not-connected &.service-airsonic,
-            .ampache-not-connected &.service-ampache,
-            .apple-not-connected &.service-apple,
-            .emby-not-connected &.service-emby,
-            .gonic-not-connected &.service-gonic,
-            .jellyfin-not-connected &.service-jellyfin,
-            .navidrome-not-connected &.service-navidrome,
-            .subsonic-not-connected &.service-subsonic,
-            .plex-not-connected &.service-plex,
-            .plex-tidal-not-connected &.service-plex-tidal,
-            .spotify-not-connected &.service-spotify,
-            .tidal-not-connected &.service-tidal {
+            /* TODO: Remove this block */
+            body:not(.airsonic-connected) &.service-airsonic,
+            body:not(.ampache-connected) &.service-ampache,
+            body:not(.apple-connected) &.service-apple,
+            body:not(.emby-connected) &.service-emby,
+            body:not(.gonic-connected) &.service-gonic,
+            body:not(.jellyfin-connected) &.service-jellyfin,
+            body:not(.navidrome-connected) &.service-navidrome,
+            body:not(.subsonic-connected) &.service-subsonic,
+            body:not(.plex-connected) &.service-plex,
+            body:not(.plex-tidal-connected) &.service-plex-tidal,
+            body:not(.spotify-connected) &.service-spotify,
+            body:not(.tidal-connected) &.service-tidal {
                 &.selected .icon.show-connectivity {
                     filter: grayscale(1);
                     opacity: 0.5;

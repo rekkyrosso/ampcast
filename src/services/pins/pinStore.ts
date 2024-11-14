@@ -26,11 +26,15 @@ class PinStore extends Dexie {
         liveQuery(() => this.pins.toArray()).subscribe(this.pins$);
     }
 
-    observe(): Observable<readonly Pin[]> {
+    observePins(): Observable<readonly Pin[]> {
         return combineLatest([this.pins$, this.lockedPin$]).pipe(
             filter(([pins]) => pins !== UNINITIALIZED),
             map(([pins]) => pins)
         );
+    }
+
+    observePinsForService(serviceId: string): Observable<readonly Pin[]> {
+        return this.observePins().pipe(map(() => this.getPinsForService(serviceId)));
     }
 
     lock(pin: Pin): void {
@@ -91,12 +95,12 @@ class PinStore extends Dexie {
     }
 
     isLocked(src: string): boolean {
-        const lockedPin = this.lockedPin$.getValue();
+        const lockedPin = this.lockedPin$.value;
         return lockedPin?.src === src;
     }
 
     isPinned(src: string): boolean {
-        const pins = this.pins$.getValue();
+        const pins = this.pins$.value;
         return pins.findIndex((pin) => pin.src === src) !== -1;
     }
 
@@ -105,8 +109,8 @@ class PinStore extends Dexie {
     }
 
     getPinsForService(serviceId: string): readonly Pin[] {
-        const pins = this.pins$.getValue().slice() as Pin[];
-        const lockedPin = this.lockedPin$.getValue();
+        const pins = this.pins$.value.slice();
+        const lockedPin = this.lockedPin$.value;
         if (lockedPin && !pins.find((pin) => pin.src === lockedPin.src)) {
             pins.push(lockedPin);
         }

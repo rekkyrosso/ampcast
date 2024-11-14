@@ -6,7 +6,6 @@ import {getService} from 'services/mediaServices';
 import {addRecentPlaylist} from 'services/recentPlaylists';
 import Dialog, {DialogProps, alert, error, showDialog} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
-import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import usePlaylistItemsByService from './usePlaylistItemsByService';
 import './CreatePlaylistDialog.scss';
 
@@ -47,7 +46,8 @@ export default function CreatePlaylistDialog<T extends MediaItem>({
             try {
                 const playlist = await service.createPlaylist(name, {description, isPublic, items});
                 await alert({
-                    title: <MediaSourceLabel icon={service.id} text={service.name} />,
+                    icon: service.id,
+                    title: service.name,
                     message: 'Your playlist has been created.',
                 });
                 addRecentPlaylist(playlist);

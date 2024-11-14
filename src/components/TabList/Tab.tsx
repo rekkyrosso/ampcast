@@ -9,8 +9,12 @@ export interface TabProps extends React.ButtonHTMLAttributes<HTMLButtonElement> 
 
 export default function Tab({id, item, index, selected, ...props}: TabProps) {
     const handleMouseDown = useCallback((event: React.MouseEvent<HTMLButtonElement>) => {
-        // Safari doesn't focus buttons when you click on them.
-        (event.target as HTMLButtonElement).focus();
+        if (event.button === 0) {
+            // Safari doesn't focus buttons when you click on them.
+            (event.target as HTMLButtonElement).focus();
+        } else {
+            event.preventDefault();
+        }
     }, []);
 
     return (

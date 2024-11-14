@@ -11,6 +11,7 @@ export default async function confirmDisconnectServices(
     let confirmed = services.length === 0;
     if (!confirmed) {
         confirmed = await confirm({
+            icon: 'settings',
             message: (
                 <div className="confirm-disconnect-services">
                     <p>You will be disconnected from the following services:</p>

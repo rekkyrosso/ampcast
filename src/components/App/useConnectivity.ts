@@ -16,10 +16,6 @@ export default function useConnectivity(): void {
                                 ? isOnLine && isLoggedIn
                                 : isLoggedIn;
                             document.body.classList.toggle(`${service.id}-connected`, connected);
-                            document.body.classList.toggle(
-                                `${service.id}-not-connected`,
-                                !connected
-                            );
                         })
                     )
                 )

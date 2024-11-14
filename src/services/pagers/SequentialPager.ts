@@ -62,7 +62,7 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
 
     private addPage(page: Page<T>): void {
         const newItems = (page.items || []).filter(exists);
-        const items = uniqBy(this.items.concat(newItems), 'src');
+        const items = uniqBy('src', this.items.concat(newItems));
         if (items.length === this.items.length) {
             // Nothing got added.
             this.emptyCount++;

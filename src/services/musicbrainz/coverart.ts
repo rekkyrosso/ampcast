@@ -2,7 +2,7 @@ import Dexie from 'dexie';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import Thumbnail from 'types/Thumbnail';
-import {Logger} from 'utils';
+import {Logger, uniqBy} from 'utils';
 
 const logger = new Logger('musicbrainz/coverart');
 
@@ -61,15 +61,18 @@ export async function getCoverArtThumbnails(item: MediaObject): Promise<Thumbnai
     try {
         const coverArt = await getCoverArt(mbid);
         const frontCover = coverArt.images.filter((image) => image.front && image.approved)[0];
-        const thumbnails = frontCover
-            ? Object.keys(frontCover.thumbnails)
-                  .filter((size) => getImageSize(size) !== 0)
-                  .map((size) => ({
-                      url: frontCover.thumbnails[size],
-                      width: getImageSize(size),
-                      height: getImageSize(size),
-                  }))
-            : [];
+        const thumbnails = uniqBy(
+            'url',
+            frontCover
+                ? Object.keys(frontCover.thumbnails)
+                      .filter((size) => getImageSize(size) !== 0)
+                      .map((size) => ({
+                          url: frontCover.thumbnails[size],
+                          width: getImageSize(size),
+                          height: getImageSize(size),
+                      }))
+                : []
+        );
         await store.items.put(thumbnails.length === 0 ? {mbid} : {mbid, album, artist, thumbnails});
         return thumbnails;
     } catch (err: any) {

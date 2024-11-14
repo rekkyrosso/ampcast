@@ -16,7 +16,7 @@ import './Dialog.scss';
 export interface DialogProps
     extends Except<React.DialogHTMLAttributes<HTMLDialogElement>, 'title' | 'onClose'> {
     icon?: IconName;
-    title?: React.ReactNode;
+    title?: string;
     onClose: (returnValue: string) => void;
 }
 

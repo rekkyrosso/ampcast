@@ -192,11 +192,13 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
                     return youtubeApi.getVideoSrc(url);
                 }
             }
-            const musicServiceName = info.music_service_name?.toLowerCase() || '';
-            const lookupServiceIds = getMediaLookupServices().map((service) => service.id);
-            for (const serviceId of lookupServiceIds) {
-                if (musicServiceName.includes(serviceId)) {
-                    return `${serviceId}:`;
+            const musicServiceName = info.music_service_name?.toLowerCase();
+            if (musicServiceName) {
+                const lookupServiceIds = getMediaLookupServices().map((service) => service.id);
+                for (const serviceId of lookupServiceIds) {
+                    if (musicServiceName.includes(serviceId)) {
+                        return `${serviceId}:`;
+                    }
                 }
             }
         }

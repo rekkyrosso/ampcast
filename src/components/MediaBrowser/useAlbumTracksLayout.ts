@@ -2,11 +2,15 @@ import {useEffect, useState} from 'react';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import MediaSourceLayout from 'types/MediaSourceLayout';
-import {uniq} from 'utils';
 
 const defaultAlbumTracksLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
     fields: ['AlbumTrack', 'Title', 'Artist', 'Duration'],
+};
+
+const otherTracksLayout: MediaSourceLayout<MediaItem> = {
+    view: 'details',
+    fields: ['Index', 'Title', 'Duration', 'Album', 'Track', 'Year'],
 };
 
 const videosLayout: MediaSourceLayout<MediaItem> = {
@@ -26,15 +30,7 @@ export default function useAlbumTracksLayout(
             if (type === 'videos') {
                 setLayout(videosLayout);
             } else {
-                const fields = preferredLayout.fields.slice();
-                if (fields[0] === 'Track' || fields[0] === 'AlbumTrack') {
-                    fields[0] = 'Index';
-                }
-                const index = fields.indexOf('Duration');
-                if (index !== -1) {
-                    fields.splice(index + 1, 0, 'Album', 'Year');
-                }
-                setLayout({view: 'details', fields: uniq(fields)});
+                setLayout(otherTracksLayout);
             }
         } else {
             setLayout(preferredLayout);

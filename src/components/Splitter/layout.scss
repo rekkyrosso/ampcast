@@ -11,18 +11,18 @@
 
 #media-library-layout {
     & > .layout-pane-1 {
-        min-width: 4rem;
+        min-width: calc(3rem + 2 * var(--gutter-width));
         flex-basis: 17%;
     }
     
     & > .layout-pane-2 {
-        min-width: 14rem;
+        min-width: calc(14rem - 2 * var(--gutter-width));
     }
 }
 
 #media-playback-layout {
     & > .layout-pane-1 {
-        min-height: 12.5rem;
+        min-height: calc(9rem + 5 * var(--gutter-width));
         flex-basis: 73.5%;
     }
 

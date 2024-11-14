@@ -40,10 +40,9 @@ export default function VisualizerFavorites() {
     const isPlaying = useIsPlaying();
     const currentVisualizer = useCurrentVisualizer();
     const favorites = useVisualizerFavorites();
-    const [selectedFavorites, setSelectedFavorites] = useState<readonly KeyedVisualizerFavorite[]>(
+    const [[selectedFavorite], setSelectedFavorites] = useState<readonly KeyedVisualizerFavorite[]>(
         []
     );
-    const [selectedFavorite] = selectedFavorites;
     const canAddCurrentVisualizer =
         currentVisualizer &&
         currentVisualizer.providerId !== 'none' &&
@@ -58,7 +57,8 @@ export default function VisualizerFavorites() {
     const handleDeleteClick = useCallback(async () => {
         if (selectedFavorite) {
             const confirmed = await confirm({
-                title: t('Favorite visualizers'),
+                icon: 'visualizer',
+                title: t('Favorite Visualizers'),
                 message: `${t('Remove from favorites')}?`,
                 okLabel: 'Remove',
                 storageId: 'delete-visualizer-favorite',

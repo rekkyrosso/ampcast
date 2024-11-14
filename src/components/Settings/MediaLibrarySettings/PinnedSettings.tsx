@@ -1,9 +1,11 @@
-import React, {useCallback, useMemo, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import MediaService from 'types/MediaService';
 import Pin from 'types/Pin';
 import pinStore from 'services/pins/pinStore';
+import {confirm} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import ListBox from 'components/ListView/ListBox';
+import usePinsForService from './usePinsForService';
 import './PinnedSettings.scss';
 
 export interface PinnedSettingsProps {
@@ -11,46 +13,39 @@ export interface PinnedSettingsProps {
 }
 
 export default function PinnedSettings({service}: PinnedSettingsProps) {
-    const renderPin = useMemo(() => (pin: Pin) => pin.title, []);
-    const [pins, setPins] = useState(() => pinStore.getPinsForService(service.id));
-    const [selectedPins, setSelectedPins] = useState<readonly Pin[]>([]);
+    const pins = usePinsForService(service);
+    const renderPin = useCallback((pin: Pin) => pin.title, []);
+    const [[selectedPin], setSelectedPins] = useState<readonly Pin[]>([]);
 
-    const handleSubmit = useCallback(async () => {
-        const originalPins = pinStore.getPinsForService(service.id);
-        const pinsToRemove = originalPins.filter(
-            (originalPin) => pins.findIndex((pin) => pin.src === originalPin.src) === -1
-        );
-        const shouldUnlock = pinsToRemove.some((pin) => pinStore.isLocked(pin.src));
-        if (shouldUnlock) {
-            pinStore.unlock();
+    const handleRemoveClick = useCallback(async () => {
+        if (selectedPin) {
+            const confirmed = await confirm({
+                icon: 'pin',
+                title: 'Pins',
+                message: 'Unpin this playlist?',
+                okLabel: 'Unpin',
+                storageId: 'delete-pin',
+                system: true,
+            });
+            if (confirmed) {
+                await pinStore.unpin(selectedPin);
+            }
         }
-        await pinStore.unpin(pinsToRemove);
-    }, [service, pins]);
-
-    const handleRemoveClick = useCallback(() => {
-        const selectedSrcs = selectedPins.map((pin) => pin.src);
-        setPins((pins) => pins.filter((pin) => !selectedSrcs.includes(pin.src)));
-        setSelectedPins([]);
-    }, [selectedPins]);
+    }, [selectedPin]);
 
     return (
-        <form className="pinned-settings" method="dialog" onSubmit={handleSubmit}>
+        <form className="pinned-settings" method="dialog">
             <h3>Pinned playlists:</h3>
             <ListBox<Pin>
                 title="Pinned playlists"
                 items={pins}
                 itemKey="src"
-                multiple
                 renderItem={renderPin}
                 onDelete={handleRemoveClick}
                 onSelect={setSelectedPins}
             />
             <p className="pinned-settings-buttons">
-                <button
-                    type="button"
-                    disabled={selectedPins.length === 0}
-                    onClick={handleRemoveClick}
-                >
+                <button type="button" disabled={!selectedPin} onClick={handleRemoveClick}>
                     Remove
                 </button>
             </p>

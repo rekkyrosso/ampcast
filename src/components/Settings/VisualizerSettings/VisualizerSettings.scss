@@ -22,10 +22,15 @@
         margin-top: 1.5em;
     }
 
-    .use-provider.in-use {
-        opacity: 1;
-        color: var(--background-color);
-        background: var(--text-color);
+    .use-provider {
+        padding-top: 0;
+        padding-bottom: 0;
+        
+        &.in-use {
+            opacity: 1;
+            color: var(--background-color);
+            background: var(--text-color);
+        }
     }
 
     .compatibility {

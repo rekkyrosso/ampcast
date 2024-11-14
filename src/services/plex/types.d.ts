@@ -8,7 +8,7 @@ declare namespace plex {
         readonly mediaTagVersion: string;
     }
 
-    interface MetadataContainer<T = MediaObject> extends MediaContainer {
+    interface MetadataContainer<T extends MediaObject = MediaObject> extends MediaContainer {
         readonly Metadata: readonly T[];
     }
 
@@ -20,47 +20,35 @@ declare namespace plex {
         readonly authToken: string;
     }
 
-    interface MetadataResponse<T = MediaObject> {
+    interface MetadataResponse<T extends MediaObject = MediaObject> {
         readonly MediaContainer: MetadataContainer<T>;
     }
 
-    interface DirectoryContainer extends MediaContainer {
-        readonly Directory: readonly Directory[];
-    }
-
     interface DirectoryResponse {
-        readonly MediaContainer: DirectoryContainer;
+        readonly MediaContainer: {
+            readonly Directory: readonly Directory[];
+        };
     }
 
     interface PlayQueueResponse {
         readonly MediaContainer: PlayQueue;
     }
 
-    interface SearchResult {
-        readonly Metadata: Metadata;
+    interface SearchResult<T extends RatingObject = RatingObject> {
+        readonly Metadata: T;
         readonly score: number;
     }
 
-    interface SearchResultContainer extends MediaContainer {
-        readonly SearchResult: readonly SearchResult[];
-    }
-
-    interface SearchResultsContainer extends MediaContainer {
-        readonly SearchResults: readonly SearchResultContainer[];
-    }
-
-    interface SearchResultsResponse {
-        readonly MediaContainer: SearchResultsContainer;
-    }
-
-    interface SearchResultResponse {
-        readonly MediaContainer: SearchResultContainer;
+    interface SearchResultResponse<T extends RatingObject = RatingObject> {
+        readonly MediaContainer: {
+            readonly SearchResult: readonly SearchResult<T>[];
+        };
     }
 
     interface BaseRatingObject {
-        readonly Genre: readonly Tag[];
-        readonly Guid: readonly Guid[];
-        readonly Country: readonly Tag[];
+        readonly Genre?: readonly Tag[];
+        readonly Guid?: readonly Guid[];
+        readonly Country?: readonly Tag[];
         readonly addedAt: number; // Date
         readonly art: string;
         readonly attribution: string;
@@ -77,10 +65,11 @@ declare namespace plex {
         readonly titleSort: string;
         readonly updatedAt: number; // Date
         readonly viewCount: number;
-        readonly userState?: boolean;
+        readonly librarySectionTitle?: string;
         readonly rating?: number;
         readonly ratingCount?: number;
         readonly saved?: boolean;
+        readonly userState?: boolean;
     }
 
     interface Artist extends BaseRatingObject {
@@ -128,8 +117,8 @@ declare namespace plex {
         readonly parentThumb: string;
         readonly parentTitle: string;
         readonly parentYear: number;
-        readonly year?: number;
         readonly contentRating?: string;
+        readonly year?: number;
     }
 
     interface MusicVideo extends BaseRatingObject {

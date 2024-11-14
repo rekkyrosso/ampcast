@@ -4,10 +4,10 @@ import PlaylistItem from 'types/PlaylistItem';
 import {findListen} from 'services/localdb/listens';
 import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import {
-    canPlayNow,
     getMediaLookupServices,
     getServiceFromSrc,
     hasPlayableSrc,
+    isPlayableSrc,
 } from 'services/mediaServices';
 import {
     dispatchLookupStartEvent,
@@ -92,16 +92,20 @@ class Lookup {
         return this.controller.signal;
     }
 
+    private canPlayNow({src}: {src: string}): boolean {
+        return isPlayableSrc(src, true);
+    }
+
     private async findItem(item: PlaylistItem): Promise<MediaItem | undefined> {
-        const listen = findListen(item);
-        if (listen && canPlayNow(listen)) {
+        const listen = this.getPlayableListen(item);
+        if (listen && this.canPlayNow(listen)) {
             return listen;
         }
 
         const {link, ...rest} = item;
         const linkedItem = link && hasPlayableSrc(link) ? {...rest, ...link} : undefined;
         // TODO: Enhance linked item from original source.
-        if (linkedItem && canPlayNow(linkedItem)) {
+        if (linkedItem && this.canPlayNow(linkedItem)) {
             return linkedItem;
         }
 
@@ -127,6 +131,14 @@ class Lookup {
         return (
             findBestMatch(matches, item, isrcs, Lookup.lastFoundServiceId) || listen || linkedItem
         );
+    }
+
+    private getPlayableListen(item: PlaylistItem): MediaItem | undefined {
+        const listen = findListen(item);
+        if (listen && /^(file|blob):/.test(listen.src)) {
+            return undefined;
+        }
+        return listen;
     }
 
     private async serviceLookup(

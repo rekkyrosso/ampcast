@@ -95,8 +95,8 @@ const youtubeRecentlyPlayed: MediaSource<MediaItem> = {
     search(): Pager<MediaItem> {
         return new SimpleMediaPager(async () =>
             uniqBy(
-                getListens().filter((item) => item.src.startsWith('youtube:')),
-                'src'
+                'src',
+                getListens().filter((item) => item.src.startsWith('youtube:'))
             )
         );
     },

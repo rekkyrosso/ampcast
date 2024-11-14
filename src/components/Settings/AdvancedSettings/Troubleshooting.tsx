@@ -8,6 +8,7 @@ export default function Troubleshooting() {
 
     const showFactoryReset = useCallback(async () => {
         const confirmed = await confirm({
+            icon: 'settings',
             title: 'Factory Reset',
             message: (
                 <p>

@@ -17,7 +17,7 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
 
     constructor(
         private readonly fetch: (pageNumber: number, pageSize: number) => Promise<Page<T>>,
-        options?: Partial<PagerConfig>
+        options?: PagerConfig
     ) {
         super(options);
     }
@@ -70,7 +70,7 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
 
         try {
             this.busy = true;
-            this.error = undefined
+            this.error = undefined;
             const page = await this.fetch(pageNumber, this.pageSize);
             this.fetchStates.set(pageNumber, FetchState.Fulfilled);
             this.insertPage(pageNumber, page);
@@ -103,6 +103,9 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
     }
 
     private getPageNumbersFromIndex(index: number, length: number): number[] {
+        if (index === 0 && length === this.pageSize) {
+            return [1];
+        }
         const size = this.size || 0;
         const proximity = Math.max(Math.ceil(this.pageSize / 2), length);
         const startIndex = Math.max(index - proximity, 0);
