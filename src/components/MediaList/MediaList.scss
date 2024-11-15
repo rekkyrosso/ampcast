@@ -1,21 +1,21 @@
 @use 'styles/effects.scss';
 
 .media-list.list-view {
-    .list-view-row.playing .list-view-cell {
+    .playing .text {
         font-style: italic;
         color: var(--currently-playing-color);
     }
 
-    .list-view-row.selected .list-view-cell {
+    .selected .text {
         color: var(--selected-text-color);
     }
 
-    .list-view-row.selected.playing .list-view-cell {
-        .themed.dark.selection-dark & {
+    .selected.playing .text {
+        .dark.selection-dark & {
             color: var(--currently-playing-color-light);
         }
 
-        .themed.light.selection-light & {
+        .light.selection-light & {
             color: var(--currently-playing-color-dark);
         }
     }
@@ -40,12 +40,39 @@
         visibility: inherit;
     }
 
-    .unplayable:not(.selected):not(.playing) .list-view-cell {
-        color: var(--grey1-color);
-    }
+    .unplayable {
+        .icon.show-connectivity {
+            opacity: 0.5;
+        }
 
-    .unplayable .cover-art img {
-        filter: brightness(0.25) grayscale(1);
+        .cover-art img {
+            filter: brightness(0.5) grayscale(1);
+        }
+
+        &:not(.playing) {
+            &.selected .text {
+                opacity: 0.75
+            }
+
+            &:not(.selected) {
+                .title .text {
+                    color: var(--grey2-color);
+                }
+
+                .text {
+                    color: var(--grey1-color);
+                }
+            }
+        }
+
+        &.playing .text {
+            opacity: 0.75;
+        }
+
+        &:not(.selected) .badge.explicit {
+            background-color: var(--grey1-color);
+            color: var(--background-color);
+        }
     }
 
     .badge {
@@ -65,20 +92,15 @@
         }
     }
 
-    .unplayable:not(.selected) .badge.explicit {
-        background-color: var(--grey1-color);
-        color: var(--background-color);
-    }
-
     .index {
         font-family: monospace;
     }
 
-    .title .text {
+    .title-with-badge {
         display: flex;
         align-items: center;
 
-        .title-text {
+        .text {
 			overflow: hidden;
 			text-overflow: ellipsis;
         }
@@ -204,7 +226,7 @@
             left: auto;
             top: 0.375em;
             right: 0.375em;
-            padding: 0 0.375em 0.125em 0.375em;
+            padding: 0.125em 0.375em;
             color: var(--text-color);
             border-radius: calc(var(--roundness) * 0.75em);
             background-color: var(--background-mark-color);
@@ -557,16 +579,6 @@
                 flex: initial;
                 margin-right: 0.25em;
                 overflow: visible;
-            }
-        }
-
-        .unplayable:not(.selected) {
-            .list-view-cell {
-                color: var(--grey1-color);
-            }
-
-            .title {
-                color: var(--grey2-color);
             }
         }
     }

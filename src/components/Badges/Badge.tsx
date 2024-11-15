@@ -15,7 +15,7 @@ export interface BadgeProps {
 export function Badge({className = '', title, children}: BadgeProps) {
     return (
         <span className={`badge ${className}`} title={title}>
-            <span className="text">{children}</span>
+            <span className="badge-text">{children}</span>
         </span>
     );
 }

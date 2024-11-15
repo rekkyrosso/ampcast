@@ -62,8 +62,8 @@ const Index: RenderField = (_, rowIndex) => <Text value={rowIndex + 1} />;
 
 const Title: RenderField = (item) => {
     return (
-        <span className="text">
-            <span className="title-text">{item.title}</span>
+        <span className="title-with-badge">
+            <span className="text">{item.title}</span>
             {item.itemType === ItemType.Media || item.itemType === ItemType.Album ? (
                 <>
                     {' '}

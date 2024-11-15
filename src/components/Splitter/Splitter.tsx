@@ -37,12 +37,13 @@ export default function Splitter({id = '', arrange = 'columns', children}: Split
         (event: React.MouseEvent) => {
             if (event.button === 0) {
                 const dragStartPos = vertical ? event.screenY : event.screenX;
+                const firstPaneSize = getFirstPaneSize(containerRef.current!, vertical);
                 setDragStartPos(dragStartPos);
                 setDragStartPaneSize(firstPaneSize);
                 event.preventDefault();
             }
         },
-        [vertical, firstPaneSize]
+        [vertical]
     );
 
     const handleMouseMove = useCallback(

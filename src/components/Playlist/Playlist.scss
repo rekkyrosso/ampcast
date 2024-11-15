@@ -14,46 +14,6 @@
             align-items: center;
             justify-content: center;
             width: 100%;
-
-            /* TODO: Remove this block */
-            body:not(.airsonic-connected) &.service-airsonic,
-            body:not(.ampache-connected) &.service-ampache,
-            body:not(.apple-connected) &.service-apple,
-            body:not(.emby-connected) &.service-emby,
-            body:not(.gonic-connected) &.service-gonic,
-            body:not(.jellyfin-connected) &.service-jellyfin,
-            body:not(.navidrome-connected) &.service-navidrome,
-            body:not(.subsonic-connected) &.service-subsonic,
-            body:not(.plex-connected) &.service-plex,
-            body:not(.plex-tidal-connected) &.service-plex-tidal,
-            body:not(.spotify-connected) &.service-spotify,
-            body:not(.tidal-connected) &.service-tidal {
-                &.selected .icon.show-connectivity {
-                    filter: grayscale(1);
-                    opacity: 0.5;
-                }
-                
-                &:not(.selected) {
-                    color: var(--grey1-color);
-                }
-            }
-
-            .airsonic-connected &.service-airsonic,
-            .ampache-connected &.service-ampache,
-            .apple-connected &.service-apple,
-            .emby-connected &.service-emby,
-            .gonic-connected &.service-gonic,
-            .jellyfin-connected &.service-jellyfin,
-            .navidrome-connected &.service-navidrome,
-            .subsonic-connected &.service-subsonic,
-            .plex-connected &.service-plex,
-            .plex-tidal-connected &.service-plex-tidal,
-            .spotify-connected &.service-spotify,
-            .tidal-connected &.service-tidal {
-                &.unplayable .icon.show-connectivity {
-                    opacity: 0.5;
-                }
-            }
         }
 
         &-cell {
@@ -119,6 +79,11 @@
 
     .playing .index .number {
         visibility: hidden;
+    }
+
+    .icon-play,
+    .icon-pause {
+        color: var(--currently-playing-color);
     }
 
     .status-bar {

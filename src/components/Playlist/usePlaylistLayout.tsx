@@ -57,7 +57,7 @@ export default function usePlaylistLayout(size: number): ListViewLayout<Playlist
 }
 
 function RowNumber(rowIndex: number, numberOfDigits = 0) {
-    return <span className="number">{String(rowIndex + 1).padStart(numberOfDigits, '0')}</span>;
+    return <span className="number text">{String(rowIndex + 1).padStart(numberOfDigits, '0')}</span>;
 }
 
 function RowIcon({src, lookupStatus}: PlaylistItem) {
@@ -94,7 +94,7 @@ function RowTitle(item: PlaylistItem) {
     const {title, artists} = item;
     return (
         <span className="row-title">
-            <span className="row-title-text">
+            <span className="row-title-text text">
                 {artists?.length ? (
                     <>
                         <span className="artist-text">{artists.join('/')}</span>
