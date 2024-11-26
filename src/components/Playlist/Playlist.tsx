@@ -8,6 +8,7 @@ import PlaylistItem from 'types/PlaylistItem';
 import {getService} from 'services/mediaServices';
 import playlist from 'services/playlist';
 import {performAction} from 'components/Actions';
+import {error} from 'components/Dialog';
 import ListView, {ListViewHandle, ListViewProps} from 'components/ListView';
 import MediaListStatusBar from 'components/MediaList/MediaListStatusBar';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
@@ -26,6 +27,7 @@ export const droppableTypes = [
     // Preferred order.
     'text/x-spotify-tracks',
     'text/uri-list',
+    'text/plain',
 ];
 
 type NotRequired = 'items' | 'itemKey' | 'title' | 'layout' | 'sortable' | 'droppableTypes';
@@ -177,16 +179,45 @@ export default function Playlist({
             atIndex: number
         ) => {
             if (data instanceof DataTransferItem) {
-                switch (data.type) {
+                const type = data.type;
+                switch (type) {
                     case 'text/x-spotify-tracks': {
-                        await inject.spotifyTracks(data, atIndex);
+                        data.getAsString(async (string) => {
+                            await inject.spotifyTracks(type, string, atIndex);
+                        });
                         break;
                     }
 
                     case 'text/uri-list':
                         data.getAsString(async (string) => {
-                            const urls = string.split(/\s+/);
-                            await inject.urls(urls, atIndex);
+                            const uris = string.split(/\s+/);
+                            const [uri] = uris;
+                            const url = uri ? new URL(uri) : null;
+                            console.log({url});
+                            if (url?.hostname.includes('music.apple.com')) {
+                                await inject.appleTracks(type, string, atIndex);
+                            } else if (url?.hostname === 'open.spotify.com') {
+                                await inject.spotifyTracks(type, string, atIndex);
+                            } else {
+                                await inject.urls(uris, atIndex);
+                            }
+                        });
+                        break;
+
+                    case 'text/plain':
+                        data.getAsString(async (string) => {
+                            try {
+                                const {
+                                    items: [item],
+                                } = JSON.parse(string);
+                                if (/^(song|album|playlist)$/.test(item.kind)) {
+                                    await inject.appleTracks(type, string, atIndex);
+                                    return;
+                                }
+                            } catch {
+                                // Handled below.
+                            }
+                            error('No music data found.');
                         });
                         break;
                 }

@@ -30,4 +30,17 @@ declare namespace MusicKit {
         startTime?: number;
         startPlaying?: boolean;
     }
+
+    enum PlaybackStates {
+        none = 0,
+        loading = 1,
+        playing = 2,
+        paused = 3,
+        stopped = 4,
+        ended = 5,
+        seeking = 6,
+        waiting = 8,
+        stalled = 9,
+        completed = 10,
+    }
 }

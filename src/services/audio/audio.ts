@@ -2,6 +2,7 @@ import {combineLatest, distinctUntilChanged, filter, map, pairwise, startWith, t
 import AudioManager from 'types/AudioManager';
 import AudioSettings from 'types/AudioSettings';
 import MediaType from 'types/MediaType';
+import PlaybackState from 'types/PlaybackState';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
 import ServiceType from 'types/ServiceType';
@@ -34,7 +35,7 @@ class Audio implements AudioManager {
         // Map the current <audio> element to a source node that can be used by analysers.
         observePlaybackState()
             .pipe(
-                map((state) => state.currentItem),
+                map((state) => this.getCurrentlyPlaying(state)),
                 filter(exists),
                 map((item) => this.getSourceNode(item)),
                 startWith(undefined),
@@ -109,6 +110,20 @@ class Audio implements AudioManager {
             replayGain = Math.min(replayGain, 1 / peak);
         }
         return replayGain;
+    }
+
+    private appleStarted = false;
+    private getCurrentlyPlaying({currentItem, startedAt}: PlaybackState): PlaylistItem | null {
+        // Attaching audio nodes to Apple Music's audio element before it is
+        // initialised causes playback errors in Firefox.
+        if (!this.appleStarted && currentItem?.src.startsWith('apple:')) {
+            if (startedAt === 0) {
+                return null;
+            } else {
+                this.appleStarted = true;
+            }
+        }
+        return currentItem;
     }
 
     private getSourceNode(item: PlaylistItem): MediaElementAudioSourceNode | undefined {

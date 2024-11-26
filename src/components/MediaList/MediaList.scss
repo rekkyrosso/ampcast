@@ -2,8 +2,10 @@
 
 .media-list.list-view {
     .playing .text {
-        font-style: italic;
         color: var(--currently-playing-color);
+        font-style: italic;
+        /* Prevents italic text from being clipped on the right. */
+        padding-right: 0.1em;
     }
 
     .selected .text {
@@ -54,14 +56,8 @@
                 opacity: 0.75
             }
 
-            &:not(.selected) {
-                .title .text {
-                    color: var(--grey2-color);
-                }
-
-                .text {
-                    color: var(--grey1-color);
-                }
+            &:not(.selected) .text {
+                color: var(--grey1-color);
             }
         }
 
@@ -101,8 +97,8 @@
         align-items: center;
 
         .text {
-			overflow: hidden;
-			text-overflow: ellipsis;
+            overflow: hidden;
+            text-overflow: ellipsis;
         }
 
         .badge {
@@ -135,6 +131,10 @@
     &-card {
         .list-view-cell {
             padding: 0;
+        }
+
+        .unplayable:not(.playing, .selected) .title .text {
+            color: var(--grey2-color);
         }
 
         .index {
@@ -320,7 +320,7 @@
             .title {
                 top: 0.25em;
 
-                &-text {                    
+                &-text {
                     white-space: nowrap;
                     overflow: hidden;
                     text-overflow: ellipsis;
@@ -484,8 +484,11 @@
                 .played-at,
                 .added-at {
                     top: calc(0.5em + 1px);
-                    color: var(--soft-white) !important;
                     background-color: rgba(0, 0, 0, 0.75);
+
+                    .text {
+                        color: var(--soft-white);
+                    }
 
                     .indexed & {
                         display: none;

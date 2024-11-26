@@ -583,29 +583,31 @@ async function getCategories(): Promise<readonly MediaFilter[]> {
     return spotifyCategories;
 }
 
-async function getDroppedItems<T extends MediaObject>(
-    data: DataTransferItem
-): Promise<readonly T[]> {
-    return new Promise((resolve, reject) => {
-        switch (data.type) {
-            case 'text/x-spotify-tracks': {
-                data.getAsString(async (stringData) => {
-                    try {
-                        const trackIds = stringData.split(/\s+/).map((uri) => uri.split(':')[2]);
-                        const tracks = await getTracksById(trackIds);
-                        resolve(tracks as readonly T[]);
-                    } catch (err) {
-                        reject(err);
-                    }
-                });
-                break;
-            }
-
-            default:
-                reject(`Unsupported drop type: ${data.type}`);
-                break;
+async function getDroppedItems(
+    type: DataTransferItem['type'],
+    data: string
+): Promise<readonly MediaItem[]> {
+    switch (type) {
+        case 'text/x-spotify-tracks': {
+            const trackIds = data.split(/\s+/).map((uri) => uri.split(':')[2]);
+            return getTracksById(trackIds);
         }
-    });
+
+        case 'text/uri-list': {
+            const [url] = data.split(/\s+/).map((uri) => new URL(uri));
+            const [, type, id] = url.pathname.split('/');
+            if (type === 'album') {
+                return getTracksByAlbumId(id);
+            } else if (type === 'track') {
+                return getTracksById([id]);
+            } else {
+                throw Error('Unsupported drop type.');
+            }
+        }
+
+        default:
+            throw Error('Unsupported drop type.');
+    }
 }
 
 async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
@@ -658,6 +660,39 @@ async function getTracksById(trackIds: readonly string[]): Promise<readonly Medi
         },
         {maxSize, pageSize: maxSize},
         true
+    );
+    return fetchFirstPage(pager);
+}
+
+async function getTracksByAlbumId(albumId: string): Promise<readonly MediaItem[]> {
+    const market = getMarket();
+    let album: SpotifyApi.AlbumObjectFull;
+    try {
+        album = await spotifyApi.getAlbum(albumId, {market});
+    } catch (err: any) {
+        if (err.status === 401) {
+            await refreshToken();
+            album = await spotifyApi.getAlbum(albumId, {market});
+        } else {
+            throw err;
+        }
+    }
+    const pager = new SpotifyPager<MediaItem>(
+        async (offset: number, limit: number): Promise<SpotifyPage> => {
+            const {items, total, next} = await spotifyApi.getAlbumTracks(albumId, {
+                offset,
+                limit,
+                market,
+            });
+            return {
+                items: items.map((item) => ({
+                    ...item,
+                    album: album as SpotifyApi.AlbumObjectSimplified,
+                })),
+                total,
+                next,
+            };
+        }
     );
     return fetchFirstPage(pager);
 }
@@ -754,7 +789,9 @@ async function storeMany(items: readonly MediaObject[], inLibrary: boolean): Pro
                     );
                 } else {
                     await Promise.all(
-                        chunk(ids, 50).map((ids) => spotifyApi.removeFromMySavedAlbums({ids} as any))
+                        chunk(ids, 50).map((ids) =>
+                            spotifyApi.removeFromMySavedAlbums({ids} as any)
+                        )
                     );
                 }
                 break;
@@ -766,7 +803,9 @@ async function storeMany(items: readonly MediaObject[], inLibrary: boolean): Pro
                     );
                 } else {
                     await Promise.all(
-                        chunk(ids, 50).map((ids) => spotifyApi.removeFromMySavedTracks({ids} as any))
+                        chunk(ids, 50).map((ids) =>
+                            spotifyApi.removeFromMySavedTracks({ids} as any)
+                        )
                     );
                 }
                 break;

@@ -95,9 +95,15 @@
         bottom: -0.25em;
         left: 11.25em;
         right: 0;
+        min-height: 1.5em;
         text-align: right;
         display: flex;
         flex-direction: row;
+
+        h4:has(+ &),
+        p:has(+ &) {
+            margin-bottom: 1em;
+        }
     }
 
     .badge.explicit {

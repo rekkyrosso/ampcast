@@ -11,12 +11,12 @@ const tabs: TabItem[] = [
         panel: <Logs />,
     },
     {
-        tab: 'Troubleshooting',
-        panel: <Troubleshooting />,
-    },
-    {
         tab: 'Backup',
         panel: <Backup />,
+    },
+    {
+        tab: 'Troubleshooting',
+        panel: <Troubleshooting />,
     },
 ];
 

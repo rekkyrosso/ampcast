@@ -279,11 +279,13 @@ async function createMediaItems(source: PlayableType): Promise<readonly MediaIte
     };
     let items: readonly (MediaItem | null)[] = [];
     if (Array.isArray(source)) {
-        if (isAlbum(source[0])) {
-            const albums = await Promise.all(
+        if (source.length === 0) {
+            return [];
+        } else if (isAlbum(source[0])) {
+            const tracks = await Promise.all(
                 source.map((album) => createMediaItemsFromAlbum(album))
             );
-            items = albums.flat();
+            items = tracks.flat();
         } else {
             items = source;
         }

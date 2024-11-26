@@ -187,19 +187,15 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
     private createMediaPlaylist(
         playlist: AppleMusicApi.Playlist | LibraryPlaylist
     ): SetRequired<MediaPlaylist, 'apple'> {
-        const musicKit = MusicKit.getInstance();
         const item = this.createFromLibrary<AppleMusicApi.Playlist['attributes']>(playlist);
         const description = item.description?.standard || item.description?.short;
         const src = `apple:${playlist.type}:${playlist.id}`;
         const catalogId = this.getCatalogId(playlist);
-        const isLibraryPlaylist = playlist.type.startsWith('library-') || undefined;
 
         const mediaPlaylist: Writable<SetOptional<SetRequired<MediaPlaylist, 'apple'>, 'pager'>> = {
             src,
             itemType: ItemType.Playlist,
-            externalUrl: isLibraryPlaylist
-                ? `https://music.apple.com/${musicKit.storefrontId}/library/playlist/${playlist.id}`
-                : item.url,
+            externalUrl: this.getExternalUrl(playlist),
             title: item.name,
             description: description ? getTextFromHtml(description) : undefined,
             thumbnails: this.createThumbnails(item),
@@ -208,7 +204,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             unplayable: !item.playParams || undefined,
             isChart: item.isChart,
             isPinned: pinStore.isPinned(src),
-            inLibrary: isLibraryPlaylist,
+            inLibrary: playlist.type.startsWith('library-') || undefined,
             apple: {catalogId},
         };
         mediaPlaylist.pager = new MusicKitPager(
@@ -230,7 +226,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Artist,
             src: `apple:${artist.type}:${artist.id}`,
-            externalUrl: item.url || undefined,
+            externalUrl: this.getExternalUrl(artist),
             title: item.name,
             description: description ? getTextFromHtml(description) : undefined,
             thumbnails: this.createThumbnails(item as any),
@@ -251,7 +247,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         const mediaAlbum: Writable<SetOptional<SetRequired<MediaAlbum, 'apple'>, 'pager'>> = {
             itemType: ItemType.Album,
             src,
-            externalUrl: item.url || undefined,
+            externalUrl: this.getExternalUrl(album),
             title: item.name,
             description: description ? getTextFromHtml(description) : undefined,
             thumbnails: this.createThumbnails(item),
@@ -263,6 +259,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             inLibrary: album.type.startsWith('library-') || undefined,
             copyright: item?.copyright,
             explicit: item?.contentRating === 'explicit',
+            shareLink: item.url || undefined,
             apple: {catalogId},
         };
         mediaAlbum.pager = new MusicKitPager(
@@ -292,9 +289,9 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             !externalUrl &&
             catalogId &&
             this.parent?.itemType === ItemType.Album &&
-            this.parent.externalUrl
+            this.parent.shareLink
         ) {
-            externalUrl = `${this.parent.externalUrl}?i=${catalogId}`;
+            externalUrl = `${this.parent.shareLink}?i=${catalogId}`;
         }
 
         const mediaItem: Writable<SetRequired<MediaItem, 'apple'>> = {
@@ -320,35 +317,13 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             inLibrary: (isLibraryItem && !isPlaylistItem) || undefined,
             apple: {catalogId},
             explicit: item?.contentRating === 'explicit',
+            shareLink: item.url || undefined,
         };
         return mediaItem;
     }
 
-    private getCatalogId(item: any): string {
-        if (item.type.startsWith('library-')) {
-            let catalogId =
-                item.attributes?.playParams?.[
-                    item.type === 'library-playlists' ? 'globalId' : 'catalogId'
-                ];
-            if (!catalogId) {
-                catalogId = this.getCatalog(item)?.id;
-            }
-            return catalogId || '';
-        } else {
-            return item.id;
-        }
-    }
-
     private createFromLibrary<T>(item: any): NonNullable<T> {
         return bestOf(item.attributes, this.getCatalog(item)?.attributes);
-    }
-
-    private getCatalog<T extends MusicKitItem>(item: any): T {
-        return item.relationships?.catalog?.data?.[0];
-    }
-
-    private getGenres({genreNames = []}: {genreNames: string[]}): readonly string[] | undefined {
-        return genreNames.filter((name) => name !== 'Music');
     }
 
     private createThumbnails({
@@ -462,5 +437,37 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
                 return {items, total, nextPageUrl};
             }
         );
+    }
+
+    private getCatalog<T extends MusicKitItem>(item: any): T {
+        return item.relationships?.catalog?.data?.[0];
+    }
+
+    private getCatalogId(item: any): string {
+        if (item.type.startsWith('library-')) {
+            let catalogId =
+                item.attributes?.playParams?.[
+                    item.type === 'library-playlists' ? 'globalId' : 'catalogId'
+                ];
+            if (!catalogId) {
+                catalogId = this.getCatalog(item)?.id;
+            }
+            return catalogId || '';
+        } else {
+            return item.id;
+        }
+    }
+
+    private getExternalUrl(item: any): string {
+        const musicKit = MusicKit.getInstance();
+        const isLibraryItem = item.type.startsWith('library-');
+        const type = item.type.replace('library-', '').replace('playlists', 'playlist');
+        return isLibraryItem
+            ? `https://music.apple.com/${musicKit.storefrontId}/library/${type}/${item.id}`
+            : item.attributes?.url;
+    }
+
+    private getGenres({genreNames = []}: {genreNames: string[]}): readonly string[] | undefined {
+        return genreNames.filter((name) => name !== 'Music');
     }
 }

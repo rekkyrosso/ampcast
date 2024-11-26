@@ -33,6 +33,8 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     private readonly item$ = new BehaviorSubject<PlayableItem | null>(null);
     private loadedSrc = '';
     private hasWaited = false;
+    private ended = false;
+    private loading = false;
     private stopped = false;
     autoplay = false;
     loop = false;
@@ -78,6 +80,9 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                 tap(() => this.error$.next(Error('Not logged in')))
             )
             .subscribe(logger);
+
+        this.observePlaying().subscribe(() => (this.ended = false));
+        this.observeEnded().subscribe(() => (this.ended = true));
 
         // Log errors.
         this.observeError().subscribe(logger.error);
@@ -236,8 +241,9 @@ export class MusicKitPlayer implements Player<PlayableItem> {
             .replace(/s$/, '')
             .replace(/-([a-z])/g, (_, char) => char.toUpperCase());
 
+        this.loading = true;
         await this.player.setQueue({[kind]: id, startTime, startPlaying: true});
-
+        this.loading = false;
         this.loadedSrc = item.src;
 
         try {
@@ -369,7 +375,10 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                 break;
             }
             case MusicKit.PlaybackStates.ended:
-                this.ended$.next();
+            case MusicKit.PlaybackStates.completed:
+                if (!this.ended && !this.loading) {
+                    this.ended$.next();
+                }
                 break;
         }
     };

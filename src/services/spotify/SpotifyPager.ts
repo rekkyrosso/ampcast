@@ -182,10 +182,12 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaAlbum(album: SpotifyAlbum, inLibrary?: boolean | undefined): MediaAlbum {
+        const externalUrl = album.external_urls.spotify;
         return {
             itemType: ItemType.Album,
             src: album.uri,
-            externalUrl: album.external_urls.spotify,
+            externalUrl,
+            shareLink: externalUrl,
             title: album.name,
             artist: album.artists.map((artist) => artist.name).join(', '),
             // genres: album.genres, // always an empty array
@@ -245,6 +247,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         track: SpotifyTrack,
         inLibrary?: boolean | undefined
     ): MediaItem {
+        const externalUrl = track.external_urls.spotify;
         const album = /album|compilation/i.test(track.album?.album_type || '')
             ? track.album
             : undefined;
@@ -254,7 +257,8 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             mediaType: MediaType.Audio,
             playbackType: PlaybackType.IFrame,
             src: track.uri,
-            externalUrl: track.external_urls.spotify,
+            externalUrl,
+            shareLink: externalUrl,
             title: track.name,
             artists: track.artists?.map((artist) => artist.name),
             albumArtist: album?.artists.map((artist) => artist.name).join(', '),

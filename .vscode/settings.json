@@ -52,6 +52,7 @@
         "guids",
         "hidpi",
         "ifft",
+        "initialised",
         "isrc",
         "isrcs",
         "jellyfin",
