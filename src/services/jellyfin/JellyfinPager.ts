@@ -240,9 +240,9 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             bitRate: Math.floor((source?.Bitrate || 0) / 1000) || undefined,
             badge: isVideo
                 ? track.IsHD === true
-                    ? 'hd'
+                    ? 'HD'
                     : track.IsHD === false
-                    ? 'sd'
+                    ? 'SD'
                     : undefined
                 : track.Container || undefined,
         };

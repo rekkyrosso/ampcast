@@ -174,7 +174,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             inLibrary: !!video.starred,
             thumbnails: this.createThumbnails(video.id),
             bitRate: video.bitRate,
-            badge: height > 1080 ? 'uhd' : height >= 720 ? 'hd' : height > 0 ? 'sd' : undefined,
+            badge: height > 1080 ? 'UHD' : height >= 720 ? 'HD' : height > 0 ? 'SD' : undefined,
         };
     }
 

@@ -658,30 +658,29 @@ function createSearchPager<T extends MediaObject>(
 ): Pager<T> {
     const params: Record<string, string> = {
         ParentId: getMusicLibraryId(),
-        SortBy: 'SortName',
         SearchTerm: q.trim(),
         ...filters,
     };
-    if (itemType === ItemType.Artist) {
-        return new EmbyPager('Artists', {...params, UserId: embySettings.userId}, options);
-    } else {
-        switch (itemType) {
-            case ItemType.Media:
-                params.IncludeItemTypes = 'Audio';
-                params.SortBy = songSort;
-                break;
+    switch (itemType) {
+        case ItemType.Media:
+            params.IncludeItemTypes = 'Audio';
+            break;
 
-            case ItemType.Album:
-                params.IncludeItemTypes = 'MusicAlbum';
-                params.SortBy = 'AlbumArtist,SortName';
-                break;
+        case ItemType.Album:
+            params.IncludeItemTypes = 'MusicAlbum';
+            break;
 
-            case ItemType.Playlist:
-                params.IncludeItemTypes = 'Playlist';
-                break;
-        }
-        return createItemsPager(params, options);
+        case ItemType.Artist:
+            params.IncludeItemTypes = 'MusicArtist';
+            params.SortBy = 'SortName';
+            break;
+
+        case ItemType.Playlist:
+            params.IncludeItemTypes = 'Playlist';
+            params.SortBy = 'SortName';
+            break;
     }
+    return createItemsPager(params, options);
 }
 
 function createItemsPager<T extends MediaObject>(

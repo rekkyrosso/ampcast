@@ -1,6 +1,7 @@
+import unidecode from 'unidecode';
 import type {Observable} from 'rxjs';
 import type {BaseItemDto} from '@jellyfin/sdk/lib/generated-client/models';
-import {SetOptional, Writable} from 'type-fest';
+import {Primitive, SetOptional, Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -13,6 +14,7 @@ import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import ParentOf from 'types/ParentOf';
 import Thumbnail from 'types/Thumbnail';
+import {uniqBy} from 'utils';
 import OffsetPager from 'services/pagers/OffsetPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
@@ -29,8 +31,8 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
 
     constructor(
         private readonly path: string,
-        private readonly params: Record<string, unknown> = {},
-        options?: Partial<PagerConfig>,
+        private readonly params: Record<string, Primitive> = {},
+        private readonly options?: Partial<PagerConfig>,
         private readonly parent?: ParentOf<T>
     ) {
         this.pageSize = Math.min(
@@ -71,31 +73,79 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
         this.pager.fetchAt(index, length);
     }
 
+    private get isLookup(): boolean {
+        return !!this.options?.lookup;
+    }
+
     private async fetch(pageNumber: number): Promise<Page<T>> {
         const params = {
-            IncludeItemTypes: 'Audio',
-            Fields: 'AudioInfo,ChildCount,DateCreated,Genres,MediaSources,ParentIndexNumber,Path,ProductionYear,Overview,PresentationUniqueKey,ProviderIds,,UserDataPlayCount,UserDataLastPlayedDate',
-            EnableUserData: true,
-            Recursive: true,
-            ImageTypeLimit: 1,
-            EnableImageTypes: 'Primary',
-            EnableTotalRecordCount: true,
+            ...this.getParams(),
             ...this.params,
-            Limit: String(this.pageSize),
-            StartIndex: String((pageNumber - 1) * this.pageSize),
+            Limit: this.pageSize,
+            StartIndex: (pageNumber - 1) * this.pageSize,
         };
-
-        const data = await embyApi.get(this.path, params);
-        const page = (data as BaseItemDto).Type
-            ? {
-                  items: [data as BaseItemDto],
-                  total: 1,
-              }
-            : {
-                  items: data.Items || [],
-                  total: data.TotalRecordCount || data.Items?.length,
-              };
+        let page = await this.getPage(this.path, params);
+        if (
+            this.params.SearchTerm &&
+            !this.isLookup &&
+            pageNumber === 1 &&
+            /Audio|MusicAlbum/.test(this.params.IncludeItemTypes as string) &&
+            page.items.length < this.pageSize
+        ) {
+            // Fetch enhanced results if we have fewer items than the page size.
+            page = await this.fetchMoreSearchItems(page.items);
+        }
         return {...page, items: page.items.map((item) => this.createMediaObject(item))};
+    }
+
+    private async fetchMoreSearchItems(
+        initialItems: readonly BaseItemDto[]
+    ): Promise<Page<BaseItemDto>> {
+        const path = `Users/${embySettings.userId}/Items`;
+        const params = {
+            ...this.getParams(),
+            ParentId: embySettings.libraryId,
+        };
+        const itemType = this.params.IncludeItemTypes;
+        const query = this.params.SearchTerm as string;
+        let items: readonly BaseItemDto[] = initialItems;
+        // Fetch underlying artists.
+        const page = await this.getPage(path, {
+            ...params,
+            SearchTerm: query,
+            IncludeItemTypes: 'MusicArtist',
+            Limit: 50,
+        });
+        const artistIds = page.items.map((artist) => artist.Id).join(',');
+        if (itemType === 'Audio') {
+            // Fetch artist tracks.
+            const page = await this.getPage(path, {
+                ...params,
+                ArtistIds: artistIds,
+                IncludeItemTypes: 'Audio',
+                Limit: this.pageSize,
+            });
+            items = uniqBy('Id', initialItems.concat(page.items));
+        } else if (itemType === 'MusicAlbum') {
+            // Fetch artist albums.
+            const decode = (name: string) => unidecode(name).toLowerCase();
+            const decodedQuery = decode(query);
+            const page = await this.getPage(path, {
+                ...params,
+                ArtistIds: artistIds,
+                IncludeItemTypes: 'MusicAlbum',
+                Limit: this.pageSize,
+            });
+            items = uniqBy(
+                'Id',
+                initialItems.concat(
+                    page.items.filter((album) =>
+                        decode(album.AlbumArtist || '').includes(decodedQuery)
+                    )
+                )
+            );
+        }
+        return {items, total: items.length, atEnd: true};
     }
 
     private createMediaObject(item: BaseItemDto): T {
@@ -229,9 +279,9 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
             bitRate: Math.floor((source.Bitrate || 0) / 1000) || undefined,
             badge: isVideo
                 ? track.IsHD === true
-                    ? 'hd'
+                    ? 'HD'
                     : track.IsHD === false
-                    ? 'sd'
+                    ? 'SD'
                     : undefined
                 : track.Container || undefined,
         };
@@ -336,5 +386,33 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
 
     private getFileName(path: string): string | undefined {
         return path.split(/[/\\]/).pop();
+    }
+
+    private async getPage(
+        path: string,
+        params: Record<string, Primitive>
+    ): Promise<Page<BaseItemDto>> {
+        const data = await embyApi.get(path, params);
+        return (data as BaseItemDto).Type
+            ? {
+                  items: [data as BaseItemDto],
+                  total: 1,
+              }
+            : {
+                  items: data.Items || [],
+                  total: data.TotalRecordCount || data.Items?.length,
+              };
+    }
+
+    private getParams(): Record<string, unknown> {
+        return {
+            IncludeItemTypes: 'Audio',
+            Fields: 'AudioInfo,ChildCount,DateCreated,Genres,MediaSources,ParentIndexNumber,Path,ProductionYear,Overview,PresentationUniqueKey,ProviderIds,,UserDataPlayCount,UserDataLastPlayedDate',
+            EnableUserData: true,
+            Recursive: true,
+            ImageTypeLimit: 1,
+            EnableImageTypes: 'Primary',
+            EnableTotalRecordCount: true,
+        };
     }
 }
