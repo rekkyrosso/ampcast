@@ -5,7 +5,7 @@ import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import PlaybackState from 'types/PlaybackState';
 import {findBestMatch, fuzzyCompare} from 'services/lookup';
-import {addMetadata} from 'services/musicbrainz/musicbrainzApi';
+import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import session from 'services/session';
 import {Logger} from 'utils';
 
@@ -21,7 +21,7 @@ class ListensStore extends Dexie {
         super('ampcast/listens');
 
         this.version(1).stores({
-            items: `&playedAt, src, lastfmScrobbledAt, listenbrainzScrobbledAt`,
+            items: '&playedAt, src, lastfmScrobbledAt, listenbrainzScrobbledAt',
         });
     }
 }
@@ -48,7 +48,7 @@ export async function addListen(state: PlaybackState): Promise<void> {
         }
         if (isListenedTo(item.duration, state.startedAt, state.endedAt)) {
             try {
-                item = await addMetadata(item, true);
+                item = await musicbrainzApi.addMetadata(item, true);
             } catch (err) {
                 logger.warn(err);
             }
@@ -130,7 +130,7 @@ export function findListenByPlayedAt(item: MediaItem, timeFuzziness = 5): Listen
 }
 
 export function getListens(): readonly Listen[] {
-    return listens$.getValue();
+    return listens$.value;
 }
 
 function matchTitle(item: MediaItem, listen: MediaItem, tolerance?: number): boolean {
@@ -139,8 +139,7 @@ function matchTitle(item: MediaItem, listen: MediaItem, tolerance?: number): boo
 
 (async () => {
     try {
-        await markExpired('lastfm');
-        await markExpired('listenbrainz');
+        Promise.all([markExpired('lastfm'), markExpired('listenbrainz')]);
     } catch (err) {
         logger.error(err);
     }

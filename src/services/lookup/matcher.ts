@@ -7,6 +7,9 @@ import lookupSettings from './lookupSettings';
 
 const regFeaturedArtists = /\s*[\s[({](with\s|featuring\s|feat[\s.]+|ft[\s.]+).+$/i;
 
+// Finds the best match in a list of media items.
+// It will reject anything that is not a "good" match.
+// It's better to return nothing than the wrong track. 
 // TODO: This is too slow for a large amount of items.
 export function findBestMatch<T extends MediaItem>(
     items: readonly MediaItem[],

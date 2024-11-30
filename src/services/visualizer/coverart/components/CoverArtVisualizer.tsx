@@ -39,7 +39,7 @@ export default function CoverArtVisualizer() {
     const prevItem = usePrevious(item);
     const nextItem = playingNext?.mediaType === MediaType.Video ? null : playingNext;
     const id = item?.id || '';
-    const indexRef = useRef(-1);
+    const indexRef = useRef(0);
     const [item0, setItem0] = useState<PlaylistItem | null>(null);
     const [item1, setItem1] = useState<PlaylistItem | null>(null);
     const loadingState = useLoadingState();
@@ -84,7 +84,7 @@ export default function CoverArtVisualizer() {
 
     useEffect(() => {
         let selectedIndex = indexRef.current ? 1 : 0;
-        if (item?.id !== prevItem?.id) {
+        if (prevItem !== undefined && item?.id !== prevItem?.id) {
             selectedIndex = indexRef.current ? 0 : 1;
         }
         if (selectedIndex === 0) {
@@ -128,7 +128,12 @@ export default function CoverArtVisualizer() {
             ref={ref}
         >
             {/* Preload next item thumbnail */}
-            <CurrentlyPlaying item={nextItem} hidden={true} key="nextItem" />
+            <CurrentlyPlaying
+                item={nextItem}
+                hidden={true}
+                extendedThumbnailSearch
+                key="nextItem"
+            />
             <div className="animated-background" />
             <CurrentlyPlaying
                 item={item0}

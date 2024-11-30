@@ -2,22 +2,28 @@ import React, {useCallback, useEffect, useState} from 'react';
 import ColorThief, {RGBColor} from 'colorthief';
 import {TinyColor, mostReadable} from '@ctrl/tinycolor';
 import PlaylistItem from 'types/PlaylistItem';
+import {uniq} from 'utils';
 import {Artist, Thumbnail, Title} from 'components/MediaInfo/MediaInfo';
 import ProvidedBy from 'components/MediaSources/ProvidedBy';
 import PlaybackState from 'components/Media/PlaybackState';
 import ProgressBar from 'components/Media/ProgressBar';
 import useVisualizerSettings from 'hooks/useVisualizerSettings';
-import {uniq} from 'utils';
 
 const defaultPalette = ['#3e3e3e', '#ebebeb'];
 
 export interface CurrentlyPlayingProps {
     item: PlaylistItem | null;
     hidden?: boolean;
+    extendedThumbnailSearch?: boolean;
     onPaletteChange?: (colors: readonly string[]) => void;
 }
 
-export default function CurrentlyPlaying({item, hidden, onPaletteChange}: CurrentlyPlayingProps) {
+export default function CurrentlyPlaying({
+    item,
+    hidden,
+    extendedThumbnailSearch,
+    onPaletteChange,
+}: CurrentlyPlayingProps) {
     const {fullscreenProgress} = useVisualizerSettings();
     const [palette, setPalette] = useState<string[]>(defaultPalette);
     const [tone, setTone] = useState<'light' | 'dark'>('dark');
@@ -101,6 +107,7 @@ export default function CurrentlyPlaying({item, hidden, onPaletteChange}: Curren
                         <Thumbnail
                             item={item}
                             size={800}
+                            extendedSearch={!hidden || extendedThumbnailSearch}
                             onLoad={handleThumbnailLoad}
                             onError={handleThumbnailError}
                             key={item.id}

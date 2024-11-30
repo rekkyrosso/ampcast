@@ -16,6 +16,7 @@ export default interface MediaAlbum extends BaseMediaObject {
     readonly unplayable?: boolean;
     readonly release_mbid?: string;
     readonly artist_mbids?: readonly string[];
+    readonly caa_mbid?: string; // cover art archive
     readonly copyright?: string;
     readonly explicit?: boolean;
     readonly badge?: string;

@@ -193,7 +193,6 @@ export default function Playlist({
                             const uris = string.split(/\s+/);
                             const [uri] = uris;
                             const url = uri ? new URL(uri) : null;
-                            console.log({url});
                             if (url?.hostname.includes('music.apple.com')) {
                                 await inject.appleTracks(type, string, atIndex);
                             } else if (url?.hostname === 'open.spotify.com') {

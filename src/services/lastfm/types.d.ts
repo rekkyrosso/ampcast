@@ -112,5 +112,13 @@ declare namespace LastFm {
         track: TrackInfo;
     }
 
+    interface AlbumSearch {
+        results: {
+            albummatches: {
+                album: readonly (Album & {artist: string})[];
+            };
+        };
+    }
+
     type MediaObject = Artist | Album | Track;
 }

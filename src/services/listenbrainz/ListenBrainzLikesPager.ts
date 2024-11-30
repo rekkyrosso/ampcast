@@ -81,7 +81,7 @@ export default class ListenBrainzLikesPager implements Pager<MediaItem> {
         if (!data) {
             return;
         }
-        const info = data.additional_info;
+        const {additional_info: info, mbid_mapping: mbids} = data;
         const mbid = item.recording_mbid;
 
         return {
@@ -100,8 +100,9 @@ export default class ListenBrainzLikesPager implements Pager<MediaItem> {
             externalUrl: mbid ? `${musicBrainzHost}/recording/${mbid}` : undefined,
             recording_mbid: mbid,
             recording_msid: item.recording_msid || undefined,
-            release_mbid: data.mbid_mapping?.release_mbid,
-            artist_mbids: data.mbid_mapping?.artist_mbids,
+            release_mbid: mbids?.release_mbid,
+            artist_mbids: mbids?.artist_mbids,
+            caa_mbid: mbids?.caa_release_mbid,
             playedAt: 0,
             inLibrary: true,
         };

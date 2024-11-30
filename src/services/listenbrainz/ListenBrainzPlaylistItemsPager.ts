@@ -96,10 +96,10 @@ export default class ListenBrainzPlaylistItemsPager implements Pager<MediaItem> 
                 : undefined,
             duration: 0,
             recording_mbid: mbid,
-            release_mbid: track?.additional_metadata?.caa_release_mbid,
             artist_mbids: metadata?.artists
                 ? metadata.artists.map((artist) => artist.artist_mbid)
                 : track?.artist_identifiers?.map((identifier) => identifier.split('/').pop()!),
+            caa_mbid: track?.additional_metadata?.caa_release_mbid,
             playedAt: 0,
         };
     }

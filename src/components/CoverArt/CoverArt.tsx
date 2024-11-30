@@ -1,17 +1,14 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {from} from 'rxjs';
-import getYouTubeID from 'get-youtube-id';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import Thumbnail from 'types/Thumbnail';
-import {findListenByPlayedAt} from 'services/localdb/listens';
-import {getEnabledServices} from 'services/mediaServices';
-import {getCoverArtThumbnails} from 'services/musicbrainz/coverart';
-import youtubeApi from 'services/youtube/youtubeApi';
-import Icon, {IconName} from 'components/Icon';
 import {Logger} from 'utils';
+import {getEnabledServices} from 'services/mediaServices';
+import Icon, {IconName} from 'components/Icon';
+import {findThumbnails} from './thumbnails';
 import './CoverArt.scss';
 
 const logger = new Logger('CoverArt');
@@ -20,11 +17,19 @@ export interface CoverArtProps {
     className?: string;
     item: MediaObject;
     size?: number;
+    extendedSearch?: boolean;
     onLoad?: (src: string) => void;
     onError?: () => void;
 }
 
-export default function CoverArt({item, size, className = '', onLoad, onError}: CoverArtProps) {
+export default function CoverArt({
+    item,
+    size,
+    extendedSearch,
+    className = '',
+    onLoad,
+    onError,
+}: CoverArtProps) {
     const [inError, setInError] = useState(false);
     const [thumbnails, setThumbnails] = useState(() => item.thumbnails);
     const hasThumbnails = !!thumbnails?.length;
@@ -40,25 +45,30 @@ export default function CoverArt({item, size, className = '', onLoad, onError}: 
 
     useEffect(() => {
         if (!hasThumbnails) {
-            if (item.itemType === ItemType.Media) {
-                const listen = findListenByPlayedAt(item);
-                const hasThumbnail = !!listen?.thumbnails?.[0];
-                if (hasThumbnail) {
-                    setThumbnails(listen.thumbnails);
-                    return;
-                }
-            }
-            const subscription = from(lookupThumbnails(item)).subscribe((thumbnails) => {
-                if (thumbnails?.[0]) {
-                    setThumbnails(thumbnails);
-                } else {
+            const controller = new AbortController();
+            const subscription = from(
+                findThumbnails(item, extendedSearch, controller.signal)
+            ).subscribe({
+                next: (thumbnails) => {
+                    if (thumbnails?.[0]) {
+                        setThumbnails(thumbnails);
+                    } else {
+                        setInError(true);
+                        onError?.();
+                    }
+                },
+                error: (err) => {
+                    logger.warn(err);
                     setInError(true);
                     onError?.();
-                }
+                },
             });
-            return () => subscription.unsubscribe();
+            return () => {
+                subscription.unsubscribe();
+                controller.abort('Cancelled');
+            };
         }
-    }, [hasThumbnails, item, onError]);
+    }, [hasThumbnails, item, extendedSearch, onError]);
 
     const handleError = useCallback(() => {
         setInError(true);
@@ -94,25 +104,6 @@ export default function CoverArt({item, size, className = '', onLoad, onError}: 
             ) : null}
         </figure>
     );
-}
-
-async function lookupThumbnails(item: MediaObject): Promise<readonly Thumbnail[] | undefined> {
-    if (item.itemType === ItemType.Media) {
-        const externalUrl = item.link?.externalUrl;
-        if (externalUrl) {
-            const videoId = getYouTubeID(item.link?.externalUrl);
-            if (videoId) {
-                try {
-                    const video = await youtubeApi.getVideoInfo(videoId);
-                    return video.thumbnails;
-                } catch (err) {
-                    logger.warn(err);
-                    return;
-                }
-            }
-        }
-    }
-    return getCoverArtThumbnails(item);
 }
 
 function findBestThumbnail(thumbnails: readonly Thumbnail[], size = 240): Thumbnail {

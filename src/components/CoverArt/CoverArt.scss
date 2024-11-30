@@ -33,6 +33,10 @@
                 padding: 0.25em;
             }
         }
+
+        &:not(.icon) {
+            font-size: 0.625em;
+        }
     }
 
     &-icon-overlay {

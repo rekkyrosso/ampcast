@@ -83,6 +83,7 @@ declare namespace ListenBrainz {
         };
         readonly mbid_mapping?: {
             readonly artist_mbids: readonly string[];
+            readonly caa_release_mbid: string;
             readonly release_mbid: string;
             readonly recording_mbid: string;
         };
@@ -104,6 +105,7 @@ declare namespace ListenBrainz {
     }
 
     interface Release extends Artist {
+        readonly caa_release_mbid: string;
         readonly release_mbid: string;
         readonly release_msid: string | null;
         readonly release_name: string;

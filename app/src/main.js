@@ -111,15 +111,15 @@ function createBridge() {
 
     // Synch the window chrome with the app theme.
     ipcMain.on('setFrameColor', (_, color) => {
-        mainWindow?.setTitleBarOverlay({color});
+        mainWindow?.setTitleBarOverlay?.({color});
     });
     ipcMain.on('setFrameTextColor', (_, symbolColor) => {
-        mainWindow?.setTitleBarOverlay({symbolColor});
+        mainWindow?.setTitleBarOverlay?.({symbolColor});
     });
     ipcMain.on('setFontSize', (_, fontSize) => {
         const dragRegionRemSize = 1.5; // defined in web client CSS
         const height = Math.max(Math.round(fontSize * dragRegionRemSize), 24);
-        mainWindow?.setTitleBarOverlay({height});
+        mainWindow?.setTitleBarOverlay?.({height});
     });
 
     // Preferred port.
@@ -127,13 +127,13 @@ function createBridge() {
         return store.port;
     });
     ipcMain.handle('setPreferredPort', async (_, newPort) => {
-        parsedPort = parseInt(newPort, 10);
+        const parsedPort = parseInt(newPort, 10);
         if (parsedPort) {
             store.port = parsedPort; // possibly confirmation of change of port from the ui
             if (server.port !== parsedPort) {
                 await server.stop();
                 const port = await server.start();
-                url = `http://localhost:${port}/`;
+                const url = `http://localhost:${port}/`;
                 mainWindow.loadURL(url);
             }
         } else {

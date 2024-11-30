@@ -127,7 +127,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
 
     private createItem(item: ListenBrainz.Listen): MediaItem {
         const data = item.track_metadata;
-        const info = data.additional_info;
+        const {additional_info: info, mbid_mapping: mbids} = data;
         const mbid = data.mbid_mapping?.recording_mbid || undefined;
         const playableSrc = this.getPlayableSrc(info) || '';
 
@@ -148,8 +148,9 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             externalUrl: mbid ? `${musicBrainzHost}/recording/${mbid}` : undefined,
             recording_mbid: mbid,
             recording_msid: item.recording_msid || undefined,
-            release_mbid: data.mbid_mapping?.release_mbid,
-            artist_mbids: data.mbid_mapping?.artist_mbids,
+            release_mbid: mbids?.release_mbid,
+            artist_mbids: mbids?.artist_mbids,
+            caa_mbid: mbids?.caa_release_mbid,
             playedAt: item.listened_at,
             link: {
                 src: playableSrc,

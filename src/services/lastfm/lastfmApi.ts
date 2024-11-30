@@ -1,6 +1,9 @@
 import md5 from 'md5';
+import unidecode from 'unidecode';
+import ItemType from 'types/ItemType';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
+import MediaObject from 'types/MediaObject';
 import Thumbnail from 'types/Thumbnail';
 import {Logger, exists} from 'utils';
 import lastfmSettings from './lastfmSettings';
@@ -69,6 +72,45 @@ export class LastFmApi {
         }
     }
 
+    async getThumbnails(item: MediaObject, signal?: AbortSignal): Promise<Thumbnail[] | undefined> {
+        const api_key = lastfmSettings.apiKey;
+        if (
+            !api_key ||
+            !item ||
+            (item.itemType !== ItemType.Album && item.itemType !== ItemType.Media)
+        ) {
+            return undefined;
+        }
+        let album: string | undefined;
+        let artist: string | undefined;
+        if (item.itemType === ItemType.Album) {
+            album = item.title;
+            artist = item.artist;
+        } else {
+            album = item.album;
+            artist = item.albumArtist || item.artists?.[0];
+        }
+        if (!album || !artist) {
+            return undefined;
+        }
+        const {
+            results: {
+                albummatches: {album: albums = []},
+            },
+        } = await this.get<LastFm.AlbumSearch>({method: 'album.search', album}, signal);
+        const decode = (name: string) => unidecode(name).toLowerCase();
+        const decodedAlbum = decode(album);
+        const decodedArtist = decode(artist);
+        return albums
+            .filter(
+                (album) =>
+                    decode(album.name) === decodedAlbum &&
+                    decode(String(album.artist)) === decodedArtist
+            )
+            .map((album) => this.createThumbnails(album.image))
+            .filter(exists)[0];
+    }
+
     async getUserInfo(): Promise<LastFm.UserInfo> {
         return this.get({
             method: 'user.getInfo',
@@ -86,13 +128,13 @@ export class LastFmApi {
         return result.length === 0 ? undefined : result;
     }
 
-    async get<T>(params: any): Promise<T> {
+    async get<T>(params: any, signal?: AbortSignal): Promise<T> {
         const path = `${this.host}?${new URLSearchParams({
             ...params,
             api_key: lastfmSettings.apiKey,
             format: 'json',
         })}`;
-        const response = await fetch(path, {method: 'GET'});
+        const response = await fetch(path, {method: 'GET', signal});
         if (!response.ok) {
             throw response;
         }

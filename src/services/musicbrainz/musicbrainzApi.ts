@@ -22,7 +22,7 @@ const host = `https://musicbrainz.org/ws/2`;
 
 const rateLimiter = new RateLimiter(1200, 5);
 
-export async function getISRCs<T extends MediaItem>(
+async function getISRCs<T extends MediaItem>(
     lookupItem: T,
     signal?: AbortSignal
 ): Promise<readonly string[]> {
@@ -54,17 +54,17 @@ export async function getISRCs<T extends MediaItem>(
     }
 }
 
-export async function addMetadata<T extends MediaItem>(
+async function addMetadata<T extends MediaItem>(
     lookupItem: T,
     strictMatch: boolean,
     signal?: AbortSignal
 ): Promise<T>;
-export async function addMetadata<T extends MediaItem>(
+async function addMetadata<T extends MediaItem>(
     lookupItems: readonly T[],
     strictMatch: boolean,
     signal?: AbortSignal
 ): Promise<readonly T[]>;
-export async function addMetadata<T extends MediaItem>(
+async function addMetadata<T extends MediaItem>(
     lookup: T | readonly T[],
     strictMatch: boolean,
     signal?: AbortSignal
@@ -80,6 +80,7 @@ export async function addMetadata<T extends MediaItem>(
     const byRecordingId: LookupItem<T>[] = [];
     const byReleaseId: LookupItem<T>[] = [];
     const byISRC: LookupItem<T>[] = [];
+    const bySearch: LookupItem<T>[] = [];
 
     for (const lookupItem of lookupItems) {
         const {recording_mbid, release_mbid, track_mbid, isrc} = lookupItem.item;
@@ -91,6 +92,7 @@ export async function addMetadata<T extends MediaItem>(
             byRecordingId.push(lookupItem);
         } else if (strictMatch) {
             noLookup.push(lookupItem);
+            // Matches are less precise below here (but still pretty good).
         } else if (recording_mbid) {
             byRecordingId.push(lookupItem);
         } else if (isrc) {
@@ -98,7 +100,7 @@ export async function addMetadata<T extends MediaItem>(
         } else if (release_mbid && lookupItems.length === 1) {
             byReleaseId.push(lookupItem);
         } else {
-            noLookup.push(lookupItem);
+            bySearch.push(lookupItem);
         }
     }
 
@@ -109,6 +111,7 @@ export async function addMetadata<T extends MediaItem>(
             addMetadataByRecordingId(byRecordingId, requestInit),
             addMetadataByReleaseId(byReleaseId, requestInit),
             addMetadataByISRC(byISRC, requestInit),
+            addMetadataBySearch(bySearch, requestInit),
         ])
     ).flat();
 
@@ -277,6 +280,53 @@ async function addMetadataByReleaseId<T extends MediaItem>(
     }
 }
 
+async function addMetadataBySearch<T extends MediaItem>(
+    lookupItems: readonly LookupItem<T>[],
+    requestInit?: RequestInitWithTimeout
+): Promise<readonly LookupItem<T>[]> {
+    // Can only do one item at a time.
+    if (lookupItems.length !== 1) {
+        return lookupItems;
+    }
+    const [lookupItem] = lookupItems;
+    const {item, index} = lookupItem;
+    const title = item.title;
+    const artist = item.artists?.[0];
+    if (title && artist) {
+        const src = item.src;
+        const foundItem = await lookup(lookupItem.item, requestInit);
+        if (foundItem) {
+            const {recording_mbid, artist_mbids, release_mbid, track_mbid} = foundItem;
+            const values = addMissingValues(
+                {recording_mbid, artist_mbids, release_mbid, track_mbid},
+                item,
+                foundItem
+            );
+            dispatchMediaObjectChanges<MediaItem>({
+                match: (item) => item.src === src,
+                values,
+            });
+            return [{item: {...item, ...values}, index}];
+        }
+    }
+    return lookupItems;
+}
+
+async function lookup<T extends MediaItem>(
+    item: T,
+    requestInit?: RequestInitWithTimeout
+): Promise<MediaItem | undefined> {
+    const title = item.title;
+    const artist = item.artists?.[0];
+    const {recordings = []} = await fetchJSON<MusicBrainz.RecordingsQuery>(
+        `/recording`,
+        {query: `artist:${artist} AND recording:${title}`},
+        requestInit
+    );
+    const items = createMediaItemsFromRecordings(recordings);
+    return findBestMatch(items, item);
+}
+
 function addMissingValues(
     values: Partial<MediaItem>,
     item: MediaItem,
@@ -340,6 +390,7 @@ function createMediaItemsFromRecordings(recordings: readonly MusicBrainz.Recordi
         }
     }
     items = filterNotEmpty(items, (item) => item.musicBrainz!.status === 'Official');
+    items = filterNotEmpty(items, (item) => !!item.isrc);
     items.sort(
         (a, b) =>
             (digitalFormats[a.musicBrainz!.format] || 99) -
@@ -387,9 +438,10 @@ function getArtists(
 }
 
 const musicbrainzApi = {
+    addMetadata,
     get: fetchJSON,
     getISRCs,
-    addMetadata,
+    lookup,
 };
 
 export default musicbrainzApi;

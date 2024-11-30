@@ -6,7 +6,7 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import {getService} from 'services/mediaServices';
-import {addMetadata} from 'services/musicbrainz/musicbrainzApi';
+import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import {Logger, partition} from 'utils';
 import listenbrainzSettings from './listenbrainzSettings';
 
@@ -50,7 +50,7 @@ export class ListenBrainzApi {
         playlist: MediaPlaylist,
         items: readonly T[]
     ): Promise<void> {
-        items = await addMetadata(items, false);
+        items = await musicbrainzApi.addMetadata(items, false);
         items = items.filter((item) => item.recording_mbid);
         const [, , playlist_mbid] = playlist.src.split(':');
         return this.post(`playlist/${playlist_mbid}/item/add`, {
@@ -86,7 +86,7 @@ export class ListenBrainzApi {
         {description = '', isPublic, items = []}: CreatePlaylistOptions<T> = {}
     ): Promise<{playlist_mbid: string}> {
         const userId = listenbrainzSettings.userId;
-        items = await addMetadata(items, false);
+        items = await musicbrainzApi.addMetadata(items, false);
         items = items.filter((item) => item.recording_mbid);
         return this.post('playlist/create', {
             playlist: {
