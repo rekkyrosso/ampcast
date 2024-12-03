@@ -5,6 +5,7 @@ export type Randomness = Readonly<Record<VisualizerProviderId, number>>;
 
 export default interface VisualizerSettings {
     provider: VisualizerProviderId | 'favorites' | 'random';
+    fallbackProvider: Extract<VisualizerProviderId, 'none' | 'coverart'>;
     ambientVideoBeats: boolean;
     ambientVideoSource: string;
     useAmbientVideoSource: boolean;
@@ -18,4 +19,5 @@ export default interface VisualizerSettings {
     lockedVisualizer: Pick<Visualizer, 'providerId' | 'name'> | null;
     randomness: Randomness;
     spotifyRandomness: Randomness;
+    spotifyEnabled: boolean;
 }

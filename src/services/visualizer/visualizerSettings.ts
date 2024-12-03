@@ -1,5 +1,6 @@
 import type {Observable} from 'rxjs';
 import {map, startWith} from 'rxjs';
+import VisualizerProviderId from 'types/VisualizerProviderId';
 import VisualizerSettings, {Randomness} from 'types/VisualizerSettings';
 import {LiteStorage} from 'utils';
 
@@ -100,6 +101,14 @@ const visualizerSettings: VisualizerSettings = {
         storage.setBoolean('coverArtBeats', enabled);
     },
 
+    get fallbackProvider(): Extract<VisualizerProviderId, 'none' | 'coverart'> {
+        return storage.getString('fallbackProvider', 'none');
+    },
+
+    set fallbackProvider(provider: Extract<VisualizerProviderId, 'none' | 'coverart'>) {
+        storage.setString('fallbackProvider', provider);
+    },
+
     get fullscreenProgress(): boolean {
         return storage.getBoolean('fullscreenProgress');
     },
@@ -138,6 +147,16 @@ const visualizerSettings: VisualizerSettings = {
 
     set randomness(randomness: Randomness) {
         storage.setJson('randomness', randomness);
+    },
+
+    get spotifyEnabled(): boolean {
+        // https://developer.spotify.com/blog/2024-11-27-changes-to-the-web-api
+        // ampcast.app is not restricted (for now).
+        return /^ampcast\.(app|dev)$/.test(location.hostname);
+    },
+
+    set spotifyEnabled(_: boolean) {
+        // Not writable.
     },
 
     get spotifyRandomness(): Randomness {

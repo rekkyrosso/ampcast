@@ -61,6 +61,11 @@ const spotifySettings = {
         userStorage.setString('market', market);
     },
 
+    get restrictedApi(): boolean {
+        // https://developer.spotify.com/blog/2024-11-27-changes-to-the-web-api
+        return !/^ampcast\.(app|dev)$/.test(location.hostname);
+    },
+
     get token(): TokenStore | null {
         return authStorage.getJson('token');
     },

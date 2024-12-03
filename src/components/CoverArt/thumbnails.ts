@@ -8,6 +8,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import Thumbnail from 'types/Thumbnail';
 import lastfmApi from 'services/lastfm/lastfmApi';
+import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import {findListenByPlayedAt, getListens} from 'services/localdb/listens';
 import {getCoverArtThumbnails} from 'services/musicbrainz/coverart';
 import youtubeApi from 'services/youtube/youtubeApi';
@@ -51,37 +52,44 @@ export async function findThumbnails(
         }
     }
     let thumbnails = findThumbnailsInListens(item);
-    if (thumbnails) {
-        return thumbnails;
-    }
-    let album: string | undefined;
-    let artist: string | undefined;
-    if (item.itemType === ItemType.Album) {
-        album = item.title;
-        artist = item.artist;
-    } else {
-        album = item.album;
-        artist = item.albumArtist || item.artists?.[0];
-    }
-    if (!album || !artist) {
-        return undefined;
-    }
-    const [serviceId] = item.src.split(':');
-    if (extendedSearch) {
-        const storedItem = await store.items.get([album, artist]);
-        if (storedItem) {
-            return storedItem.thumbnails;
+    if (!thumbnails) {
+        let album: string | undefined;
+        let artist: string | undefined;
+        if (item.itemType === ItemType.Album) {
+            album = item.title;
+            artist = item.artist;
+        } else {
+            album = item.album;
+            artist = item.albumArtist || item.artists?.[0];
         }
-        const [lastfmThumbnails, musicbrainzThumbnails] = await Promise.all([
-            lastfmApi.getThumbnails(item, signal),
-            getCoverArtThumbnails(item, true, signal),
-        ]);
-        thumbnails = lastfmThumbnails || musicbrainzThumbnails;
-    } else if (serviceId !== 'lastfm') {
-        thumbnails = await getCoverArtThumbnails(item, false, signal);
+        if (!album || !artist) {
+            return undefined;
+        }
+        const [serviceId] = item.src.split(':');
+        if (extendedSearch) {
+            const storedItem = await store.items.get([album, artist]);
+            if (storedItem) {
+                thumbnails = storedItem.thumbnails;
+            } else {
+                const [lastfmThumbnails, musicbrainzThumbnails] = await Promise.all([
+                    lastfmApi.getThumbnails(item, signal),
+                    getCoverArtThumbnails(item, true, signal),
+                ]);
+                thumbnails = lastfmThumbnails || musicbrainzThumbnails;
+            }
+        } else if (serviceId !== 'lastfm') {
+            thumbnails = await getCoverArtThumbnails(item, false, signal);
+        }
+        if (thumbnails) {
+            await store.items.put({album, artist, thumbnails});
+        }
     }
     if (thumbnails) {
-        await store.items.put({album, artist, thumbnails});
+        const src = item.src;
+        dispatchMediaObjectChanges<MediaObject>({
+            match: (item) => item.src === src,
+            values: {thumbnails},
+        });
     }
     return thumbnails;
 }

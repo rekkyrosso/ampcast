@@ -5,6 +5,8 @@ import {Logger} from 'utils';
 import spotifyApi from './spotifyApi';
 import spotifySettings from './spotifySettings';
 
+const isRestrictedApi = spotifySettings.restrictedApi;
+
 const logger = new Logger('spotifyAuth');
 
 const redirect_uri = `${location.origin}/auth/spotify/callback/`;
@@ -243,7 +245,7 @@ async function checkConnection(): Promise<void> {
     };
     const getChartsCategoryId = async () => {
         try {
-            if (!spotifySettings.chartsCategoryId) {
+            if (!isRestrictedApi && !spotifySettings.chartsCategoryId) {
                 const {categories} = await spotifyApi.getCategories({limit: 50, locale: 'en_US'});
                 const chartsCategory = categories.items.find(
                     (category) => category.name === 'Charts'

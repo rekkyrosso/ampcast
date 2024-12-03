@@ -12,11 +12,12 @@ import {interpolateBasis, interpolateNumber} from 'd3-interpolate';
 import {min} from 'd3-array';
 import {scaleLog} from 'd3-scale';
 import {InvFFT as ifft} from 'jsfft';
+import {clamp, Logger} from 'utils';
 import {observePaused} from 'services/mediaPlayback/playback';
 import type {SpotifyPlayer} from './spotifyPlayer';
 import spotifyApi from './spotifyApi';
+import spotifySettings from './spotifySettings';
 import {samplePitches} from './samplePitches';
-import {clamp, Logger} from 'utils';
 
 const logger = new Logger('spotifyAudioAnalyser');
 
@@ -91,16 +92,22 @@ export class SpotifyAudioAnalyser implements SimpleAudioAnalyser {
         return this.activeIntervals.beats;
     }
 
+    get disabled(): boolean {
+        return spotifySettings.restrictedApi;
+    }
+
     get player(): SpotifyPlayer | undefined {
         return this.#player;
     }
 
     set player(player: SpotifyPlayer | undefined) {
         this.#player = player;
-        player
-            ?.observeCurrentTrackState()
-            .pipe(concatMap((state) => this.updateTrackAnalysis(state)))
-            .subscribe(logger);
+        if (!this.disabled) {
+            player
+                ?.observeCurrentTrackState()
+                .pipe(concatMap((state) => this.updateTrackAnalysis(state)))
+                .subscribe(logger);
+        }
     }
 
     get section(): ActiveIntervals['sections'] {

@@ -24,7 +24,7 @@ import PlaybackType from 'types/PlaybackType';
 import Visualizer, {NoVisualizer, NextVisualizer} from 'types/Visualizer';
 import VisualizerFavorite from 'types/VisualizerFavorite';
 import VisualizerProviderId from 'types/VisualizerProviderId';
-import {browser, exists, getRandomValue, isMiniPlayer, Logger} from 'utils';
+import {exists, getRandomValue, isMiniPlayer, Logger} from 'utils';
 import audio from 'services/audio';
 import {
     getPlaybackState,
@@ -100,24 +100,34 @@ export function setCurrentVisualizer({
 }
 
 export function isProviderSupported(providerId: string, item: MediaItem): boolean {
-    const isDev = location.hostname === 'localhost' && !browser.isElectron;
     const [serviceId] = item.src.split(':');
-    const ambientVideoSupported = !/^(spotify)$/.test(serviceId) || isDev;
+    const isSpotify = serviceId === 'spotify';
+    const spotifyEnabled = visualizerSettings.spotifyEnabled;
 
     switch (providerId) {
+        case 'none':
+        case 'random':
+        case 'coverart':
+            return true;
+
         case 'spotifyviz':
-            return serviceId === 'spotify';
+            return spotifyEnabled && isSpotify;
 
         case 'ambientvideo':
-            return ambientVideoSupported;
+            return !isSpotify;
 
         default:
-            // For Safari.
-            // If the Web Audio API is not supported for streaming media then we can't use a visualizer.
-            return (
-                audio.streamingSupported ||
-                (item.playbackType !== PlaybackType.DASH && item.playbackType !== PlaybackType.HLS)
-            );
+            if (isSpotify) {
+                return spotifyEnabled;
+            } else {
+                // For Safari.
+                // If the Web Audio API is not supported for streaming media then we can't use a visualizer.
+                return (
+                    audio.streamingSupported ||
+                    (item.playbackType !== PlaybackType.DASH &&
+                        item.playbackType !== PlaybackType.HLS)
+                );
+            }
     }
 }
 
@@ -290,7 +300,13 @@ function createNoVisualizer(
     reason: NoVisualizer['name'],
     providerId: VisualizerProviderId,
     name?: string
-): NoVisualizer {
+): Visualizer {
+    if (reason === 'not supported' && visualizerSettings.fallbackProvider === 'coverart') {
+        const fallback = getVisualizer('coverart', '');
+        if (fallback) {
+            return fallback;
+        }
+    }
     return {providerId: 'none', name: reason, link: {providerId, name}};
 }
 
@@ -299,7 +315,7 @@ function createNoVisualizerFromList<T extends Visualizer | VisualizerFavorite>(
     nextReason: NextVisualizerReason,
     visualizers: readonly T[],
     currentVisualizer: T | undefined
-): NoVisualizer {
+): Visualizer {
     const {providerId, name} = pickNextVisualizer(nextReason, visualizers, currentVisualizer);
     return createNoVisualizer(noVisualizerReason, providerId, name);
 }

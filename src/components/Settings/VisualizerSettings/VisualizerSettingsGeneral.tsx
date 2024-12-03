@@ -103,7 +103,7 @@ export default function VisualizerSettingsGeneral() {
             )}
             {provider === 'favorites' && favorites.length === 0 ? (
                 <p className="compatibility">You don&apos;t have any {t('favorites')}.</p>
-            ) : (
+            ) : ['all', 'none', 'favorites', 'random', 'coverart'].includes(provider) ? null : (
                 <Compatibility provider={provider} />
             )}
             <DialogButtons />
@@ -113,19 +113,38 @@ export default function VisualizerSettingsGeneral() {
 
 function AllProvidersSettings() {
     const id = useId();
+    const originalSettings = useMemo(() => ({...visualizerSettings}), []);
     return (
-        <fieldset>
-            <legend>Fullscreen</legend>
-            <p>
-                <input
-                    type="checkbox"
-                    id={`${id}-fullscreen-progress`}
-                    defaultChecked={visualizerSettings.fullscreenProgress}
-                    onChange={(e) => (visualizerSettings.fullscreenProgress = e.target.checked)}
-                />
-                <label htmlFor={`${id}-fullscreen-progress`}>Always show progress bar</label>
-            </p>
-        </fieldset>
+        <>
+            <fieldset>
+                <legend>Fullscreen</legend>
+                <p>
+                    <input
+                        type="checkbox"
+                        id={`${id}-fullscreen-progress`}
+                        defaultChecked={visualizerSettings.fullscreenProgress}
+                        onChange={(e) => (visualizerSettings.fullscreenProgress = e.target.checked)}
+                    />
+                    <label htmlFor={`${id}-fullscreen-progress`}>Always show progress bar</label>
+                </p>
+            </fieldset>
+            <fieldset>
+                <legend>Fallback</legend>
+                <p>
+                    <label htmlFor={`${id}-fallback-provider`}>Fallback provider:</label>
+                    <select
+                        id={`${id}-fallback-provider`}
+                        defaultValue={originalSettings.fallbackProvider}
+                        onChange={(e) =>
+                            (visualizerSettings.fallbackProvider = e.target.value as any)
+                        }
+                    >
+                        <option value="none">(none)</option>
+                        <option value="coverart">Cover Art</option>
+                    </select>
+                </p>
+            </fieldset>
+        </>
     );
 }
 

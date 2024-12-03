@@ -20,6 +20,7 @@ import actionsStore from 'services/actions/actionsStore';
 import {NoSpotifyChartsError} from 'services/errors';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
+import {setHiddenSources} from 'services/mediaServices/servicesSettings';
 import {browser, chunk, exists, partition} from 'utils';
 import {
     observeIsLoggedIn,
@@ -55,6 +56,8 @@ export type SpotifyItem =
     | SpotifyTrack
     | SpotifyEpisode
     | SpotifyPlaylist;
+
+const isRestrictedApi = spotifySettings.restrictedApi;
 
 const defaultLayout: MediaSourceLayout<MediaItem> = {
     view: 'card',
@@ -286,6 +289,7 @@ const spotifyFeaturedPlaylists: MediaSource<MediaPlaylist> = {
     layout: playlistLayout,
     secondaryLayout: playlistItemsLayout,
     defaultHidden: true,
+    disabled: isRestrictedApi,
 
     search(): Pager<MediaPlaylist> {
         const market = getMarket();
@@ -334,6 +338,7 @@ const spotifyPlaylistsByCategory: MediaSource<MediaPlaylist> = {
     Component: FilterBrowser,
     layout: playlistLayout,
     secondaryLayout: playlistItemsLayout,
+    disabled: isRestrictedApi,
 
     search(category?: MediaFilter): Pager<MediaPlaylist> {
         if (category) {
@@ -363,6 +368,7 @@ const spotifyCharts: MediaSource<MediaPlaylist> = {
         view: 'card small',
         fields: ['Index', 'Thumbnail', 'Title', 'Artist'],
     },
+    disabled: isRestrictedApi,
 
     search(): Pager<MediaPlaylist> {
         const market = getMarket();
@@ -451,6 +457,16 @@ const spotify: PublicMediaService = {
 };
 
 export default spotify;
+
+if (isRestrictedApi) {
+    // These features are no longer supported by the Spotify Web API
+    // https://developer.spotify.com/blog/2024-11-27-changes-to-the-web-api
+    setHiddenSources({
+        [spotifyCharts.id]: true,
+        [spotifyFeaturedPlaylists.id]: true,
+        [spotifyPlaylistsByCategory.id]: true,
+    });
+}
 
 function canStore<T extends MediaObject>(item: T, inline?: boolean): boolean {
     switch (item.itemType) {

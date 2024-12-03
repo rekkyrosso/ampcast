@@ -9,7 +9,7 @@ import './VisualizerRandomness.scss';
 export default function VisualizerRandomness() {
     const id = useId();
     const spotify = getService('spotify');
-    const hasSpotify = spotify && isSourceVisible(spotify);
+    const hasSpotify = spotify && visualizerSettings.spotifyEnabled && isSourceVisible(spotify);
     const refSpotify = useRef<HTMLInputElement>(null);
     const [isSpotify, setIsSpotify] = useState(false);
     const {standardWeightings, spotifyWeightings} = useVisualizerRandomness();

@@ -1,11 +1,12 @@
-import {distinctUntilChanged, map, tap} from 'rxjs';
+import {combineLatest, distinctUntilChanged, map, tap} from 'rxjs';
 import AudioManager from 'types/AudioManager';
 import {CoverArtVisualizer} from 'types/Visualizer';
+import {Logger} from 'utils';
+import {getCurrentItem, observeCurrentItem} from 'services/playlist';
 import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 import visualizerSettings, {observeVisualizerSettings} from '../visualizerSettings';
 import BeatsPlayer from '../waveform/BeatsPlayer';
 import AnimatedBackgroundPlayer from './AnimatedBackgroundPlayer';
-import {Logger} from 'utils';
 
 const logger = new Logger('CovertArtPlayer');
 
@@ -31,12 +32,12 @@ export default class CovertArtPlayer extends AbstractVisualizerPlayer<CoverArtVi
             )
             .subscribe(logger);
 
-        observeVisualizerSettings()
+        combineLatest([observeVisualizerSettings(), observeCurrentItem()])
             .pipe(
-                map((settings) => settings.coverArtBeats),
+                map(() => this.canShowBeats()),
                 distinctUntilChanged(),
-                tap((beatsOverlay) => {
-                    this.beatsPlayer.hidden = this.hidden || !beatsOverlay;
+                tap((canShowBeats) => {
+                    this.beatsPlayer.hidden = this.hidden || !canShowBeats;
                 })
             )
             .subscribe(logger);
@@ -74,7 +75,7 @@ export default class CovertArtPlayer extends AbstractVisualizerPlayer<CoverArtVi
     set hidden(hidden: boolean) {
         this.#hidden = hidden;
         this.animatedBackground.hidden = hidden || !visualizerSettings.coverArtAnimatedBackground;
-        this.beatsPlayer.hidden = hidden || !visualizerSettings.coverArtBeats;
+        this.beatsPlayer.hidden = hidden || !this.canShowBeats();
         if (this.element) {
             this.element.hidden = hidden;
         }
@@ -120,5 +121,12 @@ export default class CovertArtPlayer extends AbstractVisualizerPlayer<CoverArtVi
     resize(width: number, height: number): void {
         this.animatedBackground.resize(width, height);
         this.beatsPlayer.resize(width);
+    }
+
+    private canShowBeats(): boolean {
+        return (
+            visualizerSettings.coverArtBeats &&
+            (visualizerSettings.spotifyEnabled || !getCurrentItem()?.src.startsWith('spotify:'))
+        );
     }
 }
