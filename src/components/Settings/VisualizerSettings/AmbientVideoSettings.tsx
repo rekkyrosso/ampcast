@@ -39,7 +39,10 @@ export default function AmbientVideoSettings({
             }
         }
         ambientVideoSourceRef.current!.setCustomValidity(validityMessage);
-    }, []);
+        if (!validityMessage) {
+            onAmbientVideoSourceChange(url);
+        }
+    }, [onAmbientVideoSourceChange]);
 
     return (
         <div className="ambient-video-settings">
