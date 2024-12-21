@@ -6,7 +6,6 @@ import butterchurn from './butterchurn';
 import coverart from './coverart';
 import spotifyviz from './spotifyviz';
 import waveform from './waveform';
-import visualizerSettings from './visualizerSettings';
 
 const visualizers: VisualizerProvider[] = [
     ambientvideo,
@@ -14,12 +13,8 @@ const visualizers: VisualizerProvider[] = [
     audiomotion,
     butterchurn,
     coverart,
+    spotifyviz,
+    waveform
 ];
-
-if (visualizerSettings.spotifyEnabled) {
-    visualizers.push(spotifyviz);
-}
-
-visualizers.push(waveform);
 
 export default visualizers;

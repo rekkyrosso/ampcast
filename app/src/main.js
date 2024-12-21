@@ -174,7 +174,7 @@ async function checkForUpdatesAndNotify() {
 
 app.whenReady().then(async () => {
     const mainWindowState = windowStateKeeper({
-        defaultWidth: 1024,
+        defaultWidth: 1200,
         defaultHeight: 768,
     });
     const splash = await createSplashScreen(mainWindowState);
@@ -187,8 +187,8 @@ app.whenReady().then(async () => {
         createBridge();
 
         await createMainWindow(url, mainWindowState);
-        await checkForUpdatesAndNotify();
         splash.close();
+        await checkForUpdatesAndNotify();
 
         // For mac apparently.
         app.on('activate', async () => {

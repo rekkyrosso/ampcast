@@ -48,4 +48,13 @@
         font-size: 0.75em;
         vertical-align: middle;
     }
+
+    .note {
+        font-size: 0.875em;
+        text-align: center;
+
+        p:last-child {
+            margin-top: 1em;
+        }
+    }
 }

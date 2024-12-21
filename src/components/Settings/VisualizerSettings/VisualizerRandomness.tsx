@@ -1,17 +1,20 @@
-import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
 import VisualizerProviderId from 'types/VisualizerProviderId';
 import {getService} from 'services/mediaServices';
+import {getCurrentItem} from 'services/playlist';
 import {isSourceVisible} from 'services/mediaServices/servicesSettings';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
+import ExternalLink from 'components/ExternalLink';
 import useVisualizerRandomness, {Weighting} from './useVisualizerRandomness';
 import './VisualizerRandomness.scss';
 
 export default function VisualizerRandomness() {
     const id = useId();
     const spotify = getService('spotify');
-    const hasSpotify = spotify && visualizerSettings.spotifyEnabled && isSourceVisible(spotify);
+    const hasSpotify = spotify && isSourceVisible(spotify);
     const refSpotify = useRef<HTMLInputElement>(null);
-    const [isSpotify, setIsSpotify] = useState(false);
+    const isSpotifyItem = useMemo(() => getCurrentItem()?.src.startsWith('spotify:'), []);
+    const [isSpotify, setIsSpotify] = useState(isSpotifyItem);
     const {standardWeightings, spotifyWeightings} = useVisualizerRandomness();
 
     const handleRandomnessChange = useCallback((weightings: readonly Weighting[]) => {
@@ -44,7 +47,7 @@ export default function VisualizerRandomness() {
                             id={`${id}-view-standard`}
                             name="weighting-view"
                             type="radio"
-                            defaultChecked={true}
+                            defaultChecked={!isSpotifyItem}
                             onChange={handleSpotifyChange}
                         />
                         <label htmlFor={`${id}-view-standard`}>Standard</label>
@@ -54,7 +57,7 @@ export default function VisualizerRandomness() {
                             id={`${id}-view-spotify`}
                             name="weighting-view"
                             type="radio"
-                            defaultChecked={false}
+                            defaultChecked={isSpotifyItem}
                             onChange={handleSpotifyChange}
                             ref={refSpotify}
                         />
@@ -67,11 +70,20 @@ export default function VisualizerRandomness() {
                 hidden={isSpotify}
                 onChange={handleRandomnessChange}
             />
-            <VisualizerWeightings
-                weightings={spotifyWeightings}
-                hidden={!isSpotify}
-                onChange={handleSpotifyRandomnessChange}
-            />
+            {visualizerSettings.spotifyEnabled ? (
+                <VisualizerWeightings
+                    weightings={spotifyWeightings}
+                    hidden={!isSpotify}
+                    onChange={handleSpotifyRandomnessChange}
+                />
+            ) : (
+                <div className="weightings note" hidden={!isSpotify}>
+                    <p>Spotify visualizers are only supported on the web app.</p>
+                    <p>
+                        <ExternalLink href="https://ampcast.app" />
+                    </p>
+                </div>
+            )}
         </fieldset>
     );
 }
