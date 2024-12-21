@@ -21,7 +21,7 @@ import {NoSpotifyChartsError} from 'services/errors';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import {setHiddenSources} from 'services/mediaServices/servicesSettings';
-import {browser, chunk, exists, partition} from 'utils';
+import {chunk, exists, partition} from 'utils';
 import {
     observeIsLoggedIn,
     isConnected,
@@ -118,33 +118,35 @@ const spotifyRecentlyPlayed: MediaSource<MediaItem> = {
     },
 };
 
-const spotifyTopTracks: MediaSource<MediaItem> = {
-    id: 'spotify/top-tracks',
-    title: 'Top Tracks',
-    icon: 'star',
-    itemType: ItemType.Media,
-    layout: defaultLayout,
+// TODO: Spotify scope: 'user-top-read'.
 
-    search(): Pager<MediaItem> {
-        return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
-            return spotifyApi.getMyTopTracks({offset, limit});
-        });
-    },
-};
+// const spotifyTopTracks: MediaSource<MediaItem> = {
+//     id: 'spotify/top-tracks',
+//     title: 'Top Tracks',
+//     icon: 'star',
+//     itemType: ItemType.Media,
+//     layout: defaultLayout,
 
-const spotifyTopArtists: MediaSource<MediaArtist> = {
-    id: 'spotify/top-artists',
-    title: 'Top Artists',
-    icon: 'star',
-    itemType: ItemType.Artist,
-    defaultHidden: true,
+//     search(): Pager<MediaItem> {
+//         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
+//             return spotifyApi.getMyTopTracks({offset, limit});
+//         });
+//     },
+// };
 
-    search(): Pager<MediaArtist> {
-        return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
-            return spotifyApi.getMyTopArtists({offset, limit});
-        });
-    },
-};
+// const spotifyTopArtists: MediaSource<MediaArtist> = {
+//     id: 'spotify/top-artists',
+//     title: 'Top Artists',
+//     icon: 'star',
+//     itemType: ItemType.Artist,
+//     defaultHidden: true,
+
+//     search(): Pager<MediaArtist> {
+//         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
+//             return spotifyApi.getMyTopArtists({offset, limit});
+//         });
+//     },
+// };
 
 const spotifyLikedSongs: MediaSource<MediaItem> = {
     id: 'spotify/liked-songs',
@@ -411,7 +413,6 @@ const spotify: PublicMediaService = {
     get credentialsRequired(): boolean {
         return spotifySettings.credentialsRequired;
     },
-    restrictedAccess: location.host === 'ampcast.app' || browser.isElectron,
     editablePlaylists: spotifyEditablePlaylists,
     root: spotifySearch,
     sources: [
@@ -420,8 +421,8 @@ const spotify: PublicMediaService = {
         spotifyFollowedArtists,
         spotifyPlaylists,
         spotifyRecentlyPlayed,
-        spotifyTopTracks,
-        spotifyTopArtists,
+        // spotifyTopTracks,
+        // spotifyTopArtists,
         spotifyCharts,
         spotifyFeaturedPlaylists,
         spotifyPlaylistsByCategory,

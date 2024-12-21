@@ -13,7 +13,6 @@ jobs:
       AM_DEV_TOKEN: ${{secrets.AM_DEV_TOKEN}}
       LF_API_KEY: ${{secrets.LF_API_KEY}}
       LF_API_SECRET: ${{secrets.LF_API_SECRET}}
-      SPOTIFY_DISABLED: 'true'
       APPLE_ID: ${{secrets.APPLE_ID}}
       APPLE_ID_PASSWORD: ${{secrets.APPLE_ID_PASSWORD}}
       APPLE_TEAM_ID: ${{secrets.APPLE_TEAM_ID}}

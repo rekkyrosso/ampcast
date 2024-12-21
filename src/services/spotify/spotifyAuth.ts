@@ -93,7 +93,7 @@ async function obtainAccessToken(state: string): Promise<TokenResponse> {
             // Listening History
             'user-read-recently-played',
             'user-read-playback-position',
-            'user-top-read',
+            // 'user-top-read', // TODO: I forgot to add this scope when registering ampcast.app with Spotify.
             // Spotify Connect
             'user-read-playback-state',
             'user-modify-playback-state',

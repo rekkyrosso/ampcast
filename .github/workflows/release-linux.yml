@@ -12,7 +12,6 @@ jobs:
       AM_DEV_TOKEN: ${{secrets.AM_DEV_TOKEN}}
       LF_API_KEY: ${{secrets.LF_API_KEY}}
       LF_API_SECRET: ${{secrets.LF_API_SECRET}}
-      SPOTIFY_DISABLED: 'true'
       GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
     steps:

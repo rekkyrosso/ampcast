@@ -63,6 +63,7 @@ const spotifySettings = {
 
     get restrictedApi(): boolean {
         // https://developer.spotify.com/blog/2024-11-27-changes-to-the-web-api
+        // ampcast.app is exempt from these changes.
         return !/^ampcast\.(app|dev)$/.test(location.hostname);
     },
 

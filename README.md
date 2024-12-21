@@ -5,9 +5,10 @@ A music player inspired by Winamp.
 ## Features
 
 * Supports Plex, Jellyfin, Emby, Navidrome and Subsonic (and variants)
-* Additional support for Apple Music, TIDAL (via Plex), YouTube and Spotify
+* Additional support for Apple Music, Spotify and YouTube
 * Built-in visualizers: Milkdrop (Butterchurn) and others
 * Scrobbling for last.fm and ListenBrainz
+* Playback from last.fm/ListenBrainz (via search of logged in services)
 
 ## Web app / PWA
 

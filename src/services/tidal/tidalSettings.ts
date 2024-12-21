@@ -62,7 +62,9 @@ const tidalSettings = {
     },
 
     get disabled(): boolean {
-        return __tidal_disabled__ && !storage.getBoolean('enabled');
+        // TODO
+        // return __tidal_disabled__ && !storage.getBoolean('enabled');
+        return !storage.getBoolean('enabled');
     },
 
     get userId(): string {

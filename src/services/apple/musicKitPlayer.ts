@@ -115,7 +115,10 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     }
 
     observeCurrentTime(): Observable<number> {
-        return this.currentTime$.pipe(distinctUntilChanged());
+        return this.currentTime$.pipe(
+            distinctUntilChanged(),
+            filter(() => this.player?.playbackState !== MusicKit.PlaybackStates.seeking)
+        );
     }
 
     observeDuration(): Observable<number> {
