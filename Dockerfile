@@ -5,7 +5,7 @@ LABEL org.opencontainers.image.title="ampcast" \
     org.opencontainers.image.description="A music player inspired by Winamp" \
     org.opencontainers.image.url="https://ampcast.app" \
     org.opencontainers.image.source="https://github.com/rekkyrosso/ampcast" \
-    org.opencontainers.image.version="0.9.10" \
+    org.opencontainers.image.version="0.9.11" \
     org.opencontainers.image.licenses="GPLv3"
 
 WORKDIR /app

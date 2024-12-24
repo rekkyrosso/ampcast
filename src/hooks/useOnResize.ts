@@ -6,7 +6,7 @@ export interface ResizeRect {
 }
 
 export default function useOnResize(
-    target: React.RefObject<HTMLElement> | HTMLElement | null,
+    target: React.RefObject<HTMLElement | null> | HTMLElement | null,
     onResize: (rect: ResizeRect) => void,
     box: 'border-box' | 'content-box' = 'content-box'
 ): void {
@@ -39,6 +39,8 @@ export default function useOnResize(
     }, [target, box]);
 }
 
-function getElement(target: React.RefObject<HTMLElement> | HTMLElement | null): HTMLElement | null {
+function getElement(
+    target: React.RefObject<HTMLElement | null> | HTMLElement | null
+): HTMLElement | null {
     return target && 'current' in target ? target.current : target;
 }

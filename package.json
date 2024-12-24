@@ -1,6 +1,6 @@
 {
     "name": "ampcast",
-    "version": "0.9.10",
+    "version": "0.9.11",
     "description": "Ampcast music player",
     "homepage": "https://ampcast.app",
     "author": {
@@ -48,9 +48,9 @@
         "md5": "^2.3.0",
         "music-metadata": "^10.5.0",
         "nanoid": "^5.0.1",
-        "react": "^18.2.0",
-        "react-dom": "^18.2.0",
-        "react-error-boundary": "^4.0.0",
+        "react": "^19.0.0",
+        "react-dom": "^19.0.0",
+        "react-error-boundary": "^5.0.0",
         "rxjs": "^7.5.6",
         "shaka-player": "^4.10.3",
         "spotify-web-api-js": "^1.5.2",
@@ -70,8 +70,8 @@
         "@types/gapi.client.youtube-v3": "^0.0.4",
         "@types/google.accounts": "^0.0.15",
         "@types/md5": "^2.3.2",
-        "@types/react": "^18.0.28",
-        "@types/react-dom": "^18.0.11",
+        "@types/react": "^19.0.2",
+        "@types/react-dom": "^19.0.2",
         "@types/spotify-api": "^0.0.25",
         "@types/spotify-web-playback-sdk": "^0.1.15",
         "@types/unidecode": "^0.1.1",
@@ -100,7 +100,7 @@
         "type-fest": "^4.0.0",
         "typescript": "^5.5.3",
         "webpack": "^5.74.0",
-        "webpack-cli": "^5.0.0"
+        "webpack-cli": "^6.0.1"
     },
     "devEngines": {
         "node": ">=20.x",

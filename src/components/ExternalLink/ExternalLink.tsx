@@ -2,7 +2,7 @@ import React from 'react';
 import Icon, {IconName} from 'components/Icon';
 import './ExternalLink.scss';
 
-export type ExternalLinkProps = JSX.IntrinsicElements['a'] & {
+export type ExternalLinkProps = React.JSX.IntrinsicElements['a'] & {
     icon?: IconName;
 };
 

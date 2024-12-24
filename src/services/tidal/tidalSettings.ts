@@ -4,14 +4,6 @@ import {nanoid} from 'nanoid';
 import {td_client_id} from 'services/credentials';
 import {LiteStorage} from 'utils';
 
-export interface TidalSettings {
-    clientId: string;
-    connectedAt: number;
-    readonly credentialsRequired: boolean;
-    readonly deviceId: string;
-    readonly disabled: boolean;
-}
-
 export interface TidalCredentials {
     readonly clientId: string;
 }

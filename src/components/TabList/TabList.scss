@@ -37,6 +37,7 @@
         &[aria-selected="true"] {
             border-bottom: 1px solid var(--background-color);
             background-color: var(--background-color);
+            color: var(--text-color);
         }
 
         &:active {

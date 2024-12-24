@@ -2,7 +2,7 @@ import React, {useId} from 'react';
 
 export type CredentialsProps = React.InputHTMLAttributes<HTMLInputElement> & {
     label: string;
-    inputRef: React.RefObject<HTMLInputElement>;
+    inputRef: React.RefObject<HTMLInputElement | null>;
 };
 
 export default function Credentials({
