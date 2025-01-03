@@ -12,7 +12,7 @@ import './PinnedPlaylist.scss';
 
 const defaultLayout: MediaSourceLayout<MediaPlaylist> = {
     view: 'card',
-    fields: ['Thumbnail', 'PlaylistTitle', 'TrackCount', 'Owner'],
+    fields: ['Thumbnail', 'PlaylistTitle', 'TrackCount', 'Owner', 'Progress'],
 };
 
 const defaultPlaylistItemsLayout: MediaSourceLayout<MediaItem> = {
@@ -27,7 +27,7 @@ const chartPlaylistItemsLayout: MediaSourceLayout<MediaItem> = {
 
 export default function PinnedPlaylist({source, ...props}: PagedItemsProps<MediaPlaylist>) {
     const [error, setError] = useState<unknown>();
-    const [selectedPlaylist, setSelectedPlaylist] = useState<MediaPlaylist | null>(null);
+    const [[selectedPlaylist], setSelectedPlaylist] = useState<readonly MediaPlaylist[]>([]);
     const itemsPager = selectedPlaylist?.pager || null;
     const defaultSecondaryLayout = selectedPlaylist?.isChart
         ? chartPlaylistItemsLayout
@@ -44,10 +44,6 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
         }
     }, [selectedPlaylist]);
 
-    const handleSelect = useCallback(([item]: readonly MediaPlaylist[]) => {
-        setSelectedPlaylist(item || null);
-    }, []);
-
     return (
         <div className="panel pinned-playlist">
             {error ? (
@@ -58,7 +54,7 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
                     title={source.title}
                     layout={source.layout || defaultLayout}
                     onError={setError}
-                    onSelect={handleSelect}
+                    onSelect={setSelectedPlaylist}
                     statusBar={false}
                     disabled
                 />

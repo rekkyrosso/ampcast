@@ -26,7 +26,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
     static maxPageSize = 500;
 
     private readonly pager: SequentialPager<T>;
-    private readonly pageSize: number;
+    readonly pageSize: number;
     private pageNumber = 1;
 
     constructor(
@@ -187,6 +187,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             artist: album.artist,
             year: album.year,
             playCount: album.playCount,
+            trackCount: album.songCount,
             inLibrary: !!album.starred,
             genres: album.genre ? [album.genre] : undefined,
             pager: this.createAlbumTracksPager(album),
@@ -326,6 +327,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             artist: artist.name,
             thumbnails: this.createThumbnails(artist.coverArt),
             pager: this.createTopTracksPager(artist),
+            trackCount: undefined,
             synthetic: true,
         };
     }

@@ -88,6 +88,31 @@
         }
     }
 
+    progress {
+        --border-radius: calc(0.25em * var(--roundness));
+        width: min(6em, 100%);
+        height: 0.125em;
+        background-color: var(--grey1-color);
+        border-radius: var(--border-radius);
+        border: 0;
+        vertical-align: top;
+
+        &::-webkit-progress-bar {
+            background-color: var(--grey1-color);
+            border-radius: var(--border-radius);
+        }
+
+        &::-webkit-progress-value {
+            background-color: var(--text-color);
+            border-radius: var(--border-radius);
+        }
+
+        &::-moz-progress-bar {
+            background-color: var(--text-color);
+            border-radius: var(--border-radius);
+        }
+    }
+
     .index {
         font-family: monospace;
     }
@@ -174,7 +199,8 @@
         .blurb,
         .album,
         .year,
-        .views {
+        .views,
+        .progress {
             left: 6.375em;
             right: 0.375em;
 
@@ -231,6 +257,8 @@
             border-radius: calc(var(--roundness) * 0.75em);
             background-color: var(--background-mark-color);
             line-height: 1;
+            min-width: 1.375em;
+            text-align: center;
 
             .text {
                 font-size: 0.75em;
@@ -275,6 +303,11 @@
             font-size: 0.75em;
         }
 
+        .progress {
+            bottom: 0;
+            line-height: 1;
+        }
+
         .actions {
             right: 0.5em;
             bottom: 0.5em;
@@ -309,7 +342,8 @@
             .blurb,
             .album,
             .year,
-            .views {
+            .views,
+            .progress {
                 left: 5em;
 
                 .indexed & {
@@ -353,9 +387,7 @@
             }
 
             .playlists & .blurb {
-                @include effects.line-clamp(2);
-                top: 2em;
-                line-height: normal;
+                top: 1.5em;
             }
 
             .year {
@@ -414,7 +446,7 @@
             }
 
             .playlists & .blurb {
-                -webkit-line-clamp: 1;
+                top: 1.375em;
             }
         }
 
@@ -466,9 +498,15 @@
             .views {
                 right: 1em;
             }
-        }
 
-        &.thin {
+            .playlists & .blurb {
+                right: 0.25em;
+            }
+
+            .progress {
+                right: 2em;
+            }
+
             .actions .icon-button:not(.icon-button-menu) {
                 display: none;
 

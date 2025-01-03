@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaSourceLayout from 'types/MediaSourceLayout';
@@ -15,25 +15,17 @@ const defaultAlbumsLayout: MediaSourceLayout<MediaAlbum> = {
 };
 
 export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>) {
-    const [selectedArtist, setSelectedArtist] = useState<MediaArtist | null>(null);
-    const [selectedAlbum, setSelectedAlbum] = useState<MediaAlbum | null>(null);
+    const [[selectedArtist], setSelectedArtist] = useState<readonly MediaArtist[]>([]);
+    const [[selectedAlbum], setSelectedAlbum] = useState<readonly MediaAlbum[]>([]);
     const albumTracksLayout = useAlbumTracksLayout(selectedAlbum, source.tertiaryLayout);
     const albumsPager = selectedArtist?.pager || null;
     const tracksPager = selectedAlbum?.pager || null;
-
-    const handleArtistSelect = useCallback(([artist]: readonly MediaArtist[]) => {
-        setSelectedArtist(artist || null);
-    }, []);
-
-    const handleAlbumSelect = useCallback(([album]: readonly MediaAlbum[]) => {
-        setSelectedAlbum(album || null);
-    }, []);
 
     const artistList = (
         <ArtistList
             {...props}
             title={source.title}
-            onSelect={handleArtistSelect}
+            onSelect={setSelectedArtist}
             reportingId={source.id}
         />
     );
@@ -44,7 +36,7 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
             className="artist-albums"
             pager={albumsPager}
             layout={source.secondaryLayout || defaultAlbumsLayout}
-            onSelect={handleAlbumSelect}
+            onSelect={setSelectedAlbum}
             reportingId={`${source.id}/albums`}
             key={selectedArtist?.src}
         />

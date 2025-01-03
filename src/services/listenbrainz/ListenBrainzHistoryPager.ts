@@ -34,9 +34,8 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
         params?: ListenBrainz.User.ListensParams,
         private readonly fetchListenCount = false
     ) {
-        const pageSize = 50;
         this.pager = new SequentialPager<MediaItem>(
-            async (count = pageSize): Promise<Page<MediaItem>> => {
+            async (count: number): Promise<Page<MediaItem>> => {
                 try {
                     const {payload} = await listenbrainzApi.get<ListenBrainz.User.Listens>(
                         `user/${listenbrainzSettings.userId}/listens`,
@@ -60,12 +59,16 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
                     throw err;
                 }
             },
-            {pageSize}
+            {pageSize: 50}
         );
     }
 
     get maxSize(): number | undefined {
         return this.pager.maxSize;
+    }
+
+    get pageSize(): number {
+        return this.pager.pageSize;
     }
 
     observeBusy(): Observable<boolean> {

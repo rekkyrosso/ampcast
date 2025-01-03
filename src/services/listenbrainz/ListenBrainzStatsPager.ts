@@ -23,10 +23,9 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
     private subscriptions?: Subscription;
 
     constructor(path: string, params?: Record<string, string | number | boolean>) {
-        const pageSize = 50;
         let offset = 0;
         this.pager = new SequentialPager<T>(
-            async (count = pageSize): Promise<Page<T>> => {
+            async (count: number): Promise<Page<T>> => {
                 try {
                     const response = await listenbrainzApi.get<ListenBrainz.Stats.Response>(path, {
                         ...params,
@@ -42,12 +41,16 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
                     throw err;
                 }
             },
-            {pageSize}
+            {pageSize: 50}
         );
     }
 
     get maxSize(): number | undefined {
         return this.pager.maxSize;
+    }
+
+    get pageSize(): number {
+        return this.pager.pageSize;
     }
 
     observeBusy(): Observable<boolean> {
@@ -147,6 +150,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
             artist_mbids: item.artist_mbids,
             caa_mbid: item?.caa_release_mbid,
             playCount: item.listen_count,
+            trackCount: undefined,
         };
         return {...album, pager: mbid ? new MusicBrainzAlbumPager(mbid) : new SimplePager()};
     }

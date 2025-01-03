@@ -66,7 +66,7 @@ const defaultLayout: MediaSourceLayout<MediaItem> = {
 
 const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
     view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb'],
+    fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb', 'Progress'],
 };
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
@@ -85,6 +85,7 @@ const spotifySearch: MediaMultiSource = {
         createSearch<MediaArtist>(ItemType.Artist, {title: 'Artists'}),
         createSearch<MediaPlaylist>(ItemType.Playlist, {
             title: 'Playlists',
+            layout: playlistLayout,
             secondaryLayout: playlistItemsLayout,
         }),
     ],
@@ -231,6 +232,7 @@ const spotifyPlaylists: MediaSource<MediaPlaylist> = {
     icon: 'heart',
     itemType: ItemType.Playlist,
     lockActionsStore: true,
+    layout: playlistLayout,
     secondaryLayout: playlistItemsLayout,
 
     search(): Pager<MediaPlaylist> {
@@ -530,6 +532,7 @@ async function createPlaylist<T extends MediaItem>(
         title: name,
         itemType: ItemType.Playlist,
         pager: new SimplePager(),
+        trackCount: items?.length,
     };
 }
 

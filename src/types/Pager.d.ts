@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
 
 export default interface Pager<T> {
+    readonly pageSize: number;
     readonly maxSize?: number | undefined;
     observeBusy: () => Observable<boolean>;
     observeItems(): Observable<readonly T[]>;
@@ -11,7 +12,7 @@ export default interface Pager<T> {
 }
 
 export interface PagerConfig {
-    readonly pageSize?: number;
+    readonly pageSize: number;
     readonly maxSize?: number;
     readonly lookup?: boolean; // lookup only (no background fetching)
     readonly noCache?: boolean; // disable caching (implementation specific)

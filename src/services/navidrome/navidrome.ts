@@ -40,7 +40,7 @@ const albumSort = 'order_album_artist_name,order_album_name';
 
 const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
     view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb'],
+    fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb', 'Progress'],
 };
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
@@ -367,6 +367,7 @@ async function createPlaylist<T extends MediaItem>(
         title: name,
         itemType: ItemType.Playlist,
         pager: new SimplePager(),
+        trackCount: items.length,
     };
 }
 

@@ -12,11 +12,9 @@ export default class ListenBrainzPlaylistsPager implements Pager<MediaPlaylist> 
     private readonly pager: SequentialPager<MediaPlaylist>;
 
     constructor(path: string, singleItem?: boolean) {
-        const pageSize = 50;
         let offset = 0;
-
         this.pager = new SequentialPager<MediaPlaylist>(
-            async (count = pageSize): Promise<Page<MediaPlaylist>> => {
+            async (count : number): Promise<Page<MediaPlaylist>> => {
                 if (singleItem) {
                     const {playlist} =
                         await listenbrainzApi.get<ListenBrainz.PlaylistItemsResponse>(
@@ -39,12 +37,16 @@ export default class ListenBrainzPlaylistsPager implements Pager<MediaPlaylist> 
                     return {items, total, atEnd};
                 }
             },
-            {pageSize}
+            {pageSize: 50}
         );
     }
 
     get maxSize(): number | undefined {
         return this.pager.maxSize;
+    }
+
+    get pageSize(): number {
+        return this.pager.pageSize;
     }
 
     observeBusy(): Observable<boolean> {
@@ -89,6 +91,7 @@ export default class ListenBrainzPlaylistsPager implements Pager<MediaPlaylist> 
             },
             isPinned: pinStore.isPinned(src),
             pager: new ListenBrainzPlaylistItemsPager(playlist_mbid),
+            trackCount: undefined,
         };
     }
 

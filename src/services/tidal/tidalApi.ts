@@ -658,6 +658,7 @@ function createArtistTopTracks(artist: TidalArtist): MediaAlbum {
         thumbnails: createThumbnails(attributes?.imageLinks),
         artist: attributes?.name,
         pager: new TidalPager((cursor) => getArtistTopTracks(artist, cursor)),
+        trackCount: undefined,
         synthetic: true,
     };
 }
@@ -671,6 +672,7 @@ function createArtistVideos(artist: TidalArtist): MediaAlbum {
         thumbnails: createThumbnails(attributes?.imageLinks),
         artist: attributes?.name,
         pager: new TidalPager((cursor) => getArtistVideos(artist, cursor)),
+        trackCount: undefined,
         synthetic: true,
     };
 }

@@ -12,6 +12,7 @@ import PopupMenu, {
     PopupMenuSeparator,
     showPopupMenu,
 } from 'components/PopupMenu';
+import useIsPlaylistPlayable from './useIsPlaylistPlayable';
 
 export default async function showActionsMenu<T extends MediaObject>(
     items: readonly T[],
@@ -38,13 +39,15 @@ interface ActionsMenuProps<T extends MediaObject> extends PopupMenuProps<Action>
 function ActionsMenu<T extends MediaObject>({items, isContextMenu, ...props}: ActionsMenuProps<T>) {
     const item = items[0];
     const isSingleItem = items.length === 1 && !!item;
-    const allPlayable = items.every(
-        (item) => item.itemType === ItemType.Media || item.itemType === ItemType.Album
-    );
+    const isPlaylist = item?.itemType === ItemType.Playlist;
+    const playableTypes = [ItemType.Media, ItemType.Album, ItemType.Playlist];
+    const allPlayable = items.every((item) => playableTypes.includes(item.itemType));
+    const playlistPlayable = useIsPlaylistPlayable(isPlaylist ? item : undefined);
+    const playableNow = isPlaylist ? playlistPlayable : allPlayable;
 
     return (
         <PopupMenu<Action> {...props}>
-            {allPlayable ? <PlayActions /> : null}
+            {allPlayable ? <PlayActions disabled={!playableNow} /> : null}
             {isContextMenu && isSingleItem ? <ContextualActions item={item} /> : null}
             <PlaylistActions items={items} />
             <PopupMenuSeparator />
@@ -60,25 +63,32 @@ function ActionsMenu<T extends MediaObject>({items, isContextMenu, ...props}: Ac
     );
 }
 
-function PlayActions() {
+interface PlayActionsProps {
+    disabled?: boolean;
+}
+
+function PlayActions({disabled}: PlayActionsProps) {
     return (
         <>
             <PopupMenuItem<Action>
                 label="Queue"
                 value={Action.Queue}
                 acceleratorKey="Enter"
+                disabled={disabled}
                 key={Action.Queue}
             />
             <PopupMenuItem<Action>
                 label="Play next"
                 value={Action.PlayNext}
                 acceleratorKey="Shift+Enter"
+                disabled={disabled}
                 key={Action.PlayNext}
             />
             <PopupMenuItem<Action>
                 label="Play now"
                 value={Action.PlayNow}
                 acceleratorKey={`${browser.ctrlKeyStr}+Enter`}
+                disabled={disabled}
                 key={Action.PlayNow}
             />
             <PopupMenuSeparator />

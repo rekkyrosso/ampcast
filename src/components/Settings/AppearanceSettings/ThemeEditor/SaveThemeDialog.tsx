@@ -42,7 +42,7 @@ export default function SaveThemeDialog({suggestedName, ...props}: SaveThemeDial
     const handleSubmitClick = useCallback(
         async (event: React.FormEvent) => {
             event.preventDefault();
-            submit();
+            await submit();
         },
         [submit]
     );

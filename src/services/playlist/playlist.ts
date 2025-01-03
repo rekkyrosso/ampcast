@@ -15,10 +15,11 @@ import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
-import Playlist from 'types/Playlist';
+import MediaPlaylist from 'types/MediaPlaylist';
+import Playlist, {PlayableType} from 'types/Playlist';
 import PlaylistItem from 'types/PlaylistItem';
 import LookupStatus from 'types/LookupStatus';
-import {observeMediaObjectChanges} from 'services/actions/mediaObjectChanges';
+import {bestOf, exists, isMiniPlayer, removeUserData, shuffle as shuffleArray, Logger} from 'utils';
 import {
     LookupStartEvent,
     LookupEndEvent,
@@ -27,12 +28,10 @@ import {
     observeLookupEndEvents,
     observeLookupCancelledEvents,
 } from 'services/lookup';
-import fetchFirstPage from 'services/pagers/fetchFirstPage';
-import {bestOf, exists, isMiniPlayer, removeUserData, shuffle as shuffleArray, Logger} from 'utils';
+import {observeMediaObjectChanges} from 'services/actions/mediaObjectChanges';
+import fetchAllTracks from './fetchAllTracks';
 
 const logger = new Logger('playlist');
-
-type PlayableType = MediaAlbum | MediaItem | readonly MediaAlbum[] | readonly MediaItem[];
 
 const delayWriteTime = 200;
 
@@ -274,31 +273,28 @@ export async function shuffle(preserveCurrentlyPlaying?: boolean): Promise<void>
 }
 
 async function createMediaItems(source: PlayableType): Promise<readonly MediaItem[]> {
-    const isAlbum = (album: PlayableType): album is MediaAlbum => {
-        return 'itemType' in album && album.itemType === ItemType.Album;
+    const isAlbumOrPlaylist = (source: PlayableType): source is MediaAlbum | MediaPlaylist => {
+        return (
+            'itemType' in source &&
+            (source.itemType === ItemType.Album || source.itemType === ItemType.Playlist)
+        );
     };
     let items: readonly (MediaItem | null)[] = [];
     if (Array.isArray(source)) {
         if (source.length === 0) {
             return [];
-        } else if (isAlbum(source[0])) {
-            const tracks = await Promise.all(
-                source.map((album) => createMediaItemsFromAlbum(album))
-            );
+        } else if (isAlbumOrPlaylist(source[0])) {
+            const tracks = await Promise.all(source.map((source) => fetchAllTracks(source)));
             items = tracks.flat();
         } else {
             items = source;
         }
-    } else if (isAlbum(source)) {
-        items = await createMediaItemsFromAlbum(source);
+    } else if (isAlbumOrPlaylist(source)) {
+        items = await fetchAllTracks(source);
     } else {
         items = [source as MediaItem];
     }
     return items.filter(exists);
-}
-
-async function createMediaItemsFromAlbum(album: MediaAlbum): Promise<readonly MediaItem[]> {
-    return fetchFirstPage(album.pager, {keepAlive: true});
 }
 
 async function safeWrite(key: string, value: any): Promise<void> {

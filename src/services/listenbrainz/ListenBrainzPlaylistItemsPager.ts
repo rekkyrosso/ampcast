@@ -15,10 +15,9 @@ export default class ListenBrainzPlaylistItemsPager implements Pager<MediaItem> 
     private subscriptions?: Subscription;
 
     constructor(playlist_mbid: string) {
-        const pageSize = 100;
         let offset = 0;
         this.pager = new SequentialPager<MediaItem>(
-            async (count = pageSize): Promise<Page<MediaItem>> => {
+            async (count: number): Promise<Page<MediaItem>> => {
                 const {playlist} = await listenbrainzApi.get<ListenBrainz.PlaylistItemsResponse>(
                     `playlist/${playlist_mbid}`,
                     {offset, count},
@@ -28,12 +27,16 @@ export default class ListenBrainzPlaylistItemsPager implements Pager<MediaItem> 
                 const items = playlist.track.map((track) => this.createMediaItem(track));
                 return {items, total: items.length, atEnd: true};
             },
-            {pageSize}
+            {pageSize: 100}
         );
     }
 
     get maxSize(): number | undefined {
         return this.pager.maxSize;
+    }
+
+    get pageSize(): number {
+        return this.pager.pageSize;
     }
 
     observeBusy(): Observable<boolean> {

@@ -65,36 +65,43 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         private readonly parent?: ParentOf<T>,
         toPage = MusicKitPager.defaultToPage
     ) {
-        this.pager = new SequentialPager<T>(async (limit?: number): Promise<Page<T>> => {
-            try {
-                const response = await this.fetchNext(
-                    this.nextPageUrl || href,
-                    limit ? (params ? {...params, limit} : {limit}) : params
-                );
-                const result = toPage(response.data);
-                const items = this.createItems(result.items);
-                const total = result.total;
-                const atEnd = !result.nextPageUrl;
-                this.nextPageUrl = result.nextPageUrl;
-                return {items, total, atEnd};
-            } catch (err: any) {
-                // Apple playlists return 404 if they are empty.
-                // If it's been deleted then it has no name/title.
-                if (
-                    err.name === 'NOT_FOUND' &&
-                    this.parent?.itemType === ItemType.Playlist &&
-                    this.parent.title
-                ) {
-                    return {items: [], total: 0, atEnd: true};
-                } else {
-                    throw err;
+        this.pager = new SequentialPager<T>(
+            async (limit: number): Promise<Page<T>> => {
+                try {
+                    const response = await this.fetchNext(
+                        this.nextPageUrl || href,
+                        limit ? (params ? {...params, limit} : {limit}) : params
+                    );
+                    const result = toPage(response.data);
+                    const items = this.createItems(result.items);
+                    const total = result.total;
+                    const atEnd = !result.nextPageUrl;
+                    this.nextPageUrl = result.nextPageUrl;
+                    return {items, total, atEnd};
+                } catch (err: any) {
+                    // Apple playlists return 404 if they are empty.
+                    // If it's been deleted then it has no name/title.
+                    if (
+                        err.name === 'NOT_FOUND' &&
+                        this.parent?.itemType === ItemType.Playlist &&
+                        this.parent.title
+                    ) {
+                        return {items: [], total: 0, atEnd: true};
+                    } else {
+                        throw err;
+                    }
                 }
-            }
-        }, options);
+            },
+            {pageSize: 25, ...options}
+        );
     }
 
     get maxSize(): number | undefined {
         return this.pager.maxSize;
+    }
+
+    get pageSize(): number {
+        return this.pager.pageSize;
     }
 
     observeBusy(): Observable<boolean> {
@@ -199,6 +206,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             title: item.name,
             description: description ? getTextFromHtml(description) : undefined,
             thumbnails: this.createThumbnails(item),
+            trackCount: undefined,
             owner: item.curatorName ? {name: item.curatorName} : undefined,
             modifiedAt: Math.floor(new Date(item.lastModifiedDate).valueOf() / 1000) || undefined,
             unplayable: !item.playParams || undefined,
@@ -210,7 +218,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         mediaPlaylist.pager = new MusicKitPager(
             `${playlist.href!}/tracks`,
             {'include[library-songs]': 'catalog'},
-            undefined,
+            {pageSize: 100, maxSize: item.isChart ? 100 : undefined},
             mediaPlaylist as MediaPlaylist
         );
         return mediaPlaylist as SetRequired<MediaPlaylist, 'apple'>;
@@ -265,7 +273,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         mediaAlbum.pager = new MusicKitPager(
             `${album.href!}/tracks`,
             {'include[library-songs]': 'catalog'},
-            undefined,
+            {pageSize: 100},
             mediaAlbum as MediaAlbum
         );
         return mediaAlbum as SetRequired<MediaAlbum, 'apple'>;
@@ -388,6 +396,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             pager: this.createTopTracksPager(artist),
             synthetic: true,
             inLibrary: false,
+            trackCount: undefined,
             apple: {catalogId: ''},
         };
     }
@@ -405,6 +414,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
             pager: this.createVideosPager(artist),
             synthetic: true,
             inLibrary: false,
+            trackCount: undefined,
             apple: {catalogId: ''},
         };
     }
@@ -427,7 +437,7 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
                 [`limit[artists:${view}]`]: 30,
                 views: view,
             },
-            {maxSize: 100},
+            {maxSize: 100, pageSize: 0},
             undefined,
             (response: any) => {
                 const result = response.data[0]?.views?.[view] || response;

@@ -502,7 +502,11 @@ async function createPlaylist<T extends MediaItem>(
         return {id, type};
     });
     const relationships = {tracks: {data: tracks}};
-    const playlist = await musicKit.api.music('/v1/me/library/playlists', undefined, {
+    const {
+        data: {
+            data: [playlist],
+        },
+    } = await musicKit.api.music('/v1/me/library/playlists', undefined, {
         fetchOptions: {
             method: 'POST',
             body: JSON.stringify({attributes, relationships}),
@@ -513,6 +517,7 @@ async function createPlaylist<T extends MediaItem>(
         title: name,
         itemType: ItemType.Playlist,
         pager: new SimplePager(),
+        trackCount: items.length,
     };
 }
 
@@ -537,7 +542,8 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
                       }
                     : {
                           'omit[resource:playlists]': 'relationships',
-                      }
+                      },
+                {pageSize: 0}
             );
         },
     };
@@ -597,9 +603,13 @@ async function getTracksById(trackIds: readonly string[]): Promise<readonly Medi
 }
 
 async function getTracksByAlbumId(id: string): Promise<readonly MediaItem[]> {
-    const albumPager = new MusicKitPager<MediaAlbum>(`/v1/catalog/{{storefrontId}}/albums/${id}`, {
-        ['omit[resource:albums]']: 'relationships',
-    });
+    const albumPager = new MusicKitPager<MediaAlbum>(
+        `/v1/catalog/{{storefrontId}}/albums/${id}`,
+        {
+            ['omit[resource:albums]']: 'relationships',
+        },
+        {pageSize: 0}
+    );
     try {
         const [album] = await fetchFirstPage(albumPager, {keepAlive: true});
         const songs = await fetchFirstPage(album.pager);
@@ -640,6 +650,7 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
         return item;
     }
     let result: Writable<T> = item as Writable<T>;
+    // TODO: `hasMetadata` is probably always `true` now.
     const hasMetadata = !!item.externalUrl; // this field is not available on library items
     if (!hasMetadata) {
         const [, type, id] = item.src.split(':');
@@ -650,7 +661,7 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
             isLibraryItem
                 ? undefined
                 : {[`omit[resource:${type.replace('library-', '')}]`]: 'relationships'},
-            {lookup: true}
+            {lookup: true, pageSize: 0}
         );
         const items = await fetchFirstPage<T>(pager, {timeout: 2000});
         result = bestOf(item, items[0]) as Writable<T>;

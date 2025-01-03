@@ -5,7 +5,7 @@ import MediaList, {MediaListProps} from './MediaList';
 
 const defaultLayout: MediaSourceLayout<MediaPlaylist> = {
     view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'TrackCount', 'Owner'],
+    fields: ['Thumbnail', 'Title', 'TrackCount', 'Owner', 'Progress'],
 };
 
 export default function PlaylistList({

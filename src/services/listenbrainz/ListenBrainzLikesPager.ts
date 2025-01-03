@@ -17,11 +17,10 @@ export default class ListenBrainzLikesPager implements Pager<MediaItem> {
     constructor() {
         const score = 1;
         const metadata = true;
-        const pageSize = 50;
         let offset = 0;
 
         this.pager = new SequentialPager<MediaItem>(
-            async (count = pageSize): Promise<Page<MediaItem>> => {
+            async (count: number): Promise<Page<MediaItem>> => {
                 try {
                     const response =
                         await listenbrainzApi.get<ListenBrainz.User.UserFeedbackResponse>(
@@ -40,12 +39,16 @@ export default class ListenBrainzLikesPager implements Pager<MediaItem> {
                     throw err;
                 }
             },
-            {pageSize}
+            {pageSize: 50}
         );
     }
 
     get maxSize(): number | undefined {
         return this.pager.maxSize;
+    }
+
+    get pageSize(): number {
+        return this.pager.pageSize;
     }
 
     observeBusy(): Observable<boolean> {

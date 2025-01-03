@@ -40,10 +40,14 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
     private subscriptions?: Subscription;
     #disconnected = false;
 
-    constructor(protected config: PagerConfig = {}) {}
+    constructor(protected config: PagerConfig) {}
 
     get maxSize(): number | undefined {
         return this.config.maxSize;
+    }
+
+    get pageSize(): number {
+        return this.config.pageSize;
     }
 
     observeAdditions(): Observable<readonly T[]> {
@@ -237,8 +241,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
             if (item.itemType === ItemType.Album && item.multiDisc === undefined) {
                 this.subscribeTo(
                     item.pager.observeItems().pipe(
-                        skipWhile(items => !items[0]?.album),
-                        take(1),
+                        skipWhile((items) => !items[0]?.album),
                         tap((tracks) => {
                             const src = item.src;
                             const index = this.items.findIndex((item) => item.src === src);
@@ -262,10 +265,12 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
 
     private addTrackCount(items: readonly T[]): void {
         items.forEach((item) => {
-            if (item.itemType === ItemType.Playlist && !item.trackCount && item.pager) {
+            if (
+                (item.itemType === ItemType.Album || item.itemType === ItemType.Playlist) &&
+                item.pager
+            ) {
                 this.subscribeTo(
                     item.pager.observeSize().pipe(
-                        take(1),
                         tap((size) => {
                             const src = item.src;
                             const index = this.items.findIndex((item) => item.src === src);

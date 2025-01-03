@@ -17,9 +17,9 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
 
     constructor(
         private readonly fetch: (pageNumber: number, pageSize: number) => Promise<Page<T>>,
-        options?: PagerConfig
+        config: PagerConfig
     ) {
-        super(options);
+        super(config);
     }
 
     protected connect(): void {
@@ -46,16 +46,12 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
     }
 
     private get isFetching(): boolean {
-        for (const pageNumber of this.fetchStates.keys()) {
-            if (this.fetchStates.get(pageNumber) === FetchState.Pending) {
+        for (const fetchState of this.fetchStates.values()) {
+            if (fetchState === FetchState.Pending) {
                 return true;
             }
         }
         return false;
-    }
-
-    private get pageSize(): number {
-        return this.config.pageSize || 20;
     }
 
     private async fetchPage(pageNumber: number): Promise<void> {

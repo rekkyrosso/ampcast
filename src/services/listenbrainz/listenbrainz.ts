@@ -181,6 +181,7 @@ async function createPlaylist<T extends MediaItem>(
         title: name,
         itemType: ItemType.Playlist,
         pager: new SimplePager(),
+        trackCount: 0,
     };
 }
 

@@ -20,6 +20,8 @@ import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import StarRating from 'components/StarRating';
 import SunClock from 'components/SunClock';
 import Time from 'components/Time';
+import usePager from 'hooks/usePager';
+import useIsPlaylistPlayable from './useIsPlaylistPlayable';
 
 const defaultLayout: MediaSourceLayout<MediaObject> = {
     view: 'details',
@@ -215,6 +217,24 @@ const Rate: RenderField = (item) => {
     );
 };
 
+const Progress: RenderField<MediaPlaylist> = (playlist) => {
+    const [{items}] = usePager(playlist.pager);
+    const playlistSize = playlist.trackCount;
+    const itemCount = items.reduce((total) => (total += 1), 0);
+    const playable = useIsPlaylistPlayable(playlist);
+    return playable ? null : (
+        <progress
+            max={playlistSize ?? 1}
+            value={playlistSize == null ? 0 : itemCount}
+            title={
+                playlistSize == null
+                    ? undefined
+                    : `${Math.round((itemCount * 100) / playlistSize)}%`
+            }
+        />
+    );
+};
+
 function Text({value = ''}: {value?: string | number}) {
     return value === '' ? null : <span className="text">{value}</span>;
 }
@@ -302,6 +322,7 @@ const mediaFields: MediaFields<any> = {
         width: 8,
         className: 'rate',
     },
+    Progress: {id: 'progress', title: 'Progress', render: Progress, className: 'progress'},
 };
 
 function getCount(count?: number): string {

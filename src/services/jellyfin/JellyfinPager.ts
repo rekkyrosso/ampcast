@@ -28,7 +28,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     static maxPageSize = 1000;
 
     private readonly pager: OffsetPager<T>;
-    private readonly pageSize: number;
+    readonly pageSize: number;
 
     constructor(
         private readonly path: string,
@@ -77,7 +77,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     private async fetch(pageNumber: number): Promise<Page<T>> {
         const params = {
             IncludeItemTypes: 'Audio',
-            Fields: 'AudioInfo,ChildCount,DateCreated,Genres,MediaSources,Path,ProviderIds',
+            Fields: 'AudioInfo,ChildCount,DateCreated,Genres,MediaSources,Path,ProviderIds,Overview',
             EnableUserData: true,
             Recursive: true,
             ImageTypeLimit: 1,
@@ -145,6 +145,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             src: `jellyfin:album:${album.Id}`,
             externalUrl: this.getExternalUrl(album),
             title: album.Name || '',
+            description: album.Overview ?? undefined,
             duration: album.RunTimeTicks ? album.RunTimeTicks / 10_000_000 : 0,
             playedAt: album.UserData?.LastPlayedDate
                 ? Math.floor(new Date(album.UserData.LastPlayedDate).getTime() / 1000)
@@ -168,6 +169,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             itemType: ItemType.Playlist,
             externalUrl: this.getExternalUrl(playlist),
             title: playlist.Name || '',
+            description: playlist.Overview ?? undefined,
             duration: playlist.RunTimeTicks ? playlist.RunTimeTicks / 10_000_000 : 0,
             playedAt: playlist.UserData?.LastPlayedDate
                 ? Math.floor(new Date(playlist.UserData.LastPlayedDate).getTime() / 1000)
@@ -296,6 +298,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             artist: artist.Name || '',
             thumbnails: this.createThumbnails(artist),
             pager: this.createAllTracksPager(artist),
+            trackCount: undefined,
             synthetic: true,
         };
     }

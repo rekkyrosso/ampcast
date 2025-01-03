@@ -39,7 +39,7 @@ import FolderBrowser from 'components/MediaBrowser/FolderBrowser';
 
 const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
     view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb'],
+    fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb', 'Progress'],
 };
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
@@ -517,6 +517,7 @@ export default class SubsonicService implements PersonalMediaService {
             title: name,
             itemType: ItemType.Playlist,
             pager: new SimplePager(),
+            trackCount: items.length,
         };
     }
 
@@ -528,7 +529,7 @@ export default class SubsonicService implements PersonalMediaService {
             itemType: ItemType.Playlist,
             layout: {
                 view: 'card',
-                fields: ['Thumbnail', 'PlaylistTitle', 'TrackCount', 'Blurb'],
+                fields: ['Thumbnail', 'PlaylistTitle', 'TrackCount', 'Blurb', 'Progress'],
             },
             id: pin.src,
             icon: 'pin',

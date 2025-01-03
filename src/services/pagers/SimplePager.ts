@@ -3,6 +3,7 @@ import {NEVER, BehaviorSubject, map, of} from 'rxjs';
 import Pager from 'types/Pager';
 
 export default class SimplePager<T> implements Pager<T> {
+    readonly pageSize = this.items.length;
     private readonly items$ = new BehaviorSubject<readonly T[]>(this.items);
 
     constructor(private readonly items: readonly T[] = []) {}

@@ -43,7 +43,7 @@ const serviceId: MediaServiceId = 'jellyfin';
 
 const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
     view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'TrackCount', 'Genre'],
+    fields: ['Thumbnail', 'Title', 'TrackCount', 'Genre', 'Progress'],
 };
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
@@ -172,7 +172,6 @@ const jellyfinPlaylists: MediaSource<MediaPlaylist> = {
 
     search(): Pager<MediaPlaylist> {
         return createItemsPager({
-            ParentId: getMusicLibraryId(),
             SortBy: 'DateCreated,SortName',
             SortOrder: 'Descending,Ascending',
             IncludeItemTypes: 'Playlist',
@@ -188,7 +187,6 @@ const jellyfinEditablePlaylists: MediaSource<MediaPlaylist> = {
 
     search(): Pager<MediaPlaylist> {
         return createItemsPager({
-            ParentId: getMusicLibraryId(),
             IncludeItemTypes: 'Playlist',
         });
     },
@@ -538,6 +536,7 @@ async function createPlaylist<T extends MediaItem>(
         title: name,
         itemType: ItemType.Playlist,
         pager: new SimplePager(),
+        trackCount: items.length,
     };
 }
 
@@ -547,7 +546,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
         itemType: ItemType.Playlist,
         layout: {
             view: 'card',
-            fields: ['Thumbnail', 'PlaylistTitle', 'TrackCount', 'Genre'],
+            fields: ['Thumbnail', 'PlaylistTitle', 'TrackCount', 'Genre', 'Progress'],
         },
         id: pin.src,
         icon: 'pin',
@@ -655,21 +654,26 @@ function createSearchPager<T extends MediaObject>(
     options?: Partial<PagerConfig>
 ): Pager<T> {
     const params: Record<string, string> = {
-        ParentId: getMusicLibraryId(),
         SortBy: 'SortName',
         SearchTerm: q.trim(),
         ...filters,
     };
     if (itemType === ItemType.Artist) {
-        return new JellyfinPager('Artists', {...params, UserId: jellyfinSettings.userId}, options);
+        return new JellyfinPager(
+            'Artists',
+            {...params, ParentId: getMusicLibraryId(), UserId: jellyfinSettings.userId},
+            options
+        );
     } else {
         switch (itemType) {
             case ItemType.Media:
+                params.ParentId = getMusicLibraryId();
                 params.IncludeItemTypes = 'Audio';
                 params.SortBy = 'AlbumArtist,Album,SortName';
                 break;
 
             case ItemType.Album:
+                params.ParentId = getMusicLibraryId();
                 params.IncludeItemTypes = 'MusicAlbum';
                 params.SortBy = 'AlbumArtist,SortName';
                 break;

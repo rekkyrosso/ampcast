@@ -25,7 +25,8 @@ export type Field =
     | 'LastPlayed'
     | 'ListenDate'
     | 'Thumbnail'
-    | 'Rate';
+    | 'Rate'
+    | 'Progress';
 
 type MediaSourceLayout<T extends MediaObject> =
     | {

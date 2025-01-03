@@ -3,7 +3,7 @@ import AbstractPager from './AbstractPager';
 
 export default class SimpleMediaPager<T extends MediaObject> extends AbstractPager<T> {
     constructor(private readonly fetch: () => Promise<readonly T[]>) {
-        super();
+        super({pageSize: Infinity});
     }
 
     fetchAt(index: 0): void;

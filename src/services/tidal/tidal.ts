@@ -30,7 +30,7 @@ const defaultLayout: MediaSourceLayout<MediaItem> = {
 
 const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
     view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb'],
+    fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb', 'Progress'],
 };
 
 const tidalSearch: MediaMultiSource = {

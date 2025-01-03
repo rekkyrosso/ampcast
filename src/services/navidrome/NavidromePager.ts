@@ -22,7 +22,7 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
     static maxPageSize = 500;
 
     private readonly pager: OffsetPager<T>;
-    private readonly pageSize: number;
+    readonly pageSize: number;
 
     constructor(
         private readonly itemType: ItemType,
@@ -150,6 +150,7 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
             playCount: album.playCount,
             genres: album.genres?.map((genre) => genre.name),
             pager: new NavidromePager(ItemType.Media, 'song', {album_id, _sort: 'album'}),
+            trackCount: album.songCount,
             thumbnails: this.createThumbnails(album_id),
             release_mbid: album.mbzAlbumId,
             artist_mbids: album.mbzAlbumArtistId ? [album.mbzAlbumArtistId] : undefined,
@@ -244,6 +245,7 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
             artist: artist.name,
             thumbnails: hasThumbnails ? this.createThumbnails(artist.id) : undefined,
             pager: this.createAllTracksPager(artist),
+            trackCount: undefined,
             synthetic: true,
         };
     }

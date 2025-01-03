@@ -56,7 +56,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
 
         let cursor = '';
         this.pager = new SequentialPager<T>(
-            async (limit = this.defaultConfig.pageSize!): Promise<Page<T>> => {
+            async (limit: number): Promise<Page<T>> => {
                 const offset = (this.pageNumber - 1) * limit;
                 const fetchPage = async () => {
                     const {items, total, next} = await fetch(offset, limit, cursor);
@@ -98,6 +98,10 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
 
     get maxSize(): number | undefined {
         return this.pager.maxSize;
+    }
+
+    get pageSize(): number {
+        return this.pager.pageSize;
     }
 
     observeBusy(): Observable<boolean> {
@@ -193,7 +197,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             // genres: album.genres, // always an empty array
             year: new Date(album.release_date).getFullYear(),
             thumbnails: album.images as Thumbnail[],
-            trackCount: album.tracks?.total,
+            trackCount: album.total_tracks,
             pager: this.createAlbumTracksPager(album),
             inLibrary,
             copyright:
@@ -307,6 +311,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             artist: artist.name,
             // thumbnails: artist.images as Thumbnail[], // Spotify branding
             pager: this.createTopTracksPager(artist),
+            trackCount: undefined,
             synthetic: true,
         };
     }

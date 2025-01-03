@@ -36,6 +36,7 @@ export default function AddToPlaylistDialog<T extends MediaItem>({
     ...props
 }: AddToPlaylistDialogProps<T>) {
     const id = useId();
+    const dialogRef = useRef<HTMLDialogElement>(null);
     const serviceRef = useRef<HTMLSelectElement>(null);
     const itemsByService = usePlaylistItemsByService(items);
     const [selectedService, setSelectedService] = useState<MediaService | null>(null);
@@ -47,8 +48,9 @@ export default function AddToPlaylistDialog<T extends MediaItem>({
         setSelectedService((service) => service || itemsByService[0]?.service || null);
     }, [itemsByService]);
 
-    const handleSubmit = useCallback(async () => {
+    const submit = useCallback(async () => {
         if (selectedService?.addToPlaylist && selectedPlaylist) {
+            dialogRef.current!.close();
             const option = itemsByService.find((option) => option.service === selectedService);
             const items = option?.items;
             try {
@@ -60,6 +62,14 @@ export default function AddToPlaylistDialog<T extends MediaItem>({
             }
         }
     }, [selectedService, selectedPlaylist, itemsByService]);
+
+    const handleSubmitClick = useCallback(
+        async (event: React.FormEvent) => {
+            event.preventDefault();
+            await submit();
+        },
+        [submit]
+    );
 
     const handleServiceChange = useCallback(() => {
         const serviceId = serviceRef.current!.value as MediaServiceId;
@@ -76,8 +86,9 @@ export default function AddToPlaylistDialog<T extends MediaItem>({
             {...props}
             className={`add-to-playlist-dialog service-${selectedService?.id || ''}`}
             title="Add to playlist"
+            ref={dialogRef}
         >
-            <form method="dialog" onSubmit={handleSubmit}>
+            <form method="dialog" onSubmit={handleSubmitClick}>
                 <p>
                     <label htmlFor={`${id}-service`}>Save to:</label>
                     <select
@@ -98,6 +109,7 @@ export default function AddToPlaylistDialog<T extends MediaItem>({
                     pager={playlistsPager}
                     layout={layout}
                     onContextMenu={() => undefined}
+                    onDoubleClick={submit}
                     onSelect={handlePlaylistSelect}
                 />
                 <DialogButtons submitText="Add" disabled={!selectedPlaylist} />

@@ -59,6 +59,10 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
         return this.pager.maxSize;
     }
 
+    get pageSize(): number {
+        return this.pager.pageSize;
+    }
+
     observeBusy(): Observable<boolean> {
         return this.pager.observeBusy();
     }

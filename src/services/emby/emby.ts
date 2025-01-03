@@ -45,7 +45,7 @@ const songSort = 'AlbumArtist,Album,ParentIndexNumber,IndexNumber,SortName';
 
 const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
     view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'TrackCount', 'Genre'],
+    fields: ['Thumbnail', 'Title', 'TrackCount', 'Genre', 'Progress'],
 };
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
@@ -539,6 +539,7 @@ async function createPlaylist<T extends MediaItem>(
         src: `emby:playlist:${playlist.Id}`,
         title: name,
         itemType: ItemType.Playlist,
+        trackCount: items.length,
         pager: new SimplePager(),
     };
 }
@@ -549,7 +550,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
         itemType: ItemType.Playlist,
         layout: {
             view: 'card',
-            fields: ['Thumbnail', 'PlaylistTitle', 'TrackCount', 'Genre'],
+            fields: ['Thumbnail', 'PlaylistTitle', 'TrackCount', 'Genre', 'Progress'],
         },
         id: pin.src,
         icon: 'pin',

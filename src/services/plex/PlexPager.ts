@@ -34,7 +34,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     static plexMaxPageSize = 1000;
 
     private readonly pager: OffsetPager<T>;
-    private readonly pageSize: number;
+    readonly pageSize: number;
     private subscriptions?: Subscription;
 
     constructor(
@@ -274,6 +274,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             year: album.year,
             playedAt: album.lastViewedAt,
             playCount: album.viewCount,
+            trackCount: album.leafCount,
             genres: this.getGenres(album),
             thumbnails: this.createThumbnails(album.thumb || album.parentThumb),
             release_mbid: this.getMbid(album),
@@ -523,6 +524,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             artist: artist.title,
             thumbnails: this.createThumbnails(artist.thumb),
             pager: this.createOtherTracksPager(artist),
+            trackCount: undefined,
             synthetic: true,
         };
     }
@@ -535,6 +537,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             artist: artist.title,
             thumbnails: this.createThumbnails(artist.thumb),
             pager: this.createVideosPager(artist),
+            trackCount: undefined,
             synthetic: true,
         };
     }

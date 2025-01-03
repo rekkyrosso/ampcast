@@ -1,7 +1,16 @@
 import type {Observable} from 'rxjs';
 import MediaAlbum from './MediaAlbum';
 import MediaItem from './MediaItem';
+import MediaPlaylist from './MediaPlaylist';
 import PlaylistItem from './PlaylistItem';
+
+export type PlayableType =
+    | MediaAlbum
+    | MediaItem
+    | MediaPlaylist
+    | readonly MediaAlbum[]
+    | readonly MediaItem[]
+    | readonly MediaPlaylist[];
 
 export default interface Playlist {
     readonly atEnd: boolean;
@@ -19,19 +28,11 @@ export default interface Playlist {
     getNextItem(): PlaylistItem | null;
     getItems(): readonly PlaylistItem[];
     setItems(items: readonly PlaylistItem[]): void;
-    add(album: MediaAlbum): Promise<void>;
-    add(item: MediaItem): Promise<void>;
-    add(items: readonly MediaItem[]): Promise<void>;
+    add(source: PlayableType): Promise<void>;
     clear(): void;
     eject(): void;
-    inject(album: MediaAlbum): Promise<void>;
-    inject(albums: readonly MediaAlbum[]): Promise<void>;
-    inject(item: MediaItem): Promise<void>;
-    inject(items: readonly MediaItem[]): Promise<void>;
-    injectAt(album: MediaAlbum, index: number): Promise<void>;
-    injectAt(albums: readonly MediaAlbum[], index: number): Promise<void>;
-    injectAt(item: MediaItem, index: number): Promise<void>;
-    injectAt(items: readonly MediaItem[], index: number): Promise<void>;
+    inject(source: PlayableType): Promise<void>;
+    injectAt(source: PlayableType, index: number): Promise<void>;
     moveSelection(selection: readonly PlaylistItem[], toIndex: number): void;
     remove(item: PlaylistItem): void;
     remove(items: readonly PlaylistItem[]): void;

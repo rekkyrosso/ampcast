@@ -61,7 +61,7 @@ const albumTracksLayout: MediaSourceLayout<MediaItem> = {
 
 const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
     view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb'],
+    fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb', 'Progress'],
 };
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
@@ -570,6 +570,7 @@ async function createPlaylist<T extends MediaItem>(
         title: name,
         itemType: ItemType.Playlist,
         pager: new SimplePager(),
+        trackCount: items.length,
     };
 }
 
@@ -582,7 +583,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
         isPin: true,
         layout: {
             view: 'card',
-            fields: ['Thumbnail', 'PlaylistTitle', 'TrackCount', 'Blurb'],
+            fields: ['Thumbnail', 'PlaylistTitle', 'TrackCount', 'Blurb', 'Progress'],
         },
 
         search(): Pager<MediaPlaylist> {

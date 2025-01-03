@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import MediaAlbum from 'types/MediaAlbum';
 import AlbumList from 'components/MediaList/AlbumList';
 import MediaItemList from 'components/MediaList/MediaItemList';
@@ -7,19 +7,15 @@ import {PagedItemsProps} from './PagedItems';
 import useAlbumTracksLayout from './useAlbumTracksLayout';
 
 export default function Albums({source, ...props}: PagedItemsProps<MediaAlbum>) {
-    const [selectedAlbum, setSelectedAlbum] = useState<MediaAlbum | null>(null);
+    const [[selectedAlbum], setSelectedAlbum] = useState<readonly MediaAlbum[]>([]);
     const albumTracksLayout = useAlbumTracksLayout(selectedAlbum, source.secondaryLayout);
     const tracksPager = selectedAlbum?.pager || null;
-
-    const handleSelect = useCallback(([album]: readonly MediaAlbum[]) => {
-        setSelectedAlbum(album || null);
-    }, []);
 
     const albumList = (
         <AlbumList
             {...props}
             title={source.title}
-            onSelect={handleSelect}
+            onSelect={setSelectedAlbum}
             reportingId={source.id}
         />
     );

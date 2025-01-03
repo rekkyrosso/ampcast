@@ -3,6 +3,8 @@ import {NEVER, of} from 'rxjs';
 import Pager from 'types/Pager';
 
 export default class ErrorPager<T> implements Pager<T> {
+    readonly pageSize = 0;
+
     constructor(private readonly error: unknown) {}
 
     observeBusy(): Observable<boolean> {

@@ -1,7 +1,6 @@
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import LibraryAction from 'types/LibraryAction';
-import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
@@ -99,7 +98,11 @@ async function performPlayAction<T extends MediaObject>(
 
     const itemType = item.itemType;
 
-    if (itemType === ItemType.Media || itemType === ItemType.Album) {
+    if (
+        itemType === ItemType.Media ||
+        itemType === ItemType.Album ||
+        itemType === ItemType.Playlist
+    ) {
         switch (action) {
             case Action.PlayNow:
             case Action.PlayNext:
@@ -109,7 +112,7 @@ async function performPlayAction<T extends MediaObject>(
                 if (itemType === ItemType.Media) {
                     await playlist.inject(items as readonly MediaItem[]);
                 } else {
-                    await playlist.inject(item as MediaAlbum);
+                    await playlist.inject(item);
                 }
                 if (action === Action.PlayNow) {
                     playlist.next();
@@ -120,7 +123,7 @@ async function performPlayAction<T extends MediaObject>(
                 if (itemType === ItemType.Media) {
                     await playlist.add(items as readonly MediaItem[]);
                 } else {
-                    await playlist.add(item as MediaAlbum);
+                    await playlist.add(item);
                 }
                 break;
         }

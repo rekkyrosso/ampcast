@@ -213,6 +213,7 @@ async function createPlaylist<T extends MediaItem>(
             title,
             itemType: ItemType.Playlist,
             pager: new SimplePager(),
+            trackCount: items?.length,
         };
         if (items) {
             await addToPlaylist(mediaPlaylist, items);

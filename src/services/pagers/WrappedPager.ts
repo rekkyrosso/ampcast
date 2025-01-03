@@ -33,6 +33,10 @@ export default class WrappedPager<T extends MediaObject> implements Pager<T> {
         return undefined;
     }
 
+    get pageSize(): number {
+        return this.bodyPager.pageSize;
+    }
+
     observeBusy(): Observable<boolean> {
         return combineLatest([
             this.headerPager?.observeBusy() || of(false),

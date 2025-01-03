@@ -1,5 +1,5 @@
-import {useCallback, useEffect, useMemo, useState} from 'react';
-import {Subscription, map, merge, take} from 'rxjs';
+import {useCallback, useEffect, useState} from 'react';
+import {Subscription} from 'rxjs';
 import Pager from 'types/Pager';
 import useSubject from './useSubject';
 
@@ -14,18 +14,18 @@ export interface PagerState<T> {
     loaded: boolean;
 }
 
+const emptyState: PagerState<any> = {
+    items: [],
+    size: 0,
+    maxSize: undefined,
+    error: undefined,
+    busy: false,
+    loaded: false,
+};
+
 export default function usePager<T>(pager: Pager<T> | null) {
     const [fetch$, nextFetch] = useSubject<FetchArgs>();
-    const [items, setItems] = useState<readonly T[]>([]);
-    const [size, setSize] = useState<number | undefined>(undefined);
-    const [maxSize, setMaxSize] = useState<number | undefined>(undefined);
-    const [error, setError] = useState<unknown>();
-    const [busy, setBusy] = useState(false);
-    const [loaded, setLoaded] = useState(false);
-    const state: PagerState<T> = useMemo(
-        () => ({items, size, maxSize, error, busy, loaded}),
-        [items, size, maxSize, error, busy, loaded]
-    );
+    const [state, setState] = useState<PagerState<T>>(emptyState);
 
     const fetchAt = useCallback(
         (index: number, length: number) => {
@@ -35,42 +35,41 @@ export default function usePager<T>(pager: Pager<T> | null) {
     );
 
     useEffect(() => {
-        setItems([]);
-        setSize(pager ? undefined : 0);
-        setMaxSize(undefined);
-        setError(undefined);
-        setBusy(false);
-        setLoaded(false);
+        setState({
+            ...emptyState,
+            size: pager ? undefined : 0,
+            maxSize: pager?.maxSize,
+        });
 
-        if (!pager) {
-            return;
+        if (pager) {
+            const subscription = new Subscription();
+            subscription.add(
+                pager.observeItems().subscribe((items) => {
+                    setState((state) => ({...state, items, loaded: true}));
+                })
+            );
+            subscription.add(
+                pager.observeSize().subscribe((size) => {
+                    setState((state) => ({...state, size}));
+                })
+            );
+            subscription.add(
+                pager.observeError().subscribe((error) => {
+                    setState((state) => ({...state, error, loaded: true}));
+                })
+            );
+            subscription.add(
+                pager.observeBusy().subscribe((busy) => {
+                    setState((state) => ({...state, busy}));
+                })
+            );
+            subscription.add(
+                fetch$.subscribe(([index, length]) => {
+                    pager.fetchAt(index, length);
+                })
+            );
+            return () => subscription.unsubscribe();
         }
-
-        setMaxSize(pager.maxSize);
-
-        const items$ = pager.observeItems();
-        const size$ = pager.observeSize();
-        const error$ = pager.observeError();
-        const busy$ = pager.observeBusy();
-        const loaded$ = merge(items$, error$).pipe(
-            take(1),
-            map(() => true)
-        );
-
-        const subscription = new Subscription();
-
-        subscription.add(items$.subscribe(setItems));
-        subscription.add(size$.subscribe(setSize));
-        subscription.add(error$.subscribe(setError));
-        subscription.add(busy$.subscribe(setBusy));
-        subscription.add(loaded$.subscribe(setLoaded));
-        subscription.add(
-            fetch$.subscribe(([index, length]) => {
-                pager.fetchAt(index, length);
-            })
-        );
-
-        return () => subscription.unsubscribe();
     }, [pager, fetch$]);
 
     return [state, fetchAt] as const;

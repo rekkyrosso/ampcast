@@ -17,7 +17,7 @@ export interface LastFmPage extends Page<LastFm.MediaObject> {
     readonly itemType: ItemType;
 }
 
-export interface LastFmPagerConfig extends PagerConfig {
+export interface LastFmPagerConfig extends Partial<PagerConfig> {
     readonly playCountName?: 'playcount' | 'userplaycount';
 }
 
@@ -48,7 +48,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
         this.playCountName = config.playCountName || 'playcount';
 
         this.pager = new SequentialPager<T>(
-            async (limit = this.defaultConfig.pageSize): Promise<Page<T>> => {
+            async (limit: number): Promise<Page<T>> => {
                 const page = this.pageNumber;
                 const result = await lastfmApi.get({...params, page, limit});
                 this.pageNumber++;
@@ -65,6 +65,10 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
 
     get maxSize(): number | undefined {
         return this.pager.maxSize;
+    }
+
+    get pageSize(): number {
+        return this.pager.pageSize;
     }
 
     observeBusy(): Observable<boolean> {
@@ -163,6 +167,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
             src: `lastfm:top-tracks:${nanoid()}`,
             artist: artist.name,
             pager: this.createTopTracksPager(artist),
+            trackCount: undefined,
             synthetic: true,
         };
     }

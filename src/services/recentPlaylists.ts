@@ -52,9 +52,13 @@ export function getRecentPlaylists(services: readonly MediaService[]): readonly 
     const serviceIds = services.map((service) => service.id);
     return storage
         .getJson<RecentPlaylist[]>('all', [])
-        .filter((playlist) => {
-            const [serviceId] = playlist.src.split(':');
-            return serviceIds.includes(serviceId);
+        .filter(({src}) => {
+            const [serviceId] = src.split(':');
+            return (
+                serviceIds.includes(serviceId) &&
+                // TODO: Remove eventually (fixed version 0.9.12)
+                src !== 'apple:undefined:undefined'
+            );
         })
         .slice(0, maxRecentPlaylists)
         .map((playlist) => ({...playlist, pager: new SimplePager()}));

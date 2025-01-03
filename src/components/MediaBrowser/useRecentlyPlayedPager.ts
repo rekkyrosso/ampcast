@@ -29,8 +29,8 @@ export default function useRecentlyPlayedPager(
     const [total, setTotal] = useState<number | undefined>(undefined);
 
     useEffect(() => {
-        const recentPager = new SubjectPager<MediaItem>();
         const historyPager = createHistoryPager(undefined, startAt);
+        const recentPager = new SubjectPager<MediaItem>({pageSize: historyPager.pageSize});
         const pager = new WrappedPager<MediaItem>(recentPager, historyPager);
         const afterScrobble$ = observeListens().pipe(skip(1), delay(20_000));
         const everyFiveMinutes$ = interval(300_000);

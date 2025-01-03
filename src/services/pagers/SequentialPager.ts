@@ -13,10 +13,10 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
     private emptyCount = 0;
 
     constructor(
-        private readonly fetchNext: (pageSize: number | undefined) => Promise<Page<T>>,
-        options?: PagerConfig
+        private readonly fetchNext: (pageSize: number) => Promise<Page<T>>,
+        config: PagerConfig
     ) {
-        super(options);
+        super(config);
     }
 
     protected connect(): void {
@@ -38,6 +38,9 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
                                     next: (page) => {
                                         this.error = undefined;
                                         this.addPage(page);
+                                        if (index + length + 2 >= this.items.length) {
+                                            this.fetchAt(index, length);
+                                        }
                                     },
                                 }),
                                 catchError((err: unknown) => {
