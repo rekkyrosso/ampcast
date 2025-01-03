@@ -35,14 +35,14 @@ type NotRequired = 'items' | 'itemKey' | 'title' | 'layout' | 'sortable' | 'drop
 export interface PlaylistProps extends Except<ListViewProps<PlaylistItem>, NotRequired> {
     onPlay?: (item: PlaylistItem) => void;
     onEject?: () => void;
-    listViewRef: React.MutableRefObject<ListViewHandle | null>;
+    ref: React.RefObject<ListViewHandle | null>;
 }
 
 export default function Playlist({
     onSelect,
     onPlay,
     onEject,
-    listViewRef,
+    ref,
     ...props
 }: PlaylistProps) {
     const items = useObservable(playlist.observe, []);
@@ -156,7 +156,7 @@ export default function Playlist({
                     break;
 
                 case 'select-all':
-                    listViewRef.current!.selectAll();
+                    ref.current!.selectAll();
                     break;
 
                 case 'reverse-selection': {
@@ -170,7 +170,7 @@ export default function Playlist({
                     break;
             }
         },
-        [onPlay, items, listViewRef]
+        [onPlay, items, ref]
     );
 
     const handleDrop = useCallback(
@@ -253,7 +253,7 @@ export default function Playlist({
                 onInfo={handleInfo}
                 onMove={playlist.moveSelection}
                 onSelect={handleSelect}
-                listViewRef={listViewRef}
+                ref={ref}
             />
             <MediaListStatusBar
                 items={items}

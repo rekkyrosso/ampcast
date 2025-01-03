@@ -10,8 +10,8 @@ import {PopupMenuProps, showPopupMenu} from 'components/PopupMenu';
 import PlaylistMenu from './PlaylistMenu';
 
 export default function usePlaylistMenu(
-    listViewRef: React.MutableRefObject<ListViewHandle | null>,
-    fileRef: React.MutableRefObject<HTMLInputElement | null>
+    listViewRef: React.RefObject<ListViewHandle | null>,
+    fileRef: React.RefObject<HTMLInputElement | null>
 ) {
     const inject = usePlaylistInject();
 

@@ -9,7 +9,7 @@ export interface DetailsBoxProps<T extends object> {
     className?: string;
     storageId?: string;
     onSelect?: (value: any, key: keyof T) => void;
-    listViewRef?: React.MutableRefObject<ListViewHandle | null>;
+    ref?: React.RefObject<ListViewHandle | null>;
 }
 
 export default function DetailsBox<T extends object>({

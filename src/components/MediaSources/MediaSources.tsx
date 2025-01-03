@@ -36,7 +36,7 @@ export default function MediaSources({onSelect}: MediaSourcesProps) {
                 roots={sources || []}
                 onSelect={onSelect}
                 storageId={storage.id}
-                treeViewRef={treeViewRef}
+                ref={treeViewRef}
             />
         </div>
     );

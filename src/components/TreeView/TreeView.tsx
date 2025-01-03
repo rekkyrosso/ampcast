@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {browser} from 'utils';
 import {IconName} from 'components/Icon';
 import Scrollable, {
@@ -38,7 +38,7 @@ export interface TreeViewProps<T> {
     onEnter?: (item: T) => void;
     onInfo?: (item: T) => void;
     onSelect?: (item: T | null) => void;
-    treeViewRef?: React.MutableRefObject<TreeViewHandle | null>;
+    ref?: React.RefObject<TreeViewHandle | null>;
 }
 
 export const defaultRowHeight = 24;
@@ -54,7 +54,7 @@ export default function TreeView<T>({
     onEnter,
     onInfo,
     onSelect,
-    treeViewRef,
+    ref,
 }: TreeViewProps<T>) {
     const containerRef = useRef<HTMLDivElement>(null);
     const scrollableRef = useRef<ScrollableHandle>(null);
@@ -83,15 +83,11 @@ export default function TreeView<T>({
     const showTooltip = fontSize * 8 > clientWidth;
     const minimalWidth = fontSize * 4 > clientWidth;
 
-    useEffect(() => {
-        if (treeViewRef) {
-            treeViewRef.current = {
-                focus() {
-                    containerRef.current?.focus();
-                },
-            };
-        }
-    }, [treeViewRef]);
+    useImperativeHandle(ref, () => ({
+        focus: () => {
+            containerRef.current?.focus();
+        },
+    }));
 
     useOnResize(containerRef, ({width}) => setClientWidth(width));
     useOnResize(cursorRef, ({height}) => setRowHeight(height), 'border-box');
@@ -257,7 +253,7 @@ export default function TreeView<T>({
                 scrollHeight={size * rowHeight}
                 onResize={handleResize}
                 onScroll={handleScroll}
-                scrollableRef={scrollableRef}
+                ref={scrollableRef}
             >
                 <ul role="tree">
                     {roots.map(({id, ...props}, nodeIndex) => (

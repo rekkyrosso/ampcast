@@ -1,4 +1,12 @@
-import React, {memo, useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
+import React, {
+    memo,
+    useCallback,
+    useEffect,
+    useImperativeHandle,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from 'react';
 import {
     EMPTY,
     Subscription,
@@ -30,7 +38,7 @@ export interface ScrollbarProps {
     scrollAmount: number;
     onChange?: (value: number) => void;
     onResize?: (size: number) => void;
-    scrollbarRef: React.MutableRefObject<ScrollbarHandle | null>;
+    ref: React.RefObject<ScrollbarHandle | null>;
 }
 
 function Scrollbar({
@@ -39,7 +47,7 @@ function Scrollbar({
     scrollAmount,
     onChange,
     onResize,
-    scrollbarRef,
+    ref,
     ...props
 }: ScrollbarProps) {
     const trackRef = useRef<HTMLDivElement>(null);
@@ -57,9 +65,7 @@ function Scrollbar({
     const positionDiff = Math.abs(prevPosition - position);
     const smallChange = positionDiff <= scrollAmount;
 
-    useEffect(() => {
-        scrollbarRef.current = {scrollBy, scrollTo};
-    }, [scrollbarRef, scrollBy, scrollTo]);
+    useImperativeHandle(ref, () => ({scrollBy, scrollTo}));
 
     useEffect(
         () => resize(props.clientSize, props.scrollSize),
@@ -103,7 +109,7 @@ function Scrollbar({
         (target: HTMLElement, scrollBy: number) => {
             const repeatDelay = 400;
             const repeatInterval = 40;
-            const scroll = () => scrollbarRef.current!.scrollBy(scrollBy);
+            const scroll = () => ref.current!.scrollBy(scrollBy);
             const isTarget = (event: Event) => event.target === target;
             const mouseUp$ = fromEvent(document, 'mouseup');
             const mouseOver$ = fromEvent(target, 'mouseover').pipe(map(isTarget), startWith(true));
@@ -123,7 +129,7 @@ function Scrollbar({
             scroll();
             return () => subscription.unsubscribe();
         },
-        [scrollbarRef]
+        [ref]
     );
 
     const handleDecrementMouseDown = useCallback(

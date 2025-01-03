@@ -12,7 +12,7 @@ export interface PopupMenuProps<T extends string = string> {
     align?: 'left' | 'right';
     autoFocus?: boolean;
     hidden?: boolean;
-    popupRef?: React.MutableRefObject<HTMLUListElement | null>;
+    ref?: React.RefObject<HTMLUListElement | null>;
 }
 
 interface BasePopupMenuProps<T extends string> extends PopupMenuProps<T> {
@@ -28,22 +28,22 @@ export default function PopupMenu<T extends string>({
     align = 'left',
     autoFocus,
     hidden,
-    popupRef,
+    ref,
 }: BasePopupMenuProps<T>) {
-    const ref = useRef<HTMLUListElement>(null);
+    const containerRef = useRef<HTMLUListElement>(null);
     const restoreRef = useRef<HTMLElement>(document.activeElement as HTMLElement);
     const [style, setStyle] = useState<React.CSSProperties>({visibility: 'hidden'});
     const [focusable, setFocusable] = useState(false);
     const [buttonId, setButtonId] = useState('');
     const baseFontSize = useBaseFontSize();
 
-    if (popupRef) {
-        popupRef.current = ref.current;
+    if (ref) {
+        ref.current = containerRef.current;
     }
 
     useEffect(() => {
         const style: React.CSSProperties = {};
-        const popup = ref.current!;
+        const popup = containerRef.current!;
         if (align === 'right' || x + popup.offsetWidth >= document.body.clientWidth) {
             style.left = `${x - popup.offsetWidth}px`;
         } else {
@@ -63,7 +63,7 @@ export default function PopupMenu<T extends string>({
 
     useEffect(() => {
         if (focusable && autoFocus) {
-            const buttons = getButtons(ref.current);
+            const buttons = getButtons(containerRef.current);
             const button = buttons.find((button) => !button.disabled);
             setButtonId(button?.id || '');
             if (button) {
@@ -78,7 +78,10 @@ export default function PopupMenu<T extends string>({
                 timer(0).pipe(
                     switchMap(() =>
                         fromEvent(document, 'mousedown', {capture: true}).pipe(
-                            filter((event) => !ref.current!.contains(event.target as HTMLElement))
+                            filter(
+                                (event) =>
+                                    !containerRef.current!.contains(event.target as HTMLElement)
+                            )
                         )
                     )
                 ),
@@ -112,7 +115,7 @@ export default function PopupMenu<T extends string>({
     );
 
     const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
-        const buttons = getButtons(ref.current);
+        const buttons = getButtons(containerRef.current);
         let currentIndex = buttons.indexOf(document.activeElement as HTMLButtonElement);
         if (event.code === 'ArrowDown') {
             event.stopPropagation();
@@ -154,7 +157,7 @@ export default function PopupMenu<T extends string>({
             onContextMenu={preventDefault}
             onKeyDown={handleKeyDown}
             onMouseOver={handleMouseOver}
-            ref={ref}
+            ref={containerRef}
         >
             {children}
         </ul>

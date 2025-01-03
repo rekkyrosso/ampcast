@@ -118,7 +118,7 @@ export default function PopupMenuItem<T extends string>({
                     y={y}
                     align={align}
                     hidden={popupHidden}
-                    popupRef={popupRef}
+                    ref={popupRef}
                 >
                     {children}
                 </PopupMenu>

@@ -16,10 +16,10 @@ import usePlaylistMenu from './usePlaylistMenu';
 import './MediaControls.scss';
 
 export interface MediaControlsProps {
-    listViewRef: React.MutableRefObject<ListViewHandle | null>;
+    playlistRef: React.RefObject<ListViewHandle | null>;
 }
 
-export default function MediaControls({listViewRef}: MediaControlsProps) {
+export default function MediaControls({playlistRef}: MediaControlsProps) {
     const playheadRef = useRef<HTMLInputElement>(null);
     const fileRef = useRef<HTMLInputElement>(null);
     const currentIndex = useObservable(observeCurrentIndex, -1);
@@ -27,7 +27,7 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
     const duration = useObservable(observeDuration, 0);
     const isLiveStreaming = duration === MAX_DURATION;
     const paused = usePaused();
-    const {showPlaylistMenu} = usePlaylistMenu(listViewRef, fileRef);
+    const {showPlaylistMenu} = usePlaylistMenu(playlistRef, fileRef);
     const inject = usePlaylistInject();
     const [seekTime, setSeekTime] = useThrottledValue(0, 300, {trailing: true});
     const [seeking, setSeeking] = useState(false);
@@ -70,15 +70,15 @@ export default function MediaControls({listViewRef}: MediaControlsProps) {
 
     const handlePrevClick = useCallback(async () => {
         mediaPlayback.prev();
-        listViewRef.current?.scrollIntoView(currentIndex - 1);
-        listViewRef.current?.focus();
-    }, [listViewRef, currentIndex]);
+        playlistRef.current?.scrollIntoView(currentIndex - 1);
+        playlistRef.current?.focus();
+    }, [playlistRef, currentIndex]);
 
     const handleNextClick = useCallback(async () => {
         mediaPlayback.next();
-        listViewRef.current?.scrollIntoView(currentIndex + 1);
-        listViewRef.current?.focus();
-    }, [listViewRef, currentIndex]);
+        playlistRef.current?.scrollIntoView(currentIndex + 1);
+        playlistRef.current?.focus();
+    }, [playlistRef, currentIndex]);
 
     const handleFileImport = useCallback(
         async (event: React.ChangeEvent<HTMLInputElement>) => {

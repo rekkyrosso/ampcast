@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useId, useImperativeHandle, useRef, useState} from 'react';
 import {interval} from 'rxjs';
 import {partition} from 'utils';
 import useOnResize, {ResizeRect} from 'hooks/useOnResize';
@@ -30,7 +30,7 @@ export interface ScrollableProps {
     droppable?: boolean;
     onResize?: (client: ScrollableClient) => void;
     onScroll?: (position: ScrollablePosition) => void;
-    scrollableRef?: React.MutableRefObject<ScrollableHandle | null>;
+    ref?: React.RefObject<ScrollableHandle | null>;
 }
 
 export default function Scrollable({
@@ -41,7 +41,7 @@ export default function Scrollable({
     droppable,
     onResize,
     onScroll,
-    scrollableRef,
+    ref,
 }: ScrollableProps) {
     const scrollableId = useId();
     const containerRef = useRef<HTMLDivElement>(null);
@@ -71,20 +71,16 @@ export default function Scrollable({
     const clientWidth = Math.max(innerWidth - (overflowY ? vScrollbarSize : 0), 0);
     const clientHeight = Math.max(innerHeight - (overflowX ? hScrollbarSize : 0), 0);
 
-    useEffect(() => {
-        if (scrollableRef) {
-            scrollableRef.current = {
-                scrollTo: ({left, top}) => {
-                    if (left !== undefined) {
-                        hScrollbarRef.current!.scrollTo(left);
-                    }
-                    if (top !== undefined) {
-                        vScrollbarRef.current!.scrollTo(top);
-                    }
-                },
-            };
-        }
-    }, [scrollableRef]);
+    useImperativeHandle(ref, () => ({
+        scrollTo: ({left, top}) => {
+            if (left !== undefined) {
+                hScrollbarRef.current!.scrollTo(left);
+            }
+            if (top !== undefined) {
+                vScrollbarRef.current!.scrollTo(top);
+            }
+        },
+    }));
 
     useEffect(() => {
         if (scrollWidth && clientWidth) {
@@ -221,7 +217,7 @@ export default function Scrollable({
                 scrollAmount={scrollAmount}
                 onChange={setScrollLeft}
                 onResize={setHScrollbarSize}
-                scrollbarRef={hScrollbarRef}
+                ref={hScrollbarRef}
             />
             <Scrollbar
                 scrollableId={scrollableId}
@@ -231,7 +227,7 @@ export default function Scrollable({
                 scrollAmount={scrollAmount}
                 onChange={setScrollTop}
                 onResize={setVScrollbarSize}
-                scrollbarRef={vScrollbarRef}
+                ref={vScrollbarRef}
             />
         </div>
     );

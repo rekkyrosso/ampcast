@@ -94,7 +94,7 @@ export default function UserThemes() {
                 renderItem={renderTheme}
                 onDelete={handleDeleteClick}
                 onSelect={setSelectedThemes}
-                listViewRef={listViewRef}
+                ref={listViewRef}
             />
             <p className="user-themes-buttons">
                 <button type="button" onClick={handleRenameClick} disabled={!selectedTheme}>

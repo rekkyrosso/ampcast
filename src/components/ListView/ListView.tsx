@@ -89,7 +89,7 @@ export interface ListViewProps<T> {
     onScrollIndexChange?: (scrollIndex: number) => void;
     onPageSizeChange?: (pageSize: number) => void;
     onSelect?: (items: readonly T[]) => void;
-    listViewRef?: React.MutableRefObject<ListViewHandle | null>;
+    ref?: React.RefObject<ListViewHandle | null>;
 }
 
 const emptyString = () => '';
@@ -123,7 +123,7 @@ export default function ListView<T>({
     onPageSizeChange,
     onSelect,
     onMove,
-    listViewRef,
+    ref,
 }: ListViewProps<T>) {
     const listViewId = useId();
     const internalRef = useRef<ListViewHandle | null>(null);
@@ -204,10 +204,10 @@ export default function ListView<T>({
             selectAll,
             selectAt,
         };
-        if (listViewRef) {
-            listViewRef.current = Object.assign(listViewRef.current || {}, internalRef.current);
+        if (ref) {
+            ref.current = Object.assign(ref.current || {}, internalRef.current);
         }
-    }, [listViewRef, focus, scrollTo, selectAll, selectAt, size]);
+    }, [ref, focus, scrollTo, selectAll, selectAt, size]);
 
     useEffect(() => {
         if (selectedIndex !== -1) {
@@ -612,7 +612,7 @@ export default function ListView<T>({
                 droppable={droppable || (reorderable && isDragging)}
                 onResize={handleResize}
                 onScroll={setScrollPosition}
-                scrollableRef={scrollableRef}
+                ref={scrollableRef}
             >
                 {showTitles && (
                     <FixedHeader>

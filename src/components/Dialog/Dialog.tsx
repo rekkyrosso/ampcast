@@ -1,11 +1,4 @@
-import React, {
-    forwardRef,
-    useCallback,
-    useEffect,
-    useImperativeHandle,
-    useRef,
-    useState,
-} from 'react';
+import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} from 'react';
 import {Subscription, fromEvent} from 'rxjs';
 import {Except} from 'type-fest';
 import {clamp, preventDefault, stopPropagation} from 'utils';
@@ -18,6 +11,7 @@ export interface DialogProps
     icon?: IconName;
     title?: string;
     onClose: (returnValue: string) => void;
+    ref?: React.Ref<DialogHandle | null>;
 }
 
 export interface DialogHandle {
@@ -31,10 +25,15 @@ interface DialogPosition {
 
 const startPosition: DialogPosition = {left: 0, top: 0};
 
-function Dialog(
-    {icon, title, className = '', children, onClose, ...props}: DialogProps,
-    ref: React.ForwardedRef<DialogHandle>
-) {
+export default function Dialog({
+    icon,
+    title,
+    className = '',
+    children,
+    onClose,
+    ref,
+    ...props
+}: DialogProps) {
     const dialogRef = useRef<HTMLDialogElement>(null);
     const [position, setPosition] = useState<DialogPosition>(startPosition);
     const [dragStart, setDragStart] = useState<DialogPosition | null>(null);
@@ -174,5 +173,3 @@ function clampPosition(dialog: HTMLDialogElement, position: DialogPosition): Dia
     const top = clamp(minTop, position.top, maxTop);
     return {left, top};
 }
-
-export default forwardRef<DialogHandle, DialogProps>(Dialog);

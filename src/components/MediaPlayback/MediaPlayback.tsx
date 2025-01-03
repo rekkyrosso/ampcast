@@ -9,15 +9,15 @@ import Splitter from 'components/Splitter';
 import './MediaPlayback.scss';
 
 export default memo(function MediaPlayback() {
-    const listViewRef = useRef<ListViewHandle>(null);
+    const playlistRef = useRef<ListViewHandle>(null);
 
     return (
         <div className="media-playback">
             <AppDragRegion />
             <Splitter id="media-playback-layout" arrange="rows">
                 <div className="panel playback">
-                    <MediaControls listViewRef={listViewRef} />
-                    <Playlist onPlay={loadAndPlay} onEject={eject} listViewRef={listViewRef} />
+                    <MediaControls playlistRef={playlistRef} />
+                    <Playlist onPlay={loadAndPlay} onEject={eject} ref={playlistRef} />
                 </div>
                 <Media />
             </Splitter>
