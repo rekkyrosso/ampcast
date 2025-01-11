@@ -29,7 +29,7 @@ import {
     observeLookupCancelledEvents,
 } from 'services/lookup';
 import {observeMediaObjectChanges} from 'services/actions/mediaObjectChanges';
-import fetchAllTracks from './fetchAllTracks';
+import fetchAllTracks from 'services/pagers/fetchAllTracks';
 
 const logger = new Logger('playlist');
 
@@ -408,7 +408,7 @@ if (isMiniPlayer) {
                 const index = items.findIndex((item) => item.id === lookupItem.id);
                 if (index !== -1) {
                     items[index] = foundItem
-                        ? {...bestOf(foundItem, lookupItem), id: lookupItem.id}
+                        ? {...removeUserData(bestOf(foundItem, lookupItem)), id: lookupItem.id}
                         : {...lookupItem, lookupStatus: LookupStatus.NotFound};
                     setItems(items);
                 }
@@ -441,7 +441,7 @@ if (isMiniPlayer) {
                             const nonUserData = removeUserData(values);
                             if (Object.keys(nonUserData).length > 0) {
                                 changed = true;
-                                return {...item, ...nonUserData};
+                                return {...item, ...nonUserData, id: item.id};
                             }
                         }
                     }

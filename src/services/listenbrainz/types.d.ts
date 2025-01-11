@@ -183,6 +183,7 @@ declare namespace ListenBrainz {
             readonly payload: {
                 readonly count: number;
                 readonly latest_listen_ts: number;
+                readonly oldest_listen_ts: number;
                 readonly listens: readonly Listen[];
                 readonly user_name: string;
             };
@@ -214,6 +215,26 @@ declare namespace ListenBrainz {
             readonly playlists: readonly {playlist: Playlist}[];
             readonly offset: number;
             readonly playlist_count: number;
+        }
+
+        interface FreshReleases {
+            readonly payload: {
+                readonly releases: readonly FreshRelease[];
+                readonly user_name: string;
+            };
+        }
+
+        interface FreshRelease {
+            readonly artist_credit_name: string;
+            readonly artist_mbids: readonly string[];
+            readonly confidence: number;
+            readonly listen_count: number;
+            readonly caa_id: string;
+            readonly caa_release_mbid: string;
+            readonly release_date: string;
+            readonly release_mbid: string;
+            readonly release_msid: string | null;
+            readonly release_name: string;
         }
     }
 

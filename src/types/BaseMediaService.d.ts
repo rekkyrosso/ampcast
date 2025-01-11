@@ -42,6 +42,7 @@ type BaseMediaService = Auth & {
         Credentials?: React.FC<{service: MediaService}>;
         Login?: React.FC<{service: MediaService}>;
     };
+    addMetadata?: <T extends MediaObject>(item: T) => Promise<T>;
     addToPlaylist?: (
         playlist: MediaPlaylist,
         items: readonly MediaItem[],
@@ -56,7 +57,7 @@ type BaseMediaService = Auth & {
     getDrmInfo?: (item?: PlayableItem) => DRMInfo | undefined;
     getDroppedItems?:(type: DataTransferItem['type'], data: string) => Promise<readonly MediaItem[]>;
     getFilters?: (filterType: FilterType, itemType: ItemType) => Promise<readonly MediaFilter[]>;
-    getMetadata?: <T extends MediaObject>(item: T) => Promise<T>;
+    getMediaObject?: <T extends MediaObject>(src: string) => Promise<T>;
     getPlaybackType?: (item: MediaItem) => Promise<PlaybackType>;
     getPlayableUrl?: (item: PlayableItem) => string;
     getThumbnailUrl?: (url: string) => string;

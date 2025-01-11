@@ -278,7 +278,7 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
             track_mbid: track.ProviderIds?.MusicBrainzTrack ?? undefined,
             release_mbid: track.ProviderIds?.MusicBrainzAlbum ?? undefined,
             artist_mbids: artist_mbid ? [artist_mbid] : undefined,
-            bitRate: Math.floor((source.Bitrate || 0) / 1000) || undefined,
+            bitRate: Math.floor((source?.Bitrate || 0) / 1000) || undefined,
             badge: isVideo
                 ? track.IsHD === true
                     ? 'HD'
@@ -289,8 +289,11 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
         };
     }
 
-    private createThumbnails(item: BaseItemDto): Thumbnail[] | undefined {
-        const thumbnailId = item.ImageTags?.Primary ? item.Id : item.AlbumId;
+    private createThumbnails(
+        item: BaseItemDto & {PrimaryImageItemId?: string}
+    ): Thumbnail[] | undefined {
+        const thumbnailId =
+            item.PrimaryImageItemId || (item.ImageTags?.Primary ? item.Id : item.AlbumId);
         return thumbnailId
             ? [
                   this.createThumbnail(thumbnailId, 240),
@@ -302,7 +305,7 @@ export default class EmbyPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createThumbnail(id: string, width: number, height = width): Thumbnail {
-        const url = `${embySettings.host}/Items/${id}/Images/Primary?fillWidth=${width}&fillHeight=${height}`;
+        const url = `${embySettings.host}/emby/Items/${id}/Images/Primary?maxWidth=${width}&maxHeight=${height}`;
         return {url, width, height};
     }
 

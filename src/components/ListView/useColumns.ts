@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useLayoutEffect, useState} from 'react';
 import usePrevious from 'hooks/usePrevious';
 import {Column, ListViewLayout} from './ListView';
 
@@ -10,7 +10,7 @@ export default function useColumns<T>(
     const [cols, setCols] = useState<readonly Column<T>[]>([]);
     const prevLayout = usePrevious(layout);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         setCols((prevCols) => {
             const cols = layout === prevLayout ? prevCols : getColumns(layout, storageId);
             if (fontSize && layout.view === 'details' && layout.sizeable) {

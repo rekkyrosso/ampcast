@@ -1,15 +1,19 @@
 import DRMKeySystem from 'types/DRMKeySystem';
 import DRMType from 'types/DRMType';
+import {ListenData} from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import UserData from 'types/UserData';
 import browser from './browser';
 
-const userDataKeys: (keyof UserData | 'lookupStatus')[] = [
+const userDataKeys: (keyof UserData | keyof ListenData | 'lookupStatus')[] = [
     'rating',
     'globalRating',
     'playCount',
     'globalPlayCount',
     'inLibrary',
+    'lastfmScrobbledAt',
+    'listenbrainzScrobbledAt',
+    'sessionId',
     'lookupStatus',
 ];
 

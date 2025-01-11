@@ -29,7 +29,7 @@ import {NoMusicLibraryError, NoMusicVideoLibraryError} from 'services/errors';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
-import fetchFirstPage from 'services/pagers/fetchFirstPage';
+import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import {t} from 'services/i18n';
 import {bestOf} from 'utils';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './jellyfinAuth';
@@ -478,6 +478,7 @@ const jellyfin: PersonalMediaService = {
     observeLibraryId(): Observable<string> {
         return jellyfinSettings.observeLibraryId();
     },
+    addMetadata,
     addToPlaylist,
     canRate: () => false,
     canStore,
@@ -485,7 +486,7 @@ const jellyfin: PersonalMediaService = {
     createPlaylist,
     createSourceFromPin,
     getFilters,
-    getMetadata,
+    getMediaObject,
     getPlayableUrl,
     getPlaybackType,
     getServerInfo,
@@ -568,7 +569,7 @@ async function getFilters(
     return jellyfinApi.getFilters(filterType, itemType);
 }
 
-async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
+async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
     if (!canStore(item) || item.inLibrary !== undefined) {
         return item;
     }
@@ -576,13 +577,17 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     if (inLibrary !== undefined) {
         return {...item, inLibrary};
     }
-    const id = getIdFromSrc(item);
+    const metadata = await getMediaObject<T>(item.src);
+    return bestOf(item, metadata);
+}
+
+async function getMediaObject<T extends MediaObject>(src: string): Promise<T> {
+    const id = getIdFromSrc({src});
     const pager = new JellyfinPager<T>(`Users/${jellyfinSettings.userId}/Items/${id}`, undefined, {
         pageSize: 1,
         maxSize: 1,
     });
-    const items = await fetchFirstPage<T>(pager, {timeout: 2000});
-    return bestOf(item, items[0]);
+    return fetchFirstItem<T>(pager, {timeout: 2000});
 }
 
 function getPlayableUrl(item: PlayableItem): string {

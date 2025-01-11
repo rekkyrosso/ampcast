@@ -115,7 +115,7 @@ const Duration: RenderField<MediaPlaylist | MediaItem> = (item) => (
 );
 
 const PlayCount: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => (
-    <Text value={getCount(item.playCount)} />
+    <Text value={getPlayCount(item.playCount)} />
 );
 
 const TrackCount: RenderField<MediaPlaylist | MediaAlbum> = (item) => (
@@ -340,19 +340,23 @@ function getGlobalPlayCount(
 ): string {
     if (globalPlayCount === 1) {
         return `1 ${countName}`;
-    } else if (globalPlayCount < 1_000) {
-        return `${globalPlayCount} ${countNamePlural}`;
-    } else if (globalPlayCount < 100_000) {
-        return `${(globalPlayCount / 1000).toFixed(1).replace('.0', '')}K  ${countNamePlural}`;
-    } else if (globalPlayCount < 1_000_000) {
-        return `${Math.round(globalPlayCount / 1000)}K  ${countNamePlural}`;
-    } else if (globalPlayCount < 100_000_000) {
-        return `${(globalPlayCount / 1_000_000).toFixed(1).replace('.0', '')}M  ${countNamePlural}`;
-    } else if (globalPlayCount < 1_000_000_000) {
-        return `${Math.round(globalPlayCount / 1_000_000)}M  ${countNamePlural}`;
     } else {
-        return `${(globalPlayCount / 1_000_000_000)
-            .toFixed(1)
-            .replace('.0', '')}B  ${countNamePlural}`;
+        return `${getPlayCount(globalPlayCount)} ${countNamePlural}`;
+    }
+}
+
+function getPlayCount(playCount = 0): string {
+    if (playCount < 10_000) {
+        return getCount(playCount);
+    } else if (playCount < 100_000) {
+        return `${(playCount / 1000).toFixed(1).replace('.0', '')}K`;
+    } else if (playCount < 1_000_000) {
+        return `${Math.round(playCount / 1000)}K`;
+    } else if (playCount < 100_000_000) {
+        return `${(playCount / 1_000_000).toFixed(1).replace('.0', '')}M`;
+    } else if (playCount < 1_000_000_000) {
+        return `${Math.round(playCount / 1_000_000)}M`;
+    } else {
+        return `${(playCount / 1_000_000_000).toFixed(1).replace('.0', '')}B`;
     }
 }

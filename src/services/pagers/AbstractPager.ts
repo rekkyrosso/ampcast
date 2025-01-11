@@ -181,7 +181,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
     }
 
     protected observeFetches(): Observable<PageFetch> {
-        return this.fetches$;
+        return this.fetches$.pipe(filter(({length}) => length > 0));
     }
 
     protected connect(): void {
@@ -213,6 +213,8 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
                     logger
                 );
             }
+
+            this.subscribeTo(this.observeComplete().pipe(tap(() => (this.busy = false))), logger);
         }
     }
 
@@ -241,7 +243,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
             if (item.itemType === ItemType.Album && item.multiDisc === undefined) {
                 this.subscribeTo(
                     item.pager.observeItems().pipe(
-                        skipWhile((items) => !items[0]?.album),
+                        skipWhile(([item]) => !item?.album),
                         tap((tracks) => {
                             const src = item.src;
                             const index = this.items.findIndex((item) => item.src === src);

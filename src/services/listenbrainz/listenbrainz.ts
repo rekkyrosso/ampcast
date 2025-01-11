@@ -18,6 +18,7 @@ import listenbrainzApi from './listenbrainzApi';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './listenbrainzAuth';
 import ListenBrainzHistoryPager from './ListenBrainzHistoryPager';
 import ListenBrainzLikesPager from './ListenBrainzLikesPager';
+import ListenBrainzNewAlbumsPager from './ListenBrainzNewAlbumsPager';
 import ListenBrainzPlaylistsPager from './ListenBrainzPlaylistsPager';
 import ListenBrainzStatsPager from './ListenBrainzStatsPager';
 import listenbrainzSettings from './listenbrainzSettings';
@@ -99,6 +100,18 @@ const listenbrainzRecommendations: MediaSource<MediaPlaylist> = {
     },
 };
 
+const listenbrainzNewReleases: MediaSource<MediaAlbum> = {
+    id: 'listenbrainz/new-albums',
+    title: 'New Releases',
+    icon: 'album',
+    itemType: ItemType.Album,
+    defaultHidden: true,
+
+    search(): Pager<MediaAlbum> {
+        return new ListenBrainzNewAlbumsPager();
+    },
+};
+
 const listenbrainz: DataService = {
     id: 'listenbrainz',
     name: 'ListenBrainz',
@@ -113,26 +126,46 @@ const listenbrainz: DataService = {
         createTopMultiSource<MediaItem>(ItemType.Media, 'Top Tracks', 'recordings', {
             layout: {
                 view: 'card compact',
-                fields: ['Thumbnail', 'Title', 'Artist', 'PlayCount'],
+                fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'PlayCount'],
             },
         }),
         createTopMultiSource<MediaAlbum>(ItemType.Album, 'Top Albums', 'releases', {
             layout: {
                 view: 'card compact',
-                fields: ['Thumbnail', 'Title', 'Artist', 'Year', 'PlayCount'],
+                fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'Year', 'PlayCount'],
             },
         }),
         createTopMultiSource<MediaArtist>(ItemType.Artist, 'Top Artists', 'artists', {
             layout: {
                 view: 'card minimal',
-                fields: ['Thumbnail', 'Title', 'PlayCount'],
+                fields: ['Index', 'Thumbnail', 'Title', 'PlayCount'],
             },
             secondaryLayout: {view: 'none'},
         }),
         listenbrainzLovedTracks,
         listenbrainzHistory,
         listenbrainzPlaylists,
+        createTopMultiSource<MediaItem>(ItemType.Media, 'Singles Charts', 'sitewide/recordings', {
+            layout: {
+                view: 'card compact',
+                fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'PlayCount'],
+            },
+        }),
+        createTopMultiSource<MediaAlbum>(ItemType.Album, 'Album Charts', 'sitewide/releases', {
+            layout: {
+                view: 'card compact',
+                fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'Year', 'PlayCount'],
+            },
+        }),
+        createTopMultiSource<MediaArtist>(ItemType.Artist, 'Artist Charts', 'sitewide/artists', {
+            layout: {
+                view: 'card minimal',
+                fields: ['Index', 'Thumbnail', 'Title', 'PlayCount'],
+            },
+            secondaryLayout: {view: 'none'},
+        }),
         listenbrainzRecommendations,
+        listenbrainzNewReleases,
     ],
     labels: {
         [Action.AddToLibrary]: 'Love on ListenBrainz',
@@ -212,7 +245,8 @@ function createTopMultiSource<T extends MediaObject>(
     path: string,
     layouts: Pick<MediaSource<T>, 'layout' | 'secondaryLayout' | 'tertiaryLayout'>
 ): MediaMultiSource<T> {
-    const icon = 'star';
+    const isChart = path.startsWith('sitewide/');
+    const icon = isChart ? 'chart' : 'star';
     const sourceProps: Except<MediaSource<T>, 'id' | 'search' | 'title'> = {
         icon,
         itemType,
@@ -223,21 +257,22 @@ function createTopMultiSource<T extends MediaObject>(
         title,
         icon,
         searchable: false,
+        defaultHidden: isChart,
         sources: [
-            createTopSource<T>(path, 'all_time', {
-                title: 'All time',
+            createTopSource<T>(path, 'week', {
+                title: 'Week',
                 ...sourceProps,
             }),
-            createTopSource<T>(path, 'this_year', {
-                title: 'Year',
-                ...sourceProps,
-            }),
-            createTopSource<T>(path, 'this_month', {
+            createTopSource<T>(path, 'month', {
                 title: 'Month',
                 ...sourceProps,
             }),
-            createTopSource<T>(path, 'this_week', {
-                title: 'Week',
+            createTopSource<T>(path, 'year', {
+                title: 'Year',
+                ...sourceProps,
+            }),
+            createTopSource<T>(path, 'all_time', {
+                title: 'All time',
                 ...sourceProps,
             }),
         ],
@@ -258,14 +293,17 @@ function createTopSource<T extends MediaObject>(
         | 'this_year',
     props: Except<MediaSource<T>, 'id' | 'search'>
 ): MediaSource<T> {
+    const isChart = path.startsWith('sitewide/');
     return {
         ...props,
         id: `listenbrainz/top/${path}/${range}`,
 
         search(): Pager<T> {
-            return new ListenBrainzStatsPager(`stats/user/${listenbrainzSettings.userId}/${path}`, {
-                range,
-            });
+            return new ListenBrainzStatsPager(
+                isChart ? `stats/${path}` : `stats/user/${listenbrainzSettings.userId}/${path}`,
+                {range},
+                {maxSize: isChart ? 1000 : undefined}
+            );
         },
     };
 }

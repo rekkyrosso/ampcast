@@ -1,21 +1,25 @@
+import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
+import MediaType from 'types/MediaType';
 import PlaylistItem from 'types/PlaylistItem';
+import {bestOf, Logger} from 'utils';
 import {findListen} from 'services/localdb/listens';
 import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import {
     getMediaLookupServices,
+    getService,
     getServiceFromSrc,
     hasPlayableSrc,
     isPlayableSrc,
 } from 'services/mediaServices';
+import youtubeApi from 'services/youtube/youtubeApi';
 import {
     dispatchLookupStartEvent,
     dispatchLookupEndEvent,
     dispatchLookupCancelledEvent,
 } from './lookupEvents';
 import {findBestMatch, findMatches, getArtistAndTitle, removeFeaturedArtists} from './matcher';
-import {Logger} from 'utils';
 
 const logger = new Logger('lookup');
 
@@ -104,9 +108,17 @@ class Lookup {
 
         const {link, ...rest} = item;
         const linkedItem = link && hasPlayableSrc(link) ? {...rest, ...link} : undefined;
-        // TODO: Enhance linked item from original source.
         if (linkedItem && this.canPlayNow(linkedItem)) {
-            return linkedItem;
+            return this.fromLinkedItem(linkedItem);
+        }
+
+        if (!item.recording_mbid) {
+            item = await musicbrainzApi.addMetadata(item, true, this.signal);
+        }
+
+        const foundItemByUrl = await this.fromMusicBrainzUrls(item);
+        if (foundItemByUrl && !foundItemByUrl.src.startsWith('youtube:')) {
+            return foundItemByUrl;
         }
 
         let matches: readonly MediaItem[] = [];
@@ -129,8 +141,79 @@ class Lookup {
         }
 
         return (
-            findBestMatch(matches, item, isrcs, Lookup.lastFoundServiceId) || listen || linkedItem
+            findBestMatch(matches, item, isrcs, Lookup.lastFoundServiceId) ||
+            foundItemByUrl ||
+            listen ||
+            linkedItem
         );
+    }
+
+    private async fromLinkedItem(linkedItem: PlaylistItem): Promise<MediaItem> {
+        try {
+            const src = linkedItem.src;
+            const [serviceId, , id] = src.split(':');
+            switch (serviceId) {
+                case 'youtube': {
+                    linkedItem = {...linkedItem, mediaType: MediaType.Video};
+                    const video = await youtubeApi.getVideoInfo(id);
+                    return bestOf(video, linkedItem);
+                }
+
+                default: {
+                    const service = getService(serviceId);
+                    if (service?.getMediaObject) {
+                        const item = await service.getMediaObject<MediaItem>(src);
+                        return bestOf(item, linkedItem);
+                    }
+                }
+            }
+        } catch (err) {
+            logger.error(err);
+        }
+        return linkedItem;
+    }
+
+    private async fromMusicBrainzUrls(item: PlaylistItem): Promise<MediaItem | undefined> {
+        try {
+            if (item.recording_mbid) {
+                const urls = await musicbrainzApi.getUrls(item.recording_mbid, this.signal);
+
+                const apple = getService('apple');
+                if (apple?.isLoggedIn() && apple.getMediaObject) {
+                    const appleUrl = urls.find((url) => url.includes('music.apple.com'));
+                    if (appleUrl) {
+                        const foundItem = await apple.getMediaObject(appleUrl);
+                        this.throwIfCancelled();
+                        if (foundItem.itemType === ItemType.Media) {
+                            return foundItem;
+                        }
+                    }
+                }
+
+                const spotify = getService('spotify');
+                if (spotify?.isLoggedIn() && spotify.getMediaObject) {
+                    const spotifyUrl = urls.find((url) => url.includes('open.spotify.com'));
+                    if (spotifyUrl) {
+                        const foundItem = await spotify.getMediaObject(spotifyUrl);
+                        this.throwIfCancelled();
+                        if (foundItem.itemType === ItemType.Media) {
+                            return foundItem;
+                        }
+                    }
+                }
+
+                const youtubeUrl = urls.find((url) => url.includes('youtube.com'));
+                if (youtubeUrl) {
+                    const foundItem = await youtubeApi.getVideoInfo(youtubeUrl);
+                    this.throwIfCancelled();
+                    if (foundItem.itemType === ItemType.Media) {
+                        return foundItem;
+                    }
+                }
+            }
+        } catch (err) {
+            logger.error(err);
+        }
     }
 
     private getPlayableListen(item: PlaylistItem): MediaItem | undefined {

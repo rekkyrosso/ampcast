@@ -1,4 +1,4 @@
-import {Except, Writable} from 'type-fest';
+import {Except} from 'type-fest';
 import Action from 'types/Action';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import FilterType from 'types/FilterType';
@@ -21,10 +21,10 @@ import {NoFavoritesPlaylistError} from 'services/errors';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
 import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
-import fetchFirstPage from 'services/pagers/fetchFirstPage';
+import fetchAllTracks from 'services/pagers/fetchAllTracks';
+import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import {t} from 'services/i18n';
-import {bestOf} from 'utils';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './appleAuth';
 import MusicKitPager, {MusicKitPage} from './MusicKitPager';
 import appleSettings from './appleSettings';
@@ -46,7 +46,7 @@ const chartsLayoutLarge: MediaSourceLayout<MediaItem> = {
 
 const chartsLayoutSmall: MediaSourceLayout<MediaItem> = {
     view: 'card small',
-    fields: ['Index', 'Thumbnail', 'Title', 'Artist'],
+    fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'Duration'],
 };
 
 const appleSearch: MediaMultiSource = {
@@ -433,6 +433,7 @@ const apple: PublicMediaService = {
         [Action.RemoveFromLibrary]: 'Saved to Apple Music Library',
     },
     editablePlaylists: appleEditablePlaylists,
+    addMetadata,
     addToPlaylist,
     canRate: () => false,
     canStore,
@@ -441,7 +442,7 @@ const apple: PublicMediaService = {
     createSourceFromPin,
     getDroppedItems,
     getFilters,
-    getMetadata,
+    getMediaObject,
     getPlaybackType,
     lookup,
     lookupByISRC,
@@ -471,6 +472,27 @@ function canStore<T extends MediaObject>(item: T): boolean {
         default:
             return false;
     }
+}
+
+async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
+    if (!item.synthetic && item.inLibrary === undefined) {
+        let inLibrary = actionsStore.getInLibrary(item);
+        if (inLibrary === undefined) {
+            const [, type] = item.src.split(':');
+            if (type.startsWith('library-')) {
+                inLibrary = true;
+            } else {
+                const id = item.apple?.catalogId;
+                if (id) {
+                    [inLibrary] = await getInLibrary(type, [id]);
+                }
+            }
+        }
+        if (inLibrary !== undefined) {
+            return {...item, inLibrary};
+        }
+    }
+    return item;
 }
 
 async function addToPlaylist<T extends MediaItem>(
@@ -555,15 +577,12 @@ async function getDroppedItems(
 ): Promise<readonly MediaItem[]> {
     switch (type) {
         case 'text/uri-list': {
-            const [url] = data.split(/\s+/).map((uri) => new URL(uri));
-            const [, , type, , albumId] = url.pathname.split('/');
-            if (type === 'album') {
-                const trackId = url.searchParams.get('i');
-                if (trackId) {
-                    return getTracksById([trackId]);
-                } else {
-                    return getTracksByAlbumId(albumId);
-                }
+            const [src] = data.split(/\s+/).map((uri) => getSrcFromUrl(uri));
+            const [, type, id] = src.split(':');
+            if (type === 'albums') {
+                return getTracksByAlbumId(id);
+            } else if (type === 'songs') {
+                return getTracksById([id]);
             } else {
                 throw Error('Unsupported drop type.');
             }
@@ -591,32 +610,45 @@ async function getDroppedItems(
     }
 }
 
+function getSrcFromUrl(src: string): string {
+    if (src.startsWith('apple:')) {
+        return src;
+    }
+    const url = new URL(src);
+    const [id] = url.pathname.split('/').reverse();
+    if (url.pathname.includes('/album/')) {
+        const trackId = url.searchParams.get('i');
+        if (trackId) {
+            return `apple:songs:${trackId}`;
+        } else {
+            return `apple:albums:${id}`;
+        }
+    } else if (url.pathname.includes('/artist/')) {
+        return `apple:artists:${id}`;
+    } else if (url.pathname.includes('/playlist/')) {
+        return `apple:playlists:${id}`;
+    } else if (url.pathname.includes('/music-video/')) {
+        return `apple:music-videos:${id}`;
+    }
+    return '';
+}
+
 async function getTracksById(trackIds: readonly string[]): Promise<readonly MediaItem[]> {
-    const maxSize = 50;
-    const ids = trackIds.slice(0, maxSize);
+    const pageSize = 50;
+    const ids = trackIds.slice(0, pageSize);
     const pager = new MusicKitPager<MediaItem>(
         '/v1/catalog/{{storefrontId}}',
         {['ids[songs]']: ids},
-        {maxSize, pageSize: maxSize}
+        {pageSize, maxSize: pageSize}
     );
     return fetchFirstPage(pager);
 }
 
 async function getTracksByAlbumId(id: string): Promise<readonly MediaItem[]> {
-    const albumPager = new MusicKitPager<MediaAlbum>(
-        `/v1/catalog/{{storefrontId}}/albums/${id}`,
-        {
-            ['omit[resource:albums]']: 'relationships',
-        },
-        {pageSize: 0}
-    );
-    try {
-        const [album] = await fetchFirstPage(albumPager, {keepAlive: true});
-        const songs = await fetchFirstPage(album.pager);
-        return songs;
-    } finally {
-        albumPager.disconnect();
-    }
+    const album = await getMediaObject<MediaAlbum>(`apple:albums:${id}`, true);
+    const tracks = await fetchAllTracks(album);
+    album.pager.disconnect();
+    return tracks;
 }
 
 let appleGenres: readonly MediaFilter[];
@@ -645,33 +677,19 @@ async function getFilters(filterType: FilterType): Promise<readonly MediaFilter[
     }
 }
 
-async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
-    if (item.itemType === ItemType.Album && item.synthetic) {
-        return item;
-    }
-    let result: Writable<T> = item as Writable<T>;
-    // TODO: `hasMetadata` is probably always `true` now.
-    const hasMetadata = !!item.externalUrl; // this field is not available on library items
-    if (!hasMetadata) {
-        const [, type, id] = item.src.split(':');
-        const isLibraryItem = type.startsWith('library-');
-        const path = isLibraryItem ? '/v1/me/library' : '/v1/catalog/{{storefrontId}}';
-        const pager = new MusicKitPager<T>(
-            `${path}/${type.replace('library-', '')}/${id}${isLibraryItem ? '/catalog' : ''}`,
-            isLibraryItem
-                ? undefined
-                : {[`omit[resource:${type.replace('library-', '')}]`]: 'relationships'},
-            {lookup: true, pageSize: 0}
-        );
-        const items = await fetchFirstPage<T>(pager, {timeout: 2000});
-        result = bestOf(item, items[0]) as Writable<T>;
-        result.description = items[0]?.description || item.description;
-    }
-    result.inLibrary = actionsStore.getInLibrary(result as T, result.inLibrary);
-    if (result.inLibrary === undefined) {
-        addUserData([result as T]);
-    }
-    return result as T;
+async function getMediaObject<T extends MediaObject>(src: string, keepAlive?: boolean): Promise<T> {
+    src = getSrcFromUrl(src);
+    const [, type, id] = src.split(':');
+    const isLibraryItem = type.startsWith('library-');
+    const path = isLibraryItem ? '/v1/me/library' : '/v1/catalog/{{storefrontId}}';
+    const pager = new MusicKitPager<T>(
+        `${path}/${type.replace('library-', '')}/${id}${isLibraryItem ? '/catalog' : ''}`,
+        isLibraryItem
+            ? undefined
+            : {[`omit[resource:${type.replace('library-', '')}]`]: 'relationships'},
+        {lookup: true, pageSize: 0}
+    );
+    return fetchFirstItem<T>(pager, {timeout: 2000, keepAlive});
 }
 
 async function getPlaybackType(): Promise<PlaybackType> {
@@ -687,7 +705,7 @@ async function lookup(
     if (!artist || !title) {
         return [];
     }
-    const pager = createSearchPager<MediaItem>(ItemType.Media, `${artist} ${title}`, undefined, {
+    const pager = createSearchPager<MediaItem>(ItemType.Media, `${title} ${artist}`, undefined, {
         pageSize: limit,
         maxSize: limit,
         lookup: true,
@@ -802,25 +820,35 @@ export async function addUserData<T extends MediaObject>(
     inline = false,
     parent?: ParentOf<T>
 ): Promise<void> {
-    const item = items[0];
+    const isAlbumTrack = parent?.itemType === ItemType.Album;
+    items = items.filter(
+        (item) =>
+            item.inLibrary === undefined &&
+            !(isAlbumTrack && item.src.startsWith('apple:library-')) &&
+            !!item.apple?.catalogId
+    );
+    const [item] = items;
     if (!item || !apple.canStore(item, inline)) {
         return;
     }
-    const isAlbumTrack = parent?.itemType === ItemType.Album;
-    const ids: string[] = items
-        .filter(
-            (item) =>
-                item.inLibrary === undefined &&
-                !(isAlbumTrack && item.src.startsWith('apple:library-'))
-        )
-        .map((item) => item.apple?.catalogId)
-        .filter((catalogId) => !!catalogId) as string[];
+    const [, type] = item.src.split(':');
+    const ids: string[] = items.map((item) => item.apple!.catalogId);
+    const inLibrary = await getInLibrary(type, ids);
+    dispatchMediaObjectChanges<MediaObject>(
+        ids.map((id, index) => ({
+            match: (object: MediaObject) => object.apple?.catalogId === id,
+            values: {inLibrary: inLibrary[index]},
+        }))
+    );
+}
 
-    if (ids.length === 0) {
-        return;
+async function getInLibrary(
+    type: string,
+    catalogIds: readonly string[]
+): Promise<readonly boolean[]> {
+    if (catalogIds.length === 0) {
+        return [];
     }
-
-    let [, type] = item.src.split(':');
     type = type.replace('library-', '');
     const musicKit = MusicKit.getInstance();
     const {
@@ -828,23 +856,16 @@ export async function addUserData<T extends MediaObject>(
     } = await musicKit.api.music('/v1/catalog/{{storefrontId}}', {
         [`fields[${type}]`]: 'inLibrary',
         'format[resources]': 'map',
-        [`ids[${type}]`]: ids,
+        [`ids[${type}]`]: catalogIds,
         'omit[resource]': 'autos',
     });
     const data = resources[type];
-
-    if (!data) {
-        return;
+    if (data) {
+        const inLibrary = new Map<string, boolean>(
+            Object.keys(data).map((key) => [key, data[key].attributes.inLibrary])
+        );
+        return catalogIds.map((id) => !!inLibrary.get(id));
+    } else {
+        return catalogIds.map(() => false);
     }
-
-    const inLibrary = new Map<string, boolean>(
-        Object.keys(data).map((key) => [key, data[key].attributes.inLibrary])
-    );
-
-    dispatchMediaObjectChanges<MediaObject>(
-        ids.map((id) => ({
-            match: (object: MediaObject) => object.apple?.catalogId === id,
-            values: {inLibrary: !!inLibrary.get(id)},
-        }))
-    );
 }

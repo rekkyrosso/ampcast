@@ -16,9 +16,10 @@ import SimplePager from 'services/pagers/SimplePager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
-import {exists, getTextFromHtml, Logger, sleep} from 'utils';
+import {exists, getTextFromHtml, Logger} from 'utils';
 import spotify, {
     SpotifyAlbum,
+    spotifyApiCallWithRetry,
     SpotifyArtist,
     SpotifyEpisode,
     SpotifyItem,
@@ -26,7 +27,6 @@ import spotify, {
     SpotifyTrack,
 } from './spotify';
 import spotifyApi from './spotifyApi';
-import {refreshToken} from './spotifyAuth';
 import spotifySettings from './spotifySettings';
 
 const logger = new Logger('SpotifyPager');
@@ -46,6 +46,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
     private readonly config: PagerConfig;
     private pageNumber = 1;
     private subscriptions?: Subscription;
+    private cursor = '';
 
     constructor(
         fetch: (offset: number, limit: number, cursor: string) => Promise<SpotifyPage>,
@@ -53,47 +54,19 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         inLibrary?: boolean | undefined
     ) {
         this.config = {...this.defaultConfig, ...options};
-
-        let cursor = '';
-        this.pager = new SequentialPager<T>(
-            async (limit: number): Promise<Page<T>> => {
-                const offset = (this.pageNumber - 1) * limit;
-                const fetchPage = async () => {
-                    const {items, total, next} = await fetch(offset, limit, cursor);
-                    this.pageNumber++;
-                    cursor = next || '';
-                    return {
-                        items: items
-                            .filter(exists)
-                            .map((item) => this.createMediaObject(item, inLibrary)),
-                        total,
-                        atEnd: !next,
-                    };
-                };
-                try {
-                    const page = await fetchPage();
-                    return page;
-                } catch (err: any) {
-                    if (err.status === 401) {
-                        await refreshToken();
-                        const page = await fetchPage();
-                        return page;
-                    } else if (err.status === 429) {
-                        const retryAfter = Number(err.headers?.get('Retry-After'));
-                        if (retryAfter && retryAfter <= 10) {
-                            await sleep(retryAfter * 1000);
-                            const page = await fetchPage();
-                            return page;
-                        } else {
-                            throw err;
-                        }
-                    } else {
-                        throw err;
-                    }
-                }
-            },
-            this.config
-        );
+        this.pager = new SequentialPager<T>(async (limit: number): Promise<Page<T>> => {
+            const offset = (this.pageNumber - 1) * limit;
+            const {items, total, next} = await spotifyApiCallWithRetry(() =>
+                fetch(offset, limit, this.cursor)
+            );
+            this.pageNumber++;
+            this.cursor = next || '';
+            return {
+                items: items.filter(exists).map((item) => this.createMediaObject(item, inLibrary)),
+                total,
+                atEnd: !next,
+            };
+        }, this.config);
     }
 
     get maxSize(): number | undefined {
@@ -275,7 +248,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             disc: track.disc_number,
             track: track.track_number,
             year: track.album
-                ? new Date(track.album.release_date).getUTCFullYear() || undefined
+                ? new Date(track.album.release_date).getFullYear() || undefined
                 : undefined,
             isrc: track.external_ids?.isrc,
             thumbnails: track.album?.images as Thumbnail[],
@@ -392,27 +365,24 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
     }
 
     private async addUserData<T extends MediaObject>(items: readonly T[]): Promise<void> {
-        const item = items[0];
+        items = items.filter(
+            (item) => item.inLibrary === undefined && spotify.canStore(item, true)
+        );
+        const [item] = items;
         if (item) {
-            const ids = items
-                .filter((item) => item.inLibrary === undefined && spotify.canStore(item, true))
-                .map((item) => {
-                    const [, , id] = item.src.split(':');
-                    return id;
-                });
-            if (ids.length === 0) {
-                return;
-            }
-            let inLibrary: boolean[] = [];
+            const ids = items.map((item) => item.src.split(':')[2]);
+            const inLibrary = await spotifyApiCallWithRetry(async () => {
+                switch (item.itemType) {
+                    case ItemType.Album:
+                        return spotifyApi.containsMySavedAlbums(ids);
 
-            if (item.itemType === ItemType.Artist) {
-                inLibrary = await spotifyApi.isFollowingArtists(ids);
-            } else if (item.itemType === ItemType.Album) {
-                inLibrary = await spotifyApi.containsMySavedAlbums(ids);
-            } else {
-                inLibrary = await spotifyApi.containsMySavedTracks(ids);
-            }
+                    case ItemType.Artist:
+                        return spotifyApi.isFollowingArtists(ids);
 
+                    default:
+                        return spotifyApi.containsMySavedTracks(ids);
+                }
+            });
             dispatchMediaObjectChanges(
                 items.map(({src}, index) => ({
                     match: (item: MediaObject) => item.src === src,

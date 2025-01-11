@@ -611,7 +611,7 @@ function createMediaAlbum(album: TidalAlbum, included: Included): MediaAlbum {
         multiDisc: (attributes?.numberOfVolumes || 0) > 1,
         trackCount: attributes?.numberOfItems,
         duration: attributes ? parseISO8601(attributes.duration) : 0,
-        year: releaseDate ? new Date(releaseDate).getUTCFullYear() || undefined : undefined,
+        year: releaseDate ? new Date(releaseDate).getFullYear() || undefined : undefined,
         thumbnails: createThumbnails(attributes?.imageLinks),
         pager: new TidalPager((cursor) => getAlbumTracks(album, cursor)),
         copyright: attributes?.copyright,
@@ -707,7 +707,7 @@ function createMediaItem(
         playedAt: 0,
         // disc: meta?.volumeNumber,
         // track: meta?.trackNumber,
-        year: releaseDate ? new Date(releaseDate).getUTCFullYear() || undefined : undefined,
+        year: releaseDate ? new Date(releaseDate).getFullYear() || undefined : undefined,
         isrc: attributes?.isrc,
         thumbnails: createThumbnails(imageLinks),
         copyright: attributes?.copyright,
@@ -739,9 +739,10 @@ function createMediaPlaylist(playlist: TidalPlaylist): MediaPlaylist {
 }
 
 function createThumbnails(imageLinks: ImageLink[] | undefined): readonly Thumbnail[] | undefined {
-    return imageLinks
+    const thumbnails = imageLinks
         ?.filter((link) => !!link.meta) // TODO
         .map(({href: url, meta}) => ({url, width: meta!.width, height: meta!.height}));
+    return thumbnails?.length ? thumbnails : undefined;
 }
 
 function findAlbum(

@@ -22,7 +22,7 @@ import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
-import fetchFirstPage from 'services/pagers/fetchFirstPage';
+import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
@@ -507,6 +507,7 @@ const plex: PersonalMediaService = {
     observeLibraryId(): Observable<string> {
         return plexSettings.observeLibraryId();
     },
+    addMetadata,
     addToPlaylist,
     canRate,
     canStore: () => false,
@@ -514,7 +515,7 @@ const plex: PersonalMediaService = {
     createPlaylist,
     createSourceFromPin,
     getFilters,
-    getMetadata,
+    getMediaObject,
     getPlayableUrl,
     getPlaybackType,
     getServerInfo,
@@ -605,7 +606,7 @@ async function getFilters(
     return plexApi.getFilters(filterType, itemType);
 }
 
-async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
+async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
     if (!canRate(item) || item.rating !== undefined) {
         return item;
     }
@@ -616,6 +617,15 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
     const ratingKey = getRatingKey(item);
     const [plexItem] = await plexApi.getMetadata<plex.RatingObject>([ratingKey]);
     return {...item, rating: Math.round((plexItem.userRating || 0) / 2)};
+}
+
+async function getMediaObject<T extends MediaObject>(src: string): Promise<T> {
+    const [, , ratingKey] = src.split(':');
+    const pager = new PlexPager<T>(
+        {path: `/library/metadata/${ratingKey}`},
+        {pageSize: 1, maxSize: 1}
+    );
+    return fetchFirstItem<T>(pager, {timeout: 2000});
 }
 
 function getPlayableUrl(item: PlayableItem): string {

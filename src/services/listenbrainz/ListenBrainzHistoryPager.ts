@@ -210,9 +210,12 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
 
     private getAppleSrc(url: string): string | undefined {
         if (url) {
-            const id = url.split('i=').pop();
-            if (id) {
-                return `apple:song:${id}`;
+            if (url.includes('i=')) {
+                const id = url.split('i=').pop();
+                return `apple:songs:${id}`;
+            } else if (url.includes('music-video')) {
+                const [id] = new URL(url).pathname.split('/').reverse();
+                return `apple:music-videos:${id}`;
             }
         }
     }

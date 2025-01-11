@@ -53,9 +53,4 @@ export default interface MediaItem extends BaseMediaObject {
         readonly src: string;
         readonly externalUrl?: string;
     };
-    readonly musicBrainz?: {
-        readonly status: string;
-        readonly country: string;
-        readonly format: string;
-    };
 }

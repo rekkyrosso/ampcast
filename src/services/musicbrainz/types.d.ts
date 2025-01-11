@@ -10,6 +10,7 @@ declare namespace MusicBrainz {
         readonly title: string;
         readonly date?: string; // year
         readonly media?: readonly Media[];
+        readonly relations?: readonly Relationship[];
         readonly 'artist-credit'?: readonly ArtistCredit[];
         readonly 'release-group': ReleaseGroup;
         readonly country: string;
@@ -33,6 +34,14 @@ declare namespace MusicBrainz {
         readonly track?: Track[];
     }
 
+    interface Relationship {
+        readonly 'target-type': string;
+        readonly type: string;
+        readonly url: {
+            resource: string;
+        };
+    }
+
     interface Track {
         readonly id: string;
         readonly position: number;
@@ -50,6 +59,7 @@ declare namespace MusicBrainz {
         readonly video: boolean;
         readonly disambiguation: string; // version info (e.g. 'explicit', '12" release')
         readonly 'artist-credit'?: readonly ArtistCredit[];
+        readonly relations?: readonly Relationship[];
         readonly releases?: readonly Release[];
         readonly isrcs?: readonly string[];
     }

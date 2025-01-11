@@ -66,7 +66,6 @@ export default function MediaDetails<T extends MediaObject>({item}: MediaInfoPro
                 return `[${value?.length || 0}]`;
 
             case 'apple':
-            case 'musicBrainz':
             case 'subsonic':
             case 'link':
             case 'owner':

@@ -16,12 +16,13 @@ import Pin from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
+import {chunk, exists, partition, sleep} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
 import {NoSpotifyChartsError} from 'services/errors';
-import fetchFirstPage from 'services/pagers/fetchFirstPage';
+import fetchAllTracks from 'services/pagers/fetchAllTracks';
+import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import {setHiddenSources} from 'services/mediaServices/servicesSettings';
-import {chunk, exists, partition} from 'utils';
 import {
     observeIsLoggedIn,
     isConnected,
@@ -56,6 +57,31 @@ export type SpotifyItem =
     | SpotifyTrack
     | SpotifyEpisode
     | SpotifyPlaylist;
+
+export async function spotifyApiCallWithRetry<T>(call: () => Promise<T>): Promise<T> {
+    try {
+        return await call();
+    } catch (err: any) {
+        switch (err.status) {
+            case 401:
+                await refreshToken();
+                return call();
+
+            case 429: {
+                const retryAfter = Number(err.headers?.get('Retry-After'));
+                if (retryAfter && retryAfter <= 5) {
+                    await sleep(retryAfter * 1000);
+                    return call();
+                } else {
+                    throw err;
+                }
+            }
+
+            default:
+                throw err;
+        }
+    }
+}
 
 const isRestrictedApi = spotifySettings.restrictedApi;
 
@@ -312,7 +338,7 @@ const spotifyFeaturedPlaylists: MediaSource<MediaPlaylist> = {
 
 const spotifyNewReleases: MediaSource<MediaAlbum> = {
     id: 'spotify/new-albums',
-    title: 'New releases',
+    title: 'New Releases',
     icon: 'album',
     itemType: ItemType.Album,
     secondaryLayout: playlistItemsLayout,
@@ -438,6 +464,7 @@ const spotify: PublicMediaService = {
         [Action.AddToLibrary]: 'Add to Spotify Library',
         [Action.RemoveFromLibrary]: 'Remove from Spotify Library',
     },
+    addMetadata,
     addToPlaylist,
     canRate: () => false,
     canStore,
@@ -446,7 +473,7 @@ const spotify: PublicMediaService = {
     createSourceFromPin,
     getDroppedItems,
     getFilters,
-    getMetadata,
+    getMediaObject,
     getPlaybackType,
     lookup,
     lookupByISRC,
@@ -500,9 +527,11 @@ async function addToPlaylist<T extends MediaItem>(
         const [, , playlistId] = playlist.src.split(':');
         const chunks = chunk(items, 100);
         for (const chunk of chunks) {
-            await spotifyApi.addTracksToPlaylist(
-                playlistId,
-                chunk.map((item) => item.src)
+            await spotifyApiCallWithRetry(() =>
+                spotifyApi.addTracksToPlaylist(
+                    playlistId,
+                    chunk.map((item) => item.src)
+                )
             );
         }
     }
@@ -513,17 +542,21 @@ async function createPlaylist<T extends MediaItem>(
     {description = '', isPublic = false, items}: CreatePlaylistOptions<T> = {}
 ): Promise<MediaPlaylist> {
     const userId = spotifySettings.userId;
-    const playlist = await spotifyApi.createPlaylist(userId, {
-        name,
-        description,
-        public: isPublic,
-    });
+    const playlist = await spotifyApiCallWithRetry(() =>
+        spotifyApi.createPlaylist(userId, {
+            name,
+            description,
+            public: isPublic,
+        })
+    );
     if (items?.length) {
         const chunks = chunk(items, 100);
         for (const chunk of chunks) {
-            await spotifyApi.addTracksToPlaylist(
-                playlist.id,
-                chunk.map((item) => item.src)
+            await spotifyApiCallWithRetry(() =>
+                spotifyApi.addTracksToPlaylist(
+                    playlist.id,
+                    chunk.map((item) => item.src)
+                )
             );
         }
     }
@@ -560,17 +593,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
 
 async function getFilters(filterType: FilterType): Promise<readonly MediaFilter[]> {
     if (filterType === FilterType.ByGenre) {
-        try {
-            // TODO: Spotify also has genres and I may have to re-think this.
-            return await getCategories();
-        } catch (err: any) {
-            if (err.status === 401) {
-                await refreshToken();
-                return getCategories();
-            } else {
-                throw err;
-            }
-        }
+        return getCategories();
     } else {
         throw Error('Not supported');
     }
@@ -584,10 +607,12 @@ async function getCategories(): Promise<readonly MediaFilter[]> {
         const locale = navigator.language.replace('-', '_');
         const {
             categories: {items, next},
-        } = await spotifyApi.getCategories({limit, locale});
+        } = await spotifyApiCallWithRetry(() => spotifyApi.getCategories({limit, locale}));
         if (next) {
             const offset = limit;
-            const {categories: next} = await spotifyApi.getCategories({limit, locale, offset});
+            const {categories: next} = await spotifyApiCallWithRetry(() =>
+                spotifyApi.getCategories({limit, locale, offset})
+            );
             items.push(...next.items);
         }
         spotifyCategories = items.map(({id, name: title}: any) => ({id, title}));
@@ -614,8 +639,8 @@ async function getDroppedItems(
         }
 
         case 'text/uri-list': {
-            const [url] = data.split(/\s+/).map((uri) => new URL(uri));
-            const [, type, id] = url.pathname.split('/');
+            const [src] = data.split(/\s+/).map((url) => getSrcFromUrl(url));
+            const [, type, id] = src.split(':');
             if (type === 'album') {
                 return getTracksByAlbumId(id);
             } else if (type === 'track') {
@@ -630,39 +655,71 @@ async function getDroppedItems(
     }
 }
 
-async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
+function getSrcFromUrl(src: string): string {
+    if (src.startsWith('spotify:')) {
+        return src;
+    }
+    const url = new URL(src);
+    const [id, type] = url.pathname.split('/').reverse();
+    return `spotify:${type}:${id}`;
+}
+
+async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
     if (!canStore(item) || item.inLibrary !== undefined) {
         return item;
     }
-    const inLibrary = actionsStore.getInLibrary(item);
-    if (inLibrary !== undefined) {
-        return {...item, inLibrary};
+    let inLibrary = actionsStore.getInLibrary(item);
+    if (inLibrary === undefined) {
+        const [, , id] = item.src.split(':');
+        [inLibrary] = await spotifyApiCallWithRetry(async () => {
+            switch (item.itemType) {
+                case ItemType.Artist:
+                    return spotifyApi.isFollowingArtists([id]);
+
+                case ItemType.Album:
+                    return spotifyApi.containsMySavedAlbums([id]);
+
+                case ItemType.Media:
+                    return spotifyApi.containsMySavedTracks([id]);
+
+                case ItemType.Playlist:
+                    return spotifyApi.areFollowingPlaylist(id, [spotifySettings.userId]);
+
+                default:
+                    return [];
+            }
+        });
     }
-    const [, , id] = item.src.split(':');
-    switch (item.itemType) {
-        case ItemType.Artist: {
-            const [inLibrary] = await spotifyApi.isFollowingArtists([id]);
-            return {...item, inLibrary};
-        }
+    return {...item, inLibrary};
+}
 
-        case ItemType.Album: {
-            const [inLibrary] = await spotifyApi.containsMySavedAlbums([id]);
-            return {...item, inLibrary};
-        }
+async function getMediaObject<T extends MediaObject>(src: string, keepAlive?: boolean): Promise<T> {
+    const pager = new SpotifyPager<T>(async (): Promise<SpotifyPage> => {
+        const fetchItem = () => {
+            const market = getMarket();
+            src = getSrcFromUrl(src);
+            const [, type, id] = src.split(':');
+            switch (type) {
+                case 'album':
+                    return spotifyApi.getAlbum(id, {market});
 
-        case ItemType.Media: {
-            const [inLibrary] = await spotifyApi.containsMySavedTracks([id]);
-            return {...item, inLibrary};
-        }
+                case 'artist':
+                    return spotifyApi.getArtist(id, {market});
 
-        case ItemType.Playlist: {
-            const [inLibrary] = await spotifyApi.areFollowingPlaylist(id, [spotifySettings.userId]);
-            return {...item, inLibrary};
-        }
+                case 'playlist':
+                    return spotifyApi.getPlaylist(id, {market});
 
-        default:
-            return item;
-    }
+                case 'track':
+                    return spotifyApi.getTrack(id, {market});
+
+                default:
+                    throw Error(`Unsupported type: '${type}'`);
+            }
+        };
+        const item = await fetchItem();
+        return {items: [item], total: 1, atEnd: true};
+    });
+    return fetchFirstItem<T>(pager, {timeout: 2000, keepAlive});
 }
 
 async function getPlaybackType(): Promise<PlaybackType> {
@@ -684,37 +741,11 @@ async function getTracksById(trackIds: readonly string[]): Promise<readonly Medi
     return fetchFirstPage(pager);
 }
 
-async function getTracksByAlbumId(albumId: string): Promise<readonly MediaItem[]> {
-    const market = getMarket();
-    let album: SpotifyApi.AlbumObjectFull;
-    try {
-        album = await spotifyApi.getAlbum(albumId, {market});
-    } catch (err: any) {
-        if (err.status === 401) {
-            await refreshToken();
-            album = await spotifyApi.getAlbum(albumId, {market});
-        } else {
-            throw err;
-        }
-    }
-    const pager = new SpotifyPager<MediaItem>(
-        async (offset: number, limit: number): Promise<SpotifyPage> => {
-            const {items, total, next} = await spotifyApi.getAlbumTracks(albumId, {
-                offset,
-                limit,
-                market,
-            });
-            return {
-                items: items.map((item) => ({
-                    ...item,
-                    album: album as SpotifyApi.AlbumObjectSimplified,
-                })),
-                total,
-                next,
-            };
-        }
-    );
-    return fetchFirstPage(pager);
+async function getTracksByAlbumId(id: string): Promise<readonly MediaItem[]> {
+    const album = await getMediaObject<MediaAlbum>(`spotify:album:${id}`, true);
+    const tracks = await fetchAllTracks(album);
+    album.pager.disconnect();
+    return tracks;
 }
 
 async function lookup(
@@ -729,7 +760,7 @@ async function lookup(
     const safeString = (s: string) => s.replace(/['"]/g, ' ');
     const pager = createSearchPager<MediaItem>(
         ItemType.Media,
-        `${safeString(artist)} ${safeString(title)}`,
+        `${safeString(title)} artist:${safeString(artist)}`,
         {pageSize: limit, maxSize: limit, lookup: true}
     );
     return fetchFirstPage(pager, {timeout});
@@ -757,7 +788,7 @@ async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
 }
 
 async function bulkStore(items: readonly MediaObject[], inLibrary: boolean): Promise<void> {
-    const item = items[0];
+    const [item] = items;
     if (!item) {
         return;
     }
@@ -783,7 +814,7 @@ async function bulkStore(items: readonly MediaObject[], inLibrary: boolean): Pro
 }
 
 async function storeMany(items: readonly MediaObject[], inLibrary: boolean): Promise<void> {
-    const item = items[0];
+    const [item] = items;
     if (!item) {
         return;
     }
@@ -796,60 +827,49 @@ async function storeMany(items: readonly MediaObject[], inLibrary: boolean): Pro
         switch (item.itemType) {
             case ItemType.Artist:
                 if (inLibrary) {
-                    await Promise.all(chunk(ids, 50).map((ids) => spotifyApi.followArtists(ids)));
+                    return Promise.all(chunk(ids, 50).map((ids) => spotifyApi.followArtists(ids)));
                 } else {
-                    await Promise.all(chunk(ids, 50).map((ids) => spotifyApi.unfollowArtists(ids)));
+                    return Promise.all(
+                        chunk(ids, 50).map((ids) => spotifyApi.unfollowArtists(ids))
+                    );
                 }
-                break;
 
             case ItemType.Album:
                 if (inLibrary) {
-                    await Promise.all(
+                    return Promise.all(
                         chunk(ids, 50).map((ids) => spotifyApi.addToMySavedAlbums({ids} as any))
                     );
                 } else {
-                    await Promise.all(
+                    return Promise.all(
                         chunk(ids, 50).map((ids) =>
                             spotifyApi.removeFromMySavedAlbums({ids} as any)
                         )
                     );
                 }
-                break;
 
             case ItemType.Media:
                 if (inLibrary) {
-                    await Promise.all(
+                    return Promise.all(
                         chunk(ids, 50).map((ids) => spotifyApi.addToMySavedTracks({ids} as any))
                     );
                 } else {
-                    await Promise.all(
+                    return Promise.all(
                         chunk(ids, 50).map((ids) =>
                             spotifyApi.removeFromMySavedTracks({ids} as any)
                         )
                     );
                 }
-                break;
 
             case ItemType.Playlist:
                 if (inLibrary) {
-                    await Promise.all(ids.map((id) => spotifyApi.followPlaylist(id)));
+                    return Promise.all(ids.map((id) => spotifyApi.followPlaylist(id)));
                 } else {
-                    await Promise.all(ids.map((id) => spotifyApi.unfollowPlaylist(id)));
+                    return Promise.all(ids.map((id) => spotifyApi.unfollowPlaylist(id)));
                 }
-                break;
         }
     };
 
-    try {
-        await updateLibrary();
-    } catch (err: any) {
-        if (err.status === 401) {
-            await refreshToken();
-            await updateLibrary();
-        } else {
-            throw err;
-        }
-    }
+    await spotifyApiCallWithRetry(updateLibrary);
 }
 
 function createSearch<T extends MediaObject>(

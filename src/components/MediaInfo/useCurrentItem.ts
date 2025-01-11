@@ -15,8 +15,8 @@ export default function useCurrentItem<T extends MediaObject>(item: T): T {
         if (metadataSrc !== item.src) {
             const service = getServiceFromSrc(item);
 
-            if (service?.getMetadata) {
-                const subscription = from(service.getMetadata(item))
+            if (service?.addMetadata) {
+                const subscription = from(service.addMetadata(item))
                     .pipe(
                         tap((data) => {
                             setMetadataSrc(item.src);

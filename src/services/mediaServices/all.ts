@@ -12,13 +12,13 @@ import plex from 'services/plex';
 import plexTidal from 'services/plex/tidal-disabled';
 import spotify from 'services/spotify';
 import subsonic from 'services/subsonic';
-import tidal from 'services/tidal';
+// import tidal from 'services/tidal';
 import youtube from 'services/youtube';
 
 const services: readonly MediaService[] = [
     apple,
     spotify,
-    tidal,
+    // tidal,
     airsonic,
     ampache,
     emby,
@@ -26,7 +26,7 @@ const services: readonly MediaService[] = [
     jellyfin,
     navidrome,
     plex,
-    plexTidal,
+    plexTidal, // disabled
     subsonic,
     youtube,
     lastfm,

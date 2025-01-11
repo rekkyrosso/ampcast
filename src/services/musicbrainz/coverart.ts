@@ -87,7 +87,7 @@ export async function getCoverArtThumbnails(
     } catch (err: any) {
         if (err.status === 404) {
             await store.items.put({mbid});
-        } else {
+        } else if (err !== 'Cancelled') {
             logger.error(err);
         }
     }

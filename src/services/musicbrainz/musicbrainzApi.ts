@@ -2,11 +2,11 @@ import {Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
+import {RateLimiter, filterNotEmpty, uniq} from 'utils';
 import {findBestMatch} from 'services/lookup';
 import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
-import {RateLimiter, filterNotEmpty} from 'utils';
-import MusicBrainzAlbumPager from './MusicBrainzAlbumPager';
+import MusicBrainzAlbumTracksPager from './MusicBrainzAlbumTracksPager';
 import digitalFormats from './digitalFormats';
 
 interface RequestInitWithTimeout extends RequestInit {
@@ -45,13 +45,27 @@ async function getISRCs<T extends MediaItem>(
         );
         return isrcs;
     } else if (release_mbid) {
-        const pager = new MusicBrainzAlbumPager(release_mbid);
+        const pager = new MusicBrainzAlbumTracksPager(release_mbid);
         const items = await fetchFirstPage(pager, requestInit);
         const item = findBestMatch(items, lookupItem);
         return item?.isrc ? [item.isrc] : [];
     } else {
         return [];
     }
+}
+
+async function getUrls(recording_mbid: string, signal?: AbortSignal): Promise<readonly string[]> {
+    const requestInit: RequestInitWithTimeout = {signal, timeout: 2000};
+    const recording = await fetchJSON<MusicBrainz.Recording>(
+        `/recording/${recording_mbid}`,
+        {inc: 'url-rels'},
+        requestInit
+    );
+    const urls = recording.relations
+        ?.filter((relation) => relation['target-type'] === 'url')
+        .map((relation) => relation.url.resource)
+        .filter((url) => !url.includes('google.com'));
+    return urls?.length ? uniq(urls) : [];
 }
 
 async function addMetadata<T extends MediaItem>(
@@ -135,6 +149,7 @@ async function addMetadataByTrackId<T extends MediaItem>(
             query: lookupItems
                 .map((lookupItem) => `tid:${lookupItem.item.track_mbid}`)
                 .join(' OR '),
+            inc: 'url-rels',
         },
         requestInit
     );
@@ -175,6 +190,7 @@ async function addMetadataByRecordingId<T extends MediaItem>(
             query: lookupItems
                 .map((lookupItem) => `rid:${lookupItem.item.recording_mbid}`)
                 .join(' OR '),
+            inc: 'url-rels',
         },
         requestInit
     );
@@ -215,6 +231,7 @@ async function addMetadataByISRC<T extends MediaItem>(
         `/recording`,
         {
             query: lookupItems.map((lookupItem) => `isrc:${lookupItem.item.isrc}`).join(' OR '),
+            inc: 'url-rels',
         },
         requestInit
     );
@@ -256,7 +273,7 @@ async function addMetadataByReleaseId<T extends MediaItem>(
     const release_mbid = item.release_mbid!;
     const recording_mbid = item.recording_mbid;
     const src = item.src;
-    const pager = new MusicBrainzAlbumPager(release_mbid);
+    const pager = new MusicBrainzAlbumTracksPager(release_mbid);
     const items = await fetchFirstPage(pager, requestInit);
     const foundItem = recording_mbid
         ? items.find((item) => item.recording_mbid === recording_mbid)
@@ -320,7 +337,7 @@ async function lookup<T extends MediaItem>(
     const artist = item.artists?.[0];
     const {recordings = []} = await fetchJSON<MusicBrainz.RecordingsQuery>(
         `/recording`,
-        {query: `artist:${artist} AND recording:${title}`},
+        {query: `artist:${artist} AND recording:${title}`, inc: 'url-rels'},
         requestInit
     );
     const items = createMediaItemsFromRecordings(recordings);
@@ -370,7 +387,14 @@ async function fetchJSON<T>(
 }
 
 function createMediaItemsFromRecordings(recordings: readonly MusicBrainz.Recording[]): MediaItem[] {
-    let items: MediaItem[] = [];
+    type MBMediaItem = MediaItem & {
+        musicBrainz: {
+            readonly status: string;
+            readonly country: string;
+            readonly format: string;
+        };
+    };
+    let items: MBMediaItem[] = [];
     for (const recording of recordings) {
         const releases = recording.releases || [];
         for (const release of releases) {
@@ -383,28 +407,28 @@ function createMediaItemsFromRecordings(recordings: readonly MusicBrainz.Recordi
                 for (const track of tracks) {
                     (track as Writable<MusicBrainz.Track>).recording = recording;
                     const musicBrainz = {status, country, format};
-                    const item = createMediaItem(release, track, musicBrainz);
-                    items.push(item);
+                    const item = createMediaItem(release, track);
+                    items.push({...item, musicBrainz});
                 }
             }
         }
     }
-    items = filterNotEmpty(items, (item) => item.musicBrainz!.status === 'Official');
+    items = filterNotEmpty(items, (item) => item.musicBrainz.status === 'Official');
     items = filterNotEmpty(items, (item) => !!item.isrc);
     items.sort(
         (a, b) =>
-            (digitalFormats[a.musicBrainz!.format] || 99) -
-            (digitalFormats[b.musicBrainz!.format] || 99)
+            (digitalFormats[a.musicBrainz.format] || 99) -
+            (digitalFormats[b.musicBrainz.format] || 99)
     );
 
-    return items;
+    return items.map((mbItem) => {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {musicBrainz: _, ...item} = mbItem;
+        return item;
+    });
 }
 
-export function createMediaItem(
-    release: MusicBrainz.Release,
-    track: MusicBrainz.Track,
-    musicBrainz?: MediaItem['musicBrainz']
-): MediaItem {
+export function createMediaItem(release: MusicBrainz.Release, track: MusicBrainz.Track): MediaItem {
     const recording = track.recording!;
     const [albumArtist] = getArtists(release) || [];
     const artists = getArtists(recording);
@@ -425,9 +449,8 @@ export function createMediaItem(
         release_mbid: release.id,
         artist_mbids: artists?.map((artist) => artist.id),
         isrc: recording.isrcs?.[0],
-        year: new Date(recording['first-release-date']).getUTCFullYear() || undefined,
+        year: new Date(recording['first-release-date']).getFullYear() || undefined,
         playedAt: 0,
-        musicBrainz,
     };
 }
 
@@ -441,6 +464,7 @@ const musicbrainzApi = {
     addMetadata,
     get: fetchJSON,
     getISRCs,
+    getUrls,
     lookup,
 };
 

@@ -1,16 +1,16 @@
 import type {Observable} from 'rxjs';
 import {Subscription, filter, map, mergeMap} from 'rxjs';
 import {nanoid} from 'nanoid';
-import {Except} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
-import Pager, {Page} from 'types/Pager';
+import Pager, {Page, PagerConfig} from 'types/Pager';
 import {musicBrainzHost} from 'services/musicbrainz';
-import MusicBrainzAlbumPager from 'services/musicbrainz/MusicBrainzAlbumPager';
+import MusicBrainzAlbumTracksPager from 'services/musicbrainz/MusicBrainzAlbumTracksPager';
+import ErrorPager from 'services/pagers/ErrorPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
 import {Logger} from 'utils';
@@ -22,7 +22,11 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
     private readonly pager: SequentialPager<T>;
     private subscriptions?: Subscription;
 
-    constructor(path: string, params?: Record<string, string | number | boolean>) {
+    constructor(
+        path: string,
+        params?: Record<string, string | number | boolean>,
+        options?: Partial<PagerConfig>
+    ) {
         let offset = 0;
         this.pager = new SequentialPager<T>(
             async (count: number): Promise<Page<T>> => {
@@ -41,7 +45,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
                     throw err;
                 }
             },
-            {pageSize: 50}
+            {pageSize: 50, ...options}
         );
     }
 
@@ -140,7 +144,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
 
     private createMediaAlbum(item: ListenBrainz.Release): MediaAlbum {
         const mbid = item.release_mbid || undefined;
-        const album: Except<MediaAlbum, 'pager'> = {
+        return {
             itemType: ItemType.Album,
             src: `listenbrainz:album:${nanoid()}`,
             externalUrl: mbid ? `${musicBrainzHost}/release/${mbid}` : undefined,
@@ -151,8 +155,10 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
             caa_mbid: item?.caa_release_mbid,
             playCount: item.listen_count,
             trackCount: undefined,
+            pager: mbid
+                ? new MusicBrainzAlbumTracksPager(mbid)
+                : new ErrorPager(Error('No MusicBrainz id')),
         };
-        return {...album, pager: mbid ? new MusicBrainzAlbumPager(mbid) : new SimplePager()};
     }
 
     private createMediaItem(item: ListenBrainz.Recording): MediaItem {
@@ -178,19 +184,19 @@ export default class ListenBrainzStatsPager<T extends MediaObject> implements Pa
     private isRecordingsResponse(
         response: ListenBrainz.Stats.Response
     ): response is ListenBrainz.Stats.Recordings {
-        return 'total_recording_count' in response.payload;
+        return 'recordings' in response.payload;
     }
 
     private isReleasesResponse(
         response: ListenBrainz.Stats.Response
     ): response is ListenBrainz.Stats.Releases {
-        return 'total_release_count' in response.payload;
+        return 'releases' in response.payload;
     }
 
     private isArtistsResponse(
         response: ListenBrainz.Stats.Response
     ): response is ListenBrainz.Stats.Artists {
-        return 'total_artist_count' in response.payload;
+        return 'artists' in response.payload;
     }
 
     private isNoContentError(err: any): boolean {

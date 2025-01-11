@@ -142,9 +142,10 @@ export default function ListView<T>({
     const [rowHeight, setRowHeight] = useState(0);
     const {cols, onColumnResize} = useColumns(layout, fontSize, storageId);
     const width = cols.reduce((width, col) => (width += col.width), 0) * fontSize;
-    const pageSize = rowHeight
-        ? Math.max(Math.ceil(clientHeight / rowHeight), 1) - (showTitles ? 1 : 0)
-        : 0;
+    const pageSize =
+        rowHeight && clientHeight
+            ? Math.max(Math.ceil(clientHeight / rowHeight), 1) - (showTitles ? 1 : 0)
+            : 0;
     const size = items.length;
     const {selectedItems, selectedIds, selectAll, selectAt, selectRange, toggleSelectionAt} =
         useSelectedItems(items, itemKey, rowIndex);
@@ -217,7 +218,11 @@ export default function ListView<T>({
 
     useEffect(() => onRowIndexChange?.(rowIndex), [rowIndex, onRowIndexChange]);
     useEffect(() => onScrollIndexChange?.(scrollIndex), [scrollIndex, onScrollIndexChange]);
-    useEffect(() => onPageSizeChange?.(pageSize), [pageSize, onPageSizeChange]);
+    useEffect(() => {
+        if (pageSize && onPageSizeChange) {
+            onPageSizeChange(pageSize);
+        }
+    }, [pageSize, onPageSizeChange]);
     useEffect(() => onSelect?.(debouncedSelectedItems), [debouncedSelectedItems, onSelect]);
 
     useEffect(() => setRowIndex(Math.min(size - 1, rowIndex)), [size, rowIndex]);
@@ -585,9 +590,7 @@ export default function ListView<T>({
 
     return (
         <div
-            className={`list-view list-view-${layout.view} ${className} ${
-                isThin ? 'thin' : ''
-            }`}
+            className={`list-view list-view-${layout.view} ${className} ${isThin ? 'thin' : ''}`}
             tabIndex={disabled ? undefined : isEmpty ? -1 : 0}
             onClick={handleClick}
             onContextMenu={handleContextMenu}

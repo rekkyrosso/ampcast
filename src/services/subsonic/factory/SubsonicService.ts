@@ -553,7 +553,7 @@ export default class SubsonicService implements PersonalMediaService {
         return this.api.getFilters(filterType, itemType);
     }
 
-    async getMetadata<T extends MediaObject>(item: T): Promise<T> {
+    async addMetadata<T extends MediaObject>(item: T): Promise<T> {
         const itemType = item.itemType;
         const id = this.getIdFromSrc(item);
         if (itemType === ItemType.Album) {

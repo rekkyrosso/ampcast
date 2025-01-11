@@ -19,7 +19,7 @@ import Pin from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
 import SimplePager from 'services/pagers/SimplePager';
-import fetchFirstPage from 'services/pagers/fetchFirstPage';
+import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import {t} from 'services/i18n';
 import subsonicScrobbler from 'services/subsonic/factory/subsonicScrobbler';
 import {bestOf, getTextFromHtml, Logger} from 'utils';
@@ -303,6 +303,7 @@ const navidrome: PersonalMediaService = {
     get host(): string {
         return navidromeSettings.host;
     },
+    addMetadata,
     addToPlaylist,
     canRate: () => false,
     canStore,
@@ -310,7 +311,6 @@ const navidrome: PersonalMediaService = {
     createPlaylist,
     createSourceFromPin,
     getFilters,
-    getMetadata,
     getPlayableUrl,
     getServerInfo,
     getThumbnailUrl,
@@ -394,7 +394,7 @@ async function getFilters(filterType: FilterType): Promise<readonly MediaFilter[
     }
 }
 
-async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
+async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
     const itemType = item.itemType;
     const id = getIdFromSrc(item);
     if (itemType === ItemType.Album) {
@@ -439,8 +439,8 @@ async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
         pageSize: 1,
         maxSize: 1,
     });
-    const items = await fetchFirstPage<T>(pager, {timeout: 2000});
-    return bestOf(item, items[0]);
+    const metadata = await fetchFirstItem<T>(pager, {timeout: 2000});
+    return bestOf(item, metadata);
 }
 
 function getPlayableUrl(item: PlayableItem): string {

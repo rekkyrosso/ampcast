@@ -1,6 +1,6 @@
 import {useEffect, useState} from 'react';
-import {filter, from, map, take, tap} from 'rxjs';
-import {exists, formatDate} from 'utils';
+import {from, map, take, tap} from 'rxjs';
+import {formatDate} from 'utils';
 import listenbrainzApi from '../listenbrainzApi';
 import listenbrainzSettings from '../listenbrainzSettings';
 
@@ -13,12 +13,9 @@ export default function useHistoryStart() {
     useEffect(() => {
         if (noStartDate) {
             setStartedAt(serviceStartDate);
-            const subscription = from(listenbrainzApi.getListeningActivity())
+            const subscription = from(listenbrainzApi.getListens({count: 1}))
                 .pipe(
-                    map((activities) => activities.find((activity) => activity.listen_count > 0)),
-                    filter(exists),
-                    // TODO: This just gets the first year.
-                    map((activity) => formatDate(Number(activity.from_ts) * 1000)),
+                    map(({payload}) => formatDate(Number(payload.oldest_listen_ts) * 1000)),
                     tap(
                         (firstScrobbledAt) =>
                             (listenbrainzSettings.firstScrobbledAt = firstScrobbledAt)

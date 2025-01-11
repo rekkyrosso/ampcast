@@ -63,7 +63,7 @@ export default function CurrentlyPlaying({
                 // Try again but break the cache.
                 const img = new Image();
                 img.crossOrigin = 'anonymous';
-                img.src = `${src}${src.includes('?') ? '&' : '?'}ampcast=1}`;
+                img.src = `${src}${src.includes('?') ? '&' : '?'}ampcast=1`;
 
                 if (img.complete) {
                     onload(img);

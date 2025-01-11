@@ -108,7 +108,9 @@ export default class SubsonicApi {
                 'getMusicDirectory',
                 {id}
             );
-            return (data.directory.child || []).sort((a, b) => a.track - b.track);
+            return (data.directory.child || [])
+                .filter((child) => !child.isDir)
+                .sort((a, b) => a.track - b.track);
         } else {
             const data = await this.get<{album: {song: Subsonic.Song[]}}>('getAlbum', {id});
             return data.album.song || [];
@@ -391,7 +393,8 @@ export default class SubsonicApi {
         return (
             data.searchResult2.album?.map((album) => ({
                 ...album,
-                name: album.name || (album as any).album || '[Unknown Album]',
+                name:
+                    album.name || (album as any).album || (album as any).title || '[Unknown Album]',
             })) || []
         );
     }

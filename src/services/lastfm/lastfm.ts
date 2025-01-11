@@ -7,7 +7,6 @@ import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaSource, {MediaMultiSource} from 'types/MediaSource';
-import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
@@ -23,26 +22,6 @@ import LastFmHistoryBrowser from './components/LastFmHistoryBrowser';
 import LastFmScrobblesBrowser from './components/LastFmScrobblesBrowser';
 import Credentials from './components/LastFmCredentials';
 import Login from './components/LastFmLogin';
-
-const topTracksLayout: MediaSourceLayout<MediaItem> = {
-    view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'Artist', 'PlayCount'],
-};
-
-const lovedTracksLayout: MediaSourceLayout<MediaItem> = {
-    view: 'card',
-    fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear'],
-};
-
-const albumLayout: MediaSourceLayout<MediaAlbum> = {
-    view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'Artist', 'Year', 'PlayCount'],
-};
-
-const artistLayout: MediaSourceLayout<MediaArtist> = {
-    view: 'card minimal',
-    fields: ['Thumbnail', 'Title', 'PlayCount'],
-};
 
 export const lastfmHistory: MediaSource<MediaItem> = {
     id: 'lastfm/history',
@@ -75,7 +54,10 @@ const lastfmLovedTracks: MediaSource<MediaItem> = {
     icon: 'heart',
     itemType: ItemType.Media,
     lockActionsStore: true,
-    layout: lovedTracksLayout,
+    layout: {
+        view: 'card',
+        fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear'],
+    },
 
     search(): Pager<MediaItem> {
         return new LastFmPager(
@@ -114,14 +96,26 @@ const lastfm: DataService = {
     root: lastfmScrobbles,
     sources: [
         createTopMultiSource<MediaItem>(ItemType.Media, 'Top Tracks', 'user.getTopTracks', {
-            layout: topTracksLayout,
+            layout: {
+                view: 'card compact',
+                fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'PlayCount'],
+            },
         }),
         createTopMultiSource<MediaAlbum>(ItemType.Album, 'Top Albums', 'user.getTopAlbums', {
-            layout: albumLayout,
+            layout: {
+                view: 'card compact',
+                fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'Year', 'PlayCount'],
+            },
         }),
         createTopMultiSource<MediaArtist>(ItemType.Artist, 'Top Artists', 'user.getTopArtists', {
-            layout: artistLayout,
-            secondaryLayout: albumLayout,
+            layout: {
+                view: 'card minimal',
+                fields: ['Index', 'Thumbnail', 'Title', 'PlayCount'],
+            },
+            secondaryLayout: {
+                view: 'card compact',
+                fields: ['Thumbnail', 'Title', 'Artist', 'Year'],
+            },
         }),
         lastfmLovedTracks,
         lastfmHistory,
@@ -130,10 +124,10 @@ const lastfm: DataService = {
         [Action.AddToLibrary]: 'Love on last.fm',
         [Action.RemoveFromLibrary]: 'Unlove on last.fm',
     },
+    addMetadata,
     canRate: () => false,
     canStore,
     compareForRating,
-    getMetadata,
     scrobble,
     store,
     observeIsLoggedIn,
@@ -176,7 +170,7 @@ function compareString(a: string, b = ''): boolean {
     return a.localeCompare(b, undefined, {sensitivity: 'accent'}) === 0;
 }
 
-async function getMetadata<T extends MediaObject>(item: T): Promise<T> {
+async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
     if (item.itemType !== ItemType.Media || item.inLibrary !== undefined) {
         return item;
     }
@@ -257,20 +251,20 @@ function createTopMultiSource<T extends MediaObject>(
         icon,
         searchable: false,
         sources: [
-            createTopSource<T>(method, 'overall', {
-                title: 'All time',
-                ...sourceProps,
-            }),
-            createTopSource<T>(method, '12month', {
-                title: 'Year',
+            createTopSource<T>(method, '7day', {
+                title: 'Week',
                 ...sourceProps,
             }),
             createTopSource<T>(method, '1month', {
                 title: 'Month',
                 ...sourceProps,
             }),
-            createTopSource<T>(method, '7day', {
-                title: 'Week',
+            createTopSource<T>(method, '12month', {
+                title: 'Year',
+                ...sourceProps,
+            }),
+            createTopSource<T>(method, 'overall', {
+                title: 'All time',
                 ...sourceProps,
             }),
         ],

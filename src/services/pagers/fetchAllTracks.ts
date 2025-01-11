@@ -8,7 +8,7 @@ export default function fetchAllTracks(
 ): Promise<readonly MediaItem[]> {
     return new Promise((resolve, reject) => {
         const pager = item.pager;
-        const limit = item.trackCount ?? 500;
+        const limit = item.trackCount ?? 200;
         const items$ = combineLatest([pager.observeItems(), pager.observeSize()]).pipe(
             filter(
                 ([items, size]) => items.reduce((total) => (total += 1), 0) >= Math.min(size, limit)
@@ -33,6 +33,6 @@ export default function fetchAllTracks(
                 resolve(result);
             }
         });
-        item.pager.fetchAt(0, limit);
+        item.pager.fetchAt(0, limit || 1);
     });
 }

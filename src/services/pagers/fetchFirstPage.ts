@@ -35,3 +35,11 @@ export default function fetchFirstPage<T>(
         pager.fetchAt(0);
     });
 }
+
+export async function fetchFirstItem<T>(
+    pager: Pager<T>,
+    options?: FetchFirstPageOptions
+): Promise<T> {
+    const [item] = await fetchFirstPage<T>(pager, options);
+    return item;
+}
