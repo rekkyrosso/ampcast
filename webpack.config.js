@@ -18,7 +18,7 @@ module.exports = (args) => {
         mode,
         entry: {
             'lib/music-metadata': 'music-metadata',
-            'lib/tidal-player': '@tidal-music/player',
+            // 'lib/tidal-player': '@tidal-music/player',
             'lib/unidecode': 'unidecode',
             'lib/vendors': [
                 'colorjs.io',
@@ -79,12 +79,12 @@ module.exports = (args) => {
                         chunks: 'all',
                         enforce: true,
                     },
-                    'lib/tidal-player': {
-                        name: 'lib/tidal-player',
-                        test: /[\\/]node_modules[\\/](@tidal\-music[\\/]player)[\\/]/,
-                        chunks: 'all',
-                        enforce: true,
-                    },
+                    // 'lib/tidal-player': {
+                    //     name: 'lib/tidal-player',
+                    //     test: /[\\/]node_modules[\\/](@tidal\-music[\\/]player)[\\/]/,
+                    //     chunks: 'all',
+                    //     enforce: true,
+                    // },
                 },
             },
         },

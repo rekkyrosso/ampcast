@@ -54,6 +54,12 @@ self.addEventListener('fetch', (event) => {
     }
 });
 
+self.addEventListener('message', (event) => {
+    if (event.data === 'SKIP_WAITING') {
+        self.skipWaiting();
+    }
+});
+
 async function fetchAndCache(request) {
     const response = await fetch(request);
     if (response.ok) {

@@ -154,7 +154,8 @@ export default class HTML5Player implements Player<PlayableItem> {
                     map(() => element.duration),
                     map((duration) =>
                         isNaN(duration) ? 0 : isFinite(duration) ? duration : MAX_DURATION
-                    )
+                    ),
+                    skipWhile((duration) => !duration)
                 )
             )
         );

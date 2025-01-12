@@ -9,10 +9,8 @@ import preferences from 'services/preferences';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
 import HLSPlayer from './players/HLSPlayer';
 import HTML5Player from './players/HTML5Player';
-import ShakaPlayer from './players/ShakaPlayer';
 import OmniPlayer from './players/OmniPlayer';
 
-const dashAudioPlayer = new ShakaPlayer('audio', 'dash');
 const hlsAudioPlayer = new HLSPlayer('audio', 'hls');
 const hlsVideoPlayer = new HLSPlayer('video', 'hls');
 const html5AudioPlayer = new HTML5Player('audio', 'main');
@@ -61,10 +59,6 @@ mediaPlayer.registerPlayers([
     // So put defaults first.
     [html5AudioPlayer, (item) => item?.mediaType === MediaType.Audio],
     [html5VideoPlayer, (item) => item?.mediaType === MediaType.Video],
-    [
-        dashAudioPlayer,
-        (item) => item?.mediaType === MediaType.Audio && item.playbackType === PlaybackType.DASH,
-    ],
     [
         hlsAudioPlayer,
         (item) => item?.mediaType === MediaType.Audio && item.playbackType === PlaybackType.HLS,
