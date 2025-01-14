@@ -83,7 +83,7 @@ async function obtainServerToken(): Promise<{id: string; serverToken: string}> {
         let authWindow: Window | null = null;
 
         const receiveMessage = (event: {origin: string; data: any}) => {
-            if (/(localhost|ampcast)/.test(event.origin)) {
+            if (event.data?.plex_callback) {
                 clearInterval(pollAuthWindowClosed);
                 window.removeEventListener('message', receiveMessage, false);
                 authWindow?.close();

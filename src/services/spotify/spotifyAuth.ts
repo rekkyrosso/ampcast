@@ -66,8 +66,11 @@ async function obtainAccessToken(state: string): Promise<TokenResponse> {
     return new Promise((resolve, reject) => {
         let authWindow: Window | null = null;
 
-        const receiveMessage = (event: {origin: string; data: {code: string; state: string}}) => {
-            if (/(localhost|ampcast)/.test(event.origin)) {
+        const receiveMessage = (event: {
+            origin: string;
+            data: {code: string; state: string; spotify_callback: boolean};
+        }) => {
+            if (event.data?.spotify_callback) {
                 clearInterval(pollAuthWindowClosed);
                 window.removeEventListener('message', receiveMessage, false);
                 authWindow?.close();

@@ -8,7 +8,7 @@ if (opener) {
     try {
         if (opener.location.origin === location.origin) {
             const params = new URLSearchParams(location.search);
-            const message = {};
+            const message = {spotify_callback: true};
             for (const [key, value] of params.entries()) {
                 message[key] = value;
             }

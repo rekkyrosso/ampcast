@@ -62,8 +62,11 @@ async function obtainAccessToken(): Promise<string> {
 
         let authWindow: Window | null = null;
 
-        const receiveMessage = (event: {origin: string; data: {token: string}}) => {
-            if (/(localhost|ampcast)/.test(event.origin)) {
+        const receiveMessage = (event: {
+            origin: string;
+            data: {token: string; lastfm_callback: boolean};
+        }) => {
+            if (event.data?.lastfm_callback) {
                 clearInterval(pollAuthWindowClosed);
                 window.removeEventListener('message', receiveMessage, false);
                 authWindow?.close();
