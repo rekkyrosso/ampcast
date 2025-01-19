@@ -34,6 +34,7 @@ export interface MediaListProps<T extends MediaObject>
 
 export default function MediaList<T extends MediaObject>({
     className = '',
+    draggable = false,
     pager = null,
     statusBar = true,
     loadingText,
@@ -80,6 +81,17 @@ export default function MediaList<T extends MediaObject>({
         }
     }, [fetchAt, scrollIndex, pageSize, pager]);
 
+    const isPlayable = useCallback(
+        (item: MediaObject): boolean => {
+            return (
+                item.itemType === ItemType.Media ||
+                item.itemType === ItemType.Album ||
+                (item.itemType === ItemType.Playlist && draggable)
+            );
+        },
+        [draggable]
+    );
+
     const handleSelect = useCallback(
         (items: readonly T[]) => {
             setSelectedItems(items);
@@ -115,7 +127,7 @@ export default function MediaList<T extends MediaObject>({
                 onDoubleClick?.(item, rowIndex);
             }
         },
-        [onDoubleClick]
+        [onDoubleClick, isPlayable]
     );
 
     const handleEnter = useCallback(
@@ -132,7 +144,7 @@ export default function MediaList<T extends MediaObject>({
                 onEnter?.(items, ctrlKey, shiftKey);
             }
         },
-        [onEnter]
+        [onEnter, isPlayable]
     );
 
     const handleInfo = useCallback(async (items: readonly T[]) => {
@@ -170,6 +182,7 @@ export default function MediaList<T extends MediaObject>({
                     items={items}
                     itemClassName={itemClassName}
                     itemKey={'src' as any} // TODO: remove cast
+                    draggable={draggable}
                     selectedIndex={items.length === 0 ? -1 : 0}
                     onContextMenu={onContextMenu || handleContextMenu}
                     onDoubleClick={handleDoubleClick}
@@ -202,8 +215,4 @@ function Empty<T extends MediaObject>({message}: {message: MediaListProps<T>['em
             <div className="note">{typeof message === 'string' ? <p>{message}</p> : message}</div>
         </div>
     );
-}
-
-function isPlayable(item: MediaObject): boolean {
-    return item.itemType === ItemType.Media || item.itemType === ItemType.Album;
 }

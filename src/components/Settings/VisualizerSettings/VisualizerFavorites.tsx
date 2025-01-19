@@ -44,6 +44,7 @@ export default function VisualizerFavorites() {
         []
     );
     const canAddCurrentVisualizer =
+        isPlaying &&
         currentVisualizer &&
         currentVisualizer.providerId !== 'none' &&
         !visualizerStore.hasFavorite(currentVisualizer);
@@ -81,16 +82,14 @@ export default function VisualizerFavorites() {
                 onSelect={setSelectedFavorites}
             />
             <p className="visualizer-favorites-buttons">
-                {isPlaying ? (
-                    <button
-                        className="visualizer-favorites-add"
-                        type="button"
-                        disabled={!canAddCurrentVisualizer}
-                        onClick={handleAddClick}
-                    >
-                        Add current visualizer
-                    </button>
-                ) : null}
+                <button
+                    className="visualizer-favorites-add"
+                    type="button"
+                    disabled={!canAddCurrentVisualizer}
+                    onClick={handleAddClick}
+                >
+                    Add current visualizer
+                </button>
                 <button
                     className="visualizer-favorites-delete"
                     type="button"

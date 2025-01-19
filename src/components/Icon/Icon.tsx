@@ -54,6 +54,7 @@ export type IconName =
     | 'playlist'
     | 'clock'
     | 'visualizer'
+    | 'country'
     | 'globe'
     | 'network'
     | 'data'
@@ -458,6 +459,7 @@ export default function Icon({name, className = ''}: IconProps) {
                 </svg>
             );
 
+        case 'country':
         case 'http':
         case 'https':
         case 'globe':

@@ -13,9 +13,22 @@
         all: unset;
         cursor: pointer;
         border-radius: calc(var(--roundness) * 0.5em);
+        font-family: sans-serif;
 
         &:hover {
             opacity: 1;
+        }
+    }
+
+    .half-star {
+        position: relative;
+
+        &-fg {
+            position: absolute;
+            left: 0;
+            width: 50%;
+            display: inline-block;
+            overflow: hidden;
         }
     }
 

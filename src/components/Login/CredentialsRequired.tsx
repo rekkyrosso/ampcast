@@ -11,9 +11,7 @@ export default function CredentialsRequired({service}: LoginProps) {
             <p>Please register a client application to continue.</p>
             {credentialsUrl ? (
                 <p>
-                    <ExternalLink href={credentialsUrl} rel="noreferrer">
-                        {credentialsUrl}
-                    </ExternalLink>
+                    <ExternalLink href={credentialsUrl} rel="noreferrer" />
                 </p>
             ) : null}
         </div>

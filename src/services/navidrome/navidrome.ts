@@ -387,10 +387,15 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
 }
 
 async function getFilters(filterType: FilterType): Promise<readonly MediaFilter[]> {
-    if (filterType === FilterType.ByDecade) {
-        return subsonicApi.getDecades();
-    } else {
-        return navidromeApi.getGenres();
+    switch (filterType) {
+        case FilterType.ByDecade:
+            return subsonicApi.getDecades();
+
+        case FilterType.ByGenre:
+            return navidromeApi.getGenres();
+
+        default:
+            throw Error('Not supported');
     }
 }
 

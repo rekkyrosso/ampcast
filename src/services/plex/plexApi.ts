@@ -189,39 +189,43 @@ async function getMusicLibraries(
         .map(({key: id, title}) => ({id, title}));
 }
 
-async function getDecades(): Promise<readonly MediaFilter[]> {
-    const {
-        MediaContainer: {Directory: decades},
-    } = await fetchJSON<plex.DirectoryResponse>({
-        path: getMusicLibraryPath('decade'),
-        params: {type: plexMediaType.Album},
-    });
-    const thisDecade = Math.floor(new Date().getFullYear() / 10) * 10;
-    return decades
-        .filter(({key: decade}) => Number(decade) > 500 && Number(decade) <= thisDecade)
-        .map(({key: id, title}) => ({id, title}));
-}
-
 async function getFilters(
     filterType: FilterType,
     itemType: ItemType
 ): Promise<readonly MediaFilter[]> {
-    if (filterType === FilterType.ByDecade) {
-        return getDecades();
-    } else {
-        return getGenres(itemType);
+    switch (filterType) {
+        case FilterType.ByCountry:
+            return getPlexFilters(itemType, 'country');
+
+        case FilterType.ByDecade:
+            return getPlexFilters(itemType, 'decade');
+
+        case FilterType.ByGenre:
+            return getPlexFilters(itemType, 'genre');
+
+        case FilterType.ByMood:
+            return getPlexFilters(itemType, 'mood');
+
+        case FilterType.ByStyle:
+            return getPlexFilters(itemType, 'style');
+
+        default:
+            throw Error('Not supported');
     }
 }
 
-async function getGenres(itemType: ItemType): Promise<readonly MediaFilter[]> {
+async function getPlexFilters(
+    itemType: ItemType,
+    filterName: string
+): Promise<readonly MediaFilter[]> {
     const type = getPlexMediaType(itemType);
     const {
-        MediaContainer: {Directory: genres},
+        MediaContainer: {Directory: filters},
     } = await fetchJSON<plex.DirectoryResponse>({
-        path: getMusicLibraryPath('genre'),
+        path: getMusicLibraryPath(filterName),
         params: {type},
     });
-    return genres.map(({key: id, title}) => ({id, title}));
+    return filters.map(({key: id, title}) => ({id, title}));
 }
 
 export function getMusicLibraryPath(path = 'all'): string {

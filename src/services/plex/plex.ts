@@ -273,6 +273,62 @@ const plexEditablePlaylists: MediaSource<MediaPlaylist> = {
     },
 };
 
+const plexTracksByGenre: MediaSource<MediaItem> = {
+    id: 'plex/tracks-by-genre',
+    title: 'Tracks by Genre',
+    icon: 'genre',
+    itemType: ItemType.Media,
+    filterType: FilterType.ByGenre,
+    Component: FilterBrowser,
+    defaultHidden: true,
+    layout: {
+        view: 'card small',
+        fields: ['Thumbnail', 'Title', 'Artist', 'Duration'],
+    },
+
+    search(genre?: MediaFilter): Pager<MediaItem> {
+        if (genre) {
+            return new PlexPager({
+                path: getMusicLibraryPath(),
+                params: {
+                    genre: genre.id,
+                    type: plexMediaType.Track,
+                },
+            });
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const plexTracksByMood: MediaSource<MediaItem> = {
+    id: 'plex/tracks-by-mood',
+    title: 'Tracks by Mood',
+    icon: 'genre',
+    itemType: ItemType.Media,
+    filterType: FilterType.ByMood,
+    Component: FilterBrowser,
+    defaultHidden: true,
+    layout: {
+        view: 'card small',
+        fields: ['Thumbnail', 'Title', 'Artist', 'Duration'],
+    },
+
+    search(mood?: MediaFilter): Pager<MediaItem> {
+        if (mood) {
+            return new PlexPager({
+                path: getMusicLibraryPath(),
+                params: {
+                    genre: mood.id,
+                    type: plexMediaType.Track,
+                },
+            });
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
 const plexAlbumsByGenre: MediaSource<MediaAlbum> = {
     id: 'plex/albums-by-genre',
     title: 'Albums by Genre',
@@ -288,6 +344,78 @@ const plexAlbumsByGenre: MediaSource<MediaAlbum> = {
                 params: {
                     genre: genre.id,
                     type: plexMediaType.Album,
+                },
+            });
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const plexAlbumsByMood: MediaSource<MediaAlbum> = {
+    id: 'plex/albums-by-mood',
+    title: 'Albums by Mood',
+    icon: 'genre',
+    itemType: ItemType.Album,
+    filterType: FilterType.ByMood,
+    Component: FilterBrowser,
+    defaultHidden: true,
+
+    search(mood?: MediaFilter): Pager<MediaAlbum> {
+        if (mood) {
+            return new PlexPager({
+                path: getMusicLibraryPath(),
+                params: {
+                    genre: mood.id,
+                    type: plexMediaType.Album,
+                },
+            });
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const plexAlbumsByStyle: MediaSource<MediaAlbum> = {
+    id: 'plex/albums-by-style',
+    title: 'Albums by Style',
+    icon: 'genre',
+    itemType: ItemType.Album,
+    filterType: FilterType.ByStyle,
+    Component: FilterBrowser,
+    defaultHidden: true,
+
+    search(style?: MediaFilter): Pager<MediaAlbum> {
+        if (style) {
+            return new PlexPager({
+                path: getMusicLibraryPath(),
+                params: {
+                    genre: style.id,
+                    type: plexMediaType.Album,
+                },
+            });
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
+const plexArtistsByCountry: MediaSource<MediaArtist> = {
+    id: 'plex/artists-by-country',
+    title: 'Artists by Country',
+    icon: 'country',
+    itemType: ItemType.Artist,
+    filterType: FilterType.ByCountry,
+    Component: FilterBrowser,
+    defaultHidden: true,
+
+    search(country?: MediaFilter): Pager<MediaArtist> {
+        if (country) {
+            return new PlexPager({
+                path: getMusicLibraryPath(),
+                params: {
+                    genre: country.id,
+                    type: plexMediaType.Artist,
                 },
             });
         } else {
@@ -477,8 +605,13 @@ const plex: PersonalMediaService = {
         plexRecentlyAdded,
         plexRecentlyPlayed,
         plexPlaylists,
+        plexTracksByGenre,
+        plexTracksByMood,
         plexAlbumsByGenre,
+        plexAlbumsByMood,
+        plexAlbumsByStyle,
         plexArtistsByGenre,
+        plexArtistsByCountry,
         plexAlbumsByDecade,
         plexRandomTracks,
         plexRandomAlbums,

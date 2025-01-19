@@ -29,7 +29,7 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
     const paused = usePaused();
     const {showPlaylistMenu} = usePlaylistMenu(playlistRef, fileRef);
     const inject = usePlaylistInject();
-    const [seekTime, setSeekTime] = useThrottledValue(0, 300, {trailing: true});
+    const [seekTime, setSeekTime] = useThrottledValue(-1, 300, {trailing: true});
     const [seeking, setSeeking] = useState(false);
 
     useEffect(() => {
@@ -47,7 +47,9 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
     }, [isLiveStreaming, seeking]);
 
     useEffect(() => {
-        seek(seekTime);
+        if (seekTime !== -1) {
+            seek(seekTime);
+        }
     }, [seekTime]);
 
     const handleSeekChange = useCallback(

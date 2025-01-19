@@ -2,7 +2,7 @@ import type {
     BaseItemDto,
     BaseItemDtoQueryResult,
     EndPointInfo,
-    PublicSystemInfo
+    PublicSystemInfo,
 } from '@jellyfin/sdk/lib/generated-client';
 import {Primitive} from 'type-fest';
 import FilterType from 'types/FilterType';
@@ -85,10 +85,15 @@ async function getFilters(
     itemType: ItemType,
     settings?: EmbySettings
 ): Promise<readonly MediaFilter[]> {
-    if (filterType === FilterType.ByDecade) {
-        return getDecades(itemType, settings);
-    } else {
-        return getGenres(itemType, settings);
+    switch (filterType) {
+        case FilterType.ByDecade:
+            return getDecades(itemType, settings);
+
+        case FilterType.ByGenre:
+            return getGenres(itemType, settings);
+
+        default:
+            throw Error('Not supported');
     }
 }
 

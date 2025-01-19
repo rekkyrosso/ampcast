@@ -177,10 +177,15 @@ export default class SubsonicApi {
     }
 
     async getFilters(filterType: FilterType, itemType: ItemType): Promise<readonly MediaFilter[]> {
-        if (filterType === FilterType.ByDecade) {
-            return this.getDecades();
-        } else {
-            return this.getGenres(itemType);
+        switch (filterType) {
+            case FilterType.ByDecade:
+                return this.getDecades();
+    
+            case FilterType.ByGenre:
+                return this.getGenres(itemType);
+    
+            default:
+                throw Error('Not supported');
         }
     }
 

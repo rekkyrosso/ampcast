@@ -24,12 +24,7 @@ export default function FilterSelect({
     const id = useId();
     const [filters, setFilters] = useState<readonly MediaFilter[]>([]);
     const [filter, setFilter] = useState<MediaFilter | undefined>();
-    const title =
-        filterType === FilterType.ByDecade
-            ? 'Decade'
-            : service.id === 'spotify'
-            ? 'Category'
-            : 'Genre';
+    const filterName = useFilterName(filterType, service.id);
 
     useEffect(() => {
         if (filter && onSelect) {
@@ -60,7 +55,7 @@ export default function FilterSelect({
 
     return (
         <div className="filter-select">
-            <label htmlFor={id}>{title}:</label>
+            <label htmlFor={id}>{filterName}:</label>
             <select id={id} onChange={handleChange}>
                 {filters.map((filter, index) => (
                     <option value={index} key={filter.id}>
@@ -70,4 +65,26 @@ export default function FilterSelect({
             </select>
         </div>
     );
+}
+
+function useFilterName(filterType: FilterType, serviceId: string): string {
+    switch (filterType) {
+        case FilterType.ByCountry:
+            return 'Country';
+
+        case FilterType.ByDecade:
+            return 'Decade';
+
+        case FilterType.ByGenre:
+            return serviceId === 'spotify' ? 'Category' : 'Genre';
+
+        case FilterType.ByMood:
+            return 'Mood';
+
+        case FilterType.ByStyle:
+            return 'Style';
+
+        default:
+            return 'Filter';
+    }
 }
