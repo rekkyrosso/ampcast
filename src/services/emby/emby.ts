@@ -41,8 +41,6 @@ import FolderBrowser from 'components/MediaBrowser/FolderBrowser';
 
 const serviceId: MediaServiceId = 'emby';
 
-const songSort = 'AlbumArtist,Album,ParentIndexNumber,IndexNumber,SortName';
-
 const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
     view: 'card compact',
     fields: ['Thumbnail', 'Title', 'TrackCount', 'Genre', 'Progress'],
@@ -211,7 +209,7 @@ const embyTracksByGenre: MediaSource<MediaItem> = {
                 ParentId: getMusicLibraryId(),
                 GenreIds: genre.id,
                 IncludeItemTypes: 'Audio',
-                SortBy: songSort,
+                SortBy: 'AlbumArtist,Album,ParentIndexNumber,IndexNumber,SortName',
             });
         } else {
             return new SimplePager();
@@ -271,6 +269,10 @@ const embyTracksByDecade: MediaSource<MediaItem> = {
     filterType: FilterType.ByDecade,
     Component: FilterBrowser,
     defaultHidden: true,
+    layout: {
+        view: 'details',
+        fields: ['Year', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'Genre', 'PlayCount'],
+    },
 
     search(decade?: MediaFilter): Pager<MediaItem> {
         if (decade) {
@@ -278,7 +280,8 @@ const embyTracksByDecade: MediaSource<MediaItem> = {
                 ParentId: getMusicLibraryId(),
                 Years: decade.id,
                 IncludeItemTypes: 'Audio',
-                SortBy: songSort,
+                SortBy: 'ProductionYear,PremiereDate,AlbumArtist,Album,ParentIndexNumber,IndexNumber,SortName',
+                SortOrder: 'Descending,Descending,Ascending,Ascending,Ascending,Ascending,Ascending'
             });
         } else {
             return new SimplePager();
@@ -300,7 +303,8 @@ const embyAlbumsByDecade: MediaSource<MediaAlbum> = {
                 ParentId: getMusicLibraryId(),
                 Years: decade.id,
                 IncludeItemTypes: 'MusicAlbum',
-                SortBy: 'AlbumArtist,SortName',
+                SortBy: 'ProductionYear,AlbumArtist,PremiereDate,SortName',
+                SortOrder: 'Descending,Ascending,Descending,Ascending'
             });
         } else {
             return new SimplePager();

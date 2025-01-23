@@ -93,6 +93,7 @@ function getServicesLocalStorage(): Record<string, string> {
         'scrobbling/noScrobble',
         'scrobbling/options',
         'services/hidden',
+        'services/sorting',
         'lookup/preferPersonalMedia',
         'apple/bitrate',
         ...getPersonalMediaServices()

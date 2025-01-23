@@ -9,6 +9,7 @@ import MediaFilter from 'types/MediaFilter';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
+import MediaSearchParams from 'types/MediaSearchParams';
 import MediaSource, {MediaMultiSource} from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
@@ -47,6 +48,17 @@ const chartsLayoutLarge: MediaSourceLayout<MediaItem> = {
 const chartsLayoutSmall: MediaSourceLayout<MediaItem> = {
     view: 'card small',
     fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'Duration'],
+};
+
+const appleLibrarySort: Pick<MediaSource<any>, 'sortOptions' | 'defaultSort'> = {
+    sortOptions: {
+        name: 'Sort by Title',
+        dateAdded: 'Sort by Date Added',
+    },
+    defaultSort: {
+        sortBy: 'dateAdded',
+        sortOrder: -1,
+    },
 };
 
 const appleSearch: MediaMultiSource = {
@@ -118,10 +130,14 @@ const appleLibrarySongs: MediaSource<MediaItem> = {
     lockActionsStore: true,
     layout: defaultLayout,
     defaultHidden: true,
+    ...appleLibrarySort,
 
-    search(): Pager<MediaItem> {
+    search(
+        {sortBy, sortOrder}: MediaSearchParams = appleLibrarySort.defaultSort
+    ): Pager<MediaItem> {
         return new MusicKitPager('/v1/me/library/songs', {
             'include[library-songs]': 'catalog',
+            sort: `${sortOrder === -1 ? '-' : ''}${sortBy}`,
         });
     },
 };
@@ -132,12 +148,15 @@ const appleLibraryAlbums: MediaSource<MediaAlbum> = {
     icon: 'tick',
     itemType: ItemType.Album,
     lockActionsStore: true,
+    ...appleLibrarySort,
 
-    search(): Pager<MediaAlbum> {
+    search(
+        {sortBy, sortOrder}: MediaSearchParams = appleLibrarySort.defaultSort
+    ): Pager<MediaAlbum> {
         return new MusicKitPager('/v1/me/library/albums', {
             'fields[library-albums]': 'name,artistName,playParams,artwork',
             'include[library-albums]': 'catalog',
-            sort: '-dateAdded',
+            sort: `${sortOrder === -1 ? '-' : ''}${sortBy}`,
         });
     },
 };
@@ -165,12 +184,15 @@ const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
     icon: 'tick',
     itemType: ItemType.Playlist,
     lockActionsStore: true,
+    ...appleLibrarySort,
 
-    search(): Pager<MediaPlaylist> {
+    search(
+        {sortBy, sortOrder}: MediaSearchParams = appleLibrarySort.defaultSort
+    ): Pager<MediaPlaylist> {
         return new MusicKitPager('/v1/me/library/playlists', {
             'fields[library-playlists]': 'name,playParams,artwork',
             'include[library-playlists]': 'catalog',
-            sort: '-dateAdded',
+            sort: `${sortOrder === -1 ? '-' : ''}${sortBy}`,
         });
     },
 };
@@ -199,10 +221,14 @@ const appleLibraryVideos: MediaSource<MediaItem> = {
     lockActionsStore: true,
     layout: defaultLayout,
     defaultHidden: true,
+    ...appleLibrarySort,
 
-    search(): Pager<MediaItem> {
+    search(
+        {sortBy, sortOrder}: MediaSearchParams = appleLibrarySort.defaultSort
+    ): Pager<MediaItem> {
         return new MusicKitPager('/v1/me/library/music-videos', {
             'include[library-music-videos]': 'catalog',
+            sort: `${sortOrder === -1 ? '-' : ''}${sortBy}`,
         });
     },
 };

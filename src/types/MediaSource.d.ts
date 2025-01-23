@@ -10,6 +10,7 @@ import MediaFolderItem from './MediaFolderItem';
 import MediaItem from './MediaItem';
 import MediaObject from './MediaObject';
 import MediaPlaylist from './MediaPlaylist';
+import MediaSearchParams from './MediaSearchParams';
 import MediaService from './MediaService';
 import MediaSourceLayout from './MediaSourceLayout';
 import MediaType from './MediaType';
@@ -31,12 +32,14 @@ export default interface MediaSource<T extends MediaObject> {
     readonly secondaryLayout?: MediaSourceLayout<ChildOf<T>>;
     readonly tertiaryLayout?: MediaSourceLayout<ChildOf<ChildOf<T>>>;
     readonly searchable?: boolean;
+    readonly sortOptions?: Record<string, string>;
+    readonly defaultSort?: Pick<MediaSearchParams, 'sortBy', 'sortOrder'>;
     readonly defaultHidden?: boolean;
     readonly disabled?: boolean;
     readonly isPin?: boolean;
     readonly lockActionsStore?: boolean;
     readonly Component?: MediaSourceComponent<T>;
-    search(params?: MediaFilter | Record<string, unknown>): Pager<T>;
+    search(params?: MediaSearchParams | MediaFilter | Record<string, unknown>): Pager<T>;
 }
 
 export type MediaMultiSource<T extends MediaObject = any> = Pick<

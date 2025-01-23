@@ -267,6 +267,10 @@ const jellyfinTracksByDecade: MediaSource<MediaItem> = {
     filterType: FilterType.ByDecade,
     Component: FilterBrowser,
     defaultHidden: true,
+    layout: {
+        view: 'details',
+        fields: ['Year', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'Genre', 'PlayCount'],
+    },
 
     search(decade?: MediaFilter): Pager<MediaItem> {
         if (decade) {
@@ -274,7 +278,8 @@ const jellyfinTracksByDecade: MediaSource<MediaItem> = {
                 ParentId: getMusicLibraryId(),
                 Years: decade.id,
                 IncludeItemTypes: 'Audio',
-                SortBy: 'AlbumArtist,Album,ParentIndexNumber,IndexNumber,SortName',
+                SortBy: 'ProductionYear,PremiereDate,AlbumArtist,Album,ParentIndexNumber,IndexNumber,SortName',
+                SortOrder: 'Descending,Descending,Ascending,Ascending,Ascending,Ascending,Ascending'
             });
         } else {
             return new SimplePager();
@@ -296,7 +301,8 @@ const jellyfinAlbumsByDecade: MediaSource<MediaAlbum> = {
                 ParentId: getMusicLibraryId(),
                 Years: decade.id,
                 IncludeItemTypes: 'MusicAlbum',
-                SortBy: 'AlbumArtist,SortName',
+                SortBy: 'ProductionYear,AlbumArtist,PremiereDate,SortName',
+                SortOrder: 'Descending,Ascending,Descending,Ascending'
             });
         } else {
             return new SimplePager();

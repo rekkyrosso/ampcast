@@ -463,6 +463,7 @@ const plexAlbumsByDecade: MediaSource<MediaAlbum> = {
                 params: {
                     decade: decade.id,
                     type: plexMediaType.Album,
+                    sort: 'year:desc,originallyAvailableAt:desc',
                 },
             });
         } else {

@@ -4,6 +4,7 @@ import MediaSource, {AnyMediaSource, MediaMultiSource} from 'types/MediaSource';
 import actionsStore from 'services/actions/actionsStore';
 import SearchBar from 'components/SearchBar';
 import useSearch from 'hooks/useSearch';
+import useSorting from 'hooks/useSorting';
 import {MediaBrowserProps} from './MediaBrowser';
 import MediaSourceSelector from './MediaSourceSelector';
 import PageHeader from './PageHeader';
@@ -13,7 +14,8 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
     const sources = isMediaMultiSource(source) ? source.sources : [source];
     const [selectedSource, setSelectedSource] = useState<MediaSource<MediaObject>>(sources[0]);
     const [query, setQuery] = useState('');
-    const pager = useSearch(selectedSource, query);
+    const {sortBy, sortOrder} = useSorting(selectedSource);
+    const pager = useSearch(selectedSource, query, sortBy, sortOrder);
     const searchable = !!source.searchable;
     const showPagerHeader = !searchable && !source.isPin;
 
@@ -32,7 +34,7 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
     return (
         <>
             {showPagerHeader ? (
-                <PageHeader icon={service.icon}>
+                <PageHeader icon={service.icon} sortable={selectedSource}>
                     {service.name}: {source.title}
                 </PageHeader>
             ) : null}

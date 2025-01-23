@@ -1,4 +1,7 @@
 .page-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
     font-size: 1.125em;
     background: linear-gradient(
         to bottom,
@@ -15,7 +18,7 @@
         var(--frame-color-hi);
     padding: 0.25em;
     margin-bottom: var(--gutter-width);
-    border-radius: calc(var(--roundness) * 1em);
+    border-radius: var(--app-border-radius);
     text-indent: calc(1.5em + var(--roundness) * 0.25em);
     white-space: nowrap;
     overflow: hidden;
@@ -30,13 +33,19 @@
         border-color: var(--black);
     }
 
-    .icon {
+    .media-source-label .icon {
         position: absolute;
         left: calc(0.375em + var(--roundness) * 0.25em);
         width: auto;
         min-width: 1.125em;
         height: 1.125em;
         aspect-ratio: 1;
+    }
+
+    .icon-button-menu {
+        margin-left: auto;
+        margin-right: 0.125em;
+        font-size: 0.875em;
     }
 
     .date-picker {
