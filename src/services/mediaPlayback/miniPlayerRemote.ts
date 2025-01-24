@@ -132,6 +132,10 @@ const connect = (
                 mediaPlayback.load(data);
                 break;
 
+            case 'loadNext':
+                mediaPlayer.loadNext(data);
+                break;
+
             case 'lock':
                 lockLoading();
                 break;

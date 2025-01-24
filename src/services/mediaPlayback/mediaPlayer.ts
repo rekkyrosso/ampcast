@@ -1,7 +1,6 @@
 import MediaType from 'types/MediaType';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
-import Player from 'types/Player';
 import PlaylistItem from 'types/PlaylistItem';
 import audio from 'services/audio';
 import {getServiceFromSrc} from 'services/mediaServices';
@@ -17,11 +16,7 @@ const html5AudioPlayer = new HTML5Player('audio', 'main');
 const html5VideoPlayer = new HTML5Player('video', 'main');
 const youtubePlayer = new YouTubePlayer('main');
 
-function loadPlayer(player: Player<PlayableItem>, item: PlaylistItem | null): void {
-    player.load(getPlayableItem(item));
-}
-
-function getPlayableItem(item: PlaylistItem | null): PlayableItem {
+function mapMediaSrc(item: PlaylistItem | null): PlayableItem {
     if (!item) {
         throw Error('No source');
     } else if (!isPlayable(item)) {
@@ -50,7 +45,7 @@ function isPlayable(item: PlaylistItem): boolean {
 
 const mediaPlayer = new OmniPlayer<PlaylistItem | null, PlayableItem>(
     'mediaPlayer',
-    loadPlayer,
+    mapMediaSrc,
     audio
 );
 

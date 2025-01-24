@@ -1,6 +1,5 @@
 import {fromEvent, of, skipWhile, switchMap, takeUntil, tap} from 'rxjs';
-import {NextVisualizer} from 'types/Visualizer';
-import Player from 'types/Player';
+import Visualizer from 'types/Visualizer';
 import {Logger} from 'utils';
 import audio from 'services/audio';
 import {nextVisualizer, noVisualizer, observeNextVisualizer} from 'services/visualizer';
@@ -12,11 +11,7 @@ const logger = new Logger('visualizerPlayer');
 
 const killed$ = fromEvent(window, 'pagehide');
 
-function loadVisualizer(player: Player<NextVisualizer>, visualizer: NextVisualizer): void {
-    player.load(visualizer);
-}
-
-const visualizerPlayer = new OmniPlayer<NextVisualizer>('visualizerPlayer', loadVisualizer);
+const visualizerPlayer = new OmniPlayer<Visualizer>('visualizerPlayer');
 
 visualizerPlayer.loop = true;
 visualizerPlayer.muted = true;

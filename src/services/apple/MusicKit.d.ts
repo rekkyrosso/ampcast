@@ -6,6 +6,7 @@ declare namespace MusicKit {
     interface MusicKitInstance {
         readonly player: never;
         readonly nowPlayingItem: MediaItem;
+        readonly nowPlayingItemIndex?: number;
         readonly queue: Queue;
         readonly isPlaying: boolean;
         readonly version: string;

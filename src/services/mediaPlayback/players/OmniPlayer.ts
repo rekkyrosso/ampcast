@@ -29,7 +29,7 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
 
     constructor(
         id: string,
-        private readonly loadPlayer: (player: Player<S>, src: T) => void,
+        private readonly mapSrc: (src: T) => S = (src) => src as unknown as S,
         private readonly audio?: Pick<AudioManager, 'volume'>
     ) {
         this.element.id = id;
@@ -162,7 +162,7 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
         if (nextPlayer) {
             try {
                 nextPlayer.autoplay = this.autoplay;
-                this.loadPlayer(nextPlayer, src);
+                nextPlayer.load(this.mapSrc(src));
                 nextPlayer.muted = this.muted;
                 nextPlayer.hidden = this.hidden;
             } catch (err: any) {
@@ -170,6 +170,15 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
             }
         } else {
             this.loadError = Error('No player found');
+        }
+    }
+
+    loadNext(src: T): void {
+        try {
+            const nextPlayer = this.selectPlayer(src);
+            nextPlayer?.loadNext?.(this.mapSrc(src));
+        } catch (err) {
+            console.error(err);
         }
     }
 

@@ -221,6 +221,10 @@ const load = (item: PlaylistItem | null): void => {
     }
 };
 
+const loadNext = (item: PlaylistItem | null): void => {
+    sendCommand('loadNext', safeMediaItem(item));
+};
+
 const lock = (): void => sendCommand('lock');
 
 const nextVisualizer = (): void => sendCommand('next-visualizer');
@@ -346,6 +350,7 @@ const miniPlayer = {
     focus,
     getPlaybackState,
     load,
+    loadNext,
     lock,
     nextVisualizer,
     open,

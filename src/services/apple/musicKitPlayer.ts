@@ -153,6 +153,17 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         }
     }
 
+    loadNext(item: PlayableItem): void {
+        if (this.player) {
+            const [, , id] = item.src.split(':');
+            const queue = this.player.queue;
+            if (queue.items[queue.position + 1]?.id !== id) {
+                const queueItem = this.getQueueItem(item.src);
+                this.player.playNext(queueItem).then(undefined, logger.warn);
+            }
+        }
+    }
+
     play(): void {
         logger.log('play');
         this.stopped = false;
@@ -220,6 +231,10 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                 player.addEventListener(Events.playbackDurationDidChange, this.onDurationChange);
                 player.addEventListener(Events.playbackTimeDidChange, this.onTimeChange);
                 player.addEventListener(Events.mediaPlaybackError, this.onError);
+                player.addEventListener(
+                    Events.queuePositionDidChange,
+                    this.onQueuePositionDidChange
+                );
             } else {
                 throw Error('Not logged in');
             }
@@ -235,19 +250,18 @@ export class MusicKitPlayer implements Player<PlayableItem> {
             throw Error('Not logged in');
         }
 
-        const {src, startTime = 0} = item;
-        const [, type, id] = src.split(':');
-
-        // "(library-)?music-videos" => "musicVideo"
-        const kind = type
-            .replace('library-', '')
-            .replace(/s$/, '')
-            .replace(/-([a-z])/g, (_, char) => char.toUpperCase());
-
         this.loading = true;
-        await this.player.setQueue({[kind]: id, startTime, startPlaying: true});
-        this.loading = false;
+
+        const {src, startTime = 0} = item;
+        const [, , id] = src.split(':');
+
+        const queue = this.player.queue;
+        if (queue.items[queue.position]?.id !== id) {
+            const queueItem = this.getQueueItem(src);
+            await this.player.setQueue({...queueItem, startTime, startPlaying: true});
+        }
         this.loadedSrc = item.src;
+        this.loading = false;
 
         try {
             if (this.paused) {
@@ -265,6 +279,18 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                 throw err;
             }
         }
+    }
+
+    private getQueueItem(src: string): MusicKit.SetQueueOptions {
+        const [, type, id] = src.split(':');
+
+        // "(library-)?music-videos" => "musicVideo"
+        const kind = type
+            .replace('library-', '')
+            .replace(/s$/, '')
+            .replace(/-([a-z])/g, (_, char) => char.toUpperCase());
+
+        return {[kind]: id};
     }
 
     private async safePause(): Promise<void> {
@@ -388,6 +414,17 @@ export class MusicKitPlayer implements Player<PlayableItem> {
 
     private readonly onDurationChange: any = ({duration}: {duration: number}) => {
         this.duration$.next(duration);
+    };
+
+    private readonly onQueuePositionDidChange: any = ({
+        oldPosition,
+    }: {
+        oldPosition: number;
+        position: number;
+    }) => {
+        if (oldPosition !== -1) {
+            this.ended$.next();
+        }
     };
 
     private readonly onTimeChange: any = ({currentPlaybackTime}: {currentPlaybackTime: number}) => {

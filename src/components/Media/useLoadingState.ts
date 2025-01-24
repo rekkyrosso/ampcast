@@ -1,7 +1,7 @@
 import {useEffect, useState} from 'react';
-import {Subscription, take} from 'rxjs';
+import {Subscription, filter, race, take} from 'rxjs';
 import LookupStatus from 'types/LookupStatus';
-import {observeError, observePlaying} from 'services/mediaPlayback';
+import {observeCurrentTime, observeError, observePlaying} from 'services/mediaPlayback';
 import {isPlayableSrc} from 'services/mediaServices';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 
@@ -32,7 +32,10 @@ export default function useLoadingState(): LoadingState {
                         setState('loading');
                         const subscription = new Subscription();
                         subscription.add(
-                            observePlaying()
+                            race(
+                                observePlaying(),
+                                observeCurrentTime().pipe(filter((time) => time >= 1))
+                            )
                                 .pipe(take(1))
                                 .subscribe(() => setState('loaded'))
                         );

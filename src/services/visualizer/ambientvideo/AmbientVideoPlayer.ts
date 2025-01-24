@@ -120,25 +120,22 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
         const html5Player = new HTML5Player('video', 'ambient');
         const youtubePlayer = this.createYouTubePlayer();
 
-        const loadPlayer = (
-            player: Player<PlayableItem>,
-            {video}: AmbientVideoVisualizer
-        ): void => {
+        const mapVideoSrc = ({video}: AmbientVideoVisualizer): PlayableItem => {
             const src = video.src;
             if (src.startsWith('youtube:')) {
                 const [, , videoId] = src.split(':');
                 const key = this.getProgressKey();
                 const progress = this.storage.getJson<ProgressRecord>(key, {});
                 const startTime = progress[videoId] || (key === 'progress' ? 120 : 0);
-                player.load({src, startTime});
+                return {src, startTime};
             } else {
-                player.load(video);
+                return video;
             }
         };
 
         const videoPlayer = new OmniPlayer<AmbientVideoVisualizer, PlayableItem>(
             'ambientVideoPlayer',
-            loadPlayer
+            mapVideoSrc
         );
 
         videoPlayer.loop = true;

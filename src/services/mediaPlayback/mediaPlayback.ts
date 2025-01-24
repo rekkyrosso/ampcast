@@ -114,6 +114,14 @@ export function loadAndPlay(item: PlaylistItem): void {
     }
 }
 
+function loadNext(item: PlaylistItem | null): void {
+    if (miniPlayer.active) {
+        miniPlayer.loadNext(item);
+    } else {
+        mediaPlayer.loadNext(item);
+    }
+}
+
 export function play(): void {
     logger.log('play');
     mediaPlayback.autoplay = true;
@@ -477,7 +485,8 @@ if (!isMiniPlayer) {
             distinctUntilChanged((a, b) => a?.id === b?.id),
             debounceTime(3_000),
             // `getPlayableItem` can trigger updates to the playlist.
-            concatMap((item) => (item ? getPlayableItem(item) : of(null)))
+            concatMap((item) => (item ? getPlayableItem(item) : of(null))),
+            tap(loadNext)
         )
         .subscribe(logger);
 }
