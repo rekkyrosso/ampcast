@@ -4,12 +4,12 @@ import {
     BehaviorSubject,
     Subject,
     combineLatest,
-    concatMap,
     debounceTime,
     distinctUntilChanged,
     filter,
     fromEvent,
     map,
+    mergeMap,
     of,
     skipWhile,
     switchMap,
@@ -39,6 +39,7 @@ import './scrobbler';
 const logger = new Logger('mediaPlayback');
 const loadingLocked$ = new BehaviorSubject(!isMiniPlayer);
 const killed$ = new Subject<void>();
+const hasPlayed$ = new BehaviorSubject(false);
 
 let _autoplay = false;
 let _loop = mediaPlaybackSettings.loop;
@@ -114,7 +115,7 @@ export function loadAndPlay(item: PlaylistItem): void {
     }
 }
 
-function loadNext(item: PlaylistItem | null): void {
+function loadNext(item: PlaylistItem): void {
     if (miniPlayer.active) {
         miniPlayer.loadNext(item);
     } else {
@@ -357,6 +358,10 @@ mediaPlayer.observeDuration().subscribe((duration) => (playback.duration = durat
 mediaPlayer.observeCurrentTime().subscribe((currentTime) => (playback.currentTime = currentTime));
 mediaPlayer.observeEnded().subscribe(() => playback.ended());
 
+observePlaying()
+    .pipe(take(1))
+    .subscribe(() => hasPlayed$.next(true));
+
 if (!isMiniPlayer) {
     // Stop/next after playback ended.
     observeEnded()
@@ -484,8 +489,16 @@ if (!isMiniPlayer) {
         .pipe(
             distinctUntilChanged((a, b) => a?.id === b?.id),
             debounceTime(3_000),
-            // `getPlayableItem` can trigger updates to the playlist.
-            concatMap((item) => (item ? getPlayableItem(item) : of(null))),
+            mergeMap((item) => (item ? getPlayableItem(item) : of(null))),
+            switchMap((item) =>
+                item
+                    ? hasPlayed$.pipe(
+                          filter((hasPlayed) => hasPlayed),
+                          take(1),
+                          map(() => item)
+                      )
+                    : EMPTY
+            ),
             tap(loadNext)
         )
         .subscribe(logger);

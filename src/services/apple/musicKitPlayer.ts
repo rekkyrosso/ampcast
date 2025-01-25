@@ -54,7 +54,6 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                 switchMap((item) => {
                     if (item && item.src !== this.loadedSrc) {
                         return of(undefined).pipe(
-                            mergeMap(() => this.createPlayer()),
                             mergeMap(() => this.loadAndPlay(item)),
                             catchError((error) => {
                                 this.loadedSrc = '';
@@ -157,8 +156,8 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         if (this.player) {
             const [, , id] = item.src.split(':');
             const queue = this.player.queue;
-            if (queue.items[queue.position + 1]?.id !== id) {
-                const queueItem = this.getQueueItem(item.src);
+            if (queue.length > 0 && queue.items[queue.position + 1]?.id !== id) {
+                const queueItem = this.getQueueItem(item);
                 this.player.playNext(queueItem).then(undefined, logger.warn);
             }
         }
@@ -218,47 +217,56 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         return this.paused$.pipe(distinctUntilChanged());
     }
 
-    private async createPlayer(): Promise<void> {
-        if (!this.player) {
-            const isLoggedIn = await this.waitForLogin();
-            if (isLoggedIn) {
-                const player = (this.player = MusicKit.getInstance());
-                const Events = MusicKit.Events;
-
-                this.synchVolume();
-
-                player.addEventListener(Events.playbackStateDidChange, this.onPlaybackStateChange);
-                player.addEventListener(Events.playbackDurationDidChange, this.onDurationChange);
-                player.addEventListener(Events.playbackTimeDidChange, this.onTimeChange);
-                player.addEventListener(Events.mediaPlaybackError, this.onError);
-                player.addEventListener(
-                    Events.queuePositionDidChange,
-                    this.onQueuePositionDidChange
-                );
-            } else {
-                throw Error('Not logged in');
+    private async createPlayer(): Promise<MusicKit.MusicKitInstance> {
+        if (this.player) {
+            return this.player;
+        }
+        const isLoggedIn = await this.waitForLogin();
+        if (isLoggedIn) {
+            if (this.player) {
+                return this.player;
             }
+            const player = (this.player = MusicKit.getInstance());
+            const Events = MusicKit.Events;
+
+            this.synchVolume();
+
+            player.addEventListener(Events.playbackStateDidChange, this.onPlaybackStateChange);
+            player.addEventListener(Events.playbackDurationDidChange, this.onDurationChange);
+            player.addEventListener(Events.playbackTimeDidChange, this.onTimeChange);
+            player.addEventListener(Events.queuePositionDidChange, this.onQueuePositionDidChange);
+            player.addEventListener(Events.mediaPlaybackError, this.onError);
+
+            return player;
+        } else {
+            throw Error('Not logged in');
         }
     }
 
     private async loadAndPlay(item: PlayableItem): Promise<void> {
+        let player = this.player;
+        if (!player) {
+            player = await this.createPlayer();
+        }
+
+        // Check `paused` state after asynchronicity.
         if (this.paused) {
             return;
         }
 
-        if (!this.player?.isAuthorized) {
+        if (!player?.isAuthorized) {
             throw Error('Not logged in');
         }
 
         this.loading = true;
-
         const {src, startTime = 0} = item;
         const [, , id] = src.split(':');
-
-        const queue = this.player.queue;
+        const queue = player.queue;
+        // Ignore if the item is next in the queue.
+        // Otherwise, start a new queue.
         if (queue.items[queue.position]?.id !== id) {
-            const queueItem = this.getQueueItem(src);
-            await this.player.setQueue({...queueItem, startTime, startPlaying: true});
+            const queueItem = this.getQueueItem(item);
+            await player.setQueue({...queueItem, startTime, startPlaying: true});
         }
         this.loadedSrc = item.src;
         this.loading = false;
@@ -267,9 +275,9 @@ export class MusicKitPlayer implements Player<PlayableItem> {
             if (this.paused) {
                 // Pause/stop button clicked during the play request.
                 if (this.stopped) {
-                    await this.player.stop();
+                    await player.stop();
                 } else {
-                    await this.player.pause();
+                    await player.pause();
                 }
             } else {
                 this.playing$.next();
@@ -281,8 +289,8 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         }
     }
 
-    private getQueueItem(src: string): MusicKit.SetQueueOptions {
-        const [, type, id] = src.split(':');
+    private getQueueItem(item: PlayableItem): MusicKit.SetQueueOptions {
+        const [, type, id] = item.src.split(':');
 
         // "(library-)?music-videos" => "musicVideo"
         const kind = type
