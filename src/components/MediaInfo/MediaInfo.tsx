@@ -92,6 +92,7 @@ function ArtistInfo({item: artist}: MediaInfoProps<MediaArtist>) {
                 <Genre genres={artist.genres} />
                 <Country country={artist.country} />
                 <div className="media-info-icon-bar">
+                    <Badges item={artist} />
                     <Actions item={artist} />
                 </div>
             </div>

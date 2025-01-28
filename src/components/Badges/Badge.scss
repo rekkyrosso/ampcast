@@ -46,6 +46,18 @@
         }
     }
 
+    &.external {
+        background-color: transparent;
+        border: 0;
+        width: 2em;
+        height: 2em;
+
+        .icon {
+            width: inherit;
+            height: inherit;
+        }
+    }
+
     & ~ .badge {
         margin-left: 0.75em;
     }

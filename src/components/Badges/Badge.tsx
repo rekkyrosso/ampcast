@@ -1,9 +1,12 @@
 import React from 'react';
+import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
+import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import {copyToClipboard} from 'utils';
 import audioSettings from 'services/audio/audioSettings';
 import CopyButton from 'components/Button/CopyButton';
+import Icon from 'components/Icon';
 import './Badge.scss';
 
 export interface BadgeProps {
@@ -70,4 +73,95 @@ export function ShareLink({item}: ShareLinkProps) {
             Share link
         </CopyButton>
     ) : null;
+}
+
+export interface ExternalLinkBadgeProps {
+    item: MediaItem | MediaAlbum | MediaArtist;
+}
+
+export function LastFmBadge({item}: ExternalLinkBadgeProps) {
+    if (/^(lastfm|listenbrainz|musicbrainz):/.test(item.src)) {
+        return;
+    }
+    const title = encodeURIComponent(item.title);
+
+    let path = '';
+    switch (item.itemType) {
+        case ItemType.Media: {
+            const artist = encodeURIComponent(item.artists?.[0] || '');
+            if (artist && item.title) {
+                path = `${artist}/${encodeURIComponent(item.album || '') || '_'}/${title}`;
+            }
+            break;
+        }
+
+        case ItemType.Album: {
+            if (item.artist && title) {
+                path = `${encodeURIComponent(item.artist)}/${title}`;
+            }
+            break;
+        }
+
+        case ItemType.Artist:
+            if (item.title) {
+                path = title;
+            }
+            break;
+    }
+    if (path) {
+        return (
+            /* eslint-disable-next-line react/jsx-no-target-blank */
+            <a
+                className="badge external lastfm"
+                href={`https://www.last.fm/music/${path.replaceAll('%20', '+')}`}
+                title="View on last.fm"
+                target="_blank"
+                rel="noopener"
+            >
+                <Icon name="lastfm" />
+            </a>
+        );
+    }
+}
+
+export function MusicBrainzBadge({item}: ExternalLinkBadgeProps) {
+    if (/^(lastfm|listenbrainz|musicbrainz):/.test(item.src)) {
+        return;
+    }
+    let path = '';
+    switch (item.itemType) {
+        case ItemType.Media:
+            if (item.track_mbid) {
+                path = `track/${item.track_mbid}`;
+            } else if (item.recording_mbid) {
+                path = `recording/${item.recording_mbid}`;
+            }
+            break;
+
+        case ItemType.Album:
+            if (item.release_mbid) {
+                path = `release/${item.release_mbid}`;
+            }
+            break;
+
+        case ItemType.Artist:
+            if (item.artist_mbid) {
+                path = `artist/${item.artist_mbid}`;
+            }
+            break;
+    }
+    if (path) {
+        return (
+            /* eslint-disable-next-line react/jsx-no-target-blank */
+            <a
+                className="badge external musicbrainz"
+                href={`https://musicbrainz.org/${path}`}
+                title="View on MusicBrainz"
+                target="_blank"
+                rel="noopener"
+            >
+                <Icon name="musicbrainz" />
+            </a>
+        );
+    }
 }
