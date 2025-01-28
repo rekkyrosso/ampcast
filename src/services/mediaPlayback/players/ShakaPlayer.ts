@@ -12,8 +12,8 @@ export default class ShakaPlayer extends HTML5Player {
     private player: shaka.Player | null = null;
     private onError = (err: unknown) => this.error$.next(err);
 
-    constructor(type: 'audio' | 'video', name = 'shaka') {
-        super(type, name);
+    constructor(type: 'audio' | 'video', name = 'shaka', index?: 1 | 2) {
+        super(type, name, index);
 
         if (this.element.canPlayType('application/dash+xml').replace('no', '')) {
             this.logger.log('Using native DASH.');
@@ -72,9 +72,6 @@ export default class ShakaPlayer extends HTML5Player {
         if (this.hasNativeSupport) {
             return super.loadAndPlay(item);
         }
-        if (this.paused) {
-            return;
-        }
         if (this.player) {
             if (this.loadedSrc !== item.src) {
                 if (this.loadedSrc) {
@@ -92,10 +89,11 @@ export default class ShakaPlayer extends HTML5Player {
         } else {
             throw Error('Shaka player not loaded');
         }
-        if (!this.paused && this.src === item.src) {
+        if (!this.paused && this.element.paused && this.src === item.src) {
             this.element.currentTime = item.startTime || 0;
             try {
                 await this.element.play();
+                this.playing$.next();
             } catch (err) {
                 if (!this.paused) {
                     throw err;

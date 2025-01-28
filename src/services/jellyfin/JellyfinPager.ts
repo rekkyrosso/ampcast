@@ -247,6 +247,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
                     ? 'SD'
                     : undefined
                 : track.Container || undefined,
+            container: track.Container || undefined,
         };
     }
 

@@ -36,6 +36,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     private ended = false;
     private loading = false;
     private stopped = false;
+    private skipping = false;
     autoplay = false;
     loop = false;
     #muted = true;
@@ -56,6 +57,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                         return of(undefined).pipe(
                             mergeMap(() => this.loadAndPlay(item)),
                             catchError((error) => {
+                                this.skipping = false;
                                 this.loadedSrc = '';
                                 this.error$.next(error);
                                 return EMPTY;
@@ -152,8 +154,8 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         }
     }
 
-    loadNext(item: PlayableItem): void {
-        if (this.player) {
+    loadNext(item: PlayableItem | null): void {
+        if (this.player && item) {
             const [, , id] = item.src.split(':');
             const queue = this.player.queue;
             if (queue.length > 0 && queue.items[queue.position + 1]?.id !== id) {
@@ -261,10 +263,22 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         this.loading = true;
         const {src, startTime = 0} = item;
         const [, , id] = src.split(':');
-        const queue = player.queue;
-        // Ignore if the item is next in the queue.
-        // Otherwise, start a new queue.
-        if (queue.items[queue.position]?.id !== id) {
+        const {items: queueItems, position} = player.queue;
+        // Ignore if the item is already playing.
+        // Skip for prev/next item.
+        // Otherwise, reset the queue.
+        if (queueItems[position]?.id === id) {
+            // Emitting `playing` needs to be async.
+            await Promise.resolve();
+        } else if (queueItems[position - 1]?.id === id) {
+            this.skipping = true;
+            await player.skipToPreviousItem();
+            this.skipping = false;
+        } else if (queueItems[position + 1]?.id === id) {
+            this.skipping = true;
+            await player.skipToNextItem();
+            this.skipping = false;
+        } else {
             const queueItem = this.getQueueItem(item);
             await player.setQueue({...queueItem, startTime, startPlaying: true});
         }
@@ -430,7 +444,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         oldPosition: number;
         position: number;
     }) => {
-        if (oldPosition !== -1) {
+        if (oldPosition !== -1 && !this.skipping) {
             this.ended$.next();
         }
     };

@@ -256,6 +256,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             trackPeak: parseNumber(stream?.peak),
             bitRate: media.bitrate,
             badge: media.audioCodec,
+            container: media.container,
             explicit: track.contentRating ? track.contentRating === 'explicit' : undefined,
         };
     }
@@ -334,6 +335,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             unplayable: part ? undefined : true,
             bitRate: media.bitrate,
             badge: media.videoResolution,
+            container: media.container,
             aspectRatio: media.aspectRatio,
             explicit: video.contentRating === 'explicit',
         };

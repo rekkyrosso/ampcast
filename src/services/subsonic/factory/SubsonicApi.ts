@@ -283,7 +283,7 @@ export default class SubsonicApi {
             if (playbackType === PlaybackType.HLS) {
                 return `${host}/rest/hls.m3u8?id=${id}&${credentials}`;
             } else {
-                return `${host}/rest/stream?id=${id}&${credentials}&format=raw`;
+                return `${host}/rest/stream?id=${id}&${credentials}`;
             }
         } else {
             throw Error('Not logged in');

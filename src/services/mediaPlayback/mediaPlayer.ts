@@ -6,13 +6,22 @@ import audio from 'services/audio';
 import {getServiceFromSrc} from 'services/mediaServices';
 import preferences from 'services/preferences';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
+import DualAudioPlayer from './players/DualAudioPlayer';
 import HLSPlayer from './players/HLSPlayer';
 import HTML5Player from './players/HTML5Player';
 import OmniPlayer from './players/OmniPlayer';
 
+// Audio players.
+const html5AudioPlayer = new DualAudioPlayer(
+    'main',
+    new HTML5Player('audio', 'main', 1),
+    new HTML5Player('audio', 'main', 2)
+);
+// Can't get hls.js to play two streams at once so can't use `DualAudioPlayer`.
 const hlsAudioPlayer = new HLSPlayer('audio', 'hls');
+
+// Video players.
 const hlsVideoPlayer = new HLSPlayer('video', 'hls');
-const html5AudioPlayer = new HTML5Player('audio', 'main');
 const html5VideoPlayer = new HTML5Player('video', 'main');
 const youtubePlayer = new YouTubePlayer('main');
 

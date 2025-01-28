@@ -15,7 +15,7 @@ export default interface Player<T> {
     observePlaying(): Observable<void>;
     appendTo(parentElement: HTMLElement): void;
     load(src: T): void;
-    loadNext?(src: T): void;
+    loadNext?(src: T | null): void;
     play(): void;
     pause(): void;
     stop(): void;

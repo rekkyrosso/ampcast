@@ -14,7 +14,6 @@
         inset: 0;
         opacity: 0;
         transition: opacity 0s linear;
-        will-change: opacity;
     }
 
     &::before {
@@ -115,7 +114,7 @@
     /* TODO: This CSS is stupidly hard. */
 
     .media:not(.mini-player-active, .paused, .error).is-showing-cover-art & .playback-state {
-        display: none;
+        visibility: hidden;
     }
 
     .media:not(.paused, .is-showing-cover-art, .idle):hover &.hide .currently-playing {

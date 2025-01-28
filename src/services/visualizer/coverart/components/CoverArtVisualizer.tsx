@@ -8,7 +8,6 @@ import audio from 'services/audio';
 import visualizerSettings, {
     observeVisualizerSettings,
 } from 'services/visualizer/visualizerSettings';
-import useLoadingState from 'components/Media/useLoadingState';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useFontSize from 'hooks/useFontSize';
 import useObservable from 'hooks/useObservable';
@@ -42,22 +41,15 @@ export default function CoverArtVisualizer() {
     const indexRef = useRef(0);
     const [item0, setItem0] = useState<PlaylistItem | null>(null);
     const [item1, setItem1] = useState<PlaylistItem | null>(null);
-    const loadingState = useLoadingState();
     const [ready, setReady] = useState(false);
     const isItem0 = item0?.id === id;
     const isItem1 = item1?.id === id;
 
     useEffect(() => {
-        if (loadingState === 'error') {
-            setReady(true);
-        } else {
-            setReady(false);
-            if (loadingState === 'loaded') {
-                const timerId = setTimeout(() => setReady(true), 4500);
-                return () => clearTimeout(timerId);
-            }
-        }
-    }, [loadingState]);
+        setReady(false);
+        const timerId = setTimeout(() => setReady(true), 4500);
+        return () => clearTimeout(timerId);
+    }, [id]);
 
     useEffect(() => {
         const player = coverart.createPlayer(audio) as CovertArtPlayer;

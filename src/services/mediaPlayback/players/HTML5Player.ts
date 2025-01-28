@@ -19,14 +19,15 @@ import {
 import MediaService from 'types/MediaService';
 import PlayableItem from 'types/PlayableItem';
 import Player from 'types/Player';
+import {Logger} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import {getServiceFromSrc, waitForLogin} from 'services/mediaServices';
-import {Logger} from 'utils';
 
 export default class HTML5Player implements Player<PlayableItem> {
-    protected readonly logger = new Logger(`HTML5Player/${this.type}/${this.name}`);
+    protected readonly logger: Logger;
     protected readonly element$ = new BehaviorSubject(document.createElement(this.type));
     protected readonly paused$ = new BehaviorSubject(true);
+    protected readonly playing$ = new Subject<void>();
     protected readonly item$ = new BehaviorSubject<PlayableItem | null>(null);
     protected readonly error$ = new Subject<unknown>();
     protected hasWaited = false;
@@ -35,20 +36,26 @@ export default class HTML5Player implements Player<PlayableItem> {
     #muted = true;
     #volume = 1;
 
-    constructor(readonly type: 'audio' | 'video', readonly name: string) {
+    constructor(readonly type: 'audio' | 'video', name: string, index?: 1 | 2) {
+        this.logger = new Logger(`HTML5Player/${this.type}/${name}${index ? '-' + index : ''}`);
+
         const element = this.element;
         element.hidden = true;
         element.muted = type === 'video';
         element.volume = 1;
         element.autoplay = false;
         element.className = `html5-${type} html5-${type}-${name}`;
-        element.id = `ampcast-${type}-${name}`;
+        if (index) {
+            element.id = `html5-${type}-${name}-${index}`;
+        }
         element.crossOrigin = 'anonymous';
 
         // Load new items.
         this.observePaused()
             .pipe(
-                switchMap((paused) => (paused ? EMPTY : this.observeItem())),
+                filter((paused) => !paused || index === 2),
+                take(1),
+                switchMap(() => this.observeItem()),
                 switchMap((item) => {
                     if (item && item.src !== this.loadedSrc) {
                         return of(undefined).pipe(
@@ -94,12 +101,24 @@ export default class HTML5Player implements Player<PlayableItem> {
         this.error$.subscribe(this.logger.error);
     }
 
+    get currentTime(): number {
+        return this.element.currentTime;
+    }
+
+    get duration(): number {
+        return this.element.duration;
+    }
+
     get hidden(): boolean {
         return this.element.hidden;
     }
 
     set hidden(hidden: boolean) {
         this.element.hidden = hidden;
+    }
+
+    get item(): PlayableItem | null {
+        return this.item$.value;
     }
 
     get loop(): boolean {
@@ -120,6 +139,10 @@ export default class HTML5Player implements Player<PlayableItem> {
             // Audio volume is handled by a `GainNode`.
             this.element.muted = muted;
         }
+    }
+
+    get src(): string | undefined {
+        return this.item?.src;
     }
 
     get volume(): number {
@@ -173,10 +196,7 @@ export default class HTML5Player implements Player<PlayableItem> {
     }
 
     observePlaying(): Observable<void> {
-        return this.element$.pipe(
-            switchMap((element) => fromEvent(element, 'playing')),
-            map(() => undefined)
-        );
+        return this.playing$;
     }
 
     appendTo(parentElement: HTMLElement): void {
@@ -227,19 +247,11 @@ export default class HTML5Player implements Player<PlayableItem> {
     }
 
     protected get element(): HTMLMediaElement {
-        return this.element$.getValue();
-    }
-
-    protected get item(): PlayableItem | null {
-        return this.item$.value;
+        return this.element$.value;
     }
 
     protected get paused(): boolean {
         return this.paused$.value;
-    }
-
-    protected get src(): string | undefined {
-        return this.item?.src;
     }
 
     protected observeItem(): Observable<PlayableItem | null> {
@@ -275,27 +287,33 @@ export default class HTML5Player implements Player<PlayableItem> {
     }
 
     protected async loadAndPlay(item: PlayableItem): Promise<void> {
-        if (this.paused) {
-            return;
-        }
         const mediaSrc = this.getMediaSrc(item);
         if (this.element.getAttribute('src') !== mediaSrc) {
             this.element.setAttribute('src', mediaSrc);
         }
-        this.element.currentTime = item.startTime || 0;
         this.loadedSrc = item.src;
-        try {
-            await this.element.play();
-        } catch (err) {
-            if (!this.paused) {
-                throw err;
+        if (!this.paused && this.element.paused) {
+            this.element.currentTime = item.startTime || 0;
+            try {
+                await this.element.play();
+                this.playing$.next();
+            } catch (err) {
+                if (!this.paused) {
+                    throw err;
+                }
             }
         }
     }
 
     protected async safePlay(): Promise<void> {
         try {
-            await this.element.play();
+            if (this.element.paused) {
+                await this.element.play();
+            } else {
+                // Emitting `playing` needs to be async.
+                await Promise.resolve();
+            }
+            this.playing$.next();
         } catch (err) {
             if (!this.paused) {
                 this.error$.next(err);

@@ -4,10 +4,10 @@ import Dexie, {liveQuery} from 'dexie';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import PlaybackState from 'types/PlaybackState';
+import {Logger, removeUserData} from 'utils';
 import {findBestMatch, fuzzyCompare} from 'services/lookup';
 import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import session from 'services/session';
-import {Logger} from 'utils';
 
 const logger = new Logger('localdb/listens');
 
@@ -53,7 +53,7 @@ export async function addListen(state: PlaybackState): Promise<void> {
                 logger.warn(err);
             }
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const {id, lookupStatus, blob, ...listen} = item;
+            const {id, blob, ...listen} = removeUserData(item);
             logger.log('add', item.src);
             await store.items.add({
                 ...listen,

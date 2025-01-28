@@ -8,8 +8,8 @@ export default class HLSPlayer extends HTML5Player {
     private Hls: typeof Hls | null = null;
     private player: Hls | null = null;
 
-    constructor(type: 'audio' | 'video', name = 'hls') {
-        super(type, name);
+    constructor(type: 'audio' | 'video', name = 'hls', index?: 1 | 2) {
+        super(type, name, index);
 
         if (
             this.element.canPlayType('application/x-mpegURL').replace('no', '') ||
@@ -79,9 +79,6 @@ export default class HLSPlayer extends HTML5Player {
         if (this.hasNativeSupport) {
             return super.loadAndPlay(item);
         }
-        if (this.paused) {
-            return;
-        }
         if (this.player) {
             if (this.loadedSrc !== item.src) {
                 const mediaSrc = this.getMediaSrc(item);
@@ -97,12 +94,15 @@ export default class HLSPlayer extends HTML5Player {
             throw Error('HLS player not loaded');
         }
 
-        this.element.currentTime = item.startTime || 0;
-        try {
-            await this.element.play();
-        } catch (err) {
-            if (!this.paused) {
-                throw err;
+        if (!this.paused && this.element.paused) {
+            this.element.currentTime = item.startTime || 0;
+            try {
+                await this.element.play();
+                this.playing$.next();
+            } catch (err) {
+                if (!this.paused) {
+                    throw err;
+                }
             }
         }
     }

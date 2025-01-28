@@ -35,7 +35,6 @@ const serviceId: MediaServiceId = 'navidrome';
 
 const logger = new Logger(serviceId);
 
-const songSort = 'order_album_artist_name,order_album_name,disc_number,track_number';
 const albumSort = 'order_album_artist_name,order_album_name';
 
 const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
@@ -197,7 +196,7 @@ const navidromeTracksByGenre: MediaSource<MediaItem> = {
         if (genre) {
             return new NavidromePager(ItemType.Media, 'song', {
                 genre_id: genre.id,
-                _sort: songSort,
+                _sort: 'album',
             });
         } else {
             return new SimplePager();
@@ -520,7 +519,7 @@ function createSearch<T extends MediaObject>(
                 case ItemType.Media:
                     return new NavidromePager(itemType, 'song', {
                         title: q,
-                        _sort: songSort,
+                        _sort: 'artist',
                     });
 
                 case ItemType.Album:

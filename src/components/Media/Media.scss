@@ -2,11 +2,15 @@
     --progress-bar-height: 6px;
     --progress-bar-background-color: rgba(128, 128, 128, 0.5);
     --progress-bar-color: rgba(255, 255, 255, 0.8);
-    background: var(--black);
     border-radius: calc(var(--roundness) * 1rem);
     user-select: none;
     contain: strict;
     overflow: hidden;
+    background: var(--black);
+
+    &.is-playing-video {
+        background: black;
+    }
 
     /* Fullscreen or mini-player. */
     &.fullscreen {

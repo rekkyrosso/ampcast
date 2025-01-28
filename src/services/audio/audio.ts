@@ -17,7 +17,7 @@ const logger = new Logger('audio');
 
 class Audio implements AudioManager {
     #sourceNodes = new WeakMap<HTMLAudioElement, MediaElementAudioSourceNode>();
-    #context = new OmniAudioContext();
+    #context = new OmniAudioContext({latencyHint: 'playback'});
     #input = this.#context.createDelay();
     #replayGain = this.#context.createGain();
     #output = this.#context.createGain();
@@ -42,8 +42,8 @@ class Audio implements AudioManager {
                 distinctUntilChanged(),
                 pairwise(),
                 tap(([prevSourceNode, nextSourceNode]) => {
-                    prevSourceNode?.disconnect(this.#input!);
-                    nextSourceNode?.connect(this.#input!);
+                    prevSourceNode?.disconnect(this.#input);
+                    nextSourceNode?.connect(this.#input);
                 })
             )
             .subscribe(logger);
@@ -127,12 +127,21 @@ class Audio implements AudioManager {
     }
 
     private getSourceNode(item: PlaylistItem): MediaElementAudioSourceNode | undefined {
-        const audio = this.getAudioElement(item);
-        if (audio) {
+        const createSourceNode = (audio: HTMLAudioElement) => {
             if (!this.#sourceNodes.has(audio)) {
                 const sourceNode = this.context!.createMediaElementSource(audio);
                 this.#sourceNodes.set(audio, sourceNode);
             }
+        };
+        // Create these source nodes as early as possible.
+        // Avoids an audible glitch for the first gapless playback transition.
+        const audios = document.querySelectorAll<HTMLAudioElement>('.html5-audio-main');
+        for (const audio of audios) {
+            createSourceNode(audio);
+        }
+        const audio = this.getAudioElement(item);
+        if (audio) {
+            createSourceNode(audio);
             return this.#sourceNodes.get(audio);
         }
     }
@@ -163,13 +172,13 @@ class Audio implements AudioManager {
         } else {
             switch (item.playbackType) {
                 case PlaybackType.DASH:
-                    return '#ampcast-audio-dash';
+                    return '.html5-audio-dash';
 
                 case PlaybackType.HLS:
-                    return '#ampcast-audio-hls';
+                    return '.html5-audio-hls';
 
                 default:
-                    return '#ampcast-audio-main';
+                    return '.dual-audio-main.player-1>#html5-audio-main-1,.dual-audio-main.player-2>#html5-audio-main-2';
             }
         }
     }

@@ -9,7 +9,6 @@
         flex-direction: row;
         inset: 0;
         color: var(--text-color);
-        will-change: opacity;
         transition: opacity 2s linear;
 
         .media.paused & {
@@ -27,12 +26,11 @@
             position: absolute;
             inset: 0;
             background-color: var(--background-color);
-            transition: none;
         }
 
         &-thumbnail,
         &-text {
-            font-size: 1.5em;
+            font-size: 1.25em;
             line-height: 1.1;
         }
 
@@ -44,6 +42,7 @@
             position: relative; /* break inherited opacity */
             padding: 1em 1em 1em 0.5em;
             font-weight: bold;
+            overflow-wrap: anywhere;
         }
 
         &.text-light .currently-playing-text {
@@ -154,7 +153,7 @@
     &.animated-background-enabled.ready {
         .currently-playing::before {
             opacity: 0;
-            transition: opacity 8s linear;
+            transition: opacity 4s linear;
         }
 
         .animated-background {

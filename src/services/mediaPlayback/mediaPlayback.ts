@@ -5,6 +5,8 @@ import {
     Subject,
     combineLatest,
     debounceTime,
+    delay,
+    delayWhen,
     distinctUntilChanged,
     filter,
     fromEvent,
@@ -32,14 +34,13 @@ import mediaPlaybackSettings from './mediaPlaybackSettings';
 import mediaPlayer from './mediaPlayer';
 import miniPlayer from './miniPlayer';
 import miniPlayerRemote from './miniPlayerRemote';
-import playback from './playback';
+import playback, {observePaused} from './playback';
 import visualizerPlayer from './visualizerPlayer';
 import './scrobbler';
 
 const logger = new Logger('mediaPlayback');
 const loadingLocked$ = new BehaviorSubject(!isMiniPlayer);
 const killed$ = new Subject<void>();
-const hasPlayed$ = new BehaviorSubject(false);
 
 let _autoplay = false;
 let _loop = mediaPlaybackSettings.loop;
@@ -115,7 +116,7 @@ export function loadAndPlay(item: PlaylistItem): void {
     }
 }
 
-function loadNext(item: PlaylistItem): void {
+function loadNext(item: PlaylistItem | null): void {
     if (miniPlayer.active) {
         miniPlayer.loadNext(item);
     } else {
@@ -126,10 +127,11 @@ function loadNext(item: PlaylistItem): void {
 export function play(): void {
     logger.log('play');
     mediaPlayback.autoplay = true;
+    currentNavigation = 'next';
+    unlockLoading();
     if (miniPlayer.active) {
         miniPlayer.play();
     } else {
-        unlockLoading();
         playback.play();
         if (!playback.paused) {
             mediaPlayer.play();
@@ -141,10 +143,11 @@ export function play(): void {
 export function pause(): void {
     logger.log('pause');
     mediaPlayback.autoplay = false;
+    currentNavigation = 'next';
+    unlockLoading();
     if (miniPlayer.active) {
         miniPlayer.pause();
     } else {
-        unlockLoading();
         playback.pause();
         mediaPlayer.pause();
         visualizerPlayer.pause();
@@ -164,10 +167,11 @@ export function stop(): void {
     logger.log('stop');
     mediaPlayback.autoplay = false;
     mediaPlayback.stopAfterCurrent = false;
+    currentNavigation = 'next';
+    unlockLoading();
     if (miniPlayer.active) {
         miniPlayer.stop();
     } else {
-        unlockLoading();
         playback.stop();
         mediaPlayer.stop();
         visualizerPlayer.stop();
@@ -185,7 +189,8 @@ export function prev(): void {
         miniPlayerRemote.prev();
     } else if (!playlist.atStart) {
         mediaPlayback.stopAfterCurrent = false;
-        lockLoading('prev');
+        currentNavigation = 'prev';
+        lockLoading();
         playlist.prev();
     }
 }
@@ -196,7 +201,8 @@ export function next(): void {
         miniPlayerRemote.next();
     } else if (!playlist.atEnd) {
         mediaPlayback.stopAfterCurrent = false;
-        lockLoading('next');
+        currentNavigation = 'next';
+        lockLoading();
         playlist.next();
     }
 }
@@ -215,8 +221,7 @@ function observePlaylistAtStart(): Observable<boolean> {
     );
 }
 
-function lockLoading(navigation: 'prev' | 'next' = 'next') {
-    currentNavigation = navigation;
+function lockLoading() {
     miniPlayer.lock();
     if (loadingLocked$.value === false) {
         const {paused, currentTime} = playback;
@@ -236,7 +241,6 @@ function lockLoading(navigation: 'prev' | 'next' = 'next') {
 }
 
 function unlockLoading(): void {
-    currentNavigation = 'next';
     miniPlayer.unlock();
     mediaPlayer.autoplay = _autoplay;
     loadingLocked$.next(false);
@@ -247,7 +251,10 @@ function kill(): void {
     stop();
 }
 
-async function getPlayableItem(item: PlaylistItem): Promise<PlaylistItem> {
+async function getPlayableItem(item: PlaylistItem | null): Promise<PlaylistItem | null> {
+    if (!item) {
+        return null;
+    }
     if (!hasPlayableSrc(item)) {
         // Lookup the item if it's not from a playable source (e.g last.fm).
         const foundItem = await lookup(item);
@@ -358,10 +365,6 @@ mediaPlayer.observeDuration().subscribe((duration) => (playback.duration = durat
 mediaPlayer.observeCurrentTime().subscribe((currentTime) => (playback.currentTime = currentTime));
 mediaPlayer.observeEnded().subscribe(() => playback.ended());
 
-observePlaying()
-    .pipe(take(1))
-    .subscribe(() => hasPlayed$.next(true));
-
 if (!isMiniPlayer) {
     // Stop/next after playback ended.
     observeEnded()
@@ -461,6 +464,8 @@ playlist
 
 // Mini player doesn't have a playlist (just the currently loaded item).
 if (!isMiniPlayer) {
+    observePlaying().subscribe(() => (currentNavigation = 'next'));
+
     // Unlock loading after 300ms. Nothing wil be loaded until then.
     // This avoids spamming media services with play/lookup requests that will soon be skipped over.
     // e.g. clicking the prev/next buttons quickly.
@@ -477,29 +482,32 @@ if (!isMiniPlayer) {
             distinctUntilChanged(),
             switchMap((locked) => (locked ? EMPTY : playlist.observeCurrentItem())),
             distinctUntilChanged((a, b) => a?.id === b?.id),
-            switchMap((item) => (item ? getPlayableItem(item) : of(null))),
-            skipWhile((item) => !item),
-            tap(load)
+            mergeMap((item) => getPlayableItem(item)),
+            switchMap((item) =>
+                item
+                    ? of(item).pipe(
+                          tap(load),
+                          delayWhen(() => observePlaying()),
+                          take(1),
+                          delay(3_000),
+                          switchMap(() => playlist.observeNextItem()),
+                          distinctUntilChanged((a, b) => a?.id === b?.id),
+                          debounceTime(300),
+                          mergeMap((item) => getPlayableItem(item)),
+                          tap(loadNext)
+                      )
+                    : EMPTY
+            )
         )
         .subscribe(logger);
 
     // Read ahead.
-    playlist
-        .observeNextItem()
+    observePaused()
         .pipe(
+            switchMap((paused) => (paused ? playlist.observeNextItem() : EMPTY)),
             distinctUntilChanged((a, b) => a?.id === b?.id),
             debounceTime(3_000),
-            mergeMap((item) => (item ? getPlayableItem(item) : of(null))),
-            switchMap((item) =>
-                item
-                    ? hasPlayed$.pipe(
-                          filter((hasPlayed) => hasPlayed),
-                          take(1),
-                          map(() => item)
-                      )
-                    : EMPTY
-            ),
-            tap(loadNext)
+            mergeMap((item) => getPlayableItem(item))
         )
         .subscribe(logger);
 }

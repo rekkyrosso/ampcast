@@ -173,10 +173,15 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
         }
     }
 
-    loadNext(src: T): void {
+    loadNext(src: T | null): void {
         try {
-            const nextPlayer = this.selectPlayer(src);
-            nextPlayer?.loadNext?.(this.mapSrc(src));
+            const nextPlayer = src ? this.selectPlayer(src) : null;
+            nextPlayer?.loadNext?.(this.mapSrc(src!));
+            for (const player of this.players) {
+                if (player !== nextPlayer) {
+                    player.loadNext?.(null);
+                }
+            }
         } catch (err) {
             console.error(err);
         }

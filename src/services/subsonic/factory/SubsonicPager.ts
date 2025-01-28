@@ -148,12 +148,13 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             inLibrary: !!song.starred,
             genres: song.genre ? [song.genre] : undefined,
             thumbnails: this.createThumbnails(song.coverArt),
+            bitRate: song.bitRate,
+            badge: song.suffix,
+            container: song.contentType?.replace('audio/', ''),
             // OpenSubsonic extensions
             recording_mbid: typeof song.musicBrainzId === 'string' ? song.musicBrainzId : undefined,
             albumGain: song.replayGain?.albumGain,
             trackGain: song.replayGain?.trackGain,
-            bitRate: song.bitRate,
-            badge: song.suffix,
         };
     }
 
@@ -175,6 +176,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             thumbnails: this.createThumbnails(video.id),
             bitRate: video.bitRate,
             badge: height > 1080 ? 'UHD' : height >= 720 ? 'HD' : height > 0 ? 'SD' : undefined,
+            container: video.contentType?.replace('video/', ''),
         };
     }
 
