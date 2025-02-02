@@ -1,10 +1,6 @@
 import React, {useMemo} from 'react';
 import ServiceType from 'types/ServiceType';
-import {
-    getPersonalMediaServices,
-    getPublicMediaServices,
-    getDataServices,
-} from 'services/mediaServices';
+import {getBrowsableServices, getDataServices} from 'services/mediaServices';
 import {isSourceVisible} from 'services/mediaServices/servicesSettings';
 import {TreeNode} from 'components/TreeView';
 import MediaServiceLabel from 'components/MediaSources/MediaServiceLabel';
@@ -17,8 +13,12 @@ import VisualizerSettings from './VisualizerSettings';
 import AdvancedSettings from './AdvancedSettings';
 
 export default function useSettingsSources(): readonly TreeNode<React.ReactNode>[] {
-    const sources = useMemo(
-        () => [
+    const sources = useMemo(() => {
+        const publicMediaServices = getBrowsableServices(ServiceType.PublicMedia);
+        const personalMediaServices = getBrowsableServices(ServiceType.PersonalMedia);
+        const dataServices = getDataServices();
+
+        return [
             {
                 id: 'app',
                 label: <MediaSourceLabel text="Application" icon="ampcast" />,
@@ -31,18 +31,16 @@ export default function useSettingsSources(): readonly TreeNode<React.ReactNode>
                     <MediaServicesSettings
                         title="Streaming Media Settings"
                         serviceType={ServiceType.PublicMedia}
-                        services={getPublicMediaServices()}
+                        services={publicMediaServices}
                         key={ServiceType.PublicMedia}
                     />
                 ),
                 startExpanded: true,
-                children: getPublicMediaServices()
-                    .filter(isSourceVisible)
-                    .map((service) => ({
-                        id: service.id,
-                        label: <MediaServiceLabel service={service} />,
-                        value: <MediaServiceSettings service={service} key={service.id} />,
-                    })),
+                children: publicMediaServices.filter(isSourceVisible).map((service) => ({
+                    id: service.id,
+                    label: <MediaServiceLabel service={service} />,
+                    value: <MediaServiceSettings service={service} key={service.id} />,
+                })),
             },
             {
                 id: 'personal-media',
@@ -51,18 +49,16 @@ export default function useSettingsSources(): readonly TreeNode<React.ReactNode>
                     <MediaServicesSettings
                         title="Personal Media Settings"
                         serviceType={ServiceType.PersonalMedia}
-                        services={getPersonalMediaServices()}
+                        services={personalMediaServices}
                         key={ServiceType.PersonalMedia}
                     />
                 ),
                 startExpanded: true,
-                children: getPersonalMediaServices()
-                    .filter(isSourceVisible)
-                    .map((service) => ({
-                        id: service.id,
-                        label: <MediaServiceLabel service={service} />,
-                        value: <MediaServiceSettings service={service} key={service.id} />,
-                    })),
+                children: personalMediaServices.filter(isSourceVisible).map((service) => ({
+                    id: service.id,
+                    label: <MediaServiceLabel service={service} />,
+                    value: <MediaServiceSettings service={service} key={service.id} />,
+                })),
             },
             {
                 id: 'data-services',
@@ -71,18 +67,16 @@ export default function useSettingsSources(): readonly TreeNode<React.ReactNode>
                     <MediaServicesSettings
                         title="Data Services Settings"
                         serviceType={ServiceType.DataService}
-                        services={getDataServices()}
+                        services={dataServices}
                         key={ServiceType.DataService}
                     />
                 ),
                 startExpanded: true,
-                children: getDataServices()
-                    .filter(isSourceVisible)
-                    .map((service) => ({
-                        id: service.id,
-                        label: <MediaServiceLabel service={service} />,
-                        value: <MediaServiceSettings service={service} key={service.id} />,
-                    })),
+                children: dataServices.filter(isSourceVisible).map((service) => ({
+                    id: service.id,
+                    label: <MediaServiceLabel service={service} />,
+                    value: <MediaServiceSettings service={service} key={service.id} />,
+                })),
             },
             {
                 id: 'visualizer',
@@ -99,9 +93,8 @@ export default function useSettingsSources(): readonly TreeNode<React.ReactNode>
                 label: <MediaSourceLabel text="Advanced" icon="settings" />,
                 value: <AdvancedSettings />,
             },
-        ],
-        []
-    );
+        ];
+    }, []);
 
     return sources;
 }

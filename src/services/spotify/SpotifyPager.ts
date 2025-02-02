@@ -366,7 +366,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
 
     private async addUserData<T extends MediaObject>(items: readonly T[]): Promise<void> {
         items = items.filter(
-            (item) => item.inLibrary === undefined && spotify.canStore(item, true)
+            (item) => item.inLibrary === undefined && spotify.canStore?.(item, true)
         );
         const [item] = items;
         if (item) {

@@ -80,7 +80,7 @@ export interface ExternalLinkBadgeProps {
 }
 
 export function LastFmBadge({item}: ExternalLinkBadgeProps) {
-    if (/^(lastfm|listenbrainz|musicbrainz):/.test(item.src)) {
+    if (/^(lastfm|listenbrainz|mixcloud|musicbrainz):/.test(item.src)) {
         return;
     }
     const title = encodeURIComponent(item.title);
@@ -131,10 +131,10 @@ export function MusicBrainzBadge({item}: ExternalLinkBadgeProps) {
     let path = '';
     switch (item.itemType) {
         case ItemType.Media:
-            if (item.track_mbid) {
-                path = `track/${item.track_mbid}`;
-            } else if (item.recording_mbid) {
+            if (item.recording_mbid) {
                 path = `recording/${item.recording_mbid}`;
+            } else if (item.track_mbid) {
+                path = `track/${item.track_mbid}`;
             }
             break;
 

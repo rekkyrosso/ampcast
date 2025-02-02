@@ -1,7 +1,9 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {fromEvent, map} from 'rxjs';
 import MediaType from 'types/MediaType';
+import PlaybackType from 'types/PlaybackType';
 import {isMiniPlayer} from 'utils';
+import {getServiceFromSrc} from 'services/mediaServices';
 import mediaPlayback from 'services/mediaPlayback';
 import miniPlayer from 'services/mediaPlayback/miniPlayer';
 import './Visualizer.scss';
@@ -26,7 +28,7 @@ export default memo(function Media() {
     const [style, setStyle] = useState<React.CSSProperties>({});
     const baseFontSize = useBaseFontSize();
     const playersRef = useRef<HTMLDivElement>(null);
-    const {fullscreenProgress} = useVisualizerSettings();
+    const {fullscreenProgress, provider} = useVisualizerSettings();
     const miniPlayerActive = useMiniPlayerActive();
     const [fullscreen, setFullScreen] = useState(false);
     const [newItem, setNewItem] = useState(false);
@@ -35,7 +37,14 @@ export default memo(function Media() {
     const isPlayingVideo = item?.mediaType === MediaType.Video;
     const visualizer = useCurrentVisualizer();
     const noVisualizer = !visualizer || visualizer.providerId === 'none';
-    const isShowingCoverArt = !isPlayingVideo && visualizer?.providerId === 'coverart';
+    const iframe =
+        item?.playbackType === PlaybackType.IFrame
+            ? getServiceFromSrc(item)?.iframeAudioPlayback
+            : undefined;
+    const isShowingCoverArt =
+        !isPlayingVideo &&
+        (visualizer?.providerId === 'coverart' ||
+            (provider !== 'none' && iframe?.showContent && iframe.isCoverArt));
     const isIdle = !useMouseBusy(ref.current, 4000);
     const loadingState = useLoadingState();
     const paused = usePaused();

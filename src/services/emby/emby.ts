@@ -488,7 +488,6 @@ const emby: PersonalMediaService = {
     },
     addMetadata,
     addToPlaylist,
-    canRate: () => false,
     canStore,
     compareForRating,
     createPlaylist,

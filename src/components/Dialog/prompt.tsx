@@ -8,8 +8,8 @@ import './prompt.scss';
 export interface PromptOptions {
     icon?: IconName;
     title?: string;
-    type?: HTMLInputElement['type'];
-    placeholder?: HTMLInputElement['placeholder'];
+    type?: HTMLInputElement['type'] | 'textarea';
+    placeholder?: string;
     label?: React.ReactNode;
     suggestedValue?: string;
     okLabel?: React.ReactNode;
@@ -39,27 +39,35 @@ export function PromptDialog({
     const id = useId();
     const [value, setValue] = useState(suggestedValue);
 
-    const handleChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
-        setValue(event.target.value);
-    }, []);
+    const handleChange = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+            setValue(event.target.value);
+        },
+        []
+    );
+
+    const inputProps: React.InputHTMLAttributes<HTMLInputElement | HTMLTextAreaElement> = {
+        id,
+        defaultValue: suggestedValue,
+        placeholder,
+        autoFocus: true,
+        required: true,
+        spellCheck: false,
+        autoComplete: 'off',
+        autoCapitalize: 'off',
+        onChange: handleChange,
+    };
 
     return (
         <Dialog {...props} className="prompt-dialog" title={title}>
             <form method="dialog">
                 <p>
                     {label ? <label htmlFor={id}>{label}: </label> : null}
-                    <input
-                        type={type}
-                        id={id}
-                        defaultValue={suggestedValue}
-                        placeholder={placeholder}
-                        autoFocus
-                        required
-                        spellCheck={false}
-                        autoComplete="off"
-                        autoCapitalize="off"
-                        onChange={handleChange}
-                    />
+                    {type === 'textarea' ? (
+                        <textarea {...inputProps} />
+                    ) : (
+                        <input {...inputProps} />
+                    )}
                 </p>
                 <DialogButtons value={value} submitText={okLabel} />
             </form>

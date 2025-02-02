@@ -461,7 +461,6 @@ const apple: PublicMediaService = {
     editablePlaylists: appleEditablePlaylists,
     addMetadata,
     addToPlaylist,
-    canRate: () => false,
     canStore,
     compareForRating,
     createPlaylist,
@@ -854,7 +853,7 @@ export async function addUserData<T extends MediaObject>(
             !!item.apple?.catalogId
     );
     const [item] = items;
-    if (!item || !apple.canStore(item, inline)) {
+    if (!item || !apple.canStore?.(item, inline)) {
         return;
     }
     const [, type] = item.src.split(':');

@@ -5,6 +5,8 @@ import PlaylistItem from 'types/PlaylistItem';
 import audio from 'services/audio';
 import {getServiceFromSrc} from 'services/mediaServices';
 import preferences from 'services/preferences';
+import mixcloudPlayer from 'services/mixcloud/mixcloudPlayer';
+import soundcloudPlayer from 'services/soundcloud/soundcloudPlayer';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
 import DualAudioPlayer from './players/DualAudioPlayer';
 import HLSPlayer from './players/HLSPlayer';
@@ -71,6 +73,8 @@ mediaPlayer.registerPlayers([
         hlsVideoPlayer,
         (item) => item?.mediaType === MediaType.Video && item.playbackType === PlaybackType.HLS,
     ],
+    [mixcloudPlayer, (item) => !!item?.src.startsWith('mixcloud:')],
+    [soundcloudPlayer, (item) => !!item?.src.startsWith('soundcloud:')],
     [youtubePlayer, (item) => !!item?.src.startsWith('youtube:')],
 ]);
 

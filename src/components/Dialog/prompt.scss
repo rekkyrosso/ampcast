@@ -5,6 +5,22 @@
     }
 
     input[type="url"] {
+        width: 24em;
+    }
+
+    textarea {
         min-width: 20em;
+        min-height: 4em;
+        width: 28em;
+        height: 10em;
+        margin-top: 0.5em;
+        margin-left: 0;
+        font-family: monospace;
+        font-size: 0.875em;
+    }
+
+    label:has(+ textarea) {
+        display: block;
+        text-align: left;
     }
 }

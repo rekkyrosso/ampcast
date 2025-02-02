@@ -28,7 +28,7 @@ export default function MediaServiceSettingsGeneral({service}: MediaServiceSetti
             <fieldset ref={ref}>
                 <legend>Display</legend>
                 <ul className="checkbox-list">
-                    {service.sources.map((source) => (
+                    {service.sources?.map((source) => (
                         <li key={source.id}>
                             <input
                                 id={`${id}-${source.id}`}

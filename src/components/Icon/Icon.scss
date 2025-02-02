@@ -223,6 +223,10 @@
         }
     }
 
+    &-mixcloud {
+        color: #5000ff;
+    }
+
     &-musicbrainz {
         &-left {
             fill: #ba478f;
@@ -262,6 +266,10 @@
                 }
             }
         }
+    }
+
+    &-soundcloud {
+        color: #ff5500;
     }
 
     &-spotify {

@@ -112,7 +112,7 @@ function ContextualActions<T extends MediaObject>({item}: ContextualActionsProps
                     key={item.isPinned ? Action.Unpin : Action.Pin}
                 />
             ) : null}
-            {item.rating !== undefined && service?.canRate(item, true) ? (
+            {item.rating !== undefined && service?.canRate?.(item, true) ? (
                 <PopupMenuItem<Action>
                     label={
                         item.rating
@@ -123,7 +123,7 @@ function ContextualActions<T extends MediaObject>({item}: ContextualActionsProps
                     key={item.rating ? Action.Unlike : Action.Like}
                 />
             ) : null}
-            {item.inLibrary === false && service?.canStore(item, true) ? (
+            {item.inLibrary === false && service?.canStore?.(item, true) ? (
                 <PopupMenuItem<Action>
                     label={getLabelForAction(service, Action.AddToLibrary)}
                     value={Action.AddToLibrary}
@@ -131,7 +131,7 @@ function ContextualActions<T extends MediaObject>({item}: ContextualActionsProps
                 />
             ) : null}
             {/* remove doesn't work (https://developer.apple.com/forums/thread/107807) */}
-            {service?.id !== 'apple' && item.inLibrary === true && service?.canStore(item, true) ? (
+            {service?.id !== 'apple' && item.inLibrary === true && service?.canStore?.(item, true) ? (
                 <PopupMenuItem<Action>
                     label={getLabelForAction(service, Action.RemoveFromLibrary)}
                     value={Action.RemoveFromLibrary}

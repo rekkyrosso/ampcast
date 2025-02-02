@@ -34,7 +34,7 @@ class VisualizerStore extends Dexie {
             let title = visualizer.title;
             if (providerId === 'ambientvideo' && !title) {
                 try {
-                    const video = await youtubeApi.getVideoInfo(name);
+                    const video = await youtubeApi.getMediaItem(name);
                     title = video.title;
                 } catch (err) {
                     logger.error(err);

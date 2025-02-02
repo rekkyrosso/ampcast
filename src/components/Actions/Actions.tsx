@@ -105,7 +105,7 @@ export default function Actions({item, inline}: ActionsProps) {
 
             {service ? (
                 <>
-                    {item.rating !== undefined && service?.canRate(item, inline) ? (
+                    {item.rating !== undefined && service?.canRate?.(item, inline) ? (
                         service.id === 'plex' ? (
                             <StarRating value={item.rating} tabIndex={tabIndex} onChange={rate} />
                         ) : (
@@ -127,7 +127,7 @@ export default function Actions({item, inline}: ActionsProps) {
                         )
                     ) : null}
 
-                    {item.inLibrary !== undefined && service?.canStore(item, inline) ? (
+                    {item.inLibrary !== undefined && service?.canStore?.(item, inline) ? (
                         <IconButton
                             icon={
                                 item.inLibrary

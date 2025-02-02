@@ -46,7 +46,7 @@ export async function findThumbnails(
         if (externalUrl) {
             const videoId = getYouTubeID(item.link?.externalUrl);
             if (videoId) {
-                const video = await youtubeApi.getVideoInfo(videoId);
+                const video = await youtubeApi.getMediaItem(videoId);
                 return video.thumbnails;
             }
         }

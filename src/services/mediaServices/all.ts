@@ -7,9 +7,11 @@ import gonic from 'services/gonic';
 import jellyfin from 'services/jellyfin';
 import lastfm from 'services/lastfm';
 import listenbrainz from 'services/listenbrainz';
+import mixcloud from 'services/mixcloud';
 import navidrome from 'services/navidrome';
 import plex from 'services/plex';
 import plexTidal from 'services/plex/tidal-disabled';
+import soundcloud from 'services/soundcloud';
 import spotify from 'services/spotify';
 import subsonic from 'services/subsonic';
 // import tidal from 'services/tidal';
@@ -24,13 +26,16 @@ const services: readonly MediaService[] = [
     emby,
     gonic,
     jellyfin,
+    mixcloud,
     navidrome,
     plex,
-    plexTidal, // disabled
+    soundcloud,
     subsonic,
     youtube,
     lastfm,
     listenbrainz,
+    // disabled
+    plexTidal,
 ];
 
 export default services;

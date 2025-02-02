@@ -466,7 +466,6 @@ const spotify: PublicMediaService = {
     },
     addMetadata,
     addToPlaylist,
-    canRate: () => false,
     canStore,
     compareForRating,
     createPlaylist,

@@ -1,8 +1,10 @@
 import {combineLatest, distinctUntilChanged, map, tap} from 'rxjs';
 import AudioManager from 'types/AudioManager';
+import PlaylistItem from 'types/PlaylistItem';
 import {CoverArtVisualizer} from 'types/Visualizer';
 import {Logger} from 'utils';
 import {getCurrentItem, observeCurrentItem} from 'services/playlist';
+import {isProviderSupported} from '../visualizer';
 import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 import visualizerSettings, {observeVisualizerSettings} from '../visualizerSettings';
 import BeatsPlayer from '../waveform/BeatsPlayer';
@@ -34,7 +36,7 @@ export default class CovertArtPlayer extends AbstractVisualizerPlayer<CoverArtVi
 
         combineLatest([observeVisualizerSettings(), observeCurrentItem()])
             .pipe(
-                map(() => this.canShowBeats()),
+                map(([, currentItem]) => this.canShowBeats(currentItem)),
                 distinctUntilChanged(),
                 tap((canShowBeats) => {
                     this.beatsPlayer.hidden = this.hidden || !canShowBeats;
@@ -75,7 +77,7 @@ export default class CovertArtPlayer extends AbstractVisualizerPlayer<CoverArtVi
     set hidden(hidden: boolean) {
         this.#hidden = hidden;
         this.animatedBackground.hidden = hidden || !visualizerSettings.coverArtAnimatedBackground;
-        this.beatsPlayer.hidden = hidden || !this.canShowBeats();
+        this.beatsPlayer.hidden = hidden || !this.canShowBeats(getCurrentItem());
         if (this.element) {
             this.element.hidden = hidden;
         }
@@ -123,10 +125,11 @@ export default class CovertArtPlayer extends AbstractVisualizerPlayer<CoverArtVi
         this.beatsPlayer.resize(width);
     }
 
-    private canShowBeats(): boolean {
+    private canShowBeats(currentItem: PlaylistItem | null): boolean {
         return (
+            !!currentItem &&
             visualizerSettings.coverArtBeats &&
-            (visualizerSettings.spotifyEnabled || !getCurrentItem()?.src.startsWith('spotify:'))
+            isProviderSupported('waveform', currentItem)
         );
     }
 }

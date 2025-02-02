@@ -24,8 +24,10 @@ import PlaybackType from 'types/PlaybackType';
 import Visualizer, {NoVisualizer, NextVisualizer} from 'types/Visualizer';
 import VisualizerFavorite from 'types/VisualizerFavorite';
 import VisualizerProviderId from 'types/VisualizerProviderId';
+import VisualizerSettings from 'types/VisualizerSettings';
 import {exists, getRandomValue, isMiniPlayer, Logger} from 'utils';
 import audio from 'services/audio';
+import {getServiceFromSrc} from 'services/mediaServices';
 import {
     getPlaybackState,
     observeCurrentItem,
@@ -40,7 +42,6 @@ import {
 } from './visualizerProviders';
 import visualizerSettings, {observeVisualizerSettings} from './visualizerSettings';
 import visualizerStore from './visualizerStore';
-import VisualizerSettings from 'types/VisualizerSettings';
 
 const logger = new Logger('visualizer');
 
@@ -120,12 +121,13 @@ export function isProviderSupported(providerId: string, item: MediaItem): boolea
             if (isSpotify) {
                 return spotifyEnabled;
             } else {
-                // For Safari.
-                // If the Web Audio API is not supported for streaming media then we can't use a visualizer.
                 return (
-                    audio.streamingSupported ||
-                    (item.playbackType !== PlaybackType.DASH &&
-                        item.playbackType !== PlaybackType.HLS)
+                    item.playbackType !== PlaybackType.IFrame &&
+                    // For Safari.
+                    // If the Web Audio API is not supported for streaming media then we can't use a visualizer.
+                    (audio.streamingSupported ||
+                        (item.playbackType !== PlaybackType.DASH &&
+                            item.playbackType !== PlaybackType.HLS))
                 );
             }
     }
@@ -177,6 +179,17 @@ function getNextVisualizer(reason: NextVisualizerReason): Visualizer {
     const [serviceId] = item.src.split(':');
     const isSpotify = serviceId === 'spotify';
     const isError = reason === 'error';
+
+    if (item.playbackType === PlaybackType.IFrame && !isSpotify) {
+        const iframe = getServiceFromSrc(item)?.iframeAudioPlayback;
+        if (settings.provider === 'none') {
+            return noVisualizer;
+        } else if (iframe?.showContent) {
+            return noVisualizer;
+        } else if (iframe?.showCoverArt) {
+            return getOrCreateVisualizer('coverart', '');
+        }
+    }
 
     const lockedVisualizer = settings.lockedVisualizer;
     if (lockedVisualizer) {

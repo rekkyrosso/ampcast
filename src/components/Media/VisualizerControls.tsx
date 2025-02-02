@@ -1,8 +1,10 @@
 import React, {memo, useCallback, useEffect, useState} from 'react';
 import {debounceTime, filter, tap} from 'rxjs';
 import MediaType from 'types/MediaType';
+import PlaybackType from 'types/PlaybackType';
 import Visualizer from 'types/Visualizer';
 import {browser, isMiniPlayer} from 'utils';
+import {getServiceFromSrc} from 'services/mediaServices';
 import miniPlayer from 'services/mediaPlayback/miniPlayer';
 import {
     lockVisualizer,
@@ -47,13 +49,21 @@ export default memo(function VisualizerControls({
     const videoSourceIcon = useVideoSourceIcon();
     const [nextClicked, setNextClicked] = useState(false);
     const paused = usePaused();
-    const currentlyPlaying = useCurrentlyPlaying();
-    const isPlayingVideo = currentlyPlaying?.mediaType === MediaType.Video;
+    const currentItem = useCurrentlyPlaying();
+    const iframe =
+        currentItem?.playbackType === PlaybackType.IFrame
+            ? getServiceFromSrc(currentItem)?.iframeAudioPlayback
+            : undefined;
+    const hideSelector =
+        currentItem?.mediaType === MediaType.Video ||
+        currentVisualizer?.providerId === 'none' ||
+        iframe?.showContent ||
+        iframe?.showCoverArt;
     const noVisualizerReason = getNoVisualizerReason(currentVisualizer);
     const preferences = usePreferences();
     const miniPlayerEnabled = preferences.miniPlayer && !isMiniPlayer && !browser.isElectron;
     const miniPlayerActive = useMiniPlayerActive();
-    const showStatic = nextClicked && !paused && !isPlayingVideo && !miniPlayerActive;
+    const showStatic = nextClicked && !paused && !hideSelector && !miniPlayerActive;
 
     const openInfoDialog = useCallback(() => {
         showDialog(CurrentlyPlayingDialog);
@@ -115,24 +125,26 @@ export default memo(function VisualizerControls({
                     />
                 ) : null}
             </IconButtons>
-            <IconButtons className="visualizer-buttons visualizer-controls-selector">
-                {canLock || locked ? (
-                    <IconButton
-                        icon={locked ? 'locked' : 'unlocked'}
-                        title={`${locked ? 'Unlock' : 'Lock the current visualizer'}`}
-                        tabIndex={-1}
-                        onClick={locked ? unlockVisualizer : lockVisualizer}
-                    />
-                ) : null}
-                {hasNext ? (
-                    <IconButton
-                        icon="right"
-                        title="Next visualizer"
-                        tabIndex={-1}
-                        onClick={handleNextClick}
-                    />
-                ) : null}
-            </IconButtons>
+            {hideSelector ? null : (
+                <IconButtons className="visualizer-buttons visualizer-controls-selector">
+                    {canLock || locked ? (
+                        <IconButton
+                            icon={locked ? 'locked' : 'unlocked'}
+                            title={`${locked ? 'Unlock' : 'Lock the current visualizer'}`}
+                            tabIndex={-1}
+                            onClick={locked ? unlockVisualizer : lockVisualizer}
+                        />
+                    ) : null}
+                    {hasNext ? (
+                        <IconButton
+                            icon="right"
+                            title="Next visualizer"
+                            tabIndex={-1}
+                            onClick={handleNextClick}
+                        />
+                    ) : null}
+                </IconButtons>
+            )}
             <MediaButtons />
         </div>
     );

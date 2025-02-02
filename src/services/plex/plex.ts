@@ -644,7 +644,6 @@ const plex: PersonalMediaService = {
     addMetadata,
     addToPlaylist,
     canRate,
-    canStore: () => false,
     compareForRating,
     createPlaylist,
     createSourceFromPin,

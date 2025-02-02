@@ -14,6 +14,7 @@ import {
     tap,
     timer,
 } from 'rxjs';
+import Browsable from 'types/Browsable';
 import DataService from 'types/DataService';
 import MediaService from 'types/MediaService';
 import MediaServiceId from 'types/MediaServiceId';
@@ -36,6 +37,8 @@ const playabilityByServiceId: Record<
     file: true,
     http: true,
     https: true,
+    mixcloud: true,
+    soundcloud: true,
     youtube: true,
     // Playable if logged in.
     airsonic: false,
@@ -93,6 +96,19 @@ export async function loadMediaServices(): Promise<readonly MediaService[]> {
     }
     return getServices();
 }
+export function getBrowsableServices(): readonly Browsable<MediaService>[];
+export function getBrowsableServices<T extends MediaService>(
+    serviceType: T['serviceType']
+): readonly Browsable<T>[];
+export function getBrowsableServices<T extends MediaService = MediaService>(
+    serviceType?: T['serviceType']
+): readonly Browsable<T>[] {
+    return getEnabledServices()
+        .filter((service): service is Browsable<T> => !!service.root)
+        .filter((service) =>
+            serviceType === undefined ? true : service.serviceType === serviceType
+        );
+}
 
 // Available to most users but may be hidden by settings or build configuration.
 export function getEnabledServices(): readonly MediaService[] {
@@ -123,7 +139,7 @@ export function getPersonalMediaServices(): readonly PersonalMediaService[] {
 }
 
 export function getPlayableServices(): readonly MediaService[] {
-    return getServices().filter((service) => !isDataService(service) && !service.disabled);
+    return getEnabledServices().filter((service) => !isDataService(service));
 }
 
 export function getPublicMediaServices(): readonly PublicMediaService[] {
@@ -165,7 +181,7 @@ export function isPlayableSrc(src: string, immediate?: boolean): boolean {
             return false;
         }
         if (playableNow) {
-            return serviceId === 'youtube' ? !!(type && id) : true;
+            return /^(blob|file|https?)$/.test(serviceId) ? true : !!(type && id);
         }
         // Playable service.
         if (type && id) {

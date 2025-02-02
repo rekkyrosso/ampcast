@@ -124,7 +124,6 @@ const connect = (
 
         switch (command) {
             case 'close':
-                mediaPlayback.stop();
                 window.close();
                 break;
 

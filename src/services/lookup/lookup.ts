@@ -13,6 +13,7 @@ import {
     hasPlayableSrc,
     isPlayableSrc,
 } from 'services/mediaServices';
+import soundcloudApi from 'services/soundcloud/soundcloudApi';
 import youtubeApi from 'services/youtube/youtubeApi';
 import {
     dispatchLookupStartEvent,
@@ -109,7 +110,10 @@ class Lookup {
         const {link, ...rest} = item;
         const linkedItem = link && hasPlayableSrc(link) ? {...rest, ...link} : undefined;
         if (linkedItem && this.canPlayNow(linkedItem)) {
-            return this.fromLinkedItem(linkedItem);
+            const foundItem = await this.fromLinkedItem(linkedItem);
+            if (foundItem) {
+                return foundItem;
+            }
         }
 
         if (!item.recording_mbid) {
@@ -148,14 +152,20 @@ class Lookup {
         );
     }
 
-    private async fromLinkedItem(linkedItem: PlaylistItem): Promise<MediaItem> {
+    private async fromLinkedItem(linkedItem: PlaylistItem): Promise<MediaItem | null> {
         try {
             const src = linkedItem.src;
             const [serviceId, , id] = src.split(':');
             switch (serviceId) {
+                case 'soundcloud': {
+                    const track = await soundcloudApi.getMediaItem(linkedItem.externalUrl!);
+                    const duration = track.duration || linkedItem.duration;
+                    return bestOf({...track, duration}, linkedItem);
+                }
+
                 case 'youtube': {
                     linkedItem = {...linkedItem, mediaType: MediaType.Video};
-                    const video = await youtubeApi.getVideoInfo(id);
+                    const video = await youtubeApi.getMediaItem(id);
                     return bestOf(video, linkedItem);
                 }
 
@@ -169,6 +179,7 @@ class Lookup {
             }
         } catch (err) {
             logger.error(err);
+            return null;
         }
         return linkedItem;
     }
@@ -204,7 +215,7 @@ class Lookup {
 
                 const youtubeUrl = urls.find((url) => url.includes('youtube.com'));
                 if (youtubeUrl) {
-                    const foundItem = await youtubeApi.getVideoInfo(youtubeUrl);
+                    const foundItem = await youtubeApi.getMediaItem(youtubeUrl);
                     this.throwIfCancelled();
                     if (foundItem.itemType === ItemType.Media) {
                         return foundItem;

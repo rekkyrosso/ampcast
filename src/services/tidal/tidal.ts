@@ -118,8 +118,6 @@ const tidal: PublicMediaService = {
     },
     root: tidalSearch,
     sources: [tidalPlaylists, tidalMyMixes, tidalDailyDiscovery, tidalNewArrivals],
-    canRate: () => false,
-    canStore: () => false,
     compareForRating,
     observeIsLoggedIn,
     isConnected,

@@ -9,6 +9,7 @@ import {
     tap,
 } from 'rxjs';
 import getYouTubeID from 'get-youtube-id';
+import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
@@ -157,6 +158,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             playedAt: item.listened_at,
             link: {
                 src: playableSrc,
+                srcs: info?.origin_url?.includes('soundcloud.com') ? [info.origin_url] : undefined,
                 externalUrl: this.getExternalUrl(info?.origin_url),
             },
         };
@@ -185,6 +187,9 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             if (url) {
                 if (url.includes('apple.com')) {
                     return this.getAppleSrc(url);
+                }
+                if (url.includes('soundcloud.com')) {
+                    return this.getSoundCloudSrc(url);
                 }
                 if (url.includes('spotify.com')) {
                     return this.getSpotifySrc(url);
@@ -216,6 +221,18 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             } else if (url.includes('music-video')) {
                 const [id] = new URL(url).pathname.split('/').reverse();
                 return `apple:music-videos:${id}`;
+            }
+        }
+    }
+
+    private getSoundCloudSrc(url: string): string | undefined {
+        if (url) {
+            const trackUrl = new URL(url);
+            const [id, type] = trackUrl.pathname.split('/').reverse();
+            if (type === 'tracks') {
+                return `soundcloud:${type}:${id}`;
+            } else {
+                return `soundcloud:url:${nanoid()}`;
             }
         }
     }

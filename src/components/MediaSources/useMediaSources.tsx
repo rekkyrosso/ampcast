@@ -1,8 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import {map, merge, of, skipWhile, switchMap, take} from 'rxjs';
+import Browsable from 'types/Browsable';
 import MediaService from 'types/MediaService';
 import {
-    getEnabledServices,
+    getBrowsableServices,
     isPersonalMediaService,
     observeMediaServices,
     observePersonalMediaLibraryIdChanges,
@@ -44,12 +45,12 @@ export default function useMediaSources() {
 }
 
 function getServices(): TreeNode<React.ReactNode>[] {
-    return getEnabledServices()
+    return getBrowsableServices()
         .filter(isSourceVisible)
         .map((service) => getService(service));
 }
 
-function getService(service: MediaService): TreeNode<React.ReactNode> {
+function getService(service: Browsable<MediaService>): TreeNode<React.ReactNode> {
     return {
         id: service.id,
         label: <MediaServiceLabel service={service} showConnectivity />,
@@ -62,22 +63,24 @@ function getService(service: MediaService): TreeNode<React.ReactNode> {
     };
 }
 
-function getSources(service: MediaService): TreeNode<React.ReactNode>[] {
-    return service.sources.filter(isSourceVisible).map((source) => ({
-        id: source.id,
-        label: <MediaSourceLabel icon={source.icon} text={source.title} />,
-        tooltip: `${service.name}: ${source.title}`,
-        value: (
-            <MediaBrowser
-                service={service}
-                source={source}
-                key={`${getServiceKey(service)}/${source.id}`}
-            />
-        ),
-    }));
+function getSources(service: Browsable<MediaService>): TreeNode<React.ReactNode>[] {
+    return (
+        service.sources?.filter(isSourceVisible).map((source) => ({
+            id: source.id,
+            label: <MediaSourceLabel icon={source.icon} text={source.title} />,
+            tooltip: `${service.name}: ${source.title}`,
+            value: (
+                <MediaBrowser
+                    service={service}
+                    source={source}
+                    key={`${getServiceKey(service)}/${source.id}`}
+                />
+            ),
+        })) || []
+    );
 }
 
-function getPins(service: MediaService): TreeNode<React.ReactNode>[] {
+function getPins(service: Browsable<MediaService>): TreeNode<React.ReactNode>[] {
     if (service.createSourceFromPin) {
         return pinStore.getPinsForService(service.id).map((pin) => {
             const source = service.createSourceFromPin!(pin);
@@ -99,7 +102,7 @@ function getPins(service: MediaService): TreeNode<React.ReactNode>[] {
     }
 }
 
-function getServiceKey(service: MediaService): string {
+function getServiceKey(service: Browsable<MediaService>): string {
     return isPersonalMediaService(service)
         ? `${service.id}/${service.libraryId || ''}`
         : service.id;

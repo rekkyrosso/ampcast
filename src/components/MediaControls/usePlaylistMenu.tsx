@@ -51,14 +51,24 @@ export default function usePlaylistMenu(
                     break;
 
                 case 'add-from-url': {
-                    const url = await prompt({
+                    const examples = [
+                        'https://www.youtube.com/*',
+                        'https://open.spotify.com/*',
+                        'https://music.apple.com/*',
+                        'https://soundcloud.com/*',
+                        'https://www.mixcloud.com/*',
+                        'https://example.com/stream',
+                    ];
+                    const list = await prompt({
                         title: 'External Media',
-                        type: 'url',
-                        label: 'Url',
-                        okLabel: 'Add',
+                        type: 'textarea',
+                        label: 'Urls (max 20)',
+                        placeholder: examples.join('\n'),
+                        okLabel: 'Add Media',
                     });
-                    if (url) {
-                        await inject.urls([url], -1);
+                    const urls = list.match(/\S+/g);
+                    if (urls) {
+                        await inject.urls(urls, -1);
                     }
                     break;
                 }

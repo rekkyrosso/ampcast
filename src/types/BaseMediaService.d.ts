@@ -21,12 +21,10 @@ type BaseMediaService = Auth & {
     readonly name: string;
     readonly icon: MediaServiceId;
     readonly url: string;
-    readonly root: AnyMediaSource;
-    readonly sources: AnyMediaSources;
-    canRate: (item: MediaObject, inline?: boolean) => boolean;
-    canStore: (item: MediaObject, inline?: boolean) => boolean;
     compareForRating: <T extends MediaObject>(a: T, b: T) => boolean;
     // Everything below here should be optional.
+    readonly root?: AnyMediaSource;
+    readonly sources?: AnyMediaSources;
     readonly listingName?: string; // Longer name for disambiguation
     readonly disabled?: boolean;
     readonly defaultHidden?: boolean; // `true` for most services
@@ -42,6 +40,16 @@ type BaseMediaService = Auth & {
         Credentials?: React.FC<{service: MediaService}>;
         Login?: React.FC<{service: MediaService}>;
     };
+    // For services that play audio in an iframe.
+    readonly iframeAudioPlayback?:
+        | {
+              readonly showContent?: false | undefined;
+              readonly showCoverArt?: boolean; // Show CoverArt visualizer instead.
+          }
+        | {
+              readonly showContent: true;
+              readonly isCoverArt?: boolean; // Shows enough metadata to not require a hover state.
+          };
     addMetadata?: <T extends MediaObject>(item: T) => Promise<T>;
     addToPlaylist?: (
         playlist: MediaPlaylist,
@@ -49,13 +57,18 @@ type BaseMediaService = Auth & {
         position?: number
     ) => Promise<void>;
     removeFromPlaylist?: (playlist: MediaPlaylist, items: readonly MediaItem[]) => Promise<void>;
+    canRate?: (item: MediaObject, inline?: boolean) => boolean;
+    canStore?: (item: MediaObject, inline?: boolean) => boolean;
     createPlaylist?: <T extends MediaItem>(
         name: string,
         options?: CreatePlaylistOptions<T>
     ) => Promise<MediaPlaylist>;
     createSourceFromPin?: (pin: Pin) => MediaSource<MediaPlaylist>;
     getDrmInfo?: (item?: PlayableItem) => DRMInfo | undefined;
-    getDroppedItems?:(type: DataTransferItem['type'], data: string) => Promise<readonly MediaItem[]>;
+    getDroppedItems?: (
+        type: DataTransferItem['type'],
+        data: string
+    ) => Promise<readonly MediaItem[]>;
     getFilters?: (filterType: FilterType, itemType: ItemType) => Promise<readonly MediaFilter[]>;
     getMediaObject?: <T extends MediaObject>(src: string) => Promise<T>;
     getPlaybackType?: (item: MediaItem) => Promise<PlaybackType>;

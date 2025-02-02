@@ -314,6 +314,13 @@ export class ListenBrainzApi {
 
         const [serviceId] = item.src.split(':');
         switch (serviceId) {
+            case 'soundcloud':
+                if (item.externalUrl) {
+                    info.origin_url = item.externalUrl;
+                }
+                info.music_service = 'soundcloud.com';
+                break;
+
             case 'spotify':
                 if (item.externalUrl) {
                     info.origin_url = item.externalUrl;

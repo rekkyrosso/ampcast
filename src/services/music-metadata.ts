@@ -5,6 +5,9 @@ import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import {loadLibrary, Logger} from 'utils';
+import mixcloudApi from 'services/mixcloud/mixcloudApi';
+import soundcloudApi from 'services/soundcloud/soundcloudApi';
+import youtubeApi from 'services/youtube/youtubeApi';
 
 const logger = new Logger('music-metadata');
 
@@ -54,24 +57,36 @@ export async function createMediaItemFromFile(file: File): Promise<MediaItem> {
 }
 
 export async function createMediaItemFromUrl(url: string): Promise<MediaItem> {
-    let metadata = noMetadata;
-    try {
-        metadata = await fetchFromUrl(url, options);
-    } catch (err) {
-        logger.error(err);
-    }
-    const {format} = metadata;
-    const isVideo = false; // TODO
-    const duration = format.duration || 0;
-    const item = createMediaItem(isVideo ? MediaType.Video : MediaType.Audio, url, url, metadata);
+    const host = new URL(url).hostname;
+    if (host.includes('mixcloud.com')) {
+        return mixcloudApi.getMediaItem(url);
+    } else if (host.includes('soundcloud.com')) {
+        return soundcloudApi.getMediaItem(url);
+    } else if (/youtu\.?be/.test(host)) {
+        return youtubeApi.getMediaItem(url);
+    } else {
+        const {metadata, mimeType} = await fetchFromUrl(url, options);
+        const {format} = metadata;
+        const isVideo = mimeType?.startsWith('video/');
+        const duration = format.duration || 0;
+        const item = createMediaItem(
+            isVideo ? MediaType.Video : MediaType.Audio,
+            url,
+            url,
+            metadata
+        );
 
-    return {
-        ...item,
-        duration: Number(duration.toFixed(3)),
-    };
+        return {
+            ...item,
+            duration: Number(duration.toFixed(3)),
+        };
+    }
 }
 
-async function fetchFromUrl(url: string, options?: IOptions): Promise<IAudioMetadata> {
+async function fetchFromUrl(
+    url: string,
+    options?: IOptions
+): Promise<{metadata: IAudioMetadata; mimeType?: string}> {
     await loadLibrary('music-metadata');
     const {parseBlob, parseWebStream} = await import(
         /* webpackMode: "weak" */
@@ -81,19 +96,30 @@ async function fetchFromUrl(url: string, options?: IOptions): Promise<IAudioMeta
     if (response.ok) {
         if (response.body) {
             const size = response.headers.get('Content-Length');
+            const mimeType = response.headers.get('Content-Type') ?? undefined;
             const fileInfo: IFileInfo = {
+                mimeType,
                 size: size ? parseInt(size, 10) : undefined,
-                mimeType: response.headers.get('Content-Type') ?? undefined,
             };
-            const metadata = await parseWebStream(response.body, fileInfo, options);
+            if (mimeType && !/^(audio|video)\//.test(mimeType)) {
+                throw Error('No media found');
+            }
+            let metadata = noMetadata;
+            try {
+                metadata = await parseWebStream(response.body, fileInfo, options);
+            } catch (err) {
+                logger.error(err);
+            }
             if (!response.body.locked) {
                 // Prevent error in Firefox
                 await response.body.cancel();
             }
-            return metadata;
+            return {metadata, mimeType};
         } else {
             // Fall back on Blob
-            return parseBlob(await response.blob(), options);
+            const blob = await response.blob();
+            const metadata = await parseBlob(blob, options);
+            return {metadata, mimeType: blob.type};
         }
     } else {
         throw Error(response.statusText || 'Could not load media');
@@ -116,7 +142,9 @@ function createMediaItem(
         src,
         externalUrl: '',
         title: (common.title || name).trim(),
-        artists: common.artist ? [common.artist.trim()] : common.artists?.map(artist => artist.trim()),
+        artists: common.artist
+            ? [common.artist.trim()]
+            : common.artists?.map((artist) => artist.trim()),
         albumArtist: common.album ? common.albumartist?.trim() || '' : '',
         album: common.album?.trim() || '',
         genres: common.genre,

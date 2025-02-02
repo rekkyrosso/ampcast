@@ -44,6 +44,7 @@ export default class HTML5Player implements Player<PlayableItem> {
         element.muted = type === 'video';
         element.volume = 1;
         element.autoplay = false;
+        element.preload = index ? 'auto' : 'metadata';
         element.className = `html5-${type} html5-${type}-${name}`;
         if (index) {
             element.id = `html5-${type}-${name}-${index}`;

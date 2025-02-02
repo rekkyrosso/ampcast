@@ -38,13 +38,7 @@ export interface PlaylistProps extends Except<ListViewProps<PlaylistItem>, NotRe
     ref: React.RefObject<ListViewHandle | null>;
 }
 
-export default function Playlist({
-    onSelect,
-    onPlay,
-    onEject,
-    ref,
-    ...props
-}: PlaylistProps) {
+export default function Playlist({onSelect, onPlay, onEject, ref, ...props}: PlaylistProps) {
     const items = useObservable(playlist.observe, []);
     const size = items.length;
     const layout = usePlaylistLayout(size);
@@ -190,15 +184,17 @@ export default function Playlist({
 
                     case 'text/uri-list':
                         data.getAsString(async (string) => {
-                            const uris = string.split(/\s+/);
-                            const [uri] = uris;
-                            const url = uri ? new URL(uri) : null;
-                            if (url?.hostname.includes('music.apple.com')) {
-                                await inject.appleTracks(type, string, atIndex);
-                            } else if (url?.hostname === 'open.spotify.com') {
-                                await inject.spotifyTracks(type, string, atIndex);
-                            } else {
-                                await inject.urls(uris, atIndex);
+                            const urls = string.trim().split(/\s+/);
+                            const [url] = urls;
+                            if (url) {
+                                const hostname = new URL(url).hostname;
+                                if (hostname === 'music.apple.com') {
+                                    await inject.appleTracks(type, string, atIndex);
+                                } else if (hostname === 'open.spotify.com') {
+                                    await inject.spotifyTracks(type, string, atIndex);
+                                } else {
+                                    await inject.urls(urls, atIndex);
+                                }
                             }
                         });
                         break;

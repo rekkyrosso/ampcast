@@ -74,25 +74,27 @@ export default function PopupMenu<T extends string>({
 
     useEffect(() => {
         if (onClose) {
-            const subscription = merge(
-                timer(0).pipe(
+            const subscription = timer(0)
+                .pipe(
                     switchMap(() =>
-                        fromEvent(document, 'mousedown', {capture: true}).pipe(
-                            filter(
-                                (event) =>
-                                    !containerRef.current!.contains(event.target as HTMLElement)
-                            )
+                        merge(
+                            fromEvent(document, 'mousedown', {capture: true}).pipe(
+                                filter(
+                                    (event) =>
+                                        !containerRef.current!.contains(event.target as HTMLElement)
+                                )
+                            ),
+                            fromEvent<KeyboardEvent>(document, 'keydown', {capture: true}).pipe(
+                                filter((event) => event.code === 'Escape' || event.code === 'Tab')
+                            ),
+                            fromEvent(window, 'blur')
                         )
                     )
-                ),
-                fromEvent<KeyboardEvent>(document, 'keydown', {capture: true}).pipe(
-                    filter((event) => event.code === 'Escape' || event.code === 'Tab')
-                ),
-                fromEvent(window, 'blur')
-            ).subscribe(() => {
-                restoreRef.current?.focus();
-                onClose?.();
-            });
+                )
+                .subscribe(() => {
+                    restoreRef.current?.focus();
+                    onClose?.();
+                });
             return () => subscription.unsubscribe();
         }
     }, [onClose]);
@@ -107,7 +109,7 @@ export default function PopupMenu<T extends string>({
                 }
                 if (button?.value && !button.disabled) {
                     restoreRef.current?.focus();
-                    onClose(button!.value);
+                    onClose(button.value);
                 }
             }
         },

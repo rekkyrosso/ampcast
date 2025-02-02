@@ -1,12 +1,8 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import MediaService from 'types/MediaService';
 import PublicMediaService from 'types/PublicMediaService';
-import {
-    getPersonalMediaServices,
-    getPublicMediaServices,
-    getScrobblers,
-    getService,
-} from 'services/mediaServices';
+import ServiceType from 'types/ServiceType';
+import {getBrowsableServices, getScrobblers, getService} from 'services/mediaServices';
 import {
     allowMultiSelect,
     isSourceVisible,
@@ -64,7 +60,7 @@ function StreamingMedia() {
         <Services
             icon="globe"
             title="Streaming Media"
-            services={getPublicMediaServices()}
+            services={getBrowsableServices(ServiceType.PublicMedia)}
             multiSelect={allowMultiSelect}
         />
     );
@@ -76,7 +72,7 @@ function PersonalMedia() {
             className="personal-media-services"
             icon="network"
             title="Personal Media Server"
-            services={getPersonalMediaServices()}
+            services={getBrowsableServices(ServiceType.PersonalMedia)}
         />
     );
 }

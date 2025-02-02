@@ -1,13 +1,26 @@
 import type {Observable} from 'rxjs';
-import {EMPTY, distinctUntilChanged, filter, map, skip, switchMap, tap, withLatestFrom} from 'rxjs';
+import {
+    EMPTY,
+    combineLatest,
+    distinctUntilChanged,
+    filter,
+    map,
+    skip,
+    switchMap,
+    tap,
+    withLatestFrom,
+} from 'rxjs';
 import AudioManager from 'types/AudioManager';
 import PlayableItem from 'types/PlayableItem';
+import PlaylistItem from 'types/PlaylistItem';
 import Player from 'types/Player';
 import {AmbientVideoVisualizer} from 'types/Visualizer';
 import HTML5Player from 'services/mediaPlayback/players/HTML5Player';
+import {getCurrentItem, observeCurrentItem} from 'services/playlist';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
 import OmniPlayer from 'services/mediaPlayback/players/OmniPlayer';
 import {LiteStorage, Logger} from 'utils';
+import {isProviderSupported} from '../visualizer';
 import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 import visualizerSettings, {observeVisualizerSettings} from '../visualizerSettings';
 import BeatsPlayer from '../waveform/BeatsPlayer';
@@ -27,12 +40,12 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
         this.beatsPlayer = new BeatsPlayer(audio);
         this.videoPlayer = this.createVideoPlayer(this.beatsPlayer);
 
-        observeVisualizerSettings()
+        combineLatest([observeVisualizerSettings(), observeCurrentItem()])
             .pipe(
-                map((settings) => settings.ambientVideoBeats),
+                map(([, currentItem]) => this.canShowBeats(currentItem)),
                 distinctUntilChanged(),
-                tap((beatsOverlay) => {
-                    this.beatsPlayer.hidden = this.hidden || !beatsOverlay;
+                tap((canShowBeats) => {
+                    this.beatsPlayer.hidden = this.hidden || !canShowBeats;
                 })
             )
             .subscribe(logger);
@@ -62,7 +75,7 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
 
     set hidden(hidden: boolean) {
         this.videoPlayer.hidden = hidden;
-        this.beatsPlayer.hidden = hidden || !visualizerSettings.ambientVideoBeats;
+        this.beatsPlayer.hidden = hidden || !this.canShowBeats(getCurrentItem());
     }
 
     observeCurrentTime(): Observable<number> {
@@ -188,6 +201,14 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
             .subscribe(logger);
 
         return youtubePlayer;
+    }
+
+    private canShowBeats(currentItem: PlaylistItem | null): boolean {
+        return (
+            !!currentItem &&
+            visualizerSettings.ambientVideoBeats &&
+            isProviderSupported('waveform', currentItem)
+        );
     }
 
     private getProgressKey(): string {

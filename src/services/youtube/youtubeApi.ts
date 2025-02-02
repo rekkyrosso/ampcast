@@ -79,7 +79,7 @@ async function youtubeFetch<T = any>({
     return response.json();
 }
 
-async function getVideoInfo(videoIdOrUrl: string): Promise<MediaItem> {
+async function getMediaItem(videoIdOrUrl: string): Promise<MediaItem> {
     const videoId = /youtu\.?be/.test(videoIdOrUrl) ? getYouTubeID(videoIdOrUrl) : videoIdOrUrl;
     if (!videoId) {
         throw Error('Video does not exist');
@@ -113,7 +113,7 @@ async function getVideoInfo(videoIdOrUrl: string): Promise<MediaItem> {
         externalUrl: url,
         title: video.title,
         aspectRatio: video.width / video.height || 16 / 9,
-        duration: video.duration || 0,
+        duration: 0,
         thumbnails: [
             {
                 url: video.thumbnail_url,
@@ -159,7 +159,7 @@ const youtubeApi = {
     get,
     post,
     createAmbientVideo,
-    getVideoInfo,
+    getMediaItem,
     getVideoSrc,
     getVideoUrl,
     isVideoId,

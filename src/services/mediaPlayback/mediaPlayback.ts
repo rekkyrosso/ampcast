@@ -247,8 +247,12 @@ function unlockLoading(): void {
 }
 
 function kill(): void {
-    killed$.next(undefined);
-    stop();
+    killed$.next();
+    if (isMiniPlayer) {
+        mediaPlayer.pause();
+    } else {
+        stop();
+    }
 }
 
 async function getPlayableItem(item: PlaylistItem | null): Promise<PlaylistItem | null> {
@@ -439,16 +443,17 @@ playlist
     )
     .subscribe(stop);
 
-// Use `duration` from media playback if it's missing in metadata.
+// Use `duration` from media playback (it's more reliable).
 playlist
     .observeCurrentItem()
     .pipe(
         switchMap((item) =>
-            item?.duration === 0
+            item
                 ? playback.observePlaybackState().pipe(
-                      filter(({currentItem}) => currentItem?.id === item?.id),
+                      filter(({currentItem}) => currentItem?.id === item.id),
                       map(({duration}) => duration),
                       filter((duration) => duration !== 0),
+                      skipWhile((duration) => duration === item.duration),
                       take(1),
                       tap((duration) =>
                           dispatchMediaObjectChanges({
@@ -459,6 +464,15 @@ playlist
                   )
                 : EMPTY
         )
+    )
+    .subscribe(logger);
+
+// Pass playlist item changes through to `playback`.
+playlist
+    .observeCurrentItem()
+    .pipe(
+        filter((item) => item?.id === playback.currentItem?.id),
+        tap((item) => (playback.currentItem = item))
     )
     .subscribe(logger);
 

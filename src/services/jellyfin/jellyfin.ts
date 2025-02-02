@@ -486,7 +486,6 @@ const jellyfin: PersonalMediaService = {
     },
     addMetadata,
     addToPlaylist,
-    canRate: () => false,
     canStore,
     compareForRating,
     createPlaylist,

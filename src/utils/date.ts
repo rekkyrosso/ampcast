@@ -41,7 +41,6 @@ export function formatMonth(date?: number | string | Date): string {
     return formatDate(date).slice(0, 7);
 }
 
-// TODO: Polymorphism (with above functions).
 export function formatTime(seconds: number): string {
     return new Date(Math.floor((seconds || 0) * 1000))
         .toISOString()

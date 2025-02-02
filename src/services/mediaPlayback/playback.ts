@@ -102,22 +102,22 @@ function getCurrentItem(): PlaylistItem | null {
 
 function setCurrentItem(currentItem: PlaylistItem | null): void {
     const state = playbackState$.value;
-    const startTime = currentItem?.startTime;
-    if (currentItem?.id === state.currentItem?.id) {
-        // Refresh the item, but no play states have changed.
-        const currentTime = startTime === undefined ? state.currentTime : startTime;
-        playbackState$.next({...state, currentItem, currentTime});
-    } else {
-        if (state.startedAt && !state.endedAt) {
-            playbackState$.next({...state, endedAt: Date.now()});
+    if (currentItem !== state.currentItem) {
+        if (currentItem?.id === state.currentItem?.id) {
+            // Refresh the item, but no play states have changed.
+            playbackState$.next({...state, currentItem});
+        } else {
+            if (state.startedAt && !state.endedAt) {
+                playbackState$.next({...state, endedAt: Date.now()});
+            }
+            playbackState$.next({
+                ...state,
+                ...newSession(),
+                currentItem,
+                currentTime: currentItem?.startTime || 0,
+                duration: currentItem?.duration || 0,
+            });
         }
-        playbackState$.next({
-            ...state,
-            ...newSession(),
-            currentItem,
-            currentTime: startTime || 0,
-            duration: currentItem?.duration || 0,
-        });
     }
 }
 

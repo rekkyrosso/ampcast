@@ -61,7 +61,7 @@ export default class YouTubePlayer implements Player<PlayableItem> {
     private readonly paused$ = new BehaviorSubject(true);
     private readonly size$ = new BehaviorSubject<Size>({width: 0, height: 0});
     private readonly error$ = new Subject<unknown>();
-    private readonly youtubePlayerLoaded$ = new BehaviorSubject(false);
+    private readonly playerLoaded$ = new BehaviorSubject(false);
     private readonly state$ = new Subject<YT.PlayerState>();
     private readonly videoId$ = new BehaviorSubject('');
     private readonly element: HTMLElement;
@@ -355,7 +355,7 @@ export default class YouTubePlayer implements Player<PlayableItem> {
     }
 
     private getAspectRatio(videoId: string): Observable<number> {
-        return from(youtubeApi.getVideoInfo(videoId)).pipe(
+        return from(youtubeApi.getMediaItem(videoId)).pipe(
             takeUntil(timer(3000)),
             takeUntil(this.observeVideoId().pipe(skip(1))),
             map(({aspectRatio}) => aspectRatio || defaultAspectRatio),
@@ -387,7 +387,7 @@ export default class YouTubePlayer implements Player<PlayableItem> {
             if (this.muted || this.volume === 0) {
                 target.mute();
             }
-            this.youtubePlayerLoaded$.next(true);
+            this.playerLoaded$.next(true);
         });
 
         Player.on('stateChange', ({data}) => this.state$.next(data));
@@ -420,10 +420,10 @@ export default class YouTubePlayer implements Player<PlayableItem> {
     }
 
     private async waitForPlayer(): Promise<boolean> {
-        const youtubePlayerLoaded$ = this.youtubePlayerLoaded$;
-        let loaded = youtubePlayerLoaded$.value;
+        const playerLoaded$ = this.playerLoaded$;
+        let loaded = playerLoaded$.value;
         if (!loaded && !this.hasWaited) {
-            const loaded$ = youtubePlayerLoaded$.pipe(filter((loaded) => loaded));
+            const loaded$ = playerLoaded$.pipe(filter((loaded) => loaded));
             const timeout$ = timer(3000).pipe(map(() => false));
             loaded = await firstValueFrom(race(loaded$, timeout$));
             this.hasWaited = true;

@@ -10,7 +10,7 @@ export default function useYouTubeVideoInfo(src: string) {
     useEffect(() => {
         setVideoInfo(null);
         if (service === 'youtube' && videoId) {
-            const subscription = from(youtubeApi.getVideoInfo(videoId)).subscribe(setVideoInfo);
+            const subscription = from(youtubeApi.getMediaItem(videoId)).subscribe(setVideoInfo);
             return () => subscription.unsubscribe();
         }
     }, [service, videoId]);

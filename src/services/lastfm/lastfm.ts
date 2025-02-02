@@ -125,7 +125,6 @@ const lastfm: DataService = {
         [Action.RemoveFromLibrary]: 'Unlove on last.fm',
     },
     addMetadata,
-    canRate: () => false,
     canStore,
     compareForRating,
     scrobble,
@@ -298,7 +297,8 @@ function createTopSource<T extends MediaObject>(
                     const atEnd = totalPages === 1 || page === totalPages;
                     const total = Number(attr.total) || undefined;
                     return {items, total, atEnd, itemType: props.itemType};
-                }
+                },
+                {maxSize: 1000}
             );
         },
     };

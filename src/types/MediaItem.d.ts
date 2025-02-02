@@ -52,6 +52,7 @@ export default interface MediaItem extends BaseMediaObject {
     // For last.fm/ListenBrainz: (partial) link to original source (if any).
     readonly link?: {
         readonly src: string;
+        readonly srcs?: string[];
         readonly externalUrl?: string;
     };
 }

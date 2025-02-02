@@ -173,7 +173,6 @@ const listenbrainz: DataService = {
     },
     editablePlaylists: listenbrainzPlaylists,
     addToPlaylist,
-    canRate: () => false,
     canStore,
     compareForRating,
     createPlaylist,
@@ -302,7 +301,7 @@ function createTopSource<T extends MediaObject>(
             return new ListenBrainzStatsPager(
                 isChart ? `stats/${path}` : `stats/user/${listenbrainzSettings.userId}/${path}`,
                 {range},
-                {maxSize: isChart ? 1000 : undefined}
+                {maxSize: 1000}
             );
         },
     };

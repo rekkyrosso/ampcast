@@ -141,8 +141,6 @@ const youtube: PublicMediaService = {
     root: youtubeSearch,
     sources: [youtubeLikes, youtubeRecentlyPlayed, youtubePlaylists],
     addToPlaylist,
-    canRate: () => false,
-    canStore: () => false,
     compareForRating: () => false,
     createPlaylist,
     createSourceFromPin,
