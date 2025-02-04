@@ -115,11 +115,24 @@ export default class Logger implements BasicConsole, AnyObserver {
             if (id.startsWith(Logger.only)) {
                 const hash = Array(level).fill('#').join('');
                 const prefix = id ? ` ${id}:` : '';
-                if (level === 4) {
-                    console.log(`${hash}${prefix}`, 'ERROR');
-                    console.error(...args);
-                } else {
-                    console.log(`${hash}${prefix}`, ...args);
+                const tag = `${hash}${prefix}`;
+                switch (level) {
+                    case LogLevel.Info:
+                        console.info(tag, ...args);
+                        break;
+
+                    case LogLevel.Log:
+                        console.log(tag, ...args);
+                        break;
+
+                    case LogLevel.Warn:
+                        console.warn(tag, ...args);
+                        break;
+
+                    case LogLevel.Error:
+                        console.log(tag, 'ERROR');
+                        console.error(...args);
+                        break;
                 }
                 if (id) {
                     addLog(level, args, id);
@@ -128,10 +141,10 @@ export default class Logger implements BasicConsole, AnyObserver {
         };
 
         // Basic console.
-        this.info = (...args: any[]) => log(1, args);
-        this.log = (...args: any[]) => log(2, args);
-        this.warn = (...args: any[]) => log(3, args);
-        this.error = (...args: any[]) => log(4, args);
+        this.info = (...args: any[]) => log(LogLevel.Info, args);
+        this.log = (...args: any[]) => log(LogLevel.Log, args);
+        this.warn = (...args: any[]) => log(LogLevel.Warn, args);
+        this.error = (...args: any[]) => log(LogLevel.Error, args);
 
         // For RxJS debugging.
         if (rx) {

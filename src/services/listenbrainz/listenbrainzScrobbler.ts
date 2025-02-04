@@ -51,11 +51,16 @@ export function scrobble(): void {
             }
             const latestTimestamp = items[0].playedAt + Math.floor(items[0].duration);
             const earliestTimestamp = items.at(-1)!.playedAt;
-            const pager = new ListenBrainzHistoryPager({
-                min_ts: earliestTimestamp - timeFuzziness,
-                max_ts: latestTimestamp + timeFuzziness,
-                count: ListenBrainzHistoryPager.maxPageSize,
-            });
+            const maxSize = ListenBrainzHistoryPager.maxPageSize;
+            const pager = new ListenBrainzHistoryPager(
+                {
+                    min_ts: earliestTimestamp - timeFuzziness,
+                    max_ts: latestTimestamp + timeFuzziness,
+                    count: maxSize,
+                },
+                undefined,
+                {maxSize}
+            );
             const history = await fetchFirstPage(pager);
             const historyIds = history.map((item) => getListenId(item, timeFuzziness));
             const [ignore, unscrobbled] = partition(

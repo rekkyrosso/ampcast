@@ -13,7 +13,7 @@ import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
-import Pager, {Page} from 'types/Pager';
+import Pager, {Page, PagerConfig} from 'types/Pager';
 import {getMediaLookupServices} from 'services/mediaServices';
 import {musicBrainzHost} from 'services/musicbrainz';
 import SequentialPager from 'services/pagers/SequentialPager';
@@ -33,7 +33,8 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
 
     constructor(
         params?: ListenBrainz.User.ListensParams,
-        private readonly fetchListenCount = false
+        private readonly fetchListenCount = false,
+        options?: Partial<PagerConfig>
     ) {
         this.pager = new SequentialPager<MediaItem>(
             async (count: number): Promise<Page<MediaItem>> => {
@@ -60,7 +61,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
                     throw err;
                 }
             },
-            {pageSize: 50}
+            {pageSize: 50, ...options}
         );
     }
 
