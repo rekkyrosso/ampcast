@@ -14,13 +14,12 @@ import HTML5Player from './players/HTML5Player';
 import OmniPlayer from './players/OmniPlayer';
 
 // Audio players.
+const hlsAudioPlayer = new HLSPlayer('audio', 'hls');
 const html5AudioPlayer = new DualAudioPlayer(
     'main',
     new HTML5Player('audio', 'main', 1),
     new HTML5Player('audio', 'main', 2)
 );
-// Can't get hls.js to play two streams at once so can't use `DualAudioPlayer`.
-const hlsAudioPlayer = new HLSPlayer('audio', 'hls');
 
 // Video players.
 const hlsVideoPlayer = new HLSPlayer('video', 'hls');

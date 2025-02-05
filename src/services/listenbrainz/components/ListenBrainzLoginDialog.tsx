@@ -97,18 +97,19 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
                             autoFocus
                             required
                             spellCheck={false}
-                            autoComplete="off"
+                            autoComplete={`section-${id} username`}
                             autoCapitalize="off"
                             ref={userNameRef}
                         />
                     </p>
                     <p>
-                        <label htmlFor={`${id}-token`}>Token:</label>
+                        <label htmlFor={`${id}-password`}>Token:</label>
                         <input
                             type="password"
-                            id={`${id}-token`}
-                            name={`${id}-token`}
+                            id={`${id}-password`}
+                            name={`${id}-password`}
                             required
+                            autoComplete={`section-${id} current-password`}
                             ref={tokenRef}
                         />
                     </p>

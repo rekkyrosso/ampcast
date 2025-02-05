@@ -44,7 +44,7 @@ export default class HTML5Player implements Player<PlayableItem> {
         element.muted = type === 'video';
         element.volume = 1;
         element.autoplay = false;
-        element.preload = index ? 'auto' : 'metadata';
+        element.preload = 'metadata';
         element.className = `html5-${type} html5-${type}-${name}`;
         if (index) {
             element.id = `html5-${type}-${name}-${index}`;
@@ -177,7 +177,11 @@ export default class HTML5Player implements Player<PlayableItem> {
                     startWith(element),
                     map(() => element.duration),
                     map((duration) =>
-                        isNaN(duration) ? 0 : isFinite(duration) ? duration : MAX_DURATION
+                        isNaN(duration)
+                            ? this.item?.duration || 0
+                            : isFinite(duration)
+                            ? duration
+                            : this.item?.duration || MAX_DURATION
                     ),
                     skipWhile((duration) => !duration)
                 )

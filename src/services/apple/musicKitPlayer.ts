@@ -268,8 +268,12 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         // Skip for prev/next item.
         // Otherwise, reset the queue.
         if (queueItems[position]?.id === id) {
-            // Emitting `playing` needs to be async.
-            await Promise.resolve();
+            if (player.isPlaying) {
+                // Needs to be async.
+                await Promise.resolve();
+            } else {
+                await player.play();
+            }
         } else if (queueItems[position - 1]?.id === id) {
             this.skipping = true;
             await player.skipToPreviousItem();

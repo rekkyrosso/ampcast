@@ -26,7 +26,7 @@ import {
 } from 'rxjs';
 import PlayableItem from 'types/PlayableItem';
 import Player from 'types/Player';
-import {exists, loadScript, Logger, sleep} from 'utils';
+import {exists, loadScript, Logger, observeBeforeEndOfTrack, sleep} from 'utils';
 import {observeAccessToken, refreshToken} from './spotifyAuth';
 
 interface LoadError {
@@ -124,8 +124,9 @@ export class SpotifyPlayer implements Player<PlayableItem> {
             .subscribe(() => this.ended$.next());
 
         // Queue next track.
-        this.observeBeforeEndOfTrack()
+        observeBeforeEndOfTrack(this, 10)
             .pipe(
+                filter((atBeforeEnd) => atBeforeEnd),
                 withLatestFrom(this.nextItem$),
                 map(([, nextItem]) => nextItem),
                 filter(exists),
@@ -297,16 +298,6 @@ export class SpotifyPlayer implements Player<PlayableItem> {
         return this.accessToken$.pipe(distinctUntilChanged());
     }
 
-    private observeBeforeEndOfTrack(buffer = 10): Observable<void> {
-        return this.observeCurrentTime().pipe(
-            withLatestFrom(this.observeDuration()),
-            map(([currentTime, duration]) => duration - currentTime <= buffer),
-            distinctUntilChanged(),
-            filter((atBeforeEnd) => atBeforeEnd),
-            map(() => undefined)
-        );
-    }
-
     private observeIsLoggedIn(): Observable<boolean> {
         return this.observeAccessToken().pipe(
             map((accessToken) => !!accessToken),
@@ -347,15 +338,23 @@ export class SpotifyPlayer implements Player<PlayableItem> {
             throw Error('No access token');
         }
 
-        const currentTrack = this.state$.value?.track_window?.current_track;
+        let tempMuted = false;
+        const state = this.state$.value;
+        const currentTrack = state?.track_window?.current_track;
         if (currentTrack) {
             if (this.compareTrackSrc(currentTrack, src)) {
                 this.loadError = undefined;
                 this.loadedSrc = src;
+                if (state.paused) {
+                    this.safePlay();
+                }
                 return;
             } else if (this.loadedSrc && !this.compareTrackSrc(currentTrack, this.loadedSrc)) {
-                // Something else is loaded, mute it.
-                this.player?.setVolume(0);
+                // Something else is loaded so mute it.
+                if (!state.paused) {
+                    tempMuted = true;
+                    this.safeVolume(0);
+                }
             }
         }
 
@@ -429,7 +428,9 @@ export class SpotifyPlayer implements Player<PlayableItem> {
 
         this.loadError = undefined;
         this.loadedSrc = src;
-        this.player?.setVolume(this.#volume);
+        if (tempMuted) {
+            this.safeVolume(this.volume);
+        }
     }
 
     private async addToQueue(item: PlayableItem): Promise<void> {

@@ -39,6 +39,7 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
                                         this.error = undefined;
                                         this.addPage(page);
                                         if (
+                                            !this.disconnected &&
                                             index + 1 < (this.size ?? this.maxSize ?? Infinity) &&
                                             index + length + 2 >= this.items.length
                                         ) {

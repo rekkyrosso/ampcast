@@ -75,7 +75,7 @@ export default function LoginDialog({
     return (
         <Dialog
             {...props}
-            className={`login-dialog login-dialog-${service.id}`}
+            className={`login-dialog login-dialog-${id}`}
             icon={service.icon}
             title={`Log in to ${service.name}`}
             ref={dialogRef}
@@ -90,6 +90,7 @@ export default function LoginDialog({
                             name={`${id}-host`}
                             defaultValue={settings.host}
                             placeholder={`${location.protocol}//`}
+                            autoComplete={`section-${id} url`}
                             required
                             ref={hostRef}
                         />
@@ -102,7 +103,7 @@ export default function LoginDialog({
                             name={`${id}-username`}
                             defaultValue={userName || ''}
                             spellCheck={false}
-                            autoComplete="off"
+                            autoComplete={`section-${id} username`}
                             autoCapitalize="off"
                             required
                             ref={userNameRef}
@@ -115,6 +116,7 @@ export default function LoginDialog({
                             id={`${id}-password`}
                             name={`${id}-password`}
                             ref={passwordRef}
+                            autoComplete={`section-${id} current-password`}
                             required
                         />
                     </p>

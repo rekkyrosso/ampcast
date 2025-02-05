@@ -1,4 +1,4 @@
-import {combineLatest, distinctUntilChanged, filter, map, pairwise, startWith, tap} from 'rxjs';
+import {combineLatest, distinctUntilChanged, filter, map, tap} from 'rxjs';
 import AudioManager from 'types/AudioManager';
 import AudioSettings from 'types/AudioSettings';
 import MediaType from 'types/MediaType';
@@ -37,14 +37,7 @@ class Audio implements AudioManager {
             .pipe(
                 map((state) => this.getCurrentlyPlaying(state)),
                 filter(exists),
-                map((item) => this.getSourceNode(item)),
-                startWith(undefined),
-                distinctUntilChanged(),
-                pairwise(),
-                tap(([prevSourceNode, nextSourceNode]) => {
-                    prevSourceNode?.disconnect(this.#input);
-                    nextSourceNode?.connect(this.#input);
-                })
+                tap((item) => this.getSourceNode(item))
             )
             .subscribe(logger);
 
@@ -126,10 +119,11 @@ class Audio implements AudioManager {
         return currentItem;
     }
 
-    private getSourceNode(item: PlaylistItem): MediaElementAudioSourceNode | undefined {
+    private getSourceNode(item: PlaylistItem): void {
         const createSourceNode = (audio: HTMLAudioElement) => {
             if (!this.#sourceNodes.has(audio)) {
                 const sourceNode = this.context!.createMediaElementSource(audio);
+                sourceNode.connect(this.#input);
                 this.#sourceNodes.set(audio, sourceNode);
             }
         };
@@ -142,7 +136,6 @@ class Audio implements AudioManager {
         const audio = this.getAudioElement(item);
         if (audio) {
             createSourceNode(audio);
-            return this.#sourceNodes.get(audio);
         }
     }
 

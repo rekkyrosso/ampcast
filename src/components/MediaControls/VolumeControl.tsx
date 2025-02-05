@@ -1,4 +1,5 @@
 import React, {memo, useCallback, useEffect, useState} from 'react';
+import {clamp} from 'utils';
 import mediaPlayback from 'services/mediaPlayback';
 import IconButton from 'components/Button/IconButton';
 import './VolumeControl.scss';
@@ -27,6 +28,13 @@ export default memo(function VolumeControl() {
         setMuted(!muted);
     }, [muted]);
 
+    const handleWheel = useCallback((event: React.WheelEvent<HTMLInputElement>) => {
+        const currentVolume = (event.target as HTMLInputElement).valueAsNumber;
+        const volume = clamp(0, currentVolume - Math.sign(event.deltaY) * 0.05, 1);
+        setVolume(volume);
+        setMuted(volume === 0);
+    }, []);
+
     return (
         <div className={`volume-control volume-${volumeLabel}`}>
             <IconButton
@@ -44,6 +52,7 @@ export default memo(function VolumeControl() {
                 step={0.01}
                 value={muted ? 0 : volume}
                 onChange={handleVolumeChange}
+                onWheel={handleWheel}
             />
         </div>
     );

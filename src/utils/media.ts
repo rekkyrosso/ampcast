@@ -1,9 +1,23 @@
+import type {Observable} from 'rxjs';
+import {distinctUntilChanged, map, withLatestFrom} from 'rxjs';
 import DRMKeySystem from 'types/DRMKeySystem';
 import DRMType from 'types/DRMType';
 import {ListenData} from 'types/Listen';
 import MediaItem from 'types/MediaItem';
+import Player from 'types/Player';
 import UserData from 'types/UserData';
 import browser from './browser';
+
+export function observeBeforeEndOfTrack(
+    player: Player<any>,
+    secondsBeforeEnd: number
+): Observable<boolean> {
+    return player.observeCurrentTime().pipe(
+        withLatestFrom(player.observeDuration()),
+        map(([currentTime, duration]) => duration - currentTime <= secondsBeforeEnd),
+        distinctUntilChanged()
+    );
+}
 
 const userDataKeys: (keyof UserData | keyof ListenData | 'lookupStatus' | 'startTime')[] = [
     'rating',

@@ -1,22 +1,14 @@
 import type {Observable} from 'rxjs';
-import {
-    EMPTY,
-    BehaviorSubject,
-    distinctUntilChanged,
-    filter,
-    interval,
-    map,
-    switchMap,
-    withLatestFrom,
-} from 'rxjs';
+import {EMPTY, BehaviorSubject, distinctUntilChanged, filter, interval, map, switchMap} from 'rxjs';
 import PlayableItem from 'types/PlayableItem';
 import Player from 'types/Player';
+import {exists, observeBeforeEndOfTrack} from 'utils';
 import HTML5Player from './HTML5Player';
 
 export default class DualAudioPlayer implements Player<PlayableItem> {
     private readonly element = document.createElement('div');
     private readonly player$ = new BehaviorSubject<HTML5Player>(this.player1);
-    private nextItem: PlayableItem | null = null;
+    private readonly nextItem$ = new BehaviorSubject<PlayableItem | null>(null);
     #autoplay = false;
 
     constructor(
@@ -31,12 +23,20 @@ export default class DualAudioPlayer implements Player<PlayableItem> {
             this.element.className = `dual-audio-${name} player-${player === this.player1 ? 1 : 2}`;
         });
 
-        // Gapless playback.
-        this.observeCurrentTime()
+        // Load next track.
+        observeBeforeEndOfTrack(this, 5)
             .pipe(
-                withLatestFrom(this.observeDuration()),
-                map(([currentTime, duration]) => duration - currentTime < 2),
+                switchMap((nearEnd) => (nearEnd ? this.nextItem$ : EMPTY)),
                 distinctUntilChanged(),
+                filter(exists)
+            )
+            .subscribe((nextItem) => {
+                this.nextPlayer.load(nextItem);
+            });
+
+        // Gapless playback.
+        observeBeforeEndOfTrack(this, 2)
+            .pipe(
                 switchMap((nearEnd) => (nearEnd ? interval(10) : EMPTY)),
                 map(() => {
                     const {currentTime, duration, item} = this.currentPlayer;
@@ -139,10 +139,7 @@ export default class DualAudioPlayer implements Player<PlayableItem> {
     }
 
     loadNext(item: PlayableItem | null): void {
-        this.nextItem = item;
-        if (item) {
-            this.nextPlayer.load(item);
-        }
+        this.nextItem$.next(item);
     }
 
     play(): void {
@@ -170,6 +167,10 @@ export default class DualAudioPlayer implements Player<PlayableItem> {
 
     private get currentPlayer(): HTML5Player {
         return this.player$.value;
+    }
+
+    private get nextItem(): PlayableItem | null {
+        return this.nextItem$.value;
     }
 
     private get nextPlayer(): HTML5Player {
