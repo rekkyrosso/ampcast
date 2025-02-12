@@ -120,7 +120,6 @@ function noPublicOption(serviceId: MediaServiceId): boolean {
         case 'emby':
         case 'jellyfin':
         case 'plex':
-        case 'plex-tidal':
             return true;
 
         default:

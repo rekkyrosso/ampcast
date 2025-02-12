@@ -1,7 +1,7 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
-import {sp_client_id} from 'services/credentials';
 import {LiteStorage} from 'utils';
+import {sp_client_id} from 'services/buildConfig';
 
 export interface SpotifyCredentials {
     readonly clientId: string;
@@ -47,10 +47,6 @@ const spotifySettings = {
 
     get credentialsRequired(): boolean {
         return !sp_client_id;
-    },
-
-    get disabled(): boolean {
-        return __spotify_disabled__ && !storage.getBoolean('enabled');
     },
 
     get market(): string {

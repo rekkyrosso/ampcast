@@ -10,6 +10,7 @@ import Pin from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
+import {isStartupService} from 'services/buildConfig';
 import {getListens} from 'services/localdb/listens';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
@@ -20,6 +21,7 @@ import {
     isLoggedIn,
     login,
     logout,
+    reconnect,
     clearAccessToken,
 } from './youtubeAuth';
 import YouTubePager from './YouTubePager';
@@ -127,10 +129,7 @@ const youtube: PublicMediaService = {
     serviceType: ServiceType.PublicMedia,
     primaryMediaType: MediaType.Video,
     Components: {Credentials, Login},
-    get disabled(): boolean {
-        return youtubeSettings.disabled;
-    },
-    defaultHidden: true,
+    defaultHidden: !isStartupService('youtube'),
     defaultNoScrobble: true,
     internetRequired: true,
     get credentialsRequired(): boolean {
@@ -150,6 +149,7 @@ const youtube: PublicMediaService = {
     isLoggedIn,
     login,
     logout,
+    reconnect,
 };
 
 export default youtube;

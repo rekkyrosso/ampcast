@@ -8,4 +8,6 @@ export default interface PersonalMediaServerSettings {
     libraries: readonly PersonalMediaLibrary[];
     readonly videoLibraryId?: string;
     observeLibraryId: () => Observable<string>;
+    useManualLogin?: boolean;
+    userName?: string;
 }

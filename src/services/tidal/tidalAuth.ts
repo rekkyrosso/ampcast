@@ -21,6 +21,7 @@ import {
 } from '@tidal-music/auth';
 import {nanoid} from 'nanoid';
 import {LiteStorage, Logger} from 'utils';
+import {isServiceDisabled} from 'services/buildConfig';
 import tidalSettings from './tidalSettings';
 import tidalApi from './tidalApi';
 
@@ -115,10 +116,11 @@ observeIsLoggedIn()
     .pipe(skipWhile((isLoggedIn) => !isLoggedIn))
     .subscribe((isLoggedIn) => (tidalSettings.connectedAt = isLoggedIn ? Date.now() : 0));
 
+// TODO: Add `reconnect()` function instead.
 tidalSettings
     .observeCredentials()
     .pipe(
-        filter(() => !tidalSettings.disabled),
+        filter(() => !isServiceDisabled('tidal')),
         map(({clientId}) => clientId),
         switchMap((clientId) =>
             clientId

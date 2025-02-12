@@ -64,6 +64,10 @@ export async function logout(): Promise<void> {
     isLoggedIn$.next(false);
 }
 
+export async function reconnect(): Promise<void> {
+    serverToken$.next(plexSettings.serverToken);
+}
+
 async function obtainUserToken(): Promise<{id: string; serverToken: string; userToken: string}> {
     const {id, serverToken} = await obtainServerToken();
     await establishConnection(serverToken);
@@ -241,10 +245,7 @@ observeServerToken()
 
 async function checkConnection(): Promise<boolean> {
     try {
-        const [libraries] = await Promise.all([
-            plexApi.getMusicLibraries(),
-            getDrm(),
-        ]);
+        const [libraries] = await Promise.all([plexApi.getMusicLibraries(), getDrm()]);
         plexSettings.libraries = libraries;
         return true;
     } catch (err: any) {
@@ -273,5 +274,3 @@ async function getDrm(): Promise<void> {
 observeConnectionLogging()
     .pipe(filter((status) => status !== ''))
     .subscribe(logger.rx());
-
-serverToken$.next(plexSettings.serverToken);

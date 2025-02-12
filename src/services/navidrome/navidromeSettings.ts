@@ -1,14 +1,18 @@
 import {LiteStorage} from 'utils';
+import {getServerHost, isStartupService} from 'services/buildConfig';
 
 const storage = new LiteStorage('navidrome');
 
-export default {
-    get host(): string {
-        return storage.getString('host');
+const navidromeSettings = {
+    get connectedAt(): number {
+        return storage.getNumber(
+            'connectedAt',
+            this.token || isStartupService('navidrome') ? 1 : 0
+        );
     },
 
-    set host(host: string) {
-        storage.setString('host', host);
+    set connectedAt(connectedAt: number) {
+        storage.setNumber('connectedAt', connectedAt);
     },
 
     get credentials(): string {
@@ -17,6 +21,14 @@ export default {
 
     set credentials(credentials: string) {
         storage.setString('credentials', credentials);
+    },
+
+    get host(): string {
+        return storage.getString('host', getServerHost('navidrome'));
+    },
+
+    set host(host: string) {
+        storage.setString('host', host);
     },
 
     get token(): string {
@@ -35,9 +47,27 @@ export default {
         storage.setString('userId', userId);
     },
 
+    get userName(): string {
+        return storage.getString('userName');
+    },
+
+    set userName(userName: string) {
+        storage.setString('userName', userName);
+    },
+
+    get useManualLogin(): boolean {
+        return storage.getBoolean('useManualLogin');
+    },
+
+    set useManualLogin(useManualLogin: boolean) {
+        storage.setBoolean('useManualLogin', useManualLogin);
+    },
+
     clear(): void {
         storage.removeItem('token');
         storage.removeItem('credentials');
         storage.removeItem('userId');
     },
 };
+
+export default navidromeSettings;

@@ -1,20 +1,23 @@
-type MediaServiceId =
+export type PublicMediaServiceId =
+    | 'apple'
+    | 'mixcloud'
+    | 'soundcloud'
+    | 'spotify'
+    | 'tidal'
+    | 'youtube';
+
+export type PersonalMediaServiceId =
     | 'airsonic'
     | 'ampache'
-    | 'apple'
     | 'emby'
     | 'gonic'
     | 'jellyfin'
-    | 'lastfm'
-    | 'listenbrainz'
-    | 'mixcloud'
     | 'navidrome'
     | 'plex'
-    | 'plex-tidal'
-    | 'soundcloud'
-    | 'spotify'
-    | 'subsonic'
-    | 'tidal'
-    | 'youtube';
+    | 'subsonic';
+
+export type DataServiceId = 'lastfm' | 'listenbrainz';
+
+type MediaServiceId = PublicMediaServiceId | PersonalMediaServiceId | DataServiceId;
 
 export default MediaServiceId;

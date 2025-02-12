@@ -18,6 +18,7 @@ import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
 import {chunk, exists, partition, sleep} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
+import {isStartupService} from 'services/buildConfig';
 import {NoSpotifyChartsError} from 'services/errors';
 import fetchAllTracks from 'services/pagers/fetchAllTracks';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
@@ -29,6 +30,7 @@ import {
     isLoggedIn,
     login,
     logout,
+    reconnect,
     refreshToken,
 } from './spotifyAuth';
 import spotifyApi from './spotifyApi';
@@ -433,10 +435,7 @@ const spotify: PublicMediaService = {
     credentialsUrl: 'https://developer.spotify.com/dashboard/create',
     serviceType: ServiceType.PublicMedia,
     Components: {Credentials, Login},
-    get disabled(): boolean {
-        return spotifySettings.disabled;
-    },
-    defaultHidden: true,
+    defaultHidden: !isStartupService('spotify'),
     internetRequired: true,
     get credentialsRequired(): boolean {
         return spotifySettings.credentialsRequired;
@@ -483,6 +482,7 @@ const spotify: PublicMediaService = {
     isLoggedIn,
     login,
     logout,
+    reconnect,
 };
 
 export default spotify;

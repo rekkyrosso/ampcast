@@ -10,9 +10,33 @@ module.exports = (args) => {
     const {mode = 'production', target = 'pwa'} = args;
     const __dev__ = mode === 'development';
     const wwwDir = resolve(__dirname, __dev__ ? 'www-dev' : 'app/www');
-    // Use a local `.env` file (if it exists) associated with the target environment.
-    dotenv.config({path: __dev__ || mode === 'docker' ? './.env' : `./.env.${target}`});
+    const hasServerEnv = __dev__ || target === 'docker';
+    if (!hasServerEnv) {
+        // Use a local `.env` file (if it exists) associated with the target environment.
+        dotenv.config({path: `./.env.${target}`});
+    }
     const env = process.env;
+
+    const encodeString = (string) => {
+        const encoder = new TextEncoder();
+        return encoder.encode(string).join(',');
+    };
+
+    const getEnv = (key) => {
+        if (hasServerEnv) {
+            return `'%${key}%'`;
+        } else {
+            return `'${encodeString(env[key] || '')}'`;
+        }
+    };
+
+    const getPersonalMediaServers = () => {
+        if (hasServerEnv) {
+            return `'%PERSONAL_MEDIA_SERVERS%'`;
+        } else {
+            return `'${encodeString('{}')}'`;
+        }
+    };
 
     return {
         mode,
@@ -128,15 +152,15 @@ module.exports = (args) => {
                 __app_name__: JSON.stringify(packageJson.name || ''),
                 __app_version__: JSON.stringify(packageJson.version || ''),
                 __app_contact__: JSON.stringify(packageJson.author.email || ''),
-                __am_dev_token__: JSON.stringify(env.AM_DEV_TOKEN || ''),
-                __lf_api_key__: JSON.stringify(env.LF_API_KEY || ''),
-                __lf_api_secret__: JSON.stringify(env.LF_API_SECRET || ''),
-                __sp_client_id__: JSON.stringify(env.SP_CLIENT_ID || ''),
-                __td_client_id__: JSON.stringify(env.TD_CLIENT_ID || ''),
-                __yt_client_id__: JSON.stringify(env.YT_CLIENT_ID || ''),
-                __spotify_disabled__: env.SPOTIFY_DISABLED === 'true',
-                __tidal_disabled__: true, // env.TIDAL_DISABLED === 'true',
-                __youtube_disabled__: env.YOUTUBE_DISABLED === 'true',
+                __am_dev_token__: getEnv('APPLE_MUSIC_DEV_TOKEN'),
+                __lf_api_key__: getEnv('LASTFM_API_KEY'),
+                __lf_api_secret__: getEnv('LASTFM_API_SECRET'),
+                __sp_client_id__: getEnv('SPOTIFY_CLIENT_ID'),
+                __td_client_id__: getEnv('TIDAL_CLIENT_ID'),
+                __yt_client_id__: getEnv('GOOGLE_CLIENT_ID'),
+                __enabled_services__: getEnv('ENABLED_SERVICES'),
+                __startup_services__: getEnv('STARTUP_SERVICES'),
+                __personal_media_servers__: getPersonalMediaServers(),
                 __single_streaming_service__: env.SINGLE_STREAMING_SERVICE === 'true',
             }),
             new CopyPlugin({

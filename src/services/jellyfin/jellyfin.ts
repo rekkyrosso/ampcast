@@ -24,6 +24,7 @@ import PlaybackType from 'types/PlaybackType';
 import Pin from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
+import {isStartupService} from 'services/buildConfig';
 import embyScrobbler from 'services/emby/embyScrobbler';
 import {NoMusicLibraryError, NoMusicVideoLibraryError} from 'services/errors';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
@@ -32,7 +33,7 @@ import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import {t} from 'services/i18n';
 import {bestOf} from 'utils';
-import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './jellyfinAuth';
+import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout, reconnect} from './jellyfinAuth';
 import jellyfinSettings from './jellyfinSettings';
 import JellyfinPager from './JellyfinPager';
 import jellyfinApi from './jellyfinApi';
@@ -279,7 +280,8 @@ const jellyfinTracksByDecade: MediaSource<MediaItem> = {
                 Years: decade.id,
                 IncludeItemTypes: 'Audio',
                 SortBy: 'ProductionYear,PremiereDate,AlbumArtist,Album,ParentIndexNumber,IndexNumber,SortName',
-                SortOrder: 'Descending,Descending,Ascending,Ascending,Ascending,Ascending,Ascending'
+                SortOrder:
+                    'Descending,Descending,Ascending,Ascending,Ascending,Ascending,Ascending',
             });
         } else {
             return new SimplePager();
@@ -302,7 +304,7 @@ const jellyfinAlbumsByDecade: MediaSource<MediaAlbum> = {
                 Years: decade.id,
                 IncludeItemTypes: 'MusicAlbum',
                 SortBy: 'ProductionYear,AlbumArtist,PremiereDate,SortName',
-                SortOrder: 'Descending,Ascending,Descending,Ascending'
+                SortOrder: 'Descending,Ascending,Descending,Ascending',
             });
         } else {
             return new SimplePager();
@@ -439,7 +441,7 @@ const jellyfin: PersonalMediaService = {
     name: 'Jellyfin',
     url: 'https://jellyfin.org',
     serviceType: ServiceType.PersonalMedia,
-    defaultHidden: true,
+    defaultHidden: !isStartupService(serviceId),
     root: jellyfinSearch,
     sources: [
         jellyfinLikedSongs,
@@ -503,6 +505,7 @@ const jellyfin: PersonalMediaService = {
     isLoggedIn,
     login,
     logout,
+    reconnect,
 };
 
 export default jellyfin;

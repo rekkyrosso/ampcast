@@ -2,7 +2,7 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import {LiteStorage, Logger} from 'utils';
 import ampcastElectron from 'services/ampcastElectron';
-import {lf_api_key, lf_api_secret} from 'services/credentials';
+import {lf_api_key, lf_api_secret} from 'services/buildConfig';
 
 const logger = new Logger('lastfmSettings');
 

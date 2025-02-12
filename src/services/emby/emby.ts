@@ -24,6 +24,7 @@ import PlaybackType from 'types/PlaybackType';
 import Pin from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
+import {isStartupService} from 'services/buildConfig';
 import {NoMusicLibraryError, NoMusicVideoLibraryError} from 'services/errors';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
@@ -31,7 +32,7 @@ import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import {t} from 'services/i18n';
 import {bestOf} from 'utils';
-import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './embyAuth';
+import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout, reconnect} from './embyAuth';
 import EmbyPager from './EmbyPager';
 import embySettings from './embySettings';
 import embyApi from './embyApi';
@@ -281,7 +282,8 @@ const embyTracksByDecade: MediaSource<MediaItem> = {
                 Years: decade.id,
                 IncludeItemTypes: 'Audio',
                 SortBy: 'ProductionYear,PremiereDate,AlbumArtist,Album,ParentIndexNumber,IndexNumber,SortName',
-                SortOrder: 'Descending,Descending,Ascending,Ascending,Ascending,Ascending,Ascending'
+                SortOrder:
+                    'Descending,Descending,Ascending,Ascending,Ascending,Ascending,Ascending',
             });
         } else {
             return new SimplePager();
@@ -304,7 +306,7 @@ const embyAlbumsByDecade: MediaSource<MediaAlbum> = {
                 Years: decade.id,
                 IncludeItemTypes: 'MusicAlbum',
                 SortBy: 'ProductionYear,AlbumArtist,PremiereDate,SortName',
-                SortOrder: 'Descending,Ascending,Descending,Ascending'
+                SortOrder: 'Descending,Ascending,Descending,Ascending',
             });
         } else {
             return new SimplePager();
@@ -441,7 +443,7 @@ const emby: PersonalMediaService = {
     name: 'Emby',
     url: 'https://emby.media',
     serviceType: ServiceType.PersonalMedia,
-    defaultHidden: true,
+    defaultHidden: !isStartupService(serviceId),
     root: embySearch,
     sources: [
         embyLikedSongs,
@@ -505,6 +507,7 @@ const emby: PersonalMediaService = {
     isLoggedIn,
     login,
     logout,
+    reconnect,
 };
 
 export default emby;

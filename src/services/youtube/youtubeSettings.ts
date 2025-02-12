@@ -1,7 +1,7 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
-import {yt_client_id} from 'services/credentials';
 import {LiteStorage} from 'utils';
+import {yt_client_id} from 'services/buildConfig';
 
 export interface YouTubeCredentials {
     readonly clientId: string;
@@ -24,10 +24,6 @@ const youtubeSettings = {
 
     get credentialsRequired(): boolean {
         return !yt_client_id;
-    },
-
-    get disabled(): boolean {
-        return __youtube_disabled__ && !storage.getBoolean('enabled');
     },
 
     get token(): string {

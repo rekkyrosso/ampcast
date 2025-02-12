@@ -53,6 +53,15 @@ async function getMusicLibraries(): Promise<readonly PersonalMediaLibrary[]> {
     return embyApi.getMusicLibraries(jellyfinSettings);
 }
 
+async function login(
+    host: string,
+    userName: string,
+    password: string,
+    useProxy?: boolean
+): Promise<string> {
+    return embyApi.login(host, userName, password, useProxy, jellyfinSettings);
+}
+
 async function post(path: string, params: Record<string, Primitive> = {}): Promise<Response> {
     return embyApi.post(path, params, jellyfinSettings);
 }
@@ -80,6 +89,7 @@ const jellyfinApi = {
     getPlayableUrl,
     getPlaybackType,
     getSystemInfo,
+    login,
     post,
 };
 

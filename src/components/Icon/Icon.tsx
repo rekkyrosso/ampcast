@@ -826,7 +826,6 @@ export default function Icon({name, className = ''}: IconProps) {
                 </svg>
             );
 
-        case 'plex-tidal':
         case 'tidal':
             return (
                 <svg className={className} viewBox="0 0 560 560">

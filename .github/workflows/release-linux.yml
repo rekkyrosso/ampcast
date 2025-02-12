@@ -9,9 +9,9 @@ jobs:
     timeout-minutes: 30
 
     env:
-      AM_DEV_TOKEN: ${{secrets.AM_DEV_TOKEN}}
-      LF_API_KEY: ${{secrets.LF_API_KEY}}
-      LF_API_SECRET: ${{secrets.LF_API_SECRET}}
+      APPLE_MUSIC_DEV_TOKEN: ${{secrets.AM_DEV_TOKEN}}
+      LASTFM_API_KEY: ${{secrets.LF_API_KEY}}
+      LASTFM_API_SECRET: ${{secrets.LF_API_SECRET}}
       GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
     steps:

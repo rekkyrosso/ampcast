@@ -5,8 +5,7 @@
 
     &.service-emby &-public label,
     &.service-jellyfin &-public label,
-    &.service-plex &-public label,
-    &.service-plex-tidal &-public label {
+    &.service-plex &-public label {
         opacity: 0.5;
     }
 }

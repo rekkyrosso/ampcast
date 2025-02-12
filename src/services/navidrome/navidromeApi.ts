@@ -58,6 +58,46 @@ async function getPage<T>(
     return {items, total};
 }
 
+async function login(
+    host: string,
+    username: string,
+    password: string,
+    useProxy?: boolean
+): Promise<string> {
+    const authUrl = `${host}/auth/login`;
+    const proxyUrl = `/proxy-login?server=navidrome&url=${encodeURIComponent(authUrl)}`;
+    const url = useProxy ? proxyUrl : authUrl;
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {'Content-Type': 'application/json'},
+        body: useProxy ? '' : JSON.stringify({username, password}),
+    });
+
+    let data: any = {};
+    try {
+        data = await response.json();
+    } catch {
+        // ignore
+    }
+
+    if (!response.ok) {
+        if (data?.error) {
+            throw data.error;
+        } else {
+            throw response;
+        }
+    }
+
+    const {token, subsonicSalt, subsonicToken, id: userId, name} = data;
+    const credentials = `u=${name}&s=${subsonicSalt}&t=${subsonicToken}&v=1.16.1&c=${__app_name__}&f=json`;
+
+    if (!token) {
+        throw Error('No token returned');
+    }
+
+    return JSON.stringify({userId, token, credentials});
+}
+
 async function navidromeFetch(
     path: string,
     params: Record<string, Primitive> | undefined,
@@ -89,6 +129,7 @@ const navidromeApi = {
     get,
     getGenres,
     getPage,
+    login,
 };
 
 export default navidromeApi;

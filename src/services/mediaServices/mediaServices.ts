@@ -11,6 +11,7 @@ import {
     race,
     skipWhile,
     switchMap,
+    take,
     tap,
     timer,
 } from 'rxjs';
@@ -22,7 +23,8 @@ import PersonalMediaService from 'types/PersonalMediaService';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
 import {loadLibrary, Logger} from 'utils';
-import {observeSourceVisibility} from './servicesSettings';
+import {isServiceDisabled} from 'services/buildConfig';
+import {isSourceVisible, observeSourceVisibility} from './servicesSettings';
 
 const logger = new Logger('mediaServices');
 
@@ -52,8 +54,6 @@ const playabilityByServiceId: Record<
     spotify: false,
     subsonic: false,
     tidal: false,
-    // No longer playable.
-    'plex-tidal': undefined,
     // Not playable.
     lastfm: undefined,
     listenbrainz: undefined,
@@ -65,7 +65,7 @@ export function observeMediaServices(): Observable<readonly MediaService[]> {
 
 export function observeEnabledServices(): Observable<readonly MediaService[]> {
     return observeMediaServices().pipe(
-        map((services) => services.filter((service) => !service.disabled))
+        map((services) => services.filter((service) => !isServiceDisabled(service)))
     );
 }
 
@@ -112,7 +112,7 @@ export function getBrowsableServices<T extends MediaService = MediaService>(
 
 // Available to most users but may be hidden by settings or build configuration.
 export function getEnabledServices(): readonly MediaService[] {
-    return getServices().filter((service) => !service.disabled);
+    return getServices().filter((service) => !isServiceDisabled(service));
 }
 
 export function observePersonalMediaLibraryIdChanges(): Observable<void> {
@@ -231,6 +231,21 @@ function isMediaServiceType(service: MediaService, type: ServiceType): boolean {
     return isMediaService(service) && service.serviceType === type;
 }
 
+// Reconnect on startup.
+observeEnabledServices()
+    .pipe(
+        skipWhile((services) => services.length === 0),
+        take(1),
+        mergeMap((services) => services),
+        filter(
+            (service) =>
+                isSourceVisible(service) && !isServiceDisabled(service) && service.isConnected()
+        ),
+        // It's better not to do this async.
+        tap((service) => service.reconnect?.())
+    )
+    .subscribe(logger);
+
 // Disconnect services when they are hidden.
 observeMediaServices()
     .pipe(
@@ -244,6 +259,17 @@ observeMediaServices()
                 })
             )
         )
+    )
+    .subscribe(logger);
+
+// Disconnect services if they are disabled (docker mainly).
+observeMediaServices()
+    .pipe(
+        skipWhile((services) => services.length === 0),
+        take(1),
+        mergeMap((services) => services),
+        filter((service) => isServiceDisabled(service) && service.isConnected()),
+        tap((service) => service.logout())
     )
     .subscribe(logger);
 

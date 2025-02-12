@@ -1,21 +1,17 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged} from 'rxjs';
 import {nanoid} from 'nanoid';
-import MediaServiceId from 'types/MediaServiceId';
+import {PersonalMediaServiceId} from 'types/MediaServiceId';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
 import {LiteStorage, stringContainsMusic} from 'utils';
+import {getServerHost, isStartupService} from 'services/buildConfig';
 
 export class EmbySettings implements PersonalMediaServerSettings {
-    private readonly serviceId: MediaServiceId;
-    private readonly storage: LiteStorage;
-    private readonly libraryId$: BehaviorSubject<string>;
+    private readonly storage = new LiteStorage(this.serviceId);
+    private readonly libraryId$ = new BehaviorSubject(this.storage.getString('libraryId'));
 
-    constructor(serviceId: MediaServiceId) {
-        this.serviceId = serviceId;
-        this.storage = new LiteStorage(serviceId);
-        this.libraryId$ = new BehaviorSubject(this.storage.getString('libraryId'));
-    }
+    constructor(readonly serviceId: PersonalMediaServiceId) {}
 
     get apiHost(): string {
         return this.host ? (this.serviceId === 'emby' ? `${this.host}/emby` : this.host) : '';
@@ -23,6 +19,17 @@ export class EmbySettings implements PersonalMediaServerSettings {
 
     get audioLibraries(): readonly PersonalMediaLibrary[] {
         return this.libraries.filter((library) => library.type !== 'musicvideos');
+    }
+
+    get connectedAt(): number {
+        return this.storage.getNumber(
+            'connectedAt',
+            this.token || isStartupService(this.serviceId) ? 1 : 0
+        );
+    }
+
+    set connectedAt(connectedAt: number) {
+        this.storage.setNumber('connectedAt', connectedAt);
     }
 
     get device(): string {
@@ -39,7 +46,7 @@ export class EmbySettings implements PersonalMediaServerSettings {
     }
 
     get host(): string {
-        return this.storage.getString('host');
+        return this.storage.getString('host', getServerHost(this.serviceId));
     }
 
     set host(host: string) {
@@ -105,6 +112,22 @@ export class EmbySettings implements PersonalMediaServerSettings {
 
     set userId(userId: string) {
         this.storage.setString('userId', userId);
+    }
+
+    get userName(): string {
+        return this.storage.getString('userName');
+    }
+
+    set userName(userName: string) {
+        this.storage.setString('userName', userName);
+    }
+
+    get useManualLogin(): boolean {
+        return this.storage.getBoolean('useManualLogin');
+    }
+
+    set useManualLogin(useManualLogin: boolean) {
+        this.storage.setBoolean('useManualLogin', useManualLogin);
     }
 
     get videoLibraryId(): string | undefined {

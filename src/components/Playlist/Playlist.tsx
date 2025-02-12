@@ -5,7 +5,6 @@ import LookupStatus from 'types/LookupStatus';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import PlaylistItem from 'types/PlaylistItem';
-import {getService} from 'services/mediaServices';
 import playlist from 'services/playlist';
 import {performAction} from 'components/Actions';
 import {error} from 'components/Dialog';
@@ -62,10 +61,8 @@ export default function Playlist({onSelect, onPlay, onEject, ref, ...props}: Pla
     const itemClassName = useCallback(
         (item: PlaylistItem) => {
             const [serviceId] = item.src.split(':');
-            const service = getService(serviceId);
             const playing = item.id === currentId;
             const unplayable =
-                service?.disabled ||
                 item.unplayable ||
                 (disableExplicitContent && item.explicit) ||
                 item.lookupStatus === LookupStatus.NotFound;

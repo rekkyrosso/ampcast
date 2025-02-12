@@ -1,7 +1,8 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, filter, mergeMap} from 'rxjs';
-import {showEmbyLoginDialog} from 'services/emby/components/EmbyLoginDialog';
 import {Logger} from 'utils';
+import {getServerHost, hasProxyLogin} from 'services/buildConfig';
+import {showEmbyLoginDialog} from 'services/emby/components/EmbyLoginDialog';
 import jellyfinSettings from './jellyfinSettings';
 import jellyfinApi from './jellyfinApi';
 import jellyfin from './jellyfin';
@@ -16,27 +17,37 @@ function observeAccessToken(): Observable<string> {
 }
 
 export function isConnected(): boolean {
-    return !!jellyfinSettings.token;
+    return !!jellyfinSettings.connectedAt;
 }
 
 export function isLoggedIn(): boolean {
-    return isLoggedIn$.getValue();
+    return isLoggedIn$.value;
 }
 
 export function observeIsLoggedIn(): Observable<boolean> {
     return isLoggedIn$.pipe(distinctUntilChanged());
 }
 
-export async function login(): Promise<void> {
+export async function login(mode?: 'silent'): Promise<void> {
     if (!isLoggedIn()) {
         logger.log('connect');
         try {
-            const returnValue = await showEmbyLoginDialog(jellyfin, jellyfinSettings);
+            let returnValue = '';
+            if (mode === 'silent') {
+                if (hasProxyLogin(jellyfin)) {
+                    returnValue = await jellyfinApi.login(getServerHost(jellyfin), '', '', true);
+                } else {
+                    logger.warn('No credentials for proxy login');
+                }
+            } else {
+                returnValue = await showEmbyLoginDialog(jellyfin, jellyfinSettings);
+            }
             if (returnValue) {
                 const {serverId, userId, token} = JSON.parse(returnValue);
                 jellyfinSettings.serverId = serverId;
                 jellyfinSettings.userId = userId;
                 setAccessToken(token);
+                jellyfinSettings.connectedAt = Date.now();
             }
         } catch (err) {
             logger.error(err);
@@ -49,6 +60,16 @@ export async function logout(): Promise<void> {
     jellyfinSettings.clear();
     setAccessToken('');
     isLoggedIn$.next(false);
+    jellyfinSettings.connectedAt = 0;
+}
+
+export async function reconnect(): Promise<void> {
+    const token = jellyfinSettings.token;
+    if (token) {
+        accessToken$.next(token);
+    } else if (hasProxyLogin(jellyfin)) {
+        await login('silent');
+    }
 }
 
 function setAccessToken(token: string): void {
@@ -82,5 +103,3 @@ async function checkConnection(): Promise<boolean> {
         return false;
     }
 }
-
-accessToken$.next(jellyfinSettings.token);

@@ -178,7 +178,7 @@ export class MixcloudPlayer implements Player<PlayableItem> {
     }
 
     private get Widget(): any {
-        return (window as any).Mixcloud?.PlayerWidget;
+        return window.Mixcloud?.PlayerWidget;
     }
 
     private get item(): PlayableItem | null {

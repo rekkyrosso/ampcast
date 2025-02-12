@@ -291,13 +291,18 @@
         }
     }
 
-    &-tidal,
-    &-plex-tidal {
-        fill: currentColor
-    }
+    &-tidal {
+        &.show-connectivity {
+            .tidal-connected .light &,
+            .tidal-connected .dark & {
+                fill: #0ff;
+            }
+    
+            .tidal-connected .light & {
+                background-color: #07332f;
+            }
+        }
 
-    &-tidal,
-    &-plex-tidal {
         .light &.show-connectivity {
             fill: var(--background-color);
             background-color: currentColor;
@@ -306,28 +311,6 @@
                 transform: scale(0.67);
                 transform-origin: center;
             }
-        }
-    }
-
-    &-tidal.show-connectivity {
-        .tidal-connected .light &,
-        .tidal-connected .dark & {
-            fill: #0ff;
-        }
-
-        .tidal-connected .light & {
-            background-color: #07332f;
-        }
-    }
-
-    &-plex-tidal.show-connectivity {
-        .plex-tidal-connected .light &,
-        .plex-tidal-connected .dark & {
-            fill: #0ff;
-        }
-
-        .plex-tidal-connected .light & {
-            background-color: #07332f;
         }
     }
 

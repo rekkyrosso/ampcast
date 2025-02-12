@@ -1,7 +1,10 @@
+import {nanoid} from 'nanoid';
+import md5 from 'md5';
 import {Primitive} from 'type-fest';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import MediaFilter from 'types/MediaFilter';
+import MediaServiceId from 'types/MediaServiceId';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
 import PlayableItem from 'types/PlayableItem';
@@ -15,7 +18,10 @@ export interface SubsonicApiSettings extends Partial<PersonalMediaServerSettings
 }
 
 export default class SubsonicApi {
-    constructor(private readonly settings: SubsonicApiSettings) {}
+    constructor(
+        private readonly serviceId: MediaServiceId,
+        private readonly settings: SubsonicApiSettings
+    ) {}
 
     async get<T>(
         path: string,
@@ -180,10 +186,10 @@ export default class SubsonicApi {
         switch (filterType) {
             case FilterType.ByDecade:
                 return this.getDecades();
-    
+
             case FilterType.ByGenre:
                 return this.getGenres(itemType);
-    
+
             default:
                 throw Error('Not supported');
         }
@@ -357,6 +363,71 @@ export default class SubsonicApi {
     async getVideos(): Promise<Subsonic.Video[]> {
         const data = await this.get<{videos: {video: Subsonic.Video[]}}>('getVideos');
         return data.videos.video || [];
+    }
+
+    async login(
+        host: string,
+        userName: string,
+        password: string,
+        useProxy?: boolean
+    ): Promise<string> {
+        if (useProxy) {
+            const authUrl = `${host}/rest/ping`;
+            const response = await fetch(
+                `/proxy-login?server=${this.serviceId}&url=${encodeURIComponent(authUrl)}`,
+                {
+                    method: 'GET',
+                    headers: {Accept: 'application/json'},
+                }
+            );
+            if (!response.ok) {
+                throw response;
+            }
+            const {['subsonic-response']: data, ['ampcast-response']: auth} = await response.json();
+            if (data.error) {
+                throw data.error;
+            }
+            if (!auth) {
+                throw Error('No credentials');
+            }
+            return JSON.stringify(auth);
+        } else {
+            const login = async (params: Record<string, string>): Promise<string> => {
+                const credentials = new URLSearchParams({
+                    u: userName,
+                    ...params,
+                    c: __app_name__,
+                    f: 'json',
+                });
+                const data = await this.ping(host, String(credentials));
+                if (data.version) {
+                    credentials.set('v', data.version);
+                }
+                return JSON.stringify({userName, credentials: String(credentials)});
+            };
+
+            try {
+                const salt = nanoid(12);
+                const token = md5(password + salt);
+                const auth = await login({t: token, s: salt, v: '1.13.0'});
+                return auth;
+            } catch {
+                try {
+                    console.log('Login failed. Attempting legacy login...');
+                    const auth = await login({
+                        p: `enc:${Array.from(new TextEncoder().encode(password))
+                            .map((byte) => byte.toString(16).padStart(2, '0'))
+                            .join('')}`,
+                        v: '1.12.0',
+                    });
+                    return auth;
+                } catch {
+                    console.log('Login failed. Attempting simple login...');
+                    const auth = await login({p: password, v: '1.12.0'});
+                    return auth;
+                }
+            }
+        }
     }
 
     async ping(

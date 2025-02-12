@@ -152,6 +152,53 @@ async function getMusicLibraries(
     );
 }
 
+async function login(
+    host: string,
+    Username: string,
+    Pw: string,
+    useProxy?: boolean,
+    settings: EmbySettings = embySettings
+): Promise<string> {
+    const {device, deviceId} = settings;
+    const isEmby = settings.serviceId === 'emby';
+    const apiHost = isEmby ? `${host}/emby` : host;
+    const authUrl = `${apiHost}/Users/AuthenticateByName`;
+    const proxyUrl = `/proxy-login?server=${settings.serviceId}&url=${encodeURIComponent(authUrl)}`;
+    const url = useProxy ? proxyUrl : authUrl;
+    const authorization = `MediaBrowser Client="${__app_name__}", Version="${__app_version__}", Device="${device}", DeviceId="${deviceId}"`;
+    const response = await fetch(url, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-Emby-Authorization': authorization,
+        },
+        body: useProxy ? '' : JSON.stringify({Username, Pw}),
+    });
+
+    let text = '';
+    try {
+        text = await response.text();
+    } catch {
+        // ignore
+    }
+
+    if (!response.ok) {
+        // Jellyfin's response text is too generic.
+        if (isEmby && text) {
+            throw Error(text);
+        } else {
+            throw response;
+        }
+    }
+
+    const auth = JSON.parse(text);
+    const serverId = auth.ServerId;
+    const userId = auth.User.Id;
+    const token = auth.AccessToken;
+
+    return JSON.stringify({serverId, userId, token});
+}
+
 async function post(
     path: string,
     params: Record<string, any> = {},
@@ -286,6 +333,7 @@ const embyApi = {
     getPlayableUrl,
     getPlaybackType,
     getSystemInfo,
+    login,
     post,
 };
 

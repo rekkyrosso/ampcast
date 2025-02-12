@@ -55,6 +55,18 @@ export async function logout(): Promise<void> {
     clearAccessToken();
 }
 
+export async function reconnect(): Promise<void> {
+    try {
+        await checkConnection();
+        accessToken$.next(youtubeSettings.token);
+    } catch (err: any) {
+        if (err.status !== 401) {
+            logger.error(err);
+        }
+        youtubeSettings.token = '';
+    }
+}
+
 export async function refreshToken(): Promise<void> {
     // I don't know how to do this yet (without annoying popups).
     clearAccessToken();
@@ -120,17 +132,3 @@ async function checkConnection(): Promise<any> {
         params: {regionCode: 'us'},
     });
 }
-
-(async () => {
-    if (!youtubeSettings.disabled && isConnected()) {
-        try {
-            await checkConnection();
-            accessToken$.next(youtubeSettings.token);
-        } catch (err: any) {
-            if (err.status !== 401) {
-                logger.error(err);
-            }
-            youtubeSettings.token = '';
-        }
-    }
-})();

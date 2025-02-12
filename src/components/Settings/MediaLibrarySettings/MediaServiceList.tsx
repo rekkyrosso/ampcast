@@ -13,7 +13,11 @@ export default function MediaServiceList({services, multiSelect}: MediaServiceLi
     const id = useId();
     const type = multiSelect ? 'checkbox' : 'radio';
 
-    return (
+    return services.length === 0 ? (
+        <div className="note">
+            <p>No services configured.</p>
+        </div>
+    ) : (
         <ul className="media-service-list checkbox-list">
             {!multiSelect ? (
                 <li className="no-icon" key="none">

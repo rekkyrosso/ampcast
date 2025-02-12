@@ -12,7 +12,7 @@ import MediaFolderItem from 'types/MediaFolderItem';
 import MediaFolder from 'types/MediaFolder';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import MediaServiceId from 'types/MediaServiceId';
+import {PersonalMediaServiceId} from 'types/MediaServiceId';
 import MediaSource, {MediaMultiSource} from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
@@ -24,6 +24,7 @@ import Pin from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import {getTextFromHtml, Logger} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
+import {isStartupService} from 'services/buildConfig';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
@@ -48,13 +49,12 @@ const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
 };
 
 export default class SubsonicService implements PersonalMediaService {
-    readonly id = this.serviceId;
     readonly api: SubsonicApi;
-    readonly logger = new Logger(this.serviceId);
+    readonly logger = new Logger(this.id);
     readonly settings: SubsonicSettings;
     readonly serviceType = ServiceType.PersonalMedia;
-    readonly defaultHidden = true;
-    readonly icon = this.serviceId;
+    readonly defaultHidden = !isStartupService(this.id);
+    readonly icon = this.id;
     readonly root: MediaMultiSource;
     readonly sources: PersonalMediaService['sources'];
     readonly labels: Partial<Record<LibraryAction, string>>;
@@ -64,17 +64,18 @@ export default class SubsonicService implements PersonalMediaService {
     readonly isLoggedIn: (this: unknown) => boolean;
     readonly login: (this: unknown) => Promise<void>;
     readonly logout: (this: unknown) => Promise<void>;
+    readonly reconnect: (this: unknown) => Promise<void>;
 
     constructor(
-        private readonly serviceId: MediaServiceId,
+        readonly id: PersonalMediaServiceId,
         readonly name: string,
         readonly url: string,
         readonly listingName?: string
     ) {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const service = this;
-        const settings = (this.settings = new SubsonicSettings(serviceId));
-        const api = (this.api = new SubsonicApi(settings));
+        const settings = (this.settings = new SubsonicSettings(id));
+        const api = (this.api = new SubsonicApi(id, settings));
         const auth = new SubsonicAuth(this);
 
         this.observeIsLoggedIn = auth.observeIsLoggedIn.bind(auth);
@@ -82,9 +83,10 @@ export default class SubsonicService implements PersonalMediaService {
         this.isLoggedIn = auth.isLoggedIn.bind(auth);
         this.login = auth.login.bind(auth);
         this.logout = auth.logout.bind(auth);
+        this.reconnect = auth.reconnect.bind(auth);
 
         const search: MediaMultiSource = {
-            id: `${serviceId}/search`,
+            id: `${id}/search`,
             title: 'Search',
             icon: 'search',
             searchable: true,
@@ -96,7 +98,7 @@ export default class SubsonicService implements PersonalMediaService {
         };
 
         const likedSongs: MediaSource<MediaItem> = {
-            id: `${serviceId}/liked-songs`,
+            id: `${id}/liked-songs`,
             title: 'My Songs',
             icon: 'heart',
             itemType: ItemType.Media,
@@ -119,7 +121,7 @@ export default class SubsonicService implements PersonalMediaService {
         };
 
         const likedAlbums: MediaSource<MediaAlbum> = {
-            id: `${serviceId}/liked-albums`,
+            id: `${id}/liked-albums`,
             title: 'My Albums',
             icon: 'heart',
             itemType: ItemType.Album,
@@ -138,7 +140,7 @@ export default class SubsonicService implements PersonalMediaService {
         };
 
         const recentlyPlayed: MediaSource<MediaAlbum> = {
-            id: `${serviceId}/recently-played`,
+            id: `${id}/recently-played`,
             title: 'Recently Played',
             icon: 'clock',
             itemType: ItemType.Album,
@@ -156,7 +158,7 @@ export default class SubsonicService implements PersonalMediaService {
         };
 
         const mostPlayed: MediaSource<MediaAlbum> = {
-            id: `${serviceId}/most-played`,
+            id: `${id}/most-played`,
             title: 'Most Played',
             icon: 'most-played',
             itemType: ItemType.Album,
@@ -182,7 +184,7 @@ export default class SubsonicService implements PersonalMediaService {
         };
 
         const playlists: MediaSource<MediaPlaylist> = {
-            id: `${serviceId}/playlists`,
+            id: `${id}/playlists`,
             title: 'Playlists',
             icon: 'playlist',
             itemType: ItemType.Playlist,
@@ -202,7 +204,7 @@ export default class SubsonicService implements PersonalMediaService {
         };
 
         const tracksByGenre: MediaSource<MediaItem> = {
-            id: `${serviceId}/tracks-by-genre`,
+            id: `${id}/tracks-by-genre`,
             title: 'Songs by Genre',
             icon: 'genre',
             itemType: ItemType.Media,
@@ -234,7 +236,7 @@ export default class SubsonicService implements PersonalMediaService {
         };
 
         const albumsByGenre: MediaSource<MediaAlbum> = {
-            id: `${serviceId}/albums-by-genre`,
+            id: `${id}/albums-by-genre`,
             title: 'Albums by Genre',
             icon: 'genre',
             itemType: ItemType.Album,
@@ -258,7 +260,7 @@ export default class SubsonicService implements PersonalMediaService {
         };
 
         const albumsByDecade: MediaSource<MediaAlbum> = {
-            id: `${serviceId}/albums-by-decade`,
+            id: `${id}/albums-by-decade`,
             title: 'Albums by Decade',
             icon: 'calendar',
             itemType: ItemType.Album,
@@ -282,7 +284,7 @@ export default class SubsonicService implements PersonalMediaService {
         };
 
         const randomTracks: MediaSource<MediaItem> = {
-            id: `${serviceId}/random-tracks`,
+            id: `${id}/random-tracks`,
             title: 'Random Songs',
             icon: 'shuffle',
             itemType: ItemType.Media,
@@ -301,7 +303,7 @@ export default class SubsonicService implements PersonalMediaService {
         };
 
         const randomAlbums: MediaSource<MediaAlbum> = {
-            id: `${serviceId}/random-albums`,
+            id: `${id}/random-albums`,
             title: 'Random Albums',
             icon: 'shuffle',
             itemType: ItemType.Album,
@@ -316,13 +318,13 @@ export default class SubsonicService implements PersonalMediaService {
         };
 
         const musicVideos: MediaSource<MediaItem> = {
-            id: `${serviceId}/videos`,
+            id: `${id}/videos`,
             title: 'Music Videos',
             icon: 'video',
             itemType: ItemType.Media,
             mediaType: MediaType.Video,
             defaultHidden: true,
-            disabled: serviceId === 'gonic',
+            disabled: id === 'gonic',
             layout: {
                 view: 'card compact',
                 fields: ['Thumbnail', 'Title', 'Duration'],
@@ -341,7 +343,7 @@ export default class SubsonicService implements PersonalMediaService {
         };
 
         const folders: MediaSource<MediaFolderItem> = {
-            id: `${serviceId}/folders`,
+            id: `${id}/folders`,
             title: 'Folders',
             icon: 'folder',
             itemType: ItemType.Folder,
@@ -365,7 +367,7 @@ export default class SubsonicService implements PersonalMediaService {
                         .map(({id, title}) => {
                             const rootFolder: Writable<SetOptional<MediaFolder, 'pager'>> = {
                                 itemType: ItemType.Folder,
-                                src: `${serviceId}:folder:${id}`,
+                                src: `${id}:folder:${id}`,
                                 title: title,
                                 fileName: title,
                                 path: `/${title}`,
@@ -513,7 +515,7 @@ export default class SubsonicService implements PersonalMediaService {
             items.map((item) => this.getIdFromSrc(item))
         );
         return {
-            src: `${this.serviceId}:playlist:${playlist.id}`,
+            src: `${this.id}:playlist:${playlist.id}`,
             title: name,
             itemType: ItemType.Playlist,
             pager: new SimplePager(),
@@ -617,7 +619,7 @@ export default class SubsonicService implements PersonalMediaService {
     }
 
     getThumbnailUrl(url: string): string {
-        return url.replace(`{${this.serviceId}-credentials}`, this.settings.credentials);
+        return url.replace(`{${this.id}-credentials}`, this.settings.credentials);
     }
 
     async lookup(

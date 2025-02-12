@@ -22,6 +22,7 @@ import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
+import {isStartupService} from 'services/buildConfig';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
@@ -34,6 +35,7 @@ import {
     isLoggedIn,
     login,
     logout,
+    reconnect,
 } from './plexAuth';
 import plexApi, {getMusicLibraryId, getMusicLibraryPath, getPlexMediaType} from './plexApi';
 import plexMediaType from './plexMediaType';
@@ -592,7 +594,7 @@ const plex: PersonalMediaService = {
     icon: 'plex',
     url: 'https://www.plex.tv',
     serviceType: ServiceType.PersonalMedia,
-    defaultHidden: true,
+    defaultHidden: !isStartupService('plex'),
     Components: {Login, ServerSettings},
     get internetRequired() {
         return plexSettings.internetRequired;
@@ -662,6 +664,7 @@ const plex: PersonalMediaService = {
     isLoggedIn,
     login,
     logout,
+    reconnect,
 };
 
 export default plex;

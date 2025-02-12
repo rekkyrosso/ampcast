@@ -6,6 +6,12 @@ import {getServices} from 'services/mediaServices';
 export default function useFactoryReset() {
     return useCallback(async () => {
         try {
+            const registration = await navigator.serviceWorker?.getRegistration();
+            await registration?.unregister();
+        } catch (err) {
+            console.error(err);
+        }
+        try {
             await Promise.all(getServices().map((service) => service.logout()));
         } catch (err) {
             console.error(err);

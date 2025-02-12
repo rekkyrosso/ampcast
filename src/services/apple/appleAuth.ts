@@ -35,20 +35,32 @@ export async function login(): Promise<void> {
 export async function logout(): Promise<void> {
     logger.log('disconnect');
     try {
-        if (window.MusicKit) {
-            const musicKit = await getMusicKitInstance();
-            try {
-                await musicKit.unauthorize();
-            } catch (err) {
-                logger.error(err);
-            }
+        const musicKit = await getMusicKitInstance();
+        try {
+            await musicKit.unauthorize();
+            appleSettings.favoriteSongsId = '';
+        } catch (err) {
+            logger.error(err);
         }
     } catch {
         // MusicKit not loaded.
     }
     appleSettings.connectedAt = 0;
-    appleSettings.favoriteSongsId = '';
     isLoggedIn$.next(false);
+}
+
+export async function reconnect(): Promise<void> {
+    try {
+        if (appleSettings.devToken) {
+            const musicKit = await getMusicKitInstance();
+            if (musicKit.isAuthorized) {
+                await setFavoriteSongsId(musicKit);
+                isLoggedIn$.next(true);
+            }
+        }
+    } catch (err) {
+        logger.error(err);
+    }
 }
 
 export async function refreshToken(): Promise<void> {
@@ -129,17 +141,3 @@ async function setFavoriteSongsId(musicKit: MusicKit.MusicKitInstance): Promise<
 observeIsLoggedIn()
     .pipe(skipWhile((isLoggedIn) => !isLoggedIn))
     .subscribe((isLoggedIn) => (appleSettings.connectedAt = isLoggedIn ? Date.now() : 0));
-
-(async () => {
-    try {
-        if (appleSettings.devToken && isConnected()) {
-            const musicKit = await getMusicKitInstance();
-            if (musicKit.isAuthorized) {
-                await setFavoriteSongsId(musicKit);
-                isLoggedIn$.next(true);
-            }
-        }
-    } catch (err) {
-        logger.error(err);
-    }
-})();

@@ -179,7 +179,7 @@ export class SoundCloudPlayer implements Player<PlayableItem> {
     }
 
     private get Widget(): any {
-        return (window as any).SC?.Widget;
+        return window.SC?.Widget;
     }
 
     private get item(): PlayableItem | null {
@@ -270,7 +270,7 @@ export class SoundCloudPlayer implements Player<PlayableItem> {
         }
 
         const startTime = item.startTime;
-        
+
         this.player.load(this.url, {
             auto_play: true,
             visual: true,

@@ -22,11 +22,12 @@ import {NoFavoritesPlaylistError} from 'services/errors';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
 import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
+import {isStartupService} from 'services/buildConfig';
 import fetchAllTracks from 'services/pagers/fetchAllTracks';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import {t} from 'services/i18n';
-import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './appleAuth';
+import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout, reconnect} from './appleAuth';
 import MusicKitPager, {MusicKitPage} from './MusicKitPager';
 import appleSettings from './appleSettings';
 import FilterBrowser from 'components/MediaBrowser/FilterBrowser';
@@ -427,7 +428,7 @@ const apple: PublicMediaService = {
     url: 'https://music.apple.com',
     credentialsUrl: 'https://developer.apple.com',
     serviceType: ServiceType.PublicMedia,
-    defaultHidden: true,
+    defaultHidden: !isStartupService('apple'),
     internetRequired: true,
     Components: {Credentials, Login, StreamingSettings},
     get credentialsRequired(): boolean {
@@ -477,6 +478,7 @@ const apple: PublicMediaService = {
     isLoggedIn,
     login,
     logout,
+    reconnect,
 };
 
 export default apple;

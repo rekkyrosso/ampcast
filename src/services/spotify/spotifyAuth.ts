@@ -49,6 +49,7 @@ export async function login(): Promise<void> {
             const token = await obtainAccessToken(secret);
             await storeAccessToken(token);
         } catch (err) {
+            await clearAccessToken();
             logger.error(err);
         }
     }
@@ -57,6 +58,27 @@ export async function login(): Promise<void> {
 export async function logout(): Promise<void> {
     logger.log('disconnect');
     spotifySettings.clear();
+    await clearAccessToken();
+}
+
+export async function reconnect(): Promise<void> {
+    const access_token = spotifySettings.token?.access_token;
+    try {
+        if (access_token) {
+            try {
+                await nextAccessToken(access_token);
+            } catch (err: any) {
+                if (err.status === 401) {
+                    await refreshToken();
+                } else {
+                    throw err;
+                }
+            }
+            return;
+        }
+    } catch (err) {
+        logger.error(err);
+    }
     await clearAccessToken();
 }
 
@@ -262,25 +284,6 @@ async function checkConnection(): Promise<void> {
     await Promise.all([getUserId(), getChartsCategoryId()]);
 }
 
-(async () => {
-    if (!spotifySettings.disabled) {
-        const access_token = spotifySettings.token?.access_token;
-        try {
-            if (access_token) {
-                try {
-                    await nextAccessToken(access_token);
-                } catch (err: any) {
-                    if (err.status === 401) {
-                        await refreshToken();
-                    } else {
-                        throw err;
-                    }
-                }
-                return;
-            }
-        } catch (err) {
-            logger.error(err);
-        }
-        await clearAccessToken();
-    }
-})();
+if (!isConnected()) {
+    createCodeVerifier();
+}

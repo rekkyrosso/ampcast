@@ -1,6 +1,7 @@
 declare const __app_name__: string;
 declare const __app_version__: string;
 declare const __app_contact__: string;
+
 declare const __dev__: boolean;
 
 declare const __am_dev_token__: string;
@@ -10,10 +11,15 @@ declare const __sp_client_id__: string;
 declare const __td_client_id__: string;
 declare const __yt_client_id__: string;
 
-declare const __spotify_disabled__: boolean;
-declare const __tidal_disabled__: boolean;
-declare const __youtube_disabled__: boolean;
+declare const __enabled_services__: string;
+declare const __startup_services__: string;
+declare const __personal_media_servers__: string; // JSON config
 declare const __single_streaming_service__: boolean;
+
+interface Window {
+    readonly Mixcloud?: any;
+    readonly SC?: any; // SoundCloud
+}
 
 declare module '*.frag' {
     const value: string;

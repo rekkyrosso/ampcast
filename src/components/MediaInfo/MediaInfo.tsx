@@ -179,10 +179,6 @@ export function ExternalView({src, url = ''}: {src: string; url?: string | undef
             serviceName = 'MusicBrainz';
             break;
 
-        case 'plex-tidal':
-            serviceName = 'Plex';
-            break;
-
         case 'listenbrainz':
             if (/musicbrainz/.test(url)) {
                 serviceName = 'MusicBrainz';
@@ -219,7 +215,7 @@ export function ExternalView({src, url = ''}: {src: string; url?: string | undef
             ) : (
                 <MediaSourceLabel
                     icon={serviceId as MediaServiceId}
-                    text={`Provided by ${serviceId === 'plex-tidal' ? 'TIDAL' : serviceName}`}
+                    text={`Provided by ${serviceName}`}
                 />
             )}
         </p>

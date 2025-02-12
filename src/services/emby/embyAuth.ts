@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, filter, mergeMap} from 'rxjs';
 import {Logger} from 'utils';
+import {getServerHost, hasProxyLogin} from 'services/buildConfig';
 import {showEmbyLoginDialog} from './components/EmbyLoginDialog';
 import embySettings from './embySettings';
 import embyApi from './embyApi';
@@ -16,27 +17,37 @@ function observeAccessToken(): Observable<string> {
 }
 
 export function isConnected(): boolean {
-    return !!embySettings.token;
+    return !!embySettings.connectedAt;
 }
 
 export function isLoggedIn(): boolean {
-    return isLoggedIn$.getValue();
+    return isLoggedIn$.value;
 }
 
 export function observeIsLoggedIn(): Observable<boolean> {
     return isLoggedIn$.pipe(distinctUntilChanged());
 }
 
-export async function login(): Promise<void> {
+export async function login(mode?: 'silent'): Promise<void> {
     if (!isLoggedIn()) {
         logger.log('connect');
         try {
-            const returnValue = await showEmbyLoginDialog(emby, embySettings);
+            let returnValue = '';
+            if (mode === 'silent') {
+                if (hasProxyLogin(emby)) {
+                    returnValue = await embyApi.login(getServerHost(emby), '', '', true);
+                } else {
+                    logger.warn('No credentials for proxy login');
+                }
+            } else {
+                returnValue = await showEmbyLoginDialog(emby, embySettings);
+            }
             if (returnValue) {
                 const {serverId, userId, token} = JSON.parse(returnValue);
                 embySettings.serverId = serverId;
                 embySettings.userId = userId;
                 setAccessToken(token);
+                embySettings.connectedAt = Date.now();
             }
         } catch (err) {
             logger.error(err);
@@ -49,6 +60,16 @@ export async function logout(): Promise<void> {
     embySettings.clear();
     setAccessToken('');
     isLoggedIn$.next(false);
+    embySettings.connectedAt = 0;
+}
+
+export async function reconnect(): Promise<void> {
+    const token = embySettings.token;
+    if (token) {
+        accessToken$.next(token);
+    } else if (hasProxyLogin(emby)) {
+        await login('silent');
+    }
 }
 
 function setAccessToken(token: string): void {
@@ -82,5 +103,3 @@ async function checkConnection(): Promise<boolean> {
         return false;
     }
 }
-
-accessToken$.next(embySettings.token);

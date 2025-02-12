@@ -17,13 +17,21 @@ import PersonalMediaService from 'types/PersonalMediaService';
 import PlayableItem from 'types/PlayableItem';
 import Pin from 'types/Pin';
 import ServiceType from 'types/ServiceType';
+import {bestOf, getTextFromHtml, Logger} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
+import {isStartupService} from 'services/buildConfig';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import {t} from 'services/i18n';
 import subsonicScrobbler from 'services/subsonic/factory/subsonicScrobbler';
-import {bestOf, getTextFromHtml, Logger} from 'utils';
-import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './navidromeAuth';
+import {
+    observeIsLoggedIn,
+    isConnected,
+    isLoggedIn,
+    login,
+    logout,
+    reconnect,
+} from './navidromeAuth';
 import NavidromePager from './NavidromePager';
 import navidromeSettings from './navidromeSettings';
 import navidromeApi from './navidromeApi';
@@ -278,7 +286,7 @@ const navidrome: PersonalMediaService = {
     url: 'https://www.navidrome.org',
     serviceType: ServiceType.PersonalMedia,
     Components: {ServerSettings},
-    defaultHidden: true,
+    defaultHidden: !isStartupService(serviceId),
     root: navidromeSearch,
     sources: [
         navidromeLikedSongs,
@@ -320,6 +328,7 @@ const navidrome: PersonalMediaService = {
     isLoggedIn,
     login,
     logout,
+    reconnect,
 };
 
 export default navidrome;

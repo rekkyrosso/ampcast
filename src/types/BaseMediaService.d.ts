@@ -11,7 +11,7 @@ import MediaItem from './MediaItem';
 import MediaObject from './MediaObject';
 import MediaPlaylist from './MediaPlaylist';
 import MediaService from './MediaService';
-import MediaSource, {AnyMediaSource, AnyMediaSources} from './MediaSource';
+import MediaSource, {AnyMediaSource} from './MediaSource';
 import PlayableItem from './PlayableItem';
 import PlaybackType from './PlaybackType';
 import Pin from './Pin';
@@ -21,13 +21,12 @@ type BaseMediaService = Auth & {
     readonly name: string;
     readonly icon: MediaServiceId;
     readonly url: string;
+    readonly defaultHidden: boolean; // `true` for most services
     compareForRating: <T extends MediaObject>(a: T, b: T) => boolean;
     // Everything below here should be optional.
     readonly root?: AnyMediaSource;
-    readonly sources?: AnyMediaSources;
+    readonly sources?: readonly AnyMediaSource[];
     readonly listingName?: string; // Longer name for disambiguation
-    readonly disabled?: boolean;
-    readonly defaultHidden?: boolean; // `true` for most services
     readonly internetRequired?: boolean;
     readonly credentialsRequired?: boolean;
     readonly credentialsUrl?: string;

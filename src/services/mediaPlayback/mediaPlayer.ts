@@ -3,7 +3,6 @@ import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
 import audio from 'services/audio';
-import {getServiceFromSrc} from 'services/mediaServices';
 import preferences from 'services/preferences';
 import mixcloudPlayer from 'services/mixcloud/mixcloudPlayer';
 import soundcloudPlayer from 'services/soundcloud/soundcloudPlayer';
@@ -45,12 +44,7 @@ function mapMediaSrc(item: PlaylistItem | null): PlayableItem {
 }
 
 function isPlayable(item: PlaylistItem): boolean {
-    const service = getServiceFromSrc(item);
-    return !(
-        service?.disabled ||
-        item.unplayable ||
-        (preferences.disableExplicitContent && item.explicit)
-    );
+    return !(item.unplayable || (preferences.disableExplicitContent && item.explicit));
 }
 
 const mediaPlayer = new OmniPlayer<PlaylistItem | null, PlayableItem>(

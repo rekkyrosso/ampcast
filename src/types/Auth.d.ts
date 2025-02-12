@@ -8,4 +8,5 @@ export default interface Auth {
     logout(this: unknown): Promise<void>;
     // Everything below here should be optional.
     observeConnectionLogging?(this: unknown): Observable<string>;
+    reconnect?(this: unknown): void;
 }

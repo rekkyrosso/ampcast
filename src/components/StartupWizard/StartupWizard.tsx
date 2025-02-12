@@ -2,7 +2,7 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import MediaService from 'types/MediaService';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
-import {getBrowsableServices, getScrobblers, getService} from 'services/mediaServices';
+import {getBrowsableServices, getService} from 'services/mediaServices';
 import {
     allowMultiSelect,
     isSourceVisible,
@@ -19,9 +19,22 @@ export default function StartupWizard(props: DialogProps) {
     const services = useMediaServices();
     const [pageNumber, setPageNumber] = useState(0);
     const pages = useMemo(() => {
-        return services.length === 0
-            ? []
-            : [<StreamingMedia key={0} />, <DataServices key={1} />, <PersonalMedia key={2} />];
+        const pages: any[] = [];
+        if (services.length > 0) {
+            const publicMediaServices = getBrowsableServices(ServiceType.PublicMedia);
+            if (publicMediaServices.length > 0) {
+                pages.push(<StreamingMedia services={publicMediaServices} key={0} />);
+            }
+            const personalMediaServices = getBrowsableServices(ServiceType.PersonalMedia);
+            if (personalMediaServices.length > 0) {
+                pages.push(<PersonalMedia services={personalMediaServices} key={1} />);
+            }
+            const dataServices = getBrowsableServices(ServiceType.DataService);
+            if (dataServices.length > 0) {
+                pages.push(<DataServices services={dataServices} key={2} />);
+            }
+        }
+        return pages;
     }, [services]);
 
     const prev = useCallback(() => {
@@ -55,32 +68,30 @@ export default function StartupWizard(props: DialogProps) {
     );
 }
 
-function StreamingMedia() {
+function StreamingMedia({services}: Pick<ServicesProps, 'services'>) {
     return (
         <Services
             icon="globe"
             title="Streaming Media"
-            services={getBrowsableServices(ServiceType.PublicMedia)}
+            services={services}
             multiSelect={allowMultiSelect}
         />
     );
 }
 
-function PersonalMedia() {
+function PersonalMedia({services}: Pick<ServicesProps, 'services'>) {
     return (
         <Services
             className="personal-media-services"
             icon="network"
             title="Personal Media Server"
-            services={getBrowsableServices(ServiceType.PersonalMedia)}
+            services={services}
         />
     );
 }
 
-function DataServices() {
-    return (
-        <Services icon="data" title="Listening History" services={getScrobblers()} multiSelect />
-    );
+function DataServices({services}: Pick<ServicesProps, 'services'>) {
+    return <Services icon="data" title="Listening History" services={services} multiSelect />;
 }
 
 interface ServicesProps {

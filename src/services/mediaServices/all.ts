@@ -1,4 +1,6 @@
 import MediaService from 'types/MediaService';
+import {exists} from 'utils';
+import buildConfig from 'services/buildConfig';
 import airsonic from 'services/airsonic';
 import ampache from 'services/ampache';
 import apple from 'services/apple';
@@ -10,14 +12,13 @@ import listenbrainz from 'services/listenbrainz';
 import mixcloud from 'services/mixcloud';
 import navidrome from 'services/navidrome';
 import plex from 'services/plex';
-import plexTidal from 'services/plex/tidal-disabled';
 import soundcloud from 'services/soundcloud';
 import spotify from 'services/spotify';
 import subsonic from 'services/subsonic';
 // import tidal from 'services/tidal';
 import youtube from 'services/youtube';
 
-const services: readonly MediaService[] = [
+const allServices: readonly MediaService[] = [
     apple,
     spotify,
     // tidal,
@@ -34,8 +35,18 @@ const services: readonly MediaService[] = [
     youtube,
     lastfm,
     listenbrainz,
-    // disabled
-    plexTidal,
 ];
+
+const enabledServices = buildConfig.enabledServices
+    .map((serviceId) => allServices.find((service) => service.id === serviceId))
+    .filter(exists);
+
+if (enabledServices.length === 0) {
+    // The enabled service list didn't match anything so reset it.
+    (buildConfig.enabledServices as []).length = 0;
+}
+
+const disabledServices = allServices.filter((service) => !enabledServices.includes(service));
+const services = enabledServices.concat(disabledServices);
 
 export default services;

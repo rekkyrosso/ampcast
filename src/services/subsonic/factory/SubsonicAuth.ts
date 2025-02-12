@@ -2,6 +2,7 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, filter, mergeMap} from 'rxjs';
 import Auth from 'types/Auth';
 import {Logger} from 'utils';
+import {getServerHost, hasProxyLogin} from 'services/buildConfig';
 import {showSubsonicLoginDialog} from './components/SubsonicLoginDialog';
 import SubsonicApi from './SubsonicApi';
 import SubsonicService from './SubsonicService';
@@ -19,31 +20,40 @@ export default class SubsonicAuth implements Auth {
                 mergeMap(() => this.checkConnection())
             )
             .subscribe(this.isLoggedIn$);
-
-        this.credentials$.next(this.settings.credentials);
     }
 
     isConnected(): boolean {
-        return !!this.settings.credentials;
+        return !!this.settings.connectedAt;
     }
 
     isLoggedIn(): boolean {
-        return this.isLoggedIn$.getValue();
+        return this.isLoggedIn$.value;
     }
 
     observeIsLoggedIn(): Observable<boolean> {
         return this.isLoggedIn$.pipe(distinctUntilChanged());
     }
 
-    async login(): Promise<void> {
+    async login(mode?: 'silent'): Promise<void> {
         if (!this.isLoggedIn()) {
             this.logger.log('connect');
             try {
-                const returnValue = await showSubsonicLoginDialog(this.service);
+                let returnValue = '';
+                if (mode === 'silent') {
+                    if (hasProxyLogin(this.service)) {
+                        const host = getServerHost(this.service);
+                        returnValue = await this.api.login(host, '', '', true);
+                    } else {
+                        this.logger.warn('No credentials for proxy login');
+                    }
+                } else {
+                    returnValue = await showSubsonicLoginDialog(this.service);
+                }
                 if (returnValue) {
                     const {userName, credentials} = JSON.parse(returnValue);
                     this.settings.userName = userName;
                     this.setCredentials(credentials);
+                    this.settings.connectedAt = Date.now();
                 }
             } catch (err) {
                 this.logger.error(err);
@@ -56,6 +66,16 @@ export default class SubsonicAuth implements Auth {
         this.settings.clear();
         this.setCredentials('');
         this.isLoggedIn$.next(false);
+        this.settings.connectedAt = 0;
+    }
+
+    async reconnect(): Promise<void> {
+        const credentials = this.settings.credentials;
+        if (credentials) {
+            this.credentials$.next(credentials);
+        } else if (hasProxyLogin(this.service)) {
+            await this.login('silent');
+        }
     }
 
     private get api(): SubsonicApi {

@@ -84,12 +84,3 @@ export type AnyMediaSource =
     | MediaSource<MediaFolderItem>
     | MediaSource<MediaPlaylist>
     | MediaMultiSource;
-
-export type AnyMediaSources = readonly (
-    | MediaSource<MediaAlbum>
-    | MediaSource<MediaArtist>
-    | MediaSource<MediaItem>
-    | MediaSource<MediaFolderItem>
-    | MediaSource<MediaPlaylist>
-    | MediaMultiSource
-)[];

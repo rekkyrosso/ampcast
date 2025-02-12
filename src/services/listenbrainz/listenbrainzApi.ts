@@ -344,7 +344,6 @@ export class ListenBrainzApi {
                 break;
 
             case 'tidal':
-            case 'plex-tidal':
                 info.music_service = 'tidal.com';
                 break;
 

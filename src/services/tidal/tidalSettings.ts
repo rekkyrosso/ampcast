@@ -1,8 +1,8 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import {nanoid} from 'nanoid';
-import {td_client_id} from 'services/credentials';
 import {LiteStorage} from 'utils';
+import {td_client_id} from 'services/buildConfig';
 
 export interface TidalCredentials {
     readonly clientId: string;
@@ -51,12 +51,6 @@ const tidalSettings = {
             storage.setString('deviceId', deviceId);
         }
         return deviceId;
-    },
-
-    get disabled(): boolean {
-        // TODO
-        // return __tidal_disabled__ && !storage.getBoolean('enabled');
-        return !storage.getBoolean('enabled');
     },
 
     get userId(): string {

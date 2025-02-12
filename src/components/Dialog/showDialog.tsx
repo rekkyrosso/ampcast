@@ -7,7 +7,7 @@ const logger = new Logger('showDialog');
 
 export default async function showDialog(
     Dialog: React.FC<DialogProps>,
-    system = false
+    system?: boolean
 ): Promise<string> {
     return new Promise((resolve, reject) => {
         const dialogRoot = document.getElementById(

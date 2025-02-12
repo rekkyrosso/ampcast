@@ -1,29 +1,30 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged} from 'rxjs';
-import MediaServiceId from 'types/MediaServiceId';
+import {PersonalMediaServiceId} from 'types/MediaServiceId';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
 import {LiteStorage} from 'utils';
+import {getServerHost, isStartupService} from 'services/buildConfig';
 
 export default class SubsonicSettings implements PersonalMediaServerSettings {
-    private readonly storage: LiteStorage;
-    private readonly libraryId$: BehaviorSubject<string>;
+    private readonly storage = new LiteStorage(this.serviceId);
+    private readonly libraryId$ = new BehaviorSubject(this.storage.getString('libraryId'));
 
-    constructor(serviceId: MediaServiceId) {
-        this.storage = new LiteStorage(serviceId);
-        this.libraryId$ = new BehaviorSubject(this.storage.getString('libraryId'));
-    }
+    constructor(private readonly serviceId: PersonalMediaServiceId) {}
 
     get audioLibraries(): readonly PersonalMediaLibrary[] {
         return this.libraries;
     }
 
-    get host(): string {
-        return this.storage.getString('host');
+    get connectedAt(): number {
+        return this.storage.getNumber(
+            'connectedAt',
+            this.credentials || isStartupService(this.serviceId) ? 1 : 0
+        );
     }
 
-    set host(host: string) {
-        this.storage.setString('host', host);
+    set connectedAt(connectedAt: number) {
+        this.storage.setNumber('connectedAt', connectedAt);
     }
 
     get credentials(): string {
@@ -32,6 +33,14 @@ export default class SubsonicSettings implements PersonalMediaServerSettings {
 
     set credentials(credentials: string) {
         this.storage.setString('credentials', credentials);
+    }
+
+    get host(): string {
+        return this.storage.getString('host', getServerHost(this.serviceId));
+    }
+
+    set host(host: string) {
+        this.storage.setString('host', host);
     }
 
     get libraryId(): string {
@@ -69,6 +78,14 @@ export default class SubsonicSettings implements PersonalMediaServerSettings {
 
     set userName(userName: string) {
         this.storage.setString('userName', userName);
+    }
+
+    get useManualLogin(): boolean {
+        return this.storage.getBoolean('useManualLogin');
+    }
+
+    set useManualLogin(useManualLogin: boolean) {
+        this.storage.setBoolean('useManualLogin', useManualLogin);
     }
 
     clear(): void {

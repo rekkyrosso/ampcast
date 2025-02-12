@@ -1,9 +1,11 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, filter, mergeMap} from 'rxjs';
 import {Logger} from 'utils';
+import {getServerHost, hasProxyLogin} from 'services/buildConfig';
 import {showNavidromeLoginDialog} from './components/NavidromeLoginDialog';
 import navidromeApi from './navidromeApi';
 import navidromeSettings from './navidromeSettings';
+import navidrome from './navidrome';
 
 const logger = new Logger('navidromeAuth');
 
@@ -15,27 +17,38 @@ function observeAccessToken(): Observable<string> {
 }
 
 export function isConnected(): boolean {
-    return !!navidromeSettings.token;
+    return !!navidromeSettings.connectedAt;
 }
 
 export function isLoggedIn(): boolean {
-    return isLoggedIn$.getValue();
+    return isLoggedIn$.value;
 }
 
 export function observeIsLoggedIn(): Observable<boolean> {
     return isLoggedIn$.pipe(distinctUntilChanged());
 }
 
-export async function login(): Promise<void> {
+export async function login(mode?: 'silent'): Promise<void> {
     if (!isLoggedIn()) {
         logger.log('connect');
         try {
-            const returnValue = await showNavidromeLoginDialog();
+            let returnValue = '';
+            if (mode === 'silent') {
+                if (hasProxyLogin(navidrome)) {
+                    const host = getServerHost(navidrome);
+                    returnValue = await navidromeApi.login(host, '', '', true);
+                } else {
+                    logger.warn('No credentials for proxy login');
+                }
+            } else {
+                returnValue = await showNavidromeLoginDialog();
+            }
             if (returnValue) {
                 const {userId, token, credentials} = JSON.parse(returnValue);
                 navidromeSettings.userId = userId;
                 navidromeSettings.credentials = credentials;
                 setAccessToken(token);
+                navidromeSettings.connectedAt = Date.now();
             }
         } catch (err) {
             logger.error(err);
@@ -48,6 +61,16 @@ export async function logout(): Promise<void> {
     navidromeSettings.clear();
     setAccessToken('');
     isLoggedIn$.next(false);
+    navidromeSettings.connectedAt = 0;
+}
+
+export async function reconnect(): Promise<void> {
+    const token = navidromeSettings.token;
+    if (token) {
+        accessToken$.next(token);
+    } else if (hasProxyLogin(navidrome)) {
+        await login('silent');
+    }
 }
 
 function setAccessToken(token: string): void {
@@ -76,5 +99,3 @@ async function checkConnection(): Promise<boolean> {
         return false;
     }
 }
-
-accessToken$.next(navidromeSettings.token);

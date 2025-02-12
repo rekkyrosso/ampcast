@@ -10,6 +10,7 @@ import MediaSource, {MediaMultiSource} from 'types/MediaSource';
 import Pager from 'types/Pager';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
+import {isStartupService} from 'services/buildConfig';
 import SimplePager from 'services/pagers/SimplePager';
 import {getTextFromHtml} from 'utils';
 import lastfmApi from './lastfmApi';
@@ -87,7 +88,7 @@ const lastfm: DataService = {
     credentialsUrl: 'https://www.last.fm/api/account/create',
     serviceType: ServiceType.DataService,
     canScrobble: true,
-    defaultHidden: true,
+    defaultHidden: !isStartupService('lastfm'),
     internetRequired: true,
     Components: {Credentials, Login},
     get credentialsRequired(): boolean {
