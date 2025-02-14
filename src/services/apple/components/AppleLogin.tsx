@@ -23,7 +23,9 @@ export default function AppleLogin({service: apple}: LoginProps) {
             ) : (
                 <>
                     <CredentialsRequired service={apple} />
-                    <CredentialsButton service={apple} />
+                    <p>
+                        <CredentialsButton service={apple} />
+                    </p>
                 </>
             )}
             <ServiceLink service={apple} />

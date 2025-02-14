@@ -20,7 +20,9 @@ export default function TidalLogin({service: tidal}: LoginProps) {
             ) : (
                 <>
                     <CredentialsRequired service={tidal} />
-                    <CredentialsButton service={tidal} />
+                    <p>
+                        <CredentialsButton service={tidal} />
+                    </p>
                 </>
             )}
             <ServiceLink service={tidal} />

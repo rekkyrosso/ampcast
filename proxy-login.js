@@ -12,7 +12,7 @@ async function handleProxyLogin(req, res) {
     const SERVER_ID = server.toUpperCase();
     const user = getEnv(`${SERVER_ID}_USER`);
     const password = getEnv(`${SERVER_ID}_PASSWORD`);
-    console.log('Proxy login:', {url})
+    console.log('proxy-login:', {server, url})
     if (!user || !password) {
         res.writeHead(407, {'Content-Type': 'text/plain'});
         res.end('Proxy Authentication Required');
@@ -38,6 +38,7 @@ async function handleProxyLogin(req, res) {
             default:
                 await subsonicLogin(req, res, url, user, password);
         }
+        console.info(`${req.method} ${url} OK`);
     } catch (err) {
         handleError(req, res, err);
     }
@@ -221,7 +222,8 @@ function generateRandomString(length = 21) {
 
 function handleError(req, res, error) {
     try {
-        console.error(`${req.method} ${req.url} ERROR`);
+        const pathname = req.url.replace(/[?#].*$/, '');
+        console.error(`${req.method} ${pathname} ERROR`);
         console.error(error);
         res.writeHead(500, {'Content-Type': 'text/plain'});
     } catch (err) {

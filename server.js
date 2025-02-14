@@ -44,15 +44,31 @@ const server = http.createServer(async (req, res) => {
     }
 });
 
+let appHost = '';
 async function handleGET(req, res) {
+    const reqHost = req.headers.host || '';
     let pathname = req.url.replace(/[?#].*$/, '');
     if (pathname === '/proxy-login') {
         await handleProxyLogin(req, res);
+        return;
+    } else if (appHost && pathname === '/auth/spotify/callback/' && reqHost === `[::1]:${port}`) {
+        // Route this back via the underlying host (not `[::1]`).
+        console.log('Redirect:', {from: `${reqHost}${pathname}`, to: `${appHost}${pathname}`});
+        res.writeHead(302, {Location: `http://${appHost}${req.url}`});
+        res.end();
         return;
     }
     const staticDir = pathname === '/' || /\.(css|js)$/.test(pathname) ? runtimeDir : wwwDir;
     if (pathname.endsWith('/')) {
         pathname += 'index.html';
+        if (pathname === '/index.html' && !appHost && !reqHost.startsWith('[::1]')) {
+            // Set `appHost` on first request of the root of the app.
+            // This might not be perfect but is probably good enough for this simple server.
+            // We need to know the app's underlying host for any future redirects (e.g. Spotify).
+            // Ignore this value if the host is [::1].
+            appHost = reqHost;
+            console.info({appHost});
+        }
     }
     const filePath = path.join(staticDir, pathname);
     const pathTraversal = !filePath.startsWith(staticDir);
@@ -72,20 +88,20 @@ async function handleGET(req, res) {
             const stream = fs.createReadStream(filePath);
             stream.pipe(res);
         }
-        // console.info(`${req.method} ${req.url} OK`);
+        console.info(`${req.method} ${pathname} OK`);
     } else {
-        console.warn(`${req.method} ${req.url} NOT FOUND`);
+        console.warn(`${req.method} ${pathname} NOT FOUND`);
         res.writeHead(404, {'Content-Type': mimeTypes.text});
         res.end('Not found');
     }
 }
 
 async function handlePOST(req, res) {
-    let pathname = req.url.replace(/[?#].*$/, '');
+    const pathname = req.url.replace(/[?#].*$/, '');
     if (pathname === '/proxy-login') {
         await handleProxyLogin(req, res);
     } else {
-        console.warn(`${req.method} ${req.url} FORBIDDEN`);
+        console.warn(`${req.method} ${pathname} FORBIDDEN`);
         res.writeHead(403, {'Content-Type': mimeTypes.text});
         res.end('Forbidden');
     }
@@ -117,19 +133,18 @@ async function handleBundleJs(res, path) {
     ].forEach((key) => {
         text = text.replace(`%${key}%`, encodeString(getEnv(key)));
     });
-
     text = text.replace(
         '%PERSONAL_MEDIA_SERVERS%',
         encodeString(JSON.stringify(personalMediaServers))
     );
-
     res.write(text);
     res.end();
 }
 
 function handleError(req, res, err) {
     try {
-        console.error(`${req.method} ${req.url} ERROR`);
+        const pathname = req.url.replace(/[?#].*$/, '');
+        console.error(`${req.method} ${pathname} ERROR`);
         console.error(err);
         res.writeHead(500, {'Content-Type': mimeTypes.text});
     } catch (err) {

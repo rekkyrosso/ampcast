@@ -9,7 +9,6 @@ const isRestrictedApi = spotifySettings.restrictedApi;
 
 const logger = new Logger('spotifyAuth');
 
-const redirect_uri = `${location.origin}/auth/spotify/callback/`;
 const spotifyAccounts = `https://accounts.spotify.com`;
 
 let code_challenge: string;
@@ -141,11 +140,11 @@ async function obtainAccessToken(state: string): Promise<TokenResponse> {
         const params = new URLSearchParams({
             client_id: spotifySettings.clientId,
             scope: spotifyScopes.join(' '),
-            redirect_uri,
-            state,
+            redirect_uri: spotifySettings.redirectUri,
             response_type: 'code',
             code_challenge_method: 'S256',
             code_challenge,
+            state,
         });
 
         authWindow = window.open(`${spotifyAccounts}/authorize?${params}`, 'Spotify', 'popup');
@@ -162,9 +161,8 @@ async function obtainAccessToken(state: string): Promise<TokenResponse> {
 // https://github.com/tobika/spotify-auth-PKCE-example/blob/main/public/main.js
 
 function generateRandomString(length: number): string {
-    let text = '';
     const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
-
+    let text = '';
     for (let i = 0; i < length; i++) {
         text += possible.charAt(Math.floor(Math.random() * possible.length));
     }
@@ -173,16 +171,13 @@ function generateRandomString(length: number): string {
 
 async function generateCodeChallenge(codeVerifier: string): Promise<string> {
     const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(codeVerifier));
-
     return btoa(String.fromCharCode(...new Uint8Array(digest)))
         .replace(/=/g, '')
         .replace(/\+/g, '-')
         .replace(/\//g, '_');
 }
 
-async function exchangeToken(code: string): Promise<TokenResponse> {
-    const code_verifier = spotifySettings.codeVerifier;
-
+async function exchangeToken(token: string): Promise<TokenResponse> {
     const response = await fetch(`${spotifyAccounts}/api/token`, {
         method: 'POST',
         headers: {
@@ -191,9 +186,9 @@ async function exchangeToken(code: string): Promise<TokenResponse> {
         body: new URLSearchParams({
             client_id: spotifySettings.clientId,
             grant_type: 'authorization_code',
-            code,
-            redirect_uri,
-            code_verifier,
+            code: token,
+            redirect_uri: spotifySettings.redirectUri,
+            code_verifier: spotifySettings.codeVerifier,
         }),
     });
 

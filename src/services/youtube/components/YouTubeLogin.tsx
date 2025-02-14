@@ -24,7 +24,9 @@ export default function YouTubeLogin({service: youtube}: LoginProps) {
             ) : (
                 <>
                     <CredentialsRequired service={youtube} />
-                    <CredentialsButton service={youtube} />
+                    <p>
+                        <CredentialsButton service={youtube} />
+                    </p>
                     <LoginNotRequired />
                 </>
             )}

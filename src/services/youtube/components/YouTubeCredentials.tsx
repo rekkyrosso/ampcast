@@ -1,4 +1,6 @@
-import React, {useCallback, useId, useRef} from 'react';
+import React, {useCallback, useRef} from 'react';
+import {copyToClipboard} from 'utils';
+import CopyButton from 'components/Button/CopyButton';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import Credentials from 'components/Settings/MediaLibrarySettings/Credentials';
 import {MediaServiceCredentialsProps} from 'components/Settings/MediaLibrarySettings/MediaServiceCredentials';
@@ -7,9 +9,9 @@ import youtubeSettings from '../youtubeSettings';
 import useCredentials from './useCredentials';
 
 export default function YouTubeCredentials({service: youtube}: MediaServiceCredentialsProps) {
-    const id = useId();
     const {clientId} = useCredentials();
     const clientIdRef = useRef<HTMLInputElement>(null);
+    const authorizedOrigin = location.origin;
 
     const handleSubmit = useCallback(async () => {
         const clientId = clientIdRef.current!.value;
@@ -41,9 +43,10 @@ export default function YouTubeCredentials({service: youtube}: MediaServiceCrede
             </fieldset>
             <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
-                <p>
-                    <label htmlFor={`${id}-origin`}>Authorized JavaScript origin:</label>
-                    <input type="text" id={`${id}-origin`} value={location.origin} readOnly />
+                <p>Authorized JavaScript origin:</p>
+                <p className="credentials-callback">
+                    <input type="text" value={authorizedOrigin} readOnly />
+                    <CopyButton onClick={() => copyToClipboard(authorizedOrigin)} />
                 </p>
             </fieldset>
             <DialogButtons />

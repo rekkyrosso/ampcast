@@ -133,10 +133,12 @@ module.exports = (args) => {
                             loader: 'sass-loader',
                         },
                     ],
+                    exclude: /node_modules/,
                 },
                 {
                     test: /\.frag$/,
                     type: 'asset/source',
+                    exclude: /node_modules/,
                 },
             ],
         },

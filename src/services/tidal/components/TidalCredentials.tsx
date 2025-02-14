@@ -1,4 +1,6 @@
 import React, {useCallback, useId, useRef} from 'react';
+import {copyToClipboard} from 'utils';
+import CopyButton from 'components/Button/CopyButton';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import Credentials from 'components/Settings/MediaLibrarySettings/Credentials';
 import {MediaServiceCredentialsProps} from 'components/Settings/MediaLibrarySettings/MediaServiceCredentials';
@@ -10,6 +12,7 @@ export default function TidalCredentials({service: tidal}: MediaServiceCredentia
     const id = useId();
     const {clientId} = useCredentials();
     const clientIdRef = useRef<HTMLInputElement>(null);
+    const redirectUrl = `${location.origin}/auth/tidal/callback/`;
 
     const handleSubmit = useCallback(async () => {
         const clientId = clientIdRef.current!.value;
@@ -41,14 +44,10 @@ export default function TidalCredentials({service: tidal}: MediaServiceCredentia
             </fieldset>
             <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
-                <p>
-                    <label htmlFor={`${id}-callback`}>Redirect URL 1:</label>
-                    <input
-                        type="text"
-                        id={`${id}-callback`}
-                        value={`${location.origin}/auth/tidal/callback/`}
-                        readOnly
-                    />
+                <p>Redirect URL:</p>
+                <p className="credentials-callback">
+                    <input type="text" value={redirectUrl} readOnly />
+                    <CopyButton onClick={() => copyToClipboard(redirectUrl)} />
                 </p>
                 <p>Platform preset: WEB</p>
                 <p>Scopes:</p>

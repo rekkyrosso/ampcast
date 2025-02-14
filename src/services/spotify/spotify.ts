@@ -432,7 +432,7 @@ const spotify: PublicMediaService = {
     name: 'Spotify',
     icon: 'spotify',
     url: 'https://www.spotify.com',
-    credentialsUrl: 'https://developer.spotify.com/dashboard/create',
+    credentialsUrl: 'https://developer.spotify.com/dashboard',
     serviceType: ServiceType.PublicMedia,
     Components: {Credentials, Login},
     defaultHidden: !isStartupService('spotify'),

@@ -20,7 +20,9 @@ export default function LastFmLogin({service: lastfm}: LoginProps) {
             ) : (
                 <>
                     <CredentialsRequired service={lastfm} />
-                    <CredentialsButton service={lastfm} />
+                    <p>
+                        <CredentialsButton service={lastfm} />
+                    </p>
                 </>
             )}
             <ServiceLink service={lastfm} />

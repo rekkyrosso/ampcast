@@ -8,6 +8,7 @@ export interface CredentialsButtonProps extends React.ButtonHTMLAttributes<HTMLB
 
 export default function CredentialsButton({
     service,
+    className = 'credentials-button',
     children = 'Enter credentials…',
     ...props
 }: CredentialsButtonProps) {
@@ -16,10 +17,8 @@ export default function CredentialsButton({
     }, [service]);
 
     return (
-        <p>
-            <button {...props} className="credentials-button" onClick={handleClick}>
-                {children}
-            </button>
-        </p>
+        <button {...props} className={className} onClick={handleClick}>
+            {children}
+        </button>
     );
 }

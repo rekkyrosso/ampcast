@@ -1,5 +1,6 @@
-import React, {useCallback, useId, useRef} from 'react';
-import {Logger} from 'utils';
+import React, {useCallback, useRef} from 'react';
+import {copyToClipboard, Logger} from 'utils';
+import CopyButton from 'components/Button/CopyButton';
 import {error} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import Credentials from 'components/Settings/MediaLibrarySettings/Credentials';
@@ -11,10 +12,10 @@ import useCredentials from './useCredentials';
 const logger = new Logger('LastFmCredentials');
 
 export default function LastFmCredentials({service: lastfm}: MediaServiceCredentialsProps) {
-    const id = useId();
     const {apiKey, secret} = useCredentials();
     const apiKeyRef = useRef<HTMLInputElement>(null);
     const secretRef = useRef<HTMLInputElement>(null);
+    const callbackUrl = `${location.origin}/auth/lastfm/callback/`;
 
     const handleSubmit = useCallback(async () => {
         const apiKey = apiKeyRef.current!.value;
@@ -62,14 +63,10 @@ export default function LastFmCredentials({service: lastfm}: MediaServiceCredent
             </fieldset>
             <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
-                <p>
-                    <label htmlFor={`${id}-callback`}>Callback URL:</label>
-                    <input
-                        type="text"
-                        id={`${id}-callback`}
-                        value={`${location.origin}/auth/lastfm/callback/`}
-                        readOnly
-                    />
+                <p>Callback URL:</p>
+                <p className="credentials-callback">
+                    <input type="text" value={callbackUrl} readOnly />
+                    <CopyButton onClick={() => copyToClipboard(callbackUrl)} />
                 </p>
             </fieldset>
             <DialogButtons />
