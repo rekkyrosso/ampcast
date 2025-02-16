@@ -33,6 +33,14 @@ Run the container:
 docker run --name ampcast -p 8000:8000 ghcr.io/rekkyrosso/ampcast:latest
 ```
 
+Or with `docker-compose`:
+
+```bash
+docker-compose up -d
+```
+
+Use this [`docker-compose.yml`](https://raw.githubusercontent.com/rekkyrosso/ampcast/refs/heads/main/docker-compose.yml) file as a template.
+
 ### From source code
 
 Requires Node >= 20.
@@ -62,7 +70,27 @@ npm run start:dev -- --host 0.0.0.0 --port 8001
 
 You may get CORS errors using anything other than `localhost` but you have the option anyway.
 
-You can optionally create a `.env` file ([example](https://github.com/rekkyrosso/ampcast/blob/main/.env.example)) to store API keys and other config options.
+You can optionally create a `.env` file ([example](https://raw.githubusercontent.com/rekkyrosso/ampcast/refs/heads/main/.env.example)) to store API keys and other config options.
+
+### Spotify Redirect URI
+
+You need to provide a *Redirect URI* if you configure your own Spotify client app.
+
+For `https` clients use this:
+
+```
+https://{hostname}:{port}/auth/spotify/callback/
+```
+
+Otherwise use this:
+
+```
+http://[::1]:{port}/auth/spotify/callback/
+```
+
+See here for more details:
+
+https://developer.spotify.com/documentation/web-api/concepts/redirect_uri
 
 ## Contributing
 

@@ -80,7 +80,7 @@ export interface ExternalLinkBadgeProps {
 }
 
 export function LastFmBadge({item}: ExternalLinkBadgeProps) {
-    if (/^(lastfm|listenbrainz|mixcloud|musicbrainz):/.test(item.src)) {
+    if (/^(lastfm|listenbrainz|mixcloud|musicbrainz):/.test(item.src) || item.synthetic) {
         return;
     }
     const title = encodeURIComponent(item.title);

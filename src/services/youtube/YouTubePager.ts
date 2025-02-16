@@ -142,7 +142,7 @@ export default class YouTubePager<T extends MediaObject> implements Pager<T> {
             duration: parseISO8601(video.contentDetails?.duration || ''),
             thumbnails: this.mapThumbnails(video.snippet?.thumbnails),
             owner: this.createOwner(video.snippet!),
-            globalRating: this.parseNumber(video.statistics?.likeCount),
+            globalLikes: this.parseNumber(video.statistics?.likeCount),
             globalPlayCount: this.parseNumber(video.statistics?.viewCount),
             playedAt: 0,
         };

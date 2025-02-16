@@ -21,6 +21,7 @@ export function observeBeforeEndOfTrack(
 
 const userDataKeys: (keyof UserData | keyof ListenData | 'lookupStatus' | 'startTime')[] = [
     'rating',
+    'globalLikes',
     'globalRating',
     'playCount',
     'globalPlayCount',

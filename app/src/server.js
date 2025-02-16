@@ -19,18 +19,18 @@ const mimeTypes = {
 };
 
 const app = http.createServer(async (req, res) => {
+    const method = req.method;
+    const url = req.url.replace(/[?#].*$/, '');
     try {
-        const method = req.method;
-        const url = req.url.replace(/[?#].*$/, '');
         let pathname = url;
         if (pathname === '/auth/spotify/callback/') {
             const host = req.headers.host || '';
             if (host.startsWith('[::1]:')) {
+                const port = host.slice(6);
                 console.log('Redirect:', {
                     from: `${host}${pathname}`,
                     to: `localhost:${port}${pathname}`,
                 });
-                const port = host.slice(6);
                 res.writeHead(302, {Location: `http://localhost:${port}${req.url}`});
                 res.end();
                 return;

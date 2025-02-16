@@ -286,19 +286,17 @@ export class MixcloudPlayer implements Player<PlayableItem> {
             if (this.key === currentKey) {
                 this.loadedSrc = item.src;
                 this.player.getPosition().then((currentTime: number) => {
-                    if (currentTime === startTime) {
-                        this.player.play();
-                    } else {
+                    if (currentTime !== startTime) {
                         // `seek` seems to autoplay (but calling `play` after seems dodgy).
                         this.player.seek(startTime);
-                        this.player.getIsPaused().then((paused: boolean) => {
-                            if (paused && !this.paused) {
-                                this.player.play();
-                            } else if (!paused && this.paused) {
-                                this.player.pause();
-                            }
-                        });
                     }
+                    this.player.getIsPaused().then((paused: boolean) => {
+                        if (paused && !this.paused) {
+                            this.player.play();
+                        } else if (!paused && this.paused) {
+                            this.player.pause();
+                        }
+                    });
                 });
             } else {
                 this.player.load(this.key, true);
