@@ -72,26 +72,6 @@ You may get CORS errors using anything other than `localhost` but you have the o
 
 You can optionally create a `.env` file ([example](https://raw.githubusercontent.com/rekkyrosso/ampcast/refs/heads/main/.env.example)) to store API keys and other config options.
 
-### Spotify Redirect URI
-
-You need to provide a *Redirect URI* if you configure your own Spotify client app.
-
-For `https` clients use this:
-
-```
-https://{hostname}:{port}/auth/spotify/callback/
-```
-
-Otherwise use this:
-
-```
-http://[::1]:{port}/auth/spotify/callback/
-```
-
-See here for more details:
-
-https://developer.spotify.com/documentation/web-api/concepts/redirect_uri
-
 ## Contributing
 
 I request that you only [open an issue](https://github.com/rekkyrosso/ampcast/issues) for submitting **bug reports**.
