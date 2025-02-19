@@ -5,8 +5,8 @@ on: workflow_dispatch
 jobs:
   release:
     name: Build mac binaries
-    runs-on: macos-latest
-    timeout-minutes: 90
+    runs-on: macos-13
+    timeout-minutes: 30
 
     env:
       #DEBUG: 'electron-notarize'
