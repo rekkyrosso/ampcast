@@ -111,9 +111,10 @@ const tidal: PublicMediaService = {
     Components: {Credentials, Login},
     defaultHidden: !isStartupService(serviceId),
     internetRequired: true,
-    get credentialsRequired(): boolean {
-        return tidalSettings.credentialsRequired;
+    get credentialsLocked(): boolean {
+        return tidalSettings.credentialsLocked;
     },
+    credentialsRequired: true,
     root: tidalSearch,
     sources: [tidalPlaylists, tidalMyMixes, tidalDailyDiscovery, tidalNewArrivals],
     compareForRating,

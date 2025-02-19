@@ -431,9 +431,10 @@ const apple: PublicMediaService = {
     defaultHidden: !isStartupService('apple'),
     internetRequired: true,
     Components: {Credentials, Login, StreamingSettings},
-    get credentialsRequired(): boolean {
-        return appleSettings.credentialsRequired;
+    get credentialsLocked(): boolean {
+        return appleSettings.credentialsLocked;
     },
+    credentialsRequired: true,
     root: appleSearch,
     sources: [
         appleLibrarySongs,

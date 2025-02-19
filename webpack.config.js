@@ -151,6 +151,7 @@ module.exports = (args) => {
             }),
             new webpack.DefinePlugin({
                 __dev__,
+                __target__: JSON.stringify(target),
                 __app_name__: JSON.stringify(packageJson.name || ''),
                 __app_version__: JSON.stringify(packageJson.version || ''),
                 __app_contact__: JSON.stringify(packageJson.author.email || ''),

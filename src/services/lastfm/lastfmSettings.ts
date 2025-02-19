@@ -26,8 +26,8 @@ const lastfmSettings = {
         }
     },
 
-    get credentialsRequired(): boolean {
-        return !lf_api_key;
+    get credentialsLocked(): boolean {
+        return !!lf_api_key;
     },
 
     get token(): string {

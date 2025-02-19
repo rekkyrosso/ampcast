@@ -132,9 +132,10 @@ const youtube: PublicMediaService = {
     defaultHidden: !isStartupService('youtube'),
     defaultNoScrobble: true,
     internetRequired: true,
-    get credentialsRequired(): boolean {
-        return youtubeSettings.credentialsRequired;
+    get credentialsLocked(): boolean {
+        return youtubeSettings.credentialsLocked;
     },
+    credentialsRequired: true,
     restrictedAccess: location.host === 'ampcast.app',
     editablePlaylists: youtubePlaylists,
     root: youtubeSearch,

@@ -3,9 +3,9 @@ import {copyToClipboard, Logger} from 'utils';
 import CopyButton from 'components/Button/CopyButton';
 import {error} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
-import Credentials from 'components/Settings/MediaLibrarySettings/Credentials';
+import CredentialsInput from 'components/Settings/MediaLibrarySettings/CredentialsInput';
+import CredentialsRegistration from 'components/Settings/MediaLibrarySettings/CredentialsRegistration';
 import {MediaServiceCredentialsProps} from 'components/Settings/MediaLibrarySettings/MediaServiceCredentials';
-import ExternalLink from 'components/ExternalLink';
 import lastfmSettings from '../lastfmSettings';
 import useCredentials from './useCredentials';
 
@@ -16,6 +16,7 @@ export default function LastFmCredentials({service: lastfm}: MediaServiceCredent
     const apiKeyRef = useRef<HTMLInputElement>(null);
     const secretRef = useRef<HTMLInputElement>(null);
     const callbackUrl = `${location.origin}/auth/lastfm/callback/`;
+    const locked = lastfm.credentialsLocked;
 
     const handleSubmit = useCallback(async () => {
         const apiKey = apiKeyRef.current!.value;
@@ -38,28 +39,31 @@ export default function LastFmCredentials({service: lastfm}: MediaServiceCredent
     }, [lastfm]);
 
     return (
-        <form className="lastfm-credentials" method="dialog" onSubmit={handleSubmit}>
+        <form
+            className="lastfm-credentials"
+            method="dialog"
+            onSubmit={locked ? undefined : handleSubmit}
+        >
+            <CredentialsRegistration service={lastfm} />
             <fieldset>
                 <legend>Your App</legend>
-                <Credentials
+                <CredentialsInput
+                    locked={locked}
                     label="API Key"
                     name="lastfm-api-key"
                     defaultValue={apiKey}
                     inputRef={apiKeyRef}
                     autoFocus
                 />
-                <Credentials
-                    label="Shared Secret"
-                    name="lastfm-secret"
-                    defaultValue={secret}
-                    inputRef={secretRef}
-                />
-            </fieldset>
-            <fieldset className="credentials-registration">
-                <legend>Registration</legend>
-                <p>
-                    <ExternalLink icon="lastfm" href={lastfm.credentialsUrl} />
-                </p>
+                {locked ? null : (
+                    <CredentialsInput
+                        locked={lastfm.credentialsLocked}
+                        label="Shared Secret"
+                        name="lastfm-secret"
+                        defaultValue={secret}
+                        inputRef={secretRef}
+                    />
+                )}
             </fieldset>
             <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>

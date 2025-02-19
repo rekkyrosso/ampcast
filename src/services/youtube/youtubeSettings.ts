@@ -22,8 +22,8 @@ const youtubeSettings = {
         }
     },
 
-    get credentialsRequired(): boolean {
-        return !yt_client_id;
+    get credentialsLocked(): boolean {
+        return !!yt_client_id;
     },
 
     get token(): string {

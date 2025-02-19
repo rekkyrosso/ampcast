@@ -40,8 +40,8 @@ const tidalSettings = {
         userStorage.setString('countryCode', countryCode);
     },
 
-    get credentialsRequired(): boolean {
-        return !td_client_id;
+    get credentialsLocked(): boolean {
+        return !!td_client_id;
     },
 
     get deviceId(): string {

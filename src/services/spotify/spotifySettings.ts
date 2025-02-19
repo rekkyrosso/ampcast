@@ -63,8 +63,8 @@ const spotifySettings = {
         authStorage.setString('code_verifier', code_verifier);
     },
 
-    get credentialsRequired(): boolean {
-        return !sp_client_id;
+    get credentialsLocked(): boolean {
+        return !!sp_client_id;
     },
 
     get market(): string {

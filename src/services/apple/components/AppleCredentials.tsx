@@ -1,8 +1,8 @@
 import React, {useCallback, useId, useRef} from 'react';
 import DialogButtons from 'components/Dialog/DialogButtons';
-import Credentials from 'components/Settings/MediaLibrarySettings/Credentials';
+import CredentialsInput from 'components/Settings/MediaLibrarySettings/CredentialsInput';
+import CredentialsRegistration from 'components/Settings/MediaLibrarySettings/CredentialsRegistration';
 import {MediaServiceCredentialsProps} from 'components/Settings/MediaLibrarySettings/MediaServiceCredentials';
-import ExternalLink from 'components/ExternalLink';
 import appleSettings from '../appleSettings';
 import useCredentials from './useCredentials';
 
@@ -23,21 +23,17 @@ export default function AppleCredentials({service: apple}: MediaServiceCredentia
 
     return (
         <form className="apple-credentials" method="dialog" onSubmit={handleSubmit}>
+            <CredentialsRegistration service={apple} icon="apple-logo" />
             <fieldset>
                 <legend>Your App</legend>
-                <Credentials
+                <CredentialsInput
+                    locked={apple.credentialsLocked}
                     label="Developer Token"
                     name="apple-dev-token"
                     defaultValue={devToken}
                     inputRef={devTokenRef}
                     autoFocus
                 />
-            </fieldset>
-            <fieldset className="credentials-registration">
-                <legend>Registration</legend>
-                <p>
-                    <ExternalLink icon="apple-logo" href={apple.credentialsUrl} />
-                </p>
             </fieldset>
             <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>

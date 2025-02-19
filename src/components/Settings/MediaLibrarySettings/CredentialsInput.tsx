@@ -1,17 +1,20 @@
 import React, {useId} from 'react';
 
-export type CredentialsProps = React.InputHTMLAttributes<HTMLInputElement> & {
+export type CredentialsInputProps = React.InputHTMLAttributes<HTMLInputElement> & {
     label: string;
-    inputRef: React.RefObject<HTMLInputElement | null>;
+    locked?: boolean;
+    inputRef?: React.RefObject<HTMLInputElement | null>;
 };
 
-export default function Credentials({
-    type = 'text',
+export default function CredentialsInput({
+    locked,
+    type = locked ? 'password' : 'text',
     name = '',
+    autoFocus,
     label,
     inputRef,
     ...props
-}: CredentialsProps) {
+}: CredentialsInputProps) {
     const uid = useId();
     const id = `${uid}-${name}`;
 
@@ -23,6 +26,8 @@ export default function Credentials({
                 type={type}
                 name={name}
                 id={id}
+                autoFocus={locked ? false : autoFocus} // TODO: This doesn't actually work.
+                readOnly={locked}
                 spellCheck={false}
                 autoComplete="off"
                 autoCapitalize="off"

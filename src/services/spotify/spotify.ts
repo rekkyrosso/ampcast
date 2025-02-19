@@ -437,9 +437,10 @@ const spotify: PublicMediaService = {
     Components: {Credentials, Login},
     defaultHidden: !isStartupService('spotify'),
     internetRequired: true,
-    get credentialsRequired(): boolean {
-        return spotifySettings.credentialsRequired;
+    get credentialsLocked(): boolean {
+        return spotifySettings.credentialsLocked;
     },
+    credentialsRequired: true,
     editablePlaylists: spotifyEditablePlaylists,
     root: spotifySearch,
     sources: [

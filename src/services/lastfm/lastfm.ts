@@ -91,9 +91,10 @@ const lastfm: DataService = {
     defaultHidden: !isStartupService('lastfm'),
     internetRequired: true,
     Components: {Credentials, Login},
-    get credentialsRequired(): boolean {
-        return lastfmSettings.credentialsRequired;
+    get credentialsLocked(): boolean {
+        return lastfmSettings.credentialsLocked;
     },
+    credentialsRequired: true,
     root: lastfmScrobbles,
     sources: [
         createTopMultiSource<MediaItem>(ItemType.Media, 'Top Tracks', 'user.getTopTracks', {

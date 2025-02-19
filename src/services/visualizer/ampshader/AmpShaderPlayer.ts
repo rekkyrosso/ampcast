@@ -20,7 +20,7 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     private readonly source: AudioNode;
     private readonly canvas = document.createElement('canvas');
     private readonly offscreenCanvas: OffscreenCanvas | HTMLCanvasElement;
-    private readonly gl: WebGL2RenderingContext;
+    private readonly gl: WebGL2RenderingContext | null = null;
     private readonly outputGl: CanvasRenderingContext2D;
     private readonly error$ = new Subject<unknown>();
     private animationFrameId = 0;
@@ -66,25 +66,27 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
             premultipliedAlpha: false,
             preserveDrawingBuffer: true,
             stencil: false,
-        })!);
+        }));
 
-        const texture = gl.createTexture()!;
-        gl.bindTexture(gl.TEXTURE_2D, texture);
-        gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, 512, 2, 0, gl.RED, gl.UNSIGNED_BYTE, null);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
-        gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
+        if (gl) {
+            const texture = gl.createTexture()!;
+            gl.bindTexture(gl.TEXTURE_2D, texture);
+            gl.texImage2D(gl.TEXTURE_2D, 0, gl.R8, 512, 2, 0, gl.RED, gl.UNSIGNED_BYTE, null);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.CLAMP_TO_EDGE);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.LINEAR);
+            gl.texParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.LINEAR);
 
-        const vbo = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
-        const positionBuffer = gl.createBuffer();
-        gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
-        gl.bufferData(
-            gl.ARRAY_BUFFER,
-            new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
-            gl.STATIC_DRAW
-        );
+            const vbo = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, vbo);
+            const positionBuffer = gl.createBuffer();
+            gl.bindBuffer(gl.ARRAY_BUFFER, positionBuffer);
+            gl.bufferData(
+                gl.ARRAY_BUFFER,
+                new Float32Array([-1, -1, 1, -1, -1, 1, -1, 1, 1, -1, 1, 1]),
+                gl.STATIC_DRAW
+            );
+        }
 
         observeVisualizerSettings()
             .pipe(
@@ -157,8 +159,6 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     }
 
     resize(width: number, height: number): void {
-        const gl = this.gl;
-
         width = Math.ceil(width);
         height = Math.ceil(height);
 
@@ -167,12 +167,15 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
         this.offscreenCanvas.width = width;
         this.offscreenCanvas.height = height;
 
-        gl.viewport(0, 0, width, height);
+        const gl = this.gl;
+        if (gl) {
+            gl.viewport(0, 0, width, height);
 
-        if (this.program) {
-            const fragResolution = gl.getUniformLocation(this.program, 'iResolution');
-            gl.uniform3f(fragResolution, width, height, 1);
-            this.renderFrame();
+            if (this.program) {
+                const fragResolution = gl.getUniformLocation(this.program, 'iResolution');
+                gl.uniform3f(fragResolution, width, height, 1);
+                this.renderFrame();
+            }
         }
     }
 
@@ -232,6 +235,15 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
         this.clear();
 
         const gl = this.gl;
+
+        if (!gl) {
+            this.shaderError = Error('WebGL2 not supported');
+            if (this.autoplay) {
+                this.error$.next(this.shaderError);
+            }
+            return;
+        }
+
         const parallelCompiler = gl.getExtension('KHR_parallel_shader_compile');
 
         this.shaderError = null;
@@ -331,7 +343,7 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     }
 
     private renderFrame(): void {
-        if (this.program) {
+        if (this.gl && this.program) {
             const gl = this.gl;
             const bufferSize = this.analyser.frequencyBinCount;
             const freq = new Uint8Array(bufferSize);

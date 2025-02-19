@@ -2,9 +2,9 @@ import React, {useCallback, useId, useRef} from 'react';
 import {copyToClipboard} from 'utils';
 import CopyButton from 'components/Button/CopyButton';
 import DialogButtons from 'components/Dialog/DialogButtons';
-import Credentials from 'components/Settings/MediaLibrarySettings/Credentials';
+import CredentialsInput from 'components/Settings/MediaLibrarySettings/CredentialsInput';
+import CredentialsRegistration from 'components/Settings/MediaLibrarySettings/CredentialsRegistration';
 import {MediaServiceCredentialsProps} from 'components/Settings/MediaLibrarySettings/MediaServiceCredentials';
-import ExternalLink from 'components/ExternalLink';
 import tidalSettings from '../tidalSettings';
 import useCredentials from './useCredentials';
 
@@ -26,21 +26,17 @@ export default function TidalCredentials({service: tidal}: MediaServiceCredentia
 
     return (
         <form className="tidal-credentials" method="dialog" onSubmit={handleSubmit}>
+            <CredentialsRegistration service={tidal} />
             <fieldset>
                 <legend>Your App</legend>
-                <Credentials
+                <CredentialsInput
+                    locked={tidal.credentialsLocked}
                     label="Client ID"
                     name="tidal-client-id"
                     defaultValue={clientId}
                     inputRef={clientIdRef}
                     autoFocus
                 />
-            </fieldset>
-            <fieldset className="credentials-registration">
-                <legend>Registration</legend>
-                <p>
-                    <ExternalLink icon="tidal" href={tidal.credentialsUrl} />
-                </p>
             </fieldset>
             <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>

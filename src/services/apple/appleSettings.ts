@@ -28,8 +28,8 @@ const appleSettings = {
         storage.setNumber('connectedAt', connectedAt);
     },
 
-    get credentialsRequired(): boolean {
-        return !am_dev_token;
+    get credentialsLocked(): boolean {
+        return !!am_dev_token;
     },
 
     get devToken(): string {

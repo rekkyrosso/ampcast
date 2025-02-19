@@ -3,9 +3,9 @@ import {copyToClipboard} from 'utils';
 import {alert} from 'components/Dialog';
 import CopyButton from 'components/Button/CopyButton';
 import DialogButtons from 'components/Dialog/DialogButtons';
-import Credentials from 'components/Settings/MediaLibrarySettings/Credentials';
+import CredentialsInput from 'components/Settings/MediaLibrarySettings/CredentialsInput';
+import CredentialsRegistration from 'components/Settings/MediaLibrarySettings/CredentialsRegistration';
 import {MediaServiceCredentialsProps} from 'components/Settings/MediaLibrarySettings/MediaServiceCredentials';
-import ExternalLink from 'components/ExternalLink';
 import {isSafeOrigin} from '../spotifyApi';
 import SpotifyRedirectType from '../SpotifyRedirectType';
 import spotifySettings from '../spotifySettings';
@@ -21,6 +21,7 @@ export default function SpotifyCredentials({service: spotify}: MediaServiceCrede
     const localhostIp6Url = `http://[::1]:${location.port}${authPath}`;
     const deprecatedUrl =
         'https://developer.spotify.com/documentation/web-api/tutorials/migration-insecure-redirect-uri';
+    const locked = spotify.credentialsLocked;
 
     const handleSubmit = useCallback(async () => {
         const clientId = clientIdRef.current!.value;
@@ -44,21 +45,17 @@ export default function SpotifyCredentials({service: spotify}: MediaServiceCrede
 
     return (
         <form className="spotify-credentials" method="dialog" onSubmit={handleSubmit} ref={ref}>
+            <CredentialsRegistration service={spotify} />
             <fieldset>
                 <legend>Your App</legend>
-                <Credentials
+                <CredentialsInput
+                    locked={locked}
                     label="Client ID"
                     name="spotify-client-id"
                     defaultValue={clientId}
                     inputRef={clientIdRef}
                     autoFocus
                 />
-            </fieldset>
-            <fieldset className="credentials-registration">
-                <legend>Registration</legend>
-                <p>
-                    <ExternalLink icon="spotify" href={spotify.credentialsUrl} />
-                </p>
             </fieldset>
             <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
@@ -71,6 +68,7 @@ export default function SpotifyCredentials({service: spotify}: MediaServiceCrede
                             value={SpotifyRedirectType.Origin}
                             defaultChecked={redirectType === SpotifyRedirectType.Origin}
                             hidden={isSafeOrigin()}
+                            disabled={locked}
                         />
                         <input type="text" value={originalUrl} readOnly />
                         {isSafeOrigin() ? (
@@ -97,6 +95,7 @@ export default function SpotifyCredentials({service: spotify}: MediaServiceCrede
                                 name={`${id}-callback`}
                                 value={SpotifyRedirectType.LocalhostIp6}
                                 defaultChecked={redirectType === SpotifyRedirectType.LocalhostIp6}
+                                disabled={locked}
                             />
                             <input type="text" value={localhostIp6Url} readOnly />
                             <CopyButton onClick={() => copyToClipboard(localhostIp6Url)} />
