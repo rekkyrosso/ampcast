@@ -300,7 +300,7 @@ const mediaFields: MediaFields<any> = {
     Views: {id: 'views', title: 'Views', render: Views, className: 'views'},
     Genre: {id: 'genre', title: 'Genre', render: Genre, className: 'genre'},
     Owner: {id: 'owner', title: 'Owner', render: Owner, className: 'owner'},
-    AddedAt: {id: 'addedAt', title: 'Date Added', render: AddedAt, className: 'added-at'},
+    AddedAt: {id: 'addedAt', title: 'Added', render: AddedAt, className: 'added-at'},
     LastPlayed: {
         id: 'lastPlayed',
         title: 'Last played',

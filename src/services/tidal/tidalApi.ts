@@ -1,8 +1,5 @@
 import {credentialsProvider} from '@tidal-music/auth';
-import {createCatalogueClient, components as CatalogueComponents} from '@tidal-music/catalogue';
-import {createPlaylistClient} from '@tidal-music/playlist';
-import {createSearchClient} from '@tidal-music/search';
-import {createUserClient, components as UserComponents} from '@tidal-music/user';
+import {createAPIClient, components} from '@tidal-music/api';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -18,18 +15,16 @@ import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import tidalSettings from './tidalSettings';
 import TidalPager, {TidalPage} from './TidalPager';
 
-type CatalogueSchema = CatalogueComponents['schemas'];
-type UserSchema = UserComponents['schemas'];
-
-type TidalAlbum = CatalogueSchema['Albums_Resource'];
-type TidalArtist = CatalogueSchema['Artists_Resource'];
-type TidalTrack = CatalogueSchema['Tracks_Resource'];
-type TidalVideo = CatalogueSchema['Videos_Resource'];
-type TidalPlaylist = CatalogueSchema['Playlists_Resource'];
-type TidalProvider = CatalogueSchema['Providers_Resource'];
-type TidalRecommendations = UserSchema['User_Recommendations_Resource'];
-type TidalUser = CatalogueSchema['Users_Resource'];
-type TidalError = CatalogueSchema['Error_Object'];
+type schemas = components['schemas'];
+type TidalAlbum = schemas['Albums_Resource'];
+type TidalArtist = schemas['Artists_Resource'];
+type TidalTrack = schemas['Tracks_Resource'];
+type TidalVideo = schemas['Videos_Resource'];
+type TidalPlaylist = schemas['Playlists_Resource'];
+type TidalProvider = schemas['Providers_Resource'];
+type TidalRecommendations = schemas['User_Recommendations_Resource'];
+type TidalUser = schemas['Users_Resource'];
+type TidalError = schemas['Error_Object'];
 type Included = (
     | TidalAlbum
     | TidalArtist
@@ -43,27 +38,22 @@ type Included = (
 interface TidalRecommendationsData {
     data?: TidalRecommendations;
     included?: (
-        | UserSchema['Playlists_Resource']
-        | UserSchema['Tracks_Resource']
-        | UserSchema['Videos_Resource']
-        | UserSchema['Users_Resource']
+        | schemas['Playlists_Resource']
+        | schemas['Tracks_Resource']
+        | schemas['Videos_Resource']
+        | schemas['Users_Resource']
     )[];
 }
 
-type ImageLink =
-    | CatalogueSchema['Catalogue_Item_Image_Link']
-    | CatalogueSchema['Playlists_Image_Link'];
+type ImageLink = schemas['Catalogue_Item_Image_Link'] | schemas['Playlists_Image_Link'];
 
 const logger = new Logger('tidalApi');
 
-const catalogueApi = createCatalogueClient(credentialsProvider);
-const playlistApi = createPlaylistClient(credentialsProvider);
-const searchApi = createSearchClient(credentialsProvider);
-const userApi = createUserClient(credentialsProvider);
+const api = createAPIClient(credentialsProvider);
 
 async function getAlbum(id: string): Promise<MediaAlbum | null> {
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await catalogueApi.GET('/albums/{id}', {
+    const {data, error, response} = await api.GET('/albums/{id}', {
         params: {
             path: {id},
             query: {countryCode, include: ['items', 'artists']},
@@ -81,7 +71,7 @@ async function getAlbums(ids: string[]): Promise<readonly MediaAlbum[]> {
         return [];
     }
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await catalogueApi.GET('/albums', {
+    const {data, error, response} = await api.GET('/albums', {
         params: {
             query: {countryCode, 'filter%5Bid%5D': [ids.join(',')], include: ['artists']},
         },
@@ -95,7 +85,7 @@ async function getAlbums(ids: string[]): Promise<readonly MediaAlbum[]> {
 
 async function getAlbumTracks(album: TidalAlbum, cursor = ''): Promise<TidalPage<MediaItem>> {
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await catalogueApi.GET('/albums/{id}/relationships/items', {
+    const {data, error, response} = await api.GET('/albums/{id}/relationships/items', {
         params: {
             path: {id: album.id},
             query: {countryCode, 'page%5Bcursor%5D': cursor},
@@ -126,7 +116,7 @@ async function getAlbumTracks(album: TidalAlbum, cursor = ''): Promise<TidalPage
 
 async function getArtist(id: string): Promise<MediaArtist | null> {
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await catalogueApi.GET('/artists/{id}', {
+    const {data, error, response} = await api.GET('/artists/{id}', {
         params: {
             path: {id},
             query: {countryCode, include: ['albums']},
@@ -144,7 +134,7 @@ async function getArtists(ids: string[]): Promise<readonly MediaArtist[]> {
         return [];
     }
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await catalogueApi.GET('/artists', {
+    const {data, error, response} = await api.GET('/artists', {
         params: {
             query: {countryCode, 'filter%5Bid%5D': [ids.join(',')]},
         },
@@ -158,7 +148,7 @@ async function getArtists(ids: string[]): Promise<readonly MediaArtist[]> {
 
 async function getArtistAlbums(artist: TidalArtist, cursor = ''): Promise<TidalPage<MediaAlbum>> {
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await catalogueApi.GET('/artists/{id}/relationships/albums', {
+    const {data, error, response} = await api.GET('/artists/{id}/relationships/albums', {
         params: {
             path: {id: artist.id},
             query: {countryCode, 'page%5Bcursor%5D': cursor},
@@ -181,7 +171,7 @@ async function getArtistAlbums(artist: TidalArtist, cursor = ''): Promise<TidalP
 
 async function getArtistTopTracks(artist: TidalArtist, cursor = ''): Promise<TidalPage<MediaItem>> {
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await catalogueApi.GET('/artists/{id}/relationships/tracks', {
+    const {data, error, response} = await api.GET('/artists/{id}/relationships/tracks', {
         params: {
             path: {id: artist.id},
             query: {countryCode, 'page%5Bcursor%5D': cursor},
@@ -204,7 +194,7 @@ async function getArtistTopTracks(artist: TidalArtist, cursor = ''): Promise<Tid
 
 async function getArtistVideos(artist: TidalArtist, cursor = ''): Promise<TidalPage<MediaItem>> {
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await catalogueApi.GET('/artists/{id}/relationships/videos', {
+    const {data, error, response} = await api.GET('/artists/{id}/relationships/videos', {
         params: {
             path: {id: artist.id},
             query: {countryCode, 'page%5Bcursor%5D': cursor},
@@ -229,8 +219,8 @@ async function getDailyDiscovery(cursor?: string): Promise<TidalPage<MediaItem>>
     return getRecommendedPlaylistItems('discoveryMixes', cursor);
 }
 
-async function getMe(): Promise<UserSchema['Users_Resource']> {
-    const {data, error, response} = await userApi.GET('/users/me');
+async function getMe(): Promise<schemas['Users_Resource']> {
+    const {data, error, response} = await api.GET('/users/me');
     if (!response.ok || error) {
         throwError(response, error);
     }
@@ -250,7 +240,7 @@ async function getNewArrivals(cursor?: string): Promise<TidalPage<MediaItem>> {
 }
 
 async function getMyPlaylists(cursor = ''): Promise<TidalPage<MediaPlaylist>> {
-    const {data, error, response} = await playlistApi.GET('/playlists/me', {
+    const {data, error, response} = await api.GET('/playlists/me', {
         params: {
             query: {'page%5Bcursor%5D': cursor} as any,
         },
@@ -265,7 +255,7 @@ async function getMyPlaylists(cursor = ''): Promise<TidalPage<MediaPlaylist>> {
 
 async function getPlaylist(id: string): Promise<MediaPlaylist | null> {
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await playlistApi.GET('/playlists/{id}', {
+    const {data, error, response} = await api.GET('/playlists/{id}', {
         params: {
             path: {id},
             query: {countryCode, include: ['owners']},
@@ -283,7 +273,7 @@ async function getPlaylists(ids: string[]): Promise<readonly MediaPlaylist[]> {
         return [];
     }
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await playlistApi.GET('/playlists', {
+    const {data, error, response} = await api.GET('/playlists', {
         params: {
             query: {
                 countryCode,
@@ -305,7 +295,7 @@ async function getPlaylistItems(
     cursor = ''
 ): Promise<TidalPage<MediaItem>> {
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await playlistApi.GET('/playlists/{id}/relationships/items', {
+    const {data, error, response} = await api.GET('/playlists/{id}/relationships/items', {
         params: {
             path: {id},
             query: {countryCode, 'page%5Bcursor%5D': cursor},
@@ -327,7 +317,7 @@ async function getPlaylistItems(
 
 let currentRecommendations: TidalRecommendationsData | undefined = undefined;
 async function getRecommendations(): Promise<TidalRecommendationsData | undefined> {
-    const {data, error, response} = await userApi.GET('/userRecommendations/me', {
+    const {data, error, response} = await api.GET('/userRecommendations/me', {
         params: {
             query: {include: ['myMixes', 'discoveryMixes', 'newArrivalMixes']},
         },
@@ -370,7 +360,7 @@ async function getRecommendedPlaylistItems(
     if (included) {
         const includedPlaylist = included.find(
             (included) => included.type === 'playlists' && included.id === playlist.id
-        ) as UserSchema['Playlists_Resource'] | undefined;
+        ) as schemas['Playlists_Resource'] | undefined;
         numberOfItems = includedPlaylist?.attributes?.numberOfItems;
     }
     return getPlaylistItems(playlist.id, numberOfItems, cursor);
@@ -411,7 +401,7 @@ async function getRecommendedPlaylists(
 
 async function getTrack(id: string): Promise<MediaItem | null> {
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await catalogueApi.GET('/tracks/{id}', {
+    const {data, error, response} = await api.GET('/tracks/{id}', {
         params: {
             path: {id},
             query: {countryCode, include: ['artists', 'albums']},
@@ -429,7 +419,7 @@ async function getTracks(ids: string[], album?: TidalAlbum): Promise<readonly Me
         return [];
     }
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await catalogueApi.GET('/tracks', {
+    const {data, error, response} = await api.GET('/tracks', {
         params: {
             query: {
                 countryCode,
@@ -447,7 +437,7 @@ async function getTracks(ids: string[], album?: TidalAlbum): Promise<readonly Me
 
 async function getVideo(id: string): Promise<MediaItem | null> {
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await catalogueApi.GET('/videos/{id}', {
+    const {data, error, response} = await api.GET('/videos/{id}', {
         params: {
             path: {id},
             query: {countryCode, include: ['artists', 'albums']},
@@ -465,7 +455,7 @@ async function getVideos(ids: string[], album?: TidalAlbum): Promise<readonly Me
         return [];
     }
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await catalogueApi.GET('/videos', {
+    const {data, error, response} = await api.GET('/videos', {
         params: {
             query: {
                 countryCode,
@@ -483,15 +473,12 @@ async function getVideos(ids: string[], album?: TidalAlbum): Promise<readonly Me
 
 async function searchAlbums(query: string, cursor = ''): Promise<TidalPage<MediaAlbum>> {
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await searchApi.GET(
-        '/searchresults/{query}/relationships/albums',
-        {
-            params: {
-                path: {query},
-                query: {countryCode, 'page%5Bcursor%5D': cursor},
-            },
-        }
-    );
+    const {data, error, response} = await api.GET('/searchresults/{query}/relationships/albums', {
+        params: {
+            path: {query},
+            query: {countryCode, 'page%5Bcursor%5D': cursor},
+        },
+    });
     if (!response.ok || error) {
         throwError(response, error);
     }
@@ -503,15 +490,12 @@ async function searchAlbums(query: string, cursor = ''): Promise<TidalPage<Media
 
 async function searchArtists(query: string, cursor = ''): Promise<TidalPage<MediaArtist>> {
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await searchApi.GET(
-        '/searchresults/{query}/relationships/artists',
-        {
-            params: {
-                path: {query},
-                query: {countryCode, include: ['artists'], 'page%5Bcursor%5D': cursor},
-            },
-        }
-    );
+    const {data, error, response} = await api.GET('/searchresults/{query}/relationships/artists', {
+        params: {
+            path: {query},
+            query: {countryCode, include: ['artists'], 'page%5Bcursor%5D': cursor},
+        },
+    });
     if (!response.ok || error) {
         throwError(response, error);
     }
@@ -531,7 +515,7 @@ async function searchArtists(query: string, cursor = ''): Promise<TidalPage<Medi
 
 async function searchPlaylists(query: string, cursor = ''): Promise<TidalPage<MediaPlaylist>> {
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await searchApi.GET(
+    const {data, error, response} = await api.GET(
         '/searchresults/{query}/relationships/playlists',
         {
             params: {
@@ -559,15 +543,12 @@ async function searchPlaylists(query: string, cursor = ''): Promise<TidalPage<Me
 
 async function searchTracks(query: string, cursor = ''): Promise<TidalPage<MediaItem>> {
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await searchApi.GET(
-        '/searchresults/{query}/relationships/tracks',
-        {
-            params: {
-                path: {query},
-                query: {countryCode, 'page%5Bcursor%5D': cursor},
-            },
-        }
-    );
+    const {data, error, response} = await api.GET('/searchresults/{query}/relationships/tracks', {
+        params: {
+            path: {query},
+            query: {countryCode, 'page%5Bcursor%5D': cursor},
+        },
+    });
     if (!response.ok || error) {
         throwError(response, error);
     }
@@ -579,15 +560,12 @@ async function searchTracks(query: string, cursor = ''): Promise<TidalPage<Media
 
 async function searchVideos(query: string, cursor = ''): Promise<TidalPage<MediaItem>> {
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await searchApi.GET(
-        '/searchresults/{query}/relationships/videos',
-        {
-            params: {
-                path: {query},
-                query: {countryCode, 'page%5Bcursor%5D': cursor},
-            },
-        }
-    );
+    const {data, error, response} = await api.GET('/searchresults/{query}/relationships/videos', {
+        params: {
+            path: {query},
+            query: {countryCode, 'page%5Bcursor%5D': cursor},
+        },
+    });
     if (!response.ok || error) {
         throwError(response, error);
     }

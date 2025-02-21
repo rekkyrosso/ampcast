@@ -139,6 +139,28 @@ export default class SubsonicService implements PersonalMediaService {
             },
         };
 
+        const recentlyAdded: MediaSource<MediaAlbum> = {
+            id: `${id}/recently-added`,
+            title: 'Recently Added',
+            icon: 'recently-added',
+            itemType: ItemType.Album,
+            layout: {
+                view: 'card compact',
+                fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'AddedAt'],
+            },
+
+            search(): Pager<MediaAlbum> {
+                return new SubsonicPager(
+                    service,
+                    ItemType.Album,
+                    async (offset: number, count: number): Promise<Page<Subsonic.Album>> => {
+                        const items = await api.getRecentlyAdded(offset, count);
+                        return {items};
+                    }
+                );
+            },
+        };
+
         const recentlyPlayed: MediaSource<MediaAlbum> = {
             id: `${id}/recently-played`,
             title: 'Recently Played',
@@ -421,6 +443,7 @@ export default class SubsonicService implements PersonalMediaService {
         this.sources = [
             likedSongs,
             likedAlbums,
+            recentlyAdded,
             recentlyPlayed,
             mostPlayed,
             playlists,

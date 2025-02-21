@@ -332,6 +332,10 @@ export default class SubsonicApi {
         return data.randomSongs.song || [];
     }
 
+    async getRecentlyAdded(offset: number, size: number): Promise<Subsonic.Album[]> {
+        return this.getAlbumList({type: 'newest', size, offset});
+    }
+
     async getRecentlyPlayed(offset: number, size: number): Promise<Subsonic.Album[]> {
         return this.getAlbumList({type: 'recent', size, offset});
     }

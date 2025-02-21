@@ -123,6 +123,26 @@ const jellyfinLikedArtists: MediaSource<MediaArtist> = {
     },
 };
 
+const jellyfinRecentlyAdded: MediaSource<MediaAlbum> = {
+    id: 'jellyfin/recently-added',
+    title: 'Recently Added',
+    icon: 'recently-added',
+    itemType: ItemType.Album,
+    layout: {
+        view: 'card compact',
+        fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'AddedAt'],
+    },
+
+    search(): Pager<MediaAlbum> {
+        return createItemsPager({
+            ParentId: getMusicLibraryId(),
+            SortBy: 'DateCreated,SortName',
+            SortOrder: 'Descending,Ascending',
+            IncludeItemTypes: 'MusicAlbum',
+        });
+    },
+};
+
 const jellyfinRecentlyPlayed: MediaSource<MediaItem> = {
     id: 'jellyfin/recently-played',
     title: 'Recently Played',
@@ -448,6 +468,7 @@ const jellyfin: PersonalMediaService = {
         jellyfinLikedAlbums,
         jellyfinLikedArtists,
         jellyfinMostPlayed,
+        jellyfinRecentlyAdded,
         jellyfinRecentlyPlayed,
         jellyfinPlaylists,
         jellyfinTracksByGenre,

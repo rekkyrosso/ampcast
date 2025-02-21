@@ -147,9 +147,8 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             title: album.Name || '',
             description: album.Overview ?? undefined,
             duration: album.RunTimeTicks ? album.RunTimeTicks / 10_000_000 : 0,
-            playedAt: album.UserData?.LastPlayedDate
-                ? Math.floor(new Date(album.UserData.LastPlayedDate).getTime() / 1000)
-                : undefined,
+            addedAt: this.parseDate(album.DateCreated),
+            playedAt: this.parseDate(album.UserData?.LastPlayedDate),
             playCount: album.UserData?.PlayCount || undefined,
             genres: album.Genres || undefined,
             thumbnails: this.createThumbnails(album),
@@ -171,9 +170,8 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             title: playlist.Name || '',
             description: playlist.Overview ?? undefined,
             duration: playlist.RunTimeTicks ? playlist.RunTimeTicks / 10_000_000 : 0,
-            playedAt: playlist.UserData?.LastPlayedDate
-                ? Math.floor(new Date(playlist.UserData.LastPlayedDate).getTime() / 1000)
-                : undefined,
+            addedAt: this.parseDate(playlist.DateCreated),
+            playedAt: this.parseDate(playlist.UserData?.LastPlayedDate),
             playCount: playlist.UserData?.PlayCount || undefined,
             genres: playlist.Genres || undefined,
             thumbnails: this.createThumbnails(playlist),
@@ -218,9 +216,8 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             title: track.Name || '',
             duration: track.RunTimeTicks ? track.RunTimeTicks / 10_000_000 : 0,
             year: track.ProductionYear || undefined,
-            playedAt: track.UserData?.LastPlayedDate
-                ? Math.floor(new Date(track.UserData.LastPlayedDate).getTime() / 1000)
-                : 0,
+            addedAt: this.parseDate(track.DateCreated || album?.DateCreated),
+            playedAt: this.parseDate(track.UserData?.LastPlayedDate) || 0,
             playCount: track.UserData?.PlayCount || undefined,
             genres: track.Genres || undefined,
             thumbnails: this.createThumbnails(track),
@@ -368,5 +365,12 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
 
     private getFileName(path: string): string | undefined {
         return path.split(/[/\\]/).pop();
+    }
+
+    private parseDate(date?: string | null): number | undefined {
+        if (date) {
+            const time = Date.parse(date) || 0;
+            return time < 0 ? 0 : Math.round(time / 1000);
+        }
     }
 }

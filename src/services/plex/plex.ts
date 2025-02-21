@@ -98,24 +98,23 @@ const plexSearch: MediaMultiSource = {
     ],
 };
 
-const plexRecentlyAdded: MediaSource<MediaItem> = {
+const plexRecentlyAdded: MediaSource<MediaAlbum> = {
     id: 'plex/recently-added',
     title: 'Recently Added',
     icon: 'recently-added',
-    itemType: ItemType.Media,
-    defaultHidden: true,
+    itemType: ItemType.Album,
     layout: {
-        view: 'card',
+        view: 'card compact',
         fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'AddedAt'],
     },
 
-    search(): Pager<MediaItem> {
+    search(): Pager<MediaAlbum> {
         return new PlexPager({
             path: getMusicLibraryPath(),
             params: {
-                type: plexMediaType.Track,
-                'album.addedAt>>': '-6mon',
-                sort: 'album.addedAt:desc',
+                type: plexMediaType.Album,
+                'addedAt>>': '-6mon',
+                sort: 'addedAt:desc',
             },
         });
     },

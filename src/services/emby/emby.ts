@@ -123,6 +123,26 @@ const embyLikedArtists: MediaSource<MediaArtist> = {
     },
 };
 
+const embyRecentlyAdded: MediaSource<MediaAlbum> = {
+    id: 'emby/recently-added',
+    title: 'Recently Added',
+    icon: 'recently-added',
+    itemType: ItemType.Album,
+    layout: {
+        view: 'card compact',
+        fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'AddedAt'],
+    },
+
+    search(): Pager<MediaAlbum> {
+        return createItemsPager({
+            ParentId: getMusicLibraryId(),
+            SortBy: 'DateCreated,SortName',
+            SortOrder: 'Descending,Ascending',
+            IncludeItemTypes: 'MusicAlbum',
+        });
+    },
+};
+
 const embyRecentlyPlayed: MediaSource<MediaItem> = {
     id: 'emby/recently-played',
     title: 'Recently Played',
@@ -450,6 +470,7 @@ const emby: PersonalMediaService = {
         embyLikedAlbums,
         embyLikedArtists,
         embyMostPlayed,
+        embyRecentlyAdded,
         embyRecentlyPlayed,
         embyPlaylists,
         embyTracksByGenre,
