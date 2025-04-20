@@ -55,7 +55,7 @@ function ActionsMenu<T extends MediaObject>({items, isContextMenu, ...props}: Ac
                 <PopupMenuItem
                     label="Info…"
                     value={Action.Info}
-                    acceleratorKey={`${browser.ctrlKeyStr}+I`}
+                    acceleratorKey={`${browser.cmdKeyStr}+I`}
                     key={Action.Info}
                 />
             ) : null}
@@ -87,7 +87,7 @@ function PlayActions({disabled}: PlayActionsProps) {
             <PopupMenuItem<Action>
                 label="Play now"
                 value={Action.PlayNow}
-                acceleratorKey={`${browser.ctrlKeyStr}+Enter`}
+                acceleratorKey={`${browser.cmdKeyStr}+Enter`}
                 disabled={disabled}
                 key={Action.PlayNow}
             />

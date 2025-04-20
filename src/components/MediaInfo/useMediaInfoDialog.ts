@@ -8,8 +8,9 @@ export default function useMediaInfoDialog(dialogRef: RefObject<HTMLDialogElemen
             capture: true,
         }).subscribe((event) => {
             if (
-                event[browser.ctrlKey] &&
+                event[browser.cmdKey] &&
                 !event.shiftKey &&
+                !event.altKey &&
                 event.code === 'KeyI' &&
                 !event.repeat
             ) {

@@ -1,6 +1,6 @@
 import React, {useCallback, useId, useRef, useState} from 'react';
+import {stopPropagation} from 'utils';
 import useOnResize from 'hooks/useOnResize';
-import {cancelEvent, stopPropagation} from 'utils';
 import PopupMenu from './PopupMenu';
 
 export interface PopupMenuItemProps<T extends string>
@@ -101,7 +101,7 @@ export default function PopupMenuItem<T extends string>({
                 tabIndex={-1}
                 aria-haspopup={hasPopup ? 'true' : undefined}
                 aria-controls={hasPopup ? `${id}-popup` : undefined}
-                onMouseDown={hasPopup ? stopPropagation : cancelEvent}
+                onMouseDown={stopPropagation}
                 onMouseUp={stopPropagation}
                 onClick={hasPopup ? stopPropagation : undefined}
                 ref={buttonRef}

@@ -4,7 +4,8 @@
 
     .login-button,
     .credentials-button {
-        padding: 1em 3em;
+        padding: 1em 2em;
+        max-width: 100%;
         font-family: var(--system-font-family);
         font-weight: bold;
         white-space: normal;

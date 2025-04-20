@@ -14,6 +14,7 @@ let personalMediaServers: Partial<
         {
             readonly host: string;
             readonly hasProxyLogin: boolean;
+            readonly locked: boolean;
         }
     >
 > = {};
@@ -51,6 +52,11 @@ export function getServerHost(service: PersonalMediaService | PersonalMediaServi
 export function hasProxyLogin(service: PersonalMediaService | PersonalMediaServiceId): boolean {
     const serviceId: PersonalMediaServiceId = typeof service === 'string' ? service : service.id;
     return personalMediaServers[serviceId]?.hasProxyLogin || false;
+}
+
+export function isServerLocked(service: PersonalMediaService | PersonalMediaServiceId): boolean {
+    const serviceId: PersonalMediaServiceId = typeof service === 'string' ? service : service.id;
+    return personalMediaServers[serviceId]?.locked || false;
 }
 
 export function isStartupService(service: MediaService | MediaServiceId): boolean {

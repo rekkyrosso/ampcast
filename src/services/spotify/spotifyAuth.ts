@@ -279,6 +279,6 @@ async function checkConnection(): Promise<void> {
     await Promise.all([getUserId(), getChartsCategoryId()]);
 }
 
-if (!isConnected()) {
+if (window.isSecureContext && !isConnected()) {
     createCodeVerifier();
 }

@@ -89,6 +89,13 @@ export async function getSupportedDrm(): Promise<DRMType> {
 const audio = document.createElement('audio');
 const video = document.createElement('video');
 
+export function canPlayNativeHls(): boolean {
+    return (
+        canPlayType('audio', 'application/x-mpegurl') ||
+        canPlayType('audio', 'application/vnd.apple.mpegurl')
+    );
+}
+
 export function canPlayType(type: 'audio' | 'video', contentType: string): boolean {
     const element = type === 'video' ? video : audio;
     return !!element.canPlayType(contentType).replace('no', '');

@@ -8,8 +8,8 @@ const displayName = /^edge/.test(name)
     : name.replace(/^\w/, (char) => char.toUpperCase());
 const version = browser?.version || '0';
 const os = browser?.os || 'unknown';
-const ctrlKey: keyof KeyboardEvent = os === 'Mac OS' ? 'metaKey' : 'ctrlKey';
-const ctrlKeyStr = os === 'Mac OS' ? '⌘' : 'Ctrl';
+const cmdKey: keyof KeyboardEvent = os === 'Mac OS' ? 'metaKey' : 'ctrlKey';
+const cmdKeyStr = os === 'Mac OS' ? '⌘' : 'Ctrl';
 const desktop = !/^(iOS|Android OS|BlackBerry OS|Windows Mobile|Amazon OS)$/.test(os);
 
 export default {
@@ -18,7 +18,7 @@ export default {
     version,
     os,
     desktop,
-    ctrlKey,
-    ctrlKeyStr,
+    cmdKey,
+    cmdKeyStr,
     isElectron: isElectron()
 };

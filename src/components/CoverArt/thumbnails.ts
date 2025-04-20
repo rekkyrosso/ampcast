@@ -10,6 +10,7 @@ import Thumbnail from 'types/Thumbnail';
 import lastfmApi from 'services/lastfm/lastfmApi';
 import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import {findListenByPlayedAt, getListens} from 'services/localdb/listens';
+import {getCoverArtFromBlob} from 'services/music-metadata';
 import {getCoverArtThumbnails} from 'services/musicbrainz/coverart';
 import youtubeApi from 'services/youtube/youtubeApi';
 
@@ -48,6 +49,12 @@ export async function findThumbnails(
             if (videoId) {
                 const video = await youtubeApi.getMediaItem(videoId);
                 return video.thumbnails;
+            }
+        }
+        if (extendedSearch && item.blob) {
+            const thumbnail = await getCoverArtFromBlob(item.blob);
+            if (thumbnail) {
+                return [thumbnail];
             }
         }
     }

@@ -14,7 +14,7 @@ export default function useGlobalActions() {
 
 function handleKeyDown(event: KeyboardEvent) {
     const isFormControl = event.target && 'form' in event.target;
-    
+
     switch (event.code) {
         case 'Space':
             if (!isFormControl && preferences.spacebarTogglePlay) {
@@ -24,7 +24,7 @@ function handleKeyDown(event: KeyboardEvent) {
             break;
 
         case 'KeyA':
-            if (!isFormControl && event[browser.ctrlKey] && !event.shiftKey) {
+            if (!isFormControl && event[browser.cmdKey] && !event.shiftKey) {
                 event.preventDefault();
             }
             break;

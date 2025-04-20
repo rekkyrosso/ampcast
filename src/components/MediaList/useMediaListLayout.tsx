@@ -141,12 +141,12 @@ const Views: RenderField = (item) => {
 
 const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
     if (!item.playedAt) {
-        return <span className="text last-played">unplayed</span>;
+        return <span className="text">unplayed</span>;
     }
     const date = new Date(item.playedAt * 1000);
     const elapsedTime = getElapsedTimeText(date.valueOf());
     return (
-        <time className="text last-played" title={date.toLocaleString()}>
+        <time className="text" title={date.toLocaleString()}>
             {elapsedTime}
         </time>
     );
@@ -159,7 +159,7 @@ const AddedAt: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
     const date = new Date(item.addedAt * 1000);
     const elapsedTime = getElapsedTimeText(date.valueOf());
     return (
-        <time className="text added-at" title={date.toLocaleString()}>
+        <time className="text" title={date.toLocaleString()}>
             {elapsedTime}
         </time>
     );

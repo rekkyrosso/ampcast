@@ -1,21 +1,16 @@
-import type {IAudioMetadata, IFileInfo, IOptions} from 'music-metadata';
+import type {IAudioMetadata} from 'music-metadata';
 import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
+import Thumbnail from 'types/Thumbnail';
 import {loadLibrary, Logger} from 'utils';
 import mixcloudApi from 'services/mixcloud/mixcloudApi';
 import soundcloudApi from 'services/soundcloud/soundcloudApi';
 import youtubeApi from 'services/youtube/youtubeApi';
 
 const logger = new Logger('music-metadata');
-
-const options: IOptions = {
-    duration: true,
-    skipCovers: true,
-    skipPostHeaders: true,
-};
 
 const noMetadata: IAudioMetadata = {
     common: {
@@ -35,7 +30,10 @@ export async function createMediaItemFromFile(file: File): Promise<MediaItem> {
     );
     let metadata = noMetadata;
     try {
-        metadata = await parseBlob(file, options);
+        metadata = await parseBlob(file, {
+            duration: true,
+            skipCovers: true,
+        });
     } catch (err) {
         logger.error(err);
     }
@@ -57,22 +55,21 @@ export async function createMediaItemFromFile(file: File): Promise<MediaItem> {
 }
 
 export async function createMediaItemFromUrl(url: string): Promise<MediaItem> {
-    const host = new URL(url).hostname;
-    if (host.includes('mixcloud.com')) {
+    const {hostname, pathname} = new URL(url);
+    if (hostname.includes('mixcloud.com')) {
         return mixcloudApi.getMediaItem(url);
-    } else if (host.includes('soundcloud.com')) {
+    } else if (hostname.includes('soundcloud.com')) {
         return soundcloudApi.getMediaItem(url);
-    } else if (/youtu\.?be/.test(host)) {
+    } else if (/youtu\.?be/.test(hostname)) {
         return youtubeApi.getMediaItem(url);
     } else {
-        const {metadata, mimeType} = await fetchFromUrl(url, options);
-        const {format} = metadata;
+        const {metadata, mimeType} = await fetchFromUrl(url);
         const isVideo = mimeType?.startsWith('video/');
-        const duration = format.duration || 0;
+        const duration = metadata.format.duration || 0;
         const item = createMediaItem(
             isVideo ? MediaType.Video : MediaType.Audio,
             url,
-            url,
+            `${hostname.replace(/^www\./, '')}${pathname.replace(/\/+$/, '')}`,
             metadata
         );
 
@@ -83,12 +80,39 @@ export async function createMediaItemFromUrl(url: string): Promise<MediaItem> {
     }
 }
 
-async function fetchFromUrl(
-    url: string,
-    options?: IOptions
-): Promise<{metadata: IAudioMetadata; mimeType?: string}> {
+export async function getCoverArtFromBlob(blob: Blob): Promise<Thumbnail | undefined> {
     await loadLibrary('music-metadata');
-    const {parseBlob, parseWebStream} = await import(
+    const {parseBlob, selectCover} = await import(
+        /* webpackMode: "weak" */
+        'music-metadata'
+    );
+    try {
+        const {common} = await parseBlob(blob, {
+            duration: false,
+            skipCovers: false,
+        });
+        const cover = selectCover(common.picture);
+        if (cover) {
+            const data = Uint8Array.from(cover.data);
+            const type = cover.format;
+            const url = URL.createObjectURL(new Blob([data.buffer], type ? {type} : undefined));
+            let {width, height} = cover as any;
+            if (!width || !height) {
+                const img = new Image();
+                img.src = url;
+                width = img.width;
+                height = img.height;
+            }
+            return {url, width, height};
+        }
+    } catch (err) {
+        logger.error(err);
+    }
+}
+
+async function fetchFromUrl(url: string): Promise<{metadata: IAudioMetadata; mimeType?: string}> {
+    await loadLibrary('music-metadata');
+    const {parseWebStream} = await import(
         /* webpackMode: "weak" */
         'music-metadata'
     );
@@ -97,29 +121,33 @@ async function fetchFromUrl(
         if (response.body) {
             const size = response.headers.get('Content-Length');
             const mimeType = response.headers.get('Content-Type') ?? undefined;
-            const fileInfo: IFileInfo = {
-                mimeType,
-                size: size ? parseInt(size, 10) : undefined,
-            };
             if (mimeType && !/^(audio|video)\//.test(mimeType)) {
                 throw Error('No media found');
             }
             let metadata = noMetadata;
             try {
-                metadata = await parseWebStream(response.body, fileInfo, options);
+                metadata = await parseWebStream(
+                    response.body,
+                    {
+                        mimeType,
+                        size: size ? parseInt(size, 10) : undefined,
+                    },
+                    {
+                        duration: false,
+                        skipCovers: true,
+                        skipPostHeaders: true,
+                    }
+                );
+                if (!response.body.locked) {
+                    // Prevent error in Firefox
+                    await response.body.cancel();
+                }
             } catch (err) {
                 logger.error(err);
             }
-            if (!response.body.locked) {
-                // Prevent error in Firefox
-                await response.body.cancel();
-            }
             return {metadata, mimeType};
         } else {
-            // Fall back on Blob
-            const blob = await response.blob();
-            const metadata = await parseBlob(blob, options);
-            return {metadata, mimeType: blob.type};
+            throw Error('No response body');
         }
     } else {
         throw Error(response.statusText || 'Could not load media');

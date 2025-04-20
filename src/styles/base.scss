@@ -47,6 +47,14 @@ small {
     }
 }
 
+code {
+    font-family: monospace;
+    color: var(--background-color);
+    background-color: var(--text-color);
+    border-radius: var(--app-border-radius);
+    padding: 0 0.125em;
+}
+
 .selected-text {
     color: var(--selected-text-color);
     background-color: var(--selected-background-color-blurred);

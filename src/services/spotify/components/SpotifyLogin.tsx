@@ -2,23 +2,17 @@ import React from 'react';
 import {LoginProps} from 'components/Login';
 import CredentialsButton from 'components/Login/CredentialsButton';
 import CredentialsRequired from 'components/Login/CredentialsRequired';
-import RestrictedAccessWarning from 'components/Login/RestrictedAccessWarning';
 import LoginButton from 'components/Login/LoginButton';
 import ServiceLink from 'components/Login/ServiceLink';
 import useCredentials from './useCredentials';
-import {isSafeOrigin} from '../spotifyApi';
-import SpotifyRedirectType from '../SpotifyRedirectType';
 
 export default function SpotifyLogin({service: spotify}: LoginProps) {
-    const {clientId, redirectType} = useCredentials();
-    const hasDeprecatedRedirect =
-        !isSafeOrigin() && redirectType === SpotifyRedirectType.Origin;
+    const {clientId} = useCredentials();
 
-    return (
+    return window.isSecureContext ? (
         <>
             {clientId ? (
                 <>
-                    <RestrictedAccessWarning service={spotify} />
                     <p>You need to be logged in to play music from Spotify.*</p>
                     <LoginButton service={spotify} />
                     <p>
@@ -34,25 +28,24 @@ export default function SpotifyLogin({service: spotify}: LoginProps) {
                 </>
             )}
             <ServiceLink service={spotify} />
-            {clientId && hasDeprecatedRedirect ? (
-                <DeprecatedRedirectWarning service={spotify} />
-            ) : null}
+        </>
+    ) : (
+        <>
+            <SecureContextRequired />
+            <ServiceLink service={spotify} />
         </>
     );
 }
 
-function DeprecatedRedirectWarning({service: spotify}: Pick<LoginProps, 'service'>) {
+function SecureContextRequired() {
     return (
-        <div className="note credentials-required">
+        <div className="note">
             <p>
-                You are using a <strong>deprecated</strong> redirect URI.
+                A <em>secure context</em> is required for Spotify login.
             </p>
             <p>
-                Please update your{' '}
-                <CredentialsButton className="credentials-link" service={spotify}>
-                    credentials
-                </CredentialsButton>
-                .
+                Your {__app_name__} application needs to be hosted on a <code>localhost</code> or{' '}
+                <code>https:</code> domain.
             </p>
         </div>
     );

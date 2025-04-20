@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useId, useImperativeHandle, useRef, useState} from 'react';
 import {interval} from 'rxjs';
-import {partition} from 'utils';
+import {browser, partition} from 'utils';
 import useOnResize, {ResizeRect} from 'hooks/useOnResize';
 import FixedHeader from './FixedHeader';
 import Scrollbar, {ScrollbarHandle} from './Scrollbar';
@@ -128,12 +128,18 @@ export default function Scrollable({
         onScroll?.({left: scrollLeft, top: scrollTop});
     }, [scrollLeft, scrollTop, onScroll]);
 
-    const handleWheel = useCallback(
-        (event: React.WheelEvent) => {
-            vScrollbarRef.current!.scrollBy(3 * scrollAmount * Math.sign(event.deltaY));
-        },
-        [scrollAmount]
-    );
+    useEffect(() => {
+        const container = containerRef.current;
+        const handleWheel = (event: WheelEvent) => {
+            if (!event[browser.cmdKey]) {
+                event.preventDefault();
+                hScrollbarRef.current?.scrollBy(event.deltaX);
+                vScrollbarRef.current?.scrollBy(event.deltaY);
+            }
+        };
+        container?.addEventListener('wheel', handleWheel, {passive: false});
+        return () => container?.removeEventListener('wheel', handleWheel);
+    }, []);
 
     const handleDragOver = useCallback(
         (event: React.DragEvent) => {
@@ -171,7 +177,6 @@ export default function Scrollable({
                 overflowY ? 'overflow-y' : ''
             }`}
             id={scrollableId}
-            onWheel={handleWheel}
             ref={containerRef}
         >
             <div

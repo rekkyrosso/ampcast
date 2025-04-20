@@ -38,6 +38,7 @@ services:
       # Personal media servers.
       # Pre-configure a server HOST.
       # Add USER/PASSWORD for automated login (optional).
+      # Mark the server as LOCKED to prevent editing any of the supplied fields.
       # Available servers:
       #    AIRSONIC,AMPACHE,EMBY,GONIC,JELLYFIN,NAVIDROME,SUBSONIC
 
@@ -45,3 +46,4 @@ services:
       #- JELLYFIN_HOST="http://localhost:8096"
       #- JELLYFIN_USER=""
       #- JELLYFIN_PASSWORD=""
+      #- JELLYFIN_LOCKED=true # Prevents logging in with alternative credentials

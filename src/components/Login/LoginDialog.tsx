@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import MediaService from 'types/MediaService';
 import {Logger} from 'utils';
-import {hasProxyLogin} from 'services/buildConfig';
+import {hasProxyLogin, isServerLocked} from 'services/buildConfig';
 import Dialog, {DialogProps} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import useFirstValue from 'hooks/useFirstValue';
@@ -36,6 +36,7 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
     const canUseProxy = hasProxyLogin(service.id);
     const [useProxy, setUseProxy] = useState(() => canUseProxy && !settings.useManualLogin);
     const initialUseProxy = useFirstValue(useProxy);
+    const readOnly = isServerLocked(service.id);
 
     const submit = useCallback(async () => {
         try {
@@ -108,7 +109,7 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
             {...props}
             className={`login-dialog login-dialog-${id}`}
             icon={service.icon}
-            title={`Log in to ${service.name}`}
+            title={`Connect to ${service.name}`}
             ref={dialogRef}
         >
             <form id={`${id}-login`} method="dialog" onSubmit={handleSubmit}>
@@ -131,6 +132,7 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
                                 name={`${id}-login-type`}
                                 id={`${id}-login-manual`}
                                 defaultChecked={settings.useManualLogin}
+                                disabled={readOnly}
                                 onChange={handleLoginTypeChange}
                             />
                             <label htmlFor={`${id}-login-manual`}>Advanced login:</label>
@@ -148,6 +150,7 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
                             disabled={useProxy}
                             placeholder={`${location.protocol}//`}
                             autoComplete={useProxy ? 'off' : `section-${id} url`}
+                            readOnly={readOnly}
                             required
                             ref={hostRef}
                         />
@@ -181,7 +184,7 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
                     </p>
                 </div>
                 <p className={`message ${connecting ? '' : 'error'}`}>{message}</p>
-                <DialogButtons submitText="Login" />
+                <DialogButtons submitText="Connect" />
             </form>
         </Dialog>
     );

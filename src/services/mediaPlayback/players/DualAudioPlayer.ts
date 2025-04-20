@@ -48,7 +48,7 @@ export default class DualAudioPlayer implements Player<PlayableItem> {
                 filter((atEnd) => atEnd)
             )
             .subscribe(() => {
-                if (this.nextItem && this.nextItem.src === this.nextPlayer.src) {
+                if (this.autoplay && this.nextItem && this.nextItem.src === this.nextPlayer.src) {
                     this.nextPlayer.play();
                 }
             });

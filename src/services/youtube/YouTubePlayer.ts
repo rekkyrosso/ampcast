@@ -9,6 +9,7 @@ import {
     filter,
     firstValueFrom,
     from,
+    fromEvent,
     map,
     mergeMap,
     of,
@@ -129,6 +130,14 @@ export default class YouTubePlayer implements Player<PlayableItem> {
             .pipe(
                 filter((state) => state === YT.PlayerState.PLAYING),
                 tap(() => (this.element.style.visibility = ''))
+            )
+            .subscribe(logger);
+
+        // The video might get paused if the tab is hidden/minimized.
+        fromEvent(document, 'visibilitychange')
+            .pipe(
+                filter(() => !this.paused && !!this.loadedSrc && !document.hidden),
+                tap(() => this.player?.playVideo())
             )
             .subscribe(logger);
 

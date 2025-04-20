@@ -117,6 +117,7 @@ async function handleBundleJs(res, path) {
             personalMediaServers[serverId] = {
                 host,
                 hasProxyLogin: !!(getEnv(`${SERVER_ID}_USER`) && getEnv(`${SERVER_ID}_PASSWORD`)),
+                locked: getEnv(`${SERVER_ID}_LOCKED`) === 'true'
             };
         }
     });

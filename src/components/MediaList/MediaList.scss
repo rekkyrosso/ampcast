@@ -275,6 +275,7 @@
             background-color: transparent;
             font-style: italic;
             top: 0.25em;
+            padding: 0.125em 1px;
 
             &.listen-date {
                 right: 0.625em;
@@ -568,6 +569,7 @@
                 .added-at {
                     right: calc(100% - 4.25em + 1px);
                     top: calc(0.5em + 1px);
+                    width: auto;
                 }
             }
 

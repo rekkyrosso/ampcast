@@ -84,11 +84,11 @@
             pointer-events: none;
         }
 
-        &:not(:disabled):not([value="0"])::-webkit-slider-thumb {
+        &.smile::-webkit-slider-thumb {
             @include smiley-thumb;
         }
 
-        &:not(:disabled):not([value="0"])::-moz-range-thumb {
+        &.smile::-moz-range-thumb {
             @include smiley-thumb;
         }
     }

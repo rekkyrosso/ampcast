@@ -69,7 +69,13 @@
 
                 .number {
                     font-family: monospace;
+                    letter-spacing: -0.0675em;
                 }
+            }
+
+            &.duration .text {
+                font-family: monospace;
+                letter-spacing: -0.0675em;
             }
         }
     }

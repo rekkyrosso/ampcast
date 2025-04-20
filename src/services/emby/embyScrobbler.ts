@@ -1,10 +1,19 @@
-import {EMPTY, distinctUntilChanged, filter, mergeMap, skip, switchMap, takeUntil} from 'rxjs';
+import {
+    EMPTY,
+    Observable,
+    distinctUntilChanged,
+    filter,
+    mergeMap,
+    skip,
+    switchMap,
+    takeUntil,
+    throttleTime,
+} from 'rxjs';
 import MediaService from 'types/MediaService';
 import PlaybackState from 'types/PlaybackState';
 import {
     observePlaybackStart,
     observePlaybackEnd,
-    observePlaybackProgress,
     observePlaybackState,
 } from 'services/mediaPlayback/playback';
 import {Logger} from 'utils';
@@ -42,7 +51,6 @@ export function scrobble(service: MediaService, settings: EmbySettings): void {
         .pipe(
             switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackProgress(10_000) : EMPTY)),
             filter(isValidItem),
-            filter(({currentTime}) => currentTime > 0),
             mergeMap(({currentItem, currentTime, paused, playbackId}) =>
                 reportProgress(
                     currentItem!,
@@ -81,6 +89,17 @@ export function scrobble(service: MediaService, settings: EmbySettings): void {
             )
         )
         .subscribe(logger);
+
+    function observePlaybackProgress(interval: number): Observable<PlaybackState> {
+        return observePlaybackStart().pipe(
+            switchMap(() =>
+                observePlaybackState().pipe(
+                    throttleTime(interval, undefined, {leading: false, trailing: true}),
+                    takeUntil(observePlaybackEnd())
+                )
+            )
+        );
+    }
 }
 
 export default {scrobble};

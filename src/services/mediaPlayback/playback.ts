@@ -1,13 +1,5 @@
 import type {Observable} from 'rxjs';
-import {
-    BehaviorSubject,
-    distinctUntilChanged,
-    filter,
-    map,
-    switchMap,
-    takeUntil,
-    throttleTime,
-} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, filter, map, switchMap} from 'rxjs';
 import {nanoid} from 'nanoid';
 import PlaylistItem from 'types/PlaylistItem';
 import Playback from 'types/Playback';
@@ -46,17 +38,6 @@ export function observePlaybackEnd(): Observable<PlaybackState> {
     return observePlaybackState().pipe(
         filter((state) => state.endedAt !== 0),
         distinctUntilChanged((a, b) => a.endedAt === b.endedAt)
-    );
-}
-
-export function observePlaybackProgress(interval = 10_000): Observable<PlaybackState> {
-    return observePlaybackStart().pipe(
-        switchMap(() =>
-            observePlaybackState().pipe(
-                throttleTime(interval, undefined, {trailing: true}),
-                takeUntil(observePlaybackEnd())
-            )
-        )
     );
 }
 
@@ -252,7 +233,6 @@ const playback: Playback = {
     observePlaybackState,
     observePlaybackStart,
     observePlaybackEnd,
-    observePlaybackProgress,
     observeCurrentItem,
     observeCurrentTime,
     observeDuration,

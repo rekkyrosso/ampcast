@@ -126,6 +126,7 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
             release_mbid: song.mbzAlbumId,
             track_mbid: song.mbzReleaseTrackId,
             artist_mbids: song.mbzArtistId ? [song.mbzArtistId] : undefined,
+            isrc: song.tags?.isrc?.[0],
             albumGain: song.rgAlbumGain,
             albumPeak: song.rgAlbumPeak,
             trackGain: song.rgTrackGain,
@@ -133,6 +134,7 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
             bitRate: song.bitRate,
             badge: song.suffix,
             container: song.suffix,
+            unplayable: song.missing || undefined,
         };
     }
 
@@ -253,8 +255,8 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
 
     private createAllTracksPager(artist: Navidrome.Artist): Pager<MediaItem> {
         return new NavidromePager<MediaItem>(ItemType.Media, 'song', {
-            artist: artist.name,
-            _sort: 'title',
+            artist_id: artist.id,
+            _sort: 'artist',
         });
     }
 }

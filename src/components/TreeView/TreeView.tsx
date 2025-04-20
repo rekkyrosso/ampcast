@@ -167,7 +167,12 @@ export default function TreeView<T>({
 
                 case 'KeyI':
                     event.stopPropagation();
-                    if (event[browser.ctrlKey] && !event.shiftKey && !event.repeat) {
+                    if (
+                        event[browser.cmdKey] &&
+                        !event.shiftKey &&
+                        !event.altKey &&
+                        !event.repeat
+                    ) {
                         onInfo?.(selectedValue);
                     }
                     break;

@@ -83,7 +83,7 @@ export interface ListViewProps<T> {
     onDrop?: (items: readonly T[] | readonly File[] | DataTransferItem, atIndex: number) => void;
     onMove?: (items: readonly T[], toIndex: number) => void;
     onDelete?: (items: readonly T[]) => void;
-    onEnter?: (items: readonly T[], ctrlKey: boolean, shiftKey: boolean) => void;
+    onEnter?: (items: readonly T[], cmdKey: boolean, shiftKey: boolean) => void;
     onInfo?: (items: readonly T[]) => void;
     onRowIndexChange?: (rowIndex: number) => void;
     onScrollIndexChange?: (scrollIndex: number) => void;
@@ -265,7 +265,7 @@ export default function ListView<T>({
                 case 'Enter':
                     event.stopPropagation();
                     if (!event.repeat) {
-                        onEnter?.(selectedItems, event[browser.ctrlKey], event.shiftKey);
+                        onEnter?.(selectedItems, event[browser.cmdKey], event.shiftKey);
                     }
                     break;
 
@@ -275,18 +275,17 @@ export default function ListView<T>({
                     break;
 
                 case 'KeyI':
-                    if (event[browser.ctrlKey] && !event.shiftKey) {
+                    if (event[browser.cmdKey] && !event.shiftKey && !event.altKey) {
                         event.preventDefault();
                         event.stopPropagation();
                         if (!event.repeat) {
                             onInfo?.(selectedItems);
                         }
-                        break;
                     }
                     break;
 
                 case 'KeyA':
-                    if (event[browser.ctrlKey] && !event.shiftKey) {
+                    if (event[browser.cmdKey] && !event.shiftKey) {
                         event.preventDefault();
                         event.stopPropagation();
                         if (multiple && !event.repeat) {
@@ -305,7 +304,7 @@ export default function ListView<T>({
 
                 case 'Space':
                     event.preventDefault();
-                    if (event[browser.ctrlKey]) {
+                    if (event[browser.cmdKey]) {
                         event.stopPropagation();
                         if (!event.repeat) {
                             toggleSelectionAt(rowIndex); // toggle selected state
@@ -326,7 +325,7 @@ export default function ListView<T>({
                         }
                         if (multiple && event.shiftKey && rangeSelectionStart !== -1) {
                             selectRange(rangeSelectionStart, nextIndex);
-                        } else if (!event[browser.ctrlKey]) {
+                        } else if (!event[browser.cmdKey]) {
                             selectAt(nextIndex);
                         }
                     }
@@ -363,7 +362,7 @@ export default function ListView<T>({
                     } else {
                         selectRange(rangeSelectionStart, newRowIndex);
                     }
-                } else if (multiple && event[browser.ctrlKey]) {
+                } else if (multiple && event[browser.cmdKey]) {
                     toggleSelectionAt(newRowIndex);
                 } else if (!isRowSelectedFromMouseEvent(event)) {
                     selectAt(newRowIndex);
@@ -379,7 +378,7 @@ export default function ListView<T>({
                 event.button === 0 &&
                 rowIndex !== -1 &&
                 multiple &&
-                !event[browser.ctrlKey] &&
+                !event[browser.cmdKey] &&
                 !event.shiftKey
             ) {
                 selectAt(rowIndex);

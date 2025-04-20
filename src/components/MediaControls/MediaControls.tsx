@@ -99,11 +99,13 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
                 <Time time={currentTime} />
                 <input
                     id="playhead"
+                    className={!paused && currentTime >= 1 ? 'smile' : undefined}
                     type="range"
                     aria-label="Seek"
                     min={0}
                     max={isLiveStreaming ? 1 : duration}
                     step={1}
+                    defaultValue={0}
                     disabled={paused || isLiveStreaming}
                     onChange={handleSeekChange}
                     onMouseUp={stopSeeking}

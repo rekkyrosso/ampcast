@@ -13,8 +13,8 @@ import MediaType from 'types/MediaType';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
+import {canPlayNativeHls, canPlayVideo, getContentType, groupBy} from 'utils';
 import {getPlaybackId} from 'services/mediaPlayback/playback';
-import {canPlayVideo, getContentType, groupBy} from 'utils';
 import embySettings, {EmbySettings} from './embySettings';
 
 async function del(
@@ -269,8 +269,9 @@ function getPlayableUrl(item: PlayableItem, settings: EmbySettings = embySetting
                 MaxSampleRate: '48000',
                 TranscodingProtocol: 'hls',
                 TranscodingContainer: 'aac',
-                Container:
-                    'opus,webm|opus,mp3,aac,m4a|aac,m4a|alac,m4b|aac,flac,webma,webm|webma,wav,ogg',
+                Container: `opus,webm|opus,mp3,aac,m4a|aac${
+                    canPlayNativeHls() ? ',m4a|alac' : ''
+                },m4b|aac,flac,webma,webm|webma,wav,ogg`,
                 AudioCodec: 'aac',
                 UserId: userId,
                 api_key: token,
@@ -307,8 +308,9 @@ async function getPlaybackType(
         } else {
             const url = getPlayableUrl(item, settings);
             const contentType = (await getContentType(url)).toLowerCase();
-            return contentType === 'application/x-mpegurl' ||
-                contentType === 'application/vnd.apple.mpegurl'
+            return (contentType === 'application/x-mpegurl' ||
+                contentType === 'application/vnd.apple.mpegurl') &&
+                !canPlayNativeHls()
                 ? PlaybackType.HLS
                 : PlaybackType.Direct;
         }

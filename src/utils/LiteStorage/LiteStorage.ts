@@ -9,11 +9,11 @@ export default class LiteStorage {
     private static readonly ids: string[] = [];
     private static readonly event$ = fromEvent<StorageEvent>(window, 'storage');
     readonly id: string;
-    private readonly storage: Storage;
+    private readonly storageArea: Storage;
     private readonly change$ = new Subject<void>();
 
-    constructor(id: string, storage: 'local' | 'session' | 'memory' = 'local') {
-        const storageId = `${storage}-${id}`;
+    constructor(id: string, area: 'local' | 'session' | 'memory' = 'local') {
+        const storageId = `${area}-${id}`;
         if (LiteStorage.ids.includes(storageId)) {
             throw Error(`Duplicate storageId: ${storageId}`);
         } else {
@@ -22,17 +22,17 @@ export default class LiteStorage {
 
         this.id = `${__app_name__}/${id}`;
 
-        switch (storage) {
+        switch (area) {
             case 'local':
-                this.storage = localStorage;
+                this.storageArea = localStorage;
                 break;
 
             case 'session':
-                this.storage = sessionStorage;
+                this.storageArea = sessionStorage;
                 break;
 
             case 'memory':
-                this.storage = memoryStorage;
+                this.storageArea = memoryStorage;
                 break;
         }
     }
@@ -43,7 +43,8 @@ export default class LiteStorage {
             LiteStorage.event$.pipe(
                 filter(
                     (event) =>
-                        !!event.key?.startsWith(`${this.id}/`) && event.storageArea === this.storage
+                        !!event.key?.startsWith(`${this.id}/`) &&
+                        event.storageArea === this.storageArea
                 ),
                 map(() => undefined)
             )
@@ -103,7 +104,7 @@ export default class LiteStorage {
     }
 
     getItem(key: string): string | null {
-        return this.storage.getItem(`${this.id}/${key}`);
+        return this.storageArea.getItem(`${this.id}/${key}`);
     }
 
     hasItem(key: string): boolean {
@@ -113,16 +114,16 @@ export default class LiteStorage {
     setItem(key: string, value: string): void {
         key = `${this.id}/${key}`;
         value = String(value);
-        const prevValue = this.storage.getItem(key);
+        const prevValue = this.storageArea.getItem(key);
         if (value !== prevValue) {
-            this.storage.setItem(key, value);
+            this.storageArea.setItem(key, value);
             this.change$.next();
         }
     }
 
     removeItem(key: string): void {
         if (this.hasItem(key)) {
-            this.storage.removeItem(`${this.id}/${key}`);
+            this.storageArea.removeItem(`${this.id}/${key}`);
             this.change$.next();
         }
     }
@@ -130,14 +131,14 @@ export default class LiteStorage {
     clear(): void {
         const id = `${this.id}/`;
         const keys: string[] = [];
-        for (let i = 0; i < this.storage.length; i++) {
-            const key = this.storage.key(i)!;
-            if (key.startsWith(id)) {
+        for (let i = 0; i < this.storageArea.length; i++) {
+            const key = this.storageArea.key(i);
+            if (key?.startsWith(id)) {
                 keys.push(key);
             }
         }
         if (keys.length > 0) {
-            keys.forEach((key) => this.storage.removeItem(key));
+            keys.forEach((key) => this.storageArea.removeItem(key));
             this.change$.next();
         }
     }

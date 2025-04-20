@@ -1,18 +1,17 @@
 import MediaItem from 'types/MediaItem';
-import {LiteStorage, Logger} from 'utils';
+import {Logger} from 'utils';
 import plexSettings from './plexSettings';
 import plexApi from './plexApi';
 
 const logger = new Logger('plexReporting');
 
-const session = new LiteStorage('plexReporting', 'session');
+let playQueueItemID = '';
 
 export async function reportStart(item: MediaItem): Promise<void> {
     try {
-        session.removeItem('queueId');
-        const playQueueItemID = await createPlayQueueItemId(item);
-        session.setString('queueId', playQueueItemID);
-        await reportState(item, 0, 'playing');
+        playQueueItemID = '';
+        playQueueItemID = await createPlayQueueItemId(item);
+        await reportState(item, 'playing', item.startTime);
     } catch (err) {
         logger.error(err);
     }
@@ -20,7 +19,7 @@ export async function reportStart(item: MediaItem): Promise<void> {
 
 export async function reportStop(item: MediaItem): Promise<void> {
     try {
-        await reportState(item, 0, 'stopped', true);
+        await reportState(item, 'stopped');
     } catch (err) {
         logger.error(err);
     }
@@ -32,7 +31,7 @@ export async function reportProgress(
     state: 'paused' | 'playing'
 ): Promise<void> {
     try {
-        await reportState(item, currentTime, state);
+        await reportState(item, state, currentTime);
     } catch (err) {
         logger.error(err);
     }
@@ -40,27 +39,25 @@ export async function reportProgress(
 
 async function reportState(
     item: MediaItem,
-    currentTime: number,
     state: 'stopped' | 'paused' | 'playing' | 'buffering' | 'error',
-    keepalive?: boolean
+    currentTime = 0
 ): Promise<void> {
-    const playQueueItemID = session.getString('queueId');
-    if (!playQueueItemID) {
+    if (playQueueItemID) {
+        const [, , ratingKey] = item.src.split(':');
+        await plexApi.fetch({
+            path: '/:/timeline',
+            params: {
+                key: `/library/metadata/${ratingKey}`,
+                ratingKey,
+                playQueueItemID,
+                state,
+                time: String(Math.floor(currentTime) * 1000 || 1),
+                duration: String(Math.floor(item.duration * 1000)),
+            },
+        });
+    } else {
         logger.warn('reportState: `playQueueItemID` not defined', `state=${state}`);
     }
-    const [, , ratingKey] = item.src.split(':');
-    await plexApi.fetch({
-        path: '/:/timeline',
-        params: {
-            key: `/library/metadata/${ratingKey}`,
-            ratingKey,
-            playQueueItemID,
-            state,
-            time: String(Math.floor(currentTime * 1000)),
-            duration: String(Math.floor(item.duration * 1000)),
-        },
-        keepalive,
-    });
 }
 
 async function createPlayQueueItemId(item: MediaItem): Promise<string> {

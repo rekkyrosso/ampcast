@@ -3,6 +3,7 @@ import {
     EMPTY,
     BehaviorSubject,
     Subject,
+    combineLatest,
     catchError,
     debounceTime,
     delay,
@@ -52,6 +53,7 @@ export class SpotifyPlayer implements Player<PlayableItem> {
     private readonly state$ = new BehaviorSubject<Spotify.PlaybackState | null>(null);
     private loadedSrc = '';
     private loadError?: LoadError;
+    private currentPlaybackId = '';
     private deviceId = '';
     private hasWaited = false;
     autoplay = false;
@@ -63,7 +65,7 @@ export class SpotifyPlayer implements Player<PlayableItem> {
     constructor(accessToken$: Observable<string>) {
         window.onSpotifyWebPlaybackSDKReady = this.onSpotifyWebPlaybackSDKReady;
 
-        accessToken$.subscribe((token) => this.accessToken$.next(token));
+        accessToken$.subscribe(this.accessToken$);
 
         // Only load the player script if needed.
         this.observeIsLoggedIn()
@@ -97,31 +99,52 @@ export class SpotifyPlayer implements Player<PlayableItem> {
             )
             .subscribe(logger);
 
+        // Synch initial volume (after playback transfer).
+        this.observeState()
+            .pipe(
+                take(1),
+                tap(() => this.safeVolume(this.volume))
+            )
+            .subscribe(logger);
+
         // `playing` event.
         this.observeState()
             .pipe(
-                withLatestFrom(this.observePaused()),
-                map(([state, paused]) => !paused && !state.paused && !state.loading),
+                map((state) => !this.paused && !state.paused && !state.loading),
                 distinctUntilChanged(),
-                filter((playing) => playing)
+                filter((playing) => playing),
+                tap(() => this.playing$.next())
             )
-            .subscribe(() => this.playing$.next());
+            .subscribe(logger);
+
+        // `currentPlaybackId`.
+        this.observeState()
+            .pipe(
+                filter(
+                    (state) =>
+                        !this.paused &&
+                        !state.paused &&
+                        !state.loading &&
+                        this.compareTrackSrc(state.track_window?.current_track, this.src)
+                ),
+                map((state) => state.playback_id),
+                distinctUntilChanged(),
+                tap((playbackId) => (this.currentPlaybackId = playbackId))
+            )
+            .subscribe(logger);
 
         // `ended` event.
         this.observeState()
             .pipe(
+                map((state) => state.playback_id),
                 pairwise(),
-                map(
-                    ([prevState, nextState]) =>
-                        !prevState.loading &&
-                        nextState.loading &&
-                        prevState.position !== 0 &&
-                        nextState.position === 0 &&
-                        this.compareTrackSrc(prevState.track_window?.current_track, this.src)
-                ),
-                filter((ended) => ended)
+                map(([prevId, nextId]) => prevId !== nextId && prevId === this.currentPlaybackId),
+                distinctUntilChanged(),
+                map((isNewPlaybackId) => isNewPlaybackId && !this.paused),
+                filter((ended) => ended),
+                tap(() => this.ended$.next())
             )
-            .subscribe(() => this.ended$.next());
+            .subscribe(logger);
 
         // Queue next track.
         observeBeforeEndOfTrack(this, 10)
@@ -135,12 +158,11 @@ export class SpotifyPlayer implements Player<PlayableItem> {
             .subscribe(logger);
 
         // Fix play state mismatches.
-        this.observePaused()
+        combineLatest([this.observePaused(), this.observeState()])
             .pipe(
-                switchMap((paused) => (paused ? this.observeState() : EMPTY)),
-                map((state) => !state.loading && !state.paused),
+                map(([paused, state]) => paused && !state.loading && !state.paused),
                 distinctUntilChanged(),
-                filter((misMatch) => misMatch),
+                filter((isMisMatch) => isMisMatch),
                 debounceTime(10), // Needs to be async
                 tap(() => logger.log('State mismatch: pausing...')),
                 mergeMap(() => this.safePause())
@@ -340,18 +362,25 @@ export class SpotifyPlayer implements Player<PlayableItem> {
 
         let tempMuted = false;
         const state = this.state$.value;
-        const currentTrack = state?.track_window?.current_track;
-        if (currentTrack) {
-            if (this.compareTrackSrc(currentTrack, src)) {
-                this.loadError = undefined;
-                this.loadedSrc = src;
-                if (state.paused) {
-                    this.safePlay();
-                }
-                return;
-            } else if (this.loadedSrc && !this.compareTrackSrc(currentTrack, this.loadedSrc)) {
-                // Something else is loaded so mute it.
-                if (!state.paused) {
+        if (this.compareTrackSrc(state?.track_window?.next_tracks[0], src)) {
+            await this.player!.nextTrack();
+            this.loadError = undefined;
+            this.loadedSrc = src;
+            if (state?.paused && !this.paused) {
+                this.safePlay();
+            }
+            return;
+        }
+        if (!state?.paused) {
+            const currentTrack = state?.track_window?.current_track;
+            if (currentTrack) {
+                if (this.compareTrackSrc(currentTrack, src)) {
+                    this.loadError = undefined;
+                    this.loadedSrc = src;
+                    this.playing$.next();
+                    return;
+                } else if (this.loadedSrc && !this.compareTrackSrc(currentTrack, this.loadedSrc)) {
+                    // Something else is loaded so mute it.
                     tempMuted = true;
                     this.safeVolume(0);
                 }
@@ -436,7 +465,7 @@ export class SpotifyPlayer implements Player<PlayableItem> {
     private async addToQueue(item: PlayableItem): Promise<void> {
         try {
             const queue = this.state$.value?.track_window?.next_tracks;
-            if (!this.token || !item || item.src === this.src || queue?.[0]) {
+            if (!this.autoplay || !this.token || !item || item.src === this.src || queue?.[0]) {
                 return;
             }
             const response = await fetch(
@@ -604,7 +633,7 @@ export class SpotifyPlayer implements Player<PlayableItem> {
     private async safeStop(): Promise<void> {
         try {
             if (this.player) {
-                const state = this.state$.value;
+                const state = await this.getCurrentState();
                 if (state?.track_window?.current_track) {
                     await this.player.pause();
                     if (!state.loading && state.position) {

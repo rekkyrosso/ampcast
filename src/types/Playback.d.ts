@@ -10,7 +10,6 @@ export default interface Playback {
     observePlaybackState(): Observable<PlaybackState>;
     observePlaybackStart(): Observable<PlaybackState>;
     observePlaybackEnd(): Observable<PlaybackState>;
-    observePlaybackProgress(interval: number): Observable<PlaybackState>;
     observeCurrentItem(): Observable<PlaylistItem | null>;
     observeCurrentTime(): Observable<number>;
     observeDuration(): Observable<number>;

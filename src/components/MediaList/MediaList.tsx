@@ -131,17 +131,17 @@ export default function MediaList<T extends MediaObject>({
     );
 
     const handleEnter = useCallback(
-        async (items: readonly T[], ctrlKey: boolean, shiftKey: boolean) => {
+        async (items: readonly T[], cmdKey: boolean, shiftKey: boolean) => {
             if (items.every(isPlayable)) {
-                if (!ctrlKey && !shiftKey) {
+                if (!cmdKey && !shiftKey) {
                     await performAction(Action.Queue, items);
-                } else if (ctrlKey && !shiftKey) {
+                } else if (cmdKey && !shiftKey) {
                     await performAction(Action.PlayNow, items);
-                } else if (shiftKey && !ctrlKey) {
+                } else if (shiftKey && !cmdKey) {
                     await performAction(Action.PlayNext, items);
                 }
             } else {
-                onEnter?.(items, ctrlKey, shiftKey);
+                onEnter?.(items, cmdKey, shiftKey);
             }
         },
         [onEnter, isPlayable]

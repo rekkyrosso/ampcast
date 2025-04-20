@@ -22,7 +22,7 @@ type TidalTrack = schemas['Tracks_Resource'];
 type TidalVideo = schemas['Videos_Resource'];
 type TidalPlaylist = schemas['Playlists_Resource'];
 type TidalProvider = schemas['Providers_Resource'];
-type TidalRecommendations = schemas['User_Recommendations_Resource'];
+type TidalRecommendations = schemas['UserRecommendations_Resource'];
 type TidalUser = schemas['Users_Resource'];
 type TidalError = schemas['Error_Object'];
 type Included = (
@@ -45,11 +45,13 @@ interface TidalRecommendationsData {
     )[];
 }
 
-type ImageLink = schemas['Catalogue_Item_Image_Link'] | schemas['Playlists_Image_Link'];
+type ImageLink = schemas['Image_Link'];
 
 const logger = new Logger('tidalApi');
 
 const api = createAPIClient(credentialsProvider);
+
+const locale = navigator.language;
 
 async function getAlbum(id: string): Promise<MediaAlbum | null> {
     const {countryCode} = tidalSettings;
@@ -59,11 +61,12 @@ async function getAlbum(id: string): Promise<MediaAlbum | null> {
             query: {countryCode, include: ['items', 'artists']},
         },
     });
-    if (!response.ok || error) {
+    if (data) {
+        const {data: album, included = []} = data;
+        return album ? createMediaAlbum(album, included) : null;
+    } else {
         throwError(response, error);
     }
-    const {data: album, included = []} = data;
-    return album ? createMediaAlbum(album, included) : null;
 }
 
 async function getAlbums(ids: string[]): Promise<readonly MediaAlbum[]> {
@@ -76,11 +79,12 @@ async function getAlbums(ids: string[]): Promise<readonly MediaAlbum[]> {
             query: {countryCode, 'filter%5Bid%5D': [ids.join(',')], include: ['artists']},
         },
     });
-    if (!response.ok || error) {
+    if (data) {
+        const {data: albums = [], included = []} = data;
+        return albums.map((album) => createMediaAlbum(album, included));
+    } else {
         throwError(response, error);
     }
-    const {data: albums = [], included = []} = data;
-    return albums.map((album) => createMediaAlbum(album, included));
 }
 
 async function getAlbumTracks(album: TidalAlbum, cursor = ''): Promise<TidalPage<MediaItem>> {
@@ -91,26 +95,27 @@ async function getAlbumTracks(album: TidalAlbum, cursor = ''): Promise<TidalPage
             query: {countryCode, 'page%5Bcursor%5D': cursor},
         },
     });
-    if (!response.ok || error) {
-        throwError(response, error);
-    }
-    const trackData = data.data?.flat();
-    if (trackData?.length) {
-        const ids = trackData.map((data) => data.id);
-        const tracks = await getTracks(ids, album);
-        const items = tracks.map((track) => {
-            const [, , id] = track.src.split(':');
-            const meta = trackData.find((data) => data.id === id)?.meta;
-            if (meta) {
-                return {...track, track: meta.trackNumber, disc: meta.volumeNumber};
-            }
-            return track;
-        });
-        const total = album.attributes?.numberOfItems;
-        const next = data.links?.next;
-        return {items, total, next};
+    if (data) {
+        const trackData = data.data?.flat();
+        if (trackData?.length) {
+            const ids = trackData.map((data) => data.id);
+            const tracks = await getTracks(ids, album);
+            // const items = tracks.map((track) => {
+            //     const [, , id] = track.src.split(':');
+            //     const meta = trackData.find((data) => data.id === id)?.meta;
+            //     if (meta) {
+            //         return {...track, track: meta.trackNumber, disc: meta.volumeNumber};
+            //     }
+            //     return track;
+            // });
+            const total = album.attributes?.numberOfItems;
+            const next = data.links?.next;
+            return {items: tracks, total, next};
+        } else {
+            return {items: []};
+        }
     } else {
-        return {items: []};
+        throwError(response, error);
     }
 }
 
@@ -122,11 +127,12 @@ async function getArtist(id: string): Promise<MediaArtist | null> {
             query: {countryCode, include: ['albums']},
         },
     });
-    if (!response.ok || error) {
+    if (data) {
+        const {data: artist} = data;
+        return artist ? createMediaArtist(artist) : null;
+    } else {
         throwError(response, error);
     }
-    const {data: artist} = data;
-    return artist ? createMediaArtist(artist) : null;
 }
 
 async function getArtists(ids: string[]): Promise<readonly MediaArtist[]> {
@@ -139,11 +145,12 @@ async function getArtists(ids: string[]): Promise<readonly MediaArtist[]> {
             query: {countryCode, 'filter%5Bid%5D': [ids.join(',')]},
         },
     });
-    if (!response.ok || error) {
+    if (data) {
+        const {data: artists = []} = data;
+        return artists.map((artist) => createMediaArtist(artist));
+    } else {
         throwError(response, error);
     }
-    const {data: artists = []} = data;
-    return artists.map((artist) => createMediaArtist(artist));
 }
 
 async function getArtistAlbums(artist: TidalArtist, cursor = ''): Promise<TidalPage<MediaAlbum>> {
@@ -154,18 +161,19 @@ async function getArtistAlbums(artist: TidalArtist, cursor = ''): Promise<TidalP
             query: {countryCode, 'page%5Bcursor%5D': cursor},
         },
     });
-    if (!response.ok || error) {
-        throwError(response, error);
-    }
-    const albumData = data.data?.flat();
-    if (albumData?.length) {
-        const ids = albumData.map((data) => data.id);
-        const items = await getAlbums(ids);
-        // const total = artist.attributes?.numberOfItems;
-        const next = data.links?.next;
-        return {items, next};
+    if (data) {
+        const albumData = data.data?.flat();
+        if (albumData?.length) {
+            const ids = albumData.map((data) => data.id);
+            const items = await getAlbums(ids);
+            // const total = artist.attributes?.numberOfItems;
+            const next = data.links?.next;
+            return {items, next};
+        } else {
+            return {items: []};
+        }
     } else {
-        return {items: []};
+        throwError(response, error);
     }
 }
 
@@ -174,21 +182,22 @@ async function getArtistTopTracks(artist: TidalArtist, cursor = ''): Promise<Tid
     const {data, error, response} = await api.GET('/artists/{id}/relationships/tracks', {
         params: {
             path: {id: artist.id},
-            query: {countryCode, 'page%5Bcursor%5D': cursor},
+            query: {countryCode, collapseBy: 'ID', 'page%5Bcursor%5D': cursor},
         },
     });
-    if (!response.ok || error) {
-        throwError(response, error);
-    }
-    const trackData = data.data?.flat();
-    if (trackData?.length) {
-        const ids = trackData.map((data) => data.id);
-        const items = await getTracks(ids);
-        // const total = artist.attributes?.numberOfItems;
-        const next = data.links?.next;
-        return {items, next};
+    if (data) {
+        const trackData = data.data?.flat();
+        if (trackData?.length) {
+            const ids = trackData.map((data) => data.id);
+            const items = await getTracks(ids);
+            // const total = artist.attributes?.numberOfItems;
+            const next = data.links?.next;
+            return {items, next};
+        } else {
+            return {items: []};
+        }
     } else {
-        return {items: []};
+        throwError(response, error);
     }
 }
 
@@ -200,18 +209,19 @@ async function getArtistVideos(artist: TidalArtist, cursor = ''): Promise<TidalP
             query: {countryCode, 'page%5Bcursor%5D': cursor},
         },
     });
-    if (!response.ok || error) {
-        throwError(response, error);
-    }
-    const videoData = data.data?.flat();
-    if (videoData?.length) {
-        const ids = videoData.map((data) => data.id);
-        const items = await getVideos(ids);
-        // const total = artist.attributes?.numberOfItems;
-        const next = data.links?.next;
-        return {items, next};
+    if (data) {
+        const videoData = data.data?.flat();
+        if (videoData?.length) {
+            const ids = videoData.map((data) => data.id);
+            const items = await getVideos(ids);
+            // const total = artist.attributes?.numberOfItems;
+            const next = data.links?.next;
+            return {items, next};
+        } else {
+            return {items: []};
+        }
     } else {
-        return {items: []};
+        throwError(response, error);
     }
 }
 
@@ -221,14 +231,15 @@ async function getDailyDiscovery(cursor?: string): Promise<TidalPage<MediaItem>>
 
 async function getMe(): Promise<schemas['Users_Resource']> {
     const {data, error, response} = await api.GET('/users/me');
-    if (!response.ok || error) {
+    if (data) {
+        const userData = data.data;
+        if (!userData) {
+            throw Error('No user info');
+        }
+        return userData;
+    } else {
         throwError(response, error);
     }
-    const userData = data.data;
-    if (!userData) {
-        throw Error('No user info');
-    }
-    return userData;
 }
 
 async function getMyMixes(): Promise<TidalPage<MediaPlaylist>> {
@@ -240,17 +251,19 @@ async function getNewArrivals(cursor?: string): Promise<TidalPage<MediaItem>> {
 }
 
 async function getMyPlaylists(cursor = ''): Promise<TidalPage<MediaPlaylist>> {
+    const {countryCode} = tidalSettings;
     const {data, error, response} = await api.GET('/playlists/me', {
         params: {
-            query: {'page%5Bcursor%5D': cursor} as any,
+            query: {countryCode, locale, 'page%5Bcursor%5D': cursor},
         },
     });
-    if (!response.ok || error) {
+    if (data) {
+        const {data: playlists = []} = data;
+        const items = playlists.map((playlist) => createMediaPlaylist(playlist));
+        return {items};
+    } else {
         throwError(response, error);
     }
-    const {data: playlists = []} = data;
-    const items = playlists.map((playlist) => createMediaPlaylist(playlist));
-    return {items};
 }
 
 async function getPlaylist(id: string): Promise<MediaPlaylist | null> {
@@ -258,14 +271,15 @@ async function getPlaylist(id: string): Promise<MediaPlaylist | null> {
     const {data, error, response} = await api.GET('/playlists/{id}', {
         params: {
             path: {id},
-            query: {countryCode, include: ['owners']},
+            query: {countryCode, locale, include: ['owners']},
         },
     });
-    if (!response.ok || error) {
+    if (data) {
+        const {data: playlist} = data;
+        return playlist ? createMediaPlaylist(playlist as unknown as TidalPlaylist) : null;
+    } else {
         throwError(response, error);
     }
-    const {data: playlist} = data;
-    return playlist ? createMediaPlaylist(playlist as unknown as TidalPlaylist) : null;
 }
 
 async function getPlaylists(ids: string[]): Promise<readonly MediaPlaylist[]> {
@@ -277,16 +291,18 @@ async function getPlaylists(ids: string[]): Promise<readonly MediaPlaylist[]> {
         params: {
             query: {
                 countryCode,
+                locale,
                 'filter%5Bid%5D': [ids.join(',')],
                 include: ['owners'],
             },
         },
     });
-    if (!response.ok || error) {
+    if (data) {
+        const {data: playlists = []} = data;
+        return playlists.map((playlist) => createMediaPlaylist(playlist));
+    } else {
         throwError(response, error);
     }
-    const {data: playlists = []} = data;
-    return playlists.map((playlist) => createMediaPlaylist(playlist));
 }
 
 async function getPlaylistItems(
@@ -298,35 +314,38 @@ async function getPlaylistItems(
     const {data, error, response} = await api.GET('/playlists/{id}/relationships/items', {
         params: {
             path: {id},
-            query: {countryCode, 'page%5Bcursor%5D': cursor},
+            query: {countryCode, locale, 'page%5Bcursor%5D': cursor},
         },
     });
-    if (!response.ok || error) {
-        throwError(response, error);
-    }
-    const playlistData = data.data?.flat();
-    if (playlistData?.length) {
-        const ids = playlistData.map((data) => data.id);
-        const items = await getTracks(ids);
-        const next = data.links?.next;
-        return {items, total, next};
+    if (data) {
+        const playlistData = data.data?.flat();
+        if (playlistData?.length) {
+            const ids = playlistData.map((data) => data.id);
+            const items = await getTracks(ids);
+            const next = data.links?.next;
+            return {items, total, next};
+        } else {
+            return {items: []};
+        }
     } else {
-        return {items: []};
+        throwError(response, error);
     }
 }
 
 let currentRecommendations: TidalRecommendationsData | undefined = undefined;
 async function getRecommendations(): Promise<TidalRecommendationsData | undefined> {
+    const {countryCode} = tidalSettings;
     const {data, error, response} = await api.GET('/userRecommendations/me', {
         params: {
-            query: {include: ['myMixes', 'discoveryMixes', 'newArrivalMixes']},
+            query: {countryCode, locale, include: ['myMixes', 'discoveryMixes', 'newArrivalMixes']},
         },
     });
-    if (!response.ok || error) {
+    if (data) {
+        currentRecommendations = data;
+        return data;
+    } else {
         throwError(response, error);
     }
-    currentRecommendations = data;
-    return data;
 }
 
 async function getRecommendedPlaylistItems(
@@ -407,11 +426,12 @@ async function getTrack(id: string): Promise<MediaItem | null> {
             query: {countryCode, include: ['artists', 'albums']},
         },
     });
-    if (!response.ok || error) {
+    if (data) {
+        const {data: track, included = []} = data;
+        return track ? createMediaItem(track, included) : null;
+    } else {
         throwError(response, error);
     }
-    const {data: track, included = []} = data;
-    return track ? createMediaItem(track, included) : null;
 }
 
 async function getTracks(ids: string[], album?: TidalAlbum): Promise<readonly MediaItem[]> {
@@ -428,11 +448,12 @@ async function getTracks(ids: string[], album?: TidalAlbum): Promise<readonly Me
             },
         },
     });
-    if (!response.ok || error) {
+    if (data) {
+        const {data: tracks = [], included = []} = data;
+        return tracks.map((track) => createMediaItem(track, included, album));
+    } else {
         throwError(response, error);
     }
-    const {data: tracks = [], included = []} = data;
-    return tracks.map((track) => createMediaItem(track, included, album));
 }
 
 async function getVideo(id: string): Promise<MediaItem | null> {
@@ -443,11 +464,12 @@ async function getVideo(id: string): Promise<MediaItem | null> {
             query: {countryCode, include: ['artists', 'albums']},
         },
     });
-    if (!response.ok || error) {
+    if (data) {
+        const {data: video, included = []} = data;
+        return video ? createMediaItem(video, included) : null;
+    } else {
         throwError(response, error);
     }
-    const {data: video, included = []} = data;
-    return video ? createMediaItem(video, included) : null;
 }
 
 async function getVideos(ids: string[], album?: TidalAlbum): Promise<readonly MediaItem[]> {
@@ -464,115 +486,118 @@ async function getVideos(ids: string[], album?: TidalAlbum): Promise<readonly Me
             },
         },
     });
-    if (!response.ok || error) {
+    if (data) {
+        const {data: videos = [], included = []} = data;
+        return videos.map((video) => createMediaItem(video, included, album));
+    } else {
         throwError(response, error);
     }
-    const {data: videos = [], included = []} = data;
-    return videos.map((video) => createMediaItem(video, included, album));
 }
 
-async function searchAlbums(query: string, cursor = ''): Promise<TidalPage<MediaAlbum>> {
+async function searchAlbums(id: string, cursor = ''): Promise<TidalPage<MediaAlbum>> {
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await api.GET('/searchresults/{query}/relationships/albums', {
+    const {data, error, response} = await api.GET('/searchresults/{id}/relationships/albums', {
         params: {
-            path: {query},
+            path: {id},
             query: {countryCode, 'page%5Bcursor%5D': cursor},
         },
     });
-    if (!response.ok || error) {
+    if (data) {
+        const ids = data.data?.map((album) => album.id) || [];
+        const items = await getAlbums(ids);
+        const next = data.links?.next;
+        return {items, next};
+    } else {
         throwError(response, error);
     }
-    const ids = data.data?.map((album) => album.id) || [];
-    const items = await getAlbums(ids);
-    const next = data.links?.next;
-    return {items, next};
 }
 
-async function searchArtists(query: string, cursor = ''): Promise<TidalPage<MediaArtist>> {
+async function searchArtists(id: string, cursor = ''): Promise<TidalPage<MediaArtist>> {
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await api.GET('/searchresults/{query}/relationships/artists', {
+    const {data, error, response} = await api.GET('/searchresults/{id}/relationships/artists', {
         params: {
-            path: {query},
+            path: {id},
             query: {countryCode, include: ['artists'], 'page%5Bcursor%5D': cursor},
         },
     });
-    if (!response.ok || error) {
+    if (data) {
+        const included = data.included;
+        const items =
+            data.data
+                ?.map((data) => {
+                    const artist = included?.find((artist) => artist.id === data.id);
+                    if (artist) {
+                        return createMediaArtist(artist as TidalArtist);
+                    }
+                })
+                .filter(exists) || [];
+        const next = data.links?.next;
+        return {items, next};
+    } else {
         throwError(response, error);
     }
-    const included = data.included;
-    const items =
-        data.data
-            ?.map((data) => {
-                const artist = included?.find((artist) => artist.id === data.id);
-                if (artist) {
-                    return createMediaArtist(artist as TidalArtist);
-                }
-            })
-            .filter(exists) || [];
-    const next = data.links?.next;
-    return {items, next};
 }
 
-async function searchPlaylists(query: string, cursor = ''): Promise<TidalPage<MediaPlaylist>> {
+async function searchPlaylists(id: string, cursor = ''): Promise<TidalPage<MediaPlaylist>> {
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await api.GET(
-        '/searchresults/{query}/relationships/playlists',
-        {
-            params: {
-                path: {query},
-                query: {countryCode, include: ['playlists'], 'page%5Bcursor%5D': cursor},
-            },
-        }
-    );
-    if (!response.ok || error) {
-        throwError(response, error);
-    }
-    const included = data.included;
-    const items =
-        data.data
-            ?.map((data) => {
-                const playlist = included?.find((playlist) => playlist.id === data.id);
-                if (playlist) {
-                    return createMediaPlaylist(playlist as TidalPlaylist);
-                }
-            })
-            .filter(exists) || [];
-    const next = data.links?.next;
-    return {items, next};
-}
-
-async function searchTracks(query: string, cursor = ''): Promise<TidalPage<MediaItem>> {
-    const {countryCode} = tidalSettings;
-    const {data, error, response} = await api.GET('/searchresults/{query}/relationships/tracks', {
+    const {data, error, response} = await api.GET('/searchresults/{id}/relationships/playlists', {
         params: {
-            path: {query},
+            path: {id},
+            query: {countryCode, include: ['playlists'], 'page%5Bcursor%5D': cursor},
+        },
+    });
+    if (data) {
+        const included = data.included;
+        const items =
+            data.data
+                ?.map((data) => {
+                    const playlist = included?.find((playlist) => playlist.id === data.id);
+                    if (playlist) {
+                        return createMediaPlaylist(playlist as TidalPlaylist);
+                    }
+                })
+                .filter(exists) || [];
+        const next = data.links?.next;
+        return {items, next};
+    } else {
+        throwError(response, error);
+    }
+}
+
+async function searchTracks(id: string, cursor = ''): Promise<TidalPage<MediaItem>> {
+    const {countryCode} = tidalSettings;
+    const {data, error, response} = await api.GET('/searchresults/{id}/relationships/tracks', {
+        params: {
+            path: {id},
             query: {countryCode, 'page%5Bcursor%5D': cursor},
         },
     });
-    if (!response.ok || error) {
+    if (data) {
+        const ids = data.data?.map((track) => track.id) || [];
+        const items = await getTracks(ids);
+        const next = data.links?.next;
+        return {items, next};
+    } else {
         throwError(response, error);
     }
-    const ids = data.data?.map((track) => track.id) || [];
-    const items = await getTracks(ids);
-    const next = data.links?.next;
-    return {items, next};
 }
 
-async function searchVideos(query: string, cursor = ''): Promise<TidalPage<MediaItem>> {
+async function searchVideos(id: string, cursor = ''): Promise<TidalPage<MediaItem>> {
     const {countryCode} = tidalSettings;
-    const {data, error, response} = await api.GET('/searchresults/{query}/relationships/videos', {
+    const {data, error, response} = await api.GET('/searchresults/{id}/relationships/videos', {
         params: {
-            path: {query},
+            path: {id},
             query: {countryCode, 'page%5Bcursor%5D': cursor},
         },
     });
-    if (!response.ok || error) {
+    if (data) {
+        const ids = data.data?.map((video) => video.id) || [];
+        const items = await getVideos(ids);
+        const next = data.links?.next;
+        return {items, next};
+    } else {
         throwError(response, error);
     }
-    const ids = data.data?.map((video) => video.id) || [];
-    const items = await getVideos(ids);
-    const next = data.links?.next;
-    return {items, next};
 }
 
 function createMediaAlbum(album: TidalAlbum, included: Included): MediaAlbum {

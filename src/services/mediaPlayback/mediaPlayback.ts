@@ -117,10 +117,12 @@ export function loadAndPlay(item: PlaylistItem): void {
 }
 
 function loadNext(item: PlaylistItem | null): void {
-    if (miniPlayer.active) {
-        miniPlayer.loadNext(item);
-    } else {
-        mediaPlayer.loadNext(item);
+    if (!mediaPlayback.stopAfterCurrent) {
+        if (miniPlayer.active) {
+            miniPlayer.loadNext(item);
+        } else {
+            mediaPlayer.loadNext(item);
+        }
     }
 }
 

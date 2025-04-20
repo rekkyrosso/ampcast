@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback, useId, useRef} from 'react';
 import {copyToClipboard} from 'utils';
 import CopyButton from 'components/Button/CopyButton';
 import DialogButtons from 'components/Dialog/DialogButtons';
@@ -9,6 +9,7 @@ import youtubeSettings from '../youtubeSettings';
 import useCredentials from './useCredentials';
 
 export default function YouTubeCredentials({service: youtube}: MediaServiceCredentialsProps) {
+    const id = useId();
     const {clientId} = useCredentials();
     const clientIdRef = useRef<HTMLInputElement>(null);
     const authorizedOrigin = location.origin;
@@ -44,6 +45,13 @@ export default function YouTubeCredentials({service: youtube}: MediaServiceCrede
                     <input type="text" value={authorizedOrigin} readOnly />
                     <CopyButton onClick={() => copyToClipboard(authorizedOrigin)} />
                 </p>
+                <p>Selected APIs:</p>
+                <ul>
+                    <li>
+                        <input type="checkbox" id={`${id}-api`} checked readOnly />
+                        <label htmlFor={`${id}-api`}>YouTube Data API v3</label>
+                    </li>
+                </ul>
             </fieldset>
             <DialogButtons />
         </form>

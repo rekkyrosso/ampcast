@@ -2,12 +2,9 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import {LiteStorage} from 'utils';
 import {sp_client_id} from 'services/buildConfig';
-import SpotifyRedirectType from './SpotifyRedirectType';
-import {isSafeOrigin} from './spotifyApi';
 
 export interface SpotifyCredentials {
     readonly clientId: string;
-    readonly redirectType: SpotifyRedirectType;
 }
 
 interface TokenStore {
@@ -20,20 +17,7 @@ const authStorage = new LiteStorage('spotify/auth');
 const userStorage = new LiteStorage('spotify/user', 'memory');
 const credentials$ = new BehaviorSubject<SpotifyCredentials>({
     clientId: '',
-    redirectType: SpotifyRedirectType.Origin,
 });
-
-// TODO: Remove this eventually.
-// It supports old Spotify apps that were registered with a localhost callback.
-// Added version 0.9.15.
-if (authStorage.getItem('redirectType') === null) {
-    authStorage.setNumber(
-        'redirectType',
-        isSafeOrigin() || authStorage.getItem('clientId')
-            ? SpotifyRedirectType.Origin
-            : SpotifyRedirectType.LocalhostIp6
-    );
-}
 
 const spotifySettings = {
     get chartsCategoryId(): string {
@@ -51,7 +35,7 @@ const spotifySettings = {
     set clientId(clientId: string) {
         if (!sp_client_id) {
             authStorage.setString('clientId', clientId);
-            credentials$.next({clientId, redirectType: this.redirectType});
+            credentials$.next({clientId});
         }
     },
 
@@ -75,34 +59,13 @@ const spotifySettings = {
         userStorage.setString('market', market);
     },
 
-    // Temporary setting. To enable migration away from localhost callbacks.
-    // https://developer.spotify.com/blog/2025-02-12-increasing-the-security-requirements-for-integrating-with-spotify
-    get redirectType(): SpotifyRedirectType {
-        if (isSafeOrigin()) {
-            return SpotifyRedirectType.Origin;
-        } else {
-            return authStorage.getNumber('redirectType', SpotifyRedirectType.LocalhostIp6);
-        }
-    },
-
-    set redirectType(redirectType: SpotifyRedirectType) {
-        authStorage.setNumber('redirectType', redirectType);
-        credentials$.next({clientId: this.clientId, redirectType});
-    },
-
     get redirectUri(): string {
         const authPath = '/auth/spotify/callback/';
-        switch (this.redirectType) {
-            case SpotifyRedirectType.Origin:
-                return `${location.origin}${authPath}`;
-
-            case SpotifyRedirectType.LocalhostIp6:
-                return `http://[::1]:${location.port}${authPath}`;
+        if (location.protocol === 'https:') {
+            return `${location.origin}${authPath}`;
+        } else {
+            return `http://[::1]:${location.port}${authPath}`;
         }
-    },
-
-    set redirectUri(redirectUri: string) {
-        userStorage.setString('redirectUri', redirectUri);
     },
 
     get restrictedApi(): boolean {

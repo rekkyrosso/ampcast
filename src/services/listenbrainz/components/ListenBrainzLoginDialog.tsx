@@ -80,7 +80,7 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
             {...props}
             className="listenbrainz-login-dialog login-dialog"
             icon={listenbrainz.icon}
-            title={`Log in to ${listenbrainz.name}`}
+            title={`Connect to ${listenbrainz.name}`}
             ref={dialogRef}
         >
             <form id={`${id}-login`} method="dialog" onSubmit={handleSubmit}>
@@ -115,7 +115,7 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
                     </p>
                 </div>
                 <p className={`message ${connecting ? '' : 'error'}`}>{message}</p>
-                <DialogButtons submitText="Login" />
+                <DialogButtons submitText="Connect" />
             </form>
         </Dialog>
     );

@@ -24,7 +24,6 @@ export interface PlexRequest {
     body?: any;
     host?: string;
     token?: string;
-    keepalive?: boolean;
     timeout?: number; // MS
 }
 
@@ -71,7 +70,6 @@ async function plexFetch({
     headers,
     body,
     token,
-    keepalive,
     timeout,
 }: PlexRequest): Promise<Response> {
     if (!host) {
@@ -96,7 +94,6 @@ async function plexFetch({
             ...getHeaders(token, drm),
         },
         body,
-        keepalive,
     };
 
     if (timeout) {

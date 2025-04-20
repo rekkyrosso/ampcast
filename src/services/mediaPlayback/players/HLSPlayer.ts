@@ -1,22 +1,19 @@
 import type Hls from 'hls.js';
 import PlayableItem from 'types/PlayableItem';
+import {canPlayNativeHls} from 'utils';
 import audio from 'services/audio';
 import HTML5Player from './HTML5Player';
 
 export default class HLSPlayer extends HTML5Player {
-    private hasNativeSupport = false;
+    private hasNativeSupport = canPlayNativeHls();
     private Hls: typeof Hls | null = null;
     private player: Hls | null = null;
 
     constructor(type: 'audio' | 'video', name = 'hls', index?: 1 | 2) {
         super(type, name, index);
 
-        if (
-            this.element.canPlayType('application/x-mpegURL').replace('no', '') ||
-            this.element.canPlayType('application/vnd.apple.mpegURL').replace('no', '')
-        ) {
+        if (this.hasNativeSupport) {
             this.logger.log('Using native HLS.');
-            this.hasNativeSupport = true;
         }
     }
 
@@ -108,8 +105,12 @@ export default class HLSPlayer extends HTML5Player {
     }
 
     protected safeStop(): void {
-        this.element.pause();
-        this.element.currentTime = 0;
+        if (this.hasNativeSupport) {
+            super.safeStop();
+        } else {
+            this.element.pause();
+            this.element.currentTime = 0;
+        }
     }
 
     private async loadPlayer(): Promise<typeof Hls> {

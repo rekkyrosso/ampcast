@@ -18,7 +18,7 @@ export default function DisconnectButton({service}: MediaServiceSettingsGeneralP
                 onClick={handleDisconnect}
                 disabled={!connected}
             >
-                {connected ? `Disconnect from ${service.name}…` : 'Not connected'}
+                {connected ? `Disconnect from ${service.name}` : 'Not connected'}
             </button>
         </p>
     );

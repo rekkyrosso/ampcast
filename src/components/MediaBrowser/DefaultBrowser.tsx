@@ -34,7 +34,7 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
     return (
         <>
             {showPagerHeader ? (
-                <PageHeader icon={service.icon} sortable={selectedSource}>
+                <PageHeader icon={service.icon} source={selectedSource}>
                     {service.name}: {source.title}
                 </PageHeader>
             ) : null}

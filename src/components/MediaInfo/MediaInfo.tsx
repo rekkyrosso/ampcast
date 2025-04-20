@@ -47,7 +47,7 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
     return (
         <article className="media-info media-item-info">
             <div className="media-info-main">
-                <Thumbnail item={item} />
+                <Thumbnail item={item} extendedSearch />
                 <Title title={item.title} />
                 <Artist artist={item.artists?.join(', ')} />
                 <AlbumAndYear album={item.album} year={item.year} />
@@ -68,7 +68,7 @@ function AlbumInfo({item: album}: MediaInfoProps<MediaAlbum>) {
     return (
         <article className="media-info album-info">
             <div className="media-info-main">
-                <Thumbnail item={album} />
+                <Thumbnail item={album} extendedSearch />
                 <Title title={album.title} />
                 <Artist artist={album.artist} />
                 <Year year={album.year} />

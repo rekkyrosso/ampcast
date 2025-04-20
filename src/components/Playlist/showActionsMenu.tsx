@@ -69,7 +69,7 @@ function ActionsMenu({items, selectedItems, rowIndex, ...props}: ActionsMenuProp
                 <PopupMenuItem
                     label="Select all"
                     value="select-all"
-                    acceleratorKey={`${browser.ctrlKeyStr}+A`}
+                    acceleratorKey={`${browser.cmdKeyStr}+A`}
                     key="select-all"
                 />
             )}
@@ -87,7 +87,7 @@ function ActionsMenu({items, selectedItems, rowIndex, ...props}: ActionsMenuProp
                 <PopupMenuItem
                     label="Info…"
                     value="info"
-                    acceleratorKey={`${browser.ctrlKeyStr}+I`}
+                    acceleratorKey={`${browser.cmdKeyStr}+I`}
                     key="info"
                 />
             ) : null}
