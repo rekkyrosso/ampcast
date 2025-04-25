@@ -155,7 +155,8 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             recording_mbid: typeof song.musicBrainzId === 'string' ? song.musicBrainzId : undefined,
             albumGain: song.replayGain?.albumGain,
             trackGain: song.replayGain?.trackGain,
-        };
+            rating: song.userRating,
+        };        
     }
 
     private createMediaItemFromVideo(video: Subsonic.Video): SetRequired<MediaItem, 'fileName'> {

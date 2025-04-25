@@ -506,4 +506,10 @@ export default class SubsonicApi {
             })) || []
         );
     }
+
+    async setRating(src: string, rating: 0 | 1 | 2 | 3 | 4 | 5): Promise<void> {
+        const [, , id] = src.split(':');
+        const params = new URLSearchParams({id: id, rating: rating.toString()});
+        await this.get(`setRating?${params}`);
+    }
 }
