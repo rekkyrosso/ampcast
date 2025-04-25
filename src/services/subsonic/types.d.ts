@@ -58,6 +58,7 @@ declare namespace Subsonic {
         readonly albumId: string;
         readonly artist: string;
         readonly artistId: string;
+        readonly averageRating: AverageRating;
         readonly bitRate: number;
         readonly contentType: string;
         readonly coverArt: string;
@@ -77,6 +78,7 @@ declare namespace Subsonic {
         readonly title: string;
         readonly track: number;
         readonly type: 'music';
+        readonly userRating: UserRating;
         readonly year?: number;
         // OpenSubsonic extensions
         readonly musicBrainzId?: string;
@@ -85,6 +87,9 @@ declare namespace Subsonic {
             readonly trackGain: number;
         };
     }
+
+    type AverageRating = 1 | 2 | 3 | 4 | 5;
+    type UserRating = 1 | 2 | 3 | 4 | 5;
 
     interface Video {
         readonly album: string;

@@ -81,6 +81,8 @@ export default function Actions({item, inline}: ActionsProps) {
         [item]
     );
 
+    const ratingIncrement = (service?.id === "ampache" || service?.id === "subsonic") ? 1 : 0.5;
+    
     return (
         <IconButtons>
             {inline ? (
@@ -106,8 +108,8 @@ export default function Actions({item, inline}: ActionsProps) {
             {service ? (
                 <>
                     {item.rating !== undefined && service?.canRate?.(item, inline) ? (
-                        service.id === 'plex' ? (
-                            <StarRating value={item.rating} tabIndex={tabIndex} onChange={rate} />
+                        service.id === 'plex' || service.id === 'ampache' || service.id === 'subsonic' ? (                            
+                            <StarRating value={item.rating} tabIndex={tabIndex} onChange={rate} increment={ratingIncrement} />
                         ) : (
                             <IconButton
                                 icon={

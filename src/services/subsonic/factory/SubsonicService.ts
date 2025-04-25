@@ -503,8 +503,21 @@ export default class SubsonicService implements PersonalMediaService {
         );
     }
 
-    canRate(): boolean {
-        return false;
+    canRate<T extends MediaObject>(item: T): boolean {
+        if ((!item.src.startsWith('subsonic:') && !item.src.startsWith('ampache:')) || item.synthetic) {
+            return false;
+        }
+        switch (item.itemType) {
+            case ItemType.Album:
+            case ItemType.Artist:
+                return true;
+    
+            case ItemType.Media:
+                return item.mediaType === MediaType.Audio;
+    
+            default:
+                return false;
+        }
     }
 
     canStore<T extends MediaObject>(item: T): boolean {
@@ -629,7 +642,8 @@ export default class SubsonicService implements PersonalMediaService {
             return {...item, inLibrary: !!directory.starred};
         } else {
             const song = await this.api.getSong(id);
-            return {...item, inLibrary: !!song.starred};
+            
+            return {...item, inLibrary: !!song.starred, rating: song.userRating};
         }
     }
 
@@ -683,6 +697,17 @@ export default class SubsonicService implements PersonalMediaService {
                 break;
             }
         }
+    }
+
+    async rate(item: MediaObject, rating: number): Promise<void> {
+        if (rating === -1) {
+            return;
+        }
+        if (rating !== Math.round(rating) || rating < 0 || rating > 5) {
+            throw new Error(`Expected rating of 0-5, but received ${rating}`);
+        }        
+
+        await this.api.setRating(item.src, rating as 0 | 1 | 2 | 3 | 4 | 5);
     }
 
     scrobble(): void {
