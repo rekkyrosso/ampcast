@@ -7,6 +7,7 @@ export type Field =
     | 'Title'
     | 'PlaylistTitle'
     | 'Blurb'
+    | 'Location'
     | 'Album'
     | 'AlbumArtist'
     | 'AlbumTrack'

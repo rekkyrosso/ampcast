@@ -3,7 +3,7 @@ import {exists, Logger} from 'utils';
 import MediaItem from 'types/MediaItem';
 import MediaServiceId from 'types/MediaServiceId';
 import {getService} from 'services/mediaServices';
-import {createMediaItemFromFile, createMediaItemFromUrl} from 'services/music-metadata';
+import {createMediaItemFromFile, createMediaItemFromUrl} from 'services/metadata';
 import {injectAt} from 'services/playlist';
 import {error} from 'components/Dialog';
 
@@ -150,7 +150,7 @@ async function getMediaServiceTracks(
 }
 
 async function showError(err: any): Promise<void> {
-    const defaultMessage = 'Unsupported media.';
+    const defaultMessage = 'Could not load media.';
     const message = err instanceof TypeError ? defaultMessage : err.message || defaultMessage;
     await error(message);
 }

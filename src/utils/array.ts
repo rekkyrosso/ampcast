@@ -11,7 +11,7 @@ export function chunk<T>(values: readonly T[], chunkSize = 1): T[][] {
 }
 
 export function filterNotEmpty<T>(
-    values: T[],
+    values: readonly T[],
     predicate: (value: T, index: number, array: readonly T[]) => unknown
 ): T[] {
     const newValues = values.filter(predicate);

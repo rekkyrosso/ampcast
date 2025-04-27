@@ -15,6 +15,7 @@ import MediaService from './MediaService';
 import MediaSourceLayout from './MediaSourceLayout';
 import MediaType from './MediaType';
 import Pager from './Pager';
+import {Pinnable} from './Pin';
 
 export type MediaSourceComponent = React.FC<{
     service: MediaService;
@@ -83,4 +84,5 @@ export type AnyMediaSource =
     | MediaSource<MediaItem>
     | MediaSource<MediaFolderItem>
     | MediaSource<MediaPlaylist>
+    | MediaSource<Pinnable>
     | MediaMultiSource;

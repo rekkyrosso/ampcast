@@ -2,7 +2,7 @@ import type {Observable} from 'rxjs';
 import {Subject} from 'rxjs';
 import MediaItem from 'types/MediaItem';
 import PlaylistItem from 'types/PlaylistItem';
-import {bestOf} from 'utils';
+import {bestOf} from 'services/metadata';
 
 export interface LookupStartEvent {
     lookupItem: PlaylistItem;

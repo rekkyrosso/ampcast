@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
 import Action from 'types/Action';
-import ItemType from 'types/ItemType';
 import LibraryAction from 'types/LibraryAction';
 import MediaObject from 'types/MediaObject';
 import MediaService from 'types/MediaService';
@@ -26,8 +25,8 @@ const defaultActionIcons: Record<LibraryAction, IconName> = {
 };
 
 const defaultActionLabels: Record<LibraryAction, string> = {
-    [Action.AddToLibrary]: 'Add to library',
-    [Action.RemoveFromLibrary]: 'Remove from library',
+    [Action.AddToLibrary]: 'Add to Library',
+    [Action.RemoveFromLibrary]: 'Remove from Library',
     [Action.Rate]: 'Rate',
     [Action.Like]: 'Like',
     [Action.Unlike]: 'Unlike',
@@ -38,12 +37,10 @@ export default function Actions({item, inline}: ActionsProps) {
     const tabIndex = inline ? -1 : undefined;
 
     const togglePin = useCallback(async () => {
-        if (item.itemType === ItemType.Playlist) {
-            if (item.isPinned) {
-                await performAction(Action.Unpin, [item]);
-            } else {
-                await performAction(Action.Pin, [item]);
-            }
+        if (item.isPinned) {
+            await performAction(Action.Unpin, [item]);
+        } else {
+            await performAction(Action.Pin, [item]);
         }
     }, [item]);
 
@@ -93,7 +90,7 @@ export default function Actions({item, inline}: ActionsProps) {
                 />
             ) : null}
 
-            {item.itemType === ItemType.Playlist && service?.createSourceFromPin ? (
+            {service?.canPin?.(item, inline) ? (
                 <IconButton
                     icon={item.isPinned ? 'pin-fill' : 'pin'}
                     title={item.isPinned ? 'Unpin' : 'Pin to sidebar'}

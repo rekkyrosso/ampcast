@@ -24,6 +24,7 @@ export function scrobble(): void {
             filter(() => scrobbleSettings.canUpdateNowPlaying('listenbrainz')),
             map(({currentItem}) => currentItem),
             filter(exists),
+            debounceTime(10_000),
             filter((item) => canScrobble(item)),
             mergeMap((item) => listenbrainzApi.updateNowPlaying(item))
         )
@@ -52,15 +53,12 @@ export function scrobble(): void {
             const latestTimestamp = items[0].playedAt + Math.floor(items[0].duration);
             const earliestTimestamp = items.at(-1)!.playedAt;
             const maxSize = ListenBrainzHistoryPager.maxPageSize;
-            const pager = new ListenBrainzHistoryPager(
-                {
-                    min_ts: earliestTimestamp - timeFuzziness,
-                    max_ts: latestTimestamp + timeFuzziness,
-                    count: maxSize,
-                },
-                undefined,
-                {maxSize}
-            );
+            const params = {
+                min_ts: earliestTimestamp - timeFuzziness,
+                max_ts: latestTimestamp + timeFuzziness,
+                count: maxSize,
+            };
+            const pager = new ListenBrainzHistoryPager('listens', params, undefined, {maxSize});
             const history = await fetchFirstPage(pager);
             const historyIds = history.map((item) => getListenId(item, timeFuzziness));
             const [ignore, unscrobbled] = partition(

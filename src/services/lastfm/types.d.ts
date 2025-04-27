@@ -94,13 +94,21 @@ declare namespace LastFm {
         loved?: '0' | '1';
         '@attr'?: {
             rank?: string | number;
+            nowplaying?: string;
         };
+    }
+
+    type AlbumInfo = Omit<Album, 'loved'>;
+
+    interface AlbumInfoResponse {
+        album: AlbumInfo;
     }
 
     interface TrackInfo extends Omit<Track, 'loved'> {
         album?: {
             artist: string;
             title: string;
+            mbid?: string;
             url: string;
             image: readonly Thumbnail[];
         };

@@ -15,10 +15,11 @@ import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
 import PersonalMediaService from 'types/PersonalMediaService';
 import PlayableItem from 'types/PlayableItem';
-import Pin from 'types/Pin';
+import Pin, {Pinnable} from 'types/Pin';
 import ServiceType from 'types/ServiceType';
-import {bestOf, getTextFromHtml, Logger} from 'utils';
+import {getTextFromHtml, Logger} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
+import {bestOf} from 'services/metadata';
 import {isStartupService} from 'services/buildConfig';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
@@ -315,6 +316,7 @@ const navidrome: PersonalMediaService = {
     },
     addMetadata,
     addToPlaylist,
+    canPin,
     canStore,
     compareForRating,
     createPlaylist,
@@ -335,6 +337,10 @@ const navidrome: PersonalMediaService = {
 };
 
 export default navidrome;
+
+function canPin(item: MediaObject): boolean {
+    return item.itemType === ItemType.Playlist;
+}
 
 function canStore<T extends MediaObject>(item: T): boolean {
     switch (item.itemType) {
@@ -381,15 +387,18 @@ async function createPlaylist<T extends MediaItem>(
     };
 }
 
-function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
+function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
+    if (pin.itemType !== ItemType.Playlist) {
+        throw Error('Unsupported Pin type.');
+    }
     return {
         title: pin.title,
-        itemType: ItemType.Playlist,
+        itemType: pin.itemType,
         id: pin.src,
         icon: 'pin',
         isPin: true,
 
-        search(): Pager<MediaPlaylist> {
+        search(): Pager<T> {
             const id = getIdFromSrc(pin);
             return new NavidromePager(ItemType.Playlist, `playlist/${id}`);
         },

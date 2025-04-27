@@ -14,7 +14,7 @@ import MediaService from './MediaService';
 import MediaSource, {AnyMediaSource} from './MediaSource';
 import PlayableItem from './PlayableItem';
 import PlaybackType from './PlaybackType';
-import Pin from './Pin';
+import Pin, {Pinnable} from './Pin';
 
 type BaseMediaService = Auth & {
     readonly id: MediaServiceId;
@@ -57,13 +57,14 @@ type BaseMediaService = Auth & {
         position?: number
     ) => Promise<void>;
     removeFromPlaylist?: (playlist: MediaPlaylist, items: readonly MediaItem[]) => Promise<void>;
+    canPin?: (item: MediaObject, inline?: boolean) => boolean;
     canRate?: (item: MediaObject, inline?: boolean) => boolean;
     canStore?: (item: MediaObject, inline?: boolean) => boolean;
     createPlaylist?: <T extends MediaItem>(
         name: string,
         options?: CreatePlaylistOptions<T>
     ) => Promise<MediaPlaylist>;
-    createSourceFromPin?: (pin: Pin) => MediaSource<MediaPlaylist>;
+    createSourceFromPin?: <T extends Pinnable>(pin: Pin) => MediaSource<T>;
     getDrmInfo?: (item?: PlayableItem) => DRMInfo | undefined;
     getDroppedItems?: (
         type: DataTransferItem['type'],

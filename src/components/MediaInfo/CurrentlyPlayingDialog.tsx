@@ -1,18 +1,18 @@
 import React, {useRef} from 'react';
-import MediaType from 'types/MediaType';
+import preferences from 'services/preferences';
 import Dialog, {DialogProps} from 'components/Dialog';
-import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
+import useCurrentTrack from 'hooks/useCurrentTrack';
 import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
 import useFirstValue from 'hooks/useFirstValue';
-import MediaInfo from './MediaInfo';
-import VisualizerInfo from './VisualizerInfo';
 import useMediaInfoDialog from './useMediaInfoDialog';
+import CurrentlyPlaying from './CurrentlyPlaying';
+import CurrentlyPlayingTabs from './CurrentlyPlayingTabs';
 
 export default function CurrentlyPlayingDialog(props: DialogProps) {
     const ref = useRef<HTMLDialogElement>(null);
-    const currentlyPlaying = useCurrentlyPlaying();
+    const currentTrack = useCurrentTrack();
     const currentVisualizer = useCurrentVisualizer();
-    const item = useFirstValue(currentlyPlaying);
+    const item = useFirstValue(currentTrack);
     const visualizer = useFirstValue(currentVisualizer);
     useMediaInfoDialog(ref);
 
@@ -25,10 +25,11 @@ export default function CurrentlyPlayingDialog(props: DialogProps) {
             ref={ref}
         >
             <form method="dialog">
-                {item ? <MediaInfo item={item} /> : <p>No media loaded.</p>}
-                {item && item.mediaType !== MediaType.Video ? (
-                    <VisualizerInfo visualizer={visualizer} />
-                ) : null}
+                {preferences.mediaInfoTabs ? (
+                    <CurrentlyPlayingTabs item={item} visualizer={visualizer} />
+                ) : (
+                    <CurrentlyPlaying item={item} visualizer={visualizer} />
+                )}
                 <footer className="dialog-buttons">
                     <button>Close</button>
                 </footer>

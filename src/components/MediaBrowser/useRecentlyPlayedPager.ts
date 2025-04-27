@@ -6,6 +6,7 @@ import {
     interval,
     map,
     merge,
+    of,
     skip,
     skipWhile,
     switchMap,
@@ -13,16 +14,18 @@ import {
 } from 'rxjs';
 import MediaItem from 'types/MediaItem';
 import Pager from 'types/Pager';
+import {Logger} from 'utils';
+import {observePlaybackStart} from 'services/mediaPlayback/playback';
+import {observeListens} from 'services/localdb/listens';
 import SubjectPager from 'services/pagers/SubjectPager';
 import WrappedPager from 'services/pagers/WrappedPager';
-import {observeListens} from 'services/localdb/listens';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
-import {Logger} from 'utils';
 
 const logger = new Logger('useRecentlyPlayedPager');
 
 export default function useRecentlyPlayedPager(
-    createHistoryPager: (from?: number, to?: number) => Pager<MediaItem>
+    createHistoryPager: (from?: number, to?: number) => Pager<MediaItem>,
+    createNowPlayingPager: () => Pager<MediaItem> | undefined
 ) {
     const startAt = useMemo(() => Math.floor(Date.now() / 1000), []);
     const [pager, setPager] = useState<Pager<MediaItem> | null>(null);
@@ -33,13 +36,25 @@ export default function useRecentlyPlayedPager(
         const recentPager = new SubjectPager<MediaItem>({pageSize: historyPager.pageSize});
         const pager = new WrappedPager<MediaItem>(recentPager, historyPager);
         const afterScrobble$ = observeListens().pipe(skip(1), delay(20_000));
-        const everyFiveMinutes$ = interval(300_000);
-        const refresh$ = merge(afterScrobble$, everyFiveMinutes$);
+        const afterPlaybackStart$ = observePlaybackStart().pipe(delay(15_000));
+        const everyTwoMinutes$ = interval(120_000);
+        const refresh$ = merge(of(undefined), afterScrobble$, afterPlaybackStart$, everyTwoMinutes$);
         const subscription = new Subscription();
 
         const fetchRecentlyPlayed = async (time: number) => {
-            const pager = createHistoryPager(time);
-            const items = await fetchFirstPage(pager);
+            let items: readonly MediaItem[];
+            const historyPager = createHistoryPager(time);
+            const nowPlayingPager = createNowPlayingPager?.();
+            if (nowPlayingPager) {
+                items = (
+                    await Promise.all([
+                        fetchFirstPage(nowPlayingPager),
+                        fetchFirstPage(historyPager),
+                    ])
+                ).flat();
+            } else {
+                items = await fetchFirstPage(historyPager);
+            }
             return items;
         };
 
@@ -67,7 +82,7 @@ export default function useRecentlyPlayedPager(
         setPager(pager);
 
         return () => subscription.unsubscribe();
-    }, [startAt, createHistoryPager]);
+    }, [startAt, createHistoryPager, createNowPlayingPager]);
 
     return {pager, total};
 }

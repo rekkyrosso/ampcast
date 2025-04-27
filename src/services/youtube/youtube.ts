@@ -1,12 +1,13 @@
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import MediaItem from 'types/MediaItem';
 import ItemType from 'types/ItemType';
+import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSource from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
-import Pin from 'types/Pin';
+import Pin, {Pinnable} from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
@@ -141,6 +142,7 @@ const youtube: PublicMediaService = {
     root: youtubeSearch,
     sources: [youtubeLikes, youtubeRecentlyPlayed, youtubePlaylists],
     addToPlaylist,
+    canPin,
     compareForRating: () => false,
     createPlaylist,
     createSourceFromPin,
@@ -194,6 +196,10 @@ async function addToPlaylist<T extends MediaItem>(
     }
 }
 
+function canPin(item: MediaObject): boolean {
+    return item.itemType === ItemType.Playlist;
+}
+
 async function createPlaylist<T extends MediaItem>(
     title: string,
     {description = '', isPublic, items}: CreatePlaylistOptions<T> = {}
@@ -226,16 +232,19 @@ async function createPlaylist<T extends MediaItem>(
     }
 }
 
-function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
+function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
+    if (pin.itemType !== ItemType.Playlist) {
+        throw Error('Unsupported Pin type.');
+    }
     return {
         title: pin.title,
-        itemType: ItemType.Playlist,
+        itemType: pin.itemType,
         id: pin.src,
         icon: 'pin',
         isPin: true,
         secondaryLayout: {...(defaultLayout as any), view: 'card compact'},
 
-        search(): Pager<MediaPlaylist> {
+        search(): Pager<T> {
             const [, , playlistId] = pin.src.split(':');
             return new YouTubePager('/playlists', {
                 id: playlistId,

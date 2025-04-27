@@ -3,7 +3,7 @@ import ServiceType from 'types/ServiceType';
 import noAuth from 'services/mediaServices/noAuth';
 
 const mixcloud: PublicMediaService = {
-    ...noAuth,
+    ...noAuth(false),
     id: 'mixcloud',
     name: 'Mixcloud',
     icon: 'mixcloud',

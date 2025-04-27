@@ -18,18 +18,16 @@ export default function usePlaylistItemsByService<T extends MediaItem>(
         } else {
             const listenbrainz = itemsByService[index];
             const items = listenbrainz.items;
-            const subscription = from(musicbrainzApi.addMetadata(items, false)).subscribe(
-                (items) => {
-                    items = items.filter((item) => item.recording_mbid);
-                    if (items.length === 0) {
-                        itemsByService.splice(index, 1);
-                    } else {
-                        const service = listenbrainz.service;
-                        itemsByService[index] = {service, items};
-                    }
-                    setItemsByService(itemsByService);
+            const subscription = from(musicbrainzApi.addMetadata(items)).subscribe((items) => {
+                items = items.filter((item) => item.recording_mbid);
+                if (items.length === 0) {
+                    itemsByService.splice(index, 1);
+                } else {
+                    const service = listenbrainz.service;
+                    itemsByService[index] = {service, items};
                 }
-            );
+                setItemsByService(itemsByService);
+            });
             return () => subscription.unsubscribe();
         }
     }, [items]);

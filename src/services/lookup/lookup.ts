@@ -3,7 +3,8 @@ import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
 import MediaType from 'types/MediaType';
 import PlaylistItem from 'types/PlaylistItem';
-import {bestOf, Logger} from 'utils';
+import {filterNotEmpty, Logger} from 'utils';
+import {bestOf} from 'services/metadata';
 import {findListen} from 'services/localdb/listens';
 import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import {
@@ -11,6 +12,7 @@ import {
     getService,
     getServiceFromSrc,
     hasPlayableSrc,
+    isPersonalMediaService,
     isPlayableSrc,
 } from 'services/mediaServices';
 import soundcloudApi from 'services/soundcloud/soundcloudApi';
@@ -20,7 +22,8 @@ import {
     dispatchLookupEndEvent,
     dispatchLookupCancelledEvent,
 } from './lookupEvents';
-import {findBestMatch, findMatches, getArtistAndTitle, removeFeaturedArtists} from './matcher';
+import lookupSettings from './lookupSettings';
+import {getArtistAndTitle, filterMatches, removeFeaturedArtists} from './matcher';
 
 const logger = new Logger('lookup');
 
@@ -117,7 +120,7 @@ class Lookup {
         }
 
         if (!item.recording_mbid) {
-            item = await musicbrainzApi.addMetadata(item, true, this.signal);
+            item = await musicbrainzApi.addMetadata(item, {strictMatch: true}, this.signal);
         }
 
         const foundItemByUrl = await this.fromMusicBrainzUrls(item);
@@ -144,12 +147,21 @@ class Lookup {
             }
         }
 
-        return (
-            findBestMatch(matches, item, isrcs, Lookup.lastFoundServiceId) ||
-            foundItemByUrl ||
-            listen ||
-            linkedItem
-        );
+        matches = filterMatches(matches, item, isrcs);
+
+        if (lookupSettings.preferPersonalMedia) {
+            matches = filterNotEmpty(matches, (match) => {
+                const service = getServiceFromSrc(match);
+                return service ? isPersonalMediaService(service) : false;
+            });
+        }
+        if (Lookup.lastFoundServiceId) {
+            matches = filterNotEmpty(matches, (match) =>
+                match.src.startsWith(`${Lookup.lastFoundServiceId}:`)
+            );
+        }
+
+        return matches[0] || foundItemByUrl || listen || linkedItem;
     }
 
     private async fromLinkedItem(linkedItem: PlaylistItem): Promise<MediaItem | null> {
@@ -159,8 +171,7 @@ class Lookup {
             switch (serviceId) {
                 case 'soundcloud': {
                     const track = await soundcloudApi.getMediaItem(linkedItem.externalUrl!);
-                    const duration = track.duration || linkedItem.duration;
-                    return bestOf({...track, duration}, linkedItem);
+                    return bestOf(track, linkedItem);
                 }
 
                 case 'youtube': {
@@ -229,7 +240,7 @@ class Lookup {
 
     private getPlayableListen(item: PlaylistItem): MediaItem | undefined {
         const listen = findListen(item);
-        if (listen && /^(file|blob):/.test(listen.src)) {
+        if (listen && (listen.unplayable || /^(file|blob):/.test(listen.src))) {
             return undefined;
         }
         return listen;
@@ -256,7 +267,7 @@ class Lookup {
                     10,
                     2000
                 );
-                return findMatches(matches, item, isrcs, strict);
+                return filterMatches(matches, item, isrcs, strict);
             }
         } catch (err) {
             logger.error(err);

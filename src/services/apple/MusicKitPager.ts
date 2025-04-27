@@ -12,12 +12,13 @@ import Pager, {Page, PagerConfig} from 'types/Pager';
 import ParentOf from 'types/ParentOf';
 import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
+import {getTextFromHtml, Logger} from 'utils';
+import {bestOf} from 'services/metadata';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import pinStore from 'services/pins/pinStore';
-import {bestOf, getTextFromHtml, Logger} from 'utils';
 import {addUserData} from './apple';
 import {refreshToken} from './appleAuth';
 

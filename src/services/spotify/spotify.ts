@@ -12,7 +12,7 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSource, {MediaMultiSource} from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager, {PagerConfig} from 'types/Pager';
-import Pin from 'types/Pin';
+import Pin, {Pinnable} from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
@@ -466,6 +466,7 @@ const spotify: PublicMediaService = {
     },
     addMetadata,
     addToPlaylist,
+    canPin,
     canStore,
     compareForRating,
     createPlaylist,
@@ -496,6 +497,10 @@ if (isRestrictedApi) {
         [spotifyFeaturedPlaylists.id]: true,
         [spotifyPlaylistsByCategory.id]: true,
     });
+}
+
+function canPin(item: MediaObject): boolean {
+    return item.itemType === ItemType.Playlist;
 }
 
 function canStore<T extends MediaObject>(item: T, inline?: boolean): boolean {
@@ -569,15 +574,18 @@ async function createPlaylist<T extends MediaItem>(
     };
 }
 
-function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
+function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
+    if (pin.itemType !== ItemType.Playlist) {
+        throw Error('Unsupported Pin type.');
+    }
     return {
         title: pin.title,
-        itemType: ItemType.Playlist,
+        itemType: pin.itemType,
         id: pin.src,
         icon: 'pin',
         isPin: true,
 
-        search(): Pager<MediaPlaylist> {
+        search(): Pager<T> {
             const [, , id] = pin.src.split(':');
             const market = getMarket();
             return new SpotifyPager(async (): Promise<SpotifyPage> => {

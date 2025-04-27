@@ -1,13 +1,16 @@
 import {Writable} from 'type-fest';
+import type {AddMetadataOptions} from 'services/metadata';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
-import {RateLimiter, filterNotEmpty, uniq} from 'utils';
+import {Logger, RateLimiter, filterNotEmpty, uniq} from 'utils';
 import {findBestMatch} from 'services/lookup';
 import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import MusicBrainzAlbumTracksPager from './MusicBrainzAlbumTracksPager';
 import digitalFormats from './digitalFormats';
+
+const logger = new Logger('musicbrainzApi');
 
 interface RequestInitWithTimeout extends RequestInit {
     timeout?: number;
@@ -70,17 +73,17 @@ async function getUrls(recording_mbid: string, signal?: AbortSignal): Promise<re
 
 async function addMetadata<T extends MediaItem>(
     lookupItem: T,
-    strictMatch: boolean,
+    options?: AddMetadataOptions,
     signal?: AbortSignal
 ): Promise<T>;
 async function addMetadata<T extends MediaItem>(
     lookupItems: readonly T[],
-    strictMatch: boolean,
+    options?: AddMetadataOptions,
     signal?: AbortSignal
 ): Promise<readonly T[]>;
 async function addMetadata<T extends MediaItem>(
     lookup: T | readonly T[],
-    strictMatch: boolean,
+    {overWrite, strictMatch}: AddMetadataOptions = {},
     signal?: AbortSignal
 ): Promise<T | readonly T[]> {
     const requestInit: RequestInitWithTimeout = {signal, timeout: 2000};
@@ -98,7 +101,7 @@ async function addMetadata<T extends MediaItem>(
 
     for (const lookupItem of lookupItems) {
         const {recording_mbid, release_mbid, track_mbid, isrc} = lookupItem.item;
-        if (recording_mbid && release_mbid && track_mbid && isrc) {
+        if (recording_mbid && release_mbid && track_mbid && isrc && !overWrite) {
             noLookup.push(lookupItem);
         } else if (track_mbid) {
             byTrackId.push(lookupItem);
@@ -118,26 +121,32 @@ async function addMetadata<T extends MediaItem>(
         }
     }
 
-    const result = (
-        await Promise.all([
-            Promise.resolve(noLookup),
-            addMetadataByTrackId(byTrackId, requestInit),
-            addMetadataByRecordingId(byRecordingId, requestInit),
-            addMetadataByReleaseId(byReleaseId, requestInit),
-            addMetadataByISRC(byISRC, requestInit),
-            addMetadataBySearch(bySearch, requestInit),
-        ])
-    ).flat();
+    try {
+        const result = (
+            await Promise.all([
+                Promise.resolve(noLookup),
+                addMetadataByTrackId(byTrackId, overWrite, requestInit),
+                addMetadataByRecordingId(byRecordingId, overWrite, requestInit),
+                addMetadataByReleaseId(byReleaseId, overWrite, requestInit),
+                addMetadataByISRC(byISRC, overWrite, requestInit),
+                addMetadataBySearch(bySearch, overWrite, requestInit),
+            ])
+        ).flat();
 
-    const foundItems = lookupItems.map(
-        (lookupItem) => result.find((foundItem) => foundItem.index === lookupItem.index)!.item
-    );
+        const foundItems = lookupItems.map(
+            (lookupItem) => result.find((foundItem) => foundItem.index === lookupItem.index)!.item
+        );
 
-    return isArrayLookup ? foundItems : foundItems[0];
+        return isArrayLookup ? foundItems : foundItems[0];
+    } catch (err) {
+        logger.error(err);
+        return lookup;
+    }
 }
 
 async function addMetadataByTrackId<T extends MediaItem>(
     lookupItems: readonly LookupItem<T>[],
+    overWrite?: boolean,
     requestInit?: RequestInitWithTimeout
 ): Promise<readonly LookupItem<T>[]> {
     if (lookupItems.length === 0) {
@@ -164,7 +173,8 @@ async function addMetadataByTrackId<T extends MediaItem>(
             const values = addMissingValues(
                 {artist_mbids, release_mbid, recording_mbid},
                 item,
-                foundItem
+                foundItem,
+                overWrite
             );
             dispatchMediaObjectChanges<MediaItem>({
                 match: (item) => item.track_mbid === track_mbid,
@@ -179,6 +189,7 @@ async function addMetadataByTrackId<T extends MediaItem>(
 
 async function addMetadataByRecordingId<T extends MediaItem>(
     lookupItems: readonly LookupItem<T>[],
+    overWrite?: boolean,
     requestInit?: RequestInitWithTimeout
 ): Promise<readonly LookupItem<T>[]> {
     if (lookupItems.length === 0) {
@@ -207,7 +218,8 @@ async function addMetadataByRecordingId<T extends MediaItem>(
             const values = addMissingValues(
                 {artist_mbids, release_mbid, track_mbid},
                 item,
-                foundItem
+                foundItem,
+                overWrite
             );
             dispatchMediaObjectChanges<MediaItem>({
                 match: (item) => item.recording_mbid === recording_mbid,
@@ -222,6 +234,7 @@ async function addMetadataByRecordingId<T extends MediaItem>(
 
 async function addMetadataByISRC<T extends MediaItem>(
     lookupItems: readonly LookupItem<T>[],
+    overWrite?: boolean,
     requestInit?: RequestInitWithTimeout
 ): Promise<readonly LookupItem<T>[]> {
     if (lookupItems.length === 0) {
@@ -247,7 +260,8 @@ async function addMetadataByISRC<T extends MediaItem>(
             const values = addMissingValues(
                 {recording_mbid, artist_mbids, release_mbid, track_mbid},
                 item,
-                foundItem
+                foundItem,
+                overWrite
             );
             dispatchMediaObjectChanges<MediaItem>({
                 match: (item) => item.isrc === isrc,
@@ -262,6 +276,7 @@ async function addMetadataByISRC<T extends MediaItem>(
 
 async function addMetadataByReleaseId<T extends MediaItem>(
     lookupItems: readonly LookupItem<T>[],
+    overWrite?: boolean,
     requestInit?: RequestInitWithTimeout
 ): Promise<readonly LookupItem<T>[]> {
     // Can only do one album at once.
@@ -283,7 +298,8 @@ async function addMetadataByReleaseId<T extends MediaItem>(
         const values = addMissingValues(
             {recording_mbid, artist_mbids, track_mbid},
             item,
-            foundItem
+            foundItem,
+            overWrite
         );
         dispatchMediaObjectChanges<MediaItem>({
             match: (item) =>
@@ -299,6 +315,7 @@ async function addMetadataByReleaseId<T extends MediaItem>(
 
 async function addMetadataBySearch<T extends MediaItem>(
     lookupItems: readonly LookupItem<T>[],
+    overWrite?: boolean,
     requestInit?: RequestInitWithTimeout
 ): Promise<readonly LookupItem<T>[]> {
     // Can only do one item at a time.
@@ -317,7 +334,8 @@ async function addMetadataBySearch<T extends MediaItem>(
             const values = addMissingValues(
                 {recording_mbid, artist_mbids, release_mbid, track_mbid},
                 item,
-                foundItem
+                foundItem,
+                overWrite
             );
             dispatchMediaObjectChanges<MediaItem>({
                 match: (item) => item.src === src,
@@ -347,15 +365,24 @@ async function lookup<T extends MediaItem>(
 function addMissingValues(
     values: Partial<MediaItem>,
     item: MediaItem,
-    foundItem: MediaItem
+    foundItem: MediaItem,
+    overWrite: boolean | undefined
 ): Partial<MediaItem> {
-    let {duration, track, year, isrc, albumArtist} = item;
-    duration = duration || foundItem.duration;
-    track = track || foundItem.track;
-    year = year || foundItem.year;
-    isrc = isrc || foundItem.isrc;
-    albumArtist = albumArtist || foundItem.albumArtist;
-    return {...values, duration, track, year, isrc, albumArtist};
+    if (overWrite) {
+        // Prefer this metadata.
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {src, externalUrl, playedAt, duration, ...values} = foundItem;
+        (values as any).duration = duration || item.duration || 0;
+        return values;
+    } else {
+        let {duration, track, year, isrc, albumArtist} = item;
+        duration = duration || foundItem.duration;
+        track = track || foundItem.track;
+        year = year || foundItem.year;
+        isrc = isrc || foundItem.isrc;
+        albumArtist = albumArtist || foundItem.albumArtist;
+        return {...values, duration, track, year, isrc, albumArtist};
+    }
 }
 
 async function fetchJSON<T>(

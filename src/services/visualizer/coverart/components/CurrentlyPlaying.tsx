@@ -1,9 +1,11 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import ColorThief, {RGBColor} from 'colorthief';
 import {TinyColor, mostReadable} from '@ctrl/tinycolor';
+import MediaItem from 'types/MediaItem';
 import PlaylistItem from 'types/PlaylistItem';
 import {uniq} from 'utils';
-import {Artist, Thumbnail, Title} from 'components/MediaInfo/MediaInfo';
+import {getInternetRadio} from 'services/mediaServices';
+import {Thumbnail} from 'components/MediaInfo/MediaInfo';
 import ProvidedBy from 'components/MediaSources/ProvidedBy';
 import PlaybackState from 'components/Media/PlaybackState';
 import ProgressBar from 'components/Media/ProgressBar';
@@ -29,6 +31,7 @@ export default function CurrentlyPlaying({
     const [tone, setTone] = useState<'light' | 'dark'>('dark');
     const [textTone, setTextTone] = useState<'light' | 'dark'>('light');
     const [style, setStyle] = useState<React.CSSProperties>({});
+    const radioStation = getRadioStation(item);
 
     const handleThumbnailLoad = useCallback((src: string) => {
         const colorThief = new ColorThief();
@@ -110,18 +113,34 @@ export default function CurrentlyPlaying({
                             extendedSearch={!hidden || extendedThumbnailSearch}
                             onLoad={handleThumbnailLoad}
                             onError={handleThumbnailError}
-                            key={item.id}
+                            key={item.src}
                         />
                         <ProvidedBy item={item} />
                     </div>
                     <div className="currently-playing-text">
-                        <Title title={item.title} />
-                        <Artist artist={item.artists?.join(', ')} />
+                        <h3 className="title">{item.title}</h3>
+                        <h4 className="sub-title">
+                            {item.radio?.location || item.artists?.join(' ● ')}
+                        </h4>
                     </div>
+                    {radioStation ? (
+                        <div className="radio-logo">
+                            <Thumbnail item={radioStation} />
+                        </div>
+                    ) : null}
                 </>
             ) : null}
             <PlaybackState />
             {fullscreenProgress ? <ProgressBar /> : null}
         </div>
     );
+}
+
+function getRadioStation(track: PlaylistItem | null): MediaItem | undefined {
+    if (track) {
+        const [serviceId, type, id] = track.src.split(':');
+        if (serviceId === 'internet-radio' && type === 'track') {
+            return getInternetRadio()?.getStation(id);
+        }
+    }
 }

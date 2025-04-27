@@ -47,11 +47,7 @@ export async function addListen(state: PlaybackState): Promise<void> {
             throw Error('Invalid playback state');
         }
         if (isListenedTo(item.duration, state.startedAt, state.endedAt)) {
-            try {
-                item = await musicbrainzApi.addMetadata(item, true);
-            } catch (err) {
-                logger.warn(err);
-            }
+            item = await musicbrainzApi.addMetadata(item, {strictMatch: true});
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const {id, blob, ...listen} = removeUserData(item);
             logger.log('add', item.src);

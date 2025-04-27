@@ -21,9 +21,10 @@ import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
-import Pin from 'types/Pin';
+import Pin, {Pinnable} from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
+import {bestOf} from 'services/metadata';
 import {isStartupService} from 'services/buildConfig';
 import {NoMusicLibraryError, NoMusicVideoLibraryError} from 'services/errors';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
@@ -31,7 +32,6 @@ import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import {t} from 'services/i18n';
-import {bestOf} from 'utils';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout, reconnect} from './embyAuth';
 import EmbyPager from './EmbyPager';
 import embySettings from './embySettings';
@@ -511,6 +511,7 @@ const emby: PersonalMediaService = {
     },
     addMetadata,
     addToPlaylist,
+    canPin,
     canStore,
     compareForRating,
     createPlaylist,
@@ -532,6 +533,10 @@ const emby: PersonalMediaService = {
 };
 
 export default emby;
+
+function canPin(item: MediaObject): boolean {
+    return item.itemType === ItemType.Playlist;
+}
 
 function canStore<T extends MediaObject>(item: T): boolean {
     switch (item.itemType) {
@@ -572,10 +577,13 @@ async function createPlaylist<T extends MediaItem>(
     };
 }
 
-function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
+function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
+    if (pin.itemType !== ItemType.Playlist) {
+        throw Error('Unsupported Pin type.');
+    }
     return {
         title: pin.title,
-        itemType: ItemType.Playlist,
+        itemType: pin.itemType,
         layout: {
             view: 'card',
             fields: ['Thumbnail', 'PlaylistTitle', 'TrackCount', 'Genre', 'Progress'],
@@ -584,7 +592,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
         icon: 'pin',
         isPin: true,
 
-        search(): Pager<MediaPlaylist> {
+        search(): Pager<T> {
             return createItemsPager({
                 ids: getIdFromSrc(pin),
                 IncludeItemTypes: 'Playlist',

@@ -32,6 +32,7 @@ export default class HTML5Player implements Player<PlayableItem> {
     protected readonly error$ = new Subject<unknown>();
     protected hasWaited = false;
     protected loadedSrc = '';
+    protected stopped = false;
     autoplay = false;
     #muted = true;
     #volume = 1;
@@ -164,7 +165,9 @@ export default class HTML5Player implements Player<PlayableItem> {
                 fromEvent(element, 'timeupdate').pipe(
                     startWith(element),
                     map(() => element.currentTime),
-                    map((currentTime) => (isFinite(currentTime) ? currentTime : 0))
+                    map((currentTime) =>
+                        this.stopped ? 0 : isFinite(currentTime) ? currentTime : 0
+                    )
                 )
             )
         );
@@ -177,13 +180,12 @@ export default class HTML5Player implements Player<PlayableItem> {
                     startWith(element),
                     map(() => element.duration),
                     map((duration) =>
-                        isNaN(duration)
+                        this.isInfiniteStream
+                            ? MAX_DURATION
+                            : isNaN(duration)
                             ? this.item?.duration || 0
-                            : isFinite(duration)
-                            ? duration
-                            : this.item?.duration || MAX_DURATION
-                    ),
-                    skipWhile((duration) => !duration)
+                            : duration
+                    )
                 )
             )
         );
@@ -192,6 +194,12 @@ export default class HTML5Player implements Player<PlayableItem> {
     observeEnded(): Observable<void> {
         return this.element$.pipe(
             switchMap((element) => fromEvent(element, 'ended')),
+            tap(() => {
+                if (this.isInfiniteStream) {
+                    this.logger.warn('Ended event for infinite stream.');
+                }
+            }),
+            filter(() => !this.isInfiniteStream),
             map(() => undefined)
         );
     }
@@ -210,6 +218,9 @@ export default class HTML5Player implements Player<PlayableItem> {
 
     load(item: PlayableItem): void {
         this.logger.log('load', item.src);
+        if (this.autoplay) {
+            this.stopped = false;
+        }
         this.item$.next(item);
         this.paused$.next(!this.autoplay);
         if (item.src === this.loadedSrc) {
@@ -219,6 +230,7 @@ export default class HTML5Player implements Player<PlayableItem> {
 
     play(): void {
         this.logger.log('play');
+        this.stopped = false;
         this.paused$.next(false);
         if (this.src === this.loadedSrc) {
             this.safePlay();
@@ -228,11 +240,12 @@ export default class HTML5Player implements Player<PlayableItem> {
     pause(): void {
         this.logger.log('pause');
         this.paused$.next(true);
-        this.element.pause();
+        this.safePause();
     }
 
     stop(): void {
         this.logger.log('stop');
+        this.stopped = true;
         this.paused$.next(true);
         if (this.item?.startTime) {
             this.item$.next({...this.item, startTime: 0});
@@ -253,6 +266,12 @@ export default class HTML5Player implements Player<PlayableItem> {
 
     protected get element(): HTMLMediaElement {
         return this.element$.value;
+    }
+
+    protected get isInfiniteStream(): boolean {
+        return (
+            this.element.duration === Infinity || this.src?.startsWith('internet-radio:') || false
+        );
     }
 
     protected get paused(): boolean {
@@ -310,6 +329,10 @@ export default class HTML5Player implements Player<PlayableItem> {
         }
     }
 
+    protected safePause(): void {
+        this.element.pause();
+    }
+
     protected async safePlay(): Promise<void> {
         try {
             if (this.element.paused) {
@@ -338,7 +361,7 @@ export default class HTML5Player implements Player<PlayableItem> {
             this.element.pause();
             this.element.load();
         } catch (err) {
-            this.logger.error(err);
+            this.logger.warn(err);
         }
     }
 

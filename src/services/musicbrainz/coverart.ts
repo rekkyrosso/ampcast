@@ -39,7 +39,7 @@ export async function getCoverArtThumbnails(
     let hasMbidRecord = false;
     let mbid = item.caa_mbid || item.release_mbid;
     if (!mbid && extendedSearch && item.itemType === ItemType.Media) {
-        item = await musicbrainzApi.addMetadata(item, false, signal);
+        item = await musicbrainzApi.addMetadata(item, {strictMatch: false}, signal);
         mbid = item.release_mbid;
     }
     if (mbid) {

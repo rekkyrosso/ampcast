@@ -11,7 +11,7 @@ export type InterstitialState = 'show' | 'hide' | 'fade-out';
 
 export default function useInterstitialState(): InterstitialState {
     const [state, setState] = useState<InterstitialState>('show');
-    const {paused, currentItem, currentTime} = usePlaybackState();
+    const {paused, currentItem, currentTime, startedAt} = usePlaybackState();
     const {provider} = useVisualizerSettings();
     const iframe =
         currentItem?.playbackType === PlaybackType.IFrame
@@ -21,7 +21,7 @@ export default function useInterstitialState(): InterstitialState {
         currentItem?.mediaType === MediaType.Video || (provider !== 'none' && iframe?.showContent);
     const visualizerProvider = useCurrentVisualizer()?.providerId || 'none';
     const [isNewItem, setIsNewItem] = useState(true);
-    const playbackStarted = currentTime >= 1;
+    const playbackStarted = currentTime >= 1 && Date.now() - startedAt >= 1000;
     const miniPlayerActive = useMiniPlayerActive();
 
     useEffect(() => {

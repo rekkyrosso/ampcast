@@ -6,6 +6,7 @@ import ampache from 'services/ampache';
 import apple from 'services/apple';
 import emby from 'services/emby';
 import gonic from 'services/gonic';
+// import internetRadio from 'services/internet-radio';
 import jellyfin from 'services/jellyfin';
 import lastfm from 'services/lastfm';
 import listenbrainz from 'services/listenbrainz';
@@ -32,6 +33,7 @@ const allServices: readonly MediaService[] = [
     plex,
     soundcloud,
     subsonic,
+    // internetRadio,
     youtube,
     lastfm,
     listenbrainz,

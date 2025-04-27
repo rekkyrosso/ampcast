@@ -58,7 +58,7 @@ export default class HLSPlayer extends HTML5Player {
         if (this.player) {
             return;
         }
-        this.player = new Hls();
+        this.player = new Hls({autoStartLoad: false});
         this.player.on(Hls.Events.ERROR, (_, error) => {
             if (error.fatal) {
                 this.player?.destroy();
@@ -76,19 +76,12 @@ export default class HLSPlayer extends HTML5Player {
         if (this.hasNativeSupport) {
             return super.loadAndPlay(item);
         }
-        if (this.player) {
-            if (this.loadedSrc !== item.src) {
-                const mediaSrc = this.getMediaSrc(item);
-                this.player.stopLoad();
-                this.player.detachMedia();
-                this.element.removeAttribute('src');
-                this.loadedSrc = '';
-                this.player.loadSource(mediaSrc);
-                this.player.attachMedia(this.element);
-                this.loadedSrc = item.src;
+
+        if (this.loadedSrc !== item.src) {
+            this.setMediaSrc(item);
+            if (!this.paused) {
+                this.player!.startLoad(item.startTime || 0);
             }
-        } else {
-            throw Error('HLS player not loaded');
         }
 
         if (!this.paused && this.element.paused) {
@@ -104,12 +97,62 @@ export default class HLSPlayer extends HTML5Player {
         }
     }
 
+    protected safePause(): void {
+        if (this.hasNativeSupport) {
+            super.safePause();
+        } else {
+            try {
+                this.element.pause();
+                this.player?.stopLoad();
+            } catch (err) {
+                this.logger.warn(err);
+            }
+        }
+    }
+
+    protected async safePlay(): Promise<void> {
+        if (this.hasNativeSupport) {
+            super.safePlay();
+        } else {
+            try {
+                this.player?.startLoad();
+                super.safePlay();
+            } catch (err) {
+                if (!this.paused) {
+                    this.error$.next(err);
+                }
+            }
+        }
+    }
+
     protected safeStop(): void {
         if (this.hasNativeSupport) {
             super.safeStop();
         } else {
-            this.element.pause();
-            this.element.currentTime = 0;
+            try {
+                this.element.pause();
+                this.element.currentTime = 0;
+                if (this.item) {
+                    this.setMediaSrc(this.item);
+                }
+            } catch (err) {
+                this.logger.warn(err);
+            }
+        }
+    }
+
+    private setMediaSrc(item: PlayableItem): void {
+        if (this.player) {
+            const mediaSrc = this.getMediaSrc(item);
+            this.player.stopLoad();
+            this.player.detachMedia();
+            this.element.removeAttribute('src');
+            this.loadedSrc = '';
+            this.player.loadSource(mediaSrc);
+            this.player.attachMedia(this.element);
+            this.loadedSrc = item.src;
+        } else {
+            throw Error('HLS player not loaded');
         }
     }
 

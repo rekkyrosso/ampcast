@@ -17,6 +17,7 @@ import {
 } from 'rxjs';
 import Browsable from 'types/Browsable';
 import DataService from 'types/DataService';
+import InternetRadio from 'types/InternetRadio';
 import MediaService from 'types/MediaService';
 import MediaServiceId from 'types/MediaServiceId';
 import PersonalMediaService from 'types/PersonalMediaService';
@@ -39,6 +40,7 @@ const playabilityByServiceId: Record<
     file: true,
     http: true,
     https: true,
+    'internet-radio': true,
     mixcloud: true,
     soundcloud: true,
     youtube: true,
@@ -66,6 +68,15 @@ export function observeMediaServices(): Observable<readonly MediaService[]> {
 export function observeEnabledServices(): Observable<readonly MediaService[]> {
     return observeMediaServices().pipe(
         map((services) => services.filter((service) => !isServiceDisabled(service)))
+    );
+}
+
+export function observeInternetRadio(): Observable<InternetRadio | undefined> {
+    return observeMediaServices().pipe(
+        map((services) =>
+            services.find((service): service is InternetRadio => service.id === 'internet-radio')
+        ),
+        distinctUntilChanged()
     );
 }
 
@@ -150,8 +161,12 @@ export function getScrobblers(): readonly DataService[] {
     return getDataServices().filter((service) => service.canScrobble);
 }
 
-export function getService(serviceId: string): MediaService | undefined {
-    return getServices().find((service) => service.id === serviceId);
+export function getService<T extends MediaService>(serviceId: string): T | undefined {
+    return getServices().find<T>((service): service is T => service.id === serviceId);
+}
+
+export function getInternetRadio(): InternetRadio | undefined {
+    return getService('internet-radio');
 }
 
 export function getServiceFromSrc({src}: {src?: string} = {}): MediaService | undefined {
@@ -181,7 +196,11 @@ export function isPlayableSrc(src: string, immediate?: boolean): boolean {
             return false;
         }
         if (playableNow) {
-            return /^(blob|file|https?)$/.test(serviceId) ? true : !!(type && id);
+            if (serviceId === 'internet-radio') {
+                return type === 'station';
+            } else {
+                return /^(blob|file|https?)$/.test(serviceId) ? true : !!(type && id);
+            }
         }
         // Playable service.
         if (type && id) {

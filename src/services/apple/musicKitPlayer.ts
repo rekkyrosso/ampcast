@@ -31,6 +31,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     private readonly error$ = new Subject<unknown>();
     private readonly element: HTMLElement;
     private readonly item$ = new BehaviorSubject<PlayableItem | null>(null);
+    private loadedSrc = '';
     private hasWaited = false;
     private ended = false;
     private loading = false;
@@ -52,11 +53,12 @@ export class MusicKitPlayer implements Player<PlayableItem> {
             .pipe(
                 switchMap((paused) => (paused ? EMPTY : this.observeItem())),
                 switchMap((item) => {
-                    if (item && !this.isLoadedSrc(item.src)) {
+                    if (item && item.src !== this.loadedSrc) {
                         return of(undefined).pipe(
                             mergeMap(() => this.loadAndPlay(item)),
                             catchError((error) => {
                                 this.skipping = false;
+                                this.loadedSrc = '';
                                 this.error$.next(error);
                                 return EMPTY;
                             }),
@@ -147,7 +149,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         }
         this.item$.next(item);
         this.paused$.next(!this.autoplay);
-        if (this.isLoadedSrc(item.src)) {
+        if (item.src === this.loadedSrc) {
             this.safeReload(item);
         }
     }
@@ -167,7 +169,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         logger.log('play');
         this.stopped = false;
         this.paused$.next(false);
-        if (this.isLoadedSrc(this.src)) {
+        if (this.src === this.loadedSrc) {
             this.safePlay();
         }
     }
@@ -284,6 +286,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
             const queueItem = this.getQueueItem(item);
             await player.setQueue({...queueItem, startTime, startPlaying: true});
         }
+        this.loadedSrc = item.src;
         this.loading = false;
 
         try {
@@ -314,15 +317,6 @@ export class MusicKitPlayer implements Player<PlayableItem> {
             .replace(/-([a-z])/g, (_, char) => char.toUpperCase());
 
         return {[kind]: id};
-    }
-
-    private isLoadedSrc(src: string | undefined): boolean {
-        if (this.player && src) {
-            const [, , id] = src.split(':');
-            const {items, position} = this.player.queue;
-            return items[position]?.id === id;
-        }
-        return false;
     }
 
     private async safePause(): Promise<void> {
@@ -401,6 +395,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         try {
             await this.safeStop();
             await this.player?.setQueue({});
+            this.loadedSrc = '';
         } catch (err) {
             logger.error(err);
         }

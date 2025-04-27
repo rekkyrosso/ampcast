@@ -27,7 +27,11 @@ export default function MediaInfo<T extends MediaObject>(props: MediaInfoProps<T
 
     switch (item.itemType) {
         case ItemType.Media:
-            return <MediaItemInfo item={item} />;
+            if (item.radio) {
+                return <RadioInfo item={item} />;
+            } else {
+                return <MediaItemInfo item={item} />;
+            }
 
         case ItemType.Artist:
             return <ArtistInfo item={item} />;
@@ -49,7 +53,7 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
             <div className="media-info-main">
                 <Thumbnail item={item} extendedSearch />
                 <Title title={item.title} />
-                <Artist artist={item.artists?.join(', ')} />
+                <Artist artist={item.artists?.join('; ')} />
                 <AlbumAndYear album={item.album} year={item.year} />
                 <Track album={item.album} disc={item.disc} track={item.track} />
                 <Owner owner={item.owner} src={item.src} />
@@ -127,6 +131,30 @@ function FolderInfo({item: folder}: MediaInfoProps<MediaFolder>) {
                 <Thumbnail item={folder} />
                 <Title title={folder.title} />
             </div>
+        </article>
+    );
+}
+
+function RadioInfo({item}: MediaInfoProps<MediaItem>) {
+    return (
+        <article className="media-info radio-info">
+            <div className="media-info-main">
+                <Thumbnail item={item} />
+                <Title title={item.title} />
+                {item.radio?.location ? (
+                    <p className="location">Location: {item.radio.location}</p>
+                ) : null}
+                <Genre genres={item.genres} />
+                <div className="media-info-icon-bar">
+                    <Actions item={item} />
+                </div>
+            </div>
+            <Blurb description={item.description} />
+            {item.externalUrl ? (
+                <p className="external-view">
+                    <ExternalLink href={item.externalUrl} />
+                </p>
+            ) : null}
         </article>
     );
 }

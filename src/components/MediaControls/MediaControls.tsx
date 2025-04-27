@@ -25,7 +25,7 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
     const currentIndex = useObservable(observeCurrentIndex, -1);
     const currentTime = useObservable(observeCurrentTime, 0);
     const duration = useObservable(observeDuration, 0);
-    const isLiveStreaming = duration === MAX_DURATION;
+    const isInfiniteStream = duration === MAX_DURATION;
     const paused = usePaused();
     const {showPlaylistMenu} = usePlaylistMenu(playlistRef, fileRef);
     const inject = usePlaylistInject();
@@ -38,13 +38,13 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
                 .pipe(skip(1))
                 .subscribe(
                     (currentTime) =>
-                        (playheadRef.current!.valueAsNumber = isLiveStreaming
+                        (playheadRef.current!.valueAsNumber = isInfiniteStream
                             ? currentTime && 1
                             : currentTime)
                 );
             return () => subscription.unsubscribe();
         }
-    }, [isLiveStreaming, seeking]);
+    }, [isInfiniteStream, seeking]);
 
     useEffect(() => {
         if (seekTime !== -1) {
@@ -103,10 +103,10 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
                     type="range"
                     aria-label="Seek"
                     min={0}
-                    max={isLiveStreaming ? 1 : duration}
+                    max={isInfiniteStream ? 1 : duration}
                     step={1}
                     defaultValue={0}
-                    disabled={paused || isLiveStreaming}
+                    disabled={paused || isInfiniteStream}
                     onChange={handleSeekChange}
                     onMouseUp={stopSeeking}
                     onKeyUp={stopSeeking}
@@ -125,6 +125,7 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
                         aria-label={paused ? 'Play' : 'Pause'}
                         icon={paused ? 'play' : 'pause'}
                         onClick={paused ? play : pause}
+                        disabled={isInfiniteStream && !paused}
                     />
                     <MediaButton aria-label="Stop" icon="stop" onClick={stop} />
                     <MediaButton aria-label="Next track" icon="next" onClick={handleNextClick} />

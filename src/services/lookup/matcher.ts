@@ -1,45 +1,31 @@
 import stringScore from 'string-score';
 import unidecode from 'unidecode';
 import MediaItem from 'types/MediaItem';
-import {getServiceFromSrc, isPersonalMediaService} from 'services/mediaServices';
 import {filterNotEmpty} from 'utils';
-import lookupSettings from './lookupSettings';
 
 const regFeaturedArtists = /\s*[\s[({](with\s|featuring\s|feat[\s.]+|ft[\s.]+).+$/i;
 
 // Finds the best match in a list of media items.
 // It will reject anything that is not a "good" match.
-// It's better to return nothing than the wrong track. 
+// It's better to return nothing than the wrong track.
 // TODO: This is too slow for a large amount of items.
 export function findBestMatch<T extends MediaItem>(
     items: readonly MediaItem[],
     item: T,
     isrcs: readonly string[] = [],
-    preferredServiceId?: string
+    strict?: boolean
 ): MediaItem | undefined {
     const {artist, title} = getArtistAndTitle(item);
     if (!artist || !title) {
         return;
     }
-    let matches = findMatches(items, item, isrcs);
-    if (lookupSettings.preferPersonalMedia) {
-        matches = filterNotEmpty(matches, (match) => {
-            const service = getServiceFromSrc(match);
-            return service ? isPersonalMediaService(service) : false;
-        });
-    }
-    if (preferredServiceId) {
-        matches = filterNotEmpty(matches, (match) =>
-            match.src.startsWith(`${preferredServiceId}:`)
-        );
-    }
-    return matches[0];
+    return filterMatches(items, item, isrcs, strict)[0];
 }
 
-export function findMatches<T extends MediaItem>(
+export function filterMatches<T extends MediaItem>(
     items: readonly MediaItem[],
     item: T,
-    isrcs: readonly string[],
+    isrcs: readonly string[] = [],
     strict?: boolean
 ): MediaItem[] {
     let matches: MediaItem[] = [];
@@ -120,6 +106,14 @@ function compareArtist<T extends MediaItem>(match: MediaItem, item: T, strict: b
     if (compareString(normalize(artist), normalize(matchedArtist))) {
         return true;
     }
+    if (
+        compareString(
+            normalizeReversedNameWithComma(artist),
+            normalizeReversedNameWithComma(matchedArtist)
+        )
+    ) {
+        return true;
+    }
     if (compareString(removeFeaturedArtists(artist), removeFeaturedArtists(matchedArtist))) {
         return true;
     }
@@ -145,7 +139,9 @@ function compareMultiArtist<T extends MediaItem>(match: MediaItem, item: T): boo
     if (matchedArtists.length > 1 || artists.length > 1) {
         return (
             artists.filter((artist) =>
-                matchedArtists.find((match) => compareString(normalize(artist), normalize(match)))
+                matchedArtists.find((match) =>
+                    compareString(normalize(artist, true), normalize(match, true))
+                )
             ).length > 0
         );
     }
@@ -164,7 +160,10 @@ function compareBracketedArtist<T extends MediaItem>(match: MediaItem, item: T):
 }
 
 function splitArtists(artists: readonly string[]): readonly string[] {
-    return artists.join('|').split(/\s*[,;&|/x×]\s*/);
+    return artists
+        .join(';')
+        .replace(/;+/g, ';')
+        .split(/\s*[,;&/x×]\s*/);
 }
 
 function compareTitle<T extends MediaItem>(match: MediaItem, item: T, strict: boolean): boolean {
@@ -303,9 +302,20 @@ function stringIncludes(a: string, b = ''): boolean {
 function normalize(string: string, removeSymbols?: boolean): string {
     let result = unidecode(string).replace(/\s\s+/g, ' ').trim();
     if (removeSymbols) {
-        result = result.replace(/[^\w\s]/g, '');
+        result = result.replace(/[^\w\s]/g, '').trim();
     }
     return result;
+}
+
+// "Bowie, David" => "David Bowie"
+// "Beatles, The" => "The Beatles"
+function normalizeReversedNameWithComma(string: string): string {
+    string = normalize(string);
+    const [lastName, firstName, ...rest] = string.split(/\s*,\s*/);
+    if (firstName && lastName && rest.length === 0) {
+        return `${firstName} ${lastName}`;
+    }
+    return string;
 }
 
 export function getArtistAndTitle<T extends MediaItem>(item: T): {artist: string; title: string} {

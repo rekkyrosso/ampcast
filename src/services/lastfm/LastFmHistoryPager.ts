@@ -11,7 +11,11 @@ export interface LastFmHistoryPagerParams {
 }
 
 export default class LastFmHistoryPager extends LastFmPager<MediaItem> {
-    constructor(params?: LastFmHistoryPagerParams, config?: LastFmPagerConfig) {
+    constructor(
+        type: 'listens' | 'now-playing',
+        params?: LastFmHistoryPagerParams,
+        config?: LastFmPagerConfig
+    ) {
         super(
             {
                 ...params,
@@ -20,20 +24,25 @@ export default class LastFmHistoryPager extends LastFmPager<MediaItem> {
                 user: lastfmSettings.userId,
             },
             ({recenttracks}: any) => {
+                const isNowPlaying = type === 'now-playing';
                 const attr = recenttracks['@attr'] || {};
                 const track = recenttracks.track;
-                const items = track ? (Array.isArray(track) ? track : [track]) : [];
-                const containsNowPlaying = items[0]?.['@attr']?.['nowplaying'] === 'true';
+                let items = track ? (Array.isArray(track) ? track : [track]) : [];
                 const page = Number(attr.page) || 1;
                 const totalPages = Number(attr.totalPages) || 1;
-                const atEnd = totalPages === 1 || page === totalPages;
+                const atEnd = isNowPlaying || totalPages === 1 || page === totalPages;
                 const total = Number(attr.total) || undefined;
-                if (containsNowPlaying) {
-                    items.shift();
+                if (isNowPlaying) {
+                    const item = items.find((item) => item['@attr']?.nowplaying);
+                    items = item ? [item] : [];
+                } else {
+                    while (items[0]?.['@attr']?.nowplaying) {
+                        items.shift();
+                    }
                 }
                 return {items, total, atEnd, itemType: ItemType.Media};
             },
-            config
+            {pageSize: type === 'now-playing' ? 1 : 50, ...config}
         );
     }
 }

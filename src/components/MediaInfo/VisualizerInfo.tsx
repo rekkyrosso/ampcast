@@ -91,8 +91,8 @@ function ToggleFavorite({visualizer}: {visualizer: Visualizer}) {
                 icon={isFavorite ? 'tick-fill' : 'plus'}
                 title={
                     isFavorite
-                        ? t('Remove from favorite visualizers')
-                        : t('Add to favorite visualizers')
+                        ? t('Remove from Favorite Visualizers')
+                        : t('Add to Favorite Visualizers')
                 }
                 onClick={handleClick}
             />

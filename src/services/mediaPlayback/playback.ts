@@ -4,6 +4,7 @@ import {nanoid} from 'nanoid';
 import PlaylistItem from 'types/PlaylistItem';
 import Playback from 'types/Playback';
 import PlaybackState from 'types/PlaybackState';
+import {MAX_DURATION} from 'services/constants';
 import miniPlayer from './miniPlayer';
 import defaultPlaybackState from './defaultPlaybackState';
 
@@ -81,22 +82,35 @@ function getCurrentItem(): PlaylistItem | null {
     return miniPlayer.active ? miniPlayer.currentItem : playbackState$.value.currentItem;
 }
 
-function setCurrentItem(currentItem: PlaylistItem | null): void {
+function setCurrentItem(nextItem: PlaylistItem | null): void {
     const state = playbackState$.value;
-    if (currentItem !== state.currentItem) {
-        if (currentItem?.id === state.currentItem?.id) {
-            // Refresh the item, but no play states have changed.
-            playbackState$.next({...state, currentItem});
+    const prevItem = state.currentItem;
+    if (nextItem !== prevItem) {
+        if (nextItem?.id === prevItem?.id) {
+            // Same `PlaylistItem`, but some of its properties have changed.
+            playbackState$.next({...state, currentItem: nextItem});
         } else {
+            // New `PlaylistItem`, so start a new session.
+            const isRadioItem = (item: PlaylistItem | null): boolean =>
+                !!item?.src.startsWith('internet-radio:');
+            const [prevServiceId, , prevStationId] = prevItem?.src.split(':') || [];
+            const [nextServiceId, , nextStationId] = nextItem?.src.split(':') || [];
+            const isSameRadio =
+                prevServiceId === 'internet-radio' &&
+                nextServiceId === 'internet-radio' &&
+                prevStationId === nextStationId;
+            // Playback session end.
             if (state.startedAt && !state.endedAt) {
                 playbackState$.next({...state, endedAt: Date.now()});
             }
+            // Playback session start.
             playbackState$.next({
                 ...state,
                 ...newSession(),
-                currentItem,
-                currentTime: currentItem?.startTime || 0,
-                duration: currentItem?.duration || 0,
+                startedAt: isSameRadio && !state.paused ? Date.now() : 0,
+                currentItem: nextItem,
+                currentTime: isSameRadio ? state.currentTime : nextItem?.startTime || 0,
+                duration: isRadioItem(nextItem) ? MAX_DURATION : nextItem?.duration || 0,
             });
         }
     }

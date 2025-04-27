@@ -20,7 +20,7 @@ import Pager, {Page, PagerConfig} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
 import PlayableItem from 'types/PlayableItem';
-import Pin from 'types/Pin';
+import Pin, {Pinnable} from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import {getTextFromHtml, Logger} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
@@ -503,6 +503,10 @@ export default class SubsonicService implements PersonalMediaService {
         );
     }
 
+    canPin(item: MediaObject): boolean {
+        return item.itemType === ItemType.Playlist;
+    }
+
     canRate(): boolean {
         return false;
     }
@@ -546,12 +550,15 @@ export default class SubsonicService implements PersonalMediaService {
         };
     }
 
-    createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
+    createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
+        if (pin.itemType !== ItemType.Playlist) {
+            throw Error('Unsupported Pin type.');
+        }
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const service = this;
         return {
             title: pin.title,
-            itemType: ItemType.Playlist,
+            itemType: pin.itemType,
             layout: {
                 view: 'card',
                 fields: ['Thumbnail', 'PlaylistTitle', 'TrackCount', 'Blurb', 'Progress'],
@@ -560,7 +567,7 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'pin',
             isPin: true,
 
-            search(): Pager<MediaPlaylist> {
+            search(): Pager<T> {
                 const id = service.getIdFromSrc(pin);
                 return new SubsonicPager(
                     service,

@@ -3,7 +3,7 @@ import ServiceType from 'types/ServiceType';
 import noAuth from 'services/mediaServices/noAuth';
 
 const soundcloud: PublicMediaService = {
-    ...noAuth,
+    ...noAuth(false),
     id: 'soundcloud',
     name: 'SoundCloud',
     icon: 'soundcloud',

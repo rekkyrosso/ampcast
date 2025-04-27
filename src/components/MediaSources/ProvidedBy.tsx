@@ -1,20 +1,24 @@
-import React, {useEffect, useState} from 'react';
-import PlaylistItem from 'types/PlaylistItem';
-import {getServiceFromSrc, isPublicMediaService} from 'services/mediaServices';
+import React from 'react';
+import MediaItem from 'types/MediaItem';
+import {isPublicMediaService} from 'services/mediaServices';
 import MediaSourceLabel from './MediaSourceLabel';
-import MediaService from 'types/MediaService';
 import useMediaServices from 'hooks/useMediaServices';
 
-export default function ProvidedBy({item}: {item: PlaylistItem}) {
+export default function ProvidedBy({item}: {item: MediaItem | null}) {
     const services = useMediaServices();
-    const [service, setService] = useState<MediaService | undefined>();
+    const [serviceId = '', type] = item?.src.split(':') || [];
+    const service = services.find((service) => service.id === serviceId);
 
-    useEffect(() => {
-        const service = getServiceFromSrc(item);
-        setService(service);
-    }, [services, item]);
-
-    return service && isPublicMediaService(service) ? (
-        <MediaSourceLabel icon={service.icon} text={`Provided by ${service.name}`} />
-    ) : null;
+    if (item && service && isPublicMediaService(service)) {
+        let text = `Provided by ${service.name}`;
+        if (serviceId === 'internet-radio') {
+            if (type === 'station') {
+                return null;
+            }
+            text = item.stationName || '';
+        }
+        return <MediaSourceLabel className="provided-by" icon={service.icon} text={text} />;
+    } else {
+        return null;
+    }
 }

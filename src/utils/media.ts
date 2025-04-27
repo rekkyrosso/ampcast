@@ -7,6 +7,7 @@ import MediaItem from 'types/MediaItem';
 import Player from 'types/Player';
 import UserData from 'types/UserData';
 import browser from './browser';
+import {getContentType} from './fetch';
 
 export function observeBeforeEndOfTrack(
     player: Player<any>,
@@ -26,6 +27,7 @@ const userDataKeys: (keyof UserData | keyof ListenData | 'lookupStatus' | 'start
     'playCount',
     'globalPlayCount',
     'inLibrary',
+    'isPinned',
     'lastfmScrobbledAt',
     'listenbrainzScrobbledAt',
     'sessionId',
@@ -133,4 +135,11 @@ export function canPlayMedia(type: 'audio' | 'video', src: string): Promise<bool
             resolveFalse();
         }
     });
+}
+
+export async function isHlsMedia(url: string): Promise<boolean> {
+    const contentType = (await getContentType(url)).toLowerCase();
+    return (
+        contentType === 'application/x-mpegurl' || contentType === 'application/vnd.apple.mpegurl'
+    );
 }

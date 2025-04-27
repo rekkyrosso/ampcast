@@ -55,6 +55,6 @@ function useTitle(item: MediaObject): string {
             return 'Folder info';
 
         default:
-            return 'Media info';
+            return item.src.startsWith('internet-radio:station:') ? 'Radio Info' : 'Media info';
     }
 }

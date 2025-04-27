@@ -6,9 +6,13 @@ import {
     distinctUntilChanged,
     filter,
     map,
+    merge,
     mergeMap,
+    of,
     skip,
+    switchMap,
     tap,
+    timer,
 } from 'rxjs';
 import {get as dbRead, set as dbWrite, createStore} from 'idb-keyval';
 import {nanoid} from 'nanoid';
@@ -19,7 +23,8 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import Playlist, {PlayableType} from 'types/Playlist';
 import PlaylistItem from 'types/PlaylistItem';
 import LookupStatus from 'types/LookupStatus';
-import {bestOf, exists, isMiniPlayer, removeUserData, shuffle as shuffleArray, Logger} from 'utils';
+import {exists, isMiniPlayer, removeUserData, shuffle as shuffleArray, Logger} from 'utils';
+import {bestOf} from 'services/metadata';
 import {
     LookupStartEvent,
     LookupEndEvent,
@@ -30,6 +35,7 @@ import {
 } from 'services/lookup';
 import {observeMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import fetchAllTracks from 'services/pagers/fetchAllTracks';
+import {observeInternetRadio} from 'services/mediaServices';
 
 const logger = new Logger('playlist');
 
@@ -40,6 +46,8 @@ const playlistStore = createStore('ampcast/playlist', 'keyval');
 const UNINITIALIZED: PlaylistItem[] = [];
 const items$ = new BehaviorSubject<PlaylistItem[]>(UNINITIALIZED);
 const currentItemId$ = new BehaviorSubject('');
+const currentTrack$ = new BehaviorSubject<PlaylistItem | null>(null);
+const nextTrack$ = new BehaviorSubject<PlaylistItem | null>(null);
 
 export function getItems(): PlaylistItem[] {
     return items$.value;
@@ -77,6 +85,10 @@ export function getCurrentItem(): PlaylistItem | null {
     return items.find((item) => item.id === currentItemId) || null;
 }
 
+export function getCurrentTrack(): PlaylistItem | null {
+    return currentTrack$.value;
+}
+
 export function setCurrentItem(item: PlaylistItem | null): void {
     setCurrentItemId(item?.id || '');
 }
@@ -88,10 +100,22 @@ export function observeCurrentItem(): Observable<PlaylistItem | null> {
     );
 }
 
+export function observeCurrentTrack(): Observable<PlaylistItem | null> {
+    return currentTrack$;
+}
+
 export function getNextItem(): PlaylistItem | null {
     const items = getItems();
     const index = getCurrentIndex();
     return items[index + 1] || null;
+}
+
+export function getNextTrack(): PlaylistItem | null {
+    return nextTrack$.value;
+}
+
+export function observeNextTrack(): Observable<PlaylistItem | null> {
+    return nextTrack$;
 }
 
 export function observeNextItem(): Observable<PlaylistItem | null> {
@@ -318,13 +342,17 @@ const playlist: Playlist = {
     observe,
     observeCurrentIndex,
     observeCurrentItem,
+    observeCurrentTrack,
     observeNextItem,
+    observeNextTrack,
     observeSize,
     getCurrentIndex,
     setCurrentIndex,
     getCurrentItem,
     setCurrentItem,
+    getCurrentTrack,
     getNextItem,
+    getNextTrack,
     getItems,
     setItems,
     add,
@@ -347,6 +375,7 @@ if (isMiniPlayer) {
     setCurrentItemId('');
     setItems([]);
 } else {
+    // Load playlist.
     (async () => {
         try {
             const [items = [], id = ''] = await Promise.all([
@@ -362,6 +391,7 @@ if (isMiniPlayer) {
         }
     })();
 
+    // Save playlist to `localStorage`.
     items$
         .pipe(
             skip(2),
@@ -380,6 +410,7 @@ if (isMiniPlayer) {
         )
         .subscribe(logger);
 
+    // Save "currently playing" to `localStorage`.
     currentItemId$
         .pipe(
             skip(2),
@@ -387,6 +418,9 @@ if (isMiniPlayer) {
             mergeMap((id) => safeWrite('currently-playing-id', id))
         )
         .subscribe(logger);
+
+    // Observe "lookup" events.
+    // For last.fm/ListenBrainz.
 
     observeLookupStartEvents()
         .pipe(
@@ -431,6 +465,7 @@ if (isMiniPlayer) {
         )
         .subscribe(logger);
 
+    // Update playlist items with metadata changes.
     observeMediaObjectChanges<MediaItem>()
         .pipe(
             tap((changes) => {
@@ -451,6 +486,71 @@ if (isMiniPlayer) {
                     setItems(items);
                 }
             })
+        )
+        .subscribe(logger);
+
+    // Set the current track (Internet Radio).
+    observeInternetRadio()
+        .pipe(
+            switchMap((internetRadio) =>
+                internetRadio
+                    ? observeCurrentItem().pipe(
+                          switchMap((item) =>
+                              item?.src.startsWith('internet-radio:')
+                                  ? merge(
+                                        internetRadio.observeNowPlaying(),
+                                        timer(0, 5000).pipe(
+                                            mergeMap(() => internetRadio.getNowPlaying())
+                                        )
+                                    ).pipe(
+                                        map((nowPlaying) => {
+                                            const justStarted =
+                                                Date.now() - nowPlaying.startedAt < 10_000;
+                                            const endsSoon = nowPlaying.endsAt
+                                                ? nowPlaying.endsAt - Date.now() < 5_000
+                                                : false;
+                                            return justStarted || endsSoon
+                                                ? item
+                                                : nowPlaying.item || item;
+                                        })
+                                    )
+                                  : of(item)
+                          )
+                      )
+                    : observeCurrentItem()
+            ),
+            distinctUntilChanged(),
+            tap(currentTrack$)
+        )
+        .subscribe(logger);
+
+    // Set the next track (Internet Radio).
+    observeInternetRadio()
+        .pipe(
+            switchMap((internetRadio) =>
+                internetRadio
+                    ? observeCurrentItem().pipe(
+                          switchMap((item) =>
+                              item?.src.startsWith('internet-radio:')
+                                  ? merge(
+                                        internetRadio.observeNowPlaying(),
+                                        timer(0, 5000).pipe(
+                                            mergeMap(() => internetRadio.getNowPlaying())
+                                        )
+                                    ).pipe(
+                                        map((nowPlaying) => {
+                                            const justStarted =
+                                                Date.now() - nowPlaying.startedAt < 10_000;
+                                            return justStarted ? nowPlaying.item || item : item;
+                                        })
+                                    )
+                                  : observeNextItem()
+                          )
+                      )
+                    : observeNextItem()
+            ),
+            distinctUntilChanged(),
+            tap(nextTrack$)
         )
         .subscribe(logger);
 }

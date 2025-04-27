@@ -2,6 +2,7 @@ import BaseMediaObject from './BaseMediaObject';
 import ItemType from './ItemType';
 import MediaType from './MediaType';
 import PlaybackType from './PlaybackType';
+import RadioStation from './RadioStation';
 
 export default interface MediaItem extends BaseMediaObject {
     readonly itemType: ItemType.Media;
@@ -26,6 +27,7 @@ export default interface MediaItem extends BaseMediaObject {
     readonly artist_mbids?: readonly string[];
     readonly caa_mbid?: string; // cover art archive
     readonly fileName?: string;
+    readonly stationName?: string;
     readonly blob?: Blob;
     readonly blobUrl?: string;
     readonly startTime?: number;
@@ -42,7 +44,7 @@ export default interface MediaItem extends BaseMediaObject {
     // Playable sources that can't be derived from `src`.
     // Currently used by TIDAL(via Plex) audio quality sources.
     readonly srcs?: string[];
-    // For video
+    // For video.
     readonly aspectRatio?: number;
     // For YouTube videos mainly.
     readonly owner?: {
@@ -55,4 +57,6 @@ export default interface MediaItem extends BaseMediaObject {
         readonly srcs?: string[];
         readonly externalUrl?: string;
     };
+    // Internet Radio.
+    readonly radio?: RadioStation;
 }

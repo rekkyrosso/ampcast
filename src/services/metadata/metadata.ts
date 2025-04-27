@@ -1,18 +1,27 @@
-import type {IAudioMetadata} from 'music-metadata';
 import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
+import MediaObject from 'types/MediaObject';
 import Thumbnail from 'types/Thumbnail';
-import {loadLibrary, Logger} from 'utils';
+import type {IAudioMetadata} from 'music-metadata';
+import {Logger, loadLibrary, uniq} from 'utils';
+import lastfmApi from 'services/lastfm/lastfmApi';
 import mixcloudApi from 'services/mixcloud/mixcloudApi';
+import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import soundcloudApi from 'services/soundcloud/soundcloudApi';
 import youtubeApi from 'services/youtube/youtubeApi';
+import {mergeThumbnails} from './thumbnails';
 
-const logger = new Logger('music-metadata');
+const logger = new Logger('metadata');
 
-const noMetadata: IAudioMetadata = {
+export interface AddMetadataOptions {
+    overWrite?: boolean;
+    strictMatch?: boolean;
+}
+
+const noIAudioMetadata: IAudioMetadata = {
     common: {
         track: {no: null, of: null},
         disk: {no: null, of: null},
@@ -22,13 +31,64 @@ const noMetadata: IAudioMetadata = {
     quality: {warnings: []},
 };
 
+export async function addMetadata<T extends MediaItem>(
+    item: T,
+    options?: AddMetadataOptions,
+    signal?: AbortSignal
+): Promise<T> {
+    const [lastfmEnhanced, musicbrainzEnhanced] = await Promise.all([
+        // These don't throw
+        lastfmApi.addMetadata(item, options, signal),
+        musicbrainzApi.addMetadata(item, options, signal),
+    ]);
+    const lastfmItem = lastfmEnhanced === item ? undefined : lastfmEnhanced;
+    const musicbrainzItem = musicbrainzEnhanced === item ? undefined : musicbrainzEnhanced;
+    logger.log({lastfmItem, musicbrainzItem});
+    // Prefer MusicBrainz data.
+    // Combining the results might lead to inconsistent data.
+    const foundItem: MediaItem | undefined = musicbrainzItem || lastfmItem;
+    if (foundItem) {
+        let resultItem: T;
+        if (options?.overWrite) {
+            // Prefer this metadata.
+            // eslint-disable-next-line @typescript-eslint/no-unused-vars
+            const {src, externalUrl, playedAt, ...values} = foundItem;
+            resultItem = bestOf(values as T, item);
+        } else {
+            resultItem = bestOf(item, foundItem as Partial<T>);
+        }
+        // Use all of the thumbnails.
+        const thumbnails = mergeThumbnails(lastfmItem, musicbrainzItem);
+        return {...resultItem, thumbnails};
+    }
+    return item;
+}
+
+export function bestOf<T extends MediaObject>(a: T, b: Partial<T> = {}): T {
+    const keys = uniq(Object.keys(a).concat(Object.keys(b))) as (keyof T)[];
+    const result = keys.reduce<T>((result: T, key: keyof T) => {
+        if (a[key] !== undefined) {
+            result[key] = a[key];
+        } else if (b[key] !== undefined) {
+            result[key] = b[key]!;
+        }
+        return result;
+    }, {} as T);
+    (result as any).thumbnails = mergeThumbnails(a, b);
+    if (result.itemType === ItemType.Media) {
+        (result as any).duration =
+            (a as MediaItem).duration || (b as Partial<MediaItem>).duration || 0;
+    }
+    return result;
+}
+
 export async function createMediaItemFromFile(file: File): Promise<MediaItem> {
     await loadLibrary('music-metadata');
     const {parseBlob} = await import(
         /* webpackMode: "weak" */
         'music-metadata'
     );
-    let metadata = noMetadata;
+    let metadata = noIAudioMetadata;
     try {
         metadata = await parseBlob(file, {
             duration: true,
@@ -121,10 +181,10 @@ async function fetchFromUrl(url: string): Promise<{metadata: IAudioMetadata; mim
         if (response.body) {
             const size = response.headers.get('Content-Length');
             const mimeType = response.headers.get('Content-Type') ?? undefined;
-            if (mimeType && !/^(audio|video)\//.test(mimeType)) {
+            if (mimeType?.startsWith('text/')) {
                 throw Error('No media found');
             }
-            let metadata = noMetadata;
+            let metadata = noIAudioMetadata;
             try {
                 metadata = await parseWebStream(
                     response.body,

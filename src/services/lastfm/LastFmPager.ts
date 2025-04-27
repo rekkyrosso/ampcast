@@ -47,20 +47,17 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
 
         this.playCountName = config.playCountName || 'playcount';
 
-        this.pager = new SequentialPager<T>(
-            async (limit: number): Promise<Page<T>> => {
-                const page = this.pageNumber;
-                const result = await lastfmApi.get({...params, page, limit});
-                this.pageNumber++;
-                const {items, total, atEnd, itemType} = map(result);
-                return {
-                    items: this.createMediaObjects(itemType, items),
-                    total,
-                    atEnd,
-                };
-            },
-            config
-        );
+        this.pager = new SequentialPager<T>(async (limit: number): Promise<Page<T>> => {
+            const page = this.pageNumber;
+            const result = await lastfmApi.get({...params, page, limit});
+            this.pageNumber++;
+            const {items, total, atEnd, itemType} = map(result);
+            return {
+                items: this.createMediaObjects(itemType, items),
+                total,
+                atEnd,
+            };
+        }, config);
     }
 
     get maxSize(): number | undefined {
@@ -117,11 +114,15 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
     private createMediaItem(track: LastFm.Track): MediaItem {
         const playedAt = track.date ? Number(track.date.uts) || 0 : 0;
         const rank = track['@attr']?.rank;
+        const isNowPlaying = track['@attr']?.nowplaying === 'true';
 
         return {
             ...(this.createMediaObject(ItemType.Media, track) as MediaItem),
             mediaType: MediaType.Audio,
-            src: playedAt ? `lastfm:listen:${playedAt}` : `lastfm:track:${nanoid()}`,
+            src:
+                playedAt || isNowPlaying
+                    ? `lastfm:listen:${isNowPlaying ? 'now-playing' : playedAt}`
+                    : `lastfm:track:${nanoid()}`,
             artists: track.artist ? [track.artist.name] : undefined,
             album: this.album?.name || track.album?.['#text'],
             albumArtist: this.album?.artist.name,
@@ -135,7 +136,7 @@ export default class LastFmPager<T extends MediaObject> implements Pager<T> {
                     : this.method === 'user.getLovedTracks'
                     ? true
                     : undefined,
-            playedAt,
+            playedAt: isNowPlaying ? -1 : playedAt,
         };
     }
 

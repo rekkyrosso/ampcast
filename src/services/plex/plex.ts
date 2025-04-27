@@ -644,6 +644,7 @@ const plex: PersonalMediaService = {
     },
     addMetadata,
     addToPlaylist,
+    canPin,
     canRate,
     compareForRating,
     createPlaylist,
@@ -670,6 +671,10 @@ export default plex;
 
 function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.src === b.src;
+}
+
+function canPin(item: MediaObject): boolean {
+    return item.itemType === ItemType.Playlist;
 }
 
 function canRate<T extends MediaObject>(item: T, inline?: boolean): boolean {
@@ -710,10 +715,13 @@ async function createPlaylist<T extends MediaItem>(
     };
 }
 
-function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
+function createSourceFromPin<T extends MediaObject>(pin: Pin): MediaSource<T> {
+    if (pin.itemType !== ItemType.Playlist) {
+        throw Error('Unsupported Pin type.');
+    }
     return {
         title: pin.title,
-        itemType: ItemType.Playlist,
+        itemType: pin.itemType,
         id: pin.src,
         icon: 'pin',
         isPin: true,
@@ -721,8 +729,7 @@ function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
             view: 'card',
             fields: ['Thumbnail', 'PlaylistTitle', 'TrackCount', 'Blurb', 'Progress'],
         },
-
-        search(): Pager<MediaPlaylist> {
+        search(): Pager<T> {
             return new PlexPager({
                 path: `/playlists/${getRatingKey(pin)}`,
                 params: {

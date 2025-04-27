@@ -85,7 +85,9 @@ const PlaylistTitle: RenderField = (item) => {
     );
 };
 
-const Blurb: RenderField<MediaPlaylist> = (item) => <Text value={item.description} />;
+const Blurb: RenderField = (item) => <Text value={item.description} />;
+
+const Location: RenderField<MediaItem> = (item) => <Text value={item.radio?.location} />;
 
 const Track: RenderField<MediaItem> = (item) => <Text value={item.track || '-'} />;
 
@@ -142,6 +144,9 @@ const Views: RenderField = (item) => {
 const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
     if (!item.playedAt) {
         return <span className="text">unplayed</span>;
+    }
+    if (item.src.endsWith(':listen:now-playing')) {
+        return <span className="text">playing now</span>;
     }
     const date = new Date(item.playedAt * 1000);
     const elapsedTime = getElapsedTimeText(date.valueOf());
@@ -260,6 +265,7 @@ const mediaFields: MediaFields<any> = {
     Title: {id: 'title', title: 'Title', render: Title, className: 'title'},
     PlaylistTitle: {id: 'title', title: 'Title', render: PlaylistTitle, className: 'title'},
     Blurb: {id: 'blurb', title: 'Description', render: Blurb, className: 'blurb'},
+    Location: {id: 'location', title: 'Location', render: Location, className: 'location'},
     Album: {id: 'album', title: 'Album', render: Album, className: 'album'},
     AlbumAndYear: {id: 'albumAndYear', title: 'Album', render: AlbumAndYear, className: 'album'},
     Track: {

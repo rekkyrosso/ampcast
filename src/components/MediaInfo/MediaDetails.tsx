@@ -65,14 +65,8 @@ export default function MediaDetails<T extends MediaObject>({item}: MediaInfoPro
             case 'thumbnails':
                 return `[${value?.length || 0}]`;
 
-            case 'apple':
-            case 'subsonic':
-            case 'link':
-            case 'owner':
-                return JSON.stringify(value);
-
             default:
-                return String(value);
+                return typeof value === 'object' ? JSON.stringify(value) : String(value);
         }
     }, []);
 

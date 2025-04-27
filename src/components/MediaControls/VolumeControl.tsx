@@ -43,7 +43,7 @@ export default memo(function VolumeControl() {
     useEffect(() => {
         const container = ref.current;
         if (container) {
-            const subscription = fromEvent<WheelEvent>(container, 'wheel')
+            const subscription = fromEvent<WheelEvent>(container, 'wheel', {passive: true})
                 .pipe(throttleTime(60))
                 .subscribe(handleWheel);
             return () => subscription.unsubscribe();

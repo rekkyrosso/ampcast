@@ -3,6 +3,23 @@
     background-color: var(--background-color);
     text-rendering: optimizeLegibility;
 
+    &.arrange-column {
+        .currently-playing {
+            flex-direction: column;
+
+            &-thumbnail {
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+            }
+
+            &-text {
+                padding: 0 1em;
+                text-align: center;
+            }
+        }
+    }
+
     .currently-playing {
         position: absolute;
         display: flex;
@@ -27,6 +44,11 @@
             inset: 0;
             background-color: var(--background-color);
         }
+        
+        .cover-art {
+            position: absolute;
+            inset: 0;
+        }
 
         &-thumbnail,
         &-text {
@@ -36,6 +58,23 @@
 
         &-thumbnail {
             padding: 1em;
+
+            .thumbnail {
+                --size: min(var(--thumbnail-size), 30vh);
+                position: relative;
+                width: var(--size);
+                height: var(--size);
+                padding: 0;
+                color: var(--grey2-color);
+        
+                .media.fullscreen & {
+                    --size: min(var(--thumbnail-size), 50vh);
+                }
+        
+                .media:fullscreen & {
+                    --size: min(var(--thumbnail-size), 67vh);
+                }
+            }
         }
 
         &-text {
@@ -61,75 +100,47 @@
         &.light .progress-bar {
             --progress-bar-background-color: rgba(0, 0, 0, 0.2);
         }
-    }
 
-    &.arrange-column {
-        .currently-playing {
-            flex-direction: column;
-
-            &-thumbnail {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
-
-            &-text {
-                padding: 0 1em;
-                text-align: center;
-            }
-        }
-    }
-
-    .thumbnail {
-        --size: min(var(--thumbnail-size), 30vh);
-        position: relative;
-        width: var(--size);
-        height: var(--size);
-        padding: 0;
-        color: var(--grey2-color);
-
-        .media.fullscreen & {
-            --size: min(var(--thumbnail-size), 50vh);
-        }
-
-        .media:fullscreen & {
-            --size: min(var(--thumbnail-size), 67vh);
-        }
-
-        .cover-art {
+        .radio-logo {
             position: absolute;
-            inset: 0;
+            bottom: 0.625em;
+            right: 0.625em;
+    
+            .thumbnail {
+                width: 2em;
+                height: 2em;
+                padding: 0;
+            }
         }
-    }
-
-    .by {
-        display: none;
-    }
-
-    .media-source-label {
-        position: relative; /* break inherited opacity */
-        font-size: max(0.5em, 12px);
-        margin-top: 0.5em;
-        color: var(--grey2-color);
-        align-items: normal;
-
-        .media.fullscreen & {
-            font-size: max(0.25em, 1rem);
+    
+        .provided-by {
+            position: relative; /* break inherited opacity */
+            font-size: max(0.625em, 12px);
+            margin-top: 0.5em;
+            align-items: normal;
+    
+            .media.fullscreen & {
+                font-size: max(0.25em, 1rem);
+            }
+    
+            .media:fullscreen & {
+                font-size: max(0.375em, 1rem);
+            }
+        }
+    
+        .sub-title {
+            margin-top: 0.5em;
+            font-size: 0.75em;
+            color: var(--grey2-color);
+        }
+    
+        .playback-state {
+            color: var(--grey2-color);
         }
 
-        .media:fullscreen & {
-            font-size: max(0.375em, 1rem);
+        .icon-internet-radio {
+            color: inherit;
         }
-    }
-
-    .artist {
-        margin-top: 0.5em;
-        font-size: 0.75em;
-        color: var(--grey2-color);
-    }
-
-    .playback-state {
-        color: var(--grey2-color);
     }
 
     .animated-background {

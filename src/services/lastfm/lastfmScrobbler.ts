@@ -24,6 +24,7 @@ export function scrobble(): void {
             filter(() => scrobbleSettings.canUpdateNowPlaying('lastfm')),
             map(({currentItem}) => currentItem),
             filter(exists),
+            debounceTime(10_000),
             filter((item) => canScrobble(item)),
             mergeMap((item) => lastfmApi.updateNowPlaying(item))
         )
@@ -52,14 +53,12 @@ export function scrobble(): void {
             const latestTimestamp = items[0].playedAt + Math.floor(items[0].duration);
             const earliestTimestamp = items.at(-1)!.playedAt;
             const maxSize = LastFmHistoryPager.maxPageSize;
-            const pager = new LastFmHistoryPager(
-                {
-                    from: earliestTimestamp - timeFuzziness,
-                    to: latestTimestamp + timeFuzziness,
-                    limit: maxSize,
-                },
-                {maxSize}
-            );
+            const params = {
+                from: earliestTimestamp - timeFuzziness,
+                to: latestTimestamp + timeFuzziness,
+                limit: maxSize,
+            };
+            const pager = new LastFmHistoryPager('listens', params, {maxSize});
             const history = await fetchFirstPage(pager);
             const historyIds = history.map((item) => getListenId(item, timeFuzziness));
             const [ignore, unscrobbled] = partition(

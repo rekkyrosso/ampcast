@@ -1,7 +1,6 @@
-import Dexie from 'dexie';
 import getYouTubeID from 'get-youtube-id';
 import unidecode from 'unidecode';
-import {exists} from 'utils';
+import {exists, uniqBy} from 'utils';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
@@ -10,29 +9,12 @@ import Thumbnail from 'types/Thumbnail';
 import lastfmApi from 'services/lastfm/lastfmApi';
 import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import {findListenByPlayedAt, getListens} from 'services/localdb/listens';
-import {getCoverArtFromBlob} from 'services/music-metadata';
+import {getCoverArtFromBlob} from 'services/metadata';
 import {getCoverArtThumbnails} from 'services/musicbrainz/coverart';
+import {getEnabledServices} from 'services/mediaServices';
 import youtubeApi from 'services/youtube/youtubeApi';
-
-interface ThumbnailsRecord {
-    album: string;
-    artist: string;
-    thumbnails: readonly Thumbnail[];
-}
-
-class ThumbnailsStore extends Dexie {
-    readonly items!: Dexie.Table<ThumbnailsRecord, [string, string]>;
-
-    constructor() {
-        super('ampcast/thumbnails');
-
-        this.version(1).stores({
-            items: '[album+artist], thumbnails',
-        });
-    }
-}
-
-const store = new ThumbnailsStore();
+import {getCurrentTrack} from 'services/playlist';
+import {findBestMatch} from 'services/lookup';
 
 export async function findThumbnails(
     item: MediaObject,
@@ -59,37 +41,28 @@ export async function findThumbnails(
         }
     }
     let thumbnails = findThumbnailsInListens(item);
+    if (!thumbnails && item.src.endsWith(':listen:now-playing')) {
+        const track = getCurrentTrack();
+        if (track) {
+            // This will filter out the item if it doesn't match.
+            const matchingTrack = findBestMatch([track], item as MediaItem, []);
+            thumbnails = matchingTrack?.thumbnails;
+        }
+    }
     if (!thumbnails) {
-        let album: string | undefined;
-        let artist: string | undefined;
-        if (item.itemType === ItemType.Album) {
-            album = item.title;
-            artist = item.artist;
-        } else {
-            album = item.album;
-            artist = item.albumArtist || item.artists?.[0];
-        }
-        if (!album || !artist) {
-            return undefined;
-        }
         const [serviceId] = item.src.split(':');
         if (extendedSearch) {
-            const storedItem = await store.items.get([album, artist]);
-            if (storedItem) {
-                thumbnails = storedItem.thumbnails;
-            } else {
-                const [lastfmThumbnails, musicbrainzThumbnails] = await Promise.all([
-                    lastfmApi.getThumbnails(item, signal),
-                    getCoverArtThumbnails(item, true, signal),
-                ]);
-                thumbnails = lastfmThumbnails || musicbrainzThumbnails;
-            }
+            const [lastfmThumbnails, musicbrainzThumbnails] = await Promise.all([
+                lastfmApi.getThumbnails(item, signal),
+                getCoverArtThumbnails(item, true, signal),
+            ]);
+            thumbnails = lastfmThumbnails || musicbrainzThumbnails;
         } else if (serviceId !== 'lastfm') {
             thumbnails = await getCoverArtThumbnails(item, false, signal);
         }
-        if (thumbnails) {
-            await store.items.put({album, artist, thumbnails});
-        }
+    }
+    if (thumbnails?.length === 0) {
+        thumbnails = undefined;
     }
     if (thumbnails) {
         const src = item.src;
@@ -99,6 +72,37 @@ export async function findThumbnails(
         });
     }
     return thumbnails;
+}
+
+export function getThumbnailUrl(thumbnail: Thumbnail): string {
+    return getEnabledServices().reduce(
+        (url, service) => service?.getThumbnailUrl?.(url) ?? url,
+        thumbnail?.url || ''
+    );
+}
+
+export function mergeThumbnails(
+    {thumbnails: thumbnailsA = []}: Pick<MediaObject, 'thumbnails'> = {},
+    {thumbnails: thumbnailsB = []}: Pick<MediaObject, 'thumbnails'> = {}
+): readonly Thumbnail[] | undefined {
+    const thumbnails = uniqBy('url', thumbnailsA.concat(thumbnailsB));
+    return thumbnails.length === 0 ? undefined : thumbnails;
+}
+
+export function isSameThumbnails(
+    a: readonly Thumbnail[] | undefined,
+    b: readonly Thumbnail[] | undefined
+): boolean {
+    if (a === b) {
+        return true;
+    } else if (a && b && a.length === b.length) {
+        const toUrl = (thumbnail: Thumbnail) => thumbnail.url;
+        const urlsA = a.map(toUrl);
+        const urlsB = b.map(toUrl);
+        return urlsA.every((a) => urlsB.includes(a));
+    } else {
+        return false;
+    }
 }
 
 function findThumbnailsInListens(item: MediaItem | MediaAlbum): readonly Thumbnail[] | undefined {

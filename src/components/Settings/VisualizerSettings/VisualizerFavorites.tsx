@@ -60,7 +60,7 @@ export default function VisualizerFavorites() {
             const confirmed = await confirm({
                 icon: 'visualizer',
                 title: t('Favorite Visualizers'),
-                message: `${t('Remove from favorites')}?`,
+                message: `${t('Remove from Favorites')}?`,
                 okLabel: 'Remove',
                 storageId: 'delete-visualizer-favorite',
                 system: true,

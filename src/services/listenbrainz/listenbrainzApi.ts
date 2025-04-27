@@ -50,7 +50,7 @@ export class ListenBrainzApi {
         playlist: MediaPlaylist,
         items: readonly T[]
     ): Promise<void> {
-        items = await musicbrainzApi.addMetadata(items, false);
+        items = await musicbrainzApi.addMetadata(items);
         items = items.filter((item) => item.recording_mbid);
         const [, , playlist_mbid] = playlist.src.split(':');
         return this.post(`playlist/${playlist_mbid}/item/add`, {
@@ -86,7 +86,7 @@ export class ListenBrainzApi {
         {description = '', isPublic, items = []}: CreatePlaylistOptions<T> = {}
     ): Promise<{playlist_mbid: string}> {
         const userId = listenbrainzSettings.userId;
-        items = await musicbrainzApi.addMetadata(items, false);
+        items = await musicbrainzApi.addMetadata(items);
         items = items.filter((item) => item.recording_mbid);
         return this.post('playlist/create', {
             playlist: {
@@ -219,7 +219,7 @@ export class ListenBrainzApi {
                 });
             }
         } catch (err) {
-            logger.log('Failed to update "now playing":', item?.src);
+            logger.log('Failed to update "Now playing":', item?.src);
             logger.error(err);
         }
     }

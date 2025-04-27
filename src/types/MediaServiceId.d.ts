@@ -1,5 +1,6 @@
 export type PublicMediaServiceId =
     | 'apple'
+    | 'internet-radio'
     | 'mixcloud'
     | 'soundcloud'
     | 'spotify'

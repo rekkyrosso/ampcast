@@ -25,7 +25,7 @@ export default function useHistoryStart() {
                         playCount ? of(playCount) : throwError(() => Error('No history.'))
                     ),
                     map((playCount) => Math.floor(playCount / pageSize)),
-                    map((page) => new LastFmHistoryPager({page}, {pageSize})),
+                    map((page) => new LastFmHistoryPager('listens', {page}, {pageSize})),
                     mergeMap((pager) => fetchFirstPage(pager)),
                     map((items) => items.at(-1)),
                     filter(exists),

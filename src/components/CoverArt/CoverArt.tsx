@@ -6,9 +6,8 @@ import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import Thumbnail from 'types/Thumbnail';
 import {Logger} from 'utils';
-import {getEnabledServices} from 'services/mediaServices';
+import {findThumbnails, getThumbnailUrl, isSameThumbnails} from 'services/metadata';
 import Icon, {IconName} from 'components/Icon';
-import {findThumbnails} from './thumbnails';
 import './CoverArt.scss';
 
 const logger = new Logger('CoverArt');
@@ -40,7 +39,9 @@ export default function CoverArt({
 
     useEffect(() => {
         setInError(false);
-        setThumbnails(item.thumbnails);
+        setThumbnails((prevThumbnails) =>
+            isSameThumbnails(item.thumbnails, prevThumbnails) ? prevThumbnails : item.thumbnails
+        );
     }, [item.thumbnails]);
 
     useEffect(() => {
@@ -122,13 +123,6 @@ function findBestThumbnail(thumbnails: readonly Thumbnail[], size = 240): Thumbn
     return matches[0];
 }
 
-export function getThumbnailUrl(thumbnail: Thumbnail): string {
-    return getEnabledServices().reduce(
-        (url, service) => service?.getThumbnailUrl?.(url) ?? url,
-        thumbnail?.url || ''
-    );
-}
-
 function getFallbackIcon(item: MediaObject): IconName {
     switch (item.itemType) {
         case ItemType.Artist:
@@ -140,7 +134,9 @@ function getFallbackIcon(item: MediaObject): IconName {
         }
 
         case ItemType.Media:
-            if (item.mediaType === MediaType.Video) {
+            if (item.radio) {
+                return 'internet-radio';
+            } else if (item.mediaType === MediaType.Video) {
                 return 'video';
             } else {
                 return 'audio';

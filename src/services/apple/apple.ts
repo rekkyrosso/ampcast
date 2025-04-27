@@ -15,7 +15,7 @@ import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
 import ParentOf from 'types/ParentOf';
-import Pin from 'types/Pin';
+import Pin, {Pinnable} from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import {NoFavoritesPlaylistError} from 'services/errors';
@@ -463,6 +463,7 @@ const apple: PublicMediaService = {
     editablePlaylists: appleEditablePlaylists,
     addMetadata,
     addToPlaylist,
+    canPin,
     canStore,
     compareForRating,
     createPlaylist,
@@ -486,6 +487,10 @@ export default apple;
 
 function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.src === b.src;
+}
+
+function canPin(item: MediaObject): boolean {
+    return item.itemType === ItemType.Playlist;
 }
 
 function canStore<T extends MediaObject>(item: T): boolean {
@@ -571,15 +576,18 @@ async function createPlaylist<T extends MediaItem>(
     };
 }
 
-function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
+function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
+    if (pin.itemType !== ItemType.Playlist) {
+        throw Error('Unsupported Pin type.');
+    }
     return {
         title: pin.title,
-        itemType: ItemType.Playlist,
+        itemType: pin.itemType,
         id: pin.src,
         icon: 'pin',
         isPin: true,
 
-        search(): Pager<MediaPlaylist> {
+        search(): Pager<T> {
             const [, type, id] = pin.src.split(':');
             const isLibraryItem = type.startsWith('library-');
             const path = isLibraryItem ? '/v1/me/library' : '/v1/catalog/{{storefrontId}}';

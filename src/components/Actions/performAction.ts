@@ -3,7 +3,7 @@ import ItemType from 'types/ItemType';
 import LibraryAction from 'types/LibraryAction';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
-import MediaPlaylist from 'types/MediaPlaylist';
+import {Pinnable} from 'types/Pin';
 import PlayAction from 'types/PlayAction';
 import actionsStore from 'services/actions/actionsStore';
 import mediaPlayback from 'services/mediaPlayback';
@@ -28,8 +28,6 @@ export default async function performAction<T extends MediaObject>(
         return;
     }
 
-    const itemType = item.itemType;
-
     switch (action) {
         case Action.PlayNow:
         case Action.PlayNext:
@@ -46,15 +44,11 @@ export default async function performAction<T extends MediaObject>(
             break;
 
         case Action.Pin:
-            if (itemType === ItemType.Playlist) {
-                await pinStore.pin(items as readonly MediaPlaylist[]);
-            }
+            await pinStore.pin(items as readonly Pinnable[]);
             break;
 
         case Action.Unpin:
-            if (itemType === ItemType.Playlist) {
-                await pinStore.unpin(items as readonly MediaPlaylist[]);
-            }
+            await pinStore.unpin(items as readonly Pinnable[]);
             break;
 
         case Action.Info:

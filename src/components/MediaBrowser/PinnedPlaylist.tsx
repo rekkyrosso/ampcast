@@ -27,9 +27,9 @@ const chartPlaylistItemsLayout: MediaSourceLayout<MediaItem> = {
 
 export default function PinnedPlaylist({source, ...props}: PagedItemsProps<MediaPlaylist>) {
     const [error, setError] = useState<unknown>();
-    const [[selectedPlaylist], setSelectedPlaylist] = useState<readonly MediaPlaylist[]>([]);
-    const itemsPager = selectedPlaylist?.pager || null;
-    const defaultSecondaryLayout = selectedPlaylist?.isChart
+    const [[pinnedPlaylist], setPinnedPlaylist] = useState<readonly MediaPlaylist[]>([]);
+    const itemsPager = pinnedPlaylist?.pager || null;
+    const defaultSecondaryLayout = pinnedPlaylist?.isChart
         ? chartPlaylistItemsLayout
         : defaultPlaylistItemsLayout;
 
@@ -39,10 +39,10 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
     }, [source]);
 
     useEffect(() => {
-        if (selectedPlaylist) {
-            pinStore.lock(selectedPlaylist);
+        if (pinnedPlaylist) {
+            pinStore.lock(pinnedPlaylist);
         }
-    }, [selectedPlaylist]);
+    }, [pinnedPlaylist]);
 
     return (
         <div className="panel pinned-playlist">
@@ -54,7 +54,7 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
                     title={source.title}
                     layout={source.layout || defaultLayout}
                     onError={setError}
-                    onSelect={setSelectedPlaylist}
+                    onSelect={setPinnedPlaylist}
                     statusBar={false}
                     disabled
                 />

@@ -10,7 +10,7 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSource, {MediaMultiSource} from 'types/MediaSource';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
-import Pin from 'types/Pin';
+import Pin, {Pinnable} from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import DataService from 'types/DataService';
 import {isStartupService} from 'services/buildConfig';
@@ -32,7 +32,7 @@ const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     fields: ['Index', 'Artist', 'Title'],
 };
 
-export const listenbrainzHistory: MediaSource<MediaItem> = {
+const listenbrainzHistory: MediaSource<MediaItem> = {
     id: 'listenbrainz/history',
     title: 'History',
     icon: 'clock',
@@ -40,11 +40,11 @@ export const listenbrainzHistory: MediaSource<MediaItem> = {
     Component: ListenBrainzHistoryBrowser,
 
     search({startAt: max_ts = 0}: {startAt?: number} = {}): Pager<MediaItem> {
-        return new ListenBrainzHistoryPager(max_ts ? {max_ts} : undefined);
+        return new ListenBrainzHistoryPager('listens', max_ts ? {max_ts} : undefined);
     },
 };
 
-export const listenbrainzScrobbles: MediaSource<MediaItem> = {
+const listenbrainzScrobbles: MediaSource<MediaItem> = {
     id: 'listenbrainz/scrobbles',
     title: 'Scrobbles',
     icon: 'clock',
@@ -174,6 +174,7 @@ const listenbrainz: DataService = {
     },
     editablePlaylists: listenbrainzPlaylists,
     addToPlaylist,
+    canPin,
     canStore,
     compareForRating,
     createPlaylist,
@@ -188,6 +189,10 @@ const listenbrainz: DataService = {
 };
 
 export default listenbrainz;
+
+function canPin(item: MediaObject): boolean {
+    return item.itemType === ItemType.Playlist;
+}
 
 function canStore<T extends MediaObject>(item: T): boolean {
     return item.itemType === ItemType.Media && !!(item.recording_mbid || item.recording_msid);
@@ -218,17 +223,23 @@ async function createPlaylist<T extends MediaItem>(
     };
 }
 
-function createSourceFromPin(pin: Pin): MediaSource<MediaPlaylist> {
+function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
+    if (pin.itemType !== ItemType.Playlist) {
+        throw Error('Unsupported Pin type.');
+    }
     return {
         title: pin.title,
-        itemType: ItemType.Playlist,
+        itemType: pin.itemType,
         id: pin.src,
         icon: 'pin',
         isPin: true,
 
-        search(): Pager<MediaPlaylist> {
+        search(): Pager<T> {
             const [, , playlist_mbid] = pin.src.split(':');
-            return new ListenBrainzPlaylistsPager(`playlist/${playlist_mbid}`, true);
+            return new ListenBrainzPlaylistsPager(
+                `playlist/${playlist_mbid}`,
+                true
+            ) as unknown as Pager<T>;
         },
     };
 }

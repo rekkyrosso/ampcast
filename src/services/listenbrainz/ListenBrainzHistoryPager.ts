@@ -32,6 +32,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
     private subscriptions?: Subscription;
 
     constructor(
+        private readonly type: 'listens' | 'playing-now',
         params?: ListenBrainz.User.ListensParams,
         private readonly fetchListenCount = false,
         options?: Partial<PagerConfig>
@@ -40,7 +41,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             async (count: number): Promise<Page<MediaItem>> => {
                 try {
                     const {payload} = await listenbrainzApi.get<ListenBrainz.User.Listens>(
-                        `user/${listenbrainzSettings.userId}/listens`,
+                        `user/${listenbrainzSettings.userId}/${type}`,
                         {
                             ...params,
                             count,
@@ -61,7 +62,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
                     throw err;
                 }
             },
-            {pageSize: 50, ...options}
+            {pageSize: type === 'playing-now' ? 1 : 50, ...options}
         );
     }
 
@@ -105,6 +106,10 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
         this.pager.fetchAt(index, length);
     }
 
+    private get isNowPlaying(): boolean {
+        return this.type === 'playing-now';
+    }
+
     private connect(): void {
         if (!this.subscriptions) {
             this.subscriptions = new Subscription();
@@ -139,7 +144,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
         return {
             itemType: ItemType.Media,
             mediaType: playableSrc.startsWith('youtube:') ? MediaType.Video : MediaType.Audio,
-            src: `listenbrainz:listen:${item.listened_at}`,
+            src: `listenbrainz:listen:${this.isNowPlaying ? 'now-playing' : item.listened_at}`,
             title: data.track_name,
             addedAt: item.inserted_at,
             artists: data.artist_name ? [data.artist_name] : undefined,
@@ -156,7 +161,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
             release_mbid: mbids?.release_mbid,
             artist_mbids: mbids?.artist_mbids,
             caa_mbid: mbids?.caa_release_mbid,
-            playedAt: item.listened_at,
+            playedAt: this.isNowPlaying ? -1 : item.listened_at || 0,
             link: {
                 src: playableSrc,
                 srcs: info?.origin_url?.includes('soundcloud.com') ? [info.origin_url] : undefined,

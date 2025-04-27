@@ -469,13 +469,10 @@ playlist
     )
     .subscribe(logger);
 
-// Pass playlist item changes through to `playback`.
+// Pass playlist track changes through to `playback`.
 playlist
-    .observeCurrentItem()
-    .pipe(
-        filter((item) => item?.id === playback.currentItem?.id),
-        tap((item) => (playback.currentItem = item))
-    )
+    .observeCurrentTrack()
+    .pipe(tap((item) => (playback.currentItem = item)))
     .subscribe(logger);
 
 // Mini player doesn't have a playlist (just the currently loaded item).

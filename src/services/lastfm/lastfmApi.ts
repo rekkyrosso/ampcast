@@ -1,11 +1,14 @@
 import md5 from 'md5';
-import unidecode from 'unidecode';
+import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
+import MediaType from 'types/MediaType';
 import Thumbnail from 'types/Thumbnail';
 import {Logger, exists} from 'utils';
+import {AddMetadataOptions, bestOf} from 'services/metadata';
+import {findBestMatch} from 'services/lookup';
 import lastfmSettings from './lastfmSettings';
 
 const logger = new Logger('lastfmApi');
@@ -67,12 +70,44 @@ export class LastFmApi {
                 });
             }
         } catch (err) {
-            logger.log('Failed to update "now playing":', item?.src);
+            logger.log('Failed to update "Now playing":', item?.src);
             logger.error(err);
         }
     }
 
-    async getThumbnails(item: MediaObject, signal?: AbortSignal): Promise<Thumbnail[] | undefined> {
+    async addMetadata<T extends MediaItem>(
+        item: T,
+        {overWrite, strictMatch}: AddMetadataOptions = {},
+        signal?: AbortSignal
+    ): Promise<T> {
+        try {
+            const {title, artists: [artist] = []} = item;
+            const track = await this.getTrackInfo(title, artist, '', signal);
+            if (track) {
+                const lookupItem = this.createMediaItem(track);
+                // This will filter out the item if it doesn't match.
+                const foundItem = findBestMatch([lookupItem], item, [], strictMatch);
+                if (foundItem) {
+                    if (overWrite) {
+                        // Prefer this metadata.
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        const {src, externalUrl, playedAt, ...values} = foundItem;
+                        return bestOf(values as T, item);
+                    } else {
+                        return bestOf(item, foundItem as Partial<T>);
+                    }
+                }
+            }
+        } catch (err) {
+            logger.error(err);
+        }
+        return item;
+    }
+
+    async getThumbnails(
+        item: MediaObject,
+        signal?: AbortSignal
+    ): Promise<readonly Thumbnail[] | undefined> {
         const api_key = lastfmSettings.apiKey;
         if (
             !api_key ||
@@ -81,6 +116,7 @@ export class LastFmApi {
         ) {
             return undefined;
         }
+        let thumbnails: readonly Thumbnail[] | undefined;
         let album: string | undefined;
         let artist: string | undefined;
         if (item.itemType === ItemType.Album) {
@@ -90,25 +126,73 @@ export class LastFmApi {
             album = item.album;
             artist = item.albumArtist || item.artists?.[0];
         }
-        if (!album || !artist) {
-            return undefined;
+        if (album && artist) {
+            const albumInfo = await this.getAlbumInfo(album, artist, undefined, signal);
+            thumbnails = this.createThumbnails(albumInfo?.image);
         }
-        const {
-            results: {
-                albummatches: {album: albums = []},
-            },
-        } = await this.get<LastFm.AlbumSearch>({method: 'album.search', album}, signal);
-        const decode = (name: string) => unidecode(name).toLowerCase();
-        const decodedAlbum = decode(album);
-        const decodedArtist = decode(artist);
-        return albums
-            .filter(
-                (album) =>
-                    decode(album.name) === decodedAlbum &&
-                    decode(String(album.artist)) === decodedArtist
-            )
-            .map((album) => this.createThumbnails(album.image))
-            .filter(exists)[0];
+        if (!thumbnails && item.itemType === ItemType.Media) {
+            const trackInfo = await this.getTrackInfo(item.title, artist, '', signal);
+            thumbnails =
+                this.createThumbnails(trackInfo?.image) ||
+                this.createThumbnails(trackInfo?.album?.image);
+        }
+        return thumbnails;
+    }
+
+    async getAlbumInfo(
+        title: string,
+        artist: string | undefined,
+        user?: string,
+        signal?: AbortSignal
+    ): Promise<LastFm.AlbumInfo | undefined> {
+        if (artist) {
+            const params: Record<string, string> = {
+                method: 'album.getInfo',
+                artist: artist,
+                album: title,
+                autocorrect: '1',
+            };
+            if (user) {
+                params.user = user;
+            }
+            const {album} = await lastfmApi.get<LastFm.AlbumInfoResponse>(params, signal);
+            if (album) {
+                if ('error' in album) {
+                    logger.info('Album not found', {artist, title});
+                    logger.error((album.error as any)?.message || 'Not found');
+                    return;
+                }
+                return album;
+            }
+        }
+    }
+
+    async getTrackInfo(
+        title: string,
+        artist: string | undefined,
+        user?: string,
+        signal?: AbortSignal
+    ): Promise<LastFm.TrackInfo | undefined> {
+        if (artist) {
+            const params: Record<string, string> = {
+                method: 'track.getInfo',
+                artist: artist,
+                track: title,
+                autocorrect: '1',
+            };
+            if (user) {
+                params.user = user;
+            }
+            const {track} = await lastfmApi.get<LastFm.TrackInfoResponse>(params, signal);
+            if (track) {
+                if ('error' in track) {
+                    logger.info('Track not found', {artist, title});
+                    logger.error((track.error as any)?.message || 'Not found');
+                    return;
+                }
+                return track;
+            }
+        }
     }
 
     async getUserInfo(): Promise<LastFm.UserInfo> {
@@ -118,7 +202,7 @@ export class LastFmApi {
         });
     }
 
-    createThumbnails(thumbs: readonly LastFm.Thumbnail[]): Thumbnail[] | undefined {
+    createThumbnails(thumbs?: readonly LastFm.Thumbnail[]): Thumbnail[] | undefined {
         const result = thumbs
             ? [this.createThumbnail(thumbs[2], 174), this.createThumbnail(thumbs[3], 300)].filter(
                   exists
@@ -180,6 +264,25 @@ export class LastFmApi {
 
     private canScrobble(item: MediaItem | null): boolean {
         return !!item && !!item.title && !!item.artists?.[0] && item.duration > 30;
+    }
+
+    private createMediaItem(track: LastFm.TrackInfo): MediaItem {
+        const {album, artist} = track;
+        return {
+            itemType: ItemType.Media,
+            mediaType: MediaType.Audio,
+            src: `lastfm:track:${nanoid()}`,
+            title: track.name,
+            artists: artist?.name ? [artist.name] : undefined,
+            album: album?.title || undefined,
+            albumArtist: album?.artist || undefined,
+            artist_mbids: artist?.mbid ? [artist.mbid] : undefined,
+            release_mbid: album?.mbid || undefined,
+            recording_mbid: track.mbid || undefined,
+            duration: Number(track.duration) / 1000 || 0,
+            playedAt: 0,
+            thumbnails: this.createThumbnails(track.image || album?.image),
+        };
     }
 
     private createThumbnail(

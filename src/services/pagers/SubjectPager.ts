@@ -8,17 +8,16 @@ export default class SubjectPager<T extends MediaObject> extends AbstractPager<T
 
     async next(fetch: () => Promise<readonly T[]>): Promise<void> {
         if (!this.disconnected) {
+            this.busy = true;
             try {
                 this.connect();
-                this.busy = true;
                 const items = await fetch();
                 this.size = items.length;
                 this.items = items;
-                this.busy = false;
             } catch (err) {
                 this.error = err;
-                this.busy = false;
             }
+            this.busy = false;
         }
     }
 }

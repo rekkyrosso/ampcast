@@ -13,7 +13,7 @@ import MediaType from 'types/MediaType';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
-import {canPlayNativeHls, canPlayVideo, getContentType, groupBy} from 'utils';
+import {canPlayNativeHls, canPlayVideo, groupBy, isHlsMedia} from 'utils';
 import {getPlaybackId} from 'services/mediaPlayback/playback';
 import embySettings, {EmbySettings} from './embySettings';
 
@@ -307,12 +307,8 @@ async function getPlaybackType(
             return directPlay ? PlaybackType.Direct : PlaybackType.HLS;
         } else {
             const url = getPlayableUrl(item, settings);
-            const contentType = (await getContentType(url)).toLowerCase();
-            return (contentType === 'application/x-mpegurl' ||
-                contentType === 'application/vnd.apple.mpegurl') &&
-                !canPlayNativeHls()
-                ? PlaybackType.HLS
-                : PlaybackType.Direct;
+            const isHls = await isHlsMedia(url);
+            return isHls ? PlaybackType.HLS : PlaybackType.Direct;
         }
     } catch {
         return PlaybackType.Direct;

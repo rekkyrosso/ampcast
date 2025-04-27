@@ -24,7 +24,7 @@ import LastFmScrobblesBrowser from './components/LastFmScrobblesBrowser';
 import Credentials from './components/LastFmCredentials';
 import Login from './components/LastFmLogin';
 
-export const lastfmHistory: MediaSource<MediaItem> = {
+const lastfmHistory: MediaSource<MediaItem> = {
     id: 'lastfm/history',
     title: 'History',
     icon: 'clock',
@@ -32,11 +32,11 @@ export const lastfmHistory: MediaSource<MediaItem> = {
     Component: LastFmHistoryBrowser,
 
     search({startAt: to = 0}: {startAt?: number} = {}): Pager<MediaItem> {
-        return new LastFmHistoryPager(to ? {to} : undefined);
+        return new LastFmHistoryPager('listens', to ? {to} : undefined);
     },
 };
 
-export const lastfmScrobbles: MediaSource<MediaItem> = {
+const lastfmScrobbles: MediaSource<MediaItem> = {
     id: 'lastfm/scrobbles',
     title: 'Scrobbles',
     icon: 'clock',
@@ -175,24 +175,9 @@ async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
     if (item.itemType !== ItemType.Media || item.inLibrary !== undefined) {
         return item;
     }
-    const params: Record<string, string> = {
-        method: 'track.getInfo',
-        user: lastfmSettings.userId,
-    };
-    if (item.track_mbid) {
-        params.mbid = item.track_mbid;
-    } else {
-        const {title, artists = []} = item;
-        params.artist = artists[0];
-        params.track = title;
-        if (!params.artist) {
-            return item;
-        }
-    }
-    const {track} = await lastfmApi.get<LastFm.TrackInfoResponse>(params);
-    if (!track || 'error' in track) {
-        throw Error((track as any)?.message || 'Not found');
-    } else {
+    const {title, artists: [artist] = []} = item;
+    const track = await lastfmApi.getTrackInfo(title, artist, lastfmSettings.userId);
+    if (track) {
         const metadata: Partial<Writable<MediaItem>> = {};
         const {album, wiki} = track;
         if (album) {
@@ -218,6 +203,7 @@ async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
             globalPlayCount: Number(track.playcount) || 0,
         };
     }
+    return item;
 }
 
 async function store(item: MediaObject, inLibrary: boolean): Promise<void> {

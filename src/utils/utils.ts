@@ -1,17 +1,3 @@
-import {uniq} from './array';
-
-export function bestOf<T extends object>(a: T, b: Partial<T> = {}): T {
-    const keys = uniq(Object.keys(a).concat(Object.keys(b))) as (keyof T)[];
-    return keys.reduce<T>((result: T, key: keyof T) => {
-        if (a[key] !== undefined) {
-            result[key] = a[key];
-        } else if (b[key] !== undefined) {
-            result[key] = b[key]!;
-        }
-        return result;
-    }, {} as T);
-}
-
 export function copyToClipboard(data: any): Promise<void> {
     if (data && typeof data === 'object') {
         data = JSON.stringify(data, undefined, 2);

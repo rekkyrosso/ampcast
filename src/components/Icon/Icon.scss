@@ -36,11 +36,12 @@
 
     &-http,
     &-https,
+    &-internet-radio,
     &-globe {
-        fill: skyblue;
+        color: skyblue;
 
         .themed.light & {
-            fill: dodgerblue;
+            color: dodgerblue;
         }
     }
 

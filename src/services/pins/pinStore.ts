@@ -2,8 +2,7 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject, combineLatest, filter, map} from 'rxjs';
 import Dexie, {liveQuery} from 'dexie';
 import MediaObject from 'types/MediaObject';
-import MediaPlaylist from 'types/MediaPlaylist';
-import Pin from 'types/Pin';
+import Pin, {Pinnable} from 'types/Pin';
 import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import {Logger} from 'utils';
 
@@ -37,8 +36,10 @@ class PinStore extends Dexie {
         return this.observePins().pipe(map(() => this.getPinsForService(serviceId)));
     }
 
-    lock(pin: Pin): void {
-        this.lockedPin$.next(pin);
+    lock(pin: Pin | Pinnable): void {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {pager, ...lockedPin} = pin as any;
+        this.lockedPin$.next(lockedPin);
     }
 
     unlock(): void {
@@ -53,21 +54,21 @@ class PinStore extends Dexie {
         }
     }
 
-    async pin(playlist: MediaPlaylist): Promise<void>;
-    async pin(playlists: readonly MediaPlaylist[]): Promise<void>;
-    async pin(playlist: readonly MediaPlaylist[] | MediaPlaylist): Promise<void> {
+    async pin(pinnable: Pinnable): Promise<void>;
+    async pin(pinnables: readonly Pinnable[]): Promise<void>;
+    async pin(pinnable: readonly Pinnable[] | Pinnable): Promise<void> {
         try {
-            const playlists: MediaPlaylist[] = Array.isArray(playlist) ? playlist : [playlist];
+            const pinnables: Pinnable[] = Array.isArray(pinnable) ? pinnable : [pinnable];
             await this.pins.bulkPut(
-                playlists.map((playlist) => {
+                pinnables.map((pinnable) => {
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    const {pager, ...pin} = playlist;
+                    const {pager, ...pin} = pinnable as any;
                     return {...pin, isPinned: true};
                 })
             );
             dispatchMediaObjectChanges(
-                playlists.map((playlist) => ({
-                    match: (object: MediaObject) => object.src === playlist.src,
+                pinnables.map((pinnable) => ({
+                    match: (object: MediaObject) => object.src === pinnable.src,
                     values: {isPinned: true},
                 }))
             );
@@ -76,16 +77,16 @@ class PinStore extends Dexie {
         }
     }
 
-    async unpin(playlist: Pin): Promise<void>;
-    async unpin(playlists: readonly Pin[]): Promise<void>;
-    async unpin(playlist: {src: string}): Promise<void>;
-    async unpin(playlist: readonly Pin[] | Pin | {src: string}): Promise<void> {
+    async unpin(pinnable: Pinnable): Promise<void>;
+    async unpin(pinnables: readonly Pinnable[]): Promise<void>;
+    async unpin(pinnable: {src: string}): Promise<void>;
+    async unpin(pinnable: readonly Pinnable[] | Pinnable | {src: string}): Promise<void> {
         try {
-            const playlists: {src: string}[] = Array.isArray(playlist) ? playlist : [playlist];
-            await this.pins.bulkDelete(playlists.map((playlist) => playlist.src));
+            const pinnables: {src: string}[] = Array.isArray(pinnable) ? pinnable : [pinnable];
+            await this.pins.bulkDelete(pinnables.map((pinnable) => pinnable.src));
             dispatchMediaObjectChanges(
-                playlists.map((playlist) => ({
-                    match: (object: MediaObject) => object.src === playlist.src,
+                pinnables.map((pinnable) => ({
+                    match: (object: MediaObject) => object.src === pinnable.src,
                     values: {isPinned: false},
                 }))
             );

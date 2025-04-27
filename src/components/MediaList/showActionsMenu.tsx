@@ -105,7 +105,7 @@ function ContextualActions<T extends MediaObject>({item}: ContextualActionsProps
 
     return (
         <>
-            {item.itemType === ItemType.Playlist && service?.createSourceFromPin ? (
+            {service?.canPin?.(item, true) ? (
                 <PopupMenuItem<Action>
                     label={item.isPinned ? 'Unpin' : 'Pin'}
                     value={item.isPinned ? Action.Unpin : Action.Pin}
@@ -131,7 +131,9 @@ function ContextualActions<T extends MediaObject>({item}: ContextualActionsProps
                 />
             ) : null}
             {/* remove doesn't work (https://developer.apple.com/forums/thread/107807) */}
-            {service?.id !== 'apple' && item.inLibrary === true && service?.canStore?.(item, true) ? (
+            {service?.id !== 'apple' &&
+            item.inLibrary === true &&
+            service?.canStore?.(item, true) ? (
                 <PopupMenuItem<Action>
                     label={getLabelForAction(service, Action.RemoveFromLibrary)}
                     value={Action.RemoveFromLibrary}

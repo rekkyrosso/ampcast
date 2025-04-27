@@ -5,7 +5,7 @@ import {MAX_DURATION} from 'services/constants';
 import {pause, play, seek, stop, prev, next} from 'services/mediaPlayback';
 import {observePlaybackState} from 'services/mediaPlayback/playback';
 import miniPlayer from 'services/mediaPlayback/miniPlayer';
-import {getThumbnailUrl} from 'components/CoverArt';
+import {getThumbnailUrl} from 'services/metadata';
 import useObservable from 'hooks/useObservable';
 
 const logger = new Logger('useMediaSession');
