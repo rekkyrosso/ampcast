@@ -236,27 +236,6 @@ const navidromeAlbumsByGenre: MediaSource<MediaAlbum> = {
     },
 };
 
-const navidromeArtistsByGenre: MediaSource<MediaArtist> = {
-    id: 'navidrome/artists-by-genre',
-    title: 'Artists by Genre',
-    icon: 'genre',
-    itemType: ItemType.Artist,
-    filterType: FilterType.ByGenre,
-    Component: FilterBrowser,
-    defaultHidden: true,
-
-    search(genre?: MediaFilter): Pager<MediaArtist> {
-        if (genre) {
-            return new NavidromePager(ItemType.Artist, 'artist', {
-                genre_id: genre.id,
-                _sort: 'name',
-            });
-        } else {
-            return new SimplePager();
-        }
-    },
-};
-
 const navidromeRandomTracks: MediaSource<MediaItem> = {
     id: 'navidrome/random-tracks',
     title: 'Random Songs',
@@ -302,7 +281,6 @@ const navidrome: PersonalMediaService = {
         navidromePlaylists,
         navidromeTracksByGenre,
         navidromeAlbumsByGenre,
-        navidromeArtistsByGenre,
         navidromeRandomTracks,
         navidromeRandomAlbums,
     ],
