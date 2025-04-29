@@ -20,6 +20,8 @@ import {observeListens} from 'services/localdb/listens';
 import SubjectPager from 'services/pagers/SubjectPager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
+import {getCurrentTrack} from 'services/playlist';
+import {isSameTrack} from 'services/metadata';
 
 const logger = new Logger('useRecentlyPlayedPager');
 
@@ -38,7 +40,12 @@ export default function useRecentlyPlayedPager(
         const afterScrobble$ = observeListens().pipe(skip(1), delay(20_000));
         const afterPlaybackStart$ = observePlaybackStart().pipe(delay(15_000));
         const everyTwoMinutes$ = interval(120_000);
-        const refresh$ = merge(of(undefined), afterScrobble$, afterPlaybackStart$, everyTwoMinutes$);
+        const refresh$ = merge(
+            of(undefined),
+            afterScrobble$,
+            afterPlaybackStart$,
+            everyTwoMinutes$
+        );
         const subscription = new Subscription();
 
         const fetchRecentlyPlayed = async (time: number) => {
@@ -46,12 +53,22 @@ export default function useRecentlyPlayedPager(
             const historyPager = createHistoryPager(time);
             const nowPlayingPager = createNowPlayingPager?.();
             if (nowPlayingPager) {
-                items = (
-                    await Promise.all([
-                        fetchFirstPage(nowPlayingPager),
-                        fetchFirstPage(historyPager),
-                    ])
-                ).flat();
+                const [[nowPlaying], history] = await Promise.all([
+                    fetchFirstPage(nowPlayingPager),
+                    fetchFirstPage(historyPager),
+                ]);
+                if (nowPlaying) {
+                    let thumbnails = nowPlaying.thumbnails;
+                    if (!thumbnails?.length) {
+                        const currentTrack = getCurrentTrack();
+                        if (currentTrack && isSameTrack(nowPlaying, currentTrack)) {
+                            thumbnails = currentTrack?.thumbnails;
+                        }
+                    }
+                    return [{...nowPlaying, thumbnails}, ...history];
+                } else {
+                    return history;
+                }
             } else {
                 items = await fetchFirstPage(historyPager);
             }

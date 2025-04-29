@@ -1,53 +1,7 @@
-import type {Observable} from 'rxjs';
-import {distinctUntilChanged, map, withLatestFrom} from 'rxjs';
 import DRMKeySystem from 'types/DRMKeySystem';
 import DRMType from 'types/DRMType';
-import {ListenData} from 'types/Listen';
-import MediaItem from 'types/MediaItem';
-import Player from 'types/Player';
-import UserData from 'types/UserData';
 import browser from './browser';
 import {getContentType} from './fetch';
-
-export function observeBeforeEndOfTrack(
-    player: Player<any>,
-    secondsBeforeEnd: number
-): Observable<boolean> {
-    return player.observeCurrentTime().pipe(
-        withLatestFrom(player.observeDuration()),
-        map(([currentTime, duration]) => duration - currentTime <= secondsBeforeEnd),
-        distinctUntilChanged()
-    );
-}
-
-const userDataKeys: (keyof UserData | keyof ListenData | 'lookupStatus' | 'startTime')[] = [
-    'rating',
-    'globalLikes',
-    'globalRating',
-    'playCount',
-    'globalPlayCount',
-    'inLibrary',
-    'isPinned',
-    'lastfmScrobbledAt',
-    'listenbrainzScrobbledAt',
-    'sessionId',
-    'lookupStatus',
-    'startTime',
-];
-
-export function removeUserData<T extends Partial<MediaItem>>(item: T): Subtract<T, UserData> {
-    const keys = Object.keys(item) as (keyof T)[];
-    return keys.reduce((result, key) => {
-        if (item[key] !== undefined && !userDataKeys.includes(key as any)) {
-            (result as any)[key] = item[key];
-        }
-        return result;
-    }, {} as unknown as Subtract<T, UserData>);
-}
-
-export function stringContainsMusic(text: string): boolean {
-    return /m[uú][sz](i|ie)[ckq]/i.test(text);
-}
 
 const defaultDrm: DRMType =
     browser.os === 'Mac OS' || browser.os === 'iOS' ? 'fairplay' : 'widevine';

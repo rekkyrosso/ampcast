@@ -9,12 +9,10 @@ import Thumbnail from 'types/Thumbnail';
 import lastfmApi from 'services/lastfm/lastfmApi';
 import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import {findListenByPlayedAt, getListens} from 'services/localdb/listens';
-import {getCoverArtFromBlob} from 'services/metadata';
 import {getCoverArtThumbnails} from 'services/musicbrainz/coverart';
 import {getEnabledServices} from 'services/mediaServices';
 import youtubeApi from 'services/youtube/youtubeApi';
-import {getCurrentTrack} from 'services/playlist';
-import {findBestMatch} from 'services/lookup';
+import {getCoverArtFromBlob} from './music-metadata-js';
 
 export async function findThumbnails(
     item: MediaObject,
@@ -41,14 +39,6 @@ export async function findThumbnails(
         }
     }
     let thumbnails = findThumbnailsInListens(item);
-    if (!thumbnails && item.src.endsWith(':listen:now-playing')) {
-        const track = getCurrentTrack();
-        if (track) {
-            // This will filter out the item if it doesn't match.
-            const matchingTrack = findBestMatch([track], item as MediaItem, []);
-            thumbnails = matchingTrack?.thumbnails;
-        }
-    }
     if (!thumbnails) {
         const [serviceId] = item.src.split(':');
         if (extendedSearch) {

@@ -3,6 +3,7 @@ import Auth from 'types/Auth';
 
 export default function noAuth(isLoggedIn: boolean): Auth {
     return {
+        noAuth: true,
         observeIsLoggedIn: () => of(isLoggedIn),
         isConnected: () => isLoggedIn,
         isLoggedIn: () => isLoggedIn,

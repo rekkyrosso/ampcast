@@ -7,8 +7,7 @@ import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import Thumbnail from 'types/Thumbnail';
 import {Logger, exists} from 'utils';
-import {AddMetadataOptions, bestOf} from 'services/metadata';
-import {findBestMatch} from 'services/lookup';
+import {AddMetadataOptions, bestOf, isSameTrack} from 'services/metadata';
 import lastfmSettings from './lastfmSettings';
 
 const logger = new Logger('lastfmApi');
@@ -82,19 +81,17 @@ export class LastFmApi {
     ): Promise<T> {
         try {
             const {title, artists: [artist] = []} = item;
-            const track = await this.getTrackInfo(title, artist, '', signal);
-            if (track) {
-                const lookupItem = this.createMediaItem(track);
-                // This will filter out the item if it doesn't match.
-                const foundItem = findBestMatch([lookupItem], item, [], strictMatch);
-                if (foundItem) {
+            const trackInfo = await this.getTrackInfo(title, artist, '', signal);
+            if (trackInfo) {
+                const track = this.createMediaItem(trackInfo);
+                if (isSameTrack(item, track, strictMatch)) {
                     if (overWrite) {
                         // Prefer this metadata.
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                        const {src, externalUrl, playedAt, ...values} = foundItem;
+                        const {src, externalUrl, playedAt, ...values} = track;
                         return bestOf(values as T, item);
                     } else {
-                        return bestOf(item, foundItem as Partial<T>);
+                        return bestOf(item, track as Partial<T>);
                     }
                 }
             }
@@ -145,24 +142,30 @@ export class LastFmApi {
         user?: string,
         signal?: AbortSignal
     ): Promise<LastFm.AlbumInfo | undefined> {
-        if (artist) {
-            const params: Record<string, string> = {
-                method: 'album.getInfo',
-                artist: artist,
-                album: title,
-                autocorrect: '1',
-            };
-            if (user) {
-                params.user = user;
-            }
-            const {album} = await lastfmApi.get<LastFm.AlbumInfoResponse>(params, signal);
-            if (album) {
-                if ('error' in album) {
-                    logger.info('Album not found', {artist, title});
-                    logger.error((album.error as any)?.message || 'Not found');
-                    return;
+        try {
+            if (artist) {
+                const params: Record<string, string> = {
+                    method: 'album.getInfo',
+                    artist: artist,
+                    album: title,
+                };
+                if (user) {
+                    params.user = user;
+                } else {
+                    params.autocorrect = '1';
                 }
-                return album;
+                const {album} = await lastfmApi.get<LastFm.AlbumInfoResponse>(params, signal);
+                if (album) {
+                    if ('error' in album) {
+                        throw Error((album.error as any)?.message || 'Not found');
+                    }
+                    return album;
+                }
+            }
+        } catch (err) {
+            if (err !== 'Cancelled') {
+                logger.info('Album not found', {artist, title});
+                logger.error(err);
             }
         }
     }
@@ -173,24 +176,30 @@ export class LastFmApi {
         user?: string,
         signal?: AbortSignal
     ): Promise<LastFm.TrackInfo | undefined> {
-        if (artist) {
-            const params: Record<string, string> = {
-                method: 'track.getInfo',
-                artist: artist,
-                track: title,
-                autocorrect: '1',
-            };
-            if (user) {
-                params.user = user;
-            }
-            const {track} = await lastfmApi.get<LastFm.TrackInfoResponse>(params, signal);
-            if (track) {
-                if ('error' in track) {
-                    logger.info('Track not found', {artist, title});
-                    logger.error((track.error as any)?.message || 'Not found');
-                    return;
+        try {
+            if (artist) {
+                const params: Record<string, string> = {
+                    method: 'track.getInfo',
+                    artist: artist,
+                    track: title,
+                };
+                if (user) {
+                    params.user = user;
+                } else {
+                    params.autocorrect = '1';
                 }
-                return track;
+                const {track} = await lastfmApi.get<LastFm.TrackInfoResponse>(params, signal);
+                if (track) {
+                    if ('error' in track) {
+                        throw Error((track.error as any)?.message || 'Not found');
+                    }
+                    return track;
+                }
+            }
+        } catch (err) {
+            if (err !== 'Cancelled') {
+                logger.info('Track not found', {artist, title});
+                logger.error(err);
             }
         }
     }

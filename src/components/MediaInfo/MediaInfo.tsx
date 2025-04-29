@@ -7,11 +7,12 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
-import {getService} from 'services/mediaServices';
+import {getInternetRadio, getService} from 'services/mediaServices';
 import Actions from 'components/Actions';
 import Badges from 'components/Badges';
 import CoverArt, {CoverArtProps} from 'components/CoverArt';
 import ExternalLink from 'components/ExternalLink';
+import Icon from 'components/Icon';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import TextBox from 'components/TextBox';
 import {formatTime} from 'utils';
@@ -199,6 +200,10 @@ export function Owner<T extends MediaItem | MediaPlaylist>({src, owner}: Pick<T,
 }
 
 export function ExternalView({src, url = ''}: {src: string; url?: string | undefined}) {
+    if (src.startsWith('internet-radio:track:')) {
+        return <ExternalViewRadio src={src} />;
+    }
+
     let [serviceId] = src.split(':');
     let serviceName = serviceId;
 
@@ -248,6 +253,30 @@ export function ExternalView({src, url = ''}: {src: string; url?: string | undef
             )}
         </p>
     );
+}
+
+function ExternalViewRadio({src}: {src: string}) {
+    const internetRadio = getInternetRadio();
+    if (internetRadio) {
+        const [, , id] = src.split(':');
+        const station = internetRadio.getStation(id);
+
+        return (
+            <p className="external-view external-view-radio">
+                <Icon name={internetRadio.id} />
+                Provided by&nbsp;
+                {station ? (
+                    station.externalUrl ? (
+                        <ExternalLink href={station.externalUrl}>{station.title}</ExternalLink>
+                    ) : (
+                        station.title
+                    )
+                ) : (
+                    internetRadio.name
+                )}
+            </p>
+        );
+    }
 }
 
 export function AlbumAndYear<T extends MediaItem>({album, year}: Pick<T, 'album' | 'year'>) {

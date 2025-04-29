@@ -15,6 +15,7 @@ import {
     isPersonalMediaService,
     isPlayableSrc,
 } from 'services/mediaServices';
+import {getArtistAndTitle, filterMatches, removeFeaturedArtists} from 'services/metadata';
 import soundcloudApi from 'services/soundcloud/soundcloudApi';
 import youtubeApi from 'services/youtube/youtubeApi';
 import {
@@ -23,7 +24,6 @@ import {
     dispatchLookupCancelledEvent,
 } from './lookupEvents';
 import lookupSettings from './lookupSettings';
-import {getArtistAndTitle, filterMatches, removeFeaturedArtists} from './matcher';
 
 const logger = new Logger('lookup');
 

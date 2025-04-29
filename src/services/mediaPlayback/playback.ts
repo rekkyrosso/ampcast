@@ -8,7 +8,7 @@ import {MAX_DURATION} from 'services/constants';
 import miniPlayer from './miniPlayer';
 import defaultPlaybackState from './defaultPlaybackState';
 
-const newSession = () => ({
+const newSession = (): Partial<PlaybackState> => ({
     startedAt: 0,
     endedAt: 0,
     playbackId: nanoid(),

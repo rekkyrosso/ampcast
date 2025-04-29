@@ -4,8 +4,8 @@ import Dexie, {liveQuery} from 'dexie';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import PlaybackState from 'types/PlaybackState';
-import {Logger, removeUserData} from 'utils';
-import {findBestMatch, fuzzyCompare} from 'services/lookup';
+import {Logger, fuzzyCompare} from 'utils';
+import {findBestMatch, removeUserData} from 'services/metadata';
 import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import session from 'services/session';
 

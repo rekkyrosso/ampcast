@@ -5,6 +5,7 @@ export * from './event';
 export * from './fetch';
 export * from './media';
 export * from './number';
+export * from './string';
 export * from './utils';
 export {default as LiteStorage} from './LiteStorage';
 export {default as Logger} from './Logger';

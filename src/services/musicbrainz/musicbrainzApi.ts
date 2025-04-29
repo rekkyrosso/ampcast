@@ -1,10 +1,9 @@
-import {Writable} from 'type-fest';
 import type {AddMetadataOptions} from 'services/metadata';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import {Logger, RateLimiter, filterNotEmpty, uniq} from 'utils';
-import {findBestMatch} from 'services/lookup';
+import {filterMatches, findBestMatch} from 'services/metadata';
 import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import MusicBrainzAlbumTracksPager from './MusicBrainzAlbumTracksPager';
@@ -20,6 +19,16 @@ interface LookupItem<T extends MediaItem> {
     item: T;
     index: number;
 }
+
+type MBMediaItem = MediaItem & {
+    musicBrainz: {
+        readonly status: string;
+        readonly country: string;
+        readonly format: string;
+        readonly primaryType: string;
+        readonly secondaryType?: string;
+    };
+};
 
 const host = `https://musicbrainz.org/ws/2`;
 
@@ -139,7 +148,9 @@ async function addMetadata<T extends MediaItem>(
 
         return isArrayLookup ? foundItems : foundItems[0];
     } catch (err) {
-        logger.error(err);
+        if (err !== 'Cancelled') {
+            logger.error(err);
+        }
         return lookup;
     }
 }
@@ -167,7 +178,7 @@ async function addMetadataByTrackId<T extends MediaItem>(
         const {item, index} = lookupItem;
         const track_mbid = item.track_mbid!;
         const foundItems = allItems.filter((item) => item.track_mbid === track_mbid);
-        const foundItem = findBestMatch(foundItems, item);
+        const foundItem = findBestMBMatch(foundItems, item);
         if (foundItem) {
             const {artist_mbids, release_mbid, recording_mbid} = foundItem;
             const values = addMissingValues(
@@ -212,7 +223,7 @@ async function addMetadataByRecordingId<T extends MediaItem>(
         const release_mbid = item.release_mbid;
         let foundItems = allItems.filter((item) => item.recording_mbid === recording_mbid);
         foundItems = filterNotEmpty(foundItems, (item) => item.release_mbid === release_mbid);
-        const foundItem = findBestMatch(foundItems, item);
+        const foundItem = findBestMBMatch(foundItems, item);
         if (foundItem) {
             const {artist_mbids, release_mbid, track_mbid} = foundItem;
             const values = addMissingValues(
@@ -254,7 +265,7 @@ async function addMetadataByISRC<T extends MediaItem>(
         const foundItems = createMediaItemsFromRecordings(
             recordings.filter((recording) => recording.isrcs?.includes(isrc))
         );
-        const foundItem = findBestMatch(foundItems, item);
+        const foundItem = findBestMBMatch(foundItems, item);
         if (foundItem) {
             const {recording_mbid, artist_mbids, release_mbid, track_mbid} = foundItem;
             const values = addMissingValues(
@@ -351,15 +362,25 @@ async function lookup<T extends MediaItem>(
     item: T,
     requestInit?: RequestInitWithTimeout
 ): Promise<MediaItem | undefined> {
-    const title = item.title;
-    const artist = item.artists?.[0];
-    const {recordings = []} = await fetchJSON<MusicBrainz.RecordingsQuery>(
-        `/recording`,
-        {query: `artist:${artist} AND recording:${title}`, inc: 'url-rels'},
-        requestInit
-    );
-    const items = createMediaItemsFromRecordings(recordings);
-    return findBestMatch(items, item);
+    // https://lucene.apache.org/core/2_9_4/queryparsersyntax.html#Escaping%20Special%20Characters
+    const escape = (string = '') =>
+        string.replace(/[+\-!(){}[\]^"~*?:\\]|\|\||&&/g, (match: string) => {
+            return match
+                .split('')
+                .map((char) => `\\${char}`)
+                .join('');
+        });
+    const artist = escape(item.artists?.[0]);
+    const title = escape(item.title);
+    if (artist && title) {
+        const {recordings = []} = await fetchJSON<MusicBrainz.RecordingsQuery>(
+            `/recording`,
+            {query: `artist:${artist} AND recording:${title}`},
+            requestInit
+        );
+        const items = createMediaItemsFromRecordings(recordings);
+        return findBestMBMatch(items, item);
+    }
 }
 
 function addMissingValues(
@@ -413,50 +434,57 @@ async function fetchJSON<T>(
     return response.json();
 }
 
-function createMediaItemsFromRecordings(recordings: readonly MusicBrainz.Recording[]): MediaItem[] {
-    type MBMediaItem = MediaItem & {
-        musicBrainz: {
-            readonly status: string;
-            readonly country: string;
-            readonly format: string;
-        };
-    };
-    let items: MBMediaItem[] = [];
+function findBestMBMatch(matches: readonly MBMediaItem[], item: MediaItem): MediaItem | undefined {
+    matches = filterMatches(matches, item);
+    matches = filterNotEmpty(matches, (item) => item.musicBrainz.status === 'Official');
+    matches = filterNotEmpty(matches, (item) => item.musicBrainz.primaryType === 'Album');
+    matches = filterNotEmpty(matches, (item) => !!item.isrc);
+    matches = filterNotEmpty(matches, (item) => !item.musicBrainz.secondaryType);
+    const match = findBestMatch(matches, item);
+    if (match) {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {musicBrainz: _, ...item} = match;
+        return item;
+    }
+    return match;
+}
+
+function createMediaItemsFromRecordings(
+    recordings: readonly MusicBrainz.Recording[]
+): MBMediaItem[] {
+    const items: MBMediaItem[] = [];
     for (const recording of recordings) {
         const releases = recording.releases || [];
         for (const release of releases) {
             const status = release.status || '';
             const country = release.country || '';
+            const primaryType = release['release-group']?.['primary-type'] || '';
+            const secondaryType = release['release-group']?.['secondary-types']?.[0];
             const media = release.media || [];
             for (const medium of media) {
                 const format = medium.format || '';
                 const tracks = medium.track || [];
                 for (const track of tracks) {
-                    (track as Writable<MusicBrainz.Track>).recording = recording;
-                    const musicBrainz = {status, country, format};
-                    const item = createMediaItem(release, track);
+                    const musicBrainz = {status, country, format, primaryType, secondaryType};
+                    const item = createMediaItem(track, recording, release);
                     items.push({...item, musicBrainz});
                 }
             }
         }
     }
-    items = filterNotEmpty(items, (item) => item.musicBrainz.status === 'Official');
-    items = filterNotEmpty(items, (item) => !!item.isrc);
-    items.sort(
+
+    return items.sort(
         (a, b) =>
             (digitalFormats[a.musicBrainz.format] || 99) -
             (digitalFormats[b.musicBrainz.format] || 99)
     );
-
-    return items.map((mbItem) => {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const {musicBrainz: _, ...item} = mbItem;
-        return item;
-    });
 }
 
-export function createMediaItem(release: MusicBrainz.Release, track: MusicBrainz.Track): MediaItem {
-    const recording = track.recording!;
+export function createMediaItem(
+    track: MusicBrainz.Track,
+    recording: MusicBrainz.Recording,
+    release: MusicBrainz.Release
+): MediaItem {
     const [albumArtist] = getArtists(release) || [];
     const artists = getArtists(recording);
 

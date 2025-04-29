@@ -33,13 +33,17 @@
         border-color: var(--black);
     }
 
-    .media-source-label .icon {
-        position: absolute;
-        left: calc(0.375em + var(--roundness) * 0.25em);
-        width: auto;
-        min-width: 1.125em;
-        height: 1.125em;
-        aspect-ratio: 1;
+    .media-source-label {
+        max-width: 100%;
+
+        .icon {
+            position: absolute;
+            left: calc(0.375em + var(--roundness) * 0.25em);
+            width: auto;
+            min-width: 1.125em;
+            height: 1.125em;
+            aspect-ratio: 1;
+        }
     }
 
     .icon-button-menu {

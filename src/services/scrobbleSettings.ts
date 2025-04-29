@@ -32,7 +32,7 @@ export function setNoScrobble(scrobblerId: MediaServiceId, updates: Record<strin
 
 export function canUpdateNowPlaying(scrobblerId: MediaServiceId): boolean {
     const settings = options$.getValue();
-    return !!settings[scrobblerId]?.updateNowPlaying;
+    return settings[scrobblerId]?.updateNowPlaying ?? true;
 }
 
 export function updateOptions(scrobbler: MediaService, options: Partial<ScrobblingOptions>): void {

@@ -2,6 +2,7 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import MediaService from 'types/MediaService';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
+import {partition} from 'utils';
 import {getBrowsableServices, getService} from 'services/mediaServices';
 import {
     allowMultiSelect,
@@ -20,7 +21,13 @@ export default function StartupWizard(props: DialogProps) {
     const [pageNumber, setPageNumber] = useState(0);
     const pages = useMemo(() => {
         const pages: any[] = [];
-        if (services.length > 0) {
+        if (services.length === 0) {
+            pages.push(
+                <div className="note">
+                    <p>No services configured.</p>
+                </div>
+            );
+        } else {
             const publicMediaServices = getBrowsableServices(ServiceType.PublicMedia);
             if (publicMediaServices.length > 0) {
                 pages.push(<StreamingMedia services={publicMediaServices} key={0} />);
@@ -55,13 +62,23 @@ export default function StartupWizard(props: DialogProps) {
             <form method="dialog">
                 {pages[pageNumber]}
                 <footer className="dialog-buttons">
-                    <button type="button" disabled={pageNumber === 0} onClick={prev}>
-                        « Prev
-                    </button>
-                    <button type="button" disabled={pageNumber >= pages.length - 1} onClick={next}>
-                        Next »
-                    </button>
-                    <button className="dialog-button-submit">Finish</button>
+                    {pages.length > 1 ? (
+                        <>
+                            <button type="button" disabled={pageNumber === 0} onClick={prev}>
+                                « Prev
+                            </button>
+                            <button
+                                type="button"
+                                disabled={pageNumber >= pages.length - 1}
+                                onClick={next}
+                            >
+                                Next »
+                            </button>
+                            <button className="dialog-button-submit">Finish</button>
+                        </>
+                    ) : (
+                        <button className="dialog-button-submit">OK</button>
+                    )}
                 </footer>
             </form>
         </Dialog>
@@ -107,6 +124,11 @@ function Services({icon, title, className, multiSelect, services}: ServicesProps
     const [restrictedAccess, setRestrictedAccess] = useState(() =>
         services.filter(isSourceVisible).some(hasRestrictedAccess)
     );
+    // Split the lists if we are only allowing one public media service.
+    // (This is probably the wrong place to do this)
+    const [multiSelectServices, singleSelectServices = []] = multiSelect
+        ? [services]
+        : partition(services, (service) => !!service.noAuth);
 
     const handleChange = useCallback(async () => {
         const inputs = ref.current!.elements as HTMLInputElements;
@@ -133,7 +155,12 @@ function Services({icon, title, className, multiSelect, services}: ServicesProps
             </h3>
             <fieldset className="media-services" onChange={handleChange} ref={ref}>
                 <legend>Enable</legend>
-                <MediaServiceList services={services} multiSelect={multiSelect} />
+                {singleSelectServices.length === 0 ? null : (
+                    <MediaServiceList services={singleSelectServices} multiSelect={false} />
+                )}
+                {multiSelectServices.length === 0 ? null : (
+                    <MediaServiceList services={multiSelectServices} multiSelect={true} />
+                )}
             </fieldset>
             {restrictedAccess ? <p className="restricted-access">*Access is restricted.</p> : null}
         </div>

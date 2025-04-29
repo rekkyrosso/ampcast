@@ -2,8 +2,9 @@ import type {Observable} from 'rxjs';
 import {EMPTY, BehaviorSubject, distinctUntilChanged, filter, interval, map, switchMap} from 'rxjs';
 import PlayableItem from 'types/PlayableItem';
 import Player from 'types/Player';
-import {exists, observeBeforeEndOfTrack} from 'utils';
+import {exists} from 'utils';
 import HTML5Player from './HTML5Player';
+import observeNearEnd from './observeNearEnd';
 
 export default class DualAudioPlayer implements Player<PlayableItem> {
     private readonly element = document.createElement('div');
@@ -24,7 +25,7 @@ export default class DualAudioPlayer implements Player<PlayableItem> {
         });
 
         // Load next track.
-        observeBeforeEndOfTrack(this, 5)
+        observeNearEnd(this, 5)
             .pipe(
                 switchMap((nearEnd) => (nearEnd ? this.nextItem$ : EMPTY)),
                 distinctUntilChanged(),
@@ -35,7 +36,7 @@ export default class DualAudioPlayer implements Player<PlayableItem> {
             });
 
         // Gapless playback.
-        observeBeforeEndOfTrack(this, 2)
+        observeNearEnd(this, 2)
             .pipe(
                 switchMap((nearEnd) => (nearEnd ? interval(10) : EMPTY)),
                 map(() => {

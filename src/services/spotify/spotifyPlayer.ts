@@ -27,7 +27,8 @@ import {
 } from 'rxjs';
 import PlayableItem from 'types/PlayableItem';
 import Player from 'types/Player';
-import {exists, loadScript, Logger, observeBeforeEndOfTrack, sleep} from 'utils';
+import {Logger, exists, loadScript, sleep} from 'utils';
+import observeNearEnd from 'services/mediaPlayback/players/observeNearEnd';
 import {observeAccessToken, refreshToken} from './spotifyAuth';
 
 interface LoadError {
@@ -147,7 +148,7 @@ export class SpotifyPlayer implements Player<PlayableItem> {
             .subscribe(logger);
 
         // Queue next track.
-        observeBeforeEndOfTrack(this, 10)
+        observeNearEnd(this, 10)
             .pipe(
                 filter((atBeforeEnd) => atBeforeEnd),
                 withLatestFrom(this.nextItem$),

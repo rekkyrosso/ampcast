@@ -27,6 +27,19 @@ const genericParsers: NowPlayingParsers = {
             : null;
     },
 
+    cdnstream1: (responseText, station) => {
+        const [data] = JSON.parse(responseText);
+        const {TALB: album, TPE1: artist, TIT2: title, WXXX_album_art: img, TXXX_category} = data;
+        return title && TXXX_category === 'music'
+            ? createMediaItem(station, {
+                  title,
+                  album,
+                  artists: artist ? [artist] : undefined,
+                  thumbnails: createThumbnails(img),
+              })
+            : null;
+    },
+
     live365: (responseText, station) => {
         const data = JSON.parse(responseText);
         const track = data['current-track'] || {};
@@ -46,7 +59,7 @@ const genericParsers: NowPlayingParsers = {
         let artist = iArtist;
         let song = iName;
         if (!song || !title.endsWith(song) || !artist || !title.startsWith(artist)) {
-            let splitTitle =  title.split(/\s+-\s+/);
+            let splitTitle = title.split(/\s+-\s+/);
             if (splitTitle.length > 2) {
                 splitTitle = uniq(splitTitle);
             }
@@ -89,15 +102,27 @@ const genericParsers: NowPlayingParsers = {
         const artist = getText('.artist');
         const song = getText('.song');
         const album = getText('.release');
-        const year = getText('.released');
         const img = $<HTMLImageElement>('img');
-        console.log('spinitron', {artist, song, album, year, img, text});
         return song
             ? createMediaItem(station, {
                   title: song,
                   album,
                   artists: artist ? [artist] : undefined,
                   thumbnails: createThumbnails(img?.src, img?.width, img?.height),
+              })
+            : null;
+    },
+
+    nprstations: (responseText, station) => {
+        const {
+            onNow: {song: {artistName, collectionName, trackName, _duration} = {}},
+        } = JSON.parse(responseText);
+        return trackName
+            ? createMediaItem(station, {
+                  title: trackName,
+                  album: collectionName || '',
+                  duration: Number(_duration / 1000) || 0,
+                  artists: artistName ? [artistName] : undefined,
               })
             : null;
     },
@@ -136,19 +161,6 @@ const stationParsers: NowPlayingParsers = {
                   title,
                   artists: artist ? [artist] : undefined,
                   thumbnails: createThumbnails(artworkUrl),
-              })
-            : null;
-    },
-
-    coloradosound: (responseText, station) => {
-        const [data] = JSON.parse(responseText);
-        const {TALB: album, TPE1: artist, TIT2: title, WXXX_album_art: img} = data;
-        return title
-            ? createMediaItem(station, {
-                  title,
-                  album,
-                  artists: artist ? [artist] : undefined,
-                  thumbnails: createThumbnails(img),
               })
             : null;
     },
@@ -217,7 +229,7 @@ function createMediaItem(
 function createThumbnails(
     url: string | undefined,
     width = 600,
-    height = 600
+    height = width
 ): readonly Thumbnail[] | undefined {
     return url ? [{url, width, height}] : undefined;
 }
@@ -242,3 +254,21 @@ const parse: NowPlayingParser = (responseText: string, station: RadioStation) =>
 };
 
 export default {parse};
+
+// const canParse = (station: RadioStation) => {
+//     if (station.api) {
+//         const genericParserName = Object.keys(genericParsers).find((name) =>
+//             station.api.includes(name)
+//         );
+//         const parse = genericParserName
+//             ? genericParsers[genericParserName]
+//             : stationParsers[station.id];
+//         if (!parse) {
+//             logger.warn(`Parser not found for station: ${station.id}`);
+//         }
+//     } else {
+//         logger.warn(`API not found for station: ${station.id}`);
+//     }
+// };
+// import stations from './stations/all';
+// stations.forEach((s) => canParse(s.radio));

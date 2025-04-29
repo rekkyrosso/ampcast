@@ -24,7 +24,7 @@ export default function MediaServiceSettingsGeneral({service}: MediaServiceSetti
 
     return (
         <form className="media-service-settings-general" method="dialog" onSubmit={handleSubmit}>
-            <DisconnectButton service={service} />
+            {service.noAuth ? null : <DisconnectButton service={service} />}
             <fieldset ref={ref}>
                 <legend>Display</legend>
                 <ul className="checkbox-list">

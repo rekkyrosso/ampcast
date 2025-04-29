@@ -597,7 +597,7 @@
             "api": "https://scraper2.onlineradiobox.com/us.kosu3?l=0",
             "location": "Oklahoma City, OK 🇺🇸",
             "stream": "https://22063.live.streamtheworld.com/KOSUHD2.mp3?dist=scrobbleradio",
-            "timezone": "America/Chicago"
+            "timezone": ""
         }
     },
     {
@@ -726,9 +726,9 @@
         "radio": {
             "id": "lemellotron",
             "name": "Le Mellotron",
-            "api": "https://api.radioking.io/widget/radio/lemellotron-stream/track/current",
+            "api": "https://scraper2.onlineradiobox.com/fr.lemellotron?l=0",
             "location": "Paris, France 🇫🇷",
-            "stream": "https://www.radioking.com/play/lemellotron-stream",
+            "stream": "https://listen.radioking.com/radio/477719/stream/534044",
             "timezone": "Europe/Paris"
         }
     },
@@ -786,7 +786,7 @@
         "radio": {
             "id": "newsounds",
             "name": "New Sounds",
-            "api": "https://api.wnyc.org/api/v1/whats_on/q2/",
+            "api": "https://scraper2.onlineradiobox.com/us.wqxrnewsoundsradio?l=0",
             "location": "New York, NY ",
             "stream": "https://q2stream.wqxr.org/q2-web",
             "timezone": "America/New_York"
@@ -1088,7 +1088,7 @@
             "name": "The Music Machine 1",
             "api": "https://scraper2.onlineradiobox.com/uk.themusicmachine1?l=0",
             "location": "London, UK 🇬🇧",
-            "stream": "https://msmn3.co/proxy/x1mp33/stream",
+            "stream": "https://listen-msmn.sharp-stream.com/nme1.mp3",
             "timezone": "UTC"
         }
     },

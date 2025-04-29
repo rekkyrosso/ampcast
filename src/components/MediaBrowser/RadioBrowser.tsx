@@ -15,7 +15,9 @@ export default function RadioBrowser({service, source}: RadioBrowserProps) {
     const pager = useSource(source);
     return (
         <>
-            <PageHeader icon={service.icon}>{service.name}</PageHeader>
+            <PageHeader icon={service.icon} source={source}>
+                {source === service.root ? service.name : `${service.name}: ${source.title}`}
+            </PageHeader>
             <div className="panel">
                 <RadioList title={source.title} pager={pager} reportingId={source.id} />
             </div>

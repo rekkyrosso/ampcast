@@ -1,20 +1,18 @@
-import stringScore from 'string-score';
 import unidecode from 'unidecode';
 import MediaItem from 'types/MediaItem';
-import {filterNotEmpty} from 'utils';
+import {filterNotEmpty, fuzzyCompare} from 'utils';
 
 const regFeaturedArtists = /\s*[\s[({](with\s|featuring\s|feat[\s.]+|ft[\s.]+).+$/i;
 
 // Finds the best match in a list of media items.
 // It will reject anything that is not a "good" match.
 // It's better to return nothing than the wrong track.
-// TODO: This is too slow for a large amount of items.
 export function findBestMatch<T extends MediaItem>(
-    items: readonly MediaItem[],
-    item: T,
+    items: readonly T[],
+    item: MediaItem,
     isrcs: readonly string[] = [],
     strict?: boolean
-): MediaItem | undefined {
+): T | undefined {
     const {artist, title} = getArtistAndTitle(item);
     if (!artist || !title) {
         return;
@@ -22,13 +20,14 @@ export function findBestMatch<T extends MediaItem>(
     return filterMatches(items, item, isrcs, strict)[0];
 }
 
+// TODO: This is too slow for a large amount of items.
 export function filterMatches<T extends MediaItem>(
-    items: readonly MediaItem[],
-    item: T,
+    items: readonly T[],
+    item: MediaItem,
     isrcs: readonly string[] = [],
     strict?: boolean
-): MediaItem[] {
-    let matches: MediaItem[] = [];
+): readonly T[] {
+    let matches: T[] = [];
     if (isrcs.length > 0) {
         matches = items.filter((match) => match.isrc && isrcs.includes(match.isrc));
     }
@@ -56,8 +55,9 @@ export function filterMatches<T extends MediaItem>(
     return matches;
 }
 
-export function fuzzyCompare(a: string, b: string, tolerance = 0.9): boolean {
-    return Math.max(stringScore(a, b, 0.99), stringScore(b, a, 0.99)) >= tolerance;
+export function isSameTrack(a: MediaItem, b: MediaItem, strict?: boolean): boolean {
+    return !!findBestMatch([a], b, [], strict);
+    // && (a.album && b.album ? compareAlbum(a, b) : true); // TODO
 }
 
 function compare<T extends MediaItem>(
@@ -75,7 +75,7 @@ function compare<T extends MediaItem>(
     return false;
 }
 
-export function compareByUniqueId<T extends MediaItem>(match: MediaItem, item: T): boolean {
+function compareByUniqueId<T extends MediaItem>(match: MediaItem, item: T): boolean {
     return !!(
         item.src === match.src ||
         (item.isrc && item.isrc === match.isrc) ||

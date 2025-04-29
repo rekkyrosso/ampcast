@@ -23,8 +23,8 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import Playlist, {PlayableType} from 'types/Playlist';
 import PlaylistItem from 'types/PlaylistItem';
 import LookupStatus from 'types/LookupStatus';
-import {exists, isMiniPlayer, removeUserData, shuffle as shuffleArray, Logger} from 'utils';
-import {bestOf} from 'services/metadata';
+import {exists, isMiniPlayer, shuffle as shuffleArray, Logger} from 'utils';
+import {bestOf, removeUserData} from 'services/metadata';
 import {
     LookupStartEvent,
     LookupEndEvent,

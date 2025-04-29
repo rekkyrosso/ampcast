@@ -24,7 +24,7 @@ export default class RateLimiter {
                 filter((currentRequest) => currentRequest === request),
                 mergeMap((request) => {
                     if (request.signal?.aborted) {
-                        throw Error(request.signal.reason);
+                        throw request.signal.reason;
                     } else {
                         this.lastFetchTime = Date.now();
                         const signals: AbortSignal[] = [];

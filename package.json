@@ -1,6 +1,6 @@
 {
     "name": "ampcast",
-    "version": "0.9.17",
+    "version": "0.9.18",
     "description": "Ampcast music player",
     "homepage": "https://ampcast.app",
     "author": {
@@ -25,7 +25,7 @@
         "@tidal-music/api": "^0.2.0",
         "@tidal-music/auth": "^1.3.3",
         "@tidal-music/common": "^0.1.5",
-        "@tidal-music/player": "^0.7.0",
+        "@tidal-music/player": "^0.8.0",
         "audiomotion-analyzer": "^4.0.0",
         "butterchurn": "^3.0.0-beta.4",
         "butterchurn-presets": "3.0.0-beta.4",

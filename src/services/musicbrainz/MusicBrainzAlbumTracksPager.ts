@@ -12,7 +12,7 @@ export default class MusicBrainzAlbumTracksPager extends SimpleMediaPager<MediaI
                 {inc: 'recordings+artist-credits+isrcs+url-rels'}
             );
             const {media: [{tracks = []} = {}] = []} = release;
-            const items = tracks.map((track) => createMediaItem(release, track));
+            const items = tracks.map((track) => createMediaItem(track, track.recording!, release));
             if (items.length === 1) {
                 const urls = this.getUrls(release);
                 return items.map((item) => {
