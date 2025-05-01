@@ -34,6 +34,16 @@
         visibility: hidden;
     }
 
+    .location-info {
+        display: inline-flex;
+        align-items: center;
+        
+        .icon {
+            width: 1.5em;
+            margin-right: 0.25em;
+        }
+    }
+
     .list-view-row:hover .icon-button-heart,
     .list-view-row:hover .icon-button-info,
     .list-view-row:hover .icon-button-menu,
@@ -232,7 +242,6 @@
 
         .artist,
         .genre,
-        .location,
         .owner {
             top: 1.75em;
             color: var(--grey2-color);
@@ -241,6 +250,7 @@
         .album,
         .blurb,
         .year,
+        .location,
         .views {
             top: 3.375em;
             color: var(--grey2-color);
@@ -341,7 +351,6 @@
             .title,
             .artist,
             .owner,
-            .location,
             .genre,
             .blurb,
             .album,
@@ -371,7 +380,6 @@
 
             .artist,
             .genre,
-            .location,
             .owner {
                 top: 1.5em;
             }
@@ -383,6 +391,7 @@
             .album,
             .blurb,
             .year,
+            .location,
             .views {
                 top: 2.75em;
 
@@ -432,7 +441,6 @@
 
             .title,
             .artist,
-            .location,
             .genre,
             .owner {
                 top: 1.375em;
@@ -494,7 +502,6 @@
             .title,
             .artist,
             .owner,
-            .location,
             .genre {
                 right: 0.25em;
             }
@@ -502,6 +509,7 @@
             .blurb,
             .album,
             .year,
+            .location,
             .views {
                 right: 1em;
             }

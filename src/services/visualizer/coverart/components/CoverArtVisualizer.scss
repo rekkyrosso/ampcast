@@ -44,7 +44,7 @@
             inset: 0;
             background-color: var(--background-color);
         }
-        
+
         .cover-art {
             position: absolute;
             inset: 0;
@@ -66,11 +66,11 @@
                 height: var(--size);
                 padding: 0;
                 color: var(--grey2-color);
-        
+
                 .media.fullscreen & {
                     --size: min(var(--thumbnail-size), 50vh);
                 }
-        
+
                 .media:fullscreen & {
                     --size: min(var(--thumbnail-size), 67vh);
                 }
@@ -88,8 +88,16 @@
         &.text-light .currently-playing-text {
             text-shadow: 2px 2px 0 rgba(16, 16, 16, 0.6);
 
+            .icon {
+                filter: drop-shadow(2px 2px 0 rgba(16, 16, 16, 0.4));
+            }
+
             .media:fullscreen & {
                 text-shadow: 4px 4px 0 rgba(16, 16, 16, 0.6);
+
+                .icon {
+                    filter: drop-shadow(4px 4px 0 rgba(16, 16, 16, 0.4));
+                }
             }
         }
 
@@ -106,41 +114,46 @@
             position: absolute;
             bottom: 0.625em;
             right: 0.625em;
-    
+
             .thumbnail {
                 width: 2em;
                 height: 2em;
                 padding: 0;
             }
         }
-    
+
         .provided-by {
             position: relative; /* break inherited opacity */
             font-size: max(0.625em, 12px);
             margin-top: 0.5em;
             align-items: normal;
-    
+
             .media.fullscreen & {
                 font-size: max(0.25em, 1rem);
             }
-    
+
             .media:fullscreen & {
                 font-size: max(0.375em, 1rem);
             }
+
+            .icon-internet-radio {
+                color: inherit;
+            }
         }
-    
+
         .sub-title {
             margin-top: 0.5em;
             font-size: 0.75em;
             color: var(--grey2-color);
-        }
-    
-        .playback-state {
-            color: var(--grey2-color);
+
+            .media-source-label {
+                display: inline-flex;
+                align-items: flex-start;
+            }
         }
 
-        .icon-internet-radio {
-            color: inherit;
+        .playback-state {
+            color: var(--grey2-color);
         }
     }
 

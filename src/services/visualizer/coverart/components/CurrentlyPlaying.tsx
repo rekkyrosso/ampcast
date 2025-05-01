@@ -6,6 +6,7 @@ import PlaylistItem from 'types/PlaylistItem';
 import {uniq} from 'utils';
 import {getInternetRadio} from 'services/mediaServices';
 import {Thumbnail} from 'components/MediaInfo/MediaInfo';
+import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import ProvidedBy from 'components/MediaSources/ProvidedBy';
 import PlaybackState from 'components/Media/PlaybackState';
 import ProgressBar from 'components/Media/ProgressBar';
@@ -119,9 +120,7 @@ export default function CurrentlyPlaying({
                     </div>
                     <div className="currently-playing-text">
                         <h3 className="title">{item.title}</h3>
-                        <h4 className="sub-title">
-                            {item.radio?.location || item.artists?.join(' ● ')}
-                        </h4>
+                        <SubTitle artists={item.artists} radio={item.radio} />
                     </div>
                     {radioStation ? (
                         <div className="radio-logo">
@@ -143,4 +142,18 @@ function getRadioStation(track: PlaylistItem | null): MediaItem | undefined {
             return getInternetRadio()?.getStation(id);
         }
     }
+}
+
+function SubTitle({radio, artists = []}: Pick<PlaylistItem, 'radio' | 'artists'>) {
+    return radio ? (
+        radio.location ? (
+            <h4 className="sub-title">
+                <MediaSourceLabel icon="location" text={radio.location} />
+            </h4>
+        ) : null
+    ) : artists?.length ? (
+        <h4 className="sub-title">
+            <MediaSourceLabel icon="artist" text={artists.join(' ● ')} />
+        </h4>
+    ) : null;
 }

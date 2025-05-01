@@ -16,6 +16,7 @@ import Actions from 'components/Actions';
 import {ExplicitBadge} from 'components/Badges/Badge';
 import CoverArt from 'components/CoverArt';
 import Icon from 'components/Icon';
+import Flag from 'components/Icon/Flag';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import StarRating from 'components/StarRating';
 import SunClock from 'components/SunClock';
@@ -87,7 +88,13 @@ const PlaylistTitle: RenderField = (item) => {
 
 const Blurb: RenderField = (item) => <Text value={item.description} />;
 
-const Location: RenderField<MediaItem> = (item) => <Text value={item.radio?.location} />;
+const Location: RenderField<MediaItem> = ({radio: {country, location} = {}}) =>
+    country ? (
+        <span className="location-info">
+            <Flag country={country} />
+            <Text value={location} />
+        </span>
+    ) : null;
 
 const Track: RenderField<MediaItem> = (item) => <Text value={item.track || '-'} />;
 

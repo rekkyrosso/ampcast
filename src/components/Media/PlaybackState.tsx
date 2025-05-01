@@ -1,13 +1,12 @@
 import React from 'react';
-import {observeCurrentTime} from 'services/mediaPlayback';
-import useObservable from 'hooks/useObservable';
+import useCurrentTime from 'hooks/useCurrentTime';
 import usePaused from 'hooks/usePaused';
 import useLoadingState from './useLoadingState';
 
 export default function PlaybackState() {
     const loadingState = useLoadingState();
     const paused = usePaused();
-    const currentTime = useObservable(observeCurrentTime, 0);
+    const currentTime = useCurrentTime();
     const started = currentTime > 0;
 
     return (

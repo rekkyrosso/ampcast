@@ -1,10 +1,10 @@
 import React from 'react';
-import {observeCurrentTime, observeDuration} from 'services/mediaPlayback';
-import useObservable from 'hooks/useObservable';
+import useCurrentTime from 'hooks/useCurrentTime';
+import useDuration from 'hooks/useDuration';
 import './ProgressBar.scss';
 
 export default function ProgressBar() {
-    const duration = useObservable(observeDuration, 0);
-    const currentTime = useObservable(observeCurrentTime, 0);
+    const duration = useDuration();
+    const currentTime = useCurrentTime();
     return <progress className="progress-bar" max={duration} value={currentTime} />;
 }

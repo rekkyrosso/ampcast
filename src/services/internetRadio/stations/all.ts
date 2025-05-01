@@ -1,13 +1,22 @@
+import {Except} from 'type-fest';
 import ItemType from 'types/ItemType';
+import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import {RadioItem} from 'types/InternetRadio';
+import RadioStation from 'types/RadioStation';
 import {MAX_DURATION} from 'services/constants';
 import stationData from './stationData.json';
 
-const stations: readonly RadioItem[] = stationData.map((data) => {
+type StationData = Partial<Except<MediaItem, 'radio'>> & {
+    radio: Except<RadioStation, 'country'> & {
+        country: string;
+    };
+};
+
+const stations: readonly RadioItem[] = stationData.map((data: StationData) => {
     const id = data.radio.id;
     return {
-        ...data,
+        ...(data as RadioItem),
         src: `internet-radio:station:${id}`,
         itemType: ItemType.Media,
         mediaType: MediaType.Audio,
