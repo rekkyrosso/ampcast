@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
 import {SetOptional, SetRequired, Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
@@ -13,6 +14,7 @@ import Pager, {Page, PagerConfig} from 'types/Pager';
 import ParentOf from 'types/ParentOf';
 import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
+import {MAX_DURATION} from 'services/constants';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
@@ -89,28 +91,26 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaObject(itemType: ItemType, item: Subsonic.MediaObject): T {
-        let mediaObject: T;
         switch (itemType) {
             case ItemType.Album:
-                mediaObject = this.createMediaAlbum(item as Subsonic.Album) as T;
-                break;
+                return this.createMediaAlbum(item as Subsonic.Album) as T;
 
             case ItemType.Artist:
-                mediaObject = this.createMediaArtist(item as Subsonic.Artist) as T;
-                break;
+                return this.createMediaArtist(item as Subsonic.Artist) as T;
 
             case ItemType.Playlist:
-                mediaObject = this.createMediaPlaylist(item as Subsonic.Playlist) as T;
-                break;
+                return this.createMediaPlaylist(item as Subsonic.Playlist) as T;
 
             case ItemType.Folder:
-                mediaObject = this.createFolderItem(item as Subsonic.DirectoryItem) as T;
-                break;
+                return this.createFolderItem(item as Subsonic.DirectoryItem) as T;
 
             default:
-                mediaObject = this.createMediaItem(item as Subsonic.MediaItem) as T;
+                if ('streamUrl' in item) {
+                    return this.createRadioItem(item) as T;
+                } else {
+                    return this.createMediaItem(item as Subsonic.MediaItem) as T;
+                }
         }
-        return mediaObject;
     }
 
     private createMediaItem(item: Subsonic.MediaItem): SetRequired<MediaItem, 'fileName'> {
@@ -177,6 +177,21 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             bitRate: video.bitRate,
             badge: height > 1080 ? 'UHD' : height >= 720 ? 'HD' : height > 0 ? 'SD' : undefined,
             container: video.contentType?.replace('video/', ''),
+        };
+    }
+
+    private createRadioItem(radio: Subsonic.Radio): MediaItem {
+        return {
+            src: `${this.service.id}:radio:${radio.id}`,
+            srcs: [radio.streamUrl],
+            title: radio.name,
+            itemType: ItemType.Media,
+            mediaType: MediaType.Audio,
+            linearType: LinearType.Station,
+            externalUrl: radio.homePageUrl,
+            duration: MAX_DURATION,
+            playedAt: 0,
+            noScrobble: true,
         };
     }
 

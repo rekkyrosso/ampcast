@@ -10,8 +10,8 @@ import SubsonicApi from './SubsonicApi';
 export function scrobble(service: MediaService, api: SubsonicApi): void {
     const logger = new Logger(`${service.id}Scrobbler`);
 
-    const isValidItem = (state: PlaybackState): boolean =>
-        !!state.currentItem?.src.startsWith(`${service.id}:`);
+    const isValidItem = ({currentItem}: PlaybackState): boolean =>
+        !!currentItem?.src.startsWith(`${service.id}:`) && !currentItem.linearType;
 
     const reportStart = async (item: MediaItem): Promise<void> => {
         try {

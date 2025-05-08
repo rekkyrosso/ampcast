@@ -19,17 +19,13 @@ export default interface Playlist {
     observe(): Observable<readonly PlaylistItem[]>;
     observeCurrentIndex(): Observable<number>;
     observeCurrentItem(): Observable<PlaylistItem | null>;
-    observeCurrentTrack(): Observable<PlaylistItem | null>;
     observeNextItem(): Observable<PlaylistItem | null>;
-    observeNextTrack(): Observable<PlaylistItem | null>;
     observeSize(): Observable<number>;
     getCurrentIndex(): number;
     setCurrentIndex(index: number): void;
     getCurrentItem(): PlaylistItem | null;
     setCurrentItem(item: PlaylistItem | null): void;
-    getCurrentTrack(): PlaylistItem | null;
     getNextItem(): PlaylistItem | null;
-    getNextTrack(): PlaylistItem | null;
     getItems(): readonly PlaylistItem[];
     setItems(items: readonly PlaylistItem[]): void;
     add(source: PlayableType): Promise<void>;

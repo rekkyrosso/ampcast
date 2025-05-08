@@ -157,7 +157,7 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
             return;
         }
 
-        this.player$.next(nextPlayer);
+        this.player$.next(nextPlayer); // turn on event streams
 
         if (nextPlayer) {
             try {

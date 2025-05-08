@@ -3,6 +3,7 @@ import type {IconName} from 'components/Icon';
 import ChildOf from './ChildOf';
 import FilterType from './FilterType';
 import ItemType from './ItemType';
+import LinearType from './LinearType';
 import MediaAlbum from './MediaAlbum';
 import MediaArtist from './MediaArtist';
 import MediaFilter from './MediaFilter';
@@ -28,6 +29,7 @@ export default interface MediaSource<T extends MediaObject> {
     readonly icon: IconName;
     readonly itemType: T['itemType'];
     readonly mediaType?: T['itemType'] extends ItemType.Media ? MediaType : never;
+    readonly linearType?: T['itemType'] extends ItemType.Media ? LinearType : never;
     readonly filterType?: FilterType;
     readonly layout?: MediaSourceLayout<T>;
     readonly secondaryLayout?: MediaSourceLayout<ChildOf<T>>;

@@ -4,6 +4,7 @@ const enum FilterType {
     ByGenre = 2,
     ByMood = 3,
     ByStyle = 4,
+    ByAppleStationGenre = 101,
 }
 
 export default FilterType;

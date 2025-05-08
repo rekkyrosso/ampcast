@@ -82,7 +82,7 @@ export function scrobble(): void {
     }
 
     function canScrobble(item: MediaItem): boolean {
-        if (!item.noScrobble && item.title && item.artists?.[0] && item.duration > 30) {
+        if (lastfmApi.canScrobble(item)) {
             const service = getServiceFromSrc(item);
             // `serviceId` might be "blob" or "file" so we'll attempt to scrobble.
             return service ? scrobbleSettings.canScrobble('lastfm', service) : true;

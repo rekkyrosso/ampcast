@@ -27,10 +27,10 @@
     }
 
     &-palette {
-        fill: hotpink;
+        color: hotpink;
 
         .themed.light & {
-            fill: purple;
+            color: purple;
         }
     }
 
@@ -46,10 +46,10 @@
     }
 
     &-visualizer {
-        fill: lime;
+        color: lime;
 
         .themed.light & {
-            fill: green;
+            color: green;
         }
     }
 

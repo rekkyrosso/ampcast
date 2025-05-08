@@ -3,7 +3,7 @@ import {skip} from 'rxjs';
 import {MAX_DURATION} from 'services/constants';
 import mediaPlayback, {pause, play, seek, stop} from 'services/mediaPlayback';
 import {observeCurrentTime, observeDuration} from 'services/mediaPlayback/playback';
-import {observeCurrentIndex} from 'services/playlist';
+import {observeCurrentIndex, observeCurrentItem} from 'services/playlist';
 import {ListViewHandle} from 'components/ListView';
 import Time from 'components/Time';
 import usePlaylistInject from 'components/Playlist/usePlaylistInject';
@@ -23,9 +23,10 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
     const playheadRef = useRef<HTMLInputElement>(null);
     const fileRef = useRef<HTMLInputElement>(null);
     const currentIndex = useObservable(observeCurrentIndex, -1);
+    const currentItem = useObservable(observeCurrentItem, null);
     const currentTime = useObservable(observeCurrentTime, 0);
     const duration = useObservable(observeDuration, 0);
-    const isInfiniteStream = duration === MAX_DURATION;
+    const unpausable = currentItem?.isLivePlayback || duration === MAX_DURATION;
     const paused = usePaused();
     const {showPlaylistMenu} = usePlaylistMenu(playlistRef, fileRef);
     const inject = usePlaylistInject();
@@ -38,13 +39,13 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
                 .pipe(skip(1))
                 .subscribe(
                     (currentTime) =>
-                        (playheadRef.current!.valueAsNumber = isInfiniteStream
+                        (playheadRef.current!.valueAsNumber = unpausable
                             ? currentTime && 1
                             : currentTime)
                 );
             return () => subscription.unsubscribe();
         }
-    }, [isInfiniteStream, seeking]);
+    }, [unpausable, seeking]);
 
     useEffect(() => {
         if (seekTime !== -1) {
@@ -103,10 +104,10 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
                     type="range"
                     aria-label="Seek"
                     min={0}
-                    max={isInfiniteStream ? 1 : duration}
+                    max={unpausable ? 1 : duration}
                     step={1}
                     defaultValue={0}
-                    disabled={paused || isInfiniteStream}
+                    disabled={paused || unpausable}
                     onChange={handleSeekChange}
                     onMouseUp={stopSeeking}
                     onKeyUp={stopSeeking}
@@ -125,7 +126,7 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
                         aria-label={paused ? 'Play' : 'Pause'}
                         icon={paused ? 'play' : 'pause'}
                         onClick={paused ? play : pause}
-                        disabled={isInfiniteStream && !paused}
+                        disabled={unpausable && !paused}
                     />
                     <MediaButton aria-label="Stop" icon="stop" onClick={stop} />
                     <MediaButton aria-label="Next track" icon="next" onClick={handleNextClick} />

@@ -7,6 +7,7 @@ declare namespace MusicKit {
         readonly player: never;
         readonly nowPlayingItem: MediaItem;
         readonly nowPlayingItemIndex?: number;
+        readonly currentTimedMetadata?: TimedMetadata;
         readonly queue: Queue;
         readonly isPlaying: boolean;
         readonly version: string;
@@ -16,6 +17,22 @@ declare namespace MusicKit {
         clearQueue(): Promise<void>;
         pause(): Promise<void>;
         stop(): Promise<void>;
+    }
+
+    interface MediaItem {
+        readonly container?: MediaItem;
+    }
+
+    interface TimedMetadata {
+        readonly album: string;
+        readonly blob: Uint8Array;
+        readonly links: ReadonlyArray<{
+            readonly description: StringGroupUpdate; // 'artworkURL_390x';
+            readonly url: string;
+        }>;
+        readonly performer: string;
+        readonly storefrontAdamIds: Record<string, string>;
+        readonly title: string;
     }
 
     interface API {

@@ -14,6 +14,7 @@ import {
     mergeMap,
     of,
     skipWhile,
+    startWith,
     switchMap,
     take,
     takeUntil,
@@ -25,9 +26,10 @@ import Player from 'types/Player';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
 import {formatTime, isMiniPlayer, Logger} from 'utils';
+import {MAX_DURATION} from 'services/constants';
 import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import lookup from 'services/lookup';
-import {hasPlayableSrc, getServiceFromSrc} from 'services/mediaServices';
+import {hasPlayableSrc, getServiceFromSrc, observeMediaServices} from 'services/mediaServices';
 import playlist from 'services/playlist';
 import {lockVisualizer, setCurrentVisualizer} from 'services/visualizer';
 import mediaPlaybackSettings from './mediaPlaybackSettings';
@@ -105,7 +107,7 @@ export function load(item: PlaylistItem | null): void {
 export function loadAndPlay(item: PlaylistItem): void {
     logger.log('loadAndPlay', item?.src);
     if (!isMiniPlayer) {
-        if (item.id === playback.currentItem?.id) {
+        if (item.id === playlist.getCurrentItem()?.id) {
             play();
         } else {
             mediaPlayback.autoplay = true;
@@ -449,6 +451,7 @@ playlist
 playlist
     .observeCurrentItem()
     .pipe(
+        switchMap((item) => (item?.duration === MAX_DURATION ? EMPTY : of(item))),
         switchMap((item) =>
             item
                 ? playback.observePlaybackState().pipe(
@@ -471,9 +474,28 @@ playlist
 
 // Pass playlist track changes through to `playback`.
 playlist
-    .observeCurrentTrack()
-    .pipe(tap((item) => (playback.currentItem = item)))
+    .observeCurrentItem()
+    .pipe(
+        switchMap((item) => (item?.linearType ? observeNowPlayingForLinearItem(item) : of(item))),
+        distinctUntilChanged(),
+        tap((item) => (playback.currentItem = item))
+    )
     .subscribe(logger);
+
+function observeNowPlayingForLinearItem(item: PlaylistItem): Observable<PlaylistItem> {
+    const [serviceId] = item.src.split(':');
+    return observeMediaServices().pipe(
+        map((services) => services.find((service) => service.id === serviceId)),
+        distinctUntilChanged(),
+        switchMap(
+            (service) =>
+                service?.observeNowPlaying?.().pipe(
+                    startWith(item),
+                    map((nowPlaying) => nowPlaying || item)
+                ) || of(item)
+        )
+    );
+}
 
 // Mini player doesn't have a playlist (just the currently loaded item).
 if (!isMiniPlayer) {

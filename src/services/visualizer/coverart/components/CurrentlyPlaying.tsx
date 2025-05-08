@@ -1,10 +1,9 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import ColorThief, {RGBColor} from 'colorthief';
 import {TinyColor, mostReadable} from '@ctrl/tinycolor';
-import MediaItem from 'types/MediaItem';
 import PlaylistItem from 'types/PlaylistItem';
 import {uniq} from 'utils';
-import {getInternetRadio} from 'services/mediaServices';
+import Icon from 'components/Icon';
 import {Thumbnail} from 'components/MediaInfo/MediaInfo';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import ProvidedBy from 'components/MediaSources/ProvidedBy';
@@ -32,7 +31,6 @@ export default function CurrentlyPlaying({
     const [tone, setTone] = useState<'light' | 'dark'>('dark');
     const [textTone, setTextTone] = useState<'light' | 'dark'>('light');
     const [style, setStyle] = useState<React.CSSProperties>({});
-    const radioStation = getRadioStation(item);
 
     const handleThumbnailLoad = useCallback((src: string) => {
         const colorThief = new ColorThief();
@@ -120,40 +118,17 @@ export default function CurrentlyPlaying({
                     </div>
                     <div className="currently-playing-text">
                         <h3 className="title">{item.title}</h3>
-                        <SubTitle artists={item.artists} radio={item.radio} />
+                        {item.artists?.length ? (
+                            <h4 className="sub-title">
+                                <MediaSourceLabel icon="artist" text={item.artists.join(' ● ')} />
+                            </h4>
+                        ) : null}
                     </div>
-                    {radioStation ? (
-                        <div className="radio-logo">
-                            <Thumbnail item={radioStation} />
-                        </div>
-                    ) : null}
+                    {item.linearType ? <Icon name="radio" className="live-radio" /> : null}
                 </>
             ) : null}
             <PlaybackState />
             {fullscreenProgress ? <ProgressBar /> : null}
         </div>
     );
-}
-
-function getRadioStation(track: PlaylistItem | null): MediaItem | undefined {
-    if (track) {
-        const [serviceId, type, id] = track.src.split(':');
-        if (serviceId === 'internet-radio' && type === 'track') {
-            return getInternetRadio()?.getStation(id);
-        }
-    }
-}
-
-function SubTitle({radio, artists = []}: Pick<PlaylistItem, 'radio' | 'artists'>) {
-    return radio ? (
-        radio.location ? (
-            <h4 className="sub-title">
-                <MediaSourceLabel icon="location" text={radio.location} />
-            </h4>
-        ) : null
-    ) : artists?.length ? (
-        <h4 className="sub-title">
-            <MediaSourceLabel icon="artist" text={artists.join(' ● ')} />
-        </h4>
-    ) : null;
 }

@@ -30,6 +30,10 @@ export class LastFmApi {
         return md5(string);
     }
 
+    canScrobble(item: MediaItem | null): boolean {
+        return !!item && !!item.title && !!item.artists?.[0] && (item.duration > 30 || !item.duration);
+    }
+
     async scrobble(items: Listen[]): Promise<void> {
         if (items.length > 0) {
             logger.log(
@@ -269,10 +273,6 @@ export class LastFmApi {
             params.mbid = item.track_mbid;
         }
         return params;
-    }
-
-    private canScrobble(item: MediaItem | null): boolean {
-        return !!item && !!item.title && !!item.artists?.[0] && item.duration > 30;
     }
 
     private createMediaItem(track: LastFm.TrackInfo): MediaItem {

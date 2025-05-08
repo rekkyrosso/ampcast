@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
 import {Primitive} from 'type-fest';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
@@ -9,6 +10,7 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import Thumbnail from 'types/Thumbnail';
+import {MAX_DURATION} from 'services/constants';
 import OffsetPager from 'services/pagers/OffsetPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
@@ -80,25 +82,23 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
     }
 
     private createMediaObject(item: Navidrome.MediaObject): T {
-        let mediaObject: T;
         switch (this.itemType) {
             case ItemType.Album:
-                mediaObject = this.createMediaAlbum(item as Navidrome.Album) as T;
-                break;
+                return this.createMediaAlbum(item as Navidrome.Album) as T;
 
             case ItemType.Artist:
-                mediaObject = this.createMediaArtist(item as Navidrome.Artist) as T;
-                break;
+                return this.createMediaArtist(item as Navidrome.Artist) as T;
 
             case ItemType.Playlist:
-                mediaObject = this.createMediaPlaylist(item as Navidrome.Playlist) as T;
-                break;
+                return this.createMediaPlaylist(item as Navidrome.Playlist) as T;
 
             default:
-                mediaObject = this.createMediaItem(item as Navidrome.Song) as T;
-                break;
+                if (this.path === 'radio') {
+                    return this.createRadioItem(item as Navidrome.Radio) as T;
+                } else {
+                    return this.createMediaItem(item as Navidrome.Song) as T;
+                }
         }
-        return mediaObject;
     }
 
     private createMediaItem(song: Navidrome.Song): MediaItem {
@@ -135,6 +135,22 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
             badge: song.suffix,
             container: song.suffix,
             unplayable: song.missing || undefined,
+        };
+    }
+
+    private createRadioItem(radio: Navidrome.Radio): MediaItem {
+        return {
+            itemType: ItemType.Media,
+            mediaType: MediaType.Audio,
+            linearType: LinearType.Station,
+            src: `navidrome:radio:${radio.id}`,
+            srcs: [radio.streamUrl],
+            externalUrl: radio.homePageUrl,
+            title: radio.name,
+            addedAt: this.parseDate(radio.createdAt),
+            duration: MAX_DURATION,
+            playedAt: 0,
+            noScrobble: true,
         };
     }
 

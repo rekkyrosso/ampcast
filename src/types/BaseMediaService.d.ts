@@ -1,4 +1,5 @@
 import type React from 'react';
+import type {Observable} from 'rxjs';
 import type {IconName} from 'components/Icon';
 import Auth from './Auth';
 import CreatePlaylistOptions from './CreatePlaylistOptions';
@@ -14,6 +15,7 @@ import MediaService from './MediaService';
 import MediaSource, {AnyMediaSource} from './MediaSource';
 import PlayableItem from './PlayableItem';
 import PlaybackType from './PlaybackType';
+import PlaylistItem from './PlaylistItem';
 import Pin, {Pinnable} from './Pin';
 
 type BaseMediaService = Auth & {
@@ -50,6 +52,7 @@ type BaseMediaService = Auth & {
               readonly showContent: true;
               readonly isCoverArt?: boolean; // Shows enough metadata to not require a hover state.
           };
+    observeNowPlaying?: () => Observable<PlaylistItem | null>;
     addMetadata?: <T extends MediaObject>(item: T) => Promise<T>;
     addToPlaylist?: (
         playlist: MediaPlaylist,

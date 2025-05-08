@@ -120,6 +120,15 @@ declare namespace Navidrome {
         };
     }
 
+    interface Radio {
+        readonly createdAt: string; // iso
+        readonly homePageUrl: string;
+        readonly id: string;
+        readonly name: string;
+        readonly streamUrl: string;
+        readonly updatedAt: string; // iso
+    }
+
     interface Playlist {
         readonly comment: string;
         readonly createdAt: string;
@@ -138,5 +147,5 @@ declare namespace Navidrome {
         readonly updatedAt: string;
     }
 
-    type MediaObject = Song | Album | Artist | Playlist;
+    type MediaObject = Song | Album | Artist | Playlist | Radio;
 }

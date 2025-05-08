@@ -18,6 +18,10 @@ export class ListenBrainzApi {
     private rateLimitRemainingCalls = 2;
     private rateLimitResetTime = 0;
 
+    canScrobble(item: MediaItem | null): boolean {
+        return !!item && !!item.title && !!item.artists?.[0] && (item.duration > 30 || !item.duration);
+    }
+
     async store(item: MediaItem, inLibrary: boolean): Promise<void> {
         if (item.recording_msid || item.recording_mbid) {
             const path = `feedback/recording-feedback`;
@@ -368,10 +372,6 @@ export class ListenBrainzApi {
             params.release_name = item.album;
         }
         return params;
-    }
-
-    private canScrobble(item: MediaItem | null): boolean {
-        return !!item && !!item.title && !!item.artists?.[0] && item.duration > 30;
     }
 
     private applyRateLimiting(): Promise<void> {

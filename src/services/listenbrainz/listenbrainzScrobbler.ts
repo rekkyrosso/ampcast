@@ -83,9 +83,9 @@ export function scrobble(): void {
         }
     }
 
-    function canScrobble(listen: MediaItem): boolean {
-        if (!listen.noScrobble && listen.title && listen.artists?.[0] && listen.duration > 30) {
-            const service = getServiceFromSrc(listen);
+    function canScrobble(item: MediaItem): boolean {
+        if (listenbrainzApi.canScrobble(item)) {
+            const service = getServiceFromSrc(item);
             // `serviceId` might be "blob" or "file" so we'll attempt to scrobble.
             return service ? scrobbleSettings.canScrobble('listenbrainz', service) : true;
         }

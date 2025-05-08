@@ -91,6 +91,7 @@ async function performPlayAction<T extends MediaObject>(
     }
 
     const itemType = item.itemType;
+    const wasEmptyPlaylist = playlist.size === 0;
 
     if (
         itemType === ItemType.Media ||
@@ -108,7 +109,7 @@ async function performPlayAction<T extends MediaObject>(
                 } else {
                     await playlist.inject(item);
                 }
-                if (action === Action.PlayNow) {
+                if (action === Action.PlayNow && !wasEmptyPlaylist) {
                     playlist.next();
                 }
                 break;

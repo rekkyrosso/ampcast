@@ -45,7 +45,7 @@ export function getReadableErrorMessage(error: any): string {
             ? typeof error === 'string'
                 ? error
                 : error.isMKError
-                ? error.name
+                ? String(error.detail || error)
                 : String(
                       error.message ||
                           error.statusText ||

@@ -4,6 +4,7 @@ import Action from 'types/Action';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
@@ -364,6 +365,30 @@ export default class SubsonicService implements PersonalMediaService {
             },
         };
 
+        const radio: MediaSource<MediaItem> = {
+            id: `${id}/radio`,
+            title: 'Radio',
+            icon: 'radio',
+            itemType: ItemType.Media,
+            linearType: LinearType.Station,
+            defaultHidden: true,
+            layout: {
+                view: 'card',
+                fields: ['Thumbnail', 'Title', 'Blurb'],
+            },
+
+            search(): Pager<MediaItem> {
+                return new SubsonicPager(
+                    service,
+                    ItemType.Media,
+                    async (): Promise<Page<Subsonic.Radio>> => {
+                        const items = await api.getInternetRadioStations();
+                        return {items, atEnd: true};
+                    }
+                );
+            },
+        };
+
         const folders: MediaSource<MediaFolderItem> = {
             id: `${id}/folders`,
             title: 'Folders',
@@ -446,6 +471,7 @@ export default class SubsonicService implements PersonalMediaService {
             recentlyAdded,
             recentlyPlayed,
             mostPlayed,
+            radio,
             playlists,
             tracksByGenre,
             albumsByGenre,
@@ -514,7 +540,7 @@ export default class SubsonicService implements PersonalMediaService {
     canStore<T extends MediaObject>(item: T): boolean {
         switch (item.itemType) {
             case ItemType.Media:
-                return true;
+                return !item.linearType;
 
             case ItemType.Album:
                 return !item.synthetic;
@@ -588,6 +614,9 @@ export default class SubsonicService implements PersonalMediaService {
     async addMetadata<T extends MediaObject>(item: T): Promise<T> {
         const itemType = item.itemType;
         const id = this.getIdFromSrc(item);
+        if (itemType === ItemType.Media && item.linearType) {
+            return item;
+        }
         if (itemType === ItemType.Album) {
             if (item.synthetic) {
                 return item;

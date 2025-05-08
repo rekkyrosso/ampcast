@@ -7,12 +7,11 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
-import {getInternetRadio, getService} from 'services/mediaServices';
+import {getService, isSubsonicCompatible} from 'services/mediaServices';
 import Actions from 'components/Actions';
 import Badges from 'components/Badges';
 import CoverArt, {CoverArtProps} from 'components/CoverArt';
 import ExternalLink from 'components/ExternalLink';
-import Icon from 'components/Icon';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import TextBox from 'components/TextBox';
 import {formatTime} from 'utils';
@@ -28,11 +27,7 @@ export default function MediaInfo<T extends MediaObject>(props: MediaInfoProps<T
 
     switch (item.itemType) {
         case ItemType.Media:
-            if (item.radio) {
-                return <RadioInfo item={item} />;
-            } else {
-                return <MediaItemInfo item={item} />;
-            }
+            return <MediaItemInfo item={item} />;
 
         case ItemType.Artist:
             return <ArtistInfo item={item} />;
@@ -57,6 +52,7 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
                 <Artist artist={item.artists?.join('; ')} />
                 <AlbumAndYear album={item.album} year={item.year} />
                 <Track album={item.album} disc={item.disc} track={item.track} />
+                <StationName stationName={item.stationName} />
                 <Owner owner={item.owner} src={item.src} />
                 <div className="media-info-icon-bar">
                     <Badges item={item} />
@@ -136,30 +132,6 @@ function FolderInfo({item: folder}: MediaInfoProps<MediaFolder>) {
     );
 }
 
-function RadioInfo({item}: MediaInfoProps<MediaItem>) {
-    return (
-        <article className="media-info radio-info">
-            <div className="media-info-main">
-                <Thumbnail item={item} />
-                <Title title={item.title} />
-                {item.radio?.location ? (
-                    <p className="location">Location: {item.radio.location}</p>
-                ) : null}
-                <Genre genres={item.genres} />
-                <div className="media-info-icon-bar">
-                    <Actions item={item} />
-                </div>
-            </div>
-            <Blurb description={item.description} />
-            {item.externalUrl ? (
-                <p className="external-view">
-                    <ExternalLink href={item.externalUrl} />
-                </p>
-            ) : null}
-        </article>
-    );
-}
-
 export function Title<T extends MediaObject>({title}: Pick<T, 'title'>) {
     return <h3 className="title">{title || '(no title)'}</h3>;
 }
@@ -199,12 +171,13 @@ export function Owner<T extends MediaItem | MediaPlaylist>({src, owner}: Pick<T,
     );
 }
 
-export function ExternalView({src, url = ''}: {src: string; url?: string | undefined}) {
-    if (src.startsWith('internet-radio:track:')) {
-        return <ExternalViewRadio src={src} />;
-    }
+export function StationName<T extends MediaItem>({stationName}: Pick<T, 'stationName'>) {
+    return stationName ? <p className="station-name">Playing on: {stationName}</p> : null;
+}
 
-    let [serviceId] = src.split(':');
+export function ExternalView({src, url = ''}: {src: string; url?: string | undefined}) {
+    // eslint-disable-next-line prefer-const
+    let [serviceId, type] = src.split(':');
     let serviceName = serviceId;
 
     switch (serviceId) {
@@ -234,7 +207,11 @@ export function ExternalView({src, url = ''}: {src: string; url?: string | undef
         default: {
             const service = getService(serviceId);
             if (service) {
-                serviceName = service.name;
+                if (isSubsonicCompatible(service) && type === 'radio') {
+                    return <ExternalLink href={url} />;
+                } else {
+                    serviceName = service.name;
+                }
             }
         }
     }
@@ -253,30 +230,6 @@ export function ExternalView({src, url = ''}: {src: string; url?: string | undef
             )}
         </p>
     );
-}
-
-function ExternalViewRadio({src}: {src: string}) {
-    const internetRadio = getInternetRadio();
-    if (internetRadio) {
-        const [, , id] = src.split(':');
-        const station = internetRadio.getStation(id);
-
-        return (
-            <p className="external-view external-view-radio">
-                <Icon name={internetRadio.id} />
-                Provided by&nbsp;
-                {station ? (
-                    station.externalUrl ? (
-                        <ExternalLink href={station.externalUrl}>{station.title}</ExternalLink>
-                    ) : (
-                        station.title
-                    )
-                ) : (
-                    internetRadio.name
-                )}
-            </p>
-        );
-    }
 }
 
 export function AlbumAndYear<T extends MediaItem>({album, year}: Pick<T, 'album' | 'year'>) {

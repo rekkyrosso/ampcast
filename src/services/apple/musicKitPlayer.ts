@@ -6,6 +6,9 @@ import {
     catchError,
     distinctUntilChanged,
     filter,
+    interval,
+    map,
+    merge,
     mergeMap,
     of,
     skipWhile,
@@ -15,6 +18,7 @@ import {
 } from 'rxjs';
 import PlayableItem from 'types/PlayableItem';
 import Player from 'types/Player';
+import {MAX_DURATION} from 'services/constants';
 import audio from 'services/audio';
 import {observeIsLoggedIn, waitForLogin} from 'services/mediaServices';
 import {Logger} from 'utils';
@@ -28,6 +32,9 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     private readonly currentTime$ = new Subject<number>();
     private readonly ended$ = new Subject<void>();
     private readonly playing$ = new Subject<void>();
+    private readonly nowPlaying$ = new Subject<
+        MusicKit.MediaItem | MusicKit.TimedMetadata | undefined
+    >();
     private readonly error$ = new Subject<unknown>();
     private readonly element: HTMLElement;
     private readonly item$ = new BehaviorSubject<PlayableItem | null>(null);
@@ -71,6 +78,27 @@ export class MusicKitPlayer implements Player<PlayableItem> {
             )
             .subscribe(logger);
 
+        this.observeItem()
+            .pipe(
+                switchMap(() =>
+                    this.isLinear
+                        ? merge(
+                              of(undefined),
+                              interval(5000).pipe(
+                                  map(
+                                      () =>
+                                          this.player?.currentTimedMetadata ||
+                                          this.nowPlayingItem
+                                  )
+                              )
+                          )
+                        : of(undefined)
+                ),
+                distinctUntilChanged(),
+                tap(this.nowPlaying$)
+            )
+            .subscribe(logger);
+
         // Stop and emit an error on logout.
         // The media player will only emit the error if this player is the current player.
         observeIsLoggedIn('apple')
@@ -106,6 +134,10 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         this.synchVolume();
     }
 
+    get nowPlayingItem(): MusicKit.MediaItem | undefined {
+        return this.player?.nowPlayingItem;
+    }
+
     get volume(): number {
         return this.#volume;
     }
@@ -138,6 +170,10 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         return this.error$;
     }
 
+    observeNowPlaying(): Observable<MusicKit.MediaItem | MusicKit.TimedMetadata | undefined> {
+        return this.nowPlaying$.pipe(distinctUntilChanged());
+    }
+
     appendTo(parentElement: HTMLElement): void {
         parentElement.appendChild(this.element);
     }
@@ -155,7 +191,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     }
 
     loadNext(item: PlayableItem | null): void {
-        if (this.player && item) {
+        if (this.player && item && !this.isLinear && !item.linearType) {
             const [, , id] = item.src.split(':');
             const queue = this.player.queue;
             if (queue.length > 0 && queue.items[queue.position + 1]?.id !== id) {
@@ -197,6 +233,14 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     resize(width: number, height: number): void {
         this.element.style.width = `${width}px`;
         this.element.style.height = `${height}px`;
+    }
+
+    private get isLinear(): boolean {
+        return !!this.item?.linearType;
+    }
+
+    private get isLivePlayback(): boolean {
+        return !!this.item?.isLivePlayback;
     }
 
     private get item(): PlayableItem | null {
@@ -374,7 +418,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                 }
             }
         } catch (err) {
-            logger.error(err);
+            logger.warn(err);
         }
     }
 
@@ -418,28 +462,33 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         switch (state) {
             case MusicKit.PlaybackStates.playing: {
                 const [, , id] = this.src?.split(':') ?? [];
-                const nowPlayingItem = this.player?.nowPlayingItem;
+                const nowPlayingItem = this.nowPlayingItem;
                 if (nowPlayingItem?.isPlayable === false && nowPlayingItem.id === id) {
                     // Apple Music plays 30 seconds of silence for unplayable tracks.
                     this.error$.next(Error('Unplayable'));
                     this.stop();
                 }
+                // TODO: This probably not true any more.
                 // We can't emit the `playing` event here.
                 // It causes problems in Firefox (possibly related to DRM and visualizers).
                 // Emitting the event after a successful call to `player.play()` works just as well.
                 break;
             }
+
             case MusicKit.PlaybackStates.ended:
-            case MusicKit.PlaybackStates.completed:
-                if (!this.ended && !this.loading) {
+                if (!this.ended && !this.loading && !this.isLinear) {
                     this.ended$.next();
                 }
+                break;
+
+            case MusicKit.PlaybackStates.completed:
+                this.ended$.next();
                 break;
         }
     };
 
     private readonly onDurationChange: any = ({duration}: {duration: number}) => {
-        this.duration$.next(duration);
+        this.duration$.next(this.isLivePlayback ? MAX_DURATION : duration);
     };
 
     private readonly onQueuePositionDidChange: any = ({
@@ -448,7 +497,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         oldPosition: number;
         position: number;
     }) => {
-        if (oldPosition !== -1 && !this.skipping) {
+        if (oldPosition !== -1 && !this.skipping && !this.isLinear) {
             this.ended$.next();
         }
     };

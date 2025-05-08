@@ -222,6 +222,13 @@ export default class SubsonicApi {
         return data.indexes.index || [];
     }
 
+    async getInternetRadioStations(): Promise<Subsonic.Radio[]> {
+        const data = await this.get<{
+            internetRadioStations: {internetRadioStation: Subsonic.Radio[]};
+        }>('getInternetRadioStations');
+        return data.internetRadioStations.internetRadioStation || [];
+    }
+
     async getLikedAlbums(offset: number, size: number): Promise<Subsonic.Album[]> {
         return this.getAlbumList({type: 'starred', size, offset});
     }
@@ -282,14 +289,18 @@ export default class SubsonicApi {
         );
     }
 
-    getPlayableUrl({src, playbackType}: PlayableItem): string {
+    getPlayableUrl(item: PlayableItem): string {
         const {host, credentials} = this.settings;
         if (host && credentials) {
-            const [, , id] = src.split(':');
-            if (playbackType === PlaybackType.HLS) {
-                return `${host}/rest/hls.m3u8?id=${id}&${credentials}`;
+            if (item.linearType) {
+                return item.srcs![0]; // Let this throw
             } else {
-                return `${host}/rest/stream?id=${id}&${credentials}`;
+                const [, , id] = item.src.split(':');
+                if (item.playbackType === PlaybackType.HLS) {
+                    return `${host}/rest/hls.m3u8?id=${id}&${credentials}`;
+                } else {
+                    return `${host}/rest/stream?id=${id}&${credentials}`;
+                }
             }
         } else {
             throw Error('Not logged in');

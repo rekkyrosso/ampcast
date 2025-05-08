@@ -110,16 +110,12 @@
             --progress-bar-background-color: rgba(0, 0, 0, 0.2);
         }
 
-        .radio-logo {
+        .live-radio {
             position: absolute;
             bottom: 0.625em;
             right: 0.625em;
-
-            .thumbnail {
-                width: 2em;
-                height: 2em;
-                padding: 0;
-            }
+            width: 1.5em;
+            height: 1.5em;
         }
 
         .provided-by {
@@ -134,10 +130,6 @@
 
             .media:fullscreen & {
                 font-size: max(0.375em, 1rem);
-            }
-
-            .icon-internet-radio {
-                color: inherit;
             }
         }
 

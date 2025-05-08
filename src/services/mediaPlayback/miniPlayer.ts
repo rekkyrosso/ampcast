@@ -131,8 +131,12 @@ const connect = (
     });
 
     const handleOpen = async (): Promise<void> => {
+        const currentItem = playlist.getCurrentItem();
         const state = playback.getPlaybackState();
-        const isLiveStreaming = state.duration === MAX_DURATION;
+        const isLiveStreaming =
+            currentItem?.duration === MAX_DURATION ||
+            currentItem?.isLivePlayback ||
+            !!currentItem?.linearType;
         playback.suspend();
         if (isLiveStreaming) {
             mediaPlayback.stop();
@@ -143,13 +147,19 @@ const connect = (
 
         const lockedVisualizer = visualizerSettings.lockedVisualizer;
         lockVisualizer();
-        transferPlayback(state);
-        const {paused, currentItem, currentTime} = state;
+        const {paused, currentTime} = state;
+        transferPlayback({
+            ...state,
+            currentItem,
+            duration: currentItem?.duration || 0,
+            currentTime:
+                state.currentItem?.src === currentItem?.src && !isLiveStreaming ? currentTime : 0,
+        });
         const ready$ = playbackState$.pipe(
             filter(
                 (state) =>
                     state.paused === paused &&
-                    state.currentItem?.id === currentItem?.id &&
+                    state.currentItem?.src === currentItem?.src &&
                     (paused
                         ? Math.abs(state.currentTime - currentTime) < 2
                         : state.currentTime - currentTime >= 0)
@@ -164,8 +174,7 @@ const connect = (
 
     const handleClose = async (): Promise<void> => {
         const state: Writable<PlaybackState> = playback.getPlaybackState();
-        const {currentItem, currentTime, duration, playbackId, startedAt} = state;
-        const isLiveStreaming = duration === MAX_DURATION;
+        const {currentTime, playbackId, startedAt} = state;
         state.paused = true; // pause after transfer back
         playbackState$.next(state);
         playback.suspend();
@@ -173,10 +182,14 @@ const connect = (
         firstPlay = true;
         active$.next(false);
         mediaPlayback.autoplay = false; // remain paused
+        const currentItem = playlist.getCurrentItem();
         if (currentItem) {
+            const isLiveStreaming =
+                currentItem.duration === MAX_DURATION ||
+                currentItem.isLivePlayback ||
+                !!currentItem.linearType;
             mediaPlayback.load({
                 ...currentItem,
-                duration,
                 startTime: isLiveStreaming ? undefined : currentTime,
             });
             const state: Writable<PlaybackState> = playback.getPlaybackState();

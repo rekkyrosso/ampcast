@@ -17,7 +17,6 @@ import {
 } from 'rxjs';
 import Browsable from 'types/Browsable';
 import DataService from 'types/DataService';
-import InternetRadio from 'types/InternetRadio';
 import MediaService from 'types/MediaService';
 import MediaServiceId from 'types/MediaServiceId';
 import PersonalMediaService from 'types/PersonalMediaService';
@@ -68,15 +67,6 @@ export function observeMediaServices(): Observable<readonly MediaService[]> {
 export function observeEnabledServices(): Observable<readonly MediaService[]> {
     return observeMediaServices().pipe(
         map((services) => services.filter((service) => !isServiceDisabled(service)))
-    );
-}
-
-export function observeInternetRadio(): Observable<InternetRadio | undefined> {
-    return observeMediaServices().pipe(
-        map((services) =>
-            services.find((service): service is InternetRadio => service.id === 'internet-radio')
-        ),
-        distinctUntilChanged()
     );
 }
 
@@ -165,10 +155,6 @@ export function getService<T extends MediaService>(serviceId: string): T | undef
     return getServices().find<T>((service): service is T => service.id === serviceId);
 }
 
-export function getInternetRadio(): InternetRadio | undefined {
-    return getService('internet-radio');
-}
-
 export function getServiceFromSrc({src}: {src?: string} = {}): MediaService | undefined {
     const [serviceId] = String(src).split(':');
     return getService(serviceId);
@@ -220,6 +206,10 @@ export function isPublicMediaService(service: MediaService): service is PublicMe
 
 export function isScrobbler(service: MediaService): boolean {
     return isDataService(service) && !!service.canScrobble;
+}
+
+export function isSubsonicCompatible(service: MediaService): boolean {
+    return ['airsonic', 'ampache', 'gonic', 'navidrome', 'subsonic'].includes(service.id);
 }
 
 export async function waitForLogin(

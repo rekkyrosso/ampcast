@@ -3,6 +3,7 @@ import Action from 'types/Action';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaFilter from 'types/MediaFilter';
@@ -20,6 +21,7 @@ import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import {NoFavoritesPlaylistError} from 'services/errors';
 import ServiceType from 'types/ServiceType';
+import {chunk, exists} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
 import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import {isStartupService} from 'services/buildConfig';
@@ -29,6 +31,7 @@ import SimplePager from 'services/pagers/SimplePager';
 import {t} from 'services/i18n';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout, reconnect} from './appleAuth';
 import MusicKitPager, {MusicKitPage} from './MusicKitPager';
+import {observeNowPlaying} from './appleNowPlaying';
 import appleSettings from './appleSettings';
 import FilterBrowser from 'components/MediaBrowser/FilterBrowser';
 import StreamingSettings from './components/AppleStreamingSettings';
@@ -49,6 +52,11 @@ const chartsLayoutLarge: MediaSourceLayout<MediaItem> = {
 const chartsLayoutSmall: MediaSourceLayout<MediaItem> = {
     view: 'card small',
     fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'Duration'],
+};
+
+const radioLayout: MediaSourceLayout<MediaItem> = {
+    view: 'card',
+    fields: ['Thumbnail', 'Title', 'Blurb'],
 };
 
 const appleLibrarySort: Pick<MediaSource<any>, 'sortOptions' | 'defaultSort'> = {
@@ -74,38 +82,29 @@ const appleSearch: MediaMultiSource = {
         createSearch<MediaPlaylist>(ItemType.Playlist, {title: 'Playlists'}),
         createSearch<MediaItem>(
             ItemType.Media,
+            {title: 'Radio', layout: radioLayout},
+            {types: 'stations'}
+        ),
+        createSearch<MediaItem>(
+            ItemType.Media,
             {title: 'Videos', layout: defaultLayout, mediaType: MediaType.Video},
-            {types: 'music-videos'},
-            {maxSize: 250}
+            {types: 'music-videos'}
         ),
     ],
 };
 
-const appleRecommendations: MediaSource<MediaPlaylist> = {
+const appleRecommendations: MediaMultiSource = {
     id: 'apple/recommendations',
     title: 'Recommended',
-    icon: 'playlist',
-    itemType: ItemType.Playlist,
-
-    search(): Pager<MediaPlaylist> {
-        return new MusicKitPager(
-            '/v1/me/recommendations',
-            undefined,
-            undefined,
-            undefined,
-            ({data = [], next: nextPageUrl, meta}: any): MusicKitPage => {
-                const items = data
-                    .map((data: any) =>
-                        data.relationships.contents.data.filter(
-                            (data: any) => data.type === 'playlists'
-                        )
-                    )
-                    .flat();
-                const total = meta?.total;
-                return {items, total, nextPageUrl};
-            }
-        );
-    },
+    icon: 'star',
+    sources: [
+        createRecommendations<MediaAlbum>('albums', ItemType.Album, {title: 'Albums'}),
+        createRecommendations<MediaPlaylist>('playlists', ItemType.Playlist, {title: 'Playlists'}),
+        createRecommendations<MediaItem>('stations', ItemType.Media, {
+            title: 'Radio',
+            layout: radioLayout,
+        }),
+    ],
 };
 
 const appleRecentlyPlayed: MediaSource<MediaItem> = {
@@ -421,6 +420,27 @@ const appleCityCharts: MediaSource<MediaPlaylist> = {
     },
 };
 
+const appleRadio: MediaSource<MediaItem> = {
+    id: 'apple/radio',
+    title: 'Radio',
+    icon: 'radio',
+    itemType: ItemType.Media,
+    linearType: LinearType.Station,
+    filterType: FilterType.ByAppleStationGenre,
+    Component: FilterBrowser,
+    layout: radioLayout,
+
+    search(genre?: MediaFilter): Pager<MediaItem> {
+        if (genre) {
+            return new MusicKitPager(
+                `/v1/catalog/{{storefrontId}}/station-genres/${genre.id}/stations`
+            );
+        } else {
+            return new SimplePager();
+        }
+    },
+};
+
 const apple: PublicMediaService = {
     id: 'apple',
     name: 'Apple Music',
@@ -444,6 +464,7 @@ const apple: PublicMediaService = {
         appleLibraryVideos,
         appleFavoriteSongs,
         appleRecentlyPlayed,
+        appleRadio,
         appleSongCharts,
         appleAlbumCharts,
         applePlaylistCharts,
@@ -461,6 +482,7 @@ const apple: PublicMediaService = {
         [Action.RemoveFromLibrary]: 'Saved to Apple Music Library',
     },
     editablePlaylists: appleEditablePlaylists,
+    observeNowPlaying,
     addMetadata,
     addToPlaylist,
     canPin,
@@ -496,6 +518,8 @@ function canPin(item: MediaObject): boolean {
 function canStore<T extends MediaObject>(item: T): boolean {
     switch (item.itemType) {
         case ItemType.Media:
+            return item.linearType !== LinearType.Station;
+
         case ItemType.Playlist:
             return true;
 
@@ -508,7 +532,7 @@ function canStore<T extends MediaObject>(item: T): boolean {
 }
 
 async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
-    if (!item.synthetic && item.inLibrary === undefined) {
+    if (canStore(item) && item.inLibrary === undefined) {
         let inLibrary = actionsStore.getInLibrary(item);
         if (inLibrary === undefined) {
             const [, type] = item.src.split(':');
@@ -687,30 +711,46 @@ async function getTracksByAlbumId(id: string): Promise<readonly MediaItem[]> {
     return tracks;
 }
 
-let appleGenres: readonly MediaFilter[];
-
 async function getFilters(filterType: FilterType): Promise<readonly MediaFilter[]> {
-    if (filterType === FilterType.ByGenre) {
-        if (!appleGenres) {
-            const musicKit = MusicKit.getInstance();
-            const {
-                data: {data},
-            } = await musicKit.api.music('/v1/catalog/{{storefrontId}}/genres', {
-                limit: 200,
-            });
-            appleGenres = data
-                .map(({id, attributes}: any) => ({
-                    id,
-                    title: attributes.parentId ? attributes.name : '(all)',
-                }))
-                .sort((a: MediaFilter, b: MediaFilter) => {
-                    return a.title.localeCompare(b.title);
-                });
-        }
-        return appleGenres;
-    } else {
-        throw Error('Not supported');
+    switch (filterType) {
+        case FilterType.ByGenre:
+        case FilterType.ByAppleStationGenre:
+            return getGenres(filterType);
+
+        default:
+            throw Error('Not supported');
     }
+}
+
+let appleGenres: readonly MediaFilter[] | undefined;
+let appleStationGenres: readonly MediaFilter[] | undefined;
+
+async function getGenres(filterType: FilterType): Promise<readonly MediaFilter[]> {
+    const isByGenre = filterType === FilterType.ByGenre;
+    let genres = isByGenre ? appleGenres : appleStationGenres;
+    if (!genres) {
+        const musicKit = MusicKit.getInstance();
+        const genreType = isByGenre ? 'genres' : 'station-genres';
+        const {
+            data: {data},
+        } = await musicKit.api.music(`/v1/catalog/{{storefrontId}}/${genreType}`, {
+            limit: 200,
+        });
+        genres = data
+            .map(({id, attributes, type}: any) => ({
+                id,
+                title: attributes.parentId || type === 'station-genres' ? attributes.name : '(all)',
+            }))
+            .sort((a: MediaFilter, b: MediaFilter) => {
+                return a.title.localeCompare(b.title);
+            });
+        if (isByGenre) {
+            appleGenres = genres;
+        } else {
+            appleStationGenres = genres;
+        }
+    }
+    return genres || [];
 }
 
 async function getMediaObject<T extends MediaObject>(src: string, keepAlive?: boolean): Promise<T> {
@@ -785,6 +825,47 @@ async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
             fetchOptions: {method: 'DELETE'},
         });
     }
+}
+
+function createRecommendations<T extends MediaObject>(
+    type: 'albums' | 'playlists' | 'stations',
+    itemType: T['itemType'],
+    props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
+): MediaSource<T> {
+    return {
+        ...props,
+        itemType,
+        linearType: (type === 'stations' ? LinearType.Station : undefined) as any,
+        id: type,
+        icon: 'star',
+
+        search(): Pager<T> {
+            return new MusicKitPager(
+                '/v1/me/recommendations',
+                {
+                    'format[resources]': 'map',
+                    'omit[resource]': 'autos',
+                },
+                undefined,
+                undefined,
+                ({data = [], resources = {}}: any): MusicKitPage => {
+                    const items = data
+                        .map((data: any) => resources['personal-recommendation'][data.id])
+                        .filter(exists)
+                        .map((recommendation: MusicKit.Resource) =>
+                            recommendation.relationships.contents.data.filter(
+                                (data: any) => data.type === type
+                            )
+                        )
+                        .flat()
+                        .map((data: any) => resources[type][data.id])
+                        .filter(exists);
+                    const total = items.length;
+                    return {items, total, atEnd: true};
+                }
+            );
+        },
+    };
 }
 
 function createSearch<T extends MediaObject>(
@@ -887,21 +968,27 @@ async function getInLibrary(
     }
     type = type.replace('library-', '');
     const musicKit = MusicKit.getInstance();
-    const {
-        data: {resources},
-    } = await musicKit.api.music('/v1/catalog/{{storefrontId}}', {
-        [`fields[${type}]`]: 'inLibrary',
-        'format[resources]': 'map',
-        [`ids[${type}]`]: catalogIds,
-        'omit[resource]': 'autos',
-    });
-    const data = resources[type];
-    if (data) {
-        const inLibrary = new Map<string, boolean>(
-            Object.keys(data).map((key) => [key, data[key].attributes.inLibrary])
-        );
-        return catalogIds.map((id) => !!inLibrary.get(id));
-    } else {
-        return catalogIds.map(() => false);
-    }
+    const fetchMany = async (ids: readonly string[]) => {
+        const {
+            data: {resources},
+        } = await musicKit.api.music('/v1/catalog/{{storefrontId}}', {
+            [`fields[${type}]`]: 'inLibrary',
+            'format[resources]': 'map',
+            [`ids[${type}]`]: ids,
+            'omit[resource]': 'autos',
+        });
+        const data = resources[type];
+        if (data) {
+            const inLibrary = new Map<string, boolean>(
+                Object.keys(data).map((key) => [key, data[key].attributes.inLibrary])
+            );
+            return ids.map((id) => !!inLibrary.get(id));
+        } else {
+            return ids.map(() => false);
+        }
+    };
+    const chunkSize = type.includes('playlist') ? 50 : 100;
+    const chunks = chunk(catalogIds, chunkSize);
+    const values = await Promise.all(chunks.map((ids) => fetchMany(ids)));
+    return values.flat();
 }

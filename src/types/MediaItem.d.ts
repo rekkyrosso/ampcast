@@ -1,8 +1,8 @@
 import BaseMediaObject from './BaseMediaObject';
 import ItemType from './ItemType';
+import LinearType from './LinearType';
 import MediaType from './MediaType';
 import PlaybackType from './PlaybackType';
-import RadioStation from './RadioStation';
 
 export default interface MediaItem extends BaseMediaObject {
     readonly itemType: ItemType.Media;
@@ -10,7 +10,9 @@ export default interface MediaItem extends BaseMediaObject {
     readonly duration: number; // Seconds
     readonly playedAt: number; // UTC
     // Everything below here should be optional.
+    readonly linearType?: LinearType; // For radio streams
     readonly playbackType?: PlaybackType;
+    readonly isLivePlayback?: boolean;
     readonly artists?: readonly string[];
     readonly albumArtist?: string;
     readonly album?: string;
@@ -57,6 +59,4 @@ export default interface MediaItem extends BaseMediaObject {
         readonly srcs?: string[];
         readonly externalUrl?: string;
     };
-    // Internet Radio.
-    readonly radio?: RadioStation;
 }

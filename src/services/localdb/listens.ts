@@ -23,6 +23,16 @@ class ListensStore extends Dexie {
         this.version(1).stores({
             items: '&playedAt, src, lastfmScrobbledAt, listenbrainzScrobbledAt',
         });
+
+        liveQuery(() => this.items.orderBy('playedAt').reverse().toArray()).subscribe(listens$);
+
+        requestIdleCallback(() => {
+            try {
+                Promise.all([markExpired('lastfm'), markExpired('listenbrainz')]);
+            } catch (err) {
+                logger.error(err);
+            }
+        });
     }
 }
 
@@ -33,7 +43,7 @@ export function observeListens(): Observable<readonly Listen[]> {
 }
 
 export function isListenedTo(duration: number, startedAt: number, endedAt: number): boolean {
-    const minPlayTime = Math.min(duration / 2, 4 * 60);
+    const minPlayTime = Math.min(duration / 2, 4 * 60) || 60;
     startedAt = Math.floor(startedAt / 1000);
     endedAt = Math.floor(endedAt / 1000);
     const playTime = endedAt - startedAt;
@@ -132,16 +142,6 @@ export function getListens(): readonly Listen[] {
 function matchTitle(item: MediaItem, listen: MediaItem, tolerance?: number): boolean {
     return fuzzyCompare(item.title, listen.title, tolerance);
 }
-
-(async () => {
-    try {
-        Promise.all([markExpired('lastfm'), markExpired('listenbrainz')]);
-    } catch (err) {
-        logger.error(err);
-    }
-
-    liveQuery(() => store.items.orderBy('playedAt').reverse().toArray()).subscribe(listens$);
-})();
 
 async function markExpired(serviceName: string): Promise<void> {
     const scrobbledAt = `${serviceName}ScrobbledAt`;

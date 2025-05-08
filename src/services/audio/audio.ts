@@ -106,14 +106,29 @@ class Audio implements AudioManager {
     }
 
     private appleStarted = false;
+    private appleLiveStarted = false;
     private getCurrentlyPlaying({currentItem, startedAt}: PlaybackState): PlaylistItem | null {
         // Attaching audio nodes to Apple Music's audio element before it is
         // initialised causes playback errors in Firefox.
-        if (!this.appleStarted && currentItem?.src.startsWith('apple:')) {
-            if (startedAt === 0) {
-                return null;
+        // Apple Music may potentially have two <audio> elements.
+        // One for standard playback, and one for playback of live radio.
+        if (currentItem?.src.startsWith('apple:')) {
+            if (currentItem.isLivePlayback) {
+                if (!this.appleLiveStarted) {
+                    if (startedAt === 0) {
+                        return null;
+                    } else {
+                        this.appleLiveStarted = true;
+                    }
+                }
             } else {
-                this.appleStarted = true;
+                if (!this.appleStarted) {
+                    if (startedAt === 0) {
+                        return null;
+                    } else {
+                        this.appleStarted = true;
+                    }
+                }
             }
         }
         return currentItem;
@@ -129,24 +144,24 @@ class Audio implements AudioManager {
         };
         // Create these source nodes as early as possible.
         // Avoids an audible glitch for the first gapless playback transition.
-        const audios = document.querySelectorAll<HTMLAudioElement>('.html5-audio-main');
-        for (const audio of audios) {
+        const html5Audios = document.querySelectorAll<HTMLAudioElement>('.html5-audio-main');
+        for (const audio of html5Audios) {
             createSourceNode(audio);
         }
-        const audio = this.getAudioElement(item);
-        if (audio) {
+        const audios = this.getAudioElements(item);
+        for (const audio of audios) {
             createSourceNode(audio);
         }
     }
 
-    private getAudioElement(item: PlaylistItem): HTMLAudioElement | null {
+    private getAudioElements(item: PlaylistItem): readonly HTMLAudioElement[] {
         if (this.canUseWebAudio(item)) {
             const selector = this.getAudioElementSelector(item);
             if (selector) {
-                return document.querySelector<HTMLAudioElement>(selector);
+                return Array.from(document.querySelectorAll<HTMLAudioElement>(selector));
             }
         }
-        return null;
+        return [];
     }
 
     private canUseWebAudio(item: PlaylistItem): boolean {

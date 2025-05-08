@@ -91,7 +91,7 @@ declare namespace Subsonic {
         readonly bitRate: number;
         readonly contentType: string;
         readonly created: string;
-        duration: number;
+        readonly duration: number;
         readonly id: string;
         readonly isDir: boolean;
         readonly isVideo: true;
@@ -105,6 +105,13 @@ declare namespace Subsonic {
         readonly suffix: string;
         readonly title: string;
         readonly type: 'video';
+    }
+
+    interface Radio {
+        readonly id: string;
+        readonly name: string;
+        readonly homePageUrl: string;
+        readonly streamUrl: string;
     }
 
     interface Playlist {
@@ -152,7 +159,7 @@ declare namespace Subsonic {
 
     type MediaItem = Song | Video;
     type DirectoryItem = Directory | MediaItem;
-    type MediaObject = Album | Artist | Playlist | DirectoryItem;
+    type MediaObject = Album | Artist | Playlist | DirectoryItem | Radio;
 
     interface ScrobbleParams {
         readonly id: string;
@@ -170,7 +177,6 @@ declare namespace Subsonic {
 
     interface Share {
         readonly url: string;
-        
     }
 
     interface PingResponse {

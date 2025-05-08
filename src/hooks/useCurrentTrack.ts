@@ -1,12 +1,12 @@
 import {useEffect, useState} from 'react';
 import PlaylistItem from 'types/PlaylistItem';
-import {observeCurrentTrack, getCurrentTrack} from 'services/playlist';
+import playback, {observeCurrentItem} from 'services/mediaPlayback/playback';
 
 export default function useCurrentTrack(): PlaylistItem | null {
-    const [value, setValue] = useState<PlaylistItem | null>(getCurrentTrack());
+    const [value, setValue] = useState<PlaylistItem | null>(playback.currentItem);
 
     useEffect(() => {
-        const subscription = observeCurrentTrack().subscribe(setValue);
+        const subscription = observeCurrentItem().subscribe(setValue);
         return () => subscription.unsubscribe();
     }, []);
 

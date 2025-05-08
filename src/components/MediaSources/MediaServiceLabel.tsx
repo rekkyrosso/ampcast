@@ -3,7 +3,6 @@ import MediaService from 'types/MediaService';
 import {isPublicMediaService} from 'services/mediaServices';
 import {MediaSourceIconName} from 'components/Icon';
 import MediaSourceLabel from './MediaSourceLabel';
-import './MediaServiceLabel.scss';
 
 export interface MediaServiceLabelProps {
     service: MediaService;

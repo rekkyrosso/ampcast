@@ -3,6 +3,7 @@ import Action from 'types/Action';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
@@ -262,6 +263,23 @@ const navidromeRandomAlbums: MediaSource<MediaAlbum> = {
     },
 };
 
+const navidromeRadio: MediaSource<MediaItem> = {
+    id: 'navidrome/radio',
+    title: 'Radio',
+    icon: 'radio',
+    itemType: ItemType.Media,
+    linearType: LinearType.Station,
+    defaultHidden: true,
+    layout: {
+        view: 'card',
+        fields: ['Thumbnail', 'Title', 'Blurb'],
+    },
+
+    search(): Pager<MediaItem> {
+        return new NavidromePager(ItemType.Media, 'radio');
+    },
+};
+
 const navidrome: PersonalMediaService = {
     id: serviceId,
     icon: serviceId,
@@ -278,6 +296,7 @@ const navidrome: PersonalMediaService = {
         navidromeRecentlyAdded,
         navidromeRecentlyPlayed,
         navidromeMostPlayed,
+        navidromeRadio,
         navidromePlaylists,
         navidromeTracksByGenre,
         navidromeAlbumsByGenre,
@@ -323,6 +342,8 @@ function canPin(item: MediaObject): boolean {
 function canStore<T extends MediaObject>(item: T): boolean {
     switch (item.itemType) {
         case ItemType.Media:
+            return !item.linearType;
+
         case ItemType.Artist:
             return true;
 
@@ -398,6 +419,9 @@ async function getFilters(filterType: FilterType): Promise<readonly MediaFilter[
 
 async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
     const itemType = item.itemType;
+    if (itemType === ItemType.Media && item.linearType) {
+        return item;
+    }
     const id = getIdFromSrc(item);
     if (itemType === ItemType.Album) {
         if (item.synthetic) {

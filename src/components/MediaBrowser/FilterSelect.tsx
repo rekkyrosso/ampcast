@@ -85,6 +85,6 @@ function useFilterName(filterType: FilterType, serviceId: string): string {
             return 'Style';
 
         default:
-            return 'Filter';
+            return 'Select';
     }
 }

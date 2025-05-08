@@ -69,6 +69,7 @@ export type IconName =
     | 'swap'
     | 'genre'
     | 'chart'
+    | 'radio'
     | 'playlist-add'
     | 'lookup-pending'
     | 'lookup-looking'
@@ -988,6 +989,7 @@ export default function Icon({name, className = ''}: IconProps) {
                 </svg>
             );
 
+        case 'radio':
         case 'internet-radio':
             return (
                 <svg className={className} viewBox="0 0 16 16">

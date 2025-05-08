@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo} from 'react';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
@@ -34,6 +35,24 @@ export default function MediaDetails<T extends MediaObject>({item}: MediaInfoPro
                         return 'Media';
                     case ItemType.Playlist:
                         return 'Playlist';
+                    default:
+                        return 'unknown';
+                }
+
+            case 'linearType':
+                switch (value) {
+                    case LinearType.Ad:
+                        return 'Ad';
+                    case LinearType.MusicTrack:
+                        return 'MusicTrack';
+                    case LinearType.NonLinear:
+                        return 'NonLinear';
+                    case LinearType.OffAir:
+                        return 'OffAir';
+                    case LinearType.Programme:
+                        return 'Programme';
+                    case LinearType.Station:
+                        return 'Station';
                     default:
                         return 'unknown';
                 }

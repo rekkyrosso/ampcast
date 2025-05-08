@@ -1,10 +1,10 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, filter, map, switchMap} from 'rxjs';
 import {nanoid} from 'nanoid';
+import LinearType from 'types/LinearType';
 import PlaylistItem from 'types/PlaylistItem';
 import Playback from 'types/Playback';
 import PlaybackState from 'types/PlaybackState';
-import {MAX_DURATION} from 'services/constants';
 import miniPlayer from './miniPlayer';
 import defaultPlaybackState from './defaultPlaybackState';
 
@@ -91,26 +91,19 @@ function setCurrentItem(nextItem: PlaylistItem | null): void {
             playbackState$.next({...state, currentItem: nextItem});
         } else {
             // New `PlaylistItem`, so start a new session.
-            const isRadioItem = (item: PlaylistItem | null): boolean =>
-                !!item?.src.startsWith('internet-radio:');
-            const [prevServiceId, , prevStationId] = prevItem?.src.split(':') || [];
-            const [nextServiceId, , nextStationId] = nextItem?.src.split(':') || [];
-            const isSameRadio =
-                prevServiceId === 'internet-radio' &&
-                nextServiceId === 'internet-radio' &&
-                prevStationId === nextStationId;
             // Playback session end.
             if (state.startedAt && !state.endedAt) {
                 playbackState$.next({...state, endedAt: Date.now()});
             }
             // Playback session start.
+            const isLinearItem = nextItem?.linearType && nextItem.linearType !== LinearType.Station;
             playbackState$.next({
                 ...state,
                 ...newSession(),
-                startedAt: isSameRadio && !state.paused ? Date.now() : 0,
+                startedAt: isLinearItem && !state.paused ? Date.now() : 0,
                 currentItem: nextItem,
-                currentTime: isSameRadio ? state.currentTime : nextItem?.startTime || 0,
-                duration: isRadioItem(nextItem) ? MAX_DURATION : nextItem?.duration || 0,
+                currentTime: isLinearItem ? state.currentTime : nextItem?.startTime || 0,
+                duration: isLinearItem ? state.duration : nextItem?.duration || 0,
             });
         }
     }

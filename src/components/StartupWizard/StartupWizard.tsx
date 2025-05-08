@@ -2,7 +2,6 @@ import React, {useCallback, useMemo, useRef, useState} from 'react';
 import MediaService from 'types/MediaService';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
-import {partition} from 'utils';
 import {getBrowsableServices, getService} from 'services/mediaServices';
 import {
     allowMultiSelect,
@@ -124,11 +123,6 @@ function Services({icon, title, className, multiSelect, services}: ServicesProps
     const [restrictedAccess, setRestrictedAccess] = useState(() =>
         services.filter(isSourceVisible).some(hasRestrictedAccess)
     );
-    // Split the lists if we are only allowing one public media service.
-    // (This is probably the wrong place to do this)
-    const [multiSelectServices, singleSelectServices = []] = multiSelect
-        ? [services]
-        : partition(services, (service) => !!service.noAuth);
 
     const handleChange = useCallback(async () => {
         const inputs = ref.current!.elements as HTMLInputElements;
@@ -155,12 +149,7 @@ function Services({icon, title, className, multiSelect, services}: ServicesProps
             </h3>
             <fieldset className="media-services" onChange={handleChange} ref={ref}>
                 <legend>Enable</legend>
-                {singleSelectServices.length === 0 ? null : (
-                    <MediaServiceList services={singleSelectServices} multiSelect={false} />
-                )}
-                {multiSelectServices.length === 0 ? null : (
-                    <MediaServiceList services={multiSelectServices} multiSelect={true} />
-                )}
+                <MediaServiceList services={services} multiSelect={multiSelect} />
             </fieldset>
             {restrictedAccess ? <p className="restricted-access">*Access is restricted.</p> : null}
         </div>

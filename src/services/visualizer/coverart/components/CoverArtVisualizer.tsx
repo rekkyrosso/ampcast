@@ -10,12 +10,12 @@ import visualizerSettings, {
 } from 'services/visualizer/visualizerSettings';
 import useCurrentTrack from 'hooks/useCurrentTrack';
 import useFontSize from 'hooks/useFontSize';
-import useNextTrack from 'hooks/useNextTrack';
 import useObservable from 'hooks/useObservable';
 import useOnResize from 'hooks/useOnResize';
 import usePrevious from 'hooks/usePrevious';
 import coverart from '../coverart';
 import CurrentlyPlaying from './CurrentlyPlaying';
+import useNextTrack from './useNextTrack';
 import './CoverArtVisualizer.scss';
 
 export default function CoverArtVisualizer() {

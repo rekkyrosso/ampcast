@@ -269,9 +269,7 @@ export default class HTML5Player implements Player<PlayableItem> {
     }
 
     protected get isInfiniteStream(): boolean {
-        return (
-            this.element.duration === Infinity || this.src?.startsWith('internet-radio:') || false
-        );
+        return this.element.duration === Infinity || this.item?.isLivePlayback || false;
     }
 
     protected get paused(): boolean {

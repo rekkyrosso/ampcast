@@ -134,8 +134,8 @@ function getFallbackIcon(item: MediaObject): IconName {
         }
 
         case ItemType.Media:
-            if (item.radio) {
-                return 'internet-radio';
+            if (item.linearType) {
+                return 'radio';
             } else if (item.mediaType === MediaType.Video) {
                 return 'video';
             } else {

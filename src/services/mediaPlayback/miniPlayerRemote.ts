@@ -44,20 +44,22 @@ const connect = (
     };
 
     const transferPlayback = async (transferredState: PlaybackState) => {
-        const {currentItem, duration, currentTime, paused, playbackId, startedAt} =
-            transferredState;
-        const isLiveStreaming = duration === MAX_DURATION;
+        const {currentItem, currentTime, paused, playbackId, startedAt} = transferredState;
         suspended = true;
         await loadMediaServices();
         setItem(currentItem);
         mediaPlayback.autoplay = !paused;
-        if (!currentItem) {
-            mediaPlayback.load(currentItem);
-        } else {
+        if (currentItem) {
+            const isLiveStreaming =
+                currentItem.duration === MAX_DURATION ||
+                currentItem.isLivePlayback ||
+                !!currentItem.linearType;
             mediaPlayback.load({
                 ...currentItem,
                 startTime: isLiveStreaming ? undefined : currentTime,
             });
+        } else {
+            mediaPlayback.load(null);
         }
         // Mutate the playback state to use the same `playbackId`.
         let playbackState: Writable<PlaybackState> = playback.getPlaybackState();
@@ -69,7 +71,7 @@ const connect = (
                 filter(
                     (state) =>
                         state.paused === paused &&
-                        state.currentItem?.id === currentItem?.id &&
+                        state.currentItem?.src === currentItem?.src &&
                         (paused
                             ? Math.abs(state.currentTime - currentTime) < 2
                             : state.currentTime - currentTime >= 0) &&
