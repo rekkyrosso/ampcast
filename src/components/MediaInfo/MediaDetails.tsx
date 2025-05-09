@@ -75,8 +75,12 @@ export default function MediaDetails<T extends MediaObject>({item}: MediaInfoPro
                         return 'Direct';
                     case PlaybackType.HLS:
                         return 'HLS';
+                    case PlaybackType.Icecast:
+                        return 'Icecast';
                     case PlaybackType.IFrame:
                         return 'IFrame';
+                    case PlaybackType.Playlist:
+                        return 'Playlist';
                     default:
                         return 'unknown';
                 }

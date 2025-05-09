@@ -86,9 +86,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                               of(undefined),
                               interval(5000).pipe(
                                   map(
-                                      () =>
-                                          this.player?.currentTimedMetadata ||
-                                          this.nowPlayingItem
+                                      () => this.player?.currentTimedMetadata || this.nowPlayingItem
                                   )
                               )
                           )
@@ -134,10 +132,6 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         this.synchVolume();
     }
 
-    get nowPlayingItem(): MusicKit.MediaItem | undefined {
-        return this.player?.nowPlayingItem;
-    }
-
     get volume(): number {
         return this.#volume;
     }
@@ -170,8 +164,13 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         return this.error$;
     }
 
-    observeNowPlaying(): Observable<MusicKit.MediaItem | MusicKit.TimedMetadata | undefined> {
-        return this.nowPlaying$.pipe(distinctUntilChanged());
+    observeNowPlaying(
+        src: string
+    ): Observable<MusicKit.MediaItem | MusicKit.TimedMetadata | undefined> {
+        return this.nowPlaying$.pipe(
+            map((item) => (src === this.src ? item : undefined)),
+            distinctUntilChanged()
+        );
     }
 
     appendTo(parentElement: HTMLElement): void {
@@ -245,6 +244,10 @@ export class MusicKitPlayer implements Player<PlayableItem> {
 
     private get item(): PlayableItem | null {
         return this.item$.value;
+    }
+
+    private get nowPlayingItem(): MusicKit.MediaItem | undefined {
+        return this.player?.nowPlayingItem;
     }
 
     private get paused(): boolean {

@@ -30,36 +30,6 @@ const logger = new Logger('mediaServices');
 
 const services$ = new BehaviorSubject<readonly MediaService[]>([]);
 
-const playabilityByServiceId: Record<
-    MediaServiceId | 'blob' | 'file' | 'http' | 'https',
-    boolean | undefined
-> = {
-    // Always playable.
-    blob: true,
-    file: true,
-    http: true,
-    https: true,
-    'internet-radio': true,
-    mixcloud: true,
-    soundcloud: true,
-    youtube: true,
-    // Playable if logged in.
-    airsonic: false,
-    ampache: false,
-    apple: false,
-    emby: false,
-    gonic: false,
-    jellyfin: false,
-    navidrome: false,
-    plex: false,
-    spotify: false,
-    subsonic: false,
-    tidal: false,
-    // Not playable.
-    lastfm: undefined,
-    listenbrainz: undefined,
-};
-
 export function observeMediaServices(): Observable<readonly MediaService[]> {
     return services$;
 }
@@ -172,16 +142,51 @@ export function isPersonalMediaService(service: MediaService): service is Person
     return isMediaServiceType(service, ServiceType.PersonalMedia);
 }
 
+enum Playability {
+    Never = 0,
+    Always = 1,
+    LoggedIn = 2,
+}
+
+const playabilityByServiceId: Record<
+    MediaServiceId | 'blob' | 'file' | 'http' | 'https',
+    Playability
+> = {
+    // Always playable.
+    blob: Playability.Always,
+    file: Playability.Always,
+    http: Playability.Always,
+    https: Playability.Always,
+    'internet-radio': Playability.Always,
+    mixcloud: Playability.Always,
+    soundcloud: Playability.Always,
+    youtube: Playability.Always,
+    // Playable if logged in.
+    airsonic: Playability.LoggedIn,
+    ampache: Playability.LoggedIn,
+    apple: Playability.LoggedIn,
+    emby: Playability.LoggedIn,
+    gonic: Playability.LoggedIn,
+    jellyfin: Playability.LoggedIn,
+    navidrome: Playability.LoggedIn,
+    plex: Playability.LoggedIn,
+    spotify: Playability.LoggedIn,
+    subsonic: Playability.LoggedIn,
+    tidal: Playability.LoggedIn,
+    // Not playable.
+    lastfm: Playability.Never,
+    listenbrainz: Playability.Never,
+};
+
 export function isPlayableSrc(src: string, immediate?: boolean): boolean {
     if (src) {
         const [serviceId, type, id] = String(src).split(':');
-        const playability = playabilityByServiceId[serviceId as MediaServiceId];
-        const notPlayable = playability === undefined;
-        const playableNow = playability === true;
-        if (notPlayable) {
+        const playability =
+            playabilityByServiceId[serviceId as MediaServiceId] || Playability.Never;
+        if (playability === Playability.Never) {
             return false;
         }
-        if (playableNow) {
+        if (playability === Playability.Always) {
             if (serviceId === 'internet-radio') {
                 return type === 'station';
             } else {

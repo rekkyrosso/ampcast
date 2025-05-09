@@ -45,7 +45,7 @@ export default interface MediaItem extends BaseMediaObject {
     readonly shareLink?: string;
     // Playable sources that can't be derived from `src`.
     // Currently used by TIDAL(via Plex) audio quality sources.
-    readonly srcs?: string[];
+    readonly srcs?: readonly string[];
     // For video.
     readonly aspectRatio?: number;
     // For YouTube videos mainly.
@@ -56,7 +56,7 @@ export default interface MediaItem extends BaseMediaObject {
     // For last.fm/ListenBrainz: (partial) link to original source (if any).
     readonly link?: {
         readonly src: string;
-        readonly srcs?: string[];
+        readonly srcs?: readonly string[];
         readonly externalUrl?: string;
     };
 }

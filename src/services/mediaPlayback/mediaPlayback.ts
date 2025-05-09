@@ -21,17 +21,20 @@ import {
     tap,
     withLatestFrom,
 } from 'rxjs';
+import LinearType from 'types/LinearType';
 import MediaPlayback from 'types/MediaPlayback';
 import Player from 'types/Player';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
-import {formatTime, isMiniPlayer, Logger} from 'utils';
+import RadioStation from 'types/RadioStation';
+import {formatTime, getPlaybackTypeFromUrl, isMiniPlayer, Logger} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import lookup from 'services/lookup';
 import {hasPlayableSrc, getServiceFromSrc, observeMediaServices} from 'services/mediaServices';
 import playlist from 'services/playlist';
 import {lockVisualizer, setCurrentVisualizer} from 'services/visualizer';
+import icecastPlayer from './players/icecastPlayer';
 import mediaPlaybackSettings from './mediaPlaybackSettings';
 import mediaPlayer from './mediaPlayer';
 import miniPlayer from './miniPlayer';
@@ -263,40 +266,51 @@ async function getPlayableItem(item: PlaylistItem | null): Promise<PlaylistItem 
     if (!item) {
         return null;
     }
-    if (!hasPlayableSrc(item)) {
-        // Lookup the item if it's not from a playable source (e.g last.fm).
-        const foundItem = await lookup(item);
-        if (foundItem) {
-            item = {...item, ...foundItem};
-        } else {
-            return item;
+    try {
+        if (!hasPlayableSrc(item)) {
+            // Lookup the item if it's not from a playable source (e.g last.fm).
+            const foundItem = await lookup(item);
+            if (foundItem) {
+                item = {...item, ...foundItem};
+            } else {
+                return item;
+            }
         }
-    }
-    if (item.playbackType === undefined) {
-        // Whether to use HLS, Dash, etc.
-        const playbackType = await getPlaybackType(item);
-        item = {...item, playbackType};
+        if (item.playbackType === undefined) {
+            // Whether to use HLS, Dash, etc.
+            const playbackType = await getPlaybackType(item);
+            item = {...item, playbackType};
+        }
+    } catch (err) {
+        logger.error(err);
     }
     return item;
 }
 
 async function getPlaybackType(item: PlaylistItem): Promise<PlaybackType> {
     let playbackType = item.playbackType;
-    if (playbackType === undefined) {
-        const service = getServiceFromSrc(item);
-        if (service?.isLoggedIn() === false) {
-            // Don't dispatch if we're not logged in.
-            return PlaybackType.Direct;
+    try {
+        if (playbackType === undefined) {
+            const service = getServiceFromSrc(item);
+            if (service?.isLoggedIn() === false) {
+                // Don't dispatch if we're not logged in.
+                return PlaybackType.Direct;
+            }
+            if (service?.getPlaybackType) {
+                playbackType = await service.getPlaybackType(item);
+            } else if (/^https?:/.test(item.src)) {
+                playbackType = await getPlaybackTypeFromUrl(item.src);
+            } else {
+                playbackType = PlaybackType.Direct;
+            }
+            dispatchMediaObjectChanges({
+                match: (object) => object.src === item.src,
+                values: {playbackType},
+            });
         }
-        if (service?.getPlaybackType) {
-            playbackType = await service.getPlaybackType(item);
-        } else {
-            playbackType = PlaybackType.Direct;
-        }
-        dispatchMediaObjectChanges({
-            match: (object) => object.src === item.src,
-            values: {playbackType},
-        });
+    } catch (err) {
+        logger.error(err);
+        playbackType = PlaybackType.Direct;
     }
     return playbackType;
 }
@@ -476,25 +490,39 @@ playlist
 playlist
     .observeCurrentItem()
     .pipe(
-        switchMap((item) => (item?.linearType ? observeNowPlayingForLinearItem(item) : of(item))),
+        switchMap((item) => (isRadioStation(item) ? observeNowPlaying(item) : of(item))),
         distinctUntilChanged(),
         tap((item) => (playback.currentItem = item))
     )
     .subscribe(logger);
 
-function observeNowPlayingForLinearItem(item: PlaylistItem): Observable<PlaylistItem> {
-    const [serviceId] = item.src.split(':');
-    return observeMediaServices().pipe(
-        map((services) => services.find((service) => service.id === serviceId)),
-        distinctUntilChanged(),
-        switchMap(
-            (service) =>
-                service?.observeNowPlaying?.().pipe(
-                    startWith(item),
-                    map((nowPlaying) => nowPlaying || item)
-                ) || of(item)
-        )
-    );
+function isRadioStation(item: PlaylistItem | null): item is RadioStation<PlaylistItem> {
+    return item?.linearType === LinearType.Station;
+}
+
+function observeNowPlaying(station: RadioStation<PlaylistItem>): Observable<PlaylistItem> {
+    if (
+        station.playbackType === PlaybackType.Icecast ||
+        station.playbackType === PlaybackType.Playlist
+    ) {
+        return icecastPlayer.observeNowPlaying(station).pipe(
+            startWith(station),
+            map((item) => item || station)
+        );
+    } else {
+        const [serviceId] = station.src.split(':');
+        return observeMediaServices().pipe(
+            map((services) => services.find((service) => service.id === serviceId)),
+            distinctUntilChanged(),
+            switchMap(
+                (service) =>
+                    service?.observeNowPlaying?.(station).pipe(
+                        startWith(station),
+                        map((item) => item || station)
+                    ) || of(station)
+            )
+        );
+    }
 }
 
 // Mini player doesn't have a playlist (just the currently loaded item).

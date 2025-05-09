@@ -1,7 +1,8 @@
 import DRMKeySystem from 'types/DRMKeySystem';
 import DRMType from 'types/DRMType';
+import PlaybackType from 'types/PlaybackType';
 import browser from './browser';
-import {getContentType} from './fetch';
+import {getContentType, getHeaders} from './fetch';
 
 const defaultDrm: DRMType =
     browser.os === 'Mac OS' || browser.os === 'iOS' ? 'fairplay' : 'widevine';
@@ -45,11 +46,11 @@ export async function getSupportedDrm(): Promise<DRMType> {
 const audio = document.createElement('audio');
 const video = document.createElement('video');
 
+export const hlsContentTypes = ['application/x-mpegurl', 'application/vnd.apple.mpegurl'];
+export const playlistContentTypes = ['audio/x-scpls', 'audio/x-mpegurl'];
+
 export function canPlayNativeHls(): boolean {
-    return (
-        canPlayType('audio', 'application/x-mpegurl') ||
-        canPlayType('audio', 'application/vnd.apple.mpegurl')
-    );
+    return hlsContentTypes.some((type) => canPlayType('audio', type));
 }
 
 export function canPlayType(type: 'audio' | 'video', contentType: string): boolean {
@@ -91,9 +92,21 @@ export function canPlayMedia(type: 'audio' | 'video', src: string): Promise<bool
     });
 }
 
+export async function getPlaybackTypeFromUrl(url: string): Promise<PlaybackType> {
+    const headers = await getHeaders(url);
+    const contentType = headers.get('content-type')?.toLowerCase() || '';
+    if (hlsContentTypes.includes(contentType)) {
+        return PlaybackType.HLS;
+    } else if (playlistContentTypes.includes(contentType)) {
+        return PlaybackType.Playlist;
+    } else if (headers.get('icy-name') || headers.get('icy-url')) {
+        return PlaybackType.Icecast;
+    } else {
+        return PlaybackType.Direct;
+    }
+}
+
 export async function isHlsMedia(url: string): Promise<boolean> {
-    const contentType = (await getContentType(url)).toLowerCase();
-    return (
-        contentType === 'application/x-mpegurl' || contentType === 'application/vnd.apple.mpegurl'
-    );
+    const contentType = await getContentType(url);
+    return hlsContentTypes.includes(contentType);
 }

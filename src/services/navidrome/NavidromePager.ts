@@ -9,6 +9,7 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
+import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
 import {MAX_DURATION} from 'services/constants';
 import OffsetPager from 'services/pagers/OffsetPager';
@@ -106,6 +107,7 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
         return {
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
+            playbackType: PlaybackType.Direct,
             src: `navidrome:audio:${id}`,
             externalUrl: this.getExternalUrl(`album/${song.albumId}`),
             title: song.title,

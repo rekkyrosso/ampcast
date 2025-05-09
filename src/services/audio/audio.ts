@@ -185,6 +185,10 @@ class Audio implements AudioManager {
                 case PlaybackType.HLS:
                     return '.html5-audio-hls';
 
+                case PlaybackType.Icecast:
+                case PlaybackType.Playlist:
+                    return '.html5-audio-icecast';
+
                 default:
                     return '.dual-audio-main.player-1>#html5-audio-main-1,.dual-audio-main.player-2>#html5-audio-main-2';
             }

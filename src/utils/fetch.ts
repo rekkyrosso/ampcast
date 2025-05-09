@@ -16,7 +16,12 @@ export function anySignal(signals: AbortSignal[]): AbortSignal {
     return controller.signal;
 }
 
+export async function getHeaders(url: string, init?: RequestInit): Promise<Headers> {
+    const response = await fetch(url, {method: 'HEAD', ...init});
+    return response.headers;
+}
+
 export async function getContentType(url: string): Promise<string> {
-    const response = await fetch(url, {method: 'HEAD'});
-    return response.headers.get('Content-Type') || '';
+    const headers = await getHeaders(url);
+    return headers.get('content-type')?.toLowerCase() || '';
 }

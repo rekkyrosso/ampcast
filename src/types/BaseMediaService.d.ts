@@ -17,6 +17,7 @@ import PlayableItem from './PlayableItem';
 import PlaybackType from './PlaybackType';
 import PlaylistItem from './PlaylistItem';
 import Pin, {Pinnable} from './Pin';
+import RadioStation from './RadioStation';
 
 type BaseMediaService = Auth & {
     readonly id: MediaServiceId;
@@ -52,7 +53,7 @@ type BaseMediaService = Auth & {
               readonly showContent: true;
               readonly isCoverArt?: boolean; // Shows enough metadata to not require a hover state.
           };
-    observeNowPlaying?: () => Observable<PlaylistItem | null>;
+    observeNowPlaying?: (station: RadioStation) => Observable<PlaylistItem | null>;
     addMetadata?: <T extends MediaObject>(item: T) => Promise<T>;
     addToPlaylist?: (
         playlist: MediaPlaylist,
@@ -75,8 +76,8 @@ type BaseMediaService = Auth & {
     ) => Promise<readonly MediaItem[]>;
     getFilters?: (filterType: FilterType, itemType: ItemType) => Promise<readonly MediaFilter[]>;
     getMediaObject?: <T extends MediaObject>(src: string) => Promise<T>;
-    getPlaybackType?: (item: MediaItem) => Promise<PlaybackType>;
     getPlayableUrl?: (item: PlayableItem) => string;
+    getPlaybackType?: (item: MediaItem) => Promise<PlaybackType>;
     getThumbnailUrl?: (url: string) => string;
     lookup?: (
         artist: string,

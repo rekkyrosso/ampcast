@@ -5,7 +5,7 @@ import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
-import {Logger, loadLibrary} from 'utils';
+import {Logger, hlsContentTypes, loadLibrary} from 'utils';
 
 const logger = new Logger('music-metadata');
 
@@ -53,7 +53,7 @@ export async function createMediaItemFromFile(file: File): Promise<MediaItem> {
 
 export async function createMediaItemFromUrl(url: string): Promise<MediaItem> {
     const {hostname, pathname} = new URL(url);
-    const {metadata, mimeType} = await fetchFromUrl(url);
+    const {metadata, mimeType = ''} = await fetchFromUrl(url);
     const isVideo = mimeType?.startsWith('video/');
     const duration = metadata.format.duration || 0;
     const item = createMediaItem(
@@ -65,6 +65,7 @@ export async function createMediaItemFromUrl(url: string): Promise<MediaItem> {
     return {
         ...item,
         duration: Number(duration.toFixed(3)),
+        playbackType: hlsContentTypes.includes(mimeType) ? PlaybackType.HLS : PlaybackType.Direct,
     };
 }
 
@@ -104,42 +105,44 @@ async function fetchFromUrl(url: string): Promise<{metadata: IAudioMetadata; mim
         /* webpackMode: "weak" */
         'music-metadata'
     );
-    const response = await fetch(url, {signal: AbortSignal.timeout(3000)});
-    if (response.ok) {
-        if (response.body) {
-            const size = response.headers.get('Content-Length');
-            const mimeType = response.headers.get('Content-Type') ?? undefined;
-            if (mimeType?.startsWith('text/')) {
-                throw Error('No media found');
-            }
-            let metadata = noIAudioMetadata;
-            try {
-                metadata = await parseWebStream(
-                    response.body,
-                    {
-                        mimeType,
-                        size: size ? parseInt(size, 10) : undefined,
-                    },
-                    {
-                        duration: false,
-                        skipCovers: true,
-                        skipPostHeaders: true,
+    let metadata = noIAudioMetadata;
+    let mimeType: string | undefined;
+    try {
+        const response = await fetch(url, {signal: AbortSignal.timeout(3000)});
+        mimeType = response.headers.get('content-type') ?? undefined;
+        if (response.ok && !mimeType?.startsWith('text/')) {
+            if (response.body) {
+                const size = response.headers.get('content-length');
+                try {
+                    metadata = await parseWebStream(
+                        response.body,
+                        {
+                            mimeType,
+                            size: size ? parseInt(size, 10) : undefined,
+                        },
+                        {
+                            duration: false,
+                            skipCovers: true,
+                            skipPostHeaders: true,
+                        }
+                    );
+                    if (!response.body.locked) {
+                        // Prevent error in Firefox
+                        await response.body.cancel();
                     }
-                );
-                if (!response.body.locked) {
-                    // Prevent error in Firefox
-                    await response.body.cancel();
+                } catch (err) {
+                    logger.error(err);
                 }
-            } catch (err) {
-                logger.error(err);
+            } else {
+                logger.error('No response body');
             }
-            return {metadata, mimeType};
         } else {
-            throw Error('No response body');
+            logger.error(response.statusText);
         }
-    } else {
-        throw Error(response.statusText || 'Could not load media');
+    } catch (err) {
+        logger.error(err);
     }
+    return {metadata, mimeType};
 }
 
 function createMediaItem(

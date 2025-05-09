@@ -10,6 +10,7 @@ import MediaType from 'types/MediaType';
 import Pager, {Page} from 'types/Pager';
 import ParentOf from 'types/ParentOf';
 import PlaybackType from 'types/PlaybackType';
+import RadioStation from 'types/RadioStation';
 import Thumbnail from 'types/Thumbnail';
 import {getTextFromHtml, Logger} from 'utils';
 import {MAX_DURATION} from 'services/constants';
@@ -226,10 +227,7 @@ const musicKitUtils = {
         return mediaItem;
     },
 
-    createFromTimedMetadata(
-        data: MusicKit.TimedMetadata,
-        container?: MusicKit.MediaItem
-    ): MediaItem {
+    createFromTimedMetadata(data: MusicKit.TimedMetadata, station: RadioStation): MediaItem {
         const {storefrontAdamIds} = data;
         const catalogId = storefrontAdamIds[Object.keys(storefrontAdamIds)[0]] || '';
         const type = catalogId ? 'songs' : data.album ? 'track' : 'shows';
@@ -246,10 +244,10 @@ const musicKitUtils = {
             mediaType: MediaType.Audio,
             playbackType: PlaybackType.HLS,
             title: data.title,
-            thumbnails: thumbnails || this.createThumbnails(container?.attributes),
+            thumbnails: thumbnails || station.thumbnails,
             artists: artist ? [artist] : undefined,
             album: data.album,
-            stationName: container?.title,
+            stationName: station.title,
             duration: 0,
             playedAt: 0,
             noScrobble: type === 'shows' || undefined,

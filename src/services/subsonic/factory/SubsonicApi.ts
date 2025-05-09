@@ -3,6 +3,7 @@ import md5 from 'md5';
 import {Primitive} from 'type-fest';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import MediaFilter from 'types/MediaFilter';
 import MediaServiceId from 'types/MediaServiceId';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
@@ -10,7 +11,7 @@ import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import type SubsonicSettings from './SubsonicSettings';
-import {chunk, shuffle} from 'utils';
+import {chunk, getPlaybackTypeFromUrl, shuffle} from 'utils';
 
 export interface SubsonicApiSettings extends Partial<PersonalMediaServerSettings> {
     host: string;
@@ -305,6 +306,17 @@ export default class SubsonicApi {
         } else {
             throw Error('Not logged in');
         }
+    }
+
+    async getPlaybackType(item: PlayableItem): Promise<PlaybackType> {
+        if (item.playbackType !== undefined) {
+            return item.playbackType;
+        }
+        if (item.linearType === LinearType.Station) {
+            const url = item.srcs![0]; // Let this throw
+            return getPlaybackTypeFromUrl(url);
+        }
+        return PlaybackType.Direct;
     }
 
     async getPlaylist(id: string): Promise<Subsonic.Playlist> {

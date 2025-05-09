@@ -57,10 +57,12 @@ export default function usePlaylistLayout(size: number): ListViewLayout<Playlist
 }
 
 function RowNumber(rowIndex: number, numberOfDigits = 0) {
-    return <span className="number text">{String(rowIndex + 1).padStart(numberOfDigits, '0')}</span>;
+    return (
+        <span className="number text">{String(rowIndex + 1).padStart(numberOfDigits, '0')}</span>
+    );
 }
 
-function RowIcon({src, lookupStatus}: PlaylistItem) {
+function RowIcon({src, lookupStatus, linearType}: PlaylistItem) {
     const [serviceId] = src.split(':');
     let iconName: IconName;
 
@@ -74,7 +76,9 @@ function RowIcon({src, lookupStatus}: PlaylistItem) {
             break;
 
         default:
-            if (isPlayableSrc(src)) {
+            if (linearType) {
+                iconName = 'internet-radio';
+            } else if (isPlayableSrc(src)) {
                 iconName = serviceId as IconName;
             } else {
                 iconName = 'lookup-pending';

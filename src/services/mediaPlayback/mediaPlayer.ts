@@ -10,10 +10,11 @@ import YouTubePlayer from 'services/youtube/YouTubePlayer';
 import DualAudioPlayer from './players/DualAudioPlayer';
 import HLSPlayer from './players/HLSPlayer';
 import HTML5Player from './players/HTML5Player';
+import icecastPlayer from './players/icecastPlayer';
 import OmniPlayer from './players/OmniPlayer';
 
 // Audio players.
-const hlsAudioPlayer = new HLSPlayer('audio', 'hls');
+const hlsAudioPlayer = new HLSPlayer('audio');
 const html5AudioPlayer = new DualAudioPlayer(
     'main',
     new HTML5Player('audio', 'main', 1),
@@ -21,7 +22,7 @@ const html5AudioPlayer = new DualAudioPlayer(
 );
 
 // Video players.
-const hlsVideoPlayer = new HLSPlayer('video', 'hls');
+const hlsVideoPlayer = new HLSPlayer('video');
 const html5VideoPlayer = new HTML5Player('video', 'main');
 const youtubePlayer = new YouTubePlayer('main');
 
@@ -58,6 +59,13 @@ mediaPlayer.registerPlayers([
     // So put defaults first.
     [html5AudioPlayer, (item) => item?.mediaType === MediaType.Audio],
     [html5VideoPlayer, (item) => item?.mediaType === MediaType.Video],
+    [
+        icecastPlayer,
+        (item) =>
+            item?.mediaType === MediaType.Audio &&
+            (item.playbackType === PlaybackType.Icecast ||
+                item.playbackType === PlaybackType.Playlist),
+    ],
     [
         hlsAudioPlayer,
         (item) => item?.mediaType === MediaType.Audio && item.playbackType === PlaybackType.HLS,

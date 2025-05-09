@@ -17,6 +17,7 @@ import Pager, {PagerConfig} from 'types/Pager';
 import PersonalMediaService from 'types/PersonalMediaService';
 import PlayableItem from 'types/PlayableItem';
 import Pin, {Pinnable} from 'types/Pin';
+import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
 import {getTextFromHtml, Logger} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
@@ -320,6 +321,7 @@ const navidrome: PersonalMediaService = {
     createSourceFromPin,
     getFilters,
     getPlayableUrl,
+    getPlaybackType,
     getServerInfo,
     getThumbnailUrl,
     lookup,
@@ -471,6 +473,10 @@ async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
 
 function getPlayableUrl(item: PlayableItem): string {
     return subsonicApi.getPlayableUrl(item);
+}
+
+async function getPlaybackType(item: PlayableItem): Promise<PlaybackType> {
+    return subsonicApi.getPlaybackType(item);
 }
 
 async function getServerInfo(): Promise<Record<string, string>> {
