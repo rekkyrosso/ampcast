@@ -22,7 +22,7 @@ import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import pinStore from 'services/pins/pinStore';
-import plexApi, {PlexRequest, getMusicLibraryPath} from './plexApi';
+import plexApi, {PlexRequest, getMusicLibraryId, getMusicLibraryPath} from './plexApi';
 import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
 import plexSettings from './plexSettings';
@@ -451,7 +451,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     }
 
     private createThumbnails(thumb: string): Thumbnail[] | undefined {
-        return thumb
+        return thumb && !thumb.startsWith(`/library/metadata/${getMusicLibraryId()}/`)
             ? [
                   this.createThumbnail(thumb, 240),
                   this.createThumbnail(thumb, 360),

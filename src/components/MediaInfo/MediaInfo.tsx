@@ -204,11 +204,18 @@ export function ExternalView({src, url = ''}: {src: string; url?: string | undef
             serviceName = 'external source';
             break;
 
+        case 'internet-radio':
+            return null;
+
         default: {
             const service = getService(serviceId);
             if (service) {
                 if (isSubsonicCompatible(service) && type === 'radio') {
-                    return <ExternalLink href={url} />;
+                    return url ? (
+                        <p className="external-view">
+                            <ExternalLink href={url} />
+                        </p>
+                    ) : null;
                 } else {
                     serviceName = service.name;
                 }

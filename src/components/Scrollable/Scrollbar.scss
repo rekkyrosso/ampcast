@@ -28,16 +28,16 @@
         background-image:
             linear-gradient(to bottom,
                 var(--scrollbar-color-hi),
-                transparent 0.125rem),
+                transparent 0.125em),
             linear-gradient(to right,
                 var(--scrollbar-color-hi),
-                transparent 0.125rem),
+                transparent 0.125em),
             linear-gradient(to left,
                 var(--scrollbar-color-lo),
-                transparent 0.125rem),
+                transparent 0.125em),
             linear-gradient(to top,
                 var(--scrollbar-color-lo),
-                transparent 0.125rem);
+                transparent 0.125em);
         border: 1px solid var(--black);
         border-radius: calc(var(--roundness) * 1em);
         position: absolute;

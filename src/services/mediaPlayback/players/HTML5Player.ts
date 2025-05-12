@@ -25,7 +25,7 @@ import {getServiceFromSrc, waitForLogin} from 'services/mediaServices';
 
 export default class HTML5Player implements Player<PlayableItem> {
     protected readonly logger: Logger;
-    protected readonly element$ = new BehaviorSubject(document.createElement(this.type));
+    protected readonly element = document.createElement(this.type);
     protected readonly paused$ = new BehaviorSubject(true);
     protected readonly playing$ = new Subject<void>();
     protected readonly item$ = new BehaviorSubject<PlayableItem | null>(null);
@@ -77,16 +77,9 @@ export default class HTML5Player implements Player<PlayableItem> {
             )
             .subscribe(this.logger);
 
-        this.element$
-            .pipe(
-                switchMap((element) =>
-                    fromEvent(element, 'error').pipe(
-                        map(() => element.error),
-                        tap((error) => this.error$.next(error))
-                    )
-                )
-            )
-            .subscribe(this.logger);
+        fromEvent(element, 'error')
+            .pipe(map(() => element.error))
+            .subscribe(this.error$);
 
         // Stop and emit an error on logout.
         this.observeService()
@@ -160,40 +153,29 @@ export default class HTML5Player implements Player<PlayableItem> {
     }
 
     observeCurrentTime(): Observable<number> {
-        return this.element$.pipe(
-            switchMap((element) =>
-                fromEvent(element, 'timeupdate').pipe(
-                    startWith(element),
-                    map(() => element.currentTime),
-                    map((currentTime) =>
-                        this.stopped ? 0 : isFinite(currentTime) ? currentTime : 0
-                    )
-                )
-            )
+        return fromEvent(this.element, 'timeupdate').pipe(
+            startWith(undefined),
+            map(() => this.element.currentTime),
+            map((currentTime) => (this.stopped ? 0 : isFinite(currentTime) ? currentTime : 0))
         );
     }
 
     observeDuration(): Observable<number> {
-        return this.element$.pipe(
-            switchMap((element) =>
-                fromEvent(element, 'durationchange').pipe(
-                    startWith(element),
-                    map(() => element.duration),
-                    map((duration) =>
-                        this.isInfiniteStream
-                            ? MAX_DURATION
-                            : isNaN(duration)
-                            ? this.item?.duration || 0
-                            : duration
-                    )
-                )
+        return fromEvent(this.element, 'durationchange').pipe(
+            startWith(undefined),
+            map(() => this.element.duration),
+            map((duration) =>
+                this.isInfiniteStream
+                    ? MAX_DURATION
+                    : isNaN(duration)
+                    ? this.item?.duration || 0
+                    : duration
             )
         );
     }
 
     observeEnded(): Observable<void> {
-        return this.element$.pipe(
-            switchMap((element) => fromEvent(element, 'ended')),
+        return fromEvent(this.element, 'ended').pipe(
             tap(() => {
                 if (this.isInfiniteStream) {
                     this.logger.warn('Ended event for infinite stream.');
@@ -262,10 +244,6 @@ export default class HTML5Player implements Player<PlayableItem> {
             this.element.style.width = `${width}px`;
             this.element.style.height = `${height}px`;
         }
-    }
-
-    protected get element(): HTMLMediaElement {
-        return this.element$.value;
     }
 
     protected get isInfiniteStream(): boolean {

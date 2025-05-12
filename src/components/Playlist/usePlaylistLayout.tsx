@@ -62,7 +62,7 @@ function RowNumber(rowIndex: number, numberOfDigits = 0) {
     );
 }
 
-function RowIcon({src, lookupStatus, linearType}: PlaylistItem) {
+function RowIcon({src, lookupStatus}: PlaylistItem) {
     const [serviceId] = src.split(':');
     let iconName: IconName;
 
@@ -76,9 +76,7 @@ function RowIcon({src, lookupStatus, linearType}: PlaylistItem) {
             break;
 
         default:
-            if (linearType) {
-                iconName = 'internet-radio';
-            } else if (isPlayableSrc(src)) {
+            if (isPlayableSrc(src)) {
                 iconName = serviceId as IconName;
             } else {
                 iconName = 'lookup-pending';

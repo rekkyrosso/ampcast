@@ -50,7 +50,6 @@
         "react-dom": "^19.0.0",
         "react-error-boundary": "^6.0.0",
         "rxjs": "^7.5.6",
-        "shaka-player": "^4.10.3",
         "spotify-web-api-js": "^1.5.2",
         "string-score": "^1.0.1",
         "unidecode": "^1.0.1",

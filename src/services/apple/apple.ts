@@ -781,11 +781,22 @@ async function lookup(
     if (!artist || !title) {
         return [];
     }
-    const pager = createSearchPager<MediaItem>(ItemType.Media, `${title} ${artist}`, undefined, {
-        pageSize: limit,
-        maxSize: limit,
-        lookup: true,
-    });
+    const pager = new MusicKitPager<MediaItem>(
+        '/v1/catalog/{{storefrontId}}/search',
+        {
+            types: 'songs,music-videos',
+            term: `${title} ${artist}`,
+        },
+        {pageSize: limit, maxSize: 2 * limit, lookup: true},
+        undefined,
+        (response: any): MusicKitPage => {
+            const songs = response.results?.songs?.data || [];
+            const videos = response.results?.['music-videos']?.data || [];
+            const items = songs.concat(videos);
+            const total = items.length;
+            return {items, total, atEnd: true};
+        }
+    );
     const items = await fetchFirstPage(pager, {timeout});
     return items.filter((item) => !item.unplayable);
 }

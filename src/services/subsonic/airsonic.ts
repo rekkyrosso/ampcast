@@ -1,4 +1,4 @@
-import SubsonicService from 'services/subsonic/factory/SubsonicService';
+import SubsonicService from './factory/SubsonicService';
 
 const airsonic = new SubsonicService(
     'airsonic',

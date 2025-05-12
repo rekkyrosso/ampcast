@@ -16,7 +16,7 @@ import {parsePlaylistFromUrl} from './playlistParser';
 
 export class IcecastPlayer extends HTML5Player {
     private player: IcecastMetadataPlayer | null = null;
-    private readonly nowPlaying$ = new Subject<IcyMetadata>();
+    private readonly nowPlaying$ = new Subject<IcyMetadata | undefined>();
 
     constructor(name = 'icecast') {
         super('audio', name);
@@ -116,6 +116,7 @@ export class IcecastPlayer extends HTML5Player {
         } catch (err) {
             this.logger.warn(err);
         }
+        this.nowPlaying$.next(undefined);
     }
 
     protected async createPlayer(): Promise<void> {

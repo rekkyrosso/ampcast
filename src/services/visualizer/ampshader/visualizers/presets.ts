@@ -62,6 +62,7 @@ import mandelKoch from './mandelKoch.frag';
 import mellowRainbowBlob from './mellowRainbowBlob.frag';
 import morph from './morph.frag';
 import music_Spheres from './music_Spheres.frag';
+import musicalDandelions from './musicalDandelions.frag';
 import musicMandelBoxColour from './musicMandelBoxColour.frag';
 import musicVisualiser from './musicVisualiser.frag';
 import musicVisualizer3 from './musicVisualizer3.frag';
@@ -627,6 +628,11 @@ const presets: AmpShaderVisualizer[] = [
         id: 'XsjXRm',
         name: 'Plasma Globe by nimitz',
         shader: plasmaGlobe,
+    },
+    {
+        id: '3c2XW3',
+        name: 'musical dandelions by orblivius',
+        shader: musicalDandelions,
     },
 ].map(({id, ...props}) => ({
     ...props,

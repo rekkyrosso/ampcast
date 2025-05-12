@@ -19,6 +19,7 @@ import {
     take,
     takeUntil,
     tap,
+    timer,
     withLatestFrom,
 } from 'rxjs';
 import LinearType from 'types/LinearType';
@@ -471,9 +472,7 @@ playlist
                 ? playback.observePlaybackState().pipe(
                       filter(({currentItem}) => currentItem?.id === item.id),
                       map(({duration}) => duration),
-                      filter((duration) => duration !== 0),
-                      skipWhile((duration) => duration === item.duration),
-                      take(1),
+                      filter((duration) => !!duration && duration !== item.duration),
                       tap((duration) =>
                           dispatchMediaObjectChanges({
                               match: (object) => object.src === item.src,
@@ -532,11 +531,15 @@ if (!isMiniPlayer) {
     // Unlock loading after 300ms. Nothing wil be loaded until then.
     // This avoids spamming media services with play/lookup requests that will soon be skipped over.
     // e.g. clicking the prev/next buttons quickly.
-    loadingLocked$
+    timer(1000) // delay initial loading
         .pipe(
-            debounceTime(300),
-            filter((locked) => locked),
-            tap(() => unlockLoading())
+            switchMap(() =>
+                loadingLocked$.pipe(
+                    debounceTime(300),
+                    filter((locked) => locked),
+                    tap(() => unlockLoading())
+                )
+            )
         )
         .subscribe(logger);
 

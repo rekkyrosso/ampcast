@@ -63,6 +63,7 @@ export default function VisualizerSettingsGeneral() {
                     id={`${id}-provider`}
                     defaultValue={originalSettings.provider}
                     onChange={(e) => setProvider(e.target.value)}
+                    key={providers.length}
                 >
                     <option value="all">(all)</option>
                     <option value="none">(none)</option>

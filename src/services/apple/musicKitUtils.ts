@@ -276,6 +276,7 @@ const musicKitUtils = {
             duration: MAX_DURATION,
             playedAt: 0,
             apple: {catalogId},
+            shareLink: attributes.url || undefined,
         };
         return mediaItem;
     },

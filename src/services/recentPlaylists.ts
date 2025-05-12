@@ -1,4 +1,5 @@
 import {Except} from 'type-fest';
+import LinearType from 'types/LinearType';
 import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaService from 'types/MediaService';
@@ -67,6 +68,8 @@ export function getRecentPlaylists(services: readonly MediaService[]): readonly 
 export function getPlaylistItemsByService<T extends MediaItem>(
     items: readonly T[]
 ): readonly ItemsByService<T>[] {
+    items = items.filter((item) => !item.linearType || item.linearType === LinearType.MusicTrack);
+
     const byService = groupBy(items, (item) => {
         const service = getServiceFromSrc(item);
         return service?.id || '';

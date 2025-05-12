@@ -374,7 +374,7 @@ observeCurrentItem()
 observeCurrentItem()
     .pipe(
         skipWhile((item) => !item),
-        distinctUntilChanged((a, b) => a?.id === b?.id),
+        distinctUntilChanged((a, b) => a?.id === b?.id && a?.mediaType === b?.mediaType),
         tap(() => nextVisualizer('new-media-item'))
     )
     .subscribe(logger);
