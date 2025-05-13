@@ -149,8 +149,7 @@ export function Blurb<T extends MediaPlaylist>({description}: Pick<T, 'descripti
 export function Artist<T extends MediaAlbum>({artist}: Pick<T, 'artist'>) {
     return artist ? (
         <h4 className="artist">
-            <span className="by">By: </span>
-            {artist}
+            <span className="by">By:</span> {artist}
         </h4>
     ) : null;
 }
@@ -243,11 +242,15 @@ export function AlbumAndYear<T extends MediaItem>({album, year}: Pick<T, 'album'
     if (album && year) {
         return (
             <h4 className="album">
-                From: {album} ({year})
+                <span className="from">From:</span> {album} ({year})
             </h4>
         );
     } else if (album) {
-        return <h4 className="album">From: {album}</h4>;
+        return (
+            <h4 className="album">
+                <span className="from">From:</span> {album}
+            </h4>
+        );
     } else if (year) {
         return <h4 className="album">Year: {year}</h4>;
     } else {

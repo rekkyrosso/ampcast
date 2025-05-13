@@ -122,11 +122,11 @@ input[type="range"] {
         width: var(--thumb-size);
         height: var(--thumb-size);
         background-color: currentColor;
-        border: calc(var(--thumb-size) / 10) solid var(--background-color);
+        border: 0;
         border-radius: var(--thumb-size);
         margin-top: calc(var(--track-height) / 2 - var(--thumb-size) / 2);
         box-sizing: border-box;
-        background-clip: padding-box;
+        box-shadow: 0 0 1px calc(var(--thumb-size) / 10) var(--background-color);
     }
 
     &::-webkit-slider-runnable-track {

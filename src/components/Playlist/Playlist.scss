@@ -71,6 +71,11 @@
                     font-family: monospace;
                     letter-spacing: -0.0675em;
                 }
+
+                .icon-play,
+                .icon-pause {
+                    color: var(--currently-playing-color);
+                }
             }
 
             &.duration .text {
@@ -97,16 +102,33 @@
         }
     }
 
-    .icon-play,
-    .icon-pause {
-        color: var(--currently-playing-color);
-    }
-
     .status-bar {
         margin-bottom: 0;
     }
 
     .progress-ring {
         display: none;
+    }
+
+    .media-buttons {
+        display: inline-flex;
+        gap: 0.125em;
+        margin-right: -0.125em;
+    }
+
+    .media-button {
+        font-size: 0.375rem;
+        width: 1rem;
+        height: 1rem;
+        padding: 0.5rem;
+
+        &:first-child .icon {
+            transform: rotate(180deg);
+        }
+
+        &:last-child {
+            margin-left: 0.25em;
+            margin-right: 0;
+        }
     }
 }

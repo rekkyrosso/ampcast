@@ -24,7 +24,7 @@
         @mixin media-thumb {
             background-color: var(--media-button-color);
             background-image: var(--media-button-background);
-            border: 1px solid var(--black);
+            box-shadow: 0 0 1px 1px var(--black);
             border-radius: calc(var(--roundness) * var(--thumb-size));
 
             &:hover {

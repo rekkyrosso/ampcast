@@ -9,6 +9,7 @@ import {
     BitRateBadge,
     ExplicitBadge,
     LastFmBadge,
+    LivePlaybackBadge,
     MusicBrainzBadge,
     ReplayGainBadge,
     ShareLink,
@@ -22,6 +23,7 @@ export interface BadgesProps {
 export default function Badges({item}: BadgesProps) {
     return (
         <div className="badges">
+            {item.itemType === ItemType.Media ? <LivePlaybackBadge item={item} /> : null}
             {item.itemType === ItemType.Artist ? null : (
                 <>
                     <ExplicitBadge item={item} />

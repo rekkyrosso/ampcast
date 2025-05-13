@@ -85,8 +85,10 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                         ? merge(
                               of(undefined),
                               interval(5000).pipe(
-                                  map(
-                                      () => this.player?.currentTimedMetadata || this.nowPlayingItem
+                                  map(() =>
+                                      this.isLivePlayback
+                                          ? this.player?.currentTimedMetadata
+                                          : this.nowPlayingItem
                                   )
                               )
                           )
@@ -227,6 +229,24 @@ export class MusicKitPlayer implements Player<PlayableItem> {
 
     seek(time: number): void {
         this.player?.seekToTime(time);
+    }
+
+    async skipNext(): Promise<void> {
+        if (this.isLinear && !this.isLivePlayback) {
+            this.nowPlaying$.next(undefined);
+            await this.player?.skipToNextItem();
+            this.nowPlaying$.next(this.nowPlayingItem);
+        }
+    }
+
+    async skipPrev(): Promise<void> {
+        if (this.isLinear && !this.isLivePlayback) {
+            if (this.player?.nowPlayingItemIndex) {
+                this.nowPlaying$.next(undefined);
+            }
+            await this.player?.skipToPreviousItem();
+            this.nowPlaying$.next(this.nowPlayingItem);
+        }
     }
 
     resize(width: number, height: number): void {

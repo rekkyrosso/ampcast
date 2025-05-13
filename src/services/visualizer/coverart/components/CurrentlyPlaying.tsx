@@ -112,7 +112,7 @@ export default function CurrentlyPlaying({
                             extendedSearch={!hidden || extendedThumbnailSearch}
                             onLoad={handleThumbnailLoad}
                             onError={handleThumbnailError}
-                            key={item.src}
+                            key={item.id}
                         />
                         <ProvidedBy item={item} />
                     </div>

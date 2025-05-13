@@ -47,6 +47,14 @@ export function ExplicitBadge({item}: ExplicitBadgeProps) {
     ) : null;
 }
 
+export interface LivePlaybackBadgeProps {
+    item: MediaItem;
+}
+
+export function LivePlaybackBadge({item}: LivePlaybackBadgeProps) {
+    return item.isLivePlayback ? <Badge className="live-playback">Live</Badge> : null;
+}
+
 export interface ReplayGainBadgeProps {
     item: MediaItem;
 }

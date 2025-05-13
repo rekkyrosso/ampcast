@@ -11,7 +11,7 @@
     border-radius: calc(var(--roundness) * 0.75em);
     font-style: normal;
     font-weight: bold;
-    line-height: normal;
+    line-height: 2;
     text-transform: uppercase;
     user-select: none;
     min-width: 1em;
@@ -27,6 +27,12 @@
     &.explicit {
         border-color: orangered;
         background-color: orangered;
+        color: white;
+    }
+
+    &.live-playback {
+        border-color: darkred;
+        background-color: darkred;
         color: white;
     }
 

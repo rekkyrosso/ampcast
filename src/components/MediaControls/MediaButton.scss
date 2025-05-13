@@ -2,7 +2,7 @@
     background-color: var(--media-button-color);
     background-image: var(--media-button-background);
     color: var(--media-button-text-color);
-    border: 1px solid var(--black);
+    border: 0;
     padding: 0.5rem;
     width: 2rem;
     height: 2rem;
@@ -11,7 +11,7 @@
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    background-clip: padding-box;
+    box-shadow: 0 0 1px 1px var(--black);
     border-radius: calc(var(--roundness) * 100%);
 
     &:first-child {

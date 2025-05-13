@@ -44,9 +44,16 @@ function observeUserAmbientVideos(): Observable<readonly AmbientVideoVisualizer[
 async function getUserAmbientVideos(url: string): Promise<AmbientVideoVisualizer[]> {
     const src = youtubeApi.getVideoSrc(url);
     const [, type, id] = src.split(':');
-    let videoIds: readonly string[] = [id];
+    let videoIds: readonly string[] = [];
     if (type === 'playlist') {
-        videoIds = await loadYouTubePlaylist(id);
+        try {
+            videoIds = await loadYouTubePlaylist(id);
+        } catch (err) {
+            logger.log('Could not load YouTube playlist');
+            logger.error(err);
+        }
+    } else {
+        videoIds = [id];
     }
     return videoIds.map((videoId) => youtubeApi.createAmbientVideo(videoId));
 }

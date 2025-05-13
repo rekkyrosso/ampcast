@@ -37,13 +37,13 @@ export default function CoverArtVisualizer() {
     const item = currentTrack?.mediaType === MediaType.Video ? null : currentTrack;
     const prevItem = usePrevious(item);
     const nextItem = nextTrack?.mediaType === MediaType.Video ? null : nextTrack;
-    const src = item?.src || '';
+    const currentId = item?.id || '';
     const indexRef = useRef(0);
     const [item0, setItem0] = useState<PlaylistItem | null>(null);
     const [item1, setItem1] = useState<PlaylistItem | null>(null);
     const [ready, setReady] = useState(false);
-    const isItem0 = item0?.src === src;
-    const isItem1 = item1?.src === src;
+    const isItem0 = item0?.id === currentId;
+    const isItem1 = item1?.id === currentId;
 
     // useEffect(() => {
     //     console.log({currentlyPlaying: currentTrack?.title, playingNext: nextTrack?.title});
@@ -53,7 +53,7 @@ export default function CoverArtVisualizer() {
         setReady(false);
         const timerId = setTimeout(() => setReady(true), 4500);
         return () => clearTimeout(timerId);
-    }, [src]);
+    }, [currentId]);
 
     useEffect(() => {
         const player = coverart.createPlayer(audio) as CovertArtPlayer;
@@ -80,7 +80,7 @@ export default function CoverArtVisualizer() {
 
     useEffect(() => {
         let selectedIndex = indexRef.current ? 1 : 0;
-        if (prevItem !== undefined && item?.src !== prevItem?.src) {
+        if (prevItem !== undefined && item?.id !== prevItem?.id) {
             selectedIndex = indexRef.current ? 0 : 1;
         }
         if (selectedIndex === 0) {

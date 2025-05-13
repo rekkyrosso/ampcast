@@ -212,6 +212,14 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
         this.currentPlayer?.seek(time);
     }
 
+    async skipNext(): Promise<void> {
+        return this.currentPlayer?.skipNext?.();
+    }
+
+    async skipPrev(): Promise<void> {
+        return this.currentPlayer?.skipPrev?.();
+    }
+
     resize(width: number, height: number): void {
         this.#width = width;
         this.#height = height;

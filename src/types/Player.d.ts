@@ -21,4 +21,6 @@ export default interface Player<T> {
     stop(): void;
     seek(time: number): void;
     resize(width: number, height: number): void;
+    skipNext?(): Promise<void>;
+    skipPrev?(): Promise<void>;
 }

@@ -29,20 +29,23 @@
         }
     }
 
-    .artist,
-    .album {
-        margin-top: 0.5em;
-    }
-
     .title {
-        margin-bottom: 0.25em;
+        margin-bottom: 0.5em;
         font-size: 1.5em;
         word-wrap: break-word;
+        hyphens: auto;
         line-height: 1.1;
 
         & + .owner {
             margin-top: 0;
         }
+    }
+
+    .artist,
+    .album {
+        display: flex;
+        margin-top: 0.5em;
+        gap: 0.25em;
     }
 
     .duration,

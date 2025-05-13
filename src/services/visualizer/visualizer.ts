@@ -297,7 +297,11 @@ function pickNextVisualizer<T extends Visualizer | VisualizerFavorite>(
     if (visualizers.length === 1) {
         return visualizers[0];
     }
-    if (reason === 'next-clicked' && visualizerSettings.provider !== 'random') {
+    const {provider, useAmbientVideoSource} = visualizerSettings;
+    if (
+        reason === 'next-clicked' &&
+        !(provider === 'random' || (provider === 'ambientvideo' && !useAmbientVideoSource))
+    ) {
         const index = visualizers.findIndex((visualizer) => visualizer === currentVisualizer);
         if (index === visualizers.length - 1) {
             return visualizers[0];

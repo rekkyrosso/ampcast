@@ -1,5 +1,6 @@
 import React, {useCallback, useRef} from 'react';
 import {Except} from 'type-fest';
+import {cancelEvent} from 'utils';
 import Icon, {IconName} from 'components/Icon';
 import './MediaButton.scss';
 
@@ -24,6 +25,7 @@ export default function MediaButton({icon, className = '', ...props}: MediaButto
             className={`media-button media-button-${icon} ${className}`}
             type="button"
             onMouseDown={handleMouseDown}
+            onContextMenu={cancelEvent}
             ref={ref}
         >
             <Icon name={icon} />

@@ -1,14 +1,18 @@
-import React, {useMemo} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import LinearType from 'types/LinearType';
 import PlaylistItem from 'types/PlaylistItem';
 import LookupStatus from 'types/LookupStatus';
 import {MAX_DURATION} from 'services/constants';
+import mediaPlayer from 'services/mediaPlayback/mediaPlayer';
 import {isPlayableSrc} from 'services/mediaServices';
-import {ExplicitBadge} from 'components/Badges/Badge';
+import {ExplicitBadge, LivePlaybackBadge} from 'components/Badges';
 import Icon, {IconName} from 'components/Icon';
 import {ListViewLayout} from 'components/ListView';
+import MediaButton from 'components/MediaControls/MediaButton';
 import Time from 'components/Time';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import usePaused from 'hooks/usePaused';
+import usePlaybackState from 'hooks/usePlaybackState';
 
 const playlistLayout: ListViewLayout<PlaylistItem> = {
     view: 'details',
@@ -48,12 +52,64 @@ export default function usePlaylistLayout(size: number): ListViewLayout<Playlist
                             }
                         },
                     };
+                } else if (col.className === 'duration') {
+                    return {
+                        ...col,
+                        render: (item: PlaylistItem) => {
+                            if (item.id === currentId && !paused && hasPrevNext(item)) {
+                                return <Skip />;
+                            } else {
+                                return Duration(item);
+                            }
+                        },
+                    };
                 } else {
                     return col;
                 }
             }),
         };
     }, [sizeExponent, currentId, paused]);
+}
+
+function Skip() {
+    const [disabled, setDisabled] = useState(true);
+    const {currentTime, startedAt} = usePlaybackState();
+    const playbackStarted = currentTime >= 1 && Date.now() - startedAt >= 1000;
+
+    useEffect(() => {
+        if (playbackStarted) {
+            setDisabled(false);
+        }
+    }, [playbackStarted]);
+
+    const skipNext = useCallback(async () => {
+        setDisabled(true);
+        await mediaPlayer.skipNext();
+        setDisabled(false);
+    }, []);
+
+    const skipPrev = useCallback(async () => {
+        setDisabled(true);
+        await mediaPlayer.skipPrev();
+        setDisabled(false);
+    }, []);
+
+    return (
+        <div className="media-buttons">
+            <MediaButton
+                icon="play"
+                aria-label="Skip to previous track"
+                onClick={skipPrev}
+                disabled={disabled}
+            />
+            <MediaButton
+                icon="play"
+                aria-label="Skip to next track"
+                onClick={skipNext}
+                disabled={disabled}
+            />
+        </div>
+    );
 }
 
 function RowNumber(rowIndex: number, numberOfDigits = 0) {
@@ -107,6 +163,7 @@ function RowTitle(item: PlaylistItem) {
                     <span className="title-text">{title}</span>
                 )}
             </span>{' '}
+            <LivePlaybackBadge item={item} />
             <ExplicitBadge item={item} />
         </span>
     );
@@ -117,5 +174,13 @@ function Duration({duration}: PlaylistItem) {
         <span className="text">–:––</span>
     ) : (
         <Time className="text" time={duration} />
+    );
+}
+
+function hasPrevNext(item: PlaylistItem): boolean {
+    return (
+        item.linearType === LinearType.Station &&
+        !item.isLivePlayback &&
+        item.src.startsWith('apple:')
     );
 }

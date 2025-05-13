@@ -13,7 +13,7 @@ import {getServiceFromSrc} from 'services/mediaServices';
 import {performAction} from 'components/Actions';
 import {ColumnSpec, ListViewLayout} from 'components/ListView';
 import Actions from 'components/Actions';
-import {ExplicitBadge} from 'components/Badges/Badge';
+import {ExplicitBadge, LivePlaybackBadge} from 'components/Badges';
 import CoverArt from 'components/CoverArt';
 import Icon from 'components/Icon';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
@@ -66,6 +66,12 @@ const Title: RenderField = (item) => {
     return (
         <span className="title-with-badge">
             <span className="text">{item.title}</span>
+            {item.itemType === ItemType.Media && item.isLivePlayback ? (
+                <>
+                    {' '}
+                    <LivePlaybackBadge item={item} />
+                </>
+            ) : null}
             {item.itemType === ItemType.Media || item.itemType === ItemType.Album ? (
                 <>
                     {' '}
@@ -184,7 +190,7 @@ const ListenDate: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) =
 
 const AlbumAndYear: RenderField<MediaItem> = (item) => (
     <Text
-        value={item.album ? (item.year ? `${item.album} (${item.year})` : item.album) : item.year}
+        value={item.album ? (item.year ? `${item.album} (${item.year})` : item.album) : item.year || ''}
     />
 );
 
