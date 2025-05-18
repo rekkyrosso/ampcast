@@ -12,6 +12,7 @@ export default interface MediaItem extends BaseMediaObject {
     // Everything below here should be optional.
     readonly linearType?: LinearType; // For radio streams
     readonly playbackType?: PlaybackType;
+    readonly isExternalMedia?: boolean; // Not provided by the associated `MediaService` (described by `src`)
     readonly isLivePlayback?: boolean;
     readonly artists?: readonly string[];
     readonly albumArtist?: string;
@@ -43,6 +44,7 @@ export default interface MediaItem extends BaseMediaObject {
     readonly badge?: string;
     readonly container?: string;
     readonly shareLink?: string;
+    readonly skippable?: boolean;
     // Playable sources that can't be derived from `src`.
     // Currently used by TIDAL(via Plex) audio quality sources.
     readonly srcs?: readonly string[];
@@ -58,5 +60,8 @@ export default interface MediaItem extends BaseMediaObject {
         readonly src: string;
         readonly srcs?: readonly string[];
         readonly externalUrl?: string;
+    };
+    readonly plex?: {
+        readonly playQueueItemID?: number;
     };
 }

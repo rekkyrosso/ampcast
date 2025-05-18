@@ -1,16 +1,18 @@
 import MediaItem from 'types/MediaItem';
 import {Logger} from 'utils';
-import plexSettings from './plexSettings';
 import plexApi from './plexApi';
 
 const logger = new Logger('plexReporting');
 
-let playQueueItemID = '';
+let mainPlayQueueItemID = 0;
 
 export async function reportStart(item: MediaItem): Promise<void> {
     try {
-        playQueueItemID = '';
-        playQueueItemID = await createPlayQueueItemId(item);
+        if (!item.linearType) {
+            mainPlayQueueItemID = 0;
+            const playQueue = await plexApi.createPlayQueue(item);
+            mainPlayQueueItemID = playQueue.playQueueSelectedItemID;
+        }
         await reportState(item, 'playing', item.startTime);
     } catch (err) {
         logger.error(err);
@@ -42,6 +44,7 @@ async function reportState(
     state: 'stopped' | 'paused' | 'playing' | 'buffering' | 'error',
     currentTime = 0
 ): Promise<void> {
+    const playQueueItemID = item.linearType ? item.plex?.playQueueItemID : mainPlayQueueItemID;
     if (playQueueItemID) {
         const [, , ratingKey] = item.src.split(':');
         await plexApi.fetch({
@@ -58,22 +61,4 @@ async function reportState(
     } else {
         logger.warn('reportState: `playQueueItemID` not defined', `state=${state}`);
     }
-}
-
-async function createPlayQueueItemId(item: MediaItem): Promise<string> {
-    const [, , ratingKey] = item.src.split(':');
-    const key = `/library/metadata/${ratingKey}`;
-    const {MediaContainer: playQueue} = await plexApi.fetchJSON<plex.PlayQueueResponse>({
-        path: '/playQueues',
-        method: 'POST',
-        params: {
-            key,
-            type: 'music',
-            uri: `server://${plexSettings.serverId}/com.plexapp.plugins.library${key}`,
-            continuous: '0',
-            repeat: '0',
-            own: '1',
-        },
-    });
-    return String(playQueue.playQueueSelectedItemID);
 }

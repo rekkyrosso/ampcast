@@ -1,5 +1,6 @@
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
@@ -19,7 +20,13 @@ export class ListenBrainzApi {
     private rateLimitResetTime = 0;
 
     canScrobble(item: MediaItem | null): boolean {
-        return !!item && !!item.title && !!item.artists?.[0] && (item.duration > 30 || !item.duration);
+        return (
+            !!item &&
+            !!item.title &&
+            !!item.artists?.[0] &&
+            (!item.linearType || item.linearType === LinearType.MusicTrack) &&
+            (item.duration > 30 || !item.duration)
+        );
     }
 
     async store(item: MediaItem, inLibrary: boolean): Promise<void> {

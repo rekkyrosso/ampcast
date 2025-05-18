@@ -110,7 +110,8 @@ declare namespace Subsonic {
     interface Radio {
         readonly id: string;
         readonly name: string;
-        readonly homePageUrl: string;
+        readonly homePageUrl?: string;
+        readonly homepageUrl?: string; // Gonic
         readonly streamUrl: string;
     }
 

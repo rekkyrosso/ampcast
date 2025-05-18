@@ -31,7 +31,7 @@ async function injectItems(items: readonly MediaItem[], atIndex: number): Promis
 
 async function injectUrls(urls: readonly string[], atIndex: number): Promise<void> {
     try {
-        const maxUrls = 20;
+        const maxUrls = 10;
         urls = urls.slice(0, maxUrls);
         const errors: {url: string; error: unknown}[] = [];
         const result = await Promise.all(
@@ -45,8 +45,8 @@ async function injectUrls(urls: readonly string[], atIndex: number): Promise<voi
                         const items = await getMediaServiceTracks('spotify', 'text/uri-list', url);
                         return items;
                     } else {
-                        const items = await createMediaItemFromUrl(url);
-                        return items;
+                        const item = await createMediaItemFromUrl(url);
+                        return item;
                     }
                 } catch (error) {
                     errors.push({url, error});

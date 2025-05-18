@@ -37,7 +37,7 @@ class Audio implements AudioManager {
             .pipe(
                 map((state) => this.getCurrentlyPlaying(state)),
                 filter(exists),
-                tap((item) => this.getSourceNode(item))
+                tap((item) => this.connectSourceNode(item))
             )
             .subscribe(logger);
 
@@ -134,23 +134,14 @@ class Audio implements AudioManager {
         return currentItem;
     }
 
-    private getSourceNode(item: PlaylistItem): void {
-        const createSourceNode = (audio: HTMLAudioElement) => {
+    private connectSourceNode(item: PlaylistItem): void {
+        const audios = this.getAudioElements(item);
+        for (const audio of audios) {
             if (!this.#sourceNodes.has(audio)) {
                 const sourceNode = this.context!.createMediaElementSource(audio);
                 sourceNode.connect(this.#input);
                 this.#sourceNodes.set(audio, sourceNode);
             }
-        };
-        // Create these source nodes as early as possible.
-        // Avoids an audible glitch for the first gapless playback transition.
-        const html5Audios = document.querySelectorAll<HTMLAudioElement>('.html5-audio-main');
-        for (const audio of html5Audios) {
-            createSourceNode(audio);
-        }
-        const audios = this.getAudioElements(item);
-        for (const audio of audios) {
-            createSourceNode(audio);
         }
     }
 
@@ -178,20 +169,7 @@ class Audio implements AudioManager {
         } else if (item.src.startsWith('tidal:')) {
             return '#tidal-player-root #video-one';
         } else {
-            switch (item.playbackType) {
-                case PlaybackType.DASH:
-                    return '.html5-audio-dash';
-
-                case PlaybackType.HLS:
-                    return '.html5-audio-hls';
-
-                case PlaybackType.Icecast:
-                case PlaybackType.Playlist:
-                    return '.html5-audio-icecast';
-
-                default:
-                    return '.dual-audio-main.player-1>#html5-audio-main-1,.dual-audio-main.player-2>#html5-audio-main-2';
-            }
+            return '.html5-audio';
         }
     }
 
@@ -202,6 +180,7 @@ class Audio implements AudioManager {
             switch (item.playbackType) {
                 case PlaybackType.DASH:
                 case PlaybackType.HLS:
+                case PlaybackType.HLSMetadata:
                     return true;
 
                 default:

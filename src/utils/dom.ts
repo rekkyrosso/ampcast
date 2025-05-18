@@ -12,7 +12,10 @@ export function getTextFromHtml(html = ''): string {
 }
 
 export async function loadLibrary(name: string): Promise<void> {
-    return loadScript(`/v${__app_version__}/lib/${name}.js`);
+    if (!name.endsWith('.js')) {
+        name += '.js';
+    }
+    return loadScript(`/v${__app_version__}/lib/${name}`);
 }
 
 export async function loadScript(src: string): Promise<void> {

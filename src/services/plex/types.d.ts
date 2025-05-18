@@ -153,6 +153,21 @@ declare namespace plex {
         readonly viewCount: number;
     }
 
+    interface Radio {
+        readonly type: 'playlist';
+        readonly radio: '1';
+        readonly composite: string;
+        readonly duration: number;
+        readonly guid: string;
+        readonly icon: string;
+        readonly key: string;
+        readonly leafCount: number;
+        readonly playlistType: string;
+        readonly smart: boolean;
+        readonly summary: '';
+        readonly title: string;
+    }
+
     type RatingObject = Track | MusicVideo | Album | Artist;
     type MediaObject = Track | MusicVideo | Album | Artist | Playlist;
 
@@ -254,12 +269,12 @@ declare namespace plex {
     }
 
     interface PlayQueue {
-        readonly Metadata: any;
+        readonly Metadata: readonly PlayQueueItem[];
         readonly identifier: string;
         readonly mediaTagPrefix: string;
         readonly mediaTagVersion: number;
         readonly playQueueID: number;
-        readonly playQueueSelectedItemID: string | number;
+        readonly playQueueSelectedItemID: number;
         readonly playQueueSelectedItemOffset: number;
         readonly playQueueSelectedMetadataItemID: string;
         readonly playQueueShuffled: false;
@@ -267,6 +282,10 @@ declare namespace plex {
         readonly playQueueTotalCount: number;
         readonly playQueueVersion: number;
         readonly size: number;
+    }
+
+    interface PlayQueueItem extends Track {
+        readonly playQueueItemID: number;
     }
 
     interface Directory {
@@ -305,15 +324,40 @@ declare namespace plex {
     }
 
     interface TokenResponse {
-        authToken: string | null;
-        clientIdentifier: string;
-        code: string;
-        createdAt: string;
-        expiresAt: string;
-        expiresIn: number;
-        id: string;
-        newRegistration: boolean | null;
-        product: string;
-        trusted: boolean;
+        readonly authToken: string | null;
+        readonly clientIdentifier: string;
+        readonly code: string;
+        readonly createdAt: string;
+        readonly expiresAt: string;
+        readonly expiresIn: number;
+        readonly id: string;
+        readonly newRegistration: boolean | null;
+        readonly product: string;
+        readonly trusted: boolean;
+    }
+
+    interface Hub {
+        readonly Metadata: readonly MediaObject[];
+        readonly context: string;
+        readonly hubIdentifier: string;
+        readonly hubKey: string;
+        readonly key: string;
+        readonly more: boolean;
+        readonly size: number;
+        readonly style: string;
+        readonly title: string;
+        readonly type: string;
+    }
+
+    interface HubsResponse {
+        readonly MediaContainer: {
+            readonly Hub: readonly Hub[];
+        };
+        readonly allowSync: boolean;
+        readonly identifier: string;
+        readonly librarySectionID: number;
+        readonly librarySectionTitle: string;
+        readonly librarySectionUUID: string;
+        readonly size: number;
     }
 }

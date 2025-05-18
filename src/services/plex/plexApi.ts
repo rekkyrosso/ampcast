@@ -15,6 +15,7 @@ import {browser, canPlayMedia, groupBy, partition, uniq, uniqBy} from 'utils';
 import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
 import plexSettings from './plexSettings';
+import plexUtils from './plexUtils';
 
 export interface PlexRequest {
     path: string;
@@ -132,15 +133,42 @@ async function createPlaylist(
         path: '/playlists',
         params: {type, title, uri, smart: 0},
     });
-    // Need to do these sequentially.
+    // Need to do these calls sequentially.
     if (summary) {
         await plexFetch({
             method: 'PUT',
             path: `/playlists/${playlist.ratingKey}`,
             params: {summary},
         });
+        (playlist as any).summary = summary;
     }
     return playlist as plex.Playlist;
+}
+
+async function createPlayQueue({src}: {src: string}): Promise<plex.PlayQueue> {
+    const [, type, ratingKey] = src.split(':');
+    const key = type === 'radio' ? ratingKey : `/library/metadata/${ratingKey}`;
+    const {MediaContainer: playQueue} = await fetchJSON<plex.PlayQueueResponse>({
+        path: '/playQueues',
+        method: 'POST',
+        params: {
+            key,
+            type: 'music',
+            uri: `server://${plexSettings.serverId}/com.plexapp.plugins.library${key}`,
+            continuous: '0',
+            repeat: '0',
+            own: '1',
+        },
+    });
+    return playQueue;
+}
+
+async function getPlayQueue(id: number): Promise<plex.PlayQueue> {
+    const {MediaContainer: playQueue} = await fetchJSON<plex.PlayQueueResponse>({
+        path: `/playQueues/${id}`,
+        params: {repeat: '0', own: '1'},
+    });
+    return playQueue;
 }
 
 function toPlexUri(items: readonly MediaItem[]): string {
@@ -206,23 +234,42 @@ async function getFilters(
         case FilterType.ByStyle:
             return getPlexFilters(itemType, 'style');
 
+        case FilterType.ByPlexStationType:
+            return getRadioStationFilters();
+
         default:
             throw Error('Not supported');
     }
 }
 
+const cachedFilters: Record<string, readonly MediaFilter[]> = {};
 async function getPlexFilters(
     itemType: ItemType,
     filterName: string
 ): Promise<readonly MediaFilter[]> {
-    const type = getPlexMediaType(itemType);
-    const {
-        MediaContainer: {Directory: filters},
-    } = await fetchJSON<plex.DirectoryResponse>({
-        path: getMusicLibraryPath(filterName),
-        params: {type},
-    });
-    return filters.map(({key: id, title}) => ({id, title}));
+    const cacheKey = `${itemType}-${filterName}`;
+    if (!cachedFilters[cacheKey]) {
+        const type = getPlexMediaType(itemType);
+        const {
+            MediaContainer: {Directory: filters},
+        } = await fetchJSON<plex.DirectoryResponse>({
+            path: getMusicLibraryPath(filterName),
+            params: {type},
+        });
+        cachedFilters[cacheKey] = filters.map(({key: id, title}) => ({id, title}));
+    }
+    return cachedFilters[cacheKey];
+}
+
+async function getRadioStationFilters(): Promise<readonly MediaFilter[]> {
+    const {directories} = await getRadioStations();
+    return [
+        {id: '', title: 'General Radio'},
+        ...directories.map((directory) => ({
+            id: directory.key,
+            title: directory.title,
+        })),
+    ];
 }
 
 export function getMusicLibraryPath(path = 'all'): string {
@@ -390,6 +437,39 @@ async function getMetadata<T extends plex.MediaObject>(
     return Metadata;
 }
 
+export interface PlexRadioStations {
+    readonly defaults: readonly MediaItem[];
+    readonly directories: readonly plex.MediaObject[];
+}
+
+let cachedStations: PlexRadioStations | undefined;
+async function getRadioStations(): Promise<PlexRadioStations> {
+    if (!cachedStations) {
+        const {
+            MediaContainer: {Hub: hubs},
+        } = await fetchJSON<plex.HubsResponse>({
+            path: `/hubs/sections/${getMusicLibraryId()}`,
+            params: {
+                includeStations: 1,
+                includeStationDirectories: 1,
+            },
+        });
+        const stations = hubs.find((hub) => hub.type === 'station')?.Metadata;
+        if (!stations) {
+            throw Error('Radio stations not found');
+        }
+        const [playlists, directories] = partition(
+            stations,
+            (station) => station.type === 'playlist'
+        );
+        cachedStations = {
+            defaults: plexUtils.createMediaObjects(playlists),
+            directories,
+        };
+    }
+    return cachedStations;
+}
+
 function getPlayableUrl(item: PlayableItem): string {
     const {host, serverToken} = plexSettings;
     if (host && serverToken) {
@@ -523,6 +603,8 @@ function getRatingKeyFromSrc({src}: {src: string}): string {
 const plexApi = {
     addToPlaylist,
     createPlaylist,
+    createPlayQueue,
+    getPlayQueue,
     fetch: plexFetch,
     fetchJSON,
     getAccount,
@@ -532,6 +614,7 @@ const plexApi = {
     getMusicLibraries,
     getPlayableUrl,
     getPlaybackType,
+    getRadioStations,
     getServers,
     search,
 };

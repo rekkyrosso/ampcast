@@ -1,10 +1,13 @@
 import type Hls from 'hls.js';
+import type {HlsConfig} from 'hls.js';
 import PlayableItem from 'types/PlayableItem';
 import {canPlayNativeHls} from 'utils';
 import audio from 'services/audio';
 import HTML5Player from './HTML5Player';
 
 export default class HLSPlayer extends HTML5Player {
+    static defaultConfig: Partial<HlsConfig> = {autoStartLoad: false};
+    protected config: Partial<HlsConfig> = {};
     private hasNativeSupport = canPlayNativeHls();
     private Hls: typeof Hls | null = null;
     private player: Hls | null = null;
@@ -58,7 +61,10 @@ export default class HLSPlayer extends HTML5Player {
         if (this.player) {
             return;
         }
-        this.player = new Hls({autoStartLoad: false});
+        this.player = new Hls({
+            ...HLSPlayer.defaultConfig,
+            ...this.config,
+        });
         this.player.on(Hls.Events.ERROR, (_, error) => {
             if (error.fatal) {
                 this.player?.destroy();
@@ -132,9 +138,7 @@ export default class HLSPlayer extends HTML5Player {
             try {
                 this.element.pause();
                 this.element.currentTime = 0;
-                if (this.item) {
-                    this.setMediaSrc(this.item);
-                }
+                this.player?.stopLoad();
             } catch (err) {
                 this.logger.warn(err);
             }

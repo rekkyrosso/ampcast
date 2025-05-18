@@ -43,8 +43,22 @@ declare module 'string-score' {
     export default 'string-score' as (target: string, query: string, fuzziness?: number) => number;
 }
 
-declare module 'shaka-player/dist/shaka-player.compiled' {
-    export = shaka;
+declare module 'icecast-metadata-js' {
+    export class IcecastReadableStream {
+        constructor(
+            response: Response,
+            options: {
+                icyDetectionTimeout?: number;
+                metadataTypes: readonly ('icy' | 'ogg')[];
+                enableLogging?: boolean;
+                onMetadata?(metadata: any);
+                onMetadataFailed?();
+                onStream?();
+                onError?(err: any);
+            }
+        );
+        startReading(): Promise<void>;
+    }
 }
 
 declare type TidalMusicPlayer = typeof import('@tidal-music/player');

@@ -42,10 +42,15 @@
     }
 
     .artist,
-    .album {
+    .album,
+    .station-name {
         display: flex;
         margin-top: 0.5em;
         gap: 0.25em;
+
+        .text-label {
+            white-space: nowrap;
+        }
     }
 
     .duration,

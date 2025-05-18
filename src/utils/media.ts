@@ -46,11 +46,14 @@ export async function getSupportedDrm(): Promise<DRMType> {
 const audio = document.createElement('audio');
 const video = document.createElement('video');
 
-export const hlsContentTypes = ['application/x-mpegurl', 'application/vnd.apple.mpegurl'];
-export const playlistContentTypes = ['audio/x-scpls', 'audio/x-mpegurl'];
+export const mediaTypes: Record<string, ReadonlyArray<string>> = {
+    hls: ['application/x-mpegurl', 'application/vnd.apple.mpegurl'],
+    m3u: ['audio/x-scpls', 'audio/x-mpegurl'], // Or `pls`.
+    ogg: ['audio/ogg', 'application/ogg'],
+};
 
 export function canPlayNativeHls(): boolean {
-    return hlsContentTypes.some((type) => canPlayType('audio', type));
+    return mediaTypes.hls.some((type) => canPlayType('audio', type));
 }
 
 export function canPlayType(type: 'audio' | 'video', contentType: string): boolean {
@@ -95,12 +98,12 @@ export function canPlayMedia(type: 'audio' | 'video', src: string): Promise<bool
 export async function getPlaybackTypeFromUrl(url: string): Promise<PlaybackType> {
     const headers = await getHeaders(url);
     const contentType = headers.get('content-type')?.toLowerCase() || '';
-    if (hlsContentTypes.includes(contentType)) {
-        return PlaybackType.HLS;
-    } else if (playlistContentTypes.includes(contentType)) {
-        return PlaybackType.Playlist;
-    } else if (headers.get('icy-name') || headers.get('icy-url')) {
-        return PlaybackType.Icecast;
+    if (mediaTypes.hls.includes(contentType)) {
+        return PlaybackType.HLSMetadata;
+    } else if (mediaTypes.m3u.includes(contentType)) {
+        return PlaybackType.IcecastM3u;
+    } else if (contentType === 'application/ogg') {
+        return PlaybackType.IcecastOgg;
     } else {
         return PlaybackType.Direct;
     }
@@ -108,5 +111,5 @@ export async function getPlaybackTypeFromUrl(url: string): Promise<PlaybackType>
 
 export async function isHlsMedia(url: string): Promise<boolean> {
     const contentType = await getContentType(url);
-    return hlsContentTypes.includes(contentType);
+    return mediaTypes.hls.includes(contentType);
 }

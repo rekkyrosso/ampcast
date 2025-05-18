@@ -1,4 +1,4 @@
-export default function parsePlaylist(playlist: string): readonly string[] {
+export function parsePlaylist(playlist: string): readonly string[] {
     playlist = playlist.trim();
     if (playlist.startsWith('#EXTM3U')) {
         return parseM3U(playlist);

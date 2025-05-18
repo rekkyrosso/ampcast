@@ -152,7 +152,7 @@ export default class NavidromePager<T extends MediaObject> implements Pager<T> {
             addedAt: this.parseDate(radio.createdAt),
             duration: MAX_DURATION,
             playedAt: 0,
-            noScrobble: true,
+            isExternalMedia: true
         };
     }
 

@@ -1,8 +1,5 @@
 .prompt-dialog {
-    &,
-    .dialog-buttons {
-        text-align: center;
-    }
+    text-align: center;
 
     input[type="url"] {
         width: 24em;
@@ -11,8 +8,8 @@
     textarea {
         min-width: 20em;
         min-height: 4em;
-        width: 28em;
-        height: 10em;
+        width: 32em;
+        height: 12em;
         margin-top: 0.5em;
         margin-left: 0;
         font-family: monospace;

@@ -7,7 +7,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
-import {getService, isSubsonicCompatible} from 'services/mediaServices';
+import {getService} from 'services/mediaServices';
 import Actions from 'components/Actions';
 import Badges from 'components/Badges';
 import CoverArt, {CoverArtProps} from 'components/CoverArt';
@@ -60,7 +60,11 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
                 </div>
             </div>
             <Blurb description={item.description} />
-            <ExternalView url={item.externalUrl} src={item.src} />
+            <ExternalView
+                url={item.externalUrl}
+                src={item.src}
+                isExternalMedia={item.isExternalMedia}
+            />
         </article>
     );
 }
@@ -149,7 +153,7 @@ export function Blurb<T extends MediaPlaylist>({description}: Pick<T, 'descripti
 export function Artist<T extends MediaAlbum>({artist}: Pick<T, 'artist'>) {
     return artist ? (
         <h4 className="artist">
-            <span className="by">By:</span> {artist}
+            <span className="text-label">By:</span> {artist}
         </h4>
     ) : null;
 }
@@ -171,12 +175,31 @@ export function Owner<T extends MediaItem | MediaPlaylist>({src, owner}: Pick<T,
 }
 
 export function StationName<T extends MediaItem>({stationName}: Pick<T, 'stationName'>) {
-    return stationName ? <p className="station-name">Playing on: {stationName}</p> : null;
+    return stationName ? (
+        <p className="station-name">
+            <span className="text-label">Station:</span> {stationName}
+        </p>
+    ) : null;
 }
 
-export function ExternalView({src, url = ''}: {src: string; url?: string | undefined}) {
-    // eslint-disable-next-line prefer-const
-    let [serviceId, type] = src.split(':');
+export function ExternalView({
+    src,
+    url = '',
+    isExternalMedia,
+}: {
+    src: string;
+    url?: string | undefined;
+    isExternalMedia?: boolean | undefined;
+}) {
+    if (isExternalMedia) {
+        return url ? (
+            <p className="external-view">
+                <ExternalLink href={url} />
+            </p>
+        ) : null;
+    }
+
+    const [serviceId] = src.split(':');
     let serviceName = serviceId;
 
     switch (serviceId) {
@@ -187,7 +210,6 @@ export function ExternalView({src, url = ''}: {src: string; url?: string | undef
         case 'listenbrainz':
             if (/musicbrainz/.test(url)) {
                 serviceName = 'MusicBrainz';
-                serviceId = 'musicbrainz';
             } else {
                 serviceName = 'ListenBrainz';
             }
@@ -206,20 +228,8 @@ export function ExternalView({src, url = ''}: {src: string; url?: string | undef
         case 'internet-radio':
             return null;
 
-        default: {
-            const service = getService(serviceId);
-            if (service) {
-                if (isSubsonicCompatible(service) && type === 'radio') {
-                    return url ? (
-                        <p className="external-view">
-                            <ExternalLink href={url} />
-                        </p>
-                    ) : null;
-                } else {
-                    serviceName = service.name;
-                }
-            }
-        }
+        default:
+            serviceName = getService(serviceId)?.name || serviceName;
     }
 
     return (
@@ -242,13 +252,13 @@ export function AlbumAndYear<T extends MediaItem>({album, year}: Pick<T, 'album'
     if (album && year) {
         return (
             <h4 className="album">
-                <span className="from">From:</span> {album} ({year})
+                <span className="text-label">From:</span> {album} ({year})
             </h4>
         );
     } else if (album) {
         return (
             <h4 className="album">
-                <span className="from">From:</span> {album}
+                <span className="text-label">From:</span> {album}
             </h4>
         );
     } else if (year) {

@@ -49,8 +49,8 @@ export default function MediaDetails<T extends MediaObject>({item}: MediaInfoPro
                         return 'NonLinear';
                     case LinearType.OffAir:
                         return 'OffAir';
-                    case LinearType.Programme:
-                        return 'Programme';
+                    case LinearType.Show:
+                        return 'Show';
                     case LinearType.Station:
                         return 'Station';
                     default:
@@ -75,12 +75,16 @@ export default function MediaDetails<T extends MediaObject>({item}: MediaInfoPro
                         return 'Direct';
                     case PlaybackType.HLS:
                         return 'HLS';
+                    case PlaybackType.HLSMetadata:
+                        return 'HLSMetadata';
                     case PlaybackType.Icecast:
                         return 'Icecast';
+                    case PlaybackType.IcecastM3u:
+                        return 'IcecastM3u';
+                    case PlaybackType.IcecastOgg:
+                        return 'IcecastOgg';
                     case PlaybackType.IFrame:
                         return 'IFrame';
-                    case PlaybackType.Playlist:
-                        return 'Playlist';
                     default:
                         return 'unknown';
                 }

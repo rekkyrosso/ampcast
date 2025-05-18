@@ -9,6 +9,7 @@ import soundcloudPlayer from 'services/soundcloud/soundcloudPlayer';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
 import DualAudioPlayer from './players/DualAudioPlayer';
 import HLSPlayer from './players/HLSPlayer';
+import hlsMetadataPlayer from './players/hlsMetadataPlayer';
 import HTML5Player from './players/HTML5Player';
 import icecastPlayer from './players/icecastPlayer';
 import OmniPlayer from './players/OmniPlayer';
@@ -63,12 +64,18 @@ mediaPlayer.registerPlayers([
         icecastPlayer,
         (item) =>
             item?.mediaType === MediaType.Audio &&
-            (item.playbackType === PlaybackType.Icecast ||
-                item.playbackType === PlaybackType.Playlist),
+            [PlaybackType.Icecast, PlaybackType.IcecastM3u, PlaybackType.IcecastOgg].includes(
+                item.playbackType!
+            ),
     ],
     [
         hlsAudioPlayer,
         (item) => item?.mediaType === MediaType.Audio && item.playbackType === PlaybackType.HLS,
+    ],
+    [
+        hlsMetadataPlayer,
+        (item) =>
+            item?.mediaType === MediaType.Audio && item.playbackType === PlaybackType.HLSMetadata,
     ],
     [
         hlsVideoPlayer,

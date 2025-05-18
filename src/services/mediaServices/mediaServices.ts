@@ -213,10 +213,6 @@ export function isScrobbler(service: MediaService): boolean {
     return isDataService(service) && !!service.canScrobble;
 }
 
-export function isSubsonicCompatible(service: MediaService): boolean {
-    return ['airsonic', 'ampache', 'gonic', 'navidrome', 'subsonic'].includes(service.id);
-}
-
 export async function waitForLogin(
     service: MediaService | string,
     timeout: number

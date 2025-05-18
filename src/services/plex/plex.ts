@@ -3,6 +3,7 @@ import {Except, SetOptional, Writable} from 'type-fest';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaFolder from 'types/MediaFolder';
@@ -45,6 +46,7 @@ import FilterBrowser from 'components/MediaBrowser/FilterBrowser';
 import FolderBrowser from 'components/MediaBrowser/FolderBrowser';
 import Login from './components/PlexLogin';
 import ServerSettings from './components/PlexServerSettings';
+import './bootstrap';
 
 const tracksLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
@@ -96,6 +98,33 @@ const plexSearch: MediaMultiSource = {
             secondaryLayout: playlistItemsLayout,
         }),
     ],
+};
+
+const plexRadio: MediaSource<MediaItem> = {
+    id: 'plex/radio',
+    title: 'Radio',
+    icon: 'radio',
+    itemType: ItemType.Media,
+    filterType: FilterType.ByPlexStationType,
+    Component: FilterBrowser,
+    layout: {
+        view: 'card',
+        fields: ['Thumbnail', 'Title', 'Blurb'],
+    },
+
+    search(type?: MediaFilter): Pager<MediaItem> {
+        if (type) {
+            if (type.id) {
+                return new PlexPager({path: type.id});
+            } else {
+                return new SimpleMediaPager(
+                    async () => (await plexApi.getRadioStations()).defaults
+                );
+            }
+        } else {
+            return new SimplePager();
+        }
+    },
 };
 
 const plexRecentlyAdded: MediaSource<MediaAlbum> = {
@@ -606,6 +635,7 @@ const plex: PersonalMediaService = {
         plexMostPlayed,
         plexRecentlyAdded,
         plexRecentlyPlayed,
+        plexRadio,
         plexPlaylists,
         plexTracksByGenre,
         plexTracksByMood,
@@ -687,7 +717,7 @@ function canRate<T extends MediaObject>(item: T, inline?: boolean): boolean {
             return true;
 
         case ItemType.Media:
-            return item.mediaType === MediaType.Audio;
+            return item.mediaType === MediaType.Audio && item.linearType !== LinearType.Station;
 
         default:
             return false;

@@ -62,9 +62,9 @@ export default function usePlaylistMenu(
                     const list = await prompt({
                         title: 'External Media',
                         type: 'textarea',
-                        label: 'Urls (max 20)',
+                        label: 'Urls (max 10)',
                         placeholder: examples.join('\n'),
-                        okLabel: 'Add Media',
+                        okLabel: 'Add to Playlist',
                     });
                     const urls = list.match(/\S+/g);
                     if (urls) {

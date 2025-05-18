@@ -156,7 +156,15 @@ export default class HTML5Player implements Player<PlayableItem> {
         return fromEvent(this.element, 'timeupdate').pipe(
             startWith(undefined),
             map(() => this.element.currentTime),
-            map((currentTime) => (this.stopped ? 0 : isFinite(currentTime) ? currentTime : 0))
+            map((currentTime) =>
+                this.stopped
+                    ? 0
+                    : isFinite(currentTime)
+                    ? currentTime >= MAX_DURATION
+                        ? MAX_DURATION - Math.random() // Keep emitting.
+                        : currentTime
+                    : 0
+            )
         );
     }
 
@@ -236,7 +244,9 @@ export default class HTML5Player implements Player<PlayableItem> {
     }
 
     seek(time: number): void {
-        this.element.currentTime = time;
+        if (!this.isInfiniteStream) {
+            this.element.currentTime = time;
+        }
     }
 
     resize(width: number, height: number): void {

@@ -45,10 +45,6 @@ export default function CoverArtVisualizer() {
     const isItem0 = item0?.id === currentId;
     const isItem1 = item1?.id === currentId;
 
-    // useEffect(() => {
-    //     console.log({currentlyPlaying: currentTrack?.title, playingNext: nextTrack?.title});
-    // }, [currentTrack, nextTrack]);
-
     useEffect(() => {
         setReady(false);
         const timerId = setTimeout(() => setReady(true), 4500);

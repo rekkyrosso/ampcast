@@ -5,6 +5,7 @@ const enum FilterType {
     ByMood = 3,
     ByStyle = 4,
     ByAppleStationGenre = 101,
+    ByPlexStationType = 102,
 }
 
 export default FilterType;

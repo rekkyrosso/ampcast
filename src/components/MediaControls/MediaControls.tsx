@@ -2,13 +2,14 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {skip} from 'rxjs';
 import {MAX_DURATION} from 'services/constants';
 import mediaPlayback, {pause, play, seek, stop} from 'services/mediaPlayback';
-import {observeCurrentTime, observeDuration} from 'services/mediaPlayback/playback';
+import {observeCurrentTime} from 'services/mediaPlayback/playback';
 import {observeCurrentIndex, observeCurrentItem} from 'services/playlist';
 import {ListViewHandle} from 'components/ListView';
 import Time from 'components/Time';
 import usePlaylistInject from 'components/Playlist/usePlaylistInject';
 import useObservable from 'hooks/useObservable';
 import usePaused from 'hooks/usePaused';
+import usePlaybackState from 'hooks/usePlaybackState';
 import useThrottledValue from 'hooks/useThrottledValue';
 import MediaButton from './MediaButton';
 import VolumeControl from './VolumeControl';
@@ -24,14 +25,19 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
     const fileRef = useRef<HTMLInputElement>(null);
     const currentIndex = useObservable(observeCurrentIndex, -1);
     const currentItem = useObservable(observeCurrentItem, null);
-    const currentTime = useObservable(observeCurrentTime, 0);
-    const duration = useObservable(observeDuration, 0);
-    const unpausable = currentItem?.isLivePlayback || duration === MAX_DURATION;
+    const {startedAt, currentTime, duration} = usePlaybackState();
+    const isInfiniteStream = duration === MAX_DURATION;
+    const unpausable = currentItem?.isLivePlayback || isInfiniteStream;
     const paused = usePaused();
     const {showPlaylistMenu} = usePlaylistMenu(playlistRef, fileRef);
     const inject = usePlaylistInject();
     const [seekTime, setSeekTime] = useThrottledValue(-1, 300, {trailing: true});
     const [seeking, setSeeking] = useState(false);
+    const displayTime = isInfiniteStream
+        ? startedAt
+            ? (Date.now() - startedAt) / 1000
+            : 0
+        : currentTime;
 
     useEffect(() => {
         if (!seeking) {
@@ -97,10 +103,10 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
     return (
         <div className="media-controls">
             <div className="current-time-control">
-                <Time time={currentTime} />
+                <Time time={displayTime} />
                 <input
                     id="playhead"
-                    className={!paused && currentTime >= 1 ? 'smile' : undefined}
+                    className={!paused && displayTime >= 1 ? 'smile' : undefined}
                     type="range"
                     aria-label="Seek"
                     min={0}

@@ -16,12 +16,15 @@ import {
     take,
     tap,
 } from 'rxjs';
+import LinearType from 'types/LinearType';
 import PlayableItem from 'types/PlayableItem';
+import PlaylistItem from 'types/PlaylistItem';
 import Player from 'types/Player';
+import {Logger} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import audio from 'services/audio';
 import {observeIsLoggedIn, waitForLogin} from 'services/mediaServices';
-import {Logger} from 'utils';
+import musicKitUtils from './musicKitUtils';
 
 const logger = new Logger('MusicKitPlayer');
 
@@ -166,12 +169,17 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         return this.error$;
     }
 
-    observeNowPlaying(
-        src: string
-    ): Observable<MusicKit.MediaItem | MusicKit.TimedMetadata | undefined> {
+    observeNowPlaying(station: PlaylistItem): Observable<PlaylistItem> {
         return this.nowPlaying$.pipe(
-            map((item) => (src === this.src ? item : undefined)),
-            distinctUntilChanged()
+            map((nowPlaying) =>
+                station.linearType === LinearType.Station && station.src === this.src
+                    ? nowPlaying
+                    : undefined
+            ),
+            switchMap((nowPlaying) =>
+                nowPlaying ? musicKitUtils.createNowPlayingItem(nowPlaying, station) : of(station)
+            ),
+            distinctUntilChanged((a, b) => a.src === b.src)
         );
     }
 
@@ -228,12 +236,13 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     }
 
     seek(time: number): void {
-        this.player?.seekToTime(time);
+        if (!this.isLivePlayback) {
+            this.player?.seekToTime(time);
+        }
     }
 
     async skipNext(): Promise<void> {
         if (this.isLinear && !this.isLivePlayback) {
-            this.nowPlaying$.next(undefined);
             await this.player?.skipToNextItem();
             this.nowPlaying$.next(this.nowPlayingItem);
         }
@@ -241,9 +250,6 @@ export class MusicKitPlayer implements Player<PlayableItem> {
 
     async skipPrev(): Promise<void> {
         if (this.isLinear && !this.isLivePlayback) {
-            if (this.player?.nowPlayingItemIndex) {
-                this.nowPlaying$.next(undefined);
-            }
             await this.player?.skipToPreviousItem();
             this.nowPlaying$.next(this.nowPlayingItem);
         }

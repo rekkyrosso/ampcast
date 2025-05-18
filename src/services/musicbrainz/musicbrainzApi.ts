@@ -362,16 +362,8 @@ async function lookup<T extends MediaItem>(
     item: T,
     requestInit?: RequestInitWithTimeout
 ): Promise<MediaItem | undefined> {
-    // https://lucene.apache.org/core/2_9_4/queryparsersyntax.html#Escaping%20Special%20Characters
-    const escape = (string = '') =>
-        string.replace(/[+\-!(){}[\]^"~*?:\\]|\|\||&&/g, (match: string) => {
-            return match
-                .split('')
-                .map((char) => `\\${char}`)
-                .join('');
-        });
-    const artist = escape(item.artists?.[0]);
-    const title = escape(item.title);
+    const artist = escapeQuery(item.artists?.[0] || '');
+    const title = escapeQuery(item.title);
     if (artist && title) {
         const {recordings = []} = await fetchJSON<MusicBrainz.RecordingsQuery>(
             `/recording`,
@@ -381,6 +373,36 @@ async function lookup<T extends MediaItem>(
         const items = createMediaItemsFromRecordings(recordings);
         return findBestMBMatch(items, item);
     }
+}
+
+async function search(
+    artist: string,
+    title: string,
+    requestInit?: RequestInitWithTimeout
+): Promise<readonly MBMediaItem[]> {
+    if (artist && title) {
+        artist = escapeQuery(artist);
+        title = escapeQuery(title);
+        const {recordings = []} = await fetchJSON<MusicBrainz.RecordingsQuery>(
+            `/recording`,
+            {
+                query: `(artist:${artist} AND recording:${title}) OR (artist:${title} AND recording:${artist})`,
+            },
+            requestInit
+        );
+        return createMediaItemsFromRecordings(recordings);
+    }
+    return [];
+}
+
+// https://lucene.apache.org/core/2_9_4/queryparsersyntax.html#Escaping%20Special%20Characters
+function escapeQuery(query: string): string {
+    return query.replace(/[+\-!(){}[\]^"~*?:\\]|\|\||&&/g, (match: string) => {
+        return match
+            .split('')
+            .map((char) => `\\${char}`)
+            .join('');
+    });
 }
 
 function addMissingValues(
@@ -517,10 +539,12 @@ function getArtists(
 
 const musicbrainzApi = {
     addMetadata,
+    findBestMatch: findBestMBMatch,
     get: fetchJSON,
     getISRCs,
     getUrls,
     lookup,
+    search,
 };
 
 export default musicbrainzApi;

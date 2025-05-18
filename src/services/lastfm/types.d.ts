@@ -2,128 +2,145 @@ declare namespace LastFm {
     type ThumbnailSize = 'small' | 'medium' | 'large' | 'extralarge' | 'mega';
 
     interface Thumbnail {
-        size: ThumbnailSize;
-        '#text': string;
+        readonly size: ThumbnailSize;
+        readonly '#text': string;
     }
 
     interface Wiki {
-        content: string;
-        summary: string;
-        published: string; // date text (parsable)
+        readonly content: string;
+        readonly summary: string;
+        readonly published: string; // date text (parsable)
     }
 
     interface PageInfo {
-        page: string; // numeric
-        perPage: string; // numeric
-        total: string; // numeric
-        totalPages: string; // numeric
+        readonly page: string; // numeric
+        readonly perPage: string; // numeric
+        readonly total: string; // numeric
+        readonly totalPages: string; // numeric
     }
 
     interface UserInfo {
-        user: {
-            age: string;
-            album_count: string;
-            artist_count: string;
-            bootstrap: string; // '0'
-            country: string; // 'None'
-            gender: string; // 'n'
-            image: readonly Thumbnail[];
-            name: string;
-            playcount: string;
-            playlists: string; // count
-            realname: string;
-            registered: {
+        readonly user: {
+            readonly age: string;
+            readonly album_count: string;
+            readonly artist_count: string;
+            readonly bootstrap: string; // '0'
+            readonly country: string; // 'None'
+            readonly gender: string; // 'n'
+            readonly image: readonly Thumbnail[];
+            readonly name: string;
+            readonly playcount: string;
+            readonly playlists: string; // count
+            readonly realname: string;
+            readonly registered: {
                 // They really are this way round.
-                unixtime: string;
-                '#text': number;
+                readonly unixtime: string;
+                readonly '#text': number;
             };
-            subscriber: string; // count?
-            track_count: string;
-            type: string; // 'user'
-            url: string;
+            readonly subscriber: string; // count?
+            readonly track_count: string;
+            readonly type: string; // 'user'
+            readonly url: string;
         };
     }
 
     interface Artist {
-        image: readonly Thumbnail[];
-        mbid?: string;
-        name: string;
-        playcount?: string; // numeric
-        userplaycount?: number;
-        url: string;
-        loved?: '0' | '1';
+        readonly image: readonly Thumbnail[];
+        readonly mbid?: string;
+        readonly name: string;
+        readonly playcount?: string; // numeric
+        readonly userplaycount?: number;
+        readonly url: string;
+        readonly loved?: '0' | '1';
     }
 
     interface Album {
-        artist: {
-            mbid?: string;
-            name: string;
-            url: string;
+        readonly artist: {
+            readonly mbid?: string;
+            readonly name: string;
+            readonly url: string;
         };
-        image: readonly Thumbnail[];
-        mbid?: string;
-        name: string;
-        playcount?: string; // numeric
-        userplaycount?: number;
-        url: string;
-        wiki?: Wiki;
-        loved?: '0' | '1';
+        readonly image: readonly Thumbnail[];
+        readonly mbid?: string;
+        readonly name: string;
+        readonly playcount?: string; // numeric
+        readonly userplaycount?: number;
+        readonly url: string;
+        readonly wiki?: Wiki;
+        readonly loved?: '0' | '1';
     }
 
     interface Track {
-        artist: {
-            mbid?: string;
-            name: string;
-            url: string;
+        readonly artist: {
+            readonly mbid?: string;
+            readonly name: string;
+            readonly url: string;
         };
-        image: readonly Thumbnail[];
-        mbid?: string;
-        name: string;
-        playcount?: string; // numeric
-        userplaycount?: number;
-        listeners?: string; // numeric
-        duration?: string | number; // numeric
-        url: string;
-        date?: {
-            uts: string; // numeric
+        readonly image: readonly Thumbnail[];
+        readonly mbid?: string;
+        readonly name: string;
+        readonly playcount?: string; // numeric
+        readonly userplaycount?: number;
+        readonly listeners?: string; // numeric
+        readonly duration?: string | number; // numeric
+        readonly url: string;
+        readonly date?: {
+            readonly uts: string; // numeric
         };
-        album?: {
-            '#text': string;
-            mbid?: string;
+        readonly album?: {
+            readonly '#text': string;
+            readonly mbid?: string;
         };
-        loved?: '0' | '1';
-        '@attr'?: {
-            rank?: string | number;
-            nowplaying?: string;
+        readonly loved?: '0' | '1';
+        readonly '@attr'?: {
+            readonly rank?: string | number;
+            readonly nowplaying?: string;
         };
     }
 
     type AlbumInfo = Omit<Album, 'loved'>;
 
     interface AlbumInfoResponse {
-        album: AlbumInfo;
+        readonly album: AlbumInfo;
     }
 
     interface TrackInfo extends Omit<Track, 'loved'> {
-        album?: {
-            artist: string;
-            title: string;
-            mbid?: string;
-            url: string;
-            image: readonly Thumbnail[];
+        readonly album?: {
+            readonly artist: string;
+            readonly title: string;
+            readonly mbid?: string;
+            readonly url: string;
+            readonly image: readonly Thumbnail[];
         };
-        userloved?: '0' | '1';
-        wiki?: Wiki;
+        readonly userloved?: '0' | '1';
+        readonly wiki?: Wiki;
     }
 
     interface TrackInfoResponse {
-        track: TrackInfo;
+        readonly track: TrackInfo;
     }
 
     interface AlbumSearch {
-        results: {
-            albummatches: {
-                album: readonly (Album & {artist: string})[];
+        readonly results: {
+            readonly albummatches: {
+                readonly album: readonly (Album & {artist: string})[];
+            };
+        };
+    }
+
+    interface TrackSearchResult {
+        readonly artist: string;
+        readonly image: readonly Thumbnail[];
+        readonly mbid?: string;
+        readonly name: string;
+        readonly listeners?: string; // numeric
+        readonly url: string;
+    }
+
+    interface TrackSearch {
+        readonly results: {
+            readonly trackmatches: {
+                readonly track: readonly TrackSearchResult[];
             };
         };
     }

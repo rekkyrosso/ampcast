@@ -188,10 +188,10 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             linearType: LinearType.Station,
-            externalUrl: radio.homePageUrl,
+            externalUrl: radio.homePageUrl || radio.homepageUrl || undefined,
             duration: MAX_DURATION,
             playedAt: 0,
-            noScrobble: true,
+            isExternalMedia: true
         };
     }
 

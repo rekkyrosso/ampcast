@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import LinearType from 'types/LinearType';
-import PlaylistItem from 'types/PlaylistItem';
 import LookupStatus from 'types/LookupStatus';
+import PlaylistItem from 'types/PlaylistItem';
 import {MAX_DURATION} from 'services/constants';
 import mediaPlayer from 'services/mediaPlayback/mediaPlayer';
 import {isPlayableSrc} from 'services/mediaServices';
@@ -56,7 +56,7 @@ export default function usePlaylistLayout(size: number): ListViewLayout<Playlist
                     return {
                         ...col,
                         render: (item: PlaylistItem) => {
-                            if (item.id === currentId && !paused && hasPrevNext(item)) {
+                            if (item.id === currentId && !paused && item.skippable) {
                                 return <Skip />;
                             } else {
                                 return Duration(item);
@@ -118,7 +118,7 @@ function RowNumber(rowIndex: number, numberOfDigits = 0) {
     );
 }
 
-function RowIcon({src, lookupStatus}: PlaylistItem) {
+function RowIcon({src, lookupStatus, linearType}: PlaylistItem) {
     const [serviceId] = src.split(':');
     let iconName: IconName;
 
@@ -132,7 +132,9 @@ function RowIcon({src, lookupStatus}: PlaylistItem) {
             break;
 
         default:
-            if (isPlayableSrc(src)) {
+            if (/^https?/.test(src) && linearType === LinearType.Station) {
+                iconName = 'internet-radio';
+            } else if (isPlayableSrc(src)) {
                 iconName = serviceId as IconName;
             } else {
                 iconName = 'lookup-pending';
@@ -174,13 +176,5 @@ function Duration({duration}: PlaylistItem) {
         <span className="text">–:––</span>
     ) : (
         <Time className="text" time={duration} />
-    );
-}
-
-function hasPrevNext(item: PlaylistItem): boolean {
-    return (
-        item.linearType === LinearType.Station &&
-        !item.isLivePlayback &&
-        item.src.startsWith('apple:')
     );
 }

@@ -14,7 +14,6 @@ import {
     mergeMap,
     of,
     skipWhile,
-    startWith,
     switchMap,
     take,
     takeUntil,
@@ -22,20 +21,17 @@ import {
     timer,
     withLatestFrom,
 } from 'rxjs';
-import LinearType from 'types/LinearType';
 import MediaPlayback from 'types/MediaPlayback';
 import Player from 'types/Player';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
-import RadioStation from 'types/RadioStation';
 import {formatTime, getPlaybackTypeFromUrl, isMiniPlayer, Logger} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import lookup from 'services/lookup';
-import {hasPlayableSrc, getServiceFromSrc, observeMediaServices} from 'services/mediaServices';
+import {hasPlayableSrc, getServiceFromSrc} from 'services/mediaServices';
 import playlist from 'services/playlist';
 import {lockVisualizer, setCurrentVisualizer} from 'services/visualizer';
-import icecastPlayer from './players/icecastPlayer';
 import mediaPlaybackSettings from './mediaPlaybackSettings';
 import mediaPlayer from './mediaPlayer';
 import miniPlayer from './miniPlayer';
@@ -387,6 +383,13 @@ mediaPlayer.observePlaying().subscribe(() => playback.playing());
 mediaPlayer.observeDuration().subscribe((duration) => (playback.duration = duration));
 mediaPlayer.observeCurrentTime().subscribe((currentTime) => (playback.currentTime = currentTime));
 mediaPlayer.observeEnded().subscribe(() => playback.ended());
+playlist
+    .observeCurrentItem()
+    .pipe(
+        switchMap((item) => (item ? mediaPlayer.observeNowPlaying(item) : EMPTY)),
+        tap((item) => (playback.currentItem = item))
+    )
+    .subscribe(logger);
 
 if (!isMiniPlayer) {
     // Stop/next after playback ended.
@@ -466,13 +469,14 @@ playlist
 playlist
     .observeCurrentItem()
     .pipe(
-        switchMap((item) => (item?.duration === MAX_DURATION ? EMPTY : of(item))),
+        map((item) => (item?.duration === MAX_DURATION ? null : item)),
         switchMap((item) =>
             item
                 ? playback.observePlaybackState().pipe(
                       filter(({currentItem}) => currentItem?.id === item.id),
                       map(({duration}) => duration),
                       filter((duration) => !!duration && duration !== item.duration),
+                      take(1),
                       tap((duration) =>
                           dispatchMediaObjectChanges({
                               match: (object) => object.src === item.src,
@@ -484,45 +488,6 @@ playlist
         )
     )
     .subscribe(logger);
-
-// Pass playlist track changes through to `playback`.
-playlist
-    .observeCurrentItem()
-    .pipe(
-        switchMap((item) => (isRadioStation(item) ? observeNowPlaying(item) : of(item))),
-        distinctUntilChanged(),
-        tap((item) => (playback.currentItem = item))
-    )
-    .subscribe(logger);
-
-function isRadioStation(item: PlaylistItem | null): item is RadioStation<PlaylistItem> {
-    return item?.linearType === LinearType.Station;
-}
-
-function observeNowPlaying(station: RadioStation<PlaylistItem>): Observable<PlaylistItem> {
-    if (
-        station.playbackType === PlaybackType.Icecast ||
-        station.playbackType === PlaybackType.Playlist
-    ) {
-        return icecastPlayer.observeNowPlaying(station).pipe(
-            startWith(station),
-            map((item) => item || station)
-        );
-    } else {
-        const [serviceId] = station.src.split(':');
-        return observeMediaServices().pipe(
-            map((services) => services.find((service) => service.id === serviceId)),
-            distinctUntilChanged(),
-            switchMap(
-                (service) =>
-                    service?.observeNowPlaying?.(station).pipe(
-                        startWith(station),
-                        map((item) => item || station)
-                    ) || of(station)
-            )
-        );
-    }
-}
 
 // Mini player doesn't have a playlist (just the currently loaded item).
 if (!isMiniPlayer) {

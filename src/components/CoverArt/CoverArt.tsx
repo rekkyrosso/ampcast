@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {from} from 'rxjs';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
@@ -134,7 +135,7 @@ function getFallbackIcon(item: MediaObject): IconName {
         }
 
         case ItemType.Media:
-            if (item.linearType) {
+            if (item.linearType && item.linearType !== LinearType.MusicTrack) {
                 return 'radio';
             } else if (item.mediaType === MediaType.Video) {
                 return 'video';

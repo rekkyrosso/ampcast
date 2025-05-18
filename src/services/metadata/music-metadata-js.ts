@@ -5,9 +5,10 @@ import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
-import {Logger, hlsContentTypes, loadLibrary} from 'utils';
+import {Logger, loadLibrary} from 'utils';
+import {getTitleFromUrl} from './metadata';
 
-const logger = new Logger('music-metadata');
+const logger = new Logger('music-metadata-js');
 
 const noIAudioMetadata: IAudioMetadata = {
     common: {
@@ -51,21 +52,52 @@ export async function createMediaItemFromFile(file: File): Promise<MediaItem> {
     };
 }
 
-export async function createMediaItemFromUrl(url: string): Promise<MediaItem> {
-    const {hostname, pathname} = new URL(url);
-    const {metadata, mimeType = ''} = await fetchFromUrl(url);
-    const isVideo = mimeType?.startsWith('video/');
+export async function createMediaItemFromStream(
+    url: string,
+    body: NonNullable<Response['body']>,
+    headers: Headers
+): Promise<MediaItem> {
+    await loadLibrary('music-metadata');
+    const {parseWebStream} = await import(
+        /* webpackMode: "weak" */
+        'music-metadata'
+    );
+    const contentType = headers.get('content-type');
+    let metadata = noIAudioMetadata;
+    try {
+        const size = headers.get('content-length');
+        metadata = await parseWebStream(
+            body,
+            {
+                mimeType: contentType ?? undefined,
+                size: size ? parseInt(size, 10) : undefined,
+            },
+            {
+                duration: false,
+                skipCovers: true,
+                skipPostHeaders: true,
+            }
+        );
+        if (!body.locked) {
+            // TODO: See if this is needed.
+            // Prevent error in Firefox.
+            await body.cancel();
+        }
+    } catch (err) {
+        logger.error(err);
+    }
+    const isVideo = contentType?.startsWith('video/');
     const duration = metadata.format.duration || 0;
     const item = createMediaItem(
         isVideo ? MediaType.Video : MediaType.Audio,
         url,
-        `${hostname.replace(/^www\./, '')}${pathname.replace(/\/+$/, '')}`,
+        getTitleFromUrl(url),
         metadata
     );
     return {
         ...item,
         duration: Number(duration.toFixed(3)),
-        playbackType: hlsContentTypes.includes(mimeType) ? PlaybackType.HLS : PlaybackType.Direct,
+        playbackType: PlaybackType.Direct,
     };
 }
 
@@ -97,52 +129,6 @@ export async function getCoverArtFromBlob(blob: Blob): Promise<Thumbnail | undef
     } catch (err) {
         logger.error(err);
     }
-}
-
-async function fetchFromUrl(url: string): Promise<{metadata: IAudioMetadata; mimeType?: string}> {
-    await loadLibrary('music-metadata');
-    const {parseWebStream} = await import(
-        /* webpackMode: "weak" */
-        'music-metadata'
-    );
-    let metadata = noIAudioMetadata;
-    let mimeType: string | undefined;
-    try {
-        const response = await fetch(url, {signal: AbortSignal.timeout(3000)});
-        mimeType = response.headers.get('content-type') ?? undefined;
-        if (response.ok && !mimeType?.startsWith('text/')) {
-            if (response.body) {
-                const size = response.headers.get('content-length');
-                try {
-                    metadata = await parseWebStream(
-                        response.body,
-                        {
-                            mimeType,
-                            size: size ? parseInt(size, 10) : undefined,
-                        },
-                        {
-                            duration: false,
-                            skipCovers: true,
-                            skipPostHeaders: true,
-                        }
-                    );
-                    if (!response.body.locked) {
-                        // Prevent error in Firefox
-                        await response.body.cancel();
-                    }
-                } catch (err) {
-                    logger.error(err);
-                }
-            } else {
-                logger.error('No response body');
-            }
-        } else {
-            logger.error(response.statusText);
-        }
-    } catch (err) {
-        logger.error(err);
-    }
-    return {metadata, mimeType};
 }
 
 function createMediaItem(
@@ -180,18 +166,9 @@ function createMediaItem(
         track_mbid: common.musicbrainz_trackid,
         release_mbid: common.musicbrainz_albumid,
         playedAt: 0,
-        noScrobble: !common.title,
         albumGain: common.replaygain_album_gain?.dB,
         albumPeak: common.replaygain_album_peak?.dB,
         trackGain: common.replaygain_track_gain?.dB,
         trackPeak: common.replaygain_track_peak?.dB,
     };
 }
-
-const musicMetadataJs = {
-    createMediaItemFromFile,
-    createMediaItemFromUrl,
-    getCoverArtFromBlob,
-};
-
-export default musicMetadataJs;

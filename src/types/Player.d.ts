@@ -1,4 +1,5 @@
 import type {Observable} from 'rxjs';
+import PlaylistItem from './PlaylistItem';
 
 // All times are in seconds.
 
@@ -12,15 +13,16 @@ export default interface Player<T> {
     observeDuration(): Observable<number>;
     observeEnded(): Observable<void>;
     observeError(): Observable<unknown>;
+    observeNowPlaying?(item: PlaylistItem): Observable<PlaylistItem>;
     observePlaying(): Observable<void>;
     appendTo(parentElement: HTMLElement): void;
     load(src: T): void;
     loadNext?(src: T | null): void;
-    play(): void;
     pause(): void;
-    stop(): void;
-    seek(time: number): void;
+    play(): void;
     resize(width: number, height: number): void;
+    seek(time: number): void;
     skipNext?(): Promise<void>;
     skipPrev?(): Promise<void>;
+    stop(): void;
 }

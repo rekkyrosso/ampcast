@@ -48,6 +48,7 @@ export function scrobble(): void {
         .pipe(
             switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackStart() : EMPTY)),
             filter(isPlexItem),
+            debounceTime(2000),
             mergeMap(({currentItem}) => reportStart(currentItem!)),
             takeUntil(killed$)
         )

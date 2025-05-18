@@ -31,7 +31,6 @@ import SimplePager from 'services/pagers/SimplePager';
 import {t} from 'services/i18n';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout, reconnect} from './appleAuth';
 import MusicKitPager, {MusicKitPage} from './MusicKitPager';
-import {observeNowPlaying} from './appleNowPlaying';
 import appleSettings from './appleSettings';
 import FilterBrowser from 'components/MediaBrowser/FilterBrowser';
 import StreamingSettings from './components/AppleStreamingSettings';
@@ -482,7 +481,6 @@ const apple: PublicMediaService = {
         [Action.RemoveFromLibrary]: 'Saved to Apple Music Library',
     },
     editablePlaylists: appleEditablePlaylists,
-    observeNowPlaying,
     addMetadata,
     addToPlaylist,
     canPin,

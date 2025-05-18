@@ -1,6 +1,7 @@
 import md5 from 'md5';
 import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
@@ -31,7 +32,13 @@ export class LastFmApi {
     }
 
     canScrobble(item: MediaItem | null): boolean {
-        return !!item && !!item.title && !!item.artists?.[0] && (item.duration > 30 || !item.duration);
+        return (
+            !!item &&
+            !!item.title &&
+            !!item.artists?.[0] &&
+            (!item.linearType || item.linearType === LinearType.MusicTrack) &&
+            (item.duration > 30 || !item.duration)
+        );
     }
 
     async scrobble(items: Listen[]): Promise<void> {
@@ -216,13 +223,33 @@ export class LastFmApi {
     }
 
     createThumbnails(thumbs?: readonly LastFm.Thumbnail[]): Thumbnail[] | undefined {
-        const result = thumbs
+        const thumbnails = thumbs
             ? [this.createThumbnail(thumbs[2], 174), this.createThumbnail(thumbs[3], 300)].filter(
                   exists
               )
             : [];
 
-        return result.length === 0 ? undefined : result;
+        return thumbnails.length === 0 ? undefined : thumbnails;
+    }
+
+    async search(query: string): Promise<readonly MediaItem[]> {
+        const {
+            results: {trackmatches: {track: tracks = []} = {}},
+        } = await this.get<LastFm.TrackSearch>({
+            method: 'track.search',
+            track: query,
+            limit: 20,
+        });
+        return tracks.map((track) => ({
+            itemType: ItemType.Media,
+            mediaType: MediaType.Audio,
+            src: `lastfm:track:${nanoid()}`,
+            title: track.name,
+            artists: track?.artist ? [track.artist] : undefined,
+            duration: 0,
+            playedAt: 0,
+            thumbnails: this.createThumbnails(track.image),
+        }));
     }
 
     async get<T>(params: any, signal?: AbortSignal): Promise<T> {

@@ -1,3 +1,4 @@
+import {nanoid} from 'nanoid';
 import {SetOptional, SetRequired, Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
@@ -10,7 +11,7 @@ import MediaType from 'types/MediaType';
 import Pager, {Page} from 'types/Pager';
 import ParentOf from 'types/ParentOf';
 import PlaybackType from 'types/PlaybackType';
-import RadioStation from 'types/RadioStation';
+import PlaylistItem from 'types/PlaylistItem';
 import Thumbnail from 'types/Thumbnail';
 import {getTextFromHtml, Logger} from 'utils';
 import {MAX_DURATION} from 'services/constants';
@@ -41,6 +42,7 @@ type LibraryMusicVideo = Omit<AppleMusicApi.Song, 'type'> & {type: 'library-musi
 type LibraryArtist = Omit<AppleMusicApi.Artist, 'type'> & {type: 'library-artists'};
 type LibraryAlbum = Omit<AppleMusicApi.Album, 'type'> & {type: 'library-albums'};
 type LibraryPlaylist = Omit<AppleMusicApi.Playlist, 'type'> & {type: 'library-playlists'};
+
 export type MusicKitItem =
     | AppleMusicApi.Song
     | LibrarySong
@@ -163,7 +165,7 @@ const musicKitUtils = {
             artist: item.artistName,
             trackCount: item.trackCount,
             genres: this.getGenres(item),
-            year: new Date(item.releaseDate).getFullYear() || 0,
+            year: new Date(item.releaseDate).getFullYear() || undefined,
             unplayable: !item.playParams || undefined,
             inLibrary: album.type.startsWith('library-') || undefined,
             copyright: item?.copyright,
@@ -227,7 +229,7 @@ const musicKitUtils = {
         return mediaItem;
     },
 
-    createFromTimedMetadata(data: MusicKit.TimedMetadata, station: RadioStation): MediaItem {
+    createFromTimedMetadata(data: MusicKit.TimedMetadata, station?: MediaItem): MediaItem {
         const {storefrontAdamIds} = data;
         const catalogId = storefrontAdamIds[Object.keys(storefrontAdamIds)[0]] || '';
         const type = catalogId ? 'songs' : data.album ? 'track' : 'shows';
@@ -239,18 +241,17 @@ const musicKitUtils = {
         });
         return {
             src: `apple:${type}:${id}`,
-            linearType: type === 'shows' ? LinearType.Programme : LinearType.MusicTrack,
+            linearType: type === 'shows' ? LinearType.Show : LinearType.MusicTrack,
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             playbackType: PlaybackType.HLS,
             title: data.title,
-            thumbnails: thumbnails || station.thumbnails,
+            thumbnails: thumbnails || station?.thumbnails,
             artists: artist ? [artist] : undefined,
             album: data.album,
-            stationName: station.title,
+            stationName: station?.title,
             duration: 0,
             playedAt: 0,
-            noScrobble: type === 'shows' || undefined,
             unplayable: !catalogId || undefined,
             apple: {catalogId},
         };
@@ -272,11 +273,11 @@ const musicKitUtils = {
             title: attributes.name,
             description: description ? getTextFromHtml(description) : undefined,
             thumbnails: this.createThumbnails(attributes),
-            noScrobble: true,
             duration: MAX_DURATION,
             playedAt: 0,
             apple: {catalogId},
             shareLink: attributes.url || undefined,
+            skippable: !attributes.isLive,
         };
         return mediaItem;
     },
@@ -395,6 +396,28 @@ const musicKitUtils = {
         );
     },
 
+    async createNowPlayingItem(
+        nowPlaying: MusicKit.MediaItem | MusicKit.TimedMetadata,
+        station: PlaylistItem
+    ): Promise<PlaylistItem> {
+        if (this.isTimedMetadata(nowPlaying)) {
+            return {
+                ...this.createFromTimedMetadata(nowPlaying, station),
+                id: nanoid(),
+            };
+        } else if (nowPlaying.id === nowPlaying.container?.id) {
+            return station;
+        } else {
+            return {
+                ...this.createMediaItem(nowPlaying),
+                id: nanoid(),
+                src: `apple:songs:${nowPlaying.id}`,
+                linearType: LinearType.MusicTrack,
+                stationName: station.title,
+            };
+        }
+    },
+
     getCatalog<T extends MusicKitItem>(item: any): T {
         return item.relationships?.catalog?.data?.[0];
     },
@@ -425,6 +448,12 @@ const musicKitUtils = {
 
     getGenres({genreNames = []}: {genreNames: string[]}): readonly string[] | undefined {
         return genreNames.filter((name) => name !== 'Music');
+    },
+
+    isTimedMetadata(
+        item: MusicKit.MediaItem | MusicKit.TimedMetadata
+    ): item is MusicKit.TimedMetadata {
+        return 'blob' in item && 'storefrontAdamIds' in item;
     },
 };
 

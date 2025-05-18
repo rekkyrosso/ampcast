@@ -5,6 +5,7 @@ const ESLintPlugin = require('eslint-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyPlugin = require('copy-webpack-plugin');
 const packageJson = require('./package.json');
+const {rimrafSync} = require('rimraf');
 
 module.exports = (args) => {
     const {mode = 'production', target = 'pwa'} = args;
@@ -16,6 +17,13 @@ module.exports = (args) => {
         dotenv.config({path: `./.env.${target}`});
     }
     const env = process.env;
+
+    if (__dev__) {
+        rimrafSync(wwwDir);
+    } else {
+        rimrafSync(`${wwwDir}/v${packageJson.version}`);
+
+    }
 
     const encodeString = (string) => {
         const encoder = new TextEncoder();
@@ -174,6 +182,10 @@ module.exports = (args) => {
                         transform(content) {
                             return String(content).replace(/%version%/g, `v${packageJson.version}`);
                         },
+                    },
+                    {
+                        from: './libs',
+                        to: `${wwwDir}/v${packageJson.version}/lib`,
                     },
                 ],
             }),

@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import ColorThief, {RGBColor} from 'colorthief';
 import {TinyColor, mostReadable} from '@ctrl/tinycolor';
+import LinearType from 'types/LinearType';
 import PlaylistItem from 'types/PlaylistItem';
 import {uniq} from 'utils';
 import Icon from 'components/Icon';
@@ -120,7 +121,14 @@ export default function CurrentlyPlaying({
                         <h3 className="title">{item.title}</h3>
                         {item.artists?.length ? (
                             <h4 className="sub-title">
-                                <MediaSourceLabel icon="artist" text={item.artists.join(' ● ')} />
+                                {!item.linearType || item.linearType === LinearType.MusicTrack ? (
+                                    <MediaSourceLabel
+                                        icon="artist"
+                                        text={item.artists.join(' ● ')}
+                                    />
+                                ) : (
+                                    item.artists.join(', ')
+                                )}
                             </h4>
                         ) : null}
                     </div>

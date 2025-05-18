@@ -282,7 +282,7 @@ function fuzzyCompareTitle<T extends MediaItem>(match: MediaItem, item: T): bool
 
 function normalizeArtistAndTitle(item: MediaItem): string {
     const {artist, title} = getArtistAndTitle(item);
-    return `${normalize(artist, true)}-${normalize(title, true)}`.toLowerCase();
+    return `${normalize(artist, true)} ${normalize(title, true)}`.toLowerCase();
 }
 
 function compareString(a: string, b = ''): boolean {
@@ -299,10 +299,14 @@ function stringIncludes(a: string, b = ''): boolean {
     return false;
 }
 
-function normalize(string: string, removeSymbols?: boolean): string {
+function normalize(string: string, removeTagsAndSymbols?: boolean): string {
     let result = unidecode(string).replace(/\s\s+/g, ' ').trim();
-    if (removeSymbols) {
-        result = result.replace(/[^\w\s]/g, '').trim();
+    if (removeTagsAndSymbols) {
+        result = result
+            .replace(/\[\w+\]/g, '')
+            .trim()
+            .replace(/[^\w\s]/g, '')
+            .trim();
     }
     return result;
 }

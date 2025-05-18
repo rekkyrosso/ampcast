@@ -208,7 +208,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
 
                 this.subscribeTo(
                     observeMediaObjectChanges<T>().pipe(
-                        tap((changes) => this.applyChanges(changes))
+                        tap((changes) => this.applyMetadataChanges(changes))
                     ),
                     logger
                 );
@@ -222,7 +222,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
         this.subscriptions!.add(observable$.subscribe(logger));
     }
 
-    private applyChanges(changes: readonly MediaObjectChange<T>[]): void {
+    private applyMetadataChanges(changes: readonly MediaObjectChange<T>[]): void {
         let changed = false;
         const items = this.items.map((item) => {
             for (const {match, values} of changes) {
