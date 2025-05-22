@@ -20,7 +20,6 @@ import Interstitial from './Interstitial';
 import ProgressBar from './ProgressBar';
 import VisualizerControls from './VisualizerControls';
 import useLoadingState from './useLoadingState';
-import 'fullscreen-api-polyfill';
 import './Media.scss';
 
 export default memo(function Media() {

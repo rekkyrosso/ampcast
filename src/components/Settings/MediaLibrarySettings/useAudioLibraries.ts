@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {from} from 'rxjs';
+import {defer} from 'rxjs';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
 import useIsLoggedIn from 'hooks/useIsLoggedIn';
@@ -12,7 +12,7 @@ export default function useAudioLibraries(service: PersonalMediaService) {
 
     useEffect(() => {
         if (isLoggedIn && service.getLibraries) {
-            const subscription = from(service.getLibraries()).subscribe((libraries) => {
+            const subscription = defer(() => service.getLibraries!()).subscribe((libraries) => {
                 service.libraries = libraries;
                 setLibraries(service.audioLibraries || []);
             });

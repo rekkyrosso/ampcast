@@ -503,7 +503,7 @@ function canPin(item: MediaObject): boolean {
     return item.itemType === ItemType.Playlist;
 }
 
-function canStore<T extends MediaObject>(item: T, inline?: boolean): boolean {
+function canStore<T extends MediaObject>(item: T, inListView?: boolean): boolean {
     switch (item.itemType) {
         case ItemType.Album:
             return !item.synthetic;
@@ -513,7 +513,7 @@ function canStore<T extends MediaObject>(item: T, inline?: boolean): boolean {
             return true;
 
         case ItemType.Playlist:
-            return !item.isOwn && !inline;
+            return !item.isOwn && !inListView;
 
         default:
             return false;

@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {from} from 'rxjs';
+import {defer} from 'rxjs';
 import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
@@ -48,7 +48,7 @@ export default function CoverArt({
     useEffect(() => {
         if (!hasThumbnails) {
             const controller = new AbortController();
-            const subscription = from(
+            const subscription = defer(() =>
                 findThumbnails(item, extendedSearch, controller.signal)
             ).subscribe({
                 next: (thumbnails) => {

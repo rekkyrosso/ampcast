@@ -1,30 +1,101 @@
-import React, {useMemo} from 'react';
+import React, {useCallback} from 'react';
 import Action from 'types/Action';
-import ItemType from 'types/ItemType';
 import ItemsByService from 'types/ItemsByService';
 import MediaItem from 'types/MediaItem';
-import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {getServiceFromSrc} from 'services/mediaServices';
-import {getRecentPlaylists} from 'services/recentPlaylists';
+import {getPlaylistItemsByService, getRecentPlaylists} from 'services/recentPlaylists';
+import IconButton from 'components/Button';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
-import {PopupMenuItem, PopupMenuSeparator} from 'components/PopupMenu';
-import usePlaylistItemsByService from './usePlaylistItemsByService';
+import PopupMenu, {
+    PopupMenuItem,
+    PopupMenuProps,
+    PopupMenuSeparator,
+    showPopupMenu,
+} from 'components/PopupMenu';
+import usePlaylistItems from './usePlaylistItems';
+import performAction from './performAction';
 
-export interface PlaylistActionsProps {
-    items: readonly MediaObject[];
+export interface AddToPlaylistButtonProps<T extends MediaItem> {
+    item: T;
 }
 
-export default function PlaylistActions({items}: PlaylistActionsProps) {
-    const mediaItems = useMemo(
-        () => items.filter((item): item is MediaItem => item.itemType === ItemType.Media),
-        [items]
+export function AddToPlaylistButton<T extends MediaItem>({item}: AddToPlaylistButtonProps<T>) {
+    const playlistItems = usePlaylistItems([item]);
+    const itemsByService = getPlaylistItemsByService(playlistItems);
+
+    const handleAddToPlaylistClick = useCallback(
+        async (event: React.MouseEvent<HTMLButtonElement>) => {
+            const button = (event.target as HTMLButtonElement).closest('button')!;
+            const rect = button.getBoundingClientRect();
+            const action = await showAddToPlaylistMenu(
+                playlistItems,
+                button,
+                rect.right,
+                rect.bottom,
+                'right'
+            );
+            if (action) {
+                await performAction(action, playlistItems);
+            }
+        },
+        [playlistItems]
     );
-    const itemsByService = usePlaylistItemsByService(mediaItems);
-    const recentPlaylists = getRecentPlaylists(itemsByService.map((items) => items.service));
 
     return itemsByService.length === 0 ? null : (
-        <PopupMenuItem label="Add to playlist">
+        <IconButton
+            icon="playlist-add"
+            title="Add to playlist…"
+            onClick={handleAddToPlaylistClick}
+        />
+    );
+}
+
+async function showAddToPlaylistMenu<T extends MediaItem>(
+    items: readonly T[],
+    target: HTMLElement,
+    x: number,
+    y: number,
+    align: 'left' | 'right' = 'right'
+): Promise<Action | undefined> {
+    return showPopupMenu(
+        (props: PopupMenuProps<Action>) => (
+            <PopupMenu {...props}>
+                <PlaylistActions items={items} />
+            </PopupMenu>
+        ),
+        target,
+        x,
+        y,
+        align
+    );
+}
+
+export interface AddToPlaylistMenuItemProps<T extends MediaItem> {
+    items: readonly T[];
+}
+
+export function AddToPlaylistMenuItem<T extends MediaItem>({items}: PlaylistActionsProps<T>) {
+    const playlistItems = usePlaylistItems(items);
+    const itemsByService = getPlaylistItemsByService(playlistItems);
+    const disabled = itemsByService.length === 0;
+    return (
+        <PopupMenuItem label="Add to playlist" disabled={disabled}>
+            {disabled ? null : <PlaylistActions items={playlistItems} />}
+        </PopupMenuItem>
+    );
+}
+
+interface PlaylistActionsProps<T extends MediaItem> {
+    items: readonly T[];
+}
+
+function PlaylistActions<T extends MediaItem>({items}: PlaylistActionsProps<T>) {
+    const itemsByService = getPlaylistItemsByService(items);
+    const recentPlaylists = getRecentPlaylists(itemsByService.map((items) => items.service));
+
+    return (
+        <>
             <PopupMenuItem<Action>
                 label="New playlist…"
                 value={Action.AddToNewPlaylist}
@@ -45,7 +116,7 @@ export default function PlaylistActions({items}: PlaylistActionsProps) {
                 value={Action.AddToPlaylist}
                 key={Action.AddToPlaylist}
             />
-        </PopupMenuItem>
+        </>
     );
 }
 

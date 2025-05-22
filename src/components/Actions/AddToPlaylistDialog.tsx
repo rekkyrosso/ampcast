@@ -6,11 +6,10 @@ import MediaServiceId from 'types/MediaServiceId';
 import MediaSourceLayout from 'types/MediaSourceLayout';
 import {Logger} from 'utils';
 import {getService} from 'services/mediaServices';
-import {addRecentPlaylist} from 'services/recentPlaylists';
+import {addRecentPlaylist, getPlaylistItemsByService} from 'services/recentPlaylists';
 import Dialog, {DialogProps, error, showDialog} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import PlaylistList from 'components/MediaList/PlaylistList';
-import usePlaylistItemsByService from './usePlaylistItemsByService';
 import useEditablePlaylistsPager from './useEditablePlaylistsPager';
 import './AddToPlaylistDialog.scss';
 
@@ -38,7 +37,7 @@ export default function AddToPlaylistDialog<T extends MediaItem>({
     const id = useId();
     const dialogRef = useRef<HTMLDialogElement>(null);
     const serviceRef = useRef<HTMLSelectElement>(null);
-    const itemsByService = usePlaylistItemsByService(items);
+    const itemsByService = getPlaylistItemsByService(items);
     const [selectedService, setSelectedService] = useState<MediaService | null>(null);
     const playlistsPager = useEditablePlaylistsPager(selectedService);
     const [selectedPlaylist, setSelectedPlaylist] = useState<MediaPlaylist | null>(null);
@@ -85,11 +84,12 @@ export default function AddToPlaylistDialog<T extends MediaItem>({
         <Dialog
             {...props}
             className={`add-to-playlist-dialog service-${selectedService?.id || ''}`}
+            icon="playlist-add"
             title="Add to playlist"
             ref={dialogRef}
         >
             <form method="dialog" onSubmit={handleSubmitClick}>
-                <p>
+                <p className="select-service">
                     <label htmlFor={`${id}-service`}>Save to:</label>
                     <select
                         id={`${id}-service`}
@@ -110,9 +110,10 @@ export default function AddToPlaylistDialog<T extends MediaItem>({
                     layout={layout}
                     onContextMenu={() => undefined}
                     onDoubleClick={submit}
+                    onEnter={submit}
                     onSelect={handlePlaylistSelect}
                 />
-                <DialogButtons submitText="Add" disabled={!selectedPlaylist} />
+                <DialogButtons submitText="Add to playlist" disabled={!selectedPlaylist} />
             </form>
         </Dialog>
     );

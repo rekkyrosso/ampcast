@@ -16,10 +16,11 @@ export default function usePlaylistMenu(
     const inject = usePlaylistInject();
 
     const showPlaylistMenu = useCallback(
-        async (x: number, y: number) => {
+        async (target: HTMLElement, x: number, y: number) => {
             const listView = listViewRef.current!;
             const action = await showPopupMenu(
                 (props: PopupMenuProps) => <PlaylistMenu {...props} />,
+                target,
                 x,
                 y
             );

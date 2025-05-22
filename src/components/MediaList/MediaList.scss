@@ -633,8 +633,9 @@
             .duration,
             .track-count,
             .play-count {
-                flex: initial;
+                margin-left: 0.25em;
                 margin-right: 0.25em;
+                padding: 0.125em 0.25em;
                 overflow: visible;
             }
         }

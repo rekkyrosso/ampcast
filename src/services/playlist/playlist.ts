@@ -20,7 +20,6 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import Playlist, {PlayableType} from 'types/Playlist';
 import PlaylistItem from 'types/PlaylistItem';
 import {exists, isMiniPlayer, shuffle as shuffleArray, Logger} from 'utils';
-import {bestOf, removeUserData} from 'services/metadata';
 import {
     LookupStartEvent,
     LookupEndEvent,
@@ -29,7 +28,7 @@ import {
     observeLookupEndEvents,
     observeLookupCancelledEvents,
 } from 'services/lookup';
-import {observeMediaObjectChanges} from 'services/actions/mediaObjectChanges';
+import {observeMetadataChanges, removeUserData} from 'services/metadata';
 import fetchAllTracks from 'services/pagers/fetchAllTracks';
 
 const logger = new Logger('playlist');
@@ -424,8 +423,8 @@ if (isMiniPlayer) {
                 const index = items.findIndex((item) => item.id === lookupItem.id);
                 if (index !== -1) {
                     items[index] = foundItem
-                        ? {...removeUserData(bestOf(foundItem, lookupItem)), id: lookupItem.id}
-                        : {...lookupItem, lookupStatus: LookupStatus.NotFound};
+                        ? {...removeUserData(foundItem), id: lookupItem.id}
+                        : {...items[index], lookupStatus: LookupStatus.NotFound};
                     setItems(items);
                 }
             })
@@ -439,7 +438,7 @@ if (isMiniPlayer) {
                 const index = items.findIndex((item) => item.id === lookupItem.id);
                 if (index !== -1) {
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    const {lookupStatus: _, ...item} = lookupItem;
+                    const {lookupStatus: _, ...item} = items[index];
                     items[index] = item;
                     setItems(items);
                 }
@@ -448,7 +447,7 @@ if (isMiniPlayer) {
         .subscribe(logger);
 
     // Update playlist items with metadata changes.
-    observeMediaObjectChanges<MediaItem>()
+    observeMetadataChanges<MediaItem>()
         .pipe(
             tap((changes) => {
                 let changed = false;

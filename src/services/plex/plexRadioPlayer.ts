@@ -16,18 +16,19 @@ import {
 } from 'rxjs';
 import {nanoid} from 'nanoid';
 import LinearType from 'types/LinearType';
-import MediaObjectChange from 'types/MediaObjectChange';
+import MetadataChange from 'types/MetadataChange';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import Player from 'types/Player';
 import PlaylistItem from 'types/PlaylistItem';
 import {Logger} from 'utils';
-import {observeMediaObjectChanges} from 'services/actions/mediaObjectChanges';
+import {observeMetadataChanges} from 'services/metadata';
 import HLSPlayer from 'services/mediaPlayback/players/HLSPlayer';
 import HTML5Player from 'services/mediaPlayback/players/HTML5Player';
 import OmniPlayer from 'services/mediaPlayback/players/OmniPlayer';
 import observeNearEnd from 'services/mediaPlayback/players/observeNearEnd';
 import plexApi from './plexApi';
+import plexSettings from './plexSettings';
 import plexUtils from './plexUtils';
 
 const logger = new Logger('plexRadioPlayer');
@@ -89,7 +90,7 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
             .pipe(
                 map(() => this.position === this.trackCount - 1),
                 distinctUntilChanged(),
-                filter(atEnd => atEnd),
+                filter((atEnd) => atEnd),
                 tap(() => this.ended$.next())
             )
             .subscribe(logger);
@@ -99,7 +100,7 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
             .observeEnded()
             .pipe(
                 map(() => this.position + 1),
-                filter(position => position < this.trackCount),
+                filter((position) => position < this.trackCount),
                 tap(this.position$),
                 mergeMap((position) => this.getPlayableItem(position)),
                 tap((item) => this.loadPlayer(item))
@@ -132,12 +133,12 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
             .pipe(
                 filter((nearEnd) => nearEnd),
                 map(() => this.position + 1),
-                mergeMap((position) => this.getPlayableItem(position)),
+                mergeMap((position) => this.getPlayableItem(position))
             )
             .subscribe(logger);
 
         // Refresh play queue on metadata changes.
-        observeMediaObjectChanges<PlaylistItem>()
+        observeMetadataChanges<PlaylistItem>()
             .pipe(tap((changes) => this.applyMetadataChanges(changes)))
             .subscribe(logger);
     }
@@ -293,7 +294,9 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
     }
 
     private async loadAndPlay(item: PlayableItem): Promise<void> {
-        this.playQueue = await plexApi.createPlayQueue(item);
+        this.playQueue = await plexApi.createPlayQueue(item, {
+            maxDegreesOfSeparation: plexSettings.radioDegreesOfSeparation,
+        });
         this.items = this.playQueue.Metadata.map((queueItem) => this.createMusicTrack(queueItem));
         const playableItem = await this.getPlayableItem(0);
         if (!playableItem) {
@@ -314,7 +317,7 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
         }
     }
 
-    private applyMetadataChanges(changes: readonly MediaObjectChange<PlaylistItem>[]): void {
+    private applyMetadataChanges(changes: readonly MetadataChange<PlaylistItem>[]): void {
         let changed = false;
         const items = this.items.map((item) => {
             for (const {match, values} of changes) {

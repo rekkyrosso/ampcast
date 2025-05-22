@@ -55,11 +55,7 @@ export function getRecentPlaylists(services: readonly MediaService[]): readonly 
         .getJson<RecentPlaylist[]>('all', [])
         .filter(({src}) => {
             const [serviceId] = src.split(':');
-            return (
-                serviceIds.includes(serviceId) &&
-                // TODO: Remove eventually (fixed version 0.9.12)
-                src !== 'apple:undefined:undefined'
-            );
+            return serviceIds.includes(serviceId);
         })
         .slice(0, maxRecentPlaylists)
         .map((playlist) => ({...playlist, pager: new SimplePager()}));
@@ -77,27 +73,18 @@ export function getPlaylistItemsByService<T extends MediaItem>(
 
     const itemsByService = Object.keys(byService)
         .filter((id) => id !== '' && id !== 'listenbrainz')
-        .map((id) => ({
-            service: getService(id)!,
-            items: byService[id],
-        }))
+        .map((id) => ({service: getService(id)!, items: byService[id]}))
         .filter(({service}) => !!service?.editablePlaylists);
-
-    itemsByService.sort((a, b) => b.items.length - a.items.length);
 
     const listenbrainz = getService('listenbrainz');
     if (listenbrainz) {
-        const listenbrainzItems = items.filter(
-            ({recording_mbid, track_mbid, isrc}) => recording_mbid || track_mbid || isrc
-        );
-
-        if (listenbrainzItems.length > 0) {
-            itemsByService.push({
-                service: listenbrainz,
-                items: listenbrainzItems,
-            });
+        const foundItems = items.filter((item) => !!item.recording_mbid);
+        if (foundItems.length > 0) {
+            itemsByService.push({service: listenbrainz, items: foundItems});
         }
     }
 
-    return itemsByService.filter(({service}) => service.isLoggedIn());
+    return itemsByService
+        .filter(({service}) => service.isLoggedIn())
+        .sort((a, b) => b.items.length - a.items.length);
 }

@@ -138,33 +138,29 @@ function createMediaItem(
     metadata: IAudioMetadata
 ): MediaItem {
     const {common} = metadata;
-    const floor = (value: number | null = 0) => Math.floor(Number(value)) || 0;
+    const floor = (value: number | null = 0) => Math.floor(Number(value)) || undefined;
 
     return {
         itemType: ItemType.Media,
         mediaType,
         playbackType: PlaybackType.Direct,
         src,
-        externalUrl: '',
         title: (common.title || name).trim(),
         artists: common.artist
             ? [common.artist.trim()]
             : common.artists?.map((artist) => artist.trim()),
-        albumArtist: common.album ? common.albumartist?.trim() || '' : '',
-        album: common.album?.trim() || '',
+        albumArtist: common.album ? common.albumartist?.trim() || undefined : undefined,
+        album: common.album?.trim() || undefined,
         genres: common.genre,
         duration: 0,
         track: floor(common.track?.no),
         disc: floor(common.disk?.no),
-        // bpm: floor(common.bpm),
         year: floor(common.year),
-        // mood: common.mood || '',
-        rating: Number(common.rating) || 0,
         isrc: common.isrc?.[0],
-        recording_mbid: common.musicbrainz_recordingid,
+        recording_mbid: common.musicbrainz_recordingid || undefined,
         artist_mbids: common.musicbrainz_artistid,
-        track_mbid: common.musicbrainz_trackid,
-        release_mbid: common.musicbrainz_albumid,
+        track_mbid: common.musicbrainz_trackid || undefined,
+        release_mbid: common.musicbrainz_albumid || undefined,
         playedAt: 0,
         albumGain: common.replaygain_album_gain?.dB,
         albumPeak: common.replaygain_album_peak?.dB,

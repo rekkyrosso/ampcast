@@ -45,7 +45,7 @@ function createMediaListLayout<T extends MediaObject = MediaObject>(
     cols.push({
         id: '...',
         title: <Icon name="menu" />,
-        render: (item: T) => <Actions item={item} inline />,
+        render: (item: T) => <Actions item={item} inListView={true} />,
         className: 'actions',
         align: 'right',
         width: 5,

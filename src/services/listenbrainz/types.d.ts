@@ -89,6 +89,15 @@ declare namespace ListenBrainz {
         };
     }
 
+    interface LookupMetadata {
+        readonly artist_credit_name: string;
+        readonly recording_name: string;
+        readonly release_name: string;
+        readonly artist_mbids: readonly string[];
+        readonly release_mbid: string;
+        readonly recording_mbid: string;
+    }
+
     interface Listen {
         readonly inserted_at: number;
         readonly listened_at: number;

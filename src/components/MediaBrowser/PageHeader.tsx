@@ -1,4 +1,4 @@
-import React, {useCallback, useRef} from 'react';
+import React, {useCallback} from 'react';
 import MediaSource from 'types/MediaSource';
 import IconButton from 'components/Button';
 import {IconName} from 'components/Icon';
@@ -13,19 +13,18 @@ export interface PageHeaderProps {
 }
 
 export default function PageHeader({icon, source, children}: PageHeaderProps) {
-    const ref = useRef<HTMLHeadingElement>(null);
-
     const handleMenuClick = useCallback(
         async (event: React.MouseEvent<HTMLButtonElement>) => {
-            const {right} = ref.current!.getBoundingClientRect();
+            const button = (event.target as HTMLButtonElement).closest('button')!;
+            const {right} = button.getBoundingClientRect();
             const {bottom} = (event.target as HTMLButtonElement).getBoundingClientRect();
-            await showMediaSourceOptions(source!, right, bottom + 4);
+            await showMediaSourceOptions(source!, button, right, bottom + 4);
         },
         [source]
     );
 
     return (
-        <h2 className="page-header" ref={ref}>
+        <h2 className="page-header">
             <MediaSourceLabel icon={icon} text={children} />
             {source?.sortOptions ? (
                 <IconButton title="Options…" icon="menu" onClick={handleMenuClick} />

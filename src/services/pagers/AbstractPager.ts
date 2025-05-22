@@ -12,10 +12,10 @@ import {
 } from 'rxjs';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
-import MediaObjectChange from 'types/MediaObjectChange';
+import MetadataChange from 'types/MetadataChange';
 import Pager, {PagerConfig} from 'types/Pager';
 import actionsStore from 'services/actions/actionsStore';
-import {observeMediaObjectChanges} from 'services/actions/mediaObjectChanges';
+import {observeMetadataChanges} from 'services/metadata';
 import {Logger, exists, uniq} from 'utils';
 
 export interface PageFetch {
@@ -207,7 +207,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
                 );
 
                 this.subscribeTo(
-                    observeMediaObjectChanges<T>().pipe(
+                    observeMetadataChanges<T>().pipe(
                         tap((changes) => this.applyMetadataChanges(changes))
                     ),
                     logger
@@ -222,7 +222,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
         this.subscriptions!.add(observable$.subscribe(logger));
     }
 
-    private applyMetadataChanges(changes: readonly MediaObjectChange<T>[]): void {
+    private applyMetadataChanges(changes: readonly MetadataChange<T>[]): void {
         let changed = false;
         const items = this.items.map((item) => {
             for (const {match, values} of changes) {

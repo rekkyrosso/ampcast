@@ -62,7 +62,6 @@ class MainTheme implements CurrentTheme {
     private readonly appStyle: CSSStyleDeclaration;
     private readonly playheadStyle: CSSStyleDeclaration;
     private readonly app = document.getElementById('app') as HTMLElement;
-    private readonly popup = document.getElementById('popup') as HTMLElement;
     private readonly system = document.getElementById('system') as HTMLElement;
     private readonly theme$ = new BehaviorSubject<CurrentTheme>(defaultTheme);
     private readonly fontSize$ = new BehaviorSubject(this.defaultFontSize);
@@ -187,7 +186,6 @@ class MainTheme implements CurrentTheme {
 
     set flat(flat: boolean) {
         this.app.classList.toggle('flat', !!flat);
-        this.popup.classList.toggle('flat', !!flat);
         this.theme$.next({...this.current, flat});
     }
 
@@ -456,7 +454,6 @@ class MainTheme implements CurrentTheme {
         this.setProperty('black', this.black);
         this.setProperty('focus-ring-color', this.focusRingColor);
         this.toggleClasses(this.app);
-        this.toggleClasses(this.popup);
     }
 
     load(): void {

@@ -10,12 +10,14 @@ import PopupMenu, {
 
 export default async function showMediaSourceOptions(
     source: MediaSource<any>,
+    target: HTMLElement,
     x: number,
     y: number
 ): Promise<void> {
     const setting = getSourceSorting(source);
     const option = await showPopupMenu(
         (props: PopupMenuProps) => <MediaSourceOptions {...props} source={source} />,
+        target,
         x,
         y,
         'right'

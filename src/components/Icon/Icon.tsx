@@ -604,7 +604,7 @@ export default function Icon({name, className = ''}: IconProps) {
 
         case 'playlist-add':
             return (
-                <svg className={className} viewBox="0 0 24 24">
+                <svg className={className} viewBox="0 0 24 24" transform="scale(1.2)">
                     <path
                         stroke="none"
                         d="M14 10H3v2h11v-2zm0-4H3v2h11V6zm4 8v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zM3 16h7v-2H3v2z"

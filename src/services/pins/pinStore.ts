@@ -3,7 +3,7 @@ import {BehaviorSubject, combineLatest, filter, map} from 'rxjs';
 import Dexie, {liveQuery} from 'dexie';
 import MediaObject from 'types/MediaObject';
 import Pin, {Pinnable} from 'types/Pin';
-import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
+import {dispatchMetadataChanges} from 'services/metadata';
 import {Logger} from 'utils';
 
 const logger = new Logger('pinStore');
@@ -38,7 +38,7 @@ class PinStore extends Dexie {
 
     lock(pin: Pin | Pinnable): void {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const {pager, ...lockedPin} = pin as any;
+        const {pager, parentFolder, ...lockedPin} = pin as any;
         this.lockedPin$.next(lockedPin);
     }
 
@@ -62,11 +62,11 @@ class PinStore extends Dexie {
             await this.pins.bulkPut(
                 pinnables.map((pinnable) => {
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    const {pager, ...pin} = pinnable as any;
+                    const {pager, parentFolder, ...pin} = pinnable as any;
                     return {...pin, isPinned: true};
                 })
             );
-            dispatchMediaObjectChanges(
+            dispatchMetadataChanges(
                 pinnables.map((pinnable) => ({
                     match: (object: MediaObject) => object.src === pinnable.src,
                     values: {isPinned: true},
@@ -84,7 +84,7 @@ class PinStore extends Dexie {
         try {
             const pinnables: {src: string}[] = Array.isArray(pinnable) ? pinnable : [pinnable];
             await this.pins.bulkDelete(pinnables.map((pinnable) => pinnable.src));
-            dispatchMediaObjectChanges(
+            dispatchMetadataChanges(
                 pinnables.map((pinnable) => ({
                     match: (object: MediaObject) => object.src === pinnable.src,
                     values: {isPinned: false},

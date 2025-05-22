@@ -23,7 +23,7 @@ import {NoFavoritesPlaylistError} from 'services/errors';
 import ServiceType from 'types/ServiceType';
 import {chunk, exists} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
-import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
+import {dispatchMetadataChanges} from 'services/metadata';
 import {isStartupService} from 'services/buildConfig';
 import fetchAllTracks from 'services/pagers/fetchAllTracks';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
@@ -943,7 +943,7 @@ function createSearchPager<T extends MediaObject>(
 
 export async function addUserData<T extends MediaObject>(
     items: readonly T[],
-    inline = false,
+    inListView = false,
     parent?: ParentOf<T>
 ): Promise<void> {
     const isAlbumTrack = parent?.itemType === ItemType.Album;
@@ -954,13 +954,13 @@ export async function addUserData<T extends MediaObject>(
             !!item.apple?.catalogId
     );
     const [item] = items;
-    if (!item || !apple.canStore?.(item, inline)) {
+    if (!item || !apple.canStore?.(item, inListView)) {
         return;
     }
     const [, type] = item.src.split(':');
     const ids: string[] = items.map((item) => item.apple!.catalogId);
     const inLibrary = await getInLibrary(type, ids);
-    dispatchMediaObjectChanges<MediaObject>(
+    dispatchMetadataChanges<MediaObject>(
         ids.map((id, index) => ({
             match: (object: MediaObject) => object.apple?.catalogId === id,
             values: {inLibrary: inLibrary[index]},

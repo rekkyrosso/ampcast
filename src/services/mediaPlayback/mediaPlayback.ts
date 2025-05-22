@@ -27,7 +27,7 @@ import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
 import {formatTime, getPlaybackTypeFromUrl, isMiniPlayer, Logger} from 'utils';
 import {MAX_DURATION} from 'services/constants';
-import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
+import {dispatchMetadataChanges} from 'services/metadata';
 import lookup from 'services/lookup';
 import {hasPlayableSrc, getServiceFromSrc} from 'services/mediaServices';
 import playlist from 'services/playlist';
@@ -300,7 +300,7 @@ async function getPlaybackType(item: PlaylistItem): Promise<PlaybackType> {
             } else {
                 playbackType = PlaybackType.Direct;
             }
-            dispatchMediaObjectChanges({
+            dispatchMetadataChanges({
                 match: (object) => object.src === item.src,
                 values: {playbackType},
             });
@@ -478,7 +478,7 @@ playlist
                       filter((duration) => !!duration && duration !== item.duration),
                       take(1),
                       tap((duration) =>
-                          dispatchMediaObjectChanges({
+                          dispatchMetadataChanges({
                               match: (object) => object.src === item.src,
                               values: {duration},
                           })

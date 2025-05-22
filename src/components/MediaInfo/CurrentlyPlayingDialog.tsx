@@ -4,16 +4,19 @@ import Dialog, {DialogProps} from 'components/Dialog';
 import useCurrentTrack from 'hooks/useCurrentTrack';
 import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
 import useFirstValue from 'hooks/useFirstValue';
-import useMediaInfoDialog from './useMediaInfoDialog';
 import CurrentlyPlaying from './CurrentlyPlaying';
 import CurrentlyPlayingTabs from './CurrentlyPlayingTabs';
+import useActiveItem from './useActiveItem';
+import useMediaInfoDialog from './useMediaInfoDialog';
 
 export default function CurrentlyPlayingDialog(props: DialogProps) {
     const ref = useRef<HTMLDialogElement>(null);
     const currentTrack = useCurrentTrack();
     const currentVisualizer = useCurrentVisualizer();
-    const item = useFirstValue(currentTrack);
-    const visualizer = useFirstValue(currentVisualizer);
+    const thisTrack = useFirstValue(currentTrack);
+    const thisVisualizer = useFirstValue(currentVisualizer);
+    const item = useActiveItem(thisTrack);
+    const visualizer = thisVisualizer;
     useMediaInfoDialog(ref);
 
     return (

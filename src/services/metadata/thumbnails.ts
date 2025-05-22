@@ -1,17 +1,17 @@
 import getYouTubeID from 'get-youtube-id';
 import unidecode from 'unidecode';
-import {exists, uniqBy} from 'utils';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import Thumbnail from 'types/Thumbnail';
+import {exists, uniqBy} from 'utils';
 import lastfmApi from 'services/lastfm/lastfmApi';
-import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
 import {findListenByPlayedAt, getListens} from 'services/localdb/listens';
 import {getCoverArtThumbnails} from 'services/musicbrainz/coverart';
 import {getEnabledServices} from 'services/mediaServices';
 import youtubeApi from 'services/youtube/youtubeApi';
+import {dispatchMetadataChanges} from './metadataChanges';
 import {getCoverArtFromBlob} from './music-metadata-js';
 
 export async function findThumbnails(
@@ -56,7 +56,7 @@ export async function findThumbnails(
     }
     if (thumbnails) {
         const src = item.src;
-        dispatchMediaObjectChanges<MediaObject>({
+        dispatchMetadataChanges<MediaObject>({
             match: (item) => item.src === src,
             values: {thumbnails},
         });

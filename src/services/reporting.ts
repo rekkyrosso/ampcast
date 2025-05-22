@@ -37,7 +37,7 @@ export function copyLogsToClipboard(): Promise<void> {
 
 export function copyMediaObjectToClipboard(item: MediaObject): Promise<void> {
     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-    const {pager, ...data} = item as any;
+    const {pager, parentFolder, ...data} = item as any;
     return copyToClipboard(data);
 }
 

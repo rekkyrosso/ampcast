@@ -25,7 +25,7 @@ type LegacyBaseItemDto = BaseItemDto & {LUFS?: number | null};
 
 export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
     static minPageSize = 10;
-    static maxPageSize = 1000;
+    static maxPageSize = 500;
 
     private readonly pager: OffsetPager<T>;
     readonly pageSize: number;
@@ -191,7 +191,7 @@ export default class JellyfinPager<T extends MediaObject> implements Pager<T> {
             fileName,
             path:
                 this.parent?.itemType === ItemType.Folder ? `${this.parent.path}/${fileName}` : '/',
-            parent: this.parent as ParentOf<MediaFolder>,
+            parentFolder: this.parent as ParentOf<MediaFolder>,
         };
         mediaFolder.pager = this.createFolderPager(mediaFolder as MediaFolder);
         return mediaFolder as MediaFolder;

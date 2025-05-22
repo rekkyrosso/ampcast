@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {from} from 'rxjs';
+import {defer} from 'rxjs';
 import PersonalMediaService from 'types/PersonalMediaService';
 import useIsLoggedIn from 'hooks/useIsLoggedIn';
 
@@ -9,7 +9,7 @@ export default function useServerInfo(service: PersonalMediaService) {
 
     useEffect(() => {
         if (isLoggedIn && service.getServerInfo) {
-            const subscription = from(service.getServerInfo()).subscribe(setServerInfo);
+            const subscription = defer(() => service.getServerInfo!()).subscribe(setServerInfo);
             return () => subscription.unsubscribe();
         }
     }, [service, isLoggedIn]);

@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import Action from 'types/Action';
+import ItemType from 'types/ItemType';
 import LibraryAction from 'types/LibraryAction';
 import MediaObject from 'types/MediaObject';
 import MediaService from 'types/MediaService';
@@ -9,11 +10,12 @@ import IconButtons from 'components/Button/IconButtons';
 import {IconName} from 'components/Icon';
 import showActionsMenu from 'components/MediaList/showActionsMenu';
 import StarRating from 'components/StarRating';
+import {AddToPlaylistButton} from './PlaylistActions';
 import performAction from './performAction';
 
 export interface ActionsProps {
     item: MediaObject;
-    inline?: boolean;
+    inListView?: boolean; // Rendered in a `ListView` component.
 }
 
 const defaultActionIcons: Record<LibraryAction, IconName> = {
@@ -32,9 +34,9 @@ const defaultActionLabels: Record<LibraryAction, string> = {
     [Action.Unlike]: 'Unlike',
 };
 
-export default function Actions({item, inline}: ActionsProps) {
+export default function Actions({item, inListView}: ActionsProps) {
     const service = getServiceFromSrc(item);
-    const tabIndex = inline ? -1 : undefined;
+    const tabIndex = inListView ? -1 : undefined;
 
     const togglePin = useCallback(async () => {
         if (item.isPinned) {
@@ -62,8 +64,16 @@ export default function Actions({item, inline}: ActionsProps) {
 
     const showContextMenu = useCallback(
         async (event: React.MouseEvent<HTMLButtonElement>) => {
-            const rect = (event.target as HTMLButtonElement).getBoundingClientRect();
-            const action = await showActionsMenu([item], false, rect.right, rect.bottom, 'right');
+            const button = (event.target as HTMLButtonElement).closest('button')!;
+            const rect = button.getBoundingClientRect();
+            const action = await showActionsMenu(
+                [item],
+                false,
+                button,
+                rect.right,
+                rect.bottom,
+                'right'
+            );
             if (action) {
                 await performAction(action, [item]);
             }
@@ -80,7 +90,7 @@ export default function Actions({item, inline}: ActionsProps) {
 
     return (
         <IconButtons>
-            {inline ? (
+            {inListView ? (
                 <IconButton
                     icon="menu"
                     title="More…"
@@ -90,7 +100,33 @@ export default function Actions({item, inline}: ActionsProps) {
                 />
             ) : null}
 
-            {service?.canPin?.(item, inline) ? (
+            {item.rating !== undefined && service?.canRate?.(item, inListView) ? (
+                service.id === 'plex' ? (
+                    <StarRating value={item.rating} tabIndex={tabIndex} onChange={rate} />
+                ) : (
+                    <IconButton
+                        icon={
+                            item.rating
+                                ? getIconForAction(service, Action.Unlike)
+                                : getIconForAction(service, Action.Like)
+                        }
+                        title={
+                            item.rating
+                                ? getLabelForAction(service, Action.Unlike)
+                                : getLabelForAction(service, Action.Like)
+                        }
+                        tabIndex={tabIndex}
+                        onClick={toggleLike}
+                        key="rate"
+                    />
+                )
+            ) : null}
+
+            {!inListView && item.itemType === ItemType.Media ? (
+                <AddToPlaylistButton item={item} />
+            ) : null}
+
+            {service?.canPin?.(item, inListView) ? (
                 <IconButton
                     icon={item.isPinned ? 'pin-fill' : 'pin'}
                     title={item.isPinned ? 'Unpin' : 'Pin to sidebar'}
@@ -100,49 +136,23 @@ export default function Actions({item, inline}: ActionsProps) {
                 />
             ) : null}
 
-            {service ? (
-                <>
-                    {item.rating !== undefined && service?.canRate?.(item, inline) ? (
-                        service.id === 'plex' ? (
-                            <StarRating value={item.rating} tabIndex={tabIndex} onChange={rate} />
-                        ) : (
-                            <IconButton
-                                icon={
-                                    item.rating
-                                        ? getIconForAction(service, Action.Unlike)
-                                        : getIconForAction(service, Action.Like)
-                                }
-                                title={
-                                    item.rating
-                                        ? getLabelForAction(service, Action.Unlike)
-                                        : getLabelForAction(service, Action.Like)
-                                }
-                                tabIndex={tabIndex}
-                                onClick={toggleLike}
-                                key="rate"
-                            />
-                        )
-                    ) : null}
-
-                    {item.inLibrary !== undefined && service?.canStore?.(item, inline) ? (
-                        <IconButton
-                            icon={
-                                item.inLibrary
-                                    ? getIconForAction(service, Action.RemoveFromLibrary)
-                                    : getIconForAction(service, Action.AddToLibrary)
-                            }
-                            title={
-                                item.inLibrary
-                                    ? getLabelForAction(service, Action.RemoveFromLibrary)
-                                    : getLabelForAction(service, Action.AddToLibrary)
-                            }
-                            tabIndex={tabIndex}
-                            disabled={service.id === 'apple' && item.inLibrary} // remove doesn't work (https://developer.apple.com/forums/thread/107807)
-                            onClick={toggleInLibrary}
-                            key="store"
-                        />
-                    ) : null}
-                </>
+            {item.inLibrary !== undefined && service?.canStore?.(item, inListView) ? (
+                <IconButton
+                    icon={
+                        item.inLibrary
+                            ? getIconForAction(service, Action.RemoveFromLibrary)
+                            : getIconForAction(service, Action.AddToLibrary)
+                    }
+                    title={
+                        item.inLibrary
+                            ? getLabelForAction(service, Action.RemoveFromLibrary)
+                            : getLabelForAction(service, Action.AddToLibrary)
+                    }
+                    tabIndex={tabIndex}
+                    disabled={service.id === 'apple' && item.inLibrary} // remove doesn't work (https://developer.apple.com/forums/thread/107807)
+                    onClick={toggleInLibrary}
+                    key="store"
+                />
             ) : null}
         </IconButtons>
     );

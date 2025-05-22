@@ -116,14 +116,6 @@ export async function createMediaItemFromUrl(url: string, timeout = 3000): Promi
                     mediaTypes.ogg.includes(contentType) ? 'ogg' : 'icy'
                 );
 
-                console.log({
-                    isIcy,
-                    'icy-metaint': headers.get('icy-metaint'),
-                    'icy-name': headers.get('icy-name'),
-                    'icy-url': headers.get('icy-url'),
-                    'icy-pub': headers.get('icy-pub'),
-                });
-
                 if (headers?.get('icy-name') || headers?.get('icy-url')) {
                     return createMediaItemFromIcecastHeaders(url, headers, isIcy);
                 } else if (mediaTypes.ogg.includes(contentType)) {

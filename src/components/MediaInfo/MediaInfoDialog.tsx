@@ -5,6 +5,7 @@ import preferences from 'services/preferences';
 import Dialog, {DialogProps, showDialog} from 'components/Dialog';
 import MediaInfo from './MediaInfo';
 import MediaInfoTabs from './MediaInfoTabs';
+import useActiveItem from './useActiveItem';
 import useMediaInfoDialog from './useMediaInfoDialog';
 import './MediaInfoDialog.scss';
 
@@ -21,16 +22,17 @@ export default function MediaInfoDialog<T extends MediaObject>({
     ...props
 }: MediaInfoDialogProps<T>) {
     const ref = useRef<HTMLDialogElement>(null);
-    const title = useTitle(item);
+    const activeItem = useActiveItem(item);
+    const title = useTitle(activeItem);
     useMediaInfoDialog(ref);
 
     return (
         <Dialog {...props} className="media-info-dialog" icon="info" title={title} ref={ref}>
             <form method="dialog">
                 {preferences.mediaInfoTabs ? (
-                    <MediaInfoTabs item={item} />
+                    <MediaInfoTabs item={activeItem} />
                 ) : (
-                    <MediaInfo item={item} />
+                    <MediaInfo item={activeItem} />
                 )}
                 <footer className="dialog-buttons">
                     <button>Close</button>

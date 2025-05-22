@@ -152,7 +152,10 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             badge: song.suffix,
             container: song.contentType?.replace('audio/', ''),
             // OpenSubsonic extensions
-            recording_mbid: typeof song.musicBrainzId === 'string' ? song.musicBrainzId : undefined,
+            recording_mbid:
+                typeof song.musicBrainzId === 'string'
+                    ? song.musicBrainzId || undefined
+                    : undefined,
             albumGain: song.replayGain?.albumGain,
             trackGain: song.replayGain?.trackGain,
         };
@@ -191,7 +194,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             externalUrl: radio.homePageUrl || radio.homepageUrl || undefined,
             duration: MAX_DURATION,
             playedAt: 0,
-            isExternalMedia: true
+            isExternalMedia: true,
         };
     }
 
@@ -260,7 +263,7 @@ export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
             fileName,
             path:
                 this.parent?.itemType === ItemType.Folder ? `${this.parent.path}/${fileName}` : '/',
-            parent: this.parent as ParentOf<MediaFolder>,
+            parentFolder: this.parent as ParentOf<MediaFolder>,
         };
         mediaFolder.pager = this.createFolderPager(mediaFolder as MediaFolder);
         return mediaFolder as MediaFolder;

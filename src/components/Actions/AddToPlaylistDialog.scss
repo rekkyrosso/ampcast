@@ -1,11 +1,18 @@
 .add-to-playlist-dialog {
-    select {
-        min-width: 16em;
+    width: 28em;
+
+    .select-service {
+        display: flex;
+        align-items: center;
+
+        select {
+            flex: auto;
+        }
     }
 
     .playlists {
         position: relative;
-        height: 10em;
+        height: 14em;
         width: 100%;
         inset: auto;
     }

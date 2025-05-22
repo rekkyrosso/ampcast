@@ -1,4 +1,4 @@
-import React, {ComponentType, useCallback, useEffect, useState} from 'react';
+import React, {ComponentType, useCallback, useEffect, useRef, useState} from 'react';
 import {Except} from 'type-fest';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
@@ -49,6 +49,7 @@ export default function MediaList<T extends MediaObject>({
     Error = ErrorBox,
     ...props
 }: MediaListProps<T>) {
+    const containerRef = useRef<HTMLDivElement | null>(null);
     const layout = useMediaListLayout(props.layout);
     const [scrollIndex, setScrollIndex] = useState(0);
     const [pageSize, setPageSize] = useState(0);
@@ -108,6 +109,7 @@ export default function MediaList<T extends MediaObject>({
             const action = await showActionsMenu(
                 items,
                 true,
+                containerRef.current!,
                 x,
                 y,
                 button === -1 ? 'right' : 'left'
@@ -172,7 +174,11 @@ export default function MediaList<T extends MediaObject>({
     );
 
     return (
-        <div className={`panel ${className} ${viewClassName}`} onDragStart={onDragStart}>
+        <div
+            className={`panel ${className} ${viewClassName}`}
+            onDragStart={onDragStart}
+            ref={containerRef}
+        >
             {empty && error ? (
                 <Error error={error} reportedBy="MediaList" reportingId={reportingId} />
             ) : loaded && empty && emptyMessage ? (

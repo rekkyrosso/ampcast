@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {from} from 'rxjs';
+import {defer} from 'rxjs';
 import VisualizerProvider from 'types/VisualizerProvider';
 import {getVisualizerProviders, loadVisualizers} from 'services/visualizer/visualizerProviders';
 
@@ -9,7 +9,7 @@ export default function useVisualizerProviders() {
     );
 
     useEffect(() => {
-        const subscription = from(loadVisualizers()).subscribe(setProviders);
+        const subscription = defer(() => loadVisualizers()).subscribe(setProviders);
         return () => subscription.unsubscribe();
     }, []);
 

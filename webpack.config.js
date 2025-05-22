@@ -60,7 +60,6 @@ module.exports = (args) => {
                 'd3-scale',
                 'detect-browser',
                 'dexie',
-                'fullscreen-api-polyfill',
                 'jsfft',
                 'idb-keyval',
                 'is-electron',

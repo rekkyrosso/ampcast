@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {from} from 'rxjs';
+import {defer} from 'rxjs';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
 import {Logger} from 'utils';
@@ -31,7 +31,7 @@ export default function usePlexMediaServers(plex: PersonalMediaService) {
 
     useEffect(() => {
         if (isLoggedIn) {
-            const subscription = from(getPlexMediaServers()).subscribe(setServers);
+            const subscription = defer(() => getPlexMediaServers()).subscribe(setServers);
             return () => subscription.unsubscribe();
         }
     }, [isLoggedIn]);

@@ -1,11 +1,11 @@
 import React from 'react';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
+import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
-import {getServiceFromSrc} from 'services/mediaServices';
 import {browser} from 'utils';
-import {getLabelForAction} from 'components/Actions';
-import PlaylistActions from 'components/Actions/PlaylistActions';
+import {getServiceFromSrc} from 'services/mediaServices';
+import {AddToPlaylistMenuItem, getLabelForAction} from 'components/Actions';
 import PopupMenu, {
     PopupMenuItem,
     PopupMenuProps,
@@ -17,6 +17,7 @@ import useIsPlaylistPlayable from './useIsPlaylistPlayable';
 export default async function showActionsMenu<T extends MediaObject>(
     items: readonly T[],
     isContextMenu: boolean,
+    target: HTMLElement,
     x: number,
     y: number,
     align: 'left' | 'right' = 'left'
@@ -25,6 +26,7 @@ export default async function showActionsMenu<T extends MediaObject>(
         (props: PopupMenuProps<Action>) => (
             <ActionsMenu {...props} items={items} isContextMenu={isContextMenu} />
         ),
+        target,
         x,
         y,
         align
@@ -44,13 +46,18 @@ function ActionsMenu<T extends MediaObject>({items, isContextMenu, ...props}: Ac
     const allPlayable = items.every((item) => playableTypes.includes(item.itemType));
     const playlistPlayable = useIsPlaylistPlayable(isPlaylist ? item : undefined);
     const playableNow = isPlaylist ? playlistPlayable : allPlayable;
+    const canAddToPlaylist = item?.itemType === ItemType.Media;
 
     return (
         <PopupMenu<Action> {...props}>
             {allPlayable ? <PlayActions disabled={!playableNow} /> : null}
             {isContextMenu && isSingleItem ? <ContextualActions item={item} /> : null}
-            <PlaylistActions items={items} />
-            <PopupMenuSeparator />
+            {canAddToPlaylist ? (
+                <>
+                    <AddToPlaylistMenuItem items={items as readonly MediaItem[]} />
+                    <PopupMenuSeparator />
+                </>
+            ) : null}
             {isSingleItem ? (
                 <PopupMenuItem
                     label="Info…"

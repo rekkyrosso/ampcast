@@ -99,11 +99,9 @@ export async function getPlaybackTypeFromUrl(url: string): Promise<PlaybackType>
     const headers = await getHeaders(url);
     const contentType = headers.get('content-type')?.toLowerCase() || '';
     if (mediaTypes.hls.includes(contentType)) {
-        return PlaybackType.HLSMetadata;
+        return PlaybackType.HLS;
     } else if (mediaTypes.m3u.includes(contentType)) {
         return PlaybackType.IcecastM3u;
-    } else if (contentType === 'application/ogg') {
-        return PlaybackType.IcecastOgg;
     } else {
         return PlaybackType.Direct;
     }

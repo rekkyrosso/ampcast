@@ -5,10 +5,9 @@ import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
+import {Logger, chunk, partition} from 'utils';
+import {dispatchMetadataChanges} from 'services/metadata';
 import {getService} from 'services/mediaServices';
-import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
-import {Logger, partition} from 'utils';
 import listenbrainzSettings from './listenbrainzSettings';
 
 const logger = new Logger('listenbrainzApi');
@@ -43,12 +42,113 @@ export class ListenBrainzApi {
         }
     }
 
+    private addMetadataLastCall = {key: '', result: [] as ListenBrainz.LookupMetadata[]};
+
+    async addMetadata<T extends MediaItem>(item: T): Promise<T>;
+    async addMetadata<T extends MediaItem>(items: readonly T[]): Promise<readonly T[]>;
+    async addMetadata<T extends MediaItem>(lookup: T | readonly T[]): Promise<T | readonly T[]> {
+        const isArray = Array.isArray(lookup);
+        const items: readonly T[] = isArray ? lookup : [lookup];
+        if (!lookup || items.length === 0 || !getService('listenbrainz')?.isLoggedIn()) {
+            return lookup;
+        }
+        try {
+            // https://listenbrainz.readthedocs.io/en/latest/users/api/metadata.html
+            const MAX_LOOKUPS_PER_POST = 50;
+            const MAX_MAPPING_QUERY_LENGTH = 250; // I got this value from the ListenBrainz source code.
+            const lookupItems = items.filter(
+                ({recording_mbid, title, artists: [artist] = []}) =>
+                    // `recording_mbid` is required for ListenBrainz playlists and
+                    // preferred for submissions of listen data.
+                    // Only search if it is `undefined`.
+                    // We're not much interested in the rest of the data returned
+                    // by the lookup endpoint.
+                    recording_mbid === undefined &&
+                    artist &&
+                    `${artist}${title}`.length < MAX_MAPPING_QUERY_LENGTH
+            );
+            if (lookupItems.length === 0) {
+                return lookup;
+            }
+
+            // Map of `item.src` to `item`.
+            const itemMap: Record<string, T> = items.reduce((map, item) => {
+                map[item.src] = item;
+                return map;
+            }, {} as Record<string, T>);
+
+            // Fetch or use cached result.
+            // Caching the last result prevents repeated lookups for the same items.
+            // This is a React app after all. :)
+            const key = lookupItems.map((item) => item.src).join('|');
+            let result: ListenBrainz.LookupMetadata[];
+            if (this.addMetadataLastCall.key === key) {
+                result = this.addMetadataLastCall.result;
+            } else {
+                const chunks = chunk(lookupItems, MAX_LOOKUPS_PER_POST).slice(0, 4); // Max four requests
+                result = (
+                    await Promise.all([
+                        ...chunks.map((items) =>
+                            this.post<ListenBrainz.LookupMetadata[]>('metadata/lookup/', {
+                                recordings: items.map(({title, artists}) => ({
+                                    recording_name: title,
+                                    artist_name: artists![0],
+                                })),
+                            })
+                        ),
+                    ])
+                ).flat();
+                this.addMetadataLastCall = {key, result};
+            }
+
+            const values = result.map(
+                // Make sure `recording_mbid` is not `undefined`.
+                // Otherwise we might end up searching for it again.
+                ({artist_mbids, recording_mbid = '', release_mbid, release_name}, index) => {
+                    const lookupItem = lookupItems[index];
+                    const values: Partial<MediaItem> = {
+                        artist_mbids,
+                        recording_mbid,
+                        release_mbid,
+                    };
+                    if (lookupItem.album === undefined && release_name) {
+                        (values as any).album = release_name;
+                    }
+                    return values;
+                }
+            );
+
+            // Update `itemMap` with retrieved values.
+            values.forEach((values, index) => {
+                const lookupItem = lookupItems[index];
+                itemMap[lookupItem.src] = {...lookupItem, ...values};
+            });
+
+            dispatchMetadataChanges<MediaItem>(
+                values.map((values, index) => {
+                    const lookupItem = lookupItems[index];
+                    return {
+                        match: (item: MediaItem) => item.src === lookupItem.src,
+                        values,
+                    };
+                })
+            );
+
+            const enhancedItems = items.map((item) => itemMap[item.src]);
+
+            return isArray ? enhancedItems : enhancedItems[0];
+        } catch (err) {
+            logger.error(err);
+            return lookup;
+        }
+    }
+
     async addUserData(items: readonly MediaItem[]): Promise<void> {
         items = items.filter((item) => !!item.recording_msid || !!item.recording_mbid);
         if (items.length > 0) {
             const inLibrary = await this.getInLibrary(items);
 
-            dispatchMediaObjectChanges(
+            dispatchMetadataChanges(
                 items.map((item, index) => ({
                     match: (object: MediaObject) => this.compareForRating(object, item),
                     values: {inLibrary: inLibrary[index]},
@@ -61,7 +161,7 @@ export class ListenBrainzApi {
         playlist: MediaPlaylist,
         items: readonly T[]
     ): Promise<void> {
-        items = await musicbrainzApi.addMetadata(items);
+        items = await this.addMetadata(items);
         items = items.filter((item) => item.recording_mbid);
         const [, , playlist_mbid] = playlist.src.split(':');
         return this.post(`playlist/${playlist_mbid}/item/add`, {
@@ -97,7 +197,7 @@ export class ListenBrainzApi {
         {description = '', isPublic, items = []}: CreatePlaylistOptions<T> = {}
     ): Promise<{playlist_mbid: string}> {
         const userId = listenbrainzSettings.userId;
-        items = await musicbrainzApi.addMetadata(items);
+        items = await this.addMetadata(items);
         items = items.filter((item) => item.recording_mbid);
         return this.post('playlist/create', {
             playlist: {

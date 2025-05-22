@@ -64,7 +64,7 @@ const plexSettings = {
     },
 
     get libraryTitle(): string {
-        const library = this.libraries.find(library => library.id === this.libraryId);
+        const library = this.libraries.find((library) => library.id === this.libraryId);
         return library?.title || '';
     },
 
@@ -83,6 +83,14 @@ const plexSettings = {
             libraries[0];
         storage.setJson('libraries', libraries);
         this.libraryId = library?.id || '';
+    },
+
+    get radioDegreesOfSeparation(): number {
+        return storage.getNumber('radioDegreesOfSeparation', 1);
+    },
+
+    set radioDegreesOfSeparation(degrees: 1 | 2 | 3 | -1) {
+        storage.setNumber('radioDegreesOfSeparation', degrees);
     },
 
     get server(): plex.Device | null {

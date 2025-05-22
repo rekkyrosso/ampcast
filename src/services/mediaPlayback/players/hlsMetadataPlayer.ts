@@ -9,8 +9,7 @@ import MediaType from 'types/MediaType';
 import PlaylistItem from 'types/PlaylistItem';
 import Thumbnail from 'types/Thumbnail';
 import {groupBy} from 'utils';
-import {addMetadata} from 'services/metadata';
-import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
+import {addMetadata, dispatchMetadataChanges} from 'services/metadata';
 import HLSPlayer from './HLSPlayer';
 
 type TAG = string;
@@ -144,7 +143,7 @@ export class HLSMetadataPlayer extends HLSPlayer {
             return;
         }
         const id3 = this.createId3TagReader(metadata);
-        dispatchMediaObjectChanges<MediaItem>({
+        dispatchMetadataChanges<MediaItem>({
             match: (item) => item.src === container.src,
             values: {
                 title: stationName,

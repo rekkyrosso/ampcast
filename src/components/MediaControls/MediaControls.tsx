@@ -71,8 +71,9 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
 
     const handleMenuClick = useCallback(
         async (event: React.MouseEvent<HTMLButtonElement>) => {
-            const {right, bottom} = (event.target as HTMLButtonElement).getBoundingClientRect();
-            await showPlaylistMenu(right, bottom + 4);
+            const button = (event.target as HTMLButtonElement).closest('button')!;
+            const {right, bottom} = button.getBoundingClientRect();
+            await showPlaylistMenu(button, right, bottom + 4);
         },
         [showPlaylistMenu]
     );

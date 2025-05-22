@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {from} from 'rxjs';
+import {defer} from 'rxjs';
 import MediaItem from 'types/MediaItem';
 import youtubeApi from 'services/youtube/youtubeApi';
 
@@ -10,7 +10,9 @@ export default function useYouTubeVideoInfo(src: string) {
     useEffect(() => {
         setVideoInfo(null);
         if (service === 'youtube' && videoId) {
-            const subscription = from(youtubeApi.getMediaItem(videoId)).subscribe(setVideoInfo);
+            const subscription = defer(() => youtubeApi.getMediaItem(videoId)).subscribe(
+                setVideoInfo
+            );
             return () => subscription.unsubscribe();
         }
     }, [service, videoId]);

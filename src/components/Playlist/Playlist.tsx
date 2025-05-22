@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Except} from 'type-fest';
 import Action from 'types/Action';
 import LookupStatus from 'types/LookupStatus';
@@ -38,6 +38,7 @@ export interface PlaylistProps extends Except<ListViewProps<PlaylistItem>, NotRe
 }
 
 export default function Playlist({onSelect, onPlay, onEject, ref, ...props}: PlaylistProps) {
+    const containerRef = useRef<HTMLDivElement | null>(null);
     const items = useObservable(playlist.observe, []);
     const size = items.length;
     const layout = usePlaylistLayout(size);
@@ -129,6 +130,7 @@ export default function Playlist({onSelect, onPlay, onEject, ref, ...props}: Pla
                 items,
                 selectedItems,
                 rowIndex,
+                containerRef.current!,
                 x,
                 y,
                 button === -1 ? 'right' : 'left'
@@ -223,7 +225,7 @@ export default function Playlist({onSelect, onPlay, onEject, ref, ...props}: Pla
     );
 
     return (
-        <div className="playlist" onDragStart={onDragStart}>
+        <div className="playlist" onDragStart={onDragStart} ref={containerRef}>
             <ListView
                 {...props}
                 title="Playlist"

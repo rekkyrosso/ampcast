@@ -77,10 +77,7 @@ export default function Dialog({
     }, []);
 
     const handleBodyClick = useCallback((event: React.MouseEvent) => {
-        let button: any = event.target;
-        while (button && button.nodeName !== 'BUTTON') {
-            button = button.parentElement;
-        }
+        const button = (event.target as HTMLElement).closest('button');
         if (button?.value === '#cancel') {
             event.preventDefault();
             dialogRef.current!.close();

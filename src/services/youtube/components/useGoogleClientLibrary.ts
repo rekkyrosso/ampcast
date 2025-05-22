@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {from} from 'rxjs';
+import {defer} from 'rxjs';
 import {getGsiClient} from '../youtubeAuth';
 
 export default function useGoogleClientLibrary() {
@@ -7,7 +7,7 @@ export default function useGoogleClientLibrary() {
     const [error, setError] = useState<any>(null);
 
     useEffect(() => {
-        const subscription = from(getGsiClient()).subscribe({
+        const subscription = defer(() => getGsiClient()).subscribe({
             next: setClient,
             error: setError,
         });

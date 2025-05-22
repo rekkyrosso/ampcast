@@ -57,9 +57,9 @@ type BaseMediaService = Auth & {
         position?: number
     ) => Promise<void>;
     removeFromPlaylist?: (playlist: MediaPlaylist, items: readonly MediaItem[]) => Promise<void>;
-    canPin?: (item: MediaObject, inline?: boolean) => boolean;
-    canRate?: (item: MediaObject, inline?: boolean) => boolean;
-    canStore?: (item: MediaObject, inline?: boolean) => boolean;
+    canPin?: (item: MediaObject, inListView?: boolean) => boolean;
+    canRate?: (item: MediaObject, inListView?: boolean) => boolean;
+    canStore?: (item: MediaObject, inListView?: boolean) => boolean;
     createPlaylist?: <T extends MediaItem>(
         name: string,
         options?: CreatePlaylistOptions<T>

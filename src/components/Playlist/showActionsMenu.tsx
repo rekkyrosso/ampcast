@@ -1,7 +1,7 @@
 import React from 'react';
 import PlaylistItem from 'types/PlaylistItem';
 import {browser} from 'utils';
-import PlaylistActions from 'components/Actions/PlaylistActions';
+import {AddToPlaylistMenuItem} from 'components/Actions';
 import PopupMenu, {
     PopupMenuItem,
     PopupMenuProps,
@@ -13,6 +13,7 @@ export default async function showActionsMenu(
     items: readonly PlaylistItem[],
     selectedItems: readonly PlaylistItem[],
     rowIndex: number,
+    target: HTMLElement,
     x: number,
     y: number,
     align: 'left' | 'right' = 'left'
@@ -26,6 +27,7 @@ export default async function showActionsMenu(
                 rowIndex={rowIndex}
             />
         ),
+        target,
         x,
         y,
         align
@@ -81,7 +83,7 @@ function ActionsMenu({items, selectedItems, rowIndex, ...props}: ActionsMenuProp
                 />
             ) : null}
             <PopupMenuSeparator />
-            <PlaylistActions items={selectedItems} />
+            <AddToPlaylistMenuItem items={selectedItems} />
             <PopupMenuSeparator />
             {isSingleSelection ? (
                 <PopupMenuItem

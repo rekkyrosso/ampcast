@@ -44,12 +44,13 @@ export default function PopupMenu<T extends string>({
     useEffect(() => {
         const style: React.CSSProperties = {};
         const popup = containerRef.current!;
-        if (align === 'right' || x + popup.offsetWidth >= document.body.clientWidth) {
+        const popupRoot = popup.closest('dialog,body')!;
+        if (align === 'right' || x + popup.offsetWidth >= popupRoot.clientWidth) {
             style.left = `${x - popup.offsetWidth}px`;
         } else {
             style.left = `${x}px`;
         }
-        if (y + popup.offsetHeight + baseFontSize >= document.body.clientHeight) {
+        if (y + popup.offsetHeight + baseFontSize >= popupRoot.clientHeight) {
             style.top = `${y - popup.offsetHeight}px`;
         } else {
             style.top = `${y}px`;
@@ -102,14 +103,10 @@ export default function PopupMenu<T extends string>({
     const handleClick = useCallback(
         (event: React.MouseEvent) => {
             if (onClose) {
-                let button: any = event.target;
-
-                while (button && button.nodeName !== 'BUTTON') {
-                    button = button.parentElement;
-                }
+                const button = (event.target as HTMLElement).closest('button');
                 if (button?.value && !button.disabled) {
                     restoreRef.current?.focus();
-                    onClose(button.value);
+                    onClose(button.value as T);
                 }
             }
         },
@@ -135,10 +132,7 @@ export default function PopupMenu<T extends string>({
     }, []);
 
     const handleMouseOver = useCallback((event: React.MouseEvent) => {
-        let button: any = event.target;
-        while (button && button.nodeName !== 'BUTTON') {
-            button = button.parentElement;
-        }
+        const button = (event.target as HTMLElement).closest('button');
         if (button && !button.disabled) {
             button.focus();
             setButtonId(button.id);

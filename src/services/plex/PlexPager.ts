@@ -1,21 +1,18 @@
 import type {Observable} from 'rxjs';
-import {Subscription, mergeMap} from 'rxjs';
+import {Subscription} from 'rxjs';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaObject from 'types/MediaObject';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import ParentOf from 'types/ParentOf';
-import {Logger} from 'utils';
 import OffsetPager from 'services/pagers/OffsetPager';
 import plexApi, {PlexRequest} from './plexApi';
 import plexMediaType from './plexMediaType';
 import plexSettings from './plexSettings';
 import plexUtils from './plexUtils';
 
-const logger = new Logger('PlexPager');
-
 export default class PlexPager<T extends MediaObject> implements Pager<T> {
     static minPageSize = 10;
-    static plexMaxPageSize = 1000;
+    static plexMaxPageSize = 500;
 
     private readonly pager: OffsetPager<T>;
     readonly pageSize: number;
@@ -61,15 +58,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
     }
 
     fetchAt(index: number, length: number): void {
-        if (!this.subscriptions) {
-            this.connect();
-        }
-
         this.pager.fetchAt(index, length);
-    }
-
-    private get isLookup(): boolean {
-        return !!this.options?.lookup;
     }
 
     private get isSearch(): boolean {
@@ -80,22 +69,6 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             params.type !== plexMediaType.Playlist &&
             !params.extraType
         );
-    }
-
-    private connect(): void {
-        if (!this.subscriptions) {
-            this.subscriptions = new Subscription();
-
-            // Items from the `/search` endpoints are already enhanced.
-            if (!this.isLookup) {
-                this.subscriptions.add(
-                    this.pager
-                        .observeAdditions()
-                        .pipe(mergeMap((items) => plexUtils.enhanceItems(items, this.parent)))
-                        .subscribe(logger)
-                );
-            }
-        }
     }
 
     private async fetch(pageNumber: number): Promise<Page<T>> {
@@ -122,12 +95,10 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             plexItems = Metadata;
             total = totalSize || size;
         }
-        if (this.isLookup) {
-            [plexItems, albums] = await Promise.all([
-                plexApi.getMetadata(plexItems.map((item) => item.ratingKey)),
-                plexUtils.getMediaAlbums(plexItems),
-            ]);
-        }
+        [plexItems, albums] = await Promise.all([
+            plexApi.getMetadata(plexItems.map((item) => item.ratingKey)),
+            plexUtils.getMediaAlbums(plexItems),
+        ]);
         const items = plexUtils.createMediaObjects<T>(plexItems, this.parent, albums);
         return {items, total};
     }

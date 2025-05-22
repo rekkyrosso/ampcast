@@ -7,14 +7,20 @@ const logger = new Logger('showPopupMenu');
 
 export default async function showPopupMenu<T extends string>(
     PopupMenu: React.FC<PopupMenuProps<T>>,
+    target: HTMLElement,
     x: number,
     y: number,
     align?: 'left' | 'right'
 ): Promise<T | undefined> {
     return new Promise((resolve, reject) => {
-        const popupRoot = document.getElementById('popup');
+        const popupRoot = target.closest('dialog,.layer')!;
         const rootElement = document.createElement('div');
         const root = createRoot(rootElement);
+        if (popupRoot.nodeName === 'DIALOG') {
+            const rect = popupRoot.getBoundingClientRect();
+            x -= rect.left;
+            y -= rect.top;
+        }
         const unmount = () => {
             rootElement.remove();
             root.unmount();

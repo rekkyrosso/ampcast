@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {from} from 'rxjs';
+import {defer} from 'rxjs';
 import {getMusicKitInstance} from '../appleAuth';
 
 export default function useMusicKit(devToken: string) {
@@ -8,7 +8,7 @@ export default function useMusicKit(devToken: string) {
 
     useEffect(() => {
         if (devToken) {
-            const subscription = from(getMusicKitInstance()).subscribe({
+            const subscription = defer(() => getMusicKitInstance()).subscribe({
                 next: setMusicKit,
                 error: setError,
             });

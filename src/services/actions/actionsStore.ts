@@ -16,9 +16,9 @@ import Dexie, {liveQuery} from 'dexie';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import MediaService from 'types/MediaService';
-import {getService, getServiceFromSrc, observeEnabledServices} from 'services/mediaServices';
 import {Logger, chunk, groupBy} from 'utils';
-import {dispatchMediaObjectChanges} from './mediaObjectChanges';
+import {getService, getServiceFromSrc, observeEnabledServices} from 'services/mediaServices';
+import {dispatchMetadataChanges} from 'services/metadata';
 
 export type StorableMediaObject = Omit<MediaObject, 'pager'>;
 
@@ -94,7 +94,7 @@ class ActionsStore extends Dexie {
                     }
                     await service.rate(item, rating);
                 }
-                dispatchMediaObjectChanges({
+                dispatchMetadataChanges({
                     match: (object) => service.compareForRating(object, item),
                     values: {rating},
                 });
@@ -125,7 +125,7 @@ class ActionsStore extends Dexie {
                 } else {
                     await service.store(item, inLibrary);
                 }
-                dispatchMediaObjectChanges({
+                dispatchMetadataChanges({
                     match: (object) => service.compareForRating(object, item),
                     values: {inLibrary},
                 });
@@ -177,7 +177,7 @@ class ActionsStore extends Dexie {
         const applyChanges = async (items: readonly T[]): Promise<void> => {
             const srcs = items.map((item) => item.src);
             await this.ratingChanges.bulkDelete(srcs);
-            dispatchMediaObjectChanges({
+            dispatchMetadataChanges({
                 match: (object) => items.some((item) => service.compareForRating(object, item)),
                 values: {rating},
             });
@@ -204,7 +204,7 @@ class ActionsStore extends Dexie {
         const applyChanges = async (items: readonly T[]): Promise<void> => {
             const srcs = items.map((item) => item.src);
             await this.inLibraryChanges.bulkDelete(srcs);
-            dispatchMediaObjectChanges({
+            dispatchMetadataChanges({
                 match: (object) => items.some((item) => service.compareForRating(object, item)),
                 values: {inLibrary},
             });

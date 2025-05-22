@@ -3,10 +3,9 @@ import MediaItem from 'types/MediaItem';
 import MediaServiceId from 'types/MediaServiceId';
 import {Logger} from 'utils';
 import {getService} from 'services/mediaServices';
-import {addRecentPlaylist} from 'services/recentPlaylists';
+import {addRecentPlaylist, getPlaylistItemsByService} from 'services/recentPlaylists';
 import Dialog, {DialogProps, alert, error, showDialog} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
-import usePlaylistItemsByService from './usePlaylistItemsByService';
 import './CreatePlaylistDialog.scss';
 
 const logger = new Logger('CreatePlaylistDialog');
@@ -30,7 +29,7 @@ export default function CreatePlaylistDialog<T extends MediaItem>({
     const nameRef = useRef<HTMLInputElement>(null);
     const descriptionRef = useRef<HTMLTextAreaElement>(null);
     const isPublicRef = useRef<HTMLInputElement>(null);
-    const itemsByService = usePlaylistItemsByService(items);
+    const itemsByService = getPlaylistItemsByService(items);
     const [serviceId, setServiceId] = useState<MediaServiceId>(() => itemsByService[0]?.service.id);
     const size = items.length;
 
@@ -67,6 +66,7 @@ export default function CreatePlaylistDialog<T extends MediaItem>({
         <Dialog
             {...props}
             className={`create-playlist-dialog service-${serviceId || ''}`}
+            icon="playlist"
             title="Create Playlist"
         >
             <form method="dialog" onSubmit={handleSubmit}>
@@ -109,7 +109,7 @@ export default function CreatePlaylistDialog<T extends MediaItem>({
                         />
                     </p>
                 </div>
-                <DialogButtons submitText="Save" />
+                <DialogButtons submitText="Create playlist" />
             </form>
         </Dialog>
     );

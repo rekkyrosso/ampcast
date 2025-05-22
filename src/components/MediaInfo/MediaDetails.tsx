@@ -13,7 +13,7 @@ import './MediaDetails.scss';
 export default function MediaDetails<T extends MediaObject>({item}: MediaInfoProps<T>) {
     const object = useMemo(() => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const {pager, parent, ...object} = item as any;
+        const {pager, parentFolder, ...object} = item as any;
         return object;
     }, [item]);
 

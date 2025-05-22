@@ -10,7 +10,7 @@ import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
-import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
+import {dispatchMetadataChanges} from 'services/metadata';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
@@ -239,7 +239,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             title: track.name,
             artists: track.artists?.map((artist) => artist.name),
             albumArtist: album?.artists.map((artist) => artist.name).join(', '),
-            album: album?.name,
+            album: album?.name || '',
             duration: track.duration_ms / 1000,
             playedAt: track.played_at
                 ? Math.floor((new Date(track.played_at).getTime() || 0) / 1000)
@@ -383,7 +383,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
                         return spotifyApi.containsMySavedTracks(ids);
                 }
             });
-            dispatchMediaObjectChanges(
+            dispatchMetadataChanges(
                 items.map(({src}, index) => ({
                     match: (item: MediaObject) => item.src === src,
                     values: {inLibrary: inLibrary[index]},

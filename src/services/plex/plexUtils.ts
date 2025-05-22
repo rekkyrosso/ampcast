@@ -16,7 +16,7 @@ import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
 import {Logger, uniq} from 'utils';
 import {MAX_DURATION} from 'services/constants';
-import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
+import {dispatchMetadataChanges} from 'services/metadata';
 import SimplePager from 'services/pagers/SimplePager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import WrappedPager from 'services/pagers/WrappedPager';
@@ -259,7 +259,7 @@ const plexUtils = {
             title: folder.title,
             fileName: folder.title,
             path: parent?.itemType === ItemType.Folder ? `${parent.path}/${folder.title}` : '/',
-            parent: parent as ParentOf<MediaFolder>,
+            parentFolder: parent as ParentOf<MediaFolder>,
         };
         mediaFolder.pager = this.createFolderPager(mediaFolder as MediaFolder, parent);
         return mediaFolder as MediaFolder;
@@ -287,7 +287,7 @@ const plexUtils = {
             const enhancedItems = plexObjects.map((object: plex.MediaObject) =>
                 plexUtils.createMediaObject(object, parent, albums, true)
             );
-            dispatchMediaObjectChanges<MediaObject>(
+            dispatchMetadataChanges<T>(
                 enhancedItems.map((item) => ({
                     match: (object: MediaObject) => object.src === item.src,
                     values: item,

@@ -5,19 +5,19 @@ import MediaInfo, {MediaInfoProps} from './MediaInfo';
 import MediaDetails from './MediaDetails';
 import './MediaInfoTabs.scss';
 
-export default function MediaInfoTabs<T extends MediaObject>(props: MediaInfoProps<T>) {
+export default function MediaInfoTabs<T extends MediaObject>({item}: MediaInfoProps<T>) {
     const tabs: TabItem[] = useMemo(
         () => [
             {
                 tab: 'General',
-                panel: <MediaInfo {...props} />,
+                panel: <MediaInfo item={item} />,
             },
             {
                 tab: 'Details',
-                panel: <MediaDetails {...props} />,
+                panel: <MediaDetails item={item} />,
             },
         ],
-        [props]
+        [item]
     );
     return <TabList className="media-info-tabs" items={tabs} label="Media Info" />;
 }

@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {from, map, take, tap} from 'rxjs';
+import {defer, map, take, tap} from 'rxjs';
 import {formatDate} from 'utils';
 import listenbrainzApi from '../listenbrainzApi';
 import listenbrainzSettings from '../listenbrainzSettings';
@@ -13,7 +13,7 @@ export default function useHistoryStart() {
     useEffect(() => {
         if (noStartDate) {
             setStartedAt(serviceStartDate);
-            const subscription = from(listenbrainzApi.getListens({count: 1}))
+            const subscription = defer(() => listenbrainzApi.getListens({count: 1}))
                 .pipe(
                     map(({payload}) => formatDate(Number(payload.oldest_listen_ts) * 1000)),
                     tap(

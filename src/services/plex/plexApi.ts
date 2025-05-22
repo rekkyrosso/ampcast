@@ -145,7 +145,10 @@ async function createPlaylist(
     return playlist as plex.Playlist;
 }
 
-async function createPlayQueue({src}: {src: string}): Promise<plex.PlayQueue> {
+async function createPlayQueue(
+    {src}: {src: string},
+    params: Record<string, any> = {}
+): Promise<plex.PlayQueue> {
     const [, type, ratingKey] = src.split(':');
     const key = type === 'radio' ? ratingKey : `/library/metadata/${ratingKey}`;
     const {MediaContainer: playQueue} = await fetchJSON<plex.PlayQueueResponse>({
@@ -158,6 +161,7 @@ async function createPlayQueue({src}: {src: string}): Promise<plex.PlayQueue> {
             continuous: '0',
             repeat: '0',
             own: '1',
+            ...params,
         },
     });
     return playQueue;

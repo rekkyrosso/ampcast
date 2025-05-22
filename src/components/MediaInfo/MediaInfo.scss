@@ -125,7 +125,11 @@
         font-size: 1.375em;
 
         .star-rating {
-            font-size: 1.25em;
+            font-size: 1.125em;
+
+            &:not(:last-child) {
+                margin-right: 0.5em;
+            }
         }
     }
 

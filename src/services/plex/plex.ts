@@ -707,8 +707,8 @@ function canPin(item: MediaObject): boolean {
     return item.itemType === ItemType.Playlist;
 }
 
-function canRate<T extends MediaObject>(item: T, inline?: boolean): boolean {
-    if (inline || !item.src.startsWith('plex:') || item.synthetic) {
+function canRate<T extends MediaObject>(item: T, inListView?: boolean): boolean {
+    if (inListView || !item.src.startsWith('plex:') || item.synthetic) {
         return false;
     }
     switch (item.itemType) {

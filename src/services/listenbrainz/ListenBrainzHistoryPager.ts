@@ -138,7 +138,7 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
     private createItem(item: ListenBrainz.Listen): MediaItem {
         const data = item.track_metadata;
         const {additional_info: info, mbid_mapping: mbids} = data;
-        const mbid = data.mbid_mapping?.recording_mbid || undefined;
+        const mbid = data.mbid_mapping?.recording_mbid;
         const playableSrc = this.getPlayableSrc(info) || '';
 
         return {

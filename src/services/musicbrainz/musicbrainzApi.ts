@@ -1,10 +1,13 @@
-import type {AddMetadataOptions} from 'services/metadata';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import {Logger, RateLimiter, filterNotEmpty, uniq} from 'utils';
-import {filterMatches, findBestMatch} from 'services/metadata';
-import {dispatchMediaObjectChanges} from 'services/actions/mediaObjectChanges';
+import {
+    AddMetadataOptions,
+    dispatchMetadataChanges,
+    filterMatches,
+    findBestMatch,
+} from 'services/metadata';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import MusicBrainzAlbumTracksPager from './MusicBrainzAlbumTracksPager';
 import digitalFormats from './digitalFormats';
@@ -104,29 +107,29 @@ async function addMetadata<T extends MediaItem>(
     const noLookup: LookupItem<T>[] = [];
     const byTrackId: LookupItem<T>[] = [];
     const byRecordingId: LookupItem<T>[] = [];
-    const byReleaseId: LookupItem<T>[] = [];
     const byISRC: LookupItem<T>[] = [];
     const bySearch: LookupItem<T>[] = [];
 
     for (const lookupItem of lookupItems) {
         const {recording_mbid, release_mbid, track_mbid, isrc} = lookupItem.item;
-        if (recording_mbid && release_mbid && track_mbid && isrc && !overWrite) {
+        if (recording_mbid && track_mbid && !overWrite) {
             noLookup.push(lookupItem);
+        } else if (lookupItems.length === 1 && !strictMatch) {
+            bySearch.push(lookupItem);
         } else if (track_mbid) {
             byTrackId.push(lookupItem);
         } else if (recording_mbid && release_mbid) {
             byRecordingId.push(lookupItem);
         } else if (strictMatch) {
             noLookup.push(lookupItem);
-            // Matches are less precise below here (but still pretty good).
+        } else if (lookupItems.length === 1) {
+            bySearch.push(lookupItem);
         } else if (recording_mbid) {
             byRecordingId.push(lookupItem);
         } else if (isrc) {
             byISRC.push(lookupItem);
-        } else if (release_mbid && lookupItems.length === 1) {
-            byReleaseId.push(lookupItem);
         } else {
-            bySearch.push(lookupItem);
+            noLookup.push(lookupItem);
         }
     }
 
@@ -136,7 +139,6 @@ async function addMetadata<T extends MediaItem>(
                 Promise.resolve(noLookup),
                 addMetadataByTrackId(byTrackId, overWrite, requestInit),
                 addMetadataByRecordingId(byRecordingId, overWrite, requestInit),
-                addMetadataByReleaseId(byReleaseId, overWrite, requestInit),
                 addMetadataByISRC(byISRC, overWrite, requestInit),
                 addMetadataBySearch(bySearch, overWrite, requestInit),
             ])
@@ -187,10 +189,12 @@ async function addMetadataByTrackId<T extends MediaItem>(
                 foundItem,
                 overWrite
             );
-            dispatchMediaObjectChanges<MediaItem>({
-                match: (item) => item.track_mbid === track_mbid,
-                values,
-            });
+            if (!overWrite) {
+                dispatchMetadataChanges<MediaItem>({
+                    match: (item) => item.track_mbid === track_mbid,
+                    values,
+                });
+            }
             return {item: {...item, ...values}, index};
         } else {
             return lookupItem;
@@ -232,10 +236,12 @@ async function addMetadataByRecordingId<T extends MediaItem>(
                 foundItem,
                 overWrite
             );
-            dispatchMediaObjectChanges<MediaItem>({
-                match: (item) => item.recording_mbid === recording_mbid,
-                values,
-            });
+            if (!overWrite) {
+                dispatchMetadataChanges<MediaItem>({
+                    match: (item) => item.recording_mbid === recording_mbid,
+                    values,
+                });
+            }
             return {item: {...item, ...values}, index};
         } else {
             return lookupItem;
@@ -274,54 +280,17 @@ async function addMetadataByISRC<T extends MediaItem>(
                 foundItem,
                 overWrite
             );
-            dispatchMediaObjectChanges<MediaItem>({
-                match: (item) => item.isrc === isrc,
-                values,
-            });
+            if (!overWrite) {
+                dispatchMetadataChanges<MediaItem>({
+                    match: (item) => item.isrc === isrc,
+                    values,
+                });
+            }
             return {item: {...item, ...values}, index};
         } else {
             return lookupItem;
         }
     });
-}
-
-async function addMetadataByReleaseId<T extends MediaItem>(
-    lookupItems: readonly LookupItem<T>[],
-    overWrite?: boolean,
-    requestInit?: RequestInitWithTimeout
-): Promise<readonly LookupItem<T>[]> {
-    // Can only do one album at once.
-    if (lookupItems.length !== 1) {
-        return lookupItems;
-    }
-    const [lookupItem] = lookupItems;
-    const {item, index} = lookupItem;
-    const release_mbid = item.release_mbid!;
-    const recording_mbid = item.recording_mbid;
-    const src = item.src;
-    const pager = new MusicBrainzAlbumTracksPager(release_mbid);
-    const items = await fetchFirstPage(pager, requestInit);
-    const foundItem = recording_mbid
-        ? items.find((item) => item.recording_mbid === recording_mbid)
-        : findBestMatch(items, item);
-    if (foundItem) {
-        const {recording_mbid, artist_mbids, track_mbid} = foundItem;
-        const values = addMissingValues(
-            {recording_mbid, artist_mbids, track_mbid},
-            item,
-            foundItem,
-            overWrite
-        );
-        dispatchMediaObjectChanges<MediaItem>({
-            match: (item) =>
-                item.release_mbid === release_mbid &&
-                (recording_mbid ? item.recording_mbid === recording_mbid : item.src === src),
-            values,
-        });
-        return [{item: {...item, ...values}, index}];
-    } else {
-        return lookupItems;
-    }
 }
 
 async function addMetadataBySearch<T extends MediaItem>(
@@ -338,8 +307,7 @@ async function addMetadataBySearch<T extends MediaItem>(
     const title = item.title;
     const artist = item.artists?.[0];
     if (title && artist) {
-        const src = item.src;
-        const foundItem = await lookup(lookupItem.item, requestInit);
+        const foundItem = await lookup(item, requestInit);
         if (foundItem) {
             const {recording_mbid, artist_mbids, release_mbid, track_mbid} = foundItem;
             const values = addMissingValues(
@@ -348,10 +316,13 @@ async function addMetadataBySearch<T extends MediaItem>(
                 foundItem,
                 overWrite
             );
-            dispatchMediaObjectChanges<MediaItem>({
-                match: (item) => item.src === src,
-                values,
-            });
+            if (!overWrite) {
+                const src = item.src;
+                dispatchMetadataChanges<MediaItem>({
+                    match: (item) => item.src === src,
+                    values,
+                });
+            }
             return [{item: {...item, ...values}, index}];
         }
     }

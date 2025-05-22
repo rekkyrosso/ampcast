@@ -1,5 +1,5 @@
 import {useEffect, useState} from 'react';
-import {filter, from, map, mergeMap, of, tap, throwError} from 'rxjs';
+import {defer, filter, map, mergeMap, of, tap, throwError} from 'rxjs';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {exists, formatDate, Logger} from 'utils';
 import lastfmApi from '../lastfmApi';
@@ -18,7 +18,7 @@ export default function useHistoryStart() {
     useEffect(() => {
         if (noStartDate) {
             setStartedAt(serviceStartDate);
-            const subscription = from(lastfmApi.getUserInfo())
+            const subscription = defer(() => lastfmApi.getUserInfo())
                 .pipe(
                     map((info) => Number(info.user.playcount)),
                     mergeMap((playCount) =>

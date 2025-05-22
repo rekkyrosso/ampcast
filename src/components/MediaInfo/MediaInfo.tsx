@@ -15,16 +15,13 @@ import ExternalLink from 'components/ExternalLink';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import TextBox from 'components/TextBox';
 import {formatTime} from 'utils';
-import useCurrentItem from './useCurrentItem';
 import './MediaInfo.scss';
 
 export interface MediaInfoProps<T extends MediaObject> {
     item: T;
 }
 
-export default function MediaInfo<T extends MediaObject>(props: MediaInfoProps<T>) {
-    const item = useCurrentItem(props.item);
-
+export default function MediaInfo<T extends MediaObject>({item}: MediaInfoProps<T>) {
     switch (item.itemType) {
         case ItemType.Media:
             return <MediaItemInfo item={item} />;

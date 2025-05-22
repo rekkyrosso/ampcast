@@ -53,7 +53,7 @@ export default function PopupMenuItem<T extends string>({
     }, []);
 
     const handleFocus = useCallback(() => {
-        onResize();
+        onResize(); // TODO: Why do I need this?
         setPopupHidden(false);
     }, [onResize]);
 

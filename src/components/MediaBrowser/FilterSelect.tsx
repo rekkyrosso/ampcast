@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useId, useState} from 'react';
-import {from} from 'rxjs';
+import {defer} from 'rxjs';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import MediaFilter from 'types/MediaFilter';
@@ -33,7 +33,7 @@ export default function FilterSelect({
     }, [filter, onSelect]);
 
     useEffect(() => {
-        const subscription = from(service.getFilters!(filterType, itemType)).subscribe({
+        const subscription = defer(() => service.getFilters!(filterType, itemType)).subscribe({
             next: setFilters,
             error: onError,
         });

@@ -13,7 +13,7 @@ export default interface Player<T> {
     observeDuration(): Observable<number>;
     observeEnded(): Observable<void>;
     observeError(): Observable<unknown>;
-    observeNowPlaying?(item: PlaylistItem): Observable<PlaylistItem>;
+    observeNowPlaying?(item: PlaylistItem): Observable<PlaylistItem>; // radio playback
     observePlaying(): Observable<void>;
     appendTo(parentElement: HTMLElement): void;
     load(src: T): void;
@@ -22,7 +22,7 @@ export default interface Player<T> {
     play(): void;
     resize(width: number, height: number): void;
     seek(time: number): void;
-    skipNext?(): Promise<void>;
-    skipPrev?(): Promise<void>;
+    skipNext?(): Promise<void>; // radio playback
+    skipPrev?(): Promise<void>; // radio playback
     stop(): void;
 }

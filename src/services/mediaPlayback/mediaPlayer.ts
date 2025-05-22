@@ -61,6 +61,14 @@ mediaPlayer.registerPlayers([
     [html5AudioPlayer, (item) => item?.mediaType === MediaType.Audio],
     [html5VideoPlayer, (item) => item?.mediaType === MediaType.Video],
     [
+        hlsAudioPlayer,
+        (item) => item?.mediaType === MediaType.Audio && item.playbackType === PlaybackType.HLS,
+    ],
+    [
+        hlsVideoPlayer,
+        (item) => item?.mediaType === MediaType.Video && item.playbackType === PlaybackType.HLS,
+    ],
+    [
         icecastPlayer,
         (item) =>
             item?.mediaType === MediaType.Audio &&
@@ -69,17 +77,9 @@ mediaPlayer.registerPlayers([
             ),
     ],
     [
-        hlsAudioPlayer,
-        (item) => item?.mediaType === MediaType.Audio && item.playbackType === PlaybackType.HLS,
-    ],
-    [
         hlsMetadataPlayer,
         (item) =>
             item?.mediaType === MediaType.Audio && item.playbackType === PlaybackType.HLSMetadata,
-    ],
-    [
-        hlsVideoPlayer,
-        (item) => item?.mediaType === MediaType.Video && item.playbackType === PlaybackType.HLS,
     ],
     [mixcloudPlayer, (item) => !!item?.src.startsWith('mixcloud:')],
     [soundcloudPlayer, (item) => !!item?.src.startsWith('soundcloud:')],

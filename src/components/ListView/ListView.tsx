@@ -678,11 +678,7 @@ function isRowSelectedFromMouseEvent(event: React.MouseEvent): boolean {
 }
 
 function getRowFromMouseEvent(event: React.MouseEvent): HTMLElement | null {
-    let target: HTMLElement | null = event.target as HTMLElement;
-    while (target && !target?.hasAttribute('aria-posinset')) {
-        target = target.parentElement;
-    }
-    return target;
+    return (event.target as HTMLElement).closest('[aria-posinset]');
 }
 
 function getRowByIndex(listView: HTMLElement, rowIndex: number): HTMLElement | null {
