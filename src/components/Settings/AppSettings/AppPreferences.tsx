@@ -43,7 +43,9 @@ export default function AppPreferences() {
                             defaultChecked={originalPreferences.miniPlayer}
                             onChange={(e) => (preferences.miniPlayer = e.target.checked)}
                         />
-                        <label htmlFor={`${id}-mini-player`}>Enable popout playback window</label>
+                        <label htmlFor={`${id}-mini-player`}>
+                            Enable popout playback window (experimental)
+                        </label>
                     </p>
                 )}
             </fieldset>
@@ -79,9 +81,7 @@ export default function AppPreferences() {
                         defaultChecked={originalPreferences.mediaInfoTabs}
                         onChange={(e) => (preferences.mediaInfoTabs = e.target.checked)}
                     />
-                    <label htmlFor={`${id}-media-info-tabs`}>
-                        Show &quot;Details&quot; panel
-                    </label>
+                    <label htmlFor={`${id}-media-info-tabs`}>Show &quot;Details&quot; panel</label>
                 </p>
             </fieldset>
             <DialogButtons />

@@ -1,3 +1,5 @@
+@use 'styles/effects.scss';
+
 .badge {
     display: inline-flex;
     flex-direction: row;
@@ -66,5 +68,10 @@
 
     & ~ .badge {
         margin-left: 0.75em;
+    }
+
+    .focus-visible &:focus {
+        @include effects.outline;
+        outline-width: 2px;
     }
 }

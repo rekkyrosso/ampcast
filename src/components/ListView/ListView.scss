@@ -24,6 +24,10 @@
         display: block;
     }
 
+    &-row {
+        overflow: hidden;
+    }
+
     &-head &-row {
         position: relative;
     }

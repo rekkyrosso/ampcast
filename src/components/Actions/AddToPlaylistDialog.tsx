@@ -11,6 +11,7 @@ import Dialog, {DialogProps, error, showDialog} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import PlaylistList from 'components/MediaList/PlaylistList';
 import useEditablePlaylistsPager from './useEditablePlaylistsPager';
+import usePlaylistItems from './usePlaylistItems';
 import './AddToPlaylistDialog.scss';
 
 const logger = new Logger('AddToPlaylistDialog');
@@ -37,11 +38,12 @@ export default function AddToPlaylistDialog<T extends MediaItem>({
     const id = useId();
     const dialogRef = useRef<HTMLDialogElement>(null);
     const serviceRef = useRef<HTMLSelectElement>(null);
-    const itemsByService = getPlaylistItemsByService(items);
+    const playlistItems = usePlaylistItems(items);
+    const itemsByService = getPlaylistItemsByService(playlistItems);
     const [selectedService, setSelectedService] = useState<MediaService | null>(null);
     const playlistsPager = useEditablePlaylistsPager(selectedService);
     const [selectedPlaylist, setSelectedPlaylist] = useState<MediaPlaylist | null>(null);
-    const size = items.length;
+    const size = playlistItems.length;
 
     useEffect(() => {
         setSelectedService((service) => service || itemsByService[0]?.service || null);

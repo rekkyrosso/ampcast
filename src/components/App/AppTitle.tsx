@@ -1,8 +1,8 @@
-import React from 'react';
+import React, {memo} from 'react';
 import Icon from 'components/Icon';
 import './AppTitle.scss';
 
-export default function AppTitle() {
+export default memo(function AppTitle() {
     return (
         <h1 className="app-title">
             <span className="app-name">
@@ -12,4 +12,4 @@ export default function AppTitle() {
             <span className="app-version">{__app_version__}</span>
         </h1>
     );
-}
+});

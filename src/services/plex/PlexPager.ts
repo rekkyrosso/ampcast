@@ -61,7 +61,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         this.pager.fetchAt(index, length);
     }
 
-    private get isSearch(): boolean {
+    private get isSearchPager(): boolean {
         const {path, params} = this.request;
         return (
             path.endsWith('/all') &&
@@ -84,7 +84,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
         let plexItems: readonly plex.MediaObject[];
         let albums: readonly MediaAlbum[] = [];
         let total = 0;
-        if (this.isSearch && pageNumber === 1) {
+        if (this.isSearchPager && pageNumber === 1) {
             const page = await plexApi.search(request);
             plexItems = page.items;
             total = page.total || plexItems.length;
@@ -96,7 +96,7 @@ export default class PlexPager<T extends MediaObject> implements Pager<T> {
             total = totalSize || size;
         }
         [plexItems, albums] = await Promise.all([
-            plexApi.getMetadata(plexItems.map((item) => item.ratingKey)),
+            plexUtils.getMetadata(plexItems),
             plexUtils.getMediaAlbums(plexItems),
         ]);
         const items = plexUtils.createMediaObjects<T>(plexItems, this.parent, albums);

@@ -272,8 +272,8 @@ const navidromeRadio: MediaSource<MediaItem> = {
     linearType: LinearType.Station,
     defaultHidden: true,
     layout: {
-        view: 'card',
-        fields: ['Thumbnail', 'Title', 'Blurb'],
+        view: 'card minimal',
+        fields: ['Thumbnail', 'Title'],
     },
 
     search(): Pager<MediaItem> {

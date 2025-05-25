@@ -27,10 +27,7 @@ interface HLSMetadata {
 }
 
 export class HLSMetadataPlayer extends HLSPlayer {
-    protected config: Partial<HlsConfig> = {
-        enableID3MetadataCues: true,
-        liveDurationInfinity: true,
-    };
+    protected config: Partial<HlsConfig> = {enableID3MetadataCues: true};
     private readonly metadata$ = new Subject<HLSMetadata | undefined>();
     private currentStationName = '';
 
@@ -79,44 +76,53 @@ export class HLSMetadataPlayer extends HLSPlayer {
         metadata: HLSMetadata,
         container: PlaylistItem
     ): Promise<PlaylistItem> {
-        const id3 = this.createId3TagReader(metadata);
-        const artist = id3('TPE1');
-        const stationName = id3('TRSN');
-        const item = await addMetadata<PlaylistItem>(
-            {
-                id: nanoid(),
-                src: `internet-radio:track:${metadata.key}`,
-                itemType: ItemType.Media,
-                mediaType: MediaType.Audio,
-                linearType: LinearType.MusicTrack,
-                title: metadata.title,
-                description: id3('TIT3'),
-                album: id3('ALB'),
-                artists: artist ? [artist] : undefined,
-                stationName:
-                    container.linearType === LinearType.Station ? container.title : stationName,
-                duration: Number(id3('TLEN')) / 1000 || 0,
-                playedAt: 0,
-                year: Number(id3('TORY')) || undefined,
-                unplayable: true,
-                badge: id3('TFLT'),
-                bitRate: Number(id3('TXXX', 'adr')) || undefined,
-                isrc: id3('TSRC'),
-                externalUrl: id3('WORS'),
-            },
-            true
-        );
-        if (stationName && stationName !== this.currentStationName) {
-            this.currentStationName = stationName;
-            this.updateStationMetadata(stationName, metadata, container);
+        if (__dev__) {
+            this.logger.info('onMetadata', metadata);
         }
-        if (!item.thumbnails) {
-            const thumbnails = this.createThumbnails(metadata.tags.WXXX) || container.thumbnails;
-            if (thumbnails) {
-                return {...item, thumbnails};
+        try {
+            const id3 = this.createId3TagReader(metadata);
+            const artist = id3('TPE1');
+            const stationName = id3('TRSN');
+            const item = await addMetadata<PlaylistItem>(
+                {
+                    id: nanoid(),
+                    src: `internet-radio:track:${metadata.key}`,
+                    itemType: ItemType.Media,
+                    mediaType: MediaType.Audio,
+                    linearType: LinearType.MusicTrack,
+                    title: metadata.title,
+                    description: id3('TIT3'),
+                    album: id3('ALB'),
+                    artists: artist ? [artist] : undefined,
+                    stationName:
+                        container.linearType === LinearType.Station ? container.title : stationName,
+                    duration: Number(id3('TLEN')) / 1000 || 0,
+                    playedAt: 0,
+                    year: Number(id3('TORY')) || undefined,
+                    unplayable: true,
+                    badge: id3('TFLT'),
+                    bitRate: Number(id3('TXXX', 'adr')) || undefined,
+                    isrc: id3('TSRC'),
+                    externalUrl: id3('WORS'),
+                },
+                true
+            );
+            if (stationName && stationName !== this.currentStationName) {
+                this.currentStationName = stationName;
+                this.updateStationMetadata(stationName, metadata, container);
             }
+            if (!item.thumbnails) {
+                const thumbnails =
+                    this.createThumbnails(metadata.tags.WXXX) || container.thumbnails;
+                if (thumbnails) {
+                    return {...item, thumbnails};
+                }
+            }
+            return item;
+        } catch (err) {
+            this.logger.error(err);
+            return container;
         }
-        return item;
     }
 
     private createThumbnails(

@@ -24,6 +24,8 @@ import MusicKitPager from './MusicKitPager';
 
 const logger = new Logger('MusicKitUtils');
 
+const webHost = 'https://music.apple.com';
+
 type LibrarySong = Omit<AppleMusicApi.Song, 'type'> & {type: 'library-songs'};
 type MusicVideo = Omit<AppleMusicApi.Song, 'type'> & {type: 'music-videos'};
 type Station = Omit<AppleMusicApi.Station, 'type'> & {
@@ -107,7 +109,7 @@ const musicKitUtils = {
         const mediaPlaylist: Writable<SetOptional<SetRequired<MediaPlaylist, 'apple'>, 'pager'>> = {
             src,
             itemType: ItemType.Playlist,
-            externalUrl: this.getExternalUrl(playlist),
+            externalUrl: item.url,
             title: item.name,
             description: description ? getTextFromHtml(description) : undefined,
             thumbnails: this.createThumbnails(item),
@@ -139,7 +141,7 @@ const musicKitUtils = {
         return {
             itemType: ItemType.Artist,
             src: `apple:${artist.type}:${artist.id}`,
-            externalUrl: this.getExternalUrl(artist),
+            externalUrl: item.url,
             title: item.name,
             description: description ? getTextFromHtml(description) : undefined,
             thumbnails: this.createThumbnails(item as any),
@@ -158,7 +160,7 @@ const musicKitUtils = {
         const mediaAlbum: Writable<SetOptional<SetRequired<MediaAlbum, 'apple'>, 'pager'>> = {
             itemType: ItemType.Album,
             src,
-            externalUrl: this.getExternalUrl(album),
+            externalUrl: item.url,
             title: item.name,
             description: description ? getTextFromHtml(description) : undefined,
             thumbnails: this.createThumbnails(item),
@@ -170,7 +172,7 @@ const musicKitUtils = {
             inLibrary: album.type.startsWith('library-') || undefined,
             copyright: item?.copyright,
             explicit: item?.contentRating === 'explicit',
-            shareLink: item.url || undefined,
+            shareLink: this.createShareLink('album', item.name, catalogId),
             apple: {catalogId},
         };
         mediaAlbum.pager = new MusicKitPager(
@@ -196,17 +198,13 @@ const musicKitUtils = {
         const isLibraryItem = song.type.startsWith('library-');
         const isPlaylistItem = parent?.itemType === ItemType.Playlist;
         const catalogId = this.getCatalogId(song);
-        let externalUrl = item.url || undefined;
-        if (!externalUrl && catalogId && parent?.itemType === ItemType.Album && parent.shareLink) {
-            externalUrl = `${parent.shareLink}?i=${catalogId}`;
-        }
 
         const mediaItem: Writable<SetRequired<MediaItem, 'apple'>> = {
             itemType: ItemType.Media,
             mediaType: kind === 'musicVideo' ? MediaType.Video : MediaType.Audio,
             playbackType: PlaybackType.HLS,
             src,
-            externalUrl,
+            externalUrl: item.url,
             title: item.name,
             description: description ? getTextFromHtml(description) : undefined,
             thumbnails: this.createThumbnails(item),
@@ -224,7 +222,11 @@ const musicKitUtils = {
             inLibrary: (isLibraryItem && !isPlaylistItem) || undefined,
             apple: {catalogId},
             explicit: item?.contentRating === 'explicit',
-            shareLink: item.url || undefined,
+            shareLink: this.createShareLink(
+                kind === 'musicVideo' ? 'music-video' : 'song',
+                item.name,
+                catalogId
+            ),
         };
         return mediaItem;
     },
@@ -253,6 +255,8 @@ const musicKitUtils = {
             duration: 0,
             playedAt: 0,
             unplayable: !catalogId || undefined,
+            shareLink:
+                type === 'shows' ? undefined : this.createShareLink('song', data.title, catalogId),
             apple: {catalogId},
         };
     },
@@ -276,7 +280,7 @@ const musicKitUtils = {
             duration: MAX_DURATION,
             playedAt: 0,
             apple: {catalogId},
-            shareLink: attributes.url || undefined,
+            shareLink: this.createShareLink('station', attributes.name, catalogId),
             skippable: !attributes.isLive,
         };
         return mediaItem;
@@ -284,6 +288,21 @@ const musicKitUtils = {
 
     createFromLibrary<T>(item: any): NonNullable<T> {
         return bestOf(item.attributes, this.getCatalog(item)?.attributes);
+    },
+
+    createShareLink(
+        type: 'song' | 'music-video' | 'album' | 'playlist' | 'artist' | 'station',
+        title: string,
+        catalogId: string
+    ): string | undefined {
+        if (catalogId) {
+            const musicKit = MusicKit.getInstance();
+            const slug = title
+                .replace(/[^\w\s]+/g, '')
+                .replace(/\s+/g, '-')
+                .toLowerCase();
+            return `${webHost}/${musicKit.storefrontId}/${type}/${slug}/${catalogId}`;
+        }
     },
 
     createThumbnails({
@@ -310,7 +329,9 @@ const musicKitUtils = {
     },
 
     createArtistAlbumsPager(artist: AppleMusicApi.Artist | LibraryArtist): Pager<MediaAlbum> {
-        const albumsPager = new MusicKitPager<MediaAlbum>(`${artist.href!}/albums`);
+        const albumsPager = new MusicKitPager<MediaAlbum>(`${artist.href!}/albums`, {
+            'include[library-albums]': 'catalog',
+        });
         if (artist.type.startsWith('library-')) {
             return albumsPager;
         }
@@ -435,15 +456,6 @@ const musicKitUtils = {
         } else {
             return item.id;
         }
-    },
-
-    getExternalUrl(item: any): string {
-        const musicKit = MusicKit.getInstance();
-        const isLibraryItem = item.type.startsWith('library-');
-        const type = item.type.replace('library-', '').replace('playlists', 'playlist');
-        return isLibraryItem
-            ? `https://music.apple.com/${musicKit.storefrontId}/library/${type}/${item.id}`
-            : item.attributes?.url;
     },
 
     getGenres({genreNames = []}: {genreNames: string[]}): readonly string[] | undefined {

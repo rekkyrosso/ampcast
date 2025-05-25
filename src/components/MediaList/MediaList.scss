@@ -186,7 +186,6 @@
             width: 6em;
             height: 6em;
             padding: 0;
-            color: var(--grey2-color);
 
             .indexed & {
                 left: 2em;
@@ -473,12 +472,8 @@
             .cover-art {
                 inset: 0.25em;
 
-                .icon {
-                    padding: 0;
-
-                    &-playlist {
-                        padding: 0.25em;
-                    }
+                .icon-playlist {
+                    padding: 0.25em;
                 }
             }
 
@@ -653,7 +648,6 @@
             border: none;
 
             .icon {
-                color: var(--text-color);
                 height: 1.25em;
                 padding: 0 !important;
             }

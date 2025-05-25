@@ -243,7 +243,7 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
         if (!this.#players.has(player)) {
             player.muted = true;
             player.hidden = true;
-            player.autoplay = this.autoplay;
+            player.autoplay = false;
             player.loop = this.loop;
             player.volume = this.volume;
             if (this.#width * this.#height > 0) {
@@ -276,7 +276,7 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
     unregisterPlayer(player: Player<S>): void {
         if (this.#players.has(player)) {
             if (this.currentPlayer === player) {
-                player.stop();
+                this.stop();
             }
             this.#players.delete(player);
         }

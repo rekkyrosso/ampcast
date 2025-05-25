@@ -1,7 +1,22 @@
+@use 'styles/effects.scss';
+
 .visualizer-coverart {
     --thumbnail-size: 45%;
     background-color: var(--background-color);
     text-rendering: optimizeLegibility;
+
+    &.arrange-row {
+        .currently-playing {
+            flex-direction: row;
+
+            .sub-title {
+                .media-source-label {
+                    display: inline-flex;
+                    align-items: flex-start;
+                }
+            }
+        }
+    }
 
     &.arrange-column {
         .currently-playing {
@@ -17,13 +32,22 @@
                 padding: 0 1em;
                 text-align: center;
             }
+
+            .sub-title {
+                .media-source-label {
+                    display: block;
+
+                    .text {
+                        display: inline;
+                    }
+                }
+            }
         }
     }
 
     .currently-playing {
         position: absolute;
         display: flex;
-        flex-direction: row;
         inset: 0;
         color: var(--text-color);
         transition: opacity 2s linear;
@@ -133,15 +157,14 @@
             }
         }
 
+        .title {
+            @include effects.line-clamp(3);
+        }
+
         .sub-title {
             margin-top: 0.5em;
             font-size: 0.75em;
             color: var(--grey2-color);
-
-            .media-source-label {
-                display: inline-flex;
-                align-items: flex-start;
-            }
         }
 
         .playback-state {

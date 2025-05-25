@@ -119,7 +119,11 @@ export default memo(function VisualizerControls({
                 {miniPlayerEnabled ? (
                     <IconButton
                         icon="link"
-                        title={miniPlayerActive ? 'Playback window' : 'Open playback in new window'}
+                        title={
+                            miniPlayerActive
+                                ? 'Playback window'
+                                : 'Open playback in new window'
+                        }
                         tabIndex={-1}
                         onClick={miniPlayer.open}
                     />

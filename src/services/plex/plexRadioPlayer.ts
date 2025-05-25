@@ -297,7 +297,7 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
         this.playQueue = await plexApi.createPlayQueue(item, {
             maxDegreesOfSeparation: plexSettings.radioDegreesOfSeparation,
         });
-        this.items = this.playQueue.Metadata.map((queueItem) => this.createMusicTrack(queueItem));
+        this.items = await this.createPlaylistItems(this.playQueue.Metadata);
         const playableItem = await this.getPlayableItem(0);
         if (!playableItem) {
             throw Error('No radio tracks');
@@ -305,7 +305,6 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
         this.loadedSrc = item.src;
         this.position$.next(0);
         this.loadPlayer(playableItem);
-        plexUtils.enhanceItems(this.items);
     }
 
     private loadPlayer(item: PlaylistItem | null): void {
@@ -334,13 +333,22 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
         }
     }
 
-    private createMusicTrack({playQueueItemID, ...track}: plex.PlayQueueItem): PlaylistItem {
-        return {
-            ...plexUtils.createMediaItemFromTrack(track),
-            id: nanoid(),
-            linearType: LinearType.MusicTrack,
-            plex: {playQueueItemID},
-        };
+    private async createPlaylistItems(
+        queueItems: readonly plex.PlayQueueItem[]
+    ): Promise<readonly PlaylistItem[]> {
+        const [tracks, albums] = await Promise.all([
+            plexUtils.getMetadata(queueItems),
+            plexUtils.getMediaAlbums(queueItems),
+        ]);
+        return tracks.map((track, index) => {
+            const album = albums.find((album) => album.src.endsWith(`:${track.parentRatingKey}`));
+            return {
+                ...plexUtils.createMediaItemFromTrack(track, album),
+                id: nanoid(),
+                linearType: LinearType.MusicTrack,
+                plex: {playQueueItemID: queueItems[index].playQueueItemID},
+            };
+        });
     }
 
     async getPlayableItem(position: number): Promise<PlaylistItem | null> {
@@ -363,14 +371,17 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
 
     private async refreshPlayQueue(): Promise<void> {
         if (this.playQueue) {
-            const existingSrcs = this.items.map((item) => item.src);
+            const existingKeys = this.items.map((item) => {
+                const [, , ratingKey] = item.src.split(':');
+                return ratingKey;
+            });
             const playQueue = await plexApi.getPlayQueue(this.playQueue.playQueueID);
-            const newItems = playQueue.Metadata.map((queueItem) =>
-                this.createMusicTrack(queueItem)
-            ).filter((item) => !existingSrcs.includes(item.src));
-            if (newItems.length > 0) {
-                this.items = this.items.concat(newItems);
-                plexUtils.enhanceItems(newItems);
+            const newQueueItems = playQueue.Metadata.filter(
+                (queueItem) => !existingKeys.includes(queueItem.ratingKey)
+            );
+            if (newQueueItems.length > 0) {
+                const items = await this.createPlaylistItems(newQueueItems);
+                this.items = this.items.concat(items);
             }
         }
     }

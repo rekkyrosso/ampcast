@@ -9,7 +9,7 @@ import MediaType from 'types/MediaType';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
-import {filterNotEmpty, getTextFromHtml, loadLibrary, uniq} from 'utils';
+import {filterNotEmpty, getTextFromHtml, loadLibrary, toUtf8, uniq} from 'utils';
 import lastfmApi from 'services/lastfm/lastfmApi';
 import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import {bestOf, findBestMatch, parsePlaylistFromUrl} from 'services/metadata';
@@ -130,9 +130,14 @@ export class IcecastPlayer extends HTML5Player {
         metadata: IcecastMetadata,
         container: PlaylistItem
     ): Promise<PlaylistItem> {
-        return container.playbackType === PlaybackType.IcecastOgg
-            ? this.createNowPlayingItemOgg(metadata, container)
-            : this.createNowPlayingItemIcy(metadata, container);
+        try {
+            return container.playbackType === PlaybackType.IcecastOgg
+                ? this.createNowPlayingItemOgg(metadata, container)
+                : this.createNowPlayingItemIcy(metadata, container);
+        } catch (err) {
+            this.logger.error(err);
+            return container;
+        }
     }
 
     private async createNowPlayingItemIcy(
@@ -140,7 +145,7 @@ export class IcecastPlayer extends HTML5Player {
         container: PlaylistItem
     ): Promise<PlaylistItem> {
         let artist = '';
-        let title = getTextFromHtml(metadata?.StreamTitle).replace(/\n+/g, ' ');
+        let title = getTextFromHtml(toUtf8(metadata?.StreamTitle || '')).replace(/\n+/g, ' ');
         let album: string | undefined;
         if (!title) {
             return container;
@@ -158,7 +163,7 @@ export class IcecastPlayer extends HTML5Player {
             splitTitle = splitTitle
                 .map((title) => title.replace(trimRegExp, ''))
                 .filter((title) => title !== '');
-            if (splitTitle.length >= 2) {
+            if (splitTitle.length > 2) {
                 splitTitle = uniq(splitTitle);
                 if (splitTitle.length > 2) {
                     splitTitle = filterNotEmpty(

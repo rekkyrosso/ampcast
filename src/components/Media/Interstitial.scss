@@ -1,3 +1,5 @@
+@use 'styles/effects.scss';
+
 .interstitial {
     --shadow-color: rgba(16, 16, 16, 0.8);
     --shadow-small: 1px 1px 0 var(--shadow-color);
@@ -46,8 +48,16 @@
             text-shadow: var(--shadow-large);
             padding-bottom: 4em;
         }
+
+        .title {            
+            @include effects.line-clamp(3);
+
+            &:has(+ .by) {                
+                -webkit-line-clamp: 2;
+            }
+        }
     
-        h3 {
+        .sub-title {
             font-size: max(0.75em, 12px);
         }
 

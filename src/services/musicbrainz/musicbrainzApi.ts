@@ -430,9 +430,9 @@ async function fetchJSON<T>(
 function findBestMBMatch(matches: readonly MBMediaItem[], item: MediaItem): MediaItem | undefined {
     matches = filterMatches(matches, item);
     matches = filterNotEmpty(matches, (item) => item.musicBrainz.status === 'Official');
+    matches = filterNotEmpty(matches, (item) => !item.musicBrainz.secondaryType);
     matches = filterNotEmpty(matches, (item) => item.musicBrainz.primaryType === 'Album');
     matches = filterNotEmpty(matches, (item) => !!item.isrc);
-    matches = filterNotEmpty(matches, (item) => !item.musicBrainz.secondaryType);
     const match = findBestMatch(matches, item);
     if (match) {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars

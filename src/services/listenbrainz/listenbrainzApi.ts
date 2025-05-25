@@ -104,18 +104,11 @@ export class ListenBrainzApi {
             const values = result.map(
                 // Make sure `recording_mbid` is not `undefined`.
                 // Otherwise we might end up searching for it again.
-                ({artist_mbids, recording_mbid = '', release_mbid, release_name}, index) => {
-                    const lookupItem = lookupItems[index];
-                    const values: Partial<MediaItem> = {
-                        artist_mbids,
-                        recording_mbid,
-                        release_mbid,
-                    };
-                    if (lookupItem.album === undefined && release_name) {
-                        (values as any).album = release_name;
-                    }
-                    return values;
-                }
+                ({artist_mbids, recording_mbid = '', release_mbid}) => ({
+                    artist_mbids,
+                    recording_mbid,
+                    release_mbid,
+                })
             );
 
             // Update `itemMap` with retrieved values.

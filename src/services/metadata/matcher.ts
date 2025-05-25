@@ -38,26 +38,27 @@ export function filterMatches<T extends MediaItem>(
     }
     if (matches.length === 0) {
         matches = items.filter((match) => compare(match, item, true, true));
+    } else {
+        matches = filterNotEmpty(matches, (match) => compare(match, item, true, true));
     }
     if (!strict) {
-        if (matches.length === 0) {
-            matches = items.filter((match) => compare(match, item, true, false));
-        }
         if (matches.length === 0) {
             matches = items.filter((match) => compare(match, item, false, false));
         }
     }
-    matches = filterNotEmpty(matches, (match) => compareAlbum(match, item));
+    matches = filterNotEmpty(matches, (match) => compareAlbum(match, item, false));
+    matches = filterNotEmpty(matches, (match) => compareAlbum(match, item, true));
+    matches = filterNotEmpty(matches, (match) => compare(match, item, true, false));
+    matches = filterNotEmpty(matches, (match) => compare(match, item, false, true));
     matches = filterNotEmpty(
         matches,
-        (match) => compareAlbum(match, item) && match.track === item.track
+        (match) => compareAlbum(match, item, false) && match.track === item.track
     );
     return matches;
 }
 
 export function isSameTrack(a: MediaItem, b: MediaItem, strict?: boolean): boolean {
     return !!findBestMatch([a], b, [], strict);
-    // && (a.album && b.album ? compareAlbum(a, b) : true); // TODO
 }
 
 function compare<T extends MediaItem>(
@@ -180,7 +181,7 @@ function compareTitle<T extends MediaItem>(match: MediaItem, item: T, strict: bo
     if (compareTitleStrings(match, match.title, title)) {
         return true;
     }
-    if (compareTitleStrings(match, trimTrackTitle(match.title), trimTrackTitle(title))) {
+    if (compareTitleStrings(match, trimTitle(match.title), trimTitle(title))) {
         return true;
     }
     return compareAlbumTrack(match, item, false);
@@ -191,7 +192,7 @@ function compareAlbumTrack<T extends MediaItem>(
     item: T,
     strict: boolean
 ): boolean {
-    if (!compareAlbum(match, item)) {
+    if (!compareAlbum(match, item, strict)) {
         return false;
     }
     if (match.track !== item.track) {
@@ -239,25 +240,34 @@ function compareTitleStrings(match: MediaItem, matchedTitle: string, title: stri
     return false;
 }
 
-function compareAlbum<T extends MediaItem>(match: MediaItem, item: T): boolean {
+function compareAlbum<T extends MediaItem>(match: MediaItem, item: T, strict: boolean): boolean {
     if (!match.album || !item.album) {
         return false;
     }
     if (item.release_mbid && item.release_mbid === match.release_mbid) {
         return true;
     }
-    return compareString(normalize(item.album), normalize(match.album));
+    if (compareString(normalize(item.album), normalize(match.album))) {
+        return true;
+    }
+    if (strict) {
+        return false;
+    }
+    const normalizeAlbum = (title = '') =>
+        normalize(trimTitle(title.replace(/\s*-\s*EP$/i, '')), true).toLowerCase();
+    return fuzzyCompare(normalizeAlbum(item.album), normalizeAlbum(match.album));
 }
 
-function trimTrackTitle(title: string): string {
+function trimTitle(title: string): string {
     // Remove remaster tags.
     // e.g. "Disorder (2007 Remaster)" => "Disorder"
-    title = title.replace(/\s*\((19|20)\d\d(\sDigital)?\sRemaster\)$/gi, '');
+    // e.g. "Disorder (Remastered)" => "Disorder"
+    title = title.replace(/\s*\(20\d\d(\sDigital(ly)?)?\sRemaster(ed)?\)$/gi, '');
     // Remove album/single version.
     // e.g. "Disorder (Single Version)" => "Disorder"
-    // e.g. "Disorder - Single Version" => "Disorder"
-    title = title.replace(/\s*\((Album|Single)(\s+Version)?\)$/gi, '');
-    title = title.replace(/\s*-\s*(Album|Single)(\s+Version)?$/gi, '');
+    // e.g. "Disorder - Radio edit" => "Disorder"
+    title = title.replace(/\s*\((Album|Single|Radio)(\s+Version|Edit)?\)$/gi, '');
+    title = title.replace(/(\s*-)?\s*(Album|Single|Radio)(\s+Version|Edit)?$/gi, '');
     return title;
 }
 
@@ -303,9 +313,8 @@ function normalize(string: string, removeTagsAndSymbols?: boolean): string {
     let result = unidecode(string).replace(/\s\s+/g, ' ').trim();
     if (removeTagsAndSymbols) {
         result = result
-            .replace(/\[\w+\]/g, '')
-            .trim()
-            .replace(/[^\w\s]/g, '')
+            .replace(/^\[[^\]]*\]\s*|\s*\[[^\]]*\]$|\s*\([^)]*\)$/g, '') // remove tags
+            .replace(/[\x21-\x2f]|[\x3a-\x40]|[\x5b-\x60]|[\x7b-\x7f]/g, '') // remove symbols
             .trim();
     }
     return result;

@@ -1,3 +1,5 @@
+@use 'styles/effects.scss';
+
 .media-info {
     position: relative;
     width: 100%;
@@ -21,7 +23,6 @@
         width: 10em;
         height: 10em;
         padding: 0;
-        color: var(--grey2-color);
 
         .cover-art {
             position: absolute;
@@ -77,10 +78,7 @@
     }
 
     .genre {
-        display: -webkit-box;
-        -webkit-line-clamp: 2;
-        -webkit-box-orient: vertical;
-        overflow: hidden;
+        @include effects.line-clamp(2);
         padding: 1px 0;
     }
 

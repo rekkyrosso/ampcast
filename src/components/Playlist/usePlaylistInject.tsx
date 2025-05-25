@@ -1,7 +1,7 @@
 import React from 'react';
-import {exists, Logger} from 'utils';
 import MediaItem from 'types/MediaItem';
 import MediaServiceId from 'types/MediaServiceId';
+import {exists, Logger, uniq} from 'utils';
 import {getService} from 'services/mediaServices';
 import {createMediaItemFromFile, createMediaItemFromUrl} from 'services/metadata';
 import {injectAt} from 'services/playlist';
@@ -32,7 +32,7 @@ async function injectItems(items: readonly MediaItem[], atIndex: number): Promis
 async function injectUrls(urls: readonly string[], atIndex: number): Promise<void> {
     try {
         const maxUrls = 10;
-        urls = urls.slice(0, maxUrls);
+        urls = uniq(urls).slice(0, maxUrls);
         const errors: {url: string; error: unknown}[] = [];
         const result = await Promise.all(
             urls.map(async (url) => {

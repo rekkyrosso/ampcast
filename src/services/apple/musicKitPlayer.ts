@@ -490,17 +490,21 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     }) => {
         switch (state) {
             case MusicKit.PlaybackStates.playing: {
-                const [, , id] = this.src?.split(':') ?? [];
-                const nowPlayingItem = this.nowPlayingItem;
-                if (nowPlayingItem?.isPlayable === false && nowPlayingItem.id === id) {
-                    // Apple Music plays 30 seconds of silence for unplayable tracks.
-                    this.error$.next(Error('Unplayable'));
-                    this.stop();
+                if (this.stopped) {
+                    this.safeStop();
+                } else {
+                    const [, , id] = this.src?.split(':') ?? [];
+                    const nowPlayingItem = this.nowPlayingItem;
+                    if (nowPlayingItem?.isPlayable === false && nowPlayingItem.id === id) {
+                        // Apple Music plays 30 seconds of silence for unplayable tracks.
+                        this.error$.next(Error('Unplayable'));
+                        this.stop();
+                    }
+                    // TODO: This probably not true any more.
+                    // We can't emit the `playing` event here.
+                    // It causes problems in Firefox (possibly related to DRM and visualizers).
+                    // Emitting the event after a successful call to `player.play()` works just as well.
                 }
-                // TODO: This probably not true any more.
-                // We can't emit the `playing` event here.
-                // It causes problems in Firefox (possibly related to DRM and visualizers).
-                // Emitting the event after a successful call to `player.play()` works just as well.
                 break;
             }
 

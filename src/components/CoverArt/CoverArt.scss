@@ -2,7 +2,7 @@
     position: relative;
     background-color: var(--background-mark-color);
     border: 1px solid var(--thumbnail-border-color);
-    border-radius: calc(var(--roundness) * max(0.75em, 7.5%));
+    border-radius: calc(var(--roundness) * 12.5%);
     overflow: hidden;
     user-select: none;
 

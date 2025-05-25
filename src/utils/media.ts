@@ -103,6 +103,18 @@ export async function getPlaybackTypeFromUrl(url: string): Promise<PlaybackType>
     } else if (mediaTypes.m3u.includes(contentType)) {
         return PlaybackType.IcecastM3u;
     } else {
+        try {
+            const headers = await getHeaders(url, {
+                method: 'GET',
+                headers: {'Icy-MetaData': '1'},
+                signal: AbortSignal.timeout(2000),
+            });
+            if (headers.get('Icy-MetaInt')) {
+                return PlaybackType.Icecast;
+            }
+        } catch {
+            // `Icy-MetaData` header is not allowed or prevented by CORS.
+        }
         return PlaybackType.Direct;
     }
 }

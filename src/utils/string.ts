@@ -22,3 +22,13 @@ export function fuzzyCompare(a: string, b: string, tolerance = 0.9): boolean {
 export function stringContainsMusic(text: string): boolean {
     return /m[uú][sz](i|ie)[ckq]/i.test(text);
 }
+
+export function toUtf8(text: string): string {
+    // https://stackoverflow.com/questions/5396560/how-do-i-convert-special-utf-8-chars-to-their-iso-8859-1-equivalent-using-javasc
+    // This does an okay job of converting iso text to utf8.
+    try {
+        return decodeURIComponent(escape(text));
+    } catch {
+        return text;
+    }
+}

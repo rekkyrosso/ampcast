@@ -6,7 +6,7 @@ import audio from 'services/audio';
 import HTML5Player from './HTML5Player';
 
 export default class HLSPlayer extends HTML5Player {
-    static defaultConfig: Partial<HlsConfig> = {autoStartLoad: false};
+    static defaultConfig: Partial<HlsConfig> = {autoStartLoad: false, liveDurationInfinity: true};
     protected config: Partial<HlsConfig> = {};
     private hasNativeSupport = canPlayNativeHls();
     private Hls: typeof Hls | null = null;

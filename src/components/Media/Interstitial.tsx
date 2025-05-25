@@ -20,14 +20,14 @@ export default function Interstitial() {
             <div className="currently-playing">
                 {item ? (
                     <>
-                        <h2>{item.title}</h2>
+                        <h2 className="title">{item.title}</h2>
                         {item.artists?.length ? (
                             <>
                                 <span className="by">by</span>
-                                <h3>{item.artists.join(', ')}</h3>
+                                <h3 className="sub-title">{item.artists.join(', ')}</h3>
                             </>
                         ) : null}
-                        <p>
+                        <p className="provider">
                             <ProvidedBy item={item} />
                         </p>
                     </>

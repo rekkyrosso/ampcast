@@ -65,7 +65,7 @@ export default function usePlaylistMenu(
                         type: 'textarea',
                         label: 'Urls (max 10)',
                         placeholder: examples.join('\n'),
-                        okLabel: 'Add to Playlist',
+                        okLabel: 'Add to playlist',
                     });
                     const urls = list.match(/\S+/g);
                     if (urls) {

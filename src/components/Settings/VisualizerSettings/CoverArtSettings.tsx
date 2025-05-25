@@ -25,9 +25,7 @@ export default function CoverArtSettings() {
                         (visualizerSettings.coverArtAnimatedBackground = e.target.checked)
                     }
                 />
-                <label htmlFor={`${id}-animated-background`}>
-                    Animated background (experimental)
-                </label>
+                <label htmlFor={`${id}-animated-background`}>Animated background</label>
             </p>
         </fieldset>
     );

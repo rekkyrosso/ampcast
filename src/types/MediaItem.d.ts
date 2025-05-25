@@ -20,8 +20,15 @@ export default interface MediaItem extends BaseMediaObject {
     readonly disc?: number;
     readonly track?: number;
     readonly year?: number;
-    readonly unplayable?: boolean;
+    readonly stationName?: string;
     readonly noScrobble?: boolean;
+    readonly unplayable?: boolean;
+    readonly copyright?: string;
+    // For playback.
+    readonly startTime?: number;
+    readonly srcs?: readonly string[]; // Playable sources that can't be derived from `src`.
+    readonly skippable?: boolean; // Some radios are skippable.
+    // External IDs.
     readonly isrc?: string;
     readonly recording_mbid?: string;
     readonly recording_msid?: string; // ListenBrainz only
@@ -29,28 +36,24 @@ export default interface MediaItem extends BaseMediaObject {
     readonly release_mbid?: string;
     readonly artist_mbids?: readonly string[];
     readonly caa_mbid?: string; // cover art archive
+    // For files.
     readonly fileName?: string;
-    readonly stationName?: string;
     readonly blob?: Blob;
     readonly blobUrl?: string;
-    readonly startTime?: number;
+    // ReplayGain.
     readonly albumGain?: number;
     readonly albumPeak?: number;
     readonly trackGain?: number;
     readonly trackPeak?: number;
-    readonly bitRate?: number;
-    readonly copyright?: string;
-    readonly explicit?: boolean;
+    // Badges.
     readonly badge?: string;
+    readonly bitRate?: number;
     readonly container?: string;
+    readonly explicit?: boolean;
     readonly shareLink?: string;
-    readonly skippable?: boolean;
-    // Playable sources that can't be derived from `src`.
-    // Currently used by TIDAL(via Plex) audio quality sources.
-    readonly srcs?: readonly string[];
     // For video.
     readonly aspectRatio?: number;
-    // For YouTube videos mainly.
+    // For YouTube videos (mainly).
     readonly owner?: {
         readonly name: string;
         readonly url?: string;

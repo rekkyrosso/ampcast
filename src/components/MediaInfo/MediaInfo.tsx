@@ -219,7 +219,15 @@ export function ExternalView({
 
         case 'http':
         case 'https':
-            serviceName = 'external source';
+            if (url) {
+                return (
+                    <p className="external-view">
+                        <ExternalLink href={url} />
+                    </p>
+                );
+            } else {
+                serviceName = 'external source';
+            }
             break;
 
         case 'internet-radio':

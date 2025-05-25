@@ -16,8 +16,8 @@ export function anySignal(signals: AbortSignal[]): AbortSignal {
     return controller.signal;
 }
 
-export async function getHeaders(url: string): Promise<Headers> {
-    const response = await fetch(url, {method: 'HEAD'});
+export async function getHeaders(url: string, init?: RequestInit): Promise<Headers> {
+    const response = await fetch(url, {method: 'HEAD', ...init});
     if (response.status === 400) {
         // HEAD request not allowed.
         // The response headers are probably meaningless and associated with an error page.

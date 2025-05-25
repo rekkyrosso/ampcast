@@ -118,15 +118,6 @@ class Lookup {
             }
         }
 
-        if (!item.recording_mbid) {
-            item = await musicbrainzApi.addMetadata(item, undefined, this.signal);
-        }
-
-        const foundItemByUrl = await this.fromMusicBrainzUrls(item);
-        if (foundItemByUrl && !foundItemByUrl.src.startsWith('youtube:')) {
-            return foundItemByUrl;
-        }
-
         let matches: readonly MediaItem[] = [];
         let isrcs: readonly string[] = [];
 
@@ -160,7 +151,16 @@ class Lookup {
             );
         }
 
-        return matches[0] || foundItemByUrl || listen || linkedItem;
+        const foundItem = matches[0];
+
+        if (!foundItem) {
+            const foundItemByUrl = await this.fromMusicBrainzUrls(item);
+            if (foundItemByUrl) {
+                return foundItemByUrl;
+            }
+        }
+
+        return foundItem || listen || linkedItem;
     }
 
     private async fromLinkedItem(linkedItem: PlaylistItem): Promise<MediaItem | null> {
@@ -197,35 +197,21 @@ class Lookup {
 
     private async fromMusicBrainzUrls(item: PlaylistItem): Promise<MediaItem | undefined> {
         try {
+            if (!item.recording_mbid) {
+                this.throwIfCancelled();
+                item = await musicbrainzApi.addMetadata(item, undefined, this.signal);
+            }
+
             if (item.recording_mbid) {
+                this.throwIfCancelled();
                 const urls = await musicbrainzApi.getUrls(item.recording_mbid, this.signal);
 
-                this.throwIfCancelled();
-                const apple = getService('apple');
-                if (apple?.isLoggedIn() && apple.getMediaObject) {
-                    const appleUrl = urls.find((url) => url.includes('music.apple.com'));
-                    if (appleUrl) {
-                        const foundItem = await apple.getMediaObject(appleUrl);
-                        if (foundItem.itemType === ItemType.Media) {
-                            return foundItem;
-                        }
-                    }
-                }
+                // MusicBrainz doesn't have many external URLs in its database.
+                // They may not be 100% reliable either.
+                // So just use the YouTube ones.
 
                 this.throwIfCancelled();
-                const spotify = getService('spotify');
-                if (spotify?.isLoggedIn() && spotify.getMediaObject) {
-                    const spotifyUrl = urls.find((url) => url.includes('open.spotify.com'));
-                    if (spotifyUrl) {
-                        const foundItem = await spotify.getMediaObject(spotifyUrl);
-                        if (foundItem.itemType === ItemType.Media) {
-                            return foundItem;
-                        }
-                    }
-                }
-
-                this.throwIfCancelled();
-                const youtubeUrl = urls.find((url) => url.includes('youtube.com'));
+                const youtubeUrl = urls.find((url) => /youtu\.?be/.test(url));
                 if (youtubeUrl) {
                     const foundItem = await youtubeApi.getMediaItem(youtubeUrl);
                     if (foundItem.itemType === ItemType.Media) {

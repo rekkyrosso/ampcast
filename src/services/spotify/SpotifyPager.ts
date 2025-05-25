@@ -225,9 +225,7 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
         inLibrary?: boolean | undefined
     ): MediaItem {
         const externalUrl = track.external_urls.spotify;
-        const album = /album|compilation/i.test(track.album?.album_type || '')
-            ? track.album
-            : undefined;
+        const album = track.album;
 
         return {
             itemType: ItemType.Media,
@@ -239,19 +237,17 @@ export default class SpotifyPager<T extends MediaObject> implements Pager<T> {
             title: track.name,
             artists: track.artists?.map((artist) => artist.name),
             albumArtist: album?.artists.map((artist) => artist.name).join(', '),
-            album: album?.name || '',
+            album: album?.name,
             duration: track.duration_ms / 1000,
             playedAt: track.played_at
                 ? Math.floor((new Date(track.played_at).getTime() || 0) / 1000)
                 : 0,
-            genres: (track.album as any)?.genres,
+            genres: (album as any)?.genres,
             disc: track.disc_number,
             track: track.track_number,
-            year: track.album
-                ? new Date(track.album.release_date).getFullYear() || undefined
-                : undefined,
+            year: album ? new Date(album.release_date).getFullYear() || undefined : undefined,
             isrc: track.external_ids?.isrc,
-            thumbnails: track.album?.images as Thumbnail[],
+            thumbnails: album?.images as Thumbnail[],
             unplayable: track.is_playable === false ? true : undefined,
             explicit: track.explicit,
             inLibrary,

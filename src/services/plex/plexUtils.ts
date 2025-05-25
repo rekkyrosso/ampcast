@@ -16,7 +16,6 @@ import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
 import {Logger, uniq} from 'utils';
 import {MAX_DURATION} from 'services/constants';
-import {dispatchMetadataChanges} from 'services/metadata';
 import SimplePager from 'services/pagers/SimplePager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import WrappedPager from 'services/pagers/WrappedPager';
@@ -265,34 +264,29 @@ const plexUtils = {
         return mediaFolder as MediaFolder;
     },
 
-    async enhanceItems<T extends MediaObject>(
-        items: readonly T[],
-        parent?: ParentOf<T>
-    ): Promise<void> {
-        items = items.filter(
-            (item) =>
-                item.itemType === ItemType.Album ||
-                (item.itemType === ItemType.Media &&
-                    item.mediaType !== MediaType.Video &&
-                    item.linearType !== LinearType.Station)
+    async getMetadata<T extends plex.MediaObject>(objects: readonly T[]): Promise<readonly T[]> {
+        if (objects.length === 0) {
+            return [];
+        }
+        const ratingObjects = objects.filter(
+            (object: plex.MediaObject): object is plex.RatingObject => 'ratingKey' in object
         );
-        if (items.length > 0) {
-            const plexObjects = await plexApi.getMetadata(
-                items.map(({src}): string => {
-                    const [, , ratingKey] = src.split(':');
-                    return ratingKey;
-                })
+        if (ratingObjects.length > 0) {
+            // Map of `object.key` to `object`.
+            const objectMap: Record<string, T> = objects.reduce((map, object) => {
+                map[object.key] = object;
+                return map;
+            }, {} as Record<string, T>);
+            const enhancedObjects = await plexApi.getMetadata(
+                ratingObjects.map((object) => object.ratingKey)
             );
-            const albums = await plexUtils.getMediaAlbums(plexObjects);
-            const enhancedItems = plexObjects.map((object: plex.MediaObject) =>
-                plexUtils.createMediaObject(object, parent, albums, true)
-            );
-            dispatchMetadataChanges<T>(
-                enhancedItems.map((item) => ({
-                    match: (object: MediaObject) => object.src === item.src,
-                    values: item,
-                }))
-            );
+            // Update `objectMap` with retrieved values.
+            enhancedObjects.forEach((enhancedObject) => {
+                objectMap[enhancedObject.key] = enhancedObject as T;
+            });
+            return objects.map((object) => objectMap[object.key]);
+        } else {
+            return objects;
         }
     },
 
@@ -361,7 +355,7 @@ const plexUtils = {
     },
 
     getRating(rating: number | undefined): number | undefined {
-        return typeof rating === 'number' ? Math.round((rating || 0) / 2) : undefined;
+        return typeof rating === 'number' ? (rating || 0) / 2 : undefined;
     },
 
     getSrc(type: string, object: plex.MediaObject): string {

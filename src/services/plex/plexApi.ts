@@ -423,7 +423,7 @@ async function librarySearch<T extends plex.RatingObject>(
     );
 }
 
-async function getMetadata<T extends plex.MediaObject>(
+async function getMetadata<T extends plex.RatingObject>(
     ratingKeys: readonly string[]
 ): Promise<readonly T[]> {
     if (ratingKeys.length === 0) {
@@ -446,9 +446,10 @@ export interface PlexRadioStations {
     readonly directories: readonly plex.MediaObject[];
 }
 
-let cachedStations: PlexRadioStations | undefined;
+let cachedRadioStations: PlexRadioStations | undefined;
+
 async function getRadioStations(): Promise<PlexRadioStations> {
-    if (!cachedStations) {
+    if (!cachedRadioStations) {
         const {
             MediaContainer: {Hub: hubs},
         } = await fetchJSON<plex.HubsResponse>({
@@ -466,12 +467,12 @@ async function getRadioStations(): Promise<PlexRadioStations> {
             stations,
             (station) => station.type === 'playlist'
         );
-        cachedStations = {
+        cachedRadioStations = {
             defaults: plexUtils.createMediaObjects(playlists),
             directories,
         };
     }
-    return cachedStations;
+    return cachedRadioStations;
 }
 
 function getPlayableUrl(item: PlayableItem): string {

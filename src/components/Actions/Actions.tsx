@@ -27,8 +27,8 @@ const defaultActionIcons: Record<LibraryAction, IconName> = {
 };
 
 const defaultActionLabels: Record<LibraryAction, string> = {
-    [Action.AddToLibrary]: 'Add to Library',
-    [Action.RemoveFromLibrary]: 'Remove from Library',
+    [Action.AddToLibrary]: 'Add to library',
+    [Action.RemoveFromLibrary]: 'Remove from library',
     [Action.Rate]: 'Rate',
     [Action.Like]: 'Like',
     [Action.Unlike]: 'Unlike',

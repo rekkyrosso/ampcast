@@ -5,7 +5,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
-import {Logger, getHeaders, mediaTypes, uniq} from 'utils';
+import {Logger, getHeaders, mediaTypes, toUtf8, uniq} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import lastfmApi from 'services/lastfm/lastfmApi';
 import mixcloudApi from 'services/mixcloud/mixcloudApi';
@@ -195,7 +195,14 @@ function createMediaItemFromIcecastHeaders(
     isIcy: boolean
 ): MediaItem {
     const contentType = headers?.get('content-type')?.toLowerCase() || '';
-    const genre = headers.get('icy-genre');
+    const getIcy = (name: string) => {
+        const value = headers.get(`icy-${name}`);
+        if (value) {
+            return toUtf8(value);
+        }
+    };
+    const genre = getIcy('genre');
+    const externalUrl = headers.get('icy-url');
     return {
         itemType: ItemType.Media,
         mediaType: MediaType.Audio,
@@ -206,10 +213,9 @@ function createMediaItemFromIcecastHeaders(
                 : PlaybackType.Icecast
             : PlaybackType.Direct,
         src: url,
-        title:
-            headers.get('icy-name')?.replace(/^(none|stream|no name)$/i, '') || getTitleFromUrl(url),
-        externalUrl: headers.get('icy-url') || undefined,
-        description: headers.get('icy-description') || undefined,
+        title: getIcy('name')?.replace(/^(none|stream|no name)$/i, '') || getTitleFromUrl(url),
+        externalUrl: externalUrl?.startsWith('http') ? externalUrl : undefined,
+        description: getIcy('description'),
         genres: genre ? [genre] : undefined,
         duration: MAX_DURATION,
         playedAt: 0,

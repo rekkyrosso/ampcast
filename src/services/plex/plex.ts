@@ -108,8 +108,8 @@ const plexRadio: MediaSource<MediaItem> = {
     filterType: FilterType.ByPlexStationType,
     Component: FilterBrowser,
     layout: {
-        view: 'card',
-        fields: ['Thumbnail', 'Title', 'Blurb'],
+        view: 'card minimal',
+        fields: ['Thumbnail', 'Title'],
     },
 
     search(type?: MediaFilter): Pager<MediaItem> {
