@@ -608,7 +608,16 @@ export class SpotifyPlayer implements Player<PlayableItem> {
 
     private async safePlay(): Promise<void> {
         try {
-            await this.player?.resume();
+            const item = this.item;
+            if (item) {
+                const state = await this.getCurrentState();
+                if (this.compareTrackSrc(state?.track_window?.current_track, item.src)) {
+                    await this.player?.resume();
+                } else {
+                    this.loadedSrc = '';
+                    this.item$.next({...item});
+                }
+            }
         } catch (err) {
             this.error$.next(err);
         }

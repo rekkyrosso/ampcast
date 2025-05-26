@@ -406,8 +406,9 @@ export class MusicKitPlayer implements Player<PlayableItem> {
 
     private async safePlay(): Promise<void> {
         try {
-            if (this.player) {
-                if (!this.player.isPlaying) {
+            const item = this.item;
+            if (this.player && !this.player.isPlaying && item) {
+                if (this.isLoadedItem(item)) {
                     await this.player.play();
                     if (this.paused) {
                         // Pause/stop button clicked during the play request.
@@ -419,6 +420,9 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                     } else {
                         this.playing$.next();
                     }
+                } else {
+                    this.loadedSrc = '';
+                    this.item$.next({...item});
                 }
             }
         } catch (err) {
@@ -429,13 +433,18 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     }
 
     protected async safeReload(item: PlayableItem): Promise<void> {
-        try {
-            await this.player?.seekToTime(item.startTime || 0);
-        } catch (err) {
-            logger.error(err);
-        }
-        if (this.autoplay) {
-            await this.safePlay();
+        if (this.isLoadedItem(item)) {
+            try {
+                await this.player?.seekToTime(item.startTime || 0);
+            } catch (err) {
+                logger.error(err);
+            }
+            if (this.autoplay) {
+                await this.safePlay();
+            }
+        } else {
+            this.loadedSrc = '';
+            this.item$.next({...item});
         }
     }
 
@@ -462,6 +471,15 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                         : this.volume
                     : 1;
         }
+    }
+
+    private isLoadedItem(item: PlayableItem | null): boolean {
+        if (this.player && item) {
+            const [, , id] = item.src.split(':');
+            const {items, position} = this.player.queue;
+            return items[position]?.id === id;
+        }
+        return false;
     }
 
     private async unload(): Promise<void> {

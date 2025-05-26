@@ -4,6 +4,7 @@ import LinearType from 'types/LinearType';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
+import {formatTime} from 'utils';
 import {copyMediaObjectToClipboard} from 'services/reporting';
 import CopyButton from 'components/Button/CopyButton';
 import DetailsBox from 'components/ListView/DetailsBox';
@@ -88,6 +89,9 @@ export default function MediaDetails<T extends MediaObject>({item}: MediaInfoPro
                     default:
                         return 'unknown';
                 }
+
+            case 'duration':
+                return formatTime(value);
 
             case 'thumbnails':
                 return `[${value?.length || 0}]`;

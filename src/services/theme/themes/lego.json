@@ -1,15 +1,15 @@
 {
     "name": "LEGO",
     "fontName": "Open Sans",
-    "backgroundColor": "#252222",
+    "backgroundColor": "#223449",
     "textColor": "#fcfcfc",
     "frameColor": "#1b80f1",
     "frameTextColor": "#ffffff",
-    "selectedBackgroundColor": "#fc2420",
+    "selectedBackgroundColor": "#932725",
     "selectedTextColor": "#ebebeb",
     "mediaButtonColor": "#f4c522",
     "mediaButtonTextColor": "#12100d",
     "spacing": 0.53,
-    "roundness": 0,
+    "roundness": 0.08,
     "flat": true
 }

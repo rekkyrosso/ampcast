@@ -5,12 +5,6 @@ import ErrorReport from 'types/ErrorReport';
 type AnyObserver = Partial<Observer<any>>;
 type BasicConsole = Pick<Console, 'info' | 'log' | 'warn' | 'error'>;
 
-const startedAt = performance.now();
-
-if (__dev__) {
-    console.log('# Logger:', 'startedAt', startedAt);
-}
-
 export const enum LogLevel {
     Info = 1,
     Log = 2,
@@ -163,10 +157,5 @@ export default class Logger implements BasicConsole, AnyObserver {
             }
             return this;
         };
-
-        // For more noise.
-        // if (__dev__ && id && !rx) {
-        //     this.info('createdAt', performance.now() - startedAt);
-        // }
     }
 }

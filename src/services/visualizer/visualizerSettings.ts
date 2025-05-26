@@ -86,7 +86,7 @@ const visualizerSettings: VisualizerSettings = {
     },
 
     get coverArtAnimatedBackground(): boolean {
-        return storage.getBoolean('coverArtAnimatedBackground');
+        return storage.getBoolean('coverArtAnimatedBackground', true);
     },
 
     set coverArtAnimatedBackground(enabled: boolean) {

@@ -12,5 +12,5 @@
     "mediaButtonTextColor": "#000000",
     "spacing": 0.38,
     "roundness": 0.67,
-    "flat": true
+    "flat": false
 }

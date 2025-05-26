@@ -6,6 +6,7 @@ import {getService} from 'services/mediaServices';
 import {addRecentPlaylist, getPlaylistItemsByService} from 'services/recentPlaylists';
 import Dialog, {DialogProps, alert, error, showDialog} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
+import usePlaylistItems from './usePlaylistItems';
 import './CreatePlaylistDialog.scss';
 
 const logger = new Logger('CreatePlaylistDialog');
@@ -29,9 +30,10 @@ export default function CreatePlaylistDialog<T extends MediaItem>({
     const nameRef = useRef<HTMLInputElement>(null);
     const descriptionRef = useRef<HTMLTextAreaElement>(null);
     const isPublicRef = useRef<HTMLInputElement>(null);
-    const itemsByService = getPlaylistItemsByService(items);
+    const playlistItems = usePlaylistItems(items);
+    const itemsByService = getPlaylistItemsByService(playlistItems);
     const [serviceId, setServiceId] = useState<MediaServiceId>(() => itemsByService[0]?.service.id);
-    const size = items.length;
+    const size = playlistItems.length;
 
     const handleSubmit = useCallback(async () => {
         const serviceId = serviceRef.current!.value;
