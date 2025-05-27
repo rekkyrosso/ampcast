@@ -45,7 +45,7 @@ async function injectUrls(urls: readonly string[], atIndex: number): Promise<voi
                         const items = await getMediaServiceTracks('spotify', 'text/uri-list', url);
                         return items;
                     } else {
-                        const item = await createMediaItemFromUrl(url);
+                        const item = await createMediaItemFromUrl(url, true);
                         return item;
                     }
                 } catch (error) {

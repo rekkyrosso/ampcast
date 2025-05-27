@@ -11,7 +11,8 @@ import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import type SubsonicSettings from './SubsonicSettings';
-import {chunk, getPlaybackTypeFromUrl, shuffle} from 'utils';
+import {chunk, shuffle} from 'utils';
+import {createMediaItemFromUrl} from 'services/metadata';
 
 export interface SubsonicApiSettings extends Partial<PersonalMediaServerSettings> {
     host: string;
@@ -314,7 +315,8 @@ export default class SubsonicApi {
         }
         if (item.linearType === LinearType.Station) {
             const url = item.srcs![0]; // Let this throw
-            return getPlaybackTypeFromUrl(url);
+            const mediaItem = await createMediaItemFromUrl(url);
+            return mediaItem.playbackType || PlaybackType.Direct;
         }
         return PlaybackType.Direct;
     }

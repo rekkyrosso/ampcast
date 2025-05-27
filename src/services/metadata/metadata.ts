@@ -5,7 +5,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
-import {Logger, getHeaders, mediaTypes, toUtf8, uniq} from 'utils';
+import {Logger, mediaTypes, toUtf8, uniq} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import lastfmApi from 'services/lastfm/lastfmApi';
 import mixcloudApi from 'services/mixcloud/mixcloudApi';
@@ -76,7 +76,11 @@ export function bestOf<T extends MediaObject>(a: T, b: Partial<T> = {}): T {
     return result;
 }
 
-export async function createMediaItemFromUrl(url: string, timeout = 3000): Promise<MediaItem> {
+export async function createMediaItemFromUrl(
+    url: string,
+    metadataSearch?: boolean,
+    timeout = 3000
+): Promise<MediaItem> {
     const {hostname} = new URL(url);
     if (hostname.includes('mixcloud.com')) {
         return mixcloudApi.getMediaItem(url);
@@ -108,7 +112,7 @@ export async function createMediaItemFromUrl(url: string, timeout = 3000): Promi
                     return createMediaItemByPlaybackType(url, PlaybackType.HLSMetadata);
                 } else if (mediaTypes.m3u.includes(contentType)) {
                     const text = await response.text();
-                    return createMediaItemFromPlaylist(text);
+                    return createMediaItemFromPlaylist(url, text);
                 }
 
                 const isIcy = await hasIcyMetadata(
@@ -125,7 +129,7 @@ export async function createMediaItemFromUrl(url: string, timeout = 3000): Promi
                     );
                 } else if (isIcy) {
                     return createMediaItemByPlaybackType(url, PlaybackType.Icecast);
-                } else if (response.body) {
+                } else if (metadataSearch && response.body) {
                     return createMediaItemFromStream(url, response.body, headers);
                 }
             }
@@ -176,7 +180,11 @@ export function getTitleFromUrl(url: string): string {
 }
 
 function createMediaItemByPlaybackType(url: string, playbackType: PlaybackType): MediaItem {
-    const isStation = [PlaybackType.Icecast, PlaybackType.IcecastOgg].includes(playbackType);
+    const isStation = [
+        PlaybackType.Icecast,
+        PlaybackType.IcecastM3u,
+        PlaybackType.IcecastOgg,
+    ].includes(playbackType);
     return {
         itemType: ItemType.Media,
         mediaType: MediaType.Audio,
@@ -223,17 +231,20 @@ function createMediaItemFromIcecastHeaders(
     };
 }
 
-async function createMediaItemFromPlaylist(playlist: string): Promise<MediaItem> {
-    const urls = parsePlaylist(playlist);
-    const url = urls[0];
-    if (url) {
-        const headers = await getHeaders(url);
-        if (headers.get('icy-name') || headers.get('icy-url')) {
-            const item = createMediaItemFromIcecastHeaders(url, headers, true);
-            return {...item, srcs: urls};
+// This is for soma.fm basically.
+async function createMediaItemFromPlaylist(url: string, playlist: string): Promise<MediaItem> {
+    const [itemUrl] = parsePlaylist(playlist);
+    if (itemUrl) {
+        // Get the first item in the playlist.
+        const item = await createMediaItemFromUrl(itemUrl);
+        if (item.playbackType === PlaybackType.Icecast) {
+            // Use the station information (if it exists).
+            return {...item, src: url, playbackType: PlaybackType.IcecastM3u};
         } else {
-            return createMediaItemFromUrl(url);
+            // Only Icecast playlists are supported for now.
+            throw Error('Playlist type not supported');
         }
+    } else {
+        throw Error('Empty playlist');
     }
-    throw Error('Empty playlist');
 }

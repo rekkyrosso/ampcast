@@ -101,20 +101,9 @@ export async function getPlaybackTypeFromUrl(url: string): Promise<PlaybackType>
     if (mediaTypes.hls.includes(contentType)) {
         return PlaybackType.HLS;
     } else if (mediaTypes.m3u.includes(contentType)) {
+        // All the other options will fail anyway (for now).
         return PlaybackType.IcecastM3u;
     } else {
-        try {
-            const headers = await getHeaders(url, {
-                method: 'GET',
-                headers: {'Icy-MetaData': '1'},
-                signal: AbortSignal.timeout(2000),
-            });
-            if (headers.get('Icy-MetaInt')) {
-                return PlaybackType.Icecast;
-            }
-        } catch {
-            // `Icy-MetaData` header is not allowed or prevented by CORS.
-        }
         return PlaybackType.Direct;
     }
 }
