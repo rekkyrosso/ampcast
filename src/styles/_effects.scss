@@ -13,7 +13,19 @@
 @mixin button {
     color: var(--button-text-color);
     background-color: var(--button-color);
-    background-image: var(--button-background);
+    background-image:
+        linear-gradient(to bottom,
+            var(--button-color-hi),
+            transparent 0.125em),
+        linear-gradient(to right,
+            var(--button-color-hi),
+            transparent 0.125em),
+        linear-gradient(to left,
+            var(--button-color-lo),
+            transparent 0.125em),
+        linear-gradient(to top,
+            var(--button-color-lo),
+            transparent 0.125em);
     border: 1px solid var(--black);
     border-radius: calc(var(--roundness) * 1em);
 }

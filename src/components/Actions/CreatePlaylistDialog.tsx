@@ -69,7 +69,7 @@ export default function CreatePlaylistDialog<T extends MediaItem>({
             {...props}
             className={`create-playlist-dialog service-${serviceId || ''}`}
             icon="playlist"
-            title="Create Playlist"
+            title="Create playlist"
         >
             <form method="dialog" onSubmit={handleSubmit}>
                 <div className="table-layout">

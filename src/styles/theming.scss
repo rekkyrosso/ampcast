@@ -86,20 +86,6 @@
             var(--button-text-color-s),
             var(--button-text-color-l));
 
-    --button-background:
-        linear-gradient(to bottom,
-            var(--button-color-hi),
-            transparent 0.125rem),
-        linear-gradient(to right,
-            var(--button-color-hi),
-            transparent 0.125rem),
-        linear-gradient(to left,
-            var(--button-color-lo),
-            transparent 0.125rem),
-        linear-gradient(to top,
-            var(--button-color-lo),
-            transparent 0.125rem);
-
     --scrollbar-color: hsl(var(--scrollbar-color-h),
             var(--scrollbar-color-s),
             var(--scrollbar-color-l));

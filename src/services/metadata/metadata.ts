@@ -13,7 +13,6 @@ import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import soundcloudApi from 'services/soundcloud/soundcloudApi';
 import youtubeApi from 'services/youtube/youtubeApi';
 import {createMediaItemFromStream} from './music-metadata-js';
-import {mergeThumbnails} from './thumbnails';
 import {parsePlaylist} from './playlistParser';
 
 const logger = new Logger('metadata');
@@ -59,7 +58,6 @@ export function bestOf<T extends MediaObject>(a: T, b: Partial<T> = {}): T {
         }
         return result;
     }, {} as T);
-    result.thumbnails = mergeThumbnails(a, b);
     if (a.itemType === ItemType.Media) {
         result.duration = a.duration || (b as any).duration || 0;
         // Don't set album details if albums don't match.

@@ -7,7 +7,7 @@ export default function CurrentlyPlayingTabs({item, visualizer}: CurrentlyPlayin
     const tabs: TabItem[] = useMemo(() => {
         const tabs = [
             {
-                tab: 'Now Playing',
+                tab: 'Now playing',
                 panel: <CurrentlyPlaying item={item} visualizer={visualizer} />,
             },
         ];
@@ -19,5 +19,5 @@ export default function CurrentlyPlayingTabs({item, visualizer}: CurrentlyPlayin
         }
         return tabs;
     }, [item, visualizer]);
-    return <TabList className="media-info-tabs" items={tabs} label="Media Info" />;
+    return <TabList className="media-info-tabs" items={tabs} label="Media info" />;
 }

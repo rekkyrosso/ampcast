@@ -13,7 +13,7 @@ import ParentOf from 'types/ParentOf';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
 import Thumbnail from 'types/Thumbnail';
-import {getTextFromHtml, Logger} from 'utils';
+import {getTextFromHtml, Logger, uniqBy} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import {bestOf} from 'services/metadata';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
@@ -237,10 +237,15 @@ const musicKitUtils = {
         const type = catalogId ? 'songs' : data.album ? 'track' : 'shows';
         const artist = data.performer || '';
         const id = catalogId || `${artist}-${data.title}`;
-        const thumbnails = data?.links.map(({description, url}, index) => {
-            const size = parseInt(description, 10) || 400 * index;
-            return {url, width: size, height: size};
-        });
+        // `links` should contain artwork URLs.
+        // Sometimes they contain artwork from the previous track.
+        // The new thumbnails are at the end.
+        const thumbnails = uniqBy('description', data.links.slice().reverse())
+            .filter((link) => link.description.startsWith('artworkURL_'))
+            .map(({description, url}, index) => {
+                const size = parseInt(description, 10) || 400 * index;
+                return {url, width: size, height: size};
+            });
         return {
             src: `apple:${type}:${id}`,
             linearType: type === 'shows' ? LinearType.Show : LinearType.MusicTrack,

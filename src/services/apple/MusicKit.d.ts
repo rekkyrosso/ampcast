@@ -7,7 +7,7 @@ declare namespace MusicKit {
         readonly player: never;
         readonly nowPlayingItem: MediaItem;
         readonly nowPlayingItemIndex?: number;
-        readonly currentTimedMetadata?: TimedMetadata;
+        // readonly currentTimedMetadata?: TimedMetadata; // Seems nuked.
         readonly queue: Queue;
         readonly isPlaying: boolean;
         readonly version: string;
@@ -27,7 +27,7 @@ declare namespace MusicKit {
         readonly album: string;
         readonly blob: Uint8Array;
         readonly links: ReadonlyArray<{
-            readonly description: StringGroupUpdate; // 'artworkURL_390x';
+            readonly description: string; // 'artworkURL_390x';
             readonly url: string;
         }>;
         readonly performer: string;

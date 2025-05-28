@@ -6,21 +6,20 @@ import {
     catchError,
     distinctUntilChanged,
     filter,
-    interval,
     map,
-    merge,
     mergeMap,
     of,
     skipWhile,
     switchMap,
     take,
     tap,
+    timer,
 } from 'rxjs';
 import LinearType from 'types/LinearType';
 import PlayableItem from 'types/PlayableItem';
 import PlaylistItem from 'types/PlaylistItem';
 import Player from 'types/Player';
-import {Logger} from 'utils';
+import {Logger, uniqBy} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import audio from 'services/audio';
 import {observeIsLoggedIn, waitForLogin} from 'services/mediaServices';
@@ -47,6 +46,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     private loading = false;
     private stopped = false;
     private skipping = false;
+    private currentTimedMetadata: MusicKit.TimedMetadata | undefined;
     autoplay = false;
     loop = false;
     #muted = true;
@@ -83,20 +83,10 @@ export class MusicKitPlayer implements Player<PlayableItem> {
 
         this.observeItem()
             .pipe(
-                switchMap(() =>
-                    this.isLinear
-                        ? merge(
-                              of(undefined),
-                              interval(5000).pipe(
-                                  map(() =>
-                                      this.isLivePlayback
-                                          ? this.player?.currentTimedMetadata
-                                          : this.nowPlayingItem
-                                  )
-                              )
-                          )
-                        : of(undefined)
-                ),
+                tap(() => (this.currentTimedMetadata = undefined)),
+                switchMap(() => (this.isLinear ? this.playing$ : EMPTY)),
+                switchMap(() => timer(5000, 2000)),
+                map(() => (this.isLivePlayback ? this.currentTimedMetadata : this.nowPlayingItem)),
                 distinctUntilChanged(),
                 tap(this.nowPlaying$)
             )
@@ -232,6 +222,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         if (this.item?.startTime) {
             this.item$.next({...this.item, startTime: 0});
         }
+        this.currentTimedMetadata = undefined;
         this.safeStop();
     }
 
@@ -311,6 +302,8 @@ export class MusicKitPlayer implements Player<PlayableItem> {
             player.addEventListener(Events.playbackTimeDidChange, this.onTimeChange);
             player.addEventListener(Events.queuePositionDidChange, this.onQueuePositionDidChange);
             player.addEventListener(Events.mediaPlaybackError, this.onError);
+            // This event is undocumented.
+            player.addEventListener('timedMetadataDidChange', this.onTimedMetadataDidChange);
 
             return player;
         } else {
@@ -558,6 +551,15 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         // Skip the playback states that always emit zero.
         if (playbackState && playbackState !== MusicKit.PlaybackStates.stopped) {
             this.currentTime$.next(currentPlaybackTime);
+        }
+    };
+
+    private readonly onTimedMetadataDidChange: any = (timedMetadata: MusicKit.TimedMetadata) => {
+        // If the links have duplicate entries then this represents a transition between
+        // the current track and the next. That means we get track changes a bit too early.
+        // Wait for the unique links instead. (Hopefully this keeps on working).
+        if (uniqBy('description', timedMetadata.links).length === timedMetadata.links.length) {
+            this.currentTimedMetadata = timedMetadata;
         }
     };
 

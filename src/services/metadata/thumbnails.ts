@@ -5,7 +5,7 @@ import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import Thumbnail from 'types/Thumbnail';
-import {exists, uniqBy} from 'utils';
+import {exists} from 'utils';
 import lastfmApi from 'services/lastfm/lastfmApi';
 import {findListenByPlayedAt, getListens} from 'services/localdb/listens';
 import {getCoverArtThumbnails} from 'services/musicbrainz/coverart';
@@ -69,14 +69,6 @@ export function getThumbnailUrl(thumbnail: Thumbnail): string {
         (url, service) => service?.getThumbnailUrl?.(url) ?? url,
         thumbnail?.url || ''
     );
-}
-
-export function mergeThumbnails(
-    {thumbnails: thumbnailsA = []}: Pick<MediaObject, 'thumbnails'> = {},
-    {thumbnails: thumbnailsB = []}: Pick<MediaObject, 'thumbnails'> = {}
-): readonly Thumbnail[] | undefined {
-    const thumbnails = uniqBy('url', thumbnailsA.concat(thumbnailsB));
-    return thumbnails.length === 0 ? undefined : thumbnails;
 }
 
 export function isSameThumbnails(

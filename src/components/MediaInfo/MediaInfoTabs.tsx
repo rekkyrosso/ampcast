@@ -19,5 +19,5 @@ export default function MediaInfoTabs<T extends MediaObject>({item}: MediaInfoPr
         ],
         [item]
     );
-    return <TabList className="media-info-tabs" items={tabs} label="Media Info" />;
+    return <TabList className="media-info-tabs" items={tabs} label="Media info" />;
 }
