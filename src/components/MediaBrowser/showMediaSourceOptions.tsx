@@ -1,7 +1,13 @@
 import React from 'react';
-import MediaSource from 'types/MediaSource';
-import {getSourceSorting, setSourceSorting} from 'services/mediaServices/servicesSettings';
+import ItemType from 'types/ItemType';
+import MediaSource, {MediaSourceItems} from 'types/MediaSource';
+import {
+    getSourceSorting,
+    setSourceView,
+    setSourceSorting,
+} from 'services/mediaServices/servicesSettings';
 import PopupMenu, {
+    PopupMenuItem,
     PopupMenuItemCheckbox,
     PopupMenuProps,
     PopupMenuSeparator,
@@ -14,27 +20,13 @@ export default async function showMediaSourceOptions(
     x: number,
     y: number
 ): Promise<void> {
-    const setting = getSourceSorting(source);
-    const option = await showPopupMenu(
+    await showPopupMenu(
         (props: PopupMenuProps) => <MediaSourceOptions {...props} source={source} />,
         target,
         x,
         y,
         'right'
     );
-
-    switch (option) {
-        case '1':
-        case '-1':
-            setSourceSorting(source, setting.sortBy, Number(option) as 1);
-            break;
-
-        default:
-            if (option) {
-                setSourceSorting(source, option, setting.sortOrder);
-            }
-            break;
-    }
 }
 
 interface MediaSourceOptionsProps extends PopupMenuProps {
@@ -42,31 +34,166 @@ interface MediaSourceOptionsProps extends PopupMenuProps {
 }
 
 function MediaSourceOptions({source, ...props}: MediaSourceOptionsProps) {
-    const options = source.sortOptions || {};
-    const sorting = getSourceSorting(source);
-    return (
-        <PopupMenu {...props}>
-            {Object.keys(options).map((key) => (
+    const primaryMenuItems = getMenuItems(source.id, 1, source.itemType, source.primaryItems);
+    let secondaryMenuItems: MenuItems | undefined;
+    let tertiaryMenuItems: MenuItems | undefined;
+    if (source.secondaryItems?.layout?.view !== 'none' && source.itemType !== ItemType.Media) {
+        const itemType = source.itemType === ItemType.Artist ? ItemType.Album : ItemType.Media;
+        secondaryMenuItems = getMenuItems(source.id, 2, itemType, source.secondaryItems);
+        if (source.tertiaryItems?.layout?.view !== 'none' && source.itemType === ItemType.Artist) {
+            tertiaryMenuItems = getMenuItems(source.id, 3, ItemType.Media, source.tertiaryItems);
+        }
+    }
+    if (secondaryMenuItems) {
+        const getMenuItem = (menu: MenuItems | undefined, level = 1, type: 'sort' | 'view') =>
+            menu?.[type] ? (
+                <PopupMenuItem
+                    label={`${menu.label}: ${type === 'sort' ? 'Sort' : 'View'}`}
+                    key={`${type}${level}`}
+                >
+                    {menu[type]}
+                </PopupMenuItem>
+            ) : null;
+        return (
+            <PopupMenu {...props}>
+                {[
+                    getMenuItem(primaryMenuItems, 1, 'sort'),
+                    getMenuItem(primaryMenuItems, 1, 'view'),
+                    getMenuItem(secondaryMenuItems, 2, 'sort'),
+                    getMenuItem(secondaryMenuItems, 2, 'view'),
+                    getMenuItem(tertiaryMenuItems, 3, 'sort'),
+                    getMenuItem(tertiaryMenuItems, 3, 'view'),
+                ]}
+            </PopupMenu>
+        );
+    } else if (primaryMenuItems.sort && primaryMenuItems.view) {
+        return (
+            <PopupMenu {...props}>
+                <PopupMenuItem label="Sort" key="sort">
+                    {primaryMenuItems.sort}
+                </PopupMenuItem>
+                <PopupMenuItem label="View" key="view">
+                    {primaryMenuItems.view}
+                </PopupMenuItem>
+            </PopupMenu>
+        );
+    }
+    return <PopupMenu {...props}>{primaryMenuItems.sort || primaryMenuItems.view}</PopupMenu>;
+}
+
+interface MenuItems {
+    label: string;
+    sort?: React.ReactNode;
+    view?: React.ReactNode;
+}
+
+function getMenuItems(
+    sourceId: string,
+    level: 1 | 2 | 3,
+    itemType: ItemType,
+    source: MediaSourceItems | undefined
+): MenuItems {
+    const id = `${sourceId}/${level}`;
+    const menuItems: MenuItems = {
+        label: source?.label || getDefaultLabel(sourceId, itemType),
+    };
+    if (source?.sort) {
+        const sorting = getSourceSorting(id) || source.sort.defaultSort;
+        const sortOptions = source.sort.sortOptions;
+        menuItems.sort = (
+            <>
+                {Object.keys(sortOptions).map((sortBy) => (
+                    <PopupMenuItemCheckbox
+                        label={`Sort by: ${sortOptions[sortBy]}`}
+                        checked={sorting.sortBy === sortBy}
+                        onClick={() => setSourceSorting(id, sortBy, sorting.sortOrder)}
+                        key={sortBy}
+                    />
+                ))}
+                <PopupMenuSeparator />
                 <PopupMenuItemCheckbox
-                    label={options[key]}
-                    value={key}
-                    checked={sorting.sortBy === key}
-                    key={key}
+                    label="Sort Ascending"
+                    checked={sorting.sortOrder === 1}
+                    onClick={() => setSourceSorting(id, sorting.sortBy, 1)}
+                    key="1"
+                />
+                <PopupMenuItemCheckbox
+                    label="Sort Descending"
+                    checked={sorting.sortOrder === -1}
+                    onClick={() => setSourceSorting(id, sorting.sortBy, -1)}
+                    key="-1"
+                />
+            </>
+        );
+    }
+    const views = source?.layout?.views || ['card', 'card compact', 'card small', 'details'];
+    const listView = document.getElementById(id);
+    const currentView = listView?.dataset.view;
+    menuItems.view = views.length ? (
+        <>
+            {views.map((view) => (
+                <PopupMenuItemCheckbox
+                    label={getViewName(view)}
+                    checked={currentView === view}
+                    onClick={() => setSourceView(id, view)}
+                    key={view}
                 />
             ))}
-            <PopupMenuSeparator />
-            <PopupMenuItemCheckbox
-                label="Sort Ascending"
-                value="1"
-                checked={sorting.sortOrder === 1}
-                key="1"
-            />
-            <PopupMenuItemCheckbox
-                label="Sort Descending"
-                value="-1"
-                checked={sorting.sortOrder === -1}
-                key="-1"
-            />
-        </PopupMenu>
-    );
+        </>
+    ) : undefined;
+    return menuItems;
+}
+
+function getViewName(view: string): string {
+    switch (view) {
+        case 'card':
+            return 'Card: Large';
+
+        case 'card compact':
+            return 'Card: Medium';
+
+        case 'card small':
+            return 'Card: Small';
+
+        case 'card minimal':
+            return 'List';
+
+        case 'details':
+            return 'Details';
+
+        default:
+            return view;
+    }
+}
+
+function getDefaultLabel(sourceId: string, itemType: ItemType): string {
+    switch (itemType) {
+        case ItemType.Playlist:
+            return 'Playlists';
+
+        case ItemType.Album:
+            return 'Albums';
+
+        case ItemType.Artist:
+            return 'Artists';
+
+        case ItemType.Folder:
+            return 'Folders';
+
+        default: {
+            const [serviceId] = sourceId.split('/');
+            switch (serviceId) {
+                case 'lastfm':
+                case 'listenbrainz':
+                case 'plex':
+                    return 'Tracks';
+
+                case 'youtube':
+                    return 'Videos';
+
+                default:
+                    return 'Songs';
+            }
+        }
+    }
 }

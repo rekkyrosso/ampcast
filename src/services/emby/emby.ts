@@ -586,7 +586,7 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
         itemType: pin.itemType,
         layout: {
             view: 'card',
-            fields: ['Thumbnail', 'PlaylistTitle', 'TrackCount', 'Genre', 'Progress'],
+            fields: ['Thumbnail', 'PinTitle', 'TrackCount', 'Genre', 'Progress'],
         },
         id: pin.src,
         icon: 'pin',

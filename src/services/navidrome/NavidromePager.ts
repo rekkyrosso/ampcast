@@ -1,280 +1,93 @@
-import type {Observable} from 'rxjs';
+import {tap} from 'rxjs';
 import {Primitive} from 'type-fest';
 import ItemType from 'types/ItemType';
-import LinearType from 'types/LinearType';
-import MediaAlbum from 'types/MediaAlbum';
-import MediaArtist from 'types/MediaArtist';
-import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
-import MediaPlaylist from 'types/MediaPlaylist';
-import MediaType from 'types/MediaType';
-import Pager, {Page, PagerConfig} from 'types/Pager';
-import PlaybackType from 'types/PlaybackType';
-import Thumbnail from 'types/Thumbnail';
-import {MAX_DURATION} from 'services/constants';
+import SortParams from 'types/SortParams';
+import {PagerConfig} from 'types/Pager';
+import {Logger} from 'utils';
+import {getSourceSorting, observeSourceSorting} from 'services/mediaServices/servicesSettings';
 import OffsetPager from 'services/pagers/OffsetPager';
-import SimplePager from 'services/pagers/SimplePager';
-import WrappedPager from 'services/pagers/WrappedPager';
-import pinStore from 'services/pins/pinStore';
-import {getTextFromHtml} from 'utils';
 import navidromeApi from './navidromeApi';
-import navidromeSettings from './navidromeSettings';
+import navidromeUtils from './navidromeUtils';
 
-export default class NavidromePager<T extends MediaObject> implements Pager<T> {
+const logger = new Logger('NavidromePager');
+
+interface NavidromePagerConfig extends PagerConfig {
+    readonly childSort?: SortParams;
+    readonly childSortId?: string;
+}
+
+export default class NavidromePager<T extends MediaObject> extends OffsetPager<T> {
     static minPageSize = 10;
     static maxPageSize = 500;
 
-    private readonly pager: OffsetPager<T>;
-    readonly pageSize: number;
+    private readonly childSortId: string;
 
     constructor(
-        private readonly itemType: ItemType,
-        private readonly path: string,
-        private readonly params?: Record<string, Primitive>,
-        options?: Partial<PagerConfig>
+        itemType: T['itemType'],
+        path: string,
+        params?: Record<string, Primitive>,
+        options?: Partial<NavidromePagerConfig>
     ) {
-        this.pageSize = options?.pageSize || 200;
-        this.pager = new OffsetPager<T>((pageNumber) => this.fetch(pageNumber), {
-            pageSize: this.pageSize,
-            ...options,
-        });
+        const {childSort, childSortId = '', ...config} = options || {};
+        super(
+            async (pageNumber, pageSize) => {
+                const _start = (pageNumber - 1) * pageSize;
+                const _end = _start + pageSize;
+                const {items, total} = await navidromeApi.getPage(path, {
+                    ...params,
+                    _start,
+                    _end,
+                });
+                return {
+                    items: items.map((item) =>
+                        navidromeUtils.createMediaObject(
+                            itemType,
+                            item,
+                            path === 'radio',
+                            getSourceSorting(childSortId) || childSort
+                        )
+                    ),
+                    total,
+                };
+            },
+            {pageSize: 200, ...config}
+        );
+        this.childSortId = childSortId;
     }
 
-    get maxSize(): number | undefined {
-        return this.pager.maxSize;
-    }
+    protected connect(): void {
+        if (!this.disconnected && !this.connected) {
+            super.connect();
 
-    observeBusy(): Observable<boolean> {
-        return this.pager.observeBusy();
-    }
-
-    observeItems(): Observable<readonly T[]> {
-        return this.pager.observeItems();
-    }
-
-    observeSize(): Observable<number> {
-        return this.pager.observeSize();
-    }
-
-    observeError(): Observable<unknown> {
-        return this.pager.observeError();
-    }
-
-    disconnect(): void {
-        this.pager.disconnect();
-    }
-
-    fetchAt(index: number, length: number): void {
-        this.pager.fetchAt(index, length);
-    }
-
-    private async fetch(pageNumber: number): Promise<Page<T>> {
-        const _start = (pageNumber - 1) * this.pageSize;
-        const _end = _start + this.pageSize;
-        const {items, total} = await navidromeApi.getPage<Navidrome.MediaObject>(this.path, {
-            ...this.params,
-            _start,
-            _end,
-        });
-        return {
-            items: items.map((item) => this.createMediaObject(item)),
-            total,
-        };
-    }
-
-    private createMediaObject(item: Navidrome.MediaObject): T {
-        switch (this.itemType) {
-            case ItemType.Album:
-                return this.createMediaAlbum(item as Navidrome.Album) as T;
-
-            case ItemType.Artist:
-                return this.createMediaArtist(item as Navidrome.Artist) as T;
-
-            case ItemType.Playlist:
-                return this.createMediaPlaylist(item as Navidrome.Playlist) as T;
-
-            default:
-                if (this.path === 'radio') {
-                    return this.createRadioItem(item as Navidrome.Radio) as T;
-                } else {
-                    return this.createMediaItem(item as Navidrome.Song) as T;
-                }
+            if (this.childSortId) {
+                this.subscribeTo(
+                    observeSourceSorting(this.childSortId).pipe(
+                        tap((childSort) => this.updateChildSort(childSort))
+                    ),
+                    logger
+                );
+            }
         }
     }
 
-    private createMediaItem(song: Navidrome.Song): MediaItem {
-        const id = song.mediaFileId || song.id;
-        return {
-            itemType: ItemType.Media,
-            mediaType: MediaType.Audio,
-            playbackType: PlaybackType.Direct,
-            src: `navidrome:audio:${id}`,
-            externalUrl: this.getExternalUrl(`album/${song.albumId}`),
-            title: song.title,
-            addedAt: this.parseDate(song.createdAt),
-            artists: [song.artist],
-            albumArtist: song.albumArtist,
-            album: song.album,
-            duration: song.duration,
-            track: song.trackNumber,
-            disc: song.discNumber,
-            inLibrary: song.starred,
-            year: song.year || undefined,
-            playedAt: this.parseDate(song.playDate),
-            playCount: song.playCount,
-            genres: song.genres?.map((genre) => genre.name),
-            thumbnails: this.createThumbnails(song.albumId),
-            recording_mbid: song.mbzTrackId || undefined,
-            release_mbid: song.mbzAlbumId || undefined,
-            track_mbid: song.mbzReleaseTrackId || undefined,
-            artist_mbids: song.mbzArtistId ? [song.mbzArtistId] : undefined,
-            isrc: song.tags?.isrc?.[0],
-            albumGain: song.rgAlbumGain,
-            albumPeak: song.rgAlbumPeak,
-            trackGain: song.rgTrackGain,
-            trackPeak: song.rgTrackPeak,
-            bitRate: song.bitRate,
-            badge: song.suffix,
-            container: song.suffix,
-            unplayable: song.missing || undefined,
-        };
-    }
-
-    private createRadioItem(radio: Navidrome.Radio): MediaItem {
-        return {
-            itemType: ItemType.Media,
-            mediaType: MediaType.Audio,
-            linearType: LinearType.Station,
-            src: `navidrome:radio:${radio.id}`,
-            srcs: [radio.streamUrl],
-            externalUrl: radio.homePageUrl,
-            title: radio.name,
-            addedAt: this.parseDate(radio.createdAt),
-            duration: MAX_DURATION,
-            playedAt: 0,
-            isExternalMedia: true
-        };
-    }
-
-    private createMediaAlbum(album: Navidrome.Album): MediaAlbum {
-        const album_id = album.id;
-        return {
-            itemType: ItemType.Album,
-            src: `navidrome:album:${album_id}`,
-            externalUrl: this.getExternalUrl(`album/${album_id}`),
-            title: album.name,
-            addedAt: this.parseDate(album.createdAt),
-            artist: album.albumArtist,
-            inLibrary: album.starred,
-            year: album.minYear || album.maxYear || undefined,
-            playedAt: this.parseDate(album.playDate),
-            playCount: album.playCount,
-            genres: album.genres?.map((genre) => genre.name),
-            pager: new NavidromePager(ItemType.Media, 'song', {album_id, _sort: 'album'}),
-            trackCount: album.songCount,
-            thumbnails: this.createThumbnails(album_id),
-            release_mbid: album.mbzAlbumId,
-            artist_mbids: album.mbzAlbumArtistId ? [album.mbzAlbumArtistId] : undefined,
-        };
-    }
-
-    private createMediaArtist(artist: Navidrome.Artist): MediaArtist {
-        const artist_id = artist.id;
-        const hasThumbnails = Object.keys(artist).some((key) => /ImageUrl$/.test(key));
-        return {
-            itemType: ItemType.Artist,
-            src: `navidrome:artist:${artist_id}`,
-            externalUrl: this.getExternalUrl(`artist/${artist_id}`),
-            title: artist.name,
-            description: getTextFromHtml(artist.biography) || undefined,
-            inLibrary: artist.starred,
-            genres: artist.genres?.map((genre) => genre.name),
-            pager: this.createArtistAlbumsPager(artist),
-            thumbnails: hasThumbnails ? this.createThumbnails(artist_id) : undefined,
-            artist_mbid: artist.mbzArtistId,
-        };
-    }
-
-    private createMediaPlaylist(playlist: Navidrome.Playlist): MediaPlaylist {
-        const playlist_id = playlist.id;
-        const src = `navidrome:playlist:${playlist_id}`;
-
-        return {
-            itemType: ItemType.Playlist,
-            src: src,
-            externalUrl: this.getExternalUrl(`playlist/${playlist_id}`),
-            title: playlist.name,
-            description: getTextFromHtml(playlist.comment),
-            addedAt: this.parseDate(playlist.createdAt),
-            duration: playlist.duration,
-            trackCount: playlist.songCount,
-            pager: new NavidromePager(ItemType.Media, `playlist/${playlist_id}/tracks`, {
-                playlist_id,
-            }),
-            thumbnails: this.createThumbnails(playlist_id),
-            isPinned: pinStore.isPinned(src),
-            isOwn: playlist.ownerId === navidromeSettings.userId,
-            owner: {
-                name: playlist.ownerName,
-            },
-        };
-    }
-
-    private getExternalUrl(id: string): string {
-        return `${navidromeSettings.host}/app/#/${id}/show`;
-    }
-
-    private parseDate(date: string): number {
-        const time = Date.parse(date) || 0;
-        return time < 0 ? 0 : Math.round(time / 1000);
-    }
-
-    private createThumbnails(id: string): Thumbnail[] | undefined {
-        return id
-            ? [
-                  this.createThumbnail(id, 240),
-                  this.createThumbnail(id, 360),
-                  this.createThumbnail(id, 480),
-                  this.createThumbnail(id, 800),
-              ]
-            : undefined;
-    }
-
-    private createThumbnail(id: string, width: number, height = width): Thumbnail {
-        const {host} = navidromeSettings;
-        const url = `${host}/rest/getCoverArt?id=${id}&size=${width}&{navidrome-credentials}`; // not a typo
-        return {url, width, height};
-    }
-
-    private createArtistAlbumsPager(artist: Navidrome.Artist): Pager<MediaAlbum> {
-        const allTracks = this.createArtistAllTracks(artist);
-        const allTracksPager = new SimplePager<MediaAlbum>([allTracks]);
-        const albumsPager = new NavidromePager<MediaAlbum>(ItemType.Album, 'album', {
-            album_artist_id: artist.id,
-            _sort: 'minYear',
-            _order: 'DESC',
-        });
-        return new WrappedPager(undefined, albumsPager, allTracksPager);
-    }
-
-    private createArtistAllTracks(artist: Navidrome.Artist): MediaAlbum {
-        const hasThumbnails = Object.keys(artist).some((key) => /ImageUrl$/.test(key));
-        return {
-            itemType: ItemType.Album,
-            src: `navidrome:all-tracks:${artist.id}`,
-            title: 'All Songs',
-            artist: artist.name,
-            thumbnails: hasThumbnails ? this.createThumbnails(artist.id) : undefined,
-            pager: this.createAllTracksPager(artist),
-            trackCount: undefined,
-            synthetic: true,
-        };
-    }
-
-    private createAllTracksPager(artist: Navidrome.Artist): Pager<MediaItem> {
-        return new NavidromePager<MediaItem>(ItemType.Media, 'song', {
-            artist_id: artist.id,
-            _sort: 'artist',
+    private updateChildSort(childSort: SortParams | undefined): void {
+        this.items = this.items.map((item) => {
+            if (item.itemType === ItemType.Artist) {
+                item.pager.disconnect();
+                return {
+                    ...item,
+                    pager: navidromeUtils.createArtistAlbumsPager(item, childSort),
+                };
+            } else if (item.itemType === ItemType.Playlist) {
+                item.pager.disconnect();
+                return {
+                    ...item,
+                    pager: navidromeUtils.createPlaylistItemsPager(item, childSort),
+                };
+            } else {
+                return item;
+            }
         });
     }
 }

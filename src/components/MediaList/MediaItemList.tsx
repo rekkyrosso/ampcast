@@ -1,16 +1,11 @@
 import React from 'react';
 import MediaItem from 'types/MediaItem';
-import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaList, {MediaListProps} from './MediaList';
-
-const defaultLayout: MediaSourceLayout<MediaItem> = {
-    view: 'details',
-    fields: ['Artist', 'Title', 'Album', 'Track', 'Duration', 'Genre', 'PlayCount'],
-};
+import {mediaItemsLayout} from './layouts';
 
 export default function MediaItemList({
     className = '',
-    layout = defaultLayout,
+    defaultLayout = mediaItemsLayout,
     multiple = true,
     draggable = true,
     ...props
@@ -19,7 +14,7 @@ export default function MediaItemList({
         <MediaList
             {...props}
             className={`media-items ${className}`}
-            layout={layout}
+            defaultLayout={defaultLayout}
             multiple={multiple}
             draggable={draggable}
         />

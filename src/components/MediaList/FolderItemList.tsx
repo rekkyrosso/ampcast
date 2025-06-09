@@ -1,17 +1,12 @@
 import React, {useCallback, useState} from 'react';
 import ItemType from 'types/ItemType';
 import MediaFolderItem from 'types/MediaFolderItem';
-import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaList, {MediaListProps} from './MediaList';
-
-const defaultLayout: MediaSourceLayout<MediaFolderItem> = {
-    view: 'card minimal',
-    fields: ['FileIcon', 'FileName'],
-};
+import {folderItemsLayout} from './layouts';
 
 export default function FolderItemList({
     className = '',
-    layout = defaultLayout,
+    defaultLayout = folderItemsLayout,
     multiple = true,
     draggable = true,
     onSelect,
@@ -34,7 +29,7 @@ export default function FolderItemList({
         <MediaList
             {...props}
             className={`folder-items ${className}`}
-            layout={layout}
+            defaultLayout={defaultLayout}
             multiple={canMultiSelect}
             draggable={canDrag}
             onSelect={handleSelect}

@@ -13,7 +13,6 @@ import {
     observeNextVisualizerReason,
 } from 'services/visualizer';
 import AppTitle from 'components/App/AppTitle';
-import Icon from 'components/Icon';
 import IconButton from 'components/Button/IconButton';
 import IconButtons from 'components/Button/IconButtons';
 import {showDialog} from 'components/Dialog';
@@ -28,8 +27,8 @@ import useVisualizerSettings from 'hooks/useVisualizerSettings';
 import MediaButtons from './MediaButtons';
 import ProgressBar from './ProgressBar';
 import Static from './Static';
+import VideoSourceIcon from './VideoSourceIcon';
 import useCanLockVisualizer from './useCanLockVisualizer';
-import useVideoSourceIcon from './useVideoSourceIcon';
 import './VisualizerControls.scss';
 
 export interface VisualizerControlsProps {
@@ -46,7 +45,6 @@ export default memo(function VisualizerControls({
     const locked = lockedVisualizer !== null;
     const canLock = useCanLockVisualizer();
     const hasNext = canLock && !locked;
-    const videoSourceIcon = useVideoSourceIcon();
     const [nextClicked, setNextClicked] = useState(false);
     const paused = usePaused();
     const currentItem = useCurrentlyPlaying();
@@ -97,7 +95,6 @@ export default memo(function VisualizerControls({
         <div className="visualizer-controls" style={nextClicked ? {opacity: '1'} : undefined}>
             {showStatic ? <Static /> : null}
             <AppTitle />
-            {videoSourceIcon ? <Icon className="video-source-icon" name={videoSourceIcon} /> : null}
             <p className="media-state no-visualizer-reason">{noVisualizerReason}</p>
             <ProgressBar />
             <IconButtons className="visualizer-buttons visualizer-controls-settings">
@@ -119,11 +116,7 @@ export default memo(function VisualizerControls({
                 {miniPlayerEnabled ? (
                     <IconButton
                         icon="link"
-                        title={
-                            miniPlayerActive
-                                ? 'Playback window'
-                                : 'Open playback in new window'
-                        }
+                        title={miniPlayerActive ? 'Playback window' : 'Open playback in new window'}
                         tabIndex={-1}
                         onClick={miniPlayer.open}
                     />
@@ -150,6 +143,7 @@ export default memo(function VisualizerControls({
                 </IconButtons>
             )}
             <MediaButtons />
+            <VideoSourceIcon />
         </div>
     );
 });

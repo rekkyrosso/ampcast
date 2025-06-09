@@ -1,7 +1,6 @@
 import React, {useState} from 'react';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
-import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaItemList from 'components/MediaList/MediaItemList';
 import AlbumList from 'components/MediaList/AlbumList';
 import ArtistList from 'components/MediaList/ArtistList';
@@ -9,15 +8,10 @@ import Splitter from 'components/Splitter';
 import {PagedItemsProps} from './PagedItems';
 import useAlbumTracksLayout from './useAlbumTracksLayout';
 
-const defaultAlbumsLayout: MediaSourceLayout<MediaAlbum> = {
-    view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'Year'],
-};
-
 export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>) {
     const [[selectedArtist], setSelectedArtist] = useState<readonly MediaArtist[]>([]);
     const [[selectedAlbum], setSelectedAlbum] = useState<readonly MediaAlbum[]>([]);
-    const albumTracksLayout = useAlbumTracksLayout(selectedAlbum, source.tertiaryLayout);
+    const albumTracksLayout = useAlbumTracksLayout(selectedAlbum);
     const albumsPager = selectedArtist?.pager || null;
     const tracksPager = selectedAlbum?.pager || null;
 
@@ -25,8 +19,10 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
         <ArtistList
             {...props}
             title={source.title}
+            layoutOptions={source.primaryItems?.layout}
+            sourceId={source.id}
+            level={1}
             onSelect={setSelectedArtist}
-            reportingId={source.id}
         />
     );
 
@@ -35,9 +31,10 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
             title={selectedArtist ? `${selectedArtist.title}: Albums` : ''}
             className="artist-albums"
             pager={albumsPager}
-            layout={source.secondaryLayout || defaultAlbumsLayout}
+            layoutOptions={source.secondaryItems?.layout}
+            sourceId={source.id}
+            level={2}
             onSelect={setSelectedAlbum}
-            reportingId={`${source.id}/albums`}
             key={selectedArtist?.src}
         />
     );
@@ -45,11 +42,12 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
     const trackList = (
         <MediaItemList
             title={selectedAlbum ? `${selectedAlbum.title}: Tracks` : ''}
-            storageId={`${source.id}/tracks`}
             className={`album-tracks ${selectedAlbum?.multiDisc ? 'multi-disc' : ''}`}
             pager={tracksPager}
-            layout={albumTracksLayout}
-            reportingId={`${source.id}/albums/tracks`}
+            defaultLayout={albumTracksLayout}
+            layoutOptions={source.tertiaryItems?.layout}
+            sourceId={source.id}
+            level={3}
             key={selectedAlbum?.src}
         />
     );

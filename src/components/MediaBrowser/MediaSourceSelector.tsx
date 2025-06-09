@@ -1,14 +1,18 @@
 import React, {useCallback, useId} from 'react';
 import MediaObject from 'types/MediaObject';
 import MediaSource from 'types/MediaSource';
+import MenuButton from './MenuButton';
+import './MediaSourceSelector.scss';
 
 export interface MediaSourceSelectorProps<T extends MediaObject> {
     sources: readonly MediaSource<T>[];
+    menuButtonSource?: MediaSource<T>;
     onSourceChange?: (source: MediaSource<T>) => void;
 }
 
 export default function MediaSourceSelector<T extends MediaObject>({
     sources,
+    menuButtonSource,
     onSourceChange,
 }: MediaSourceSelectorProps<T>) {
     const id = useId();
@@ -39,6 +43,7 @@ export default function MediaSourceSelector<T extends MediaObject>({
                     </li>
                 ))}
             </ul>
+            {menuButtonSource ? <MenuButton source={menuButtonSource} /> : null}
         </div>
     );
 }

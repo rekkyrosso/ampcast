@@ -1,8 +1,7 @@
-import type {Observable} from 'rxjs';
-import {Subscription, mergeMap} from 'rxjs';
+import {mergeMap} from 'rxjs';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
-import Pager, {Page, PagerConfig} from 'types/Pager';
+import {Page, PagerConfig} from 'types/Pager';
 import ParentOf from 'types/ParentOf';
 import {Logger} from 'utils';
 import SequentialPager from 'services/pagers/SequentialPager';
@@ -16,10 +15,8 @@ export interface MusicKitPage extends Page<MusicKitItem> {
     readonly nextPageUrl?: string | undefined;
 }
 
-export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
-    private readonly pager: SequentialPager<T>;
+export default class MusicKitPager<T extends MediaObject> extends SequentialPager<T> {
     private nextPageUrl: string | undefined = undefined;
-    private subscriptions?: Subscription;
 
     private static defaultToPage(response: any): MusicKitPage {
         const result = response.data[0]?.relationships?.tracks || response;
@@ -36,10 +33,10 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
         private readonly parent?: ParentOf<T>,
         toPage = MusicKitPager.defaultToPage
     ) {
-        this.pager = new SequentialPager<T>(
-            async (limit: number): Promise<Page<T>> => {
+        super(
+            async (limit) => {
                 try {
-                    const response = await this.fetchNext(
+                    const response = await this.fetch(
                         this.nextPageUrl || href,
                         limit ? (params ? {...params, limit} : {limit}) : params
                     );
@@ -63,63 +60,26 @@ export default class MusicKitPager<T extends MediaObject> implements Pager<T> {
                     }
                 }
             },
-            {pageSize: 25, ...options}
+            {pageSize: 100, ...options}
         );
     }
 
-    get maxSize(): number | undefined {
-        return this.pager.maxSize;
-    }
-
-    get pageSize(): number {
-        return this.pager.pageSize;
-    }
-
-    observeBusy(): Observable<boolean> {
-        return this.pager.observeBusy();
-    }
-
-    observeItems(): Observable<readonly T[]> {
-        return this.pager.observeItems();
-    }
-
-    observeSize(): Observable<number> {
-        return this.pager.observeSize();
-    }
-
-    observeError(): Observable<unknown> {
-        return this.pager.observeError();
-    }
-
-    disconnect(): void {
-        this.pager.disconnect();
-        this.subscriptions?.unsubscribe();
-    }
-
-    fetchAt(index: number, length: number): void {
-        if (!this.subscriptions) {
-            this.connect();
-        }
-
-        this.pager.fetchAt(index, length);
-    }
-
-    private connect(): void {
-        if (!this.subscriptions) {
-            this.subscriptions = new Subscription();
+    protected connect(): void {
+        if (!this.disconnected && !this.connected) {
+            super.connect();
 
             if (!this.options?.lookup) {
-                this.subscriptions.add(
-                    this.pager
-                        .observeAdditions()
-                        .pipe(mergeMap((items) => addUserData(items, true, this.parent)))
-                        .subscribe(logger)
+                this.subscribeTo(
+                    this.observeAdditions().pipe(
+                        mergeMap((items) => addUserData(items, true, this.parent))
+                    ),
+                    logger
                 );
             }
         }
     }
 
-    private async fetchNext(href: string, params?: MusicKit.QueryParameters): Promise<any> {
+    private async fetch(href: string, params?: MusicKit.QueryParameters): Promise<any> {
         const musicKit = MusicKit.getInstance();
         try {
             const response = await musicKit.api.music(href, params);

@@ -1,17 +1,14 @@
 import React from 'react';
 import MediaArtist from 'types/MediaArtist';
-import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaList, {MediaListProps} from './MediaList';
-
-const defaultLayout: MediaSourceLayout<MediaArtist> = {
-    view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'Genre'],
-};
+import {artistsLayout} from './layouts';
 
 export default function ArtistList({
     className = '',
-    layout = defaultLayout,
+    defaultLayout = artistsLayout,
     ...props
 }: MediaListProps<MediaArtist>) {
-    return <MediaList {...props} className={`artists ${className}`} layout={layout} />;
+    return (
+        <MediaList {...props} className={`artists ${className}`} defaultLayout={defaultLayout} />
+    );
 }

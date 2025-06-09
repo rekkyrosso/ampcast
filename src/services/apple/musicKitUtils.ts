@@ -444,11 +444,11 @@ const musicKitUtils = {
         }
     },
 
-    getCatalog<T extends MusicKitItem>(item: any): T {
+    getCatalog<T extends MusicKitItem>(item: MusicKit.Resource): T {
         return item.relationships?.catalog?.data?.[0];
     },
 
-    getCatalogId(item: any): string {
+    getCatalogId(item: MusicKit.Resource): string {
         if (item.type.startsWith('library-')) {
             let catalogId =
                 item.attributes?.playParams?.[

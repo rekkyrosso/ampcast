@@ -1,35 +1,44 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import MediaItem from 'types/MediaItem';
+import MediaListLayout from 'types/MediaListLayout';
 import MediaPlaylist from 'types/MediaPlaylist';
-import MediaSourceLayout from 'types/MediaSourceLayout';
 import pinStore from 'services/pins/pinStore';
 import Icon from 'components/Icon';
 import {ErrorBoxProps} from 'components/Errors/ErrorBox';
 import MediaItemList from 'components/MediaList/MediaItemList';
+import {defaultMediaItemCard, playlistItemsLayout} from 'components/MediaList/layouts';
 import PlaylistList from 'components/MediaList/PlaylistList';
 import {PagedItemsProps} from './PagedItems';
 import './PinnedPlaylist.scss';
 
-const defaultLayout: MediaSourceLayout<MediaPlaylist> = {
+const defaultLayout: MediaListLayout = {
     view: 'card',
-    fields: ['Thumbnail', 'PlaylistTitle', 'TrackCount', 'Owner', 'Progress'],
+    card: {
+        h1: 'PinTitle',
+        h2: 'Owner',
+        h3: 'Progress',
+        data: 'TrackCount',
+    },
+    details: ['PinTitle', 'Owner', 'TrackCount', 'Progress'],
 };
 
-const defaultPlaylistItemsLayout: MediaSourceLayout<MediaItem> = {
+const defaultPlaylistItemsLayout: MediaListLayout = {
+    ...playlistItemsLayout,
     view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
 };
 
-const chartPlaylistItemsLayout: MediaSourceLayout<MediaItem> = {
-    view: 'card compact',
-    fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
+const chartPlaylistItemsLayout: MediaListLayout = {
+    ...defaultPlaylistItemsLayout,
+    card: {
+        ...defaultMediaItemCard,
+        index: 'Index',
+    },
 };
 
 export default function PinnedPlaylist({source, ...props}: PagedItemsProps<MediaPlaylist>) {
     const [error, setError] = useState<unknown>();
     const [[pinnedPlaylist], setPinnedPlaylist] = useState<readonly MediaPlaylist[]>([]);
     const itemsPager = pinnedPlaylist?.pager || null;
-    const defaultSecondaryLayout = pinnedPlaylist?.isChart
+    const defaultItemsLayout = pinnedPlaylist?.isChart
         ? chartPlaylistItemsLayout
         : defaultPlaylistItemsLayout;
 
@@ -52,7 +61,10 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
                 <PlaylistList
                     {...props}
                     title={source.title}
-                    layout={source.layout || defaultLayout}
+                    defaultLayout={defaultLayout}
+                    layoutOptions={source.primaryItems?.layout}
+                    sourceId={source.id}
+                    level={1}
                     onError={setError}
                     onSelect={setPinnedPlaylist}
                     statusBar={false}
@@ -63,10 +75,12 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
                 title={`${source.title}: Tracks`}
                 className="playlist-items"
                 pager={itemsPager}
-                layout={source.secondaryLayout || defaultSecondaryLayout}
+                defaultLayout={defaultItemsLayout}
+                layoutOptions={source.secondaryItems?.layout}
+                sourceId={source.id}
+                level={2}
                 emptyMessage="Empty playlist"
                 onError={setError}
-                reportingId={`${source.id}/items`}
             />
         </div>
     );

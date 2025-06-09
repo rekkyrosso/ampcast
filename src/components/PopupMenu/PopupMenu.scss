@@ -13,6 +13,7 @@
         border: 0;
         border-radius: 0;
         width: 100%;
+        min-width: 8em;
         display: flex;
         flex-direction: row;
         align-items: center;
@@ -60,10 +61,10 @@
         &.has-popup-right {
             & > button::before {
                 content: '❮';
-                font-family: Arial, Helvetica, sans-serif;
                 position: absolute;
                 left: 0.5em;
                 font-size: 0.75em;
+                transform: translateZ(0);
             }
 
             .popup-menu {
@@ -73,18 +74,22 @@
         }
 
         &.has-popup-left {
-            & > button::before {
+            & > button::after {
                 content: '❯';
-                font-family: Arial, Helvetica, sans-serif;
-                position: absolute;
-                right: 1.33em;
                 font-size: 0.75em;
+                margin-left: 1em;
+                transform: translateZ(0);
             }
 
             .popup-menu {
                 border-top-left-radius: 0;
                 z-index: -1;
             }
+        }
+
+        &.showing-popup > button {            
+            background-color: var(--button-text-color);
+            color: var(--button-color);
         }
 
         &-label {

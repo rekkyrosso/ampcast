@@ -4,7 +4,6 @@ import MediaSource, {AnyMediaSource, MediaMultiSource} from 'types/MediaSource';
 import actionsStore from 'services/actions/actionsStore';
 import SearchBar from 'components/SearchBar';
 import useSearch from 'hooks/useSearch';
-import useSorting from 'hooks/useSorting';
 import {MediaBrowserProps} from './MediaBrowser';
 import MediaSourceSelector from './MediaSourceSelector';
 import PageHeader from './PageHeader';
@@ -14,8 +13,7 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
     const sources = isMediaMultiSource(source) ? source.sources : [source];
     const [selectedSource, setSelectedSource] = useState<MediaSource<MediaObject>>(sources[0]);
     const [query, setQuery] = useState('');
-    const {sortBy, sortOrder} = useSorting(selectedSource);
-    const pager = useSearch(selectedSource, query, sortBy, sortOrder);
+    const pager = useSearch(selectedSource, query);
     const searchable = !!source.searchable;
     const showPagerHeader = !searchable && !source.isPin;
 
@@ -34,7 +32,7 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
     return (
         <>
             {showPagerHeader ? (
-                <PageHeader icon={service.icon} source={selectedSource}>
+                <PageHeader icon={service.icon} menuButtonSource={selectedSource}>
                     {source === service.root ? service.name : `${service.name}: ${source.title}`}
                 </PageHeader>
             ) : null}
@@ -47,13 +45,16 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
                 />
             ) : null}
             {sources.length > 1 ? (
-                <MediaSourceSelector sources={sources} onSourceChange={setSelectedSource} />
+                <MediaSourceSelector
+                    sources={sources}
+                    menuButtonSource={showPagerHeader ? undefined : selectedSource}
+                    onSourceChange={setSelectedSource}
+                />
             ) : null}
             <PagedItems
                 service={service}
                 source={selectedSource}
                 pager={pager}
-                layout={selectedSource.layout}
                 loadingText={query ? 'Searching' : undefined}
                 emptyMessage={query ? 'No results' : undefined}
             />

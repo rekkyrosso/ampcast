@@ -1,0 +1,19 @@
+.media-source-selector {
+    display: flex;
+    align-items: flex-end;
+
+    .media-sources {
+        margin-left: auto;
+        margin-right: auto;
+
+        &:has(+ .icon-button-menu) {
+            margin-right: 0;
+        }
+    }
+
+    .icon-button-menu {
+        margin-left: auto;
+        margin-right: 0.375em;
+        margin-bottom: 0.25em;
+    }
+}

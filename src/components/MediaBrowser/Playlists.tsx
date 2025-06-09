@@ -1,17 +1,11 @@
 import React, {useState} from 'react';
-import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
-import MediaSourceLayout from 'types/MediaSourceLayout';
+import {playlistItemsLayout} from 'components/MediaList/layouts';
 import MediaItemList from 'components/MediaList/MediaItemList';
 import PlaylistList from 'components/MediaList/PlaylistList';
 import useIsPlaylistPlayable from 'components/MediaList/useIsPlaylistPlayable';
 import Splitter from 'components/Splitter';
 import {PagedItemsProps} from './PagedItems';
-
-const defaultPlaylistItemsLayout: MediaSourceLayout<MediaItem> = {
-    view: 'details',
-    fields: ['Index', 'Artist', 'Title', 'Album', 'Duration', 'Genre'],
-};
 
 export default function Playlists({source, ...props}: PagedItemsProps<MediaPlaylist>) {
     const [[selectedPlaylist], setSelectedPlaylist] = useState<readonly MediaPlaylist[]>([]);
@@ -22,21 +16,24 @@ export default function Playlists({source, ...props}: PagedItemsProps<MediaPlayl
         <PlaylistList
             {...props}
             title={source.title}
+            layoutOptions={source.primaryItems?.layout}
+            sourceId={source.id}
+            level={1}
             draggable={draggable}
             onSelect={setSelectedPlaylist}
-            reportingId={source.id}
         />
     );
 
     const playlistItems = (
         <MediaItemList
             title={selectedPlaylist ? `${selectedPlaylist.title}: Tracks` : ''}
-            storageId={`${source.id}/items`}
             className="playlist-items"
             pager={itemsPager}
-            layout={source.secondaryLayout || defaultPlaylistItemsLayout}
+            defaultLayout={playlistItemsLayout}
+            layoutOptions={source.secondaryItems?.layout}
+            sourceId={source.id}
+            level={2}
             emptyMessage="Empty playlist"
-            reportingId={`${source.id}/items`}
             key={selectedPlaylist?.src}
         />
     );

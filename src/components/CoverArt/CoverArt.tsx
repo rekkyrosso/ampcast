@@ -20,16 +20,29 @@ export interface CoverArtProps {
     extendedSearch?: boolean;
     onLoad?: (src: string) => void;
     onError?: () => void;
+    placeholder?: boolean; // Don't load the thumbnail image.
 }
 
-export default function CoverArt({
-    item,
-    size,
-    extendedSearch,
-    className = '',
-    onLoad,
-    onError,
-}: CoverArtProps) {
+export default function CoverArt({item, className = '', placeholder, ...props}: CoverArtProps) {
+    const [ready, setReady] = useState(!placeholder);
+    const overlayIcon = item.itemType === ItemType.Album && getOverlayIcon(item);
+
+    useEffect(() => {
+        if (!placeholder) {
+            setReady(true);
+        }
+    }, [placeholder]);
+
+    return (
+        <figure
+            className={`cover-art ${className} ${overlayIcon ? 'cover-art-' + overlayIcon : ''}`}
+        >
+            {ready ? <CoverArtImage {...props} item={item} key={item.src} /> : null}
+        </figure>
+    );
+}
+
+function CoverArtImage({item, size, extendedSearch, onLoad, onError}: CoverArtProps) {
     const [inError, setInError] = useState(false);
     const [thumbnails, setThumbnails] = useState(() => item.thumbnails);
     const hasThumbnails = !!thumbnails?.length;
@@ -83,9 +96,7 @@ export default function CoverArt({
     }, [onLoad, src]);
 
     return (
-        <figure
-            className={`cover-art ${className} ${overlayIcon ? 'cover-art-' + overlayIcon : ''}`}
-        >
+        <>
             {src && !inError ? (
                 <>
                     <img
@@ -104,7 +115,7 @@ export default function CoverArt({
             ) : fallbackIcon ? (
                 <Icon className="cover-art-image" name={fallbackIcon} />
             ) : null}
-        </figure>
+        </>
     );
 }
 

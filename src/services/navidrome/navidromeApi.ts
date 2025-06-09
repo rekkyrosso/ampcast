@@ -1,11 +1,7 @@
 import {Primitive} from 'type-fest';
 import MediaFilter from 'types/MediaFilter';
+import {Page} from 'types/Pager';
 import navidromeSettings from './navidromeSettings';
-
-export interface NavidromePage<T> {
-    readonly items: readonly T[];
-    readonly total: number;
-}
 
 async function get<T>(path: string, params?: Record<string, Primitive>): Promise<T> {
     const response = await navidromeFetch(path, params, {method: 'GET'});
@@ -39,10 +35,10 @@ async function getGenres(): Promise<readonly MediaFilter[]> {
     return genres.map(({id, name: title}) => ({id, title}));
 }
 
-async function getPage<T>(
+async function getPage<T = Navidrome.MediaObject>(
     path: string,
     params?: Record<string, Primitive>
-): Promise<NavidromePage<T>> {
+): Promise<Page<T>> {
     const response = await navidromeFetch(path, params, {
         method: 'GET',
         headers: {Accept: 'application/json'},

@@ -1,16 +1,22 @@
 import React, {useCallback, useState} from 'react';
 import MediaItem from 'types/MediaItem';
+import MediaListLayout from 'types/MediaListLayout';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
-import MediaSourceLayout from 'types/MediaSourceLayout';
 import DatePicker from 'components/DatePicker';
 import PageHeader from './PageHeader';
 import PagedItems from './PagedItems';
 import useHistoryPager from './useHistoryPager';
 
-const defaultLayout: MediaSourceLayout<MediaItem> = {
+const defaultLayout: MediaListLayout = {
     view: 'card',
-    fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'ListenDate'],
+    card: {
+        h1: 'Title',
+        h2: 'Artist',
+        h3: 'AlbumAndYear',
+        data: 'ListenDate',
+    },
+    details: ['ListenDate', 'Artist', 'Title', 'Album', 'Duration', 'Genre'],
 };
 
 export interface HistoryBrowserProps {
@@ -54,7 +60,7 @@ export default function HistoryBrowser({
                 service={service}
                 source={source}
                 pager={pager}
-                layout={source.layout || defaultLayout}
+                defaultLayout={defaultLayout}
             />
         </>
     );

@@ -104,7 +104,7 @@ export default function PopupMenu<T extends string>({
         (event: React.MouseEvent) => {
             if (onClose) {
                 const button = (event.target as HTMLElement).closest('button');
-                if (button?.value && !button.disabled) {
+                if (button && !button.disabled) {
                     restoreRef.current?.focus();
                     onClose(button.value as T);
                 }
@@ -114,20 +114,27 @@ export default function PopupMenu<T extends string>({
     );
 
     const handleKeyDown = useCallback((event: React.KeyboardEvent) => {
-        const buttons = getButtons(containerRef.current);
-        let currentIndex = buttons.indexOf(document.activeElement as HTMLButtonElement);
+        let increment = 0;
         if (event.code === 'ArrowDown') {
             event.stopPropagation();
-            currentIndex++;
+            increment = 1;
         } else if (event.code === 'ArrowUp') {
             event.stopPropagation();
-            currentIndex--;
+            increment = -1;
         }
-        currentIndex = Math.min(Math.max(currentIndex, 0), buttons.length - 1);
-        const button = buttons[currentIndex];
-        if (button && !button.disabled) {
-            button.focus();
-            setButtonId(button.id);
+        if (increment) {
+            const buttons = getButtons(containerRef.current);
+            let currentIndex =
+                buttons.indexOf(document.activeElement as HTMLButtonElement) + increment;
+            let button = buttons[currentIndex];
+            while (button && button.disabled) {
+                currentIndex += increment;
+                button = buttons[currentIndex];
+            }
+            if (button && !button.disabled) {
+                button.focus();
+                setButtonId(button.id);
+            }
         }
     }, []);
 

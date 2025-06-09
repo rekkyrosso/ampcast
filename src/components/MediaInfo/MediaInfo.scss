@@ -31,7 +31,7 @@
     }
 
     .title {
-        margin-bottom: 0.5em;
+        margin-bottom: 0.25em;
         font-size: 1.5em;
         word-wrap: break-word;
         hyphens: auto;
@@ -52,6 +52,11 @@
         .text-label {
             white-space: nowrap;
         }
+    }
+
+    .artist {
+        margin-bottom: 0.5em;
+        font-size: 1.125em;
     }
 
     .duration,
@@ -82,7 +87,7 @@
         padding: 1px 0;
     }
 
-    .blurb {
+    .description {
         margin-top: 1em;
         font-size: 0.75em;
         min-height: 1em;

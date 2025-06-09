@@ -6,7 +6,6 @@ import ColumnResizer from './ColumnResizer';
 
 export interface ListViewHeadProps<T> {
     width: number;
-    height: number;
     cols: readonly Column<T>[];
     fontSize: number;
     sizeable?: boolean;
@@ -15,7 +14,6 @@ export interface ListViewHeadProps<T> {
 
 export default function ListViewHead<T>({
     width,
-    height,
     cols,
     fontSize,
     sizeable,
@@ -29,15 +27,9 @@ export default function ListViewHead<T>({
             }}
             onContextMenu={cancelEvent}
         >
-            <div
-                className="list-view-row"
-                style={{
-                    width: `${width}px`,
-                    height: `${height}px`,
-                }}
-            >
+            <div className="list-view-row" style={{width: `${width}px`}}>
                 {cols.map((col) => (
-                    <ListViewHeadCell {...col} key={col.index} />
+                    <ListViewHeadCell {...col} key={col.id} />
                 ))}{' '}
                 {sizeable &&
                     cols.map((col) => (
@@ -45,7 +37,7 @@ export default function ListViewHead<T>({
                             col={col}
                             fontSize={fontSize}
                             onResize={onColumnResize}
-                            key={col.index}
+                            key={col.id}
                         />
                     ))}
             </div>

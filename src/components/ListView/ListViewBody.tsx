@@ -20,6 +20,7 @@ export interface ListViewBodyProps<T> {
     draggable?: boolean;
     dragIndex: number;
     multiple?: boolean;
+    busy: boolean;
 }
 
 export default function ListViewBody<T>({
@@ -39,6 +40,7 @@ export default function ListViewBody<T>({
     draggable,
     dragIndex,
     multiple = false,
+    busy,
 }: ListViewBodyProps<T>) {
     const ref = useRef<HTMLOListElement>(null);
     const size = items.length;
@@ -71,6 +73,7 @@ export default function ListViewBody<T>({
                     item={item}
                     setSize={size}
                     dragIndex={dragIndex}
+                    busy={busy}
                     key={item[itemKey] as any}
                 />
             ))}

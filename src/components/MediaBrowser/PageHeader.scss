@@ -36,6 +36,10 @@
     .media-source-label {
         max-width: 100%;
 
+        &:has(+ .icon-button-menu) {
+            max-width: calc(100% - 1.25em);
+        }
+
         .icon {
             position: absolute;
             left: calc(0.375em + var(--roundness) * 0.25em);

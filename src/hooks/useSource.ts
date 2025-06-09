@@ -1,21 +1,23 @@
 import {useEffect, useState} from 'react';
 import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
-import MediaSearchParams from 'types/MediaSearchParams';
 import MediaSource from 'types/MediaSource';
 import Pager from 'types/Pager';
+import SearchParams from 'types/SearchParams';
 import {MediaSourceError} from 'services/errors';
 import ErrorPager from 'services/pagers/ErrorPager';
+import useSorting from './useSorting';
 
 export default function useSource<T extends MediaObject>(
     source: MediaSource<T> | null,
-    params?: MediaSearchParams | MediaFilter | Record<string, unknown>
+    params?: SearchParams | MediaFilter | Record<string, unknown>
 ): Pager<T> | null {
     const [pager, setPager] = useState<Pager<T> | null>(null);
+    const sort = useSorting(source?.id);
 
     useEffect(() => {
         try {
-            const pager = source?.search(params) || null;
+            const pager = source?.search(params, sort) || null;
             setPager(pager);
             return () => pager?.disconnect();
         } catch (err) {
@@ -26,7 +28,7 @@ export default function useSource<T extends MediaObject>(
                 throw err;
             }
         }
-    }, [source, params]);
+    }, [source, params, sort]);
 
     return pager;
 }

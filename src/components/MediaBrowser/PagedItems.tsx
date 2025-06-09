@@ -3,11 +3,11 @@ import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
+import MediaListLayout from 'types/MediaListLayout';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
-import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
 import Albums from './Albums';
 import Artists from './Artists';
@@ -19,7 +19,7 @@ export interface PagedItemsProps<T extends MediaObject> {
     service: MediaService;
     source: MediaSource<T>;
     pager: Pager<T> | null;
-    layout?: MediaSourceLayout<T>;
+    defaultLayout?: MediaListLayout;
     loadingText?: string;
     emptyMessage?: string;
 }

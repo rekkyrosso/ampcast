@@ -17,6 +17,7 @@ export default function PopupMenuItem<T extends string>({
     acceleratorKey = '',
     children,
     role = 'menuitem',
+    onClick,
     ...props
 }: PopupMenuItemProps<T>) {
     const id = useId();
@@ -87,7 +88,7 @@ export default function PopupMenuItem<T extends string>({
         <li
             className={`popup-menu-item ${className} ${
                 hasPopup ? 'has-popup has-popup-' + align : ''
-            }`}
+            } ${popupHidden ? '' : 'showing-popup'}`}
             role="presentation"
             onBlur={hasPopup ? handleBlur : undefined}
             onFocus={hasPopup ? handleFocus : undefined}
@@ -103,7 +104,7 @@ export default function PopupMenuItem<T extends string>({
                 aria-controls={hasPopup ? `${id}-popup` : undefined}
                 onMouseDown={stopPropagation}
                 onMouseUp={stopPropagation}
-                onClick={hasPopup ? stopPropagation : undefined}
+                onClick={hasPopup ? stopPropagation : onClick}
                 ref={buttonRef}
             >
                 <span className="popup-menu-item-label">{label}</span>

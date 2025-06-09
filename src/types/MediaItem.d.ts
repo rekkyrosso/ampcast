@@ -18,7 +18,8 @@ export default interface MediaItem extends BaseMediaObject {
     readonly albumArtist?: string;
     readonly album?: string;
     readonly disc?: number;
-    readonly track?: number;
+    readonly track?: number; // Album track number
+    readonly position?: number; // Playlist position number
     readonly year?: number;
     readonly stationName?: string;
     readonly noScrobble?: boolean;

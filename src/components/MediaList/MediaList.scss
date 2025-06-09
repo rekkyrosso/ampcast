@@ -26,9 +26,20 @@
         justify-content: right;
     }
 
+    .list-view-head {
+        .list-view-cell:has(> .icon-button-menu) {
+            display: flex;
+            align-items: center;
+        }
+
+        .icon-button-menu {
+            margin-left: auto;
+        }
+    }
+
     .icon-button-heart,
     .icon-button-info,
-    .icon-button-menu,
+    .list-view-body .icon-button-menu,
     .icon-button-pin,
     .icon-button-plus {
         visibility: hidden;
@@ -101,11 +112,12 @@
     progress {
         --border-radius: calc(0.25em * var(--roundness));
         width: min(6em, 100%);
-        height: 0.125em;
+        height: 0.2em;
         background-color: var(--grey1-color);
         border-radius: var(--border-radius);
         border: 0;
         vertical-align: top;
+        margin-top: 0.625em;
 
         &::-webkit-progress-bar {
             background-color: var(--grey1-color);
@@ -120,6 +132,16 @@
         &::-moz-progress-bar {
             background-color: var(--text-color);
             border-radius: var(--border-radius);
+        }
+    }
+
+    .selected progress {
+        &::-webkit-progress-value {
+            background-color: var(--selected-text-color);
+        }
+
+        &::-moz-progress-bar {
+            background-color: var(--selected-text-color);
         }
     }
 
@@ -201,16 +223,9 @@
             }
         }
 
-        .title,
-        .artist,
-        .owner,
-        .location,
-        .genre,
-        .blurb,
-        .album,
-        .year,
-        .views,
-        .progress {
+        .h1,
+        .h2,
+        .h3 {
             left: 6.375em;
             right: 0.375em;
 
@@ -231,7 +246,7 @@
             }
         }
 
-        .title {
+        .h1 {
             top: 0.25em;
 
             .text {
@@ -239,27 +254,17 @@
             }
         }
 
-        .artist,
-        .genre,
-        .owner {
-            top: 1.75em;
+        .h2 {
+            top: 1.875em;
             color: var(--grey2-color);
         }
 
-        .album,
-        .blurb,
-        .year,
-        .location,
-        .views {
+        .h3 {
             top: 3.375em;
             color: var(--grey2-color);
         }
 
-        .duration,
-        .track-count,
-        .play-count,
-        .played-at,
-        .added-at {
+        .data {
             left: auto;
             top: 0.375em;
             right: 0.375em;
@@ -315,11 +320,6 @@
             font-size: 0.75em;
         }
 
-        .progress {
-            bottom: 0;
-            line-height: 1;
-        }
-
         .actions {
             right: 0.5em;
             bottom: 0.5em;
@@ -347,15 +347,9 @@
                 height: 4.75em;
             }
 
-            .title,
-            .artist,
-            .owner,
-            .genre,
-            .blurb,
-            .album,
-            .year,
-            .views,
-            .progress {
+            .h1,
+            .h2,
+            .h3 {
                 left: 5em;
 
                 .indexed & {
@@ -363,7 +357,7 @@
                 }
             }
 
-            .title {
+            .h1 {
                 top: 0.25em;
 
                 &-text {
@@ -377,9 +371,7 @@
                 }
             }
 
-            .artist,
-            .genre,
-            .owner {
+            .h2 {
                 top: 1.5em;
             }
 
@@ -387,29 +379,11 @@
                 font-size: 0.875em;
             }
 
-            .album,
-            .blurb,
-            .year,
-            .location,
-            .views {
+            .h3 {
                 top: 2.75em;
 
                 .text {
                     font-size: 0.75em;
-                }
-            }
-
-            .playlists & .blurb {
-                top: 1.5em;
-            }
-
-            .year {
-                .artist-albums & {
-                    top: 1.625em;
-
-                    .text {
-                        font-size: 0.875em;
-                    }
                 }
             }
 
@@ -438,10 +412,8 @@
                 height: 3.25em;
             }
 
-            .title,
-            .artist,
-            .genre,
-            .owner {
+            .h1,
+            .h2 {
                 top: 1.375em;
                 left: 3.5em;
 
@@ -450,16 +422,16 @@
                 }
             }
 
-            .title {
+            .h1 {
                 top: 0.25em;
+            }
+
+            .h3 {
+                display: none;
             }
 
             .actions {
                 bottom: 0.375em;
-            }
-
-            .playlists & .blurb {
-                top: 1.375em;
             }
         }
 
@@ -472,12 +444,13 @@
             .cover-art {
                 inset: 0.25em;
 
+                .icon-artist,
                 .icon-playlist {
                     padding: 0.25em;
                 }
             }
 
-            .title {
+            .h1 {
                 top: 0.25em;
                 left: 2em;
                 right: 0.25em;
@@ -487,6 +460,11 @@
                 }
             }
 
+            .h2,
+            .h3 {
+                display: none;
+            }
+
             .rate,
             .actions {
                 display: none;
@@ -494,23 +472,13 @@
         }
 
         &.thin {
-            .title,
-            .artist,
-            .owner,
-            .genre {
+            .h1,
+            .h2 {
                 right: 0.25em;
             }
 
-            .blurb,
-            .album,
-            .year,
-            .location,
-            .views {
+            .h3 {
                 right: 1em;
-            }
-
-            .playlists & .blurb {
-                right: 0.25em;
             }
 
             .progress {
@@ -526,11 +494,7 @@
             }
 
             &:not(.minimal) {
-                .duration,
-                .track-count,
-                .play-count,
-                .played-at,
-                .added-at {
+                .data {
                     top: calc(0.5em + 1px);
                     background-color: rgba(0, 0, 0, 0.75);
 
@@ -571,11 +535,7 @@
             }
 
             &.compact {
-                .duration,
-                .track-count,
-                .play-count,
-                .played-at,
-                .added-at {
+                .data {
                     right: calc(100% - 4.25em + 1px);
                     top: calc(0.5em + 1px);
                     width: auto;
@@ -583,11 +543,7 @@
             }
 
             &.small {
-                .duration,
-                .track-count,
-                .play-count,
-                .played-at,
-                .added-at {
+                .data {
                     display: none;
                 }
             }
@@ -608,10 +564,8 @@
             }
 
             .index,
-            .title,
-            .duration,
-            .track-count,
-            .play-count {
+            .h1,
+            .data {
                 position: static;
             }
 
@@ -619,15 +573,13 @@
                 flex: initial;
             }
 
-            .title {
+            .h1 {
                 flex: auto;
                 margin-left: 2.5em;
                 margin-top: 0;
             }
 
-            .duration,
-            .track-count,
-            .play-count {
+            .data {
                 margin-left: 0.25em;
                 margin-right: 0.25em;
                 padding: 0.125em 0.25em;
@@ -653,7 +605,7 @@
             }
         }
 
-        .title {
+        .h1 {
             margin-left: 2.25em;
         }
     }

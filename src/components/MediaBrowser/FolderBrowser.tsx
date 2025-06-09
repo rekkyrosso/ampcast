@@ -49,9 +49,10 @@ export default function FolderBrowser({service, source}: FolderBrowserProps) {
                 <FolderItemList
                     title={`Path: ${path}`}
                     pager={pager}
+                    layoutOptions={source.primaryItems?.layout}
+                    sourceId={source.id}
                     onEnter={handleEnter}
                     onDoubleClick={handleDoubleClick}
-                    reportingId={source.id}
                 />
             </div>
         </>

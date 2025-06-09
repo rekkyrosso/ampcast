@@ -1,16 +1,11 @@
 import React from 'react';
 import MediaAlbum from 'types/MediaAlbum';
-import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaList, {MediaListProps} from './MediaList';
-
-const defaultLayout: MediaSourceLayout<MediaAlbum> = {
-    view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'Artist', 'Year'],
-};
+import {albumsLayout} from './layouts';
 
 export default function AlbumList({
     className = '',
-    layout = defaultLayout,
+    defaultLayout = albumsLayout,
     draggable = true,
     ...props
 }: MediaListProps<MediaAlbum>) {
@@ -18,7 +13,7 @@ export default function AlbumList({
         <MediaList
             {...props}
             className={`albums ${className}`}
-            layout={layout}
+            defaultLayout={defaultLayout}
             draggable={draggable}
         />
     );

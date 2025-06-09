@@ -24,7 +24,7 @@ export interface ColumnSpec<T> {
     readonly className?: string;
     readonly align?: 'left' | 'right' | 'center';
     readonly width?: number; // starting width (only in a sizeable layout)
-    readonly render: (item: T, rowIndex: number) => React.ReactNode;
+    readonly render: (item: T, rowIndex: number, isScrolling: boolean) => React.ReactNode;
 }
 
 export interface Column<T> extends Required<ColumnSpec<T>> {
@@ -137,6 +137,7 @@ export default function ListView<T>({
     const [rowIndex, setRowIndex] = useState(selectedIndex);
     const [scrollPosition, setScrollPosition] = useState<ScrollablePosition>({left: 0, top: 0});
     const scrollTop = scrollPosition.top;
+    const [isScrolling, setIsScrolling] = useState(false);
     const [clientHeight, setClientHeight] = useState(0);
     const [clientWidth, setClientWidth] = useState(0);
     const [rowHeight, setRowHeight] = useState(0);
@@ -155,7 +156,6 @@ export default function ListView<T>({
     const [dragStartIndex, setDragStartIndex] = useState(-1);
     const isEmpty = size === 0;
     const isDragging = dragStartIndex !== -1;
-    const scrollIndex = rowHeight ? Math.floor(scrollTop / rowHeight) : 0;
     const keyboardBusy = useKeyboardBusy(scrollKeys);
     const atStart = rowIndex === 0;
     const atEnd = rowIndex === size - 1;
@@ -165,7 +165,8 @@ export default function ListView<T>({
     const [dragItem1, dragItem2, dragItem3, dragItem4] =
         draggable || reorderable ? selectedItems : [];
     const selectedId = items[rowIndex] ? `${listViewId}-${items[rowIndex][itemKey]}` : '';
-    const isThin = fontSize * 20 > clientWidth;
+    const isThin = clientWidth < fontSize * 20;
+    const hasFocus = containerRef.current && containerRef.current === document.activeElement;
 
     const focus = useCallback(() => containerRef.current?.focus(), []);
 
@@ -211,21 +212,37 @@ export default function ListView<T>({
     }, [ref, focus, scrollTo, selectAll, selectAt, size]);
 
     useEffect(() => {
-        if (selectedIndex !== -1) {
+        if (selectedIndex !== undefined) {
             internalRef.current?.scrollIntoView(selectedIndex);
         }
     }, [selectedIndex]);
 
     useEffect(() => onRowIndexChange?.(rowIndex), [rowIndex, onRowIndexChange]);
-    useEffect(() => onScrollIndexChange?.(scrollIndex), [scrollIndex, onScrollIndexChange]);
+
+    useEffect(() => {
+        const scrollIndex = rowHeight ? Math.floor(scrollTop / rowHeight) : 0;
+        onScrollIndexChange?.(scrollIndex);
+    }, [rowHeight, scrollTop, onScrollIndexChange]);
+
     useEffect(() => {
         if (pageSize && onPageSizeChange) {
             onPageSizeChange(pageSize);
         }
     }, [pageSize, onPageSizeChange]);
+
     useEffect(() => onSelect?.(debouncedSelectedItems), [debouncedSelectedItems, onSelect]);
 
-    useEffect(() => setRowIndex(Math.min(size - 1, rowIndex)), [size, rowIndex]);
+    useEffect(() => setRowIndex(Math.min(size - 1, Math.max(rowIndex, 0))), [size, rowIndex]);
+
+    useEffect(() => {
+        if (scrollTop) {
+            setIsScrolling(true);
+            const timer = setTimeout(() => setIsScrolling(false), 100);
+            return () => clearTimeout(timer);
+        } else {
+            setIsScrolling(false);
+        }
+    }, [scrollTop]);
 
     useEffect(() => {
         if (prevItems && items.length !== prevItems.length) {
@@ -589,7 +606,9 @@ export default function ListView<T>({
 
     return (
         <div
-            className={`list-view list-view-${layout.view} ${className} ${isThin ? 'thin' : ''}`}
+            className={`list-view list-view-${layout.view} ${className} ${isThin ? 'thin' : ''} ${
+                hasFocus ? 'focus' : ''
+            }`}
             tabIndex={disabled ? undefined : isEmpty ? -1 : 0}
             onClick={handleClick}
             onContextMenu={handleContextMenu}
@@ -620,7 +639,6 @@ export default function ListView<T>({
                     <FixedHeader>
                         <ListViewHead
                             width={width}
-                            height={rowHeight}
                             sizeable={sizeable}
                             cols={cols}
                             fontSize={fontSize}
@@ -644,6 +662,7 @@ export default function ListView<T>({
                     dragIndex={dragIndex}
                     draggable={disabled ? false : draggable || reorderable}
                     multiple={multiple}
+                    busy={isScrolling}
                 />
                 <div
                     className="list-view-cursor"

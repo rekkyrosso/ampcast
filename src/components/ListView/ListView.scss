@@ -17,6 +17,7 @@
 
     &-head {
         border-radius: var(--app-border-radius);
+        height: 1.5em;
     }
 
     &-body,
@@ -24,12 +25,9 @@
         display: block;
     }
 
-    &-row {
-        overflow: hidden;
-    }
-
     &-head &-row {
         position: relative;
+        height: inherit;
     }
 
     &-body &-row {
@@ -136,6 +134,7 @@
 
     &-drag-image {
         position: absolute;
+        width: 100%;
         z-index: -1;
 
         .actions {

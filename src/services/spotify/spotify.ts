@@ -94,7 +94,7 @@ const defaultLayout: MediaSourceLayout<MediaItem> = {
 
 const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
     view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb', 'Progress'],
+    fields: ['Thumbnail', 'Title', 'TrackCount', 'Description', 'Progress'],
 };
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {

@@ -1,19 +1,14 @@
 import React, {useEffect, useReducer} from 'react';
 import {interval} from 'rxjs';
 import MediaItem from 'types/MediaItem';
-import MediaSourceLayout from 'types/MediaSourceLayout';
 import {isScrobbler} from 'services/mediaServices';
+import {recentlyPlayedTracksLayout} from 'components/MediaList/layouts';
 import PageHeader from './PageHeader';
 import PagedItems, {PagedItemsProps} from './PagedItems';
 
 export interface RecentlyPlayedBrowserProps extends PagedItemsProps<MediaItem> {
     total?: number;
 }
-
-const defaultLayout: MediaSourceLayout<MediaItem> = {
-    view: 'card',
-    fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'LastPlayed'],
-};
 
 export default function RecentlyPlayedBrowser({
     service,
@@ -45,7 +40,7 @@ export default function RecentlyPlayedBrowser({
                 {...props}
                 service={service}
                 source={source}
-                layout={source.layout || defaultLayout}
+                defaultLayout={recentlyPlayedTracksLayout}
             />
         </>
     );

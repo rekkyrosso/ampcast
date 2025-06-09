@@ -56,7 +56,7 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
                     <Actions item={item} />
                 </div>
             </div>
-            <Blurb description={item.description} />
+            <Description description={item.description} />
             <ExternalView
                 url={item.externalUrl}
                 src={item.src}
@@ -79,7 +79,7 @@ function AlbumInfo({item: album}: MediaInfoProps<MediaAlbum>) {
                     <Actions item={album} />
                 </div>
             </div>
-            <Blurb description={album.description} />
+            <Description description={album.description} />
             <ExternalView url={album.externalUrl} src={album.src} />
         </article>
     );
@@ -98,7 +98,7 @@ function ArtistInfo({item: artist}: MediaInfoProps<MediaArtist>) {
                     <Actions item={artist} />
                 </div>
             </div>
-            <Blurb description={artist.description} />
+            <Description description={artist.description} />
             <ExternalView url={artist.externalUrl} src={artist.src} />
         </article>
     );
@@ -116,7 +116,7 @@ function PlaylistInfo({item: playlist}: MediaInfoProps<MediaPlaylist>) {
                     <Actions item={playlist} />
                 </div>
             </div>
-            <Blurb description={playlist.description} />
+            <Description description={playlist.description} />
             <ExternalView url={playlist.externalUrl} src={playlist.src} />
         </article>
     );
@@ -137,9 +137,9 @@ export function Title<T extends MediaObject>({title}: Pick<T, 'title'>) {
     return <h3 className="title">{title || '(no title)'}</h3>;
 }
 
-export function Blurb<T extends MediaPlaylist>({description}: Pick<T, 'description'>) {
+export function Description<T extends MediaPlaylist>({description}: Pick<T, 'description'>) {
     return description ? (
-        <TextBox className="blurb">
+        <TextBox className="description">
             {description.split(/\n+/).map((text, index) => (
                 <p key={index}>{text}</p>
             ))}
@@ -254,23 +254,20 @@ export function ExternalView({
 }
 
 export function AlbumAndYear<T extends MediaItem>({album, year}: Pick<T, 'album' | 'year'>) {
-    if (album && year) {
-        return (
-            <h4 className="album">
-                <span className="text-label">From:</span> {album} ({year})
-            </h4>
-        );
-    } else if (album) {
-        return (
+    return (
+        <>
+        {album ? (
             <h4 className="album">
                 <span className="text-label">From:</span> {album}
             </h4>
-        );
-    } else if (year) {
-        return <h4 className="album">Year: {year}</h4>;
-    } else {
-        return null;
-    }
+        ): null}
+        {year ? (
+            <p>
+                <span className="text-label">Year:</span> {year}
+            </p>
+        ): null}
+        </>
+    )
 }
 
 export function Track<T extends MediaItem>({

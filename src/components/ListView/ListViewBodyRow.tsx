@@ -12,6 +12,7 @@ export interface ListViewRowProps<T> {
     cols: readonly Column<T>[];
     setSize: number;
     dragIndex: number;
+    busy: boolean;
 }
 
 export default function ListViewRow<T>({
@@ -24,6 +25,7 @@ export default function ListViewRow<T>({
     cols,
     setSize,
     dragIndex,
+    busy,
 }: ListViewRowProps<T>) {
     const classNames = `${className} ${selected ? 'selected selected-text' : ''} ${
         dragIndex === setSize
@@ -49,7 +51,13 @@ export default function ListViewRow<T>({
             }}
         >
             {cols.map((col) => (
-                <ListViewBodyCell rowIndex={rowIndex} col={col} item={item} key={col.index} />
+                <ListViewBodyCell
+                    rowIndex={rowIndex}
+                    col={col}
+                    item={item}
+                    busy={busy}
+                    key={col.id}
+                />
             ))}
         </li>
     );

@@ -118,6 +118,9 @@ declare namespace Navidrome {
             readonly script: readonly string[];
             readonly tracktotal: readonly string[];
         };
+        // Playlist items only.
+        readonly playlistId?: string;
+        readonly id?: string; // Position of the item in the playlist
     }
 
     interface Radio {

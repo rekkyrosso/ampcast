@@ -7,6 +7,7 @@ import Login from 'components/Login';
 import useIsLoggedIn from 'hooks/useIsLoggedIn';
 import DefaultBrowser from './DefaultBrowser';
 import ErrorScreen from './ErrorScreen';
+import FilterBrowser from './FilterBrowser';
 import useErrorScreen from './useErrorScreen';
 import useNoInternetError from './useNoInternetError';
 
@@ -19,7 +20,7 @@ export default function MediaBrowser({service, source}: MediaBrowserProps) {
     const isLoggedIn = useIsLoggedIn(service);
     const renderError = useErrorScreen(service, source);
     const noInternetError = useNoInternetError(service);
-    const Browser = source?.Component || DefaultBrowser;
+    const Browser = source?.Component || ('filterType' in source ? FilterBrowser : DefaultBrowser);
 
     return (
         <div className={`media-browser ${service.id}-browser`}>

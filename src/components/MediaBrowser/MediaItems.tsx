@@ -8,9 +8,9 @@ export default function MediaItems({source, ...props}: PagedItemsProps<MediaItem
         <div className="panel">
             <MediaItemList
                 {...props}
-                storageId={source.id}
                 title={source.title}
-                reportingId={source.id}
+                layoutOptions={source.primaryItems?.layout}
+                sourceId={source.id}
             />
         </div>
     );

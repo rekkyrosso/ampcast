@@ -57,6 +57,7 @@ dialog {
         flex: initial;
         align-items: center;
         user-select: none;
+        font-family: var(--system-font-family);
 
         h2 {
             flex: auto;

@@ -1,9 +1,9 @@
 import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import MediaItem from 'types/MediaItem';
+import MediaListLayout from 'types/MediaListLayout';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaService from 'types/MediaService';
 import MediaServiceId from 'types/MediaServiceId';
-import MediaSourceLayout from 'types/MediaSourceLayout';
 import {Logger} from 'utils';
 import {getService} from 'services/mediaServices';
 import {addRecentPlaylist, getPlaylistItemsByService} from 'services/recentPlaylists';
@@ -25,10 +25,13 @@ export async function showAddToPlaylistDialog<T extends MediaItem>(
 export interface AddToPlaylistDialogProps<T extends MediaItem> extends DialogProps {
     items: readonly T[];
 }
-
-const layout: MediaSourceLayout<MediaPlaylist> = {
+const defaultLayout: MediaListLayout = {
     view: 'card minimal',
-    fields: ['Thumbnail', 'Title', 'TrackCount'],
+    card: {
+        h1: 'Title',
+        data: 'TrackCount',
+    },
+    details: [],
 };
 
 export default function AddToPlaylistDialog<T extends MediaItem>({
@@ -107,9 +110,10 @@ export default function AddToPlaylistDialog<T extends MediaItem>({
                     </select>
                 </p>
                 <PlaylistList
+                    sourceId="add-to-playlist-dialog"
                     title={selectedService ? `${selectedService?.name}: Playlists` : ''}
                     pager={playlistsPager}
-                    layout={layout}
+                    defaultLayout={defaultLayout}
                     onContextMenu={() => undefined}
                     onDoubleClick={submit}
                     onEnter={submit}

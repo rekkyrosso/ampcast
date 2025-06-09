@@ -1,0 +1,48 @@
+.edit-fields {
+    display: flex;
+    flex-direction: row;
+
+    &-dialog {
+        min-width: 32em;
+    }
+
+    .list-box {
+        width: 11em;
+        height: calc(19em - 2px);
+    }
+
+    &-buttons {
+        display: flex;
+        flex-direction: column;
+        gap: 1em;
+        align-items: center;
+        justify-content: center;
+        padding: 0 1.5em;
+
+        button {
+            min-width: 6em;
+            margin: 0;
+        }
+    }
+
+    .hidden-fields {        
+        .drag-over::before,
+        .drag-over-last::after {
+            content: none;
+        }
+    }
+
+    .visible-fields {
+        .list-box {
+            height: calc(17em - 2px);
+        }
+
+        &-buttons {
+            display: flex;
+
+            button:last-child {
+                margin-left: auto;
+            }
+        }
+    }
+}

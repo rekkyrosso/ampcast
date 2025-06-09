@@ -65,7 +65,7 @@ const albumTracksLayout: MediaSourceLayout<MediaItem> = {
 
 const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
     view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb', 'Progress'],
+    fields: ['Thumbnail', 'Title', 'TrackCount', 'Description', 'Progress'],
 };
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
@@ -757,7 +757,7 @@ function createSourceFromPin<T extends MediaObject>(pin: Pin): MediaSource<T> {
         isPin: true,
         layout: {
             view: 'card',
-            fields: ['Thumbnail', 'PlaylistTitle', 'TrackCount', 'Blurb', 'Progress'],
+            fields: ['Thumbnail', 'PinTitle', 'TrackCount', 'Description', 'Progress'],
         },
         search(): Pager<T> {
             return new PlexPager({

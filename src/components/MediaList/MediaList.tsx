@@ -2,8 +2,8 @@ import React, {ComponentType, useCallback, useEffect, useRef, useState} from 're
 import {Except} from 'type-fest';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
+import MediaListLayout from 'types/MediaListLayout';
 import MediaObject from 'types/MediaObject';
-import MediaSourceLayout from 'types/MediaSourceLayout';
 import Pager from 'types/Pager';
 import ErrorBox, {ErrorBoxProps} from 'components/Errors/ErrorBox';
 import ListView, {ListViewProps} from 'components/ListView';
@@ -19,27 +19,41 @@ import useViewClassName from './useViewClassName';
 import showActionsMenu from './showActionsMenu';
 import './MediaList.scss';
 
+const defaultMediaListLayout: MediaListLayout = {
+    view: 'card minimal',
+    card: {h1: 'Title'},
+    details: ['Title'],
+};
+
 export interface MediaListProps<T extends MediaObject>
-    extends Except<ListViewProps<T>, 'items' | 'itemKey' | 'itemClassName' | 'layout'> {
+    extends Except<
+        ListViewProps<T>,
+        'items' | 'itemKey' | 'itemClassName' | 'layout' | 'storageId'
+    > {
+    sourceId: string;
+    level?: 1 | 2 | 3;
     pager: Pager<T> | null;
-    layout?: MediaSourceLayout<T>;
+    defaultLayout?: MediaListLayout;
+    layoutOptions?: Partial<MediaListLayout>;
     statusBar?: boolean;
     loadingText?: string;
     emptyMessage?: React.ReactNode;
-    reportingId?: string;
     onError?: (error: unknown) => void;
     onLoad?: () => void;
     Error?: ComponentType<ErrorBoxProps>;
 }
 
 export default function MediaList<T extends MediaObject>({
+    sourceId,
+    level = 1,
     className = '',
+    defaultLayout = defaultMediaListLayout,
+    layoutOptions,
     draggable = false,
     pager = null,
     statusBar = true,
     loadingText,
     emptyMessage,
-    reportingId,
     onContextMenu,
     onDoubleClick,
     onEnter,
@@ -49,8 +63,9 @@ export default function MediaList<T extends MediaObject>({
     Error = ErrorBox,
     ...props
 }: MediaListProps<T>) {
+    const id = `${sourceId}/${level}`;
     const containerRef = useRef<HTMLDivElement | null>(null);
-    const layout = useMediaListLayout(props.layout);
+    const layout = useMediaListLayout(id, defaultLayout, layoutOptions);
     const [scrollIndex, setScrollIndex] = useState(0);
     const [pageSize, setPageSize] = useState(0);
     const [{items, loaded, busy, error, size, maxSize}, fetchAt] = usePager(pager);
@@ -176,11 +191,13 @@ export default function MediaList<T extends MediaObject>({
     return (
         <div
             className={`panel ${className} ${viewClassName}`}
+            id={id}
+            data-view={layout.view}
             onDragStart={onDragStart}
             ref={containerRef}
         >
             {empty && error ? (
-                <Error error={error} reportedBy="MediaList" reportingId={reportingId} />
+                <Error error={error} reportedBy="MediaList" reportingId={id} />
             ) : loaded && empty && emptyMessage ? (
                 <Empty message={emptyMessage} />
             ) : (
@@ -192,7 +209,7 @@ export default function MediaList<T extends MediaObject>({
                     itemClassName={itemClassName}
                     itemKey={'src' as any} // TODO: remove cast
                     draggable={draggable}
-                    selectedIndex={items.length === 0 ? -1 : 0}
+                    storageId={id}
                     onContextMenu={onContextMenu || handleContextMenu}
                     onDoubleClick={handleDoubleClick}
                     onEnter={handleEnter}
@@ -200,6 +217,7 @@ export default function MediaList<T extends MediaObject>({
                     onPageSizeChange={setPageSize}
                     onScrollIndexChange={setScrollIndex}
                     onSelect={handleSelect}
+                    key={layout.view}
                 />
             )}
             {statusBar ? (

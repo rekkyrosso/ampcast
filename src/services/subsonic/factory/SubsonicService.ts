@@ -42,7 +42,7 @@ import FolderBrowser from 'components/MediaBrowser/FolderBrowser';
 
 const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
     view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'TrackCount', 'Blurb', 'Progress'],
+    fields: ['Thumbnail', 'Title', 'TrackCount', 'Description', 'Progress'],
 };
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
@@ -375,7 +375,7 @@ export default class SubsonicService implements PersonalMediaService {
             defaultHidden: true,
             layout: {
                 view: 'card',
-                fields: ['Thumbnail', 'Title', 'Blurb'],
+                fields: ['Thumbnail', 'Title', 'Description'],
             },
 
             search(): Pager<MediaItem> {
@@ -588,7 +588,7 @@ export default class SubsonicService implements PersonalMediaService {
             itemType: pin.itemType,
             layout: {
                 view: 'card',
-                fields: ['Thumbnail', 'PlaylistTitle', 'TrackCount', 'Blurb', 'Progress'],
+                fields: ['Thumbnail', 'PinTitle', 'TrackCount', 'Description', 'Progress'],
             },
             id: pin.src,
             icon: 'pin',

@@ -108,12 +108,25 @@
         width: 1.5em;
         height: 1.5em;
 
+        .icon {
+            width: 1.5em;
+            height: 1.5em;
+
+            &-link {
+                display: none;
+            }
+        }
+
         &.icon-apple-logo {
             fill: white;
         }
 
         .media:not(.is-playing-video) & {
-            filter: grayscale(1);
+            filter: grayscale(1) brightness(1.25);
+
+            &.youtube:hover {
+                filter: none;
+            }
         }
 
         .media.fullscreen & {

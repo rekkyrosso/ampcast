@@ -1,444 +1,35 @@
-import {Except} from 'type-fest';
 import Action from 'types/Action';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
-import MediaArtist from 'types/MediaArtist';
 import MediaFilter from 'types/MediaFilter';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import MediaSearchParams from 'types/MediaSearchParams';
-import MediaSource, {MediaMultiSource} from 'types/MediaSource';
-import MediaSourceLayout from 'types/MediaSourceLayout';
-import MediaType from 'types/MediaType';
-import Pager, {PagerConfig} from 'types/Pager';
+import MediaSource from 'types/MediaSource';
+import Pager from 'types/Pager';
 import ParentOf from 'types/ParentOf';
 import Pin, {Pinnable} from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
-import {NoFavoritesPlaylistError} from 'services/errors';
 import ServiceType from 'types/ServiceType';
-import {chunk, exists} from 'utils';
+import {chunk} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
 import {dispatchMetadataChanges} from 'services/metadata';
 import {isStartupService} from 'services/buildConfig';
 import fetchAllTracks from 'services/pagers/fetchAllTracks';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
-import {t} from 'services/i18n';
-import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout, reconnect} from './appleAuth';
 import MusicKitPager, {MusicKitPage} from './MusicKitPager';
+import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout, reconnect} from './appleAuth';
 import appleSettings from './appleSettings';
-import FilterBrowser from 'components/MediaBrowser/FilterBrowser';
-import StreamingSettings from './components/AppleStreamingSettings';
+import appleSources, {appleEditablePlaylists, appleSearch} from './appleSources';
 import Credentials from './components/AppleCredentials';
 import Login from './components/AppleLogin';
+import StreamingSettings from './components/AppleStreamingSettings';
 import './bootstrap';
-
-const defaultLayout: MediaSourceLayout<MediaItem> = {
-    view: 'card',
-    fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
-};
-
-const chartsLayoutLarge: MediaSourceLayout<MediaItem> = {
-    view: 'card',
-    fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
-};
-
-const chartsLayoutSmall: MediaSourceLayout<MediaItem> = {
-    view: 'card small',
-    fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'Duration'],
-};
-
-const radioLayout: MediaSourceLayout<MediaItem> = {
-    view: 'card',
-    fields: ['Thumbnail', 'Title', 'Blurb'],
-};
-
-const appleLibrarySort: Pick<MediaSource<any>, 'sortOptions' | 'defaultSort'> = {
-    sortOptions: {
-        name: 'Sort by Title',
-        dateAdded: 'Sort by Date Added',
-    },
-    defaultSort: {
-        sortBy: 'dateAdded',
-        sortOrder: -1,
-    },
-};
-
-const appleSearch: MediaMultiSource = {
-    id: 'apple/search',
-    title: 'Search',
-    icon: 'search',
-    searchable: true,
-    sources: [
-        createSearch<MediaItem>(ItemType.Media, {title: 'Songs', layout: defaultLayout}),
-        createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
-        createSearch<MediaArtist>(ItemType.Artist, {title: 'Artists'}),
-        createSearch<MediaPlaylist>(ItemType.Playlist, {title: 'Playlists'}),
-        createSearch<MediaItem>(
-            ItemType.Media,
-            {title: 'Radio', layout: radioLayout},
-            {types: 'stations'}
-        ),
-        createSearch<MediaItem>(
-            ItemType.Media,
-            {title: 'Videos', layout: defaultLayout, mediaType: MediaType.Video},
-            {types: 'music-videos'}
-        ),
-    ],
-};
-
-const appleRecommendations: MediaMultiSource = {
-    id: 'apple/recommendations',
-    title: 'Recommended',
-    icon: 'star',
-    sources: [
-        createRecommendations<MediaAlbum>('albums', ItemType.Album, {title: 'Albums'}),
-        createRecommendations<MediaPlaylist>('playlists', ItemType.Playlist, {title: 'Playlists'}),
-        createRecommendations<MediaItem>('stations', ItemType.Media, {
-            title: 'Radio',
-            layout: radioLayout,
-        }),
-    ],
-};
-
-const appleRecentlyPlayed: MediaSource<MediaItem> = {
-    id: 'apple/recently-played',
-    title: 'Recently Played',
-    icon: 'clock',
-    itemType: ItemType.Media,
-    layout: defaultLayout,
-
-    search(): Pager<MediaItem> {
-        return new MusicKitPager('/v1/me/recent/played/tracks', undefined, {
-            pageSize: 30,
-            maxSize: 200,
-        });
-    },
-};
-
-const appleLibrarySongs: MediaSource<MediaItem> = {
-    id: 'apple/library-songs',
-    title: 'My Songs',
-    icon: 'tick',
-    itemType: ItemType.Media,
-    lockActionsStore: true,
-    layout: defaultLayout,
-    defaultHidden: true,
-    ...appleLibrarySort,
-
-    search(
-        {sortBy, sortOrder}: MediaSearchParams = appleLibrarySort.defaultSort
-    ): Pager<MediaItem> {
-        return new MusicKitPager('/v1/me/library/songs', {
-            'include[library-songs]': 'catalog',
-            sort: `${sortOrder === -1 ? '-' : ''}${sortBy}`,
-        });
-    },
-};
-
-const appleLibraryAlbums: MediaSource<MediaAlbum> = {
-    id: 'apple/library-albums',
-    title: 'My Albums',
-    icon: 'tick',
-    itemType: ItemType.Album,
-    lockActionsStore: true,
-    ...appleLibrarySort,
-
-    search(
-        {sortBy, sortOrder}: MediaSearchParams = appleLibrarySort.defaultSort
-    ): Pager<MediaAlbum> {
-        return new MusicKitPager('/v1/me/library/albums', {
-            'fields[library-albums]': 'name,artistName,playParams,artwork',
-            'include[library-albums]': 'catalog',
-            sort: `${sortOrder === -1 ? '-' : ''}${sortBy}`,
-        });
-    },
-};
-
-const appleLibraryArtists: MediaSource<MediaArtist> = {
-    id: 'apple/library-artists',
-    title: 'My Artists',
-    icon: 'tick',
-    itemType: ItemType.Artist,
-    lockActionsStore: true,
-    defaultHidden: true,
-
-    search(): Pager<MediaArtist> {
-        return new MusicKitPager('/v1/me/library/artists', {
-            'fields[library-artists]': 'name,playParams,artwork',
-            'include[library-artists]': 'catalog',
-            'omit[resource:artists]': 'relationships',
-        });
-    },
-};
-
-const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
-    id: 'apple/playlists',
-    title: 'My Playlists',
-    icon: 'tick',
-    itemType: ItemType.Playlist,
-    lockActionsStore: true,
-    ...appleLibrarySort,
-
-    search(
-        {sortBy, sortOrder}: MediaSearchParams = appleLibrarySort.defaultSort
-    ): Pager<MediaPlaylist> {
-        return new MusicKitPager('/v1/me/library/playlists', {
-            'fields[library-playlists]': 'name,playParams,artwork',
-            'include[library-playlists]': 'catalog',
-            sort: `${sortOrder === -1 ? '-' : ''}${sortBy}`,
-        });
-    },
-};
-
-const appleEditablePlaylists: MediaSource<MediaPlaylist> = {
-    id: 'apple/editable-playlists',
-    title: 'Editable Playlists',
-    icon: 'playlist',
-    itemType: ItemType.Playlist,
-
-    search(): Pager<MediaPlaylist> {
-        return new MusicKitPager('/v1/me/library/playlists', {
-            'fields[library-playlists]': 'name,playParams,artwork',
-            'include[library-playlists]': 'catalog',
-            'filter[featured]': 'suggested',
-        });
-    },
-};
-
-const appleLibraryVideos: MediaSource<MediaItem> = {
-    id: 'apple/library-videos',
-    title: 'My Videos',
-    icon: 'tick',
-    itemType: ItemType.Media,
-    mediaType: MediaType.Video,
-    lockActionsStore: true,
-    layout: defaultLayout,
-    defaultHidden: true,
-    ...appleLibrarySort,
-
-    search(
-        {sortBy, sortOrder}: MediaSearchParams = appleLibrarySort.defaultSort
-    ): Pager<MediaItem> {
-        return new MusicKitPager('/v1/me/library/music-videos', {
-            'include[library-music-videos]': 'catalog',
-            sort: `${sortOrder === -1 ? '-' : ''}${sortBy}`,
-        });
-    },
-};
-
-const appleFavoriteSongs: MediaSource<MediaItem> = {
-    id: 'apple/favorite-songs',
-    get title(): string {
-        return t('Favorite Songs');
-    },
-    icon: 'star',
-    itemType: ItemType.Media,
-    layout: defaultLayout,
-    defaultHidden: true,
-
-    search(): Pager<MediaItem> {
-        const playlistId = appleSettings.favoriteSongsId;
-        if (!playlistId) {
-            throw new NoFavoritesPlaylistError();
-        }
-        return new MusicKitPager(
-            `/v1/me/library/playlists/${playlistId}/tracks`,
-            {'include[library-songs]': 'catalog'},
-            undefined,
-            {
-                src: `apple:library-playlists:${playlistId}`,
-                itemType: ItemType.Playlist,
-            } as MediaPlaylist
-        );
-    },
-};
-
-const appleSongCharts: MediaSource<MediaItem> = {
-    id: 'apple/top-songs',
-    title: 'Top Songs',
-    icon: 'chart',
-    itemType: ItemType.Media,
-    filterType: FilterType.ByGenre,
-    layout: chartsLayoutLarge,
-    Component: FilterBrowser,
-
-    search(genre?: MediaFilter): Pager<MediaItem> {
-        if (genre) {
-            return new MusicKitPager(
-                '/v1/catalog/{{storefrontId}}/charts',
-                {types: 'songs', genre: genre.id},
-                {maxSize: 200, pageSize: 50},
-                undefined,
-                (response: any): MusicKitPage => {
-                    const result = response.results?.songs?.[0] || {data: []};
-                    const nextPageUrl = result.next;
-                    return {items: result.data, nextPageUrl};
-                }
-            );
-        } else {
-            return new SimplePager();
-        }
-    },
-};
-
-const appleAlbumCharts: MediaSource<MediaAlbum> = {
-    id: 'apple/top-albums',
-    title: 'Top Albums',
-    icon: 'chart',
-    itemType: ItemType.Album,
-    filterType: FilterType.ByGenre,
-    Component: FilterBrowser,
-    layout: {
-        view: 'card compact',
-        fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'Year'],
-    },
-
-    search(genre?: MediaFilter): Pager<MediaAlbum> {
-        if (genre) {
-            return new MusicKitPager(
-                '/v1/catalog/{{storefrontId}}/charts',
-                {types: 'albums', genre: genre.id},
-                {maxSize: 200, pageSize: 50},
-                undefined,
-                (response: any): MusicKitPage => {
-                    const result = response.results?.albums?.[0] || {data: []};
-                    const nextPageUrl = result.next;
-                    return {items: result.data, nextPageUrl};
-                }
-            );
-        } else {
-            return new SimplePager();
-        }
-    },
-};
-
-const applePlaylistCharts: MediaSource<MediaPlaylist> = {
-    id: 'apple/top-playlists',
-    title: 'Top Playlists',
-    icon: 'chart',
-    itemType: ItemType.Playlist,
-    defaultHidden: true,
-    layout: {
-        view: 'card compact',
-        fields: ['Index', 'Thumbnail', 'Title', 'TrackCount', 'Owner'],
-    },
-
-    search(): Pager<MediaPlaylist> {
-        return new MusicKitPager(
-            '/v1/catalog/{{storefrontId}}/charts',
-            {types: 'playlists'},
-            {maxSize: 200, pageSize: 50},
-            undefined,
-            (response: any): MusicKitPage => {
-                const result = response.results?.playlists?.[0] || {data: []};
-                const nextPageUrl = result.next;
-                return {items: result.data, nextPageUrl};
-            }
-        );
-    },
-};
-
-const appleMusicVideoCharts: MediaSource<MediaItem> = {
-    id: 'apple/top-videos',
-    title: 'Top Videos',
-    icon: 'chart',
-    itemType: ItemType.Media,
-    mediaType: MediaType.Video,
-    filterType: FilterType.ByGenre,
-    Component: FilterBrowser,
-    layout: chartsLayoutLarge,
-    defaultHidden: true,
-
-    search(genre?: MediaFilter): Pager<MediaItem> {
-        if (genre) {
-            return new MusicKitPager(
-                '/v1/catalog/{{storefrontId}}/charts',
-                {types: 'music-videos', genre: genre.id},
-                {maxSize: 200, pageSize: 50},
-                undefined,
-                (response: any): MusicKitPage => {
-                    const result = response.results?.['music-videos']?.[0] || {data: []};
-                    const nextPageUrl = result.next;
-                    return {items: result.data, nextPageUrl};
-                }
-            );
-        } else {
-            return new SimplePager();
-        }
-    },
-};
-
-const appleGlobalCharts: MediaSource<MediaPlaylist> = {
-    id: 'apple/global-charts',
-    title: 'Daily Top 100',
-    icon: 'chart',
-    itemType: ItemType.Playlist,
-    secondaryLayout: chartsLayoutSmall,
-
-    search(): Pager<MediaPlaylist> {
-        return new MusicKitPager(
-            '/v1/catalog/{{storefrontId}}/charts',
-            {chartId: 'daily-global-top', with: 'dailyGlobalTopCharts'},
-            {pageSize: 50},
-            undefined,
-            (response: any): MusicKitPage => {
-                const result = response.results?.dailyGlobalTopCharts?.[0] || {data: []};
-                const nextPageUrl = result.next;
-                return {items: result.data, nextPageUrl};
-            }
-        );
-    },
-};
-
-const appleCityCharts: MediaSource<MediaPlaylist> = {
-    id: 'apple/city-charts',
-    title: 'City Charts',
-    icon: 'chart',
-    itemType: ItemType.Playlist,
-    defaultHidden: true,
-    secondaryLayout: chartsLayoutSmall,
-
-    search(): Pager<MediaPlaylist> {
-        return new MusicKitPager(
-            '/v1/catalog/{{storefrontId}}/charts',
-            {chartId: 'city-top', with: 'cityCharts'},
-            {pageSize: 50},
-            undefined,
-            (response: any): MusicKitPage => {
-                const result = response.results?.cityCharts?.[0] || {data: []};
-                const nextPageUrl = result.next;
-                return {items: result.data, nextPageUrl};
-            }
-        );
-    },
-};
-
-const appleRadio: MediaSource<MediaItem> = {
-    id: 'apple/radio',
-    title: 'Radio',
-    icon: 'radio',
-    itemType: ItemType.Media,
-    linearType: LinearType.Station,
-    filterType: FilterType.ByAppleStationGenre,
-    Component: FilterBrowser,
-    layout: radioLayout,
-
-    search(genre?: MediaFilter): Pager<MediaItem> {
-        if (genre) {
-            return new MusicKitPager(
-                `/v1/catalog/{{storefrontId}}/station-genres/${genre.id}/stations`
-            );
-        } else {
-            return new SimplePager();
-        }
-    },
-};
 
 const apple: PublicMediaService = {
     id: 'apple',
@@ -455,23 +46,7 @@ const apple: PublicMediaService = {
     },
     credentialsRequired: true,
     root: appleSearch,
-    sources: [
-        appleLibrarySongs,
-        appleLibraryAlbums,
-        appleLibraryArtists,
-        appleLibraryPlaylists,
-        appleLibraryVideos,
-        appleFavoriteSongs,
-        appleRecentlyPlayed,
-        appleRadio,
-        appleSongCharts,
-        appleAlbumCharts,
-        applePlaylistCharts,
-        appleMusicVideoCharts,
-        appleGlobalCharts,
-        appleCityCharts,
-        appleRecommendations,
-    ],
+    sources: appleSources,
     icons: {
         [Action.AddToLibrary]: 'plus',
         [Action.RemoveFromLibrary]: 'tick-fill',
@@ -504,30 +79,6 @@ const apple: PublicMediaService = {
 };
 
 export default apple;
-
-function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
-    return a.src === b.src;
-}
-
-function canPin(item: MediaObject): boolean {
-    return item.itemType === ItemType.Playlist;
-}
-
-function canStore<T extends MediaObject>(item: T): boolean {
-    switch (item.itemType) {
-        case ItemType.Media:
-            return item.linearType !== LinearType.Station;
-
-        case ItemType.Playlist:
-            return true;
-
-        case ItemType.Album:
-            return !item.synthetic;
-
-        default:
-            return false;
-    }
-}
 
 async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
     if (canStore(item) && item.inLibrary === undefined) {
@@ -568,6 +119,26 @@ async function addToPlaylist<T extends MediaItem>(
     });
 }
 
+function canPin(item: MediaObject): boolean {
+    return item.itemType === ItemType.Playlist;
+}
+
+function canStore<T extends MediaObject>(item: T): boolean {
+    switch (item.itemType) {
+        case ItemType.Media:
+            return item.linearType !== LinearType.Station;
+
+        case ItemType.Playlist:
+            return true;
+
+        case ItemType.Album:
+            return !item.synthetic;
+
+        default:
+            return false;
+    }
+}
+
 async function createPlaylist<T extends MediaItem>(
     name: string,
     {description = '', isPublic, items = []}: CreatePlaylistOptions<T> = {}
@@ -596,6 +167,10 @@ async function createPlaylist<T extends MediaItem>(
         pager: new SimplePager(),
         trackCount: items.length,
     };
+}
+
+function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
+    return a.src === b.src;
 }
 
 function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
@@ -833,111 +408,6 @@ async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
         return musicKit.api.music(`${path}/${kind}/${id}`, undefined, {
             fetchOptions: {method: 'DELETE'},
         });
-    }
-}
-
-function createRecommendations<T extends MediaObject>(
-    type: 'albums' | 'playlists' | 'stations',
-    itemType: T['itemType'],
-    props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
-): MediaSource<T> {
-    return {
-        ...props,
-        itemType,
-        linearType: (type === 'stations' ? LinearType.Station : undefined) as any,
-        id: type,
-        icon: 'star',
-
-        search(): Pager<T> {
-            return new MusicKitPager(
-                '/v1/me/recommendations',
-                {
-                    'format[resources]': 'map',
-                    'omit[resource]': 'autos',
-                },
-                undefined,
-                undefined,
-                ({data = [], resources = {}}: any): MusicKitPage => {
-                    const items = data
-                        .map((data: any) => resources['personal-recommendation'][data.id])
-                        .filter(exists)
-                        .map((recommendation: MusicKit.Resource) =>
-                            recommendation.relationships.contents.data.filter(
-                                (data: any) => data.type === type
-                            )
-                        )
-                        .flat()
-                        .map((data: any) => resources[type][data.id])
-                        .filter(exists);
-                    const total = items.length;
-                    return {items, total, atEnd: true};
-                }
-            );
-        },
-    };
-}
-
-function createSearch<T extends MediaObject>(
-    itemType: T['itemType'],
-    props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>,
-    filters?: MusicKit.QueryParameters,
-    options?: Partial<PagerConfig>
-): MediaSource<T> {
-    return {
-        ...props,
-        itemType,
-        id: props.title,
-        icon: 'search',
-
-        search({q = ''}: {q?: string} = {}): Pager<T> {
-            return createSearchPager(itemType, q, filters, options);
-        },
-    };
-}
-
-function createSearchPager<T extends MediaObject>(
-    itemType: T['itemType'],
-    q: string,
-    filters?: MusicKit.QueryParameters,
-    options?: Partial<PagerConfig>
-): Pager<T> {
-    if (q) {
-        const params: MusicKit.QueryParameters = {...filters, term: q};
-        if (!params.types) {
-            switch (itemType) {
-                case ItemType.Media:
-                    params.types = 'songs';
-                    break;
-
-                case ItemType.Album:
-                    params.types = 'albums';
-                    break;
-
-                case ItemType.Artist:
-                    params.types = 'artists';
-                    break;
-
-                case ItemType.Playlist:
-                    params.types = 'playlists';
-                    break;
-            }
-            params[`omit[resource:${params.types}]`] = 'relationships';
-        }
-        const type = params.types;
-        return new MusicKitPager(
-            '/v1/catalog/{{storefrontId}}/search',
-            params,
-            {maxSize: 250, pageSize: 25, ...options},
-            undefined,
-            (response: any): MusicKitPage => {
-                const result = response.results[type] || {data: []};
-                const nextPageUrl = result.next;
-                const total = response.meta?.total;
-                return {items: result.data, total, nextPageUrl};
-            }
-        );
-    } else {
-        return new SimplePager<T>();
     }
 }
 

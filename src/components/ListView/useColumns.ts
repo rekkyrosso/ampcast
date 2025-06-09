@@ -59,7 +59,7 @@ function getColumns<T>(layout: ListViewLayout<T>, storageId?: string): readonly 
     return layout.cols.reduce<Column<T>[]>((cols, spec, index) => {
         const prevCol = cols[index - 1];
         const left = prevCol ? prevCol.left + prevCol.width : 0;
-        const {id = '', title = '', className = '', align = 'left'} = spec;
+        const {id = String(index), title = '', className = '', align = 'left'} = spec;
         const width =
             (storageId && id ? Number(localStorage.getItem(`listView/${storageId}/${id}`)) : 0) ||
             spec.width ||

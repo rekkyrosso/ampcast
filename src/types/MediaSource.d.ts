@@ -9,19 +9,28 @@ import MediaArtist from './MediaArtist';
 import MediaFilter from './MediaFilter';
 import MediaFolderItem from './MediaFolderItem';
 import MediaItem from './MediaItem';
+import MediaListLayout from './MediaListLayout';
+import MediaListSort from './MediaListSort';
 import MediaObject from './MediaObject';
 import MediaPlaylist from './MediaPlaylist';
-import MediaSearchParams from './MediaSearchParams';
 import MediaService from './MediaService';
 import MediaSourceLayout from './MediaSourceLayout';
 import MediaType from './MediaType';
 import Pager from './Pager';
 import {Pinnable} from './Pin';
+import SearchParams from './SearchParams';
+import SortParams from './SortParams';
 
 export type MediaSourceComponent = React.FC<{
     service: MediaService;
     source: AnyMediaSource;
 }>;
+
+export interface MediaSourceItems {
+    readonly label?: string; // 'Playlists', 'Songs', etc
+    readonly layout?: Partial<MediaListLayout>;
+    readonly sort?: MediaListSort;
+}
 
 export default interface MediaSource<T extends MediaObject> {
     readonly id: string;
@@ -31,18 +40,26 @@ export default interface MediaSource<T extends MediaObject> {
     readonly mediaType?: T['itemType'] extends ItemType.Media ? MediaType : never;
     readonly linearType?: T['itemType'] extends ItemType.Media ? LinearType : never;
     readonly filterType?: FilterType;
-    readonly layout?: MediaSourceLayout<T>;
-    readonly secondaryLayout?: MediaSourceLayout<ChildOf<T>>;
-    readonly tertiaryLayout?: MediaSourceLayout<ChildOf<ChildOf<T>>>;
+    readonly primaryItems?: MediaSourceItems;
+    readonly secondaryItems?: T['itemType'] extends ItemType.Media ? never : MediaSourceItems;
+    readonly tertiaryItems?: T['itemType'] extends ItemType.Artist
+        ? Exclude<MediaSourceItems, 'sort'>
+        : never;
     readonly searchable?: boolean;
-    readonly sortOptions?: Record<string, string>;
-    readonly defaultSort?: Pick<MediaSearchParams, 'sortBy', 'sortOrder'>;
     readonly defaultHidden?: boolean;
     readonly disabled?: boolean;
     readonly isPin?: boolean;
     readonly lockActionsStore?: boolean;
     readonly Component?: MediaSourceComponent<T>;
-    search(params?: MediaSearchParams | MediaFilter | Record<string, unknown>): Pager<T>;
+    search(
+        params?: SearchParams | MediaFilter | Record<string, unknown>,
+        sort?: SortParams
+    ): Pager<T>;
+
+    // DELETE
+    readonly layout?: MediaSourceLayout<T>;
+    readonly secondaryLayout?: MediaSourceLayout<ChildOf<T>>;
+    readonly tertiaryLayout?: MediaSourceLayout<ChildOf<ChildOf<T>>>;
 }
 
 export type MediaMultiSource<T extends MediaObject = any> = Pick<
