@@ -2,7 +2,6 @@ import type React from 'react';
 import type {IconName} from 'components/Icon';
 import ChildOf from './ChildOf';
 import FilterType from './FilterType';
-import ItemType from './ItemType';
 import LinearType from './LinearType';
 import MediaAlbum from './MediaAlbum';
 import MediaArtist from './MediaArtist';
@@ -37,14 +36,12 @@ export default interface MediaSource<T extends MediaObject> {
     readonly title: string;
     readonly icon: IconName;
     readonly itemType: T['itemType'];
-    readonly mediaType?: T['itemType'] extends ItemType.Media ? MediaType : never;
-    readonly linearType?: T['itemType'] extends ItemType.Media ? LinearType : never;
+    readonly mediaType?: T extends MediaItem ? MediaType : never;
+    readonly linearType?: T extends MediaItem ? LinearType : never;
     readonly filterType?: FilterType;
     readonly primaryItems?: MediaSourceItems;
-    readonly secondaryItems?: T['itemType'] extends ItemType.Media ? never : MediaSourceItems;
-    readonly tertiaryItems?: T['itemType'] extends ItemType.Artist
-        ? Exclude<MediaSourceItems, 'sort'>
-        : never;
+    readonly secondaryItems?: T extends MediaItem ? never : MediaSourceItems;
+    readonly tertiaryItems?: T extends MediaArtist ? Exclude<MediaSourceItems, 'sort'> : never;
     readonly searchable?: boolean;
     readonly defaultHidden?: boolean;
     readonly disabled?: boolean;

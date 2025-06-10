@@ -74,17 +74,21 @@ export const navidromeSearch: MediaMultiSource = {
     searchable: true,
     sources: [
         createSearch<MediaItem>(ItemType.Media, {
+            id: 'songs',
             title: 'Songs',
             primaryItems: {layout: {view: 'details'}},
         }),
         createSearch<MediaAlbum>(ItemType.Album, {
+            id: 'albums',
             title: 'Albums',
         }),
         createSearch<MediaArtist>(ItemType.Artist, {
+            id: 'artists',
             title: 'Artists',
             secondaryItems: {sort: artistAlbumsSort},
         }),
         createSearch<MediaPlaylist>(ItemType.Playlist, {
+            id: 'playlists',
             title: 'Playlists',
             primaryItems: {layout: playlistLayout},
             secondaryItems: playlistItems,
@@ -453,9 +457,9 @@ export default sources;
 
 function createSearch<T extends MediaObject>(
     itemType: T['itemType'],
-    props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
+    props: Except<MediaSource<T>, 'itemType' | 'icon' | 'search'>
 ): MediaSource<T> {
-    const id = `${serviceId}/search/${props.title.toLowerCase()}`;
+    const id = `${serviceId}/search/${props.id}`;
     return {
         ...props,
         itemType,

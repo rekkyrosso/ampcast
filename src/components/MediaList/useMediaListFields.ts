@@ -4,6 +4,6 @@ import useObservable from 'hooks/useObservable';
 
 export default function useMediaListFields(listId: string) {
     const observeFields = useMemo(() => () => observeSourceFields(listId), [listId]);
-    const view = useObservable(observeFields, getSourceFields(listId));
-    return view;
+    const fields = useObservable(observeFields, getSourceFields(listId));
+    return fields;
 }

@@ -7,7 +7,7 @@ import {Logger} from 'utils';
 import SequentialPager from 'services/pagers/SequentialPager';
 import {addUserData} from './apple';
 import {refreshToken} from './appleAuth';
-import musicKitUtils, {MusicKitItem} from './musicKitUtils';
+import {createMediaObjects, MusicKitItem} from './musicKitUtils';
 
 const logger = new Logger('MusicKitPager');
 
@@ -41,7 +41,7 @@ export default class MusicKitPager<T extends MediaObject> extends SequentialPage
                         limit ? (params ? {...params, limit} : {limit}) : params
                     );
                     const result = toPage(response.data);
-                    const items = musicKitUtils.createItems(result.items, this.parent);
+                    const items = createMediaObjects(result.items, this.parent);
                     const total = result.total;
                     const atEnd = !result.nextPageUrl;
                     this.nextPageUrl = result.nextPageUrl;

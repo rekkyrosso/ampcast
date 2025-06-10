@@ -18,22 +18,11 @@ import {exists} from 'utils';
 import {NoFavoritesPlaylistError} from 'services/errors';
 import SimplePager from 'services/pagers/SimplePager';
 import {t} from 'services/i18n';
+import {songChartsLayout} from 'components/MediaList/layouts';
 import MusicKitPager, {MusicKitPage} from './MusicKitPager';
 import appleSettings from './appleSettings';
 
 const serviceId: MediaServiceId = 'apple';
-
-const songChartsLayout: MediaListLayout = {
-    view: 'card',
-    card: {
-        index: 'Index',
-        h1: 'Title',
-        h2: 'Artist',
-        h3: 'AlbumAndYear',
-        data: 'Duration',
-    },
-    details: ['Index', 'Artist', 'Title', 'Album', 'Duration', 'Year', 'Genre'],
-};
 
 const radioLayout: MediaListLayout = {
     view: 'card',
@@ -61,18 +50,30 @@ export const appleSearch: MediaMultiSource = {
     icon: 'search',
     searchable: true,
     sources: [
-        createSearch<MediaItem>(ItemType.Media, {title: 'Songs'}),
-        createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
-        createSearch<MediaArtist>(ItemType.Artist, {title: 'Artists'}),
-        createSearch<MediaPlaylist>(ItemType.Playlist, {title: 'Playlists'}),
+        createSearch<MediaItem>(ItemType.Media, {
+            id: 'songs',
+            title: 'Songs',
+        }),
+        createSearch<MediaAlbum>(ItemType.Album, {
+            id: 'albums',
+            title: 'Albums',
+        }),
+        createSearch<MediaArtist>(ItemType.Artist, {
+            id: 'artists',
+            title: 'Artists',
+        }),
+        createSearch<MediaPlaylist>(ItemType.Playlist, {
+            id: 'playlists',
+            title: 'Playlists',
+        }),
         createSearch<MediaItem>(
             ItemType.Media,
-            {title: 'Radio', primaryItems: {layout: radioLayout}},
+            {id: 'radio', title: 'Radio', primaryItems: {layout: radioLayout}},
             {types: 'stations'}
         ),
         createSearch<MediaItem>(
             ItemType.Media,
-            {title: 'Videos', mediaType: MediaType.Video},
+            {id: 'videos', title: 'Videos', mediaType: MediaType.Video},
             {types: 'music-videos'}
         ),
     ],
@@ -83,9 +84,16 @@ const appleRecommendations: MediaMultiSource = {
     title: 'Recommended',
     icon: 'star',
     sources: [
-        createRecommendations<MediaAlbum>('albums', ItemType.Album, {title: 'Albums'}),
-        createRecommendations<MediaPlaylist>('playlists', ItemType.Playlist, {title: 'Playlists'}),
+        createRecommendations<MediaAlbum>('albums', ItemType.Album, {
+            id: 'albums',
+            title: 'Albums',
+        }),
+        createRecommendations<MediaPlaylist>('playlists', ItemType.Playlist, {
+            id: 'playlists',
+            title: 'Playlists',
+        }),
         createRecommendations<MediaItem>('stations', ItemType.Media, {
+            id: 'radio',
             title: 'Radio',
             primaryItems: {label: 'Radios', layout: radioLayout},
         }),
@@ -113,9 +121,7 @@ const appleLibrarySongs: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
     lockActionsStore: true,
     defaultHidden: true,
-    primaryItems: {
-        sort: appleLibrarySort,
-    },
+    primaryItems: {sort: appleLibrarySort},
 
     search(_, {sortBy, sortOrder} = appleLibrarySort.defaultSort): Pager<MediaItem> {
         return new MusicKitPager('/v1/me/library/songs', {
@@ -244,9 +250,7 @@ const appleSongCharts: MediaSource<MediaItem> = {
     icon: 'chart',
     itemType: ItemType.Media,
     filterType: FilterType.ByGenre,
-    primaryItems: {
-        layout: songChartsLayout,
-    },
+    primaryItems: {layout: songChartsLayout},
 
     search(genre?: MediaFilter): Pager<MediaItem> {
         if (genre) {
@@ -475,13 +479,13 @@ export default sources;
 function createRecommendations<T extends MediaObject>(
     type: 'albums' | 'playlists' | 'stations',
     itemType: T['itemType'],
-    props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
+    props: Except<MediaSource<T>, 'itemType' | 'icon' | 'search'>
 ): MediaSource<T> {
     return {
         ...props,
         itemType,
         linearType: (type === 'stations' ? LinearType.Station : undefined) as any,
-        id: type,
+        id: `${serviceId}/recommendations/${props.id}`,
         icon: 'star',
 
         search(): Pager<T> {
@@ -515,14 +519,14 @@ function createRecommendations<T extends MediaObject>(
 
 function createSearch<T extends MediaObject>(
     itemType: T['itemType'],
-    props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>,
+    props: Except<MediaSource<T>, 'itemType' | 'icon' | 'search'>,
     filters?: MusicKit.QueryParameters,
     options?: Partial<PagerConfig>
 ): MediaSource<T> {
     return {
         ...props,
         itemType,
-        id: props.title,
+        id: `${serviceId}/search/${props.id}`,
         icon: 'search',
 
         search({q = ''}: {q?: string} = {}): Pager<T> {

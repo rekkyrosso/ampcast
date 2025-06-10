@@ -23,7 +23,7 @@ import {Logger, uniqBy} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import audio from 'services/audio';
 import {observeIsLoggedIn, waitForLogin} from 'services/mediaServices';
-import musicKitUtils from './musicKitUtils';
+import {createNowPlayingItem} from './musicKitUtils';
 
 const logger = new Logger('MusicKitPlayer');
 
@@ -167,7 +167,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                     : undefined
             ),
             switchMap((nowPlaying) =>
-                nowPlaying ? musicKitUtils.createNowPlayingItem(nowPlaying, station) : of(station)
+                nowPlaying ? createNowPlayingItem(nowPlaying, station) : of(station)
             ),
             distinctUntilChanged((a, b) => a.src === b.src)
         );

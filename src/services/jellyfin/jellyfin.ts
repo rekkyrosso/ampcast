@@ -58,10 +58,20 @@ const jellyfinSearch: MediaMultiSource = {
     icon: 'search',
     searchable: true,
     sources: [
-        createSearch<MediaItem>(ItemType.Media, {title: 'Songs'}),
-        createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
-        createSearch<MediaArtist>(ItemType.Artist, {title: 'Artists'}),
+        createSearch<MediaItem>(ItemType.Media, {
+            id: 'songs',
+            title: 'Songs',
+        }),
+        createSearch<MediaAlbum>(ItemType.Album, {
+            id: 'albums',
+            title: 'Albums',
+        }),
+        createSearch<MediaArtist>(ItemType.Artist, {
+            id: 'artists',
+            title: 'Artists',
+        }),
         createSearch<MediaPlaylist>(ItemType.Playlist, {
+            id: 'playlists',
             title: 'Playlists',
             layout: playlistLayout,
             secondaryLayout: playlistItemsLayout,
@@ -675,12 +685,12 @@ async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
 
 function createSearch<T extends MediaObject>(
     itemType: T['itemType'],
-    props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
+    props: Except<MediaSource<T>, 'itemType' | 'icon' | 'search'>
 ): MediaSource<T> {
     return {
         ...props,
         itemType,
-        id: props.title,
+        id: `${serviceId}/search/${props.id}`,
         icon: 'search',
 
         search({q = ''}: {q?: string} = {}): Pager<T> {

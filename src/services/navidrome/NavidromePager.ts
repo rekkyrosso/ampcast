@@ -8,7 +8,11 @@ import {Logger} from 'utils';
 import {getSourceSorting, observeSourceSorting} from 'services/mediaServices/servicesSettings';
 import OffsetPager from 'services/pagers/OffsetPager';
 import navidromeApi from './navidromeApi';
-import navidromeUtils from './navidromeUtils';
+import {
+    createArtistAlbumsPager,
+    createMediaObject,
+    createPlaylistItemsPager,
+} from './navidromeUtils';
 
 const logger = new Logger('NavidromePager');
 
@@ -41,7 +45,7 @@ export default class NavidromePager<T extends MediaObject> extends OffsetPager<T
                 });
                 return {
                     items: items.map((item) =>
-                        navidromeUtils.createMediaObject(
+                        createMediaObject(
                             itemType,
                             item,
                             path === 'radio',
@@ -77,13 +81,13 @@ export default class NavidromePager<T extends MediaObject> extends OffsetPager<T
                 item.pager.disconnect();
                 return {
                     ...item,
-                    pager: navidromeUtils.createArtistAlbumsPager(item, childSort),
+                    pager: createArtistAlbumsPager(item, childSort),
                 };
             } else if (item.itemType === ItemType.Playlist) {
                 item.pager.disconnect();
                 return {
                     ...item,
-                    pager: navidromeUtils.createPlaylistItemsPager(item, childSort),
+                    pager: createPlaylistItemsPager(item, childSort),
                 };
             } else {
                 return item;

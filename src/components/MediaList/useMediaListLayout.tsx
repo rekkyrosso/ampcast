@@ -85,6 +85,7 @@ function createMediaListLayout<T extends MediaObject = MediaObject>(
         (actions as any).title = (
             <IconButton
                 icon="menu"
+                title="Options…"
                 onClick={async (event: React.MouseEvent) => {
                     const button = (event.target as HTMLButtonElement).closest('button')!;
                     const {right, bottom} = button.getBoundingClientRect();

@@ -50,7 +50,18 @@ export default function AppPreferences() {
                 )}
             </fieldset>
             <fieldset>
-                <legend>Explicit content</legend>
+                <legend>Browsing</legend>
+                <p>
+                    <label htmlFor={`${id}-albums-or-songs`}>Preferred search:</label>
+                    <select
+                        id={`${id}-albums-or-songs`}
+                        defaultValue={preferences.albumsOrTracks}
+                        onChange={(e) => (preferences.albumsOrTracks = e.target.value as any)}
+                    >
+                        <option value="albums">Albums</option>
+                        <option value="tracks">Songs</option>
+                    </select>
+                </p>
                 <p>
                     <input
                         type="checkbox"

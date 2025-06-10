@@ -15,6 +15,9 @@ export default interface BackupFile {
         readonly services?: {
             readonly localStorage: Record<string, string>;
         };
+        readonly layout?: {
+            readonly localStorage: Record<string, string>;
+        };
         readonly pins?: readonly Pin[];
         readonly theme?: string;
         readonly userThemes?: readonly UserTheme[];

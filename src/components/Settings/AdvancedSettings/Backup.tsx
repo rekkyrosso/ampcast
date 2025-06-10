@@ -55,6 +55,9 @@ export default function Backup() {
                     if (backup.services?.localStorage) {
                         Object.assign(localStorage, backup.services.localStorage);
                     }
+                    if (backup.layout?.localStorage) {
+                        Object.assign(localStorage, backup.layout.localStorage);
+                    }
                     if (backup.pins?.length) {
                         await pinStore.addPins(backup.pins);
                     }

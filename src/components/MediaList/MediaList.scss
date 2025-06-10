@@ -360,12 +360,6 @@
             .h1 {
                 top: 0.25em;
 
-                &-text {
-                    white-space: nowrap;
-                    overflow: hidden;
-                    text-overflow: ellipsis;
-                }
-
                 .text {
                     font-size: 1em;
                 }
@@ -373,10 +367,6 @@
 
             .h2 {
                 top: 1.5em;
-            }
-
-            .artist .text {
-                font-size: 0.875em;
             }
 
             .h3 {

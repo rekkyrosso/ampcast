@@ -53,18 +53,17 @@
         position: relative;
 
         button[aria-checked="true"]::before {
-            content: '✓';
+            content: "✓";
             position: absolute;
             left: 0.33em;
         }
 
         &.has-popup-right {
             & > button::before {
-                content: '❮';
+                content: "\276e";
                 position: absolute;
                 left: 0.5em;
                 font-size: 0.75em;
-                transform: translateZ(0);
             }
 
             .popup-menu {
@@ -75,10 +74,9 @@
 
         &.has-popup-left {
             & > button::after {
-                content: '❯';
+                content: "\276f";
                 font-size: 0.75em;
                 margin-left: 1em;
-                transform: translateZ(0);
             }
 
             .popup-menu {

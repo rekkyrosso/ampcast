@@ -93,9 +93,18 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'search',
             searchable: true,
             sources: [
-                this.createSearch<MediaItem>(ItemType.Media, {title: 'Songs'}),
-                this.createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
-                this.createSearch<MediaArtist>(ItemType.Artist, {title: 'Artists'}),
+                this.createSearch<MediaItem>(ItemType.Media, {
+                    id: 'songs',
+                    title: 'Songs',
+                }),
+                this.createSearch<MediaAlbum>(ItemType.Album, {
+                    id: 'albums',
+                    title: 'Albums',
+                }),
+                this.createSearch<MediaArtist>(ItemType.Artist, {
+                    id: 'artists',
+                    title: 'Artists',
+                }),
             ],
         };
 
@@ -732,7 +741,7 @@ export default class SubsonicService implements PersonalMediaService {
 
     private createSearch<T extends MediaObject>(
         itemType: T['itemType'],
-        props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
+        props: Except<MediaSource<T>, 'itemType' | 'icon' | 'search'>
     ): MediaSource<T> {
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const service = this;
@@ -741,7 +750,7 @@ export default class SubsonicService implements PersonalMediaService {
         return {
             ...props,
             itemType,
-            id: props.title,
+            id: `${this.id}/search/${props.id}`,
             icon: 'search',
 
             search({q = ''}: {q?: string} = {}): Pager<T> {

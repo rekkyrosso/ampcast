@@ -6,6 +6,14 @@ import {LiteStorage} from 'utils';
 const storage = new LiteStorage('preferences');
 
 const preferences: Preferences = {
+    get albumsOrTracks(): 'albums' | 'tracks' {
+        return storage.getString('albumsOrTracks', 'tracks');
+    },
+
+    set albumsOrTracks(albumsOrTracks: 'albums' | 'tracks') {
+        storage.setString('albumsOrTracks', albumsOrTracks);
+    },
+
     get disableExplicitContent(): boolean {
         return storage.getBoolean('disableExplicitContent');
     },

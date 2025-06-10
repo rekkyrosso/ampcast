@@ -48,10 +48,10 @@ export default function useBackupEntries(): readonly BackupEntry<keyof Backup>[]
                 data: {localStorage: getServicesLocalStorage()},
             },
             {
-                key: 'pins',
-                title: `Pins (${pins.length})`,
+                key: 'layout',
+                title: 'Layout',
                 defaultChecked: true,
-                data: pins,
+                data: {localStorage: getLayoutLocalStorage()},
             },
             {
                 key: 'theme',
@@ -64,6 +64,12 @@ export default function useBackupEntries(): readonly BackupEntry<keyof Backup>[]
                 title: `User themes (${userThemes.length})`,
                 defaultChecked: true,
                 data: userThemes,
+            },
+            {
+                key: 'pins',
+                title: `Pins (${pins.length})`,
+                defaultChecked: true,
+                data: pins,
             },
             {
                 key: 'visualizerFavorites',
@@ -87,15 +93,22 @@ export default function useBackupEntries(): readonly BackupEntry<keyof Backup>[]
     }, []);
 }
 
+function getLayoutLocalStorage(): Record<string, string> {
+    const storage: Record<string, string> = {};
+    const keys = ['services/fields', 'services/view'].map((key) => `ampcast/${key}`);
+    for (const key of keys) {
+        storage[key] = localStorage[key];
+    }
+    return storage;
+}
+
 function getServicesLocalStorage(): Record<string, string> {
     const storage: Record<string, string> = {};
     const keys = [
         'scrobbling/noScrobble',
         'scrobbling/options',
-        'services/fields',
         'services/hidden',
         'services/sorting',
-        'services/view',
         'lookup/preferPersonalMedia',
         'apple/bitrate',
         ...getPersonalMediaServices()

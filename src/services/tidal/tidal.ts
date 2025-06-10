@@ -40,11 +40,25 @@ const tidalSearch: MediaMultiSource = {
     icon: 'search',
     searchable: true,
     sources: [
-        createSearch<MediaItem>(ItemType.Media, {title: 'Tracks', layout: defaultLayout}),
-        createSearch<MediaAlbum>(ItemType.Album, {title: 'Albums'}),
-        createSearch<MediaArtist>(ItemType.Artist, {title: 'Artists'}),
-        createSearch<MediaPlaylist>(ItemType.Playlist, {title: 'Playlists'}),
         createSearch<MediaItem>(ItemType.Media, {
+            id: 'tracks',
+            title: 'Tracks',
+            layout: defaultLayout,
+        }),
+        createSearch<MediaAlbum>(ItemType.Album, {
+            id: 'albums',
+            title: 'Albums',
+        }),
+        createSearch<MediaArtist>(ItemType.Artist, {
+            id: 'artists',
+            title: 'Artists',
+        }),
+        createSearch<MediaPlaylist>(ItemType.Playlist, {
+            id: 'playlists',
+            title: 'Playlists',
+        }),
+        createSearch<MediaItem>(ItemType.Media, {
+            id: 'videos',
             title: 'Videos',
             mediaType: MediaType.Video,
             layout: defaultLayout,
@@ -133,12 +147,12 @@ function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
 
 function createSearch<T extends MediaObject>(
     itemType: T['itemType'],
-    props: Except<MediaSource<T>, 'id' | 'itemType' | 'icon' | 'search'>
+    props: Except<MediaSource<T>, 'itemType' | 'icon' | 'search'>
 ): MediaSource<T> {
     return {
         ...props,
         itemType,
-        id: props.title,
+        id: `${serviceId}/search/${props.id}`,
         icon: 'search',
 
         search({q = ''}: {q?: string} = {}): Pager<T> {
