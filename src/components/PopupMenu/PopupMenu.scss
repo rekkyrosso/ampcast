@@ -52,8 +52,14 @@
     &-item {
         position: relative;
 
+        button::before,
+        button::after {
+            font-family: var(--system-font-family);
+            transform: translateZ(0);
+        }
+
         button[aria-checked="true"]::before {
-            content: "✓";
+            content: "\2713";
             position: absolute;
             left: 0.33em;
         }

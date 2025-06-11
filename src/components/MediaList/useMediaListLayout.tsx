@@ -100,6 +100,9 @@ function createMediaListLayout<T extends MediaObject = MediaObject>(
             />
         );
         const cols = visibleFields.concat(actions);
+        if (cols[0].className === 'index') {
+            cols[0] = {...cols[0], title: '#'};
+        }
         return {view, cols, showTitles: true, sizeable: true};
     } else {
         const getField = (field: Field | undefined, className: string): FieldSpec | undefined => {
@@ -163,15 +166,7 @@ const Container: RenderField<MediaItem> = (item) => <Text value={item.badge} />;
 
 const Description: RenderField = (item) => <Text value={item.description} />;
 
-const Track: RenderField<MediaItem> = (item) => <Text value={item.track || '-'} />;
-
-const MultiDisc: RenderField<MediaAlbum> = (item) => <Text value={item.multiDisc} />;
-
-const Copyright: RenderField<MediaAlbum | MediaItem> = (item) => <Text value={item.copyright} />;
-
-const Position: RenderField<MediaItem> = (item) => <Text value={item.position || '-'} />;
-
-const AlbumTrack: RenderField<MediaItem> = (item) => (
+const Track: RenderField<MediaItem> = (item) => (
     <span className="text">
         {item.track ? (
             <>
@@ -184,13 +179,11 @@ const AlbumTrack: RenderField<MediaItem> = (item) => (
     </span>
 );
 
-const AlbumTrackText: RenderField<MediaItem> = (item) =>
-    item.track ? (
-        <span className="text">
-            Track {item.track}
-            {item.disc ? <span className="disc">, Disc {item.disc}</span> : ''}
-        </span>
-    ) : null;
+const MultiDisc: RenderField<MediaAlbum> = (item) => <Text value={item.multiDisc} />;
+
+const Copyright: RenderField<MediaAlbum | MediaItem> = (item) => <Text value={item.copyright} />;
+
+const Position: RenderField<MediaItem> = (item) => <Text value={item.position || '-'} />;
 
 const Artist: RenderField<MediaAlbum | MediaItem> = (item) => (
     <Text value={item.itemType === ItemType.Media ? item.artists?.join(', ') : item.artist} />
@@ -258,6 +251,19 @@ const AddedAt: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
     );
 };
 
+const Released: RenderField<MediaAlbum> = (item) => {
+    if (!item.releasedAt) {
+        return null;
+    }
+    const date = new Date(item.releasedAt * 1000);
+    const elapsedTime = getElapsedTimeText(date.valueOf());
+    return (
+        <time className="text" title={date.toLocaleString()}>
+            {elapsedTime}
+        </time>
+    );
+};
+
 const ListenDate: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
     if (!item.playedAt) {
         return '';
@@ -267,7 +273,7 @@ const ListenDate: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) =
     return (
         <time className="text" title={date.toLocaleString()}>
             <SunClock time={time} />
-            <span className="date">{date.toLocaleDateString()}</span>
+            <span className="date-text">{date.toLocaleDateString()}</span>
         </time>
     );
 };
@@ -338,11 +344,27 @@ function Text({value = ''}: {value?: string | number | boolean}) {
 const mediaFields: MediaFields = {
     Index: {
         id: 'Index',
-        title: '#',
+        title: 'Index',
         render: Index,
-        className: 'index',
         align: 'right',
         width: 4,
+        className: 'index',
+    },
+    Track: {
+        id: 'Track',
+        title: 'Track',
+        render: Track,
+        align: 'right',
+        width: 4,
+        className: 'index',
+    },
+    Position: {
+        id: 'Position',
+        title: 'Position',
+        render: Position,
+        align: 'right',
+        width: 4,
+        className: 'index',
     },
     Artist: {id: 'Artist', title: 'Artist', render: Artist, className: 'artist'},
     AlbumArtist: {
@@ -350,20 +372,6 @@ const mediaFields: MediaFields = {
         title: 'Album Artist',
         render: AlbumArtist,
         className: 'artist',
-    },
-    AlbumTrack: {
-        id: 'AlbumTrack',
-        title: '#',
-        render: AlbumTrack,
-        align: 'right',
-        width: 4,
-        className: 'index',
-    },
-    AlbumTrackText: {
-        id: 'AlbumTrackText',
-        title: 'Track',
-        render: AlbumTrackText,
-        className: 'track-text',
     },
     Title: {id: 'Title', title: 'Title', render: Title, className: 'title'},
     Name: {id: 'Name', title: 'Name', render: Title, className: 'title'},
@@ -387,22 +395,6 @@ const mediaFields: MediaFields = {
         render: AlbumAndYear,
         className: 'album',
     },
-    Track: {
-        id: 'Track',
-        title: 'Track',
-        render: Track,
-        align: 'right',
-        width: 5,
-        className: 'index',
-    },
-    Position: {
-        id: 'Position',
-        title: '#',
-        render: Position,
-        className: 'index',
-        align: 'right',
-        width: 4,
-    },
     Duration: {
         id: 'Duration',
         title: 'Time',
@@ -423,7 +415,7 @@ const mediaFields: MediaFields = {
         render: PlayCount,
         align: 'right',
         width: 5,
-        className: 'play-count',
+        className: 'play-count count',
     },
     TrackCount: {
         id: 'TrackCount',
@@ -431,10 +423,10 @@ const mediaFields: MediaFields = {
         render: TrackCount,
         align: 'right',
         width: 8,
-        className: 'track-count',
+        className: 'track-count count',
     },
     Year: {id: 'Year', title: 'Year', render: Year, align: 'right', width: 5, className: 'year'},
-    Views: {id: 'Views', title: 'Views', render: Views, className: 'views'},
+    Views: {id: 'Views', title: 'Views', render: Views, className: 'views count'},
     Genre: {id: 'Genre', title: 'Genre', render: Genre, width: 10, className: 'genre'},
     Owner: {id: 'Owner', title: 'Owner', render: Owner, className: 'owner'},
     BitRate: {
@@ -458,18 +450,33 @@ const mediaFields: MediaFields = {
         render: Copyright,
         className: 'copyright',
     },
-    AddedAt: {id: 'AddedAt', title: 'Added', render: AddedAt, className: 'added-at'},
+    AddedAt: {
+        id: 'AddedAt',
+        title: 'Added',
+        render: AddedAt,
+        align: 'right',
+        className: 'added-at date',
+    },
+    Released: {
+        id: 'Released',
+        title: 'Released',
+        render: Released,
+        align: 'right',
+        className: 'released-at date',
+    },
     LastPlayed: {
         id: 'LastPlayed',
         title: 'Last played',
         render: LastPlayed,
-        className: 'played-at',
+        align: 'right',
+        className: 'played-at date',
     },
     ListenDate: {
         id: 'ListenDate',
         title: 'Played On',
         render: ListenDate,
-        className: 'played-at listen-date',
+        align: 'right',
+        className: 'listen-date date',
     },
     MultiDisc: {
         id: 'MultiDisc',

@@ -16,6 +16,7 @@ import {NoSpotifyChartsError} from 'services/errors';
 import SimplePager from 'services/pagers/SimplePager';
 import {setHiddenSources} from 'services/mediaServices/servicesSettings';
 import {
+    albumsLayout,
     mediaItemsLayout,
     playlistItemsLayout,
     recentlyPlayedTracksLayout,
@@ -287,6 +288,16 @@ const spotifyNewReleases: MediaSource<MediaAlbum> = {
     icon: 'album',
     itemType: ItemType.Album,
     defaultHidden: true,
+    primaryItems: {
+        layout: {
+            ...albumsLayout,
+            card: {
+                ...albumsLayout.card,
+                data: 'Released',
+            },
+            details: albumsLayout.details.concat('Released'),
+        },
+    },
 
     search(): Pager<MediaAlbum> {
         const market = getMarket();

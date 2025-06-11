@@ -15,7 +15,7 @@ export default function StarRating({
     increment = 0.5,
     onChange,
 }: StarRatingProps) {
-    const ref = useRef<HTMLDivElement>(null);
+    const buttonsRef = useRef<HTMLDivElement>(null);
     const [selectedIndex, setSelectedIndex] = useState(() => Math.max(Math.ceil(value) - 1, 0));
     const [hoverValue, setHoverValue] = useState(-1);
     const [ratingReset, setRatingReset] = useState(false);
@@ -43,45 +43,46 @@ export default function StarRating({
     );
 
     return (
-        <div
-            className="star-rating"
-            tabIndex={tabIndex}
-            onKeyDown={handleKeyDown}
-            onMouseDown={cancelEvent}
-            onMouseUp={stopPropagation}
-            onMouseMove={(event) => {
-                const rect = ref.current!.getBoundingClientRect();
-                const value = Math.ceil(((event.clientX - rect.left) / rect.width) * 10) / 2;
-                setHoverValue(clamp(0, increment === 1 ? Math.ceil(value) : value, 5));
-            }}
-            onMouseLeave={() => {
-                setRatingReset(false);
-                setHoverValue(-1);
-            }}
-            ref={ref}
-        >
-            {[0, 1, 2, 3, 4].map((index) => (
-                <Star
-                    index={index}
-                    value={ratingReset ? 0 : hoverValue === -1 ? value : hoverValue}
-                    selected={index === selectedIndex}
-                    onClick={(event) => {
-                        if (event.button === 0) {
-                            if (value === hoverValue && !ratingReset) {
-                                setSelectedIndex(0);
-                                setRatingReset(true);
-                                onChange?.(0);
-                            } else {
-                                setSelectedIndex(index);
-                                setRatingReset(false);
-                                onChange?.(hoverValue);
+        <div className="star-rating" tabIndex={tabIndex}>
+            <div
+                className="star-rating-buttons"
+                onKeyDown={handleKeyDown}
+                onMouseDown={cancelEvent}
+                onMouseUp={stopPropagation}
+                onMouseMove={(event) => {
+                    const rect = buttonsRef.current!.getBoundingClientRect();
+                    const value = Math.ceil(((event.clientX - rect.left) / rect.width) * 10) / 2;
+                    setHoverValue(clamp(0, increment === 1 ? Math.ceil(value) : value, 5));
+                }}
+                onMouseLeave={() => {
+                    setRatingReset(false);
+                    setHoverValue(-1);
+                }}
+                ref={buttonsRef}
+            >
+                {[0, 1, 2, 3, 4].map((index) => (
+                    <Star
+                        index={index}
+                        value={ratingReset ? 0 : hoverValue === -1 ? value : hoverValue}
+                        selected={index === selectedIndex}
+                        onClick={(event) => {
+                            if (event.button === 0) {
+                                if (value === hoverValue && !ratingReset) {
+                                    setSelectedIndex(0);
+                                    setRatingReset(true);
+                                    onChange?.(0);
+                                } else {
+                                    setSelectedIndex(index);
+                                    setRatingReset(false);
+                                    onChange?.(hoverValue);
+                                }
                             }
-                        }
-                    }}
-                    onMouseLeave={() => setRatingReset(false)}
-                    key={index}
-                />
-            ))}
+                        }}
+                        onMouseLeave={() => setRatingReset(false)}
+                        key={index}
+                    />
+                ))}
+            </div>
         </div>
     );
 }

@@ -12,7 +12,8 @@ export default interface MediaAlbum extends BaseMediaObject {
     readonly year?: number;
     readonly trackCount?: number;
     readonly duration?: number;
-    readonly playedAt?: number; // UTC
+    readonly playedAt?: number; // unix
+    readonly releasedAt?: number; // unix
     readonly unplayable?: boolean;
     readonly release_mbid?: string;
     readonly artist_mbids?: readonly string[];

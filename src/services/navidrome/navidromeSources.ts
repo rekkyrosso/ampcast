@@ -18,9 +18,11 @@ import SimplePager from 'services/pagers/SimplePager';
 import {
     defaultMediaItemCard,
     mostPlayedTracksLayout,
+    recentlyAddedAlbumsLayout,
     recentlyPlayedTracksLayout,
 } from 'components/MediaList/layouts';
 import NavidromePager from './NavidromePager';
+import {createArtistAlbumsPager} from './navidromeUtils';
 
 const serviceId: MediaServiceId = 'navidrome';
 
@@ -199,7 +201,8 @@ const navidromeLikedArtists: MediaSource<MediaArtist> = {
             {
                 childSort: artistAlbumsSort.defaultSort,
                 childSortId: `${navidromeLikedArtists.id}/2`,
-            }
+            },
+            createArtistAlbumsPager
         );
     },
 };
@@ -210,15 +213,7 @@ const navidromeRecentlyAdded: MediaSource<MediaAlbum> = {
     icon: 'recently-added',
     itemType: ItemType.Album,
     primaryItems: {
-        layout: {
-            card: {
-                h1: 'Title',
-                h2: 'Artist',
-                h3: 'Year',
-                data: 'AddedAt',
-            },
-            details: ['AddedAt', 'Title', 'Artist', 'Year'],
-        },
+        layout: recentlyAddedAlbumsLayout,
     },
 
     search(): Pager<MediaAlbum> {
@@ -493,7 +488,8 @@ function createSearch<T extends MediaObject>(
                         {
                             childSort: artistAlbumsSort.defaultSort,
                             childSortId: `${id}/2`,
-                        }
+                        },
+                        createArtistAlbumsPager as any
                     );
 
                 case ItemType.Playlist:

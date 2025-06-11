@@ -1,26 +1,38 @@
 @use 'styles/effects.scss';
 
 .star-rating {
-    font-family: Arial, sans-serif;
-    font-weight: 400;
+    font-family: var(--system-font-family);
+    font-weight: normal;
     opacity: 0.75;
 
     &:hover {
         opacity: 1;
     }
 
+    &-buttons {
+        display: inline-block;
+        text-align: left;
+        padding: 0 1px;
+    }
+
     &-button {
         all: unset;
         cursor: pointer;
         border-radius: calc(var(--roundness) * 0.5em);
-        font-family: sans-serif;
 
         &:hover {
             opacity: 1;
+        }        
+
+        &:active,
+        &.active {
+            filter: none;
+            transform: none;
         }
     }
 
     .half-star {
+        display: inline-block;
         position: relative;
 
         &-fg {
@@ -34,13 +46,5 @@
 
     .focus-visible &:focus .selected {
         @include effects.outline;
-    }
-
-    .list-view & {
-        pointer-events: none;
-    }
-
-    .list-view:focus .list-view-row.selected & {
-        pointer-events: auto;
     }
 }

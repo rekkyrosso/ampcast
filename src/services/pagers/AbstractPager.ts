@@ -10,13 +10,16 @@ import {
     take,
     tap,
 } from 'rxjs';
+import ChildOf from 'types/ChildOf';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import MetadataChange from 'types/MetadataChange';
 import Pager, {PagerConfig} from 'types/Pager';
+import SortParams from 'types/SortParams';
+import {Logger, exists, uniq} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
 import {observeMetadataChanges} from 'services/metadata';
-import {Logger, exists, uniq} from 'utils';
+import {observeSourceSorting} from 'services/mediaServices/servicesSettings';
 
 export interface PageFetch {
     readonly index: number;
@@ -29,6 +32,11 @@ const logger = new Logger('AbstractPager');
 
 let pagerCount = 0;
 
+export type CreateChildPager<T extends MediaObject> = (
+    item: T,
+    childSort?: SortParams
+) => Pager<ChildOf<T>>;
+
 export default abstract class AbstractPager<T extends MediaObject> implements Pager<T> {
     private readonly additions$ = new BehaviorSubject<readonly T[]>(UNINITIALIZED);
     private readonly error$ = new BehaviorSubject<unknown>(undefined);
@@ -40,7 +48,10 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
     private subscriptions?: Subscription;
     #disconnected = false;
 
-    constructor(protected config: PagerConfig) {}
+    constructor(
+        protected config: PagerConfig,
+        private readonly createChildPager?: CreateChildPager<T>
+    ) {}
 
     get maxSize(): number | undefined {
         return this.config.maxSize;
@@ -119,6 +130,10 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
 
     protected set busy(busy: boolean) {
         this.busy$.next(busy);
+    }
+
+    protected get childSortId(): string {
+        return this.config.childSortId || '';
     }
 
     protected get connected(): boolean {
@@ -214,6 +229,15 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
                 );
             }
 
+            if (this.childSortId && this.createChildPager) {
+                this.subscribeTo(
+                    observeSourceSorting(this.childSortId).pipe(
+                        tap((childSort) => this.updateChildSort(this.createChildPager!, childSort))
+                    ),
+                    logger
+                );
+            }
+
             this.subscribeTo(this.observeComplete().pipe(tap(() => (this.busy = false))), logger);
         }
     }
@@ -286,6 +310,20 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
                     ),
                     logger
                 );
+            }
+        });
+    }
+
+    private updateChildSort(createChildPager: CreateChildPager<T>, childSort?: SortParams): void {
+        this.items = this.items.map((item) => {
+            if ('pager' in item) {
+                item.pager.disconnect();
+                return {
+                    ...item,
+                    pager: createChildPager(item, childSort),
+                };
+            } else {
+                return item;
             }
         });
     }

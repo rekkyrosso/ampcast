@@ -99,6 +99,7 @@ function createMediaItemFromEpisode(episode: SpotifyEpisode): MediaItem {
 
 function createMediaAlbum(album: SpotifyAlbum, inLibrary?: boolean | undefined): MediaAlbum {
     const externalUrl = album.external_urls.spotify;
+    const releaseDate = new Date(album.release_date);
     return {
         itemType: ItemType.Album,
         src: album.uri,
@@ -107,7 +108,8 @@ function createMediaAlbum(album: SpotifyAlbum, inLibrary?: boolean | undefined):
         title: album.name,
         artist: album.artists.map((artist) => artist.name).join(', '),
         // genres: album.genres, // always an empty array
-        year: new Date(album.release_date).getFullYear(),
+        year: releaseDate.getFullYear(),
+        releasedAt: Math.round(releaseDate.getTime() / 1000),
         thumbnails: album.images as Thumbnail[],
         trackCount: album.total_tracks,
         pager: createAlbumTracksPager(album),

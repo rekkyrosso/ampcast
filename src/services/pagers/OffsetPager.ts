@@ -2,7 +2,7 @@ import {catchError, filter, map, mergeMap, of, takeUntil, throttleTime} from 'rx
 import MediaObject from 'types/MediaObject';
 import {Page, PagerConfig} from 'types/Pager';
 import {Logger} from 'utils';
-import AbstractPager from './AbstractPager';
+import AbstractPager, {CreateChildPager} from './AbstractPager';
 
 enum FetchState {
     Pending,
@@ -17,9 +17,10 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
 
     constructor(
         private readonly fetch: (pageNumber: number, pageSize: number) => Promise<Page<T>>,
-        config: PagerConfig
+        config: PagerConfig,
+        createChildPager?: CreateChildPager<T>
     ) {
-        super(config);
+        super(config, createChildPager);
     }
 
     protected connect(): void {

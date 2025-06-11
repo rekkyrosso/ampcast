@@ -2,7 +2,7 @@ import {catchError, concatMap, delayWhen, mergeMap, of, take, takeUntil, tap, ti
 import MediaObject from 'types/MediaObject';
 import {Page, PagerConfig} from 'types/Pager';
 import {exists, Logger, uniqBy} from 'utils';
-import AbstractPager from './AbstractPager';
+import AbstractPager, {CreateChildPager} from './AbstractPager';
 
 const logger = new Logger('SequentialPager');
 
@@ -14,9 +14,10 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
 
     constructor(
         private readonly fetchNext: (pageSize: number) => Promise<Page<T>>,
-        config: PagerConfig
+        config: PagerConfig,
+        createChildPager?: CreateChildPager<T>
     ) {
-        super(config);
+        super(config, createChildPager);
     }
 
     protected connect(): void {

@@ -1,39 +1,23 @@
-import {tap} from 'rxjs';
 import {Primitive} from 'type-fest';
-import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
-import SortParams from 'types/SortParams';
 import {PagerConfig} from 'types/Pager';
-import {Logger} from 'utils';
-import {getSourceSorting, observeSourceSorting} from 'services/mediaServices/servicesSettings';
+import {getSourceSorting} from 'services/mediaServices/servicesSettings';
+import {CreateChildPager} from 'services/pagers/AbstractPager';
 import OffsetPager from 'services/pagers/OffsetPager';
 import navidromeApi from './navidromeApi';
-import {
-    createArtistAlbumsPager,
-    createMediaObject,
-    createPlaylistItemsPager,
-} from './navidromeUtils';
-
-const logger = new Logger('NavidromePager');
-
-interface NavidromePagerConfig extends PagerConfig {
-    readonly childSort?: SortParams;
-    readonly childSortId?: string;
-}
+import {createMediaObject} from './navidromeUtils';
 
 export default class NavidromePager<T extends MediaObject> extends OffsetPager<T> {
     static minPageSize = 10;
     static maxPageSize = 500;
 
-    private readonly childSortId: string;
-
     constructor(
         itemType: T['itemType'],
         path: string,
         params?: Record<string, Primitive>,
-        options?: Partial<NavidromePagerConfig>
+        options?: Partial<PagerConfig>,
+        createChildPager?: CreateChildPager<T>
     ) {
-        const {childSort, childSortId = '', ...config} = options || {};
         super(
             async (pageNumber, pageSize) => {
                 const _start = (pageNumber - 1) * pageSize;
@@ -49,49 +33,14 @@ export default class NavidromePager<T extends MediaObject> extends OffsetPager<T
                             itemType,
                             item,
                             path === 'radio',
-                            getSourceSorting(childSortId) || childSort
+                            getSourceSorting(this.childSortId) || options?.childSort
                         )
                     ),
                     total,
                 };
             },
-            {pageSize: 200, ...config}
+            {pageSize: 200, ...options},
+            createChildPager
         );
-        this.childSortId = childSortId;
-    }
-
-    protected connect(): void {
-        if (!this.disconnected && !this.connected) {
-            super.connect();
-
-            if (this.childSortId) {
-                this.subscribeTo(
-                    observeSourceSorting(this.childSortId).pipe(
-                        tap((childSort) => this.updateChildSort(childSort))
-                    ),
-                    logger
-                );
-            }
-        }
-    }
-
-    private updateChildSort(childSort: SortParams | undefined): void {
-        this.items = this.items.map((item) => {
-            if (item.itemType === ItemType.Artist) {
-                item.pager.disconnect();
-                return {
-                    ...item,
-                    pager: createArtistAlbumsPager(item, childSort),
-                };
-            } else if (item.itemType === ItemType.Playlist) {
-                item.pager.disconnect();
-                return {
-                    ...item,
-                    pager: createPlaylistItemsPager(item, childSort),
-                };
-            } else {
-                return item;
-            }
-        });
     }
 }

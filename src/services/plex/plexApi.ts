@@ -15,7 +15,7 @@ import {browser, canPlayMedia, groupBy, partition, uniq, uniqBy} from 'utils';
 import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
 import plexSettings from './plexSettings';
-import plexUtils from './plexUtils';
+import {createMediaObjects} from './plexUtils';
 
 export interface PlexRequest {
     path: string;
@@ -468,7 +468,7 @@ async function getRadioStations(): Promise<PlexRadioStations> {
             (station) => station.type === 'playlist'
         );
         cachedRadioStations = {
-            defaults: plexUtils.createMediaObjects(playlists),
+            defaults: createMediaObjects(playlists),
             directories,
         };
     }

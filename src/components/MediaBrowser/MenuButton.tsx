@@ -1,6 +1,7 @@
 import React, {useCallback} from 'react';
 import MediaSource from 'types/MediaSource';
 import IconButton from 'components/Button';
+import useHasMenuButton from './useHasMenuButton';
 import showMediaSourceOptions from './showMediaSourceOptions';
 
 export interface MenuButtonProps {
@@ -8,6 +9,8 @@ export interface MenuButtonProps {
 }
 
 export default function MenuButton({source}: MenuButtonProps) {
+    const hasMenuButton = useHasMenuButton(source);
+
     const handleMenuClick = useCallback(
         async (event: React.MouseEvent<HTMLButtonElement>) => {
             const button = (event.target as HTMLButtonElement).closest('button')!;
@@ -18,5 +21,7 @@ export default function MenuButton({source}: MenuButtonProps) {
         [source]
     );
 
-    return <IconButton title="Options…" icon="menu" onClick={handleMenuClick} />;
+    return hasMenuButton ? (
+        <IconButton title="Options…" icon="menu" onClick={handleMenuClick} />
+    ) : null;
 }

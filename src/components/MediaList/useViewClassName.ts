@@ -8,17 +8,20 @@ export default function useViewClassName(layout: ListViewLayout<any>): string {
         let clip = 0;
         if (layout.view !== 'details') {
             layout.cols.forEach((col) => {
-                if (/played-at|added-at|rate/.test(col.className!)) {
-                    clip = 2;
-                }
-                if (clip !== 2) {
-                    if (/duration|track-count|play-count/.test(col.className!)) {
-                        clip = 1;
+                const className = col.className || '';
+                if (/\bdata\b/.test(className)) {
+                    if (/\b(date|rate)\b/.test(className)) {
+                        clip = 2;
+                    }
+                    if (clip !== 2) {
+                        if (/\b(count|duration)\b/.test(className)) {
+                            clip = 1;
+                        }
                     }
                 }
             });
         }
-        const indexed = layout.cols.find((col) => col.className === 'index') ? 'indexed' : '';
+        const indexed = layout.cols[0].className === 'indexed';
         const clipped = clip ? `clip-${clip}` : '';
         setClassName(`${indexed} ${clipped}`.trim());
     }, [layout]);

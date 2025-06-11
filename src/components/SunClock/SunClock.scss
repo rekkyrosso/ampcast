@@ -1,9 +1,8 @@
 .sun-clock {
-    --sun-color: var(--text-color-h), var(--text-color-s), var(--text-color-l);
     --am-alpha: 0%;
     --pm-alpha: 0%;
-    --am-color: hsla(var(--sun-color), var(--am-alpha));
-    --pm-color: hsla(var(--sun-color), var(--pm-alpha));
+    --am-color: hsla(from currentColor h s l / var(--am-alpha));
+    --pm-color: hsla(from currentColor h s l / var(--pm-alpha));
 
     display: inline-block;
     width: 1em;

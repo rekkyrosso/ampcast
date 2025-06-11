@@ -11,8 +11,10 @@ import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import type SubsonicSettings from './SubsonicSettings';
-import {chunk, shuffle} from 'utils';
+import {chunk, Logger, shuffle} from 'utils';
 import {createMediaItemFromUrl} from 'services/metadata';
+
+const logger = new Logger('SubsonicApi')
 
 export interface SubsonicApiSettings extends Partial<PersonalMediaServerSettings> {
     host: string;
@@ -442,7 +444,7 @@ export default class SubsonicApi {
                 return auth;
             } catch {
                 try {
-                    console.log('Login failed. Attempting legacy login...');
+                    logger.log('Login failed. Attempting legacy login...');
                     const auth = await login({
                         p: `enc:${Array.from(new TextEncoder().encode(password))
                             .map((byte) => byte.toString(16).padStart(2, '0'))
@@ -451,7 +453,7 @@ export default class SubsonicApi {
                     });
                     return auth;
                 } catch {
-                    console.log('Login failed. Attempting simple login...');
+                    logger.log('Login failed. Attempting simple login...');
                     const auth = await login({p: password, v: '1.12.0'});
                     return auth;
                 }

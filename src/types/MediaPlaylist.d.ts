@@ -14,8 +14,8 @@ export default interface MediaPlaylist extends BaseMediaObject {
     };
     readonly trackCount?: number;
     readonly duration?: number;
-    readonly playedAt?: number; // UTC
-    readonly modifiedAt?: number; // UTC
+    readonly playedAt?: number; // unix
+    readonly modifiedAt?: number; // unix
     readonly isChart?: boolean;
     readonly unplayable?: boolean;
 }

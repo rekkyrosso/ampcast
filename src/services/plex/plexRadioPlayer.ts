@@ -29,7 +29,7 @@ import OmniPlayer from 'services/mediaPlayback/players/OmniPlayer';
 import observeNearEnd from 'services/mediaPlayback/players/observeNearEnd';
 import plexApi from './plexApi';
 import plexSettings from './plexSettings';
-import plexUtils from './plexUtils';
+import {createMediaItemFromTrack, getMediaAlbums, getMetadata} from './plexUtils';
 
 const logger = new Logger('plexRadioPlayer');
 
@@ -337,13 +337,13 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
         queueItems: readonly plex.PlayQueueItem[]
     ): Promise<readonly PlaylistItem[]> {
         const [tracks, albums] = await Promise.all([
-            plexUtils.getMetadata(queueItems),
-            plexUtils.getMediaAlbums(queueItems),
+            getMetadata(queueItems),
+            getMediaAlbums(queueItems),
         ]);
         return tracks.map((track, index) => {
             const album = albums.find((album) => album.src.endsWith(`:${track.parentRatingKey}`));
             return {
-                ...plexUtils.createMediaItemFromTrack(track, album),
+                ...createMediaItemFromTrack(track, album),
                 id: nanoid(),
                 linearType: LinearType.MusicTrack,
                 plex: {playQueueItemID: queueItems[index].playQueueItemID},

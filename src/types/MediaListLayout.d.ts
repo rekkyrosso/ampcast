@@ -9,8 +9,6 @@ export type Field =
     | 'Description'
     | 'Album'
     | 'AlbumArtist'
-    | 'AlbumTrack'
-    | 'AlbumTrackText'
     | 'AlbumAndYear'
     | 'Track'
     | 'Position'
@@ -26,6 +24,7 @@ export type Field =
     | 'MultiDisc'
     | 'Copyright'
     | 'AddedAt'
+    | 'Released'
     | 'LastPlayed'
     | 'ListenDate'
     | 'BitRate'
@@ -35,7 +34,7 @@ export type Field =
     | 'Progress';
 
 export interface CardView {
-    readonly index?: 'Index' | 'AlbumTrack' | 'Position';
+    readonly index?: 'Index' | 'Track' | 'Position';
     readonly thumb?: 'Thumbnail' | 'FileIcon';
     readonly h1: Field;
     readonly h2?: Field;

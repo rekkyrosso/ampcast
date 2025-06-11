@@ -11,7 +11,7 @@ const allMediaItemFields: readonly Field[] = [
     'Artist',
     'Title',
     'Album',
-    'AlbumTrack',
+    'Track',
     'Duration',
     'Year',
     'Genre',
@@ -21,6 +21,18 @@ const allMediaItemFields: readonly Field[] = [
     'AddedAt',
     'BitRate',
     'Container',
+];
+
+const allAlbumFields: readonly Field[] = [
+    'Artist',
+    'Title',
+    'Year',
+    'TrackCount',
+    'Genre',
+    'Description',
+    'MultiDisc',
+    'Copyright',
+    'AddedAt',
 ];
 
 export const mediaItemsLayout: MediaListLayout = {
@@ -33,28 +45,28 @@ export const mediaItemsLayout: MediaListLayout = {
 export const recentlyPlayedTracksLayout: MediaListLayout = {
     view: 'card',
     card: {...defaultMediaItemCard, data: 'LastPlayed'},
-    details: ['LastPlayed', 'Artist', 'Title', 'Album', 'Duration'],
+    details: ['Artist', 'Title', 'Album', 'Duration', 'LastPlayed'],
     extraFields: allMediaItemFields,
 };
 
 export const mostPlayedTracksLayout: MediaListLayout = {
     view: 'card',
     card: {...defaultMediaItemCard, data: 'PlayCount'},
-    details: ['PlayCount', 'Artist', 'Title', 'Album', 'Duration'],
+    details: ['Artist', 'Title', 'Album', 'Duration', 'PlayCount'],
     extraFields: allMediaItemFields,
 };
 
 export const albumTracksLayout: MediaListLayout = {
     view: 'details',
     card: defaultMediaItemCard,
-    details: ['AlbumTrack', 'Title', 'Artist', 'Duration'],
+    details: ['Track', 'Title', 'Artist', 'Duration'],
     extraFields: allMediaItemFields,
 };
 
 export const otherTracksLayout: MediaListLayout = {
     view: 'details',
     card: defaultMediaItemCard,
-    details: ['Title', 'Duration', 'Album', 'Track', 'Year'],
+    details: ['Index', 'Title', 'Duration', 'Album', 'Track', 'Year'],
     extraFields: allMediaItemFields,
 };
 
@@ -101,7 +113,16 @@ export const albumsLayout: MediaListLayout = {
         h3: 'Year',
     },
     details: ['Artist', 'Title', 'Year', 'TrackCount'],
-    extraFields: ['Genre', 'Description', 'MultiDisc', 'Copyright', 'AddedAt'],
+    extraFields: allAlbumFields,
+};
+
+export const recentlyAddedAlbumsLayout: MediaListLayout = {
+    ...albumsLayout,
+    card: {
+        ...albumsLayout.card,
+        data: 'AddedAt',
+    },
+    details: albumsLayout.details.concat('AddedAt'),
 };
 
 export const artistsLayout: MediaListLayout = {

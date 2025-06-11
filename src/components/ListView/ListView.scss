@@ -47,7 +47,7 @@
         background-color: var(--selected-background-color);
     }
 
-    &-row.selected &-cell {
+    &-row.selected {
         color: var(--selected-text-color);
     }
 

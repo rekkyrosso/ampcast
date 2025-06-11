@@ -1,40 +1,22 @@
 @use 'styles/effects.scss';
 
-.media-list.list-view {
-    .playing .text {
+.media-list.list-view {    
+    .playing {
         color: var(--currently-playing-color);
-        font-style: italic;
-        /* Prevents italic text from being clipped on the right. */
-        padding-right: 0.1em;
+
+        .text {
+            font-style: italic;
+            /* Prevents italic text from being clipped on the right. */
+            padding-right: 0.1em;
+        }
     }
 
-    .selected .text {
-        color: var(--selected-text-color);
-    }
-
-    .selected.playing .text {
-        .dark.selection-dark & {
-            color: var(--currently-playing-color-light);
-        }
-
-        .light.selection-light & {
-            color: var(--currently-playing-color-dark);
-        }
+    .index {
+        font-family: monospace;
     }
 
     .icon-buttons {
         justify-content: right;
-    }
-
-    .list-view-head {
-        .list-view-cell:has(> .icon-button-menu) {
-            display: flex;
-            align-items: center;
-        }
-
-        .icon-button-menu {
-            margin-left: auto;
-        }
     }
 
     .icon-button-heart,
@@ -45,51 +27,12 @@
         visibility: hidden;
     }
 
-    .location-info {
-        display: inline-flex;
-        align-items: center;
-        
-        .icon {
-            width: 1.5em;
-            margin-right: 0.25em;
-        }
-    }
-
     .list-view-row:hover .icon-button-heart,
     .list-view-row:hover .icon-button-info,
     .list-view-row:hover .icon-button-menu,
     .list-view-row:hover .icon-button-pin,
     .list-view-row:hover .icon-button-plus {
         visibility: inherit;
-    }
-
-    .unplayable {
-        .icon.show-connectivity {
-            opacity: 0.5;
-        }
-
-        .cover-art img {
-            filter: brightness(0.5) grayscale(1);
-        }
-
-        &:not(.playing) {
-            &.selected .text {
-                opacity: 0.75
-            }
-
-            &:not(.selected) .text {
-                color: var(--grey1-color);
-            }
-        }
-
-        &.playing .text {
-            opacity: 0.75;
-        }
-
-        &:not(.selected) .badge.explicit {
-            background-color: var(--grey1-color);
-            color: var(--background-color);
-        }
     }
 
     .badge {
@@ -145,10 +88,6 @@
         }
     }
 
-    .index {
-        font-family: monospace;
-    }
-
     .title-with-badge {
         display: flex;
         align-items: center;
@@ -163,25 +102,82 @@
         }
     }
 
-    &-details {
-        .actions,
-        .icon-buttons {
-            height: inherit;
+    .star-rating {
+        pointer-events: none;
+    }
+
+    &:focus .list-view-row.selected .star-rating {
+        pointer-events: auto;
+    }
+
+    .list-view-row {
+        &.unplayable {
+            color: var(--grey1-color);
+
+            .icon.show-connectivity {
+                opacity: 0.5;
+            }
+
+            .cover-art img {
+                filter: grayscale(1);
+            }
+
+            .thumbnail {
+                opacity: 0.5;
+            }
+
+            &:not(.selected) .badge.explicit {
+                background-color: var(--grey1-color);
+                color: var(--background-color);
+            }
         }
 
-        .star-rating {
-            justify-content: left;
-            display: inline-flex;
+        &.selected {
+            color: var(--selected-text-color);
+        }
+
+        &.playing {
+            color: var(--currently-playing-color);
+        }
+
+        &.selected.playing {
+            .selection-dark & {
+                color: var(--currently-playing-color-light);
+            }
+
+            .selection-light & {
+                color: var(--currently-playing-color-dark);
+            }
+        }
+
+        &.unplayable.playing,
+        &.unplayable.selected {
+            .list-view-cell {
+                opacity: 0.5;
+            }
+
+            .icon.show-connectivity {
+                opacity: 1;
+            }
         }
     }
 
-    &-details .list-view-head {
-        .star-rating {
-            pointer-events: none;
-
-            .icon-button {
-                opacity: 1;
+    &-details {
+        .list-view-head {
+            &:has(> .icon-button-menu) {
+                display: flex;
+                align-items: center;
             }
+
+            .icon-button-menu {
+                margin-left: auto;
+                height: inherit;
+            }
+        }
+
+        .actions,
+        .icon-buttons {
+            height: inherit;
         }
     }
 
@@ -190,14 +186,8 @@
             padding: 0;
         }
 
-        .unplayable:not(.playing, .selected) .title .text {
-            color: var(--grey2-color);
-        }
-
         .index {
             top: 2.125em;
-            font-weight: bold;
-            font-style: italic;
             width: 2em;
             min-width: 2em;
             text-align: center;
@@ -227,11 +217,15 @@
         .h2,
         .h3 {
             left: 6.375em;
-            right: 0.375em;
 
             .indexed & {
                 left: 8.375em;
             }
+        }
+
+        .h1 {
+            top: 0.25em;
+            right: 0.375em;
 
             .clip-1 & {
                 right: 4em;
@@ -241,14 +235,6 @@
                 right: 5.5em;
             }
 
-            .artists & {
-                margin-top: 0.25em;
-            }
-        }
-
-        .h1 {
-            top: 0.25em;
-
             .text {
                 font-size: 1.125em;
             }
@@ -256,25 +242,30 @@
 
         .h2 {
             top: 1.875em;
-            color: var(--grey2-color);
+            right: 3em;
         }
 
         .h3 {
             top: 3.375em;
-            color: var(--grey2-color);
+            right: 3em;
         }
 
         .data {
             left: auto;
             top: 0.375em;
             right: 0.375em;
-            padding: 0.125em 0.375em;
-            color: var(--text-color);
-            border-radius: calc(var(--roundness) * 0.75em);
-            background-color: var(--background-mark-color);
             line-height: 1;
-            min-width: 1.375em;
-            text-align: center;
+
+            &.duration,
+            &.count {
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                min-width: 1.375em;
+                height: 1.4em;
+                padding: 0 0.375em;
+                border-radius: calc(var(--roundness) * 0.75em);
+            }
 
             .text {
                 font-size: 0.75em;
@@ -285,39 +276,30 @@
             }
         }
 
-        .played-at,
-        .added-at {
-            color: var(--grey2-color);
-            background-color: transparent;
+        .date,
+        .genre {
             font-style: italic;
-            top: 0.25em;
-            padding: 0.125em 1px;
+            padding: 0 0.1em 0.1em 0;
+        }
 
-            &.listen-date {
-                right: 0.625em;
-                top: 0.5em;
-            }
-
-            .themed.light & {
-                background-color: transparent;
-            }
-
-            .date {
-                line-height: 1.2;
-            }
-
-            &.listen-date .text {
-                display: inline-flex;
-                flex-direction: row;
-                justify-content: center;
-                align-items: center;
+        .genre .text {      
+            .artists & {
+                font-size: 0.75em;
             }
         }
 
-        .genre .text,
-        .owner .text,
-        .views .text {
-            font-size: 0.75em;
+        .list-view-cell.h3.progress {
+            top: auto;
+            bottom: 0.5em;
+        }
+
+        .listen-date {
+            padding: 0;
+
+            .text {
+                display: inline-flex;
+                align-items: center;
+            }
         }
 
         .actions {
@@ -326,14 +308,33 @@
             padding: 0;
         }
 
-        .rate {
-            right: 0.5em;
-            top: 0.125em;
-            padding: 0;
+        .list-view-row:not(.unplayable, .playing, .selected) {
+            .h2,
+            .h3 {
+                &:not(.rate) {
+                    color: var(--grey2-color);
+                }
+            }
+
+            .data {
+                &.duration,
+                &.count {
+                    color: var(--text-color);
+                }
+
+                &.date {
+                    color: var(--grey2-color);
+                }
+            }
         }
 
-        .genre {
-            font-style: italic;
+        .list-view-row:not(.unplayable) {
+            .data {
+                &.duration,
+                &.count {
+                    background-color: var(--background-mark-color);
+                }
+            }
         }
 
         &.small,
@@ -366,7 +367,7 @@
             }
 
             .h2 {
-                top: 1.5em;
+                top: 1.625em;
             }
 
             .h3 {
@@ -374,14 +375,6 @@
 
                 .text {
                     font-size: 0.75em;
-                }
-            }
-
-            .rate {
-                .artists & {
-                    right: auto;
-                    top: 3em;
-                    left: 4.75em;
                 }
             }
 
@@ -404,7 +397,6 @@
 
             .h1,
             .h2 {
-                top: 1.375em;
                 left: 3.5em;
 
                 .indexed & {
@@ -414,6 +406,10 @@
 
             .h1 {
                 top: 0.25em;
+            }
+
+            .h2 {
+                top: 1.5em;
             }
 
             .h3 {
@@ -451,10 +447,7 @@
             }
 
             .h2,
-            .h3 {
-                display: none;
-            }
-
+            .h3,
             .rate,
             .actions {
                 display: none;
@@ -475,6 +468,10 @@
                 right: 2em;
             }
 
+            .data.rate {
+                display: none;
+            }
+
             .actions .icon-button:not(.icon-button-menu) {
                 display: none;
 
@@ -486,40 +483,31 @@
             &:not(.minimal) {
                 .data {
                     top: calc(0.5em + 1px);
-                    background-color: rgba(0, 0, 0, 0.75);
 
-                    .text {
+                    &.duration,
+                    &.count {
+                        right: calc(100% - 5.5em + 1px);
+                        border-bottom-right-radius: 0;
+                        border-top-left-radius: 0;
+                        background-color: rgba(0, 0, 0, 0.75);
                         color: var(--soft-white);
+
+                        .indexed & {
+                            display: none;
+                        }
                     }
 
-                    .indexed & {
-                        display: none;
-                    }
-                }
+                    &.date {
+                        right: auto;
+                        left: calc(0.5em + 1px);
+                        width: calc(5em - 2px);
+                        border-bottom-left-radius: 0;
+                        border-bottom-right-radius: 0;
+                        text-align: center;
 
-                .duration,
-                .track-count,
-                .play-count {
-                    right: calc(100% - 5.5em + 1px);
-                    border-bottom-right-radius: 0;
-                    border-top-left-radius: 0;
-                }
-
-                .played-at,
-                .added-at {
-                    right: auto;
-                    left: calc(0.5em + 1px);
-                    width: calc(5em - 2px);
-                    border-bottom-left-radius: 0;
-                    border-bottom-right-radius: 0;
-                    text-align: center;
-
-                    .text {
-                        vertical-align: 0.125em;
-                    }
-
-                    &.listen-date {
-                        padding: 0.25em 0;
+                        .text {
+                            vertical-align: 0.125em;
+                        }
                     }
                 }
             }
@@ -534,12 +522,6 @@
 
             &.small {
                 .data {
-                    display: none;
-                }
-            }
-
-            .rate {
-                .albums & {
                     display: none;
                 }
             }
@@ -598,15 +580,6 @@
         .h1 {
             margin-left: 2.25em;
         }
-    }
-
-    &.thin .sun-clock {
-        --sun-color: 0, 0%, 92.2%;
-    }
-
-    .light &:not(.thin) .sun-clock {
-        --am-color: hsla(var(--sun-color), calc(100% - var(--am-alpha)));
-        --pm-color: hsla(var(--sun-color), calc(100% - var(--pm-alpha)));
     }
 
     &:not(.focus) + .status-bar .selected {

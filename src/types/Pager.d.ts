@@ -1,4 +1,5 @@
 import type {Observable} from 'rxjs';
+import SortParams from './SortParams';
 
 export default interface Pager<T> {
     readonly pageSize: number;
@@ -16,6 +17,8 @@ export interface PagerConfig {
     readonly maxSize?: number;
     readonly lookup?: boolean; // lookup only (no background fetching)
     readonly noCache?: boolean; // disable caching (implementation specific)
+    readonly childSort?: SortParams;
+    readonly childSortId?: string;
 }
 
 export interface Page<T> {
