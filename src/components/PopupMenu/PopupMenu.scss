@@ -52,6 +52,7 @@
     &-item {
         position: relative;
 
+        /* Try to prevent rendering glitches of glyphs. */
         button::before,
         button::after {
             font-family: var(--system-font-family);
