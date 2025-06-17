@@ -1,5 +1,6 @@
 import {nanoid} from 'nanoid';
 import {SetOptional, SetRequired, Writable} from 'type-fest';
+import AlbumType from 'types/AlbumType';
 import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
@@ -178,6 +179,11 @@ function createMediaAlbum(
 
     const mediaAlbum: Writable<SetOptional<SetRequired<MediaAlbum, 'apple'>, 'pager'>> = {
         itemType: ItemType.Album,
+        albumType: item.isCompilation
+            ? AlbumType.Compilation
+            : item.isSingle
+            ? AlbumType.Single
+            : undefined,
         src,
         externalUrl: item.url,
         title: item.name,
@@ -279,8 +285,7 @@ function createFromTimedMetadata(data: MusicKit.TimedMetadata, station?: MediaIt
         duration: 0,
         playedAt: 0,
         unplayable: !catalogId || undefined,
-        shareLink:
-            type === 'shows' ? undefined : createShareLink('song', data.title, catalogId),
+        shareLink: type === 'shows' ? undefined : createShareLink('song', data.title, catalogId),
         apple: {catalogId},
     };
 }

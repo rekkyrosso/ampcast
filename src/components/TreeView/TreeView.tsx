@@ -254,7 +254,7 @@ export default function TreeView<T>({
             ref={containerRef}
         >
             <Scrollable
-                scrollAmount={rowHeight}
+                lineHeight={rowHeight}
                 scrollHeight={size * rowHeight}
                 onResize={handleResize}
                 onScroll={handleScroll}

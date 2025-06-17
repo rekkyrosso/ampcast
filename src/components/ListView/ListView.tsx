@@ -629,7 +629,7 @@ export default function ListView<T>({
             <Scrollable
                 scrollWidth={sizeable ? width : undefined}
                 scrollHeight={(size + (droppable ? 1 : 0) + (showTitles ? 1 : 0)) * rowHeight}
-                scrollAmount={rowHeight}
+                lineHeight={rowHeight}
                 droppable={droppable || (reorderable && isDragging)}
                 onResize={handleResize}
                 onScroll={setScrollPosition}

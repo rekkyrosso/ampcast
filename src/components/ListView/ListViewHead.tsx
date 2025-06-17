@@ -23,24 +23,26 @@ export default function ListViewHead<T>({
         <header
             className="list-view-head"
             style={{
-                width: `${width}px`,
+                width: width ? `${width}px` : undefined,
             }}
             onContextMenu={cancelEvent}
         >
-            <div className="list-view-row" style={{width: `${width}px`}}>
-                {cols.map((col) => (
-                    <ListViewHeadCell {...col} key={col.id} />
-                ))}{' '}
-                {sizeable &&
-                    cols.map((col) => (
-                        <ColumnResizer
-                            col={col}
-                            fontSize={fontSize}
-                            onResize={onColumnResize}
-                            key={col.id}
-                        />
-                    ))}
-            </div>
+            {fontSize ? (
+                <div className="list-view-row" style={{width: `${width}px`}}>
+                    {cols.map((col) => (
+                        <ListViewHeadCell {...col} key={col.id} />
+                    ))}{' '}
+                    {sizeable &&
+                        cols.map((col) => (
+                            <ColumnResizer
+                                col={col}
+                                fontSize={fontSize}
+                                onResize={onColumnResize}
+                                key={col.id}
+                            />
+                        ))}
+                </div>
+            ) : null}
         </header>
     );
 }

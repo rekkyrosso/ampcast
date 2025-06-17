@@ -190,15 +190,16 @@ function Scrollbar({
 
     useEffect(() => {
         if (dragging) {
-            document.body.classList.add('dragging');
+            const body = document.body;
             const subscription = new Subscription();
             const fromMouseEvent = (type: string) => fromEvent<MouseEvent>(document, type);
             subscription.add(fromMouseEvent('mouseup').subscribe(endDrag));
             subscription.add(fromMouseEvent('mousemove').subscribe(handleMouseMove));
             subscription.add(fromEvent(document, 'selectstart').subscribe(preventDefault));
             subscription.add(fromEvent(window, 'blur').subscribe(endDrag));
+            body.classList.add('dragging');
             return () => {
-                document.body.classList.remove('dragging');
+                body.classList.remove('dragging');
                 subscription.unsubscribe();
             };
         }

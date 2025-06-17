@@ -96,7 +96,7 @@ export default function CreatePlaylistDialog<T extends MediaItem>({
                         <label htmlFor={`${id}-description`}>Description:</label>
                         <textarea
                             id={`${id}-description`}
-                            rows={2}
+                            rows={4}
                             cols={40}
                             ref={descriptionRef}
                         />

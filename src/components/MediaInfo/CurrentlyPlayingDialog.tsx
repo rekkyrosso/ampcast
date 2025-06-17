@@ -22,16 +22,20 @@ export default function CurrentlyPlayingDialog(props: DialogProps) {
     return (
         <Dialog
             {...props}
-            className="currently-playing-dialog media-info-dialog"
+            className={`currently-playing-dialog media-info-dialog ${item ? '' : 'empty'}`}
             icon="info"
             title="Media Info"
             ref={ref}
         >
             <form method="dialog">
-                {preferences.mediaInfoTabs ? (
-                    <CurrentlyPlayingTabs item={item} visualizer={visualizer} />
+                {item ? (
+                    preferences.mediaInfoTabs ? (
+                        <CurrentlyPlayingTabs item={item} visualizer={visualizer} />
+                    ) : (
+                        <CurrentlyPlaying item={item} visualizer={visualizer} />
+                    )
                 ) : (
-                    <CurrentlyPlaying item={item} visualizer={visualizer} />
+                    <p>No media loaded.</p>
                 )}
                 <footer className="dialog-buttons">
                     <button>Close</button>

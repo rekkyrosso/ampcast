@@ -1,3 +1,4 @@
+import AlbumType from './AlbumType';
 import BaseMediaObject from './BaseMediaObject';
 import ItemType from './ItemType';
 import MediaItem from './MediaItem';
@@ -7,6 +8,7 @@ export default interface MediaAlbum extends BaseMediaObject {
     readonly itemType: ItemType.Album;
     readonly pager: Pager<MediaItem>;
     // Everything below here should be optional.
+    readonly albumType?: AlbumType;
     readonly artist?: string;
     readonly multiDisc?: boolean;
     readonly year?: number;

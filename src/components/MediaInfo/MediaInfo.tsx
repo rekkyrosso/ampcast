@@ -256,18 +256,18 @@ export function ExternalView({
 export function AlbumAndYear<T extends MediaItem>({album, year}: Pick<T, 'album' | 'year'>) {
     return (
         <>
-        {album ? (
-            <h4 className="album">
-                <span className="text-label">From:</span> {album}
-            </h4>
-        ): null}
-        {year ? (
-            <p>
-                <span className="text-label">Year:</span> {year}
-            </p>
-        ): null}
+            {album ? (
+                <h4 className="album">
+                    <span className="text-label">From:</span> {album}
+                </h4>
+            ) : null}
+            {year ? (
+                <p>
+                    <span className="text-label">Year:</span> {year}
+                </p>
+            ) : null}
         </>
-    )
+    );
 }
 
 export function Track<T extends MediaItem>({
@@ -300,7 +300,11 @@ export function Duration<T extends MediaItem>({duration}: Pick<T, 'duration'>) {
 
 export function Genre<T extends MediaItem>({genres}: Pick<T, 'genres'>) {
     if (genres) {
-        return <p className="genre">Genre: {genres.join(', ')}</p>;
+        return (
+            <p className="genre">
+                <span className="text-label">Genre:</span> {genres.join(', ')}
+            </p>
+        );
     } else {
         return null;
     }

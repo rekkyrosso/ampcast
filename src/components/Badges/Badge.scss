@@ -19,7 +19,12 @@
     min-width: 1em;
     height: calc(2em - 2px);
 
-    &.bit-rate {
+    &.album-type {
+        text-transform: none;
+    }
+
+    &.album-type,
+    &.bit-rate  {
         background-color: transparent;
         color: var(--text-color);
         border-color: var(--text-color);

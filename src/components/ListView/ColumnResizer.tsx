@@ -42,18 +42,18 @@ export default function ColumnResizer({col, fontSize, onResize}: ColumnResizerPr
 
     useEffect(() => {
         if (dragging) {
-            const {documentElement: html, body} = document;
-            html.style.cursor = 'col-resize';
-            body.classList.add('dragging');
+            const body = document.body;
             const subscription = new Subscription();
             const fromMouseEvent = (type: string) => fromEvent<MouseEvent>(document, type);
             subscription.add(fromMouseEvent('mouseup').subscribe(endDrag));
             subscription.add(fromMouseEvent('mousemove').subscribe(handleMouseMove));
             subscription.add(fromEvent(document, 'selectstart').subscribe(preventDefault));
             subscription.add(fromEvent(window, 'blur').subscribe(endDrag));
+            body.style.cursor = 'col-resize';
+            body.classList.add('dragging');
             return () => {
-                html.style.cursor = '';
                 body.classList.remove('dragging');
+                body.style.cursor = '';
                 subscription.unsubscribe();
             };
         }

@@ -1,3 +1,4 @@
+import AlbumType from 'types/AlbumType';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -100,8 +101,15 @@ function createMediaItemFromEpisode(episode: SpotifyEpisode): MediaItem {
 function createMediaAlbum(album: SpotifyAlbum, inLibrary?: boolean | undefined): MediaAlbum {
     const externalUrl = album.external_urls.spotify;
     const releaseDate = new Date(album.release_date);
+    const type = album.album_type;
     return {
         itemType: ItemType.Album,
+        albumType:
+            type === 'compilation'
+                ? AlbumType.Compilation
+                : type === 'single'
+                ? AlbumType.Single
+                : undefined,
         src: album.uri,
         externalUrl,
         shareLink: externalUrl,

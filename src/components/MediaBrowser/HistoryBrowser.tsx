@@ -16,7 +16,7 @@ const defaultLayout: MediaListLayout = {
         h3: 'AlbumAndYear',
         data: 'ListenDate',
     },
-    details: ['ListenDate', 'Artist', 'Title', 'Album', 'Duration', 'Genre'],
+    details: ['ListenDate', 'Title', 'Artist', 'Album', 'Duration', 'Genre'],
 };
 
 export interface HistoryBrowserProps {
@@ -51,7 +51,7 @@ export default function HistoryBrowser({
 
     return (
         <>
-            <PageHeader icon={service.icon}>
+            <PageHeader icon={service.icon} menuButtonSource={source}>
                 {service.name}:
                 <DatePicker min={minDate} onSelect={handleDateChange} />
             </PageHeader>

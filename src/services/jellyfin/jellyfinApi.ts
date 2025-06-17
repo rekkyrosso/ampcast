@@ -3,6 +3,7 @@ import type {
     BaseItemDtoQueryResult,
     EndPointInfo,
     PublicSystemInfo,
+    QueryFiltersLegacy,
 } from '@jellyfin/sdk/lib/generated-client/models';
 import {Primitive} from 'type-fest';
 import FilterType from 'types/FilterType';
@@ -12,6 +13,7 @@ import MediaItem from 'types/MediaItem';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
+import {groupBy} from 'utils';
 import embyApi from 'services/emby/embyApi';
 import jellyfinSettings from './jellyfinSettings';
 
@@ -19,7 +21,7 @@ async function del(path: string, params?: Record<string, Primitive>): Promise<vo
     return embyApi.delete(path, params, jellyfinSettings);
 }
 
-async function get<T extends BaseItemDtoQueryResult>(
+async function get<T = BaseItemDtoQueryResult>(
     path: string,
     params?: Record<string, Primitive>
 ): Promise<T> {
@@ -42,7 +44,43 @@ async function getFilters(
     filterType: FilterType,
     itemType: ItemType
 ): Promise<readonly MediaFilter[]> {
-    return embyApi.getFilters(filterType, itemType, jellyfinSettings);
+    const params = {
+        UserId: jellyfinSettings.userId,
+        ParentId: jellyfinSettings.libraryId,
+        IncludeItemTypes: 'Audio',
+    };
+    switch (itemType) {
+        case ItemType.Album:
+            params.IncludeItemTypes = 'MusicAlbum';
+            break;
+        case ItemType.Artist:
+            params.IncludeItemTypes = 'AlbumArtist';
+            break;
+    }
+
+    const data = await get<QueryFiltersLegacy>('Items/Filters', params);
+
+    switch (filterType) {
+        case FilterType.ByGenre:
+            return data.Genres?.map((title) => ({id: title, title})) || [];
+
+        case FilterType.ByDecade: {
+            const thisYear = new Date().getFullYear();
+            const toDecade = (year: number) => Math.floor(year / 10) * 10;
+            const years = data.Years?.filter((year) => year > 500 && year <= thisYear) || [];
+            const decades = groupBy(years, toDecade);
+            return Object.keys(decades)
+                .sort()
+                .reverse()
+                .map((key) => ({
+                    id: decades[key as any].join(','),
+                    title: `${key}s`,
+                }));
+        }
+
+        default:
+            throw Error('Not supported');
+    }
 }
 
 async function getEndpointInfo(): Promise<EndPointInfo> {

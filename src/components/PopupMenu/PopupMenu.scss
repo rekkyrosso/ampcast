@@ -57,6 +57,7 @@
         button::after {
             font-family: var(--system-font-family);
             transform: translateZ(0);
+            will-change: content;
         }
 
         button[aria-checked="true"]::before {

@@ -9,20 +9,6 @@
             background-color: var(--background-color);
         }
 
-        .cover-art {
-            inset: 0.25em;
-        }
-
-        .title {
-            top: 0.125em;
-        }
-
-        .description {
-            @include effects.line-clamp(2);
-            top: 2em;
-            line-height: 1.25;
-        }
-
         .media-source-label {
             font-size: 1.25em;
 
@@ -36,13 +22,17 @@
             top: calc(0.25em + 1px);
         }
 
+        .h2 {
+            top: 2.25em
+        }
+
         .track-count .text {
             font-size: 1em;
         }
     }
 
     .playlist-items {
-        top: calc(var(--gutter-width) + 6.25em);
+        top: calc(var(--gutter-width) + 6.5em);
     }
 
     .error-box {

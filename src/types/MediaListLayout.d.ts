@@ -10,6 +10,7 @@ export type Field =
     | 'Album'
     | 'AlbumArtist'
     | 'AlbumAndYear'
+    | 'AlbumType'
     | 'Track'
     | 'Position'
     | 'Duration'

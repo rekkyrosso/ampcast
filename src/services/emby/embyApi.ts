@@ -80,21 +80,29 @@ async function getDecades(
         }));
 }
 
+const filtersCache: Record<string, readonly MediaFilter[]> = {};
+
 async function getFilters(
     filterType: FilterType,
     itemType: ItemType,
-    settings?: EmbySettings
+    settings: EmbySettings = embySettings
 ): Promise<readonly MediaFilter[]> {
-    switch (filterType) {
-        case FilterType.ByDecade:
-            return getDecades(itemType, settings);
+    const key = `${settings.serverId}:${itemType}:${filterType}`;
+    if (!filtersCache[key]) {
+        switch (filterType) {
+            case FilterType.ByDecade:
+                filtersCache[key] = await getDecades(itemType, settings);
+                break;
 
-        case FilterType.ByGenre:
-            return getGenres(itemType, settings);
+            case FilterType.ByGenre:
+                filtersCache[key] = await getGenres(itemType, settings);
+                break;
 
-        default:
-            throw Error('Not supported');
+            default:
+                throw Error('Not supported');
+        }
     }
+    return filtersCache[key];
 }
 
 async function getGenres(

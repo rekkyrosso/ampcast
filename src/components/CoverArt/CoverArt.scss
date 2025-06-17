@@ -18,19 +18,9 @@
             padding: 12.5%;
             vertical-align: baseline;
 
-            /* Some of these SVGs look too big when scaled up from icon size. */
-
-            &-playlist {
-                padding: 0.75em;
-            }
-
             &-audio,
-            &-artist {
-                padding: 0.5em;
-            }
-
             &-album {
-                padding: 0.25em;
+                padding: 10%;
             }
         }
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import AlbumType from 'types/AlbumType';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -21,6 +22,41 @@ export function Badge({className = '', title, children}: BadgeProps) {
             <span className="badge-text">{children}</span>
         </span>
     );
+}
+
+export interface AlbumTypeBadgeProps {
+    item: MediaAlbum;
+}
+
+export function AlbumTypeBadge({item}: AlbumTypeBadgeProps) {
+    return item.albumType ? (
+        <Badge className="album-type">{getAlbumTypeText(item.albumType)}</Badge>
+    ) : null;
+}
+
+export function getAlbumTypeText(albumType: AlbumType): string {
+    switch (albumType) {
+        case AlbumType.Album:
+            return 'Album';
+
+        case AlbumType.Compilation:
+            return 'Compilation';
+
+        case AlbumType.EP:
+            return 'EP';
+
+        case AlbumType.LiveAlbum:
+            return 'Live';
+
+        case AlbumType.Single:
+            return 'Single';
+
+        case AlbumType.Soundtrack:
+            return 'Soundtrack';
+
+        default:
+            return '';
+    }
 }
 
 export interface BitRateBadgeProps {

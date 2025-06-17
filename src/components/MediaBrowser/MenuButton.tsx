@@ -22,6 +22,11 @@ export default function MenuButton({source}: MenuButtonProps) {
     );
 
     return hasMenuButton ? (
-        <IconButton title="Options…" icon="menu" onClick={handleMenuClick} />
+        <IconButton
+            className="menu-button"
+            title="Options…"
+            icon="menu"
+            onClick={handleMenuClick}
+        />
     ) : null;
 }

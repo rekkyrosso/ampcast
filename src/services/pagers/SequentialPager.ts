@@ -13,7 +13,7 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
     private emptyCount = 0;
 
     constructor(
-        private readonly fetchNext: (pageSize: number) => Promise<Page<T>>,
+        private readonly _fetchNext: (pageSize: number) => Promise<Page<T>>,
         config: PagerConfig,
         createChildPager?: CreateChildPager<T>
     ) {
@@ -34,7 +34,7 @@ export default class SequentialPager<T extends MediaObject> extends AbstractPage
                             this.fetchCount++;
                             return of(undefined).pipe(
                                 tap(() => (this.busy = true)),
-                                mergeMap(() => this.fetchNext(this.config.pageSize)),
+                                mergeMap(() => this._fetchNext(this.config.pageSize)),
                                 tap({
                                     next: (page) => {
                                         this.error = undefined;

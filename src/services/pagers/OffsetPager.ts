@@ -1,4 +1,4 @@
-import {catchError, filter, map, mergeMap, of, takeUntil, throttleTime} from 'rxjs';
+import {catchError, debounceTime, filter, map, mergeMap, of, takeUntil} from 'rxjs';
 import MediaObject from 'types/MediaObject';
 import {Page, PagerConfig} from 'types/Pager';
 import {Logger} from 'utils';
@@ -16,7 +16,7 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
     private readonly fetchStates = new Map<number, FetchState>();
 
     constructor(
-        private readonly fetch: (pageNumber: number, pageSize: number) => Promise<Page<T>>,
+        private readonly _fetch: (pageNumber: number, pageSize: number) => Promise<Page<T>>,
         config: PagerConfig,
         createChildPager?: CreateChildPager<T>
     ) {
@@ -29,8 +29,8 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
 
             this.subscribeTo(
                 this.observeFetches().pipe(
-                    throttleTime(200, undefined, {leading: false, trailing: true}),
                     filter(({index, length}) => length > 0 && this.isInRange(index)),
+                    debounceTime(200),
                     map(({index, length}) => this.getPageNumbersFromIndex(index, length)),
                     mergeMap((pageNumbers) => pageNumbers),
                     mergeMap((pageNumber) => this.fetchPage(pageNumber)),
@@ -68,7 +68,7 @@ export default class OffsetPager<T extends MediaObject> extends AbstractPager<T>
         try {
             this.busy = true;
             this.error = undefined;
-            const page = await this.fetch(pageNumber, this.pageSize);
+            const page = await this._fetch(pageNumber, this.pageSize);
             this.fetchStates.set(pageNumber, FetchState.Fulfilled);
             this.insertPage(pageNumber, page);
             this.busy = this.isFetching;

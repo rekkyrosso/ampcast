@@ -1,14 +1,13 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {defer} from 'rxjs';
 import ItemType from 'types/ItemType';
-import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaObject from 'types/MediaObject';
-import MediaType from 'types/MediaType';
 import Thumbnail from 'types/Thumbnail';
 import {Logger} from 'utils';
 import {findThumbnails, getThumbnailUrl, isSameThumbnails} from 'services/metadata';
 import Icon, {IconName} from 'components/Icon';
+import MediaIcon from 'components/Icon/MediaIcon';
 import './CoverArt.scss';
 
 const logger = new Logger('CoverArt');
@@ -17,10 +16,11 @@ export interface CoverArtProps {
     className?: string;
     item: MediaObject;
     size?: number;
-    extendedSearch?: boolean;
+    placeholder?: boolean; // Don't load the thumbnail image.
     onLoad?: (src: string) => void;
     onError?: () => void;
-    placeholder?: boolean; // Don't load the thumbnail image.
+    // This property is expensive and may result in lots of HTTP requests.
+    extendedSearch?: boolean; // Perform a deeper search for thumbnails if missing.
 }
 
 export default function CoverArt({item, className = '', placeholder, ...props}: CoverArtProps) {
@@ -48,7 +48,6 @@ function CoverArtImage({item, size, extendedSearch, onLoad, onError}: CoverArtPr
     const hasThumbnails = !!thumbnails?.length;
     const thumbnail = hasThumbnails ? findBestThumbnail(thumbnails, size) : undefined;
     const src = thumbnail ? getThumbnailUrl(thumbnail) : '';
-    const fallbackIcon = getFallbackIcon(item);
     const overlayIcon = item.itemType === ItemType.Album && getOverlayIcon(item);
 
     useEffect(() => {
@@ -95,27 +94,23 @@ function CoverArtImage({item, size, extendedSearch, onLoad, onError}: CoverArtPr
         onLoad?.(src);
     }, [onLoad, src]);
 
-    return (
+    return src && !inError ? (
         <>
-            {src && !inError ? (
-                <>
-                    <img
-                        className="cover-art-image"
-                        src={src}
-                        alt={`${item.title}: Cover art`}
-                        onError={handleError}
-                        onLoad={handleLoad}
-                    />
-                    {overlayIcon ? (
-                        <div className="cover-art-icon-overlay">
-                            <Icon className="cover-art-icon" name={overlayIcon} />
-                        </div>
-                    ) : null}
-                </>
-            ) : fallbackIcon ? (
-                <Icon className="cover-art-image" name={fallbackIcon} />
+            <img
+                className="cover-art-image"
+                src={src}
+                alt={`${item.title}: Cover art`}
+                onError={handleError}
+                onLoad={handleLoad}
+            />
+            {overlayIcon ? (
+                <div className="cover-art-icon-overlay">
+                    <Icon className="cover-art-icon" name={overlayIcon} />
+                </div>
             ) : null}
         </>
+    ) : (
+        <MediaIcon className="cover-art-image" item={item} />
     );
 }
 
@@ -133,33 +128,6 @@ function findBestThumbnail(thumbnails: readonly Thumbnail[], size = 240): Thumbn
     size *= window.devicePixelRatio || 1;
     matches.sort((a, b) => Math.abs(a.height - size) - Math.abs(b.height - size));
     return matches[0];
-}
-
-function getFallbackIcon(item: MediaObject): IconName {
-    switch (item.itemType) {
-        case ItemType.Artist:
-            return 'artist';
-
-        case ItemType.Album: {
-            const icon = getOverlayIcon(item);
-            return icon && icon !== 'audio' ? icon : 'album';
-        }
-
-        case ItemType.Media:
-            if (item.linearType && item.linearType !== LinearType.MusicTrack) {
-                return 'radio';
-            } else if (item.mediaType === MediaType.Video) {
-                return 'video';
-            } else {
-                return 'audio';
-            }
-
-        case ItemType.Playlist:
-            return 'playlist';
-
-        case ItemType.Folder:
-            return 'folder';
-    }
 }
 
 function getOverlayIcon(item: MediaAlbum): IconName | '' {

@@ -29,7 +29,7 @@ import ListenBrainzScrobblesBrowser from './components/ListenBrainzScrobblesBrow
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
-    fields: ['Index', 'Artist', 'Title'],
+    fields: ['Index', 'Title', 'Artist'],
 };
 
 const listenbrainzHistory: MediaSource<MediaItem> = {

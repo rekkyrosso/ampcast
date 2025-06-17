@@ -8,4 +8,8 @@
     .scrollable.overflow-y &-content {
         padding-right: 1ex;
     }
+
+    .scrollbar-horizontal {
+        display: none;
+    }
 }

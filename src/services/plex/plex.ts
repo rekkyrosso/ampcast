@@ -7,6 +7,7 @@ import MediaItem from 'types/MediaItem';
 import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
+import MediaServiceId from 'types/MediaServiceId';
 import MediaSource from 'types/MediaSource';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
@@ -40,13 +41,15 @@ import Login from './components/PlexLogin';
 import ServerSettings from './components/PlexServerSettings';
 import './bootstrap';
 
+const serviceId: MediaServiceId = 'plex';
+
 const plex: PersonalMediaService = {
-    id: 'plex',
+    id: serviceId,
     name: 'Plex',
-    icon: 'plex',
+    icon: serviceId,
     url: 'https://www.plex.tv',
     serviceType: ServiceType.PersonalMedia,
-    defaultHidden: !isStartupService('plex'),
+    defaultHidden: !isStartupService(serviceId),
     Components: {Login, ServerSettings},
     get internetRequired() {
         return plexSettings.internetRequired;

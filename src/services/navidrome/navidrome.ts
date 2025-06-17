@@ -249,7 +249,7 @@ async function lookup(
         'song',
         {
             title: `${artist} ${title}`,
-            _sort: 'order_artist_name,order_album_name,track_number',
+            _sort: 'artist',
         },
         options
     );

@@ -47,7 +47,7 @@ const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
 
 const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
     view: 'details',
-    fields: ['Index', 'Artist', 'Title', 'Album', 'Track', 'Duration', 'Genre', 'PlayCount'],
+    fields: ['Index', 'Title', 'Artist', 'Album', 'Track', 'Duration', 'Genre', 'PlayCount'],
 };
 
 export default class SubsonicService implements PersonalMediaService {
@@ -116,7 +116,7 @@ export default class SubsonicService implements PersonalMediaService {
             lockActionsStore: true,
             layout: {
                 view: 'card',
-                fields: ['Thumbnail', 'Artist', 'Title', 'AlbumAndYear', 'Duration'],
+                fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
             },
 
             search(): Pager<MediaItem> {
@@ -246,7 +246,7 @@ export default class SubsonicService implements PersonalMediaService {
             defaultHidden: true,
             layout: {
                 view: 'details',
-                fields: ['Artist', 'Title', 'Album', 'Track', 'Duration', 'PlayCount'],
+                fields: ['Title', 'Artist', 'Album', 'Track', 'Duration', 'PlayCount'],
             },
 
             search(genre?: MediaFilter): Pager<MediaItem> {

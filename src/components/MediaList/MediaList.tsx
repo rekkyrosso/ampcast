@@ -217,7 +217,6 @@ export default function MediaList<T extends MediaObject>({
                     onPageSizeChange={setPageSize}
                     onScrollIndexChange={setScrollIndex}
                     onSelect={handleSelect}
-                    key={layout.view}
                 />
             )}
             {statusBar ? (

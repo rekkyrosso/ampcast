@@ -6,15 +6,15 @@ import MediaInfo from './MediaInfo';
 import VisualizerInfo from './VisualizerInfo';
 
 export interface CurrentlyPlayingProps {
-    item: PlaylistItem | null;
+    item: PlaylistItem;
     visualizer: Visualizer | null;
 }
 
 export default function CurrentlyPlaying({item, visualizer}: CurrentlyPlayingProps) {
     return (
         <div className="currently-playing">
-            {item ? <MediaInfo item={item} /> : <p>No media loaded.</p>}
-            {item && item.mediaType !== MediaType.Video ? (
+            <MediaInfo item={item} />
+            {item.mediaType !== MediaType.Video ? (
                 <VisualizerInfo visualizer={visualizer} />
             ) : null}
         </div>

@@ -26,7 +26,7 @@ export default function RecentlyPlayedBrowser({
 
     return (
         <>
-            <PageHeader icon={service.icon}>
+            <PageHeader icon={service.icon} menuButtonSource={source}>
                 {total === undefined ? (
                     service.name
                 ) : (

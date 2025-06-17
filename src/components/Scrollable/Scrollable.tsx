@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useId, useImperativeHandle, useRef, useSt
 import {interval} from 'rxjs';
 import {browser, partition} from 'utils';
 import useOnResize, {ResizeRect} from 'hooks/useOnResize';
+import usePrevious from 'hooks/usePrevious';
 import FixedHeader from './FixedHeader';
 import Scrollbar, {ScrollbarHandle} from './Scrollbar';
 import './Scrollable.scss';
@@ -26,7 +27,9 @@ export interface ScrollableProps {
     children?: React.ReactNode;
     scrollWidth?: number;
     scrollHeight?: number;
-    scrollAmount?: number;
+    lineHeight?: number;
+    scrollAmountX?: number;
+    scrollAmountY?: number;
     droppable?: boolean;
     onResize?: (client: ScrollableClient) => void;
     onScroll?: (position: ScrollablePosition) => void;
@@ -37,7 +40,9 @@ export default function Scrollable({
     children,
     scrollWidth: initialScrollWidth = 0,
     scrollHeight: initialScrollHeight = 0,
-    scrollAmount = 10,
+    lineHeight = 10,
+    scrollAmountY = lineHeight,
+    scrollAmountX = scrollAmountY,
     droppable,
     onResize,
     onScroll,
@@ -70,6 +75,7 @@ export default function Scrollable({
     const [dragOver, setDragOver] = useState(0);
     const clientWidth = Math.max(innerWidth - (overflowY ? vScrollbarSize : 0), 0);
     const clientHeight = Math.max(innerHeight - (overflowX ? hScrollbarSize : 0), 0);
+    const prevLineHeight = usePrevious(lineHeight);
 
     useImperativeHandle(ref, () => ({
         scrollTo: ({left, top}) => {
@@ -107,6 +113,13 @@ export default function Scrollable({
     useEffect(() => {
         onResize?.({clientWidth, clientHeight, scrollWidth, scrollHeight});
     }, [clientWidth, clientHeight, scrollWidth, scrollHeight, onResize]);
+
+    useEffect(() => {
+        // Restore scroll position after `lineHeight` change.
+        if (prevLineHeight && prevLineHeight !== lineHeight) {
+            vScrollbarRef.current?.scrollTo(scrollTop * (lineHeight / prevLineHeight));
+        }
+    }, [lineHeight, prevLineHeight, scrollTop]);
 
     const onContentResize = useCallback(() => {
         setScrollRect((scrollRect) => {
@@ -146,13 +159,13 @@ export default function Scrollable({
             const clientY = event.nativeEvent.clientY;
             const offsetTop = containerRef.current!.getBoundingClientRect().top;
             const offsetY = clientY - offsetTop;
-            if (offsetY + scrollAmount / 2 > innerHeight) {
-                setDragOver(scrollAmount);
-            } else if (offsetY < scrollAmount) {
-                setDragOver(-scrollAmount);
+            if (offsetY + lineHeight / 2 > innerHeight) {
+                setDragOver(lineHeight);
+            } else if (offsetY < lineHeight) {
+                setDragOver(-lineHeight);
             }
         },
-        [innerHeight, scrollAmount]
+        [innerHeight, lineHeight]
     );
 
     useEffect(() => {
@@ -219,7 +232,7 @@ export default function Scrollable({
                 orientation="horizontal"
                 clientSize={clientWidth}
                 scrollSize={scrollWidth}
-                scrollAmount={scrollAmount}
+                scrollAmount={scrollAmountX}
                 onChange={setScrollLeft}
                 onResize={setHScrollbarSize}
                 ref={hScrollbarRef}
@@ -229,7 +242,7 @@ export default function Scrollable({
                 orientation="vertical"
                 clientSize={clientHeight}
                 scrollSize={scrollHeight}
-                scrollAmount={scrollAmount}
+                scrollAmount={scrollAmountY}
                 onChange={setScrollTop}
                 onResize={setVScrollbarSize}
                 ref={vScrollbarRef}

@@ -6,6 +6,7 @@ import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import {
     Badge,
+    AlbumTypeBadge,
     BitRateBadge,
     ExplicitBadge,
     LastFmBadge,
@@ -23,6 +24,7 @@ export interface BadgesProps {
 export default function Badges({item}: BadgesProps) {
     return (
         <div className="badges">
+            {item.itemType === ItemType.Album ? <AlbumTypeBadge item={item} /> : null}
             {item.itemType === ItemType.Media ? <LivePlaybackBadge item={item} /> : null}
             {item.itemType === ItemType.Artist ? null : (
                 <>

@@ -78,6 +78,8 @@ declare namespace plex {
 
     interface Album extends BaseRatingObject {
         readonly type: 'album';
+        readonly Format?: readonly Tag[];
+        readonly Subformat?: readonly Tag[];
         readonly parentId: number;
         readonly mood: Tag[];
         readonly style: Tag[];

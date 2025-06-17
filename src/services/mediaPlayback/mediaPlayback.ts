@@ -386,7 +386,7 @@ mediaPlayer.observeEnded().subscribe(() => playback.ended());
 playlist
     .observeCurrentItem()
     .pipe(
-        switchMap((item) => (item ? mediaPlayer.observeNowPlaying(item) : EMPTY)),
+        switchMap((item) => (item ? mediaPlayer.observeNowPlaying(item) : of(null))),
         tap((item) => (playback.currentItem = item))
     )
     .subscribe(logger);

@@ -124,10 +124,14 @@ code {
 }
 
 body.dragging {
-    cursor: inherit !important;
+    cursor: default;
 
     > * {
         pointer-events: none;
+    }
+
+    & * {
+        cursor: inherit !important;
     }
 }
 

@@ -1,5 +1,6 @@
 import {nanoid} from 'nanoid';
 import {SetOptional, Writable} from 'type-fest';
+import AlbumType from 'types/AlbumType';
 import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
@@ -136,9 +137,20 @@ export function createMediaItemFromTrack(
 }
 
 function createMediaAlbum(album: plex.Album, noPager?: boolean): MediaAlbum {
+    const {Format: [format] = [], Subformat: [subformat] = []} = album;
     const mediaAlbum = {
         src: getSrc('album', album),
         itemType: ItemType.Album,
+        albumType:
+            format?.tag === 'EP'
+                ? AlbumType.EP
+                : format?.tag === 'Single'
+                ? AlbumType.Single
+                : subformat?.tag === 'Soundtrack'
+                ? AlbumType.Soundtrack
+                : subformat?.tag === 'Compilation'
+                ? AlbumType.Compilation
+                : undefined,
         externalUrl: getExternalUrl(album),
         title: album.title || '',
         description: album.summary,

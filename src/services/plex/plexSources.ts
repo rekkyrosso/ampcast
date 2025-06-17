@@ -80,7 +80,7 @@ const plexArtistAlbumsSort: MediaListSort = {
 };
 
 export const plexSearch: MediaMultiSource = {
-    id: 'plex/search',
+    id: `${serviceId}/search`,
     title: 'Search',
     icon: 'search',
     searchable: true,
@@ -88,7 +88,12 @@ export const plexSearch: MediaMultiSource = {
         createSearch<MediaItem>(ItemType.Media, {
             id: 'tracks',
             title: 'Tracks',
-            primaryItems: plexMediaItems,
+            primaryItems: {
+                layout: {
+                    ...plexMediaItemsLayout,
+                    view: 'details',
+                },
+            },
         }),
         createSearch<MediaAlbum>(ItemType.Album, {
             id: 'albums',
@@ -113,7 +118,7 @@ export const plexSearch: MediaMultiSource = {
 };
 
 const plexRadio: MediaSource<MediaItem> = {
-    id: 'plex/radio',
+    id: `${serviceId}/radio`,
     title: 'Radio',
     icon: 'radio',
     itemType: ItemType.Media,
@@ -144,7 +149,7 @@ const plexRadio: MediaSource<MediaItem> = {
 };
 
 const plexRecentlyAdded: MediaSource<MediaAlbum> = {
-    id: 'plex/recently-added',
+    id: `${serviceId}/recently-added`,
     title: 'Recently Added',
     icon: 'recently-added',
     itemType: ItemType.Album,
@@ -165,7 +170,7 @@ const plexRecentlyAdded: MediaSource<MediaAlbum> = {
 };
 
 const plexRecentlyPlayed: MediaSource<MediaItem> = {
-    id: 'plex/recently-played',
+    id: `${serviceId}/recently-played`,
     title: 'Recently Played',
     icon: 'clock',
     itemType: ItemType.Media,
@@ -186,7 +191,7 @@ const plexRecentlyPlayed: MediaSource<MediaItem> = {
 };
 
 const plexMostPlayed: MediaSource<MediaItem> = {
-    id: 'plex/most-played',
+    id: `${serviceId}/most-played`,
     title: 'Most Played',
     icon: 'most-played',
     itemType: ItemType.Media,
@@ -207,7 +212,7 @@ const plexMostPlayed: MediaSource<MediaItem> = {
 };
 
 const plexTopTracks: MediaSource<MediaItem> = {
-    id: 'plex/top-tracks',
+    id: `${serviceId}/top-tracks`,
     title: 'Top Tracks',
     icon: 'star',
     itemType: ItemType.Media,
@@ -235,7 +240,7 @@ const plexTopTracks: MediaSource<MediaItem> = {
 };
 
 const plexTopAlbums: MediaSource<MediaAlbum> = {
-    id: 'plex/top-albums',
+    id: `${serviceId}/top-albums`,
     title: 'Top Albums',
     icon: 'star',
     itemType: ItemType.Album,
@@ -263,7 +268,7 @@ const plexTopAlbums: MediaSource<MediaAlbum> = {
 };
 
 const plexTopArtists: MediaSource<MediaArtist> = {
-    id: 'plex/top-artists',
+    id: `${serviceId}/top-artists`,
     title: 'Top Artists',
     icon: 'star',
     itemType: ItemType.Artist,
@@ -303,7 +308,7 @@ const plexTopArtists: MediaSource<MediaArtist> = {
 };
 
 const plexPlaylists: MediaSource<MediaPlaylist> = {
-    id: 'plex/playlists',
+    id: `${serviceId}/playlists`,
     title: 'Playlists',
     icon: 'playlist',
     itemType: ItemType.Playlist,
@@ -339,7 +344,7 @@ const plexPlaylists: MediaSource<MediaPlaylist> = {
 };
 
 export const plexEditablePlaylists: MediaSource<MediaPlaylist> = {
-    id: 'plex/editable-playlists',
+    id: `${serviceId}/editable-playlists`,
     title: 'Editable Playlists',
     icon: 'playlist',
     itemType: ItemType.Playlist,
@@ -360,7 +365,7 @@ export const plexEditablePlaylists: MediaSource<MediaPlaylist> = {
 };
 
 const plexTracksByGenre: MediaSource<MediaItem> = {
-    id: 'plex/tracks-by-genre',
+    id: `${serviceId}/tracks-by-genre`,
     title: 'Tracks by Genre',
     icon: 'genre',
     itemType: ItemType.Media,
@@ -384,7 +389,7 @@ const plexTracksByGenre: MediaSource<MediaItem> = {
 };
 
 const plexTracksByMood: MediaSource<MediaItem> = {
-    id: 'plex/tracks-by-mood',
+    id: `${serviceId}/tracks-by-mood`,
     title: 'Tracks by Mood',
     icon: 'genre',
     itemType: ItemType.Media,
@@ -408,7 +413,7 @@ const plexTracksByMood: MediaSource<MediaItem> = {
 };
 
 const plexAlbumsByGenre: MediaSource<MediaAlbum> = {
-    id: 'plex/albums-by-genre',
+    id: `${serviceId}/albums-by-genre`,
     title: 'Albums by Genre',
     icon: 'genre',
     itemType: ItemType.Album,
@@ -432,7 +437,7 @@ const plexAlbumsByGenre: MediaSource<MediaAlbum> = {
 };
 
 const plexAlbumsByMood: MediaSource<MediaAlbum> = {
-    id: 'plex/albums-by-mood',
+    id: `${serviceId}/albums-by-mood`,
     title: 'Albums by Mood',
     icon: 'genre',
     itemType: ItemType.Album,
@@ -457,7 +462,7 @@ const plexAlbumsByMood: MediaSource<MediaAlbum> = {
 };
 
 const plexAlbumsByStyle: MediaSource<MediaAlbum> = {
-    id: 'plex/albums-by-style',
+    id: `${serviceId}/albums-by-style`,
     title: 'Albums by Style',
     icon: 'genre',
     itemType: ItemType.Album,
@@ -482,7 +487,7 @@ const plexAlbumsByStyle: MediaSource<MediaAlbum> = {
 };
 
 const plexArtistsByCountry: MediaSource<MediaArtist> = {
-    id: 'plex/artists-by-country',
+    id: `${serviceId}/artists-by-country`,
     title: 'Artists by Country',
     icon: 'country',
     itemType: ItemType.Artist,
@@ -516,7 +521,7 @@ const plexArtistsByCountry: MediaSource<MediaArtist> = {
 };
 
 const plexArtistsByGenre: MediaSource<MediaArtist> = {
-    id: 'plex/artists-by-genre',
+    id: `${serviceId}/artists-by-genre`,
     title: 'Artists by Genre',
     icon: 'genre',
     itemType: ItemType.Artist,
@@ -550,7 +555,7 @@ const plexArtistsByGenre: MediaSource<MediaArtist> = {
 };
 
 const plexAlbumsByDecade: MediaSource<MediaAlbum> = {
-    id: 'plex/albums-by-decade',
+    id: `${serviceId}/albums-by-decade`,
     title: 'Albums by Decade',
     icon: 'calendar',
     itemType: ItemType.Album,
@@ -576,7 +581,7 @@ const plexAlbumsByDecade: MediaSource<MediaAlbum> = {
 };
 
 const plexRandomTracks: MediaSource<MediaItem> = {
-    id: 'plex/random-tracks',
+    id: `${serviceId}/random-tracks`,
     title: 'Random Tracks',
     icon: 'shuffle',
     itemType: ItemType.Media,
@@ -594,7 +599,7 @@ const plexRandomTracks: MediaSource<MediaItem> = {
 };
 
 const plexRandomAlbums: MediaSource<MediaAlbum> = {
-    id: 'plex/random-albums',
+    id: `${serviceId}/random-albums`,
     title: 'Random Albums',
     icon: 'shuffle',
     itemType: ItemType.Album,
@@ -614,7 +619,7 @@ const plexRandomAlbums: MediaSource<MediaAlbum> = {
 };
 
 const plexMusicVideos: MediaSource<MediaItem> = {
-    id: 'plex/videos',
+    id: `${serviceId}/videos`,
     title: 'Music Videos',
     icon: 'video',
     itemType: ItemType.Media,
@@ -635,7 +640,7 @@ const plexMusicVideos: MediaSource<MediaItem> = {
 };
 
 const plexFolders: MediaSource<MediaFolderItem> = {
-    id: 'plex/folders',
+    id: `${serviceId}/folders`,
     title: 'Folders',
     icon: 'folder',
     itemType: ItemType.Folder,
@@ -715,8 +720,8 @@ function createSearch<T extends MediaObject>(
     const id = `${serviceId}/search/${props.id}`;
     return {
         ...props,
-        itemType,
         id,
+        itemType,
         icon: 'search',
 
         search({q = ''}: {q?: string} = {}): Pager<T> {

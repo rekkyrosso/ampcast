@@ -15,14 +15,14 @@ import MediaSource, {AnyMediaSource, MediaMultiSource, MediaSourceItems} from 't
 import Pager from 'types/Pager';
 import {t} from 'services/i18n';
 import SimplePager from 'services/pagers/SimplePager';
+import NavidromePager from './NavidromePager';
+import {createArtistAlbumsPager, createPlaylistItemsPager} from './navidromeUtils';
 import {
     defaultMediaItemCard,
     mostPlayedTracksLayout,
     recentlyAddedAlbumsLayout,
     recentlyPlayedTracksLayout,
 } from 'components/MediaList/layouts';
-import NavidromePager from './NavidromePager';
-import {createArtistAlbumsPager} from './navidromeUtils';
 
 const serviceId: MediaServiceId = 'navidrome';
 
@@ -49,14 +49,14 @@ const artistAlbumsSort: MediaListSort = {
 
 const playlistItemsLayout: Partial<MediaListLayout> = {
     card: defaultMediaItemCard,
-    details: ['Position', 'Artist', 'Title', 'Album', 'Duration', 'Year', 'Genre'],
+    details: ['Position', 'Title', 'Artist', 'Album', 'Duration', 'Year', 'Genre'],
 };
 
 const playlistItemsSort: MediaListSort = {
     sortOptions: {
         id: 'Position',
-        artist: 'Artist',
         name: 'Title',
+        artist: 'Artist',
     },
     defaultSort: {
         sortBy: 'id',
@@ -109,6 +109,8 @@ const navidromeLikedSongs: MediaSource<MediaItem> = {
             sortOptions: {
                 title: 'Title',
                 artist: 'Artist',
+                album: 'Album',
+                albumArtist: 'Album Artist',
                 starred_at: t(`Date Favorited`),
             },
             defaultSort: {
@@ -292,7 +294,8 @@ export const navidromePlaylists: MediaSource<MediaPlaylist> = {
             {
                 childSort: playlistItemsSort.defaultSort,
                 childSortId: `${navidromePlaylists.id}/2`,
-            }
+            },
+            createPlaylistItemsPager
         );
     },
 };
@@ -308,8 +311,9 @@ const navidromeTracksByGenre: MediaSource<MediaItem> = {
         sort: {
             sortOptions: {
                 title: 'Title',
-                album: 'Album',
                 artist: 'Artist',
+                album: 'Album',
+                albumArtist: 'Album Artist',
             },
             defaultSort: {
                 sortBy: 'album',
@@ -348,7 +352,7 @@ const navidromeAlbumsByGenre: MediaSource<MediaAlbum> = {
                 max_year: 'Year',
             },
             defaultSort: {
-                sortBy: 'name',
+                sortBy: 'albumArtist',
                 sortOrder: 1,
             },
         },
@@ -500,7 +504,8 @@ function createSearch<T extends MediaObject>(
                         {
                             childSort: playlistItemsSort.defaultSort,
                             childSortId: `${id}/2`,
-                        }
+                        },
+                        createPlaylistItemsPager as any
                     );
 
                 default:

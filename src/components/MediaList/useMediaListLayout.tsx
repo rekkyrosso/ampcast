@@ -15,7 +15,7 @@ import {setSourceFields} from 'services/mediaServices/servicesSettings';
 import {performAction} from 'components/Actions';
 import {ColumnSpec, ListViewLayout} from 'components/ListView';
 import Actions from 'components/Actions';
-import {ExplicitBadge, LivePlaybackBadge} from 'components/Badges';
+import {ExplicitBadge, getAlbumTypeText, LivePlaybackBadge} from 'components/Badges';
 import CoverArt from 'components/CoverArt';
 import Icon from 'components/Icon';
 import IconButton from 'components/Button';
@@ -74,6 +74,7 @@ function createMediaListLayout<T extends MediaObject = MediaObject>(
         const getFields = (fields: readonly Field[] = []): FieldSpec[] =>
             fields
                 .map((field) => mediaFields[field])
+                .filter(exists)
                 .filter((col) => col.className !== 'thumbnail');
         const visibleFields = getFields(layout.details);
         const allFields: readonly FieldSpec[] = uniq([
@@ -100,7 +101,7 @@ function createMediaListLayout<T extends MediaObject = MediaObject>(
             />
         );
         const cols = visibleFields.concat(actions);
-        if (cols[0].className === 'index') {
+        if (/\bindex\b/.test(cols[0].className!)) {
             cols[0] = {...cols[0], title: '#'};
         }
         return {view, cols, showTitles: true, sizeable: true};
@@ -189,9 +190,13 @@ const Artist: RenderField<MediaAlbum | MediaItem> = (item) => (
     <Text value={item.itemType === ItemType.Media ? item.artists?.join(', ') : item.artist} />
 );
 
+const Album: RenderField<MediaItem> = (item) => <Text value={item.album} />;
+
 const AlbumArtist: RenderField<MediaItem> = (item) => <Text value={item.albumArtist} />;
 
-const Album: RenderField<MediaItem> = (item) => <Text value={item.album} />;
+const AlbumType: RenderField<MediaAlbum> = (album) => {
+    return <Text value={album.albumType ? getAlbumTypeText(album.albumType) : ''} />;
+};
 
 const Duration: RenderField<MediaPlaylist | MediaItem> = (item) => (
     <Time className="text" time={item.duration || 0} />
@@ -356,7 +361,7 @@ const mediaFields: MediaFields = {
         render: Track,
         align: 'right',
         width: 4,
-        className: 'index',
+        className: 'index track',
     },
     Position: {
         id: 'Position',
@@ -364,7 +369,7 @@ const mediaFields: MediaFields = {
         render: Position,
         align: 'right',
         width: 4,
-        className: 'index',
+        className: 'index position',
     },
     Artist: {id: 'Artist', title: 'Artist', render: Artist, className: 'artist'},
     AlbumArtist: {
@@ -389,6 +394,12 @@ const mediaFields: MediaFields = {
         className: 'description',
     },
     Album: {id: 'Album', title: 'Album', render: Album, className: 'album'},
+    AlbumType: {
+        id: 'AlbumType',
+        title: 'Type',
+        render: AlbumType,
+        className: 'album-type',
+    },
     AlbumAndYear: {
         id: 'AlbumAndYear',
         title: 'Album',
@@ -498,7 +509,13 @@ const mediaFields: MediaFields = {
         width: 8,
         className: 'rate',
     },
-    Progress: {id: 'Progress', title: 'Progress', render: Progress, className: 'progress'},
+    Progress: {
+        id: 'Progress',
+        title: 'Progress',
+        render: Progress,
+        className: 'progress',
+        width: 8,
+    },
 };
 
 function getCount(count?: number): string {

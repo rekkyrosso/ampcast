@@ -179,9 +179,16 @@
         .icon-buttons {
             height: inherit;
         }
+
+        .actions {
+            padding-right: 0.25em;
+        }
     }
 
     &-card {
+        --thumbnail-size: 6em;
+        --thumbnail-radius: calc(var(--roundness) * var(--thumbnail-size) * 0.125);
+
         .list-view-cell {
             padding: 0;
         }
@@ -195,8 +202,8 @@
 
         .thumbnail {
             left: 0;
-            width: 6em;
-            height: 6em;
+            width: var(--thumbnail-size);
+            height: var(--thumbnail-size);
             padding: 0;
 
             .indexed & {
@@ -207,6 +214,7 @@
         .cover-art {
             position: absolute;
             inset: 0.5em;
+            border-radius: var(--thumbnail-radius);
 
             .artists & {
                 border-radius: 50%;
@@ -217,6 +225,7 @@
         .h2,
         .h3 {
             left: 6.375em;
+            right: 0.375em;
 
             .indexed & {
                 left: 8.375em;
@@ -224,8 +233,7 @@
         }
 
         .h1 {
-            top: 0.25em;
-            right: 0.375em;
+            top: 0.375em;
 
             .clip-1 & {
                 right: 4em;
@@ -241,34 +249,45 @@
         }
 
         .h2 {
-            top: 1.875em;
-            right: 3em;
+            top: 2em;
+
+            .text {
+                font-size: 1em;
+            }
         }
 
         .h3 {
-            top: 3.375em;
+            top: 3.5em;
             right: 3em;
+
+            .text {
+                font-size: 0.875em;
+            }
+        }
+
+        .data,
+        .genre,
+        .description {
+            .text {
+                font-size: 0.75em;
+            }
         }
 
         .data {
             left: auto;
             top: 0.375em;
             right: 0.375em;
-            line-height: 1;
+            line-height: normal;
 
             &.duration,
             &.count {
                 display: inline-flex;
                 align-items: center;
                 justify-content: center;
-                min-width: 1.375em;
-                height: 1.4em;
+                min-width: 1.5em;
+                height: 1.5em;
                 padding: 0 0.375em;
                 border-radius: calc(var(--roundness) * 0.75em);
-            }
-
-            .text {
-                font-size: 0.75em;
             }
 
             &:empty {
@@ -277,25 +296,18 @@
         }
 
         .date,
-        .genre {
+        .genre,
+        .description {
             font-style: italic;
-            padding: 0 0.1em 0.1em 0;
-        }
-
-        .genre .text {      
-            .artists & {
-                font-size: 0.75em;
-            }
+            padding-right: 0.1em;
         }
 
         .list-view-cell.h3.progress {
             top: auto;
-            bottom: 0.5em;
+            bottom: 0.25em;
         }
 
         .listen-date {
-            padding: 0;
-
             .text {
                 display: inline-flex;
                 align-items: center;
@@ -308,27 +320,41 @@
             padding: 0;
         }
 
-        .list-view-row:not(.unplayable, .playing, .selected) {
-            .h2,
-            .h3 {
-                &:not(.rate) {
-                    color: var(--grey2-color);
-                }
-            }
+        .h2,
+        .h3 {
+            color: var(--grey2-color);
+        }
 
-            .data {
-                &.duration,
-                &.count {
-                    color: var(--text-color);
-                }
+        .duration,
+        .count {
+            color: var(--text-color);
+        }
 
-                &.date {
-                    color: var(--grey2-color);
-                }
+        .date {
+            color: var(--grey2-color);
+        }
+
+        .rate {
+            color: inherit;
+        }
+
+        .unplayable,
+        .playing,
+        .selected {
+            .list-view-cell {
+                color: inherit;
             }
         }
 
-        .list-view-row:not(.unplayable) {
+        .description,
+        .genre {
+            &:not(:has(+ .h3)) {
+                @include effects.line-clamp(2);
+                line-height: normal;
+            }
+        }
+
+        &:not(.thin) .list-view-row:not(.unplayable) {
             .data {
                 &.duration,
                 &.count {
@@ -337,15 +363,12 @@
             }
         }
 
-        &.small,
-        &.compact {
+        &.compact,
+        &.small {
+            --thumbnail-size: 4.75em;
+
             .index {
                 top: 1.625em;
-            }
-
-            .thumbnail {
-                width: 4.75em;
-                height: 4.75em;
             }
 
             .h1,
@@ -359,7 +382,7 @@
             }
 
             .h1 {
-                top: 0.25em;
+                top: 0.375em;
 
                 .text {
                     font-size: 1em;
@@ -368,11 +391,39 @@
 
             .h2 {
                 top: 1.625em;
+
+                .text {
+                    font-size: 0.875em;
+                }
             }
 
             .h3 {
                 top: 2.75em;
 
+                .text {
+                    font-size: 0.75em;
+                }
+            }
+
+            .data {
+                &.duration,
+                &.count {
+                    height: 1.2em;
+                }
+
+                .text {
+                    font-size: 0.625em;
+                }
+            }
+            
+            .owner,
+            .genre {
+                -webkit-line-clamp: 1;
+            }
+
+            .owner,
+            .genre,
+            .description {
                 .text {
                     font-size: 0.75em;
                 }
@@ -386,13 +437,20 @@
         }
 
         &.small {
+            --thumbnail-size: 3.25em;
+
             .index {
                 top: 0.875em;
+
+                .text {
+                    font-size: 0.75em;
+                }
             }
 
             .thumbnail {
-                width: 3.25em;
-                height: 3.25em;
+                .indexed & {
+                    left: 1.5em;
+                }
             }
 
             .h1,
@@ -400,7 +458,7 @@
                 left: 3.5em;
 
                 .indexed & {
-                    left: 5.5em;
+                    left: 5em;
                 }
             }
 
@@ -409,7 +467,12 @@
             }
 
             .h2 {
-                top: 1.5em;
+                top: 1.375em;
+                right: 3em;
+
+                .text {
+                    font-size: 0.75em;
+                }
             }
 
             .h3 {
@@ -422,18 +485,10 @@
         }
 
         &.minimal {
-            .thumbnail {
-                width: 2em;
-                height: 2em;
-            }
+            --thumbnail-size: 2em;
 
             .cover-art {
                 inset: 0.25em;
-
-                .icon-artist,
-                .icon-playlist {
-                    padding: 0.25em;
-                }
             }
 
             .h1 {
@@ -474,55 +529,49 @@
 
             .actions .icon-button:not(.icon-button-menu) {
                 display: none;
-
-                .artists & {
-                    display: inline-flex;
-                }
             }
 
             &:not(.minimal) {
                 .data {
                     top: calc(0.5em + 1px);
+                    right: calc(100% - 5.5em + 1px);
+                    background-color: rgba(0, 0, 0, 0.75);
+                    color: var(--soft-white);
+                    border-radius: var(--thumbnail-radius);
 
                     &.duration,
                     &.count {
-                        right: calc(100% - 5.5em + 1px);
                         border-bottom-right-radius: 0;
                         border-top-left-radius: 0;
-                        background-color: rgba(0, 0, 0, 0.75);
-                        color: var(--soft-white);
-
-                        .indexed & {
-                            display: none;
-                        }
                     }
 
                     &.date {
-                        right: auto;
                         left: calc(0.5em + 1px);
-                        width: calc(5em - 2px);
                         border-bottom-left-radius: 0;
                         border-bottom-right-radius: 0;
                         text-align: center;
+                    }
 
-                        .text {
-                            vertical-align: 0.125em;
-                        }
+                    .indexed & {
+                        display: none;
+                    }
+
+                    .sun-clock {
+                        display: none;
                     }
                 }
-            }
 
-            &.compact {
-                .data {
-                    right: calc(100% - 4.25em + 1px);
-                    top: calc(0.5em + 1px);
-                    width: auto;
+                &.compact {
+                    .data {
+                        right: calc(100% - 4.25em + 1px);
+                    }
                 }
-            }
 
-            &.small {
-                .data {
-                    display: none;
+                &.small {
+                    .data {
+                        right: calc(100% - 2.75em + 1px);
+                        display: none;
+                    }
                 }
             }
         }
