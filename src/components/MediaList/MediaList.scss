@@ -170,18 +170,15 @@
             }
 
             .icon-button-menu {
-                margin-left: auto;
                 height: inherit;
+                margin-left: auto;
+                margin-right: 1px;
             }
         }
 
         .actions,
         .icon-buttons {
             height: inherit;
-        }
-
-        .actions {
-            padding-right: 0.25em;
         }
     }
 

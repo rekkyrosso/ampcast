@@ -65,7 +65,7 @@
         "@types/gapi.auth2": "^0.0.61",
         "@types/gapi.client": "^1.0.5",
         "@types/gapi.client.youtube-v3": "^0.0.4",
-        "@types/google.accounts": "^0.0.16",
+        "@types/google.accounts": "^0.0.17",
         "@types/md5": "^2.3.2",
         "@types/react": "^19.0.2",
         "@types/react-dom": "^19.0.2",

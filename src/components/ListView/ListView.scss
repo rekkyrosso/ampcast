@@ -64,6 +64,11 @@
         padding: 0 calc(0.5em - 1px);
         border-radius: var(--app-border-radius);
         height: inherit;
+
+        &.insert-before {
+            transform: translateX(0.5em);
+            transition: transform 200ms ease-in;
+        }
     }
 
     &-cursor {
@@ -99,12 +104,24 @@
         top: 100%;
     }
 
-    .column-resizer {
+    .column-resizer,
+    .column-drop-marker {
         position: absolute;
         top: 0;
         bottom: 0;
-        width: 8px;
+    }
+
+    .column-resizer {
         cursor: col-resize;
+        width: 0.5em;
+        margin-left: -0.25em;
+    }
+
+    .column-drop-marker {
+        margin-left: 0.125em;
+        width: 0.25em;
+        background: var(--text-color);
+        border-radius: calc(var(--roundness) * 0.25em);
     }
 
     &-card &-cursor {

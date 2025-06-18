@@ -25,6 +25,7 @@ export interface ColumnSpec<T> {
     readonly align?: 'left' | 'right' | 'center';
     readonly width?: number; // starting width (only in a sizeable layout)
     readonly render: (item: T, rowIndex: number, isScrolling: boolean) => React.ReactNode;
+    readonly onContextMenu?: (event: React.MouseEvent) => void;
 }
 
 export interface Column<T> extends Required<ColumnSpec<T>> {
@@ -67,6 +68,7 @@ export interface ListViewProps<T> {
     draggable?: boolean;
     droppable?: boolean;
     droppableTypes?: string[]; // mime types for file drops
+    moveable?: boolean;
     multiple?: boolean;
     reorderable?: boolean;
     disabled?: boolean;
@@ -85,6 +87,7 @@ export interface ListViewProps<T> {
     onDelete?: (items: readonly T[]) => void;
     onEnter?: (items: readonly T[], cmdKey: boolean, shiftKey: boolean) => void;
     onInfo?: (items: readonly T[]) => void;
+    onReorder?: (col: Column<T>, toIndex: number) => void;
     onRowIndexChange?: (rowIndex: number) => void;
     onScrollIndexChange?: (scrollIndex: number) => void;
     onPageSizeChange?: (pageSize: number) => void;
@@ -109,6 +112,7 @@ export default function ListView<T>({
     droppable,
     droppableTypes = [],
     multiple,
+    moveable,
     reorderable,
     disabled,
     onClick,
@@ -118,11 +122,12 @@ export default function ListView<T>({
     onDelete,
     onEnter,
     onInfo,
+    onMove,
     onRowIndexChange,
     onScrollIndexChange,
     onPageSizeChange,
+    onReorder,
     onSelect,
-    onMove,
     ref,
 }: ListViewProps<T>) {
     const listViewId = useId();
@@ -136,7 +141,7 @@ export default function ListView<T>({
     const sizeable = layout.view === 'details' && layout.sizeable;
     const [rowIndex, setRowIndex] = useState(selectedIndex);
     const [scrollPosition, setScrollPosition] = useState<ScrollablePosition>({left: 0, top: 0});
-    const scrollTop = scrollPosition.top;
+    const {top: scrollTop, left: scrollLeft} = scrollPosition;
     const [isScrolling, setIsScrolling] = useState(false);
     const [clientHeight, setClientHeight] = useState(0);
     const [clientWidth, setClientWidth] = useState(0);
@@ -162,8 +167,7 @@ export default function ListView<T>({
     const busy = keyboardBusy && !(atStart || atEnd);
     const prevItems = usePrevious(items);
     const [debouncedSelectedItems, setDebouncedSelectedItems] = useState(selectedItems);
-    const [dragItem1, dragItem2, dragItem3, dragItem4] =
-        draggable || reorderable ? selectedItems : [];
+    const [dragItem1, dragItem2, dragItem3, dragItem4] = draggable || moveable ? selectedItems : [];
     const selectedId = items[rowIndex] ? `${listViewId}-${items[rowIndex][itemKey]}` : '';
     const isThin = clientWidth < fontSize * 20;
     const hasFocus = containerRef.current && containerRef.current === document.activeElement;
@@ -494,23 +498,29 @@ export default function ListView<T>({
     const handleDragStart = useCallback(
         (event: React.DragEvent) => {
             const dataTransfer = event.dataTransfer;
-            if (draggable || reorderable) {
+            if (draggable || moveable) {
                 dataTransfer.setDragImage(dragImageRef.current!, -16, -16);
                 let effect: DataTransfer['effectAllowed'] = 'none';
-                if (draggable && reorderable) {
+                let dropEffect: DataTransfer['dropEffect'] = 'none';
+                if (draggable && moveable) {
                     effect = 'copyMove';
+                    dropEffect = 'copy';
                 } else if (draggable) {
                     effect = 'copy';
+                    dropEffect = 'copy';
                 } else {
                     effect = 'move';
+                    dropEffect = 'move';
                 }
                 globalDrag.set(event, selectedItems, effect);
+                event.dataTransfer.effectAllowed = effect;
+                event.dataTransfer.dropEffect = dropEffect;
                 setDragStartIndex(rowIndex);
             } else {
                 dataTransfer.effectAllowed = 'none';
             }
         },
-        [draggable, reorderable, selectedItems, rowIndex]
+        [draggable, moveable, selectedItems, rowIndex]
     );
 
     const handleDragOver = useCallback(
@@ -518,13 +528,13 @@ export default function ListView<T>({
             event.preventDefault();
             event.stopPropagation();
             const dataTransfer = event.dataTransfer;
-            if (droppable || reorderable) {
+            if (droppable || moveable) {
                 let rowIndex = getRowIndexFromMouseEvent(event);
                 if (rowIndex === -1) {
                     rowIndex = size;
                 }
                 if (isDragging) {
-                    if (reorderable && canDrop(dataTransfer, droppableTypes)) {
+                    if (moveable && canDrop(dataTransfer, droppableTypes)) {
                         dataTransfer.dropEffect = 'move';
                         setDragIndex(rowIndex);
                     } else {
@@ -547,18 +557,18 @@ export default function ListView<T>({
                 setDragIndex(-1);
             }
         },
-        [size, isDragging, droppable, droppableTypes, reorderable]
+        [size, isDragging, droppable, droppableTypes, moveable]
     );
 
     const handleDrop = useCallback(
         (event: React.DragEvent) => {
-            if (droppable || reorderable) {
+            if (droppable || moveable) {
                 let rowIndex = getRowIndexFromMouseEvent(event);
                 if (rowIndex === -1) {
                     rowIndex = size;
                 }
                 const effect = globalDrag.getEffect(event);
-                if (reorderable && (effect === 'move' || effect === 'copyMove')) {
+                if (moveable && (effect === 'move' || effect === 'copyMove')) {
                     const offset = dragStartIndex < rowIndex ? -1 : 0;
                     onMove?.(selectedItems, rowIndex);
                     setRowIndex(rowIndex + offset);
@@ -573,16 +583,7 @@ export default function ListView<T>({
             event.preventDefault();
             event.stopPropagation();
         },
-        [
-            size,
-            selectedItems,
-            droppable,
-            droppableTypes,
-            reorderable,
-            dragStartIndex,
-            onDrop,
-            onMove,
-        ]
+        [size, selectedItems, droppable, droppableTypes, moveable, dragStartIndex, onDrop, onMove]
     );
 
     const handleDragEnd = useCallback(() => {
@@ -630,7 +631,7 @@ export default function ListView<T>({
                 scrollWidth={sizeable ? width : undefined}
                 scrollHeight={(size + (droppable ? 1 : 0) + (showTitles ? 1 : 0)) * rowHeight}
                 lineHeight={rowHeight}
-                droppable={droppable || (reorderable && isDragging)}
+                droppable={droppable || (moveable && isDragging)}
                 onResize={handleResize}
                 onScroll={setScrollPosition}
                 ref={scrollableRef}
@@ -639,9 +640,13 @@ export default function ListView<T>({
                     <FixedHeader>
                         <ListViewHead
                             width={width}
+                            clientLeft={scrollLeft}
+                            clientWidth={clientWidth}
+                            reorderable={reorderable}
                             sizeable={sizeable}
                             cols={cols}
                             fontSize={fontSize}
+                            onColumnMove={onReorder}
                             onColumnResize={onColumnResize}
                         />
                     </FixedHeader>
@@ -660,7 +665,7 @@ export default function ListView<T>({
                     selectedIds={disabled ? {} : selectedIds}
                     scrollTop={scrollTop}
                     dragIndex={dragIndex}
-                    draggable={disabled ? false : draggable || reorderable}
+                    draggable={disabled ? false : draggable || moveable}
                     multiple={multiple}
                     busy={isScrolling}
                 />

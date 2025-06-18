@@ -71,6 +71,24 @@ function createMediaListLayout<T extends MediaObject = MediaObject>(
     };
     const {view, card} = layout;
     if (view === 'details') {
+        const handleContextMenu = async (event: React.MouseEvent) => {
+            event.preventDefault();
+            await showPopupMenu(event.target as HTMLElement, event.pageX, event.pageY);
+        };
+        const showPopupMenu = async (
+            target: HTMLElement,
+            x: number,
+            y: number,
+            align: 'left' | 'right' = 'left'
+        ) => {
+            const result = await showDetailsMenu(target, x, y, align);
+            if (result === 'edit-fields') {
+                const newFields = await showEditFieldsDialog(visibleFields, hiddenFields);
+                if (newFields) {
+                    setSourceFields(listId, newFields);
+                }
+            }
+        };
         const getFields = (fields: readonly Field[] = []): FieldSpec[] =>
             fields
                 .map((field) => mediaFields[field])
@@ -90,17 +108,13 @@ function createMediaListLayout<T extends MediaObject = MediaObject>(
                 onClick={async (event: React.MouseEvent) => {
                     const button = (event.target as HTMLButtonElement).closest('button')!;
                     const {right, bottom} = button.getBoundingClientRect();
-                    const result = await showDetailsMenu(button, right, bottom + 4);
-                    if (result === 'edit-fields') {
-                        const newFields = await showEditFieldsDialog(visibleFields, hiddenFields);
-                        if (newFields) {
-                            setSourceFields(listId, newFields);
-                        }
-                    }
+                    await showPopupMenu(button, right, bottom + 4);
                 }}
             />
         );
-        const cols = visibleFields.concat(actions);
+        const cols = visibleFields
+            .concat(actions)
+            .map((col) => ({...col, onContextMenu: handleContextMenu}));
         if (/\bindex\b/.test(cols[0].className!)) {
             cols[0] = {...cols[0], title: '#'};
         }

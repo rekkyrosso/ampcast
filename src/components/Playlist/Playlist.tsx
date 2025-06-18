@@ -238,8 +238,8 @@ export default function Playlist({onSelect, onPlay, onEject, ref, ...props}: Pla
                 draggable={true}
                 droppable={true}
                 droppableTypes={droppableTypes}
+                moveable={true}
                 multiple={true}
-                reorderable={true}
                 onContextMenu={handleContextMenu}
                 onDelete={handleDelete}
                 onDoubleClick={handleDoubleClick}

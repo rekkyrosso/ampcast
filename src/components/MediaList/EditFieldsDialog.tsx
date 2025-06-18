@@ -174,8 +174,8 @@ export default function EditFieldsDialog({
                             itemKey="id"
                             draggable={true}
                             droppable={true}
+                            moveable={true}
                             multiple={true}
-                            reorderable={true}
                             renderItem={renderItem}
                             onDelete={hideFields}
                             onDoubleClick={hideField}

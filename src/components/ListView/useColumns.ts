@@ -1,4 +1,5 @@
 import {useCallback, useLayoutEffect, useState} from 'react';
+import {preventDefault} from 'utils';
 import usePrevious from 'hooks/usePrevious';
 import {Column, ListViewLayout} from './ListView';
 
@@ -25,7 +26,8 @@ export default function useColumns<T>(
     }, [layout, prevLayout, fontSize, storageId]);
 
     const onColumnResize = useCallback(
-        (colIndex: number, colWidth: number) => {
+        (col: Column<T>, colWidth: number) => {
+            const colIndex = col.index;
             setCols((cols) => {
                 const newWidth = colWidth / fontSize;
                 if (cols[colIndex].width !== newWidth) {
@@ -59,7 +61,13 @@ function getColumns<T>(layout: ListViewLayout<T>, storageId?: string): readonly 
     return layout.cols.reduce<Column<T>[]>((cols, spec, index) => {
         const prevCol = cols[index - 1];
         const left = prevCol ? prevCol.left + prevCol.width : 0;
-        const {id = String(index), title = '', className = '', align = 'left'} = spec;
+        const {
+            id = String(index),
+            title = '',
+            className = '',
+            align = 'left',
+            onContextMenu = preventDefault,
+        } = spec;
         const width =
             (storageId && id ? Number(localStorage.getItem(`listView/${storageId}/${id}`)) : 0) ||
             spec.width ||
@@ -75,6 +83,7 @@ function getColumns<T>(layout: ListViewLayout<T>, storageId?: string): readonly 
             left,
             width,
             style,
+            onContextMenu,
         });
         return cols;
     }, []);

@@ -2,11 +2,12 @@ import React, {ComponentType, useCallback, useEffect, useRef, useState} from 're
 import {Except} from 'type-fest';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
-import MediaListLayout from 'types/MediaListLayout';
+import MediaListLayout, {Field} from 'types/MediaListLayout';
 import MediaObject from 'types/MediaObject';
 import Pager from 'types/Pager';
+import {setSourceFields} from 'services/mediaServices/servicesSettings';
 import ErrorBox, {ErrorBoxProps} from 'components/Errors/ErrorBox';
-import ListView, {ListViewProps} from 'components/ListView';
+import ListView, {Column, ListViewProps} from 'components/ListView';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useFirstValue from 'hooks/useFirstValue';
 import usePager from 'hooks/usePager';
@@ -50,6 +51,7 @@ export default function MediaList<T extends MediaObject>({
     defaultLayout = defaultMediaListLayout,
     layoutOptions,
     draggable = false,
+    reorderable = true,
     pager = null,
     statusBar = true,
     loadingText,
@@ -168,6 +170,24 @@ export default function MediaList<T extends MediaObject>({
         await performAction(Action.Info, items);
     }, []);
 
+    const handleReorder = useCallback(
+        (col: Column<any>, toIndex: number) => {
+            const fields = layout.cols.map((col) => col.id);
+            const insertBeforeField = fields[toIndex];
+            if (col.id !== insertBeforeField && col.id !== 'Actions') {
+                const newFields = fields.filter((field) => field !== col.id);
+                const insertAtIndex = newFields.indexOf(insertBeforeField);
+                if (insertAtIndex >= 0) {
+                    newFields.splice(insertAtIndex, 0, col.id);
+                } else {
+                    newFields.push(col.id);
+                }
+                setSourceFields(id, newFields.filter((field) => field !== 'Actions') as Field[]);
+            }
+        },
+        [id, layout]
+    );
+
     const itemClassName = useCallback(
         (item: T) => {
             if (item?.itemType === ItemType.Media) {
@@ -209,12 +229,14 @@ export default function MediaList<T extends MediaObject>({
                     itemClassName={itemClassName}
                     itemKey={'src' as any} // TODO: remove cast
                     draggable={draggable}
+                    reorderable={reorderable}
                     storageId={id}
                     onContextMenu={onContextMenu || handleContextMenu}
                     onDoubleClick={handleDoubleClick}
                     onEnter={handleEnter}
                     onInfo={handleInfo}
                     onPageSizeChange={setPageSize}
+                    onReorder={handleReorder}
                     onScrollIndexChange={setScrollIndex}
                     onSelect={handleSelect}
                 />

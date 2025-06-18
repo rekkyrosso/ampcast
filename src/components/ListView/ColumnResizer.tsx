@@ -3,17 +3,17 @@ import {Subscription, fromEvent} from 'rxjs';
 import {preventDefault} from 'utils';
 import {Column} from './ListView';
 
-export interface ColumnResizerProps {
-    col: Column<any>;
+export interface ColumnResizerProps<T> {
+    col: Column<T>;
     fontSize: number;
-    onResize: (index: number, width: number) => void;
+    onResize: (col: Column<any>, width: number) => void;
 }
 
-export default function ColumnResizer({col, fontSize, onResize}: ColumnResizerProps) {
+export default function ColumnResizer<T>({col, fontSize, onResize}: ColumnResizerProps<T>) {
     const [dragStartX, setDragStartX] = useState(-1);
     const [dragWidth, setDragWidth] = useState(0);
     const dragging = dragStartX !== -1;
-    const {index, left, width} = col;
+    const {left, width} = col;
     const leftPx = left * fontSize;
     const widthPx = width * fontSize;
 
@@ -30,9 +30,9 @@ export default function ColumnResizer({col, fontSize, onResize}: ColumnResizerPr
 
     const handleMouseMove = useCallback(
         (event: MouseEvent) => {
-            onResize(index, Math.max(20, dragWidth + (event.screenX - dragStartX)));
+            onResize(col, Math.max(20, dragWidth + (event.screenX - dragStartX)));
         },
-        [dragStartX, dragWidth, index, onResize]
+        [col, dragStartX, dragWidth, onResize]
     );
 
     const endDrag = useCallback(() => {
@@ -64,7 +64,7 @@ export default function ColumnResizer({col, fontSize, onResize}: ColumnResizerPr
             className="column-resizer"
             onMouseDown={handleMouseDown}
             style={{
-                left: `${leftPx + widthPx - 4}px`,
+                left: `${leftPx + widthPx}px`,
             }}
         />
     );
