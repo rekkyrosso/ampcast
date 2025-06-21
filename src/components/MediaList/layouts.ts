@@ -60,7 +60,7 @@ export const mostPlayedTracksLayout: MediaListLayout = {
 
 export const albumTracksLayout: MediaListLayout = {
     view: 'details',
-    card: defaultMediaItemCard,
+    card: {...defaultMediaItemCard, index: 'Track'},
     details: ['Track', 'Title', 'Artist', 'Duration'],
     extraFields: allMediaItemFields,
 };

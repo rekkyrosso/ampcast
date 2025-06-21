@@ -37,16 +37,19 @@ export default function ListViewHead<T>({
     const dragging = dragIndex !== -1;
     const dragCol = cols[dragIndex];
     const dragOverCol = cols[dragOverIndex];
-    const maxScrollLeft = clientWidth + clientLeft - width;
+    const minScrollLeft = clientWidth + clientLeft - width;
+    const maxScrollLeft = clientLeft;
 
     useEffect(() => {
         if (scrollAmount) {
             const subscription = timer(0, 100, animationFrameScheduler).subscribe(() =>
-                setScrollLeft((scrollLeft) => scrollLeft + scrollAmount)
+                setScrollLeft((scrollLeft) =>
+                    clamp(minScrollLeft, scrollLeft + scrollAmount, maxScrollLeft)
+                )
             );
             return () => subscription.unsubscribe();
         }
-    }, [scrollAmount]);
+    }, [scrollAmount, minScrollLeft, maxScrollLeft]);
 
     const handleDragStart = useCallback(
         (event: React.DragEvent) => {
@@ -73,9 +76,9 @@ export default function ListViewHead<T>({
                 const rect = ref.current!.getBoundingClientRect();
                 const scrollBoundary = fontSize * 4;
                 if (event.clientX - clientLeft - rect.left < scrollBoundary) {
-                    setScrollAmount(1);
+                    setScrollAmount(fontSize);
                 } else if (event.clientX - clientLeft > rect.right - scrollBoundary) {
-                    setScrollAmount(-1);
+                    setScrollAmount(-fontSize);
                 } else {
                     setScrollAmount(0);
                 }
@@ -134,11 +137,7 @@ export default function ListViewHead<T>({
                     className={`list-view-row ${dragging ? 'dragging' : ''}`}
                     style={{
                         width: `${width}px`,
-                        transform: `translateX(${clamp(
-                            maxScrollLeft,
-                            scrollLeft * fontSize,
-                            clientLeft
-                        )}px)`,
+                        transform: `translateX(${scrollLeft}px)`,
                     }}
                 >
                     {dragOverCol ? (

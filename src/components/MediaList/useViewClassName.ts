@@ -21,7 +21,7 @@ export default function useViewClassName(layout: ListViewLayout<any>): string {
                 }
             });
         }
-        const indexed = layout.cols[0].className === 'index' ? 'indexed' : '';
+        const indexed = /\bindex\b/.test(layout.cols[0].className!) ? 'indexed' : '';
         const clipped = clip ? `clip-${clip}` : '';
         setClassName(`${indexed} ${clipped}`.trim());
     }, [layout]);

@@ -3,8 +3,8 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import {playlistItemsLayout} from 'components/MediaList/layouts';
 import MediaItemList from 'components/MediaList/MediaItemList';
 import PlaylistList from 'components/MediaList/PlaylistList';
-import useIsPlaylistPlayable from 'components/MediaList/useIsPlaylistPlayable';
 import Splitter from 'components/Splitter';
+import useIsPlaylistPlayable from 'hooks/useIsPlaylistPlayable';
 import {PagedItemsProps} from './PagedItems';
 
 export default function Playlists({source, ...props}: PagedItemsProps<MediaPlaylist>) {

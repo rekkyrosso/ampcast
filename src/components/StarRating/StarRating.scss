@@ -4,6 +4,7 @@
     font-family: var(--system-font-family);
     font-weight: normal;
     opacity: 0.75;
+    user-select: none;
 
     &:hover {
         opacity: 1;

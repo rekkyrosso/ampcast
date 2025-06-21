@@ -161,10 +161,7 @@ function createSourceFromPin<T extends MediaObject>(pin: Pin): MediaSource<T> {
         id: pin.src,
         icon: 'pin',
         isPin: true,
-        layout: {
-            view: 'card',
-            fields: ['Thumbnail', 'PinTitle', 'TrackCount', 'Description', 'Progress'],
-        },
+
         search(): Pager<T> {
             return new PlexPager({
                 path: `/playlists/${getRatingKey(pin)}`,

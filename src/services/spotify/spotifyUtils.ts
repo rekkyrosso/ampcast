@@ -51,7 +51,9 @@ export function createMediaObject<T extends MediaObject>(
 }
 
 export async function addUserData<T extends MediaObject>(items: readonly T[]): Promise<void> {
-    items = items.filter((item) => item.inLibrary === undefined && spotify.canStore?.(item, true));
+    items = items.filter(
+        (item) => item.inLibrary === undefined && spotify.canStore?.(item, items.length !== 1)
+    );
     const [item] = items;
     if (item) {
         const ids = items.map((item) => item.src.split(':')[2]);
@@ -62,6 +64,10 @@ export async function addUserData<T extends MediaObject>(items: readonly T[]): P
 
                 case ItemType.Artist:
                     return spotifyApi.isFollowingArtists(ids);
+
+                case ItemType.Playlist:
+                    // Can only do one at a time.
+                    return spotifyApi.areFollowingPlaylist(ids[0], [spotifySettings.userId]);
 
                 default:
                     return spotifyApi.containsMySavedTracks(ids);

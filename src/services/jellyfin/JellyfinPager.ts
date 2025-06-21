@@ -7,7 +7,7 @@ import OffsetPager from 'services/pagers/OffsetPager';
 import {getSourceSorting} from 'services/mediaServices/servicesSettings';
 import jellyfinSettings from './jellyfinSettings';
 import jellyfinApi from './jellyfinApi';
-import {createMediaObject, getAlbums} from './jellyfinUtils';
+import {createMediaObject} from './jellyfinUtils';
 
 export default class JellyfinPager<T extends MediaObject> extends OffsetPager<T> {
     static minPageSize = 10;
@@ -43,13 +43,11 @@ export default class JellyfinPager<T extends MediaObject> extends OffsetPager<T>
                           items: data.Items || [],
                           total: data.TotalRecordCount || data.Items?.length,
                       };
-                const albums = await getAlbums(page.items);
                 return {
                     ...page,
                     items: page.items.map((item) =>
                         createMediaObject(
                             item,
-                            albums,
                             parent,
                             getSourceSorting(this.childSortId) || options?.childSort
                         )

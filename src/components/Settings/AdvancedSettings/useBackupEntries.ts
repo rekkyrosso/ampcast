@@ -107,8 +107,10 @@ function getServicesLocalStorage(): Record<string, string> {
     const keys = [
         'scrobbling/noScrobble',
         'scrobbling/options',
+        'services/fields',
         'services/hidden',
         'services/sorting',
+        'services/view',
         'lookup/preferPersonalMedia',
         'apple/bitrate',
         ...getPersonalMediaServices()

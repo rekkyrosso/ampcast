@@ -79,8 +79,8 @@ export interface ListViewProps<T> {
         items: readonly T[],
         x: number,
         y: number,
-        rowIndex: number,
-        button: number
+        button: number,
+        rowIndex: number
     ) => void;
     onDrop?: (items: readonly T[] | readonly File[] | DataTransferItem, atIndex: number) => void;
     onMove?: (items: readonly T[], toIndex: number) => void;
@@ -236,7 +236,7 @@ export default function ListView<T>({
 
     useEffect(() => onSelect?.(debouncedSelectedItems), [debouncedSelectedItems, onSelect]);
 
-    useEffect(() => setRowIndex(Math.min(size - 1, Math.max(rowIndex, 0))), [size, rowIndex]);
+    useEffect(() => setRowIndex(Math.min(size - 1, rowIndex)), [size, rowIndex]);
 
     useEffect(() => {
         if (scrollTop) {
@@ -324,8 +324,8 @@ export default function ListView<T>({
                     break;
 
                 case 'Space':
-                    event.preventDefault();
                     if (event[browser.cmdKey]) {
+                        event.preventDefault();
                         event.stopPropagation();
                         if (!event.repeat) {
                             toggleSelectionAt(rowIndex); // toggle selected state
@@ -444,8 +444,8 @@ export default function ListView<T>({
                         selectedItems,
                         Math.min(rect.left + clientWidth, rect.right),
                         rect.bottom,
-                        rowIndex,
-                        -1
+                        -1,
+                        rowIndex
                     );
                 }
             } else {
@@ -455,8 +455,8 @@ export default function ListView<T>({
                         selectedItems,
                         event.pageX,
                         event.pageY,
-                        newRowIndex,
-                        event.button
+                        event.button,
+                        newRowIndex
                     );
                 }
             }

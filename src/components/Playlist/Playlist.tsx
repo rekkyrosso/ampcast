@@ -120,8 +120,8 @@ export default function Playlist({onSelect, onPlay, onEject, ref, ...props}: Pla
             selectedItems: readonly PlaylistItem[],
             x: number,
             y: number,
-            rowIndex: number,
-            button: number
+            button: number,
+            rowIndex: number
         ) => {
             if (items.length === 0) {
                 return;

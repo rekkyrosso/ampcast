@@ -8,7 +8,9 @@
     width: 1em;
     height: 1em;
     opacity: 0.75;
-    border-radius: 50%;
+    border-radius: calc(var(--roundness) * 0.5em);
+    outline-offset: 2px;
+    outline-width: 2px;
 
     &:disabled {
         color: var(--grey1-color);

@@ -595,10 +595,6 @@ export default class SubsonicService implements PersonalMediaService {
         return {
             title: pin.title,
             itemType: pin.itemType,
-            layout: {
-                view: 'card',
-                fields: ['Thumbnail', 'PinTitle', 'TrackCount', 'Description', 'Progress'],
-            },
             id: pin.src,
             icon: 'pin',
             isPin: true,

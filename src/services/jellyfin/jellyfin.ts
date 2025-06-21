@@ -31,8 +31,10 @@ import jellyfinSources, {
     createItemsPager,
     createSearchPager,
     jellyfinEditablePlaylists,
+    jellyfinPlaylistItemsSort,
     jellyfinSearch,
 } from './jellyfinSources';
+import {createPlaylistItemsPager} from './jellyfinUtils';
 
 const serviceId: MediaServiceId = 'jellyfin';
 
@@ -146,21 +148,25 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
     return {
         title: pin.title,
         itemType: pin.itemType,
-        layout: {
-            view: 'card',
-            fields: ['Thumbnail', 'PinTitle', 'TrackCount', 'Genre', 'Progress'],
-        },
         id: pin.src,
         icon: 'pin',
         isPin: true,
+        secondaryItems: {sort: jellyfinPlaylistItemsSort},
 
-        search(): Pager<T> {
-            return createItemsPager({
-                ids: getIdFromSrc(pin),
-                IncludeItemTypes: 'Playlist',
-            });
+        search(): Pager<MediaPlaylist> {
+            return createItemsPager(
+                {
+                    ids: getIdFromSrc(pin),
+                    IncludeItemTypes: 'Playlist',
+                },
+                {
+                    childSort: jellyfinPlaylistItemsSort.defaultSort,
+                    childSortId: `${pin.src}/2`,
+                },
+                createPlaylistItemsPager
+            );
         },
-    };
+    } as MediaSource<T>;
 }
 
 async function getFilters(

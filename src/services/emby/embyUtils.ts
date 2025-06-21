@@ -21,11 +21,11 @@ import embySettings from './embySettings';
 
 export function createMediaObject<T extends MediaObject>(
     item: BaseItemDto,
-    parent?: MediaObject,
+    parent?: ParentOf<T>,
     childSort?: SortParams
 ): T {
     if (parent?.itemType === ItemType.Folder && item.IsFolder) {
-        return createMediaFolder(item) as T;
+        return createMediaFolder(item, parent) as T;
     } else {
         switch (item.Type) {
             case 'MusicArtist':
@@ -104,17 +104,17 @@ function createMediaPlaylist(playlist: BaseItemDto, itemSort?: SortParams): Medi
     return mediaPlaylist as MediaPlaylist;
 }
 
-function createMediaFolder(folder: BaseItemDto, parent?: MediaObject): MediaFolder {
+function createMediaFolder(folder: BaseItemDto, parent?: MediaFolder): MediaFolder {
     const fileName = getFileName(folder.Path || '') || folder.Name || '[unknown]';
     const mediaFolder: Writable<SetOptional<MediaFolder, 'pager'>> = {
         itemType: ItemType.Folder,
         src: `emby:folder:${folder.Id}`,
         title: folder.Name || '[unknown]',
         fileName,
-        path: parent?.itemType === ItemType.Folder ? `${parent.path}/${fileName}` : '/',
-        parentFolder: parent as ParentOf<MediaFolder>,
+        path: parent ? `${parent.path}/${fileName}` : '/',
+        parentFolder: parent,
     };
-    mediaFolder.pager = createFolderPager(mediaFolder as MediaFolder);
+    mediaFolder.pager = createFolderPager(mediaFolder as MediaFolder, parent);
     return mediaFolder as MediaFolder;
 }
 
@@ -244,7 +244,7 @@ export function createPlaylistItemsPager(
     });
 }
 
-function createFolderPager(folder: MediaFolder, parent?: MediaObject): Pager<MediaFolderItem> {
+function createFolderPager(folder: MediaFolder, parent?: MediaFolder): Pager<MediaFolderItem> {
     const [, , id] = folder.src.split(':');
     const folderPager = new EmbyPager<MediaFolderItem>(
         `Users/${embySettings.userId}/Items`,
@@ -260,8 +260,8 @@ function createFolderPager(folder: MediaFolder, parent?: MediaObject): Pager<Med
         undefined,
         folder
     );
-    if (parent?.itemType === ItemType.Folder) {
-        const parentFolder: MediaFolderItem = {
+    if (parent) {
+        const parentFolder: MediaFolder = {
             ...parent,
             fileName: `../${parent.fileName}`,
         };
@@ -301,8 +301,8 @@ export function getSort({sortBy, sortOrder}: SortParams): {
         SortOrder:
             sortOrder === 1
                 ? 'Ascending'
-                // Pad with 'Ascending'.
-                : sortBy
+                : // Pad with 'Ascending'.
+                  sortBy
                       .split(',')
                       .map((sortBy, index, keys) =>
                           index === 1 &&

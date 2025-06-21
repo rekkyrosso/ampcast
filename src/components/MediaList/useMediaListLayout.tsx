@@ -12,9 +12,8 @@ import MediaType from 'types/MediaType';
 import {exists, getElapsedTimeText, uniq} from 'utils';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {setSourceFields} from 'services/mediaServices/servicesSettings';
-import {performAction} from 'components/Actions';
 import {ColumnSpec, ListViewLayout} from 'components/ListView';
-import Actions from 'components/Actions';
+import DefaultActions, {ActionsProps, performAction} from 'components/Actions';
 import {ExplicitBadge, getAlbumTypeText, LivePlaybackBadge} from 'components/Badges';
 import CoverArt from 'components/CoverArt';
 import Icon from 'components/Icon';
@@ -24,7 +23,7 @@ import StarRating from 'components/StarRating';
 import SunClock from 'components/SunClock';
 import Time from 'components/Time';
 import usePager from 'hooks/usePager';
-import useIsPlaylistPlayable from './useIsPlaylistPlayable';
+import useIsPlaylistPlayable from 'hooks/useIsPlaylistPlayable';
 import useMediaListFields from './useMediaListFields';
 import useMediaListView from './useMediaListView';
 import showDetailsMenu from './showDetailsMenu';
@@ -35,7 +34,8 @@ export type FieldSpec = SetRequired<ColumnSpec<any>, 'id'>;
 export default function useMediaListLayout<T extends MediaObject = MediaObject>(
     listId: string,
     defaultLayout: MediaListLayout,
-    layoutOptions?: Partial<MediaListLayout>
+    layoutOptions?: Partial<MediaListLayout>,
+    Actions: React.FC<ActionsProps> = DefaultActions
 ): ListViewLayout<T> {
     const view = useMediaListView(listId);
     const fields = useMediaListFields(listId);
@@ -45,18 +45,23 @@ export default function useMediaListLayout<T extends MediaObject = MediaObject>(
             ...(layoutOptions?.details || defaultLayout.details),
             ...(defaultLayout.extraFields || []),
         ]);
-        return createMediaListLayout(listId, {
-            view: view || layoutOptions?.view || defaultLayout.view,
-            card: layoutOptions?.card || defaultLayout.card,
-            details: fields || layoutOptions?.details || defaultLayout.details,
-            extraFields,
-        });
-    }, [listId, view, fields, defaultLayout, layoutOptions]);
+        return createMediaListLayout(
+            listId,
+            {
+                view: view || layoutOptions?.view || defaultLayout.view,
+                card: layoutOptions?.card || defaultLayout.card,
+                details: fields || layoutOptions?.details || defaultLayout.details,
+                extraFields,
+            },
+            Actions
+        );
+    }, [listId, view, fields, defaultLayout, layoutOptions, Actions]);
 }
 
 function createMediaListLayout<T extends MediaObject = MediaObject>(
     listId: string,
-    layout: MediaListLayout
+    layout: MediaListLayout,
+    Actions: React.FC<ActionsProps>
 ): ListViewLayout<T> {
     if (layout.view === 'none') {
         return {view: 'details', cols: []};
@@ -64,7 +69,7 @@ function createMediaListLayout<T extends MediaObject = MediaObject>(
     const actions: FieldSpec = {
         id: 'Actions',
         title: 'Actions',
-        render: (item: T) => <Actions item={item} inListView={true} />,
+        render: (item: T) => <Actions item={item} inListView />,
         className: 'actions',
         align: 'right',
         width: 5,
@@ -105,6 +110,7 @@ function createMediaListLayout<T extends MediaObject = MediaObject>(
             <IconButton
                 icon="menu"
                 title="Options…"
+                tabIndex={-1}
                 onClick={async (event: React.MouseEvent) => {
                     const button = (event.target as HTMLButtonElement).closest('button')!;
                     const {right, bottom} = button.getBoundingClientRect();

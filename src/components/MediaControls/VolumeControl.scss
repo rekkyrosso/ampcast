@@ -9,6 +9,8 @@
         flex: initial;
         width: 1.25em;
         height: 1.25em;
+        border-radius: calc(var(--roundness) * 100%);
+        outline-offset: 0;
     }
 
     input[type=range] {

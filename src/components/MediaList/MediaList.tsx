@@ -1,4 +1,4 @@
-import React, {ComponentType, useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Except} from 'type-fest';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
@@ -6,18 +6,17 @@ import MediaListLayout, {Field} from 'types/MediaListLayout';
 import MediaObject from 'types/MediaObject';
 import Pager from 'types/Pager';
 import {setSourceFields} from 'services/mediaServices/servicesSettings';
+import {ActionsProps, performAction, showActionsMenu} from 'components/Actions';
 import ErrorBox, {ErrorBoxProps} from 'components/Errors/ErrorBox';
 import ListView, {Column, ListViewProps} from 'components/ListView';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useFirstValue from 'hooks/useFirstValue';
 import usePager from 'hooks/usePager';
 import usePreferences from 'hooks/usePreferences';
-import {performAction} from 'components/Actions';
 import MediaListStatusBar from './MediaListStatusBar';
 import useMediaListLayout from './useMediaListLayout';
 import useOnDragStart from './useOnDragStart';
 import useViewClassName from './useViewClassName';
-import showActionsMenu from './showActionsMenu';
 import './MediaList.scss';
 
 const defaultMediaListLayout: MediaListLayout = {
@@ -41,7 +40,8 @@ export interface MediaListProps<T extends MediaObject>
     emptyMessage?: React.ReactNode;
     onError?: (error: unknown) => void;
     onLoad?: () => void;
-    Error?: ComponentType<ErrorBoxProps>;
+    Actions?: React.FC<ActionsProps>;
+    Error?: React.FC<ErrorBoxProps>;
 }
 
 export default function MediaList<T extends MediaObject>({
@@ -62,12 +62,13 @@ export default function MediaList<T extends MediaObject>({
     onError,
     onLoad,
     onSelect,
+    Actions,
     Error = ErrorBox,
     ...props
 }: MediaListProps<T>) {
     const id = `${sourceId}/${level}`;
     const containerRef = useRef<HTMLDivElement | null>(null);
-    const layout = useMediaListLayout(id, defaultLayout, layoutOptions);
+    const layout = useMediaListLayout(id, defaultLayout, layoutOptions, Actions);
     const [scrollIndex, setScrollIndex] = useState(0);
     const [pageSize, setPageSize] = useState(0);
     const [{items, loaded, busy, error, size, maxSize}, fetchAt] = usePager(pager);
@@ -119,17 +120,17 @@ export default function MediaList<T extends MediaObject>({
     );
 
     const handleContextMenu = useCallback(
-        async (items: readonly T[], x: number, y: number, rowIndex: number, button: number) => {
+        async (items: readonly T[], x: number, y: number, button: number) => {
             if (items.length === 0) {
                 return;
             }
             const action = await showActionsMenu(
                 items,
-                true,
                 containerRef.current!,
                 x,
                 y,
-                button === -1 ? 'right' : 'left'
+                button === -1 ? 'right' : 'left',
+                true
             );
             if (action) {
                 await performAction(action, items);
@@ -166,8 +167,8 @@ export default function MediaList<T extends MediaObject>({
         [onEnter, isPlayable]
     );
 
-    const handleInfo = useCallback(async (items: readonly T[]) => {
-        await performAction(Action.Info, items);
+    const handleInfo = useCallback((items: readonly T[]) => {
+        performAction(Action.Info, items);
     }, []);
 
     const handleReorder = useCallback(

@@ -31,8 +31,10 @@ import embySources, {
     createItemsPager,
     createSearchPager,
     embyEditablePlaylists,
+    embyPlaylistItemsSort,
     embySearch,
 } from './embySources';
+import {createPlaylistItemsPager} from './embyUtils';
 
 const serviceId: MediaServiceId = 'emby';
 
@@ -146,21 +148,25 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
     return {
         title: pin.title,
         itemType: pin.itemType,
-        layout: {
-            view: 'card',
-            fields: ['Thumbnail', 'PinTitle', 'TrackCount', 'Genre', 'Progress'],
-        },
         id: pin.src,
         icon: 'pin',
         isPin: true,
+        secondaryItems: {sort: embyPlaylistItemsSort},
 
-        search(): Pager<T> {
-            return createItemsPager({
-                ids: getIdFromSrc(pin),
-                IncludeItemTypes: 'Playlist',
-            });
+        search(): Pager<MediaPlaylist> {
+            return createItemsPager(
+                {
+                    ids: getIdFromSrc(pin),
+                    IncludeItemTypes: 'Playlist',
+                },
+                {
+                    childSort: embyPlaylistItemsSort.defaultSort,
+                    childSortId: `${pin.src}/2`,
+                },
+                createPlaylistItemsPager
+            );
         },
-    };
+    } as MediaSource<T>;
 }
 
 async function getFilters(

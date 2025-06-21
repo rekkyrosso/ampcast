@@ -8,14 +8,16 @@ import {getServiceFromSrc} from 'services/mediaServices';
 import IconButton from 'components/Button';
 import IconButtons from 'components/Button/IconButtons';
 import {IconName} from 'components/Icon';
-import showActionsMenu from 'components/MediaList/showActionsMenu';
 import StarRating from 'components/StarRating';
+import {showActionsMenu} from './ActionsMenu';
 import {AddToPlaylistButton} from './PlaylistActions';
 import performAction from './performAction';
 
 export interface ActionsProps {
     item: MediaObject;
     inListView?: boolean; // Rendered in a `ListView` component.
+    inInfoView?: boolean; // Rendered in a `MediaInfo` component.
+    showMenu?: typeof showActionsMenu;
 }
 
 const defaultActionIcons: Record<LibraryAction, IconName> = {
@@ -34,7 +36,12 @@ const defaultActionLabels: Record<LibraryAction, string> = {
     [Action.Unlike]: 'Unlike',
 };
 
-export default function Actions({item, inListView}: ActionsProps) {
+export default function Actions({
+    item,
+    inListView,
+    inInfoView,
+    showMenu = showActionsMenu,
+}: ActionsProps) {
     const service = getServiceFromSrc(item);
     const tabIndex = inListView ? -1 : undefined;
 
@@ -62,23 +69,23 @@ export default function Actions({item, inListView}: ActionsProps) {
         }
     }, [item]);
 
-    const showContextMenu = useCallback(
+    const handleMenuClick = useCallback(
         async (event: React.MouseEvent<HTMLButtonElement>) => {
             const button = (event.target as HTMLButtonElement).closest('button')!;
             const rect = button.getBoundingClientRect();
-            const action = await showActionsMenu(
+            const action = await showMenu(
                 [item],
-                false,
                 button,
                 rect.right,
                 rect.bottom,
-                'right'
+                'right',
+                inListView
             );
             if (action) {
                 await performAction(action, [item]);
             }
         },
-        [item]
+        [item, inListView, showMenu]
     );
 
     const rate = useCallback(
@@ -90,12 +97,12 @@ export default function Actions({item, inListView}: ActionsProps) {
 
     return (
         <IconButtons>
-            {inListView ? (
+            {!inInfoView ? (
                 <IconButton
                     icon="menu"
                     title="More…"
                     tabIndex={tabIndex}
-                    onClick={showContextMenu}
+                    onClick={handleMenuClick}
                     key="menu"
                 />
             ) : null}

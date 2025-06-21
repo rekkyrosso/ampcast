@@ -32,10 +32,16 @@ import {
 } from './navidromeAuth';
 import NavidromePager from './NavidromePager';
 import navidromeSettings from './navidromeSettings';
-import navidromeSources, {navidromePlaylists, navidromeSearch} from './navidromeSources';
+import navidromeSources, {
+    navidromePlaylistItems,
+    navidromePlaylistItemsSort,
+    navidromePlaylists,
+    navidromeSearch,
+} from './navidromeSources';
 import navidromeApi from './navidromeApi';
 import subsonicApi from './subsonicApi';
 import ServerSettings from './components/NavidromeServerSettings';
+import {createPlaylistItemsPager} from './navidromeUtils';
 
 const serviceId: MediaServiceId = 'navidrome';
 
@@ -145,12 +151,22 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
         id: pin.src,
         icon: 'pin',
         isPin: true,
+        secondaryItems: navidromePlaylistItems,
 
-        search(): Pager<T> {
+        search(): Pager<MediaPlaylist> {
             const id = getIdFromSrc(pin);
-            return new NavidromePager(ItemType.Playlist, `playlist/${id}`);
+            return new NavidromePager(
+                ItemType.Playlist,
+                `playlist/${id}`,
+                undefined,
+                {
+                    childSort: navidromePlaylistItemsSort.defaultSort,
+                    childSortId: `${pin.src}/2`,
+                },
+                createPlaylistItemsPager
+            );
         },
-    };
+    } as MediaSource<T>;
 }
 
 async function getFilters(filterType: FilterType): Promise<readonly MediaFilter[]> {

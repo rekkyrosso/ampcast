@@ -14,14 +14,14 @@ import PopupMenu, {
     showPopupMenu,
 } from 'components/PopupMenu';
 
-export default async function showMediaSourceOptions(
+export async function showMediaSourceMenu(
     source: MediaSource<any>,
     target: HTMLElement,
     x: number,
     y: number
 ): Promise<void> {
     await showPopupMenu(
-        (props: PopupMenuProps) => <MediaSourceOptions {...props} source={source} />,
+        (props: PopupMenuProps) => <MediaSourceMenu {...props} source={source} />,
         target,
         x,
         y,
@@ -29,11 +29,19 @@ export default async function showMediaSourceOptions(
     );
 }
 
-interface MediaSourceOptionsProps extends PopupMenuProps {
+interface MediaSourceMenuProps {
     source: MediaSource<any>;
 }
 
-function MediaSourceOptions({source, ...props}: MediaSourceOptionsProps) {
+function MediaSourceMenu({source, ...props}: PopupMenuProps & MediaSourceMenuProps) {
+    return (
+        <PopupMenu {...props}>
+            <MediaSourceMenuItems source={source} />
+        </PopupMenu>
+    );
+}
+
+export function MediaSourceMenuItems({source}: MediaSourceMenuProps) {
     const primaryMenuItems = getMenuItems(source.id, 1, source.itemType, source.primaryItems);
     let secondaryMenuItems: MenuItems | undefined;
     let tertiaryMenuItems: MenuItems | undefined;
@@ -55,7 +63,7 @@ function MediaSourceOptions({source, ...props}: MediaSourceOptionsProps) {
                 </PopupMenuItem>
             ) : null;
         return (
-            <PopupMenu {...props}>
+            <>
                 {[
                     getMenuItem(primaryMenuItems, 1, 'sort'),
                     getMenuItem(primaryMenuItems, 1, 'view'),
@@ -64,21 +72,21 @@ function MediaSourceOptions({source, ...props}: MediaSourceOptionsProps) {
                     getMenuItem(tertiaryMenuItems, 3, 'sort'),
                     getMenuItem(tertiaryMenuItems, 3, 'view'),
                 ]}
-            </PopupMenu>
+            </>
         );
     } else if (primaryMenuItems.sort && primaryMenuItems.view) {
         return (
-            <PopupMenu {...props}>
+            <>
                 <PopupMenuItem label="Sort" key="sort">
                     {primaryMenuItems.sort}
                 </PopupMenuItem>
                 <PopupMenuItem label="View" key="view">
                     {primaryMenuItems.view}
                 </PopupMenuItem>
-            </PopupMenu>
+            </>
         );
     }
-    return <PopupMenu {...props}>{primaryMenuItems.sort || primaryMenuItems.view}</PopupMenu>;
+    return <>{primaryMenuItems.sort || primaryMenuItems.view}</>;
 }
 
 interface MenuItems {

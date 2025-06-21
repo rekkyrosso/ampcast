@@ -8,13 +8,12 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
 import {getService} from 'services/mediaServices';
-import Actions from 'components/Actions';
+import DefaultActions, {ActionsProps} from 'components/Actions';
 import Badges from 'components/Badges';
 import CoverArt, {CoverArtProps} from 'components/CoverArt';
 import ExternalLink from 'components/ExternalLink';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import TextBox from 'components/TextBox';
-import {formatTime} from 'utils';
 import './MediaInfo.scss';
 
 export interface MediaInfoProps<T extends MediaObject> {
@@ -133,11 +132,11 @@ function FolderInfo({item: folder}: MediaInfoProps<MediaFolder>) {
     );
 }
 
-export function Title<T extends MediaObject>({title}: Pick<T, 'title'>) {
+function Title<T extends MediaObject>({title}: Pick<T, 'title'>) {
     return <h3 className="title">{title || '(no title)'}</h3>;
 }
 
-export function Description<T extends MediaPlaylist>({description}: Pick<T, 'description'>) {
+function Description<T extends MediaPlaylist>({description}: Pick<T, 'description'>) {
     return description ? (
         <TextBox className="description">
             {description.split(/\n+/).map((text, index) => (
@@ -147,7 +146,7 @@ export function Description<T extends MediaPlaylist>({description}: Pick<T, 'des
     ) : null;
 }
 
-export function Artist<T extends MediaAlbum>({artist}: Pick<T, 'artist'>) {
+function Artist<T extends MediaAlbum>({artist}: Pick<T, 'artist'>) {
     return artist ? (
         <h4 className="artist">
             <span className="text-label">By:</span> {artist}
@@ -171,7 +170,7 @@ export function Owner<T extends MediaItem | MediaPlaylist>({src, owner}: Pick<T,
     );
 }
 
-export function StationName<T extends MediaItem>({stationName}: Pick<T, 'stationName'>) {
+function StationName<T extends MediaItem>({stationName}: Pick<T, 'stationName'>) {
     return stationName ? (
         <p className="station-name">
             <span className="text-label">Station:</span> {stationName}
@@ -179,7 +178,7 @@ export function StationName<T extends MediaItem>({stationName}: Pick<T, 'station
     ) : null;
 }
 
-export function ExternalView({
+function ExternalView({
     src,
     url = '',
     isExternalMedia,
@@ -253,7 +252,7 @@ export function ExternalView({
     );
 }
 
-export function AlbumAndYear<T extends MediaItem>({album, year}: Pick<T, 'album' | 'year'>) {
+function AlbumAndYear<T extends MediaItem>({album, year}: Pick<T, 'album' | 'year'>) {
     return (
         <>
             {album ? (
@@ -270,7 +269,7 @@ export function AlbumAndYear<T extends MediaItem>({album, year}: Pick<T, 'album'
     );
 }
 
-export function Track<T extends MediaItem>({
+function Track<T extends MediaItem>({
     album,
     disc = 1,
     track,
@@ -286,7 +285,7 @@ export function Track<T extends MediaItem>({
     return null;
 }
 
-export function Year<T extends MediaItem>({year}: Pick<T, 'year'>) {
+function Year<T extends MediaItem>({year}: Pick<T, 'year'>) {
     if (year) {
         return <p className="year">Year: {year}</p>;
     } else {
@@ -294,11 +293,7 @@ export function Year<T extends MediaItem>({year}: Pick<T, 'year'>) {
     }
 }
 
-export function Duration<T extends MediaItem>({duration}: Pick<T, 'duration'>) {
-    return <time className="duration">{formatTime(duration)}</time>;
-}
-
-export function Genre<T extends MediaItem>({genres}: Pick<T, 'genres'>) {
+function Genre<T extends MediaItem>({genres}: Pick<T, 'genres'>) {
     if (genres) {
         return (
             <p className="genre">
@@ -310,7 +305,7 @@ export function Genre<T extends MediaItem>({genres}: Pick<T, 'genres'>) {
     }
 }
 
-export function Country<T extends MediaArtist>({country}: Pick<T, 'country'>) {
+function Country<T extends MediaArtist>({country}: Pick<T, 'country'>) {
     if (country) {
         return <p className="country">Country: {country}</p>;
     } else {
@@ -324,4 +319,8 @@ export function Thumbnail({className = '', ...props}: CoverArtProps) {
             <CoverArt size={480} {...props} />
         </div>
     );
+}
+
+function Actions({item}: ActionsProps) {
+    return <DefaultActions item={item} inInfoView />;
 }

@@ -81,16 +81,15 @@ export default function EditFieldsDialog({
     const handleDropHide = useCallback(
         (fields: readonly FieldSpec[] | readonly File[] | DataTransferItem) => {
             if (Array.isArray(fields)) {
-                hideFields(fields.filter((field) => !(field instanceof File)));
+                hideFields(fields as FieldSpec[]);
             }
         },
         [hideFields]
     );
 
     const handleDropShow = useCallback(
-        (items: readonly FieldSpec[] | readonly File[] | DataTransferItem, atIndex: number) => {
-            if (Array.isArray(items)) {
-                const fields = items.filter((field) => !(field instanceof File));
+        (fields: readonly FieldSpec[] | readonly File[] | DataTransferItem, atIndex: number) => {
+            if (Array.isArray(fields)) {
                 showFields(fields);
                 moveFields(fields, atIndex);
             }

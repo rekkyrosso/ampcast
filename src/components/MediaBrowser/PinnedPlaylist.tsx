@@ -1,13 +1,16 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import MediaListLayout from 'types/MediaListLayout';
 import MediaPlaylist from 'types/MediaPlaylist';
 import pinStore from 'services/pins/pinStore';
+import {performAction} from 'components/Actions';
 import Icon from 'components/Icon';
 import {ErrorBoxProps} from 'components/Errors/ErrorBox';
 import MediaItemList from 'components/MediaList/MediaItemList';
 import {defaultMediaItemCard, playlistItemsLayout} from 'components/MediaList/layouts';
 import PlaylistList from 'components/MediaList/PlaylistList';
 import {PagedItemsProps} from './PagedItems';
+import usePinnedPlaylistActions from './usePinnedPlaylistActions';
+import showPinnedPlaylistMenu from './showPinnedPlaylistMenu';
 import './PinnedPlaylist.scss';
 
 const defaultLayout: MediaListLayout = {
@@ -35,8 +38,10 @@ const chartPlaylistItemsLayout: MediaListLayout = {
 };
 
 export default function PinnedPlaylist({source, ...props}: PagedItemsProps<MediaPlaylist>) {
+    const ref = useRef<HTMLDivElement | null>(null);
     const [error, setError] = useState<unknown>();
     const [[pinnedPlaylist], setPinnedPlaylist] = useState<readonly MediaPlaylist[]>([]);
+    const PinnedPlaylistActions = usePinnedPlaylistActions(source);
     const itemsPager = pinnedPlaylist?.pager || null;
     const defaultItemsLayout = pinnedPlaylist?.isChart
         ? chartPlaylistItemsLayout
@@ -53,8 +58,25 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
         }
     }, [pinnedPlaylist]);
 
+    const handleContextMenu = useCallback(
+        async ([playlist]: readonly MediaPlaylist[], x: number, y: number, button: number) => {
+            const action = await showPinnedPlaylistMenu(
+                source,
+                playlist,
+                ref.current!,
+                x,
+                y,
+                button === -1 ? 'right' : 'left'
+            );
+            if (action) {
+                await performAction(action, [playlist]);
+            }
+        },
+        [source]
+    );
+
     return (
-        <div className="panel pinned-playlist">
+        <div className="panel pinned-playlist" ref={ref}>
             {error ? (
                 <PinnedPlaylistError error={error} reportingId={source.id} />
             ) : (
@@ -65,10 +87,12 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
                     layoutOptions={source.primaryItems?.layout}
                     sourceId={source.id}
                     level={1}
-                    onError={setError}
-                    onSelect={setPinnedPlaylist}
                     statusBar={false}
                     disabled
+                    onContextMenu={handleContextMenu}
+                    onError={setError}
+                    onSelect={setPinnedPlaylist}
+                    Actions={PinnedPlaylistActions}
                 />
             )}
             <MediaItemList

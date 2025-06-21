@@ -76,8 +76,16 @@
 
         &-thumbnail,
         &-text {
-            font-size: 1.25em;
             line-height: 1.1;
+            font-size: 1.25em;
+
+            .media.fullscreen & {
+                font-size: 1.375em;
+            }
+
+            .media:fullscreen & {
+                font-size: 1.5em;
+            }
         }
 
         &-thumbnail {

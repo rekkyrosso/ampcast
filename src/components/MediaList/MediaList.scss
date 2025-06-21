@@ -195,6 +195,10 @@
             width: 2em;
             min-width: 2em;
             text-align: center;
+
+            .text {
+                font-size: 0.75em;
+            }
         }
 
         .thumbnail {
@@ -315,6 +319,7 @@
             right: 0.5em;
             bottom: 0.5em;
             padding: 0;
+            overflow: visible;
         }
 
         .h2,
@@ -405,7 +410,7 @@
             .data {
                 &.duration,
                 &.count {
-                    height: 1.2em;
+                    height: 1.25em;
                 }
 
                 .text {
@@ -476,8 +481,16 @@
                 display: none;
             }
 
+            .data {
+                &.duration,
+                &.count {
+                    height: 1.125em;
+                    padding: 0 0.25em;
+                }
+            }
+
             .actions {
-                bottom: 0.375em;
+                bottom: 0.25em;
             }
         }
 

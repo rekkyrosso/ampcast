@@ -78,7 +78,7 @@ const embyPlaylistLayout: Partial<MediaListLayout> = {
     details: ['Name', 'Genre', 'TrackCount', 'Progress'],
 };
 
-const embyPlaylistItemsSort: MediaListSort = {
+export const embyPlaylistItemsSort: MediaListSort = {
     sortOptions: {
         ListItemOrder: 'Position',
         SortName: 'Title',

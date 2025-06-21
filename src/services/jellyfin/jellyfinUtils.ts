@@ -25,12 +25,11 @@ type LegacyBaseItemDto = BaseItemDto & {LUFS?: number | null};
 
 export function createMediaObject<T extends MediaObject>(
     item: BaseItemDto,
-    albums: readonly BaseItemDto[],
-    parent?: MediaObject,
+    parent?: ParentOf<T>,
     childSort?: SortParams
 ): T {
     if (parent?.itemType === ItemType.Folder && item.IsFolder) {
-        return createMediaFolder(item) as T;
+        return createMediaFolder(item, parent) as T;
     } else {
         switch (item.Type) {
             case 'MusicArtist':
@@ -43,8 +42,7 @@ export function createMediaObject<T extends MediaObject>(
                 return createMediaPlaylist(item, childSort) as T;
 
             default: {
-                const album = albums.find((album) => album.Id === item.AlbumId);
-                return createMediaItem(item, album) as T;
+                return createMediaItem(item) as T;
             }
         }
     }
@@ -124,24 +122,21 @@ function createMediaPlaylist(playlist: BaseItemDto, itemSort?: SortParams): Medi
     return mediaPlaylist as MediaPlaylist;
 }
 
-function createMediaFolder(folder: BaseItemDto, parent?: MediaObject): MediaFolder {
+function createMediaFolder(folder: BaseItemDto, parent?: MediaFolder): MediaFolder {
     const fileName = getFileName(folder.Path || '') || folder.Name || '[unknown]';
     const mediaFolder: Writable<SetOptional<MediaFolder, 'pager'>> = {
         itemType: ItemType.Folder,
         src: `jellyfin:folder:${folder.Id}`,
         title: folder.Name || '[unknown]',
         fileName,
-        path: parent?.itemType === ItemType.Folder ? `${parent.path}/${fileName}` : '/',
-        parentFolder: parent as ParentOf<MediaFolder>,
+        path: parent ? `${parent.path}/${fileName}` : '/',
+        parentFolder: parent,
     };
-    mediaFolder.pager = createFolderPager(mediaFolder as MediaFolder);
+    mediaFolder.pager = createFolderPager(mediaFolder as MediaFolder, parent);
     return mediaFolder as MediaFolder;
 }
 
-function createMediaItem(
-    track: LegacyBaseItemDto,
-    album?: LegacyBaseItemDto | undefined
-): MediaItem {
+function createMediaItem(track: LegacyBaseItemDto): MediaItem {
     const isVideo = track.MediaType === 'Video';
     const [source] = track.MediaSources || [];
     const artist_mbid = track.ProviderIds?.MusicBrainzArtist;
@@ -157,7 +152,7 @@ function createMediaItem(
         title: track.Name || '',
         duration: track.RunTimeTicks ? track.RunTimeTicks / 10_000_000 : 0,
         year: track.ProductionYear || undefined,
-        addedAt: parseDate(track.DateCreated || album?.DateCreated),
+        addedAt: parseDate(track.DateCreated),
         playedAt: parseDate(track.UserData?.LastPlayedDate) || 0,
         playCount: track.UserData?.PlayCount || undefined,
         genres: track.Genres || undefined,
@@ -175,7 +170,6 @@ function createMediaItem(
         track_mbid: track.ProviderIds?.MusicBrainzTrack ?? undefined,
         release_mbid: track.ProviderIds?.MusicBrainzAlbum ?? undefined,
         artist_mbids: artist_mbid ? [artist_mbid] : undefined,
-        albumGain: isVideo ? undefined : getGain(album),
         trackGain: isVideo ? undefined : getGain(track),
         bitRate: Math.floor((source?.Bitrate || 0) / 1000) || undefined,
         badge: isVideo
@@ -267,7 +261,7 @@ export function createPlaylistItemsPager(
     });
 }
 
-function createFolderPager(folder: MediaFolder, parent?: MediaObject): Pager<MediaFolderItem> {
+function createFolderPager(folder: MediaFolder, parent?: MediaFolder): Pager<MediaFolderItem> {
     const [, , id] = folder.src.split(':');
     const folderPager = new JellyfinPager<MediaFolderItem>(
         `Users/${jellyfinSettings.userId}/Items`,
@@ -283,8 +277,8 @@ function createFolderPager(folder: MediaFolder, parent?: MediaObject): Pager<Med
         undefined,
         folder
     );
-    if (parent?.itemType === ItemType.Folder) {
-        const parentFolder: MediaFolderItem = {
+    if (parent) {
+        const parentFolder: MediaFolder = {
             ...parent,
             fileName: `../${parent.fileName}`,
         };
@@ -324,8 +318,8 @@ export function getSort({sortBy, sortOrder}: SortParams): {
         SortOrder:
             sortOrder === 1
                 ? 'Ascending'
-                // Pad with 'Ascending'.
-                : sortBy
+                : // Pad with 'Ascending'.
+                  sortBy
                       .split(',')
                       .map((sortBy, index, keys) =>
                           index === 1 &&

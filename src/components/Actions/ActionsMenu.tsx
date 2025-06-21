@@ -5,26 +5,27 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import {browser} from 'utils';
 import {getServiceFromSrc} from 'services/mediaServices';
-import {AddToPlaylistMenuItem, getLabelForAction} from 'components/Actions';
 import PopupMenu, {
     PopupMenuItem,
     PopupMenuProps,
     PopupMenuSeparator,
     showPopupMenu,
 } from 'components/PopupMenu';
-import useIsPlaylistPlayable from './useIsPlaylistPlayable';
+import useIsPlaylistPlayable from 'hooks/useIsPlaylistPlayable';
+import {getLabelForAction} from './Actions';
+import {AddToPlaylistMenuItem} from './PlaylistActions';
 
-export default async function showActionsMenu<T extends MediaObject>(
+export async function showActionsMenu<T extends MediaObject>(
     items: readonly T[],
-    isContextMenu: boolean,
     target: HTMLElement,
     x: number,
     y: number,
-    align: 'left' | 'right' = 'left'
+    align: 'left' | 'right' = 'left',
+    inListView?: boolean
 ): Promise<Action | undefined> {
     return showPopupMenu(
         (props: PopupMenuProps<Action>) => (
-            <ActionsMenu {...props} items={items} isContextMenu={isContextMenu} />
+            <ActionsMenu {...props} items={items} inListView={inListView} />
         ),
         target,
         x,
@@ -33,12 +34,7 @@ export default async function showActionsMenu<T extends MediaObject>(
     );
 }
 
-interface ActionsMenuProps<T extends MediaObject> extends PopupMenuProps<Action> {
-    items: readonly T[];
-    isContextMenu?: boolean;
-}
-
-function ActionsMenu<T extends MediaObject>({items, isContextMenu, ...props}: ActionsMenuProps<T>) {
+export function ActionsMenuItems<T extends MediaObject>({items, inListView}: ActionsMenuProps<T>) {
     const item = items[0];
     const isSingleItem = items.length === 1 && !!item;
     const isPlaylist = item?.itemType === ItemType.Playlist;
@@ -49,9 +45,9 @@ function ActionsMenu<T extends MediaObject>({items, isContextMenu, ...props}: Ac
     const canAddToPlaylist = item?.itemType === ItemType.Media;
 
     return (
-        <PopupMenu<Action> {...props}>
+        <>
             {allPlayable ? <PlayActions disabled={!playableNow} /> : null}
-            {isContextMenu && isSingleItem ? <ContextualActions item={item} /> : null}
+            {isSingleItem ? <ContextualActions item={item} inListView={inListView} /> : null}
             {canAddToPlaylist ? (
                 <>
                     <AddToPlaylistMenuItem items={items as readonly MediaItem[]} />
@@ -66,6 +62,23 @@ function ActionsMenu<T extends MediaObject>({items, isContextMenu, ...props}: Ac
                     key={Action.Info}
                 />
             ) : null}
+        </>
+    );
+}
+
+interface ActionsMenuProps<T extends MediaObject> {
+    items: readonly T[];
+    inListView?: boolean;
+}
+
+function ActionsMenu<T extends MediaObject>({
+    items,
+    inListView,
+    ...props
+}: PopupMenuProps<Action> & ActionsMenuProps<T>) {
+    return (
+        <PopupMenu<Action> {...props}>
+            <ActionsMenuItems items={items} inListView={inListView} />
         </PopupMenu>
     );
 }
@@ -105,21 +118,22 @@ function PlayActions({disabled}: PlayActionsProps) {
 
 interface ContextualActionsProps<T extends MediaObject> {
     item: T;
+    inListView?: boolean;
 }
 
-function ContextualActions<T extends MediaObject>({item}: ContextualActionsProps<T>) {
+function ContextualActions<T extends MediaObject>({item, inListView}: ContextualActionsProps<T>) {
     const service = getServiceFromSrc(item);
 
     return (
         <>
-            {service?.canPin?.(item, true) ? (
+            {service?.canPin?.(item, inListView) ? (
                 <PopupMenuItem<Action>
                     label={item.isPinned ? 'Unpin' : 'Pin'}
                     value={item.isPinned ? Action.Unpin : Action.Pin}
                     key={item.isPinned ? Action.Unpin : Action.Pin}
                 />
             ) : null}
-            {item.rating !== undefined && service?.canRate?.(item, true) ? (
+            {item.rating !== undefined && service?.canRate?.(item, inListView) ? (
                 <PopupMenuItem<Action>
                     label={
                         item.rating
@@ -130,7 +144,7 @@ function ContextualActions<T extends MediaObject>({item}: ContextualActionsProps
                     key={item.rating ? Action.Unlike : Action.Like}
                 />
             ) : null}
-            {item.inLibrary === false && service?.canStore?.(item, true) ? (
+            {item.inLibrary === false && service?.canStore?.(item, inListView) ? (
                 <PopupMenuItem<Action>
                     label={getLabelForAction(service, Action.AddToLibrary)}
                     value={Action.AddToLibrary}
@@ -140,7 +154,7 @@ function ContextualActions<T extends MediaObject>({item}: ContextualActionsProps
             {/* remove doesn't work (https://developer.apple.com/forums/thread/107807) */}
             {service?.id !== 'apple' &&
             item.inLibrary === true &&
-            service?.canStore?.(item, true) ? (
+            service?.canStore?.(item, inListView) ? (
                 <PopupMenuItem<Action>
                     label={getLabelForAction(service, Action.RemoveFromLibrary)}
                     value={Action.RemoveFromLibrary}

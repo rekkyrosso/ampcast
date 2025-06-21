@@ -78,7 +78,7 @@ const jellyfinPlaylistLayout: Partial<MediaListLayout> = {
     details: ['Name', 'Genre', 'TrackCount', 'Progress'],
 };
 
-const jellyfinPlaylistItemsSort: MediaListSort = {
+export const jellyfinPlaylistItemsSort: MediaListSort = {
     sortOptions: {
         ListItemOrder: 'Position',
         SortName: 'Title',
