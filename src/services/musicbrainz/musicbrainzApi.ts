@@ -1,3 +1,4 @@
+import AlbumType from 'types/AlbumType';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
@@ -329,6 +330,31 @@ async function addMetadataBySearch<T extends MediaItem>(
     return lookupItems;
 }
 
+function getAlbumType(
+    release_group_primary_type?: string | null,
+    release_group_secondary_type?: string | null
+): AlbumType | undefined {
+    switch (release_group_primary_type) {
+        case 'Single':
+            return AlbumType.Single;
+
+        case 'EP':
+            return AlbumType.EP;
+
+        default:
+            switch (release_group_secondary_type) {
+                case 'Compilation':
+                    return AlbumType.Compilation;
+
+                case 'Soundtrack':
+                    return AlbumType.Soundtrack;
+
+                case 'Live':
+                    return AlbumType.LiveAlbum;
+            }
+    }
+}
+
 async function lookup<T extends MediaItem>(
     item: T,
     requestInit?: RequestInitWithTimeout
@@ -512,6 +538,7 @@ const musicbrainzApi = {
     addMetadata,
     findBestMatch: findBestMBMatch,
     get: fetchJSON,
+    getAlbumType,
     getISRCs,
     getUrls,
     lookup,

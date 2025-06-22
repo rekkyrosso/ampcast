@@ -55,10 +55,6 @@ const lastfmLovedTracks: MediaSource<MediaItem> = {
     icon: 'heart',
     itemType: ItemType.Media,
     lockActionsStore: true,
-    layout: {
-        view: 'card',
-        fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear'],
-    },
 
     search(): Pager<MediaItem> {
         return new LastFmPager(
@@ -97,28 +93,9 @@ const lastfm: DataService = {
     credentialsRequired: true,
     root: lastfmScrobbles,
     sources: [
-        createTopMultiSource<MediaItem>(ItemType.Media, 'Top Tracks', 'user.getTopTracks', {
-            layout: {
-                view: 'card compact',
-                fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'PlayCount'],
-            },
-        }),
-        createTopMultiSource<MediaAlbum>(ItemType.Album, 'Top Albums', 'user.getTopAlbums', {
-            layout: {
-                view: 'card compact',
-                fields: ['Index', 'Thumbnail', 'Title', 'Artist', 'Year', 'PlayCount'],
-            },
-        }),
-        createTopMultiSource<MediaArtist>(ItemType.Artist, 'Top Artists', 'user.getTopArtists', {
-            layout: {
-                view: 'card minimal',
-                fields: ['Index', 'Thumbnail', 'Title', 'PlayCount'],
-            },
-            secondaryLayout: {
-                view: 'card compact',
-                fields: ['Thumbnail', 'Title', 'Artist', 'Year'],
-            },
-        }),
+        createTopMultiSource<MediaItem>(ItemType.Media, 'Top Tracks', 'user.getTopTracks'),
+        createTopMultiSource<MediaAlbum>(ItemType.Album, 'Top Albums', 'user.getTopAlbums'),
+        createTopMultiSource<MediaArtist>(ItemType.Artist, 'Top Artists', 'user.getTopArtists'),
         lastfmLovedTracks,
         lastfmHistory,
     ],
@@ -223,14 +200,12 @@ async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
 function createTopMultiSource<T extends MediaObject>(
     itemType: T['itemType'],
     title: string,
-    method: string,
-    layouts: Pick<MediaSource<T>, 'layout' | 'secondaryLayout' | 'tertiaryLayout'>
+    method: string
 ): MediaMultiSource<T> {
     const icon = 'star';
     const sourceProps: Except<MediaSource<T>, 'id' | 'search' | 'title'> = {
         icon,
         itemType,
-        ...layouts,
     };
     return {
         id: `lastfm/top/${method.slice(11).toLowerCase()}`,

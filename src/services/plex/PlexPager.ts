@@ -59,7 +59,6 @@ export default class PlexPager<T extends MediaObject> extends OffsetPager<T> {
                     plexItems,
                     parent,
                     albums,
-                    undefined,
                     getSourceSorting(this.childSortId) || options?.childSort
                 );
                 return {items, total};

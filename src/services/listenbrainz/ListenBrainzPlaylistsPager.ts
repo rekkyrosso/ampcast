@@ -1,20 +1,18 @@
-import type {Observable} from 'rxjs';
 import ItemType from 'types/ItemType';
 import MediaPlaylist from 'types/MediaPlaylist';
-import Pager, {Page} from 'types/Pager';
+import {Page} from 'types/Pager';
 import {getTextFromHtml} from 'utils';
 import SequentialPager from 'services/pagers/SequentialPager';
 import pinStore from 'services/pins/pinStore';
 import listenbrainzApi from './listenbrainzApi';
 import ListenBrainzPlaylistItemsPager from './ListenBrainzPlaylistItemsPager';
 
-export default class ListenBrainzPlaylistsPager implements Pager<MediaPlaylist> {
-    private readonly pager: SequentialPager<MediaPlaylist>;
-
+export default class ListenBrainzPlaylistsPager extends SequentialPager<MediaPlaylist> {
     constructor(path: string, singleItem?: boolean) {
         let offset = 0;
-        this.pager = new SequentialPager<MediaPlaylist>(
-            async (count : number): Promise<Page<MediaPlaylist>> => {
+
+        super(
+            async (count: number): Promise<Page<MediaPlaylist>> => {
                 if (singleItem) {
                     const {playlist} =
                         await listenbrainzApi.get<ListenBrainz.PlaylistItemsResponse>(
@@ -39,38 +37,6 @@ export default class ListenBrainzPlaylistsPager implements Pager<MediaPlaylist> 
             },
             {pageSize: 50}
         );
-    }
-
-    get maxSize(): number | undefined {
-        return this.pager.maxSize;
-    }
-
-    get pageSize(): number {
-        return this.pager.pageSize;
-    }
-
-    observeBusy(): Observable<boolean> {
-        return this.pager.observeBusy();
-    }
-
-    observeItems(): Observable<readonly MediaPlaylist[]> {
-        return this.pager.observeItems();
-    }
-
-    observeSize(): Observable<number> {
-        return this.pager.observeSize();
-    }
-
-    observeError(): Observable<unknown> {
-        return this.pager.observeError();
-    }
-
-    disconnect(): void {
-        this.pager.disconnect();
-    }
-
-    fetchAt(index: number, length: number): void {
-        this.pager.fetchAt(index, length);
     }
 
     private createItems(items: readonly {playlist: ListenBrainz.Playlist}[]): MediaPlaylist[] {

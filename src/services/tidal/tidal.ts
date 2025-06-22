@@ -7,7 +7,6 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
 import MediaSource, {MediaMultiSource} from 'types/MediaSource';
-import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import PublicMediaService from 'types/PublicMediaService';
@@ -24,16 +23,6 @@ import './bootstrap';
 
 const serviceId: MediaServiceId = 'tidal';
 
-const defaultLayout: MediaSourceLayout<MediaItem> = {
-    view: 'card',
-    fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
-};
-
-const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
-    view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'TrackCount', 'Description', 'Progress'],
-};
-
 const tidalSearch: MediaMultiSource = {
     id: `${serviceId}/search`,
     title: 'Search',
@@ -43,7 +32,6 @@ const tidalSearch: MediaMultiSource = {
         createSearch<MediaItem>(ItemType.Media, {
             id: 'tracks',
             title: 'Tracks',
-            layout: defaultLayout,
         }),
         createSearch<MediaAlbum>(ItemType.Album, {
             id: 'albums',
@@ -61,7 +49,6 @@ const tidalSearch: MediaMultiSource = {
             id: 'videos',
             title: 'Videos',
             mediaType: MediaType.Video,
-            layout: defaultLayout,
         }),
     ],
 };
@@ -72,7 +59,6 @@ const tidalPlaylists: MediaSource<MediaPlaylist> = {
     icon: 'playlist',
     itemType: ItemType.Playlist,
     lockActionsStore: true,
-    layout: playlistLayout,
 
     search(): Pager<MediaPlaylist> {
         return new TidalPager((cursor) => tidalApi.getMyPlaylists(cursor));
@@ -84,7 +70,6 @@ const tidalDailyDiscovery: MediaSource<MediaItem> = {
     title: 'Daily Discovery',
     icon: 'playlist',
     itemType: ItemType.Media,
-    layout: defaultLayout,
 
     search(): Pager<MediaItem> {
         return new TidalPager((cursor) => tidalApi.getDailyDiscovery(cursor));
@@ -96,7 +81,6 @@ const tidalMyMixes: MediaSource<MediaPlaylist> = {
     title: 'My Mixes',
     icon: 'playlist',
     itemType: ItemType.Playlist,
-    layout: playlistLayout,
 
     search(): Pager<MediaPlaylist> {
         return new TidalPager(() => tidalApi.getMyMixes());
@@ -108,7 +92,6 @@ const tidalNewArrivals: MediaSource<MediaItem> = {
     title: 'New Arrivals',
     icon: 'playlist',
     itemType: ItemType.Media,
-    layout: defaultLayout,
 
     search(): Pager<MediaItem> {
         return new TidalPager((cursor) => tidalApi.getNewArrivals(cursor));

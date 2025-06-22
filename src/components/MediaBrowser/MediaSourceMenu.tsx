@@ -42,14 +42,14 @@ function MediaSourceMenu({source, ...props}: PopupMenuProps & MediaSourceMenuPro
 }
 
 export function MediaSourceMenuItems({source}: MediaSourceMenuProps) {
-    const primaryMenuItems = getMenuItems(source.id, 1, source.itemType, source.primaryItems);
+    const primaryMenuItems = getMenuItems(source, 1, source.itemType);
     let secondaryMenuItems: MenuItems | undefined;
     let tertiaryMenuItems: MenuItems | undefined;
     if (source.secondaryItems?.layout?.view !== 'none' && source.itemType !== ItemType.Media) {
         const itemType = source.itemType === ItemType.Artist ? ItemType.Album : ItemType.Media;
-        secondaryMenuItems = getMenuItems(source.id, 2, itemType, source.secondaryItems);
+        secondaryMenuItems = getMenuItems(source, 2, itemType);
         if (source.tertiaryItems?.layout?.view !== 'none' && source.itemType === ItemType.Artist) {
-            tertiaryMenuItems = getMenuItems(source.id, 3, ItemType.Media, source.tertiaryItems);
+            tertiaryMenuItems = getMenuItems(source, 3, ItemType.Media);
         }
     }
     if (secondaryMenuItems) {
@@ -95,19 +95,20 @@ interface MenuItems {
     view?: React.ReactNode;
 }
 
-function getMenuItems(
-    sourceId: string,
-    level: 1 | 2 | 3,
-    itemType: ItemType,
-    source: MediaSourceItems | undefined
-): MenuItems {
-    const id = `${sourceId}/${level}`;
+function getMenuItems(source: MediaSource<any>, level: 1 | 2 | 3, itemType: ItemType): MenuItems {
+    const id = `${source.sourceId || source.id}/${level}`;
+    const items: MediaSourceItems | undefined =
+        level === 3
+            ? source.tertiaryItems
+            : level === 2
+            ? source.secondaryItems
+            : source.primaryItems;
     const menuItems: MenuItems = {
-        label: source?.label || getDefaultLabel(sourceId, itemType),
+        label: items?.label || getDefaultLabel(source.id, itemType),
     };
-    if (source?.sort) {
-        const sorting = getSourceSorting(id) || source.sort.defaultSort;
-        const sortOptions = source.sort.sortOptions;
+    if (items?.sort) {
+        const sorting = getSourceSorting(id) || items.sort.defaultSort;
+        const sortOptions = items.sort.sortOptions;
         menuItems.sort = (
             <>
                 {Object.keys(sortOptions).map((sortBy) => (
@@ -134,7 +135,7 @@ function getMenuItems(
             </>
         );
     }
-    const views = source?.layout?.views || ['card', 'card compact', 'card small', 'details'];
+    const views = items?.layout?.views || ['card', 'card compact', 'card small', 'details'];
     const listView = document.getElementById(id);
     const currentView = listView?.dataset.view;
     menuItems.view = views.length ? (

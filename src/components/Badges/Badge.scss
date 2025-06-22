@@ -13,7 +13,7 @@
     border-radius: calc(var(--roundness) * 1em);
     font-style: normal;
     font-weight: bold;
-    line-height: 2;
+    line-height: normal;
     text-transform: uppercase;
     user-select: none;
     min-width: 1em;
@@ -34,8 +34,14 @@
     &.explicit {
         border-color: orangered;
         background-color: orangered;
-        color: white;
+        color: black;
         border-radius: calc(var(--roundness) * 0.75em);
+
+        .themed.light & {
+            border-color: brown;
+            background-color: brown;
+            color: white;
+        }
     }
 
     &.live-playback {

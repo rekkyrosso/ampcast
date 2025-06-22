@@ -3,6 +3,7 @@ import MediaItem from 'types/MediaItem';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
+import MediaServiceId from 'types/MediaServiceId';
 import MediaSource from 'types/MediaSource';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
@@ -28,16 +29,18 @@ import youtubeSources, {youtubePlaylists, youtubeSearch, youtubeVideos} from './
 import Credentials from './components/YouTubeCredentials';
 import Login from './components/YouTubeLogin';
 
+const serviceId: MediaServiceId = 'youtube';
+
 const youtube: PublicMediaService = {
-    id: 'youtube',
+    id: serviceId,
     name: 'YouTube',
-    icon: 'youtube',
+    icon: serviceId,
     url: 'https://www.youtube.com',
     credentialsUrl: 'https://console.cloud.google.com/apis/credentials',
     serviceType: ServiceType.PublicMedia,
     primaryMediaType: MediaType.Video,
     Components: {Credentials, Login},
-    defaultHidden: !isStartupService('youtube'),
+    defaultHidden: !isStartupService(serviceId),
     defaultNoScrobble: true,
     internetRequired: true,
     get credentialsLocked(): boolean {
@@ -121,7 +124,7 @@ async function createPlaylist<T extends MediaItem>(
             },
         });
         const mediaPlaylist: MediaPlaylist = {
-            src: `youtube:playlist:${playlist.id}`,
+            src: `${serviceId}:playlist:${playlist.id}`,
             title,
             itemType: ItemType.Playlist,
             pager: new SimplePager(),
@@ -147,6 +150,7 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
         title: pin.title,
         itemType: pin.itemType,
         id: pin.src,
+        sourceId: `${serviceId}/pinned-playlist`,
         icon: 'pin',
         isPin: true,
         secondaryItems: youtubeVideos,

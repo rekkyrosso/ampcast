@@ -39,14 +39,10 @@ import {
 
 const serviceId: MediaServiceId = 'plex';
 
-const plexMediaItemsLayout: MediaListLayout = addRating(mediaItemsLayout);
+const plexTracksLayout: MediaListLayout = addRating(mediaItemsLayout);
 
-const plexMediaItems: MediaSourceItems = {
-    layout: plexMediaItemsLayout,
-};
-
-const plexPlaylistItems: MediaSourceItems = {
-    layout: addRating(playlistItemsLayout),
+const plexTracks: MediaSourceItems = {
+    layout: plexTracksLayout,
 };
 
 const plexAlbumsLayout: MediaListLayout = addRating(albumsLayout);
@@ -79,6 +75,10 @@ const plexArtistAlbumsSort: MediaListSort = {
     },
 };
 
+const plexPlaylistItems: MediaSourceItems = {
+    layout: addRating(playlistItemsLayout),
+};
+
 export const plexSearch: MediaMultiSource = {
     id: `${serviceId}/search`,
     title: 'Search',
@@ -90,7 +90,7 @@ export const plexSearch: MediaMultiSource = {
             title: 'Tracks',
             primaryItems: {
                 layout: {
-                    ...plexMediaItemsLayout,
+                    ...plexTracksLayout,
                     view: 'details',
                 },
             },
@@ -219,9 +219,9 @@ const plexTopTracks: MediaSource<MediaItem> = {
     lockActionsStore: true,
     primaryItems: {
         layout: {
-            ...plexMediaItemsLayout,
+            ...plexTracksLayout,
             card: {
-                ...plexMediaItemsLayout.card,
+                ...plexTracksLayout.card,
                 data: 'Rate',
             },
         },
@@ -348,7 +348,6 @@ export const plexEditablePlaylists: MediaSource<MediaPlaylist> = {
     title: 'Editable Playlists',
     icon: 'playlist',
     itemType: ItemType.Playlist,
-    secondaryItems: plexMediaItems,
 
     search(): Pager<MediaPlaylist> {
         getMusicLibraryId();
@@ -371,7 +370,7 @@ const plexTracksByGenre: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
     filterType: FilterType.ByGenre,
     defaultHidden: true,
-    primaryItems: plexMediaItems,
+    primaryItems: plexTracks,
 
     search(genre?: MediaFilter): Pager<MediaItem> {
         if (genre) {
@@ -395,7 +394,7 @@ const plexTracksByMood: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
     filterType: FilterType.ByMood,
     defaultHidden: true,
-    primaryItems: plexMediaItems,
+    primaryItems: plexTracks,
 
     search(mood?: MediaFilter): Pager<MediaItem> {
         if (mood) {
@@ -585,7 +584,7 @@ const plexRandomTracks: MediaSource<MediaItem> = {
     title: 'Random Tracks',
     icon: 'shuffle',
     itemType: ItemType.Media,
-    primaryItems: plexMediaItems,
+    primaryItems: plexTracks,
 
     search(): Pager<MediaItem> {
         return new PlexPager(

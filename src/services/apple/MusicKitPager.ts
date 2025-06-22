@@ -71,7 +71,7 @@ export default class MusicKitPager<T extends MediaObject> extends SequentialPage
             if (!this.options?.lookup) {
                 this.subscribeTo(
                     this.observeAdditions().pipe(
-                        mergeMap((items) => addUserData(items, true, this.parent))
+                        mergeMap((items) => addUserData(items, this.parent))
                     ),
                     logger
                 );

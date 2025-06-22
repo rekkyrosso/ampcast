@@ -195,6 +195,8 @@
             width: 2em;
             min-width: 2em;
             text-align: center;
+            left: 0.125em;
+            color: var(--text-color-max);
 
             .text {
                 font-size: 0.75em;
@@ -361,6 +363,7 @@
                 &.duration,
                 &.count {
                     background-color: var(--background-mark-color);
+                    color: var(--text-color-max);
                 }
             }
         }
@@ -442,6 +445,7 @@
             --thumbnail-size: 3.25em;
 
             .index {
+                left: 0;
                 top: 0.875em;
 
                 .text {

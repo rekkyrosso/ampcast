@@ -35,18 +35,18 @@ export function createMediaObjects<T extends MediaObject>(
     objects: readonly plex.MediaObject[],
     parent?: ParentOf<T>,
     albums: readonly MediaAlbum[] = [],
-    noPager?: boolean,
-    childSort?: SortParams
+    childSort?: SortParams,
+    noPager?: boolean
 ): readonly T[] {
-    return objects.map((object) => createMediaObject(object, parent, albums, noPager, childSort));
+    return objects.map((object) => createMediaObject(object, parent, albums, childSort, noPager));
 }
 
 export function createMediaObject<T extends MediaObject>(
     object: plex.MediaObject,
     parent?: ParentOf<T>,
     albums: readonly MediaAlbum[] = [],
-    noPager?: boolean,
-    childSort?: SortParams
+    childSort?: SortParams,
+    noPager?: boolean
 ): T {
     switch (object.type) {
         case plexItemType.Clip:

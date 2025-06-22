@@ -7,6 +7,7 @@ import MediaItem from 'types/MediaItem';
 import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
+import MediaServiceId from 'types/MediaServiceId';
 import MediaSource from 'types/MediaSource';
 import Pager from 'types/Pager';
 import Pin, {Pinnable} from 'types/Pin';
@@ -33,15 +34,17 @@ import Credentials from './components/SpotifyCredentials';
 import Login from './components/SpotifyLogin';
 import './bootstrap';
 
+const serviceId: MediaServiceId = 'spotify';
+
 const spotify: PublicMediaService = {
-    id: 'spotify',
+    id: serviceId,
     name: 'Spotify',
-    icon: 'spotify',
+    icon: serviceId,
     url: 'https://www.spotify.com',
     credentialsUrl: 'https://developer.spotify.com/dashboard',
     serviceType: ServiceType.PublicMedia,
     Components: {Credentials, Login},
-    defaultHidden: !isStartupService('spotify'),
+    defaultHidden: !isStartupService(serviceId),
     internetRequired: true,
     get credentialsLocked(): boolean {
         return spotifySettings.credentialsLocked;
@@ -166,6 +169,7 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
         title: pin.title,
         itemType: pin.itemType,
         id: pin.src,
+        sourceId: `${serviceId}/pinned-playlist`,
         icon: 'pin',
         isPin: true,
 
@@ -248,12 +252,12 @@ async function getDroppedItems(
 }
 
 function getSrcFromUrl(src: string): string {
-    if (src.startsWith('spotify:')) {
+    if (src.startsWith(`${serviceId}:`)) {
         return src;
     }
     const url = new URL(src);
     const [id, type] = url.pathname.split('/').reverse();
-    return `spotify:${type}:${id}`;
+    return `${serviceId}:${type}:${id}`;
 }
 
 async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
@@ -334,7 +338,7 @@ async function getTracksById(trackIds: readonly string[]): Promise<readonly Medi
 }
 
 async function getTracksByAlbumId(id: string): Promise<readonly MediaItem[]> {
-    const album = await getMediaObject<MediaAlbum>(`spotify:album:${id}`, true);
+    const album = await getMediaObject<MediaAlbum>(`${serviceId}:album:${id}`, true);
     const tracks = await fetchAllTracks(album);
     album.pager.disconnect();
     return tracks;

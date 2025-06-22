@@ -20,7 +20,7 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
             {...props}
             title={source.title}
             layoutOptions={source.primaryItems?.layout}
-            sourceId={source.id}
+            source={source}
             level={1}
             onSelect={setSelectedArtist}
         />
@@ -32,7 +32,7 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
             className="artist-albums"
             pager={albumsPager}
             layoutOptions={source.secondaryItems?.layout}
-            sourceId={source.id}
+            source={source}
             level={2}
             onSelect={setSelectedAlbum}
             key={selectedArtist?.src}
@@ -46,7 +46,7 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
             pager={tracksPager}
             defaultLayout={albumTracksLayout}
             layoutOptions={source.tertiaryItems?.layout}
-            sourceId={source.id}
+            source={source}
             level={3}
             key={selectedAlbum?.src}
         />
@@ -54,9 +54,9 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
 
     return (
         <div className="panel">
-            {source.secondaryLayout?.view === 'none' ? (
+            {source.secondaryItems?.layout?.view === 'none' ? (
                 artistList
-            ) : source.tertiaryLayout?.view === 'none' ? (
+            ) : source.tertiaryItems?.layout?.view === 'none' ? (
                 <Splitter id="artists-albums-layout" arrange="rows">
                     {artistList}
                     {albumList}

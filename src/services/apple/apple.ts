@@ -8,6 +8,7 @@ import MediaFilter from 'types/MediaFilter';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
+import MediaServiceId from 'types/MediaServiceId';
 import MediaSource from 'types/MediaSource';
 import Pager from 'types/Pager';
 import ParentOf from 'types/ParentOf';
@@ -31,14 +32,16 @@ import Login from './components/AppleLogin';
 import StreamingSettings from './components/AppleStreamingSettings';
 import './bootstrap';
 
+const serviceId: MediaServiceId = 'apple';
+
 const apple: PublicMediaService = {
-    id: 'apple',
+    id: serviceId,
     name: 'Apple Music',
-    icon: 'apple',
+    icon: serviceId,
     url: 'https://music.apple.com',
     credentialsUrl: 'https://developer.apple.com',
     serviceType: ServiceType.PublicMedia,
-    defaultHidden: !isStartupService('apple'),
+    defaultHidden: !isStartupService(serviceId),
     internetRequired: true,
     Components: {Credentials, Login, StreamingSettings},
     get credentialsLocked(): boolean {
@@ -161,7 +164,7 @@ async function createPlaylist<T extends MediaItem>(
         },
     });
     return {
-        src: `apple:${playlist.type}:${playlist.id}`,
+        src: `${serviceId}:${playlist.type}:${playlist.id}`,
         title: name,
         itemType: ItemType.Playlist,
         pager: new SimplePager(),
@@ -181,6 +184,7 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
         title: pin.title,
         itemType: pin.itemType,
         id: pin.src,
+        sourceId: `${serviceId}/pinned-playlist`,
         icon: 'pin',
         isPin: true,
 
@@ -244,7 +248,7 @@ async function getDroppedItems(
 }
 
 function getSrcFromUrl(src: string): string {
-    if (src.startsWith('apple:')) {
+    if (src.startsWith(`${serviceId}:`)) {
         return src;
     }
     const url = new URL(src);
@@ -252,16 +256,16 @@ function getSrcFromUrl(src: string): string {
     if (url.pathname.includes('/album/')) {
         const trackId = url.searchParams.get('i');
         if (trackId) {
-            return `apple:songs:${trackId}`;
+            return `${serviceId}:songs:${trackId}`;
         } else {
-            return `apple:albums:${id}`;
+            return `${serviceId}:albums:${id}`;
         }
     } else if (url.pathname.includes('/artist/')) {
-        return `apple:artists:${id}`;
+        return `${serviceId}:artists:${id}`;
     } else if (url.pathname.includes('/playlist/')) {
-        return `apple:playlists:${id}`;
+        return `${serviceId}:playlists:${id}`;
     } else if (url.pathname.includes('/music-video/')) {
-        return `apple:music-videos:${id}`;
+        return `${serviceId}:music-videos:${id}`;
     }
     return '';
 }
@@ -278,7 +282,7 @@ async function getTracksById(trackIds: readonly string[]): Promise<readonly Medi
 }
 
 async function getTracksByAlbumId(id: string): Promise<readonly MediaItem[]> {
-    const album = await getMediaObject<MediaAlbum>(`apple:albums:${id}`, true);
+    const album = await getMediaObject<MediaAlbum>(`${serviceId}:albums:${id}`, true);
     const tracks = await fetchAllTracks(album);
     album.pager.disconnect();
     return tracks;
@@ -413,18 +417,17 @@ async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
 
 export async function addUserData<T extends MediaObject>(
     items: readonly T[],
-    inListView = false,
     parent?: ParentOf<T>
 ): Promise<void> {
     const isAlbumTrack = parent?.itemType === ItemType.Album;
     items = items.filter(
         (item) =>
             item.inLibrary === undefined &&
-            !(isAlbumTrack && item.src.startsWith('apple:library-')) &&
+            !(isAlbumTrack && item.src.startsWith(`${serviceId}:library-`)) &&
             !!item.apple?.catalogId
     );
     const [item] = items;
-    if (!item || !apple.canStore?.(item, inListView)) {
+    if (!item || !canStore?.(item)) {
         return;
     }
     const [, type] = item.src.split(':');

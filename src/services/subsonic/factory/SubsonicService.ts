@@ -15,7 +15,6 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {PersonalMediaServiceId} from 'types/MediaServiceId';
 import MediaSource, {MediaMultiSource} from 'types/MediaSource';
-import MediaSourceLayout from 'types/MediaSourceLayout';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
@@ -39,16 +38,6 @@ import SubsonicAuth from './SubsonicAuth';
 import subsonicScrobbler from './subsonicScrobbler';
 import FilterBrowser from 'components/MediaBrowser/FilterBrowser';
 import FolderBrowser from 'components/MediaBrowser/FolderBrowser';
-
-const playlistLayout: MediaSourceLayout<MediaPlaylist> = {
-    view: 'card compact',
-    fields: ['Thumbnail', 'Title', 'TrackCount', 'Description', 'Progress'],
-};
-
-const playlistItemsLayout: MediaSourceLayout<MediaItem> = {
-    view: 'details',
-    fields: ['Index', 'Title', 'Artist', 'Album', 'Track', 'Duration', 'Genre', 'PlayCount'],
-};
 
 export default class SubsonicService implements PersonalMediaService {
     readonly api: SubsonicApi;
@@ -114,10 +103,6 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'heart',
             itemType: ItemType.Media,
             lockActionsStore: true,
-            layout: {
-                view: 'card',
-                fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
-            },
 
             search(): Pager<MediaItem> {
                 return new SubsonicPager(
@@ -155,10 +140,6 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'Recently Added',
             icon: 'recently-added',
             itemType: ItemType.Album,
-            layout: {
-                view: 'card compact',
-                fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'AddedAt'],
-            },
 
             search(): Pager<MediaAlbum> {
                 return new SubsonicPager(
@@ -195,14 +176,6 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'Most Played',
             icon: 'most-played',
             itemType: ItemType.Album,
-            layout: {
-                view: 'card compact',
-                fields: ['Thumbnail', 'Title', 'Artist', 'Year', 'PlayCount'],
-            },
-            secondaryLayout: {
-                view: 'details',
-                fields: ['Index', 'Title', 'Artist', 'Duration', 'PlayCount'],
-            },
 
             search(): Pager<MediaAlbum> {
                 return new SubsonicPager(
@@ -221,8 +194,6 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'Playlists',
             icon: 'playlist',
             itemType: ItemType.Playlist,
-            layout: playlistLayout,
-            secondaryLayout: playlistItemsLayout,
 
             search(): Pager<MediaPlaylist> {
                 return new SubsonicPager(
@@ -244,10 +215,6 @@ export default class SubsonicService implements PersonalMediaService {
             filterType: FilterType.ByGenre,
             Component: FilterBrowser,
             defaultHidden: true,
-            layout: {
-                view: 'details',
-                fields: ['Title', 'Artist', 'Album', 'Track', 'Duration', 'PlayCount'],
-            },
 
             search(genre?: MediaFilter): Pager<MediaItem> {
                 if (genre) {
@@ -322,10 +289,6 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'shuffle',
             itemType: ItemType.Media,
             defaultHidden: true,
-            layout: {
-                view: 'card',
-                fields: ['Thumbnail', 'Title', 'Artist', 'AlbumAndYear', 'Duration'],
-            },
 
             search(): Pager<MediaItem> {
                 return new SubsonicPager(service, ItemType.Media, async () => {
@@ -358,10 +321,6 @@ export default class SubsonicService implements PersonalMediaService {
             mediaType: MediaType.Video,
             defaultHidden: true,
             disabled: id === 'gonic',
-            layout: {
-                view: 'card compact',
-                fields: ['Thumbnail', 'Title', 'Duration'],
-            },
 
             search(): Pager<MediaItem> {
                 return new SubsonicPager(
@@ -382,10 +341,6 @@ export default class SubsonicService implements PersonalMediaService {
             itemType: ItemType.Media,
             linearType: LinearType.Station,
             defaultHidden: true,
-            layout: {
-                view: 'card',
-                fields: ['Thumbnail', 'Title', 'Description'],
-            },
 
             search(): Pager<MediaItem> {
                 return new SubsonicPager(
@@ -596,6 +551,7 @@ export default class SubsonicService implements PersonalMediaService {
             title: pin.title,
             itemType: pin.itemType,
             id: pin.src,
+            sourceId: `${this.id}/pinned-playlist`,
             icon: 'pin',
             isPin: true,
 

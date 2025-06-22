@@ -16,7 +16,7 @@ export default function Albums({source, ...props}: PagedItemsProps<MediaAlbum>) 
             {...props}
             title={source.title}
             layoutOptions={source.primaryItems?.layout}
-            sourceId={source.id}
+            source={source}
             level={1}
             onSelect={setSelectedAlbum}
         />
@@ -29,7 +29,7 @@ export default function Albums({source, ...props}: PagedItemsProps<MediaAlbum>) 
             pager={tracksPager}
             defaultLayout={albumTracksLayout}
             layoutOptions={source.secondaryItems?.layout}
-            sourceId={source.id}
+            source={source}
             level={2}
             key={selectedAlbum?.src}
         />

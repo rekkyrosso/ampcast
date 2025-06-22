@@ -10,7 +10,7 @@ export default function MediaItems({source, ...props}: PagedItemsProps<MediaItem
                 {...props}
                 title={source.title}
                 layoutOptions={source.primaryItems?.layout}
-                sourceId={source.id}
+                source={source}
             />
         </div>
     );

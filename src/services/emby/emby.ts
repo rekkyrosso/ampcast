@@ -133,7 +133,7 @@ async function createPlaylist<T extends MediaItem>(
 ): Promise<MediaPlaylist> {
     const playlist = await embyApi.createPlaylist(name, description, items.map(getIdFromSrc));
     return {
-        src: `emby:playlist:${playlist.Id}`,
+        src: `${serviceId}:playlist:${playlist.Id}`,
         title: name,
         itemType: ItemType.Playlist,
         trackCount: items.length,
@@ -149,6 +149,7 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
         title: pin.title,
         itemType: pin.itemType,
         id: pin.src,
+        sourceId: `${serviceId}/pinned-playlist`,
         icon: 'pin',
         isPin: true,
         secondaryItems: {sort: embyPlaylistItemsSort},

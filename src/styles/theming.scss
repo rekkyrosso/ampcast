@@ -50,6 +50,10 @@
             var(--text-color-s),
             var(--text-color-l));
 
+    --text-color-max: hsl(var(--text-color-h),
+            var(--text-color-s),
+            max(var(--text-color-l), 80%));
+
     --grey1-color: hsl(var(--text-color-h),
             calc(var(--text-color-s) * 0.5),
             calc(var(--text-color-l) * 0.5));
@@ -138,6 +142,10 @@
 .themed.light {
     --background-mark-color: rgba(0, 0, 0, 0.1);
     --thumbnail-border-color: var(--black);
+
+    --text-color-max: hsl(var(--text-color-h),
+            var(--text-color-s),
+            min(var(--text-color-l), 20%));
 
     --grey1-color: hsl(var(--text-color-h),
             calc(var(--text-color-s) * 0.5),

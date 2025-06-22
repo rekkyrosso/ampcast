@@ -244,6 +244,9 @@ declare namespace ListenBrainz {
             readonly release_mbid: string;
             readonly release_msid: string | null;
             readonly release_name: string;
+            readonly release_group_mbid: string;
+            readonly release_group_primary_type: string;
+            readonly release_group_secondary_type: string | null;
         }
     }
 

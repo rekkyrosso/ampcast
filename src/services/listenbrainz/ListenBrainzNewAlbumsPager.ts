@@ -2,6 +2,7 @@ import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import {musicBrainzHost} from 'services/musicbrainz';
+import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import MusicBrainzAlbumTracksPager from 'services/musicbrainz/MusicBrainzAlbumTracksPager';
 import ErrorPager from 'services/pagers/ErrorPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
@@ -17,14 +18,21 @@ export default class ListenBrainzNewAlbumsPager extends SimpleMediaPager<MediaAl
                 `user/${listenbrainzSettings.userId}/fresh_releases`,
                 {future: false}
             );
-            return releases.map((release) => this.createMediaAlbum(release));
+            return (releases as ListenBrainz.User.FreshRelease[])
+                .reverse()
+                .map((release) => this.createMediaAlbum(release));
         });
     }
 
     private createMediaAlbum(album: ListenBrainz.User.FreshRelease): MediaAlbum {
         const mbid = album.release_mbid || undefined;
+        const releaseDate = new Date(album.release_date);
         return {
             itemType: ItemType.Album,
+            albumType: musicbrainzApi.getAlbumType(
+                album.release_group_primary_type,
+                album.release_group_secondary_type
+            ),
             src: `listenbrainz:album:${nanoid()}`,
             externalUrl: mbid ? `${musicBrainzHost}/release/${mbid}` : undefined,
             title: album.release_name,
@@ -34,9 +42,8 @@ export default class ListenBrainzNewAlbumsPager extends SimpleMediaPager<MediaAl
             caa_mbid: album?.caa_release_mbid,
             playCount: album.listen_count,
             trackCount: undefined,
-            year: album.release_date
-                ? new Date(album.release_date).getFullYear() || undefined
-                : undefined,
+            year: releaseDate.getFullYear() || undefined,
+            releasedAt: Math.round(releaseDate.getTime() / 1000) || undefined,
             pager: mbid
                 ? new MusicBrainzAlbumTracksPager(mbid)
                 : new ErrorPager(Error('No MusicBrainz id')),

@@ -110,7 +110,6 @@ export default function AddToPlaylistDialog<T extends MediaItem>({
                     </select>
                 </p>
                 <PlaylistList
-                    sourceId="add-to-playlist-dialog"
                     title={selectedService ? `${selectedService?.name}: Playlists` : ''}
                     pager={playlistsPager}
                     defaultLayout={defaultLayout}

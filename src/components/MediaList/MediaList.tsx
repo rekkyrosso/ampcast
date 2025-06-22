@@ -1,9 +1,10 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import {Except} from 'type-fest';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaListLayout, {Field} from 'types/MediaListLayout';
 import MediaObject from 'types/MediaObject';
+import MediaSource from 'types/MediaSource';
 import Pager from 'types/Pager';
 import {setSourceFields} from 'services/mediaServices/servicesSettings';
 import {ActionsProps, performAction, showActionsMenu} from 'components/Actions';
@@ -30,7 +31,7 @@ export interface MediaListProps<T extends MediaObject>
         ListViewProps<T>,
         'items' | 'itemKey' | 'itemClassName' | 'layout' | 'storageId'
     > {
-    sourceId: string;
+    source?: MediaSource<any>;
     level?: 1 | 2 | 3;
     pager: Pager<T> | null;
     defaultLayout?: MediaListLayout;
@@ -45,7 +46,7 @@ export interface MediaListProps<T extends MediaObject>
 }
 
 export default function MediaList<T extends MediaObject>({
-    sourceId,
+    source,
     level = 1,
     className = '',
     defaultLayout = defaultMediaListLayout,
@@ -66,7 +67,8 @@ export default function MediaList<T extends MediaObject>({
     Error = ErrorBox,
     ...props
 }: MediaListProps<T>) {
-    const id = `${sourceId}/${level}`;
+    const uniqueId = useId();
+    const id = source ? `${source.sourceId || source.id}/${level}` : uniqueId;
     const containerRef = useRef<HTMLDivElement | null>(null);
     const layout = useMediaListLayout(id, defaultLayout, layoutOptions, Actions);
     const [scrollIndex, setScrollIndex] = useState(0);

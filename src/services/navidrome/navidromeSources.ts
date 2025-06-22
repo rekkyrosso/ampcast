@@ -26,16 +26,6 @@ import {
 
 const serviceId: MediaServiceId = 'navidrome';
 
-const navidromePlaylistLayout: Partial<MediaListLayout> = {
-    card: {
-        h1: 'Name',
-        h2: 'Description',
-        h3: 'Progress',
-        data: 'TrackCount',
-    },
-    details: ['Name', 'Description', 'TrackCount', 'Progress'],
-};
-
 const navidromeArtistAlbumsSort: MediaListSort = {
     sortOptions: {
         name: 'Title',
@@ -45,6 +35,16 @@ const navidromeArtistAlbumsSort: MediaListSort = {
         sortBy: 'max_year',
         sortOrder: -1,
     },
+};
+
+const navidromePlaylistLayout: Partial<MediaListLayout> = {
+    card: {
+        h1: 'Name',
+        h2: 'Description',
+        h3: 'Progress',
+        data: 'TrackCount',
+    },
+    details: ['Name', 'Description', 'TrackCount', 'Progress'],
 };
 
 const navidromePlaylistItemsLayout: Partial<MediaListLayout> = {

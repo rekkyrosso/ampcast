@@ -32,7 +32,7 @@ import {CreateChildPager} from 'services/pagers/AbstractPager';
 
 const serviceId: MediaServiceId = 'jellyfin';
 
-const jellyfinTracksSort: MediaListSort = {
+const jellyfinSongsSort: MediaListSort = {
     sortOptions: {
         Name: 'Title',
         'Artist,Album,SortName': 'Artist',
@@ -125,9 +125,9 @@ const jellyfinLikedSongs: MediaSource<MediaItem> = {
     icon: 'heart',
     itemType: ItemType.Media,
     lockActionsStore: true,
-    primaryItems: {sort: jellyfinTracksSort},
+    primaryItems: {sort: jellyfinSongsSort},
 
-    search(_, sort = jellyfinTracksSort.defaultSort): Pager<MediaItem> {
+    search(_, sort = jellyfinSongsSort.defaultSort): Pager<MediaItem> {
         return createItemsPager({
             ParentId: getMusicLibraryId(),
             Filters: 'IsFavorite',
@@ -297,9 +297,9 @@ const jellyfinTracksByGenre: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
     filterType: FilterType.ByGenre,
     defaultHidden: true,
-    primaryItems: {sort: jellyfinTracksSort},
+    primaryItems: {sort: jellyfinSongsSort},
 
-    search(genre?: MediaFilter, sort = jellyfinTracksSort.defaultSort): Pager<MediaItem> {
+    search(genre?: MediaFilter, sort = jellyfinSongsSort.defaultSort): Pager<MediaItem> {
         if (genre) {
             return createItemsPager({
                 ParentId: getMusicLibraryId(),
@@ -554,14 +554,14 @@ function createSearch<T extends MediaObject>(
 ): MediaSource<T> {
     const id = `${serviceId}/search/${props.id}`;
     let options: Partial<PagerConfig> | undefined;
-    let createChildPager: CreateChildPager<T> | undefined;
+    let createChildPager: CreateChildPager<any> | undefined;
     switch (itemType) {
         case ItemType.Artist:
             options = {
                 childSort: jellyfinArtistAlbumsSort.defaultSort,
                 childSortId: `${id}/2`,
             };
-            createChildPager = createArtistAlbumsPager as any;
+            createChildPager = createArtistAlbumsPager;
             break;
 
         case ItemType.Playlist:
@@ -569,7 +569,7 @@ function createSearch<T extends MediaObject>(
                 childSort: jellyfinPlaylistItemsSort.defaultSort,
                 childSortId: `${id}/2`,
             };
-            createChildPager = createPlaylistItemsPager as any;
+            createChildPager = createPlaylistItemsPager;
             break;
     }
     return {

@@ -85,7 +85,7 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
                     title={source.title}
                     defaultLayout={defaultLayout}
                     layoutOptions={source.primaryItems?.layout}
-                    sourceId={source.id}
+                    source={source}
                     level={1}
                     statusBar={false}
                     disabled
@@ -101,7 +101,7 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
                 pager={itemsPager}
                 defaultLayout={defaultItemsLayout}
                 layoutOptions={source.secondaryItems?.layout}
-                sourceId={source.id}
+                source={source}
                 level={2}
                 emptyMessage="Empty playlist"
                 onError={setError}

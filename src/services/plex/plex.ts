@@ -114,7 +114,7 @@ function canPin(item: MediaObject): boolean {
 }
 
 function canRate<T extends MediaObject>(item: T, inListView?: boolean): boolean {
-    if (inListView || !item.src.startsWith('plex:') || item.synthetic) {
+    if (inListView || !item.src.startsWith(`${serviceId}:`) || item.synthetic) {
         return false;
     }
     switch (item.itemType) {
@@ -143,7 +143,7 @@ async function createPlaylist<T extends MediaItem>(
 ): Promise<MediaPlaylist> {
     const playlist = await plexApi.createPlaylist(name, description, items);
     return {
-        src: `plex:playlist:${playlist.ratingKey}`,
+        src: `${serviceId}:playlist:${playlist.ratingKey}`,
         title: name,
         itemType: ItemType.Playlist,
         pager: new SimplePager(),
@@ -159,6 +159,7 @@ function createSourceFromPin<T extends MediaObject>(pin: Pin): MediaSource<T> {
         title: pin.title,
         itemType: pin.itemType,
         id: pin.src,
+        sourceId: `${serviceId}/pinned-playlist`,
         icon: 'pin',
         isPin: true,
 

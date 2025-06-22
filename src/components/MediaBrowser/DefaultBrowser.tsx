@@ -6,6 +6,7 @@ import SearchBar from 'components/SearchBar';
 import useSearch from 'hooks/useSearch';
 import {MediaBrowserProps} from './MediaBrowser';
 import MediaSourceSelector from './MediaSourceSelector';
+import MenuBar from './MenuBar';
 import PageHeader from './PageHeader';
 import PagedItems from './PagedItems';
 
@@ -50,7 +51,9 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
                     menuButtonSource={showPagerHeader ? undefined : selectedSource}
                     onSourceChange={setSelectedSource}
                 />
-            ) : null}
+            ) : showPagerHeader ? null : (
+                <MenuBar source={selectedSource} />
+            )}
             <PagedItems
                 service={service}
                 source={selectedSource}

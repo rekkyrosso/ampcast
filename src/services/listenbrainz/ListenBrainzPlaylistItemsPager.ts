@@ -1,22 +1,18 @@
-import type {Observable} from 'rxjs';
-import {Subscription, mergeMap} from 'rxjs';
+import {mergeMap} from 'rxjs';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
-import Pager, {Page} from 'types/Pager';
+import {Page} from 'types/Pager';
+import {Logger} from 'utils';
 import SequentialPager from 'services/pagers/SequentialPager';
 import listenbrainzApi from './listenbrainzApi';
-import {Logger} from 'utils';
 
 const logger = new Logger('ListenBrainzPlaylistItemsPager');
 
-export default class ListenBrainzPlaylistItemsPager implements Pager<MediaItem> {
-    private readonly pager: SequentialPager<MediaItem>;
-    private subscriptions?: Subscription;
-
+export default class ListenBrainzPlaylistItemsPager extends SequentialPager<MediaItem> {
     constructor(playlist_mbid: string) {
         let offset = 0;
-        this.pager = new SequentialPager<MediaItem>(
+        super(
             async (count: number): Promise<Page<MediaItem>> => {
                 const {playlist} = await listenbrainzApi.get<ListenBrainz.PlaylistItemsResponse>(
                     `playlist/${playlist_mbid}`,
@@ -31,52 +27,15 @@ export default class ListenBrainzPlaylistItemsPager implements Pager<MediaItem> 
         );
     }
 
-    get maxSize(): number | undefined {
-        return this.pager.maxSize;
-    }
+    protected connect(): void {
+        if (!this.disconnected && !this.connected) {
+            super.connect();
 
-    get pageSize(): number {
-        return this.pager.pageSize;
-    }
-
-    observeBusy(): Observable<boolean> {
-        return this.pager.observeBusy();
-    }
-
-    observeItems(): Observable<readonly MediaItem[]> {
-        return this.pager.observeItems();
-    }
-
-    observeSize(): Observable<number> {
-        return this.pager.observeSize();
-    }
-
-    observeError(): Observable<unknown> {
-        return this.pager.observeError();
-    }
-
-    disconnect(): void {
-        this.pager.disconnect();
-        this.subscriptions?.unsubscribe();
-    }
-
-    fetchAt(index: number, length: number): void {
-        if (!this.subscriptions) {
-            this.connect();
-        }
-
-        this.pager.fetchAt(index, length);
-    }
-
-    private connect(): void {
-        if (!this.subscriptions) {
-            this.subscriptions = new Subscription();
-
-            this.subscriptions.add(
-                this.pager
-                    .observeAdditions()
-                    .pipe(mergeMap((items) => listenbrainzApi.addUserData(items)))
-                    .subscribe(logger)
+            this.subscribeTo(
+                this.observeAdditions().pipe(
+                    mergeMap((items) => listenbrainzApi.addUserData(items))
+                ),
+                logger
             );
         }
     }

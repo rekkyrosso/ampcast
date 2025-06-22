@@ -1,3 +1,4 @@
+import ItemType from 'types/ItemType';
 import MediaListLayout, {Field} from 'types/MediaListLayout';
 
 export const defaultMediaItemCard: MediaListLayout['card'] = {
@@ -155,3 +156,22 @@ export const playlistItemsLayout: MediaListLayout = {
     details: ['Title', 'Artist', 'Album', 'Duration', 'Year', 'Genre'],
     extraFields: allMediaItemFields,
 };
+
+export function getDefaultLayout(itemType: ItemType): MediaListLayout {
+    switch (itemType) {
+        case ItemType.Album:
+            return albumsLayout;
+
+        case ItemType.Artist:
+            return artistsLayout;
+
+        case ItemType.Folder:
+            return folderItemsLayout;
+
+        case ItemType.Media:
+            return mediaItemsLayout;
+
+        case ItemType.Playlist:
+            return playlistsLayout;
+    }
+}

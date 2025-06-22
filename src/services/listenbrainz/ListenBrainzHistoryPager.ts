@@ -1,35 +1,22 @@
-import type {Observable} from 'rxjs';
-import {
-    BehaviorSubject,
-    Subscription,
-    distinctUntilChanged,
-    from,
-    mergeMap,
-    skipWhile,
-    tap,
-} from 'rxjs';
+import {from, mergeMap, tap} from 'rxjs';
 import getYouTubeID from 'get-youtube-id';
 import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
-import Pager, {Page, PagerConfig} from 'types/Pager';
+import {Page, PagerConfig} from 'types/Pager';
+import {Logger} from 'utils';
 import {getMediaLookupServices} from 'services/mediaServices';
 import {musicBrainzHost} from 'services/musicbrainz';
 import SequentialPager from 'services/pagers/SequentialPager';
 import youtubeApi from 'services/youtube/youtubeApi';
-import {Logger} from 'utils';
 import listenbrainzApi from './listenbrainzApi';
 import listenbrainzSettings from './listenbrainzSettings';
 
 const logger = new Logger('ListenBrainzHistoryPager');
 
-export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
+export default class ListenBrainzHistoryPager extends SequentialPager<MediaItem> {
     static maxPageSize = 100;
-    private readonly pager: SequentialPager<MediaItem>;
-    private readonly size$ = new BehaviorSubject<number>(-1);
-    private nextPageParams: Record<string, string | number> | undefined = undefined;
-    private subscriptions?: Subscription;
 
     constructor(
         private readonly type: 'listens' | 'playing-now',
@@ -37,7 +24,9 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
         private readonly fetchListenCount = false,
         options?: Partial<PagerConfig>
     ) {
-        this.pager = new SequentialPager<MediaItem>(
+        let nextPageParams: Record<string, string | number> | undefined = undefined;
+
+        super(
             async (count: number): Promise<Page<MediaItem>> => {
                 try {
                     const {payload} = await listenbrainzApi.get<ListenBrainz.User.Listens>(
@@ -45,15 +34,13 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
                         {
                             ...params,
                             count,
-                            ...this.nextPageParams,
+                            ...nextPageParams,
                         }
                     );
                     const listens = payload.listens;
                     const items = this.createItems(listens);
                     const atEnd = items.length < count;
-                    this.nextPageParams = atEnd
-                        ? undefined
-                        : {max_ts: listens.at(-1)!.listened_at - 1};
+                    nextPageParams = atEnd ? undefined : {max_ts: listens.at(-1)!.listened_at - 1};
                     return {items, atEnd};
                 } catch (err) {
                     if (this.isNoContentError(err)) {
@@ -62,70 +49,31 @@ export default class ListenBrainzHistoryPager implements Pager<MediaItem> {
                     throw err;
                 }
             },
-            {pageSize: type === 'playing-now' ? 1 : 50, ...options}
+            {pageSize: type === 'playing-now' ? 1 : 100, ...options}
         );
-    }
-
-    get maxSize(): number | undefined {
-        return this.pager.maxSize;
-    }
-
-    get pageSize(): number {
-        return this.pager.pageSize;
-    }
-
-    observeBusy(): Observable<boolean> {
-        return this.pager.observeBusy();
-    }
-
-    observeItems(): Observable<readonly MediaItem[]> {
-        return this.pager.observeItems();
-    }
-
-    observeSize(): Observable<number> {
-        return this.size$.pipe(
-            skipWhile((size) => size === -1),
-            distinctUntilChanged()
-        );
-    }
-
-    observeError(): Observable<unknown> {
-        return this.pager.observeError();
-    }
-
-    disconnect(): void {
-        this.pager.disconnect();
-        this.subscriptions?.unsubscribe();
-    }
-
-    fetchAt(index: number, length: number): void {
-        if (!this.subscriptions) {
-            this.connect();
-        }
-
-        this.pager.fetchAt(index, length);
     }
 
     private get isNowPlaying(): boolean {
         return this.type === 'playing-now';
     }
 
-    private connect(): void {
-        if (!this.subscriptions) {
-            this.subscriptions = new Subscription();
+    protected connect(): void {
+        if (!this.disconnected && !this.connected) {
+            super.connect();
 
-            this.subscriptions.add(
-                this.pager
-                    .observeAdditions()
-                    .pipe(mergeMap((items) => listenbrainzApi.addUserData(items)))
-                    .subscribe(logger)
+            this.subscribeTo(
+                this.observeAdditions().pipe(
+                    mergeMap((items) => listenbrainzApi.addUserData(items))
+                ),
+                logger
             );
 
             if (this.fetchListenCount) {
-                this.subscriptions.add(
-                    from(listenbrainzApi.getListenCount())
-                        .pipe(tap((total) => this.size$.next(total)))
-                        .subscribe(logger)
+                this.subscribeTo(
+                    from(listenbrainzApi.getListenCount()).pipe(
+                        tap((total) => (this.size = total))
+                    ),
+                    logger
                 );
             }
         }

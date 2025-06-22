@@ -32,7 +32,7 @@ import {createArtistAlbumsPager, createPlaylistItemsPager, getSort} from './emby
 
 const serviceId: MediaServiceId = 'emby';
 
-const embyTracksSort: MediaListSort = {
+const embySongsSort: MediaListSort = {
     sortOptions: {
         SortName: 'Title',
         'Artist,Album,ParentIndexNumber,IndexNumber,SortName': 'Artist',
@@ -125,9 +125,9 @@ const embyLikedSongs: MediaSource<MediaItem> = {
     icon: 'heart',
     itemType: ItemType.Media,
     lockActionsStore: true,
-    primaryItems: {sort: embyTracksSort},
+    primaryItems: {sort: embySongsSort},
 
-    search(_, sort = embyTracksSort.defaultSort): Pager<MediaItem> {
+    search(_, sort = embySongsSort.defaultSort): Pager<MediaItem> {
         return createItemsPager({
             ParentId: getMusicLibraryId(),
             Filters: 'IsFavorite',
@@ -301,9 +301,9 @@ const embyTracksByGenre: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
     filterType: FilterType.ByGenre,
     defaultHidden: true,
-    primaryItems: {sort: embyTracksSort},
+    primaryItems: {sort: embySongsSort},
 
-    search(genre?: MediaFilter, sort = embyTracksSort.defaultSort): Pager<MediaItem> {
+    search(genre?: MediaFilter, sort = embySongsSort.defaultSort): Pager<MediaItem> {
         if (genre) {
             return createItemsPager({
                 ParentId: getMusicLibraryId(),
@@ -558,14 +558,14 @@ function createSearch<T extends MediaObject>(
 ): MediaSource<T> {
     const id = `${serviceId}/search/${props.id}`;
     let options: Partial<PagerConfig> | undefined;
-    let createChildPager: CreateChildPager<T> | undefined;
+    let createChildPager: CreateChildPager<any> | undefined;
     switch (itemType) {
         case ItemType.Artist:
             options = {
                 childSort: embyArtistAlbumsSort.defaultSort,
                 childSortId: `${id}/2`,
             };
-            createChildPager = createArtistAlbumsPager as any;
+            createChildPager = createArtistAlbumsPager;
             break;
 
         case ItemType.Playlist:
@@ -573,7 +573,7 @@ function createSearch<T extends MediaObject>(
                 childSort: embyPlaylistItemsSort.defaultSort,
                 childSortId: `${id}/2`,
             };
-            createChildPager = createPlaylistItemsPager as any;
+            createChildPager = createPlaylistItemsPager;
             break;
     }
     return {

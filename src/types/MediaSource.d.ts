@@ -1,6 +1,5 @@
 import type React from 'react';
 import type {IconName} from 'components/Icon';
-import ChildOf from './ChildOf';
 import FilterType from './FilterType';
 import LinearType from './LinearType';
 import MediaAlbum from './MediaAlbum';
@@ -13,7 +12,6 @@ import MediaListSort from './MediaListSort';
 import MediaObject from './MediaObject';
 import MediaPlaylist from './MediaPlaylist';
 import MediaService from './MediaService';
-import MediaSourceLayout from './MediaSourceLayout';
 import MediaType from './MediaType';
 import Pager from './Pager';
 import {Pinnable} from './Pin';
@@ -39,6 +37,7 @@ export default interface MediaSource<T extends MediaObject> {
     readonly mediaType?: T extends MediaItem ? MediaType : never;
     readonly linearType?: T extends MediaItem ? LinearType : never;
     readonly filterType?: FilterType;
+    readonly sourceId?: string; // Alternative `id` for settings.
     readonly primaryItems?: MediaSourceItems;
     readonly secondaryItems?: T extends MediaItem ? never : MediaSourceItems;
     readonly tertiaryItems?: T extends MediaArtist ? Exclude<MediaSourceItems, 'sort'> : never;
@@ -52,11 +51,6 @@ export default interface MediaSource<T extends MediaObject> {
         params?: SearchParams | MediaFilter | Record<string, unknown>,
         sort?: SortParams
     ): Pager<T>;
-
-    // DELETE
-    readonly layout?: MediaSourceLayout<T>;
-    readonly secondaryLayout?: MediaSourceLayout<ChildOf<T>>;
-    readonly tertiaryLayout?: MediaSourceLayout<ChildOf<ChildOf<T>>>;
 }
 
 export type MediaMultiSource<T extends MediaObject = any> = Pick<

@@ -17,7 +17,7 @@ export default function Playlists({source, ...props}: PagedItemsProps<MediaPlayl
             {...props}
             title={source.title}
             layoutOptions={source.primaryItems?.layout}
-            sourceId={source.id}
+            source={source}
             level={1}
             draggable={draggable}
             onSelect={setSelectedPlaylist}
@@ -31,7 +31,7 @@ export default function Playlists({source, ...props}: PagedItemsProps<MediaPlayl
             pager={itemsPager}
             defaultLayout={playlistItemsLayout}
             layoutOptions={source.secondaryItems?.layout}
-            sourceId={source.id}
+            source={source}
             level={2}
             emptyMessage="Empty playlist"
             key={selectedPlaylist?.src}
@@ -40,7 +40,7 @@ export default function Playlists({source, ...props}: PagedItemsProps<MediaPlayl
 
     return (
         <div className="panel">
-            {source.secondaryLayout?.view === 'none' ? (
+            {source.secondaryItems?.layout?.view === 'none' ? (
                 playlistList
             ) : (
                 <Splitter id="playlists-items-layout" arrange="rows">

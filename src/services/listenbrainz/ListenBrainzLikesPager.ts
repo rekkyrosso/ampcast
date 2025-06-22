@@ -1,25 +1,21 @@
-import type {Observable} from 'rxjs';
 import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
-import Pager, {Page} from 'types/Pager';
+import {Page} from 'types/Pager';
+import {exists} from 'utils';
 import {musicBrainzHost} from 'services/musicbrainz';
 import SequentialPager from 'services/pagers/SequentialPager';
-import {exists} from 'utils';
 import listenbrainzApi from './listenbrainzApi';
 import listenbrainzSettings from './listenbrainzSettings';
 
-export default class ListenBrainzLikesPager implements Pager<MediaItem> {
-    static maxPageSize = 100;
-    private readonly pager: SequentialPager<MediaItem>;
-
+export default class ListenBrainzLikesPager extends SequentialPager<MediaItem> {
     constructor() {
         const score = 1;
         const metadata = true;
         let offset = 0;
 
-        this.pager = new SequentialPager<MediaItem>(
+        super(
             async (count: number): Promise<Page<MediaItem>> => {
                 try {
                     const response =
@@ -41,38 +37,6 @@ export default class ListenBrainzLikesPager implements Pager<MediaItem> {
             },
             {pageSize: 50}
         );
-    }
-
-    get maxSize(): number | undefined {
-        return this.pager.maxSize;
-    }
-
-    get pageSize(): number {
-        return this.pager.pageSize;
-    }
-
-    observeBusy(): Observable<boolean> {
-        return this.pager.observeBusy();
-    }
-
-    observeItems(): Observable<readonly MediaItem[]> {
-        return this.pager.observeItems();
-    }
-
-    observeSize(): Observable<number> {
-        return this.pager.observeSize();
-    }
-
-    observeError(): Observable<unknown> {
-        return this.pager.observeError();
-    }
-
-    disconnect(): void {
-        this.pager.disconnect();
-    }
-
-    fetchAt(index: number, length: number): void {
-        this.pager.fetchAt(index, length);
     }
 
     private createItems(items: readonly ListenBrainz.User.Feedback[]): MediaItem[] {
