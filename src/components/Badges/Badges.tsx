@@ -14,6 +14,7 @@ import {
     MusicBrainzBadge,
     ReplayGainBadge,
     ShareLink,
+    VideoBadge,
 } from './Badge';
 import './Badges.scss';
 
@@ -24,6 +25,7 @@ export interface BadgesProps {
 export default function Badges({item}: BadgesProps) {
     return (
         <div className="badges">
+            {item.itemType === ItemType.Media ? <VideoBadge item={item} /> : null}
             {item.itemType === ItemType.Album ? <AlbumTypeBadge item={item} /> : null}
             {item.itemType === ItemType.Media ? <LivePlaybackBadge item={item} /> : null}
             {item.itemType === ItemType.Artist ? null : (

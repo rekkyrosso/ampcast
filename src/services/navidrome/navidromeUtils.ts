@@ -20,7 +20,7 @@ import NavidromePager from './NavidromePager';
 import navidromeSettings from './navidromeSettings';
 
 export function createMediaObject<T extends MediaObject>(
-    itemType: ItemType,
+    itemType: T['itemType'],
     item: Navidrome.MediaObject,
     isRadio?: boolean,
     childSort?: SortParams

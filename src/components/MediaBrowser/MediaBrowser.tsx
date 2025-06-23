@@ -20,7 +20,8 @@ export default function MediaBrowser({service, source}: MediaBrowserProps) {
     const isLoggedIn = useIsLoggedIn(service);
     const renderError = useErrorScreen(service, source);
     const noInternetError = useNoInternetError(service);
-    const Browser = source?.Component || ('filterType' in source ? FilterBrowser : DefaultBrowser);
+    const Browser =
+        source?.Component || ('filterType' in source ? (FilterBrowser as any) : DefaultBrowser);
 
     return (
         <div className={`media-browser ${service.id}-browser`}>

@@ -33,6 +33,7 @@ import {
     mediaItemsLayout,
     mostPlayedTracksLayout,
     playlistItemsLayout,
+    radiosLayoutSmall,
     recentlyAddedAlbumsLayout,
     recentlyPlayedTracksLayout,
 } from 'components/MediaList/layouts';
@@ -41,8 +42,21 @@ const serviceId: MediaServiceId = 'plex';
 
 const plexTracksLayout: MediaListLayout = addRating(mediaItemsLayout);
 
+const plexTracksSort: MediaListSort = {
+    sortOptions: {
+        titleSort: 'Title',
+        'album.titleSort': 'Album',
+        'artist.titleSort': 'Album Artist',
+    },
+    defaultSort: {
+        sortBy: 'artist.titleSort',
+        sortOrder: 1,
+    },
+};
+
 const plexTracks: MediaSourceItems = {
     layout: plexTracksLayout,
+    sort: plexTracksSort,
 };
 
 const plexAlbumsLayout: MediaListLayout = addRating(albumsLayout);
@@ -125,12 +139,7 @@ const plexRadio: MediaSource<MediaItem> = {
     filterType: FilterType.ByPlexStationType,
     primaryItems: {
         label: 'Radios',
-        layout: {
-            view: 'card minimal',
-            views: [],
-            card: {h1: 'Name'},
-            details: ['Name'],
-        },
+        layout: radiosLayoutSmall,
     },
 
     search(type?: MediaFilter): Pager<MediaItem> {
@@ -372,13 +381,14 @@ const plexTracksByGenre: MediaSource<MediaItem> = {
     defaultHidden: true,
     primaryItems: plexTracks,
 
-    search(genre?: MediaFilter): Pager<MediaItem> {
+    search(genre?: MediaFilter, sort?: SortParams): Pager<MediaItem> {
         if (genre) {
             return new PlexPager({
                 path: getMusicLibraryPath(),
                 params: {
                     genre: genre.id,
                     type: plexMediaType.Track,
+                    sort: getTrackSort(sort),
                 },
             });
         } else {
@@ -396,13 +406,14 @@ const plexTracksByMood: MediaSource<MediaItem> = {
     defaultHidden: true,
     primaryItems: plexTracks,
 
-    search(mood?: MediaFilter): Pager<MediaItem> {
+    search(mood?: MediaFilter, sort?: SortParams): Pager<MediaItem> {
         if (mood) {
             return new PlexPager({
                 path: getMusicLibraryPath(),
                 params: {
                     genre: mood.id,
                     type: plexMediaType.Track,
+                    sort: getTrackSort(sort),
                 },
             });
         } else {
@@ -584,7 +595,9 @@ const plexRandomTracks: MediaSource<MediaItem> = {
     title: 'Random Tracks',
     icon: 'shuffle',
     itemType: ItemType.Media,
-    primaryItems: plexTracks,
+    primaryItems: {
+        layout: plexTracksLayout,
+    },
 
     search(): Pager<MediaItem> {
         return new PlexPager(
@@ -769,6 +782,14 @@ function getAlbumSort({sortBy, sortOrder} = plexAlbumsSort.defaultSort) {
     return `${sortBy}:${sortOrder === -1 ? 'desc' : 'asc'}${
         sortBy === 'artist.titleSort'
             ? ',album.titleSort,album.index,album.id,album.originallyAvailableAt'
+            : ''
+    }`;
+}
+
+function getTrackSort({sortBy, sortOrder} = plexAlbumsSort.defaultSort) {
+    return `${sortBy}:${sortOrder === -1 ? 'desc' : 'asc'}${
+        sortBy === 'artist.titleSort'
+            ? ',album.titleSort,album.year,track.absoluteIndex,track.index,track.titleSort,track.id'
             : ''
     }`;
 }

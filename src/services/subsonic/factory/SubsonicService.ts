@@ -36,8 +36,12 @@ import SubsonicSettings from './SubsonicSettings';
 import LibraryAction from 'types/LibraryAction';
 import SubsonicAuth from './SubsonicAuth';
 import subsonicScrobbler from './subsonicScrobbler';
-import FilterBrowser from 'components/MediaBrowser/FilterBrowser';
 import FolderBrowser from 'components/MediaBrowser/FolderBrowser';
+import {
+    mostPlayedTracksLayout,
+    radiosLayoutSmall,
+    recentlyAddedAlbumsLayout,
+} from 'components/MediaList/layouts';
 
 export default class SubsonicService implements PersonalMediaService {
     readonly api: SubsonicApi;
@@ -140,6 +144,9 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'Recently Added',
             icon: 'recently-added',
             itemType: ItemType.Album,
+            primaryItems: {
+                layout: recentlyAddedAlbumsLayout,
+            },
 
             search(): Pager<MediaAlbum> {
                 return new SubsonicPager(
@@ -176,6 +183,9 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'Most Played',
             icon: 'most-played',
             itemType: ItemType.Album,
+            primaryItems: {
+                layout: mostPlayedTracksLayout,
+            },
 
             search(): Pager<MediaAlbum> {
                 return new SubsonicPager(
@@ -213,7 +223,6 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'genre',
             itemType: ItemType.Media,
             filterType: FilterType.ByGenre,
-            Component: FilterBrowser,
             defaultHidden: true,
 
             search(genre?: MediaFilter): Pager<MediaItem> {
@@ -241,7 +250,6 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'genre',
             itemType: ItemType.Album,
             filterType: FilterType.ByGenre,
-            Component: FilterBrowser,
 
             search(genre?: MediaFilter): Pager<MediaAlbum> {
                 if (genre) {
@@ -265,7 +273,6 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'calendar',
             itemType: ItemType.Album,
             filterType: FilterType.ByDecade,
-            Component: FilterBrowser,
 
             search(decade?: MediaFilter): Pager<MediaAlbum> {
                 if (decade) {
@@ -341,6 +348,10 @@ export default class SubsonicService implements PersonalMediaService {
             itemType: ItemType.Media,
             linearType: LinearType.Station,
             defaultHidden: true,
+            primaryItems: {
+                label: 'Radios',
+                layout: radiosLayoutSmall,
+            },
 
             search(): Pager<MediaItem> {
                 return new SubsonicPager(

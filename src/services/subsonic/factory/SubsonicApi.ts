@@ -14,7 +14,7 @@ import type SubsonicSettings from './SubsonicSettings';
 import {chunk, Logger, shuffle} from 'utils';
 import {createMediaItemFromUrl} from 'services/metadata';
 
-const logger = new Logger('SubsonicApi')
+const logger = new Logger('SubsonicApi');
 
 export interface SubsonicApiSettings extends Partial<PersonalMediaServerSettings> {
     host: string;
@@ -119,7 +119,7 @@ export default class SubsonicApi {
                 {id}
             );
             return (data.directory.child || [])
-                .filter((child) => !child.isDir)
+                .filter((child) => child.type === 'music')
                 .sort((a, b) => a.track - b.track);
         } else {
             const data = await this.get<{album: {song: Subsonic.Song[]}}>('getAlbum', {id});
@@ -299,11 +299,15 @@ export default class SubsonicApi {
             if (item.linearType) {
                 return item.srcs![0]; // Let this throw
             } else {
-                const [, , id] = item.src.split(':');
+                const [, type, id] = item.src.split(':');
                 if (item.playbackType === PlaybackType.HLS) {
                     return `${host}/rest/hls.m3u8?id=${id}&${credentials}`;
                 } else {
-                    return `${host}/rest/stream?id=${id}&${credentials}`;
+                    let url = `${host}/rest/stream?id=${id}&${credentials}`;
+                    if (type === 'video' && this.serviceId === 'airsonic') {
+                        url += '&format=raw';
+                    }
+                    return url;
                 }
             }
         } else {

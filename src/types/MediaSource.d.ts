@@ -20,7 +20,7 @@ import SortParams from './SortParams';
 
 export type MediaSourceComponent = React.FC<{
     service: MediaService;
-    source: AnyMediaSource;
+    source: MediaSource<any>;
 }>;
 
 export interface MediaSourceItems {
@@ -46,14 +46,14 @@ export default interface MediaSource<T extends MediaObject> {
     readonly disabled?: boolean;
     readonly isPin?: boolean;
     readonly lockActionsStore?: boolean;
-    readonly Component?: MediaSourceComponent<T>;
+    readonly Component?: MediaSourceComponent;
     search(
         params?: SearchParams | MediaFilter | Record<string, unknown>,
         sort?: SortParams
     ): Pager<T>;
 }
 
-export type MediaMultiSource<T extends MediaObject = any> = Pick<
+export type MediaMultiSource<T extends MediaObject = MediaObject> = Pick<
     MediaSource<T>,
     | 'id'
     | 'title'

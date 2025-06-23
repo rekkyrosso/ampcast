@@ -197,7 +197,7 @@ function createTopMultiSource<T extends MediaObject>(
         ...items,
     };
     return {
-        id: `listenbrainz/top/${path}`,
+        id: `${serviceId}/top/${path}`,
         title,
         icon,
         searchable: false,
@@ -238,7 +238,7 @@ function createTopSource<T extends MediaObject>(
     props: Except<MediaSource<T>, 'id' | 'search'>
 ): MediaSource<T> {
     const isChart = path.startsWith('sitewide/');
-    const sourceId = `listenbrainz/top/${path}`;
+    const sourceId = `${serviceId}/top/${path}`;
     return {
         ...props,
         sourceId,

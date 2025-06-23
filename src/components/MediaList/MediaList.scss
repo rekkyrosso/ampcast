@@ -252,7 +252,7 @@
         }
 
         .h2 {
-            top: 2em;
+            top: 2.125em;
 
             .text {
                 font-size: 1em;
@@ -260,8 +260,14 @@
         }
 
         .h3 {
-            top: 3.5em;
+            top: 3.625em;
             right: 3em;
+
+            &.rate {
+                top: 3.75em;
+                right: auto;
+                margin-left: -1px;
+            }
 
             .text {
                 font-size: 0.875em;
@@ -404,6 +410,10 @@
 
             .h3 {
                 top: 2.75em;
+
+                &.rate {
+                    top: 3em;
+                }
 
                 .text {
                     font-size: 0.75em;

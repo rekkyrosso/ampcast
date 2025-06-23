@@ -1,4 +1,3 @@
-import type {Observable} from 'rxjs';
 import {SetOptional, SetRequired, Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
@@ -14,76 +13,41 @@ import Pager, {Page, PagerConfig} from 'types/Pager';
 import ParentOf from 'types/ParentOf';
 import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
+import {canPlayType} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
-import {canPlayType} from 'utils';
 import SubsonicApi from './SubsonicApi';
 import SubsonicService from './SubsonicService';
 
-export default class SubsonicPager<T extends MediaObject> implements Pager<T> {
+export default class SubsonicPager<T extends MediaObject> extends SequentialPager<T> {
     static minPageSize = 10;
     static maxPageSize = 500;
 
-    private readonly pager: SequentialPager<T>;
-    readonly pageSize: number;
-    private pageNumber = 1;
-
     constructor(
         private readonly service: SubsonicService,
-        itemType: ItemType,
+        itemType: T['itemType'],
         fetch: (offset: number, count: number) => Promise<Page<Subsonic.MediaObject>>,
         options?: Partial<PagerConfig>,
         private readonly parent?: ParentOf<T>
     ) {
-        this.pageSize = options?.pageSize || 200;
-        this.pager = new SequentialPager<T>(
-            async (): Promise<Page<T>> => {
-                const count = this.pageSize;
-                const offset = (this.pageNumber - 1) * count;
+        let pageNumber = 1;
+
+        super(
+            async (count: number): Promise<Page<T>> => {
+                const offset = (pageNumber - 1) * count;
                 const {items, total, atEnd} = await fetch(offset, count);
-                this.pageNumber++;
+                pageNumber++;
                 return {
                     items: items.map((item) => this.createMediaObject(itemType, item)),
                     total,
                     atEnd,
                 };
             },
-            {
-                pageSize: this.pageSize,
-                ...options,
-            }
+            {pageSize: 200, ...options}
         );
-    }
-
-    get maxSize(): number | undefined {
-        return this.pager.maxSize;
-    }
-
-    observeBusy(): Observable<boolean> {
-        return this.pager.observeBusy();
-    }
-
-    observeItems(): Observable<readonly T[]> {
-        return this.pager.observeItems();
-    }
-
-    observeSize(): Observable<number> {
-        return this.pager.observeSize();
-    }
-
-    observeError(): Observable<unknown> {
-        return this.pager.observeError();
-    }
-
-    disconnect(): void {
-        this.pager.disconnect();
-    }
-
-    fetchAt(index: number, length: number): void {
-        this.pager.fetchAt(index, length);
     }
 
     private get api(): SubsonicApi {

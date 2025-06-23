@@ -4,6 +4,7 @@ import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
+import MediaType from 'types/MediaType';
 import {copyToClipboard} from 'utils';
 import audioSettings from 'services/audio/audioSettings';
 import CopyButton from 'components/Button/CopyButton';
@@ -208,4 +209,17 @@ export function MusicBrainzBadge({item}: ExternalLinkBadgeProps) {
             </a>
         );
     }
+}
+
+export interface VideoBadgeProps {
+    item: MediaItem;
+}
+
+export function VideoBadge({item}: VideoBadgeProps) {
+    return item.mediaType === MediaType.Video ? (
+        <span className="badge video">
+            <Icon name="video" />
+            <span className="text">Video</span>
+        </span>
+    ) : null;
 }

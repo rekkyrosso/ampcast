@@ -20,6 +20,7 @@ import {createArtistAlbumsPager, createPlaylistItemsPager} from './navidromeUtil
 import {
     defaultMediaItemCard,
     mostPlayedTracksLayout,
+    radiosLayoutSmall,
     recentlyAddedAlbumsLayout,
     recentlyPlayedTracksLayout,
 } from 'components/MediaList/layouts';
@@ -408,12 +409,7 @@ const navidromeRadio: MediaSource<MediaItem> = {
     defaultHidden: true,
     primaryItems: {
         label: 'Radios',
-        layout: {
-            view: 'card minimal',
-            views: [],
-            card: {h1: 'Name'},
-            details: ['Name'],
-        },
+        layout: radiosLayoutSmall,
         sort: {
             sortOptions: {
                 name: 'Name',

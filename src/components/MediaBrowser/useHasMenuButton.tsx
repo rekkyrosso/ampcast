@@ -8,15 +8,21 @@ export default function useHasMenuButton(source: MediaSource<any>): boolean {
     useEffect(() => {
         let hasButton = false;
         const hasOptions = (items?: MediaSourceItems) => {
-            const layout = items?.layout;
-            return layout?.view !== 'none' && (items?.sort || layout?.views?.length !== 0);
+            return items?.sort || items?.layout?.views?.length !== 0;
         };
         if (hasOptions(source.primaryItems)) {
             hasButton = true;
-        } else if (source.itemType !== ItemType.Media) {
+        } else if (
+            source.itemType !== ItemType.Media &&
+            source.secondaryItems?.layout?.view !== 'none'
+        ) {
             if (hasOptions(source.secondaryItems)) {
                 hasButton = true;
-            } else if (source.itemType === ItemType.Artist && hasOptions(source.tertiaryItems)) {
+            } else if (
+                source.itemType === ItemType.Artist &&
+                source.tertiaryItems?.layout?.view !== 'none' &&
+                hasOptions(source.tertiaryItems)
+            ) {
                 hasButton = true;
             }
         }

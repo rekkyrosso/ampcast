@@ -73,6 +73,14 @@ export const otherTracksLayout: MediaListLayout = {
     extraFields: allMediaItemFields,
 };
 
+export const radiosLayoutSmall: MediaListLayout = {
+    view: 'card minimal',
+    views: [],
+    card: {h1: 'Name'},
+    details: ['Name'],
+    extraFields: [],
+};
+
 export const songChartsLayout: MediaListLayout = {
     view: 'card',
     card: {
