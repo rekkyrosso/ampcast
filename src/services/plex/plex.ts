@@ -57,6 +57,7 @@ const plex: PersonalMediaService = {
     root: plexSearch,
     sources: plexSources,
     editablePlaylists: plexEditablePlaylists,
+    starRatingIncrement: 0.5,
     get audioLibraries(): readonly PersonalMediaLibrary[] {
         return plexSettings.audioLibraries;
     },
@@ -113,8 +114,8 @@ function canPin(item: MediaObject): boolean {
     return item.itemType === ItemType.Playlist;
 }
 
-function canRate<T extends MediaObject>(item: T, inListView?: boolean): boolean {
-    if (inListView || !item.src.startsWith(`${serviceId}:`) || item.synthetic) {
+function canRate<T extends MediaObject>(item: T): boolean {
+    if (!item.src.startsWith(`${serviceId}:`) || item.synthetic) {
         return false;
     }
     switch (item.itemType) {

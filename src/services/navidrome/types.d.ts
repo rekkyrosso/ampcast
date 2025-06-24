@@ -150,5 +150,7 @@ declare namespace Navidrome {
         readonly updatedAt: string;
     }
 
-    type MediaObject = Song | Album | Artist | Playlist | Radio;
+    type RatingObject = Song | Album | Artist;
+
+    type MediaObject = RatingObject | Playlist | Radio;
 }

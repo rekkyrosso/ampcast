@@ -3,7 +3,7 @@ import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
-import {getTextFromHtml} from 'utils/dom';
+import {getTextFromHtml} from 'utils';
 
 const soundcloudHost = 'https://soundcloud.com';
 

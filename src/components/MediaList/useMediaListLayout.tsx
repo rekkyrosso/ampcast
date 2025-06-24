@@ -336,6 +336,7 @@ const Rate: RenderField = (item) => {
     return service?.canRate?.(item) ? (
         <StarRating
             value={item.rating}
+            increment={service.starRatingIncrement}
             tabIndex={-1}
             onChange={async (rating: number) => {
                 await performAction(Action.Rate, [item], rating);

@@ -30,10 +30,9 @@ import {
     logout,
     reconnect,
 } from './navidromeAuth';
-import NavidromePager from './NavidromePager';
+import NavidromeOffsetPager from './NavidromeOffsetPager';
 import navidromeSettings from './navidromeSettings';
 import navidromeSources, {
-    navidromePlaylistItems,
     navidromePlaylistItemsSort,
     navidromePlaylists,
     navidromeSearch,
@@ -68,6 +67,7 @@ const navidrome: PersonalMediaService = {
     addMetadata,
     addToPlaylist,
     canPin,
+    canRate,
     canStore,
     compareForRating,
     createPlaylist,
@@ -78,6 +78,7 @@ const navidrome: PersonalMediaService = {
     getServerInfo,
     getThumbnailUrl,
     lookup,
+    rate,
     scrobble,
     store,
     observeIsLoggedIn,
@@ -94,7 +95,7 @@ function canPin(item: MediaObject): boolean {
     return item.itemType === ItemType.Playlist;
 }
 
-function canStore<T extends MediaObject>(item: T): boolean {
+function canRate<T extends MediaObject>(item: T): boolean {
     switch (item.itemType) {
         case ItemType.Media:
             return !item.linearType;
@@ -108,6 +109,10 @@ function canStore<T extends MediaObject>(item: T): boolean {
         default:
             return false;
     }
+}
+
+function canStore<T extends MediaObject>(item: T): boolean {
+    return canRate(item);
 }
 
 function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
@@ -149,13 +154,13 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
         title: pin.title,
         itemType: pin.itemType,
         id: pin.src,
+        sourceId: `${serviceId}/pinned-playlist`,
         icon: 'pin',
         isPin: true,
-        secondaryItems: navidromePlaylistItems,
 
         search(): Pager<MediaPlaylist> {
             const id = getIdFromSrc(pin);
-            return new NavidromePager(
+            return new NavidromeOffsetPager(
                 ItemType.Playlist,
                 `playlist/${id}`,
                 undefined,
@@ -226,7 +231,7 @@ async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
     }
     const type =
         itemType === ItemType.Artist ? 'artist' : itemType === ItemType.Album ? 'album' : 'song';
-    const pager = new NavidromePager<T>(itemType, `${type}/${id}`, undefined, {
+    const pager = new NavidromeOffsetPager<T>(itemType, `${type}/${id}`, undefined, {
         pageSize: 1,
         maxSize: 1,
     });
@@ -260,7 +265,7 @@ async function lookup(
         return [];
     }
     const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit, lookup: true};
-    const pager = new NavidromePager<MediaItem>(
+    const pager = new NavidromeOffsetPager<MediaItem>(
         ItemType.Media,
         'song',
         {
@@ -276,21 +281,24 @@ function scrobble(): void {
     subsonicScrobbler.scrobble(navidrome, subsonicApi);
 }
 
-async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
+async function rate(item: MediaObject, rating: number): Promise<void> {
     const id = getIdFromSrc(item);
-    const method = inLibrary ? 'star' : 'unstar';
     switch (item.itemType) {
+        case ItemType.Album:
+        case ItemType.Artist:
+        case ItemType.Media:
+            await subsonicApi.get('setRating', {id, rating});
+    }
+}
+
+async function store(item: MediaObject, inLibrary: boolean): Promise<void> {
+    const method = inLibrary ? 'star' : 'unstar';
+    const id = getIdFromSrc(item);
+    switch (item.itemType) {
+        case ItemType.Album:
+        case ItemType.Artist:
         case ItemType.Media:
             await subsonicApi.get(method, {id});
-            break;
-
-        case ItemType.Album:
-            await subsonicApi.get(method, {albumId: id});
-            break;
-
-        case ItemType.Artist:
-            await subsonicApi.get(method, {artistId: id});
-            break;
     }
 }
 

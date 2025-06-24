@@ -6,11 +6,16 @@
     line-height: 1;
 
     &-main {
+        display: flex;
+        flex-direction: column;
         position: relative;
         padding-left: 11.25em;
         padding-bottom: 1em;
-        min-height: 10em;
-        margin-bottom: 1em;
+        min-height: 11em;
+
+        p {
+            margin: 0.5em 0 0 0;
+        }
 
         .external-link-text {
             text-decoration: underline;
@@ -32,11 +37,16 @@
 
     .title {
         @include effects.line-clamp(3);
-        margin-bottom: 0.25em;
+        margin-bottom: 0.125em;
         font-size: 1.5em;
         overflow-wrap: anywhere;
         hyphens: auto;
         line-height: normal;
+    }
+
+    .artist {
+        margin-bottom: 0.125em;
+        font-size: 1.125em;
     }
 
     .artist,
@@ -44,17 +54,12 @@
     .genre,
     .station-name {
         display: flex;
-        margin-top: 0.5em;
+        margin-top: 0.25em;
         gap: 0.25em;
 
         .text-label {
             white-space: nowrap;
         }
-    }
-
-    .artist {
-        margin-bottom: 0.5em;
-        font-size: 1.125em;
     }
 
     .duration,
@@ -90,10 +95,10 @@
     }
 
     .description {
-        margin-top: 1em;
+        margin-top: 0.5em;
         font-size: 0.75em;
         min-height: 1em;
-        max-height: 11.375em;
+        max-height: 10.75em;
         text-align: justify;
 
         .scrollable {
@@ -104,14 +109,10 @@
     }
 
     &-icon-bar {
-        position: absolute;
-        bottom: -0.25em;
-        left: 11.25em;
-        right: 0;
-        min-height: 1.5em;
-        text-align: right;
         display: flex;
-        flex-direction: row;
+        flex-wrap: wrap;
+        gap: 0 2em;
+        margin-top: auto;
 
         h4:has(+ &),
         p:has(+ &) {
@@ -131,10 +132,6 @@
 
         .star-rating {
             font-size: 1.125em;
-
-            &:not(:last-child) {
-                margin-right: 0.5em;
-            }
         }
     }
 }

@@ -16,7 +16,7 @@ import {MAX_DURATION} from 'services/constants';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
-import NavidromePager from './NavidromePager';
+import NavidromeOffsetPager from './NavidromeOffsetPager';
 import navidromeSettings from './navidromeSettings';
 
 export function createMediaObject<T extends MediaObject>(
@@ -48,7 +48,7 @@ export function createArtistAlbumsPager(artist: MediaArtist, albumSort?: SortPar
     const id = getMediaObjectId(artist);
     const allTracks = createArtistAllTracks(artist);
     const allTracksPager = new SimplePager<MediaAlbum>([allTracks]);
-    const albumsPager = new NavidromePager<MediaAlbum>(ItemType.Album, 'album', {
+    const albumsPager = new NavidromeOffsetPager<MediaAlbum>(ItemType.Album, 'album', {
         album_artist_id: id,
         ...(albumSort
             ? {
@@ -68,7 +68,7 @@ export function createPlaylistItemsPager(
     itemSort?: SortParams
 ): Pager<MediaItem> {
     const id = getMediaObjectId(playlist);
-    return new NavidromePager(ItemType.Media, `playlist/${id}/tracks`, {
+    return new NavidromeOffsetPager(ItemType.Media, `playlist/${id}/tracks`, {
         playlist_id: id,
         ...(itemSort
             ? {
@@ -96,6 +96,7 @@ function createMediaItem(song: Navidrome.Song): MediaItem {
         track: song.trackNumber,
         position: song.playlistId ? Number(song.id) || 0 : undefined,
         disc: song.discNumber,
+        rating: song.rating || 0,
         inLibrary: !!song.starred,
         year: song.year || undefined,
         playedAt: parseDate(song.playDate),
@@ -144,11 +145,12 @@ function createMediaAlbum(album: Navidrome.Album): MediaAlbum {
         addedAt: parseDate(album.createdAt),
         artist: album.albumArtist,
         inLibrary: !!album.starred,
+        rating: album.rating || 0,
         year: album.minYear || album.maxYear || undefined,
         playedAt: parseDate(album.playDate),
         playCount: album.playCount,
         genres: album.genres?.map((genre) => genre.name),
-        pager: new NavidromePager(ItemType.Media, 'song', {album_id, _sort: 'album'}),
+        pager: new NavidromeOffsetPager(ItemType.Media, 'song', {album_id, _sort: 'album'}),
         trackCount: album.songCount,
         thumbnails: createThumbnails(album_id),
         release_mbid: album.mbzAlbumId,
@@ -167,6 +169,7 @@ function createMediaArtist(artist: Navidrome.Artist, albumSort?: SortParams): Me
         title: artist.name,
         description: getTextFromHtml(artist.biography) || undefined,
         inLibrary: !!artist.starred,
+        rating: artist.rating || 0,
         genres: artist.genres?.map((genre) => genre.name),
         thumbnails: hasThumbnails ? createThumbnails(artist_id) : undefined,
         artist_mbid: artist.mbzArtistId,
@@ -232,7 +235,7 @@ function createArtistAllTracks(artist: MediaArtist): MediaAlbum {
 
 function createAllTracksPager(artist: MediaArtist): Pager<MediaItem> {
     const id = getMediaObjectId(artist);
-    return new NavidromePager<MediaItem>(ItemType.Media, 'song', {
+    return new NavidromeOffsetPager<MediaItem>(ItemType.Media, 'song', {
         artist_id: id,
         _sort: 'artist',
     });

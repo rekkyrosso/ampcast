@@ -35,8 +35,6 @@ export default async function performAction<T extends MediaObject>(
             performPlayAction(action, items);
             break;
 
-        case Action.Like:
-        case Action.Unlike:
         case Action.Rate:
         case Action.AddToLibrary:
         case Action.RemoveFromLibrary:
@@ -135,18 +133,8 @@ async function performLibraryAction<T extends MediaObject>(
     }
     try {
         switch (action) {
-            case Action.Like:
-                await actionsStore.rate(item, 1);
-                break;
-
-            case Action.Unlike:
-                await actionsStore.rate(item, 0);
-                break;
-
             case Action.Rate: {
-                if (typeof payload === 'number') {
-                    await actionsStore.rate(item, payload);
-                }
+                await actionsStore.rate(item, payload);
                 break;
             }
 

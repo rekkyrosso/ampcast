@@ -509,10 +509,6 @@ export default class SubsonicService implements PersonalMediaService {
         return item.itemType === ItemType.Playlist;
     }
 
-    canRate(): boolean {
-        return false;
-    }
-
     canStore<T extends MediaObject>(item: T): boolean {
         switch (item.itemType) {
             case ItemType.Media:

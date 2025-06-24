@@ -35,7 +35,7 @@ async function getGenres(): Promise<readonly MediaFilter[]> {
     return genres.map(({id, name: title}) => ({id, title}));
 }
 
-async function getPage<T = Navidrome.MediaObject>(
+async function getPage<T extends Navidrome.MediaObject>(
     path: string,
     params?: Record<string, Primitive>
 ): Promise<Page<T>> {

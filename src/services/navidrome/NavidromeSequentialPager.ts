@@ -3,30 +3,34 @@ import MediaObject from 'types/MediaObject';
 import {PagerConfig} from 'types/Pager';
 import {getSourceSorting} from 'services/mediaServices/servicesSettings';
 import {CreateChildPager} from 'services/pagers/AbstractPager';
-import OffsetPager from 'services/pagers/OffsetPager';
+import SequentialPager from 'services/pagers/SequentialPager';
 import navidromeApi from './navidromeApi';
 import {createMediaObject} from './navidromeUtils';
 
-export default class NavidromePager<T extends MediaObject> extends OffsetPager<T> {
-    static minPageSize = 10;
-    static maxPageSize = 500;
-
+export default class NavidromeSequentialPager<
+    T extends MediaObject,
+    S extends Navidrome.MediaObject
+> extends SequentialPager<T> {
     constructor(
         itemType: T['itemType'],
         path: string,
-        params?: Record<string, Primitive>,
+        params: Record<string, Primitive>,
+        filterItems: (items: readonly S[]) => S[],
         options?: Partial<PagerConfig>,
         createChildPager?: CreateChildPager<T>
     ) {
+        let _start = 0;
         super(
-            async (pageNumber, pageSize) => {
-                const _start = (pageNumber - 1) * pageSize;
+            async (pageSize) => {
                 const _end = _start + pageSize;
-                const {items, total} = await navidromeApi.getPage(path, {
+                const result = await navidromeApi.getPage<S>(path, {
                     ...params,
                     _start,
                     _end,
                 });
+                _start = _end;
+                const items = filterItems(result.items);
+                const atEnd = items.length < pageSize;
                 return {
                     items: items.map((item) =>
                         createMediaObject(
@@ -36,7 +40,7 @@ export default class NavidromePager<T extends MediaObject> extends OffsetPager<T
                             getSourceSorting(this.childSortId) || options?.childSort
                         )
                     ),
-                    total,
+                    atEnd,
                 };
             },
             {pageSize: 200, ...options},

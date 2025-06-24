@@ -260,11 +260,10 @@
         }
 
         .h3 {
-            top: 3.625em;
+            top: 3.75em;
             right: 3em;
 
             &.rate {
-                top: 3.75em;
                 right: auto;
                 margin-left: -1px;
             }
@@ -551,8 +550,11 @@
                 display: none;
             }
 
-            .actions .icon-button:not(.icon-button-menu) {
-                display: none;
+            .actions {
+                .icon-button:not(.icon-button-menu),                
+                .star-rating {
+                    display: none;
+                }
             }
 
             &:not(.minimal) {

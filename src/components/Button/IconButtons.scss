@@ -4,9 +4,7 @@
     align-items: center;
     padding: 1px;
 
-    .icon-button {
-        & ~ .icon-button {
-            margin-left: 0.25em;
-        }
+    > * + * {
+        margin-left: 0.25em;
     }
 }

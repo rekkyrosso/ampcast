@@ -24,16 +24,12 @@ const defaultActionIcons: Record<LibraryAction, IconName> = {
     [Action.AddToLibrary]: 'heart',
     [Action.RemoveFromLibrary]: 'heart-fill',
     [Action.Rate]: 'star',
-    [Action.Like]: 'heart',
-    [Action.Unlike]: 'heart-fill',
 };
 
 const defaultActionLabels: Record<LibraryAction, string> = {
     [Action.AddToLibrary]: 'Add to library',
     [Action.RemoveFromLibrary]: 'Remove from library',
     [Action.Rate]: 'Rate',
-    [Action.Like]: 'Like',
-    [Action.Unlike]: 'Unlike',
 };
 
 export default function Actions({
@@ -50,14 +46,6 @@ export default function Actions({
             await performAction(Action.Unpin, [item]);
         } else {
             await performAction(Action.Pin, [item]);
-        }
-    }, [item]);
-
-    const toggleLike = useCallback(async () => {
-        if (item.rating) {
-            await performAction(Action.Unlike, [item]);
-        } else {
-            await performAction(Action.Like, [item]);
         }
     }, [item]);
 
@@ -107,30 +95,17 @@ export default function Actions({
                 />
             ) : null}
 
-            {item.rating !== undefined && service?.canRate?.(item, inListView) ? (
-                service.id === 'plex' ? (
-                    <StarRating value={item.rating} tabIndex={tabIndex} onChange={rate} />
-                ) : (
-                    <IconButton
-                        icon={
-                            item.rating
-                                ? getIconForAction(service, Action.Unlike)
-                                : getIconForAction(service, Action.Like)
-                        }
-                        title={
-                            item.rating
-                                ? getLabelForAction(service, Action.Unlike)
-                                : getLabelForAction(service, Action.Like)
-                        }
-                        tabIndex={tabIndex}
-                        onClick={toggleLike}
-                        key="rate"
-                    />
-                )
-            ) : null}
-
             {!inListView && item.itemType === ItemType.Media ? (
                 <AddToPlaylistButton item={item} />
+            ) : null}
+
+            {!inListView && item.rating !== undefined && service?.canRate?.(item, inListView) ? (
+                <StarRating
+                    value={item.rating}
+                    increment={service.starRatingIncrement}
+                    tabIndex={tabIndex}
+                    onChange={rate}
+                />
             ) : null}
 
             {service?.canPin?.(item, inListView) ? (

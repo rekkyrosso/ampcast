@@ -133,17 +133,6 @@ function ContextualActions<T extends MediaObject>({item, inListView}: Contextual
                     key={item.isPinned ? Action.Unpin : Action.Pin}
                 />
             ) : null}
-            {item.rating !== undefined && service?.canRate?.(item, inListView) ? (
-                <PopupMenuItem<Action>
-                    label={
-                        item.rating
-                            ? getLabelForAction(service, Action.Unlike)
-                            : getLabelForAction(service, Action.Like)
-                    }
-                    value={item.rating ? Action.Unlike : Action.Like}
-                    key={item.rating ? Action.Unlike : Action.Like}
-                />
-            ) : null}
             {item.inLibrary === false && service?.canStore?.(item, inListView) ? (
                 <PopupMenuItem<Action>
                     label={getLabelForAction(service, Action.AddToLibrary)}

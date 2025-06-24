@@ -36,6 +36,7 @@ type BaseMediaService = Auth & {
     readonly icons?: Partial<Record<LibraryAction, IconName>>;
     readonly labels?: Partial<Record<LibraryAction, string>>;
     readonly editablePlaylists?: MediaSource<MediaPlaylist>;
+    readonly starRatingIncrement?: 0.5 | 1;
     readonly Components?: {
         Credentials?: React.FC<{service: MediaService}>;
         Login?: React.FC<{service: MediaService}>;

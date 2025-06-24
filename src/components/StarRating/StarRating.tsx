@@ -12,7 +12,7 @@ export interface StarRatingProps {
 export default function StarRating({
     value = 0,
     tabIndex = 0,
-    increment = 0.5,
+    increment = 1,
     onChange,
 }: StarRatingProps) {
     const buttonsRef = useRef<HTMLDivElement>(null);
