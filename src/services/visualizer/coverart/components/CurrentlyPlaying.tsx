@@ -7,7 +7,7 @@ import {uniq} from 'utils';
 import Icon from 'components/Icon';
 import {Thumbnail} from 'components/MediaInfo/MediaInfo';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
-import ProvidedBy from 'components/MediaSources/ProvidedBy';
+import ProvidedBy from 'components/Media/ProvidedBy';
 import PlaybackState from 'components/Media/PlaybackState';
 import ProgressBar from 'components/Media/ProgressBar';
 import useVisualizerSettings from 'hooks/useVisualizerSettings';

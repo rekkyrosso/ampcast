@@ -5,11 +5,11 @@ import {SettingsDialog} from 'components/Settings';
 import {showDialog} from 'components/Dialog';
 import AppDragRegion from 'components/App/AppDragRegion';
 import IconButton from 'components/Button/IconButton';
-import MediaSources from 'components/MediaSources';
+import MediaSources, {MediaSourceView} from 'components/MediaSources';
 import './MediaLibrary.scss';
 
 export default memo(function MediaLibrary() {
-    const [source, setSource] = useState<React.ReactNode>(null);
+    const [source, setSource] = useState<MediaSourceView | null>(null);
 
     const openSettingsDialog = useCallback(() => {
         showDialog(SettingsDialog, true);
@@ -30,7 +30,7 @@ export default memo(function MediaLibrary() {
             <div className="media-library-body">
                 <Splitter id="media-library-layout" arrange="columns">
                     <MediaSources onSelect={setSource} />
-                    {source || <div className="panel empty" />}
+                    {source?.view || <div className="panel" />}
                 </Splitter>
             </div>
         </div>

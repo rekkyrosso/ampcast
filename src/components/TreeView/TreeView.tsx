@@ -33,7 +33,7 @@ export interface TreeViewProps<T> {
     roots: readonly TreeNode<T>[];
     className?: string;
     storageId?: string;
-    onContextMenu?: (item: T, x: number, y: number) => void;
+    onContextMenu?: (item: T, x: number, y: number, button: number) => void;
     onDelete?: (item: T) => void;
     onEnter?: (item: T) => void;
     onInfo?: (item: T) => void;
@@ -82,6 +82,7 @@ export default function TreeView<T>({
     const hasVisibleNodes = visibleIds.length > 0;
     const showTooltip = fontSize * 8 > clientWidth;
     const minimalWidth = fontSize * 4 > clientWidth;
+    const rowBottom = (rowIndex + 1) * rowHeight;
 
     useImperativeHandle(ref, () => ({
         focus: () => {
@@ -143,9 +144,15 @@ export default function TreeView<T>({
     const handleContextMenu = useCallback(
         (event: React.MouseEvent) => {
             event.preventDefault();
-            onContextMenu?.(selectedValue, event.pageX, event.pageY);
+            if (event.button === -1 || (browser.os !== 'Mac OS' && event.button === 0)) {
+                // Not mouse-driven.
+                const rect = containerRef.current!.getBoundingClientRect();
+                onContextMenu?.(selectedValue, rect.left + fontSize, rect.top + rowBottom, -1);
+            } else {
+                onContextMenu?.(selectedValue, event.pageX, event.pageY, event.button);
+            }
         },
-        [selectedValue, onContextMenu]
+        [selectedValue, onContextMenu, rowBottom, fontSize]
     );
 
     const handleKeyDown = useCallback(

@@ -2,6 +2,7 @@ import type {Observable} from 'rxjs';
 import {
     catchError,
     concatMap,
+    debounceTime,
     distinctUntilChanged,
     filter,
     map,
@@ -22,7 +23,7 @@ import {dispatchMetadataChanges} from 'services/metadata';
 
 export type StorableMediaObject = Omit<MediaObject, 'pager'>;
 
-interface Lock {
+interface LockedService {
     serviceId: string;
     itemType: ItemType;
 }
@@ -32,7 +33,7 @@ class ActionsStore extends Dexie {
     private readonly inLibraryChanges$ = new BehaviorSubject<readonly StorableMediaObject[]>([]);
     private readonly ratingChanges!: Dexie.Table<StorableMediaObject, string>;
     private readonly ratingChanges$ = new BehaviorSubject<readonly StorableMediaObject[]>([]);
-    private readonly lock$ = new BehaviorSubject<Lock | null>(null);
+    private readonly lockedService$ = new BehaviorSubject<LockedService | null>(null);
     private readonly logger = new Logger('actionsStore');
 
     constructor() {
@@ -53,6 +54,17 @@ class ActionsStore extends Dexie {
                 take(1)
             )
             .subscribe(this.logger);
+
+        // Clear the store if actions haven't been processed within ten seconds.
+        this.lockedService$
+            .pipe(
+                map((locked) => !!locked),
+                distinctUntilChanged(),
+                debounceTime(10_000),
+                filter((locked) => !locked),
+                mergeMap(() => this.clear())
+            )
+            .subscribe(this.logger);
     }
 
     registerServices(services: readonly MediaService[]): void {
@@ -62,11 +74,11 @@ class ActionsStore extends Dexie {
     }
 
     lock(serviceId: string, itemType: ItemType): void {
-        this.lock$.next({serviceId, itemType});
+        this.lockedService$.next({serviceId, itemType});
     }
 
     unlock(): void {
-        this.lock$.next(null);
+        this.lockedService$.next(null);
     }
 
     getInLibrary(item: MediaObject, defaultValue?: boolean | undefined): boolean | undefined {
@@ -85,7 +97,7 @@ class ActionsStore extends Dexie {
         const service = getService(serviceId);
         if (service) {
             if (service.rate) {
-                if (this.isLocked(item)) {
+                if (this.isLockedObject(item)) {
                     await this.ratingChanges.put(this.createStorableMediaObject({...item, rating}));
                 } else {
                     const changedItem = this.getRatingChangedItem(item);
@@ -116,7 +128,7 @@ class ActionsStore extends Dexie {
                 if (toggledItem) {
                     await this.inLibraryChanges.delete(toggledItem.src);
                 }
-                if (this.isLocked(item)) {
+                if (this.isLockedObject(item)) {
                     if (!toggledItem) {
                         await this.inLibraryChanges.put(
                             this.createStorableMediaObject({...item, inLibrary})
@@ -153,11 +165,11 @@ class ActionsStore extends Dexie {
         service: MediaService,
         updates$: Observable<readonly StorableMediaObject[]>
     ): Observable<readonly StorableMediaObject[]> {
-        return combineLatest([updates$, this.lock$]).pipe(
+        return combineLatest([updates$, this.lockedService$]).pipe(
             filter(([items]) => items.length > 0),
             map(([items]) =>
                 items.filter(
-                    (item) => item.src.startsWith(`${service.id}:`) && !this.isLocked(item)
+                    (item) => item.src.startsWith(`${service.id}:`) && !this.isLockedObject(item)
                 )
             ),
             distinctUntilChanged((a, b) => {
@@ -222,6 +234,10 @@ class ActionsStore extends Dexie {
         }
     }
 
+    private async clear(): Promise<void> {
+        await Promise.all([this.inLibraryChanges.clear(), this.ratingChanges.clear()]);
+    }
+
     private createStorableMediaObject<T extends MediaObject>(item: T): StorableMediaObject {
         if ('pager' in item) {
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
@@ -237,11 +253,9 @@ class ActionsStore extends Dexie {
     ): StorableMediaObject | undefined {
         const service = getServiceFromSrc(item);
         if (service?.store) {
-            return this.inLibraryChanges$
-                .getValue()
-                .find((changed) =>
-                    service.compareForRating(changed as MediaObject, item as MediaObject)
-                );
+            return this.inLibraryChanges$.value.find((changed) =>
+                service.compareForRating(changed as MediaObject, item as MediaObject)
+            );
         }
     }
 
@@ -250,19 +264,17 @@ class ActionsStore extends Dexie {
     ): StorableMediaObject | undefined {
         const service = getServiceFromSrc(item);
         if (service?.rate) {
-            return this.ratingChanges$
-                .getValue()
-                .find((changed) =>
-                    service.compareForRating(changed as MediaObject, item as MediaObject)
-                );
+            return this.ratingChanges$.value.find((changed) =>
+                service.compareForRating(changed as MediaObject, item as MediaObject)
+            );
         }
     }
 
-    private isLocked(item: StorableMediaObject): boolean {
-        const lock = this.lock$.getValue();
-        if (lock) {
+    private isLockedObject(item: StorableMediaObject): boolean {
+        const locked = this.lockedService$.value;
+        if (locked) {
             const [serviceId] = item.src.split(':');
-            return lock.serviceId === serviceId && lock.itemType === item.itemType;
+            return locked.serviceId === serviceId && locked.itemType === item.itemType;
         } else {
             return false;
         }

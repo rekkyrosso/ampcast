@@ -1,7 +1,7 @@
 import React from 'react';
 import MediaItem from 'types/MediaItem';
 import {isPublicMediaService} from 'services/mediaServices';
-import MediaSourceLabel from './MediaSourceLabel';
+import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import useMediaServices from 'hooks/useMediaServices';
 
 export default function ProvidedBy({item}: {item: MediaItem | null}) {

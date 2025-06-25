@@ -12,11 +12,12 @@ import pinStore from 'services/pins/pinStore';
 import {isSourceVisible, observeVisibilityChanges} from 'services/mediaServices/servicesSettings';
 import MediaBrowser from 'components/MediaBrowser';
 import {TreeNode} from 'components/TreeView';
+import {MediaSourceView} from './MediaSources';
 import MediaServiceLabel from './MediaServiceLabel';
 import MediaSourceLabel from './MediaSourceLabel';
 
 export default function useMediaSources() {
-    const [sources, setSources] = useState<TreeNode<React.ReactNode>[]>();
+    const [sources, setSources] = useState<TreeNode<MediaSourceView>[]>();
 
     useEffect(() => {
         const refresh$ = merge(
@@ -44,43 +45,53 @@ export default function useMediaSources() {
     return sources;
 }
 
-function getServices(): TreeNode<React.ReactNode>[] {
+function getServices(): TreeNode<MediaSourceView>[] {
     return getBrowsableServices()
         .filter(isSourceVisible)
         .map((service) => getService(service));
 }
 
-function getService(service: Browsable<MediaService>): TreeNode<React.ReactNode> {
+function getService(service: Browsable<MediaService>): TreeNode<MediaSourceView> {
     return {
         id: service.id,
         label: <MediaServiceLabel service={service} showConnectivity />,
         tooltip: service.name,
-        value: (
-            <MediaBrowser service={service} source={service.root} key={getServiceKey(service)} />
-        ),
+        value: {
+            source: service,
+            view: (
+                <MediaBrowser
+                    service={service}
+                    source={service.root}
+                    key={getServiceKey(service)}
+                />
+            ),
+        },
         startExpanded: true,
         children: [...getSources(service), ...getPins(service)],
     };
 }
 
-function getSources(service: Browsable<MediaService>): TreeNode<React.ReactNode>[] {
+function getSources(service: Browsable<MediaService>): TreeNode<MediaSourceView>[] {
     return (
         service.sources?.filter(isSourceVisible).map((source) => ({
             id: source.id,
             label: <MediaSourceLabel icon={source.icon} text={source.title} />,
             tooltip: `${service.name}: ${source.title}`,
-            value: (
-                <MediaBrowser
-                    service={service}
-                    source={source}
-                    key={`${getServiceKey(service)}/${source.id}`}
-                />
-            ),
+            value: {
+                source,
+                view: (
+                    <MediaBrowser
+                        service={service}
+                        source={source}
+                        key={`${getServiceKey(service)}/${source.id}`}
+                    />
+                ),
+            },
         })) || []
     );
 }
 
-function getPins(service: Browsable<MediaService>): TreeNode<React.ReactNode>[] {
+function getPins(service: Browsable<MediaService>): TreeNode<MediaSourceView>[] {
     if (service.createSourceFromPin) {
         return pinStore.getPinsForService(service.id).map((pin) => {
             const source = service.createSourceFromPin!(pin);
@@ -94,7 +105,10 @@ function getPins(service: Browsable<MediaService>): TreeNode<React.ReactNode>[] 
                     />
                 ),
                 tooltip: `${service.name}: ${source.title}`,
-                value: <MediaBrowser service={service} source={source} key={source.id} />,
+                value: {
+                    source,
+                    view: <MediaBrowser service={service} source={source} key={source.id} />,
+                },
             };
         });
     } else {

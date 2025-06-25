@@ -62,7 +62,7 @@
         position: relative;
     }
 
-    .panel.empty {
+    .panel:empty {
         @include effects.inset;
     }
 }

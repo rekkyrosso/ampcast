@@ -7,9 +7,13 @@ import './MediaServiceSettingsGeneral.scss';
 
 export interface MediaServiceSettingsGeneralProps {
     service: MediaService;
+    enableDisconnect?: boolean;
 }
 
-export default function MediaServiceSettingsGeneral({service}: MediaServiceSettingsGeneralProps) {
+export default function MediaServiceSettingsGeneral({
+    service,
+    enableDisconnect,
+}: MediaServiceSettingsGeneralProps) {
     const id = useId();
     const ref = useRef<HTMLFieldSetElement>(null);
 
@@ -24,7 +28,7 @@ export default function MediaServiceSettingsGeneral({service}: MediaServiceSetti
 
     return (
         <form className="media-service-settings-general" method="dialog" onSubmit={handleSubmit}>
-            {service.noAuth ? null : <DisconnectButton service={service} />}
+            {service.noAuth || !enableDisconnect ? null : <DisconnectButton service={service} />}
             <fieldset ref={ref}>
                 <legend>Display</legend>
                 <ul className="checkbox-list">

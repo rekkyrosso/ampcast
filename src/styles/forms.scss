@@ -205,6 +205,7 @@ button,
         background-image: none;
         opacity: 0.5;
         cursor: default;
+        pointer-events: none;
     }
 
     .focus-visible &:focus {

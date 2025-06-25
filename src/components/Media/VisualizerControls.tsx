@@ -16,6 +16,13 @@ import AppTitle from 'components/App/AppTitle';
 import IconButton from 'components/Button/IconButton';
 import IconButtons from 'components/Button/IconButtons';
 import {showDialog} from 'components/Dialog';
+import PopupMenu, {
+    PopupMenuItem,
+    PopupMenuItemCheckbox,
+    PopupMenuProps,
+    PopupMenuSeparator,
+    showPopupMenu,
+} from 'components/PopupMenu';
 import {VisualizerSettingsDialog} from 'components/Settings';
 import CurrentlyPlayingDialog from 'components/MediaInfo/CurrentlyPlayingDialog';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
@@ -52,7 +59,7 @@ export default memo(function VisualizerControls({
         currentItem?.playbackType === PlaybackType.IFrame
             ? getServiceFromSrc(currentItem)?.iframeAudioPlayback
             : undefined;
-    const hideSelector =
+    const hideSelector = paused ||
         currentItem?.mediaType === MediaType.Video ||
         currentVisualizer?.providerId === 'none' ||
         iframe?.showContent ||
@@ -79,6 +86,55 @@ export default memo(function VisualizerControls({
         }
     }, []);
 
+    const handleContextMenu = useCallback(
+        (event: React.MouseEvent) => {
+            event.preventDefault();
+            event.stopPropagation();
+            if ((event.target as HTMLElement).closest('button')) {
+                // Clicked on a button.
+                return;
+            }
+            return showPopupMenu(
+                (props: PopupMenuProps) => (
+                    <PopupMenu {...props}>
+                        {hideSelector ? null : (
+                            <>
+                                <PopupMenuItem
+                                    label="Next visualizer"
+                                    disabled={!hasNext}
+                                    onClick={handleNextClick}
+                                />
+                                <PopupMenuItemCheckbox
+                                    label="Lock the current visualizer"
+                                    checked={locked}
+                                    disabled={!canLock}
+                                    onClick={locked ? unlockVisualizer : lockVisualizer}
+                                />
+                                <PopupMenuSeparator />
+                            </>
+                        )}
+                        <PopupMenuItem label="Visualizer settings…" onClick={openSettingsDialog} />
+                        <PopupMenuSeparator />
+                        <PopupMenuItem label="Info…" onClick={openInfoDialog} />
+                    </PopupMenu>
+                ),
+                event.target as HTMLElement,
+                event.pageX,
+                event.pageY,
+                'left'
+            );
+        },
+        [
+            locked,
+            canLock,
+            hasNext,
+            hideSelector,
+            openInfoDialog,
+            openSettingsDialog,
+            handleNextClick,
+        ]
+    );
+
     useEffect(() => {
         const subscription = observeNextVisualizerReason()
             .pipe(
@@ -92,7 +148,11 @@ export default memo(function VisualizerControls({
     }, []);
 
     return (
-        <div className="visualizer-controls" style={nextClicked ? {opacity: '1'} : undefined}>
+        <div
+            className="visualizer-controls"
+            style={nextClicked ? {opacity: '1'} : undefined}
+            onContextMenu={handleContextMenu}
+        >
             {showStatic ? <Static /> : null}
             <AppTitle />
             <p className="media-state no-visualizer-reason">{noVisualizerReason}</p>
@@ -127,7 +187,7 @@ export default memo(function VisualizerControls({
                     {canLock || locked ? (
                         <IconButton
                             icon={locked ? 'locked' : 'unlocked'}
-                            title={`${locked ? 'Unlock' : 'Lock the current visualizer'}`}
+                            title={locked ? 'Unlock' : 'Lock the current visualizer'}
                             tabIndex={-1}
                             onClick={locked ? unlockVisualizer : lockVisualizer}
                         />

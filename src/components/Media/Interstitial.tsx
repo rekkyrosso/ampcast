@@ -1,10 +1,10 @@
 import React from 'react';
 import {isMiniPlayer} from 'utils';
-import ProvidedBy from 'components/MediaSources/ProvidedBy';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useCurrentTrack from 'hooks/useCurrentTrack';
 import usePaused from 'hooks/usePaused';
 import PlaybackState from './PlaybackState';
+import ProvidedBy from './ProvidedBy';
 import useInterstitialState from './useInterstitialState';
 import './Interstitial.scss';
 

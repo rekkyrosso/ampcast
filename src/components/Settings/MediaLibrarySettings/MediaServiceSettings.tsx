@@ -17,7 +17,7 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
         const tabs = [
             {
                 tab: 'General',
-                panel: <MediaServiceSettingsGeneral service={service} />,
+                panel: <MediaServiceSettingsGeneral service={service} enableDisconnect />,
             },
         ];
         if (
