@@ -100,7 +100,7 @@
         "webpack": "^5.74.0",
         "webpack-cli": "^6.0.1"
     },
-    "devEngines": {
+    "engines": {
         "node": ">=20.x",
         "npm": ">=10.x"
     },

@@ -122,6 +122,11 @@ function createBridge() {
         mainWindow?.setTitleBarOverlay?.({height});
     });
 
+    // Server address.
+    ipcMain.handle('getLocalhostIP', () => {
+        return server.address;
+    });
+
     // Preferred port.
     ipcMain.handle('getPreferredPort', () => {
         return store.port;

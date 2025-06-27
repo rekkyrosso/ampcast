@@ -33,7 +33,7 @@
         "electron-updater": "^6.3.2",
         "electron-window-state": "^5.0.3"
     },
-    "devEngines": {
+    "engines": {
         "node": ">=20.x",
         "npm": ">=10.x"
     },

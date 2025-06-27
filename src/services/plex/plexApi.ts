@@ -192,7 +192,11 @@ async function getServers(token = plexSettings.serverToken): Promise<readonly pl
     const devices = await fetchJSON<plex.Device[]>({
         host: apiHost,
         path: '/resources',
-        params: {includeHttps: '1'},
+        params: {
+            includeHttps: 1,
+            includeIPv6: 1,
+            includeRelay: 1,
+        },
         token,
     });
     // Sort "owned" servers to the top.

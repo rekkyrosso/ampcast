@@ -51,7 +51,7 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
                     menuButtonSource={showPagerHeader ? undefined : selectedSource}
                     onSourceChange={setSelectedSource}
                 />
-            ) : showPagerHeader ? null : (
+            ) : showPagerHeader || selectedSource.isPin ? null : (
                 <MenuBar source={selectedSource} />
             )}
             <PagedItems

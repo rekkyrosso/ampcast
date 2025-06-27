@@ -7,13 +7,14 @@ import CredentialsRegistration from 'components/Settings/MediaLibrarySettings/Cr
 import {MediaServiceCredentialsProps} from 'components/Settings/MediaLibrarySettings/MediaServiceCredentials';
 import spotifySettings from '../spotifySettings';
 import useCredentials from './useCredentials';
+import useRedirectUri from './useRedirectUri';
 
 export default function SpotifyCredentials({service: spotify}: MediaServiceCredentialsProps) {
     const id = useId();
     const ref = useRef<HTMLFormElement>(null);
     const {clientId} = useCredentials();
     const clientIdRef = useRef<HTMLInputElement>(null);
-    const redirectUri = spotifySettings.redirectUri;
+    const redirectUri = useRedirectUri();
     const locked = spotify.credentialsLocked;
 
     const handleSubmit = useCallback(async () => {

@@ -5,6 +5,7 @@ export default interface AmpcastElectron {
     setFontSize(fontSize: number): void;
     setFrameColor(color: string): void;
     setFrameTextColor(color: string): void;
+    getLocalhostIP(): Promise<string>;
     getPreferredPort(): Promise<number>;
     setPreferredPort(port: number): Promise<void>;
     quit(): void;

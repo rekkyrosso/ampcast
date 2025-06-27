@@ -76,7 +76,7 @@ export function bestOf<T extends MediaObject>(a: T, b: Partial<T> = {}): T {
 
 export async function createMediaItemFromUrl(
     url: string,
-    metadataSearch?: boolean,
+    searchForMetadata?: boolean,
     timeout = 3000
 ): Promise<MediaItem> {
     const {hostname} = new URL(url);
@@ -127,7 +127,7 @@ export async function createMediaItemFromUrl(
                     );
                 } else if (isIcy) {
                     return createMediaItemByPlaybackType(url, PlaybackType.Icecast);
-                } else if (metadataSearch && response.body) {
+                } else if (searchForMetadata && response.body) {
                     return createMediaItemFromStream(url, response.body, headers);
                 }
             }

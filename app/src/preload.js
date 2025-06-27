@@ -8,6 +8,7 @@ contextBridge.exposeInMainWorld('ampcastElectron', {
     setFontSize: (fontSize) => ipcRenderer.send('setFontSize', fontSize),
     setFrameColor: (color) => ipcRenderer.send('setFrameColor', color),
     setFrameTextColor: (color) => ipcRenderer.send('setFrameTextColor', color),
+    getLocalhostIP: () => ipcRenderer.invoke('getLocalhostIP'),
     getPreferredPort: () => ipcRenderer.invoke('getPreferredPort'),
     setPreferredPort: (port) => ipcRenderer.invoke('setPreferredPort', port),
 });

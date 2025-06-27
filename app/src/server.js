@@ -4,8 +4,9 @@ const net = require('net');
 const http = require('http');
 const store = require('./store');
 const staticDir = path.resolve(__dirname, '../www');
-const host = 'localhost';
-const defaultPort = 29292;
+
+const HOST = 'localhost';
+const DEFAULT_PORT = 29292;
 
 const mimeTypes = {
     js: 'application/javascript',
@@ -25,13 +26,13 @@ const app = http.createServer(async (req, res) => {
         let pathname = url;
         if (pathname === '/auth/spotify/callback/') {
             const host = req.headers.host || '';
-            if (host.startsWith('[::1]:')) {
-                const port = host.slice(6);
+            if (host.startsWith('[::1]:') || host.startsWith('127.0.0.1:')) {
+                const port = host.slice(host.startsWith('[::1]:') ? 6 : 10);
                 console.log('Redirect:', {
                     from: `${host}${pathname}`,
-                    to: `localhost:${port}${pathname}`,
+                    to: `${HOST}:${port}${pathname}`,
                 });
-                res.writeHead(302, {Location: `http://localhost:${port}${req.url}`});
+                res.writeHead(302, {Location: `http://${HOST}:${port}${req.url}`});
                 res.end();
                 return;
             }
@@ -115,20 +116,20 @@ async function stop() {
 
 async function getServer(port) {
     return new Promise((resolve, reject) => {
-        const server = app.listen(port, host, (err) => {
+        const server = app.listen(port, HOST, (err) => {
             if (err) {
                 reject(err);
             } else {
                 const timestamp = new Date().toLocaleString();
                 console.info(`Server started at: ${timestamp}`);
-                console.info(`Serving from: http://${host}:${port}`);
+                console.info(`Serving from: http://${HOST}:${port}`);
                 resolve(server);
             }
         });
     });
 }
 
-async function getFreePort(port = defaultPort, endPort = port + 20) {
+async function getFreePort(port = DEFAULT_PORT, endPort = port + 20) {
     while (port <= endPort) {
         try {
             await checkPort(port);
@@ -145,13 +146,16 @@ async function checkPort(port) {
         const server = net.createServer();
         server.unref();
         server.on('error', reject);
-        server.listen({host, port}, () => {
+        server.listen({host: HOST, port}, () => {
             server.close(() => resolve());
         });
     });
 }
 
 module.exports = {
+    get address() {
+        return server?.address().address || '';
+    },
     get port() {
         return server?.address().port || 0;
     },

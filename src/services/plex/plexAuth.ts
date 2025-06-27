@@ -182,8 +182,12 @@ async function establishConnection(authToken: string): Promise<void> {
 
 export async function getConnection(server: plex.Device): Promise<plex.Connection | null> {
     // Prefer local connections.
-    const [localConnections, remoteConnections] = partition(
+    const [relayConnections, directConnections] = partition(
         server.connections,
+        (connection) => connection.relay
+    );
+    const [localConnections, remoteConnections] = partition(
+        directConnections,
         (connection) => connection.local
     );
     const httpConnections: plex.Connection[] = [];
@@ -204,7 +208,11 @@ export async function getConnection(server: plex.Device): Promise<plex.Connectio
             });
         }
     }
-    const connections = httpConnections.concat(localConnections, remoteConnections);
+    const connections = httpConnections.concat(
+        localConnections,
+        remoteConnections,
+        relayConnections
+    );
     for (const connection of connections) {
         const canConnect = await testConnection(server, connection);
         if (canConnect) {
@@ -226,7 +234,7 @@ async function testConnection(server: plex.Device, connection: plex.Connection):
             host: connection.uri,
             path: '/library/sections',
             token: server.accessToken,
-            timeout: connection.protocol === 'http' ? 3_000 : 10_000,
+            timeout: 3_000,
         });
         log('successful');
         return true;

@@ -2,6 +2,7 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
 import {nanoid} from 'nanoid';
 import {Logger} from 'utils';
+import ampcastElectron from 'services/ampcastElectron';
 import spotifyApi from './spotifyApi';
 import spotifySettings from './spotifySettings';
 
@@ -81,9 +82,25 @@ export async function reconnect(): Promise<void> {
     await clearAccessToken();
 }
 
+export async function getRedirectUri(): Promise<string> {
+    const authPath = '/auth/spotify/callback/';
+    if (location.protocol === 'https:') {
+        return `${location.origin}${authPath}`;
+    } else {
+        let address = '[::1]';
+        if (ampcastElectron) {
+            const localAddress = await ampcastElectron.getLocalhostIP();
+            address = localAddress === '127.0.0.1' ? localAddress : '[::1]';
+        }
+        return `http://${address}:${location.port}${authPath}`;
+    }
+}
+
 // Based on: https://github.com/JMPerez/spotify-dedup/blob/master/dedup/oauthManager.ts
 
 async function obtainAccessToken(state: string): Promise<TokenResponse> {
+    const redirectUri = await getRedirectUri();
+
     return new Promise((resolve, reject) => {
         let authWindow: Window | null = null;
 
@@ -140,7 +157,7 @@ async function obtainAccessToken(state: string): Promise<TokenResponse> {
         const params = new URLSearchParams({
             client_id: spotifySettings.clientId,
             scope: spotifyScopes.join(' '),
-            redirect_uri: spotifySettings.redirectUri,
+            redirect_uri: redirectUri,
             response_type: 'code',
             code_challenge_method: 'S256',
             code_challenge,
@@ -178,6 +195,7 @@ async function generateCodeChallenge(codeVerifier: string): Promise<string> {
 }
 
 async function exchangeToken(token: string): Promise<TokenResponse> {
+    const redirectUri = await getRedirectUri();
     const response = await fetch(`${spotifyAccounts}/api/token`, {
         method: 'POST',
         headers: {
@@ -187,7 +205,7 @@ async function exchangeToken(token: string): Promise<TokenResponse> {
             client_id: spotifySettings.clientId,
             grant_type: 'authorization_code',
             code: token,
-            redirect_uri: spotifySettings.redirectUri,
+            redirect_uri: redirectUri,
             code_verifier: spotifySettings.codeVerifier,
         }),
     });
