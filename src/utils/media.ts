@@ -1,47 +1,5 @@
-import DRMKeySystem from 'types/DRMKeySystem';
-import DRMType from 'types/DRMType';
 import PlaybackType from 'types/PlaybackType';
-import browser from './browser';
 import {getContentType, getHeaders} from './fetch';
-
-const defaultDrm: DRMType =
-    browser.os === 'Mac OS' || browser.os === 'iOS' ? 'fairplay' : 'widevine';
-let supportedDrm: DRMType | '' = '';
-
-export const drmKeySystems: Record<DRMType, DRMKeySystem> = {
-    widevine: 'com.widevine.alpha',
-    fairplay: 'com.apple.fairplay',
-    playready: 'com.microsoft.playready',
-};
-
-export async function getSupportedDrm(): Promise<DRMType> {
-    if (!supportedDrm) {
-        const keySystems = Object.entries(drmKeySystems);
-        for (const [key, keySystem] of keySystems) {
-            try {
-                const robustness = key === 'widevine' ? {robustness: 'SW_SECURE_CRYPTO'} : {};
-                const config: MediaKeySystemConfiguration = {
-                    initDataTypes: ['cenc'],
-                    audioCapabilities: [
-                        {contentType: 'audio/mp4;codecs="mp4a.40.2"', ...robustness},
-                    ],
-                    videoCapabilities: [
-                        {contentType: 'video/mp4;codecs="avc1.42E01E"', ...robustness},
-                    ],
-                };
-                await navigator.requestMediaKeySystemAccess(keySystem, [config]);
-                supportedDrm = key as DRMType;
-                break;
-            } catch {
-                // ignore
-            }
-        }
-        if (!supportedDrm) {
-            supportedDrm = defaultDrm;
-        }
-    }
-    return supportedDrm;
-}
 
 const audio = document.createElement('audio');
 const video = document.createElement('video');

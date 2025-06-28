@@ -1,7 +1,6 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged} from 'rxjs';
 import {nanoid} from 'nanoid';
-import DRMType from 'types/DRMType';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
 import {LiteStorage, stringContainsMusic} from 'utils';
@@ -10,6 +9,10 @@ const storage = new LiteStorage('plex');
 const libraryId$ = new BehaviorSubject(storage.getString('libraryId'));
 
 const plexSettings = {
+    get accessToken(): string {
+        return this.server?.accessToken || '';
+    },
+
     get audioLibraries(): readonly PersonalMediaLibrary[] {
         return this.libraries;
     },
@@ -23,24 +26,12 @@ const plexSettings = {
         return clientId;
     },
 
-    get drm(): DRMType {
-        return storage.getString('drm', 'widevine');
-    },
-
-    set drm(drm: DRMType) {
-        storage.setString('drm', drm);
-    },
-
     get connection(): plex.Connection | null {
         return storage.getJson('connection');
     },
 
     set connection(connection: plex.Connection | null) {
         storage.setJson('connection', connection);
-    },
-
-    get hasTidal(): boolean {
-        return false;
     },
 
     get host(): string {
@@ -105,10 +96,6 @@ const plexSettings = {
         return this.server?.clientIdentifier || '';
     },
 
-    get serverToken(): string {
-        return this.server?.accessToken || '';
-    },
-
     get userId(): string {
         return storage.getString('userId');
     },
@@ -117,20 +104,10 @@ const plexSettings = {
         storage.setString('userId', userId);
     },
 
-    get userToken(): string {
-        return storage.getString('userToken');
-    },
-
-    set userToken(token: string) {
-        storage.setString('userToken', token);
-    },
-
     clear(): void {
         storage.removeItem('userId');
-        storage.removeItem('userToken');
         storage.removeItem('server');
         storage.removeItem('connection');
-        storage.removeItem('hasTidal');
     },
 };
 

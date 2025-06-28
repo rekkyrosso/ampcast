@@ -228,7 +228,7 @@ async function getServerInfo(): Promise<Record<string, string>> {
 }
 
 function getThumbnailUrl(url: string): string {
-    return url.replace('{plex-token}', plexSettings.serverToken);
+    return url.replace('{plex-token}', plexSettings.accessToken);
 }
 
 async function lookup(

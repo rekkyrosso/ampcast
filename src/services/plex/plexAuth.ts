@@ -1,12 +1,12 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, Subject, distinctUntilChanged, filter, mergeMap} from 'rxjs';
-import {getSupportedDrm, Logger, partition} from 'utils';
+import {Logger, partition, uniqBy} from 'utils';
 import plexSettings from './plexSettings';
 import plexApi, {apiHost} from './plexApi';
 
 const logger = new Logger('plexAuth');
 
-const serverToken$ = new BehaviorSubject('');
+const accessToken$ = new BehaviorSubject('');
 const isLoggedIn$ = new BehaviorSubject(false);
 const connectionLogging$ = new Subject<string>();
 
@@ -21,8 +21,8 @@ export async function refreshPin(): Promise<plex.Pin> {
     return pin;
 }
 
-function observeServerToken(): Observable<string> {
-    return serverToken$.pipe(distinctUntilChanged());
+function observeAccessToken(): Observable<string> {
+    return accessToken$.pipe(distinctUntilChanged());
 }
 
 export function isConnected(): boolean {
@@ -30,7 +30,7 @@ export function isConnected(): boolean {
 }
 
 export function isLoggedIn(): boolean {
-    return isLoggedIn$.getValue();
+    return isLoggedIn$.value;
 }
 
 export function observeIsLoggedIn(): Observable<boolean> {
@@ -46,10 +46,9 @@ export async function login(): Promise<void> {
         logger.log('connect');
         try {
             connectionLogging$.next('');
-            const {id, userToken, serverToken} = await obtainUserToken();
+            const {id, accessToken} = await connect();
             plexSettings.userId = id;
-            plexSettings.userToken = userToken;
-            serverToken$.next(serverToken);
+            accessToken$.next(accessToken);
         } catch (err) {
             logger.error(err);
             await refreshPin();
@@ -60,26 +59,21 @@ export async function login(): Promise<void> {
 export async function logout(): Promise<void> {
     logger.log('disconnect');
     plexSettings.clear();
-    serverToken$.next('');
+    accessToken$.next('');
     isLoggedIn$.next(false);
 }
 
 export async function reconnect(): Promise<void> {
-    serverToken$.next(plexSettings.serverToken);
+    accessToken$.next(plexSettings.accessToken);
 }
 
-async function obtainUserToken(): Promise<{id: string; serverToken: string; userToken: string}> {
-    const {id, serverToken} = await obtainServerToken();
-    await establishConnection(serverToken);
-    try {
-        const {authToken: userToken} = await plexApi.getAccount(serverToken);
-        return {id, serverToken, userToken};
-    } catch {
-        return {id, serverToken, userToken: ''};
-    }
+async function connect(): Promise<{id: string; accessToken: string}> {
+    const {id, accessToken} = await obtainAccessToken();
+    await establishConnection(accessToken);
+    return {id, accessToken};
 }
 
-async function obtainServerToken(): Promise<{id: string; serverToken: string}> {
+async function obtainAccessToken(): Promise<{id: string; accessToken: string}> {
     return new Promise((resolve, reject) => {
         const forwardUrl = `${location.origin}/auth/plex/callback/`;
         const plexAuthHost = `https://app.plex.tv/auth`;
@@ -103,12 +97,13 @@ async function obtainServerToken(): Promise<{id: string; serverToken: string}> {
                 const checkForToken = async () => {
                     attemptsRemaining--;
                     try {
-                        const {authToken, id} = await plexApi.fetchJSON<plex.TokenResponse>({
-                            host: apiHost,
-                            path: `/pins/${pin.id}`,
-                        });
-                        if (authToken) {
-                            resolve({id, serverToken: authToken});
+                        const {id, authToken: accessToken} =
+                            await plexApi.fetchJSON<plex.TokenResponse>({
+                                host: apiHost,
+                                path: `/pins/${pin.id}`,
+                            });
+                        if (accessToken) {
+                            resolve({id, accessToken});
                         } else if (attemptsRemaining) {
                             setTimeout(checkForToken, 200);
                         } else {
@@ -143,11 +138,10 @@ async function obtainServerToken(): Promise<{id: string; serverToken: string}> {
     });
 }
 
-async function establishConnection(authToken: string): Promise<void> {
+async function establishConnection(accessToken: string): Promise<void> {
     const {server, connection} = plexSettings;
     if (server && connection) {
-        const connectionType = connection.local ? 'local' : 'public';
-        connectionLogging$.next(`Trying existing ${connectionType} connection…`);
+        connectionLogging$.next('Trying existing connection…');
         if (await testConnection(server, connection)) {
             return;
         } else {
@@ -158,7 +152,7 @@ async function establishConnection(authToken: string): Promise<void> {
 
     connectionLogging$.next(`Searching for ${connection ? 'a new' : 'a'} connection…`);
 
-    const servers = await plexApi.getServers(authToken);
+    const servers = await plexApi.getServers(accessToken);
 
     if (servers.length === 0) {
         const message = 'Could not find a Plex server';
@@ -181,11 +175,12 @@ async function establishConnection(authToken: string): Promise<void> {
 }
 
 export async function getConnection(server: plex.Device): Promise<plex.Connection | null> {
-    // Prefer local connections.
+    // Prefer direct (non-relay) connections.
     const [relayConnections, directConnections] = partition(
         server.connections,
         (connection) => connection.relay
     );
+    // Prefer local connections.
     const [localConnections, remoteConnections] = partition(
         directConnections,
         (connection) => connection.local
@@ -208,11 +203,12 @@ export async function getConnection(server: plex.Device): Promise<plex.Connectio
             });
         }
     }
-    const connections = httpConnections.concat(
-        localConnections,
-        remoteConnections,
-        relayConnections
-    );
+    const connections = uniqBy('uri', [
+        ...httpConnections,
+        ...localConnections,
+        ...remoteConnections,
+        ...relayConnections,
+    ]);
     for (const connection of connections) {
         const canConnect = await testConnection(server, connection);
         if (canConnect) {
@@ -225,8 +221,8 @@ export async function getConnection(server: plex.Device): Promise<plex.Connectio
 async function testConnection(server: plex.Device, connection: plex.Connection): Promise<boolean> {
     const log = (result: string) =>
         connectionLogging$.next(
-            `[Server: ${server.name}] ${
-                connection.local ? 'local' : 'public'
+            `[${server.name}] ${
+                connection.relay ? 'relay' : connection.local ? 'local' : 'remote'
             } connection ${result} (${connection.uri})`
         );
     try {
@@ -234,7 +230,7 @@ async function testConnection(server: plex.Device, connection: plex.Connection):
             host: connection.uri,
             path: '/library/sections',
             token: server.accessToken,
-            timeout: 3_000,
+            timeout: connection.local ? 2_000 : 5_000,
         });
         log('successful');
         return true;
@@ -244,7 +240,7 @@ async function testConnection(server: plex.Device, connection: plex.Connection):
     }
 }
 
-observeServerToken()
+observeAccessToken()
     .pipe(
         filter((token) => !!token),
         mergeMap(() => checkConnection())
@@ -253,13 +249,12 @@ observeServerToken()
 
 async function checkConnection(): Promise<boolean> {
     try {
-        const [libraries] = await Promise.all([plexApi.getMusicLibraries(), getDrm()]);
-        plexSettings.libraries = libraries;
+        plexSettings.libraries = await plexApi.getMusicLibraries();
         return true;
     } catch (err: any) {
         if (err.status === 401) {
             plexSettings.clear();
-            serverToken$.next('');
+            accessToken$.next('');
             connectionLogging$.next('Connection failed');
             return false;
         } else {
@@ -267,15 +262,6 @@ async function checkConnection(): Promise<boolean> {
             connectionLogging$.next('Connected with errors');
             return true; // we're still logged in but some things might not work
         }
-    }
-}
-
-async function getDrm(): Promise<void> {
-    try {
-        const drm = await getSupportedDrm();
-        plexSettings.drm = drm;
-    } catch (err) {
-        logger.error(err);
     }
 }
 

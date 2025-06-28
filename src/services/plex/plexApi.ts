@@ -70,7 +70,7 @@ async function plexFetch({
     params,
     headers,
     body,
-    token,
+    token = plexSettings.accessToken,
     timeout,
 }: PlexRequest): Promise<Response> {
     if (!host) {
@@ -82,17 +82,11 @@ async function plexFetch({
         path = path.slice(1);
     }
 
-    if (!token) {
-        token = host === plexSettings.host ? plexSettings.serverToken : plexSettings.userToken;
-    }
-
-    const drm = host === plexSettings.host ? undefined : plexSettings.drm;
-
     const init: RequestInit = {
         method,
         headers: {
             ...headers,
-            ...getHeaders(token, drm),
+            ...getHeaders(token),
         },
         body,
     };
@@ -180,15 +174,7 @@ function toPlexUri(items: readonly MediaItem[]): string {
     return `server://${plexSettings.serverId}/com.plexapp.plugins.library/library/metadata/${ids}`;
 }
 
-async function getAccount(token: string): Promise<plex.Account> {
-    const {MyPlex: account} = await fetchJSON<plex.AccountResponse>({
-        path: 'myplex/account',
-        token,
-    });
-    return account;
-}
-
-async function getServers(token = plexSettings.serverToken): Promise<readonly plex.Device[]> {
+async function getServers(token = plexSettings.accessToken): Promise<readonly plex.Device[]> {
     const devices = await fetchJSON<plex.Device[]>({
         host: apiHost,
         path: '/resources',
@@ -208,7 +194,7 @@ async function getServers(token = plexSettings.serverToken): Promise<readonly pl
 
 async function getMusicLibraries(
     host = plexSettings.host,
-    token = plexSettings.serverToken
+    token = plexSettings.accessToken
 ): Promise<readonly PersonalMediaLibrary[]> {
     const {
         MediaContainer: {Directory: sections},
@@ -480,14 +466,14 @@ async function getRadioStations(): Promise<PlexRadioStations> {
 }
 
 function getPlayableUrl(item: PlayableItem): string {
-    const {host, serverToken} = plexSettings;
-    if (host && serverToken) {
+    const {host, accessToken} = plexSettings;
+    if (host && accessToken) {
         if (item.playbackType === PlaybackType.Direct) {
             const [src] = item.srcs || [];
             if (!src) {
                 throw Error('No playable source');
             }
-            return `${host}${src}?X-Plex-Token=${serverToken}`;
+            return `${host}${src}?X-Plex-Token=${accessToken}`;
         } else {
             const [, type, ratingKey] = item.src.split(':');
             const mediaType = type === 'video' ? 'video' : 'music';
@@ -501,7 +487,7 @@ function getPlayableUrl(item: PlayableItem): string {
                 mediaBufferSize: '12288',
                 protocol: item.playbackType === PlaybackType.HLS ? 'hls' : 'dash',
                 directPlay: '0',
-                ...getHeaders(serverToken),
+                ...getHeaders(accessToken),
                 'X-Plex-Client-Profile-Extra':
                     'add-transcode-target(type=musicProfile&context=streaming&protocol=dash&container=mp4&audioCodec=aac)+add-transcode-target(type=musicProfile&context=streaming&protocol=hls&container=mpegts&audioCodec=aac,mp3)',
             });
@@ -514,9 +500,9 @@ function getPlayableUrl(item: PlayableItem): string {
 
 async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
     try {
-        const {host, serverToken} = plexSettings;
+        const {host, accessToken} = plexSettings;
         const [src] = item.srcs || [];
-        const url = `${host}${src}?X-Plex-Token=${serverToken}`;
+        const url = `${host}${src}?X-Plex-Token=${accessToken}`;
         const directPlay = await canPlayMedia(
             item.mediaType === MediaType.Video ? 'video' : 'audio',
             url
@@ -527,7 +513,7 @@ async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
     }
 }
 
-function getHeaders(token: string, drm?: string): Record<string, string> {
+function getHeaders(token: string): Record<string, string> {
     const headers: Record<string, string> = {
         // This app
         'X-Plex-Product': __app_name__,
@@ -545,9 +531,6 @@ function getHeaders(token: string, drm?: string): Record<string, string> {
     };
     if (token) {
         headers['X-Plex-Token'] = token;
-    }
-    if (drm) {
-        headers['X-Plex-Drm'] = drm;
     }
     return headers;
 }
@@ -616,7 +599,6 @@ const plexApi = {
     getPlayQueue,
     fetch: plexFetch,
     fetchJSON,
-    getAccount,
     getFilters,
     getHeaders,
     getMetadata,
