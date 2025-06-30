@@ -6,7 +6,6 @@ import {observeCurrentTime} from 'services/mediaPlayback/playback';
 import {observeCurrentIndex, observeCurrentItem} from 'services/playlist';
 import {ListViewHandle} from 'components/ListView';
 import Time from 'components/Time';
-import usePlaylistInject from 'components/Playlist/usePlaylistInject';
 import useObservable from 'hooks/useObservable';
 import usePaused from 'hooks/usePaused';
 import usePlaybackState from 'hooks/usePlaybackState';
@@ -22,15 +21,13 @@ export interface MediaControlsProps {
 
 export default function MediaControls({playlistRef}: MediaControlsProps) {
     const playheadRef = useRef<HTMLInputElement>(null);
-    const fileRef = useRef<HTMLInputElement>(null);
     const currentIndex = useObservable(observeCurrentIndex, -1);
     const currentItem = useObservable(observeCurrentItem, null);
     const {startedAt, currentTime, duration} = usePlaybackState();
     const isInfiniteStream = duration === MAX_DURATION;
     const unpausable = currentItem?.isLivePlayback || isInfiniteStream;
     const paused = usePaused();
-    const {showPlaylistMenu} = usePlaylistMenu(playlistRef, fileRef);
-    const inject = usePlaylistInject();
+    const {showPlaylistMenu} = usePlaylistMenu(playlistRef);
     const [seekTime, setSeekTime] = useThrottledValue(-1, 300, {trailing: true});
     const [seeking, setSeeking] = useState(false);
     const displayTime = isInfiniteStream
@@ -90,17 +87,6 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
         playlistRef.current?.focus();
     }, [playlistRef, currentIndex]);
 
-    const handleFileImport = useCallback(
-        async (event: React.ChangeEvent<HTMLInputElement>) => {
-            const files = event.target!.files;
-            if (files) {
-                await inject.files(files, -1);
-                event.target!.value = '';
-            }
-        },
-        [inject]
-    );
-
     return (
         <div className="media-controls">
             <div className="current-time-control">
@@ -140,13 +126,6 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
                 </div>
                 <div className="media-buttons-menu">
                     <MediaButton title="More…" icon="menu" onClick={handleMenuClick} />
-                    <input
-                        type="file"
-                        accept="audio/*,video/*"
-                        multiple
-                        onChange={handleFileImport}
-                        ref={fileRef}
-                    />
                 </div>
             </div>
         </div>

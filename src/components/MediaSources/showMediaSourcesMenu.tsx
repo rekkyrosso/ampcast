@@ -8,6 +8,7 @@ import PopupMenu, {
     PopupMenuSeparator,
     showPopupMenu,
 } from 'components/PopupMenu';
+import {showMediaServiceSettingsDialog} from 'components/Settings/MediaLibrarySettings/MediaServiceSettingsDialog';
 import {MediaSourceView} from './MediaSources';
 import {showEditSourcesDialog} from './EditSourcesDialog';
 
@@ -46,6 +47,14 @@ function MediaSourcesMenu({source, ...props}: PopupMenuProps & MediaSourcesMenuP
         }
     }, [source]);
 
+    const handleSettingsClick = useCallback(() => {
+        const [serviceId] = source.id.split('/');
+        const service = getService(serviceId);
+        if (service) {
+            showMediaServiceSettingsDialog(service);
+        }
+    }, [source]);
+
     const handleEditSourcesClick = useCallback(() => {
         const [serviceId] = source.id.split('/');
         const service = getService(serviceId);
@@ -56,16 +65,21 @@ function MediaSourcesMenu({source, ...props}: PopupMenuProps & MediaSourcesMenuP
 
     return (
         <PopupMenu {...props}>
-            {isService && source.isConnected() ? (
+            {isService ? (
                 <>
                     <PopupMenuItem
-                        label={`Disconnect from ${source.name}`}
-                        onClick={handleDisconnectClick}
+                        label={`${source.name} Settings…`}
+                        onClick={handleSettingsClick}
                     />
+                    {source.isConnected() ? (
+                        <PopupMenuItem
+                            label={`Disconnect from ${source.name}…`}
+                            onClick={handleDisconnectClick}
+                        />
+                    ) : null}
                     <PopupMenuSeparator />
                 </>
             ) : null}
-            <PopupMenuSeparator />
             <PopupMenuItem label="Edit sources…" onClick={handleEditSourcesClick} />
         </PopupMenu>
     );

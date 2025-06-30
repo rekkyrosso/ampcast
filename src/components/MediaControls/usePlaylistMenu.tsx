@@ -9,10 +9,7 @@ import {showCreatePlaylistDialog} from 'components/Actions/CreatePlaylistDialog'
 import {PopupMenuProps, showPopupMenu} from 'components/PopupMenu';
 import PlaylistMenu from './PlaylistMenu';
 
-export default function usePlaylistMenu(
-    listViewRef: React.RefObject<ListViewHandle | null>,
-    fileRef: React.RefObject<HTMLInputElement | null>
-) {
+export default function usePlaylistMenu(listViewRef: React.RefObject<ListViewHandle | null>) {
     const inject = usePlaylistInject();
 
     const showPlaylistMenu = useCallback(
@@ -47,9 +44,20 @@ export default function usePlaylistMenu(
                     listView.scrollIntoView(0);
                     break;
 
-                case 'add-from-file':
-                    fileRef.current!.click();
+                case 'add-from-file': {
+                    const input = document.createElement('input');
+                    input.type = 'file';
+                    input.accept = 'audio/*,video/*';
+                    input.multiple = true;
+                    input.addEventListener('change', async () => {
+                        const files = input.files;
+                        if (files) {
+                            await inject.files(files, -1);
+                        }
+                    });
+                    input.click();
                     break;
+                }
 
                 case 'add-from-url': {
                     const examples = [
@@ -79,7 +87,7 @@ export default function usePlaylistMenu(
                     break;
             }
         },
-        [listViewRef, fileRef, inject]
+        [listViewRef, inject]
     );
 
     return {showPlaylistMenu};

@@ -15,7 +15,6 @@ import './UserThemes.scss';
 export default function UserThemes() {
     const listViewRef = useRef<ListViewHandle>(null);
     const renderTheme = useMemo(() => (theme: Theme) => theme.name, []);
-    const fileRef = useRef<HTMLInputElement>(null);
     const themes = useUserThemes();
     const [renamed, setRenamed] = useState('');
     const [selectedThemes, setSelectedThemes] = useState<readonly Theme[]>([]);
@@ -73,15 +72,16 @@ export default function UserThemes() {
     }, [selectedTheme]);
 
     const handleImportClick = useCallback(() => {
-        fileRef.current!.click();
-    }, []);
-
-    const handleFileImport = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-        const file = event.target!.files?.[0];
-        if (file) {
-            await importThemeFromFile(file);
-            event.target!.value = '';
-        }
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.accept = 'text/json,.json';
+        input.addEventListener('change', async () => {
+            const file = input.files?.[0];
+            if (file) {
+                await importThemeFromFile(file);
+            }
+        });
+        input.click();
     }, []);
 
     return (
@@ -115,12 +115,6 @@ export default function UserThemes() {
             <fieldset className="user-themes-import">
                 <legend>Import theme</legend>
                 <p>
-                    <input
-                        type="file"
-                        accept="text/json,.json"
-                        onChange={handleFileImport}
-                        ref={fileRef}
-                    />
                     <button type="button" onClick={handleImportClick}>
                         Import…
                     </button>

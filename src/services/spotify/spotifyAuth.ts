@@ -298,5 +298,9 @@ async function checkConnection(): Promise<void> {
 }
 
 if (window.isSecureContext && !isConnected()) {
-    createCodeVerifier();
+    try {
+        createCodeVerifier();
+    } catch (err) {
+        logger.error(err);
+    }
 }
