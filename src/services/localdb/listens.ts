@@ -26,13 +26,13 @@ class ListensStore extends Dexie {
 
         liveQuery(() => this.items.orderBy('playedAt').reverse().toArray()).subscribe(listens$);
 
-        requestIdleCallback(() => {
+        setTimeout(() => {
             try {
                 Promise.all([markExpired('lastfm'), markExpired('listenbrainz')]);
             } catch (err) {
                 logger.error(err);
             }
-        });
+        }, 3_000);
     }
 }
 
