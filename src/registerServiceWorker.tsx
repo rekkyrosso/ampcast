@@ -2,31 +2,34 @@ import React from 'react';
 import {confirm} from 'components/Dialog';
 
 if (location.protocol === 'https:' && navigator.serviceWorker) {
-    let reloading = false;
-
-    navigator.serviceWorker.addEventListener('controllerchange', () => {
-        if (!reloading) {
-            reloading = true;
-            location.reload();
-        }
-    });
-
     window.addEventListener('load', async () => {
-        const registration = await navigator.serviceWorker.register('/service-worker.js');
+        let reloading = false;
+        const previousRegistration = await navigator.serviceWorker.getRegistration();
+
+        navigator.serviceWorker.addEventListener('controllerchange', () => {
+            if (!reloading && previousRegistration) {
+                reloading = true;
+                location.reload();
+            }
+        });
+
+        const registration = await navigator.serviceWorker.register('/service-worker-v2.js');
 
         const forceUpdate = async () => {
-            const confirmed = await confirm({
-                icon: 'ampcast',
-                title: 'Update Available',
-                message: (
-                    <>
-                        <p>A new version of Ampcast is available.</p>
-                        <p>Install update?</p>
-                    </>
-                ),
-                okLabel: 'Update',
-                system: true,
-            });
+            const confirmed =
+                !previousRegistration ||
+                (await confirm({
+                    icon: 'ampcast',
+                    title: 'Update Available',
+                    message: (
+                        <>
+                            <p>A new version of Ampcast is available.</p>
+                            <p>Install update?</p>
+                        </>
+                    ),
+                    okLabel: 'Update',
+                    system: true,
+                }));
             if (confirmed) {
                 registration.waiting?.postMessage('SKIP_WAITING');
             }

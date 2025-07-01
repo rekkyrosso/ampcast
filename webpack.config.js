@@ -22,7 +22,6 @@ module.exports = (args) => {
         rimrafSync(wwwDir);
     } else {
         rimrafSync(`${wwwDir}/v${packageJson.version}`);
-
     }
 
     const encodeString = (string) => {
@@ -194,6 +193,10 @@ module.exports = (args) => {
                       patterns: [
                           {
                               from: './src/service-worker.js',
+                              to: wwwDir,
+                          },
+                          {
+                              from: './src/service-worker-v2.js',
                               to: wwwDir,
                               transform(content) {
                                   return String(content)

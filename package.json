@@ -15,7 +15,7 @@
         "build:pwa": "webpack --env mode=production --env target=pwa",
         "build:electron": "webpack --env mode=production --env target=electron",
         "start:dev": "node server.js --dev",
-        "start:prod": "node server.js",
+        "start:pwa": "node server.js",
         "start:docker": "node server.js --host 0.0.0.0",
         "stats": "webpack --profile --json > stats.json"
     },
