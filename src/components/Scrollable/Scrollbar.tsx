@@ -4,6 +4,7 @@ import React, {
     useEffect,
     useImperativeHandle,
     useLayoutEffect,
+    useMemo,
     useRef,
     useState,
 } from 'react';
@@ -28,6 +29,8 @@ import './Scrollbar.scss';
 export interface ScrollbarHandle {
     scrollBy: (amount: number) => void;
     scrollTo: (position: number) => void;
+    atEnd: () => boolean;
+    atStart: () => boolean;
 }
 
 export interface ScrollbarProps {
@@ -64,8 +67,12 @@ function Scrollbar({
     const prevPosition = usePrevious(position) || 0;
     const positionDiff = Math.abs(prevPosition - position);
     const smallChange = positionDiff <= scrollAmount;
+    const isAtEnd = position === max;
+    const isAtStart = position === 0;
+    const atEnd = useMemo(() => () => isAtEnd, [isAtEnd]);
+    const atStart = useMemo(() => () => isAtStart, [isAtStart]);
 
-    useImperativeHandle(ref, () => ({scrollBy, scrollTo}));
+    useImperativeHandle(ref, () => ({scrollBy, scrollTo, atEnd, atStart}));
 
     useEffect(
         () => resize(props.clientSize, props.scrollSize),

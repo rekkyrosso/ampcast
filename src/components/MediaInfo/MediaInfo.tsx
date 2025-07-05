@@ -41,11 +41,11 @@ export default function MediaInfo<T extends MediaObject>({item}: MediaInfoProps<
 
 function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
     return (
-        <article className="media-info media-item-info">
+        <article className="media-info">
             <div className="media-info-main">
                 <Thumbnail item={item} extendedSearch />
                 <Title title={item.title} />
-                <Artist artist={item.artists?.join('; ')} />
+                <Artist artist={item.artists?.join(', ')} />
                 <AlbumAndYear album={item.album} year={item.year} />
                 <Track album={item.album} disc={item.disc} track={item.track} />
                 <StationName stationName={item.stationName} />
@@ -67,7 +67,7 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
 
 function AlbumInfo({item: album}: MediaInfoProps<MediaAlbum>) {
     return (
-        <article className="media-info album-info">
+        <article className="media-info">
             <div className="media-info-main">
                 <Thumbnail item={album} extendedSearch />
                 <Title title={album.title} />
@@ -86,7 +86,7 @@ function AlbumInfo({item: album}: MediaInfoProps<MediaAlbum>) {
 
 function ArtistInfo({item: artist}: MediaInfoProps<MediaArtist>) {
     return (
-        <article className="media-info artist-info">
+        <article className="media-info">
             <div className="media-info-main">
                 <Thumbnail item={artist} />
                 <Title title={artist.title} />
@@ -105,7 +105,7 @@ function ArtistInfo({item: artist}: MediaInfoProps<MediaArtist>) {
 
 function PlaylistInfo({item: playlist}: MediaInfoProps<MediaPlaylist>) {
     return (
-        <article className="media-info playlist-info">
+        <article className="media-info">
             <div className="media-info-main">
                 <Thumbnail item={playlist} />
                 <Title title={playlist.title} />
@@ -123,7 +123,7 @@ function PlaylistInfo({item: playlist}: MediaInfoProps<MediaPlaylist>) {
 
 function FolderInfo({item: folder}: MediaInfoProps<MediaFolder>) {
     return (
-        <article className="media-info folder-info">
+        <article className="media-info">
             <div className="media-info-main">
                 <Thumbnail item={folder} />
                 <Title title={folder.title} />

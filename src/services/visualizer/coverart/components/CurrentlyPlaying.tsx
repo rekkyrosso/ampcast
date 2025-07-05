@@ -5,7 +5,7 @@ import LinearType from 'types/LinearType';
 import PlaylistItem from 'types/PlaylistItem';
 import {uniq} from 'utils';
 import Icon from 'components/Icon';
-import {Thumbnail} from 'components/MediaInfo/MediaInfo';
+import {Thumbnail} from 'components/MediaInfo';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import ProvidedBy from 'components/Media/ProvidedBy';
 import PlaybackState from 'components/Media/PlaybackState';

@@ -54,7 +54,6 @@ export class SpotifyPlayer implements Player<PlayableItem> {
     private readonly state$ = new BehaviorSubject<Spotify.PlaybackState | null>(null);
     private loadedSrc = '';
     private loadError?: LoadError;
-    private currentPlaybackId = '';
     private deviceId = '';
     private hasWaited = false;
     autoplay = false;
@@ -118,30 +117,18 @@ export class SpotifyPlayer implements Player<PlayableItem> {
             )
             .subscribe(logger);
 
-        // `currentPlaybackId`.
-        this.observeState()
-            .pipe(
-                filter(
-                    (state) =>
-                        !this.paused &&
-                        !state.paused &&
-                        !state.loading &&
-                        this.compareTrackSrc(state.track_window?.current_track, this.src)
-                ),
-                map((state) => state.playback_id),
-                distinctUntilChanged(),
-                tap((playbackId) => (this.currentPlaybackId = playbackId))
-            )
-            .subscribe(logger);
-
         // `ended` event.
         this.observeState()
             .pipe(
-                map((state) => state.playback_id),
                 pairwise(),
-                map(([prevId, nextId]) => prevId !== nextId && prevId === this.currentPlaybackId),
-                distinctUntilChanged(),
-                map((isNewPlaybackId) => isNewPlaybackId && !this.paused),
+                map(
+                    ([prevState, nextState]) =>
+                        !prevState.loading &&
+                        nextState.loading &&
+                        prevState.position !== 0 &&
+                        nextState.position === 0 &&
+                        this.compareTrackSrc(prevState.track_window?.current_track, this.src)
+                ),
                 filter((ended) => ended),
                 tap(() => this.ended$.next())
             )

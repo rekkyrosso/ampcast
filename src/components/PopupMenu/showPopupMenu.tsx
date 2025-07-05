@@ -26,7 +26,7 @@ export default async function showPopupMenu<T extends string>(
             root.unmount();
         };
         try {
-            popupRoot!.append(rootElement);
+            popupRoot.append(rootElement);
             root.render(
                 <PopupMenu
                     x={x}

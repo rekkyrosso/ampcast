@@ -1,6 +1,6 @@
 @use 'styles/effects.scss';
 
-.media-list.list-view {    
+.media-list.list-view {
     .playing {
         color: var(--currently-playing-color);
 
@@ -429,7 +429,7 @@
                     font-size: 0.625em;
                 }
             }
-            
+
             .owner,
             .genre {
                 -webkit-line-clamp: 1;
@@ -551,7 +551,7 @@
             }
 
             .actions {
-                .icon-button:not(.icon-button-menu),                
+                .icon-button:not(.icon-button-menu),
                 .star-rating {
                     display: none;
                 }

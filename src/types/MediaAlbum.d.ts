@@ -24,4 +24,7 @@ export default interface MediaAlbum extends BaseMediaObject {
     readonly explicit?: boolean;
     readonly badge?: string;
     readonly shareLink?: string;
+    readonly links?: {
+        readonly artist?: string;
+    };
 }

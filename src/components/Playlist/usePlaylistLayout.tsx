@@ -38,7 +38,7 @@ export default function usePlaylistLayout(size: number): ListViewLayout<Playlist
                 if (col.className === 'index') {
                     return {
                         ...col,
-                        render: (item: PlaylistItem, rowIndex) => {
+                        render: (item: PlaylistItem, {rowIndex}) => {
                             const rowNumber = RowNumber(rowIndex, sizeExponent);
                             if (item.id === currentId) {
                                 return (

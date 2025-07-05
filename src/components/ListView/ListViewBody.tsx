@@ -1,7 +1,7 @@
 import React, {useRef} from 'react';
 import {ConditionalKeys} from 'type-fest';
 import ListViewBodyRow from './ListViewBodyRow';
-import {Column} from './ListView';
+import {Column, ListViewLayout} from './ListView';
 
 export interface ListViewBodyProps<T> {
     listViewId: string;
@@ -21,6 +21,7 @@ export interface ListViewBodyProps<T> {
     dragIndex: number;
     multiple?: boolean;
     busy: boolean;
+    view: ListViewLayout<T>['view'];
 }
 
 export default function ListViewBody<T>({
@@ -41,6 +42,7 @@ export default function ListViewBody<T>({
     dragIndex,
     multiple = false,
     busy,
+    view,
 }: ListViewBodyProps<T>) {
     const ref = useRef<HTMLOListElement>(null);
     const size = items.length;
@@ -74,6 +76,7 @@ export default function ListViewBody<T>({
                     setSize={size}
                     dragIndex={dragIndex}
                     busy={busy}
+                    view={view}
                     key={item[itemKey] as any}
                 />
             ))}

@@ -1,3 +1,4 @@
+import ItemType from 'types/ItemType';
 import PlaybackType from 'types/PlaybackType';
 import {getContentType, getHeaders} from './fetch';
 
@@ -51,6 +52,37 @@ export function canPlayMedia(type: 'audio' | 'video', src: string): Promise<bool
             resolveFalse();
         }
     });
+}
+
+export function getMediaLabel(itemType: ItemType, serviceId?: string): string {
+    switch (itemType) {
+        case ItemType.Playlist:
+            return 'Playlists';
+
+        case ItemType.Album:
+            return 'Albums';
+
+        case ItemType.Artist:
+            return 'Artists';
+
+        case ItemType.Folder:
+            return 'Folders';
+
+        default: {
+            switch (serviceId) {
+                case 'lastfm':
+                case 'listenbrainz':
+                case 'plex':
+                    return 'Tracks';
+
+                case 'youtube':
+                    return 'Videos';
+
+                default:
+                    return 'Songs';
+            }
+        }
+    }
 }
 
 export async function getPlaybackTypeFromUrl(url: string): Promise<PlaybackType> {

@@ -24,7 +24,14 @@ export interface ColumnSpec<T> {
     readonly className?: string;
     readonly align?: 'left' | 'right' | 'center';
     readonly width?: number; // starting width (only in a sizeable layout)
-    readonly render: (item: T, rowIndex: number, isScrolling: boolean) => React.ReactNode;
+    readonly render: (
+        item: T,
+        info: {
+            view: ListViewLayout<T>['view'];
+            rowIndex: number;
+            busy: boolean; // Scrolling
+        }
+    ) => React.ReactNode;
     readonly onContextMenu?: (event: React.MouseEvent) => void;
 }
 
@@ -419,7 +426,15 @@ export default function ListView<T>({
         setClientHeight(clientHeight);
     }, []);
 
-    useOnResize(cursorRef, ({height}) => setRowHeight(height), 'border-box');
+    useOnResize(
+        cursorRef,
+        ({height}) => {
+            if (height > 0) {
+                setRowHeight(height);
+            }
+        },
+        'border-box'
+    );
 
     const handleClick = useCallback(
         (event: React.MouseEvent) => {
@@ -668,6 +683,7 @@ export default function ListView<T>({
                     draggable={disabled ? false : draggable || moveable}
                     multiple={multiple}
                     busy={isScrolling}
+                    view={layout.view}
                 />
                 <div
                     className="list-view-cursor"

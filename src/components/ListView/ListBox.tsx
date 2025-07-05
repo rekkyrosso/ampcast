@@ -1,10 +1,10 @@
 import React, {useMemo} from 'react';
 import {Except} from 'type-fest';
-import ListView, {ListViewLayout, ListViewProps} from './ListView';
+import ListView, {ColumnSpec, ListViewLayout, ListViewProps} from './ListView';
 import './ListBox.scss';
 
 export interface ListBoxProps<T> extends Except<ListViewProps<T>, 'layout'> {
-    renderItem?: (item: T, rowIndex: number) => React.ReactNode;
+    renderItem?: ColumnSpec<T>['render'];
 }
 
 export default function ListBox<T>({

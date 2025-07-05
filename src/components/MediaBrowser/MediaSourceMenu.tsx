@@ -1,6 +1,7 @@
 import React from 'react';
 import ItemType from 'types/ItemType';
 import MediaSource, {MediaSourceItems} from 'types/MediaSource';
+import {getMediaLabel} from 'utils';
 import {
     getSourceSorting,
     setSourceView,
@@ -176,33 +177,6 @@ function getViewName(view: string): string {
 }
 
 function getDefaultLabel(sourceId: string, itemType: ItemType): string {
-    switch (itemType) {
-        case ItemType.Playlist:
-            return 'Playlists';
-
-        case ItemType.Album:
-            return 'Albums';
-
-        case ItemType.Artist:
-            return 'Artists';
-
-        case ItemType.Folder:
-            return 'Folders';
-
-        default: {
-            const [serviceId] = sourceId.split('/');
-            switch (serviceId) {
-                case 'lastfm':
-                case 'listenbrainz':
-                case 'plex':
-                    return 'Tracks';
-
-                case 'youtube':
-                    return 'Videos';
-
-                default:
-                    return 'Songs';
-            }
-        }
-    }
+    const [serviceId] = sourceId.split('/');
+    return getMediaLabel(itemType, serviceId);
 }

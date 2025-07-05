@@ -150,7 +150,7 @@ function createMediaListLayout<T extends MediaObject = MediaObject>(
 type MediaFields = Record<Field, FieldSpec>;
 type RenderField<T extends MediaObject = MediaObject> = ColumnSpec<T>['render'];
 
-const Index: RenderField = (_, rowIndex) => <Text value={rowIndex + 1} />;
+const Index: RenderField = (_, {rowIndex}) => <Text value={rowIndex + 1} />;
 
 const Title: RenderField = (item) => {
     return (
@@ -311,7 +311,7 @@ const AlbumAndYear: RenderField<MediaItem> = (item) => (
     />
 );
 
-const FileIcon: RenderField<MediaFolderItem> = (item: MediaFolderItem, rowIndex: number) => {
+const FileIcon: RenderField<MediaFolderItem> = (item: MediaFolderItem, {rowIndex}) => {
     const icon =
         item.itemType === ItemType.Media
             ? item.mediaType === MediaType.Video
@@ -327,7 +327,7 @@ const FileIcon: RenderField<MediaFolderItem> = (item: MediaFolderItem, rowIndex:
     );
 };
 
-const Thumbnail: RenderField = (item, rowIndex, busy) => {
+const Thumbnail: RenderField = (item, {busy}) => {
     return <CoverArt item={item} placeholder={busy} />;
 };
 

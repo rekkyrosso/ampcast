@@ -68,4 +68,9 @@ export default interface MediaItem extends BaseMediaObject {
     readonly plex?: {
         readonly playQueueItemID?: number;
     };
+    readonly links?: {
+        readonly artists?: readonly string[];
+        readonly albumArtist?: string;
+        readonly album?: string;
+    };
 }

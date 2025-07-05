@@ -1,5 +1,5 @@
 import React from 'react';
-import {Column} from './ListView';
+import {Column, ListViewLayout} from './ListView';
 import ListViewBodyCell from './ListViewBodyCell';
 
 export interface ListViewRowProps<T> {
@@ -13,6 +13,7 @@ export interface ListViewRowProps<T> {
     setSize: number;
     dragIndex: number;
     busy: boolean;
+    view: ListViewLayout<T>['view'];
 }
 
 export default function ListViewRow<T>({
@@ -26,6 +27,7 @@ export default function ListViewRow<T>({
     setSize,
     dragIndex,
     busy,
+    view
 }: ListViewRowProps<T>) {
     const classNames = `${className} ${selected ? 'selected selected-text' : ''} ${
         dragIndex === setSize
@@ -56,6 +58,7 @@ export default function ListViewRow<T>({
                     col={col}
                     item={item}
                     busy={busy}
+                    view={view}
                     key={col.id}
                 />
             ))}

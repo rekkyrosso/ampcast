@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useId, useImperativeHandle, useRef, useState} from 'react';
 import {interval} from 'rxjs';
 import {browser, partition} from 'utils';
+import useBaseFontSize from 'hooks/useBaseFontSize';
 import useOnResize, {ResizeRect} from 'hooks/useOnResize';
 import usePrevious from 'hooks/usePrevious';
 import FixedHeader from './FixedHeader';
@@ -40,13 +41,11 @@ export default function Scrollable({
     children,
     scrollWidth: initialScrollWidth = 0,
     scrollHeight: initialScrollHeight = 0,
-    lineHeight = 10,
-    scrollAmountY = lineHeight,
-    scrollAmountX = scrollAmountY,
     droppable,
     onResize,
     onScroll,
     ref,
+    ...props
 }: ScrollableProps) {
     const scrollableId = useId();
     const containerRef = useRef<HTMLDivElement>(null);
@@ -55,6 +54,12 @@ export default function Scrollable({
     const bodyContentRef = useRef<HTMLDivElement>(null);
     const hScrollbarRef = useRef<ScrollbarHandle>(null);
     const vScrollbarRef = useRef<ScrollbarHandle>(null);
+    const baseFontSize = useBaseFontSize();
+    const {
+        lineHeight = baseFontSize,
+        scrollAmountY = lineHeight,
+        scrollAmountX = scrollAmountY,
+    } = props;
     const noInitialScrollWidth = initialScrollWidth === 0;
     const noInitialScrollHeight = initialScrollHeight === 0;
     const [hScrollbarSize, setHScrollbarSize] = useState(0);
@@ -121,21 +126,31 @@ export default function Scrollable({
         }
     }, [lineHeight, prevLineHeight, scrollTop]);
 
+    const onContainerResize = useCallback((rect: ResizeRect) => {
+        if (rect.width * rect.height > 0) {
+            setInnerRect(rect);
+        }
+    }, []);
+
     const onContentResize = useCallback(() => {
         setScrollRect((scrollRect) => {
-            const content = contentRef.current!;
-            const bodyContent = bodyContentRef.current!;
-            const width = noInitialScrollWidth ? content.scrollWidth : scrollRect.width;
-            const height = noInitialScrollHeight
-                ? bodyContent.scrollHeight + (headRef.current?.clientHeight || 0)
-                : scrollRect.height;
-            return {width, height};
+            const width = noInitialScrollWidth ? contentRef.current!.scrollWidth : scrollRect.width;
+            return width > 0 ? {width, height: scrollRect.height} : scrollRect;
         });
-    }, [noInitialScrollWidth, noInitialScrollHeight]);
+    }, [noInitialScrollWidth]);
 
-    useOnResize(containerRef, setInnerRect);
+    const onBodyContentResize = useCallback(() => {
+        setScrollRect((scrollRect) => {
+            const height = noInitialScrollHeight
+                ? bodyContentRef.current!.scrollHeight + (headRef.current?.clientHeight || 0)
+                : scrollRect.height;
+            return height > 0 ? {width: scrollRect.width, height} : scrollRect;
+        });
+    }, [noInitialScrollHeight]);
+
+    useOnResize(containerRef, onContainerResize);
     useOnResize(contentRef, onContentResize);
-    useOnResize(bodyContentRef, onContentResize);
+    useOnResize(bodyContentRef, onBodyContentResize);
 
     useEffect(() => {
         onScroll?.({left: scrollLeft, top: scrollTop});
@@ -146,8 +161,22 @@ export default function Scrollable({
         const handleWheel = (event: WheelEvent) => {
             if (!event[browser.cmdKey]) {
                 event.preventDefault();
-                hScrollbarRef.current?.scrollBy(event.deltaX);
-                vScrollbarRef.current?.scrollBy(event.deltaY);
+                const hScrollbar = hScrollbarRef.current!;
+                const vScrollbar = vScrollbarRef.current!;
+                if (!hScrollbar.atStart() && event.deltaX < 0) {
+                    event.stopPropagation();
+                    hScrollbar.scrollBy(event.deltaX);
+                } else if (!hScrollbar.atEnd() && event.deltaX > 0) {
+                    event.stopPropagation();
+                    hScrollbar.scrollBy(event.deltaX);
+                }
+                if (!vScrollbar.atStart() && event.deltaY < 0) {
+                    event.stopPropagation();
+                    vScrollbar.scrollBy(event.deltaY);
+                } else if (!vScrollbar.atEnd() && event.deltaY > 0) {
+                    event.stopPropagation();
+                    vScrollbar.scrollBy(event.deltaY);
+                }
             }
         };
         container?.addEventListener('wheel', handleWheel, {passive: false});

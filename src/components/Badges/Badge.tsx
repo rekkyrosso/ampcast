@@ -78,7 +78,7 @@ export interface ExplicitBadgeProps {
 
 export function ExplicitBadge({item}: ExplicitBadgeProps) {
     return item.explicit ? (
-        <Badge className="explicit" title="Explicit">
+        <Badge className="explicit" title="Explicit content">
             E
         </Badge>
     ) : null;
