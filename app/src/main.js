@@ -1,4 +1,4 @@
-const {
+import {
     app,
     components,
     ipcMain,
@@ -7,17 +7,20 @@ const {
     BrowserWindow,
     Menu,
     nativeImage,
-} = require('electron');
-const {autoUpdater} = require('electron-updater');
-const log = require('electron-log');
-const contextMenu = require('electron-context-menu');
-const unhandled = require('electron-unhandled');
-const windowStateKeeper = require('electron-window-state');
-const Store = require('electron-store');
-const path = require('path');
-const server = require('./server');
-const store = require('./store');
-const menu = require('./menu');
+} from 'electron';
+import electronUpdater from 'electron-updater';
+import log from 'electron-log';
+import contextMenu from 'electron-context-menu';
+import unhandled from 'electron-unhandled';
+import windowStateKeeper from 'electron-window-state';
+import Store from 'electron-store';
+import path from 'node:path';
+import {__dirname} from './config.js';
+import server from './server.js';
+import store from './store.js';
+import menu from './menu.js';
+
+const {autoUpdater} = electronUpdater;
 
 unhandled();
 

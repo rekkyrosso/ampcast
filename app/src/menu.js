@@ -1,4 +1,4 @@
-const {app} = require('electron');
+import {app} from 'electron';
 
 // Copied from: https://www.electronjs.org/docs/latest/api/menu#examples
 
@@ -76,4 +76,4 @@ const menu = [
     },
 ];
 
-module.exports = menu;
+export default menu;

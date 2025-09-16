@@ -22,7 +22,7 @@ export default class OmniAnalyserNode extends AnalyserNode {
         return this.#isPlayingSpotify;
     }
 
-    getByteFrequencyData(data: Uint8Array): void {
+    getByteFrequencyData(data: Uint8Array<ArrayBuffer>): void {
         if (this.#isPlayingSpotify) {
             spotifyAudioAnalyser.getByteFrequencyData(data);
         } else {
@@ -30,7 +30,7 @@ export default class OmniAnalyserNode extends AnalyserNode {
         }
     }
 
-    getByteTimeDomainData(data: Uint8Array): void {
+    getByteTimeDomainData(data: Uint8Array<ArrayBuffer>): void {
         if (this.#isPlayingSpotify) {
             spotifyAudioAnalyser.getByteTimeDomainData(data);
         } else {
@@ -38,7 +38,7 @@ export default class OmniAnalyserNode extends AnalyserNode {
         }
     }
 
-    getFloatFrequencyData(data: Float32Array): void {
+    getFloatFrequencyData(data: Float32Array<ArrayBuffer>): void {
         if (this.#isPlayingSpotify) {
             spotifyAudioAnalyser.getFloatFrequencyData(data);
         } else {
@@ -46,7 +46,7 @@ export default class OmniAnalyserNode extends AnalyserNode {
         }
     }
 
-    getFloatTimeDomainData(data: Float32Array): void {
+    getFloatTimeDomainData(data: Float32Array<ArrayBuffer>): void {
         if (this.#isPlayingSpotify) {
             spotifyAudioAnalyser.getFloatTimeDomainData(data);
         } else {

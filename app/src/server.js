@@ -1,8 +1,10 @@
-const path = require('path');
-const fs = require('fs');
-const net = require('net');
-const http = require('http');
-const store = require('./store');
+import path from 'node:path';
+import fs from 'node:fs';
+import net from 'node:net';
+import http from 'node:http';
+import {__dirname} from './config.js';
+import store from './store.js';
+
 const staticDir = path.resolve(__dirname, '../www');
 
 const HOST = 'localhost';
@@ -152,7 +154,7 @@ async function checkPort(port) {
     });
 }
 
-module.exports = {
+export default {
     get address() {
         return server?.address().address || '';
     },

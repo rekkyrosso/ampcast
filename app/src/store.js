@@ -1,10 +1,10 @@
-const Store = require('electron-store');
+import Store from 'electron-store';
 
 const store = new Store({
     port: {type: 'number', default: 0},
 });
 
-module.exports = {
+export default {
     get port() {
         return store.get('port');
     },

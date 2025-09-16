@@ -69,28 +69,28 @@ export function createMediaObjects<T extends MediaObject>(
 export function createMediaObject<T extends MediaObject>(
     item: MusicKitItem,
     parent?: ParentOf<T>
-): SetRequired<T, 'apple'> {
+): T {
     switch (item.type) {
         case 'playlists':
         case 'library-playlists':
-            return createMediaPlaylist(item) as SetRequired<T, 'apple'>;
+            return createMediaPlaylist(item) as T;
 
         case 'artists':
         case 'library-artists':
-            return createMediaArtist(item) as SetRequired<T, 'apple'>;
+            return createMediaArtist(item) as T;
 
         case 'albums':
         case 'library-albums':
-            return createMediaAlbum(item) as SetRequired<T, 'apple'>;
+            return createMediaAlbum(item) as T;
 
         case 'songs':
         case 'library-songs':
         case 'music-videos':
         case 'library-music-videos':
-            return createMediaItem(item, parent as ParentOf<MediaItem>) as SetRequired<T, 'apple'>;
+            return createMediaItem(item, parent as ParentOf<MediaItem>) as T;
 
         case 'stations':
-            return createRadioItem(item) as SetRequired<T, 'apple'>;
+            return createRadioItem(item) as T;
     }
 }
 
