@@ -6,13 +6,14 @@ import {confirm} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import ListBox from 'components/ListView/ListBox';
 import usePinsForService from './usePinsForService';
-import './PinnedSettings.scss';
+import './MediaServicePins.scss';
 
-export interface PinnedSettingsProps {
+export interface MediaServicePinsProps {
     service: MediaService;
+    isolated?: boolean; // Not in a tabbed menu.
 }
 
-export default function PinnedSettings({service}: PinnedSettingsProps) {
+export default function MediaServicePins({service, isolated}: MediaServicePinsProps) {
     const pins = usePinsForService(service);
     const renderPin = useCallback((pin: Pin) => pin.title, []);
     const [[selectedPin], setSelectedPins] = useState<readonly Pin[]>([]);
@@ -34,7 +35,7 @@ export default function PinnedSettings({service}: PinnedSettingsProps) {
     }, [selectedPin]);
 
     return (
-        <form className="pinned-settings" method="dialog">
+        <form className="media-service-pins" method="dialog">
             <h3>Pinned playlists:</h3>
             <ListBox<Pin>
                 title="Pinned playlists"
@@ -49,7 +50,13 @@ export default function PinnedSettings({service}: PinnedSettingsProps) {
                     Remove
                 </button>
             </p>
-            <DialogButtons />
+            {isolated ? (
+                <footer className="dialog-buttons">
+                    <button className="dialog-button-submit">Close</button>
+                </footer>
+            ) : (
+                <DialogButtons />
+            )}
         </form>
     );
 }

@@ -5,7 +5,7 @@ import TabList, {TabItem} from 'components/TabList';
 import MediaServiceSettingsGeneral from './MediaServiceSettingsGeneral';
 import MediaServiceCredentials from './MediaServiceCredentials';
 import PersonalMediaServerSettings from './PersonalMediaServerSettings';
-import PinnedSettings from './PinnedSettings';
+import MediaServicePins from './MediaServicePins';
 import ScrobblingSettings from './ScrobblingSettings';
 
 export interface MediaServiceSettingsProps {
@@ -62,7 +62,7 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
         if (service.createSourceFromPin) {
             tabs.push({
                 tab: 'Pins',
-                panel: <PinnedSettings service={service} />,
+                panel: <MediaServicePins service={service} />,
             });
         }
         return tabs;

@@ -1,6 +1,7 @@
 import React, {useCallback} from 'react';
 import MediaService from 'types/MediaService';
 import {getService} from 'services/mediaServices';
+import pinStore from 'services/pins/pinStore';
 import {confirm} from 'components/Dialog';
 import PopupMenu, {
     PopupMenuItem,
@@ -9,6 +10,7 @@ import PopupMenu, {
     showPopupMenu,
 } from 'components/PopupMenu';
 import {showMediaServiceSettingsDialog} from 'components/Settings/MediaLibrarySettings/MediaServiceSettingsDialog';
+import {showMediaServicePinsDialog} from 'components/Settings/MediaLibrarySettings/MediaServicePinsDialog';
 import {MediaSourceView} from './MediaSources';
 import {showEditSourcesDialog} from './EditSourcesDialog';
 
@@ -33,6 +35,9 @@ interface MediaSourcesMenuProps {
 
 function MediaSourcesMenu({source, ...props}: PopupMenuProps & MediaSourcesMenuProps) {
     const isService = isMediaService(source);
+    const [serviceId] = source.id.split(/\/|:/);
+    const service = getService(serviceId);
+    const hasPins = pinStore.getPinsForService(serviceId).length > 0;
 
     const handleDisconnectClick = useCallback(async () => {
         if (isMediaService(source)) {
@@ -48,20 +53,22 @@ function MediaSourcesMenu({source, ...props}: PopupMenuProps & MediaSourcesMenuP
     }, [source]);
 
     const handleSettingsClick = useCallback(() => {
-        const [serviceId] = source.id.split('/');
-        const service = getService(serviceId);
         if (service) {
             showMediaServiceSettingsDialog(service);
         }
-    }, [source]);
+    }, [service]);
 
     const handleEditSourcesClick = useCallback(() => {
-        const [serviceId] = source.id.split('/');
-        const service = getService(serviceId);
         if (service) {
             showEditSourcesDialog(service);
         }
-    }, [source]);
+    }, [service]);
+
+    const handleManagePinsClick = useCallback(() => {
+        if (service) {
+            showMediaServicePinsDialog(service);
+        }
+    }, [service]);
 
     return (
         <PopupMenu {...props}>
@@ -78,9 +85,20 @@ function MediaSourcesMenu({source, ...props}: PopupMenuProps & MediaSourcesMenuP
                         />
                     ) : null}
                     <PopupMenuSeparator />
+                    <PopupMenuItem label="Edit sources…" onClick={handleEditSourcesClick} />
+                    {service?.createSourceFromPin ? (
+                        <PopupMenuItem
+                            label="Manage pins…"
+                            onClick={handleManagePinsClick}
+                            disabled={!hasPins}
+                        />
+                    ) : null}
                 </>
-            ) : null}
-            <PopupMenuItem label="Edit sources…" onClick={handleEditSourcesClick} />
+            ) : (source as any).isPin ? (
+                <PopupMenuItem label="Manage pins…" onClick={handleManagePinsClick} />
+            ) : (
+                <PopupMenuItem label="Edit sources…" onClick={handleEditSourcesClick} />
+            )}
         </PopupMenu>
     );
 }
