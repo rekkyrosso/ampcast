@@ -5,6 +5,7 @@ import {getSourceSorting} from 'services/mediaServices/servicesSettings';
 import {CreateChildPager} from 'services/pagers/AbstractPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import navidromeApi from './navidromeApi';
+import navidromeSettings from './navidromeSettings';
 import {createMediaObject} from './navidromeUtils';
 
 export default class NavidromeSequentialPager<
@@ -27,6 +28,7 @@ export default class NavidromeSequentialPager<
                     ...params,
                     _start,
                     _end,
+                    library_id: navidromeSettings.libraryId,
                 });
                 _start = _end;
                 const items = filterItems(result.items);

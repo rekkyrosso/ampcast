@@ -4,6 +4,7 @@ import {Logger} from 'utils';
 import {getServerHost, hasProxyLogin} from 'services/buildConfig';
 import {showNavidromeLoginDialog} from './components/NavidromeLoginDialog';
 import navidromeApi from './navidromeApi';
+import subsonicApi from './subsonicApi';
 import navidromeSettings from './navidromeSettings';
 import navidrome from './navidrome';
 
@@ -87,7 +88,7 @@ observeAccessToken()
 
 async function checkConnection(): Promise<boolean> {
     try {
-        await navidromeApi.get('playlist', {_end: 1});
+        navidromeSettings.libraries = await subsonicApi.getMusicLibraries();
         return true;
     } catch (err: any) {
         if (err.status === 401) {

@@ -1,3 +1,4 @@
+import type {Observable} from 'rxjs';
 import Action from 'types/Action';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import FilterType from 'types/FilterType';
@@ -9,6 +10,7 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
 import MediaSource from 'types/MediaSource';
 import Pager, {PagerConfig} from 'types/Pager';
+import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
 import PlayableItem from 'types/PlayableItem';
 import Pin, {Pinnable} from 'types/Pin';
@@ -39,7 +41,6 @@ import navidromeSources, {
 } from './navidromeSources';
 import navidromeApi from './navidromeApi';
 import subsonicApi from './subsonicApi';
-import ServerSettings from './components/NavidromeServerSettings';
 import {createPlaylistItemsPager} from './navidromeUtils';
 
 const serviceId: MediaServiceId = 'navidrome';
@@ -52,7 +53,6 @@ const navidrome: PersonalMediaService = {
     name: 'Navidrome',
     url: 'https://www.navidrome.org',
     serviceType: ServiceType.PersonalMedia,
-    Components: {ServerSettings},
     defaultHidden: !isStartupService(serviceId),
     root: navidromeSearch,
     sources: navidromeSources,
@@ -60,9 +60,27 @@ const navidrome: PersonalMediaService = {
         [Action.AddToLibrary]: t('Add to Navidrome Favorites'),
         [Action.RemoveFromLibrary]: t('Remove from Navidrome Favorites'),
     },
+    get audioLibraries(): readonly PersonalMediaLibrary[] {
+        return navidromeSettings.audioLibraries;
+    },
     editablePlaylists: navidromePlaylists,
     get host(): string {
         return navidromeSettings.host;
+    },
+    get libraryId(): string {
+        return navidromeSettings.libraryId;
+    },
+    set libraryId(libraryId: string) {
+        navidromeSettings.libraryId = libraryId;
+    },
+    get libraries(): readonly PersonalMediaLibrary[] {
+        return navidromeSettings.libraries;
+    },
+    set libraries(libraries: readonly PersonalMediaLibrary[]) {
+        navidromeSettings.libraries = libraries;
+    },
+    observeLibraryId(): Observable<string> {
+        return navidromeSettings.observeLibraryId();
     },
     addMetadata,
     addToPlaylist,

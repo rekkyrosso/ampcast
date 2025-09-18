@@ -7,7 +7,7 @@ import {LiteStorage} from 'utils';
 import {getServerHost, isStartupService} from 'services/buildConfig';
 
 export default class SubsonicSettings implements PersonalMediaServerSettings {
-    private readonly storage = new LiteStorage(this.serviceId);
+    protected readonly storage = new LiteStorage(this.serviceId);
     private readonly libraryId$ = new BehaviorSubject(this.storage.getString('libraryId'));
 
     constructor(private readonly serviceId: PersonalMediaServiceId) {}

@@ -5,6 +5,7 @@ import {getSourceSorting} from 'services/mediaServices/servicesSettings';
 import {CreateChildPager} from 'services/pagers/AbstractPager';
 import OffsetPager from 'services/pagers/OffsetPager';
 import navidromeApi from './navidromeApi';
+import navidromeSettings from './navidromeSettings';
 import {createMediaObject} from './navidromeUtils';
 
 export default class NavidromeOffsetPager<T extends MediaObject> extends OffsetPager<T> {
@@ -23,6 +24,7 @@ export default class NavidromeOffsetPager<T extends MediaObject> extends OffsetP
                     ...params,
                     _start,
                     _end,
+                    library_id: navidromeSettings.libraryId,
                 });
                 return {
                     items: items.map((item) =>
