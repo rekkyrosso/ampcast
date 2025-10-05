@@ -29,6 +29,7 @@ const logger = new Logger('MusicKitPlayer');
 
 export class MusicKitPlayer implements Player<PlayableItem> {
     private player?: MusicKit.MusicKitInstance;
+    private mutationObserver?: MutationObserver;
     private readonly paused$ = new BehaviorSubject(true);
     private readonly duration$ = new Subject<number>();
     private readonly currentTime$ = new Subject<number>();
@@ -108,6 +109,22 @@ export class MusicKitPlayer implements Player<PlayableItem> {
 
         // Log errors.
         this.observeError().subscribe(logger.error);
+
+        // Workaround: User-uploaded tracks won't play without this.
+        const APPLE_MUSIC_PLAYER_ID = 'apple-music-player';
+
+        this.mutationObserver = new MutationObserver((mutationsList) => {
+            for (const mutation of mutationsList) {
+                if (mutation.type === 'childList') {
+                    for (const node of mutation.addedNodes) {
+                        if (node instanceof HTMLAudioElement && node.id === APPLE_MUSIC_PLAYER_ID) {
+                            logger.log('Found audio element, setting crossOrigin');
+                            node.crossOrigin = 'anonymous';
+                        }
+                    }
+                }
+            }
+        });
     }
 
     get hidden(): boolean {
@@ -287,6 +304,12 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         if (this.player) {
             return this.player;
         }
+
+        this.mutationObserver?.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
         const isLoggedIn = await this.waitForLogin();
         if (isLoggedIn) {
             if (this.player) {
