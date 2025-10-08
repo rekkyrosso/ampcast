@@ -4,7 +4,8 @@ import MediaServiceId from 'types/MediaServiceId';
 import {LiteStorage} from 'utils';
 
 export interface ScrobblingOptions {
-    updateNowPlaying?: boolean;
+    scrobbledAt: 'playedAt' | 'endedAt';
+    updateNowPlaying: boolean;
 }
 
 type BooleanSettings = Record<string, boolean | undefined>;
@@ -16,13 +17,13 @@ const noScrobble$ = new BehaviorSubject<NoScrobbleSettings>(storage.getJson('noS
 const options$ = new BehaviorSubject<ScrobblingOptionsSettings>(storage.getJson('options', {}));
 
 export function canScrobble(scrobblerId: MediaServiceId, service: MediaService): boolean {
-    const settings = noScrobble$.getValue();
+    const settings = noScrobble$.value;
     const scrobblerSettings = settings[scrobblerId];
     return !(scrobblerSettings?.[service.id] ?? service.defaultNoScrobble);
 }
 
 export function setNoScrobble(scrobblerId: MediaServiceId, updates: Record<string, boolean>): void {
-    const settings = noScrobble$.getValue();
+    const settings = noScrobble$.value;
     const scrobblerSettings = settings[scrobblerId];
     const newScrobblerSettings = {...scrobblerSettings, ...updates};
     const newSettings = {...settings, ...{[scrobblerId]: newScrobblerSettings}};
@@ -31,12 +32,17 @@ export function setNoScrobble(scrobblerId: MediaServiceId, updates: Record<strin
 }
 
 export function canUpdateNowPlaying(scrobblerId: MediaServiceId): boolean {
-    const settings = options$.getValue();
+    const settings = options$.value;
     return settings[scrobblerId]?.updateNowPlaying ?? true;
 }
 
+export function getScrobbledAt(scrobblerId: MediaServiceId): ScrobblingOptions['scrobbledAt'] {
+    const settings = options$.value;
+    return settings[scrobblerId]?.scrobbledAt ?? 'playedAt';
+}
+
 export function updateOptions(scrobbler: MediaService, options: Partial<ScrobblingOptions>): void {
-    const settings = options$.getValue();
+    const settings = options$.value;
     const scrobblerSettings = settings[scrobbler.id];
     const newScrobblerSettings = {...scrobblerSettings, ...options};
     const newSettings = {...settings, ...{[scrobbler.id]: newScrobblerSettings}};
@@ -48,5 +54,6 @@ export default {
     canScrobble,
     setNoScrobble,
     canUpdateNowPlaying,
+    getScrobbledAt,
     updateOptions,
 };

@@ -1,5 +1,4 @@
 import React, {useCallback} from 'react';
-import {formatTime} from 'utils';
 import Logger, {Log, LogLevel} from 'utils/Logger';
 import {copyLogsToClipboard} from 'services/reporting';
 import CopyButton from 'components/Button/CopyButton';
@@ -15,7 +14,8 @@ const layout: ListViewLayout<Log> = {
     cols: [
         {
             title: 'Time',
-            render: ({timeStamp}) => formatTime(Math.floor((timeStamp + Logger.startedAt) / 1000)),
+            render: ({timeStamp}) =>
+                new Date(timeStamp + Logger.startedAt).toTimeString().slice(0, 8),
             width: 6,
             align: 'right',
         },

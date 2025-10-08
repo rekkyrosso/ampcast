@@ -13,7 +13,7 @@ export default defineConfig([
     pluginReact.configs.flat.recommended,
     {files: ['**/*.json'], plugins: {json}, language: 'json/json', extends: ['json/recommended']},
     {files: ['**/*.jsonc'], plugins: {json}, language: 'json/jsonc', extends: ['json/recommended']},
-    reactHooks.configs['recommended-latest'],
+    reactHooks.configs['recommended'],
     globalIgnores(['*', '!src', '!src/*']),
     {
         settings: {

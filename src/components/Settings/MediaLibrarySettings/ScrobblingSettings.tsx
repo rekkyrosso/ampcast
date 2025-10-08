@@ -5,6 +5,7 @@ import {
     ScrobblingOptions,
     canScrobble,
     canUpdateNowPlaying,
+    getScrobbledAt,
     setNoScrobble,
     updateOptions,
 } from 'services/scrobbleSettings';
@@ -17,7 +18,8 @@ export interface ScrobblingSettingsProps {
 export default function ScrobblingSettings({service: scrobbler}: ScrobblingSettingsProps) {
     const id = useId();
     const scrobbleRef = useRef<HTMLFieldSetElement>(null);
-    const optionsRef = useRef<HTMLFieldSetElement>(null);
+    const updateNowPlayingRef = useRef<HTMLInputElement>(null);
+    const scrobbledAtRef = useRef<HTMLSelectElement>(null);
     const services = useMemo(getPlayableServices, []);
 
     const handleSubmit = useCallback(() => {
@@ -28,12 +30,11 @@ export default function ScrobblingSettings({service: scrobbler}: ScrobblingSetti
         }
         setNoScrobble(scrobbler.id, scrobbleSettings);
 
-        const optionsInputs = optionsRef.current!.elements as HTMLInputElements;
-        const optionsSettings: Partial<ScrobblingOptions> = {};
-        for (const input of optionsInputs) {
-            optionsSettings[input.value as keyof ScrobblingOptions] = input.checked;
-        }
-        updateOptions(scrobbler, optionsSettings);
+        const scrobblingOptions: Partial<ScrobblingOptions> = {};
+        scrobblingOptions.updateNowPlaying = updateNowPlayingRef.current!.checked;
+        scrobblingOptions.scrobbledAt = scrobbledAtRef.current!
+            .value as ScrobblingOptions['scrobbledAt'];
+        updateOptions(scrobbler, scrobblingOptions);
     }, [scrobbler]);
 
     return (
@@ -55,21 +56,31 @@ export default function ScrobblingSettings({service: scrobbler}: ScrobblingSetti
                     ))}
                 </ul>
             </fieldset>
-            <fieldset ref={optionsRef}>
+            <fieldset className="scrobbling-options">
                 <legend>Options</legend>
-                <ul>
-                    <li>
-                        <input
-                            id={`${id}-scrobbling-options`}
-                            type="checkbox"
-                            value="updateNowPlaying"
-                            defaultChecked={canUpdateNowPlaying(scrobbler.id)}
-                        />
-                        <label htmlFor={`${id}-scrobbling-options`}>
-                            Update &quot;Now Playing&quot;
-                        </label>
-                    </li>
-                </ul>
+                <p>
+                    <label htmlFor={`${id}-scrobbled-at`}>Scrobble time:</label>
+                    <select
+                        id={`${id}-scrobbling-options`}
+                        defaultValue={getScrobbledAt(scrobbler.id)}
+                        ref={scrobbledAtRef}
+                    >
+                        <option value="playedAt">Start time</option>
+                        <option value="endedAt">End time</option>
+                    </select>
+                </p>
+                <p>
+                    <input
+                        id={`${id}-update-now-playing`}
+                        type="checkbox"
+                        value="updateNowPlaying"
+                        defaultChecked={canUpdateNowPlaying(scrobbler.id)}
+                        ref={updateNowPlayingRef}
+                    />
+                    <label htmlFor={`${id}-update-now-playing`}>
+                        Update &quot;Now Playing&quot;
+                    </label>
+                </p>
             </fieldset>
             <DialogButtons />
         </form>

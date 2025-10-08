@@ -44,8 +44,16 @@
         max-height: 18em;
     }
 
-    .scrobbling-settings .checkbox-list {
-        max-height: 16em;        
+    .scrobbling-settings {
+        .checkbox-list {
+            max-height: 16em;        
+        }
+
+        .scrobbling-options {
+            p:first-of-type {
+                margin-bottom: 0.75em;
+            }
+        }
     }
 
     .icon-globe {

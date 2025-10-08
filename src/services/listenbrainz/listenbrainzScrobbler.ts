@@ -39,19 +39,21 @@ export function scrobble(): void {
         )
         .subscribe(logger);
 
-    async function scrobble(items: Listen[]): Promise<void> {
+    async function scrobble(listens: Listen[]): Promise<void> {
         try {
             // Only scrobble listens that originated in this window.
             // Or old unscrobbled items.
             const oneHourAgo = Math.floor(Date.now() / 1000) - 3600;
-            items = items.filter(
+            listens = listens.filter(
                 (listen) => listen.sessionId === session.id || oneHourAgo > listen.playedAt
             );
-            if (items.length === 0) {
+            if (listens.length === 0) {
                 return;
             }
-            const latestTimestamp = items[0].playedAt + Math.floor(items[0].duration);
-            const earliestTimestamp = items.at(-1)!.playedAt;
+            const latestTimestamp = Math.max(
+                ...listens.map((item) => item.endedAt || item.playedAt + item.duration)
+            );
+            const earliestTimestamp = Math.min(...listens.map((item) => item.playedAt));
             const maxSize = ListenBrainzHistoryPager.maxPageSize;
             const params = {
                 min_ts: earliestTimestamp - timeFuzziness,
@@ -62,11 +64,11 @@ export function scrobble(): void {
             const history = await fetchFirstPage(pager);
             const historyIds = history.map((item) => getListenId(item, timeFuzziness));
             const [ignore, unscrobbled] = partition(
-                items,
-                (item) =>
-                    !canScrobble(item) ||
-                    historyIds.includes(getListenId(item, timeFuzziness)) ||
-                    !!findScrobble(history, item)
+                listens,
+                (listen) =>
+                    !canScrobble(listen) ||
+                    historyIds.includes(getListenId(listen, timeFuzziness)) ||
+                    !!findScrobble(history, listen)
             );
             await updateListens(ignore.map((item) => ({...item, listenbrainzScrobbledAt: -1})));
             if (unscrobbled.length > 0) {

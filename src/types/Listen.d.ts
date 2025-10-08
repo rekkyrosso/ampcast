@@ -2,6 +2,7 @@ import MediaItem from './MediaItem';
 
 export interface ListenData {
     readonly sessionId: string;
+    readonly endedAt: number;
     readonly lastfmScrobbledAt: number;
     readonly listenbrainzScrobbledAt: number;
 }

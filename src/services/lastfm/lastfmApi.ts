@@ -7,6 +7,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import Thumbnail from 'types/Thumbnail';
+import {getScrobbledAt} from 'services/scrobbleSettings';
 import {Logger, exists} from 'utils';
 import {AddMetadataOptions, bestOf, isSameTrack} from 'services/metadata';
 import lastfmSettings from './lastfmSettings';
@@ -50,7 +51,7 @@ export class LastFmApi {
             const method = 'track.scrobble';
             if (items.length === 1) {
                 const item = items[0];
-                const timestamp = String(item.playedAt);
+                const timestamp = String(item[getScrobbledAt('lastfm')] || item.playedAt);
                 await this.post({
                     method,
                     timestamp,

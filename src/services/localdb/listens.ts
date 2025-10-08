@@ -65,6 +65,7 @@ export async function addListen(state: PlaybackState): Promise<void> {
                 ...listen,
                 sessionId: session.id,
                 playedAt: Math.floor(state.startedAt / 1000),
+                endedAt: Math.floor(state.endedAt / 1000),
                 lastfmScrobbledAt: 0,
                 listenbrainzScrobbledAt: 0,
             });
@@ -93,14 +94,11 @@ export function findScrobble(
     listen: Listen,
     timeFuzziness = 5
 ): MediaItem | undefined {
-    const playedAt = listen.playedAt;
-    const startTime = playedAt - timeFuzziness;
-    const endTime = playedAt + listen.duration + timeFuzziness;
+    const startTime = listen.playedAt - timeFuzziness;
+    const endTime = (listen.endedAt || listen.playedAt + listen.duration) + timeFuzziness;
     for (const item of scrobbles) {
-        if (item.playedAt < startTime) {
-            return undefined;
-        }
-        if (item.playedAt > startTime && item.playedAt < endTime) {
+        const scrobbledAt = item.playedAt;
+        if (scrobbledAt > startTime && scrobbledAt < endTime) {
             if (matchTitle(listen, item, 0.5)) {
                 return item;
             }

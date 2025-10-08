@@ -88,7 +88,11 @@ observeAccessToken()
 
 async function checkConnection(): Promise<boolean> {
     try {
-        navidromeSettings.libraries = await subsonicApi.getMusicLibraries();
+        const [libraries] = await Promise.all([
+            subsonicApi.getMusicLibraries(),
+            navidromeApi.get('playlist', {_end: 1}),
+        ]);
+        navidromeSettings.libraries = libraries;
         return true;
     } catch (err: any) {
         if (err.status === 401) {

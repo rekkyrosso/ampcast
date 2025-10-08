@@ -24,7 +24,7 @@ export default function MediaServiceSettingsDialog({
             {...props}
             className="settings-dialog media-services-settings-dialog"
             icon={service.icon}
-            title={`${service.name} Settings`}
+            title={`${service.name}: Settings`}
         >
             <MediaServiceSettings service={service} />
         </Dialog>

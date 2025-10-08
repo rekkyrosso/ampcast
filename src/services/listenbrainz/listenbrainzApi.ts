@@ -7,6 +7,7 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {Logger, chunk, partition} from 'utils';
 import {dispatchMetadataChanges} from 'services/metadata';
+import {getScrobbledAt} from 'services/scrobbleSettings';
 import {getService} from 'services/mediaServices';
 import listenbrainzSettings from './listenbrainzSettings';
 
@@ -302,7 +303,7 @@ export class ListenBrainzApi {
             await this.post(`submit-listens`, {
                 listen_type: items.length === 1 ? 'single' : 'import',
                 payload: items.map((item) => ({
-                    listened_at: item.playedAt,
+                    listened_at: item[getScrobbledAt('listenbrainz')] || item.playedAt,
                     track_metadata: this.getScrobbleParams(item),
                 })),
             });
