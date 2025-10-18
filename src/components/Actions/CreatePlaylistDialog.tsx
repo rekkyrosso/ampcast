@@ -119,6 +119,7 @@ export default function CreatePlaylistDialog<T extends MediaItem>({
 
 function noPublicOption(serviceId: MediaServiceId): boolean {
     switch (serviceId) {
+        case 'localdb':
         case 'emby':
         case 'jellyfin':
         case 'plex':

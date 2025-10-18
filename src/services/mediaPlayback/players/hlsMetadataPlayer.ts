@@ -99,7 +99,6 @@ export class HLSMetadataPlayer extends HLSPlayer {
                     duration: Number(id3('TLEN')) / 1000 || 0,
                     playedAt: 0,
                     year: Number(id3('TORY')) || undefined,
-                    unplayable: true,
                     badge: id3('TFLT'),
                     bitRate: Number(id3('TXXX', 'adr')) || undefined,
                     isrc: id3('TSRC'),

@@ -194,7 +194,6 @@ export class IcecastPlayer extends HTML5Player {
             stationName: container.linearType === LinearType.Station ? container.title : undefined,
             duration: 0,
             playedAt: 0,
-            unplayable: true,
         });
 
         if (!item.thumbnails) {
@@ -241,7 +240,6 @@ export class IcecastPlayer extends HTML5Player {
             stationName: container.linearType === LinearType.Station ? container.title : undefined,
             duration: 0,
             playedAt: 0,
-            unplayable: true,
             isrc: metadata.ISRC,
             year: date ? new Date(date).getFullYear() || undefined : undefined,
         });

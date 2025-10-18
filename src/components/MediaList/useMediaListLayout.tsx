@@ -2,6 +2,7 @@ import React, {useMemo} from 'react';
 import {SetRequired} from 'type-fest';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaFolderItem from 'types/MediaFolderItem';
 import MediaItem from 'types/MediaItem';
@@ -10,13 +11,14 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import {exists, getElapsedTimeText, uniq} from 'utils';
+import {MAX_DURATION} from 'services/constants';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {setSourceFields} from 'services/mediaServices/servicesSettings';
 import {ColumnSpec, ListViewLayout} from 'components/ListView';
 import DefaultActions, {ActionsProps, performAction} from 'components/Actions';
 import {ExplicitBadge, getAlbumTypeText, LivePlaybackBadge} from 'components/Badges';
 import CoverArt from 'components/CoverArt';
-import Icon from 'components/Icon';
+import Icon, {IconName} from 'components/Icon';
 import IconButton from 'components/Button';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import StarRating from 'components/StarRating';
@@ -172,13 +174,19 @@ const Title: RenderField = (item) => {
     );
 };
 
-const PinTitle: RenderField = (item) => {
-    const service = getServiceFromSrc(item);
-    return service ? (
-        <MediaSourceLabel icon={service.icon} text={item.title} />
-    ) : (
-        <Text value={item.title} />
-    );
+const IconTitle: RenderField = (item) => {
+    const [serviceId] = item.src.split(':');
+    let icon: IconName;
+    if (
+        /^https?/.test(item.src) &&
+        item.itemType === ItemType.Media &&
+        item.linearType === LinearType.Station
+    ) {
+        icon = 'internet-radio';
+    } else {
+        icon = serviceId as IconName;
+    }
+    return <MediaSourceLabel icon={icon} text={item.title} />;
 };
 
 const BitRate: RenderField<MediaItem> = (item) => <Text value={item.bitRate} />;
@@ -218,9 +226,12 @@ const AlbumType: RenderField<MediaAlbum> = (album) => {
     return <Text value={album.albumType ? getAlbumTypeText(album.albumType) : ''} />;
 };
 
-const Duration: RenderField<MediaPlaylist | MediaItem> = (item) => (
-    <Time className="text" time={item.duration || 0} />
-);
+const Duration: RenderField<MediaPlaylist | MediaItem> = (item) =>
+    item.duration === MAX_DURATION ? (
+        <span className="text">–:––</span>
+    ) : (
+        <Time className="text" time={item.duration || 0} />
+    );
 
 const PlayCount: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => (
     <Text value={getPlayCount(item.playCount)} />
@@ -402,10 +413,10 @@ const mediaFields: MediaFields = {
     Title: {id: 'Title', title: 'Title', render: Title, className: 'title'},
     Name: {id: 'Name', title: 'Name', render: Title, className: 'title'},
     FileName: {id: 'FileName', title: 'FileName', render: FileName, className: 'title'},
-    PinTitle: {
-        id: 'PinTitle',
-        title: 'Name',
-        render: PinTitle,
+    IconTitle: {
+        id: 'IconTitle',
+        title: 'Title',
+        render: IconTitle,
         className: 'title',
     },
     Description: {

@@ -1,11 +1,13 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, filter} from 'rxjs';
+import {BehaviorSubject, filter, map} from 'rxjs';
 import Dexie, {liveQuery} from 'dexie';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
+import Pager from 'types/Pager';
 import PlaybackState from 'types/PlaybackState';
 import {Logger, fuzzyCompare} from 'utils';
 import {findBestMatch, removeUserData} from 'services/metadata';
+import ObservablePager from 'services/pagers/ObservablePager';
 import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import session from 'services/session';
 
@@ -20,9 +22,19 @@ class ListensStore extends Dexie {
     constructor() {
         super('ampcast/listens');
 
-        this.version(1).stores({
-            items: '&playedAt, src, lastfmScrobbledAt, listenbrainzScrobbledAt',
-        });
+        this.version(2)
+            .stores({
+                items: '&playedAt, src, lastfmScrobbledAt, listenbrainzScrobbledAt',
+            })
+            .upgrade((tx) => {
+                return tx
+                    .table('items')
+                    .toCollection()
+                    .modify((listen) => {
+                        delete listen.blobUrl;
+                        delete listen.unplayable;
+                    });
+            });
 
         liveQuery(() => this.items.orderBy('playedAt').reverse().toArray()).subscribe(listens$);
 
@@ -34,9 +46,21 @@ class ListensStore extends Dexie {
             }
         }, 3_000);
     }
+
+    search(q: string): Pager<Listen> {
+        return new ObservablePager(
+            listens$.pipe(
+                map((listens) =>
+                    q ? listens.filter((listen) => listen.title.includes(q)) : listens
+                )
+            )
+        );
+    }
 }
 
 const store = new ListensStore();
+
+export default store;
 
 export function observeListens(): Observable<readonly Listen[]> {
     return listens$.pipe(filter((items) => items !== UNINITIALIZED));
@@ -59,7 +83,7 @@ export async function addListen(state: PlaybackState): Promise<void> {
         if (isListenedTo(item.duration, state.startedAt, state.endedAt)) {
             item = await musicbrainzApi.addMetadata(item, {strictMatch: true});
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const {id, blob, ...listen} = removeUserData(item);
+            const {id, blob, blobUrl, unplayable, ...listen} = removeUserData(item);
             logger.log('add', item.src);
             await store.items.add({
                 ...listen,

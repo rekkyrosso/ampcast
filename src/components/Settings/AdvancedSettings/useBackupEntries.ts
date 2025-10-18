@@ -85,7 +85,7 @@ export default function useBackupEntries(): readonly BackupEntry<keyof Backup>[]
             },
             {
                 key: 'listens',
-                title: `Listening history (${listens.length})`,
+                title: `Playback history (${listens.length})`,
                 defaultChecked: false,
                 data: listens,
             },

@@ -1,5 +1,6 @@
-import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
-import {Except} from 'type-fest';
+import React, {useCallback, useEffect, useId, useReducer, useRef, useState} from 'react';
+import {interval} from 'rxjs';
+import {Except, SetOptional} from 'type-fest';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaListLayout, {Field} from 'types/MediaListLayout';
@@ -28,8 +29,8 @@ const defaultMediaListLayout: MediaListLayout = {
 
 export interface MediaListProps<T extends MediaObject>
     extends Except<
-        ListViewProps<T>,
-        'items' | 'itemKey' | 'itemClassName' | 'layout' | 'storageId'
+        SetOptional<ListViewProps<T>, 'itemKey'>,
+        'items' | 'itemClassName' | 'layout' | 'storageId'
     > {
     source?: MediaSource<any>;
     level?: 1 | 2 | 3;
@@ -49,6 +50,7 @@ export default function MediaList<T extends MediaObject>({
     source,
     level = 1,
     className = '',
+    itemKey = 'src' as never, // TODO: Huh?
     defaultLayout = defaultMediaListLayout,
     layoutOptions,
     draggable = false,
@@ -68,6 +70,7 @@ export default function MediaList<T extends MediaObject>({
     ...props
 }: MediaListProps<T>) {
     const uniqueId = useId();
+    const [, forceUpdate] = useReducer((i) => i + 1, 0);
     const id = source ? `${source.sourceId || source.id}/${level}` : uniqueId;
     const containerRef = useRef<HTMLDivElement | null>(null);
     const layout = useMediaListLayout(id, defaultLayout, layoutOptions, Actions);
@@ -83,6 +86,12 @@ export default function MediaList<T extends MediaObject>({
     const viewClassName = useViewClassName(layout);
     const {disableExplicitContent} = usePreferences();
     const onDragStart = useOnDragStart(selectedItems);
+
+    useEffect(() => {
+        // Make sure `LastPlayed` fields etc are updated.
+        const subscription = interval(60_000).subscribe(forceUpdate);
+        return () => subscription.unsubscribe();
+    }, []);
 
     useEffect(() => {
         if (success && onLoad) {
@@ -230,7 +239,7 @@ export default function MediaList<T extends MediaObject>({
                     layout={layout}
                     items={items}
                     itemClassName={itemClassName}
-                    itemKey={'src' as any} // TODO: remove cast
+                    itemKey={itemKey}
                     draggable={draggable}
                     reorderable={reorderable}
                     storageId={id}

@@ -41,7 +41,7 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
                 <SearchBar
                     name={`search-${service.id}`}
                     icon={service.icon}
-                    placeholder={`Search ${service.name}`}
+                    placeholder={selectedSource.searchPlaceholder || `Search ${service.name}`}
                     onSubmit={setQuery}
                 />
             ) : null}

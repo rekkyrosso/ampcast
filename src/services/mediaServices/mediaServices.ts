@@ -17,6 +17,7 @@ import {
 } from 'rxjs';
 import Browsable from 'types/Browsable';
 import DataService from 'types/DataService';
+import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
 import MediaServiceId from 'types/MediaServiceId';
 import PersonalMediaService from 'types/PersonalMediaService';
@@ -130,8 +131,14 @@ export function getServiceFromSrc({src}: {src?: string} = {}): MediaService | un
     return getService(serviceId);
 }
 
-export function hasPlayableSrc(item: {src: string}): boolean {
-    return item ? isPlayableSrc(item.src) : false;
+export function hasPlayableSrc(item: Pick<MediaItem, 'src' | 'blob' | 'blobUrl'>): boolean {
+    if (item) {
+        return item.src.startsWith('blob:')
+            ? !!(item.blob || item.blobUrl)
+            : isPlayableSrc(item.src);
+    } else {
+        return false;
+    }
 }
 
 export function isDataService(service: MediaService): service is DataService {
@@ -174,6 +181,7 @@ const playabilityByServiceId: Record<
     subsonic: Playability.LoggedIn,
     tidal: Playability.LoggedIn,
     // Not playable.
+    localdb: Playability.Never,
     lastfm: Playability.Never,
     listenbrainz: Playability.Never,
 };

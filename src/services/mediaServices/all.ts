@@ -9,6 +9,7 @@ import gonic from 'services/subsonic/gonic';
 import jellyfin from 'services/jellyfin';
 import lastfm from 'services/lastfm';
 import listenbrainz from 'services/listenbrainz';
+import localdb from 'services/localdb';
 import mixcloud from 'services/mixcloud';
 import navidrome from 'services/navidrome';
 import plex from 'services/plex';
@@ -49,4 +50,4 @@ if (enabledServices.length === 0) {
 const disabledServices = allServices.filter((service) => !enabledServices.includes(service));
 const services = enabledServices.concat(disabledServices);
 
-export default services;
+export default [localdb as MediaService].concat(services);

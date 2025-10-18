@@ -23,13 +23,13 @@
     },
     "devDependencies": {
         "@electron/notarize": "^3.1.0",
-        "electron": "github:castlabs/electron-releases#v37.4.0+wvcus",
+        "electron": "github:castlabs/electron-releases#v37.6.0+wvcus",
         "electron-builder": "^26.0.12"
     },
     "dependencies": {
         "electron-context-menu": "^4.1.1",
         "electron-log": "^5.1.2",
-        "electron-store": "^10.1.0",
+        "electron-store": "^11.0.2",
         "electron-unhandled": "^5.0.0",
         "electron-updater": "^6.3.2",
         "electron-window-state": "^5.0.3"

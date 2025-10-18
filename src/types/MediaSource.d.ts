@@ -1,5 +1,7 @@
 import type React from 'react';
+import {ConditionalKeys} from 'type-fest';
 import type {IconName} from 'components/Icon';
+import ChildOf from './ChildOf';
 import FilterType from './FilterType';
 import LinearType from './LinearType';
 import MediaAlbum from './MediaAlbum';
@@ -23,10 +25,11 @@ export type MediaSourceComponent = React.FC<{
     source: MediaSource<any>;
 }>;
 
-export interface MediaSourceItems {
+export interface MediaSourceItems<T extends MediaObject = MediaObject> {
     readonly label?: string; // 'Playlists', 'Songs', etc
     readonly layout?: Partial<MediaListLayout>;
     readonly sort?: MediaListSort;
+    readonly itemKey?: ConditionalKeys<T, string | number>;
 }
 
 export default interface MediaSource<T extends MediaObject> {
@@ -38,10 +41,13 @@ export default interface MediaSource<T extends MediaObject> {
     readonly linearType?: T extends MediaItem ? LinearType : never;
     readonly filterType?: FilterType;
     readonly sourceId?: string; // Alternative `id` for settings.
-    readonly primaryItems?: MediaSourceItems;
-    readonly secondaryItems?: T extends MediaItem ? never : MediaSourceItems;
-    readonly tertiaryItems?: T extends MediaArtist ? Exclude<MediaSourceItems, 'sort'> : never;
+    readonly primaryItems?: MediaSourceItems<T>;
+    readonly secondaryItems?: T extends MediaItem ? never : MediaSourceItems<ChildOf<T>>;
+    readonly tertiaryItems?: T extends MediaArtist
+        ? Exclude<MediaSourceItems<ChildOf<ChildOf<T>>>, 'sort'>
+        : never;
     readonly searchable?: boolean;
+    readonly searchPlaceholder?: string;
     readonly defaultHidden?: boolean;
     readonly disabled?: boolean;
     readonly isPin?: boolean;

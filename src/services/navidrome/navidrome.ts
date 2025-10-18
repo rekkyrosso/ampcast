@@ -35,6 +35,7 @@ import {
 import NavidromeOffsetPager from './NavidromeOffsetPager';
 import navidromeSettings from './navidromeSettings';
 import navidromeSources, {
+    navidromePlaylistItems,
     navidromePlaylistItemsSort,
     navidromePlaylists,
     navidromeSearch,
@@ -175,6 +176,7 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
         sourceId: `${serviceId}/pinned-playlist`,
         icon: 'pin',
         isPin: true,
+        secondaryItems: navidromePlaylistItems,
 
         search(): Pager<MediaPlaylist> {
             const id = getIdFromSrc(pin);
@@ -184,7 +186,7 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
                 undefined,
                 {
                     childSort: navidromePlaylistItemsSort.defaultSort,
-                    childSortId: `${pin.src}/2`,
+                    childSortId: `${serviceId}/pinned-playlist/2`,
                 },
                 createPlaylistItemsPager
             );

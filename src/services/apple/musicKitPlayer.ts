@@ -29,7 +29,7 @@ const logger = new Logger('MusicKitPlayer');
 
 export class MusicKitPlayer implements Player<PlayableItem> {
     private player?: MusicKit.MusicKitInstance;
-    private mutationObserver?: MutationObserver;
+    private mutationObserver: MutationObserver;
     private readonly paused$ = new BehaviorSubject(true);
     private readonly duration$ = new Subject<number>();
     private readonly currentTime$ = new Subject<number>();
@@ -111,13 +111,11 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         this.observeError().subscribe(logger.error);
 
         // Workaround: User-uploaded tracks won't play without this.
-        const APPLE_MUSIC_PLAYER_ID = 'apple-music-player';
-
         this.mutationObserver = new MutationObserver((mutationsList) => {
             for (const mutation of mutationsList) {
                 if (mutation.type === 'childList') {
                     for (const node of mutation.addedNodes) {
-                        if (node instanceof HTMLAudioElement && node.id === APPLE_MUSIC_PLAYER_ID) {
+                        if (node instanceof HTMLAudioElement && node.id === 'apple-music-player') {
                             logger.log('Found audio element, setting crossOrigin');
                             node.crossOrigin = 'anonymous';
                         }
@@ -305,11 +303,6 @@ export class MusicKitPlayer implements Player<PlayableItem> {
             return this.player;
         }
 
-        this.mutationObserver?.observe(document.body, {
-            childList: true,
-            subtree: true
-        });
-
         const isLoggedIn = await this.waitForLogin();
         if (isLoggedIn) {
             if (this.player) {
@@ -327,6 +320,8 @@ export class MusicKitPlayer implements Player<PlayableItem> {
             player.addEventListener(Events.mediaPlaybackError, this.onError);
             // This event is undocumented.
             player.addEventListener('timedMetadataDidChange', this.onTimedMetadataDidChange);
+
+            this.mutationObserver.observe(document.body, {childList: true});
 
             return player;
         } else {
@@ -534,7 +529,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                         this.error$.next(Error('Unplayable'));
                         this.stop();
                     }
-                    // TODO: This probably not true any more.
+                    // TODO: This is probably not true any more.
                     // We can't emit the `playing` event here.
                     // It causes problems in Firefox (possibly related to DRM and visualizers).
                     // Emitting the event after a successful call to `player.play()` works just as well.

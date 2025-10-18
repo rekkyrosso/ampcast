@@ -17,7 +17,7 @@ export type PersonalMediaServiceId =
     | 'plex'
     | 'subsonic';
 
-export type DataServiceId = 'lastfm' | 'listenbrainz';
+export type DataServiceId = 'localdb' | 'lastfm' | 'listenbrainz';
 
 type MediaServiceId = PublicMediaServiceId | PersonalMediaServiceId | DataServiceId;
 

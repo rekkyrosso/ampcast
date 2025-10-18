@@ -4,7 +4,7 @@ import LookupStatus from 'types/LookupStatus';
 import PlaylistItem from 'types/PlaylistItem';
 import {MAX_DURATION} from 'services/constants';
 import mediaPlayer from 'services/mediaPlayback/mediaPlayer';
-import {isPlayableSrc} from 'services/mediaServices';
+import {hasPlayableSrc} from 'services/mediaServices';
 import {ExplicitBadge, LivePlaybackBadge} from 'components/Badges';
 import Icon, {IconName} from 'components/Icon';
 import {ListViewLayout} from 'components/ListView';
@@ -118,11 +118,11 @@ function RowNumber(rowIndex: number, numberOfDigits = 0) {
     );
 }
 
-function RowIcon({src, lookupStatus, linearType}: PlaylistItem) {
-    const [serviceId] = src.split(':');
+function RowIcon(item: PlaylistItem) {
+    const [serviceId] = item.src.split(':');
     let iconName: IconName;
 
-    switch (lookupStatus) {
+    switch (item.lookupStatus) {
         case LookupStatus.Looking:
             iconName = 'lookup-looking';
             break;
@@ -132,9 +132,9 @@ function RowIcon({src, lookupStatus, linearType}: PlaylistItem) {
             break;
 
         default:
-            if (/^https?/.test(src) && linearType === LinearType.Station) {
+            if (/^https?/.test(item.src) && item.linearType === LinearType.Station) {
                 iconName = 'internet-radio';
-            } else if (isPlayableSrc(src)) {
+            } else if (hasPlayableSrc(item)) {
                 iconName = serviceId as IconName;
             } else {
                 iconName = 'lookup-pending';

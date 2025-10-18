@@ -1,5 +1,4 @@
-import React, {useEffect, useReducer} from 'react';
-import {interval} from 'rxjs';
+import React from 'react';
 import MediaItem from 'types/MediaItem';
 import {isScrobbler} from 'services/mediaServices';
 import {recentlyPlayedTracksLayout} from 'components/MediaList/layouts';
@@ -16,14 +15,6 @@ export default function RecentlyPlayedBrowser({
     total,
     ...props
 }: RecentlyPlayedBrowserProps) {
-    const [, forceUpdate] = useReducer((i) => i + 1, 0);
-
-    useEffect(() => {
-        // Make sure the "last played" fields are updated.
-        const subscription = interval(60_000).subscribe(forceUpdate);
-        return () => subscription.unsubscribe();
-    }, []);
-
     return (
         <>
             <PageHeader icon={service.icon} menuButtonSource={source}>

@@ -1,4 +1,4 @@
-import type {Observable} from 'rxjs';
+import type {Observable, Subscribable} from 'rxjs';
 import {
     BehaviorSubject,
     Subscription,
@@ -242,8 +242,8 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
         }
     }
 
-    protected subscribeTo<T>(observable$: Observable<T>, logger: Logger): void {
-        this.subscriptions!.add(observable$.subscribe(logger));
+    protected subscribeTo<T>(subscribable: Subscribable<T>, logger: Logger): void {
+        this.subscriptions!.add(subscribable.subscribe(logger));
     }
 
     private applyMetadataChanges(changes: readonly MetadataChange<T>[]): void {

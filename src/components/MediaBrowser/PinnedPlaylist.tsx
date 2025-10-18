@@ -16,12 +16,12 @@ import './PinnedPlaylist.scss';
 const defaultLayout: MediaListLayout = {
     view: 'card',
     card: {
-        h1: 'PinTitle',
+        h1: 'IconTitle',
         h2: 'Owner',
         h3: 'Progress',
         data: 'TrackCount',
     },
-    details: ['PinTitle', 'Owner', 'TrackCount', 'Progress'],
+    details: ['IconTitle', 'Owner', 'TrackCount', 'Progress'],
 };
 
 const defaultPlaylistItemsLayout: MediaListLayout = {
@@ -98,6 +98,7 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
             <MediaItemList
                 title={`${source.title}: Tracks`}
                 className="playlist-items"
+                itemKey={source.secondaryItems?.itemKey}
                 pager={itemsPager}
                 defaultLayout={defaultItemsLayout}
                 layoutOptions={source.secondaryItems?.layout}

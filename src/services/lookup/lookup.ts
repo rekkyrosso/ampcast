@@ -227,7 +227,7 @@ class Lookup {
 
     private getPlayableListen(item: PlaylistItem): MediaItem | undefined {
         const listen = findListen(item);
-        if (listen && (listen.unplayable || /^(file|blob):/.test(listen.src))) {
+        if (!listen || /^(file|blob):/.test(listen.src) || listen.linearType) {
             return undefined;
         }
         return listen;

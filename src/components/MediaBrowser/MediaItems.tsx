@@ -9,6 +9,7 @@ export default function MediaItems({source, ...props}: PagedItemsProps<MediaItem
             <MediaItemList
                 {...props}
                 title={source.title}
+                itemKey={source.primaryItems?.itemKey}
                 layoutOptions={source.primaryItems?.layout}
                 source={source}
             />

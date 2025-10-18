@@ -12,6 +12,7 @@ export type MediaSourceIconName = MediaServiceId | ExternalSourceIconName | 'app
 export type IconName =
     | MediaSourceIconName
     | 'ampcast'
+    | 'localdb'
     | 'play'
     | 'pause'
     | 'stop'
@@ -92,6 +93,14 @@ export default function Icon({name, className = ''}: IconProps) {
             return (
                 <svg className={className} viewBox="0 0 24 24">
                     <circle cx="12" cy="12" r="8" strokeWidth="4" stroke="orange" fill="black" />
+                    <circle cx="12" cy="12" r="2" stroke="none" fill="white" />
+                </svg>
+            );
+
+        case 'localdb':
+            return (
+                <svg className={className} viewBox="0 0 24 24">
+                    <circle cx="12" cy="12" r="8" strokeWidth="4" stroke="#bababa" fill="black" />
                     <circle cx="12" cy="12" r="2" stroke="none" fill="white" />
                 </svg>
             );

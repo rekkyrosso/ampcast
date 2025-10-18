@@ -1,6 +1,7 @@
 import React, {useCallback, useId, useRef} from 'react';
 import {Writable} from 'type-fest';
 import BackupFile from 'types/BackupFile';
+import Listen from 'types/Listen';
 import {Logger, saveTextToFile} from 'utils';
 import audioSettings from 'services/audio/audioSettings';
 import {updateListens} from 'services/localdb/listens';
@@ -74,7 +75,14 @@ export default function Backup() {
                         Object.assign(visualizerSettings, backup.visualizerSettings);
                     }
                     if (backup.listens?.length) {
-                        await updateListens(backup.listens);
+                        await updateListens(
+                            backup.listens.map((item: Writable<Listen>) => {
+                                // These fields may be in old backup data.
+                                delete item.unplayable;
+                                delete item.blobUrl;
+                                return item;
+                            })
+                        );
                     }
                     await alert({
                         icon: 'settings',

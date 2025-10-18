@@ -1,4 +1,4 @@
-import {Except} from 'type-fest';
+import {Except, SetRequired} from 'type-fest';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
@@ -75,9 +75,10 @@ export const navidromePlaylistItemsSort: MediaListSort = {
     },
 };
 
-export const navidromePlaylistItems: MediaSourceItems = {
+export const navidromePlaylistItems: MediaSourceItems<SetRequired<MediaItem, 'position'>> = {
     layout: navidromePlaylistItemsLayout,
     sort: navidromePlaylistItemsSort,
+    itemKey: 'position',
 };
 
 export const navidromeSearch: MediaMultiSource = {

@@ -24,7 +24,7 @@ export interface PagedItemsProps<T extends MediaObject> {
     emptyMessage?: string;
 }
 
-export default function PagedItems(props: PagedItemsProps<MediaObject>) {
+export default function PagedItems<T extends MediaObject>(props: PagedItemsProps<T>) {
     switch (props.source.itemType) {
         case ItemType.Artist:
             return <Artists {...(props as PagedItemsProps<MediaArtist>)} />;

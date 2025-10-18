@@ -84,6 +84,11 @@ export function getPlaylistItemsByService<T extends MediaItem>(
         }
     }
 
+    const localdb = getService('localdb');
+    if (localdb) {
+        itemsByService.push({service: localdb, items: items.filter((item) => !item.unplayable)});
+    }
+
     return itemsByService
         .filter(({service}) => service.isLoggedIn())
         .sort((a, b) => b.items.length - a.items.length);
