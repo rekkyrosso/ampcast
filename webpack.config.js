@@ -63,6 +63,7 @@ module.exports = (args) => {
                 'idb-keyval',
                 'is-electron',
                 'md5',
+                'minisearch',
                 'react',
                 'react-dom',
                 'react-error-boundary',

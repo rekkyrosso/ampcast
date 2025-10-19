@@ -1,13 +1,11 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, filter, map} from 'rxjs';
+import {BehaviorSubject, filter} from 'rxjs';
 import Dexie, {liveQuery} from 'dexie';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
-import Pager from 'types/Pager';
 import PlaybackState from 'types/PlaybackState';
 import {Logger, fuzzyCompare} from 'utils';
 import {findBestMatch, removeUserData} from 'services/metadata';
-import ObservablePager from 'services/pagers/ObservablePager';
 import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import session from 'services/session';
 
@@ -45,16 +43,6 @@ class ListensStore extends Dexie {
                 logger.error(err);
             }
         }, 3_000);
-    }
-
-    search(q: string): Pager<Listen> {
-        return new ObservablePager(
-            listens$.pipe(
-                map((listens) =>
-                    q ? listens.filter((listen) => listen.title.includes(q)) : listens
-                )
-            )
-        );
     }
 }
 

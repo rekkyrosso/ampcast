@@ -44,6 +44,7 @@
         "is-electron": "^2.2.2",
         "jsfft": "^0.0.4",
         "md5": "^2.3.0",
+        "minisearch": "^7.2.0",
         "music-metadata": "^11.0.0",
         "nanoid": "^5.0.1",
         "react": "^19.0.0",
