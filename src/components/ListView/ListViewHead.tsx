@@ -69,9 +69,9 @@ export default function ListViewHead<T>({
 
     const handleDragOver = useCallback(
         (event: React.DragEvent) => {
-            event.preventDefault();
-            event.stopPropagation();
             if (dragging) {
+                event.preventDefault();
+                event.stopPropagation();
                 event.dataTransfer.dropEffect = 'move';
                 const rect = ref.current!.getBoundingClientRect();
                 const scrollBoundary = fontSize * 4;
@@ -93,30 +93,37 @@ export default function ListViewHead<T>({
 
     const handleDragLeave = useCallback(
         (event: React.DragEvent) => {
-            event.stopPropagation();
             if (dragging) {
+                event.stopPropagation();
                 event.dataTransfer.dropEffect = 'move';
             }
         },
         [dragging]
     );
 
-    const handleDragEnd = useCallback((event: React.DragEvent) => {
-        event.stopPropagation();
-        setDragOverIndex(-1);
-        setDragIndex(-1);
-        setScrollAmount(0);
-        setScrollLeft(0);
-    }, []);
+    const handleDragEnd = useCallback(
+        (event: React.DragEvent) => {
+            if (dragging) {
+                event.stopPropagation();
+                setDragOverIndex(-1);
+                setDragIndex(-1);
+                setScrollAmount(0);
+                setScrollLeft(0);
+            }
+        },
+        [dragging]
+    );
 
     const handleDrop = useCallback(
         (event: React.DragEvent) => {
             event.stopPropagation();
-            onColumnMove?.(dragCol, dragOverIndex);
-            setDragOverIndex(-1);
-            setDragIndex(-1);
-            setScrollAmount(0);
-            setScrollLeft(0);
+            if (dragOverIndex !== -1) {
+                onColumnMove?.(dragCol, dragOverIndex);
+                setDragOverIndex(-1);
+                setDragIndex(-1);
+                setScrollAmount(0);
+                setScrollLeft(0);
+            }
         },
         [onColumnMove, dragCol, dragOverIndex]
     );

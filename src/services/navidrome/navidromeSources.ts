@@ -47,7 +47,7 @@ const navidromeArtistAlbumsSort: MediaListSort = {
     },
 };
 
-const navidromePlaylistLayout: Partial<MediaListLayout> = {
+export const navidromePlaylistLayout: Partial<MediaListLayout> = {
     card: {
         h1: 'Name',
         h2: 'Description',

@@ -20,7 +20,7 @@ export default function ScrobblingSettings({service: scrobbler}: ScrobblingSetti
     const scrobbleRef = useRef<HTMLFieldSetElement>(null);
     const updateNowPlayingRef = useRef<HTMLInputElement>(null);
     const scrobbledAtRef = useRef<HTMLSelectElement>(null);
-    const services = useMemo(getPlayableServices, []);
+    const services = useMemo(() => getPlayableServices(), []);
 
     const handleSubmit = useCallback(() => {
         const scrobbleInputs = scrobbleRef.current!.elements as HTMLInputElements;

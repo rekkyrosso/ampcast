@@ -26,6 +26,8 @@ export type AlertDialogProps = DialogProps & AlertOptions;
 export function AlertDialog({message, ...props}: AlertDialogProps) {
     if (typeof message === 'string') {
         message = <p>{message}</p>;
+    } else if (Array.isArray(message)) {
+        message = message.map((text, i) => <p key={i}>{text}</p>);
     }
     return (
         <Dialog {...props} className="alert-dialog">

@@ -46,6 +46,8 @@ export function ConfirmDialog({
     const storageRef = useRef<HTMLInputElement>(null);
     if (typeof message === 'string') {
         message = <p>{message}</p>;
+    } else if (Array.isArray(message)) {
+        message = message.map((text, i) => <p key={i}>{text}</p>);
     }
 
     const handleSubmit = useCallback(() => {

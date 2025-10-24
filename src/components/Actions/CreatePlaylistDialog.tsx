@@ -4,7 +4,7 @@ import MediaServiceId from 'types/MediaServiceId';
 import {Logger} from 'utils';
 import {getService} from 'services/mediaServices';
 import {addRecentPlaylist, getPlaylistItemsByService} from 'services/recentPlaylists';
-import Dialog, {DialogProps, alert, error, showDialog} from 'components/Dialog';
+import Dialog, {DialogProps, alert, confirm, error, showDialog} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import usePlaylistItems from './usePlaylistItems';
 import './CreatePlaylistDialog.scss';
@@ -45,7 +45,28 @@ export default function CreatePlaylistDialog<T extends MediaItem>({
             const option = itemsByService.find((option) => option.service === service);
             const items = option?.items;
             try {
-                const playlist = await service.createPlaylist(name, {description, isPublic, items});
+                let overWrite = false;
+                if (service.hasPlaylist) {
+                    const playlistExists = await service.hasPlaylist(name);
+                    if (playlistExists) {
+                        overWrite = await confirm({
+                            icon: service.id,
+                            title: 'Playlists',
+                            message: `Overwrite existing playlist '${name}'?`,
+                            storageId: 'overwrite-playlist',
+                        });
+                        if (!overWrite) {
+                            // Cancelled.
+                            return;
+                        }
+                    }
+                }
+                const playlist = await service.createPlaylist(name, {
+                    description,
+                    isPublic,
+                    items,
+                    overWrite,
+                });
                 await alert({
                     icon: service.id,
                     title: service.name,
@@ -101,7 +122,7 @@ export default function CreatePlaylistDialog<T extends MediaItem>({
                             ref={descriptionRef}
                         />
                     </p>
-                    <p className="save-playlist-dialog-public">
+                    <p className="create-playlist-dialog-public" hidden={noPublicOption(serviceId)}>
                         <label htmlFor={`${id}-public`}>Public:</label>
                         <input
                             type="checkbox"

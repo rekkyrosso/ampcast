@@ -78,7 +78,7 @@ function MediaSourcesMenu({source, ...props}: PopupMenuProps & MediaSourcesMenuP
                         label={`${source.name} Settings…`}
                         onClick={handleSettingsClick}
                     />
-                    {source.isConnected() ? (
+                    {!source.noAuth && source.isConnected() ? (
                         <PopupMenuItem
                             label={`Disconnect from ${source.name}…`}
                             onClick={handleDisconnectClick}

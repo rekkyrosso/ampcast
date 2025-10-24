@@ -16,6 +16,7 @@ export interface PagerConfig {
     readonly pageSize: number;
     readonly maxSize?: number;
     readonly lookup?: boolean; // lookup only (no background fetching)
+    readonly ignoreMetadataChanges?: boolean;
     readonly noCache?: boolean; // disable caching (implementation specific)
     readonly childSort?: SortParams;
     readonly childSortId?: string;

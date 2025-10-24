@@ -2,25 +2,22 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Except} from 'type-fest';
 import Action from 'types/Action';
 import LookupStatus from 'types/LookupStatus';
-import MediaAlbum from 'types/MediaAlbum';
-import MediaItem from 'types/MediaItem';
 import PlaylistItem from 'types/PlaylistItem';
 import playlist from 'services/playlist';
 import {performAction} from 'components/Actions';
-import {error} from 'components/Dialog';
 import ListView, {ListViewHandle, ListViewProps} from 'components/ListView';
 import MediaListStatusBar from 'components/MediaList/MediaListStatusBar';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useObservable from 'hooks/useObservable';
 import useOnDragStart from 'components/MediaList/useOnDragStart';
+import usePlaylistInject from 'hooks/usePlaylistInject';
 import usePreferences from 'hooks/usePreferences';
 import {showMediaInfoDialog} from 'components/MediaInfo/MediaInfoDialog';
 import showActionsMenu from './showActionsMenu';
-import usePlaylistInject from './usePlaylistInject';
 import usePlaylistLayout from './usePlaylistLayout';
 import './Playlist.scss';
 
-export const droppableTypes = [
+const droppableTypes = [
     'audio/*',
     'video/*',
     // Preferred order.
@@ -46,7 +43,7 @@ export default function Playlist({onSelect, onPlay, onEject, ref, ...props}: Pla
     const currentId = item?.id;
     const [selectedItems, setSelectedItems] = useState<readonly PlaylistItem[]>([]);
     const onDragStart = useOnDragStart(selectedItems);
-    const inject = usePlaylistInject();
+    const inject = usePlaylistInject(playlist.injectAt);
     const [startIndex, setStartIndex] = useState(-1);
     const noStartIndex = startIndex === -1;
     const {disableExplicitContent} = usePreferences();
@@ -159,69 +156,11 @@ export default function Playlist({onSelect, onPlay, onEject, ref, ...props}: Pla
                 }
 
                 default:
-                    await performAction(action as Action, selectedItems);
+                    performAction(action as Action, selectedItems);
                     break;
             }
         },
         [onPlay, items, ref]
-    );
-
-    const handleDrop = useCallback(
-        async (
-            data: readonly MediaItem[] | readonly MediaAlbum[] | readonly File[] | DataTransferItem,
-            atIndex: number
-        ) => {
-            if (data instanceof DataTransferItem) {
-                const type = data.type;
-                switch (type) {
-                    case 'text/x-spotify-tracks': {
-                        data.getAsString(async (string) => {
-                            await inject.spotifyTracks(type, string, atIndex);
-                        });
-                        break;
-                    }
-
-                    case 'text/uri-list':
-                        data.getAsString(async (string) => {
-                            const urls = string.trim().split(/\s+/);
-                            const [url] = urls;
-                            if (url) {
-                                const hostname = new URL(url).hostname;
-                                if (hostname === 'music.apple.com') {
-                                    await inject.appleTracks(type, string, atIndex);
-                                } else if (hostname === 'open.spotify.com') {
-                                    await inject.spotifyTracks(type, string, atIndex);
-                                } else {
-                                    await inject.urls(urls, atIndex);
-                                }
-                            }
-                        });
-                        break;
-
-                    case 'text/plain':
-                        data.getAsString(async (string) => {
-                            try {
-                                const {
-                                    items: [item],
-                                } = JSON.parse(string);
-                                if (/^(song|album|playlist)$/.test(item.kind)) {
-                                    await inject.appleTracks(type, string, atIndex);
-                                    return;
-                                }
-                            } catch {
-                                // Handled below.
-                            }
-                            error('No music data found.');
-                        });
-                        break;
-                }
-            } else if (data[0] instanceof File) {
-                await inject.files(data as readonly File[], atIndex);
-            } else {
-                await inject.items(data as readonly MediaItem[], atIndex);
-            }
-        },
-        [inject]
     );
 
     return (
@@ -243,7 +182,7 @@ export default function Playlist({onSelect, onPlay, onEject, ref, ...props}: Pla
                 onContextMenu={handleContextMenu}
                 onDelete={handleDelete}
                 onDoubleClick={handleDoubleClick}
-                onDrop={handleDrop}
+                onDrop={inject.onDrop}
                 onEnter={handleEnter}
                 onInfo={handleInfo}
                 onMove={playlist.moveSelection}

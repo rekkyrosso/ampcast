@@ -25,6 +25,7 @@ export type Field =
     | 'MultiDisc'
     | 'Copyright'
     | 'AddedAt'
+    | 'ModifiedAt'
     | 'Released'
     | 'LastPlayed'
     | 'ListenDate'

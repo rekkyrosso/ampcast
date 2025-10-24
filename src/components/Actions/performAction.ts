@@ -3,14 +3,16 @@ import ItemType from 'types/ItemType';
 import LibraryAction from 'types/LibraryAction';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
+import MediaPlaylist from 'types/MediaPlaylist';
 import {Pinnable} from 'types/Pin';
 import PlayAction from 'types/PlayAction';
 import actionsStore from 'services/actions/actionsStore';
 import mediaPlayback from 'services/mediaPlayback';
 import pinStore from 'services/pins/pinStore';
 import playlist from 'services/playlist';
-import {addToRecentPlaylist} from 'services/recentPlaylists';
-import {error} from 'components/Dialog';
+import {addToRecentPlaylist, removeRecentPlaylist} from 'services/recentPlaylists';
+import {getServiceFromSrc} from 'services/mediaServices';
+import {confirm, error} from 'components/Dialog';
 import {showMediaInfoDialog} from 'components/MediaInfo/MediaInfoDialog';
 import {showAddToPlaylistDialog} from './AddToPlaylistDialog';
 import {showCreatePlaylistDialog} from './CreatePlaylistDialog';
@@ -76,6 +78,52 @@ export default async function performAction<T extends MediaObject>(
             }
             break;
         }
+
+        case Action.DeletePlaylist: {
+            const playlist = item as MediaPlaylist;
+            if (playlist.deletable) {
+                const service = getServiceFromSrc(playlist);
+                if (service?.deletePlaylist) {
+                    const confirmed = await confirm({
+                        icon: service.id,
+                        title: 'Playlists',
+                        message: `Delete playlist '${playlist.title}'?`,
+                        okLabel: 'Delete',
+                        storageId: 'delete-playlist',
+                    });
+                    if (confirmed) {
+                        await Promise.all([
+                            service.deletePlaylist(playlist),
+                            pinStore.unpin(playlist),
+                        ]);
+                        removeRecentPlaylist(playlist);
+                    }
+                }
+            }
+            break;
+        }
+
+        case Action.DeletePlaylistItems: {
+            const playlist = payload;
+            if (playlist?.itemType === ItemType.Playlist && playlist.items?.deletable) {
+                const service = getServiceFromSrc(playlist);
+                if (service?.removePlaylistItems) {
+                    const confirmed = await confirm({
+                        icon: service.id,
+                        title: 'Playlist',
+                        message: `Remove ${items.length} item${
+                            items.length === 1 ? '' : 's'
+                        } from playlist '${playlist.title}'?`,
+                        okLabel: 'Remove',
+                        storageId: 'remove-from-playlist',
+                    });
+                    if (confirmed) {
+                        await service.removePlaylistItems(playlist, items as readonly MediaItem[]);
+                    }
+                }
+            }
+            break;
+        }
     }
 }
 
@@ -134,7 +182,9 @@ async function performLibraryAction<T extends MediaObject>(
     try {
         switch (action) {
             case Action.Rate: {
-                await actionsStore.rate(item, payload);
+                if (typeof payload === 'number') {
+                    await actionsStore.rate(item, payload);
+                }
                 break;
             }
 

@@ -8,7 +8,7 @@ export const defaultMediaItemCard: MediaListLayout['card'] = {
     data: 'Duration',
 };
 
-const allMediaItemFields: readonly Field[] = [
+export const allMediaItemFields: readonly Field[] = [
     'Title',
     'Artist',
     'Album',
@@ -25,7 +25,7 @@ const allMediaItemFields: readonly Field[] = [
     'Container',
 ];
 
-const allAlbumFields: readonly Field[] = [
+export const allAlbumFields: readonly Field[] = [
     'Title',
     'Artist',
     'Year',
@@ -155,7 +155,7 @@ export const playlistsLayout: MediaListLayout = {
         data: 'TrackCount',
     },
     details: ['Name', 'Owner', 'TrackCount', 'Progress'],
-    extraFields: ['Description', 'AddedAt'],
+    extraFields: ['Description', 'AddedAt', 'ModifiedAt'],
 };
 
 export const playlistItemsLayout: MediaListLayout = {

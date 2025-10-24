@@ -221,12 +221,14 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
                     logger
                 );
 
-                this.subscribeTo(
-                    observeMetadataChanges<T>().pipe(
-                        tap((changes) => this.applyMetadataChanges(changes))
-                    ),
-                    logger
-                );
+                if (!this.config.ignoreMetadataChanges) {
+                    this.subscribeTo(
+                        observeMetadataChanges<T>().pipe(
+                            tap((changes) => this.applyMetadataChanges(changes))
+                        ),
+                        logger
+                    );
+                }
             }
 
             if (this.childSortId && this.createChildPager) {

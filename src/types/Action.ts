@@ -14,6 +14,9 @@ const enum Action {
     AddToRecentPlaylist2 = 'add-to-recent-playlist-2',
     AddToRecentPlaylist3 = 'add-to-recent-playlist-3',
     AddToRecentPlaylist4 = 'add-to-recent-playlist-4',
+    DeletePlaylist = 'delete-playlist',
+    DeletePlaylistItems = 'delete-playlist-items',
+    EditPlaylist = 'edit-playlist',
 }
 
 export default Action;

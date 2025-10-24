@@ -37,6 +37,7 @@ import navidromeSettings from './navidromeSettings';
 import navidromeSources, {
     navidromePlaylistItems,
     navidromePlaylistItemsSort,
+    navidromePlaylistLayout,
     navidromePlaylists,
     navidromeSearch,
 } from './navidromeSources';
@@ -91,6 +92,7 @@ const navidrome: PersonalMediaService = {
     compareForRating,
     createPlaylist,
     createSourceFromPin,
+    deletePlaylist,
     getFilters,
     getPlayableUrl,
     getPlaybackType,
@@ -176,6 +178,9 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
         sourceId: `${serviceId}/pinned-playlist`,
         icon: 'pin',
         isPin: true,
+        primaryItems: {
+            layout: navidromePlaylistLayout,
+        },
         secondaryItems: navidromePlaylistItems,
 
         search(): Pager<MediaPlaylist> {
@@ -192,6 +197,10 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
             );
         },
     } as MediaSource<T>;
+}
+
+async function deletePlaylist(playlist: MediaPlaylist): Promise<void> {
+    return navidromeApi.deletePlaylist(playlist);
 }
 
 async function getFilters(filterType: FilterType): Promise<readonly MediaFilter[]> {

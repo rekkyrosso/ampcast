@@ -50,7 +50,7 @@ export default function MediaServicesSettingsGeneral({
                 const disabled = !input.checked;
                 updates[serviceId] = disabled;
                 const service = getService(serviceId);
-                if (service && disabled) {
+                if (service && !service.noAuth && disabled) {
                     disabledServices.push(service);
                 }
             }

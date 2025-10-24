@@ -44,7 +44,10 @@ export function createMediaObject<T extends MediaObject>(
     }
 }
 
-export function createArtistAlbumsPager(artist: MediaArtist, albumSort?: SortParams): Pager<MediaAlbum> {
+export function createArtistAlbumsPager(
+    artist: MediaArtist,
+    albumSort?: SortParams
+): Pager<MediaAlbum> {
     const id = getMediaObjectId(artist);
     const allTracks = createArtistAllTracks(artist);
     const allTracksPager = new SimplePager<MediaAlbum>([allTracks]);
@@ -181,6 +184,7 @@ function createMediaArtist(artist: Navidrome.Artist, albumSort?: SortParams): Me
 function createMediaPlaylist(playlist: Navidrome.Playlist, itemSort?: SortParams): MediaPlaylist {
     const playlist_id = playlist.id;
     const src = `navidrome:playlist:${playlist_id}`;
+    const isOwn = playlist.ownerId === navidromeSettings.userId;
 
     const mediaPlaylist: Writable<SetOptional<MediaPlaylist, 'pager'>> = {
         itemType: ItemType.Playlist,
@@ -193,7 +197,9 @@ function createMediaPlaylist(playlist: Navidrome.Playlist, itemSort?: SortParams
         trackCount: playlist.songCount,
         thumbnails: createThumbnails(playlist_id),
         isPinned: pinStore.isPinned(src),
-        isOwn: playlist.ownerId === navidromeSettings.userId,
+        isOwn,
+        // editable: isOwn, // TODO
+        // deletable: isOwn, // TODO
         owner: {
             name: playlist.ownerName,
         },

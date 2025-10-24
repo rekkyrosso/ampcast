@@ -3,8 +3,10 @@ import {interval} from 'rxjs';
 import {Except, SetOptional} from 'type-fest';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
+import MediaItem from 'types/MediaItem';
 import MediaListLayout, {Field} from 'types/MediaListLayout';
 import MediaObject from 'types/MediaObject';
+import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSource from 'types/MediaSource';
 import Pager from 'types/Pager';
 import {setSourceFields} from 'services/mediaServices/servicesSettings';
@@ -35,6 +37,7 @@ export interface MediaListProps<T extends MediaObject>
     source?: MediaSource<any>;
     level?: 1 | 2 | 3;
     pager: Pager<T> | null;
+    parentPlaylist?: T extends MediaItem ? MediaPlaylist : never;
     defaultLayout?: MediaListLayout;
     layoutOptions?: Partial<MediaListLayout>;
     statusBar?: boolean;
@@ -56,6 +59,7 @@ export default function MediaList<T extends MediaObject>({
     draggable = false,
     reorderable = true,
     pager = null,
+    parentPlaylist,
     statusBar = true,
     loadingText,
     emptyMessage,
@@ -73,7 +77,7 @@ export default function MediaList<T extends MediaObject>({
     const [, forceUpdate] = useReducer((i) => i + 1, 0);
     const id = source ? `${source.sourceId || source.id}/${level}` : uniqueId;
     const containerRef = useRef<HTMLDivElement | null>(null);
-    const layout = useMediaListLayout(id, defaultLayout, layoutOptions, Actions);
+    const layout = useMediaListLayout(id, defaultLayout, layoutOptions, Actions, parentPlaylist);
     const [scrollIndex, setScrollIndex] = useState(0);
     const [pageSize, setPageSize] = useState(0);
     const [{items, loaded, busy, error, size, maxSize}, fetchAt] = usePager(pager);
@@ -141,19 +145,23 @@ export default function MediaList<T extends MediaObject>({
                 x,
                 y,
                 button === -1 ? 'right' : 'left',
-                true
+                {inListView: true, parentPlaylist}
             );
             if (action) {
-                await performAction(action, items);
+                if (action === Action.DeletePlaylistItems) {
+                    performAction(action, items, parentPlaylist);
+                } else {
+                    performAction(action, items);
+                }
             }
         },
-        []
+        [parentPlaylist]
     );
 
     const handleDoubleClick = useCallback(
-        async (item: T, rowIndex: number) => {
+        (item: T, rowIndex: number) => {
             if (isPlayable(item)) {
-                await performAction(Action.Queue, [item]);
+                performAction(Action.Queue, [item]);
             } else {
                 onDoubleClick?.(item, rowIndex);
             }
@@ -162,14 +170,14 @@ export default function MediaList<T extends MediaObject>({
     );
 
     const handleEnter = useCallback(
-        async (items: readonly T[], cmdKey: boolean, shiftKey: boolean) => {
+        (items: readonly T[], cmdKey: boolean, shiftKey: boolean) => {
             if (items.every(isPlayable)) {
                 if (!cmdKey && !shiftKey) {
-                    await performAction(Action.Queue, items);
+                    performAction(Action.Queue, items);
                 } else if (cmdKey && !shiftKey) {
-                    await performAction(Action.PlayNow, items);
+                    performAction(Action.PlayNow, items);
                 } else if (shiftKey && !cmdKey) {
-                    await performAction(Action.PlayNext, items);
+                    performAction(Action.PlayNext, items);
                 }
             } else {
                 onEnter?.(items, cmdKey, shiftKey);

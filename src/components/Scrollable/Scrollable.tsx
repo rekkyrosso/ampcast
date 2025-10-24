@@ -185,16 +185,15 @@ export default function Scrollable({
 
     const handleDragOver = useCallback(
         (event: React.DragEvent) => {
-            const clientY = event.nativeEvent.clientY;
             const offsetTop = containerRef.current!.getBoundingClientRect().top;
-            const offsetY = clientY - offsetTop;
-            if (offsetY + lineHeight / 2 > innerHeight) {
+            const offsetY = event.clientY - offsetTop;
+            if (offsetY + 2 * lineHeight > innerHeight) {
                 setDragOver(lineHeight);
-            } else if (offsetY < lineHeight) {
+            } else if (offsetY < (overflowX ? 2 : 1) * lineHeight) {
                 setDragOver(-lineHeight);
             }
         },
-        [innerHeight, lineHeight]
+        [innerHeight, lineHeight, overflowX]
     );
 
     useEffect(() => {

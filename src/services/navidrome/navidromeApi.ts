@@ -14,6 +14,10 @@ async function post(path: string, params?: Record<string, any>): Promise<Respons
     return navidromeFetch(path, undefined, {method: 'POST', headers, body});
 }
 
+async function del(path: string): Promise<Response> {
+    return navidromeFetch(path, undefined, {method: 'DELETE'});
+}
+
 async function addToPlaylist(playlistId: string, ids: readonly string[]): Promise<void> {
     await post(`playlist/${playlistId}/tracks`, {ids});
 }
@@ -28,6 +32,11 @@ async function createPlaylist(
     const playlist = await response.json();
     await post(`playlist/${playlist.id}/tracks`, {ids});
     return playlist;
+}
+
+async function deletePlaylist({src}: {src: string}): Promise<void> {
+    const [, , playlistId] = src.split(':');
+    await del(`playlist/${playlistId}`);
 }
 
 async function getGenres(): Promise<readonly MediaFilter[]> {
@@ -122,6 +131,7 @@ async function navidromeFetch(
 const navidromeApi = {
     addToPlaylist,
     createPlaylist,
+    deletePlaylist,
     get,
     getGenres,
     getPage,

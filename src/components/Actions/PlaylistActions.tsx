@@ -36,7 +36,7 @@ export function AddToPlaylistButton<T extends MediaItem>({item}: AddToPlaylistBu
                 'right'
             );
             if (action) {
-                await performAction(action, playlistItems);
+                performAction(action, playlistItems);
             }
         },
         [playlistItems]

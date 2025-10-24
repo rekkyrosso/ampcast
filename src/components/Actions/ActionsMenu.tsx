@@ -3,6 +3,7 @@ import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
+import MediaPlaylist from 'types/MediaPlaylist';
 import {browser} from 'utils';
 import {getServiceFromSrc} from 'services/mediaServices';
 import PopupMenu, {
@@ -21,11 +22,11 @@ export async function showActionsMenu<T extends MediaObject>(
     x: number,
     y: number,
     align: 'left' | 'right' = 'left',
-    inListView?: boolean
+    actionsMenuProps?: Pick<ActionsMenuProps<T>, 'inListView' | 'parentPlaylist'>
 ): Promise<Action | undefined> {
     return showPopupMenu(
         (props: PopupMenuProps<Action>) => (
-            <ActionsMenu {...props} items={items} inListView={inListView} />
+            <ActionsMenu {...props} items={items} {...actionsMenuProps} />
         ),
         target,
         x,
@@ -34,7 +35,11 @@ export async function showActionsMenu<T extends MediaObject>(
     );
 }
 
-export function ActionsMenuItems<T extends MediaObject>({items, inListView}: ActionsMenuProps<T>) {
+export function ActionsMenuItems<T extends MediaObject>({
+    items,
+    inListView,
+    parentPlaylist,
+}: ActionsMenuProps<T>) {
     const item = items[0];
     const isSingleItem = items.length === 1 && !!item;
     const isPlaylist = item?.itemType === ItemType.Playlist;
@@ -48,6 +53,17 @@ export function ActionsMenuItems<T extends MediaObject>({items, inListView}: Act
         <>
             {allPlayable ? <PlayActions disabled={!playableNow} /> : null}
             {isSingleItem ? <ContextualActions item={item} inListView={inListView} /> : null}
+            {parentPlaylist?.items?.deletable ? (
+                <>
+                    <PopupMenuItem
+                        label="Remove from playlist"
+                        value={Action.DeletePlaylistItems}
+                        acceleratorKey="Del"
+                        key={Action.DeletePlaylistItems}
+                    />
+                    <PopupMenuSeparator />
+                </>
+            ) : null}
             {canAddToPlaylist ? (
                 <>
                     <AddToPlaylistMenuItem items={items as readonly MediaItem[]} />
@@ -69,16 +85,22 @@ export function ActionsMenuItems<T extends MediaObject>({items, inListView}: Act
 interface ActionsMenuProps<T extends MediaObject> {
     items: readonly T[];
     inListView?: boolean;
+    parentPlaylist?: MediaPlaylist;
 }
 
 function ActionsMenu<T extends MediaObject>({
     items,
     inListView,
+    parentPlaylist,
     ...props
 }: PopupMenuProps<Action> & ActionsMenuProps<T>) {
     return (
         <PopupMenu<Action> {...props}>
-            <ActionsMenuItems items={items} inListView={inListView} />
+            <ActionsMenuItems
+                items={items}
+                inListView={inListView}
+                parentPlaylist={parentPlaylist}
+            />
         </PopupMenu>
     );
 }
@@ -127,11 +149,14 @@ function ContextualActions<T extends MediaObject>({item, inListView}: Contextual
     return (
         <>
             {service?.canPin?.(item, inListView) ? (
-                <PopupMenuItem<Action>
-                    label={item.isPinned ? 'Unpin' : 'Pin'}
-                    value={item.isPinned ? Action.Unpin : Action.Pin}
-                    key={item.isPinned ? Action.Unpin : Action.Pin}
-                />
+                <>
+                    <PopupMenuItem<Action>
+                        label={item.isPinned ? 'Unpin' : 'Pin'}
+                        value={item.isPinned ? Action.Unpin : Action.Pin}
+                        key={item.isPinned ? Action.Unpin : Action.Pin}
+                    />
+                    <PopupMenuSeparator />
+                </>
             ) : null}
             {item.inLibrary === false && service?.canStore?.(item, inListView) ? (
                 <PopupMenuItem<Action>
@@ -148,6 +173,17 @@ function ContextualActions<T extends MediaObject>({item, inListView}: Contextual
                     label={getLabelForAction(service, Action.RemoveFromLibrary)}
                     value={Action.RemoveFromLibrary}
                     key={Action.RemoveFromLibrary}
+                />
+            ) : null}
+            {inListView &&
+            item.itemType === ItemType.Playlist &&
+            item.deletable &&
+            service?.deletePlaylist ? (
+                <PopupMenuItem<Action>
+                    label="Delete playlist"
+                    acceleratorKey="Del"
+                    value={Action.DeletePlaylist}
+                    key={Action.DeletePlaylist}
                 />
             ) : null}
             <PopupMenuSeparator />

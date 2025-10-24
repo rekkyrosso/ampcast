@@ -3,6 +3,7 @@ import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import LibraryAction from 'types/LibraryAction';
 import MediaObject from 'types/MediaObject';
+import MediaPlaylist from 'types/MediaPlaylist';
 import MediaService from 'types/MediaService';
 import {getServiceFromSrc} from 'services/mediaServices';
 import IconButton from 'components/Button';
@@ -17,6 +18,7 @@ export interface ActionsProps {
     item: MediaObject;
     inListView?: boolean; // Rendered in a `ListView` component.
     inInfoView?: boolean; // Rendered in a `MediaInfo` component.
+    parentPlaylist?: MediaPlaylist;
     showMenu?: typeof showActionsMenu;
 }
 
@@ -36,24 +38,25 @@ export default function Actions({
     item,
     inListView,
     inInfoView,
+    parentPlaylist,
     showMenu = showActionsMenu,
 }: ActionsProps) {
     const service = getServiceFromSrc(item);
     const tabIndex = inListView ? -1 : undefined;
 
-    const togglePin = useCallback(async () => {
+    const togglePin = useCallback(() => {
         if (item.isPinned) {
-            await performAction(Action.Unpin, [item]);
+            performAction(Action.Unpin, [item]);
         } else {
-            await performAction(Action.Pin, [item]);
+            performAction(Action.Pin, [item]);
         }
     }, [item]);
 
-    const toggleInLibrary = useCallback(async () => {
+    const toggleInLibrary = useCallback(() => {
         if (item.inLibrary) {
-            await performAction(Action.RemoveFromLibrary, [item]);
+            performAction(Action.RemoveFromLibrary, [item]);
         } else {
-            await performAction(Action.AddToLibrary, [item]);
+            performAction(Action.AddToLibrary, [item]);
         }
     }, [item]);
 
@@ -61,24 +64,24 @@ export default function Actions({
         async (event: React.MouseEvent<HTMLButtonElement>) => {
             const button = (event.target as HTMLButtonElement).closest('button')!;
             const rect = button.getBoundingClientRect();
-            const action = await showMenu(
-                [item],
-                button,
-                rect.right,
-                rect.bottom,
-                'right',
-                inListView
-            );
+            const action = await showMenu([item], button, rect.right, rect.bottom, 'right', {
+                inListView,
+                parentPlaylist,
+            });
             if (action) {
-                await performAction(action, [item]);
+                if (action === Action.DeletePlaylistItems) {
+                    performAction(action, [item], parentPlaylist);
+                } else {
+                    performAction(action, [item]);
+                }
             }
         },
-        [item, inListView, showMenu]
+        [item, inListView, parentPlaylist, showMenu]
     );
 
     const rate = useCallback(
-        async (rating: number) => {
-            await performAction(Action.Rate, [item], rating);
+        (rating: number) => {
+            performAction(Action.Rate, [item], rating);
         },
         [item]
     );

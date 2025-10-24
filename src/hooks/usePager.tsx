@@ -1,5 +1,5 @@
 import {useCallback, useEffect, useState} from 'react';
-import {debounceTime, Subscription} from 'rxjs';
+import {Subscription} from 'rxjs';
 import Pager from 'types/Pager';
 import useSubject from './useSubject';
 
@@ -46,7 +46,6 @@ export default function usePager<T>(pager: Pager<T> | null) {
             subscription.add(
                 pager
                     .observeItems()
-                    .pipe(debounceTime(1))
                     .subscribe((items) => {
                         setState((state) => ({...state, items, loaded: true}));
                     })

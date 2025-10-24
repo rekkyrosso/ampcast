@@ -18,4 +18,12 @@ export default interface MediaPlaylist extends BaseMediaObject {
     readonly modifiedAt?: number; // unix
     readonly isChart?: boolean;
     readonly unplayable?: boolean;
+    readonly editable?: boolean;
+    readonly deletable?: boolean;
+    readonly items?: {
+        readonly deletable?: boolean;
+        readonly droppable?: boolean;
+        readonly droppableTypes?: readonly string[]; // External types.
+        readonly moveable?: boolean;
+    };
 }

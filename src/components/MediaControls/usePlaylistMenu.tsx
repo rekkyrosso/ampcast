@@ -4,13 +4,13 @@ import playback from 'services/mediaPlayback/playback';
 import playlist from 'services/playlist';
 import {prompt} from 'components/Dialog';
 import {ListViewHandle} from 'components/ListView';
-import usePlaylistInject from 'components/Playlist/usePlaylistInject';
 import {showCreatePlaylistDialog} from 'components/Actions/CreatePlaylistDialog';
 import {PopupMenuProps, showPopupMenu} from 'components/PopupMenu';
+import usePlaylistInject from 'hooks/usePlaylistInject';
 import PlaylistMenu from './PlaylistMenu';
 
 export default function usePlaylistMenu(listViewRef: React.RefObject<ListViewHandle | null>) {
-    const inject = usePlaylistInject();
+    const inject = usePlaylistInject(playlist.injectAt);
 
     const showPlaylistMenu = useCallback(
         async (target: HTMLElement, x: number, y: number) => {

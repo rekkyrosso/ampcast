@@ -5,9 +5,9 @@ import pinStore from 'services/pins/pinStore';
 import {performAction} from 'components/Actions';
 import Icon from 'components/Icon';
 import {ErrorBoxProps} from 'components/Errors/ErrorBox';
-import MediaItemList from 'components/MediaList/MediaItemList';
 import {defaultMediaItemCard, playlistItemsLayout} from 'components/MediaList/layouts';
 import PlaylistList from 'components/MediaList/PlaylistList';
+import PlaylistItemsList from 'components/MediaList/PlaylistItemsList';
 import {PagedItemsProps} from './PagedItems';
 import usePinnedPlaylistActions from './usePinnedPlaylistActions';
 import showPinnedPlaylistMenu from './showPinnedPlaylistMenu';
@@ -42,7 +42,6 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
     const [error, setError] = useState<unknown>();
     const [[pinnedPlaylist], setPinnedPlaylist] = useState<readonly MediaPlaylist[]>([]);
     const PinnedPlaylistActions = usePinnedPlaylistActions(source);
-    const itemsPager = pinnedPlaylist?.pager || null;
     const defaultItemsLayout = pinnedPlaylist?.isChart
         ? chartPlaylistItemsLayout
         : defaultPlaylistItemsLayout;
@@ -69,7 +68,7 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
                 button === -1 ? 'right' : 'left'
             );
             if (action) {
-                await performAction(action, [playlist]);
+                performAction(action, [playlist]);
             }
         },
         [source]
@@ -95,16 +94,14 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
                     Actions={PinnedPlaylistActions}
                 />
             )}
-            <MediaItemList
+            <PlaylistItemsList
                 title={`${source.title}: Tracks`}
-                className="playlist-items"
                 itemKey={source.secondaryItems?.itemKey}
-                pager={itemsPager}
+                parentPlaylist={pinnedPlaylist}
                 defaultLayout={defaultItemsLayout}
                 layoutOptions={source.secondaryItems?.layout}
                 source={source}
                 level={2}
-                emptyMessage="Empty playlist"
                 onError={setError}
             />
         </div>

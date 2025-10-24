@@ -11,9 +11,9 @@ export default defineConfig([
     {files: ['**/*.{js,mjs,cjs,ts,mts,cts,jsx,tsx}'], languageOptions: {globals: globals.browser}},
     tseslint.configs.recommended,
     pluginReact.configs.flat.recommended,
+    reactHooks.configs.flat.recommended,
     {files: ['**/*.json'], plugins: {json}, language: 'json/json', extends: ['json/recommended']},
     {files: ['**/*.jsonc'], plugins: {json}, language: 'json/jsonc', extends: ['json/recommended']},
-    reactHooks.configs['recommended'],
     globalIgnores(['*', '!src', '!src/*']),
     {
         settings: {
@@ -23,9 +23,17 @@ export default defineConfig([
         },
     },
     {
+        plugins: {
+            'react-hooks': reactHooks,
+        },
         rules: {
             '@typescript-eslint/no-explicit-any': 'off',
             'react/prop-types': 'off',
+            // TODO: React compilation.
+            'react-hooks/set-state-in-effect': 'off',
+            'react-hooks/refs': 'off',
+            'react-hooks/immutability': 'off',
+            'react-hooks/purity': 'off',
         },
     },
 ]);

@@ -1,7 +1,6 @@
 import {map} from 'rxjs';
 import MiniSearch from 'minisearch';
 import unidecode from 'unidecode';
-import {SetRequired} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaListLayout from 'types/MediaListLayout';
@@ -11,11 +10,20 @@ import MediaServiceId from 'types/MediaServiceId';
 import MediaSource, {AnyMediaSource, MediaSourceItems} from 'types/MediaSource';
 import Pager from 'types/Pager';
 import ObservablePager from 'services/pagers/ObservablePager';
-import {mediaItemsLayout, recentlyPlayedTracksLayout} from 'components/MediaList/layouts';
+import {recentlyPlayedTracksLayout} from 'components/MediaList/layouts';
 import {observeListens} from './listens';
-import playlists from './playlists';
+import playlists, {LocalPlaylistItem} from './playlists';
 
 const serviceId: MediaServiceId = 'localdb';
+
+export const localPlaylistLayout: Partial<MediaListLayout> = {
+    card: {
+        h1: 'Name',
+        h2: 'Description',
+        data: 'TrackCount',
+    },
+    details: ['Name', 'Description', 'TrackCount'],
+};
 
 export const localPlaylistItemsSort: MediaListSort = {
     sortOptions: {
@@ -29,14 +37,18 @@ export const localPlaylistItemsSort: MediaListSort = {
     },
 };
 
-export const localPlaylistItems: MediaSourceItems<SetRequired<MediaItem, 'position'>> = {
+export const localPlaylistItems: MediaSourceItems<LocalPlaylistItem> = {
     layout: {
-        ...addIcon(mediaItemsLayout),
-        view: 'details',
+        card: {
+            h1: 'IconTitle',
+            h2: 'Artist',
+            h3: 'AlbumAndYear',
+            data: 'Duration',
+        },
         details: ['Position', 'IconTitle', 'Artist', 'Album', 'Duration', 'Year', 'Genre'],
     },
     sort: localPlaylistItemsSort,
-    itemKey: 'position',
+    itemKey: 'id',
 };
 
 export const localScrobbles: MediaSource<MediaItem> = {
@@ -76,14 +88,14 @@ export const localScrobbles: MediaSource<MediaItem> = {
                                 fuzzy: 0.2,
                                 prefix: true,
                                 boost: {title: 2, genres: 0.25, src: 0.1},
-                                combineWith: 'OR',
                             })
                             .map((entry) => listensMap.get(entry.id)!);
                     } else {
                         return listens;
                     }
                 })
-            )
+            ),
+            {ignoreMetadataChanges: true}
         );
     },
 };
@@ -94,6 +106,7 @@ export const localPlaylists: MediaSource<MediaPlaylist> = {
     icon: 'playlist',
     itemType: ItemType.Playlist,
     primaryItems: {
+        layout: localPlaylistLayout,
         sort: {
             sortOptions: {
                 title: 'Name',

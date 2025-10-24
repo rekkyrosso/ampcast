@@ -37,7 +37,8 @@ export default function useMediaListLayout<T extends MediaObject = MediaObject>(
     listId: string,
     defaultLayout: MediaListLayout,
     layoutOptions?: Partial<MediaListLayout>,
-    Actions: React.FC<ActionsProps> = DefaultActions
+    Actions: React.FC<ActionsProps> = DefaultActions,
+    parentPlaylist?: MediaPlaylist
 ): ListViewLayout<T> {
     const view = useMediaListView(listId);
     const fields = useMediaListFields(listId);
@@ -55,15 +56,17 @@ export default function useMediaListLayout<T extends MediaObject = MediaObject>(
                 details: fields || layoutOptions?.details || defaultLayout.details,
                 extraFields,
             },
-            Actions
+            Actions,
+            parentPlaylist
         );
-    }, [listId, view, fields, defaultLayout, layoutOptions, Actions]);
+    }, [listId, view, fields, defaultLayout, layoutOptions, Actions, parentPlaylist]);
 }
 
 function createMediaListLayout<T extends MediaObject = MediaObject>(
     listId: string,
     layout: MediaListLayout,
-    Actions: React.FC<ActionsProps>
+    Actions: React.FC<ActionsProps>,
+    parentPlaylist?: MediaPlaylist
 ): ListViewLayout<T> {
     if (layout.view === 'none') {
         return {view: 'details', cols: []};
@@ -71,7 +74,7 @@ function createMediaListLayout<T extends MediaObject = MediaObject>(
     const actions: FieldSpec = {
         id: 'Actions',
         title: 'Actions',
-        render: (item: T) => <Actions item={item} inListView />,
+        render: (item: T) => <Actions item={item} inListView parentPlaylist={parentPlaylist} />,
         className: 'actions',
         align: 'right',
         width: 5,
@@ -287,6 +290,19 @@ const AddedAt: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
     );
 };
 
+const ModifiedAt: RenderField<MediaPlaylist> = (item) => {
+    if (!item.modifiedAt) {
+        return null;
+    }
+    const date = new Date(item.modifiedAt * 1000);
+    const elapsedTime = getElapsedTimeText(date.valueOf());
+    return (
+        <time className="text" title={date.toLocaleString()}>
+            {elapsedTime}
+        </time>
+    );
+};
+
 const Released: RenderField<MediaAlbum> = (item) => {
     if (!item.releasedAt) {
         return null;
@@ -349,8 +365,8 @@ const Rate: RenderField = (item) => {
             value={item.rating}
             increment={service.starRatingIncrement}
             tabIndex={-1}
-            onChange={async (rating: number) => {
-                await performAction(Action.Rate, [item], rating);
+            onChange={(rating: number) => {
+                performAction(Action.Rate, [item], rating);
             }}
         />
     ) : null;
@@ -499,6 +515,13 @@ const mediaFields: MediaFields = {
         render: AddedAt,
         align: 'right',
         className: 'added-at date',
+    },
+    ModifiedAt: {
+        id: 'ModifiedAt',
+        title: 'Modified',
+        render: ModifiedAt,
+        align: 'right',
+        className: 'modified-at date',
     },
     Released: {
         id: 'Released',

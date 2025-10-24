@@ -49,6 +49,15 @@ export function addRecentPlaylist(playlist: MediaPlaylist): void {
     storage.setJson<RecentPlaylist[]>('all', recentPlaylists);
 }
 
+export function removeRecentPlaylist({src}: {src: string}): void {
+    const recentPlaylists = storage.getJson<RecentPlaylist[]>('all', []);
+    const index = recentPlaylists.findIndex((playlist) => playlist.src === src);
+    if (index !== -1) {
+        recentPlaylists.splice(index, 1);
+        storage.setJson<RecentPlaylist[]>('all', recentPlaylists);
+    }
+}
+
 export function getRecentPlaylists(services: readonly MediaService[]): readonly MediaPlaylist[] {
     const serviceIds = services.map((service) => service.id);
     return storage

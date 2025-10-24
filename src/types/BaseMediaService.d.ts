@@ -2,7 +2,7 @@ import type React from 'react';
 import type {IconName} from 'components/Icon';
 import Auth from './Auth';
 import CreatePlaylistOptions from './CreatePlaylistOptions';
-import DRMInfo from './DRMInfo';
+import EditPlaylistOptions from './EditPlaylistOptions';
 import FilterType from './FilterType';
 import ItemType from './ItemType';
 import LibraryAction from './LibraryAction';
@@ -22,7 +22,7 @@ type BaseMediaService = Auth & {
     readonly icon: MediaServiceId;
     readonly url: string;
     readonly defaultHidden: boolean; // `true` for most services
-    compareForRating: <T extends MediaObject>(a: T, b: T) => boolean;
+    compareForRating: <T extends MediaObject>(a: T, b: T) => boolean; // TODO: Make optional.
     // Everything below here should be optional.
     readonly root?: AnyMediaSource;
     readonly sources?: readonly AnyMediaSource[];
@@ -38,8 +38,8 @@ type BaseMediaService = Auth & {
     readonly editablePlaylists?: MediaSource<MediaPlaylist>;
     readonly starRatingIncrement?: 0.5 | 1;
     readonly Components?: {
-        Credentials?: React.FC<{service: MediaService}>;
-        Login?: React.FC<{service: MediaService}>;
+        readonly Credentials?: React.FC<{service: MediaService}>;
+        readonly Login?: React.FC<{service: MediaService}>;
     };
     // For services that play audio in an iframe.
     readonly iframeAudioPlayback?:
@@ -52,12 +52,13 @@ type BaseMediaService = Auth & {
               readonly isCoverArt?: boolean; // Shows enough metadata to not require a hover state.
           };
     addMetadata?: <T extends MediaObject>(item: T) => Promise<T>;
-    addToPlaylist?: (
+    addToPlaylist?: <T extends MediaItem>(
         playlist: MediaPlaylist,
-        items: readonly MediaItem[],
+        items: readonly T[],
         position?: number
     ) => Promise<void>;
-    removeFromPlaylist?: (playlist: MediaPlaylist, items: readonly MediaItem[]) => Promise<void>;
+    bulkRate?: (items: readonly MediaObject[], rating: number) => Promise<void>;
+    bulkStore?: (items: readonly MediaObject[], inLibrary: boolean) => Promise<void>;
     canPin?: (item: MediaObject, inListView?: boolean) => boolean;
     canRate?: (item: MediaObject, inListView?: boolean) => boolean;
     canStore?: (item: MediaObject, inListView?: boolean) => boolean;
@@ -66,7 +67,11 @@ type BaseMediaService = Auth & {
         options?: CreatePlaylistOptions<T>
     ) => Promise<MediaPlaylist>;
     createSourceFromPin?: <T extends Pinnable>(pin: Pin) => MediaSource<T>;
-    getDrmInfo?: (item?: PlayableItem) => DRMInfo | undefined;
+    deletePlaylist?: (playlist: MediaPlaylist) => Promise<void>;
+    editPlaylist?: (
+        playlist: MediaPlaylist,
+        options?: EditPlaylistOptions
+    ) => Promise<MediaPlaylist>;
     getDroppedItems?: (
         type: DataTransferItem['type'],
         data: string
@@ -76,6 +81,7 @@ type BaseMediaService = Auth & {
     getPlayableUrl?: (item: PlayableItem) => string;
     getPlaybackType?: (item: MediaItem) => Promise<PlaybackType>;
     getThumbnailUrl?: (url: string) => string;
+    hasPlaylist?: (name: string) => Promise<boolean>;
     lookup?: (
         artist: string,
         title: string,
@@ -87,11 +93,19 @@ type BaseMediaService = Auth & {
         limit?: number,
         timeout?: number
     ) => Promise<readonly MediaItem[]>;
+    movePlaylistItems?: <T extends MediaItem>(
+        playlist: MediaPlaylist,
+        items: readonly T[],
+        toIndex: number,
+        source: MediaSource<MediaPlaylist>
+    ) => Promise<void>;
     rate?: (item: MediaObject, rating: number) => Promise<void>;
-    bulkRate?: (items: readonly MediaObject[], rating: number) => Promise<void>;
-    store?: (item: MediaObject, inLibrary: boolean) => Promise<void>;
-    bulkStore?: (items: readonly MediaObject[], inLibrary: boolean) => Promise<void>;
+    removePlaylistItems?: <T extends MediaItem>(
+        playlist: MediaPlaylist,
+        items: readonly T[]
+    ) => Promise<void>;
     scrobble?: () => void;
+    store?: (item: MediaObject, inLibrary: boolean) => Promise<void>;
 };
 
 export default BaseMediaService;
