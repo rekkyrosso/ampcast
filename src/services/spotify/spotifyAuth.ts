@@ -13,6 +13,7 @@ const logger = new Logger('spotifyAuth');
 const spotifyAccounts = `https://accounts.spotify.com`;
 
 let code_challenge: string;
+let refreshTokenTimerId = 0;
 
 interface TokenResponse {
     access_token: string;
@@ -62,18 +63,9 @@ export async function logout(): Promise<void> {
 }
 
 export async function reconnect(): Promise<void> {
-    const access_token = spotifySettings.token?.access_token;
     try {
-        if (access_token) {
-            try {
-                await nextAccessToken(access_token);
-            } catch (err: any) {
-                if (err.status === 401) {
-                    await refreshToken();
-                } else {
-                    throw err;
-                }
-            }
+        if (spotifySettings.token) {
+            await refreshToken();
             return;
         }
     } catch (err) {
@@ -249,8 +241,13 @@ export async function refreshToken(): Promise<string> {
 
 async function storeAccessToken(token: TokenResponse): Promise<void> {
     try {
+        clearTimeout(refreshTokenTimerId);
         spotifySettings.token = token;
         await nextAccessToken(token.access_token);
+        refreshTokenTimerId = setTimeout(
+            () => refreshToken(),
+            Math.max(token.expires_in - 60, 10) * 1000
+        ) as any;
     } catch (err) {
         logger.error(err);
         await clearAccessToken();
@@ -264,6 +261,7 @@ async function nextAccessToken(access_token: string): Promise<void> {
 }
 
 async function clearAccessToken(): Promise<void> {
+    clearTimeout(refreshTokenTimerId);
     spotifySettings.token = null;
     await createCodeVerifier();
     accessToken$.next('');

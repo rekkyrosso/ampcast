@@ -110,7 +110,7 @@ export const localPlaylists: MediaSource<MediaPlaylist> = {
         sort: {
             sortOptions: {
                 title: 'Name',
-                modifiedAt: 'Date Edited',
+                modifiedAt: 'Date Modified',
             },
             defaultSort: {
                 sortBy: 'modifiedAt',
@@ -134,7 +134,7 @@ export const localPlaylists: MediaSource<MediaPlaylist> = {
                                 sortOrder
                             );
                         default:
-                            return (a.modifiedAt || 0 - (b.modifiedAt || 0)) * sortOrder;
+                            return ((a.modifiedAt || 0) - (b.modifiedAt || 0)) * sortOrder;
                     }
                 },
             },

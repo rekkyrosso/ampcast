@@ -178,7 +178,7 @@ export default function ListView<T>({
     const selectedId = items[rowIndex] ? `${listViewId}-${items[rowIndex][itemKey]}` : '';
     const isThin = clientWidth < fontSize * 20;
     const hasFocus = containerRef.current && containerRef.current === document.activeElement;
-    const dropTargetHeight = droppable ? Math.min(2 * fontSize, rowHeight) : 0;
+    const dropTargetPadding = droppable ? Math.min(2 * fontSize, rowHeight) : 0;
 
     const focus = useCallback(() => containerRef.current?.focus(), []);
 
@@ -545,7 +545,7 @@ export default function ListView<T>({
             event.stopPropagation();
             const dataTransfer = event.dataTransfer;
             if (droppable || moveable) {
-                const isDropTarget = (event.target as HTMLElement).className === 'drop-target';
+                const isDropTarget = (event.target as HTMLElement).className === 'scrollable-body';
                 const rowIndex = isDropTarget ? size : getRowIndexFromMouseEvent(event);
                 if (rowIndex === -1) {
                     dataTransfer.dropEffect = 'none';
@@ -651,7 +651,7 @@ export default function ListView<T>({
         >
             <Scrollable
                 scrollWidth={sizeable ? width : undefined}
-                scrollHeight={(size + (showTitles ? 1 : 0)) * rowHeight + dropTargetHeight}
+                scrollHeight={(size + (showTitles ? 1 : 0)) * rowHeight + dropTargetPadding}
                 lineHeight={rowHeight}
                 droppable={droppable || (moveable && isDragging)}
                 onResize={handleResize}
@@ -700,15 +700,6 @@ export default function ListView<T>({
                     }}
                     ref={cursorRef}
                 />
-                {droppable ? (
-                    <div
-                        className="drop-target"
-                        style={{
-                            height: `${dropTargetHeight}px`,
-                            transform: `translateY(${size * rowHeight}px)`,
-                        }}
-                    />
-                ) : null}
             </Scrollable>
             <ul
                 className="list-view-drag-image list-view-body"

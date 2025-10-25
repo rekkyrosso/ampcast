@@ -385,7 +385,7 @@ export const navidromePlaylists: MediaSource<MediaPlaylist> = {
         sort: {
             sortOptions: {
                 name: 'Name',
-                updatedAt: 'Date Edited',
+                updatedAt: 'Date Modified',
             },
             defaultSort: {
                 sortBy: 'updatedAt',

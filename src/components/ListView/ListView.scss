@@ -124,11 +124,6 @@
         border-radius: calc(var(--roundness) * 0.25em);
     }
 
-    .drop-target {
-        position: absolute;
-        width: 100%;
-    }
-
     &-card &-cursor {
         height: 6em;
     }

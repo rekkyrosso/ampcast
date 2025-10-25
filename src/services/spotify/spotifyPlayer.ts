@@ -3,9 +3,7 @@ import {
     EMPTY,
     BehaviorSubject,
     Subject,
-    combineLatest,
     catchError,
-    debounceTime,
     delay,
     distinctUntilChanged,
     filter,
@@ -142,18 +140,6 @@ export class SpotifyPlayer implements Player<PlayableItem> {
                 map(([, nextItem]) => nextItem),
                 filter(exists),
                 mergeMap((nextItem) => this.addToQueue(nextItem))
-            )
-            .subscribe(logger);
-
-        // Fix play state mismatches.
-        combineLatest([this.observePaused(), this.observeState()])
-            .pipe(
-                map(([paused, state]) => paused && !state.loading && !state.paused),
-                distinctUntilChanged(),
-                filter((isMisMatch) => isMisMatch),
-                debounceTime(10), // Needs to be async
-                tap(() => logger.log('State mismatch: pausing...')),
-                mergeMap(() => this.safePause())
             )
             .subscribe(logger);
 
@@ -474,27 +460,14 @@ export class SpotifyPlayer implements Player<PlayableItem> {
     }
 
     private async connect(): Promise<Spotify.Player> {
-        let token = this.token;
-        if (!token) {
+        if (!this.token) {
             throw Error('No access token');
         }
         return new Promise((resolve, reject) => {
-            let tokenRefreshRequired = false;
-
             const player = new Spotify.Player({
                 name: __app_name__,
-                getOAuthToken: async (callback) => {
-                    if (tokenRefreshRequired) {
-                        try {
-                            token = await refreshToken();
-                            this.accessToken$.next(token);
-                        } catch (err) {
-                            logger.error(err);
-                            token = '';
-                        }
-                    }
-                    tokenRefreshRequired = true;
-                    callback(token);
+                getOAuthToken: (callback) => {
+                    callback(this.token);
                 },
                 volume: this.muted ? 0 : this.volume,
             });
