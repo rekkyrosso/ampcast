@@ -14,7 +14,7 @@ import {
 import MediaObject from 'types/MediaObject';
 import Pager from 'types/Pager';
 import {Logger} from 'utils';
-import {PageFetch} from './AbstractPager';
+import {PageFetch} from './MediaPager';
 
 const logger = new Logger('WrappedPager');
 

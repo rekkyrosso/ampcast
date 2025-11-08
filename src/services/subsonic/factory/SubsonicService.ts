@@ -663,7 +663,7 @@ export default class SubsonicService implements PersonalMediaService {
         if (!artist || !title) {
             return [];
         }
-        const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit, lookup: true};
+        const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit, passive: true};
         const pager = new SubsonicPager<MediaItem>(
             this,
             ItemType.Media,

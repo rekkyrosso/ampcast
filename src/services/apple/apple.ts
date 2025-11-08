@@ -340,7 +340,7 @@ async function getMediaObject<T extends MediaObject>(src: string, keepAlive?: bo
         isLibraryItem
             ? undefined
             : {[`omit[resource:${type.replace('library-', '')}]`]: 'relationships'},
-        {lookup: true, pageSize: 0}
+        {passive: true, pageSize: 0}
     );
     return fetchFirstItem<T>(pager, {timeout: 2000, keepAlive});
 }
@@ -364,7 +364,7 @@ async function lookup(
             types: 'songs,music-videos',
             term: `${title} ${artist}`,
         },
-        {pageSize: limit, maxSize: 2 * limit, lookup: true},
+        {pageSize: limit, maxSize: 2 * limit, passive: true},
         undefined,
         (response: any): MusicKitPage => {
             const songs = response.results?.songs?.data || [];
@@ -390,7 +390,7 @@ async function lookupByISRC(
     const pager = new MusicKitPager<MediaItem>(
         '/v1/catalog/{{storefrontId}}/songs',
         {'filter[isrc]': isrcs.slice(0, 25).join(',')},
-        {pageSize: limit, maxSize: limit, lookup: true}
+        {pageSize: limit, maxSize: limit, passive: true}
     );
     const items = await fetchFirstPage(pager, {timeout});
     return items.filter((item) => !item.unplayable);

@@ -95,7 +95,7 @@ export const localScrobbles: MediaSource<MediaItem> = {
                     }
                 })
             ),
-            {ignoreMetadataChanges: true}
+            {passive: true}
         );
     },
 };

@@ -2,14 +2,14 @@ import type {BaseItemDto} from '@jellyfin/sdk/lib/generated-client/models';
 import MediaObject from 'types/MediaObject';
 import {PagerConfig} from 'types/Pager';
 import ParentOf from 'types/ParentOf';
-import {CreateChildPager} from 'services/pagers/AbstractPager';
-import OffsetPager from 'services/pagers/OffsetPager';
+import {CreateChildPager} from 'services/pagers/MediaPager';
+import IndexedPager from 'services/pagers/IndexedPager';
 import {getSourceSorting} from 'services/mediaServices/servicesSettings';
 import jellyfinSettings from './jellyfinSettings';
 import jellyfinApi from './jellyfinApi';
 import {createMediaObject} from './jellyfinUtils';
 
-export default class JellyfinPager<T extends MediaObject> extends OffsetPager<T> {
+export default class JellyfinPager<T extends MediaObject> extends IndexedPager<T> {
     static minPageSize = 10;
     static maxPageSize = 500;
 

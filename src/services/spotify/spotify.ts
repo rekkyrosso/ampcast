@@ -357,7 +357,7 @@ async function lookup(
     const pager = createSearchPager<MediaItem>(
         ItemType.Media,
         `${safeString(title)} artist:${safeString(artist)}`,
-        {pageSize: limit, maxSize: limit, lookup: true}
+        {pageSize: limit, maxSize: limit, passive: true}
     );
     return fetchFirstPage(pager, {timeout});
 }
@@ -373,7 +373,7 @@ async function lookupByISRC(
     const pager = createSearchPager<MediaItem>(
         ItemType.Media,
         isrcs.map((isrc) => `isrc:${isrc}`).join('+'),
-        {pageSize: limit, maxSize: limit, lookup: true}
+        {pageSize: limit, maxSize: limit, passive: true}
     );
     const items = await fetchFirstPage(pager, {timeout});
     return items.filter((item) => !item.unplayable);

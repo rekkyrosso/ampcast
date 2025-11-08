@@ -16,7 +16,7 @@ import Pager from 'types/Pager';
 import {uniq} from 'utils';
 import {t} from 'services/i18n';
 import SimplePager from 'services/pagers/SimplePager';
-import NavidromeOffsetPager from './NavidromeOffsetPager';
+import NavidromeIndexedPager from './NavidromeIndexedPager';
 import NavidromeSequentialPager from './NavidromeSequentialPager';
 import {createArtistAlbumsPager, createPlaylistItemsPager} from './navidromeUtils';
 import {
@@ -145,7 +145,7 @@ const navidromeLikedSongs: MediaSource<MediaItem> = {
         _,
         {sortBy, sortOrder} = navidromeLikedSongs.primaryItems!.sort!.defaultSort
     ): Pager<MediaItem> {
-        return new NavidromeOffsetPager(ItemType.Media, 'song', {
+        return new NavidromeIndexedPager(ItemType.Media, 'song', {
             starred: true,
             _sort: sortBy,
             _order: sortOrder === -1 ? 'DESC' : 'ASC',
@@ -179,7 +179,7 @@ const navidromeLikedAlbums: MediaSource<MediaAlbum> = {
         _,
         {sortBy, sortOrder} = navidromeLikedAlbums.primaryItems!.sort!.defaultSort
     ): Pager<MediaAlbum> {
-        return new NavidromeOffsetPager(ItemType.Album, 'album', {
+        return new NavidromeIndexedPager(ItemType.Album, 'album', {
             starred: true,
             _sort: sortBy,
             _order: sortOrder === -1 ? 'DESC' : 'ASC',
@@ -214,7 +214,7 @@ const navidromeLikedArtists: MediaSource<MediaArtist> = {
         _,
         {sortBy, sortOrder} = navidromeLikedArtists.primaryItems!.sort!.defaultSort
     ): Pager<MediaArtist> {
-        return new NavidromeOffsetPager(
+        return new NavidromeIndexedPager(
             ItemType.Artist,
             'artist',
             {
@@ -330,7 +330,7 @@ const navidromeRecentlyAdded: MediaSource<MediaAlbum> = {
     },
 
     search(): Pager<MediaAlbum> {
-        return new NavidromeOffsetPager(ItemType.Album, 'album', {
+        return new NavidromeIndexedPager(ItemType.Album, 'album', {
             _sort: 'recently_added',
             _order: 'DESC',
         });
@@ -399,7 +399,7 @@ export const navidromePlaylists: MediaSource<MediaPlaylist> = {
         _,
         {sortBy, sortOrder} = navidromePlaylists.primaryItems!.sort!.defaultSort
     ): Pager<MediaPlaylist> {
-        return new NavidromeOffsetPager(
+        return new NavidromeIndexedPager(
             ItemType.Playlist,
             'playlist',
             {
@@ -443,7 +443,7 @@ const navidromeTracksByGenre: MediaSource<MediaItem> = {
         {sortBy, sortOrder} = navidromeTracksByGenre.primaryItems!.sort!.defaultSort
     ): Pager<MediaItem> {
         if (genre) {
-            return new NavidromeOffsetPager(ItemType.Media, 'song', {
+            return new NavidromeIndexedPager(ItemType.Media, 'song', {
                 genre_id: genre.id,
                 _sort: sortBy,
                 _order: sortOrder === -1 ? 'DESC' : 'ASC',
@@ -480,7 +480,7 @@ const navidromeAlbumsByGenre: MediaSource<MediaAlbum> = {
         {sortBy, sortOrder} = navidromeAlbumsByGenre.primaryItems!.sort!.defaultSort
     ): Pager<MediaAlbum> {
         if (genre) {
-            return new NavidromeOffsetPager(ItemType.Album, 'album', {
+            return new NavidromeIndexedPager(ItemType.Album, 'album', {
                 genre_id: genre.id,
                 _sort: sortBy,
                 _order: sortOrder === -1 ? 'DESC' : 'ASC',
@@ -501,7 +501,7 @@ const navidromeRandomTracks: MediaSource<MediaItem> = {
     },
 
     search(): Pager<MediaItem> {
-        return new NavidromeOffsetPager(ItemType.Media, 'song', {_sort: 'random'}, {maxSize: 100});
+        return new NavidromeIndexedPager(ItemType.Media, 'song', {_sort: 'random'}, {maxSize: 100});
     },
 };
 
@@ -515,7 +515,12 @@ const navidromeRandomAlbums: MediaSource<MediaAlbum> = {
     },
 
     search(): Pager<MediaAlbum> {
-        return new NavidromeOffsetPager(ItemType.Album, 'album', {_sort: 'random'}, {maxSize: 100});
+        return new NavidromeIndexedPager(
+            ItemType.Album,
+            'album',
+            {_sort: 'random'},
+            {maxSize: 100}
+        );
     },
 };
 
@@ -545,7 +550,7 @@ const navidromeRadio: MediaSource<MediaItem> = {
         _,
         {sortBy, sortOrder} = navidromeRadio.primaryItems!.sort!.defaultSort
     ): Pager<MediaItem> {
-        return new NavidromeOffsetPager(ItemType.Media, 'radio', {
+        return new NavidromeIndexedPager(ItemType.Media, 'radio', {
             _sort: sortBy,
             _order: sortOrder === -1 ? 'DESC' : 'ASC',
         });
@@ -587,19 +592,19 @@ function createSearch<T extends MediaObject>(
             q = q.trim();
             switch (itemType) {
                 case ItemType.Media:
-                    return new NavidromeOffsetPager(itemType, 'song', {
+                    return new NavidromeIndexedPager(itemType, 'song', {
                         title: q,
                         _sort: 'artist',
                     });
 
                 case ItemType.Album:
-                    return new NavidromeOffsetPager(itemType, 'album', {
+                    return new NavidromeIndexedPager(itemType, 'album', {
                         name: q,
                         _sort: 'album',
                     });
 
                 case ItemType.Artist:
-                    return new NavidromeOffsetPager(
+                    return new NavidromeIndexedPager(
                         itemType,
                         'artist',
                         {
@@ -615,7 +620,7 @@ function createSearch<T extends MediaObject>(
                     );
 
                 case ItemType.Playlist:
-                    return new NavidromeOffsetPager(
+                    return new NavidromeIndexedPager(
                         itemType,
                         'playlist',
                         {q, _sort: 'name'},

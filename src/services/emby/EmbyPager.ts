@@ -5,14 +5,14 @@ import MediaObject from 'types/MediaObject';
 import {Page, PagerConfig} from 'types/Pager';
 import ParentOf from 'types/ParentOf';
 import {uniqBy} from 'utils';
-import {CreateChildPager} from 'services/pagers/AbstractPager';
-import OffsetPager from 'services/pagers/OffsetPager';
+import {CreateChildPager} from 'services/pagers/MediaPager';
+import IndexedPager from 'services/pagers/IndexedPager';
 import {getSourceSorting} from 'services/mediaServices/servicesSettings';
 import embySettings from './embySettings';
 import embyApi from './embyApi';
 import {createMediaObject} from './embyUtils';
 
-export default class EmbyPager<T extends MediaObject> extends OffsetPager<T> {
+export default class EmbyPager<T extends MediaObject> extends IndexedPager<T> {
     static minPageSize = 10;
     static maxPageSize = 500;
 
@@ -34,7 +34,7 @@ export default class EmbyPager<T extends MediaObject> extends OffsetPager<T> {
                 let page = await this.getPage(path, params);
                 if (
                     this.params.SearchTerm &&
-                    !options?.lookup &&
+                    !this.passive &&
                     pageNumber === 1 &&
                     /Audio|MusicAlbum/.test(this.params.IncludeItemTypes as string) &&
                     page.items.length < pageSize

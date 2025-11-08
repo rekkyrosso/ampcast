@@ -2,15 +2,15 @@ import MediaAlbum from 'types/MediaAlbum';
 import MediaObject from 'types/MediaObject';
 import {PagerConfig} from 'types/Pager';
 import ParentOf from 'types/ParentOf';
-import {CreateChildPager} from 'services/pagers/AbstractPager';
-import OffsetPager from 'services/pagers/OffsetPager';
+import {CreateChildPager} from 'services/pagers/MediaPager';
+import IndexedPager from 'services/pagers/IndexedPager';
 import {getSourceSorting} from 'services/mediaServices/servicesSettings';
 import plexApi, {PlexRequest} from './plexApi';
 import plexMediaType from './plexMediaType';
 import plexSettings from './plexSettings';
 import {createMediaObjects, getMediaAlbums, getMetadata} from './plexUtils';
 
-export default class PlexPager<T extends MediaObject> extends OffsetPager<T> {
+export default class PlexPager<T extends MediaObject> extends IndexedPager<T> {
     static minPageSize = 10;
     static plexMaxPageSize = 500;
 

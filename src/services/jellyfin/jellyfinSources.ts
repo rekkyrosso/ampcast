@@ -28,7 +28,7 @@ import {
     recentlyPlayedTracksLayout,
 } from 'components/MediaList/layouts';
 import {createArtistAlbumsPager, createPlaylistItemsPager, getSort} from './jellyfinUtils';
-import {CreateChildPager} from 'services/pagers/AbstractPager';
+import {CreateChildPager} from 'services/pagers/MediaPager';
 
 const serviceId: MediaServiceId = 'jellyfin';
 

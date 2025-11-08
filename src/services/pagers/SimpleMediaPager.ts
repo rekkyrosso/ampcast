@@ -1,7 +1,7 @@
 import MediaObject from 'types/MediaObject';
-import AbstractPager from './AbstractPager';
+import MediaPager from './MediaPager';
 
-export default class SimpleMediaPager<T extends MediaObject> extends AbstractPager<T> {
+export default class SimpleMediaPager<T extends MediaObject> extends MediaPager<T> {
     constructor(private readonly fetch: () => Promise<readonly T[]>) {
         super({pageSize: Infinity});
     }

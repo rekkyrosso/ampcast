@@ -28,7 +28,7 @@ export interface PageFetch {
 
 const UNINITIALIZED: any[] = [];
 
-const logger = new Logger('AbstractPager');
+const logger = new Logger('MediaPager');
 
 let pagerCount = 0;
 
@@ -37,7 +37,7 @@ export type CreateChildPager<T extends MediaObject> = (
     childSort?: SortParams
 ) => Pager<ChildOf<T>>;
 
-export default abstract class AbstractPager<T extends MediaObject> implements Pager<T> {
+export default abstract class MediaPager<T extends MediaObject> implements Pager<T> {
     private readonly additions$ = new BehaviorSubject<readonly T[]>(UNINITIALIZED);
     private readonly error$ = new BehaviorSubject<unknown>(undefined);
     private readonly items$ = new BehaviorSubject<readonly T[]>(UNINITIALIZED);
@@ -67,6 +67,10 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
 
     get pageSize(): number {
         return this.config.pageSize;
+    }
+
+    get passive(): boolean {
+        return !!this.config.passive;
     }
 
     observeAdditions(): Observable<readonly T[]> {
@@ -157,23 +161,27 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
     }
 
     protected set items(items: readonly T[]) {
-        const additions: T[] = [];
-        this.items$.next(
-            items.map((item) => {
-                if (!this.srcs.has(item.src)) {
-                    this.srcs.add(item.src);
-                    const inLibrary = actionsStore.getInLibrary(item, item.inLibrary);
-                    const rating = actionsStore.getRating(item, item.rating);
-                    if (item.inLibrary !== inLibrary || item.rating !== rating) {
-                        item = {...item, inLibrary, rating};
+        if (this.passive) {
+            this.items$.next(items);
+        } else {
+            const additions: T[] = [];
+            this.items$.next(
+                items.map((item) => {
+                    if (!this.srcs.has(item.src)) {
+                        this.srcs.add(item.src);
+                        const inLibrary = actionsStore.getInLibrary(item, item.inLibrary);
+                        const rating = actionsStore.getRating(item, item.rating);
+                        if (item.inLibrary !== inLibrary || item.rating !== rating) {
+                            item = {...item, inLibrary, rating};
+                        }
+                        additions.push(item);
                     }
-                    additions.push(item);
-                }
-                return item;
-            })
-        );
-        if (additions.length > 0) {
-            this.additions$.next(additions);
+                    return item;
+                })
+            );
+            if (additions.length > 0) {
+                this.additions$.next(additions);
+            }
         }
     }
 
@@ -200,7 +208,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
     }
 
     protected connect(): void {
-        if (!this.disconnected && !this.connected) {
+        if (!this.connected && !this.disconnected) {
             if (__dev__) {
                 pagerCount++;
                 if (pagerCount % 100 === 0) {
@@ -210,7 +218,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
 
             this.subscriptions = new Subscription();
 
-            if (!this.config.lookup) {
+            if (!this.passive) {
                 this.subscribeTo(
                     this.observeAdditions().pipe(tap((items) => this.addMultiDisc(items))),
                     logger
@@ -221,7 +229,7 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
                     logger
                 );
 
-                if (!this.config.ignoreMetadataChanges) {
+                if (!this.passive) {
                     this.subscribeTo(
                         observeMetadataChanges<T>().pipe(
                             tap((changes) => this.applyMetadataChanges(changes))
@@ -320,10 +328,8 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
         this.items = this.items.map((item) => {
             if ('pager' in item) {
                 item.pager.disconnect();
-                return {
-                    ...item,
-                    pager: createChildPager(item, childSort),
-                };
+                (item as any).pager = createChildPager(item, childSort); // Make sure to overwrite.
+                return {...item};
             } else {
                 return item;
             }

@@ -2,7 +2,7 @@ import {Primitive} from 'type-fest';
 import MediaObject from 'types/MediaObject';
 import {PagerConfig} from 'types/Pager';
 import {getSourceSorting} from 'services/mediaServices/servicesSettings';
-import {CreateChildPager} from 'services/pagers/AbstractPager';
+import {CreateChildPager} from 'services/pagers/MediaPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import navidromeApi from './navidromeApi';
 import navidromeSettings from './navidromeSettings';

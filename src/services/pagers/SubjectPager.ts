@@ -1,7 +1,7 @@
 import MediaObject from 'types/MediaObject';
-import AbstractPager from './AbstractPager';
+import MediaPager from './MediaPager';
 
-export default class SubjectPager<T extends MediaObject> extends AbstractPager<T> {
+export default class SubjectPager<T extends MediaObject> extends MediaPager<T> {
     fetchAt(): void {
         // do nothing
     }

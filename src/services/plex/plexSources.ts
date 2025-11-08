@@ -17,7 +17,7 @@ import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
 import SortParams from 'types/SortParams';
 import {uniq} from 'utils';
-import {CreateChildPager} from 'services/pagers/AbstractPager';
+import {CreateChildPager} from 'services/pagers/MediaPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';

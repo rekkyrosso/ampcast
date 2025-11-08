@@ -225,7 +225,7 @@ async function lookup(
     if (!artist || !title) {
         return [];
     }
-    const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit, lookup: true};
+    const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit, passive: true};
     const pager = createSearchPager<MediaItem>(ItemType.Media, title, {Artists: artist}, options);
     return fetchFirstPage(pager, {timeout});
 }

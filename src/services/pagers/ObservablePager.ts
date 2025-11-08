@@ -3,11 +3,11 @@ import {tap} from 'rxjs';
 import MediaObject from 'types/MediaObject';
 import {PagerConfig} from 'types/Pager';
 import {Logger} from 'utils';
-import AbstractPager, {CreateChildPager} from './AbstractPager';
+import MediaPager, {CreateChildPager} from './MediaPager';
 
 const logger = new Logger('ObservablePager');
 
-export default class ObservablePager<T extends MediaObject> extends AbstractPager<T> {
+export default class ObservablePager<T extends MediaObject> extends MediaPager<T> {
     constructor(
         private readonly observable$: Observable<readonly T[]>,
         options?: Partial<PagerConfig>,

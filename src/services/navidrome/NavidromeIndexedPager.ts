@@ -2,13 +2,13 @@ import {Primitive} from 'type-fest';
 import MediaObject from 'types/MediaObject';
 import {PagerConfig} from 'types/Pager';
 import {getSourceSorting} from 'services/mediaServices/servicesSettings';
-import {CreateChildPager} from 'services/pagers/AbstractPager';
-import OffsetPager from 'services/pagers/OffsetPager';
+import {CreateChildPager} from 'services/pagers/MediaPager';
+import IndexedPager from 'services/pagers/IndexedPager';
 import navidromeApi from './navidromeApi';
 import navidromeSettings from './navidromeSettings';
 import {createMediaObject} from './navidromeUtils';
 
-export default class NavidromeOffsetPager<T extends MediaObject> extends OffsetPager<T> {
+export default class NavidromeIndexedPager<T extends MediaObject> extends IndexedPager<T> {
     constructor(
         itemType: T['itemType'],
         path: string,

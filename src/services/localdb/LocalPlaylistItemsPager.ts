@@ -14,13 +14,13 @@ export default class LocalPlaylistItemsPager extends DexiePager<LocalPlaylistIte
         private readonly synch: (items: readonly LocalPlaylistItem[]) => Promise<void>,
         options?: Partial<PagerConfig>
     ) {
-        super(query, {ignoreMetadataChanges: true, ...options});
+        super(query, {passive: true, ...options});
     }
 
     removeItems(removals: readonly LocalPlaylistItem[]): void {
         const prevItems = this.items;
-        const idsToMove = removals.map((item) => item.id);
-        const items = prevItems.filter((item) => !idsToMove.includes(item.id)) || [];
+        const idsToRemove = removals.map((item) => item.id);
+        const items = prevItems.filter((item) => !idsToRemove.includes(item.id)) || [];
         this.next(items);
     }
 

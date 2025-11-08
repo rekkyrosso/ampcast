@@ -244,7 +244,7 @@ async function lookup(
         createSearchPager<MediaItem>(ItemType.Media, `${artist} ${title}`, {
             pageSize: limit,
             maxSize: limit,
-            lookup: true,
+            passive: true,
         }),
         {timeout}
     );

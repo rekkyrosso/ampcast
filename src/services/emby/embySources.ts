@@ -16,7 +16,7 @@ import MediaSource, {AnyMediaSource, MediaMultiSource} from 'types/MediaSource';
 import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
 import {NoMusicLibraryError, NoMusicVideoLibraryError} from 'services/errors';
-import {CreateChildPager} from 'services/pagers/AbstractPager';
+import {CreateChildPager} from 'services/pagers/MediaPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';

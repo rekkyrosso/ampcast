@@ -198,12 +198,15 @@ class PlaylistsStore extends Dexie {
                     return items;
                 },
                 // Synch.
-                async (items) => {
+                async (newItems) => {
                     const timeStamp = Math.floor(Date.now() / 1000);
+                    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                    const {pager, ...localPlaylist} = playlist;
                     const src = playlist.src;
+                    const items = newItems.slice().sort((a, b) => (a.position || 0) - (b.position || 0));
                     await this.playlistItems.put({src, items});
                     await this.playlists.put({
-                        ...playlist,
+                        ...localPlaylist,
                         trackCount: items.length,
                         modifiedAt: timeStamp,
                     });
@@ -231,20 +234,15 @@ class PlaylistsStore extends Dexie {
                 removals.forEach((playlist) => playlist.pager?.disconnect());
                 oldPlaylists = newPlaylists.map((playlist) => {
                     const oldPager = oldPlaylistsMap.get(playlist.src)?.pager as any;
-                    const pager =
-                        oldPager && !oldPager.disconnected
-                            ? oldPager
-                            : createChildPager(
-                                  playlist as MediaPlaylist,
-                                  getSourceSorting(options?.childSortId || '') || options?.childSort
-                              );
-                    if (oldPager?.connected && oldPager.disconnected) {
-                        pager.fetchAt();
-                    }
                     return {
                         ...playlist,
                         isPinned: pinStore.isPinned(playlist.src),
-                        pager,
+                        pager:
+                            oldPager ||
+                            createChildPager(
+                                playlist as MediaPlaylist,
+                                getSourceSorting(options?.childSortId || '') || options?.childSort
+                            ),
                     };
                 });
                 return oldPlaylists;

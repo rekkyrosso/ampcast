@@ -46,7 +46,7 @@ export default class SpotifyPager<T extends MediaObject> extends SequentialPager
         if (!this.disconnected && !this.connected) {
             super.connect();
 
-            if (!this.config.lookup) {
+            if (!this.passive) {
                 this.subscribeTo(
                     this.observeAdditions().pipe(mergeMap((items) => addUserData(items))),
                     logger

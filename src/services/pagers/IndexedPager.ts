@@ -2,7 +2,7 @@ import {catchError, debounceTime, filter, map, mergeMap, of, takeUntil} from 'rx
 import MediaObject from 'types/MediaObject';
 import {Page, PagerConfig} from 'types/Pager';
 import {Logger} from 'utils';
-import AbstractPager, {CreateChildPager} from './AbstractPager';
+import MediaPager, {CreateChildPager} from './MediaPager';
 
 enum FetchState {
     Pending,
@@ -10,9 +10,9 @@ enum FetchState {
     Rejected,
 }
 
-const logger = new Logger('OffsetPager');
+const logger = new Logger('IndexedPager');
 
-export default class OffsetPager<T extends MediaObject> extends AbstractPager<T> {
+export default class IndexedPager<T extends MediaObject> extends MediaPager<T> {
     private readonly fetchStates = new Map<number, FetchState>();
 
     constructor(

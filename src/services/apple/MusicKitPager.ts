@@ -68,7 +68,7 @@ export default class MusicKitPager<T extends MediaObject> extends SequentialPage
         if (!this.disconnected && !this.connected) {
             super.connect();
 
-            if (!this.options?.lookup) {
+            if (!this.passive) {
                 this.subscribeTo(
                     this.observeAdditions().pipe(
                         mergeMap((items) => addUserData(items, this.parent))

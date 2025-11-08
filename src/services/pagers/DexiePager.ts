@@ -2,9 +2,9 @@ import type {Subscription} from 'dexie';
 import {liveQuery} from 'dexie';
 import MediaObject from 'types/MediaObject';
 import {PagerConfig} from 'types/Pager';
-import AbstractPager, {CreateChildPager} from './AbstractPager';
+import MediaPager, {CreateChildPager} from './MediaPager';
 
-export default class DexiePager<T extends MediaObject> extends AbstractPager<T> {
+export default class DexiePager<T extends MediaObject> extends MediaPager<T> {
     private subscription?: Subscription;
 
     constructor(

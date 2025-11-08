@@ -32,7 +32,7 @@ import {
     logout,
     reconnect,
 } from './navidromeAuth';
-import NavidromeOffsetPager from './NavidromeOffsetPager';
+import NavidromeIndexedPager from './NavidromeIndexedPager';
 import navidromeSettings from './navidromeSettings';
 import navidromeSources, {
     navidromePlaylistItems,
@@ -185,7 +185,7 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
 
         search(): Pager<MediaPlaylist> {
             const id = getIdFromSrc(pin);
-            return new NavidromeOffsetPager(
+            return new NavidromeIndexedPager(
                 ItemType.Playlist,
                 `playlist/${id}`,
                 undefined,
@@ -260,7 +260,7 @@ async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
     }
     const type =
         itemType === ItemType.Artist ? 'artist' : itemType === ItemType.Album ? 'album' : 'song';
-    const pager = new NavidromeOffsetPager<T>(itemType, `${type}/${id}`, undefined, {
+    const pager = new NavidromeIndexedPager<T>(itemType, `${type}/${id}`, undefined, {
         pageSize: 1,
         maxSize: 1,
     });
@@ -293,8 +293,8 @@ async function lookup(
     if (!artist || !title) {
         return [];
     }
-    const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit, lookup: true};
-    const pager = new NavidromeOffsetPager<MediaItem>(
+    const options: Partial<PagerConfig> = {pageSize: limit, maxSize: limit, passive: true};
+    const pager = new NavidromeIndexedPager<MediaItem>(
         ItemType.Media,
         'song',
         {
