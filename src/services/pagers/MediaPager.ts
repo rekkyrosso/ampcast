@@ -303,6 +303,7 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
         items.forEach((item) => {
             if (
                 (item.itemType === ItemType.Album || item.itemType === ItemType.Playlist) &&
+                !item.trackCount &&
                 item.pager
             ) {
                 this.subscribeTo(

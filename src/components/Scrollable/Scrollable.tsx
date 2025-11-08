@@ -208,7 +208,7 @@ export default function Scrollable({
     const cancelDragOver = useCallback(() => setDragOver(0), []);
 
     const [head, body] = partition(
-        React.Children.toArray(children),
+        toChildren(children),
         (child) => (child as any)?.type === FixedHeader
     );
 
@@ -277,4 +277,14 @@ export default function Scrollable({
             />
         </div>
     );
+}
+
+function toChildren(node: React.ReactNode): React.ReactNode[] {
+    const children = React.Children.toArray(node);
+    const firstChild = children[0] as any;
+    return firstChild
+        ? firstChild.type === React.Fragment
+            ? toChildren(firstChild.props?.children)
+            : children
+        : [];
 }

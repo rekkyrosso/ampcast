@@ -203,7 +203,9 @@ class PlaylistsStore extends Dexie {
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
                     const {pager, ...localPlaylist} = playlist;
                     const src = playlist.src;
-                    const items = newItems.slice().sort((a, b) => (a.position || 0) - (b.position || 0));
+                    const items = newItems
+                        .slice()
+                        .sort((a, b) => (a.position || 0) - (b.position || 0));
                     await this.playlistItems.put({src, items});
                     await this.playlists.put({
                         ...localPlaylist,

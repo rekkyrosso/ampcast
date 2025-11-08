@@ -75,6 +75,10 @@ export function getPlaylistItemsByService<T extends MediaItem>(
 ): readonly ItemsByService<T>[] {
     items = items.filter((item) => !item.linearType || item.linearType === LinearType.MusicTrack);
 
+    if (items.length === 0) {
+        return [];
+    }
+
     const byService = groupBy(items, (item) => {
         const service = getServiceFromSrc(item);
         return service?.id || '';
