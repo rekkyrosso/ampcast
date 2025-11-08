@@ -59,7 +59,7 @@ export const localScrobbles: MediaSource<MediaItem> = {
     searchable: true,
     searchPlaceholder: 'Search playback history',
     primaryItems: {
-        layout: addIcon(recentlyPlayedTracksLayout),
+        layout: addIconToLayout(recentlyPlayedTracksLayout),
         itemKey: 'playedAt',
     },
 
@@ -150,11 +150,10 @@ const localSources: readonly AnyMediaSource[] = [localPlaylists];
 
 export default localSources;
 
-function addIcon(layout: MediaListLayout): MediaListLayout {
+function addIconToLayout(layout: MediaListLayout): MediaListLayout {
     return {
         ...layout,
         card: {...layout.card, h1: 'IconTitle'},
         details: layout.details.map((field) => (field === 'Title' ? 'IconTitle' : field)),
-        extraFields: layout.extraFields?.map((field) => (field === 'Title' ? 'IconTitle' : field)),
     };
 }

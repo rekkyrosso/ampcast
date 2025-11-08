@@ -9,9 +9,7 @@ import MediaSource from 'types/MediaSource';
 import Pager from 'types/Pager';
 import Pin, {Pinnable} from 'types/Pin';
 import ServiceType from 'types/ServiceType';
-import {getSourceSorting, setSourceSorting} from 'services/mediaServices/servicesSettings';
 import noAuth from 'services/mediaServices/noAuth';
-import {confirm} from 'components/Dialog';
 import localSources, {
     localPlaylistItems,
     localPlaylistItemsSort,
@@ -30,7 +28,7 @@ const localdb: DataService = {
     icon: serviceId,
     url: '',
     serviceType: ServiceType.DataService,
-    defaultHidden: false,
+    defaultHidden: true,
     root: localScrobbles,
     sources: localSources,
     editablePlaylists: localPlaylists,
@@ -42,7 +40,6 @@ const localdb: DataService = {
     deletePlaylist,
     hasPlaylist,
     movePlaylistItems,
-    removePlaylistItems,
 };
 
 async function addToPlaylist<T extends MediaItem>(
@@ -105,34 +102,9 @@ async function hasPlaylist(name: string): Promise<boolean> {
 async function movePlaylistItems(
     playlist: MediaPlaylist,
     items: readonly MediaItem[],
-    toIndex: number,
-    source: MediaSource<MediaPlaylist>
+    toIndex: number
 ): Promise<void> {
-    const id = `${source.sourceId || source.id}/2`;
-    const sorting = getSourceSorting(id) || source.secondaryItems!.sort!.defaultSort;
-    if (sorting.sortBy === 'position' && sorting.sortOrder === 1) {
-        return playlists.movePlaylistItems(playlist, items as LocalPlaylistItem[], toIndex);
-    } else {
-        const confirmed = await confirm({
-            icon: 'localdb',
-            title: 'Playlist',
-            message: [
-                `The playlist needs to be sorted by 'Position' before you can reorder items.`,
-                'Sort now?',
-            ],
-            okLabel: 'Sort',
-        });
-        if (confirmed) {
-            setSourceSorting(id, 'position', 1);
-        }
-    }
-}
-
-async function removePlaylistItems(
-    playlist: MediaPlaylist,
-    items: readonly MediaItem[]
-): Promise<void> {
-    return playlists.removePlaylistItems(playlist, items as LocalPlaylistItem[]);
+    return playlists.movePlaylistItems(playlist, items as LocalPlaylistItem[], toIndex);
 }
 
 export default localdb;

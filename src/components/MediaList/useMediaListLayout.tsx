@@ -43,11 +43,17 @@ export default function useMediaListLayout<T extends MediaObject = MediaObject>(
     const view = useMediaListView(listId);
     const fields = useMediaListFields(listId);
     return useMemo(() => {
-        const extraFields: Field[] = uniq([
+        let extraFields: Field[] = [
             'Index',
             ...(layoutOptions?.details || defaultLayout.details),
             ...(defaultLayout.extraFields || []),
-        ]);
+        ];
+        if (extraFields.includes('IconTitle')) {
+            extraFields = extraFields.map((field) => (field === 'Title' ? 'IconTitle' : field));
+        } else if (extraFields.includes('Name')) {
+            extraFields = extraFields.map((field) => (field === 'Title' ? 'Name' : field));
+        }
+        extraFields = uniq(extraFields);
         return createMediaListLayout(
             listId,
             {

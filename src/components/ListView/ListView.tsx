@@ -80,6 +80,7 @@ export interface ListViewProps<T> {
     reorderable?: boolean; // Can reorder columns.
     disabled?: boolean;
     className?: string;
+    emptyMessage?: React.ReactNode;
     onClick?: (item: T, rowIndex: number) => void;
     onDoubleClick?: (item: T, rowIndex: number) => void;
     onContextMenu?: (
@@ -122,6 +123,7 @@ export default function ListView<T>({
     moveable,
     reorderable,
     disabled,
+    emptyMessage,
     onClick,
     onDoubleClick,
     onContextMenu,
@@ -545,7 +547,8 @@ export default function ListView<T>({
             event.stopPropagation();
             const dataTransfer = event.dataTransfer;
             if (droppable || moveable) {
-                const isDropTarget = (event.target as HTMLElement).className === 'scrollable-body';
+                const isDropTarget =
+                    size === 0 || (event.target as HTMLElement).className === 'scrollable-body';
                 const rowIndex = isDropTarget ? size : getRowIndexFromMouseEvent(event);
                 if (rowIndex === -1) {
                     dataTransfer.dropEffect = 'none';
@@ -604,19 +607,26 @@ export default function ListView<T>({
     );
 
     const handleDragEnd = useCallback(() => {
-        globalDrag.clear();
+        globalDrag.clearData();
         setDragStartIndex(-1);
     }, []);
 
     const handleDragLeave = useCallback((event: React.DragEvent) => {
+        const dataTransfer = event.dataTransfer;
+        switch (dataTransfer.effectAllowed) {
+            case 'copy':
+            case 'copyMove':
+                dataTransfer.dropEffect = 'copy';
+                break;
+
+            case 'move':
+                dataTransfer.dropEffect = 'move';
+                break;
+        }
         if (
             event.relatedTarget &&
             !containerRef.current!.contains(event.relatedTarget as HTMLElement)
         ) {
-            const dataTransfer = event.dataTransfer;
-            if (dataTransfer.effectAllowed === 'copyMove') {
-                dataTransfer.dropEffect = 'copy';
-            }
             setDragIndex(-1);
         }
     }, []);
@@ -653,59 +663,73 @@ export default function ListView<T>({
                 scrollWidth={sizeable ? width : undefined}
                 scrollHeight={(size + (showTitles ? 1 : 0)) * rowHeight + dropTargetPadding}
                 lineHeight={rowHeight}
-                droppable={droppable || (moveable && isDragging)}
+                autoscroll={moveable}
                 onResize={handleResize}
                 onScroll={setScrollPosition}
                 ref={scrollableRef}
             >
-                {showTitles && (
-                    <FixedHeader>
-                        <ListViewHead
-                            width={width}
-                            clientLeft={scrollLeft}
-                            clientWidth={clientWidth}
-                            reorderable={reorderable}
-                            sizeable={sizeable}
+                {size === 0 && emptyMessage ? (
+                    <Empty message={emptyMessage} />
+                ) : (
+                    <>
+                        {showTitles && (
+                            <FixedHeader>
+                                <ListViewHead
+                                    width={width}
+                                    clientLeft={scrollLeft}
+                                    clientWidth={clientWidth}
+                                    reorderable={reorderable}
+                                    sizeable={sizeable}
+                                    cols={cols}
+                                    fontSize={fontSize}
+                                    onColumnMove={onReorder}
+                                    onColumnResize={onColumnResize}
+                                />
+                            </FixedHeader>
+                        )}
+                        <ListViewBody
+                            title={title}
+                            width={sizeable ? width : undefined}
+                            pageSize={pageSize}
+                            rowHeight={rowHeight}
                             cols={cols}
-                            fontSize={fontSize}
-                            onColumnMove={onReorder}
-                            onColumnResize={onColumnResize}
+                            items={items}
+                            itemKey={itemKey}
+                            itemClassName={itemClassName}
+                            listViewId={listViewId}
+                            selectedId={selectedId}
+                            selectedIds={disabled ? {} : selectedIds}
+                            scrollTop={scrollTop}
+                            dragIndex={moveable ? dragIndex : -1}
+                            draggable={disabled ? false : draggable || moveable}
+                            multiple={multiple}
+                            busy={isScrolling}
+                            view={layout.view}
                         />
-                    </FixedHeader>
+                        <div
+                            className="list-view-cursor"
+                            style={{
+                                width: sizeable ? `${width}px` : undefined,
+                                transform: `translateY(${Math.max(rowIndex, 0) * rowHeight}px)`,
+                            }}
+                            ref={cursorRef}
+                        />
+                    </>
                 )}
-                <ListViewBody
-                    title={title}
-                    width={sizeable ? width : undefined}
-                    pageSize={pageSize}
-                    rowHeight={rowHeight}
-                    cols={cols}
-                    items={items}
-                    itemKey={itemKey}
-                    itemClassName={itemClassName}
-                    listViewId={listViewId}
-                    selectedId={selectedId}
-                    selectedIds={disabled ? {} : selectedIds}
-                    scrollTop={scrollTop}
-                    dragIndex={dragIndex}
-                    draggable={disabled ? false : draggable || moveable}
-                    multiple={multiple}
-                    busy={isScrolling}
-                    view={layout.view}
-                />
-                <div
-                    className="list-view-cursor"
-                    style={{
-                        width: sizeable ? `${width}px` : undefined,
-                        transform: `translateY(${Math.max(rowIndex, 0) * rowHeight}px)`,
-                    }}
-                    ref={cursorRef}
-                />
             </Scrollable>
             <ul
                 className="list-view-drag-image list-view-body"
                 aria-hidden={true}
                 ref={dragImageRef}
             />
+        </div>
+    );
+}
+
+function Empty({message}: {message: React.ReactNode}) {
+    return (
+        <div className="note empty-message">
+            {typeof message === 'string' ? <p>{message}</p> : message}
         </div>
     );
 }
@@ -780,7 +804,7 @@ function getDropData<T>(
 ): readonly T[] | readonly File[] | DataTransferItem | null {
     const dataTransfer = event.dataTransfer;
     const types = dataTransfer.types;
-    if (types.includes('text/ampcast-items')) {
+    if (types.includes(globalDrag.type)) {
         return globalDrag.getData(event);
     } else if (types.includes('Files')) {
         return Array.from(dataTransfer.files).filter((item) =>

@@ -15,16 +15,6 @@ export default class DexiePager<T extends MediaObject> extends AbstractPager<T> 
         super({pageSize: Infinity, ...options}, createChildPager);
     }
 
-    // Make public.
-    get connected(): boolean {
-        return super.connected;
-    }
-
-    // Make public.
-    get disconnected(): boolean {
-        return super.disconnected;
-    }
-
     protected connect(): void {
         if (!this.disconnected && !this.connected) {
             super.connect();

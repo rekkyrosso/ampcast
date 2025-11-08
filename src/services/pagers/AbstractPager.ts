@@ -53,6 +53,14 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
         private readonly createChildPager?: CreateChildPager<T>
     ) {}
 
+    get connected(): boolean {
+        return !!this.subscriptions;
+    }
+
+    get disconnected(): boolean {
+        return this.#disconnected;
+    }
+
     get maxSize(): number | undefined {
         return this.config.maxSize;
     }
@@ -134,14 +142,6 @@ export default abstract class AbstractPager<T extends MediaObject> implements Pa
 
     protected get childSortId(): string {
         return this.config.childSortId || '';
-    }
-
-    protected get connected(): boolean {
-        return !!this.subscriptions;
-    }
-
-    protected get disconnected(): boolean {
-        return this.#disconnected;
     }
 
     protected get error(): unknown {

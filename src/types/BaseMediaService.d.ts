@@ -96,8 +96,7 @@ type BaseMediaService = Auth & {
     movePlaylistItems?: <T extends MediaItem>(
         playlist: MediaPlaylist,
         items: readonly T[],
-        toIndex: number,
-        source: MediaSource<MediaPlaylist>
+        toIndex: number
     ) => Promise<void>;
     rate?: (item: MediaObject, rating: number) => Promise<void>;
     removePlaylistItems?: <T extends MediaItem>(

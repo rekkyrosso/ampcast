@@ -10,6 +10,9 @@ export default interface Pager<T> {
     observeError(): Observable<unknown>;
     fetchAt(index: number, length?: number): void;
     disconnect(): void;
+    addItems?: <T>(items: readonly T[], atIndex?: number) => void;
+    moveItems?: <T>(items: readonly T[], toIndex: number) => void;
+    removeItems?: <T>(items: readonly T[]) => void;
 }
 
 export interface PagerConfig {

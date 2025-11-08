@@ -20,6 +20,7 @@ import subsonic from 'services/subsonic';
 import youtube from 'services/youtube';
 
 const allServices: readonly MediaService[] = [
+    localdb,
     apple,
     spotify,
     // tidal,
@@ -50,4 +51,4 @@ if (enabledServices.length === 0) {
 const disabledServices = allServices.filter((service) => !enabledServices.includes(service));
 const services = enabledServices.concat(disabledServices);
 
-export default [localdb as MediaService].concat(services);
+export default services;

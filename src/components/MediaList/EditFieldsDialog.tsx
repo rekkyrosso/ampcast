@@ -32,7 +32,10 @@ export default function EditFieldsDialog({
     const [hiddenSelected, setHiddenSelected] = useState<readonly FieldSpec[]>([]);
     const [visibleSelected, setVisibleSelected] = useState<readonly FieldSpec[]>([]);
 
-    const renderItem = useCallback((field: FieldSpec) => field.id, []);
+    const renderItem = useCallback(
+        (field: FieldSpec) => (field.id === 'IconTitle' ? 'Title' : field.id),
+        []
+    );
 
     const hideFields = useCallback((fields: readonly FieldSpec[]) => {
         setVisible((visibleFields) => visibleFields.filter((field) => !fields.includes(field)));
@@ -199,11 +202,13 @@ export default function EditFieldsDialog({
 }
 
 function sorter(a: FieldSpec, b: FieldSpec): number {
-    if (a.id === 'Index') {
+    const aId = a.id === 'IconTitle' ? 'Title' : a.id;
+    const bId = b.id === 'IconTitle' ? 'Title' : b.id;
+    if (aId === 'Index') {
         return -1;
-    } else if (b.id === 'Index') {
+    } else if (bId === 'Index') {
         return 1;
     } else {
-        return a.id.localeCompare(b.id);
+        return aId.localeCompare(bId);
     }
 }

@@ -5,6 +5,7 @@ import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSource from 'types/MediaSource';
 import {getServiceFromSrc} from 'services/mediaServices';
+import {getSourceSorting} from 'services/mediaServices/servicesSettings';
 import {performAction} from 'components/Actions';
 import usePlaylistInject from 'hooks/usePlaylistInject';
 import MediaItemList from './MediaItemList';
@@ -19,14 +20,27 @@ export default function PlaylistItemsList({
     source,
     ...props
 }: PlaylistItemsListProps) {
+    const sourceId = `${source.sourceId || source.id}/2`;
+    const defaultSort = source.secondaryItems?.sort?.defaultSort;
+    const sorting = getSourceSorting(sourceId) || defaultSort;
+    const moveable =
+        parentPlaylist?.items?.moveable &&
+        (!defaultSort ||
+            (sorting!.sortBy === defaultSort.sortBy &&
+                sorting!.sortOrder === defaultSort.sortOrder));
+
     const injectAt = useCallback(
         async (items: readonly MediaItem[], atIndex: number) => {
             if (parentPlaylist) {
                 const service = getServiceFromSrc(parentPlaylist);
-                await service?.addToPlaylist?.(parentPlaylist, items, atIndex);
+                await service?.addToPlaylist?.(
+                    parentPlaylist,
+                    items,
+                    moveable ? atIndex : undefined
+                );
             }
         },
-        [parentPlaylist]
+        [parentPlaylist, moveable]
     );
 
     const inject = usePlaylistInject(injectAt);
@@ -51,14 +65,14 @@ export default function PlaylistItemsList({
 
     const handleMove = useCallback(
         (items: readonly MediaItem[], toIndex: number) => {
-            if (parentPlaylist?.items?.moveable) {
+            if (moveable) {
                 const service = getServiceFromSrc(parentPlaylist);
                 if (service?.movePlaylistItems) {
-                    service?.movePlaylistItems(parentPlaylist, items, toIndex, source);
+                    service?.movePlaylistItems(parentPlaylist, items, toIndex);
                 }
             }
         },
-        [parentPlaylist, source]
+        [parentPlaylist, moveable]
     );
     return (
         <MediaItemList
@@ -70,7 +84,7 @@ export default function PlaylistItemsList({
             parentPlaylist={parentPlaylist}
             droppable={parentPlaylist?.items?.droppable}
             droppableTypes={parentPlaylist?.items?.droppableTypes}
-            moveable={parentPlaylist?.items?.moveable}
+            moveable={moveable}
             onDelete={handleDelete}
             onDrop={handleDrop}
             onMove={handleMove}

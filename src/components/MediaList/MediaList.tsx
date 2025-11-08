@@ -238,8 +238,6 @@ export default function MediaList<T extends MediaObject>({
         >
             {empty && error ? (
                 <Error error={error} reportedBy="MediaList" reportingId={id} />
-            ) : loaded && empty && emptyMessage ? (
-                <Empty message={emptyMessage} />
             ) : (
                 <ListView
                     {...props}
@@ -248,6 +246,7 @@ export default function MediaList<T extends MediaObject>({
                     items={items}
                     itemClassName={itemClassName}
                     itemKey={itemKey}
+                    emptyMessage={loaded && empty ? emptyMessage : ''}
                     draggable={draggable}
                     reorderable={reorderable}
                     storageId={id}
@@ -273,14 +272,6 @@ export default function MediaList<T extends MediaObject>({
                     selectedCount={selectedItems.length}
                 />
             ) : null}
-        </div>
-    );
-}
-
-function Empty<T extends MediaObject>({message}: {message: MediaListProps<T>['emptyMessage']}) {
-    return (
-        <div className="error-box empty">
-            <div className="note">{typeof message === 'string' ? <p>{message}</p> : message}</div>
         </div>
     );
 }

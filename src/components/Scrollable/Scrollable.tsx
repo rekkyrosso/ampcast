@@ -31,7 +31,7 @@ export interface ScrollableProps {
     lineHeight?: number;
     scrollAmountX?: number;
     scrollAmountY?: number;
-    droppable?: boolean;
+    autoscroll?: boolean; // Automatically scroll on `dragover` events.
     onResize?: (client: ScrollableClient) => void;
     onScroll?: (position: ScrollablePosition) => void;
     ref?: React.RefObject<ScrollableHandle | null>;
@@ -41,7 +41,7 @@ export default function Scrollable({
     children,
     scrollWidth: initialScrollWidth = 0,
     scrollHeight: initialScrollHeight = 0,
-    droppable,
+    autoscroll,
     onResize,
     onScroll,
     ref,
@@ -187,7 +187,7 @@ export default function Scrollable({
         (event: React.DragEvent) => {
             const offsetTop = containerRef.current!.getBoundingClientRect().top;
             const offsetY = event.clientY - offsetTop;
-            if (offsetY + 2 * lineHeight > innerHeight) {
+            if (offsetY + (overflowX ? 2 : 1) * lineHeight > innerHeight) {
                 setDragOver(lineHeight);
             } else if (offsetY < (overflowX ? 2 : 1) * lineHeight) {
                 setDragOver(-lineHeight);
@@ -222,10 +222,10 @@ export default function Scrollable({
         >
             <div
                 className="scrollable-content"
-                onDragOver={droppable ? handleDragOver : undefined}
-                onDragLeave={droppable ? cancelDragOver : undefined}
-                onDragEnd={droppable ? cancelDragOver : undefined}
-                onDrop={droppable ? cancelDragOver : undefined}
+                onDragOver={autoscroll ? handleDragOver : undefined}
+                onDragLeave={autoscroll ? cancelDragOver : undefined}
+                onDragEnd={autoscroll ? cancelDragOver : undefined}
+                onDrop={autoscroll ? cancelDragOver : undefined}
                 style={{
                     right: overflowY ? `${vScrollbarSize}px` : '0',
                     bottom: overflowX ? `${hScrollbarSize}px` : '0',

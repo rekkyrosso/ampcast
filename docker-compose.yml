@@ -19,6 +19,7 @@ services:
 
       # Enabled media services.
       # Available services:
+      #    localdb,
       #    apple,spotify,
       #    airsonic,ampache,emby,gonic,jellyfin,navidrome,plex,subsonic,
       #    youtube,
@@ -32,7 +33,7 @@ services:
       - STARTUP_SERVICES="" # If you leave this blank you will get a start-up wizard
 
       ## Example:
-      #- ENABLED_SERVICES="spotify,navidrome,lastfm,listenbrainz"
+      #- ENABLED_SERVICES="localdb,spotify,navidrome,lastfm,listenbrainz"
       #- STARTUP_SERVICES="spotify,navidrome,lastfm"
 
       # Personal media servers.

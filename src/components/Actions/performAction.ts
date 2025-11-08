@@ -23,7 +23,7 @@ const logger = new Logger('ampcast/performAction');
 export default async function performAction<T extends MediaObject>(
     action: Action,
     items: readonly T[],
-    payload?: any
+    payload?: number | MediaPlaylist
 ): Promise<void> {
     const item = items[0];
     if (!item) {
@@ -105,11 +105,15 @@ export default async function performAction<T extends MediaObject>(
 
         case Action.DeletePlaylistItems: {
             const playlist = payload;
-            if (playlist?.itemType === ItemType.Playlist && playlist.items?.deletable) {
+            if (
+                typeof playlist === 'object' &&
+                playlist?.itemType === ItemType.Playlist &&
+                playlist.items?.deletable
+            ) {
                 const service = getServiceFromSrc(playlist);
-                if (service?.removePlaylistItems) {
+                if (service?.removePlaylistItems || playlist.pager.removeItems) {
                     const confirmed = await confirm({
-                        icon: service.id,
+                        icon: service?.id || 'playlist',
                         title: 'Playlist',
                         message: `Remove ${items.length} item${
                             items.length === 1 ? '' : 's'
@@ -118,7 +122,14 @@ export default async function performAction<T extends MediaObject>(
                         storageId: 'remove-from-playlist',
                     });
                     if (confirmed) {
-                        await service.removePlaylistItems(playlist, items as readonly MediaItem[]);
+                        if (playlist.pager.removeItems) {
+                            playlist.pager.removeItems(items as readonly MediaItem[]);
+                        } else {
+                            await service!.removePlaylistItems!(
+                                playlist,
+                                items as readonly MediaItem[]
+                            );
+                        }
                     }
                 }
             }
@@ -174,7 +185,7 @@ async function performPlayAction<T extends MediaObject>(
 async function performLibraryAction<T extends MediaObject>(
     action: LibraryAction,
     item: T,
-    payload?: any
+    payload?: number | MediaPlaylist
 ): Promise<void> {
     if (!item) {
         return;

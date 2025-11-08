@@ -1,6 +1,6 @@
 import Dexie from 'dexie';
 import {nanoid} from 'nanoid';
-import {Except} from 'type-fest';
+import {Except, Writable} from 'type-fest';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
@@ -13,12 +13,19 @@ import {removeUserData} from 'services/metadata';
 import DexiePager from 'services/pagers/DexiePager';
 import SimplePager from 'services/pagers/SimplePager';
 import pinStore from 'services/pins/pinStore';
+import LocalPlaylistItemsPager from './LocalPlaylistItemsPager';
 
 export type LocalPlaylist = Except<MediaPlaylist, 'pager'>;
 
 export type LocalPlaylistItem = Subtract<MediaItem, UserData> & {
     readonly id: string;
 };
+
+export function createLocalPlaylistItem(item: MediaItem): LocalPlaylistItem {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const {blob, blobUrl, unplayable, ...localPlaylistItem} = removeUserData(item);
+    return {...localPlaylistItem, id: nanoid()};
+}
 
 interface LocalPlaylistItems {
     readonly src: string;
@@ -48,8 +55,8 @@ class PlaylistsStore extends Dexie {
         if (!playlist) {
             throw Error('Playlist not found');
         }
-        const newItems = additions.map((item) => this.createLocalPlaylistItem(item));
-        let items = (await this.playlistItems.get(src))?.items || [];
+        const newItems = additions.map((item) => createLocalPlaylistItem(item));
+        let items = await this.getPlaylistItems(src);
         if (position >= 0 && position < items.length) {
             (items as LocalPlaylistItem[]).splice(position, 0, ...newItems);
         } else {
@@ -89,7 +96,7 @@ class PlaylistsStore extends Dexie {
                 moveable: true,
             },
         };
-        const playlistItems = items.map((item) => this.createLocalPlaylistItem(item));
+        const playlistItems = items.map((item) => createLocalPlaylistItem(item));
         // Do this sequentially.
         await this.playlists.put(playlist);
         await this.playlistItems.put({src: playlist.src, items: playlistItems});
@@ -134,29 +141,13 @@ class PlaylistsStore extends Dexie {
         await this.playlists.put({...playlist, modifiedAt: timeStamp});
     }
 
-    async removePlaylistItems(
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        {pager, ...playlist}: MediaPlaylist,
-        itemsToRemove: readonly LocalPlaylistItem[]
-    ): Promise<void> {
-        const timeStamp = Math.floor(Date.now() / 1000);
-        const src = playlist.src;
-        const playlistItems = await this.playlistItems.get(src);
-        const idsToMove = itemsToRemove.map((item) => item.id);
-        const items = playlistItems?.items.filter((item) => !idsToMove.includes(item.id)) || [];
-        // Do this sequentially.
-        await this.playlistItems.put({src, items});
-        await this.playlists.put({...playlist, trackCount: items.length, modifiedAt: timeStamp});
-    }
-
-    private createLocalPlaylistItem(item: MediaItem): LocalPlaylistItem {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const {blob, blobUrl, unplayable, ...localPlaylistItem} = removeUserData(item);
-        return {...localPlaylistItem, id: nanoid()};
-    }
-
     private getLocalPlaylistByName(name: string): Promise<LocalPlaylist | undefined> {
         return this.playlists.where('title').equals(name).first();
+    }
+
+    private async getPlaylistItems(src: string): Promise<readonly LocalPlaylistItem[]> {
+        const playlistItems = await this.playlistItems.get(src);
+        return playlistItems?.items || [];
     }
 
     createPager(
@@ -171,17 +162,15 @@ class PlaylistsStore extends Dexie {
     ): Pager<MediaPlaylist> {
         let oldPlaylists: readonly MediaPlaylist[] = [];
         const createChildPager = (playlist: MediaPlaylist, itemSort?: SortParams) => {
-            return new DexiePager<MediaItem>(
+            return new LocalPlaylistItemsPager(
                 async () => {
-                    const playlistItems = await this.playlistItems.get(playlist.src);
-                    const items =
-                        playlistItems?.items.map((item, index) => ({
-                            ...item,
-                            position: index + 1,
-                        })) || [];
-                    if (itemSort) {
+                    const items = await this.getPlaylistItems(playlist.src);
+                    items.forEach((item, index) => {
+                        (item as Writable<LocalPlaylistItem>).position = index + 1;
+                    });
+                    if (itemSort && !(itemSort.sortBy === 'position' && itemSort.sortOrder === 1)) {
                         const {sortBy, sortOrder} = itemSort;
-                        items.sort((a, b) => {
+                        return (items as LocalPlaylistItem[]).sort((a, b) => {
                             switch (sortBy) {
                                 case 'title':
                                     return (
@@ -189,14 +178,18 @@ class PlaylistsStore extends Dexie {
                                             sensitivity: 'base',
                                         }) * sortOrder
                                     );
+
                                 case 'artist':
                                     return (
-                                        String(a.artists || '').localeCompare(
-                                            String(b.artists || ''),
-                                            undefined,
-                                            {sensitivity: 'base'}
-                                        ) * sortOrder
+                                        String(a.artists || '')
+                                            .replace(/^the\s+/i, '')
+                                            .localeCompare(
+                                                String(b.artists || '').replace(/^the\s+/i, ''),
+                                                undefined,
+                                                {sensitivity: 'base'}
+                                            ) * sortOrder
                                     );
+
                                 default:
                                     return ((a.position || 0) - (b.position || 0)) * sortOrder;
                             }
@@ -204,7 +197,17 @@ class PlaylistsStore extends Dexie {
                     }
                     return items;
                 },
-                {ignoreMetadataChanges: true}
+                // Synch.
+                async (items) => {
+                    const timeStamp = Math.floor(Date.now() / 1000);
+                    const src = playlist.src;
+                    await this.playlistItems.put({src, items});
+                    await this.playlists.put({
+                        ...playlist,
+                        trackCount: items.length,
+                        modifiedAt: timeStamp,
+                    });
+                }
             );
         };
         return new DexiePager(
@@ -227,8 +230,7 @@ class PlaylistsStore extends Dexie {
                 );
                 removals.forEach((playlist) => playlist.pager?.disconnect());
                 oldPlaylists = newPlaylists.map((playlist) => {
-                    const oldPager = oldPlaylistsMap.get(playlist.src)
-                        ?.pager as DexiePager<MediaItem>;
+                    const oldPager = oldPlaylistsMap.get(playlist.src)?.pager as any;
                     const pager =
                         oldPager && !oldPager.disconnected
                             ? oldPager
@@ -248,7 +250,7 @@ class PlaylistsStore extends Dexie {
                 return oldPlaylists;
             },
             options,
-            createChildPager
+            createChildPager as any
         );
     }
 }

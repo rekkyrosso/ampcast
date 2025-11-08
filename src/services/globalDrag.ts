@@ -11,7 +11,7 @@ function setData<T>(event: React.DragEvent, data: T): void {
     dragData = data;
 }
 
-function clear(): void {
+function clearData(): void {
     dragData = null;
 }
 
@@ -21,5 +21,5 @@ export default {
     },
     getData,
     setData,
-    clear,
+    clearData,
 };
