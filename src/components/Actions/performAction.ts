@@ -16,6 +16,7 @@ import {confirm, error} from 'components/Dialog';
 import {showMediaInfoDialog} from 'components/MediaInfo/MediaInfoDialog';
 import {showAddToPlaylistDialog} from './AddToPlaylistDialog';
 import {showCreatePlaylistDialog} from './CreatePlaylistDialog';
+import {showEditPlaylistDialog} from './EditPlaylistDialog';
 import {Logger} from 'utils';
 
 const logger = new Logger('ampcast/performAction');
@@ -78,6 +79,10 @@ export default async function performAction<T extends MediaObject>(
             }
             break;
         }
+
+        case Action.EditPlaylist:
+            await showEditPlaylistDialog(item as MediaPlaylist);
+            break;
 
         case Action.DeletePlaylist: {
             const playlist = item as MediaPlaylist;

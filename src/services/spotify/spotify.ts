@@ -68,6 +68,7 @@ const spotify: PublicMediaService = {
     compareForRating,
     createPlaylist,
     createSourceFromPin,
+    editPlaylist,
     getDroppedItems,
     getFilters,
     getMediaObject,
@@ -100,7 +101,7 @@ function canStore<T extends MediaObject>(item: T, inListView?: boolean): boolean
             return true;
 
         case ItemType.Playlist:
-            return !item.isOwn && !inListView;
+            return !item.owned && !inListView;
 
         default:
             return false;
@@ -159,6 +160,16 @@ async function createPlaylist<T extends MediaItem>(
         pager: new SimplePager(),
         trackCount: items?.length,
     };
+}
+
+async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {
+    const [, , playlistId] = playlist.src.split(':');
+    await spotifyApi.changePlaylistDetails(playlistId, {
+        name: playlist.title,
+        description: playlist.description || '',
+        public: !!playlist.public,
+    });
+    return playlist;
 }
 
 function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {

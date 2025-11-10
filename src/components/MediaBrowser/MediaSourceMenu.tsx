@@ -9,7 +9,8 @@ import {
 } from 'services/mediaServices/servicesSettings';
 import PopupMenu, {
     PopupMenuItem,
-    PopupMenuItemCheckbox,
+    PopupMenuItemGroup,
+    PopupMenuItemRadio,
     PopupMenuProps,
     PopupMenuSeparator,
     showPopupMenu,
@@ -112,27 +113,31 @@ function getMenuItems(source: MediaSource<any>, level: 1 | 2 | 3, itemType: Item
         const sortOptions = items.sort.sortOptions;
         menuItems.sort = (
             <>
-                {Object.keys(sortOptions).map((sortBy) => (
-                    <PopupMenuItemCheckbox
-                        label={`Sort by: ${sortOptions[sortBy]}`}
-                        checked={sorting.sortBy === sortBy}
-                        onClick={() => setSourceSorting(id, sortBy, sorting.sortOrder)}
-                        key={sortBy}
-                    />
-                ))}
+                <PopupMenuItemGroup>
+                    {Object.keys(sortOptions).map((sortBy) => (
+                        <PopupMenuItemRadio
+                            label={`Sort by: ${sortOptions[sortBy]}`}
+                            checked={sorting.sortBy === sortBy}
+                            onClick={() => setSourceSorting(id, sortBy, sorting.sortOrder)}
+                            key={sortBy}
+                        />
+                    ))}
+                </PopupMenuItemGroup>
                 <PopupMenuSeparator />
-                <PopupMenuItemCheckbox
-                    label="Sort Ascending"
-                    checked={sorting.sortOrder === 1}
-                    onClick={() => setSourceSorting(id, sorting.sortBy, 1)}
-                    key="1"
-                />
-                <PopupMenuItemCheckbox
-                    label="Sort Descending"
-                    checked={sorting.sortOrder === -1}
-                    onClick={() => setSourceSorting(id, sorting.sortBy, -1)}
-                    key="-1"
-                />
+                <PopupMenuItemGroup>
+                    <PopupMenuItemRadio
+                        label="Sort Ascending"
+                        checked={sorting.sortOrder === 1}
+                        onClick={() => setSourceSorting(id, sorting.sortBy, 1)}
+                        key="1"
+                    />
+                    <PopupMenuItemRadio
+                        label="Sort Descending"
+                        checked={sorting.sortOrder === -1}
+                        onClick={() => setSourceSorting(id, sorting.sortBy, -1)}
+                        key="-1"
+                    />
+                </PopupMenuItemGroup>
             </>
         );
     }
@@ -140,16 +145,16 @@ function getMenuItems(source: MediaSource<any>, level: 1 | 2 | 3, itemType: Item
     const listView = document.getElementById(id);
     const currentView = listView?.dataset.view;
     menuItems.view = views.length ? (
-        <>
+        <PopupMenuItemGroup>
             {views.map((view) => (
-                <PopupMenuItemCheckbox
+                <PopupMenuItemRadio
                     label={getViewName(view)}
                     checked={currentView === view}
                     onClick={() => setSourceView(id, view)}
                     key={view}
                 />
             ))}
-        </>
+        </PopupMenuItemGroup>
     ) : undefined;
     return menuItems;
 }

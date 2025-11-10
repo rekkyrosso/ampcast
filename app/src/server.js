@@ -11,14 +11,14 @@ const HOST = 'localhost';
 const DEFAULT_PORT = 29292;
 
 const mimeTypes = {
-    js: 'application/javascript',
-    json: 'application/json',
+    js: 'application/javascript; charset=utf-8',
+    json: 'application/json; charset=utf-8',
     ico: 'image/vnd.microsoft.icon',
     png: 'image/png',
-    svg: 'image/svg+xml',
-    css: 'text/css',
-    html: 'text/html',
-    text: 'text/plain',
+    svg: 'image/svg+xml; charset=utf-8',
+    css: 'text/css; charset=utf-8',
+    html: 'text/html; charset=utf-8',
+    text: 'text/plain; charset=utf-8',
 };
 
 const app = http.createServer(async (req, res) => {

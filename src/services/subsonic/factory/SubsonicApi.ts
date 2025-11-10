@@ -5,6 +5,7 @@ import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
 import MediaFilter from 'types/MediaFilter';
+import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
@@ -97,6 +98,17 @@ export default class SubsonicApi {
     async createShare(id: string): Promise<string> {
         const data = await this.get<{shares: Subsonic.Shares}>('createShare', {id});
         return data.shares.share[0].url;
+    }
+
+    async editPlaylist(playlist: MediaPlaylist): Promise<void> {
+        const [, , playlistId] = playlist.src.split(':');
+        const params = new URLSearchParams({
+            playlistId,
+            name: playlist.title,
+            comment: playlist.description || '',
+            public: String(!!playlist.public),
+        });
+        await this.get(`updatePlaylist?${params}`);
     }
 
     async getAlbum(id: string): Promise<Subsonic.Album> {

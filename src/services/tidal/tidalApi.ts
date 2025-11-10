@@ -731,7 +731,7 @@ function createMediaPlaylist(playlist: TidalPlaylist): MediaPlaylist {
         title: attributes?.name || 'Unknown',
         description: attributes?.description,
         thumbnails: createThumbnails(attributes?.imageLinks),
-        isOwn: playlist.attributes?.privacy === 'PRIVATE',
+        public: playlist.attributes?.privacy === 'PUBLIC',
         addedAt: createdAt ? new Date(createdAt).valueOf() / 1000 || undefined : undefined,
         duration: duration ? parseISO8601(duration) : 0,
         trackCount: attributes?.numberOfItems,

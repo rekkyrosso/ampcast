@@ -12,17 +12,23 @@ import youtubeApi from './youtubeApi';
 import YouTubePager from './YouTubePager';
 
 export function createMediaPlaylist(playlist: gapi.client.youtube.Playlist): MediaPlaylist {
+    console.log('createMediaPlaylist', {playlist});
     const src = `youtube:playlist:${playlist.id}`;
     return {
         src,
         itemType: ItemType.Playlist,
         externalUrl: `${youtube.url}/playlist?list=${playlist.id}`,
         title: playlist.snippet?.title || playlist.id!,
+        description: playlist.snippet?.description,
         thumbnails: createThumbnails(playlist.snippet?.thumbnails),
         trackCount: playlist.contentDetails?.itemCount,
         owner: createOwner(playlist.snippet!),
         pager: createPlaylistItemsPager(playlist.id!),
         isPinned: pinStore.isPinned(src),
+        public: playlist.status?.privacyStatus === 'public',
+        owned: true,
+        editable: true,
+        addedAt: parseDate(playlist.snippet?.publishedAt),
     };
 }
 
@@ -82,4 +88,9 @@ function parseNumber(value: string | undefined): number | undefined {
         return undefined;
     }
     return Number(value);
+}
+
+function parseDate(date = ''): number {
+    const time = Date.parse(date) || 0;
+    return time < 0 ? 0 : Math.round(time / 1000);
 }

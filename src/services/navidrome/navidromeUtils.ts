@@ -184,7 +184,7 @@ function createMediaArtist(artist: Navidrome.Artist, albumSort?: SortParams): Me
 function createMediaPlaylist(playlist: Navidrome.Playlist, itemSort?: SortParams): MediaPlaylist {
     const playlist_id = playlist.id;
     const src = `navidrome:playlist:${playlist_id}`;
-    const isOwn = playlist.ownerId === navidromeSettings.userId;
+    const owned = playlist.ownerId === navidromeSettings.userId;
 
     const mediaPlaylist: Writable<SetOptional<MediaPlaylist, 'pager'>> = {
         itemType: ItemType.Playlist,
@@ -193,16 +193,18 @@ function createMediaPlaylist(playlist: Navidrome.Playlist, itemSort?: SortParams
         title: playlist.name,
         description: getTextFromHtml(playlist.comment),
         addedAt: parseDate(playlist.createdAt),
+        modifiedAt: parseDate(playlist.updatedAt),
         duration: playlist.duration,
         trackCount: playlist.songCount,
         thumbnails: createThumbnails(playlist_id),
         isPinned: pinStore.isPinned(src),
-        isOwn,
-        // editable: isOwn, // TODO
-        // deletable: isOwn, // TODO
+        public: playlist.public,
+        owned,
         owner: {
             name: playlist.ownerName,
         },
+        editable: owned,
+        // deletable: owned, // TODO
     };
     mediaPlaylist.pager = createPlaylistItemsPager(mediaPlaylist as MediaPlaylist, itemSort);
     return mediaPlaylist as MediaPlaylist;

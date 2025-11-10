@@ -10,6 +10,7 @@ import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import MediaFilter from 'types/MediaFilter';
 import MediaItem from 'types/MediaItem';
+import MediaPlaylist from 'types/MediaPlaylist';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
@@ -38,6 +39,10 @@ async function createPlaylist(
     ids: readonly string[]
 ): Promise<BaseItemDto> {
     return embyApi.createPlaylist(name, description, ids, jellyfinSettings);
+}
+
+async function editPlaylist(playlist: MediaPlaylist): Promise<void> {
+    return embyApi.editPlaylist(playlist, jellyfinSettings);
 }
 
 async function getFilters(
@@ -120,6 +125,7 @@ const jellyfinApi = {
     addToPlaylist,
     createPlaylist,
     delete: del,
+    editPlaylist,
     get,
     getEndpointInfo,
     getFilters,

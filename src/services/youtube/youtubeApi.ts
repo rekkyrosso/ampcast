@@ -9,7 +9,7 @@ import youtubeSettings from './youtubeSettings';
 
 interface YouTubeRequest {
     path: string;
-    method: 'GET' | 'POST';
+    method: 'GET' | 'POST' | 'PUT';
     headers?: Record<string, string>;
     params?: Record<string, any>;
     body?: any;
@@ -33,6 +33,18 @@ async function post<T = any>({
         body = JSON.stringify(body);
     }
     return youtubeFetch({method: 'POST', headers, body, ...request});
+}
+
+async function put<T = any>({
+    headers,
+    body,
+    ...request
+}: Except<YouTubeRequest, 'method'>): Promise<T> {
+    if (body) {
+        headers = {...headers, 'Content-Type': 'application/json'};
+        body = JSON.stringify(body);
+    }
+    return youtubeFetch({method: 'PUT', headers, body, ...request});
 }
 
 function createAmbientVideo(videoId: string, startTime?: number): AmbientVideoVisualizer {
@@ -158,6 +170,7 @@ function isVideoId(id: string): boolean {
 const youtubeApi = {
     get,
     post,
+    put,
     createAmbientVideo,
     getMediaItem,
     getVideoSrc,

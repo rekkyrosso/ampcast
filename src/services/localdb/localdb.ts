@@ -38,7 +38,8 @@ const localdb: DataService = {
     createPlaylist,
     createSourceFromPin,
     deletePlaylist,
-    hasPlaylist,
+    editPlaylist,
+    getPlaylistByName,
     movePlaylistItems,
 };
 
@@ -95,8 +96,12 @@ async function deletePlaylist(playlist: MediaPlaylist): Promise<void> {
     return playlists.deletePlaylist(playlist);
 }
 
-async function hasPlaylist(name: string): Promise<boolean> {
-    return playlists.hasPlaylist(name);
+async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {
+    return playlists.editPlaylist(playlist);
+}
+
+async function getPlaylistByName(name: string): Promise<MediaPlaylist | undefined> {
+    return playlists.getPlaylistByName(name);
 }
 
 async function movePlaylistItems(

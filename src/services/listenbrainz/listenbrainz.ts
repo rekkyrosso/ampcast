@@ -45,6 +45,7 @@ const listenbrainz: DataService = {
     compareForRating,
     createPlaylist,
     createSourceFromPin,
+    editPlaylist,
     scrobble,
     store,
     observeIsLoggedIn,
@@ -106,6 +107,11 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
             return new ListenBrainzPlaylistsPager(`playlist/${playlist_mbid}`, true);
         },
     } as MediaSource<T>;
+}
+
+async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {
+    await listenbrainzApi.editPlaylist(playlist);
+    return playlist;
 }
 
 async function store(item: MediaObject, inLibrary: boolean): Promise<void> {

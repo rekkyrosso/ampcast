@@ -25,7 +25,12 @@ import {
     clearAccessToken,
 } from './youtubeAuth';
 import youtubeSettings from './youtubeSettings';
-import youtubeSources, {youtubePlaylists, youtubeSearch, youtubeVideos} from './youtubeSources';
+import youtubeSources, {
+    youtubePlaylistLayout,
+    youtubePlaylists,
+    youtubeSearch,
+    youtubeVideoItems,
+} from './youtubeSources';
 import Credentials from './components/YouTubeCredentials';
 import Login from './components/YouTubeLogin';
 
@@ -53,9 +58,10 @@ const youtube: PublicMediaService = {
     sources: youtubeSources,
     addToPlaylist,
     canPin,
-    compareForRating: () => false,
+    compareForRating,
     createPlaylist,
     createSourceFromPin,
+    editPlaylist,
     getPlaybackType,
     observeIsLoggedIn,
     isConnected,
@@ -110,6 +116,10 @@ function canPin(item: MediaObject): boolean {
     return item.itemType === ItemType.Playlist;
 }
 
+function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
+    return a.src === b.src;
+}
+
 async function createPlaylist<T extends MediaItem>(
     title: string,
     {description = '', isPublic, items}: CreatePlaylistOptions<T> = {}
@@ -153,7 +163,10 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
         sourceId: `${serviceId}/pinned-playlist`,
         icon: 'pin',
         isPin: true,
-        secondaryItems: youtubeVideos,
+        primaryItems: {
+            layout: youtubePlaylistLayout,
+        },
+        secondaryItems: youtubeVideoItems,
 
         search(): Pager<T> {
             const [, , playlistId] = pin.src.split(':');
@@ -164,6 +177,28 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
             });
         },
     } as MediaSource<T>;
+}
+
+async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {
+    try {
+        const {src, title, description} = playlist;
+        const [, , id] = src.split(':');
+        await youtubeApi.put({
+            path: 'playlists',
+            params: {part: 'id,snippet,status'},
+            body: {
+                id,
+                snippet: {title, description},
+                status: {privacyStatus: playlist.public ? 'public' : 'private'},
+            },
+        });
+        return playlist;
+    } catch (err: any) {
+        if (err.status === 401) {
+            clearAccessToken();
+        }
+        throw err;
+    }
 }
 
 async function getPlaybackType(): Promise<PlaybackType> {

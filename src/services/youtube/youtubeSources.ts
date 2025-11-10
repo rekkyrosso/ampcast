@@ -1,5 +1,6 @@
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
+import MediaListLayout from 'types/MediaListLayout';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSource, {AnyMediaSource, MediaSourceItems} from 'types/MediaSource';
 import MediaType from 'types/MediaType';
@@ -10,7 +11,17 @@ import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import YouTubePager from './YouTubePager';
 
-export const youtubeVideos: MediaSourceItems = {
+export const youtubePlaylistLayout: Partial<MediaListLayout> = {
+    card: {
+        h1: 'Name',
+        h2: 'Description',
+        h3: 'Progress',
+        data: 'TrackCount',
+    },
+    details: ['Name', 'Description', 'TrackCount', 'Progress'],
+};
+
+export const youtubeVideoItems: MediaSourceItems = {
     layout: {
         view: 'card compact',
         card: {
@@ -30,7 +41,7 @@ export const youtubeSearch: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
     mediaType: MediaType.Video,
     searchable: true,
-    primaryItems: youtubeVideos,
+    primaryItems: youtubeVideoItems,
 
     search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
         if (q) {
@@ -59,7 +70,7 @@ const youtubeLikes: MediaSource<MediaItem> = {
     mediaType: MediaType.Video,
     lockActionsStore: true,
     defaultHidden: true,
-    primaryItems: youtubeVideos,
+    primaryItems: youtubeVideoItems,
 
     search(): Pager<MediaItem> {
         return new YouTubePager('/videos', {
@@ -77,7 +88,7 @@ const youtubeRecentlyPlayed: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
     mediaType: MediaType.Video,
     defaultHidden: true,
-    primaryItems: youtubeVideos,
+    primaryItems: youtubeVideoItems,
 
     search(): Pager<MediaItem> {
         return new SimpleMediaPager(async () =>
@@ -94,12 +105,15 @@ export const youtubePlaylists: MediaSource<MediaPlaylist> = {
     title: 'Playlists',
     icon: 'playlist',
     itemType: ItemType.Playlist,
-    secondaryItems: youtubeVideos,
+    primaryItems: {
+        layout: youtubePlaylistLayout,
+    },
+    secondaryItems: youtubeVideoItems,
 
     search(): Pager<MediaPlaylist> {
         return new YouTubePager('/playlists', {
             mine: 'true',
-            part: 'snippet,contentDetails',
+            part: 'snippet,contentDetails,status',
             fields: YouTubePager.playlistFields,
         });
     },

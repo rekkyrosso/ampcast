@@ -52,23 +52,30 @@
     &-item {
         position: relative;
 
-        /* Try to prevent rendering glitches of glyphs. */
-        button::before,
-        button::after {
-            font-family: var(--system-font-family);
-            transform: translateZ(0);
-            will-change: content;
+        button[aria-checked]::before {
+            position: absolute;
+            left: 0.25em;
         }
 
-        button[aria-checked="true"]::before {
-            content: "\2713";
-            position: absolute;
-            left: 0.33em;
+        &-checkbox {
+            button[aria-checked="true"]::before {
+                content: "✓";
+            }
+        }
+
+        &-radio {
+            button[aria-checked="false"]::before {
+                content: "◎";
+            }
+
+            button[aria-checked="true"]::before {
+                content: "◉";
+            }
         }
 
         &.has-popup-right {
             & > button::before {
-                content: "\276e";
+                content: "❮";
                 position: absolute;
                 left: 0.5em;
                 font-size: 0.75em;
@@ -82,7 +89,7 @@
 
         &.has-popup-left {
             & > button::after {
-                content: "\276f";
+                content: "❯";
                 font-size: 0.75em;
                 margin-left: 1em;
             }
@@ -93,7 +100,7 @@
             }
         }
 
-        &.showing-popup > button {            
+        &.showing-popup > button {
             background-color: var(--button-text-color);
             color: var(--button-color);
         }

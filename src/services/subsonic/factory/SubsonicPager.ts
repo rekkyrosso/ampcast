@@ -200,21 +200,23 @@ export default class SubsonicPager<T extends MediaObject> extends SequentialPage
 
     private createMediaPlaylist(playlist: Subsonic.Playlist): MediaPlaylist {
         const src = `${this.service.id}:playlist:${playlist.id}`;
+        const owned = playlist.owner === this.service.settings.userName;
         return {
             src,
             itemType: ItemType.Playlist,
             title: playlist.name,
             description: playlist.comment,
             addedAt: this.parseDate(playlist.created),
+            modifiedAt: this.parseDate(playlist.changed),
             duration: playlist.duration,
             trackCount: playlist.songCount,
             pager: this.createPlaylistItemsPager(playlist),
             thumbnails: this.createThumbnails(playlist.coverArt),
             isPinned: pinStore.isPinned(src),
-            isOwn: playlist.owner === this.service.settings.userName,
-            owner: {
-                name: playlist.owner,
-            },
+            owned,
+            owner: {name: playlist.owner},
+            editable: owned,
+            public: playlist.public,
         };
     }
 

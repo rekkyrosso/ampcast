@@ -9,6 +9,7 @@ import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import MediaFilter from 'types/MediaFilter';
 import MediaItem from 'types/MediaItem';
+import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PlayableItem from 'types/PlayableItem';
@@ -58,6 +59,29 @@ async function createPlaylist(
     const playlist = await get<BaseItemDto>(`Users/${UserId}/${path}`, undefined, settings);
     await post(path, {...playlist, Overview}, settings);
     return playlist;
+}
+
+async function editPlaylist(
+    playlist: MediaPlaylist,
+    settings: EmbySettings = embySettings
+): Promise<void> {
+    const userId = settings.userId;
+    const [, , playlistId] = playlist.src.split(':');
+    const path = `Items/${playlistId}`;
+    const existingPlaylist = await get(`Users/${userId}/${path}`, undefined, settings);
+    if (!existingPlaylist) {
+        throw Error('Playlist not found');
+    }
+    await post(
+        path,
+        {
+            ...existingPlaylist,
+            Name: playlist.title,
+            SortName: playlist.title,
+            Overview: playlist.description || '',
+        },
+        settings
+    );
 }
 
 async function getDecades(
@@ -332,6 +356,7 @@ const embyApi = {
     addToPlaylist,
     createPlaylist,
     delete: del,
+    editPlaylist,
     get,
     getFilters,
     getEndpointInfo,

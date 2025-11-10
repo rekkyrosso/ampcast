@@ -80,6 +80,7 @@ const emby: PersonalMediaService = {
     compareForRating,
     createPlaylist,
     createSourceFromPin,
+    editPlaylist,
     getFilters,
     getMediaObject,
     getPlayableUrl,
@@ -168,6 +169,11 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
             );
         },
     } as MediaSource<T>;
+}
+
+async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {
+    await embyApi.editPlaylist(playlist);
+    return playlist;
 }
 
 async function getFilters(

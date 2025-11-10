@@ -80,6 +80,7 @@ const jellyfin: PersonalMediaService = {
     compareForRating,
     createPlaylist,
     createSourceFromPin,
+    editPlaylist,
     getFilters,
     getMediaObject,
     getPlayableUrl,
@@ -139,6 +140,11 @@ async function createPlaylist<T extends MediaItem>(
         pager: new SimplePager(),
         trackCount: items.length,
     };
+}
+
+async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {
+    await jellyfinApi.editPlaylist(playlist);
+    return playlist;
 }
 
 function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {

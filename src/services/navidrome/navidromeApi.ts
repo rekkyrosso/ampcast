@@ -1,5 +1,6 @@
 import {Primitive} from 'type-fest';
 import MediaFilter from 'types/MediaFilter';
+import MediaPlaylist from 'types/MediaPlaylist';
 import {Page} from 'types/Pager';
 import navidromeSettings from './navidromeSettings';
 
@@ -12,6 +13,12 @@ async function post(path: string, params?: Record<string, any>): Promise<Respons
     const headers = {'Content-Type': 'application/json'};
     const body = JSON.stringify(params);
     return navidromeFetch(path, undefined, {method: 'POST', headers, body});
+}
+
+async function put(path: string, params?: Record<string, any>): Promise<Response> {
+    const headers = {'Content-Type': 'application/json'};
+    const body = JSON.stringify(params);
+    return navidromeFetch(path, undefined, {method: 'PUT', headers, body});
 }
 
 async function del(path: string): Promise<Response> {
@@ -37,6 +44,21 @@ async function createPlaylist(
 async function deletePlaylist({src}: {src: string}): Promise<void> {
     const [, , playlistId] = src.split(':');
     await del(`playlist/${playlistId}`);
+}
+
+async function editPlaylist(playlist: MediaPlaylist): Promise<Navidrome.Playlist> {
+    const [, , playlistId] = playlist.src.split(':');
+    const existingPlaylist = await get(`playlist/${playlistId}`);
+    if (!existingPlaylist) {
+        throw Error('Playlist not found');
+    }
+    const response = await put(`playlist/${playlistId}`, {
+        ...existingPlaylist,
+        name: playlist.title,
+        comment: playlist.description || '',
+        public: !!playlist.public,
+    });
+    return response.json();
 }
 
 async function getGenres(): Promise<readonly MediaFilter[]> {
@@ -132,6 +154,7 @@ const navidromeApi = {
     addToPlaylist,
     createPlaylist,
     deletePlaylist,
+    editPlaylist,
     get,
     getGenres,
     getPage,

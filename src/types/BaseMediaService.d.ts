@@ -2,7 +2,6 @@ import type React from 'react';
 import type {IconName} from 'components/Icon';
 import Auth from './Auth';
 import CreatePlaylistOptions from './CreatePlaylistOptions';
-import EditPlaylistOptions from './EditPlaylistOptions';
 import FilterType from './FilterType';
 import ItemType from './ItemType';
 import LibraryAction from './LibraryAction';
@@ -68,10 +67,7 @@ type BaseMediaService = Auth & {
     ) => Promise<MediaPlaylist>;
     createSourceFromPin?: <T extends Pinnable>(pin: Pin) => MediaSource<T>;
     deletePlaylist?: (playlist: MediaPlaylist) => Promise<void>;
-    editPlaylist?: (
-        playlist: MediaPlaylist,
-        options?: EditPlaylistOptions
-    ) => Promise<MediaPlaylist>;
+    editPlaylist?: (playlist: MediaPlaylist) => Promise<MediaPlaylist>;
     getDroppedItems?: (
         type: DataTransferItem['type'],
         data: string
@@ -80,8 +76,8 @@ type BaseMediaService = Auth & {
     getMediaObject?: <T extends MediaObject>(src: string) => Promise<T>;
     getPlayableUrl?: (item: PlayableItem) => string;
     getPlaybackType?: (item: MediaItem) => Promise<PlaybackType>;
+    getPlaylistByName?: (name: string) => Promise<MediaPlaylist | undefined>;
     getThumbnailUrl?: (url: string) => string;
-    hasPlaylist?: (name: string) => Promise<boolean>;
     lookup?: (
         artist: string,
         title: string,

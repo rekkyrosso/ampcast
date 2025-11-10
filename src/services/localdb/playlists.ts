@@ -69,19 +69,12 @@ class PlaylistsStore extends Dexie {
 
     async createPlaylist<T extends MediaItem>(
         name: string,
-        {description, items = [], overWrite}: CreatePlaylistOptions<T> = {}
+        {description, items = []}: CreatePlaylistOptions<T> = {}
     ): Promise<MediaPlaylist> {
         const timeStamp = Math.floor(Date.now() / 1000);
-        let src = `localdb:playlist:${nanoid()}`;
-        if (overWrite) {
-            const playlist = await this.getLocalPlaylistByName(name);
-            if (playlist) {
-                src = playlist.src;
-            }
-        }
         const playlist: LocalPlaylist = {
             itemType: ItemType.Playlist,
-            src,
+            src: `localdb:playlist:${nanoid()}`,
             title: name,
             description,
             trackCount: items.length,
@@ -109,9 +102,21 @@ class PlaylistsStore extends Dexie {
         await this.playlists.delete(src);
     }
 
-    async hasPlaylist(name: string): Promise<boolean> {
-        const playlist = await this.getLocalPlaylistByName(name);
-        return !!playlist;
+    async editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {
+        const timeStamp = Math.floor(Date.now() / 1000);
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {pager, ...details} = playlist;
+        await this.playlists.put({...details, modifiedAt: timeStamp});
+        return {...playlist, modifiedAt: timeStamp};
+    }
+
+    async getPlaylistByName(name: string): Promise<MediaPlaylist | undefined> {
+        const playlist = await this.playlists.where('title').equals(name).first();
+        if (playlist) {
+            const playlistItems = await this.playlistItems.get(playlist.src);
+            (playlist as any).pager = new SimplePager(playlistItems?.items);
+        }
+        return playlist as MediaPlaylist;
     }
 
     async movePlaylistItems(
@@ -139,10 +144,6 @@ class PlaylistsStore extends Dexie {
         // Do this sequentially.
         await this.playlistItems.put({src, items});
         await this.playlists.put({...playlist, modifiedAt: timeStamp});
-    }
-
-    private getLocalPlaylistByName(name: string): Promise<LocalPlaylist | undefined> {
-        return this.playlists.where('title').equals(name).first();
     }
 
     private async getPlaylistItems(src: string): Promise<readonly LocalPlaylistItem[]> {

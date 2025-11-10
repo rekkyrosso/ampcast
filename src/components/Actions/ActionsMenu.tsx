@@ -175,16 +175,27 @@ function ContextualActions<T extends MediaObject>({item, inListView}: Contextual
                     key={Action.RemoveFromLibrary}
                 />
             ) : null}
-            {inListView &&
-            item.itemType === ItemType.Playlist &&
-            item.deletable &&
-            service?.deletePlaylist ? (
-                <PopupMenuItem<Action>
-                    label="Delete playlist"
-                    acceleratorKey="Del"
-                    value={Action.DeletePlaylist}
-                    key={Action.DeletePlaylist}
-                />
+            {inListView && item.itemType === ItemType.Playlist ? (
+                <>
+                    <PopupMenuSeparator />
+                    {service?.editPlaylist ? (
+                        <PopupMenuItem<Action>
+                            label="Edit playlist details…"
+                            value={Action.EditPlaylist}
+                            disabled={!item.editable}
+                            key={Action.EditPlaylist}
+                        />
+                    ) : null}
+                    {service?.deletePlaylist ? (
+                        <PopupMenuItem<Action>
+                            label="Delete playlist"
+                            acceleratorKey="Del"
+                            value={Action.DeletePlaylist}
+                            disabled={!item.deletable}
+                            key={Action.DeletePlaylist}
+                        />
+                    ) : null}
+                </>
             ) : null}
             <PopupMenuSeparator />
         </>

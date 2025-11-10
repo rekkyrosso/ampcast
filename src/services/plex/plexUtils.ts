@@ -240,12 +240,14 @@ function createMediaPlaylist(playlist: plex.Playlist, noPager?: boolean): MediaP
         title: playlist.title,
         description: playlist.summary,
         addedAt: playlist.addedAt,
+        modifiedAt: playlist.updatedAt,
         duration: playlist.duration / 1000,
         playedAt: playlist.lastViewedAt,
         playCount: playlist.viewCount,
         trackCount: playlist.leafCount,
         thumbnails: createThumbnails(playlist.thumb || playlist.composite),
         isPinned: pinStore.isPinned(src),
+        editable: true,
     };
     if (!noPager) {
         (mediaPlaylist as any).pager = createPager({path: playlist.key});

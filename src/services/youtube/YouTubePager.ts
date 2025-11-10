@@ -27,7 +27,7 @@ export default class YouTubePager<T extends MediaObject> extends SequentialPager
     static minPageSize = 5;
     static maxPageSize = 50;
     static videoFields = `items(id,snippet(title,thumbnails,channelId,channelTitle),contentDetails(duration),statistics(viewCount,likeCount))`;
-    static playlistFields = `items(id,snippet(title,thumbnails,channelId,channelTitle),contentDetails(itemCount))`;
+    static playlistFields = `items(id,snippet(title,description,publishedAt,thumbnails,channelId,channelTitle),contentDetails(itemCount),status(privacyStatus))`;
 
     private nextPageToken: string | undefined = undefined;
     private pageNumber = 1;

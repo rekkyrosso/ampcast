@@ -139,6 +139,18 @@ async function createPlaylist(
     return playlist as plex.Playlist;
 }
 
+async function editPlaylist(playlist: MediaPlaylist): Promise<void> {
+    const [, , ratingKey] = playlist.src.split(':');
+    await plexFetch({
+        method: 'PUT',
+        path: `/playlists/${ratingKey}`,
+        params: {
+            title: playlist.title,
+            summary: playlist.description || '',
+        },
+    });
+}
+
 async function createPlayQueue(
     {src}: {src: string},
     params: Record<string, any> = {}
@@ -596,6 +608,7 @@ const plexApi = {
     addToPlaylist,
     createPlaylist,
     createPlayQueue,
+    editPlaylist,
     getPlayQueue,
     fetch: plexFetch,
     fetchJSON,

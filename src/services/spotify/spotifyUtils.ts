@@ -153,7 +153,7 @@ function createMediaPlaylist(
     playlist: SpotifyPlaylist,
     inLibrary?: boolean | undefined
 ): MediaPlaylist {
-    const isOwn = playlist.owner.id === spotifySettings.userId;
+    const owned = playlist.owner.id === spotifySettings.userId;
 
     return {
         itemType: ItemType.Playlist,
@@ -170,8 +170,10 @@ function createMediaPlaylist(
         },
         isChart: playlist.isChart,
         isPinned: pinStore.isPinned(playlist.uri),
-        isOwn,
-        inLibrary: isOwn ? false : inLibrary,
+        owned,
+        editable: owned,
+        inLibrary: owned ? false : inLibrary,
+        public: playlist.public
     };
 }
 

@@ -4,10 +4,10 @@ import MediaServiceId from 'types/MediaServiceId';
 import {Logger} from 'utils';
 import {getService} from 'services/mediaServices';
 import {addRecentPlaylist, getPlaylistItemsByService} from 'services/recentPlaylists';
-import Dialog, {DialogProps, alert, confirm, error, showDialog} from 'components/Dialog';
+import Dialog, {DialogProps, alert, error, showDialog} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
+import {confirmOverWriteExistingPlaylist, noPublicOption} from './EditPlaylistDialog';
 import usePlaylistItems from './usePlaylistItems';
-import './CreatePlaylistDialog.scss';
 
 const logger = new Logger('CreatePlaylistDialog');
 
@@ -39,37 +39,26 @@ export default function CreatePlaylistDialog<T extends MediaItem>({
         const serviceId = serviceRef.current!.value;
         const service = getService(serviceId);
         if (service?.createPlaylist) {
-            const name = nameRef.current!.value;
-            const description = descriptionRef.current!.value;
-            const isPublic = isPublicRef.current!.checked;
-            const option = itemsByService.find((option) => option.service === service);
-            const items = option?.items;
             try {
-                let overWrite = false;
-                if (service.hasPlaylist) {
-                    const playlistExists = await service.hasPlaylist(name);
-                    if (playlistExists) {
-                        overWrite = await confirm({
-                            icon: service.id,
-                            title: 'Playlists',
-                            message: `Overwrite existing playlist '${name}'?`,
-                            storageId: 'overwrite-playlist',
-                        });
-                        if (!overWrite) {
-                            // Cancelled.
-                            return;
-                        }
+                const title = nameRef.current!.value;
+                const description = descriptionRef.current!.value;
+                const isPublic = isPublicRef.current!.checked;
+                const option = itemsByService.find((option) => option.service === service);
+                const items = option?.items;
+                if (service.getPlaylistByName) {
+                    const confirmed = await confirmOverWriteExistingPlaylist(service, title);
+                    if (!confirmed) {
+                        return;
                     }
                 }
-                const playlist = await service.createPlaylist(name, {
+                const playlist = await service.createPlaylist(title, {
                     description,
                     isPublic,
                     items,
-                    overWrite,
                 });
                 await alert({
-                    icon: service.id,
-                    title: service.name,
+                    icon: service.icon,
+                    title: `${service.name}: Playlists`,
                     message: 'Your playlist has been created.',
                 });
                 addRecentPlaylist(playlist);
@@ -88,8 +77,8 @@ export default function CreatePlaylistDialog<T extends MediaItem>({
     return (
         <Dialog
             {...props}
-            className={`create-playlist-dialog service-${serviceId || ''}`}
-            icon="playlist"
+            className={`edit-playlist-dialog service-${serviceId || ''}`}
+            icon={serviceId || 'playlist'}
             title="Create playlist"
         >
             <form method="dialog" onSubmit={handleSubmit}>
@@ -122,7 +111,7 @@ export default function CreatePlaylistDialog<T extends MediaItem>({
                             ref={descriptionRef}
                         />
                     </p>
-                    <p className="create-playlist-dialog-public" hidden={noPublicOption(serviceId)}>
+                    <p className="edit-playlist-dialog-public" hidden={noPublicOption(serviceId)}>
                         <label htmlFor={`${id}-public`}>Public:</label>
                         <input
                             type="checkbox"
@@ -136,17 +125,4 @@ export default function CreatePlaylistDialog<T extends MediaItem>({
             </form>
         </Dialog>
     );
-}
-
-function noPublicOption(serviceId: MediaServiceId): boolean {
-    switch (serviceId) {
-        case 'localdb':
-        case 'emby':
-        case 'jellyfin':
-        case 'plex':
-            return true;
-
-        default:
-            return false;
-    }
 }

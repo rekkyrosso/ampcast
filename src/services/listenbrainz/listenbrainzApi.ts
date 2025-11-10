@@ -181,6 +181,9 @@ export class ListenBrainzApi {
                         (!!a.recording_msid && a.recording_msid === b.recording_msid))
                 );
 
+            case ItemType.Playlist:
+                return a.src === b.src;
+
             default:
                 return false;
         }
@@ -205,6 +208,24 @@ export class ListenBrainzApi {
                 title: name,
                 annotation: description,
                 track: items.map((item) => this.createTrack(item)),
+            },
+        });
+    }
+
+    async editPlaylist(playlist: MediaPlaylist): Promise<void> {
+        const userId = listenbrainzSettings.userId;
+        const [, , playlist_mbid] = playlist.src.split(':');
+        await this.post(`playlist/edit/${playlist_mbid}`, {
+            playlist: {
+                extension: {
+                    'https://musicbrainz.org/doc/jspf#playlist': {
+                        creator: userId,
+                        public: !!playlist.public,
+                    },
+                },
+                creator: userId,
+                title: playlist.title,
+                annotation: playlist.description || '',
             },
         });
     }

@@ -93,6 +93,7 @@ const navidrome: PersonalMediaService = {
     createPlaylist,
     createSourceFromPin,
     deletePlaylist,
+    editPlaylist,
     getFilters,
     getPlayableUrl,
     getPlaybackType,
@@ -201,6 +202,11 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
 
 async function deletePlaylist(playlist: MediaPlaylist): Promise<void> {
     return navidromeApi.deletePlaylist(playlist);
+}
+
+async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {
+    await navidromeApi.editPlaylist(playlist);
+    return playlist;
 }
 
 async function getFilters(filterType: FilterType): Promise<readonly MediaFilter[]> {

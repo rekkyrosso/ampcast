@@ -58,6 +58,18 @@ export function removeRecentPlaylist({src}: {src: string}): void {
     }
 }
 
+export function updateRecentPlaylist(playlist: MediaPlaylist): void {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const {pager: _, ...recentPlaylist} = playlist;
+    const src = recentPlaylist.src;
+    const recentPlaylists = storage.getJson<RecentPlaylist[]>('all', []);
+    const index = recentPlaylists.findIndex((playlist) => playlist.src === src);
+    if (index !== -1) {
+        recentPlaylists[index] = recentPlaylist;
+        storage.setJson<RecentPlaylist[]>('all', recentPlaylists);
+    }
+}
+
 export function getRecentPlaylists(services: readonly MediaService[]): readonly MediaPlaylist[] {
     const serviceIds = services.map((service) => service.id);
     return storage

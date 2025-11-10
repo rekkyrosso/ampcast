@@ -117,6 +117,8 @@ function createMediaPlaylist(playlist: BaseItemDto, itemSort?: SortParams): Medi
         inLibrary: playlist.UserData?.IsFavorite,
         trackCount: playlist.ChildCount || undefined,
         isPinned: pinStore.isPinned(src),
+        owned: true,
+        editable: true,
     };
     mediaPlaylist.pager = createPlaylistItemsPager(mediaPlaylist as MediaPlaylist, itemSort);
     return mediaPlaylist as MediaPlaylist;

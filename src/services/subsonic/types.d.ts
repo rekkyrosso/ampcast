@@ -124,7 +124,7 @@ declare namespace Subsonic {
         readonly id: string;
         readonly name: string;
         readonly owner: string;
-        readonly public: true;
+        readonly public: boolean;
         readonly songCount: number;
         readonly entry?: MediaItem[];
     }

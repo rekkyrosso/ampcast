@@ -576,6 +576,11 @@ export default class SubsonicService implements PersonalMediaService {
         };
     }
 
+    async editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {
+        await this.api.editPlaylist(playlist);
+        return playlist;
+    }
+
     async getFilters(filterType: FilterType, itemType: ItemType): Promise<readonly MediaFilter[]> {
         return this.api.getFilters(filterType, itemType);
     }

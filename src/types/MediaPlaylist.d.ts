@@ -7,7 +7,8 @@ export default interface MediaPlaylist extends BaseMediaObject {
     readonly itemType: ItemType.Playlist;
     readonly pager: Pager<MediaItem>;
     // Everything below here should be optional
-    readonly isOwn?: boolean;
+    readonly public?: boolean;
+    readonly owned?: boolean;
     readonly owner?: {
         readonly name: string;
         readonly url?: string;
