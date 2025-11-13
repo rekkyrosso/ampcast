@@ -4,7 +4,7 @@ import Dialog, {DialogProps} from './Dialog';
 import showDialog from './showDialog';
 import './alert.scss';
 
-export interface AlertOptions {
+export interface AlertProps {
     icon?: IconName;
     title?: string;
     message: React.ReactNode;
@@ -14,14 +14,14 @@ export default async function alert({
     title = 'Message',
     system = false,
     ...props
-}: AlertOptions & {system?: boolean}): Promise<void> {
+}: AlertProps & {system?: boolean}): Promise<void> {
     await showDialog(
         (dialogProps: DialogProps) => <AlertDialog {...dialogProps} {...props} title={title} />,
         system
     );
 }
 
-export type AlertDialogProps = DialogProps & AlertOptions;
+export type AlertDialogProps = DialogProps & AlertProps;
 
 export function AlertDialog({message, ...props}: AlertDialogProps) {
     if (typeof message === 'string') {

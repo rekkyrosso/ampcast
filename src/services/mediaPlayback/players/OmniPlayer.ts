@@ -106,9 +106,11 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
     }
 
     observeDuration(): Observable<number> {
-        return this.observeCurrentPlayer().pipe(
-            switchMap((player) => (player ? player.observeDuration() : EMPTY)),
-            distinctUntilChanged()
+        // Make sure this re-emits when a new item is loaded.
+        return this.player$.pipe(
+            switchMap((player) =>
+                player ? player.observeDuration().pipe(distinctUntilChanged()) : EMPTY
+            )
         );
     }
 

@@ -18,6 +18,7 @@ import localSources, {
     localScrobbles,
 } from './localSources';
 import playlists, {LocalPlaylistItem} from './playlists';
+import ManagePlaylists from './components/ManagePlaylists';
 
 const serviceId: MediaServiceId = 'localdb';
 
@@ -32,6 +33,7 @@ const localdb: DataService = {
     root: localScrobbles,
     sources: localSources,
     editablePlaylists: localPlaylists,
+    Components: {ManagePlaylists},
     addToPlaylist,
     canPin,
     compareForRating: () => false,
@@ -79,7 +81,7 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
         secondaryItems: localPlaylistItems,
 
         search(): Pager<MediaPlaylist> {
-            return playlists.createPager(
+            return playlists.search(
                 {
                     filter: (playlist) => playlist.src === pin.src,
                 },

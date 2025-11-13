@@ -9,8 +9,7 @@ export default async function confirmOverwriteTheme(name: string): Promise<boole
         icon: 'palette',
         title: 'My Themes',
         message: `Overwrite existing theme '${name}'?`,
-        okLabel: 'Save',
-        storageId: 'overwrite-user-theme',
+        okLabel: 'Overwrite',
         system: true,
     });
 }

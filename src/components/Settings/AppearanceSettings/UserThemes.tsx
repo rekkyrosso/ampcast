@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
 import Theme from 'types/Theme';
 import themeStore from 'services/theme/themeStore';
 import {prompt} from 'components/Dialog';
@@ -9,47 +9,48 @@ import {saveTextToFile} from 'utils';
 import useUserThemes from './useUserThemes';
 import confirmDeleteTheme from './confirmDeleteTheme';
 import confirmOverwriteTheme from './confirmOverwriteTheme';
-import importThemeFromFile from './importThemeFromFile';
+import importThemesFromFile from './importThemesFromFile';
 import './UserThemes.scss';
 
 export default function UserThemes() {
     const listViewRef = useRef<ListViewHandle>(null);
     const renderTheme = useMemo(() => (theme: Theme) => theme.name, []);
     const themes = useUserThemes();
-    const [renamed, setRenamed] = useState('');
     const [selectedThemes, setSelectedThemes] = useState<readonly Theme[]>([]);
     const [selectedTheme] = selectedThemes;
-
-    useEffect(() => {
-        if (renamed) {
-            const rowIndex = themes.findIndex((theme) => theme.name === renamed);
-            if (rowIndex !== -1) {
-                listViewRef.current!.scrollIntoView(rowIndex);
-                setRenamed('');
-            }
-        }
-    }, [themes, renamed]);
 
     const handleRenameClick = useCallback(async () => {
         if (selectedTheme) {
             const oldName = selectedTheme.name;
-            const newName = await prompt({
-                icon: 'palette',
-                title: 'My Themes',
-                label: 'Name',
-                suggestedValue: oldName,
-                okLabel: 'Rename',
-                system: true,
-            });
-            if (newName && newName !== oldName) {
-                const confirmed = await confirmOverwriteTheme(newName);
-                if (confirmed) {
-                    await themeStore.renameUserTheme(oldName, newName);
-                    setRenamed(newName);
+            let newName = oldName;
+            let confirmed = false;
+            while (newName && !confirmed) {
+                newName = await prompt({
+                    icon: 'palette',
+                    title: 'Rename theme',
+                    label: 'Name',
+                    suggestedValue: newName,
+                    okLabel: 'Rename',
+                    system: true,
+                });
+                if (newName) {
+                    if (newName === oldName) {
+                        confirmed = true;
+                    } else {
+                        confirmed = await confirmOverwriteTheme(newName);
+                    }
+                }
+            }
+            if (newName && newName !== oldName && confirmed) {
+                await themeStore.renameUserTheme(oldName, newName);
+                // Refocus the list box.
+                const rowIndex = themes.findIndex((theme) => theme.name === newName);
+                if (rowIndex !== -1) {
+                    listViewRef.current!.scrollIntoView(rowIndex);
                 }
             }
         }
-    }, [selectedTheme]);
+    }, [selectedTheme, themes]);
 
     const handleExportClick = useCallback(async () => {
         if (selectedTheme) {
@@ -75,10 +76,11 @@ export default function UserThemes() {
         const input = document.createElement('input');
         input.type = 'file';
         input.accept = 'text/json,.json';
+        input.multiple = true;
         input.addEventListener('change', async () => {
-            const file = input.files?.[0];
-            if (file) {
-                await importThemeFromFile(file);
+            const files = input.files;
+            if (files?.length) {
+                await importThemesFromFile(files);
             }
         });
         input.click();
@@ -86,7 +88,6 @@ export default function UserThemes() {
 
     return (
         <form className="user-themes" method="dialog">
-            <h3>My themes:</h3>
             <ListBox<Theme>
                 title="My themes"
                 items={themes}

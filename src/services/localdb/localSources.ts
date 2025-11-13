@@ -124,7 +124,7 @@ export const localPlaylists: MediaSource<MediaPlaylist> = {
         _,
         {sortBy, sortOrder} = localPlaylists.primaryItems!.sort!.defaultSort
     ): Pager<MediaPlaylist> {
-        return playlists.createPager(
+        return playlists.search(
             {
                 sort: (a, b) => {
                     switch (sortBy) {
@@ -133,6 +133,7 @@ export const localPlaylists: MediaSource<MediaPlaylist> = {
                                 a.title.localeCompare(b.title, undefined, {sensitivity: 'base'}) *
                                 sortOrder
                             );
+
                         default:
                             return ((a.modifiedAt || 0) - (b.modifiedAt || 0)) * sortOrder;
                     }

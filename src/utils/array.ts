@@ -32,7 +32,7 @@ export function getRandomValue<T>(values: readonly T[], previousValue?: T): T {
 export function groupBy<T, K extends keyof any>(
     values: readonly T[],
     criteria: K | ((value: T) => K)
-): Record<K, readonly T[]> {
+): Record<K, T[]> {
     const getKey: (value: T) => K =
         typeof criteria === 'function'
             ? criteria

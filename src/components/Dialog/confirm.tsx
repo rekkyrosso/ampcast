@@ -8,19 +8,20 @@ import './confirm.scss';
 
 const storage = new LiteStorage('confirm');
 
-export interface ConfirmOptions {
+export interface ConfirmProps {
     icon?: IconName;
     title?: string;
     message: React.ReactNode;
     okLabel?: React.ReactNode;
     storageId?: string;
+    storagePrompt?: string;
 }
 
 export default async function confirm({
     storageId,
     system = false,
     ...props
-}: ConfirmOptions & {system?: boolean}): Promise<boolean> {
+}: ConfirmProps & {system?: boolean}): Promise<boolean> {
     if (storageId && storage.getBoolean(storageId)) {
         return true;
     }
@@ -33,13 +34,14 @@ export default async function confirm({
     return result === 'confirmed';
 }
 
-export type ConfirmDialogProps = DialogProps & ConfirmOptions;
+export type ConfirmDialogProps = DialogProps & ConfirmProps;
 
 export function ConfirmDialog({
     title = 'Confirm',
     message,
     okLabel = 'Confirm',
     storageId,
+    storagePrompt = "Don't show this message again",
     ...props
 }: ConfirmDialogProps) {
     const id = useId();
@@ -64,10 +66,14 @@ export function ConfirmDialog({
                 {storageId ? (
                     <footer className="confirm-dialog-storage">
                         <input id={id} type="checkbox" ref={storageRef} />
-                        <label htmlFor={id}>Don&apos;t show this message again</label>
+                        <label htmlFor={id}>{storagePrompt}</label>
                     </footer>
                 ) : null}
             </form>
         </Dialog>
     );
+}
+
+export function removeConfirmation(storageId: string): void {
+    storage.removeItem(storageId);
 }

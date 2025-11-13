@@ -5,6 +5,7 @@ import Listen from 'types/Listen';
 import {Logger, saveTextToFile} from 'utils';
 import audioSettings from 'services/audio/audioSettings';
 import {updateListens} from 'services/localdb/listens';
+import playlists from 'services/localdb/playlists';
 import pinStore from 'services/pins/pinStore';
 import preferences from 'services/preferences';
 import themeStore from 'services/theme/themeStore';
@@ -25,12 +26,15 @@ export default function Backup() {
     const handleExportClick = useCallback(async () => {
         type Backup = BackupFile['backup'];
         const ampcastVersion = __app_version__;
-        const backup: Backup = backupEntries.reduce((data, entry) => {
+        const backup: Writable<Backup> = backupEntries.reduce((data, entry) => {
             if (ref.current?.[entry.key]?.checked) {
                 data[entry.key] = entry.data as any;
             }
             return data;
         }, {} as Writable<Backup>);
+        if (backup.playlists) {
+            backup.playlists = await playlists.getExportedPlaylists();
+        }
         const backupFile: BackupFile = {ampcastVersion, backup};
         saveTextToFile('ampcast-backup.json', JSON.stringify(backupFile, undefined, 2));
     }, [backupEntries]);
@@ -84,12 +88,15 @@ export default function Backup() {
                             })
                         );
                     }
+                    if (backup.playlists?.length) {
+                        await playlists.importPlaylists(backup.playlists);
+                    }
                     await alert({
                         icon: 'settings',
                         title: 'Import',
                         message: (
                             <>
-                                <p>Settings successfully imported.</p>
+                                <p>Settings imported.</p>
                                 <p>The application will now reload.</p>
                             </>
                         ),
@@ -98,7 +105,7 @@ export default function Backup() {
                     location.reload();
                 } catch (err) {
                     logger.error(err);
-                    await error('Could not load backup file.');
+                    await error('Could not fully load backup file.');
                 }
             }
         });

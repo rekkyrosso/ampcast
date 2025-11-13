@@ -17,6 +17,7 @@ import LookupStatus from 'types/LookupStatus';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
+import PlaybackType from 'types/PlaybackType';
 import Playlist, {PlayableType} from 'types/Playlist';
 import PlaylistItem from 'types/PlaylistItem';
 import {exists, isMiniPlayer, shuffle as shuffleArray, Logger} from 'utils';
@@ -189,6 +190,7 @@ export async function injectAt(items: PlayableType, index: number): Promise<void
     if (additions.length > 0) {
         const newItems = additions.map((item) => ({
             ...removeUserData(item),
+            playbackType: isDerivedPlaybackType(item) ? undefined : item.playbackType,
             id: nanoid(),
         }));
         if (index >= 0 && index < all.length) {
@@ -306,6 +308,11 @@ async function createMediaItems(source: PlayableType): Promise<readonly MediaIte
     return items.filter(exists);
 }
 
+function isDerivedPlaybackType(item: MediaItem): boolean {
+    // These should be derived close to playback time.
+    return item.playbackType === PlaybackType.HLS && /^(emby|jellyfin|plex):/.test(item.src);
+}
+
 async function safeWrite(key: string, value: any): Promise<void> {
     try {
         dbWrite(key, value, playlistStore);
@@ -379,12 +386,17 @@ if (isMiniPlayer) {
             debounceTime(delayWriteTime),
             mergeMap((items: PlaylistItem[]) => {
                 items = items.map((item) => {
-                    if ('lookupStatus' in item) {
+                    if (isDerivedPlaybackType(item)) {
                         // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                        const {lookupStatus: _, ...rest} = item;
+                        const {lookupStatus, playbackType, ...rest} = item;
                         return rest;
+                    } else if ('lookupStatus' in item) {
+                        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                        const {lookupStatus, ...rest} = item;
+                        return rest;
+                    } else {
+                        return item;
                     }
-                    return item;
                 });
                 return safeWrite('items', items);
             })
@@ -438,7 +450,7 @@ if (isMiniPlayer) {
                 const index = items.findIndex((item) => item.id === lookupItem.id);
                 if (index !== -1) {
                     // eslint-disable-next-line @typescript-eslint/no-unused-vars
-                    const {lookupStatus: _, ...item} = items[index];
+                    const {lookupStatus, ...item} = items[index];
                     items[index] = item;
                     setItems(items);
                 }

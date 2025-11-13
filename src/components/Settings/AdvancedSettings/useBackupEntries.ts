@@ -5,6 +5,7 @@ import audioSettings from 'services/audio/audioSettings';
 import {getListens} from 'services/localdb/listens';
 import {getPersonalMediaServices} from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
+import playlists from 'services/localdb/playlists';
 import preferences from 'services/preferences';
 import themeStore from 'services/theme/themeStore';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
@@ -82,6 +83,12 @@ export default function useBackupEntries(): readonly BackupEntry<keyof Backup>[]
                 title: 'Visualizer settings',
                 defaultChecked: true,
                 data: {...visualizerSettings},
+            },
+            {
+                key: 'playlists',
+                title: `Local playlists (${playlists.getLocalPlaylists().length})`,
+                defaultChecked: false,
+                data: [], // Added when actually exported.
             },
             {
                 key: 'listens',

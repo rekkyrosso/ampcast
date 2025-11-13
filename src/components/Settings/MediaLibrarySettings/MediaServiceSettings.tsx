@@ -50,14 +50,22 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
                 });
                 break;
             }
-            case ServiceType.DataService:
+            case ServiceType.DataService: {
                 if (service.canScrobble) {
                     tabs.push({
                         tab: 'Scrobbling',
                         panel: <ScrobblingSettings service={service} />,
                     });
                 }
+                const ManagePlaylists = service.Components?.ManagePlaylists;
+                if (ManagePlaylists) {
+                    tabs.push({
+                        tab: 'Playlists',
+                        panel: <ManagePlaylists service={service} />,
+                    });
+                }
                 break;
+            }
         }
         if (service.createSourceFromPin) {
             tabs.push({

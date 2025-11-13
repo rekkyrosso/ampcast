@@ -12,7 +12,6 @@ import youtubeApi from './youtubeApi';
 import YouTubePager from './YouTubePager';
 
 export function createMediaPlaylist(playlist: gapi.client.youtube.Playlist): MediaPlaylist {
-    console.log('createMediaPlaylist', {playlist});
     const src = `youtube:playlist:${playlist.id}`;
     return {
         src,

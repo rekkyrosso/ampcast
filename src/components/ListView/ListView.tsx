@@ -210,11 +210,11 @@ export default function ListView<T>({
     useEffect(() => {
         internalRef.current = {
             focus,
-            scrollIntoView: (rowIndex: number) => {
-                rowIndex = Math.min(Math.max(rowIndex, 0), size - 1);
+            scrollIntoView: (index: number) => {
+                const rowIndex = Math.min(Math.max(index, 0), size - 1);
                 scrollTo(rowIndex);
                 setRowIndex(rowIndex);
-                selectAt(rowIndex);
+                selectAt(index); // Not `rowIndex`.
             },
             scrollTo,
             selectAll,
@@ -660,7 +660,7 @@ export default function ListView<T>({
             ref={containerRef}
         >
             <Scrollable
-                scrollWidth={sizeable ? width : undefined}
+                scrollWidth={sizeable && !(size === 0 && emptyMessage) ? width : undefined}
                 scrollHeight={(size + (showTitles ? 1 : 0)) * rowHeight + dropTargetPadding}
                 lineHeight={rowHeight}
                 autoscroll={moveable}

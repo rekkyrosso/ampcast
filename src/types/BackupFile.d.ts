@@ -1,3 +1,4 @@
+import type {ExportedPlaylist} from 'services/localdb/playlists';
 import AudioSettings from './AudioSettings';
 import Listen from './Listen';
 import Preferences from './Preferences';
@@ -24,5 +25,6 @@ export default interface BackupFile {
         readonly visualizerFavorites?: readonly VisualizerFavorite[];
         readonly visualizerSettings?: VisualizerSettings;
         readonly listens?: readonly Listen[];
+        readonly playlists?: readonly ExportedPlaylist[];
     };
 }
