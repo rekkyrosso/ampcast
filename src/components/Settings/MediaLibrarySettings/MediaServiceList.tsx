@@ -42,7 +42,7 @@ export default function MediaServiceList({services, multiSelect}: MediaServiceLi
                             defaultChecked={isSourceVisible(service)}
                         />
                         <label htmlFor={`${id}-${service.id}`}>
-                            <MediaServiceLabel service={service} showRestrictedAccess />
+                            <MediaServiceLabel service={service} />
                         </label>
                     </li>
                 ))}

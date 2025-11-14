@@ -30,7 +30,6 @@ type BaseMediaService = Auth & {
     readonly credentialsLocked?: boolean;
     readonly credentialsRequired?: boolean;
     readonly credentialsUrl?: string;
-    readonly restrictedAccess?: boolean; // Approved users only (testers)
     readonly defaultNoScrobble?: boolean;
     readonly icons?: Partial<Record<LibraryAction, IconName>>;
     readonly labels?: Partial<Record<LibraryAction, string>>;

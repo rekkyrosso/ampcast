@@ -1,13 +1,8 @@
-import React, {useCallback, useRef, useState} from 'react';
+import React, {useCallback, useRef} from 'react';
 import MediaService from 'types/MediaService';
-import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
 import {getService} from 'services/mediaServices';
-import {
-    allowMultiSelect,
-    isSourceVisible,
-    setHiddenSources,
-} from 'services/mediaServices/servicesSettings';
+import {allowMultiSelect, setHiddenSources} from 'services/mediaServices/servicesSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import MediaServiceList from './MediaServiceList';
 import confirmDisconnectServices from './confirmDisconnectServices';
@@ -24,21 +19,6 @@ export default function MediaServicesSettingsGeneral({
     const ref = useRef<HTMLFieldSetElement>(null);
     const isPublicMedia = serviceType === ServiceType.PublicMedia;
     const multiSelect = !isPublicMedia || allowMultiSelect;
-    const [restrictedAccess, setRestrictedAccess] = useState(() =>
-        isPublicMedia ? services.filter(isSourceVisible).some(hasRestrictedAccess) : false
-    );
-
-    const handleChange = useCallback(async () => {
-        const inputs = ref.current!.elements as HTMLInputElements;
-        let restrictedAccess = false;
-        for (const input of inputs) {
-            const serviceId = input.value;
-            if (serviceId && input.checked) {
-                restrictedAccess ||= hasRestrictedAccess(getService(serviceId));
-            }
-        }
-        setRestrictedAccess(restrictedAccess);
-    }, []);
 
     const handleSubmit = useCallback(async () => {
         const inputs = ref.current!.elements as HTMLInputElements;
@@ -63,11 +43,7 @@ export default function MediaServicesSettingsGeneral({
 
     return (
         <form method="dialog" onSubmit={handleSubmit}>
-            <fieldset
-                className="media-services"
-                onChange={isPublicMedia ? handleChange : undefined}
-                ref={ref}
-            >
+            <fieldset className="media-services" ref={ref}>
                 <legend>Enable</legend>
                 {services.length === 0 ? (
                     <div className="note">
@@ -77,12 +53,7 @@ export default function MediaServicesSettingsGeneral({
                     <MediaServiceList services={services} multiSelect={multiSelect} />
                 )}
             </fieldset>
-            {restrictedAccess ? <p className="restricted-access">*Access is restricted.</p> : null}
             <DialogButtons />
         </form>
     );
-}
-
-function hasRestrictedAccess(service: MediaService | undefined): boolean {
-    return !!(service as PublicMediaService)?.restrictedAccess;
 }

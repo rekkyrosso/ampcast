@@ -52,7 +52,6 @@ const youtube: PublicMediaService = {
         return youtubeSettings.credentialsLocked;
     },
     credentialsRequired: true,
-    restrictedAccess: location.host === 'ampcast.app',
     editablePlaylists: youtubePlaylists,
     root: youtubeSearch,
     sources: youtubeSources,

@@ -312,7 +312,7 @@ export class IcecastPlayer extends HTML5Player {
         if (this.IcecastMetadataPlayer) {
             return this.IcecastMetadataPlayer;
         }
-        await loadLibrary('icecast-metadata-player-1.17.12.main.min.js');
+        await loadLibrary(`icecast-metadata-player-${__icecast_player_version__}.main.min.js`);
         const IcecastMetadataPlayer = (window as any).IcecastMetadataPlayer;
         if (!IcecastMetadataPlayer) {
             throw Error('Player not loaded');

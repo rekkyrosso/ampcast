@@ -2,7 +2,6 @@ import React from 'react';
 import {LoginProps} from 'components/Login';
 import CredentialsButton from 'components/Login/CredentialsButton';
 import CredentialsRequired from 'components/Login/CredentialsRequired';
-import RestrictedAccessWarning from 'components/Login/RestrictedAccessWarning';
 import LoginButton from 'components/Login/LoginButton';
 import ServiceLink from 'components/Login/ServiceLink';
 import useGoogleClientLibrary from './useGoogleClientLibrary';
@@ -16,7 +15,6 @@ export default function YouTubeLogin({service: youtube}: LoginProps) {
         <>
             {clientId ? (
                 <>
-                    <RestrictedAccessWarning service={youtube} />
                     <LoginNotRequired />
                     <LoginButton service={youtube} disabled={!client} />
                     {error ? <p className="error">Could not load Google client library.</p> : null}
@@ -24,9 +22,7 @@ export default function YouTubeLogin({service: youtube}: LoginProps) {
             ) : (
                 <>
                     <CredentialsRequired service={youtube} />
-                    <p>
-                        <CredentialsButton service={youtube} />
-                    </p>
+                    <CredentialsButton service={youtube} />
                     <LoginNotRequired />
                 </>
             )}

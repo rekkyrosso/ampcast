@@ -11,12 +11,20 @@ module.exports = (args) => {
     const {mode = 'production', target = 'pwa'} = args;
     const __dev__ = mode === 'development';
     const wwwDir = resolve(__dirname, __dev__ ? 'www-dev' : 'app/www');
+
+    // .env
     const hasServerEnv = __dev__ || target === 'docker';
     if (!hasServerEnv) {
         // Use a local `.env` file (if it exists) associated with the target environment.
         dotenv.config({path: `./.env.${target}`});
     }
     const env = process.env;
+
+    // icecast-metadata-player libs.
+    const icecastPlayerPath =
+        './node_modules/icecast-metadata-player/build/icecast-metadata-player';
+    const icecastPlayerVersion = '1.17.13';
+    const icecastPlayer = `${icecastPlayerPath}-${icecastPlayerVersion}`;
 
     if (__dev__) {
         rimrafSync(wwwDir);
@@ -172,6 +180,7 @@ module.exports = (args) => {
                 __startup_services__: getEnv('STARTUP_SERVICES'),
                 __personal_media_servers__: getPersonalMediaServers(),
                 __single_streaming_service__: env.SINGLE_STREAMING_SERVICE === 'true',
+                __icecast_player_version__: JSON.stringify(icecastPlayerVersion),
             }),
             new CopyPlugin({
                 patterns: [
@@ -182,8 +191,21 @@ module.exports = (args) => {
                             return String(content).replace(/%version%/g, `v${packageJson.version}`);
                         },
                     },
+                    // icecast-metadata-player libs
                     {
-                        from: './libs',
+                        from: `${icecastPlayer}.main.min.js`,
+                        to: `${wwwDir}/v${packageJson.version}/lib`,
+                    },
+                    {
+                        from: `${icecastPlayer}.main.min.js.LICENSE.txt`,
+                        to: `${wwwDir}/v${packageJson.version}/lib`,
+                    },
+                    {
+                        from: `${icecastPlayer}.mediasource.min.js`,
+                        to: `${wwwDir}/v${packageJson.version}/lib`,
+                    },
+                    {
+                        from: `${icecastPlayer}.synaudio.min.js`,
                         to: `${wwwDir}/v${packageJson.version}/lib`,
                     },
                 ],

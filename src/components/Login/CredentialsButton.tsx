@@ -17,8 +17,10 @@ export default function CredentialsButton({
     }, [service]);
 
     return (
-        <button {...props} className={className} onClick={handleClick}>
-            {children}
-        </button>
+        <p>
+            <button {...props} className={className} onClick={handleClick}>
+                {children}
+            </button>
+        </p>
     );
 }

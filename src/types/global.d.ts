@@ -16,6 +16,7 @@ declare const __enabled_services__: string;
 declare const __startup_services__: string;
 declare const __personal_media_servers__: string; // JSON config
 declare const __single_streaming_service__: boolean;
+declare const __icecast_player_version__: string;
 
 interface Window {
     readonly Mixcloud?: any;

@@ -22,9 +22,7 @@ export default function SpotifyLogin({service: spotify}: LoginProps) {
             ) : (
                 <>
                     <CredentialsRequired service={spotify} />
-                    <p>
-                        <CredentialsButton service={spotify} />
-                    </p>
+                    <CredentialsButton service={spotify} />
                 </>
             )}
             <ServiceLink service={spotify} />

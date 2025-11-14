@@ -1,13 +1,8 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import MediaService from 'types/MediaService';
-import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
-import {getBrowsableServices, getService} from 'services/mediaServices';
-import {
-    allowMultiSelect,
-    isSourceVisible,
-    setHiddenSources,
-} from 'services/mediaServices/servicesSettings';
+import {getBrowsableServices} from 'services/mediaServices';
+import {allowMultiSelect, setHiddenSources} from 'services/mediaServices/servicesSettings';
 import Dialog, {DialogProps} from 'components/Dialog';
 import MediaServiceList from 'components/Settings/MediaLibrarySettings/MediaServiceList';
 import {IconName} from 'components/Icon';
@@ -120,26 +115,17 @@ interface ServicesProps {
 
 function Services({icon, title, className, multiSelect, services}: ServicesProps) {
     const ref = useRef<HTMLFieldSetElement>(null);
-    const [restrictedAccess, setRestrictedAccess] = useState(() =>
-        services.filter(isSourceVisible).some(hasRestrictedAccess)
-    );
 
     const handleChange = useCallback(async () => {
         const inputs = ref.current!.elements as HTMLInputElements;
         const updates: Record<string, boolean> = {};
-        let restrictedAccess = false;
         for (const input of inputs) {
             const serviceId = input.value;
             if (serviceId) {
-                const disabled = !input.checked;
-                updates[serviceId] = disabled;
-                if (!disabled) {
-                    restrictedAccess ||= hasRestrictedAccess(getService(serviceId));
-                }
+                updates[serviceId] = !input.checked;
             }
         }
         setHiddenSources(updates);
-        setRestrictedAccess(restrictedAccess);
     }, []);
 
     return (
@@ -151,11 +137,6 @@ function Services({icon, title, className, multiSelect, services}: ServicesProps
                 <legend>Enable</legend>
                 <MediaServiceList services={services} multiSelect={multiSelect} />
             </fieldset>
-            {restrictedAccess ? <p className="restricted-access">*Access is restricted.</p> : null}
         </div>
     );
-}
-
-function hasRestrictedAccess(service: MediaService | undefined): boolean {
-    return !!(service as PublicMediaService)?.restrictedAccess;
 }

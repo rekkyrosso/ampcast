@@ -39,7 +39,7 @@
         "get-youtube-id": "^1.0.1",
         "hls.js": "^1.6.5",
         "icecast-metadata-js": "^1.2.9",
-        "icecast-metadata-player": "^1.17.12",
+        "icecast-metadata-player": "1.17.13",
         "idb-keyval": "^6.2.0",
         "is-electron": "^2.2.2",
         "jsfft": "^0.0.4",
