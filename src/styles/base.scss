@@ -60,6 +60,7 @@ code {
     background-color: var(--selected-background-color-blurred);
 }
 
+:focus .selected-text,
 .focus .selected-text {
     background-color: var(--selected-background-color);
 }

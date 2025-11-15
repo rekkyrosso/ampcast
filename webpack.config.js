@@ -197,10 +197,6 @@ module.exports = (args) => {
                         to: `${wwwDir}/v${packageJson.version}/lib`,
                     },
                     {
-                        from: `${icecastPlayer}.main.min.js.LICENSE.txt`,
-                        to: `${wwwDir}/v${packageJson.version}/lib`,
-                    },
-                    {
                         from: `${icecastPlayer}.mediasource.min.js`,
                         to: `${wwwDir}/v${packageJson.version}/lib`,
                     },

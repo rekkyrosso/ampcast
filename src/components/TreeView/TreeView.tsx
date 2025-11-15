@@ -22,7 +22,6 @@ export interface TreeNode<T> {
     readonly children?: readonly TreeNode<T>[];
     readonly startExpanded?: boolean;
     readonly icon?: IconName;
-    readonly tooltip?: string;
 }
 
 export interface TreeViewHandle {

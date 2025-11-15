@@ -69,8 +69,10 @@ export function MediaSourceMenuItems({source}: MediaSourceMenuProps) {
                 {[
                     getMenuItem(primaryMenuItems, 1, 'sort'),
                     getMenuItem(primaryMenuItems, 1, 'view'),
+                    <PopupMenuSeparator key="s-1" />,
                     getMenuItem(secondaryMenuItems, 2, 'sort'),
                     getMenuItem(secondaryMenuItems, 2, 'view'),
+                    <PopupMenuSeparator key="s-2" />,
                     getMenuItem(tertiaryMenuItems, 3, 'sort'),
                     getMenuItem(tertiaryMenuItems, 3, 'view'),
                 ]}

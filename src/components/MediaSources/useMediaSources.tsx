@@ -55,7 +55,6 @@ function getService(service: Browsable<MediaService>): TreeNode<MediaSourceView>
     return {
         id: service.id,
         label: <MediaServiceLabel service={service} showConnectivity />,
-        tooltip: service.name,
         value: {
             source: service,
             view: (
@@ -76,7 +75,6 @@ function getSources(service: Browsable<MediaService>): TreeNode<MediaSourceView>
         service.sources?.filter(isSourceVisible).map((source) => ({
             id: source.id,
             label: <MediaSourceLabel icon={source.icon} text={source.title} />,
-            tooltip: `${service.name}: ${source.title}`,
             value: {
                 source,
                 view: (
@@ -104,7 +102,6 @@ function getPins(service: Browsable<MediaService>): TreeNode<MediaSourceView>[] 
                         text={source.title}
                     />
                 ),
-                tooltip: `${service.name}: ${source.title}`,
                 value: {
                     source,
                     view: <MediaBrowser service={service} source={source} key={source.id} />,

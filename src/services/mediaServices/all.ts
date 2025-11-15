@@ -20,7 +20,6 @@ import subsonic from 'services/subsonic';
 import youtube from 'services/youtube';
 
 const allServices: readonly MediaService[] = [
-    localdb,
     apple,
     spotify,
     // tidal,
@@ -37,6 +36,7 @@ const allServices: readonly MediaService[] = [
     youtube,
     lastfm,
     listenbrainz,
+    localdb,
 ];
 
 const enabledServices = buildConfig.enabledServices

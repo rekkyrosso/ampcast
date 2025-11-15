@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useId} from 'react';
 import {stopPropagation} from 'utils';
 import {hasSelectedNode, TreeNode} from './TreeView';
 
@@ -27,10 +27,10 @@ export default function TreeViewNode<T>({
     setSize,
     emptyMarker,
     showTooltip,
-    tooltip,
     onSelect,
     onToggle,
 }: TreeViewNodeProps<T>) {
+    const rowId = useId();
     const expanded = expandedIds.includes(id);
     const expandable = children.length !== 0;
     const selected = id === selectedId;
@@ -38,13 +38,26 @@ export default function TreeViewNode<T>({
         selected ? 'selected' : ''
     } ${children.length === 0 ? 'empty' : ''}`;
 
-    const handleMouseDown = useCallback(
-        (event: React.MouseEvent) => {
-            event.stopPropagation();
-            onSelect?.(id);
-        },
-        [id, onSelect]
-    );
+    const handleMouseDown = useCallback(() => {
+        onSelect?.(id);
+    }, [id, onSelect]);
+
+    const handleMouseEnter = useCallback(() => {
+        const tooltip = document.getElementById(`tooltip-${rowId}`) as HTMLSpanElement;
+        if (tooltip) {
+            const label = document.getElementById(`tree-view-node-label-${rowId}`)!
+                .firstElementChild as HTMLSpanElement;
+            const rect = label.getBoundingClientRect();
+            tooltip.style.left = `${rect.left}px`;
+            tooltip.style.top = `${rect.top}px`;
+            tooltip.showPopover();
+        }
+    }, [rowId]);
+
+    const handleMouseLeave = useCallback(() => {
+        const tooltip = document.getElementById(`tooltip-${rowId}`) as HTMLSpanElement;
+        tooltip?.hidePopover();
+    }, [rowId]);
 
     const handleDoubleClick = useCallback(
         (event: React.MouseEvent) => {
@@ -68,20 +81,21 @@ export default function TreeViewNode<T>({
     return (
         <li
             className={`tree-view-node ${classNames}`}
-            id={`tree-view-node-${id}`}
+            id={`tree-view-node-${rowId}`}
             role="treeitem"
-            title={showTooltip && tooltip ? tooltip : undefined}
             aria-selected={selected ? 'true' : undefined}
             aria-expanded={expanded ? 'true' : undefined}
-            aria-labelledby={`tree-view-node-label-${id}`}
+            aria-labelledby={`tree-view-node-label-${rowId}`}
             aria-level={level}
             aria-setsize={setSize}
             aria-posinset={nodeIndex + 1}
-            onMouseDown={handleMouseDown}
         >
             <span
                 className={`tree-view-row ${selected ? 'selected-text' : ''}`}
                 onDoubleClick={expandable ? handleDoubleClick : undefined}
+                onMouseDown={handleMouseDown}
+                onMouseEnter={showTooltip ? handleMouseEnter : undefined}
+                onMouseLeave={showTooltip ? handleMouseLeave : undefined}
                 style={{
                     height: `${rowHeight}px`,
                 }}
@@ -110,8 +124,13 @@ export default function TreeViewNode<T>({
                         </svg>
                     )
                 )}
-                <span className="tree-view-node-label" id={`tree-view-node-label-${id}`}>
+                <span className="tree-view-node-label" id={`tree-view-node-label-${rowId}`}>
                     {label}
+                    {showTooltip ? (
+                        <span className="tooltip" id={`tooltip-${rowId}`} popover="auto">
+                            {label}
+                        </span>
+                    ) : null}
                 </span>
             </span>
             {expanded && (

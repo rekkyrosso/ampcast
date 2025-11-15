@@ -1,4 +1,4 @@
-import React, {useCallback, useId, useRef} from 'react';
+import React, {useCallback, useEffect, useId, useRef} from 'react';
 import {LiteStorage} from 'utils';
 import {IconName} from 'components/Icon';
 import Dialog, {DialogProps} from './Dialog';
@@ -45,12 +45,17 @@ export function ConfirmDialog({
     ...props
 }: ConfirmDialogProps) {
     const id = useId();
+    const ref = useRef<HTMLFormElement | null>(null);
     const storageRef = useRef<HTMLInputElement>(null);
     if (typeof message === 'string') {
         message = <p>{message}</p>;
     } else if (Array.isArray(message)) {
         message = message.map((text, i) => <p key={i}>{text}</p>);
     }
+
+    useEffect(() => {
+        ref.current?.querySelector<HTMLButtonElement>('.dialog-button-submit')?.focus();
+    }, []);
 
     const handleSubmit = useCallback(() => {
         if (storageId && storageRef.current!.checked) {
@@ -60,7 +65,7 @@ export function ConfirmDialog({
 
     return (
         <Dialog {...props} className="confirm-dialog" title={title}>
-            <form method="dialog" onSubmit={handleSubmit}>
+            <form method="dialog" onSubmit={handleSubmit} ref={ref}>
                 <div className="confirm-message">{message}</div>
                 <DialogButtons value="confirmed" submitText={okLabel} />
                 {storageId ? (

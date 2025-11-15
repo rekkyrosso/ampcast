@@ -329,11 +329,9 @@ class MainTheme implements CurrentTheme {
 
     set selectedBackgroundColor(color: string) {
         this.setColor('selectedBackgroundColor', color);
-        const backgroundColor = new TinyColor(color);
-        this.setProperty(
-            'selected-background-color-blurred',
-            backgroundColor.desaturate(50).setAlpha(0.75).toRgbString()
-        );
+        const backgroundColor = new TinyColor(this.backgroundColor);
+        const blurredColor = backgroundColor.mix(new TinyColor(color).desaturate(50), 75);
+        this.setProperty('selected-background-color-blurred', blurredColor.toRgbString());
     }
 
     get selectedTextColor(): string {

@@ -38,6 +38,10 @@
             background-color: var(--even-row-background-color);
         }
 
+        &:hover:not(.selected) {
+            background-color: var(--hover-row-background-color);
+        }
+
         &.selected {
             background-color: var(--selected-background-color-blurred);
         }

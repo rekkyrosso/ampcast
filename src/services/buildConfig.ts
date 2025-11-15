@@ -67,6 +67,7 @@ export function isStartupService(service: MediaService | MediaServiceId): boolea
 export function isServiceDisabled(service: MediaService | MediaServiceId): boolean {
     const serviceId: MediaServiceId = typeof service === 'string' ? service : service.id;
     return (
+        serviceId !== 'localdb' &&
         enabledServices.length !== 0 &&
         !enabledServices.includes(serviceId) &&
         localStorage.getItem(`ampcast/${serviceId}/enabled`) !== 'true'

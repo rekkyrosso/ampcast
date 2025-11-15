@@ -11,10 +11,42 @@
     cursor: default;
 
     &.minimal-width {
-        .text,
+        .text {
+            visibility: hidden;
+        }
+
         .scrollbar {
             display: none;
         }
+    }
+
+    .tooltip {
+        position: absolute;
+        padding: 1px 2em 1px 4px;
+        margin: -2px 0 0 -5px;
+        border: 1px solid;
+        inset: unset;
+        white-space: nowrap;
+        line-height: 1.5;
+        color: inherit;
+        background-color: var(--background-color);
+
+        &:popover-open {
+            display: inline-block;
+        }
+
+        .text {
+            visibility: visible;
+        }
+    }
+
+    .selected-text .tooltip {
+        background-color: var(--selected-background-color-blurred);
+    }
+
+    &:focus .selected-text .tooltip,
+    &.focus .selected-text .tooltip {
+        background-color: var(--selected-background-color);
     }
 
     &-node,
@@ -57,6 +89,10 @@
         flex-direction: row;
         align-items: center;
         padding-left: 0.125em;
+    }
+
+    &:not(.minimal-width) &-row:hover:not(.selected-text) {
+        background-color: var(--hover-row-background-color);
     }
 
     &-cursor {
