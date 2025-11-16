@@ -91,7 +91,7 @@
         padding-left: 0.125em;
     }
 
-    &:not(.minimal-width) &-row:hover:not(.selected-text) {
+    &:not(.show-tooltip) &-row:hover:not(.selected-text) {
         background-color: var(--hover-row-background-color);
     }
 

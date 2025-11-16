@@ -1,5 +1,6 @@
 import React, {useCallback, useId, useRef, useState} from 'react';
 import MediaItem from 'types/MediaItem';
+import MediaService from 'types/MediaService';
 import MediaServiceId from 'types/MediaServiceId';
 import {Logger} from 'utils';
 import {getService} from 'services/mediaServices';
@@ -12,17 +13,22 @@ import usePlaylistItems from './usePlaylistItems';
 const logger = new Logger('CreatePlaylistDialog');
 
 export async function showCreatePlaylistDialog<T extends MediaItem>(
-    items: readonly T[]
+    items: readonly T[],
+    service?: MediaService
 ): Promise<void> {
-    await showDialog((props: DialogProps) => <CreatePlaylistDialog {...props} items={items} />);
+    await showDialog((props: DialogProps) => (
+        <CreatePlaylistDialog {...props} items={items} service={service} />
+    ));
 }
 
 export interface CreatePlaylistDialogProps<T extends MediaItem> extends DialogProps {
     items: readonly T[];
+    service?: MediaService;
 }
 
 export default function CreatePlaylistDialog<T extends MediaItem>({
     items,
+    service,
     ...props
 }: CreatePlaylistDialogProps<T>) {
     const id = useId();
@@ -32,11 +38,12 @@ export default function CreatePlaylistDialog<T extends MediaItem>({
     const isPublicRef = useRef<HTMLInputElement>(null);
     const playlistItems = usePlaylistItems(items);
     const itemsByService = getPlaylistItemsByService(playlistItems);
-    const [serviceId, setServiceId] = useState<MediaServiceId>(() => itemsByService[0]?.service.id);
+    const [serviceId, setServiceId] = useState<MediaServiceId>(
+        () => service?.id || itemsByService[0]?.service.id
+    );
     const size = playlistItems.length;
 
     const handleSubmit = useCallback(async () => {
-        const serviceId = serviceRef.current!.value;
         const service = getService(serviceId);
         if (service?.createPlaylist) {
             try {
@@ -67,7 +74,7 @@ export default function CreatePlaylistDialog<T extends MediaItem>({
                 await error('An error occurred while creating your playlist.');
             }
         }
-    }, [itemsByService]);
+    }, [itemsByService, serviceId]);
 
     const handleServiceChange = useCallback(() => {
         const serviceId = serviceRef.current!.value as MediaServiceId;
@@ -77,27 +84,29 @@ export default function CreatePlaylistDialog<T extends MediaItem>({
     return (
         <Dialog
             {...props}
-            className={`edit-playlist-dialog service-${serviceId || ''}`}
-            icon={serviceId || 'playlist'}
+            className="edit-playlist-dialog"
+            icon={service?.id || 'playlist'}
             title="Create playlist"
         >
             <form method="dialog" onSubmit={handleSubmit}>
                 <div className="table-layout">
-                    <p>
-                        <label htmlFor={`${id}-service`}>Save to:</label>
-                        <select
-                            id={`${id}-service`}
-                            required
-                            onChange={handleServiceChange}
-                            ref={serviceRef}
-                        >
-                            {itemsByService.map(({service, items}) => (
-                                <option value={service.id} key={service.id}>
-                                    {service.name} ({items.length}/{size})
-                                </option>
-                            ))}
-                        </select>
-                    </p>
+                    {service ? null : (
+                        <p>
+                            <label htmlFor={`${id}-service`}>Save to:</label>
+                            <select
+                                id={`${id}-service`}
+                                required
+                                onChange={handleServiceChange}
+                                ref={serviceRef}
+                            >
+                                {itemsByService.map(({service, items}) => (
+                                    <option value={service.id} key={service.id}>
+                                        {service.name} ({items.length}/{size})
+                                    </option>
+                                ))}
+                            </select>
+                        </p>
+                    )}
                     <p>
                         <label htmlFor={`${id}-name`}>Name:</label>
                         <input type="text" id={`${id}-name`} required ref={nameRef} />

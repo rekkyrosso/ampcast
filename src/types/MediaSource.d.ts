@@ -32,7 +32,7 @@ export interface MediaSourceItems<T extends MediaObject = MediaObject> {
     readonly itemKey?: ConditionalKeys<T, string | number>;
 }
 
-export default interface MediaSource<T extends MediaObject> {
+export default interface MediaSource<T extends MediaObject = MediaObject> {
     readonly id: string;
     readonly title: string;
     readonly icon: IconName;

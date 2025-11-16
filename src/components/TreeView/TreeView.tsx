@@ -253,7 +253,9 @@ export default function TreeView<T>({
 
     return (
         <div
-            className={`tree-view ${className} ${minimalWidth ? 'minimal-width' : ''}`}
+            className={`tree-view ${className} ${showTooltip ? 'show-tooltip' : ''} ${
+                minimalWidth ? 'minimal-width' : ''
+            }`}
             tabIndex={0}
             onContextMenu={handleContextMenu}
             onKeyDown={handleKeyDown}

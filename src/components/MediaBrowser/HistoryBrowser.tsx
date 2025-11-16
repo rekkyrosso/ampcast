@@ -51,7 +51,7 @@ export default function HistoryBrowser({
 
     return (
         <>
-            <PageHeader icon={service.icon} menuButtonSource={source}>
+            <PageHeader icon={service.icon} source={source}>
                 {service.name}:
                 <DatePicker min={minDate} onSelect={handleDateChange} />
             </PageHeader>

@@ -54,8 +54,10 @@ const optionalProperties: ThemeSchema = {
     flat: 'boolean',
 };
 
+const defaultFontSize = 17.2;
+const fontSize$ = new BehaviorSubject(defaultFontSize);
+
 class MainTheme implements CurrentTheme {
-    readonly defaultFontSize = 17.2;
     private readonly storage = new LiteStorage('theme');
     private readonly sheet: CSSStyleSheet;
     private readonly rootStyle: CSSStyleDeclaration;
@@ -64,7 +66,6 @@ class MainTheme implements CurrentTheme {
     private readonly app = document.getElementById('app') as HTMLElement;
     private readonly system = document.getElementById('system') as HTMLElement;
     private readonly theme$ = new BehaviorSubject<CurrentTheme>(defaultTheme);
-    private readonly fontSize$ = new BehaviorSubject(this.defaultFontSize);
     private applyingUpdate = false;
 
     constructor() {
@@ -86,8 +87,8 @@ class MainTheme implements CurrentTheme {
         return this.theme$.pipe(filter(() => !this.applyingUpdate));
     }
 
-    observeFontSize(): Observable<number> {
-        return this.fontSize$.pipe(distinctUntilChanged());
+    observeFontSize(this: unknown): Observable<number> {
+        return fontSize$.pipe(distinctUntilChanged());
     }
 
     get backgroundColor(): string {
@@ -222,14 +223,14 @@ class MainTheme implements CurrentTheme {
     }
 
     get fontSize(): number {
-        return this.fontSize$.getValue();
+        return fontSize$.getValue();
     }
 
     set fontSize(fontSize: number) {
         this.rootStyle.setProperty('--font-size', String(fontSize));
         this.createPlayheadSmiley();
         ampcastElectron?.setFontSize(fontSize);
-        this.fontSize$.next(fontSize);
+        fontSize$.next(fontSize);
     }
 
     get frameColor(): string {
@@ -457,7 +458,7 @@ class MainTheme implements CurrentTheme {
     load(): void {
         const theme = this.storage.getJson<CurrentTheme>('current', defaultTheme);
         this.apply(theme);
-        this.fontSize = this.storage.getNumber('fontSize', this.defaultFontSize);
+        this.fontSize = this.storage.getNumber('fontSize', defaultFontSize);
         this.system.classList.toggle('dark', this.isDark);
         this.system.classList.toggle('light', this.isLight);
     }

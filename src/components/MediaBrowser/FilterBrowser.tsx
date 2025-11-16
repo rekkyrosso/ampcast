@@ -24,7 +24,7 @@ export default function FilterBrowser<T extends MediaObject>({
 
     return (
         <>
-            <PageHeader icon={service.icon} menuButtonSource={source}>
+            <PageHeader icon={service.icon} source={source}>
                 {service.name}: {source.title}
             </PageHeader>
             <FilterSelect

@@ -176,6 +176,7 @@ function createMediaAlbum(
     const src = `apple:${album.type}:${album.id}`;
     const description = item.editorialNotes?.standard || item.editorialNotes?.short;
     const catalogId = getCatalogId(album);
+    const releaseDate = new Date(item.releaseDate);
 
     const mediaAlbum: Writable<SetOptional<SetRequired<MediaAlbum, 'apple'>, 'pager'>> = {
         itemType: ItemType.Album,
@@ -192,7 +193,8 @@ function createMediaAlbum(
         artist: item.artistName,
         trackCount: item.trackCount,
         genres: getGenres(item),
-        year: new Date(item.releaseDate).getFullYear() || undefined,
+        releasedAt: Math.round(releaseDate.getTime() / 1000) || undefined,
+        year: releaseDate.getFullYear() || undefined,
         unplayable: !item.playParams || undefined,
         inLibrary: album.type.startsWith('library-') || undefined,
         copyright: item?.copyright,

@@ -114,6 +114,9 @@ export default function MediaDetails<T extends MediaObject>({item}: MediaInfoPro
             case 'playedAt':
                 return value ? new Date(value * 1000).toLocaleString() : '';
 
+            case 'releasedAt':
+                return value ? new Date(value * 1000).toLocaleDateString() : '';
+
             case 'duration':
                 return formatTime(value);
 

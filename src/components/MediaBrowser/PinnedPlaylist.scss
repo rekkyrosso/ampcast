@@ -5,7 +5,8 @@
         bottom: auto;
         height: 6.125em;
 
-        &-error {
+        &-error,
+        .list-view-row:hover {
             background-color: var(--background-color);
         }
 

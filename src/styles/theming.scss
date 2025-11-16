@@ -137,11 +137,15 @@
 
     --gutter-width: calc(var(--spacing) * 1rem);
     --app-border-radius: calc(var(--roundness) * var(--roundness) * 0.75rem);
+    --even-row-background-color: rgba(255, 255, 255, 0.02);
+    --hover-row-background-color: rgba(255, 255, 255, 0.08);
 }
 
 .themed.light {
     --background-mark-color: rgba(0, 0, 0, 0.1);
     --thumbnail-border-color: var(--black);
+    --even-row-background-color: rgba(0, 0, 0, 0.04);
+    --hover-row-background-color: rgba(0, 0, 0, 0.08);
 
     --text-color-max: hsl(var(--text-color-h),
             var(--text-color-s),
@@ -207,15 +211,11 @@
 
 .app.dark {
     --currently-playing-color: var(--currently-playing-color-light);
-    --even-row-background-color: rgba(255, 255, 255, 0.02);
-    --hover-row-background-color: rgba(255, 255, 255, 0.08);
     color-scheme: dark;
 }
 
 .app.light {
     --currently-playing-color: var(--currently-playing-color-dark);
-    --even-row-background-color: rgba(0, 0, 0, 0.04);
-    --hover-row-background-color: rgba(0, 0, 0, 0.08);
     color-scheme: light;
 }
 

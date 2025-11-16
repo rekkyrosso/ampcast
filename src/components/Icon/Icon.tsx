@@ -40,6 +40,7 @@ export type IconName =
     | 'heart'
     | 'heart-fill'
     | 'thumbs-up'
+    | 'add'
     | 'plus'
     | 'tick'
     | 'tick-fill'
@@ -99,9 +100,8 @@ export default function Icon({name, className = ''}: IconProps) {
 
         case 'localdb':
             return (
-                <svg className={className} viewBox="0 0 24 24">
-                    <circle cx="12" cy="12" r="8" strokeWidth="4" stroke="#bababa" fill="black" />
-                    <circle cx="12" cy="12" r="2" stroke="none" fill="white" />
+                <svg className={className} viewBox="0 0 448 512" transform="scale(0.875)">
+                    <path d="M448 73.143v45.714C448 159.143 347.667 192 224 192S0 159.143 0 118.857V73.143C0 32.857 100.333 0 224 0s224 32.857 224 73.143zM448 176v102.857C448 319.143 347.667 352 224 352S0 319.143 0 278.857V176c48.125 33.143 136.208 48.572 224 48.572S399.874 209.143 448 176zm0 160v102.857C448 479.143 347.667 512 224 512S0 479.143 0 438.857V336c48.125 33.143 136.208 48.572 224 48.572S399.874 369.143 448 336z" />
                 </svg>
             );
 
@@ -355,6 +355,13 @@ export default function Icon({name, className = ''}: IconProps) {
                         stroke="none"
                         d="M10.97 4.97a.75.75 0 0 1 1.071 1.05l-3.992 4.99a.75.75 0 0 1-1.08.02L4.324 8.384a.75.75 0 1 1 1.06-1.06l2.094 2.093 3.473-4.425a.235.235 0 0 1 .02-.022z"
                     />
+                </svg>
+            );
+
+        case 'add':
+            return (
+                <svg className={className} viewBox="0 0 24 24">
+                    <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6z" />
                 </svg>
             );
 

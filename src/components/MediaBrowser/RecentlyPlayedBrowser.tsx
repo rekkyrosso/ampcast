@@ -17,7 +17,7 @@ export default function RecentlyPlayedBrowser({
 }: RecentlyPlayedBrowserProps) {
     return (
         <>
-            <PageHeader icon={service.icon} menuButtonSource={source}>
+            <PageHeader icon={service.icon} source={source}>
                 {total === undefined ? (
                     service.name
                 ) : (

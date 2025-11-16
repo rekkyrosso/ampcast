@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react';
-import MediaObject from 'types/MediaObject';
 import MediaSource, {AnyMediaSource, MediaMultiSource} from 'types/MediaSource';
 import actionsStore from 'services/actions/actionsStore';
 import SearchBar from 'components/SearchBar';
@@ -9,10 +8,13 @@ import MediaSourceSelector from './MediaSourceSelector';
 import MenuBar from './MenuBar';
 import PageHeader from './PageHeader';
 import PagedItems from './PagedItems';
+import useSortedSources from './useSortedSources';
 
 export default function DefaultBrowser({service, source}: MediaBrowserProps) {
-    const sources = isMediaMultiSource(source) ? source.sources : [source];
-    const [selectedSource, setSelectedSource] = useState<MediaSource<MediaObject>>(sources[0]);
+    const sources = useSortedSources(
+        isMediaMultiSource(source) ? source.sources : [source as MediaSource]
+    );
+    const [selectedSource, setSelectedSource] = useState<MediaSource>(sources[0]);
     const [query, setQuery] = useState('');
     const pager = useSearch(selectedSource, query);
     const searchable = !!source.searchable;
@@ -27,13 +29,14 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
     }, [service, selectedSource]);
 
     useEffect(() => {
-        return () => actionsStore.unlock(); // Teardown
+        // Commit unsaved changes.
+        return () => actionsStore.unlock();
     }, [selectedSource]);
 
     return (
         <>
             {showPagerHeader ? (
-                <PageHeader icon={service.icon} menuButtonSource={selectedSource}>
+                <PageHeader icon={service.icon} source={selectedSource}>
                     {source === service.root ? service.name : `${service.name}: ${source.title}`}
                 </PageHeader>
             ) : null}
@@ -46,11 +49,7 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
                 />
             ) : null}
             {sources.length > 1 ? (
-                <MediaSourceSelector
-                    sources={sources}
-                    menuButtonSource={showPagerHeader ? undefined : selectedSource}
-                    onSourceChange={setSelectedSource}
-                />
+                <MediaSourceSelector sources={sources} onSourceChange={setSelectedSource} />
             ) : showPagerHeader || selectedSource.isPin ? null : (
                 <MenuBar source={selectedSource} />
             )}
