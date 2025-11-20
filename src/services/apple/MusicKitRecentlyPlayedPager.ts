@@ -31,12 +31,10 @@ export default class MusicKitRecentlyPlayedPager extends RecentlyPlayedPager {
         if (!this.disconnected && !this.connected) {
             super.connect();
 
-            if (!this.passive) {
-                this.subscribeTo(
-                    this.observeAdditions().pipe(mergeMap((items) => addUserData(items))),
-                    logger
-                );
-            }
+            this.subscribeTo(
+                this.observeAdditions().pipe(mergeMap((items) => addUserData(items))),
+                logger
+            );
         }
     }
 }

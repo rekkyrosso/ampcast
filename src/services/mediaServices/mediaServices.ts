@@ -24,7 +24,7 @@ import PersonalMediaService from 'types/PersonalMediaService';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
 import {loadLibrary, Logger} from 'utils';
-import {isServiceDisabled} from 'services/buildConfig';
+import {isServiceDisabled} from './buildConfig';
 import {isSourceVisible, observeSourceVisibility} from './servicesSettings';
 
 const logger = new Logger('mediaServices');
@@ -145,6 +145,10 @@ export function isDataService(service: MediaService): service is DataService {
     return isMediaServiceType(service, ServiceType.DataService);
 }
 
+export function isMediaService(service: any): service is MediaService {
+    return service ? 'serviceType' in service : false;
+}
+
 export function isPersonalMediaService(service: MediaService): service is PersonalMediaService {
     return isMediaServiceType(service, ServiceType.PersonalMedia);
 }
@@ -239,10 +243,6 @@ export async function waitForLogin(
         const mediaService = typeof service === 'string' ? getService(service) : service;
         return mediaService?.isLoggedIn() ?? true;
     }
-}
-
-function isMediaService(service: any): service is MediaService {
-    return service ? 'serviceType' in service : false;
 }
 
 function isMediaServiceType(service: MediaService, type: ServiceType): boolean {

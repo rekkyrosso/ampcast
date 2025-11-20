@@ -1,7 +1,7 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import {LiteStorage} from 'utils';
-import {yt_client_id} from 'services/buildConfig';
+import {yt_client_id} from 'services/mediaServices/buildConfig';
 
 export interface YouTubeCredentials {
     readonly clientId: string;

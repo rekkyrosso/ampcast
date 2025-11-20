@@ -18,7 +18,6 @@ import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
-import {isStartupService} from 'services/buildConfig';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import {
@@ -49,7 +48,6 @@ const plex: PersonalMediaService = {
     icon: serviceId,
     url: 'https://www.plex.tv',
     serviceType: ServiceType.PersonalMedia,
-    defaultHidden: !isStartupService(serviceId),
     Components: {Login, ServerSettings},
     get internetRequired() {
         return plexSettings.internetRequired;

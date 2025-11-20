@@ -1,7 +1,7 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import {LiteStorage} from 'utils';
-import {am_dev_token} from 'services/buildConfig';
+import {am_dev_token} from 'services/mediaServices/buildConfig';
 import AppleBitrate from './AppleBitrate';
 
 export interface AppleCredentials {

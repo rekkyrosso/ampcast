@@ -7,7 +7,6 @@ import MediaObject from 'types/MediaObject';
 import MediaServiceId from 'types/MediaServiceId';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
-import {isStartupService} from 'services/buildConfig';
 import {getTextFromHtml} from 'utils';
 import lastfmApi from './lastfmApi';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './lastfmAuth';
@@ -27,7 +26,6 @@ const lastfm: DataService = {
     credentialsUrl: 'https://www.last.fm/api/account/create',
     serviceType: ServiceType.DataService,
     canScrobble: true,
-    defaultHidden: !isStartupService(serviceId),
     internetRequired: true,
     Components: {Credentials, Login},
     get credentialsLocked(): boolean {

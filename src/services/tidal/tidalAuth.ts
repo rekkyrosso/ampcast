@@ -21,7 +21,7 @@ import {
 } from '@tidal-music/auth';
 import {nanoid} from 'nanoid';
 import {LiteStorage, Logger} from 'utils';
-import {isServiceDisabled} from 'services/buildConfig';
+import {isServiceDisabled} from 'services/mediaServices/buildConfig';
 import tidalSettings from './tidalSettings';
 import tidalApi from './tidalApi';
 

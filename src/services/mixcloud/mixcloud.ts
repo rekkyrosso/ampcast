@@ -9,7 +9,6 @@ const mixcloud: PublicMediaService = {
     icon: 'mixcloud',
     url: 'https://www.mixcloud.com',
     serviceType: ServiceType.PublicMedia,
-    defaultHidden: true,
     defaultNoScrobble: true,
     iframeAudioPlayback: {
         // Mixcloud player shows mainly interactive content.

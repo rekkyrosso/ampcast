@@ -2,7 +2,7 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, filter, mergeMap} from 'rxjs';
 import Auth from 'types/Auth';
 import {Logger} from 'utils';
-import {getServerHost, hasProxyLogin} from 'services/buildConfig';
+import {getServerHost, hasProxyLogin} from 'services/mediaServices/buildConfig';
 import {showSubsonicLoginDialog} from './components/SubsonicLoginDialog';
 import SubsonicApi from './SubsonicApi';
 import SubsonicService from './SubsonicService';

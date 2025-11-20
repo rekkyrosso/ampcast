@@ -10,7 +10,6 @@ import Pager from 'types/Pager';
 import Pin, {Pinnable} from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import DataService from 'types/DataService';
-import {isStartupService} from 'services/buildConfig';
 import SimplePager from 'services/pagers/SimplePager';
 import listenbrainzApi from './listenbrainzApi';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './listenbrainzAuth';
@@ -30,7 +29,6 @@ const listenbrainz: DataService = {
     icon: serviceId,
     url: 'https://listenbrainz.org',
     canScrobble: true,
-    defaultHidden: !isStartupService(serviceId),
     internetRequired: true,
     root: listenbrainzScrobbles,
     sources: listenbrainzSources,

@@ -11,7 +11,6 @@ import Pin, {Pinnable} from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
-import {isStartupService} from 'services/buildConfig';
 import SimplePager from 'services/pagers/SimplePager';
 import YouTubePager from './YouTubePager';
 import youtubeApi from './youtubeApi';
@@ -45,7 +44,6 @@ const youtube: PublicMediaService = {
     serviceType: ServiceType.PublicMedia,
     primaryMediaType: MediaType.Video,
     Components: {Credentials, Login},
-    defaultHidden: !isStartupService(serviceId),
     defaultNoScrobble: true,
     internetRequired: true,
     get credentialsLocked(): boolean {

@@ -17,7 +17,6 @@ import PlaybackType from 'types/PlaybackType';
 import Pin, {Pinnable} from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
-import {isStartupService} from 'services/buildConfig';
 import embyScrobbler from 'services/emby/embyScrobbler';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
@@ -44,7 +43,6 @@ const jellyfin: PersonalMediaService = {
     name: 'Jellyfin',
     url: 'https://jellyfin.org',
     serviceType: ServiceType.PersonalMedia,
-    defaultHidden: !isStartupService(serviceId),
     root: jellyfinSearch,
     sources: jellyfinSources,
     labels: {

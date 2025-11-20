@@ -16,7 +16,6 @@ import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
 import {chunk} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
-import {isStartupService} from 'services/buildConfig';
 import fetchAllTracks from 'services/pagers/fetchAllTracks';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
@@ -44,7 +43,6 @@ const spotify: PublicMediaService = {
     credentialsUrl: 'https://developer.spotify.com/dashboard',
     serviceType: ServiceType.PublicMedia,
     Components: {Credentials, Login},
-    defaultHidden: !isStartupService(serviceId),
     internetRequired: true,
     get credentialsLocked(): boolean {
         return spotifySettings.credentialsLocked;

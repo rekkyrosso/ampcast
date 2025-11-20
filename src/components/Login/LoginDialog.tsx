@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import MediaService from 'types/MediaService';
 import {Logger} from 'utils';
-import {hasProxyLogin, isServerLocked} from 'services/buildConfig';
+import {hasProxyLogin, isServerLocked} from 'services/mediaServices/buildConfig';
 import Dialog, {DialogProps} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import useFirstValue from 'hooks/useFirstValue';

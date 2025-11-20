@@ -4,6 +4,8 @@ import MediaListLayout, {Field} from 'types/MediaListLayout';
 import SortParams from 'types/SortParams';
 import MediaSource from 'types/MediaSource';
 import {LiteStorage} from 'utils';
+import {isMediaService} from './mediaServices';
+import {isStartupService} from './buildConfig';
 
 type AnyMediaSource = Pick<MediaSource<any>, 'id' | 'defaultHidden'>;
 type FieldsSettings = Record<string, readonly Field[] | undefined>;
@@ -60,7 +62,10 @@ export function observeSourceVisibility(source: AnyMediaSource): Observable<bool
 
 export function isSourceHidden(source: AnyMediaSource): boolean {
     const settings = hidden$.value;
-    return settings[source.id] ?? !!source.defaultHidden;
+    const defaultHidden = isMediaService(source)
+        ? !isStartupService(source.id)
+        : !!source.defaultHidden;
+    return settings[source.id] ?? defaultHidden;
 }
 
 export function isSourceVisible(source: AnyMediaSource): boolean {

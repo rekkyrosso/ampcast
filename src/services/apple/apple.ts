@@ -19,7 +19,6 @@ import ServiceType from 'types/ServiceType';
 import {chunk} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
 import {dispatchMetadataChanges} from 'services/metadata';
-import {isStartupService} from 'services/buildConfig';
 import fetchAllTracks from 'services/pagers/fetchAllTracks';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
@@ -41,7 +40,6 @@ const apple: PublicMediaService = {
     url: 'https://music.apple.com',
     credentialsUrl: 'https://developer.apple.com',
     serviceType: ServiceType.PublicMedia,
-    defaultHidden: !isStartupService(serviceId),
     internetRequired: true,
     Components: {Credentials, Login, StreamingSettings},
     get credentialsLocked(): boolean {

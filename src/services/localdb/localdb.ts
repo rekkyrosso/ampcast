@@ -29,7 +29,6 @@ const localdb: DataService = {
     icon: serviceId,
     url: '',
     serviceType: ServiceType.DataService,
-    defaultHidden: true,
     root: localScrobbles,
     sources: localSources,
     editablePlaylists: localPlaylists,

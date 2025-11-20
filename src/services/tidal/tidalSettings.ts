@@ -2,7 +2,7 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import {nanoid} from 'nanoid';
 import {LiteStorage} from 'utils';
-import {td_client_id} from 'services/buildConfig';
+import {td_client_id} from 'services/mediaServices/buildConfig';
 
 export interface TidalCredentials {
     readonly clientId: string;

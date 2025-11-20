@@ -25,7 +25,6 @@ import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
 import {getTextFromHtml, Logger} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
-import {isStartupService} from 'services/buildConfig';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
@@ -48,7 +47,6 @@ export default class SubsonicService implements PersonalMediaService {
     readonly logger = new Logger(this.id);
     readonly settings: SubsonicSettings;
     readonly serviceType = ServiceType.PersonalMedia;
-    readonly defaultHidden = !isStartupService(this.id);
     readonly icon = this.id;
     readonly root: MediaMultiSource;
     readonly sources: PersonalMediaService['sources'];

@@ -20,7 +20,6 @@ type BaseMediaService = Auth & {
     readonly name: string;
     readonly icon: MediaServiceId;
     readonly url: string;
-    readonly defaultHidden: boolean; // `true` for most services
     compareForRating: <T extends MediaObject>(a: T, b: T) => boolean; // TODO: Make optional.
     // Everything below here should be optional.
     readonly root?: AnyMediaSource;

@@ -9,7 +9,6 @@ const soundcloud: PublicMediaService = {
     icon: 'soundcloud',
     url: 'https://soundcloud.com',
     serviceType: ServiceType.PublicMedia,
-    defaultHidden: true,
     iframeAudioPlayback: {
         showContent: true,
         isCoverArt: true,

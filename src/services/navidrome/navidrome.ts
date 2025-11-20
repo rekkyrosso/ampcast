@@ -19,7 +19,6 @@ import ServiceType from 'types/ServiceType';
 import {getTextFromHtml, Logger} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
 import {bestOf} from 'services/metadata';
-import {isStartupService} from 'services/buildConfig';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import {t} from 'services/i18n';
@@ -55,7 +54,6 @@ const navidrome: PersonalMediaService = {
     name: 'Navidrome',
     url: 'https://www.navidrome.org',
     serviceType: ServiceType.PersonalMedia,
-    defaultHidden: !isStartupService(serviceId),
     root: navidromeSearch,
     sources: navidromeSources,
     labels: {

@@ -5,7 +5,7 @@ import {PersonalMediaServiceId} from 'types/MediaServiceId';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
 import {LiteStorage, stringContainsMusic} from 'utils';
-import {getServerHost, isStartupService} from 'services/buildConfig';
+import {getServerHost, isStartupService} from 'services/mediaServices/buildConfig';
 
 export class EmbySettings implements PersonalMediaServerSettings {
     private readonly storage = new LiteStorage(this.serviceId);

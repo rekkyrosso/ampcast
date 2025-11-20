@@ -1,7 +1,7 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import {LiteStorage} from 'utils';
-import {sp_client_id} from 'services/buildConfig';
+import {sp_client_id} from 'services/mediaServices/buildConfig';
 
 export interface SpotifyCredentials {
     readonly clientId: string;

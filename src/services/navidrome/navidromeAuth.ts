@@ -1,7 +1,7 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, distinctUntilChanged, filter, mergeMap} from 'rxjs';
 import {Logger} from 'utils';
-import {getServerHost, hasProxyLogin} from 'services/buildConfig';
+import {getServerHost, hasProxyLogin} from 'services/mediaServices/buildConfig';
 import {showNavidromeLoginDialog} from './components/NavidromeLoginDialog';
 import navidromeApi from './navidromeApi';
 import subsonicApi from './subsonicApi';

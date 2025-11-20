@@ -1,6 +1,5 @@
 import MediaService from 'types/MediaService';
 import {exists} from 'utils';
-import buildConfig from 'services/buildConfig';
 import airsonic from 'services/subsonic/airsonic';
 import ampache from 'services/subsonic/ampache';
 import apple from 'services/apple';
@@ -18,6 +17,7 @@ import spotify from 'services/spotify';
 import subsonic from 'services/subsonic';
 // import tidal from 'services/tidal';
 import youtube from 'services/youtube';
+import buildConfig from './buildConfig';
 
 const allServices: readonly MediaService[] = [
     apple,

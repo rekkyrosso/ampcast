@@ -11,7 +11,6 @@ import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
-import {isStartupService} from 'services/buildConfig';
 import SimplePager from 'services/pagers/SimplePager';
 import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './tidalAuth';
 import TidalPager, {TidalPage} from './TidalPager';
@@ -106,7 +105,6 @@ const tidal: PublicMediaService = {
     credentialsUrl: 'https://developer.tidal.com/dashboard',
     serviceType: ServiceType.PublicMedia,
     Components: {Credentials, Login},
-    defaultHidden: !isStartupService(serviceId),
     internetRequired: true,
     get credentialsLocked(): boolean {
         return tidalSettings.credentialsLocked;

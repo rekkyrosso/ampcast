@@ -18,7 +18,6 @@ import Pin, {Pinnable} from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
 import {bestOf} from 'services/metadata';
-import {isStartupService} from 'services/buildConfig';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import {t} from 'services/i18n';
@@ -44,7 +43,6 @@ const emby: PersonalMediaService = {
     name: 'Emby',
     url: 'https://emby.media',
     serviceType: ServiceType.PersonalMedia,
-    defaultHidden: !isStartupService(serviceId),
     root: embySearch,
     sources: embySources,
     labels: {
