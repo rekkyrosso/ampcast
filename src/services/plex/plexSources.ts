@@ -24,6 +24,7 @@ import WrappedPager from 'services/pagers/WrappedPager';
 import plexApi, {getMusicLibraryId, getMusicLibraryPath, getPlexMediaType} from './plexApi';
 import plexMediaType from './plexMediaType';
 import PlexPager from './PlexPager';
+import PlexRecentlyPlayedPager from './PlexRecentlyPlayedPager';
 import plexSettings from './plexSettings';
 import {createArtistAlbumsPager} from './plexUtils';
 import FolderBrowser from 'components/MediaBrowser/FolderBrowser';
@@ -188,14 +189,7 @@ const plexRecentlyPlayed: MediaSource<MediaItem> = {
     },
 
     search(): Pager<MediaItem> {
-        return new PlexPager({
-            path: getMusicLibraryPath(),
-            params: {
-                type: plexMediaType.Track,
-                'lastViewedAt>': '0',
-                sort: 'lastViewedAt:desc',
-            },
-        });
+        return new PlexRecentlyPlayedPager();
     },
 };
 
@@ -755,7 +749,7 @@ function createSearch<T extends MediaObject>(
 export function createSearchPager<T extends MediaObject>(
     itemType: T['itemType'],
     q: string,
-    options?: Partial<PagerConfig>,
+    options?: Partial<PagerConfig<T>>,
     createChildPager?: CreateChildPager<T>
 ): Pager<T> {
     getMusicLibraryId(); // Make sure to throw even if not needed

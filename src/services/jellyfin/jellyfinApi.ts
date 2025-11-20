@@ -11,6 +11,7 @@ import ItemType from 'types/ItemType';
 import MediaFilter from 'types/MediaFilter';
 import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
+import {Page} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
@@ -27,6 +28,35 @@ async function get<T = BaseItemDtoQueryResult>(
     params?: Record<string, Primitive>
 ): Promise<T> {
     return embyApi.get(path, params, jellyfinSettings);
+}
+
+async function getPage(
+    path: string,
+    params: Record<string, Primitive>
+): Promise<Page<BaseItemDto>> {
+    const data = await embyApi.get(
+        path,
+        {
+            IncludeItemTypes: 'Audio',
+            Fields: 'AudioInfo,ChildCount,DateCreated,Genres,MediaSources,Path,ProviderIds,Overview',
+            EnableUserData: true,
+            Recursive: true,
+            ImageTypeLimit: 1,
+            EnableImageTypes: 'Primary',
+            EnableTotalRecordCount: true,
+            ...params,
+        },
+        jellyfinSettings
+    );
+    return (data as BaseItemDto).Type
+        ? {
+              items: [data as BaseItemDto],
+              total: 1,
+          }
+        : {
+              items: data.Items || [],
+              total: data.TotalRecordCount || data.Items?.length,
+          };
 }
 
 async function addToPlaylist(playlistId: string, ids: readonly string[]): Promise<void> {
@@ -127,6 +157,7 @@ const jellyfinApi = {
     delete: del,
     editPlaylist,
     get,
+    getPage,
     getEndpointInfo,
     getFilters,
     getMusicLibraries,

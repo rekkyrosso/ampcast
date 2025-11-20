@@ -19,19 +19,18 @@ export default class EmbyPager<T extends MediaObject> extends IndexedPager<T> {
     constructor(
         path: string,
         private readonly params: Record<string, Primitive> = {},
-        options?: Partial<PagerConfig>,
+        options?: Partial<PagerConfig<T>>,
         parent?: ParentOf<T>,
         createChildPager?: CreateChildPager<T>
     ) {
         super(
             async (pageNumber, pageSize) => {
                 const params = {
-                    ...this.getParams(),
                     ...this.params,
                     Limit: pageSize,
                     StartIndex: (pageNumber - 1) * pageSize,
                 };
-                let page = await this.getPage(path, params);
+                let page = await embyApi.getPage(path, params);
                 if (
                     this.params.SearchTerm &&
                     !this.passive &&
@@ -68,15 +67,12 @@ export default class EmbyPager<T extends MediaObject> extends IndexedPager<T> {
         initialItems: readonly BaseItemDto[]
     ): Promise<Page<BaseItemDto>> {
         const path = `Users/${embySettings.userId}/Items`;
-        const params = {
-            ...this.getParams(),
-            ParentId: embySettings.libraryId,
-        };
+        const params = {ParentId: embySettings.libraryId};
         const itemType = this.params.IncludeItemTypes;
         const query = this.params.SearchTerm as string;
         let items: readonly BaseItemDto[] = initialItems;
         // Fetch underlying artists.
-        const page = await this.getPage(path, {
+        const page = await embyApi.getPage(path, {
             ...params,
             SearchTerm: query,
             IncludeItemTypes: 'MusicArtist',
@@ -85,7 +81,7 @@ export default class EmbyPager<T extends MediaObject> extends IndexedPager<T> {
         const artistIds = page.items.map((artist) => artist.Id).join(',');
         if (itemType === 'Audio') {
             // Fetch artist tracks.
-            const page = await this.getPage(path, {
+            const page = await embyApi.getPage(path, {
                 ...params,
                 ArtistIds: artistIds,
                 IncludeItemTypes: 'Audio',
@@ -96,7 +92,7 @@ export default class EmbyPager<T extends MediaObject> extends IndexedPager<T> {
             // Fetch artist albums.
             const decode = (name: string) => unidecode(name).toLowerCase();
             const decodedQuery = decode(query);
-            const page = await this.getPage(path, {
+            const page = await embyApi.getPage(path, {
                 ...params,
                 ArtistIds: artistIds,
                 IncludeItemTypes: 'MusicAlbum',
@@ -112,33 +108,5 @@ export default class EmbyPager<T extends MediaObject> extends IndexedPager<T> {
             );
         }
         return {items, total: items.length, atEnd: true};
-    }
-
-    private async getPage(
-        path: string,
-        params: Record<string, Primitive>
-    ): Promise<Page<BaseItemDto>> {
-        const data = await embyApi.get(path, params);
-        return (data as BaseItemDto).Type
-            ? {
-                  items: [data as BaseItemDto],
-                  total: 1,
-              }
-            : {
-                  items: data.Items || [],
-                  total: data.TotalRecordCount || data.Items?.length,
-              };
-    }
-
-    private getParams(): Record<string, unknown> {
-        return {
-            IncludeItemTypes: 'Audio',
-            Fields: 'AudioInfo,ChildCount,DateCreated,Genres,MediaSources,ParentIndexNumber,Path,ProductionYear,PremiereDate,Overview,PresentationUniqueKey,ProviderIds,UserDataPlayCount,UserDataLastPlayedDate',
-            EnableUserData: true,
-            Recursive: true,
-            ImageTypeLimit: 1,
-            EnableImageTypes: 'Primary',
-            EnableTotalRecordCount: true,
-        };
     }
 }

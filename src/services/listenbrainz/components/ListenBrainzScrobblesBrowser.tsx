@@ -3,8 +3,8 @@ import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
 import scrobbleSettings from 'services/scrobbleSettings';
-import RecentlyPlayedBrowser from 'components/MediaBrowser/RecentlyPlayedBrowser';
-import useRecentlyPlayedPager from 'components/MediaBrowser/useRecentlyPlayedPager';
+import ScrobblesBrowser from 'components/MediaBrowser/ScrobblesBrowser';
+import useScrobblesPager from 'components/MediaBrowser/useScrobblesPager';
 import ListenBrainzHistoryPager from '../ListenBrainzHistoryPager';
 
 export interface ListenBrainzScrobblesBrowserProps {
@@ -24,14 +24,14 @@ export default function ListenBrainzScrobblesBrowser({
             return new ListenBrainzHistoryPager('playing-now');
         }
     }, []);
-    const {pager, total} = useRecentlyPlayedPager(createHistoryPager, createNowPlayingPager);
+    const {pager, total} = useScrobblesPager(createHistoryPager, createNowPlayingPager, 20_000);
 
     return (
-        <RecentlyPlayedBrowser
+        <ScrobblesBrowser
             service={listenbrainz}
             source={scrobbles}
+            title={total === undefined ? '' : `${total} listens`}
             pager={pager}
-            total={total}
         />
     );
 }

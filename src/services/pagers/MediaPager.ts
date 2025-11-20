@@ -1,6 +1,7 @@
 import type {Observable, Subscribable} from 'rxjs';
 import {
     BehaviorSubject,
+    Subject,
     Subscription,
     combineLatest,
     distinctUntilChanged,
@@ -10,13 +11,14 @@ import {
     take,
     tap,
 } from 'rxjs';
+import {ConditionalKeys} from 'type-fest';
 import ChildOf from 'types/ChildOf';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import MetadataChange from 'types/MetadataChange';
 import Pager, {PagerConfig} from 'types/Pager';
 import SortParams from 'types/SortParams';
-import {Logger, exists, uniq} from 'utils';
+import {Logger, clamp, exists, uniq} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
 import {observeMetadataChanges} from 'services/metadata';
 import {observeSourceSorting} from 'services/mediaServices/servicesSettings';
@@ -38,20 +40,24 @@ export type CreateChildPager<T extends MediaObject> = (
 ) => Pager<ChildOf<T>>;
 
 export default abstract class MediaPager<T extends MediaObject> implements Pager<T> {
-    private readonly additions$ = new BehaviorSubject<readonly T[]>(UNINITIALIZED);
+    private readonly additions$ = new Subject<readonly T[]>();
     private readonly error$ = new BehaviorSubject<unknown>(undefined);
     private readonly items$ = new BehaviorSubject<readonly T[]>(UNINITIALIZED);
     private readonly fetches$ = new BehaviorSubject<PageFetch>({index: 0, length: 0});
     private readonly size$ = new BehaviorSubject(-1);
     private readonly busy$ = new BehaviorSubject(false);
-    private readonly srcs = new Set<string>();
+    private readonly keys = new Set<string>();
     private subscriptions?: Subscription;
     #disconnected = false;
 
     constructor(
-        protected config: PagerConfig,
+        protected config: PagerConfig<T>,
         private readonly createChildPager?: CreateChildPager<T>
-    ) {}
+    ) {
+        if (__dev__ && !config.pageSize) {
+            logger.warn('`pageSize` not specified.', {pager: this});
+        }
+    }
 
     get connected(): boolean {
         return !!this.subscriptions;
@@ -156,6 +162,10 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
         this.error$.next(error);
     }
 
+    protected get itemKey(): ConditionalKeys<T, string | number> {
+        return this.config.itemKey || ('src' as any);
+    }
+
     protected get items(): readonly T[] {
         return this.items$.value;
     }
@@ -167,8 +177,9 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
             const additions: T[] = [];
             this.items$.next(
                 items.map((item) => {
-                    if (!this.srcs.has(item.src)) {
-                        this.srcs.add(item.src);
+                    const key = item[this.itemKey];
+                    if (!this.keys.has(key)) {
+                        this.keys.add(key);
                         const inLibrary = actionsStore.getInLibrary(item, item.inLibrary);
                         const rating = actionsStore.getRating(item, item.rating);
                         if (item.inLibrary !== inLibrary || item.rating !== rating) {
@@ -191,8 +202,7 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
     }
 
     protected set size(size: number) {
-        size = Math.min(size, this.maxSize ?? Infinity);
-        this.size$.next(size);
+        this.size$.next(clamp(0, size, this.maxSize ?? Infinity));
     }
 
     protected observeComplete(): Observable<readonly T[]> {

@@ -17,7 +17,7 @@ export default class NavidromeSequentialPager<
         path: string,
         params: Record<string, Primitive>,
         filterItems: (items: readonly S[]) => S[],
-        options?: Partial<PagerConfig>,
+        options?: Partial<PagerConfig<T>>,
         createChildPager?: CreateChildPager<T>
     ) {
         let _start = 0;

@@ -26,13 +26,15 @@ interface YouTubePage<T extends YouTubeItem = YouTubeItem> extends YouTubeCachea
 export default class YouTubePager<T extends MediaObject> extends SequentialPager<T> {
     static minPageSize = 5;
     static maxPageSize = 50;
-    static videoFields = `items(id,snippet(title,thumbnails,channelId,channelTitle),contentDetails(duration),statistics(viewCount,likeCount))`;
-    static playlistFields = `items(id,snippet(title,description,publishedAt,thumbnails,channelId,channelTitle),contentDetails(itemCount),status(privacyStatus))`;
+    static videoFields =
+        'items(id,snippet(title,thumbnails,channelId,channelTitle),contentDetails(duration),statistics(viewCount,likeCount))';
+    static playlistFields =
+        'items(id,snippet(title,description,publishedAt,thumbnails,channelId,channelTitle),contentDetails(itemCount),status(privacyStatus))';
 
     private nextPageToken: string | undefined = undefined;
     private pageNumber = 1;
 
-    constructor(path: string, params: Record<string, string>, options?: Partial<PagerConfig>) {
+    constructor(path: string, params: Record<string, string>, options?: Partial<PagerConfig<T>>) {
         super(async (): Promise<Page<T>> => this.fetchPage(path, params), {
             pageSize: YouTubePager.maxPageSize,
             ...options,

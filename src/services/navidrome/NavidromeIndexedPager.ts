@@ -13,7 +13,7 @@ export default class NavidromeIndexedPager<T extends MediaObject> extends Indexe
         itemType: T['itemType'],
         path: string,
         params?: Record<string, Primitive>,
-        options?: Partial<PagerConfig>,
+        options?: Partial<PagerConfig<T>>,
         createChildPager?: CreateChildPager<T>
     ) {
         super(

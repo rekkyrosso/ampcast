@@ -9,7 +9,7 @@ export interface LastFmPage extends Page<LastFm.MediaObject> {
     readonly itemType: ItemType;
 }
 
-export interface LastFmPagerConfig extends Partial<PagerConfig> {
+export interface LastFmPagerConfig<T> extends Partial<PagerConfig<T>> {
     readonly playCountName?: 'playcount' | 'userplaycount';
 }
 
@@ -20,7 +20,7 @@ export default class LastFmPager<T extends MediaObject> extends SequentialPager<
     constructor(
         request: Record<string, string | number>,
         map: (response: any) => LastFmPage,
-        options?: LastFmPagerConfig,
+        options?: LastFmPagerConfig<T>,
         album?: LastFm.Album
     ) {
         const inLibrary = request.method === 'user.getLovedTracks' || undefined;

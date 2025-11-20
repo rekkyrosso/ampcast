@@ -13,13 +13,16 @@ export default class TidalPager<T extends MediaObject> implements Pager<T> {
     static maxPageSize = 20;
 
     private readonly pager: SequentialPager<T>;
-    private readonly defaultConfig: PagerConfig = {
+    private readonly defaultConfig: PagerConfig<T> = {
         pageSize: TidalPager.maxPageSize,
     };
-    private readonly config: PagerConfig;
+    private readonly config: PagerConfig<T>;
     private subscriptions?: Subscription;
 
-    constructor(fetch: (cursor?: string) => Promise<TidalPage<T>>, options?: Partial<PagerConfig>) {
+    constructor(
+        fetch: (cursor?: string) => Promise<TidalPage<T>>,
+        options?: Partial<PagerConfig<T>>
+    ) {
         this.config = {...this.defaultConfig, ...options};
         let cursor = '';
         this.pager = new SequentialPager<T>(async (): Promise<Page<T>> => {

@@ -493,7 +493,7 @@ function createVideosPager(artist: MediaArtist): Pager<MediaItem> {
 
 function createPager<T extends MediaObject>(
     request: Partial<PlexRequest>,
-    options?: Partial<PagerConfig>,
+    options?: Partial<PagerConfig<T>>,
     parent?: ParentOf<T>
 ): Pager<T> {
     return new PlexPager(

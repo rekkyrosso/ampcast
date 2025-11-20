@@ -21,7 +21,7 @@ export default class SpotifyPager<T extends MediaObject> extends SequentialPager
 
     constructor(
         fetch: (offset: number, limit: number, cursor: string) => Promise<SpotifyPage>,
-        options?: Partial<PagerConfig>,
+        options?: Partial<PagerConfig<T>>,
         inLibrary?: boolean | undefined
     ) {
         super(

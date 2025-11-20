@@ -10,7 +10,7 @@ const logger = new Logger('ObservablePager');
 export default class ObservablePager<T extends MediaObject> extends MediaPager<T> {
     constructor(
         private readonly observable$: Observable<readonly T[]>,
-        options?: Partial<PagerConfig>,
+        options?: Partial<PagerConfig<T>>,
         createChildPager?: CreateChildPager<T>
     ) {
         super({pageSize: Infinity, ...options}, createChildPager);

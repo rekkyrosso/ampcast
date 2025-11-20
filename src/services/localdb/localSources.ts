@@ -77,7 +77,7 @@ export const localScrobbles: MediaSource<MediaItem> = {
                             [...listensMap.values()].map((listen) => ({
                                 id: listen.src,
                                 title: unidecode(listen.title),
-                                artists: listen.artists?.map((artist) => unidecode(artist)),
+                                artists: unidecode(listen.artists?.join(';') || ''),
                                 genres: listen.genres,
                                 src: listen.src,
                             }))
@@ -87,7 +87,7 @@ export const localScrobbles: MediaSource<MediaItem> = {
                                 fields,
                                 fuzzy: 0.2,
                                 prefix: true,
-                                boost: {title: 2, genres: 0.25, src: 0.1},
+                                boost: {title: 1.05, genres: 0.25, src: 0.1},
                             })
                             .map((entry) => listensMap.get(entry.id)!);
                     } else {

@@ -22,7 +22,7 @@ export default class ListenBrainzHistoryPager extends SequentialPager<MediaItem>
         private readonly type: 'listens' | 'playing-now',
         params?: ListenBrainz.User.ListensParams,
         private readonly fetchListenCount = false,
-        options?: Partial<PagerConfig>
+        options?: Partial<PagerConfig<MediaItem>>
     ) {
         let nextPageParams: Record<string, string | number> | undefined = undefined;
 

@@ -238,7 +238,7 @@ class PlaylistsStore extends Dexie {
 
     search(
         {filter, sort}: LocalPlaylistSearchOptions = {},
-        options?: Partial<PagerConfig>
+        options?: Partial<PagerConfig<MediaPlaylist>>
     ): Pager<MediaPlaylist> {
         const createChildPager = (playlist: MediaPlaylist, itemSort?: SortParams) => {
             return new LocalPlaylistItemsPager(

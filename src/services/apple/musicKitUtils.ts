@@ -22,6 +22,7 @@ import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import pinStore from 'services/pins/pinStore';
 import MusicKitPager from './MusicKitPager';
+import {refreshToken} from './appleAuth';
 
 const logger = new Logger('MusicKitUtils');
 
@@ -58,6 +59,23 @@ export type MusicKitItem =
     | AppleMusicApi.Playlist
     | LibraryPlaylist
     | Station;
+
+export async function musicKitFetch<T = any>(href: string, params?: MusicKit.QueryParameters): Promise<T> {
+    const musicKit = MusicKit.getInstance();
+    try {
+        const response = await musicKit.api.music(href, params);
+        return response;
+    } catch (err: any) {
+        const status = err?.data?.status;
+        if (status === 401 || status === 403) {
+            await refreshToken(); // this throws
+            // We'll never get here.
+            return musicKit.api.music(href, params);
+        } else {
+            throw err;
+        }
+    }
+}
 
 export function createMediaObjects<T extends MediaObject>(
     items: readonly MusicKitItem[],

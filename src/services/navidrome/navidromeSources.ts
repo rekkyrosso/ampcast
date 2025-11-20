@@ -17,6 +17,7 @@ import {uniq} from 'utils';
 import {t} from 'services/i18n';
 import SimplePager from 'services/pagers/SimplePager';
 import NavidromeIndexedPager from './NavidromeIndexedPager';
+import NavidromeRecentlyPlayedPager from './NavidromeRecentlyPlayedPager';
 import NavidromeSequentialPager from './NavidromeSequentialPager';
 import {createArtistAlbumsPager, createPlaylistItemsPager} from './navidromeUtils';
 import {
@@ -347,12 +348,7 @@ const navidromeRecentlyPlayed: MediaSource<MediaItem> = {
     },
 
     search(): Pager<MediaItem> {
-        return new NavidromeSequentialPager<MediaItem, Navidrome.Song>(
-            ItemType.Media,
-            'song',
-            {_sort: 'play_date', _order: 'DESC'},
-            (items) => items.filter((item) => !!item.playCount)
-        );
+        return new NavidromeRecentlyPlayedPager();
     },
 };
 

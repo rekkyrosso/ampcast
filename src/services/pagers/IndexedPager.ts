@@ -17,7 +17,7 @@ export default class IndexedPager<T extends MediaObject> extends MediaPager<T> {
 
     constructor(
         private readonly _fetch: (pageNumber: number, pageSize: number) => Promise<Page<T>>,
-        config: PagerConfig,
+        config: PagerConfig<T>,
         createChildPager?: CreateChildPager<T>
     ) {
         super(config, createChildPager);

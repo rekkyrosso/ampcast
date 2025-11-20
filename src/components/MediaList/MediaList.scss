@@ -106,6 +106,13 @@
         pointer-events: none;
     }
 
+    .listen-date {
+        .text {
+            display: inline-flex;
+            align-items: center;
+        }
+    }
+
     &:focus .list-view-row.selected .star-rating {
         pointer-events: auto;
     }
@@ -313,13 +320,6 @@
         .list-view-cell.h3.progress {
             top: auto;
             bottom: 0.25em;
-        }
-
-        .listen-date {
-            .text {
-                display: inline-flex;
-                align-items: center;
-            }
         }
 
         .actions {

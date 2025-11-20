@@ -9,7 +9,7 @@ export default class DexiePager<T extends MediaObject> extends MediaPager<T> {
 
     constructor(
         private readonly query: () => Promise<readonly T[]>,
-        options?: Partial<PagerConfig>,
+        options?: Partial<PagerConfig<T>>,
         createChildPager?: CreateChildPager<T>
     ) {
         super({pageSize: Infinity, ...options}, createChildPager);

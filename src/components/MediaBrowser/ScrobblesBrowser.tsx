@@ -1,31 +1,23 @@
 import React from 'react';
 import MediaItem from 'types/MediaItem';
-import {isScrobbler} from 'services/mediaServices';
 import {recentlyPlayedTracksLayout} from 'components/MediaList/layouts';
 import PageHeader from './PageHeader';
 import PagedItems, {PagedItemsProps} from './PagedItems';
 
-export interface RecentlyPlayedBrowserProps extends PagedItemsProps<MediaItem> {
-    total?: number;
+export interface ScrobblesBrowserProps extends PagedItemsProps<MediaItem> {
+    title?: string;
 }
 
-export default function RecentlyPlayedBrowser({
+export default function ScrobblesBrowser({
     service,
     source,
-    total,
+    title = source.title,
     ...props
-}: RecentlyPlayedBrowserProps) {
+}: ScrobblesBrowserProps) {
     return (
         <>
             <PageHeader icon={service.icon} source={source}>
-                {total === undefined ? (
-                    service.name
-                ) : (
-                    <>
-                        {service.name}: {total.toLocaleString()}{' '}
-                        {isScrobbler(service) ? 'scrobbles' : 'plays'}
-                    </>
-                )}
+                {service.name}: {title}
             </PageHeader>
             <PagedItems
                 {...props}

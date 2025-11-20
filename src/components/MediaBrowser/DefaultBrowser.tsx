@@ -49,7 +49,11 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
                 />
             ) : null}
             {sources.length > 1 ? (
-                <MediaSourceSelector sources={sources} onSourceChange={setSelectedSource} />
+                <MediaSourceSelector
+                    sources={sources}
+                    onSourceChange={setSelectedSource}
+                    withButtons={searchable}
+                />
             ) : showPagerHeader || selectedSource.isPin ? null : (
                 <MenuBar source={selectedSource} />
             )}

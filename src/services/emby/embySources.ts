@@ -21,6 +21,7 @@ import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import EmbyPager from './EmbyPager';
+import EmbyRecentlyPlayedPager from './EmbyRecentlyPlayedPager';
 import embySettings from './embySettings';
 import FolderBrowser from 'components/MediaBrowser/FolderBrowser';
 import {
@@ -212,12 +213,7 @@ const embyRecentlyPlayed: MediaSource<MediaItem> = {
     },
 
     search(): Pager<MediaItem> {
-        return createItemsPager({
-            ParentId: getMusicLibraryId(),
-            SortBy: 'DatePlayed',
-            SortOrder: 'Descending',
-            Filters: 'IsPlayed',
-        });
+        return new EmbyRecentlyPlayedPager();
     },
 };
 
@@ -557,7 +553,7 @@ function createSearch<T extends MediaObject>(
     props: Except<MediaSource<T>, 'itemType' | 'icon' | 'search'>
 ): MediaSource<T> {
     const id = `${serviceId}/search/${props.id}`;
-    let options: Partial<PagerConfig> | undefined;
+    let options: Partial<PagerConfig<T>> | undefined;
     let createChildPager: CreateChildPager<any> | undefined;
     switch (itemType) {
         case ItemType.Artist:
@@ -592,7 +588,7 @@ export function createSearchPager<T extends MediaObject>(
     itemType: T['itemType'],
     q: string,
     filters?: Record<string, string>,
-    options?: Partial<PagerConfig>,
+    options?: Partial<PagerConfig<T>>,
     createChildPager?: CreateChildPager<T>
 ): Pager<T> {
     const params: Record<string, string> = {
@@ -624,7 +620,7 @@ export function createSearchPager<T extends MediaObject>(
 
 export function createItemsPager<T extends MediaObject>(
     params: Record<string, string>,
-    options?: Partial<PagerConfig>,
+    options?: Partial<PagerConfig<T>>,
     createChildPager?: CreateChildPager<T>
 ): Pager<T> {
     return new EmbyPager(

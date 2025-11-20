@@ -30,7 +30,7 @@ export default class SubsonicPager<T extends MediaObject> extends SequentialPage
         private readonly service: SubsonicService,
         itemType: T['itemType'],
         fetch: (offset: number, count: number) => Promise<Page<Subsonic.MediaObject>>,
-        options?: Partial<PagerConfig>,
+        options?: Partial<PagerConfig<T>>,
         private readonly parent?: ParentOf<T>
     ) {
         let pageNumber = 1;

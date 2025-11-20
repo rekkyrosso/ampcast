@@ -6,8 +6,7 @@ import ParentOf from 'types/ParentOf';
 import {Logger} from 'utils';
 import SequentialPager from 'services/pagers/SequentialPager';
 import {addUserData} from './apple';
-import {refreshToken} from './appleAuth';
-import {createMediaObjects, MusicKitItem} from './musicKitUtils';
+import {createMediaObjects, musicKitFetch, MusicKitItem} from './musicKitUtils';
 
 const logger = new Logger('MusicKitPager');
 
@@ -18,7 +17,7 @@ export interface MusicKitPage extends Page<MusicKitItem> {
 export default class MusicKitPager<T extends MediaObject> extends SequentialPager<T> {
     private nextPageUrl: string | undefined = undefined;
 
-    private static defaultToPage(response: any): MusicKitPage {
+    static toPage(response: any): MusicKitPage {
         const result = response.data[0]?.relationships?.tracks || response;
         const items = result.data || [];
         const nextPageUrl = result.next;
@@ -29,19 +28,19 @@ export default class MusicKitPager<T extends MediaObject> extends SequentialPage
     constructor(
         href: string,
         params?: MusicKit.QueryParameters,
-        private readonly options?: Partial<PagerConfig>,
+        options?: Partial<PagerConfig<T>>,
         private readonly parent?: ParentOf<T>,
-        toPage = MusicKitPager.defaultToPage
+        toPage = MusicKitPager.toPage
     ) {
         super(
             async (limit) => {
                 try {
-                    const response = await this.fetch(
+                    const response = await musicKitFetch(
                         this.nextPageUrl || href,
                         limit ? (params ? {...params, limit} : {limit}) : params
                     );
                     const result = toPage(response.data);
-                    const items = createMediaObjects(result.items, this.parent);
+                    const items = createMediaObjects(result.items, parent);
                     const total = result.total;
                     const atEnd = !result.nextPageUrl;
                     this.nextPageUrl = result.nextPageUrl;
@@ -51,8 +50,8 @@ export default class MusicKitPager<T extends MediaObject> extends SequentialPage
                     // If it's been deleted then it has no name/title.
                     if (
                         err.name === 'NOT_FOUND' &&
-                        this.parent?.itemType === ItemType.Playlist &&
-                        this.parent.title
+                        parent?.itemType === ItemType.Playlist &&
+                        parent.title
                     ) {
                         return {items: [], total: 0, atEnd: true};
                     } else {
@@ -75,23 +74,6 @@ export default class MusicKitPager<T extends MediaObject> extends SequentialPage
                     ),
                     logger
                 );
-            }
-        }
-    }
-
-    private async fetch(href: string, params?: MusicKit.QueryParameters): Promise<any> {
-        const musicKit = MusicKit.getInstance();
-        try {
-            const response = await musicKit.api.music(href, params);
-            return response;
-        } catch (err: any) {
-            const status = err?.data?.status;
-            if (status === 401 || status === 403) {
-                await refreshToken(); // this throws
-                // We'll never get here.
-                return musicKit.api.music(href, params);
-            } else {
-                throw err;
             }
         }
     }

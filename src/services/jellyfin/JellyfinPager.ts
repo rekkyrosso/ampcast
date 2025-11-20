@@ -1,4 +1,3 @@
-import type {BaseItemDto} from '@jellyfin/sdk/lib/generated-client/models';
 import MediaObject from 'types/MediaObject';
 import {PagerConfig} from 'types/Pager';
 import ParentOf from 'types/ParentOf';
@@ -16,33 +15,17 @@ export default class JellyfinPager<T extends MediaObject> extends IndexedPager<T
     constructor(
         path: string,
         params: Record<string, unknown> = {},
-        options?: Partial<PagerConfig>,
+        options?: Partial<PagerConfig<T>>,
         parent?: ParentOf<T>,
         createChildPager?: CreateChildPager<T>
     ) {
         super(
             async (pageNumber, pageSize) => {
-                const data = await jellyfinApi.get(path, {
-                    IncludeItemTypes: 'Audio',
-                    Fields: 'AudioInfo,ChildCount,DateCreated,Genres,MediaSources,Path,ProviderIds,Overview',
-                    EnableUserData: true,
-                    Recursive: true,
-                    ImageTypeLimit: 1,
-                    EnableImageTypes: 'Primary',
-                    EnableTotalRecordCount: true,
+                const page = await jellyfinApi.getPage(path, {
                     ...params,
                     Limit: String(pageSize),
                     StartIndex: String((pageNumber - 1) * pageSize),
                 });
-                const page = (data as BaseItemDto).Type
-                    ? {
-                          items: [data as BaseItemDto],
-                          total: 1,
-                      }
-                    : {
-                          items: data.Items || [],
-                          total: data.TotalRecordCount || data.Items?.length,
-                      };
                 return {
                     ...page,
                     items: page.items.map((item) =>

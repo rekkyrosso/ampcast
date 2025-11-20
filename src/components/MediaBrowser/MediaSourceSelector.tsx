@@ -6,11 +6,13 @@ import './MediaSourceSelector.scss';
 
 export interface MediaSourceSelectorProps<T extends MediaObject> {
     sources: readonly MediaSource<T>[];
+    withButtons?: boolean;
     onSourceChange?: (source: MediaSource<T>) => void;
 }
 
 export default function MediaSourceSelector<T extends MediaObject>({
     sources,
+    withButtons,
     onSourceChange,
 }: MediaSourceSelectorProps<T>) {
     const id = useId();
@@ -22,9 +24,9 @@ export default function MediaSourceSelector<T extends MediaObject>({
 
     return (
         <div className="media-source-selector options">
-            <ul className="media-sources">
+            <ul>
                 {sources.map((source, index) => (
-                    <li className="media-source" key={source.id}>
+                    <li key={source.id}>
                         <input
                             id={`${id}-${source.id}`}
                             type="radio"
@@ -37,7 +39,7 @@ export default function MediaSourceSelector<T extends MediaObject>({
                     </li>
                 ))}
             </ul>
-            {selectedSource ? <MenuButtons source={selectedSource} /> : null}
+            {withButtons ? <MenuButtons source={selectedSource} /> : null}
         </div>
     );
 }

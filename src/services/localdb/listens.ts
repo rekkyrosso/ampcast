@@ -97,10 +97,6 @@ export async function updateListens(items: readonly Listen[]): Promise<void> {
     }
 }
 
-export function getListenId(item: MediaItem, timeFuzziness = 30): number {
-    return Math.round(item.playedAt / timeFuzziness);
-}
-
 export function findScrobble(
     scrobbles: readonly MediaItem[],
     listen: Listen,
@@ -108,11 +104,11 @@ export function findScrobble(
 ): MediaItem | undefined {
     const startTime = listen.playedAt - timeFuzziness;
     const endTime = (listen.endedAt || listen.playedAt + listen.duration) + timeFuzziness;
-    for (const item of scrobbles) {
-        const scrobbledAt = item.playedAt;
-        if (scrobbledAt > startTime && scrobbledAt < endTime) {
-            if (matchTitle(listen, item, 0.5)) {
-                return item;
+    for (const scrobble of scrobbles) {
+        const scrobbledAt = scrobble.playedAt;
+        if (scrobbledAt >= startTime && scrobbledAt <= endTime) {
+            if (matchTitle(listen, scrobble, 0.5)) {
+                return scrobble;
             }
         }
     }

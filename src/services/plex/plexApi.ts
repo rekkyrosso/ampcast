@@ -104,6 +104,42 @@ async function plexFetch({
     return response;
 }
 
+async function getPage<T extends plex.MediaObject>(
+    plexRequest: PlexRequest,
+    offset: number,
+    count: number
+): Promise<Page<T>> {
+    const {headers, ...rest} = plexRequest;
+    const {path, params} = rest;
+    const isSearchPager =
+        path.endsWith('/all') &&
+        !!(params?.title || params?.originalTitle) &&
+        params.type !== plexMediaType.Playlist &&
+        !params.extraType;
+    const request = {
+        ...rest,
+        headers: {
+            ...headers,
+            'X-Plex-Container-Size': String(count),
+            'X-Plex-Container-Start': String(offset),
+        },
+    };
+    let items: readonly T[];
+    let total = 0;
+    if (isSearchPager && offset === 0) {
+        const page = await search(request);
+        items = page.items as T[];
+        total = page.total || items.length;
+    } else {
+        const {
+            MediaContainer: {Metadata = [], size, totalSize},
+        } = await fetchJSON<plex.MetadataResponse>(request);
+        items = Metadata as T[];
+        total = totalSize || size;
+    }
+    return {items, total};
+}
+
 async function addToPlaylist(playlist: MediaPlaylist, items: readonly MediaItem[]): Promise<void> {
     const ratingKey = getRatingKeyFromSrc(playlist);
     const path = `/playlists/${ratingKey}/items`;
@@ -616,6 +652,7 @@ const plexApi = {
     getHeaders,
     getMetadata,
     getMusicLibraries,
+    getPage,
     getPlayableUrl,
     getPlaybackType,
     getRadioStations,

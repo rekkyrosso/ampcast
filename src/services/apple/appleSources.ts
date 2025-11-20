@@ -20,6 +20,7 @@ import SimplePager from 'services/pagers/SimplePager';
 import {t} from 'services/i18n';
 import {songChartsLayout} from 'components/MediaList/layouts';
 import MusicKitPager, {MusicKitPage} from './MusicKitPager';
+import MusicKitRecentlyPlayedPager from './MusicKitRecentlyPlayedPager';
 import appleSettings from './appleSettings';
 
 const serviceId: MediaServiceId = 'apple';
@@ -107,10 +108,7 @@ const appleRecentlyPlayed: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
 
     search(): Pager<MediaItem> {
-        return new MusicKitPager('/v1/me/recent/played/tracks', undefined, {
-            pageSize: 30,
-            maxSize: 200,
-        });
+        return new MusicKitRecentlyPlayedPager();
     },
 };
 
@@ -521,7 +519,7 @@ function createSearch<T extends MediaObject>(
     itemType: T['itemType'],
     props: Except<MediaSource<T>, 'itemType' | 'icon' | 'search'>,
     filters?: MusicKit.QueryParameters,
-    options?: Partial<PagerConfig>
+    options?: Partial<PagerConfig<T>>
 ): MediaSource<T> {
     return {
         ...props,
@@ -539,7 +537,7 @@ function createSearchPager<T extends MediaObject>(
     itemType: T['itemType'],
     q: string,
     filters?: MusicKit.QueryParameters,
-    options?: Partial<PagerConfig>
+    options?: Partial<PagerConfig<T>>
 ): Pager<T> {
     if (q) {
         const params: MusicKit.QueryParameters = {...filters, term: q};

@@ -13,9 +13,9 @@ import {setSourceFields} from 'services/mediaServices/servicesSettings';
 import {ActionsProps, performAction, showActionsMenu} from 'components/Actions';
 import ErrorBox, {ErrorBoxProps} from 'components/Errors/ErrorBox';
 import ListView, {Column, ListViewProps} from 'components/ListView';
-import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useFirstValue from 'hooks/useFirstValue';
 import usePager from 'hooks/usePager';
+import usePlaybackState from 'hooks/usePlaybackState';
 import usePreferences from 'hooks/usePreferences';
 import MediaListStatusBar from './MediaListStatusBar';
 import useMediaListLayout from './useMediaListLayout';
@@ -85,8 +85,10 @@ export default function MediaList<T extends MediaObject>({
     const initialError = useFirstValue(empty ? error : null);
     const success = loaded && !initialError;
     const [selectedItems, setSelectedItems] = useState<readonly T[]>([]);
-    const currentItem = useCurrentlyPlaying();
-    const currentSrc = currentItem?.src;
+    const {currentItem, paused, currentTime} = usePlaybackState();
+    const playingItem = !paused || currentTime > 0 ? currentItem : undefined;
+    const playingSrc = playingItem?.src;
+    const playingCatalogId = playingItem?.apple?.catalogId;
     const viewClassName = useViewClassName(layout);
     const {disableExplicitContent} = usePreferences();
     const onDragStart = useOnDragStart(selectedItems);
@@ -213,7 +215,9 @@ export default function MediaList<T extends MediaObject>({
             if (item?.itemType === ItemType.Media) {
                 const [serviceId, type, id] = item.src.split(':');
                 const playing =
-                    item.src === currentSrc || (type === 'listen' && id === 'now-playing')
+                    item.src === playingSrc ||
+                    (playingCatalogId && item.apple?.catalogId === playingCatalogId) ||
+                    (type === 'listen' && id === 'now-playing')
                         ? 'playing'
                         : '';
                 const unplayable =
@@ -225,7 +229,7 @@ export default function MediaList<T extends MediaObject>({
                 return '';
             }
         },
-        [currentSrc, disableExplicitContent]
+        [playingSrc, playingCatalogId, disableExplicitContent]
     );
 
     return (

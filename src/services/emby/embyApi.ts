@@ -11,6 +11,7 @@ import MediaFilter from 'types/MediaFilter';
 import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
+import {Page} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
@@ -33,6 +34,36 @@ async function get<T = BaseItemDtoQueryResult>(
 ): Promise<T> {
     const response = await embyFetch(path, params, {method: 'GET'}, settings);
     return response.json();
+}
+
+async function getPage(
+    path: string,
+    params: Record<string, Primitive>,
+    settings: EmbySettings = embySettings
+): Promise<Page<BaseItemDto>> {
+    const data = await get(
+        path,
+        {
+            IncludeItemTypes: 'Audio',
+            Fields: 'AudioInfo,ChildCount,DateCreated,Genres,MediaSources,ParentIndexNumber,Path,ProductionYear,PremiereDate,Overview,PresentationUniqueKey,ProviderIds,UserDataPlayCount,UserDataLastPlayedDate',
+            EnableUserData: true,
+            Recursive: true,
+            ImageTypeLimit: 1,
+            EnableImageTypes: 'Primary',
+            EnableTotalRecordCount: true,
+            ...params,
+        },
+        settings
+    );
+    return (data as BaseItemDto).Type
+        ? {
+              items: [data as BaseItemDto],
+              total: 1,
+          }
+        : {
+              items: data.Items || [],
+              total: data.TotalRecordCount || data.Items?.length,
+          };
 }
 
 async function addToPlaylist(
@@ -358,6 +389,7 @@ const embyApi = {
     delete: del,
     editPlaylist,
     get,
+    getPage,
     getFilters,
     getEndpointInfo,
     getMusicLibraries,

@@ -1,7 +1,7 @@
 import {EMPTY, debounceTime, filter, map, mergeMap, switchMap} from 'rxjs';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
-import {getListenId, findScrobble, observeListens, updateListens} from 'services/localdb/listens';
+import {findScrobble, observeListens, updateListens} from 'services/localdb/listens';
 import {observePlaybackStart} from 'services/mediaPlayback/playback';
 import {getServiceFromSrc} from 'services/mediaServices';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
@@ -62,13 +62,9 @@ export function scrobble(): void {
             };
             const pager = new ListenBrainzHistoryPager('listens', params, undefined, {maxSize});
             const history = await fetchFirstPage(pager);
-            const historyIds = history.map((item) => getListenId(item, timeFuzziness));
             const [ignore, unscrobbled] = partition(
                 listens,
-                (listen) =>
-                    !canScrobble(listen) ||
-                    historyIds.includes(getListenId(listen, timeFuzziness)) ||
-                    !!findScrobble(history, listen)
+                (listen) => !canScrobble(listen) || !!findScrobble(history, listen)
             );
             await updateListens(ignore.map((item) => ({...item, listenbrainzScrobbledAt: -1})));
             if (unscrobbled.length > 0) {

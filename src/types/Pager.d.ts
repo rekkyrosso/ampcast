@@ -1,4 +1,5 @@
 import type {Observable} from 'rxjs';
+import {ConditionalKeys} from 'type-fest';
 import SortParams from './SortParams';
 
 export default interface Pager<T> {
@@ -15,9 +16,10 @@ export default interface Pager<T> {
     removeItems?: <T>(items: readonly T[]) => void;
 }
 
-export interface PagerConfig {
+export interface PagerConfig<T = any> {
     readonly pageSize: number;
     readonly maxSize?: number;
+    readonly itemKey?: ConditionalKeys<T, string | number>;
     readonly passive?: boolean; // lookup only (no background fetching)
     readonly noCache?: boolean; // disable caching (implementation specific)
     readonly childSort?: SortParams;

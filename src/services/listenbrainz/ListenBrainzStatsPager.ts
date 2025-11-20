@@ -21,7 +21,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> extends Seque
     constructor(
         path: string,
         params?: Record<string, string | number | boolean>,
-        options?: Partial<PagerConfig>
+        options?: Partial<PagerConfig<T>>
     ) {
         let offset = 0;
 

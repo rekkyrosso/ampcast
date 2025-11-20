@@ -22,10 +22,11 @@ import {
     recentlyPlayedTracksLayout,
     songChartsLayout,
 } from 'components/MediaList/layouts';
-import spotifyApi, {SpotifyAlbum, SpotifyArtist, SpotifyPlaylist, SpotifyTrack} from './spotifyApi';
+import spotifyApi, {SpotifyAlbum, SpotifyArtist, SpotifyPlaylist} from './spotifyApi';
 import SpotifyPager, {SpotifyPage} from './SpotifyPager';
 import spotifySettings from './spotifySettings';
 import {getMarket} from './spotifyUtils';
+import SpotifyRecentlyPlayedBrowser from './components/SpotifyRecentlyPlayedBrowser';
 
 const serviceId: MediaServiceId = 'spotify';
 
@@ -72,24 +73,14 @@ const spotifyRecentlyPlayed: MediaSource<MediaItem> = {
     icon: 'clock',
     itemType: ItemType.Media,
     primaryItems: {
+        itemKey: 'playedAt',
         layout: removeGenre(recentlyPlayedTracksLayout),
     },
+    Component: SpotifyRecentlyPlayedBrowser,
 
     search(): Pager<MediaItem> {
-        return new SpotifyPager(async (_, limit: number, before: string): Promise<SpotifyPage> => {
-            const options: Record<string, number | string> = {limit};
-            if (before) {
-                options.before = before;
-            }
-            const {items, total, cursors} = await spotifyApi.getMyRecentlyPlayedTracks(options);
-            return {
-                items: items
-                    .filter(exists)
-                    .map((item) => ({played_at: item.played_at, ...item.track} as SpotifyTrack)),
-                total,
-                next: cursors?.before,
-            };
-        });
+        // This doesn't get called (intercepted by `SpotifyRecentlyPlayedBrowser`).
+        return new SimplePager();
     },
 };
 
@@ -422,7 +413,7 @@ function createSearch<T extends MediaObject>(
 export function createSearchPager<T extends MediaObject>(
     itemType: T['itemType'],
     q: string,
-    options?: Partial<PagerConfig>
+    options?: Partial<PagerConfig<T>>
 ): Pager<T> {
     if (q) {
         return new SpotifyPager(search(itemType, q), {maxSize: 250, ...options});

@@ -12,7 +12,7 @@ export default class LocalPlaylistItemsPager extends DexiePager<LocalPlaylistIte
     constructor(
         query: () => Promise<readonly LocalPlaylistItem[]>,
         private readonly synch: (items: readonly LocalPlaylistItem[]) => Promise<void>,
-        options?: Partial<PagerConfig>
+        options?: Partial<PagerConfig<LocalPlaylistItem>>
     ) {
         super(query, {passive: true, ...options});
     }

@@ -3,7 +3,7 @@ import {skip} from 'rxjs';
 import {MAX_DURATION} from 'services/constants';
 import mediaPlayback, {pause, play, seek, stop} from 'services/mediaPlayback';
 import {observeCurrentTime} from 'services/mediaPlayback/playback';
-import {observeCurrentIndex, observeCurrentItem} from 'services/playlist';
+import {observeCurrentIndex, observeCurrentItem, observeSize} from 'services/playlist';
 import {ListViewHandle} from 'components/ListView';
 import Time from 'components/Time';
 import useObservable from 'hooks/useObservable';
@@ -23,6 +23,7 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
     const playheadRef = useRef<HTMLInputElement>(null);
     const currentIndex = useObservable(observeCurrentIndex, -1);
     const currentItem = useObservable(observeCurrentItem, null);
+    const size = useObservable(observeSize, null);
     const {startedAt, currentTime, duration} = usePlaybackState();
     const isInfiniteStream = duration === MAX_DURATION;
     const unpausable = currentItem?.isLivePlayback || isInfiniteStream;
@@ -76,16 +77,20 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
     );
 
     const handlePrevClick = useCallback(async () => {
-        mediaPlayback.prev();
-        playlistRef.current?.scrollIntoView(currentIndex - 1);
+        if (size && currentIndex > 0) {
+            mediaPlayback.prev();
+            playlistRef.current?.scrollIntoView(currentIndex - 1);
+        }
         playlistRef.current?.focus();
-    }, [playlistRef, currentIndex]);
+    }, [playlistRef, currentIndex, size]);
 
     const handleNextClick = useCallback(async () => {
-        mediaPlayback.next();
-        playlistRef.current?.scrollIntoView(currentIndex + 1);
+        if (size && currentIndex < size - 1) {
+            mediaPlayback.next();
+            playlistRef.current?.scrollIntoView(currentIndex + 1);
+        }
         playlistRef.current?.focus();
-    }, [playlistRef, currentIndex]);
+    }, [playlistRef, currentIndex, size]);
 
     return (
         <div className="media-controls">

@@ -14,7 +14,7 @@ export default class LastFmHistoryPager extends LastFmPager<MediaItem> {
     constructor(
         type: 'listens' | 'now-playing',
         params?: LastFmHistoryPagerParams,
-        config?: LastFmPagerConfig
+        config?: LastFmPagerConfig<MediaItem>
     ) {
         super(
             {

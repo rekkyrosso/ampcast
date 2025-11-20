@@ -259,7 +259,7 @@ export default function ListView<T>({
     }, [scrollTop]);
 
     useEffect(() => {
-        if (prevItems && items.length !== prevItems.length) {
+        if (prevItems) {
             const prevItem = prevItems[rowIndex];
             if (prevItem) {
                 const index = items.findIndex(
@@ -589,9 +589,7 @@ export default function ListView<T>({
                 }
                 const dropEffect = event.dataTransfer.dropEffect;
                 if (moveable && dropEffect === 'move') {
-                    const offset = dragStartIndex < rowIndex ? -1 : 0;
                     onMove?.(selectedItems, rowIndex);
-                    setRowIndex(rowIndex + offset);
                 } else if (droppable && dropEffect === 'copy') {
                     const data = getDropData<T>(event, droppableTypes);
                     if (data) {
@@ -603,7 +601,7 @@ export default function ListView<T>({
             event.preventDefault();
             event.stopPropagation();
         },
-        [size, selectedItems, droppable, droppableTypes, moveable, dragStartIndex, onDrop, onMove]
+        [size, selectedItems, droppable, droppableTypes, moveable, onDrop, onMove]
     );
 
     const handleDragEnd = useCallback(() => {

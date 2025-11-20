@@ -14,7 +14,7 @@ export default class SequentialPager<T extends MediaObject> extends MediaPager<T
 
     constructor(
         private readonly _fetchNext: (pageSize: number) => Promise<Page<T>>,
-        config: PagerConfig,
+        config: PagerConfig<T>,
         createChildPager?: CreateChildPager<T>
     ) {
         super(config, createChildPager);
@@ -70,7 +70,7 @@ export default class SequentialPager<T extends MediaObject> extends MediaPager<T
 
     private addPage(page: Page<T>): void {
         const newItems = (page.items || []).filter(exists);
-        const items = uniqBy('src', this.items.concat(newItems));
+        const items = uniqBy(this.itemKey, this.items.concat(newItems));
         if (items.length === this.items.length) {
             // Nothing got added.
             this.emptyCount++;
