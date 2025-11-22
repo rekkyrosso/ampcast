@@ -17,7 +17,7 @@
             margin: 0.5em 0 0 0;
         }
 
-        .external-link-text {
+        .external-link {
             text-decoration: underline;
         }
     }
@@ -42,11 +42,33 @@
         overflow-wrap: anywhere;
         hyphens: auto;
         line-height: normal;
+
+        &:has(+ .duration, + .track-count) {
+            margin-right: 2em;
+        }
     }
 
-    .artist {
-        margin-bottom: 0.125em;
-        font-size: 1.125em;
+    .duration,
+    .track-count {
+        position: absolute;
+        top: -0.25em;
+        right: 0;
+        min-width: 1.5em;
+        height: 1.5em;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0 0.5em;
+        border-radius: calc(var(--roundness) * 0.75em);
+        background-color: var(--background-mark-color);
+        color: var(--text-color-max);
+        font-size: 0.875em;
+        user-select: none;
+        line-height: normal;
+
+        &:empty {
+            display: none;
+        }
     }
 
     .artist,
@@ -54,7 +76,7 @@
     .genre,
     .station-name {
         display: flex;
-        margin-top: 0.25em;
+        margin-top: 0.5em;
         gap: 0.25em;
 
         .text-label {
@@ -62,19 +84,10 @@
         }
     }
 
-    .duration,
-    .track-count {
-        position: absolute;
-        top: 0.5em;
-        right: 0.5em;
-        padding: 0.125em .375em;
-        color: var(--text-color);
-        background-color: rgba(0, 0, 0, 0.25);
-        border-radius: 0.25em;
-
-        &:empty {
-            display: none;
-        }
+    .artist {
+        margin-top: 0.25em;
+        margin-bottom: 0.125em;
+        font-size: 1.125em;
     }
 
     .external-view {

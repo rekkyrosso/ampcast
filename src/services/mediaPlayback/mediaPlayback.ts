@@ -225,6 +225,7 @@ function observePlaylistAtStart(): Observable<boolean> {
     );
 }
 
+// Prevent loading the media player while skipping tracks.
 function lockLoading() {
     miniPlayer.lock();
     if (loadingLocked$.value === false) {
@@ -413,6 +414,15 @@ if (!isMiniPlayer) {
                 } else {
                     playlist.next();
                 }
+            }
+        });
+
+    playback
+        .observePlaybackEnd()
+        .pipe(takeUntil(killed$))
+        .subscribe(() => {
+            if (mediaPlayback.stopAfterCurrent) {
+                stop();
             }
         });
 

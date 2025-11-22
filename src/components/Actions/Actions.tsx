@@ -8,6 +8,7 @@ import MediaService from 'types/MediaService';
 import {getServiceFromSrc} from 'services/mediaServices';
 import IconButton from 'components/Button';
 import IconButtons from 'components/Button/IconButtons';
+import PopupMenuButton from 'components/Button/PopupMenuButton';
 import {IconName} from 'components/Icon';
 import StarRating from 'components/StarRating';
 import {showActionsMenu} from './ActionsMenu';
@@ -61,10 +62,9 @@ export default function Actions({
     }, [item]);
 
     const handleMenuClick = useCallback(
-        async (event: React.MouseEvent<HTMLButtonElement>) => {
-            const button = (event.target as HTMLButtonElement).closest('button')!;
-            const rect = button.getBoundingClientRect();
-            const action = await showMenu([item], button, rect.right, rect.bottom, 'right', {
+        async (button: HTMLButtonElement) => {
+            const {right, bottom} = button.getBoundingClientRect();
+            const action = await showMenu([item], button, right, bottom, 'right', {
                 inListView,
                 parentPlaylist,
             });
@@ -89,11 +89,10 @@ export default function Actions({
     return (
         <IconButtons>
             {!inInfoView ? (
-                <IconButton
-                    icon="menu"
+                <PopupMenuButton
                     title="More…"
                     tabIndex={tabIndex}
-                    onClick={handleMenuClick}
+                    showPopup={handleMenuClick}
                     key="menu"
                 />
             ) : null}

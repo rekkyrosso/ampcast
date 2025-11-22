@@ -4,6 +4,7 @@ import MediaObject from 'types/MediaObject';
 import MediaSource, {MediaSourceItems} from 'types/MediaSource';
 import {getService} from 'services/mediaServices';
 import IconButton from 'components/Button';
+import PopupMenuButton from 'components/Button/PopupMenuButton';
 import {showCreatePlaylistDialog} from 'components/Actions/CreatePlaylistDialog';
 import {showMediaSourceMenu} from './MediaSourceMenu';
 import './MenuButtons.scss';
@@ -18,10 +19,8 @@ export default function MenuButtons<T extends MediaObject>({source}: MenuButtons
     }, []);
 
     const handleOptionsClick = useCallback(
-        async (event: React.MouseEvent<HTMLButtonElement>) => {
-            const button = (event.target as HTMLButtonElement).closest('button')!;
-            const {right} = button.getBoundingClientRect();
-            const {bottom} = (event.target as HTMLButtonElement).getBoundingClientRect();
+        async (button: HTMLButtonElement) => {
+            const {right, bottom} = button.getBoundingClientRect();
             await showMediaSourceMenu(source, button, right, bottom + 4);
         },
         [source]
@@ -37,7 +36,7 @@ export default function MenuButtons<T extends MediaObject>({source}: MenuButtons
                 />
             ) : null}
             {hasOptionsButton(source) ? (
-                <IconButton title="Options…" icon="menu" onClick={handleOptionsClick} />
+                <PopupMenuButton title="Options…" showPopup={handleOptionsClick} />
             ) : null}
         </div>
     );

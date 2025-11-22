@@ -1,5 +1,6 @@
 import React from 'react';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaFolder from 'types/MediaFolder';
@@ -14,6 +15,7 @@ import CoverArt, {CoverArtProps} from 'components/CoverArt';
 import ExternalLink from 'components/ExternalLink';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import TextBox from 'components/TextBox';
+import Time from 'components/Time';
 import './MediaInfo.scss';
 
 export interface MediaInfoProps<T extends MediaObject> {
@@ -45,6 +47,9 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
             <div className="media-info-main">
                 <Thumbnail item={item} extendedSearch />
                 <Title title={item.title} />
+                {item.linearType === LinearType.Station ? null : (
+                    <Duration duration={item.duration} />
+                )}
                 <Artist artist={item.artists?.join(', ')} />
                 <AlbumAndYear album={item.album} year={item.year} />
                 <Track album={item.album} disc={item.disc} track={item.track} />
@@ -71,6 +76,7 @@ function AlbumInfo({item: album}: MediaInfoProps<MediaAlbum>) {
             <div className="media-info-main">
                 <Thumbnail item={album} extendedSearch />
                 <Title title={album.title} />
+                <TrackCount trackCount={album.trackCount} />
                 <Artist artist={album.artist} />
                 <Year year={album.year} />
                 <div className="media-info-icon-bar">
@@ -109,6 +115,7 @@ function PlaylistInfo({item: playlist}: MediaInfoProps<MediaPlaylist>) {
             <div className="media-info-main">
                 <Thumbnail item={playlist} />
                 <Title title={playlist.title} />
+                <TrackCount trackCount={playlist.trackCount} />
                 <Owner owner={playlist.owner} src={playlist.src} />
                 <Genre genres={playlist.genres} />
                 <div className="media-info-icon-bar">
@@ -144,6 +151,22 @@ function Description<T extends MediaPlaylist>({description}: Pick<T, 'descriptio
             ))}
         </TextBox>
     ) : null;
+}
+
+function Duration<T extends MediaItem>({duration}: Pick<T, 'duration'>) {
+    return (
+        <p className="duration">
+            <Time className="text" time={duration || 0} />
+        </p>
+    );
+}
+
+function TrackCount<T extends MediaAlbum | MediaPlaylist>({trackCount}: Pick<T, 'trackCount'>) {
+    if (trackCount == null) {
+        return null;
+    }
+    const value = Number(trackCount);
+    return isNaN(value) ? null : <p className="track-count">{value.toLocaleString()}</p>;
 }
 
 function Artist<T extends MediaAlbum>({artist}: Pick<T, 'artist'>) {
@@ -269,11 +292,7 @@ function AlbumAndYear<T extends MediaItem>({album, year}: Pick<T, 'album' | 'yea
     );
 }
 
-function Track<T extends MediaItem>({
-    album,
-    disc = 1,
-    track,
-}: Pick<T, 'album' | 'disc' | 'track'>) {
+function Track<T extends MediaItem>({album, disc = 1, track}: Pick<T, 'album' | 'disc' | 'track'>) {
     if (album && track) {
         return (
             <p className="track">

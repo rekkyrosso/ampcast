@@ -5,6 +5,7 @@ import MediaLibrary from 'components/MediaLibrary';
 import MediaPlayback from 'components/MediaPlayback';
 import Splitter from 'components/Splitter';
 import useAppSettings from './useAppSettings';
+import useAppUpdated from './useAppUpdated';
 import useBrowser from './useBrowser';
 import useConnectivity from './useConnectivity';
 import usePseudoClasses from './usePseudoClasses';
@@ -22,6 +23,7 @@ export default function AppContent() {
     usePreventDrop();
     useMediaSession();
     useGlobalActions();
+    useAppUpdated();
 
     return isMiniPlayer ? (
         <MiniPlayer />

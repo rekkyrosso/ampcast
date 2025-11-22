@@ -96,14 +96,15 @@ function setCurrentItem(nextItem: PlaylistItem | null): void {
                 playbackState$.next({...state, endedAt: Date.now()});
             }
             // Playback session start.
+            const currentState = playbackState$.value; // Use current state
             const isLinearItem = nextItem?.linearType && nextItem.linearType !== LinearType.Station;
             playbackState$.next({
-                ...state,
+                ...currentState,
                 ...newSession(),
-                startedAt: isLinearItem && !state.paused ? Date.now() : 0,
+                startedAt: isLinearItem && !currentState.paused ? Date.now() : 0,
                 currentItem: nextItem,
-                currentTime: isLinearItem ? state.currentTime : nextItem?.startTime || 0,
-                duration: isLinearItem ? state.duration : nextItem?.duration || 0,
+                currentTime: isLinearItem ? currentState.currentTime : nextItem?.startTime || 0,
+                duration: isLinearItem ? currentState.duration : nextItem?.duration || 0,
             });
         }
     }
@@ -201,7 +202,7 @@ function ended(): void {
             playbackState$.next({...state, endedAt: Date.now()});
         }
         playbackState$.next({
-            ...state,
+            ...playbackState$.value, // Use current state.
             ...newSession(),
         });
     }

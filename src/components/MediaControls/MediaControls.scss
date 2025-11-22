@@ -59,6 +59,7 @@
         min-width: 4.5rem;
         border-radius: calc(var(--roundness) * 1rem);
         user-select: none;
+        cursor: pointer;
     }
 
     #playhead {
@@ -91,10 +92,5 @@
         &.smile::-moz-range-thumb {
             @include smiley-thumb;
         }
-    }
-
-    input[type="file"] {
-        position: absolute;
-        visibility: hidden;
     }
 }

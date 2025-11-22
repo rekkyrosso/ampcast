@@ -7,16 +7,15 @@ import {LoginProps} from './Login';
 export default function HTTPDownloadLink({service}: LoginProps) {
     const showDownloadLink =
         location.protocol === 'https:' &&
-        service.serviceType === ServiceType.PersonalMedia && service.id !== 'plex';
+        service.serviceType === ServiceType.PersonalMedia &&
+        service.id !== 'plex';
 
     return showDownloadLink ? (
-        <>
-            <p className="login-download">
-                Download the <ExternalLink href={downloadUrl}>desktop app</ExternalLink> if you are unable
-                to login via HTTPS
-                <br />
-                or use the <ExternalLink href={dockerUrl}>docker image</ExternalLink>.
-            </p>
-        </>
+        <p className="login-download">
+            Download the <ExternalLink href={downloadUrl}>desktop app</ExternalLink> if you are
+            unable to login via HTTPS
+            <br />
+            or use the <ExternalLink href={dockerUrl}>docker image</ExternalLink>.
+        </p>
     ) : null;
 }

@@ -4,7 +4,7 @@ import useSubject from './useSubject';
 
 export default function useThrottledValue<T>(
     initialValue: T,
-    dueTime: number,
+    duration: number,
     {leading = true, trailing = false}: ThrottleConfig = {}
 ) {
     const [throttledValue, setThrottledValue] = useState<T>(initialValue);
@@ -12,10 +12,10 @@ export default function useThrottledValue<T>(
 
     useEffect(() => {
         const subscription = value$
-            .pipe(throttleTime(dueTime, undefined, {leading, trailing}))
+            .pipe(throttleTime(duration, undefined, {leading, trailing}))
             .subscribe(setThrottledValue);
         return () => subscription.unsubscribe();
-    }, [value$, dueTime, leading, trailing]);
+    }, [value$, duration, leading, trailing]);
 
     return [throttledValue, nextValue] as const;
 }

@@ -24,12 +24,12 @@
 
     .external-link {
         margin-left: 0.25em;
+        text-decoration: underline;
 
         &-text {
             max-width: 24em;
             text-overflow: ellipsis;
             overflow: hidden;
-            text-decoration: underline;
         }
     }
 

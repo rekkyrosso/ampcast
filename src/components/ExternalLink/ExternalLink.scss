@@ -14,11 +14,13 @@
         flex-direction: row;
         align-items: center;
         justify-content: center;
+        text-decoration: inherit;
     }
 
     &-text {
         border-radius: calc(var(--roundness) * 0.5em);
         outline-offset: 0.125em;
+        text-decoration: inherit;
 
         .icon + & {
             margin-left: 0.25em;
@@ -28,6 +30,10 @@
     .focus-visible &:focus &-text {
         @include effects.outline;
         outline-width: 2px;
+    }
+
+    .icon {
+        text-decoration: none;
     }
 
     > .icon-link {

@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import LinearType from 'types/LinearType';
 import LookupStatus from 'types/LookupStatus';
 import PlaylistItem from 'types/PlaylistItem';
-import {MAX_DURATION} from 'services/constants';
 import mediaPlayer from 'services/mediaPlayback/mediaPlayer';
 import {hasPlayableSrc} from 'services/mediaServices';
 import {ExplicitBadge, LivePlaybackBadge} from 'components/Badges';
@@ -171,10 +170,6 @@ function RowTitle(item: PlaylistItem) {
     );
 }
 
-function Duration({duration}: PlaylistItem) {
-    return duration === MAX_DURATION ? (
-        <span className="text">–:––</span>
-    ) : (
-        <Time className="text" time={duration} />
-    );
+function Duration(item: PlaylistItem) {
+    return <Time className="text" time={item.duration} />;
 }

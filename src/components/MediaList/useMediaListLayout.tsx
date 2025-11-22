@@ -11,7 +11,6 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import {exists, getElapsedTimeText, uniq} from 'utils';
-import {MAX_DURATION} from 'services/constants';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {setSourceFields} from 'services/mediaServices/servicesSettings';
 import {ColumnSpec, ListViewLayout} from 'components/ListView';
@@ -19,7 +18,7 @@ import DefaultActions, {ActionsProps, performAction} from 'components/Actions';
 import {ExplicitBadge, getAlbumTypeText, LivePlaybackBadge} from 'components/Badges';
 import CoverArt from 'components/CoverArt';
 import Icon, {IconName} from 'components/Icon';
-import IconButton from 'components/Button';
+import PopupMenuButton from 'components/Button/PopupMenuButton';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import StarRating from 'components/StarRating';
 import SunClock from 'components/SunClock';
@@ -118,12 +117,10 @@ function createMediaListLayout<T extends MediaObject = MediaObject>(
         ]);
         const hiddenFields = allFields.filter((field) => !visibleFields.includes(field));
         (actions as any).title = (
-            <IconButton
-                icon="menu"
+            <PopupMenuButton
                 title="Options…"
                 tabIndex={-1}
-                onClick={async (event: React.MouseEvent) => {
-                    const button = (event.target as HTMLButtonElement).closest('button')!;
+                showPopup={async (button: HTMLButtonElement) => {
                     const {right, bottom} = button.getBoundingClientRect();
                     await showPopupMenu(button, right, bottom + 4);
                 }}
@@ -161,7 +158,7 @@ function createMediaListLayout<T extends MediaObject = MediaObject>(
 type MediaFields = Record<Field, FieldSpec>;
 type RenderField<T extends MediaObject = MediaObject> = ColumnSpec<T>['render'];
 
-const Index: RenderField = (_, {rowIndex}) => <Text value={rowIndex + 1} />;
+const Index: RenderField = (_, info) => <Text value={info.rowIndex + 1} />;
 
 const Title: RenderField = (item) => {
     return (
@@ -235,12 +232,9 @@ const AlbumType: RenderField<MediaAlbum> = (album) => {
     return <Text value={album.albumType ? getAlbumTypeText(album.albumType) : ''} />;
 };
 
-const Duration: RenderField<MediaPlaylist | MediaItem> = (item) =>
-    item.duration === MAX_DURATION ? (
-        <span className="text">–:––</span>
-    ) : (
-        <Time className="text" time={item.duration || 0} />
-    );
+const Duration: RenderField<MediaPlaylist | MediaItem> = (item) => (
+    <Time className="text" time={item.duration || 0} />
+);
 
 const PlayCount: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => (
     <Text value={getPlayCount(item.playCount)} />
@@ -344,13 +338,13 @@ const AlbumAndYear: RenderField<MediaItem> = (item) => (
     />
 );
 
-const FileIcon: RenderField<MediaFolderItem> = (item: MediaFolderItem, {rowIndex}) => {
+const FileIcon: RenderField<MediaFolderItem> = (item: MediaFolderItem, info) => {
     const icon =
         item.itemType === ItemType.Media
             ? item.mediaType === MediaType.Video
                 ? 'file-video'
                 : 'file-audio'
-            : rowIndex === 0 && item.fileName.startsWith('../')
+            : info.rowIndex === 0 && item.fileName.startsWith('../')
             ? 'folder-up'
             : 'folder';
     return (
@@ -360,8 +354,8 @@ const FileIcon: RenderField<MediaFolderItem> = (item: MediaFolderItem, {rowIndex
     );
 };
 
-const Thumbnail: RenderField = (item, {busy}) => {
-    return <CoverArt item={item} placeholder={busy} />;
+const Thumbnail: RenderField = (item, info) => {
+    return <CoverArt item={item} placeholder={info.busy} />;
 };
 
 const Rate: RenderField = (item) => {

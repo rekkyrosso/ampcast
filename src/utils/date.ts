@@ -42,10 +42,11 @@ export function formatMonth(date?: number | string | Date): string {
 }
 
 export function formatTime(seconds: number): string {
-    return new Date(Math.floor((seconds || 0) * 1000))
+    const time = new Date(Math.floor((Math.abs(seconds) || 0) * 1000))
         .toISOString()
         .slice(11, 19) // time portion of: YYYY-MM-DDTHH:mm:ss.sssZ
         .replace(/^[0:]+(.{4,})$/, '$1'); // remove leading zeroes
+    return seconds < 0 ? `-${time}` : time;
 }
 
 export function parseISO8601(value: string): number {

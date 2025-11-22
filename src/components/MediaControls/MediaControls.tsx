@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {skip} from 'rxjs';
+import {LiteStorage, clamp} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import mediaPlayback, {pause, play, seek, stop} from 'services/mediaPlayback';
 import {observeCurrentTime} from 'services/mediaPlayback/playback';
@@ -7,13 +8,14 @@ import {observeCurrentIndex, observeCurrentItem, observeSize} from 'services/pla
 import {ListViewHandle} from 'components/ListView';
 import Time from 'components/Time';
 import useObservable from 'hooks/useObservable';
-import usePaused from 'hooks/usePaused';
 import usePlaybackState from 'hooks/usePlaybackState';
 import useThrottledValue from 'hooks/useThrottledValue';
 import MediaButton from './MediaButton';
 import VolumeControl from './VolumeControl';
 import usePlaylistMenu from './usePlaylistMenu';
 import './MediaControls.scss';
+
+const storage = new LiteStorage('currentTimeControl', 'session');
 
 export interface MediaControlsProps {
     playlistRef: React.RefObject<ListViewHandle | null>;
@@ -23,19 +25,29 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
     const playheadRef = useRef<HTMLInputElement>(null);
     const currentIndex = useObservable(observeCurrentIndex, -1);
     const currentItem = useObservable(observeCurrentItem, null);
-    const size = useObservable(observeSize, null);
-    const {startedAt, currentTime, duration} = usePlaybackState();
+    const size = useObservable(observeSize, 0);
+    const {startedAt, currentTime, duration, paused} = usePlaybackState();
     const isInfiniteStream = duration === MAX_DURATION;
     const unpausable = currentItem?.isLivePlayback || isInfiniteStream;
-    const paused = usePaused();
     const {showPlaylistMenu} = usePlaylistMenu(playlistRef);
     const [seekTime, setSeekTime] = useThrottledValue(-1, 300, {trailing: true});
     const [seeking, setSeeking] = useState(false);
-    const displayTime = isInfiniteStream
+    const [popupOpen, setPopupOpen] = useState(false);
+    const [showRemainingTime, setShowRemainingTime] = useState(() =>
+        storage.getBoolean('showRemainingTime')
+    );
+    const elapsedTime = isInfiniteStream
         ? startedAt
             ? (Date.now() - startedAt) / 1000
             : 0
         : currentTime;
+    const remainingTime = isInfiniteStream ? -MAX_DURATION : elapsedTime - duration;
+
+    const toggleTimeDisplay = useCallback(() => {
+        const newValue = !storage.getBoolean('showRemainingTime');
+        storage.setBoolean('showRemainingTime', newValue);
+        setShowRemainingTime(newValue);
+    }, []);
 
     useEffect(() => {
         if (!seeking) {
@@ -69,36 +81,40 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
 
     const handleMenuClick = useCallback(
         async (event: React.MouseEvent<HTMLButtonElement>) => {
+            setPopupOpen(true);
             const button = (event.target as HTMLButtonElement).closest('button')!;
             const {right, bottom} = button.getBoundingClientRect();
             await showPlaylistMenu(button, right, bottom + 4);
+            setTimeout(() => setPopupOpen(false), 300);
         },
         [showPlaylistMenu]
     );
 
     const handlePrevClick = useCallback(async () => {
-        if (size && currentIndex > 0) {
-            mediaPlayback.prev();
-            playlistRef.current?.scrollIntoView(currentIndex - 1);
-        }
+        const index = clamp(0, currentIndex - 1, size - 1);
+        playlistRef.current?.scrollIntoView(index);
         playlistRef.current?.focus();
+        mediaPlayback.prev();
     }, [playlistRef, currentIndex, size]);
 
     const handleNextClick = useCallback(async () => {
-        if (size && currentIndex < size - 1) {
-            mediaPlayback.next();
-            playlistRef.current?.scrollIntoView(currentIndex + 1);
-        }
+        const index = clamp(0, currentIndex + 1, size - 1);
+        playlistRef.current?.scrollIntoView(index);
         playlistRef.current?.focus();
+        mediaPlayback.next();
     }, [playlistRef, currentIndex, size]);
 
     return (
         <div className="media-controls">
             <div className="current-time-control">
-                <Time time={displayTime} />
+                <Time
+                    time={showRemainingTime ? remainingTime : elapsedTime}
+                    title="Toggle elapsed/remaining time"
+                    onClick={toggleTimeDisplay}
+                />
                 <input
                     id="playhead"
-                    className={!paused && displayTime >= 1 ? 'smile' : undefined}
+                    className={!paused && elapsedTime >= 1 ? 'smile' : undefined}
                     type="range"
                     aria-label="Seek"
                     min={0}
@@ -130,7 +146,11 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
                     <MediaButton aria-label="Next track" icon="next" onClick={handleNextClick} />
                 </div>
                 <div className="media-buttons-menu">
-                    <MediaButton title="More…" icon="menu" onClick={handleMenuClick} />
+                    <MediaButton
+                        title="More…"
+                        icon="menu"
+                        onClick={popupOpen ? undefined : handleMenuClick}
+                    />
                 </div>
             </div>
         </div>

@@ -4,6 +4,8 @@ import {
     BehaviorSubject,
     Subject,
     catchError,
+    combineLatest,
+    debounceTime,
     delay,
     distinctUntilChanged,
     filter,
@@ -50,6 +52,7 @@ export class SpotifyPlayer implements Player<PlayableItem> {
     private readonly error$ = new Subject<unknown>();
     private readonly playerLoaded$ = new BehaviorSubject(false);
     private readonly state$ = new BehaviorSubject<Spotify.PlaybackState | null>(null);
+    private stopped = false;
     private loadedSrc = '';
     private loadError?: LoadError;
     private deviceId = '';
@@ -143,6 +146,18 @@ export class SpotifyPlayer implements Player<PlayableItem> {
             )
             .subscribe(logger);
 
+        // Fix play state mismatches.
+        combineLatest([this.observePaused(), this.observeState()])
+            .pipe(
+                map(([paused, state]) => paused && !state.loading && !state.paused),
+                distinctUntilChanged(),
+                filter((isMisMatch) => isMisMatch && this.stopped),
+                debounceTime(10), // Needs to be async
+                tap(() => logger.log('State mismatch: stopping...')),
+                mergeMap(() => this.safeStop())
+            )
+            .subscribe(logger);
+
         // Stop and emit an error on logout.
         // The media player will only emit the error if Spotify is the current player.
         this.observeIsLoggedIn()
@@ -228,6 +243,9 @@ export class SpotifyPlayer implements Player<PlayableItem> {
 
     load(item: PlayableItem): void {
         logger.log('load', item.src);
+        if (this.autoplay) {
+            this.stopped = false;
+        }
         this.item$.next(item);
         this.paused$.next(!this.autoplay);
         if (item.src === this.loadedSrc) {
@@ -241,6 +259,7 @@ export class SpotifyPlayer implements Player<PlayableItem> {
 
     play(): void {
         logger.log('play');
+        this.stopped = false;
         this.paused$.next(false);
         if (this.src === this.loadedSrc) {
             this.safePlay();
@@ -255,6 +274,7 @@ export class SpotifyPlayer implements Player<PlayableItem> {
 
     stop(): void {
         logger.log('stop');
+        this.stopped = true;
         this.paused$.next(true);
         if (this.item?.startTime) {
             this.item$.next({...this.item, startTime: 0});
@@ -627,8 +647,9 @@ export class SpotifyPlayer implements Player<PlayableItem> {
     }
 
     private async unload(): Promise<void> {
-        await this.safeStop();
+        this.stopped = true;
         this.loadedSrc = '';
+        await this.safeStop();
     }
 
     private async waitForPlayer(): Promise<boolean> {

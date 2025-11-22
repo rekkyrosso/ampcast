@@ -167,6 +167,7 @@
 
         .title {
             @include effects.line-clamp(3);
+            line-height: 1.2;
         }
 
         .sub-title {

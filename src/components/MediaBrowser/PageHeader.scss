@@ -35,9 +35,10 @@
 
     .media-source-label {
         max-width: 100%;
+        overflow: hidden;
 
-        &:has(+ .icon-button-menu) {
-            max-width: calc(100% - 1.25em);
+        &:has(+ .menu-buttons) {
+            margin-right: 0.5em;
         }
 
         .icon {

@@ -5,7 +5,7 @@ import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {getPlaylistItemsByService, getRecentPlaylists} from 'services/recentPlaylists';
-import IconButton from 'components/Button';
+import PopupMenuButton from 'components/Button/PopupMenuButton';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import PopupMenu, {
     PopupMenuItem,
@@ -25,8 +25,7 @@ export function AddToPlaylistButton<T extends MediaItem>({item}: AddToPlaylistBu
     const itemsByService = getPlaylistItemsByService(playlistItems);
 
     const handleAddToPlaylistClick = useCallback(
-        async (event: React.MouseEvent<HTMLButtonElement>) => {
-            const button = (event.target as HTMLButtonElement).closest('button')!;
+        async (button: HTMLButtonElement) => {
             const rect = button.getBoundingClientRect();
             const action = await showAddToPlaylistMenu(
                 playlistItems,
@@ -43,10 +42,10 @@ export function AddToPlaylistButton<T extends MediaItem>({item}: AddToPlaylistBu
     );
 
     return itemsByService.length === 0 ? null : (
-        <IconButton
+        <PopupMenuButton
             icon="playlist-add"
             title="Add to playlist…"
-            onClick={handleAddToPlaylistClick}
+            showPopup={handleAddToPlaylistClick}
         />
     );
 }

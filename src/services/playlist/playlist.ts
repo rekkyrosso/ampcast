@@ -267,11 +267,11 @@ export function reverseAt(index: number, length: number): void {
     setItems(items);
 }
 
-export async function shuffle(preserveCurrentlyPlaying?: boolean): Promise<void> {
+export async function shuffle(preserveCurrentItem?: boolean): Promise<void> {
     const currentItems = getItems().slice();
     if (currentItems.length > 0) {
         const currentItem = getCurrentItem();
-        if (preserveCurrentlyPlaying && currentItem) {
+        if (preserveCurrentItem && currentItem) {
             const items = shuffleArray(currentItems.filter((item) => item !== currentItem));
             items.unshift(currentItem);
             setItems(items);
@@ -363,7 +363,7 @@ if (isMiniPlayer) {
     setCurrentItemId('');
     setItems([]);
 } else {
-    // Load playlist.
+    // Load playlist from `IndexedDB`.
     (async () => {
         try {
             const [items = [], id = ''] = await Promise.all([
@@ -379,7 +379,7 @@ if (isMiniPlayer) {
         }
     })();
 
-    // Save playlist to `localStorage`.
+    // Save playlist to `IndexedDB`.
     items$
         .pipe(
             skip(2),
@@ -403,7 +403,7 @@ if (isMiniPlayer) {
         )
         .subscribe(logger);
 
-    // Save "currently playing" to `localStorage`.
+    // Save "currently playing" to `IndexedDB`.
     currentItemId$
         .pipe(
             skip(2),

@@ -6,6 +6,7 @@ import abstract_audio_react from './abstract_audio_react.frag';
 import abstractMusic from './abstractMusic.frag';
 import allNight from './allNight.frag';
 import ambilight from './ambilight.frag';
+import aquaticAmbience from './aquaticAmbience.frag';
 import attemptAtVdjEffects from './attemptAtVdjEffects.frag';
 import audioFlightV2 from './audioFlightV2.frag';
 import audioPulsar from './audioPulsar.frag';
@@ -56,6 +57,7 @@ import goatranceTrip from './goatranceTrip.frag';
 import hilbertColor from './hilbertColor.frag';
 import io from './io.frag';
 import issues from './issues.frag';
+import jellify from './jellify.frag';
 import lelabah from './lelabah.frag';
 import lightningStorm from './lightningStorm.frag';
 import mandelKoch from './mandelKoch.frag';
@@ -81,6 +83,7 @@ import popShift from './popShift.frag';
 import psychedelicEye from './psychedelicEye.frag';
 import psychedelicLines from './psychedelicLines.frag';
 import purpleSpaghetti from './purpleSpaghetti.frag';
+import radialAudioSpectrum from './radialAudioSpectrum.frag';
 import radialSoundVisualizer from './radialSoundVisualizer.frag';
 import rainbow from './rainbow.frag';
 import russianRoulette from './russianRoulette.frag';
@@ -97,6 +100,7 @@ import soundSinusWave from './soundSinusWave.frag';
 import spaceWithMusic from './spaceWithMusic.frag';
 import spaceshipConsole from './spaceshipConsole.frag';
 import speaker from './speaker.frag';
+import spectralizer from './spectralizer.frag';
 import symmetricalSoundVisualiser from './symmetricalSoundVisualiser.frag';
 import technoCore from './technoCore.frag';
 import uctumi from './uctumi.frag';
@@ -106,6 +110,26 @@ import wavesRemix from './wavesRemix.frag';
 import yearOfTruchets018 from './yearOfTruchets018.frag';
 
 const presets: AmpShaderVisualizer[] = [
+    {
+        id: 'tccXR2',
+        name: 'Radial Audio Spectrum 🔊 GLSL Vi by mickaellherminez',
+        shader: radialAudioSpectrum,
+    },
+    {
+        id: '4fVcDK',
+        name: 'Jellify by zufu',
+        shader: jellify,
+    },
+    {
+        id: 'wXscWN',
+        name: '🎵🔥<<< SPECTRALIZER >>>🔥🎵 by chronos',
+        shader: spectralizer,
+    },
+    {
+        id: 'tXtGzr',
+        name: 'aquatic ambiance (2025) by anthromni',
+        shader: aquaticAmbience,
+    },
     {
         id: 'Dtj3zW',
         name: '3D Audio Visualizer #2 by kishimisu',
