@@ -125,7 +125,7 @@ async function setFavoriteSongsId(musicKit: MusicKit.MusicKitInstance): Promise<
     if (!appleSettings.favoriteSongsId) {
         const {
             data: {data: playlists = []},
-        } = await musicKit.api.music('/v1/me/library/playlists', {
+        } = await musicKit.api.music('/v1/me/library/playlist-folders/p.playlistsroot/children', {
             'extend[library-playlists]': 'tags',
             'fields[library-playlists]': 'tags',
         });
