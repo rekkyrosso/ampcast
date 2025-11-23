@@ -1,6 +1,6 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
-import {LiteStorage} from 'utils';
+import {browser, LiteStorage} from 'utils';
 import {sp_client_id} from 'services/mediaServices/buildConfig';
 
 export interface SpotifyCredentials {
@@ -62,7 +62,7 @@ const spotifySettings = {
     get restrictedApi(): boolean {
         // https://developer.spotify.com/blog/2024-11-27-changes-to-the-web-api
         // https://ampcast.app is exempt from these changes.
-        return !/^ampcast\.(app|dev)$/.test(location.hostname);
+        return !browser.isAmpcastApp;
     },
 
     get token(): TokenStore | null {

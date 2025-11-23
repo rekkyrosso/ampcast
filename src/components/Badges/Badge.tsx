@@ -6,7 +6,6 @@ import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import {copyToClipboard} from 'utils';
-import audioSettings from 'services/audio/audioSettings';
 import CopyButton from 'components/Button/CopyButton';
 import Icon from 'components/Icon';
 import './Badge.scss';
@@ -97,7 +96,7 @@ export interface ReplayGainBadgeProps {
 }
 
 export function ReplayGainBadge({item}: ReplayGainBadgeProps) {
-    return audioSettings.replayGainMode && (item.albumGain ?? item.trackGain) != null ? (
+    return (item.albumGain ?? item.trackGain) != null ? (
         <Badge className="replay-gain" title="ReplayGain metadata">
             RG
         </Badge>

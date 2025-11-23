@@ -20,5 +20,6 @@ export default {
     desktop,
     cmdKey,
     cmdKeyStr,
-    isElectron: isElectron()
+    isAmpcastApp: /^ampcast\.(app|dev)$/.test(location.hostname),
+    isElectron: isElectron(),
 };

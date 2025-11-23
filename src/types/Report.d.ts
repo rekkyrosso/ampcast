@@ -5,7 +5,7 @@ export default interface Report {
     readonly ampcastVersion: string;
     readonly client: {
         readonly isAmpcastApp: boolean;
-        readonly isElectronApp: boolean;
+        readonly isElectron: boolean;
         readonly isPWA: boolean;
         readonly isHttps: boolean;
         readonly isLocalhost: boolean;

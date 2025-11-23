@@ -1,4 +1,6 @@
 export default interface AmpcastElectron {
+    disableLoopbackAudio: () => Promise<void>;
+    enableLoopbackAudio: () => Promise<void>;
     getCredential(key: string): Promise<string>;
     setCredential(key: string, value: string): Promise<void>;
     clearCredentials(): Promise<void>;

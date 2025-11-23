@@ -1,4 +1,5 @@
 import VisualizerProviderId from 'types/VisualizerProviderId';
+import {browser} from 'utils';
 import {getVisualizerProvider} from 'services/visualizer/visualizerProviders';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
 
@@ -24,6 +25,7 @@ function getWeightings(isSpotify: boolean): readonly Weighting[] {
     const randomness = visualizerSettings[isSpotify ? 'spotifyRandomness' : 'randomness'];
     const providerIds = Object.keys(randomness) as VisualizerProviderId[];
     return providerIds
+        .filter((id) => (id === 'spotifyviz' ? browser.isAmpcastApp : true))
         .map((id) => {
             const provider = getVisualizerProvider(id);
             const label = provider?.shortName || provider?.name || id;

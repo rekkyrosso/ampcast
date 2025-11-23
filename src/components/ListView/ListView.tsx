@@ -519,20 +519,18 @@ export default function ListView<T>({
             if (draggable || moveable) {
                 dataTransfer.setDragImage(dragImageRef.current!, -16, -16);
                 let effectAllowed: DataTransfer['effectAllowed'] = 'none';
-                let dropEffect: DataTransfer['dropEffect'] = 'none';
                 if (draggable && moveable) {
                     effectAllowed = 'copyMove';
-                    dropEffect = 'copy';
+                    setDropEffect(event, 'copy');
                 } else if (draggable) {
                     effectAllowed = 'copy';
-                    dropEffect = 'copy';
+                    setDropEffect(event, 'copy');
                 } else {
                     effectAllowed = 'move';
-                    dropEffect = 'move';
+                    setDropEffect(event, 'move');
                 }
                 globalDrag.setData(event, selectedItems);
                 event.dataTransfer.effectAllowed = effectAllowed;
-                event.dataTransfer.dropEffect = dropEffect;
                 setDragStartIndex(rowIndex);
             } else {
                 dataTransfer.effectAllowed = 'none';
@@ -551,29 +549,29 @@ export default function ListView<T>({
                     size === 0 || (event.target as HTMLElement).className === 'scrollable-body';
                 const rowIndex = isDropTarget ? size : getRowIndexFromMouseEvent(event);
                 if (rowIndex === -1) {
-                    dataTransfer.dropEffect = 'none';
+                    setDropEffect(event, 'none');
                     setDragIndex(-1);
                 } else if (isDragging) {
                     if (moveable && canDrop(dataTransfer, droppableTypes)) {
-                        dataTransfer.dropEffect = 'move';
+                        setDropEffect(event, 'move');
                         setDragIndex(rowIndex);
                     } else {
-                        dataTransfer.dropEffect = 'none';
+                        setDropEffect(event, 'none');
                         setDragIndex(-1);
                     }
                 } else {
                     if (droppable && canDrop(dataTransfer, droppableTypes)) {
-                        dataTransfer.dropEffect = 'copy';
+                        setDropEffect(event, 'copy');
                         setDragIndex(rowIndex);
                     } else {
-                        dataTransfer.dropEffect = 'none';
+                        setDropEffect(event, 'none');
                         setDragIndex(-1);
                     }
                 }
             } else if (isDragging) {
-                dataTransfer.dropEffect = 'copy';
+                setDropEffect(event, 'copy');
             } else {
-                dataTransfer.dropEffect = 'none';
+                setDropEffect(event, 'none');
                 setDragIndex(-1);
             }
         },
@@ -587,7 +585,7 @@ export default function ListView<T>({
                 if (rowIndex === -1) {
                     rowIndex = size;
                 }
-                const dropEffect = event.dataTransfer.dropEffect;
+                const dropEffect = globalDrag.dropEffect;
                 if (moveable && dropEffect === 'move') {
                     onMove?.(selectedItems, rowIndex);
                 } else if (droppable && dropEffect === 'copy') {
@@ -605,7 +603,7 @@ export default function ListView<T>({
     );
 
     const handleDragEnd = useCallback(() => {
-        globalDrag.clearData();
+        globalDrag.clear();
         setDragStartIndex(-1);
     }, []);
 
@@ -614,11 +612,11 @@ export default function ListView<T>({
         switch (dataTransfer.effectAllowed) {
             case 'copy':
             case 'copyMove':
-                dataTransfer.dropEffect = 'copy';
+                setDropEffect(event, 'copy');
                 break;
 
             case 'move':
-                dataTransfer.dropEffect = 'move';
+                setDropEffect(event, 'move');
                 break;
         }
         if (
@@ -827,6 +825,11 @@ function getDroppableItem(
         }
     }
     return null;
+}
+
+function setDropEffect(event: React.DragEvent, dropEffect: DataTransfer['dropEffect']): void {
+    event.dataTransfer.dropEffect = dropEffect;
+    globalDrag.dropEffect = dropEffect;
 }
 
 function compareTypes(a: string, b: string): boolean {

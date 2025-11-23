@@ -15,6 +15,7 @@ import PlayableItem from 'types/PlayableItem';
 import PlaylistItem from 'types/PlaylistItem';
 import Player from 'types/Player';
 import {AmbientVideoVisualizer} from 'types/Visualizer';
+import {observeAudioSettings} from 'services/audio';
 import HTML5Player from 'services/mediaPlayback/players/HTML5Player';
 import {getCurrentItem, observeCurrentItem} from 'services/playlist';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
@@ -40,9 +41,9 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
         this.beatsPlayer = new BeatsPlayer(audio);
         this.videoPlayer = this.createVideoPlayer(this.beatsPlayer);
 
-        combineLatest([observeVisualizerSettings(), observeCurrentItem()])
+        combineLatest([observeCurrentItem(), observeVisualizerSettings(), observeAudioSettings()])
             .pipe(
-                map(([, currentItem]) => this.canShowBeats(currentItem)),
+                map(([currentItem]) => this.canShowBeats(currentItem)),
                 distinctUntilChanged(),
                 tap((canShowBeats) => {
                     this.beatsPlayer.hidden = this.hidden || !canShowBeats;

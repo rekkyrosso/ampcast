@@ -25,6 +25,7 @@ import PopupMenu, {
 } from 'components/PopupMenu';
 import {VisualizerSettingsDialog} from 'components/Settings';
 import CurrentlyPlayingDialog from 'components/MediaInfo/CurrentlyPlayingDialog';
+import useAudioSettings from 'hooks/useAudioSettings';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
 import useMiniPlayerActive from 'hooks/useMiniPlayerActive';
@@ -54,12 +55,14 @@ export default memo(function VisualizerControls({
     const hasNext = canLock && !locked;
     const [nextClicked, setNextClicked] = useState(false);
     const paused = usePaused();
+    const {useSystemAudio} = useAudioSettings();
     const currentItem = useCurrentlyPlaying();
     const iframe =
-        currentItem?.playbackType === PlaybackType.IFrame
+        !useSystemAudio && currentItem?.playbackType === PlaybackType.IFrame
             ? getServiceFromSrc(currentItem)?.iframeAudioPlayback
             : undefined;
-    const hideSelector = paused ||
+    const hideSelector =
+        paused ||
         currentItem?.mediaType === MediaType.Video ||
         currentVisualizer?.providerId === 'none' ||
         iframe?.showContent ||

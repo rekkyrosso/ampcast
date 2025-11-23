@@ -53,8 +53,17 @@
         font-size: 0.875em;
         text-align: center;
 
-        p:last-child {
-            margin-top: 1em;
+        .external-link {
+            text-decoration: underline;
+
+            .icon {
+                display: none;
+            }
         }
+    }
+
+    .enable-system-audio {
+        text-decoration: underline;
+        cursor: pointer;
     }
 }
