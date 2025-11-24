@@ -1,6 +1,5 @@
 import type { Observable } from 'rxjs';
-import { BehaviorSubject, distinctUntilChanged, skipWhile, expand, map, filter, firstValueFrom } from 'rxjs';
-import { from } from 'rxjs';
+import { BehaviorSubject, distinctUntilChanged, skipWhile } from 'rxjs';
 import { loadScript, Logger } from 'utils';
 import appleSettings from './appleSettings';
 
@@ -122,44 +121,33 @@ export async function getMusicKitInstance(): Promise<MusicKit.MusicKitInstance> 
     }
 }
 
-async function setFavoriteSongsId(musicKit: MusicKit.MusicKitInstance): Promise<void> {
-    if (!appleSettings.favoriteSongsId) {
-        const pageSize = 25;
-        
-        const favoriteSongsId = await firstValueFrom(
-            from(fetchBogusPlaylists(musicKit, pageSize, 0)).pipe(
-                expand(({ next, offset }) =>
-                    next ? from(fetchBogusPlaylists(musicKit, pageSize, offset)) : []
-                ),
-                map(({ playlists }) =>
-                    playlists.find((playlist: any) =>
-                        playlist.attributes?.tags?.includes('favorited')
-                    )
-                ),
-                filter(playlist => !!playlist),
-                map(playlist => playlist.id)
-            )
-        );
-        
-        appleSettings.favoriteSongsId = favoriteSongsId;
-    }
+async function setFavoriteSongsId(musicKit: MusicKit.MusicKitInstance) {
+    appleSettings.favoriteSongsId ||= await getFavoriteSongsId(
+        musicKit,
+        '/v1/me/library/playlists'
+    );
 }
 
-// Only used for getting the favorite songs playlist ID
-async function fetchBogusPlaylists(
+async function getFavoriteSongsId(
     musicKit: MusicKit.MusicKitInstance,
-    pageSize: number,
-    offset: number
-) {
+    url: string,
+    offset: number = 0
+): Promise<string> {
+    const limit = 100;
     const {
         data: { data: playlists = [], next },
-    } = await musicKit.api.music('/v1/me/library/playlists', {
+    } = await musicKit.api.music(url, {
         'extend[library-playlists]': 'tags',
         'fields[library-playlists]': 'tags',
-        limit: pageSize,
+        limit,
         offset,
     });
-    return { playlists, next, offset: offset + pageSize };
+
+    const favoriteSongs = playlists.find((playlist: any) =>
+        playlist.attributes?.tags?.includes('favorited')
+    );
+
+    return favoriteSongs.id || (next ? getFavoriteSongsId(musicKit, url, offset + limit) : '');
 }
 
 observeIsLoggedIn()
