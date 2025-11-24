@@ -121,21 +121,30 @@ export async function getMusicKitInstance(): Promise<MusicKit.MusicKitInstance> 
     }
 }
 
-async function setFavoriteSongsId(musicKit: MusicKit.MusicKitInstance): Promise<void> {
-    if (!appleSettings.favoriteSongsId) {
-        const {
-            data: {data: playlists = []},
-        } = await musicKit.api.music('/v1/me/library/playlists', {
-            'extend[library-playlists]': 'tags',
-            'fields[library-playlists]': 'tags',
-        });
-        const favoriteSongs = playlists.find((playlist: any) =>
-            playlist.attributes?.tags?.includes('favorited')
-        );
-        if (favoriteSongs) {
-            appleSettings.favoriteSongsId = favoriteSongs.id;
-        }
-    }
+async function setFavoriteSongsId(musicKit: MusicKit.MusicKitInstance) {
+    appleSettings.favoriteSongsId ||= await getFavoriteSongsId(
+        musicKit,
+        '/v1/me/library/playlists'
+    );
+}
+
+async function getFavoriteSongsId(
+    musicKit: MusicKit.MusicKitInstance,
+    url: string
+): Promise<string> {
+    const {
+        data: { data: playlists = [], next },
+    } = await musicKit.api.music(url, {
+        'extend[library-playlists]': 'tags',
+        'fields[library-playlists]': 'tags',
+        limit: 100
+    });
+
+    const favoriteSongs = playlists.find((playlist: any) =>
+        playlist.attributes?.tags?.includes('favorited')
+    );
+
+    return favoriteSongs?.id ?? (next ? getFavoriteSongsId(musicKit, url) : '');
 }
 
 observeIsLoggedIn()
