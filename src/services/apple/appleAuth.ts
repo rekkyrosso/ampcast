@@ -147,7 +147,7 @@ async function getFavoriteSongsId(
         playlist.attributes?.tags?.includes('favorited')
     );
 
-    return favoriteSongs.id || (next ? getFavoriteSongsId(musicKit, url, offset + limit) : '');
+    return favoriteSongs?.id ?? (next ? getFavoriteSongsId(musicKit, url, offset + limit) : '');
 }
 
 observeIsLoggedIn()
