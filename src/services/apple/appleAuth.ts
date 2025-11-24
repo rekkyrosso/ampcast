@@ -132,13 +132,12 @@ async function getFavoriteSongsId(
     musicKit: MusicKit.MusicKitInstance,
     url: string
 ): Promise<string> {
-    const limit = 100;
     const {
         data: { data: playlists = [], next },
     } = await musicKit.api.music(url, {
         'extend[library-playlists]': 'tags',
         'fields[library-playlists]': 'tags',
-        limit
+        limit: 100
     });
 
     const favoriteSongs = playlists.find((playlist: any) =>
