@@ -89,7 +89,7 @@ export default function VisualizerRandomness() {
                 hidden={isSpotify}
                 onChange={handleRandomnessChange}
             />
-            {visualizerSettings.spotifyEnabled || useSystemAudio ? (
+            {visualizerSettings.spotifyAnalyserEnabled || useSystemAudio ? (
                 <VisualizerWeightings
                     weightings={spotifyWeightings}
                     hidden={!isSpotify}

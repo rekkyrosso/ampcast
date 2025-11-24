@@ -103,7 +103,7 @@ export function setCurrentVisualizer({
 export function isProviderSupported(providerId: string, item: MediaItem): boolean {
     const [serviceId] = item.src.split(':');
     const isSpotify = serviceId === 'spotify';
-    const spotifyEnabled = visualizerSettings.spotifyEnabled;
+    const spotifyAnalyserEnabled = visualizerSettings.spotifyAnalyserEnabled;
 
     switch (providerId) {
         case 'none':
@@ -112,7 +112,7 @@ export function isProviderSupported(providerId: string, item: MediaItem): boolea
             return true;
 
         case 'spotifyviz':
-            return spotifyEnabled && isSpotify;
+            return spotifyAnalyserEnabled && isSpotify;
 
         case 'ambientvideo':
             return !isSpotify;
@@ -122,7 +122,7 @@ export function isProviderSupported(providerId: string, item: MediaItem): boolea
                 return true;
             }
             if (isSpotify) {
-                return spotifyEnabled;
+                return spotifyAnalyserEnabled;
             }
             return (
                 item.playbackType !== PlaybackType.IFrame &&
@@ -361,10 +361,9 @@ function getOrCreateVisualizer(providerId: VisualizerProviderId, name: string): 
 }
 
 function getRandomProviderIds(isSpotify: boolean): readonly VisualizerProviderId[] {
-    const randomness =
-        isSpotify && !audioSettings.useSystemAudio
-            ? visualizerSettings.spotifyRandomness
-            : visualizerSettings.randomness;
+    const randomness = isSpotify
+        ? visualizerSettings.spotifyRandomness
+        : visualizerSettings.randomness;
     const providerIds = Object.keys(randomness) as VisualizerProviderId[];
     return providerIds.map((id) => Array(randomness[id]).fill(id)).flat();
 }

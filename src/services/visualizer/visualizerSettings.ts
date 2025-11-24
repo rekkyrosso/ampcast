@@ -142,27 +142,37 @@ const visualizerSettings: VisualizerSettings = {
     },
 
     get randomness(): Randomness {
-        const randomness = storage.getJson('randomness', defaultRandomness);
-        return {...defaultRandomness, ...randomness};
+        const randomness = {
+            ...defaultRandomness,
+            ...storage.getJson('randomness', defaultRandomness),
+        };
+        return {...randomness, spotifyviz: 0};
     },
 
     set randomness(randomness: Randomness) {
         storage.setJson('randomness', randomness);
     },
 
-    get spotifyEnabled(): boolean {
+    get spotifyAnalyserEnabled(): boolean {
         // https://developer.spotify.com/blog/2024-11-27-changes-to-the-web-api
         // ampcast.app is exempt from these changes.
         return browser.isAmpcastApp;
     },
 
-    set spotifyEnabled(_: boolean) {
+    set spotifyAnalyserEnabled(_: boolean) {
         // Not writable.
     },
 
     get spotifyRandomness(): Randomness {
-        const randomness = storage.getJson('spotifyRandomness', defaultSpotifyRandomness);
-        return {...defaultSpotifyRandomness, ...randomness};
+        const randomness = {
+            ...defaultSpotifyRandomness,
+            ...storage.getJson('spotifyRandomness', defaultSpotifyRandomness),
+        };
+        return {
+            ...randomness,
+            ambientvideo: 0,
+            spotifyviz: browser.isAmpcastApp ? randomness.spotifyviz : 0,
+        };
     },
 
     set spotifyRandomness(randomness: Randomness) {
