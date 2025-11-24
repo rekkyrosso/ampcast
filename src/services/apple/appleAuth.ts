@@ -1,6 +1,6 @@
-import type { Observable } from 'rxjs';
-import { BehaviorSubject, distinctUntilChanged, skipWhile } from 'rxjs';
-import { loadScript, Logger } from 'utils';
+import type {Observable} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, skipWhile} from 'rxjs';
+import {loadScript, Logger} from 'utils';
 import appleSettings from './appleSettings';
 
 const logger = new Logger('appleAuth');
