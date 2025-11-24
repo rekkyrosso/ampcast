@@ -1,4 +1,5 @@
 import VisualizerProvider from 'types/VisualizerProvider';
+import {browser, exists} from 'utils';
 import ambientvideo from './ambientvideo';
 import ampshader from './ampshader';
 import audiomotion from './audiomotion';
@@ -13,8 +14,8 @@ const visualizers: VisualizerProvider[] = [
     audiomotion,
     butterchurn,
     coverart,
-    spotifyviz,
-    waveform
-];
+    browser.isAmpcastApp ? spotifyviz : undefined,
+    waveform,
+].filter(exists);
 
 export default visualizers;

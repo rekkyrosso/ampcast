@@ -3,6 +3,7 @@ type NextVisualizerReason =
     | 'new-provider'
     | 'new-visualizers'
     | 'next-clicked'
+    | 'settings-changed'
     | 'transition'
     | 'error';
 

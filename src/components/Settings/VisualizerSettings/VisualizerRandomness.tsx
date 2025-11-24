@@ -1,10 +1,16 @@
 import React, {useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
 import VisualizerProviderId from 'types/VisualizerProviderId';
+import {browser} from 'utils';
+import {downloadUrl} from 'services/constants';
+import {audioSettings} from 'services/audio';
 import {getService} from 'services/mediaServices';
 import {getCurrentItem} from 'services/playlist';
 import {isSourceVisible} from 'services/mediaServices/servicesSettings';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
+import {confirm} from 'components/Dialog';
 import ExternalLink from 'components/ExternalLink';
+import useAudioSettings from 'hooks/useAudioSettings';
+import usePrevious from 'hooks/usePrevious';
 import useVisualizerRandomness, {Weighting} from './useVisualizerRandomness';
 import './VisualizerRandomness.scss';
 
@@ -16,6 +22,7 @@ export default function VisualizerRandomness() {
     const isSpotifyItem = useMemo(() => getCurrentItem()?.src.startsWith('spotify:'), []);
     const [isSpotify, setIsSpotify] = useState(isSpotifyItem);
     const {standardWeightings, spotifyWeightings} = useVisualizerRandomness();
+    const {useSystemAudio} = useAudioSettings();
 
     const handleRandomnessChange = useCallback((weightings: readonly Weighting[]) => {
         const randomness: Record<string, number> = {};
@@ -35,6 +42,18 @@ export default function VisualizerRandomness() {
 
     const handleSpotifyChange = useCallback(() => {
         setIsSpotify(refSpotify.current!.checked);
+    }, []);
+
+    const enableSystemAudio = useCallback(async () => {
+        const confirmed = await confirm({
+            icon: 'settings',
+            message: 'Enable system audio?',
+            okLabel: 'Enable',
+            system: true,
+        });
+        if (confirmed) {
+            audioSettings.useSystemAudio = true;
+        }
     }, []);
 
     return (
@@ -70,7 +89,7 @@ export default function VisualizerRandomness() {
                 hidden={isSpotify}
                 onChange={handleRandomnessChange}
             />
-            {visualizerSettings.spotifyEnabled ? (
+            {visualizerSettings.spotifyAnalyserEnabled || useSystemAudio ? (
                 <VisualizerWeightings
                     weightings={spotifyWeightings}
                     hidden={!isSpotify}
@@ -78,10 +97,21 @@ export default function VisualizerRandomness() {
                 />
             ) : (
                 <div className="weightings note" hidden={!isSpotify}>
-                    <p>Spotify visualizers are only supported on the web app.</p>
-                    <p>
-                        <ExternalLink href="https://ampcast.app" />
-                    </p>
+                    {browser.isElectron ? (
+                        <p>
+                            You need to{' '}
+                            <span className="enable-system-audio" onClick={enableSystemAudio}>
+                                enable system audio
+                            </span>{' '}
+                            for Spotify visualizers to work.
+                        </p>
+                    ) : (
+                        <p>
+                            Spotify visualizers are only supported on{' '}
+                            <ExternalLink href="https://ampcast.app">ampcast.app</ExternalLink> or
+                            the <ExternalLink href={downloadUrl}>desktop app</ExternalLink>.
+                        </p>
+                    )}
                 </div>
             )}
         </fieldset>
@@ -101,14 +131,17 @@ function VisualizerWeightings({
 }: VisualizerWeightingsProps) {
     const id = useId();
     const [weightings, setWeightings] = useState(originalWeightings);
+    const prevWeightings = usePrevious(weightings);
     const total = weightings.reduce((total, weighting) => total + weighting.value, 0);
     const relativeValues = weightings.map((weighting) =>
         total ? Math.round(100 * (weighting.value / total)) : 0
     );
 
     useEffect(() => {
-        onChange(weightings);
-    }, [weightings, onChange]);
+        if (prevWeightings && weightings !== prevWeightings) {
+            onChange(weightings);
+        }
+    }, [weightings, prevWeightings, onChange]);
 
     return (
         <div className="weightings table-layout" hidden={hidden}>

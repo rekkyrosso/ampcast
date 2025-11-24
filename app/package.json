@@ -1,7 +1,7 @@
 {
     "name": "ampcast-app",
     "productName": "ampcast",
-    "version": "0.9.22",
+    "version": "0.9.23",
     "description": "Ampcast music player",
     "homepage": "https://ampcast.app",
     "repository": {
@@ -27,6 +27,7 @@
         "electron-builder": "^26.0.12"
     },
     "dependencies": {
+        "electron-audio-loopback": "^1.0.6",
         "electron-context-menu": "^4.1.1",
         "electron-log": "^5.1.2",
         "electron-store": "^11.0.2",

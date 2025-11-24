@@ -84,7 +84,7 @@ export default function AppPreferences() {
                 </p>
             </fieldset>
             <fieldset>
-                <legend>Media info</legend>
+                <legend>Media Info</legend>
                 <p>
                     <input
                         type="checkbox"

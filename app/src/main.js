@@ -14,6 +14,7 @@ import contextMenu from 'electron-context-menu';
 import unhandled from 'electron-unhandled';
 import windowStateKeeper from 'electron-window-state';
 import Store from 'electron-store';
+import {initMain as initSystemAudio} from 'electron-audio-loopback';
 import path from 'node:path';
 import {__dirname} from './config.js';
 import server from './server.js';
@@ -33,6 +34,8 @@ if (!app.isPackaged) {
     // https://github.com/electron/electron/issues/38790
     app.commandLine.appendSwitch('disable-features', 'WidgetLayering');
 }
+
+initSystemAudio();
 
 const loginUrls = [
     'https://authorize.music.apple.com/',

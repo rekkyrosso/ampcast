@@ -19,5 +19,5 @@ export default interface VisualizerSettings {
     lockedVisualizer: Pick<Visualizer, 'providerId' | 'name'> | null;
     randomness: Randomness;
     spotifyRandomness: Randomness;
-    spotifyEnabled: boolean;
+    spotifyAnalyserEnabled: boolean;
 }

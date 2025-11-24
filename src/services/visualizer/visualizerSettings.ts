@@ -2,7 +2,7 @@ import type {Observable} from 'rxjs';
 import {map, startWith} from 'rxjs';
 import VisualizerProviderId from 'types/VisualizerProviderId';
 import VisualizerSettings, {Randomness} from 'types/VisualizerSettings';
-import {LiteStorage} from 'utils';
+import {browser, LiteStorage} from 'utils';
 
 const defaultRandomness: Randomness = {
     none: 0,
@@ -142,25 +142,37 @@ const visualizerSettings: VisualizerSettings = {
     },
 
     get randomness(): Randomness {
-        return storage.getJson('randomness', defaultRandomness);
+        const randomness = {
+            ...defaultRandomness,
+            ...storage.getJson('randomness', defaultRandomness),
+        };
+        return {...randomness, spotifyviz: 0};
     },
 
     set randomness(randomness: Randomness) {
         storage.setJson('randomness', randomness);
     },
 
-    get spotifyEnabled(): boolean {
+    get spotifyAnalyserEnabled(): boolean {
         // https://developer.spotify.com/blog/2024-11-27-changes-to-the-web-api
         // ampcast.app is exempt from these changes.
-        return /^ampcast\.(app|dev)$/.test(location.hostname);
+        return browser.isAmpcastApp;
     },
 
-    set spotifyEnabled(_: boolean) {
+    set spotifyAnalyserEnabled(_: boolean) {
         // Not writable.
     },
 
     get spotifyRandomness(): Randomness {
-        return storage.getJson('spotifyRandomness', defaultSpotifyRandomness);
+        const randomness = {
+            ...defaultSpotifyRandomness,
+            ...storage.getJson('spotifyRandomness', defaultSpotifyRandomness),
+        };
+        return {
+            ...randomness,
+            ambientvideo: 0,
+            spotifyviz: browser.isAmpcastApp ? randomness.spotifyviz : 0,
+        };
     },
 
     set spotifyRandomness(randomness: Randomness) {

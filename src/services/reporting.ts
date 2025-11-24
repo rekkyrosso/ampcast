@@ -6,7 +6,7 @@ import Snapshot from 'types/Snapshot';
 import {browser, copyToClipboard, getElapsedTimeText, isMiniPlayer} from 'utils';
 import Logger, {LogLevel, ReadableLog} from 'utils/Logger';
 import audio from 'services/audio';
-import audioSettings from 'services/audio/audioSettings';
+import {audioSettings} from 'services/audio';
 import {getListens} from 'services/localdb/listens';
 import mediaPlayback from 'services/mediaPlayback';
 import {getPlaybackState} from 'services/mediaPlayback/playback';
@@ -59,8 +59,8 @@ function copyReportToClipboard(entries: Pick<Report, 'errorReport' | 'logs'>): P
     const report: Report = {
         ampcastVersion: __app_version__,
         client: {
-            isAmpcastApp: location.hostname === 'ampcast.app',
-            isElectronApp: browser.isElectron,
+            isAmpcastApp: browser.isAmpcastApp,
+            isElectron: browser.isElectron,
             isPWA: matchDisplayMode('standalone') || matchDisplayMode('window-controls-overlay'),
             isLocalhost: location.hostname === 'localhost',
             isHttps: location.protocol === 'https:',

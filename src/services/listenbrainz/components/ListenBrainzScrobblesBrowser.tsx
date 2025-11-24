@@ -30,7 +30,7 @@ export default function ListenBrainzScrobblesBrowser({
         <ScrobblesBrowser
             service={listenbrainz}
             source={scrobbles}
-            title={total === undefined ? '' : `${total} listens`}
+            title={total == null ? '' : `${total.toLocaleString()} listens`}
             pager={pager}
         />
     );

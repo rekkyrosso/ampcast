@@ -3,6 +3,7 @@ import AudioManager from 'types/AudioManager';
 import PlaylistItem from 'types/PlaylistItem';
 import {CoverArtVisualizer} from 'types/Visualizer';
 import {Logger} from 'utils';
+import {observeAudioSettings} from 'services/audio';
 import {getCurrentItem, observeCurrentItem} from 'services/playlist';
 import {isProviderSupported} from '../visualizer';
 import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
@@ -34,9 +35,9 @@ export default class CovertArtPlayer extends AbstractVisualizerPlayer<CoverArtVi
             )
             .subscribe(logger);
 
-        combineLatest([observeVisualizerSettings(), observeCurrentItem()])
+        combineLatest([observeCurrentItem(), observeVisualizerSettings(), observeAudioSettings()])
             .pipe(
-                map(([, currentItem]) => this.canShowBeats(currentItem)),
+                map(([currentItem]) => this.canShowBeats(currentItem)),
                 distinctUntilChanged(),
                 tap((canShowBeats) => {
                     this.beatsPlayer.hidden = this.hidden || !canShowBeats;

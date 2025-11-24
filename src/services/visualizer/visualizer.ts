@@ -25,8 +25,8 @@ import Visualizer, {NoVisualizer, NextVisualizer} from 'types/Visualizer';
 import VisualizerFavorite from 'types/VisualizerFavorite';
 import VisualizerProviderId from 'types/VisualizerProviderId';
 import VisualizerSettings from 'types/VisualizerSettings';
-import {exists, getRandomValue, isMiniPlayer, Logger} from 'utils';
-import audio from 'services/audio';
+import {browser, exists, getRandomValue, isMiniPlayer, Logger} from 'utils';
+import audio, {audioSettings, observeAudioSettings} from 'services/audio';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {
     getPlaybackState,
@@ -103,7 +103,7 @@ export function setCurrentVisualizer({
 export function isProviderSupported(providerId: string, item: MediaItem): boolean {
     const [serviceId] = item.src.split(':');
     const isSpotify = serviceId === 'spotify';
-    const spotifyEnabled = visualizerSettings.spotifyEnabled;
+    const spotifyAnalyserEnabled = visualizerSettings.spotifyAnalyserEnabled;
 
     switch (providerId) {
         case 'none':
@@ -112,24 +112,26 @@ export function isProviderSupported(providerId: string, item: MediaItem): boolea
             return true;
 
         case 'spotifyviz':
-            return spotifyEnabled && isSpotify;
+            return spotifyAnalyserEnabled && isSpotify;
 
         case 'ambientvideo':
             return !isSpotify;
 
         default:
-            if (isSpotify) {
-                return spotifyEnabled;
-            } else {
-                return (
-                    item.playbackType !== PlaybackType.IFrame &&
-                    // For Safari.
-                    // If the Web Audio API is not supported for streaming media then we can't use a visualizer.
-                    (audio.streamingSupported ||
-                        (item.playbackType !== PlaybackType.DASH &&
-                            item.playbackType !== PlaybackType.HLS))
-                );
+            if (audioSettings.useSystemAudio) {
+                return true;
             }
+            if (isSpotify) {
+                return spotifyAnalyserEnabled;
+            }
+            return (
+                item.playbackType !== PlaybackType.IFrame &&
+                // For Safari.
+                // If the Web Audio API is not supported for streaming media then we can't use a visualizer.
+                (audio.streamingSupported ||
+                    (item.playbackType !== PlaybackType.DASH &&
+                        item.playbackType !== PlaybackType.HLS))
+            );
     }
 }
 
@@ -176,11 +178,20 @@ function getNextVisualizer(reason: NextVisualizerReason): Visualizer {
         return noVisualizer;
     }
 
+    if (
+        reason === 'settings-changed' &&
+        isVisualizerSupported(currentVisualizer, item) &&
+        currentVisualizer.providerId === settings.provider
+    ) {
+        return currentVisualizer;
+    }
+
     const [serviceId] = item.src.split(':');
     const isSpotify = serviceId === 'spotify';
     const isError = reason === 'error';
+    const useSystemAudio = audioSettings.useSystemAudio;
 
-    if (item.playbackType === PlaybackType.IFrame && !isSpotify) {
+    if (!useSystemAudio && item.playbackType === PlaybackType.IFrame && !isSpotify) {
         const iframe = getServiceFromSrc(item)?.iframeAudioPlayback;
         if (settings.provider === 'none') {
             return noVisualizer;
@@ -361,8 +372,12 @@ function isVisualizerExcluded(
     visualizer: Visualizer | VisualizerFavorite,
     item: MediaItem
 ): boolean {
-    const [serviceId] = item.src.split(':');
-    return serviceId === 'spotify' && !!visualizer.spotifyExcluded;
+    if (audioSettings.useSystemAudio) {
+        return false;
+    } else {
+        const [serviceId] = item.src.split(':');
+        return serviceId === 'spotify' && !!visualizer.spotifyExcluded;
+    }
 }
 
 // Load visualizers as soon as the playlist is not empty.
@@ -382,6 +397,18 @@ observeCurrentItem()
         tap(() => nextVisualizer('new-media-item'))
     )
     .subscribe(logger);
+
+if (browser.isElectron) {
+    // Settings changed.
+    observeAudioSettings()
+        .pipe(
+            skip(1),
+            map((settings) => settings.useSystemAudio),
+            distinctUntilChanged(),
+            tap(() => nextVisualizer('settings-changed'))
+        )
+        .subscribe(logger);
+}
 
 // New providers/visualizers.
 observeVisualizerProvider()

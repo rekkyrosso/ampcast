@@ -106,6 +106,7 @@ export default function useScrobblesPager(
         );
 
         subscription.add(pager.observeSize().subscribe(setTotal));
+        subscription.add(() => pager.disconnect());
 
         recentItemsPager.next([]);
         setPager(pager);

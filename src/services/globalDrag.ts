@@ -1,4 +1,5 @@
 let dragData: any = null;
+let dropEffect: DataTransfer['dropEffect'] = 'none'; // Fixes some browser bugs.
 
 const internalType = 'text/ampcast-items';
 
@@ -11,15 +12,22 @@ function setData<T>(event: React.DragEvent, data: T): void {
     dragData = data;
 }
 
-function clearData(): void {
+function clear(): void {
     dragData = null;
+    dropEffect = 'none';
 }
 
 export default {
+    get dropEffect(): DataTransfer['dropEffect'] {
+        return dropEffect;
+    },
+    set dropEffect(effect: DataTransfer['dropEffect']) {
+        dropEffect = effect;
+    },
     get type(): string {
-        return internalType
+        return internalType;
     },
     getData,
     setData,
-    clearData,
+    clear,
 };

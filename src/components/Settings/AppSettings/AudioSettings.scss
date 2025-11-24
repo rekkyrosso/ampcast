@@ -1,0 +1,21 @@
+.audio-settings {
+    .table-layout {
+        select,
+        input {
+            width: 6em;
+        }
+
+        label + input + label {
+            text-align: left;
+            width: 100%;
+        }
+    }
+
+    .warning {
+        margin-top: 1.5em;
+    }
+
+    p:has(> small) {
+        margin-top: 1em;
+    }
+}

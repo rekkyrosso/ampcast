@@ -30,7 +30,7 @@ export default function LastFmScrobblesBrowser({
         <ScrobblesBrowser
             service={lastfm}
             source={scrobbles}
-            title={total === undefined ? '' : `${total} scrobbles`}
+            title={total == null ? '' : `${total.toLocaleString()} scrobbles`}
             pager={pager}
         />
     );

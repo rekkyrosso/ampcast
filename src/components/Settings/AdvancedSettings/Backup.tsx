@@ -3,7 +3,7 @@ import {Writable} from 'type-fest';
 import BackupFile from 'types/BackupFile';
 import Listen from 'types/Listen';
 import {Logger, saveTextToFile} from 'utils';
-import audioSettings from 'services/audio/audioSettings';
+import {audioSettings} from 'services/audio';
 import {updateListens} from 'services/localdb/listens';
 import playlists from 'services/localdb/playlists';
 import pinStore from 'services/pins/pinStore';
