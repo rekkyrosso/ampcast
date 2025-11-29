@@ -12,7 +12,7 @@ async function handleProxyLogin(req, res) {
     const SERVER_ID = server.toUpperCase();
     const user = getEnv(`${SERVER_ID}_USER`);
     const password = getEnv(`${SERVER_ID}_PASSWORD`);
-    console.log('proxy-login:', {server, url})
+    console.log('proxy-login:', {server, url});
     if (!user || !password) {
         res.writeHead(407, {'Content-Type': 'text/plain'});
         res.end('Proxy Authentication Required');

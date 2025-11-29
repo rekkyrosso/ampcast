@@ -133,18 +133,18 @@ async function getFavoriteSongsId(
     url: string
 ): Promise<string> {
     const {
-        data: { data: playlists = [], next },
+        data: {data: playlists = [], next},
     } = await musicKit.api.music(url, {
         'extend[library-playlists]': 'tags',
         'fields[library-playlists]': 'tags',
-        limit: 100
+        limit: 100,
     });
 
     const favoriteSongs = playlists.find((playlist: any) =>
         playlist.attributes?.tags?.includes('favorited')
     );
 
-    return favoriteSongs?.id ?? (next ? getFavoriteSongsId(musicKit, url) : '');
+    return favoriteSongs?.id ?? (next && next !== url ? getFavoriteSongsId(musicKit, next) : '');
 }
 
 observeIsLoggedIn()

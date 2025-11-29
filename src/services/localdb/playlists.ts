@@ -240,7 +240,10 @@ class PlaylistsStore extends Dexie {
         {filter, sort}: LocalPlaylistSearchOptions = {},
         options?: Partial<PagerConfig<MediaPlaylist>>
     ): Pager<MediaPlaylist> {
-        const createChildPager = (playlist: MediaPlaylist, itemSort?: SortParams) => {
+        const createChildPager = (
+            playlist: MediaPlaylist,
+            itemSort?: SortParams
+        ): Pager<MediaItem> => {
             return new LocalPlaylistItemsPager(
                 async () => {
                     const items = await this.getLocalPlaylistItems(playlist.src);

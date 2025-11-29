@@ -20,16 +20,6 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
                 panel: <MediaServiceSettingsGeneral service={service} enableDisconnect />,
             },
         ];
-        if (
-            service.credentialsRequired &&
-            // Show credentials to docker users for sanity checking of server config.
-            (!service.credentialsLocked || __target__ === 'docker')
-        ) {
-            tabs.push({
-                tab: 'Credentials',
-                panel: <MediaServiceCredentials service={service} />,
-            });
-        }
         switch (service.serviceType) {
             case ServiceType.PublicMedia: {
                 const StreamingSettings = service.Components?.StreamingSettings;
@@ -71,6 +61,16 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
             tabs.push({
                 tab: 'Pins',
                 panel: <MediaServicePins service={service} />,
+            });
+        }
+        if (
+            service.credentialsRequired &&
+            // Show credentials to docker users for sanity checking of server config.
+            (!service.credentialsLocked || __target__ === 'docker')
+        ) {
+            tabs.push({
+                tab: 'Credentials',
+                panel: <MediaServiceCredentials service={service} />,
             });
         }
         return tabs;

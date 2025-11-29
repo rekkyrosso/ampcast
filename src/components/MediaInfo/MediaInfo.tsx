@@ -55,6 +55,7 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
                 <Track album={item.album} disc={item.disc} track={item.track} />
                 <StationName stationName={item.stationName} />
                 <Owner owner={item.owner} src={item.src} />
+                <Genre genres={item.genres} />
                 <div className="media-info-icon-bar">
                     <Badges item={item} />
                     <Actions item={item} />
@@ -79,6 +80,7 @@ function AlbumInfo({item: album}: MediaInfoProps<MediaAlbum>) {
                 <TrackCount trackCount={album.trackCount} />
                 <Artist artist={album.artist} />
                 <Year year={album.year} />
+                <Genre genres={album.genres} />
                 <div className="media-info-icon-bar">
                     <Badges item={album} />
                     <Actions item={album} />

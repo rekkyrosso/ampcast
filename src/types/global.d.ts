@@ -6,6 +6,7 @@ declare const __dev__: boolean;
 declare const __target__: 'docker' | 'electron' | 'pwa';
 
 declare const __am_dev_token__: string;
+declare const __ib_client_id__: string;
 declare const __lf_api_key__: string;
 declare const __lf_api_secret__: string;
 declare const __sp_client_id__: string;

@@ -59,7 +59,7 @@ export default function FilterSelect({
             <select id={id} onChange={handleChange}>
                 {filters.map((filter, index) => (
                     <option value={index} key={filter.id}>
-                        {filter.title}
+                        {filter.title}{filter.count === undefined ? '' : ` (${filter.count})`}
                     </option>
                 ))}
             </select>

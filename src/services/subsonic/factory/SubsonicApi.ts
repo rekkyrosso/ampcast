@@ -217,7 +217,7 @@ export default class SubsonicApi {
             data.genres.genre
                 ?.map(({value: id, albumCount, songCount}) => {
                     const count = itemType === ItemType.Album ? albumCount : songCount;
-                    const title = `${id} (${count})`;
+                    const title = id;
                     return {id, title, count};
                 })
                 .filter((genre) => genre.count > 0)

@@ -6,6 +6,7 @@ import apple from 'services/apple';
 import emby from 'services/emby';
 import gonic from 'services/subsonic/gonic';
 import jellyfin from 'services/jellyfin';
+import ibroadcast from 'services/ibroadcast';
 import lastfm from 'services/lastfm';
 import listenbrainz from 'services/listenbrainz';
 import localdb from 'services/localdb';
@@ -27,6 +28,7 @@ const allServices: readonly MediaService[] = [
     ampache,
     emby,
     gonic,
+    ibroadcast,
     jellyfin,
     mixcloud,
     navidrome,

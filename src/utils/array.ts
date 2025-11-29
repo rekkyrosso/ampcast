@@ -60,7 +60,7 @@ export function partition<T>(values: readonly T[], predicate: (value: T) => bool
     return [truthy, falsy];
 }
 
-export function shuffle<T>(values: T[]): T[] {
+export function shuffle<T>(values: readonly T[]): T[] {
     // https://stackoverflow.com/questions/6274339/how-can-i-shuffle-an-array#6274398
     const shuffled = values.slice();
     let counter = shuffled.length;

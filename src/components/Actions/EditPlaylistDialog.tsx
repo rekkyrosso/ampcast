@@ -1,5 +1,7 @@
 import React, {useCallback, useId, useRef} from 'react';
+import {Writable} from 'type-fest';
 import MediaPlaylist from 'types/MediaPlaylist';
+import MediaService from 'types/MediaService';
 import MediaServiceId from 'types/MediaServiceId';
 import {Logger} from 'utils';
 import {getServiceFromSrc} from 'services/mediaServices';
@@ -8,10 +10,8 @@ import {removeRecentPlaylist, updateRecentPlaylist} from 'services/recentPlaylis
 import Dialog, {DialogProps, alert, confirm, error, showDialog} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import './EditPlaylistDialog.scss';
-import {Writable} from 'type-fest';
-import MediaService from 'types/MediaService';
 
-const logger = new Logger('CreatePlaylistDialog');
+const logger = new Logger('EditPlaylistDialog');
 
 export async function showEditPlaylistDialog(playlist: MediaPlaylist): Promise<void> {
     await showDialog((props: DialogProps) => <EditPlaylistDialog {...props} playlist={playlist} />);
@@ -53,15 +53,12 @@ export default function EditPlaylistDialog({playlist, ...props}: EditPlaylistDia
                         return;
                     }
                 }
-                const updatedPlaylist = {
-                    ...playlist,
-                    ...values,
-                };
+                const updatedPlaylist = {...playlist, ...values};
                 await service.editPlaylist(updatedPlaylist);
                 updateRecentPlaylist(updatedPlaylist);
                 dispatchMetadataChanges({
-                    values,
                     match: (object) => service.compareForRating(object, playlist),
+                    values,
                 });
             } catch (err) {
                 logger.error(err);

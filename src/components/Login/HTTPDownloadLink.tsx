@@ -8,7 +8,7 @@ export default function HTTPDownloadLink({service}: LoginProps) {
     const showDownloadLink =
         location.protocol === 'https:' &&
         service.serviceType === ServiceType.PersonalMedia &&
-        service.id !== 'plex';
+        !/^(ibroadcast|plex)$/.test(service.id);
 
     return showDownloadLink ? (
         <p className="login-download">

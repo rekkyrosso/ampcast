@@ -1,9 +1,14 @@
 import MediaObject from 'types/MediaObject';
-import MediaPager from './MediaPager';
+import {PagerConfig} from 'types/Pager';
+import MediaPager, {CreateChildPager} from './MediaPager';
 
 export default class SimpleMediaPager<T extends MediaObject> extends MediaPager<T> {
-    constructor(private readonly fetch: () => Promise<readonly T[]>) {
-        super({pageSize: Infinity});
+    constructor(
+        private readonly fetch: () => Promise<readonly T[]>,
+        options?: Partial<PagerConfig<T>>,
+        createChildPager?: CreateChildPager<T>
+    ) {
+        super({pageSize: Infinity, ...options}, createChildPager);
     }
 
     fetchAt(index: 0): void;

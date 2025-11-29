@@ -6,6 +6,7 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {Pinnable} from 'types/Pin';
 import PlayAction from 'types/PlayAction';
+import {Logger} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
 import mediaPlayback from 'services/mediaPlayback';
 import pinStore from 'services/pins/pinStore';
@@ -17,9 +18,8 @@ import {showMediaInfoDialog} from 'components/MediaInfo/MediaInfoDialog';
 import {showAddToPlaylistDialog} from './AddToPlaylistDialog';
 import {showCreatePlaylistDialog} from './CreatePlaylistDialog';
 import {showEditPlaylistDialog} from './EditPlaylistDialog';
-import {Logger} from 'utils';
 
-const logger = new Logger('ampcast/performAction');
+const logger = new Logger('performAction');
 
 export default async function performAction<T extends MediaObject>(
     action: Action,

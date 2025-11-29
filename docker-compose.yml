@@ -20,7 +20,7 @@ services:
       # Enabled media services.
       # Available services:
       #    apple,spotify,
-      #    airsonic,ampache,emby,gonic,jellyfin,navidrome,plex,subsonic,
+      #    airsonic,ampache,emby,gonic,ibroadcast,jellyfin,navidrome,plex,subsonic,
       #    youtube,
       #    lastfm,listenbrainz
       # Disabling YouTube does not disable playback from YouTube.

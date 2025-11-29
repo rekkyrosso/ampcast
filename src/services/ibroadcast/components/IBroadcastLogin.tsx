@@ -3,35 +3,33 @@ import {LoginProps} from 'components/Login';
 import CredentialsButton from 'components/Login/CredentialsButton';
 import CredentialsRequired from 'components/Login/CredentialsRequired';
 import LoginButton from 'components/Login/LoginButton';
+import LoginRequired from 'components/Login/LoginRequired';
 import SecureContextRequired from 'components/Login/SecureContextRequired';
 import ServiceLink from 'components/Login/ServiceLink';
 import useCredentials from './useCredentials';
 
-export default function SpotifyLogin({service: spotify}: LoginProps) {
+export default function IBroadcastLogin({service: ibroadcast}: LoginProps) {
     const {clientId} = useCredentials();
 
     return window.isSecureContext ? (
         <>
             {clientId ? (
                 <>
-                    <p>You need to be logged in to play music from Spotify.*</p>
-                    <LoginButton service={spotify} />
-                    <p>
-                        <small>*Spotify Premium required.</small>
-                    </p>
+                    <LoginRequired service={ibroadcast} />
+                    <LoginButton service={ibroadcast} />
                 </>
             ) : (
                 <>
-                    <CredentialsRequired service={spotify} />
-                    <CredentialsButton service={spotify} />
+                    <CredentialsRequired service={ibroadcast} />
+                    <CredentialsButton service={ibroadcast} />
                 </>
             )}
-            <ServiceLink service={spotify} />
+            <ServiceLink service={ibroadcast} />
         </>
     ) : (
         <>
-            <SecureContextRequired service={spotify} />
-            <ServiceLink service={spotify} />
+            <SecureContextRequired service={ibroadcast} />
+            <ServiceLink service={ibroadcast} />
         </>
     );
 }

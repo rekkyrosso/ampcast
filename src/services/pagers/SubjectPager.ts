@@ -1,9 +1,10 @@
 import MediaObject from 'types/MediaObject';
-import MediaPager from './MediaPager';
+import {PagerConfig} from 'types/Pager';
+import MediaPager, {CreateChildPager} from './MediaPager';
 
 export default class SubjectPager<T extends MediaObject> extends MediaPager<T> {
-    constructor() {
-        super({pageSize: Infinity});
+    constructor(options?: Partial<PagerConfig<T>>, createChildPager?: CreateChildPager<T>) {
+        super({pageSize: Infinity, ...options}, createChildPager);
     }
 
     fetchAt(): void {

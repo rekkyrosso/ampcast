@@ -12,6 +12,7 @@ export type PersonalMediaServiceId =
     | 'ampache'
     | 'emby'
     | 'gonic'
+    | 'ibroadcast'
     | 'jellyfin'
     | 'navidrome'
     | 'plex'

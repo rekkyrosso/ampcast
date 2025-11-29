@@ -13,7 +13,7 @@ import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
-import Pin from 'types/Pin';
+import Pin, {Pinnable} from 'types/Pin';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
@@ -156,7 +156,7 @@ async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {
     return playlist;
 }
 
-function createSourceFromPin<T extends MediaObject>(pin: Pin): MediaSource<T> {
+function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
     if (pin.itemType !== ItemType.Playlist) {
         throw Error('Unsupported Pin type.');
     }

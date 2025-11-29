@@ -70,6 +70,7 @@ export function getMediaLabel(itemType: ItemType, serviceId?: string): string {
 
         default: {
             switch (serviceId) {
+                case 'ibroadcast':
                 case 'lastfm':
                 case 'listenbrainz':
                 case 'plex':

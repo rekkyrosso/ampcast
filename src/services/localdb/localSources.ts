@@ -1,6 +1,5 @@
 import {map} from 'rxjs';
 import MiniSearch from 'minisearch';
-import unidecode from 'unidecode';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaListLayout from 'types/MediaListLayout';
@@ -71,23 +70,24 @@ export const localScrobbles: MediaSource<MediaItem> = {
                         const listensMap = new Map(
                             listens.toReversed().map((listen) => [listen.src, listen])
                         );
-                        const fields = ['title', 'artists', 'genres', 'src'];
+                        const fields = ['title', 'artist', 'album', 'genre', 'src'];
                         const miniSearch = new MiniSearch({fields});
                         miniSearch.addAll(
                             [...listensMap.values()].map((listen) => ({
                                 id: listen.src,
-                                title: unidecode(listen.title),
-                                artists: unidecode(listen.artists?.join(';') || ''),
-                                genres: listen.genres,
+                                title: listen.title,
+                                artist: listen.artists?.join(';') || '',
+                                album: listen.album || '',
+                                genre: listen.genres,
                                 src: listen.src,
                             }))
                         );
                         return miniSearch
-                            .search(unidecode(q), {
+                            .search(q, {
                                 fields,
                                 fuzzy: 0.2,
                                 prefix: true,
-                                boost: {title: 1.05, genres: 0.25, src: 0.1},
+                                boost: {title: 1.05, album: 0.5, genres: 0.25, src: 0.1},
                             })
                             .map((entry) => listensMap.get(entry.id)!);
                     } else {

@@ -178,6 +178,7 @@ const playabilityByServiceId: Record<
     apple: Playability.LoggedIn,
     emby: Playability.LoggedIn,
     gonic: Playability.LoggedIn,
+    ibroadcast: Playability.LoggedIn,
     jellyfin: Playability.LoggedIn,
     navidrome: Playability.LoggedIn,
     plex: Playability.LoggedIn,

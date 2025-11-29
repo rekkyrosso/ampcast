@@ -1,5 +1,6 @@
 import type {Observable, Subscribable} from 'rxjs';
 import {
+    EMPTY,
     BehaviorSubject,
     Subject,
     Subscription,
@@ -40,27 +41,27 @@ export type CreateChildPager<T extends MediaObject> = (
 ) => Pager<ChildOf<T>>;
 
 export default abstract class MediaPager<T extends MediaObject> implements Pager<T> {
-    private readonly additions$ = new Subject<readonly T[]>();
-    private readonly error$ = new BehaviorSubject<unknown>(undefined);
-    private readonly items$ = new BehaviorSubject<readonly T[]>(UNINITIALIZED);
-    private readonly fetches$ = new BehaviorSubject<PageFetch>({index: 0, length: 0});
-    private readonly size$ = new BehaviorSubject(-1);
-    private readonly busy$ = new BehaviorSubject(false);
-    private readonly keys = new Set<string>();
-    private subscriptions?: Subscription;
+    #additions$?: Subject<readonly T[]>;
+    #busy$?: BehaviorSubject<boolean>;
     #disconnected = false;
+    #error$?: BehaviorSubject<unknown>;
+    #fetches$?: BehaviorSubject<PageFetch>;
+    #items$?: BehaviorSubject<readonly T[]>;
+    #keys?: Set<string>;
+    #size$?: BehaviorSubject<number>;
+    #subscriptions?: Subscription;
 
     constructor(
         protected config: PagerConfig<T>,
         private readonly createChildPager?: CreateChildPager<T>
     ) {
         if (__dev__ && !config.pageSize) {
-            logger.warn('`pageSize` not specified.', {pager: this});
+            logger.warn('`pageSize` not specified');
         }
     }
 
     get connected(): boolean {
-        return !!this.subscriptions;
+        return !!this.#subscriptions;
     }
 
     get disconnected(): boolean {
@@ -80,7 +81,7 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
     }
 
     observeAdditions(): Observable<readonly T[]> {
-        return this.additions$.pipe(skipWhile((additions) => additions === UNINITIALIZED));
+        return this.passive ? EMPTY : this.additions$;
     }
 
     observeBusy(): Observable<boolean> {
@@ -108,8 +109,8 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
     disconnect(): void {
         if (!this.disconnected) {
             this.#disconnected = true;
-            if (this.subscriptions) {
-                this.subscriptions.unsubscribe();
+            if (this.#subscriptions) {
+                this.#subscriptions.unsubscribe();
                 if (__dev__) {
                     pagerCount--;
                     if (pagerCount === 0) {
@@ -117,11 +118,11 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
                     }
                 }
             }
-            this.items.forEach((item) => (item as any)?.pager?.disconnect());
-            this.items$.complete();
-            this.additions$.complete();
-            this.size$.complete();
-            this.error$.complete();
+            this.#items$?.value.forEach((item) => (item as any)?.pager?.disconnect());
+            this.#items$?.complete();
+            this.#additions$?.complete();
+            this.#size$?.complete();
+            this.#error$?.complete();
         }
     }
 
@@ -143,11 +144,15 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
     }
 
     protected get busy(): boolean {
-        return this.busy$.value;
+        return this.#busy$?.value || false;
     }
 
     protected set busy(busy: boolean) {
-        this.busy$.next(busy);
+        if (this.#busy$) {
+            this.#busy$.next(busy);
+        } else {
+            this.#busy$ = new BehaviorSubject(busy);
+        }
     }
 
     protected get childSortId(): string {
@@ -155,54 +160,65 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
     }
 
     protected get error(): unknown {
-        return this.error$.value;
+        return this.#error$?.value;
     }
 
     protected set error(error: unknown) {
-        this.error$.next(error);
+        if (this.#error$) {
+            this.#error$.next(error);
+        } else {
+            this.#error$ = new BehaviorSubject(error);
+        }
     }
 
     protected get itemKey(): ConditionalKeys<T, string | number> {
-        return this.config.itemKey || ('src' as any);
+        return this.config.itemKey || ('src' as ConditionalKeys<T, string>);
     }
 
     protected get items(): readonly T[] {
-        return this.items$.value;
+        return this.#items$?.value || [];
     }
 
     protected set items(items: readonly T[]) {
-        if (this.passive) {
-            this.items$.next(items);
-        } else {
-            const additions: T[] = [];
-            this.items$.next(
-                items.map((item) => {
-                    const key = item[this.itemKey];
-                    if (!this.keys.has(key)) {
-                        this.keys.add(key);
-                        const inLibrary = actionsStore.getInLibrary(item, item.inLibrary);
-                        const rating = actionsStore.getRating(item, item.rating);
-                        if (item.inLibrary !== inLibrary || item.rating !== rating) {
-                            item = {...item, inLibrary, rating};
-                        }
-                        additions.push(item);
+        const additions: T[] = [];
+        if (!this.passive) {
+            const keys = this.keys;
+            items = items.map((item) => {
+                const key = item[this.itemKey];
+                if (!keys.has(key)) {
+                    keys.add(key);
+                    const inLibrary = actionsStore.getInLibrary(item, item.inLibrary);
+                    const rating = actionsStore.getRating(item, item.rating);
+                    if (item.inLibrary !== inLibrary || item.rating !== rating) {
+                        item = {...item, inLibrary, rating};
                     }
-                    return item;
-                })
-            );
-            if (additions.length > 0) {
-                this.additions$.next(additions);
-            }
+                    additions.push(item);
+                }
+                return item;
+            });
+        }
+        if (this.#items$) {
+            this.#items$.next(items);
+        } else {
+            this.#items$ = new BehaviorSubject(items);
+        }
+        if (additions.length > 0) {
+            this.additions$.next(additions);
         }
     }
 
     protected get size(): number | undefined {
-        const size = this.size$.value;
+        const size = this.#size$?.value;
         return size === -1 ? undefined : size;
     }
 
     protected set size(size: number) {
-        this.size$.next(clamp(0, size, this.maxSize ?? Infinity));
+        size = clamp(0, size, this.maxSize ?? Infinity);
+        if (this.#size$) {
+            this.#size$.next(size);
+        } else {
+            this.#size$ = new BehaviorSubject(size);
+        }
     }
 
     protected observeComplete(): Observable<readonly T[]> {
@@ -226,7 +242,7 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
                 }
             }
 
-            this.subscriptions = new Subscription();
+            this.#subscriptions = new Subscription();
 
             if (!this.passive) {
                 this.subscribeTo(
@@ -239,14 +255,12 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
                     logger
                 );
 
-                if (!this.passive) {
-                    this.subscribeTo(
-                        observeMetadataChanges<T>().pipe(
-                            tap((changes) => this.applyMetadataChanges(changes))
-                        ),
-                        logger
-                    );
-                }
+                this.subscribeTo(
+                    observeMetadataChanges<T>().pipe(
+                        tap((changes) => this.applyMetadataChanges(changes))
+                    ),
+                    logger
+                );
             }
 
             if (this.childSortId && this.createChildPager) {
@@ -263,7 +277,60 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
     }
 
     protected subscribeTo<T>(subscribable: Subscribable<T>, logger: Logger): void {
-        this.subscriptions!.add(subscribable.subscribe(logger));
+        if (this.#subscriptions) {
+            this.#subscriptions.add(subscribable.subscribe(logger));
+        } else {
+            logger.warn('Not connected');
+        }
+    }
+
+    private get additions$(): Subject<readonly T[]> {
+        if (!this.#additions$) {
+            this.#additions$ = new Subject();
+        }
+        return this.#additions$;
+    }
+
+    private get busy$(): BehaviorSubject<boolean> {
+        if (!this.#busy$) {
+            this.#busy$ = new BehaviorSubject(false);
+        }
+        return this.#busy$;
+    }
+
+    private get error$(): BehaviorSubject<unknown> {
+        if (!this.#error$) {
+            this.#error$ = new BehaviorSubject<unknown>(undefined);
+        }
+        return this.#error$;
+    }
+
+    private get fetches$(): BehaviorSubject<PageFetch> {
+        if (!this.#fetches$) {
+            this.#fetches$ = new BehaviorSubject({index: 0, length: 0});
+        }
+        return this.#fetches$;
+    }
+
+    private get items$(): BehaviorSubject<readonly T[]> {
+        if (!this.#items$) {
+            this.#items$ = new BehaviorSubject<readonly T[]>(UNINITIALIZED);
+        }
+        return this.#items$;
+    }
+
+    private get keys(): Set<string> {
+        if (!this.#keys) {
+            this.#keys = new Set();
+        }
+        return this.#keys;
+    }
+
+    private get size$(): BehaviorSubject<number> {
+        if (!this.#size$) {
+            this.#size$ = new BehaviorSubject(-1);
+        }
+        return this.#size$;
     }
 
     private applyMetadataChanges(changes: readonly MetadataChange<T>[]): void {
