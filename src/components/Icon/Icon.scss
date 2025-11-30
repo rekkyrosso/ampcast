@@ -171,6 +171,36 @@
         }
     }
 
+    &-ibroadcast {
+        &-bg {
+            fill: #312927;
+        }
+
+        .ibroadcast-connected &.show-connectivity &-bg {
+            fill: #134a8e;
+        }
+
+        .ibroadcast-connected .light &.show-connectivity &-bg {
+            fill: #007bff;
+        }
+
+        &-dot {
+            fill: #89878c;
+        }
+
+        .ibroadcast-connected &.show-connectivity &-dot {
+            fill: #ecedef;
+        }
+
+        &-ib {
+            fill: #ecedef;
+        }
+
+        .ibroadcast-connected &.show-connectivity &-ib {
+            fill: white;
+        }
+    }
+
     &-jellyfin {
         .jellyfin-connected &,
         &:not(.show-connectivity) {

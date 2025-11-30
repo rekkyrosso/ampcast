@@ -23,6 +23,7 @@ import {
 } from 'components/MediaList/layouts';
 import ibroadcastLibrary from './ibroadcastLibrary';
 import IBroadcastPager from './IBroadcastPager';
+import IBroadcastSystemItemsPager from './IBroadcastSystemItemsPager';
 import {
     createArtistAlbumsPager,
     createPlaylistItemsPager,
@@ -51,11 +52,11 @@ const ibroadcastArtistAlbumsSort: MediaListSort = {
 export const ibroadcastPlaylistLayout: Partial<MediaListLayout> = {
     card: {
         h1: 'Name',
-        h2: 'Description',
+        h2: 'Genre',
         h3: 'Progress',
         data: 'TrackCount',
     },
-    details: ['Name', 'Description', 'TrackCount', 'Progress'],
+    details: ['Name', 'Genre', 'Description', 'TrackCount', 'Progress'],
 };
 
 const ibroadcastPlaylistItemsLayout: Partial<MediaListLayout> = {
@@ -79,7 +80,6 @@ export const ibroadcastPlaylistItemsSort: MediaListSort = {
 export const ibroadcastPlaylistItems: MediaSourceItems<SetRequired<MediaItem, 'position'>> = {
     layout: ibroadcastPlaylistItemsLayout,
     sort: ibroadcastPlaylistItemsSort,
-    itemKey: 'position',
 };
 
 const ibroadcastTracks: MediaSourceItems<MediaItem> = {
@@ -135,9 +135,7 @@ const ibroadcastThumbsUp: MediaSource<MediaItem> = {
     primaryItems: ibroadcastTracks,
 
     search(): Pager<MediaItem> {
-        return new IBroadcastPager<MediaItem>('tracks', () =>
-            ibroadcastLibrary.getSystemPlaylistItems('thumbsup')
-        );
+        return new IBroadcastSystemItemsPager('thumbsup');
     },
 };
 
@@ -158,7 +156,7 @@ const ibroadcastTopTracks: MediaSource<MediaItem> = {
     },
 
     search(): Pager<MediaItem> {
-        return new IBroadcastPager<MediaItem>('tracks', () =>
+        return new IBroadcastPager('tracks', () =>
             ibroadcastLibrary.query({
                 section: 'tracks',
                 filter: (track, map) => !!track[map.rating],
@@ -188,7 +186,7 @@ const ibroadcastTopAlbums: MediaSource<MediaAlbum> = {
     },
 
     search(): Pager<MediaAlbum> {
-        return new IBroadcastPager<MediaAlbum>('albums', () =>
+        return new IBroadcastPager('albums', () =>
             ibroadcastLibrary.query({
                 section: 'albums',
                 filter: (album, map) => !!album[map.rating],
@@ -218,7 +216,7 @@ const ibroadcastTopArtists: MediaSource<MediaArtist> = {
     },
 
     search(): Pager<MediaArtist> {
-        return new IBroadcastPager<MediaArtist>(
+        return new IBroadcastPager(
             'artists',
             () =>
                 ibroadcastLibrary.query({
@@ -243,9 +241,7 @@ const ibroadcastRecentlyAdded: MediaSource<MediaItem> = {
     primaryItems: ibroadcastTracks,
 
     search(): Pager<MediaItem> {
-        return new IBroadcastPager<MediaItem>('tracks', () =>
-            ibroadcastLibrary.getSystemPlaylistItems('recently-uploaded')
-        );
+        return new IBroadcastSystemItemsPager('recently-uploaded');
     },
 };
 
@@ -257,9 +253,7 @@ const ibroadcastRecentlyPlayed: MediaSource<MediaItem> = {
     primaryItems: ibroadcastTracks,
 
     search(): Pager<MediaItem> {
-        return new IBroadcastPager<MediaItem>('tracks', () =>
-            ibroadcastLibrary.getSystemPlaylistItems('recently-played')
-        );
+        return new IBroadcastSystemItemsPager('recently-played');
     },
 };
 
@@ -273,7 +267,8 @@ const ibroadcastMostPlayed: MediaSource<MediaItem> = {
     },
 
     search(): Pager<MediaItem> {
-        return new IBroadcastPager<MediaItem>('tracks', () =>
+        // TODO: refresh?
+        return new IBroadcastPager('tracks', () =>
             ibroadcastLibrary.query({
                 section: 'tracks',
                 filter: (track, map) => !!track[map.plays],
@@ -307,7 +302,7 @@ export const ibroadcastPlaylists: MediaSource<MediaPlaylist> = {
         _,
         {sortBy, sortOrder} = ibroadcastPlaylists.primaryItems!.sort!.defaultSort
     ): Pager<MediaPlaylist> {
-        return new IBroadcastPager<MediaPlaylist>(
+        return new IBroadcastPager(
             'playlists',
             () =>
                 ibroadcastLibrary.query({
@@ -323,7 +318,8 @@ export const ibroadcastPlaylists: MediaSource<MediaPlaylist> = {
                 childSort: ibroadcastPlaylistItemsSort.defaultSort,
                 childSortId: `${ibroadcastPlaylists.id}/2`,
             },
-            createPlaylistItemsPager
+            createPlaylistItemsPager,
+            () => ibroadcastLibrary.observePlaylistsChanges()
         );
     },
 };
@@ -564,19 +560,19 @@ function createSearch<T extends MediaObject>(
         search({q = ''}: {q?: string} = {}): Pager<T> {
             switch (itemType) {
                 case ItemType.Media:
-                    return new IBroadcastPager('tracks', async () =>
+                    return new IBroadcastPager('tracks', () =>
                         ibroadcastLibrary.search('tracks', q)
                     );
 
                 case ItemType.Album:
-                    return new IBroadcastPager('albums', async () =>
+                    return new IBroadcastPager('albums', () =>
                         ibroadcastLibrary.search('albums', q)
                     );
 
                 case ItemType.Artist:
                     return new IBroadcastPager(
                         'artists',
-                        async () => ibroadcastLibrary.search('artists', q),
+                        () => ibroadcastLibrary.search('artists', q),
                         {
                             childSort: ibroadcastArtistAlbumsSort.defaultSort,
                             childSortId: `${id}/2`,
@@ -587,7 +583,7 @@ function createSearch<T extends MediaObject>(
                 case ItemType.Playlist:
                     return new IBroadcastPager(
                         'playlists',
-                        async () => ibroadcastLibrary.search('playlists', q),
+                        () => ibroadcastLibrary.search('playlists', q),
                         {
                             childSort: ibroadcastPlaylistItemsSort.defaultSort,
                             childSortId: `${id}/2`,

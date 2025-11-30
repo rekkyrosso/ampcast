@@ -13,10 +13,10 @@ export default function IBroadcastServerSettings({
 }: PersonalMediaServerSettingsProps) {
     const id = useId();
     const isLoggedIn = useIsLoggedIn(ibroadcast);
-    const bitRateRef = useRef<HTMLSelectElement>(null);
+    const bitrateRef = useRef<HTMLSelectElement>(null);
 
     const handleSubmit = useCallback(() => {
-        ibroadcastSettings.bitRate = bitRateRef.current!.value;
+        ibroadcastSettings.bitrate = bitrateRef.current!.value;
     }, []);
 
     const synchLibrary = useCallback(async () => {
@@ -48,8 +48,8 @@ export default function IBroadcastServerSettings({
                     <label htmlFor={`${id}-bitrate`}>Bitrate:</label>
                     <select
                         id={`${id}-bitrate`}
-                        defaultValue={ibroadcastSettings.bitRate}
-                        ref={bitRateRef}
+                        defaultValue={ibroadcastSettings.bitrate}
+                        ref={bitrateRef}
                     >
                         <option value="96">96 kbps</option>
                         <option value="128">128 kbps</option>

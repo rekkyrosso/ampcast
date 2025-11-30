@@ -21,8 +21,10 @@ declare namespace iBroadcast {
         readonly tracks: readonly string[];
     }
 
-    type LibrarySection = 'artists' | 'albums' | 'tracks' | 'playlists';
+    type RateableLibrarySection = 'artists' | 'albums' | 'tracks';
+    type LibrarySection = RateableLibrarySection | 'playlists';
     type LibrarySectionMap<T extends LibrarySection> = Library[T]['map'];
+    type SystemPlaylistType = 'recently-played' | 'recently-uploaded' | 'thumbsup';
 
     interface Library {
         readonly expires: number; // unix time
@@ -128,6 +130,16 @@ declare namespace iBroadcast {
     interface CreatePlaylistResponse extends StatusResponse {
         readonly playlist_id: number;
         readonly public_id: string;
+    }
+
+    interface AddToPlaylistResponse extends StatusResponse {
+        readonly playlist_id: number;
+        readonly tracks: readonly string[]; // Not `number`.
+    }
+
+    interface UpdatePlaylistResponse extends StatusResponse {
+        readonly playlist: number;
+        readonly tracks: readonly string[]; // Not `number`.
     }
 
     interface MakePlaylistPublicResponse extends StatusResponse {

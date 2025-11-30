@@ -51,6 +51,14 @@
             text-shadow: none;
         }
 
+        .ibroadcast-browser & {
+            background: #134a8e;
+
+            .themed.light & {
+                background: #007bff;
+            }
+        }
+
         .jellyfin-browser & {
             background: linear-gradient(135deg, #aa5cc3, #00a4dc);
         }

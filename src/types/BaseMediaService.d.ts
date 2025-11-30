@@ -49,9 +49,9 @@ type BaseMediaService = Auth & {
               readonly isCoverArt?: boolean; // Shows enough metadata to not require a hover state.
           };
     addMetadata?: <T extends MediaObject>(item: T) => Promise<T>;
-    addToPlaylist?: <T extends MediaItem>(
+    addToPlaylist?: (
         playlist: MediaPlaylist,
-        items: readonly T[],
+        items: readonly MediaItem[],
         position?: number
     ) => Promise<void>;
     bulkRate?: (items: readonly MediaObject[], rating: number) => Promise<void>;
@@ -87,16 +87,13 @@ type BaseMediaService = Auth & {
         limit?: number,
         timeout?: number
     ) => Promise<readonly MediaItem[]>;
-    movePlaylistItems?: <T extends MediaItem>(
+    movePlaylistItems?: (
         playlist: MediaPlaylist,
-        items: readonly T[],
+        items: readonly MediaItem[],
         toIndex: number
     ) => Promise<void>;
     rate?: (item: MediaObject, rating: number) => Promise<void>;
-    removePlaylistItems?: <T extends MediaItem>(
-        playlist: MediaPlaylist,
-        items: readonly T[]
-    ) => Promise<void>;
+    removePlaylistItems?: (playlist: MediaPlaylist, items: readonly MediaItem[]) => Promise<void>;
     scrobble?: () => void;
     store?: (item: MediaObject, inLibrary: boolean) => Promise<void>;
 };

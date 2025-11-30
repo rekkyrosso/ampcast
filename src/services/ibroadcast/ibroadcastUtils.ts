@@ -17,7 +17,7 @@ import IBroadcastPlaylistItemsPager from './IBroadcastPlaylistItemsPager';
 
 export function createMediaObject<T extends MediaObject>(
     section: iBroadcast.LibrarySection,
-    id: string,
+    id: number,
     library: iBroadcast.Library,
     childSort?: SortParams
 ): T {
@@ -37,17 +37,17 @@ export function createMediaObject<T extends MediaObject>(
 }
 
 function createMediaArtist(
-    id: string,
+    id: number,
     library: iBroadcast.Library,
     albumSort?: SortParams
 ): MediaArtist {
     const artist = library.artists[id];
     const map = library.artists.map;
-    const trackIds: string[] | undefined = artist[map.tracks];
+    const trackIds: number[] | undefined = artist[map.tracks];
     const mediaArtist: Writable<SetOptional<MediaArtist, 'pager'>> = {
         itemType: ItemType.Artist,
         src: `ibroadcast:artist:${id}`,
-        externalUrl: trackIds ? getExternalUrl(id, 'album+artists') : undefined,
+        externalUrl: trackIds ? getExternalUrl(id, 'artists') : undefined,
         title: artist[map.name],
         rating: artist[map.rating],
         genres: getGenres('artists', artist, library, true),
@@ -61,27 +61,27 @@ export function createArtistAlbumsPager(
     artist: MediaArtist,
     albumSort?: SortParams
 ): Pager<MediaAlbum> {
-    const [, , id] = artist.src.split(':');
+    const id = getIdFromSrc(artist);
     return new SimpleMediaPager(async () => {
         const library = await ibroadcastLibrary.load();
         const artist = library.artists[id];
         const artistMap = library.artists.map;
-        const albumMap = library.albums.map;
-        const trackMap = library.tracks.map;
-        const allTrackIds = new Set<string>(artist?.[artistMap.tracks] || []);
-        const albumIds: string[] = [];
+        const albumsMap = library.albums.map;
+        const tracksMap = library.tracks.map;
+        const allTrackIds = new Set<number>(artist?.[artistMap.tracks] || []);
+        const albumIds: number[] = [];
         Object.keys(library.albums).forEach((albumId) => {
             const album = library.albums[albumId];
-            if (String(album?.[albumMap.artist_id]) === id) {
-                albumIds.push(albumId);
-                album[albumMap.tracks]?.forEach((id: string) => allTrackIds.add(id));
+            if (album?.[albumsMap.artist_id] === id) {
+                albumIds.push(Number(albumId));
+                album[albumsMap.tracks]?.forEach((id: number) => allTrackIds.add(id));
             }
         });
         Object.keys(library.tracks).forEach((trackId) => {
             const track = library.tracks[trackId];
-            track[trackMap.artists_additional]?.forEach((artist: iBroadcast.LibraryEntry) => {
-                if (String(artist[trackMap.artists_additional_map.artist_id]) === id) {
-                    allTrackIds.add(trackId);
+            track[tracksMap.artists_additional]?.forEach((artist: iBroadcast.LibraryEntry) => {
+                if (artist[tracksMap.artists_additional_map.artist_id] === id) {
+                    allTrackIds.add(Number(trackId));
                 }
             });
         });
@@ -89,7 +89,7 @@ export function createArtistAlbumsPager(
             const {sortBy, sortOrder = 1} = albumSort;
             const albums = library.albums;
             albumIds.sort(
-                (a, b) => sortAlbums(sortBy, albums[a], albums[b], albumMap, library) * sortOrder
+                (a, b) => sortAlbums(sortBy, albums[a], albums[b], albumsMap, library) * sortOrder
             );
         }
         const albums = albumIds.map((id) => createMediaAlbum(id, library));
@@ -109,14 +109,14 @@ export function createArtistAlbumsPager(
     });
 }
 
-function createMediaAlbum(id: string, library: iBroadcast.Library): MediaAlbum {
+function createMediaAlbum(id: number, library: iBroadcast.Library): MediaAlbum {
     const albums = library.albums;
     const artists = library.artists;
     const tracks = library.tracks;
     const album = albums[id];
     const map = albums.map;
     const artist = artists[album[map.artist_id]];
-    const trackIds: string[] = album[map.tracks];
+    const trackIds: number[] = album[map.tracks];
     const firstTrack = tracks[trackIds?.[0]];
     const mediaAlbum: Writable<SetOptional<MediaAlbum, 'pager'>> = {
         itemType: ItemType.Album,
@@ -135,12 +135,12 @@ function createMediaAlbum(id: string, library: iBroadcast.Library): MediaAlbum {
 }
 
 export function createAlbumTracksPager(album: MediaAlbum): Pager<MediaItem> {
-    const [, , id] = album.src.split(':');
+    const id = getIdFromSrc(album);
     return new SimpleMediaPager(async () => {
         const library = await ibroadcastLibrary.load();
         const album = library.albums[id];
         const map = library.albums.map;
-        const trackIds: string[] | undefined = album?.[map.tracks];
+        const trackIds: number[] | undefined = album?.[map.tracks];
         if (trackIds) {
             const tracks = trackIds.map((id) => createMediaItem(id, library));
             return tracks.toSorted((a, b) => (a.track || 0) - (b.track || 0));
@@ -150,8 +150,8 @@ export function createAlbumTracksPager(album: MediaAlbum): Pager<MediaItem> {
     });
 }
 
-function createMediaPlaylist(
-    id: string,
+export function createMediaPlaylist(
+    id: number,
     library: iBroadcast.Library,
     itemSort?: SortParams
 ): MediaPlaylist {
@@ -159,7 +159,7 @@ function createMediaPlaylist(
     const playlist = playlists[id];
     const map = playlists.map;
     const src = `ibroadcast:playlist:${id}`;
-    const trackIds: string[] = playlist[map.tracks];
+    const trackIds: number[] = playlist[map.tracks];
     const owned = !playlist[map.type];
     const mediaPlaylist: Writable<SetOptional<MediaPlaylist, 'pager'>> = {
         src,
@@ -171,9 +171,15 @@ function createMediaPlaylist(
         trackCount: trackIds?.length,
         isPinned: pinStore.isPinned(src),
         owned,
-        editable: owned,
-        deletable: owned,
         public: owned && !!playlist[map.public_id],
+        editable: true,
+        deletable: true,
+        genres: getGenres('playlists', playlist, library, true),
+        items: {
+            deletable: true,
+            droppable: true,
+            moveable: true,
+        },
     };
     mediaPlaylist.pager = createPlaylistItemsPager(mediaPlaylist as MediaPlaylist, itemSort);
     return mediaPlaylist as MediaPlaylist;
@@ -183,62 +189,35 @@ export function createPlaylistItemsPager(
     playlist: MediaPlaylist,
     itemSort?: SortParams
 ): Pager<MediaItem> {
-    const [, , id] = playlist.src.split(':');
-    return new IBroadcastPlaylistItemsPager(async () => {
-        const library = await ibroadcastLibrary.load();
-        const playlist = library.playlists[id];
-        const map = library.playlists.map;
-        const trackIds: string[] | undefined = playlist?.[map.tracks];
-        if (trackIds) {
-            const items = trackIds.map((id, index) => createMediaItem(id, library, index + 1));
-            if (itemSort) {
-                const {sortBy, sortOrder = 1} = itemSort;
-                items.sort((a, b) => {
-                    switch (sortBy) {
-                        case 'title':
-                            return sortByTitle(a.title, b.title) * sortOrder;
-
-                        case 'artist':
-                            return (
-                                sortByTitle(a.artists?.[0] || '', b.artists?.[0] || '') * sortOrder
-                            );
-
-                        case 'position':
-                            return (a.position! - b.position!) * sortOrder;
-
-                        default:
-                            return 0;
-                    }
-                });
-            }
-            return items;
-        } else {
-            throw Error('Tracks not found');
-        }
-    });
+    const id = getIdFromSrc(playlist);
+    return new IBroadcastPlaylistItemsPager(id, itemSort);
 }
 
-function createMediaItem(id: string, library: iBroadcast.Library, position?: number): MediaItem {
+export function createMediaItem(
+    id: number,
+    library: iBroadcast.Library,
+    position?: number
+): MediaItem {
     const albums = library.albums;
     const artists = library.artists;
     const tracks = library.tracks;
     const track = tracks[id];
     const map = tracks.map;
-    const artist = artists[track[map.artist_id]]; // TODO: artists_additional
+    const artist = artists[track[map.artist_id]];
     const album = albums[track[map.album_id]];
     const albumArtist = albums[track[map.artist_id]];
     const replayGain = Number(track[map.replay_gain]);
-    const container = track[map.type]?.replace(/^(audio|video)\//, '')
+    const container = track[map.type]?.replace(/^(audio|video)\//, '');
     return {
         itemType: ItemType.Media,
         mediaType: MediaType.Audio,
         src: `ibroadcast:track:${id}`,
-        externalUrl: getExternalUrl(id, 'tracks'),
+        // externalUrl: getExternalUrl(id, 'tracks'), // Doesn't work.
         title: track[map.title],
         fileName: track[map.file],
         duration: track[map.length],
         year: track[map.year] || album?.[albums.map.year],
-        addedAt: parseDate(track[map.uploaded_on]), // uploaded_time
+        addedAt: parseDate(track[map.uploaded_on]), // TODO: uploaded_time
         playedAt: 0,
         playCount: track[map.plays],
         position,
@@ -255,14 +234,14 @@ function createMediaItem(id: string, library: iBroadcast.Library, position?: num
     };
 }
 
-function createThumbnails(id: string): Thumbnail[] | undefined {
+function createThumbnails(id: number): Thumbnail[] | undefined {
     return id
         ? [createThumbnail(id, 150), createThumbnail(id, 300), createThumbnail(id, 1000)]
         : undefined;
 }
 
-function createThumbnail(id: string, width: number, height = width): Thumbnail {
-    const url = `https://artwork.ibroadcast.com/artwork/${id}-${width}`;
+function createThumbnail(id: number, width: number, height = width): Thumbnail {
+    const url = `${location.protocol}//artwork.ibroadcast.com/artwork/${id}-${width}`;
     return {url, width, height};
 }
 
@@ -278,7 +257,7 @@ export function getGenres<T extends iBroadcast.LibrarySection>(
     } else {
         let genres: string[] | undefined;
         const map = data.map as iBroadcast.LibrarySectionMap<Exclude<T, 'tracks'>>;
-        const trackIds: string[] = entry[map.tracks];
+        const trackIds: number[] = entry[map.tracks];
         const tracks = library.tracks;
         const trackGenres = trackIds
             ?.map((id) => getTrackGenres(tracks[id], library))
@@ -289,8 +268,10 @@ export function getGenres<T extends iBroadcast.LibrarySection>(
                 const genresMap = new Map<string, number>();
                 for (const trackGenre of trackGenres) {
                     const count = genresMap.get(trackGenre) || 0;
-                    genresMap.set(trackGenre, count);
+                    genresMap.set(trackGenre, count + 1);
                 }
+                const sorted = new Map([...genresMap].sort((a, b) => b[1] - a[1]));
+                genres = [...sorted.keys()];
             } else {
                 genres = uniq(trackGenres);
             }
@@ -316,8 +297,29 @@ function getTrackGenres(
     return genres?.length ? genres : undefined;
 }
 
-function getExternalUrl(id: string, type: string): string {
+function getExternalUrl(id: number, type: string): string {
     return `https://media.ibroadcast.com/?view=container&container_id=${id}&type=${type}`;
+}
+
+export function getIdFromSrc(item: {src: string}): number {
+    const [, , id] = item.src.split(':');
+    return Number(id);
+}
+
+export function getLibrarySectionFromItem(item: MediaObject): iBroadcast.LibrarySection {
+    switch (item.itemType) {
+        case ItemType.Playlist:
+            return 'playlists';
+
+        case ItemType.Artist:
+            return 'artists';
+
+        case ItemType.Album:
+            return 'albums';
+
+        default:
+            return 'tracks';
+    }
 }
 
 function parseDate(date?: string | null): number | undefined {

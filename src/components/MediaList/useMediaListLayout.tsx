@@ -377,7 +377,7 @@ const Progress: RenderField<MediaPlaylist> = (playlist) => {
     const playlistSize = playlist.trackCount;
     const itemCount = items.reduce((total) => (total += 1), 0);
     const playable = useIsPlaylistPlayable(playlist);
-    return playable ? null : (
+    return playable || playlistSize === 0 ? null : (
         <progress
             max={playlistSize ?? 1}
             value={playlistSize == null ? 0 : itemCount}

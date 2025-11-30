@@ -31,13 +31,13 @@ import ibroadcastSources, {
 } from './ibroadcastSources';
 import IBroadcastPager from './IBroadcastPager';
 import ibroadcastSettings from './ibroadcastSettings';
-import {createPlaylistItemsPager} from './ibroadcastUtils';
+import {createPlaylistItemsPager, getIdFromSrc, getLibrarySectionFromItem} from './ibroadcastUtils';
 import Credentials from './components/IBroadcastCredentials';
 import Login from './components/IBroadcastLogin';
 import ServerSettings from './components/IBroadcastServerSettings';
 
 const serviceId: MediaServiceId = 'ibroadcast';
-const streamingHost = 'https://streaming.ibroadcast.com';
+const streamingHost = '//streaming.ibroadcast.com';
 
 const ibroadcast: PersonalMediaService = {
     id: serviceId,
@@ -56,6 +56,7 @@ const ibroadcast: PersonalMediaService = {
     editablePlaylists: ibroadcastPlaylists,
     root: ibroadcastSearch,
     sources: ibroadcastSources,
+    addMetadata,
     addToPlaylist,
     canPin,
     canRate,
@@ -67,7 +68,10 @@ const ibroadcast: PersonalMediaService = {
     getFilters,
     getPlayableUrl,
     getPlaybackType,
+    getPlaylistByName,
+    movePlaylistItems,
     rate,
+    removePlaylistItems,
     observeIsLoggedIn,
     isConnected,
     isLoggedIn,
@@ -78,12 +82,29 @@ const ibroadcast: PersonalMediaService = {
 
 export default ibroadcast;
 
+async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
+    if (!canRate(item) || item.rating !== undefined) {
+        return item;
+    }
+    const id = getIdFromSrc(item);
+    const section = getLibrarySectionFromItem(item) as iBroadcast.RateableLibrarySection;
+    const library = await ibroadcastLibrary.load();
+    const data = library[section];
+    const entry = data[id];
+    if (entry) {
+        const rating = entry[data.map.rating];
+        return {...item, rating};
+    }
+    return item;
+}
+
 async function addToPlaylist<T extends MediaItem>(
     playlist: MediaPlaylist,
-    items: readonly T[]
+    items: readonly T[],
+    position?: number
 ): Promise<void> {
-    const playlistId = getIdFromSrc(playlist);
-    return ibroadcastLibrary.addToPlaylist(playlistId, items.map(getIdFromSrc));
+    const id = getIdFromSrc(playlist);
+    return ibroadcastLibrary.addToPlaylist(id, items.map(getIdFromSrc), position);
 }
 
 function canPin(item: MediaObject): boolean {
@@ -102,12 +123,7 @@ async function createPlaylist<T extends MediaItem>(
     name: string,
     {description = '', isPublic = false, items = []}: CreatePlaylistOptions<T> = {}
 ): Promise<MediaPlaylist> {
-    return ibroadcastLibrary.createPlaylist(
-        name,
-        description,
-        isPublic,
-        items.map(getIdFromSrc)
-    );
+    return ibroadcastLibrary.createPlaylist(name, description, isPublic, items.map(getIdFromSrc));
 }
 
 function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
@@ -173,19 +189,19 @@ async function getFilters(
 }
 
 function getPlayableUrl(item: PlayableItem): string {
-    const {token, userId, bitRate} = ibroadcastSettings;
+    const {token, userId, bitrate: bitRate} = ibroadcastSettings;
     if (token && userId) {
-        const [, , id] = item.src.split(':');
+        const id = getIdFromSrc(item);
         const fileName = (item.fileName || '').replace('128', bitRate);
         const params = new URLSearchParams({
             Expires: String(Math.floor(Date.now() / 1000)),
             Signature: token.access_token,
-            file_id: id,
+            file_id: String(id),
             user_id: userId,
             platform: __app_name__,
             version: __app_version__,
         });
-        return `${streamingHost}${fileName}?${params}`;
+        return `${location.protocol}${streamingHost}${fileName}?${params}`;
     } else {
         throw Error('Not logged in');
     }
@@ -198,6 +214,19 @@ async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
     } catch {
         return PlaybackType.Direct;
     }
+}
+
+async function getPlaylistByName(name: string): Promise<MediaPlaylist | undefined> {
+    return ibroadcastLibrary.getPlaylistByName(name);
+}
+
+async function movePlaylistItems(
+    playlist: MediaPlaylist,
+    items: readonly MediaItem[],
+    toIndex: number
+): Promise<void> {
+    const id = getIdFromSrc(playlist);
+    return ibroadcastLibrary.movePlaylistTracks(id, items.map(getIdFromSrc), toIndex);
 }
 
 async function rate(item: MediaObject, rating: number): Promise<void> {
@@ -214,7 +243,10 @@ async function rate(item: MediaObject, rating: number): Promise<void> {
     }
 }
 
-function getIdFromSrc({src}: {src: string}): string {
-    const [, , id] = src.split(':');
-    return id;
+async function removePlaylistItems(
+    playlist: MediaPlaylist,
+    items: readonly MediaItem[]
+): Promise<void> {
+    const id = getIdFromSrc(playlist);
+    return ibroadcastLibrary.removePlaylistTracks(id, items.map(getIdFromSrc));
 }

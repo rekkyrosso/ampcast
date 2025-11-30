@@ -94,14 +94,16 @@ export default async function performAction<T extends MediaObject>(
                         title: 'Playlists',
                         message: `Delete playlist '${playlist.title}'?`,
                         okLabel: 'Delete',
-                        storageId: 'delete-playlist',
                     });
                     if (confirmed) {
-                        await Promise.all([
-                            service.deletePlaylist(playlist),
-                            pinStore.unpin(playlist),
-                        ]);
-                        removeRecentPlaylist(playlist);
+                        try {
+                            await service.deletePlaylist(playlist);
+                            await pinStore.unpin(playlist);
+                            removeRecentPlaylist(playlist);
+                        } catch (err) {
+                            logger.error(err);
+                            await error('An error occurred while deleting your playlist.');
+                        }
                     }
                 }
             }

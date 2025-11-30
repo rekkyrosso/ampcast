@@ -290,7 +290,7 @@ export async function getMetadata<T extends plex.MediaObject>(
         return [];
     }
     const ratingObjects = objects.filter(
-        (object: plex.MediaObject): object is plex.RatingObject => 'ratingKey' in object
+        (object: plex.MediaObject): object is plex.RatingObject => !!object.ratingKey
     );
     if (ratingObjects.length > 0) {
         // Map of `object.key` to `object`.

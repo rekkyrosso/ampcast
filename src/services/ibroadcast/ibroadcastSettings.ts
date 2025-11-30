@@ -12,17 +12,18 @@ interface TokenStore {
     refresh_token: string;
 }
 
+const storage = new LiteStorage('ibroadcast');
 const authStorage = new LiteStorage('ibroadcast/auth');
 const userStorage = new LiteStorage('ibroadcast/user', 'memory');
 const credentials$ = new BehaviorSubject<IBroadcastCredentials>({clientId: ''});
 
 const ibroadcastSettings = {
-    get bitRate(): string {
-        return userStorage.getString('bitRate', '128');
+    get bitrate(): string {
+        return storage.getString('bitrate', '128');
     },
 
-    set bitRate(bitRate: string) {
-        userStorage.setString('bitRate', bitRate || '128');
+    set bitrate(bitrate: string) {
+        storage.setString('bitrate', bitrate || '128');
     },
 
     get clientId(): string {
