@@ -1,3 +1,4 @@
+import {map, mergeMap} from 'rxjs';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import ItemType from 'types/ItemType';
 import FilterType from 'types/FilterType';
@@ -13,6 +14,8 @@ import Pin, {Pinnable} from 'types/Pin';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
+import {Logger} from 'utils';
+import {observeListen} from 'services/localdb/listens';
 import {
     observeIsLoggedIn,
     isConnected,
@@ -39,6 +42,8 @@ import ServerSettings from './components/IBroadcastServerSettings';
 const serviceId: MediaServiceId = 'ibroadcast';
 const streamingHost = '//streaming.ibroadcast.com';
 
+const logger = new Logger(serviceId);
+
 const ibroadcast: PersonalMediaService = {
     id: serviceId,
     icon: serviceId,
@@ -48,14 +53,19 @@ const ibroadcast: PersonalMediaService = {
     serviceType: ServiceType.PersonalMedia,
     Components: {Credentials, Login, ServerSettings},
     internetRequired: true,
+    secureContextRequired: true,
+    credentialsRequired: true,
     get credentialsLocked(): boolean {
         return ibroadcastSettings.credentialsLocked;
     },
-    credentialsRequired: true,
     credentialsUrl: 'https://help.ibroadcast.com/developer/quick-start',
     editablePlaylists: ibroadcastPlaylists,
     root: ibroadcastSearch,
     sources: ibroadcastSources,
+    get libraryId(): string {
+        return ibroadcastLibrary.id;
+    },
+    observeLibraryId: () => ibroadcastLibrary.observeId(),
     addMetadata,
     addToPlaylist,
     canPin,
@@ -78,6 +88,7 @@ const ibroadcast: PersonalMediaService = {
     login,
     logout,
     reconnect,
+    scrobble,
 };
 
 export default ibroadcast;
@@ -249,4 +260,13 @@ async function removePlaylistItems(
 ): Promise<void> {
     const id = getIdFromSrc(playlist);
     return ibroadcastLibrary.removePlaylistTracks(id, items.map(getIdFromSrc));
+}
+
+function scrobble(): void {
+    observeListen()
+        .pipe(
+            map((listen) => getIdFromSrc(listen)),
+            mergeMap((id) => ibroadcastLibrary.scrobble(id))
+        )
+        .subscribe(logger);
 }

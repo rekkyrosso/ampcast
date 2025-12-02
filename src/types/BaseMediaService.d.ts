@@ -26,6 +26,7 @@ type BaseMediaService = Auth & {
     readonly sources?: readonly AnyMediaSource[];
     readonly listingName?: string; // Longer name for disambiguation
     readonly internetRequired?: boolean;
+    readonly secureContextRequired?: boolean;
     readonly credentialsLocked?: boolean;
     readonly credentialsRequired?: boolean;
     readonly credentialsUrl?: string;

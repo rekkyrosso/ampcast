@@ -22,7 +22,7 @@ async function post<T extends iBroadcast.Response>(
     if (!token) {
         throw Error('No access token');
     }
-    const requestInit = {
+    const response = await fetch(`${location.protocol}${host}`, {
         method: 'POST',
         headers: {
             Authorization: `Bearer ${token}`,
@@ -30,8 +30,7 @@ async function post<T extends iBroadcast.Response>(
             'User-Agent': userAgent,
         },
         body: JSON.stringify({...params, ...requiredParams, mode}),
-    };
-    const response = await fetch(`${location.protocol}${host}`, requestInit);
+    });
     if (!response.ok) {
         throw response;
     }
@@ -73,10 +72,6 @@ async function makePlaylistPublic(
     return post('makeplaylistpublic', {playlist_id});
 }
 
-async function revokePlaylistPublic(playlist_id: number): Promise<void> {
-    await post('revokeplaylistpublic', {playlist_id});
-}
-
 async function getLibrary(): Promise<iBroadcast.LibraryResponse> {
     return post('library', undefined, libraryHost);
 }
@@ -95,6 +90,32 @@ async function rateArtist(artist_id: number, rating: number): Promise<void> {
 
 async function rateTrack(track_id: number, rating: number): Promise<void> {
     await post('ratetrack', {track_id, rating});
+}
+
+async function revokePlaylistPublic(playlist_id: number): Promise<void> {
+    await post('revokeplaylistpublic', {playlist_id});
+}
+
+async function scrobble(trackId: number): Promise<void> {
+    const timeStamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+    await post('status', {
+        history: [
+            {
+                day: timeStamp.slice(0, 10),
+                detail: {
+                    [trackId]: [
+                        {
+                            event: 'play',
+                            ts: timeStamp,
+                        },
+                    ],
+                },
+                plays: {
+                    [trackId]: 1,
+                },
+            },
+        ],
+    });
 }
 
 async function updatePlaylistTracks(
@@ -116,6 +137,7 @@ const ibroadcastApi = {
     rateArtist,
     rateTrack,
     revokePlaylistPublic,
+    scrobble,
     updatePlaylistTracks,
 };
 

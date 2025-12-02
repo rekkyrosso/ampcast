@@ -45,7 +45,9 @@ export function scrobble(): void {
             // Or old unscrobbled items.
             const oneHourAgo = Math.floor(Date.now() / 1000) - 3600;
             listens = listens.filter(
-                (listen) => listen.sessionId === session.id || oneHourAgo > listen.playedAt
+                (listen) =>
+                    !listen.listenbrainzScrobbledAt &&
+                    (listen.sessionId === session.id || oneHourAgo > listen.playedAt)
             );
             if (listens.length === 0) {
                 return;

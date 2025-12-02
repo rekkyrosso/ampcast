@@ -44,10 +44,11 @@ const spotify: PublicMediaService = {
     serviceType: ServiceType.PublicMedia,
     Components: {Credentials, Login},
     internetRequired: true,
+    secureContextRequired: true,
+    credentialsRequired: true,
     get credentialsLocked(): boolean {
         return spotifySettings.credentialsLocked;
     },
-    credentialsRequired: true,
     editablePlaylists: spotifyEditablePlaylists,
     root: spotifySearch,
     sources: spotifySources,

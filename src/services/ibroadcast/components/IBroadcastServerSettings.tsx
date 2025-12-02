@@ -1,5 +1,4 @@
 import React, {useCallback, useId, useRef} from 'react';
-import {t} from 'services/i18n';
 import {PersonalMediaServerSettingsProps} from 'components/Settings/MediaLibrarySettings/PersonalMediaServerSettings';
 import {alert} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
@@ -19,12 +18,13 @@ export default function IBroadcastServerSettings({
         ibroadcastSettings.bitrate = bitrateRef.current!.value;
     }, []);
 
-    const synchLibrary = useCallback(async () => {
+    const reloadLibrary = useCallback(async () => {
         await ibroadcastLibrary.reload();
         await alert({
             icon: ibroadcast.icon,
             title: ibroadcast.name,
             message: 'Library updated.',
+            system: true,
         });
     }, [ibroadcast]);
 
@@ -37,8 +37,8 @@ export default function IBroadcastServerSettings({
             <fieldset>
                 <legend>Library</legend>
                 <p>
-                    <button onClick={synchLibrary} disabled={!isLoggedIn}>
-                        {t('Synchronize Library')}
+                    <button type="button" disabled={!isLoggedIn} onClick={reloadLibrary}>
+                        Reload Library
                     </button>
                 </p>
             </fieldset>

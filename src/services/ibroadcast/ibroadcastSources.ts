@@ -126,18 +126,18 @@ export const ibroadcastSearch: MediaMultiSource = {
     ],
 };
 
-const ibroadcastThumbsUp: MediaSource<MediaItem> = {
-    id: `${serviceId}/thumbs-up`,
-    title: 'Thumbs Up',
-    icon: 'thumbs-up',
-    itemType: ItemType.Media,
-    defaultHidden: true,
-    primaryItems: ibroadcastTracks,
+// const ibroadcastThumbsUp: MediaSource<MediaItem> = {
+//     id: `${serviceId}/thumbs-up`,
+//     title: 'Thumbs Up',
+//     icon: 'thumbs-up',
+//     itemType: ItemType.Media,
+//     defaultHidden: true,
+//     primaryItems: ibroadcastTracks,
 
-    search(): Pager<MediaItem> {
-        return new IBroadcastSystemItemsPager('thumbsup');
-    },
-};
+//     search(): Pager<MediaItem> {
+//         return new IBroadcastSystemItemsPager('thumbsup');
+//     },
+// };
 
 const ibroadcastTopTracks: MediaSource<MediaItem> = {
     id: `${serviceId}/top-tracks`,
@@ -267,13 +267,17 @@ const ibroadcastMostPlayed: MediaSource<MediaItem> = {
     },
 
     search(): Pager<MediaItem> {
-        // TODO: refresh?
-        return new IBroadcastPager('tracks', () =>
-            ibroadcastLibrary.query({
-                section: 'tracks',
-                filter: (track, map) => !!track[map.plays],
-                sort: (a, b, map) => b[map.plays] - a[map.plays],
-            })
+        return new IBroadcastPager(
+            'tracks',
+            () =>
+                ibroadcastLibrary.query({
+                    section: 'tracks',
+                    filter: (track, map) => !!track[map.plays],
+                    sort: (a, b, map) => b[map.plays] - a[map.plays],
+                }),
+            undefined,
+            undefined,
+            () => ibroadcastLibrary.observeSystemPlaylistChanges('recently-played')
         );
     },
 };
@@ -356,8 +360,7 @@ const ibroadcastTracksByGenre: MediaSource<MediaItem> = {
                     section: 'tracks',
                     filter: (track, _, library) =>
                         !!getGenres('tracks', track, library)?.includes(genre.id),
-                    sort: (a, b, map, library) => sortTracks(sortBy, a, b, map, library),
-                    reverse: sortOrder === -1,
+                    sort: (a, b, map, library) => sortTracks(sortBy, sortOrder, a, b, map, library),
                 })
             );
         } else {
@@ -397,8 +400,7 @@ const ibroadcastAlbumsByGenre: MediaSource<MediaAlbum> = {
                     section: 'albums',
                     filter: (album, _, library) =>
                         !!getGenres('albums', album, library)?.includes(genre.id),
-                    sort: (a, b, map, library) => sortAlbums(sortBy, a, b, map, library),
-                    reverse: sortOrder === -1,
+                    sort: (a, b, map, library) => sortAlbums(sortBy, sortOrder, a, b, map, library),
                 })
             );
         } else {
@@ -416,23 +418,9 @@ const ibroadcastTracksByDecade: MediaSource<MediaItem> = {
     defaultHidden: true,
     primaryItems: {
         layout: ibroadcastTracksLayout,
-        sort: {
-            sortOptions: {
-                title: 'Title',
-                artist: 'Artist',
-                album: 'Album',
-            },
-            defaultSort: {
-                sortBy: 'album',
-                sortOrder: 1,
-            },
-        },
     },
 
-    search(
-        decade?: MediaFilter,
-        {sortBy, sortOrder} = ibroadcastTracksByGenre.primaryItems!.sort!.defaultSort
-    ): Pager<MediaItem> {
+    search(decade?: MediaFilter): Pager<MediaItem> {
         if (decade) {
             return new IBroadcastPager('tracks', () =>
                 ibroadcastLibrary.query({
@@ -443,8 +431,7 @@ const ibroadcastTracksByDecade: MediaSource<MediaItem> = {
                                 library.albums[track[map.album_id]]?.[library.albums.map.year],
                             decade.id
                         ),
-                    sort: (a, b, map, library) => sortTracks(sortBy, a, b, map, library),
-                    reverse: sortOrder === -1,
+                    sort: (a, b, map, library) => sortTracks('year', -1, a, b, map, library),
                 })
             );
         } else {
@@ -461,30 +448,15 @@ const ibroadcastAlbumsByDecade: MediaSource<MediaAlbum> = {
     filterType: FilterType.ByDecade,
     primaryItems: {
         layout: ibroadcastAlbumsLayout,
-        sort: {
-            sortOptions: {
-                title: 'Title',
-                artist: 'Artist',
-                year: 'Year',
-            },
-            defaultSort: {
-                sortBy: 'artist',
-                sortOrder: 1,
-            },
-        },
     },
 
-    search(
-        decade?: MediaFilter,
-        {sortBy, sortOrder} = ibroadcastAlbumsByGenre.primaryItems!.sort!.defaultSort
-    ): Pager<MediaAlbum> {
+    search(decade?: MediaFilter): Pager<MediaAlbum> {
         if (decade) {
             return new IBroadcastPager('albums', () =>
                 ibroadcastLibrary.query({
                     section: 'albums',
                     filter: (album, map) => filterByDecade(album[map.year], decade.id),
-                    sort: (a, b, map, library) => sortAlbums(sortBy, a, b, map, library),
-                    reverse: sortOrder === -1,
+                    sort: (a, b, map, library) => sortAlbums('year', -1, a, b, map, library),
                 })
             );
         } else {
@@ -528,7 +500,7 @@ const ibroadcastRandomAlbums: MediaSource<MediaAlbum> = {
 };
 
 const ibroadcastSources: readonly AnyMediaSource[] = [
-    ibroadcastThumbsUp,
+    // ibroadcastThumbsUp,
     ibroadcastTopTracks,
     ibroadcastTopAlbums,
     ibroadcastTopArtists,
