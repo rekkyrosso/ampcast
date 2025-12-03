@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
+import {BehaviorSubject, Subject, distinctUntilChanged, map} from 'rxjs';
 import {loadScript, Logger} from 'utils';
+import {getReadableErrorMessage} from 'services/errors';
 import youtubeSettings from './youtubeSettings';
 import youtubeApi from './youtubeApi';
 
@@ -9,9 +10,19 @@ const logger = new Logger('youtubeAuth');
 const scope = 'https://www.googleapis.com/auth/youtube';
 
 const accessToken$ = new BehaviorSubject('');
+const connecting$ = new BehaviorSubject(false);
+const connectionLogging$ = new Subject<string>();
 
 function observeAccessToken(): Observable<string> {
     return accessToken$.pipe(distinctUntilChanged());
+}
+
+export function observeConnecting(): Observable<boolean> {
+    return connecting$.pipe(distinctUntilChanged());
+}
+
+export function observeConnectionLogging(): Observable<string> {
+    return connectionLogging$;
 }
 
 export function isConnected(): boolean {
@@ -19,12 +30,12 @@ export function isConnected(): boolean {
 }
 
 export function isLoggedIn(): boolean {
-    return getAccessToken() !== '';
+    return !!accessToken$.value;
 }
 
 export function observeIsLoggedIn(): Observable<boolean> {
     return observeAccessToken().pipe(
-        map((token) => token !== ''),
+        map((token) => !!token),
         distinctUntilChanged()
     );
 }
@@ -37,11 +48,15 @@ export async function login(): Promise<void> {
     if (!isLoggedIn()) {
         logger.log('connect');
         try {
+            connecting$.next(true);
+            connectionLogging$.next('');
             const token = await obtainAccessToken();
             setAccessToken(token);
         } catch (err) {
             logger.error(err);
+            connectionLogging$.next(`Failed to connect: '${getReadableErrorMessage(err)}'`);
         }
+        connecting$.next(false);
     }
 }
 
@@ -52,19 +67,25 @@ export async function logout(): Promise<void> {
     } catch (err) {
         logger.error(err);
     }
+    connecting$.next(false);
     clearAccessToken();
 }
 
 export async function reconnect(): Promise<void> {
     try {
-        await checkConnection();
-        accessToken$.next(youtubeSettings.token);
+        if (youtubeSettings.token) {
+            connecting$.next(true);
+            await checkConnection();
+            accessToken$.next(youtubeSettings.token);
+        }
     } catch (err: any) {
         if (err.status !== 401) {
             logger.error(err);
         }
         youtubeSettings.token = '';
+        connectionLogging$.next(`Failed to connect: '${getReadableErrorMessage(err)}'`);
     }
+    connecting$.next(false);
 }
 
 export async function refreshToken(): Promise<void> {

@@ -22,7 +22,16 @@ import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import {t} from 'services/i18n';
 import {bestOf} from 'services/metadata';
-import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout, reconnect} from './jellyfinAuth';
+import {
+    observeConnecting,
+    observeConnectionLogging,
+    observeIsLoggedIn,
+    isConnected,
+    isLoggedIn,
+    login,
+    logout,
+    reconnect,
+} from './jellyfinAuth';
 import jellyfinSettings from './jellyfinSettings';
 import JellyfinPager from './JellyfinPager';
 import jellyfinApi from './jellyfinApi';
@@ -87,6 +96,8 @@ const jellyfin: PersonalMediaService = {
     lookup,
     scrobble,
     store,
+    observeConnecting,
+    observeConnectionLogging,
     observeIsLoggedIn,
     isConnected,
     isLoggedIn,

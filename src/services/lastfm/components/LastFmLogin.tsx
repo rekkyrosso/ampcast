@@ -1,5 +1,6 @@
 import React from 'react';
 import {LoginProps} from 'components/Login';
+import ConnectionLogging from 'components/Login/ConnectionLogging';
 import CredentialsButton from 'components/Login/CredentialsButton';
 import CredentialsRequired from 'components/Login/CredentialsRequired';
 import LoginButton from 'components/Login/LoginButton';
@@ -24,6 +25,7 @@ export default function LastFmLogin({service: lastfm}: LoginProps) {
                 </>
             )}
             <ServiceLink service={lastfm} />
+            <ConnectionLogging service={lastfm} />
         </>
     );
 }

@@ -1,7 +1,8 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
+import {BehaviorSubject, Subject, distinctUntilChanged, map} from 'rxjs';
 import {nanoid} from 'nanoid';
 import {Logger} from 'utils';
+import {getReadableErrorMessage} from 'services/errors';
 import ibroadcastSettings from './ibroadcastSettings';
 import ibroadcastApi from './ibroadcastApi';
 
@@ -19,9 +20,19 @@ interface TokenResponse {
 }
 
 const accessToken$ = new BehaviorSubject('');
+const connecting$ = new BehaviorSubject(false);
+const connectionLogging$ = new Subject<string>();
 
 export function observeAccessToken(): Observable<string> {
     return accessToken$.pipe(distinctUntilChanged());
+}
+
+export function observeConnecting(): Observable<boolean> {
+    return connecting$.pipe(distinctUntilChanged());
+}
+
+export function observeConnectionLogging(): Observable<string> {
+    return connectionLogging$;
 }
 
 export function isConnected(): boolean {
@@ -43,13 +54,17 @@ export async function login(): Promise<void> {
     if (!isLoggedIn()) {
         logger.log('connect');
         try {
+            connecting$.next(true);
+            connectionLogging$.next('');
             const secret = nanoid();
             const token = await obtainAccessToken(secret);
             await storeAccessToken(token);
         } catch (err) {
             await clearAccessToken();
             logger.error(err);
+            connectionLogging$.next(`Failed to connect: '${getReadableErrorMessage(err)}'`);
         }
+        connecting$.next(false);
     }
 }
 
@@ -61,17 +76,22 @@ export async function logout(): Promise<void> {
         logger.error(err);
     }
     ibroadcastSettings.clear();
+    connecting$.next(false);
     await clearAccessToken();
 }
 
 export async function reconnect(): Promise<void> {
     try {
         if (ibroadcastSettings.token) {
+            connecting$.next(true);
             await refreshToken();
             return;
         }
     } catch (err) {
         logger.error(err);
+        connectionLogging$.next(`Failed to connect: '${getReadableErrorMessage(err)}'`);
+    } finally {
+        connecting$.next(false);
     }
     await clearAccessToken();
 }
@@ -129,7 +149,7 @@ async function obtainAccessToken(state: string): Promise<TokenResponse> {
         const pollAuthWindowClosed = setInterval(() => {
             if (authWindow?.closed) {
                 clearInterval(pollAuthWindowClosed);
-                reject({message: 'access_denied'});
+                reject({message: 'Cancelled'});
             }
         }, 500);
     });

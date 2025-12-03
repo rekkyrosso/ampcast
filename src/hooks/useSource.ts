@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useLayoutEffect, useState} from 'react';
 import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
 import MediaSource from 'types/MediaSource';
@@ -15,7 +15,7 @@ export default function useSource<T extends MediaObject>(
     const [pager, setPager] = useState<Pager<T> | null>(null);
     const sort = useSorting(source?.id);
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         try {
             const pager = source?.search(params, sort) || null;
             setPager(pager);

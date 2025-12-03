@@ -9,7 +9,16 @@ import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
 import {getTextFromHtml} from 'utils';
 import lastfmApi from './lastfmApi';
-import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './lastfmAuth';
+import {
+    observeConnecting,
+    observeConnectionLogging,
+    observeIsLoggedIn,
+    isConnected,
+    isLoggedIn,
+    login,
+    logout,
+    reconnect,
+} from './lastfmAuth';
 import lastfmSettings from './lastfmSettings';
 import {scrobble} from './lastfmScrobbler';
 import lastfmSources, {lastfmScrobbles} from './lastfmSources';
@@ -43,11 +52,14 @@ const lastfm: DataService = {
     compareForRating,
     scrobble,
     store,
+    observeConnecting,
+    observeConnectionLogging,
     observeIsLoggedIn,
     isConnected,
     isLoggedIn,
     login,
     logout,
+    reconnect,
 };
 
 export default lastfm;

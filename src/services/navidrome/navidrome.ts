@@ -24,6 +24,8 @@ import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import {t} from 'services/i18n';
 import subsonicScrobbler from 'services/subsonic/factory/subsonicScrobbler';
 import {
+    observeConnecting,
+    observeConnectionLogging,
     observeIsLoggedIn,
     isConnected,
     isLoggedIn,
@@ -101,6 +103,8 @@ const navidrome: PersonalMediaService = {
     rate,
     scrobble,
     store,
+    observeConnecting,
+    observeConnectionLogging,
     observeIsLoggedIn,
     isConnected,
     isLoggedIn,

@@ -25,6 +25,10 @@
 
         &:disabled {
             cursor: default;
+
+            &.connecting {
+                opacity: 1;
+            }
         }
 
         .airsonic-browser & {
@@ -97,6 +101,17 @@
 
         .youtube-browser & {
             background: red;
+        }
+    }
+
+    .connecting-text {
+        display: inline-flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+
+        .progress-ring {
+            margin-right: 0.5em;
         }
     }
 

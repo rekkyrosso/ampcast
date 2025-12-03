@@ -12,7 +12,16 @@ import ServiceType from 'types/ServiceType';
 import DataService from 'types/DataService';
 import SimplePager from 'services/pagers/SimplePager';
 import listenbrainzApi from './listenbrainzApi';
-import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout} from './listenbrainzAuth';
+import {
+    observeConnecting,
+    observeConnectionLogging,
+    observeIsLoggedIn,
+    isConnected,
+    isLoggedIn,
+    login,
+    logout,
+    reconnect,
+} from './listenbrainzAuth';
 import ListenBrainzPlaylistsPager from './ListenBrainzPlaylistsPager';
 import {scrobble} from './listenbrainzScrobbler';
 import listenbrainzSources, {
@@ -46,11 +55,14 @@ const listenbrainz: DataService = {
     editPlaylist,
     scrobble,
     store,
+    observeConnecting,
+    observeConnectionLogging,
     observeIsLoggedIn,
     isConnected,
     isLoggedIn,
     login,
     logout,
+    reconnect,
 };
 
 export default listenbrainz;

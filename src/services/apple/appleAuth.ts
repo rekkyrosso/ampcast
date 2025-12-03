@@ -1,18 +1,29 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, skipWhile} from 'rxjs';
+import {BehaviorSubject, Subject, distinctUntilChanged, skipWhile} from 'rxjs';
 import {loadScript, Logger} from 'utils';
+import {getReadableErrorMessage} from 'services/errors';
 import appleSettings from './appleSettings';
 
 const logger = new Logger('appleAuth');
 
 const isLoggedIn$ = new BehaviorSubject(false);
+const connecting$ = new BehaviorSubject(false);
+const connectionLogging$ = new Subject<string>();
 
 export function isConnected(): boolean {
     return !!appleSettings.connectedAt;
 }
 
 export function isLoggedIn(): boolean {
-    return isLoggedIn$.getValue();
+    return isLoggedIn$.value;
+}
+
+export function observeConnecting(): Observable<boolean> {
+    return connecting$.pipe(distinctUntilChanged());
+}
+
+export function observeConnectionLogging(): Observable<string> {
+    return connectionLogging$;
 }
 
 export function observeIsLoggedIn(): Observable<boolean> {
@@ -23,12 +34,16 @@ export async function login(): Promise<void> {
     if (!isLoggedIn()) {
         logger.log('connect');
         try {
+            connecting$.next(true);
+            connectionLogging$.next('');
             const musicKit = await getMusicKitInstance();
             const token = await musicKit.authorize();
             isLoggedIn$.next(!!token);
         } catch (err) {
             logger.error(err);
+            connectionLogging$.next(`Failed to connect: '${getReadableErrorMessage(err)}'`);
         }
+        connecting$.next(false);
     }
 }
 
@@ -47,20 +62,26 @@ export async function logout(): Promise<void> {
     }
     appleSettings.connectedAt = 0;
     isLoggedIn$.next(false);
+    connecting$.next(false);
 }
 
 export async function reconnect(): Promise<void> {
     try {
         if (appleSettings.devToken) {
+            connecting$.next(true);
             const musicKit = await getMusicKitInstance();
             if (musicKit.isAuthorized) {
                 await setFavoriteSongsId(musicKit);
                 isLoggedIn$.next(true);
+            } else {
+                connectionLogging$.next('Not authorized');
             }
         }
     } catch (err) {
         logger.error(err);
+        connectionLogging$.next(`Failed to connect: '${getReadableErrorMessage(err)}'`);
     }
+    connecting$.next(false);
 }
 
 export async function refreshToken(): Promise<void> {

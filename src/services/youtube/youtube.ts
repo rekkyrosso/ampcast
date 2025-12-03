@@ -15,6 +15,8 @@ import SimplePager from 'services/pagers/SimplePager';
 import YouTubePager from './YouTubePager';
 import youtubeApi from './youtubeApi';
 import {
+    observeConnecting,
+    observeConnectionLogging,
     observeIsLoggedIn,
     isConnected,
     isLoggedIn,
@@ -60,6 +62,8 @@ const youtube: PublicMediaService = {
     createSourceFromPin,
     editPlaylist,
     getPlaybackType,
+    observeConnecting,
+    observeConnectionLogging,
     observeIsLoggedIn,
     isConnected,
     isLoggedIn,

@@ -1,14 +1,16 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, Subject, distinctUntilChanged, filter, mergeMap} from 'rxjs';
 import {Logger, partition, uniqBy} from 'utils';
+import {getReadableErrorMessage} from 'services/errors';
 import plexSettings from './plexSettings';
 import plexApi, {apiHost} from './plexApi';
 
 const logger = new Logger('plexAuth');
 
 const accessToken$ = new BehaviorSubject('');
-const isLoggedIn$ = new BehaviorSubject(false);
+const connecting$ = new BehaviorSubject(false);
 const connectionLogging$ = new Subject<string>();
+const isLoggedIn$ = new BehaviorSubject(false);
 
 let pin: plex.Pin;
 export async function refreshPin(): Promise<plex.Pin> {
@@ -37,6 +39,10 @@ export function observeIsLoggedIn(): Observable<boolean> {
     return isLoggedIn$.pipe(distinctUntilChanged());
 }
 
+export function observeConnecting(): Observable<boolean> {
+    return connecting$.pipe(distinctUntilChanged());
+}
+
 export function observeConnectionLogging(): Observable<string> {
     return connectionLogging$;
 }
@@ -45,14 +51,17 @@ export async function login(): Promise<void> {
     if (!isLoggedIn()) {
         logger.log('connect');
         try {
+            connecting$.next(true);
             connectionLogging$.next('');
             const {id, accessToken} = await connect();
             plexSettings.userId = id;
             accessToken$.next(accessToken);
         } catch (err) {
             logger.error(err);
+            connectionLogging$.next(`Failed to connect: '${getReadableErrorMessage(err)}'`);
             await refreshPin();
         }
+        connecting$.next(false);
     }
 }
 
@@ -61,10 +70,14 @@ export async function logout(): Promise<void> {
     plexSettings.clear();
     accessToken$.next('');
     isLoggedIn$.next(false);
+    connecting$.next(false);
 }
 
 export async function reconnect(): Promise<void> {
-    accessToken$.next(plexSettings.accessToken);
+    if (plexSettings.accessToken) {
+        connecting$.next(true);
+        accessToken$.next(plexSettings.accessToken);
+    }
 }
 
 async function connect(): Promise<{id: string; accessToken: string}> {
@@ -132,7 +145,7 @@ async function obtainAccessToken(): Promise<{id: string; accessToken: string}> {
         const pollAuthWindowClosed = setInterval(() => {
             if (authWindow?.closed) {
                 clearInterval(pollAuthWindowClosed);
-                reject({message: 'access_denied'});
+                reject({message: 'Cancelled'});
             }
         }, 500);
     });
@@ -262,6 +275,8 @@ async function checkConnection(): Promise<boolean> {
             connectionLogging$.next('Connected with errors');
             return true; // we're still logged in but some things might not work
         }
+    } finally {
+        connecting$.next(false);
     }
 }
 

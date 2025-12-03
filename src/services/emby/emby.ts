@@ -21,7 +21,16 @@ import {bestOf} from 'services/metadata';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import {t} from 'services/i18n';
-import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout, reconnect} from './embyAuth';
+import {
+    observeConnecting,
+    observeConnectionLogging,
+    observeIsLoggedIn,
+    isConnected,
+    isLoggedIn,
+    login,
+    logout,
+    reconnect,
+} from './embyAuth';
 import EmbyPager from './EmbyPager';
 import embySettings from './embySettings';
 import embyApi from './embyApi';
@@ -87,6 +96,8 @@ const emby: PersonalMediaService = {
     lookup,
     scrobble,
     store,
+    observeConnecting,
+    observeConnectionLogging,
     observeIsLoggedIn,
     isConnected,
     isLoggedIn,

@@ -17,6 +17,8 @@ import ServiceType from 'types/ServiceType';
 import {Logger} from 'utils';
 import {observeListen} from 'services/localdb/listens';
 import {
+    observeConnecting,
+    observeConnectionLogging,
     observeIsLoggedIn,
     isConnected,
     isLoggedIn,
@@ -82,6 +84,8 @@ const ibroadcast: PersonalMediaService = {
     movePlaylistItems,
     rate,
     removePlaylistItems,
+    observeConnecting,
+    observeConnectionLogging,
     observeIsLoggedIn,
     isConnected,
     isLoggedIn,

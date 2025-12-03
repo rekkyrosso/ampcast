@@ -23,7 +23,16 @@ import fetchAllTracks from 'services/pagers/fetchAllTracks';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import MusicKitPager, {MusicKitPage} from './MusicKitPager';
-import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout, reconnect} from './appleAuth';
+import {
+    observeConnecting,
+    observeConnectionLogging,
+    observeIsLoggedIn,
+    isConnected,
+    isLoggedIn,
+    login,
+    logout,
+    reconnect,
+} from './appleAuth';
 import appleSettings from './appleSettings';
 import appleSources, {appleEditablePlaylists, appleSearch} from './appleSources';
 import Credentials from './components/AppleCredentials';
@@ -71,6 +80,8 @@ const apple: PublicMediaService = {
     lookup,
     lookupByISRC,
     store,
+    observeConnecting,
+    observeConnectionLogging,
     observeIsLoggedIn,
     isConnected,
     isLoggedIn,

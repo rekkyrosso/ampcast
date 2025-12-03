@@ -21,6 +21,7 @@ import actionsStore from 'services/actions/actionsStore';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
 import {
+    observeConnecting,
     observeConnectionLogging,
     observeIsLoggedIn,
     isConnected,
@@ -94,6 +95,7 @@ const plex: PersonalMediaService = {
     lookup,
     rate,
     scrobble,
+    observeConnecting,
     observeConnectionLogging,
     observeIsLoggedIn,
     isConnected,

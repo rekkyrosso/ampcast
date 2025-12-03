@@ -19,7 +19,16 @@ import actionsStore from 'services/actions/actionsStore';
 import fetchAllTracks from 'services/pagers/fetchAllTracks';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
-import {observeIsLoggedIn, isConnected, isLoggedIn, login, logout, reconnect} from './spotifyAuth';
+import {
+    observeConnecting,
+    observeConnectionLogging,
+    observeIsLoggedIn,
+    isConnected,
+    isLoggedIn,
+    login,
+    logout,
+    reconnect,
+} from './spotifyAuth';
 import spotifyApi, {spotifyApiCallWithRetry} from './spotifyApi';
 import SpotifyPager, {SpotifyPage} from './SpotifyPager';
 import spotifySettings from './spotifySettings';
@@ -76,6 +85,8 @@ const spotify: PublicMediaService = {
     lookupByISRC,
     store,
     bulkStore,
+    observeConnecting,
+    observeConnectionLogging,
     observeIsLoggedIn,
     isConnected,
     isLoggedIn,

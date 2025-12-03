@@ -1,4 +1,4 @@
-import {useCallback, useEffect, useState} from 'react';
+import {useCallback, useLayoutEffect, useState} from 'react';
 import {debounceTime, Subscription} from 'rxjs';
 import Pager from 'types/Pager';
 import useSubject from './useSubject';
@@ -34,7 +34,7 @@ export default function usePager<T>(pager: Pager<T> | null) {
         [nextFetch]
     );
 
-    useEffect(() => {
+    useLayoutEffect(() => {
         setState({
             ...emptyState,
             size: pager ? undefined : 0,
