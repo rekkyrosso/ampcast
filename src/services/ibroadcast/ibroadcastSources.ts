@@ -144,13 +144,12 @@ const ibroadcastTopTracks: MediaSource<MediaItem> = {
     title: 'Top Tracks',
     icon: 'star',
     itemType: ItemType.Media,
-    defaultHidden: true,
     primaryItems: {
         layout: {
             ...ibroadcastTracksLayout,
             card: {
                 ...ibroadcastTracksLayout.card,
-                data: 'Rate',
+                data: 'Rating',
             },
         },
     },
@@ -174,13 +173,12 @@ const ibroadcastTopAlbums: MediaSource<MediaAlbum> = {
     title: 'Top Albums',
     icon: 'star',
     itemType: ItemType.Album,
-    defaultHidden: true,
     primaryItems: {
         layout: {
             ...ibroadcastAlbumsLayout,
             card: {
                 ...ibroadcastAlbumsLayout.card,
-                data: 'Rate',
+                data: 'Rating',
             },
         },
     },
@@ -207,7 +205,7 @@ const ibroadcastTopArtists: MediaSource<MediaArtist> = {
             ...addRating(artistsLayout),
             card: {
                 ...artistsLayout.card,
-                h3: 'Rate',
+                h3: 'Rating',
             },
         },
     },
@@ -573,7 +571,7 @@ function createSearch<T extends MediaObject>(
 function addRating(layout: MediaListLayout): MediaListLayout {
     return {
         ...layout,
-        details: uniq(layout.details.concat('Rate')),
+        details: uniq(layout.details.concat('Rating')),
     };
 }
 

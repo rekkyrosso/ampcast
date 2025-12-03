@@ -15,8 +15,9 @@ export interface MenuButtonsProps<T extends MediaObject> {
 
 export default function MenuButtons<T extends MediaObject>({source}: MenuButtonsProps<T>) {
     const handleCreatePlaylistClick = useCallback(() => {
-        showCreatePlaylistDialog([], getService('localdb'));
-    }, []);
+        const [serviceId] = source.id.split('/');
+        showCreatePlaylistDialog([], getService(serviceId));
+    }, [source]);
 
     const handleOptionsClick = useCallback(
         async (button: HTMLButtonElement) => {
@@ -43,7 +44,8 @@ export default function MenuButtons<T extends MediaObject>({source}: MenuButtons
 }
 
 function hasCreatePlaylistButton(source: MediaSource): boolean {
-    return source.id === 'localdb/playlists';
+    // TODO: Make a better test for this.
+    return /(ibroadcast|localdb)\/playlists/.test(source.id);
 }
 
 function hasOptionsButton(source: MediaSource): boolean {

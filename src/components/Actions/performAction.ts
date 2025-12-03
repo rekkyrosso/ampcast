@@ -126,7 +126,7 @@ export default async function performAction<T extends MediaObject>(
                             items.length === 1 ? '' : 's'
                         } from playlist '${playlist.title}'?`,
                         okLabel: 'Remove',
-                        storageId: 'remove-from-playlist',
+                        storageId: `remove-from-playlist-${service?.id || ''}`,
                     });
                     if (confirmed) {
                         if (playlist.pager.removeItems) {

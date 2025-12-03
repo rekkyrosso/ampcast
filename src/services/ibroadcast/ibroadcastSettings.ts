@@ -18,12 +18,12 @@ const userStorage = new LiteStorage('ibroadcast/user', 'memory');
 const credentials$ = new BehaviorSubject<IBroadcastCredentials>({clientId: ''});
 
 const ibroadcastSettings = {
-    get bitrate(): string {
-        return storage.getString('bitrate', '128');
+    get bitRate(): string {
+        return storage.getString('bitRate', '128');
     },
 
-    set bitrate(bitrate: string) {
-        storage.setString('bitrate', bitrate || '128');
+    set bitRate(bitRate: string) {
+        storage.setString('bitRate', bitRate || '128');
     },
 
     get clientId(): string {

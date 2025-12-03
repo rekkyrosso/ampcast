@@ -214,6 +214,8 @@ const Track: RenderField<MediaItem> = (item) => (
     </span>
 );
 
+const Disc: RenderField<MediaItem> = (item) => <Text value={item.disc} />;
+
 const MultiDisc: RenderField<MediaAlbum> = (item) => <Text value={item.multiDisc} />;
 
 const Copyright: RenderField<MediaAlbum | MediaItem> = (item) => <Text value={item.copyright} />;
@@ -358,7 +360,7 @@ const Thumbnail: RenderField = (item, info) => {
     return <CoverArt item={item} placeholder={info.busy} />;
 };
 
-const Rate: RenderField = (item) => {
+const Rating: RenderField = (item) => {
     const service = getServiceFromSrc(item);
     return service?.canRate?.(item) ? (
         <StarRating
@@ -410,6 +412,14 @@ const mediaFields: MediaFields = {
         align: 'right',
         width: 4,
         className: 'index track',
+    },
+    Disc: {
+        id: 'Disc',
+        title: 'Disc',
+        render: Disc,
+        align: 'right',
+        width: 4,
+        className: 'disc',
     },
     Position: {
         id: 'Position',
@@ -556,13 +566,13 @@ const mediaFields: MediaFields = {
         render: Thumbnail,
         className: 'thumbnail',
     },
-    Rate: {
-        id: 'Rate',
+    Rating: {
+        id: 'Rating',
         title: <StarRating value={0} tabIndex={-1} />,
-        render: Rate,
+        render: Rating,
         align: 'right',
         width: 8,
-        className: 'rate',
+        className: 'rating',
     },
     Progress: {
         id: 'Progress',

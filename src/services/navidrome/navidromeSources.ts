@@ -244,7 +244,7 @@ const navidromeTopTracks: MediaSource<MediaItem> = {
             ...navidromeTracksLayout,
             card: {
                 ...navidromeTracksLayout.card,
-                data: 'Rate',
+                data: 'Rating',
             },
         },
     },
@@ -271,7 +271,7 @@ const navidromeTopAlbums: MediaSource<MediaAlbum> = {
             ...navidromeAlbumsLayout,
             card: {
                 ...navidromeAlbumsLayout.card,
-                data: 'Rate',
+                data: 'Rating',
             },
         },
     },
@@ -298,7 +298,7 @@ const navidromeTopArtists: MediaSource<MediaArtist> = {
             ...addRating(artistsLayout),
             card: {
                 ...artistsLayout.card,
-                h3: 'Rate',
+                h3: 'Rating',
             },
         },
     },
@@ -637,6 +637,6 @@ function createSearch<T extends MediaObject>(
 function addRating(layout: MediaListLayout): MediaListLayout {
     return {
         ...layout,
-        details: uniq(layout.details.concat('Rate')),
+        details: uniq(layout.details.concat('Rating')),
     };
 }

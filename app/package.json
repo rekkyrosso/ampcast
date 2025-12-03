@@ -36,8 +36,8 @@
         "electron-window-state": "^5.0.3"
     },
     "engines": {
-        "node": ">=20.x",
-        "npm": ">=10.x"
+        "node": ">=24.x",
+        "npm": ">=11.x"
     },
     "build": {
         "productName": "ampcast",

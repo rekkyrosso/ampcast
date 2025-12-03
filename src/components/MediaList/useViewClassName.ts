@@ -10,7 +10,7 @@ export default function useViewClassName(layout: ListViewLayout<any>): string {
             layout.cols.forEach((col) => {
                 const className = col.className || '';
                 if (/\bdata\b/.test(className)) {
-                    if (/\b(date|rate)\b/.test(className)) {
+                    if (/\b(date|rating)\b/.test(className)) {
                         clip = 2;
                     }
                     if (clip !== 2) {

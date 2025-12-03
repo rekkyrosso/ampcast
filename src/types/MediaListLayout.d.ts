@@ -12,6 +12,7 @@ export type Field =
     | 'AlbumAndYear'
     | 'AlbumType'
     | 'Track'
+    | 'Disc'
     | 'Position'
     | 'Duration'
     | 'FileIcon'
@@ -32,7 +33,7 @@ export type Field =
     | 'BitRate'
     | 'Container'
     | 'Thumbnail'
-    | 'Rate'
+    | 'Rating'
     | 'Progress';
 
 export interface CardView {

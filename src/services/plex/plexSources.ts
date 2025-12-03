@@ -225,7 +225,7 @@ const plexTopTracks: MediaSource<MediaItem> = {
             ...plexTracksLayout,
             card: {
                 ...plexTracksLayout.card,
-                data: 'Rate',
+                data: 'Rating',
             },
         },
     },
@@ -253,7 +253,7 @@ const plexTopAlbums: MediaSource<MediaAlbum> = {
             ...plexAlbumsLayout,
             card: {
                 ...albumsLayout.card,
-                data: 'Rate',
+                data: 'Rating',
             },
         },
     },
@@ -282,7 +282,7 @@ const plexTopArtists: MediaSource<MediaArtist> = {
             ...addRating(artistsLayout),
             card: {
                 ...artistsLayout.card,
-                h3: 'Rate',
+                h3: 'Rating',
             },
         },
     },
@@ -768,7 +768,7 @@ export function createSearchPager<T extends MediaObject>(
 function addRating(layout: MediaListLayout): MediaListLayout {
     return {
         ...layout,
-        details: uniq(layout.details.concat('Rate')),
+        details: uniq(layout.details.concat('Rating')),
     };
 }
 

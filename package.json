@@ -104,8 +104,8 @@
         "webpack-cli": "^6.0.1"
     },
     "engines": {
-        "node": ">=20.x",
-        "npm": ">=10.x"
+        "node": ">=24.x",
+        "npm": ">=11.x"
     },
     "browserslist": [
         "> 1%"

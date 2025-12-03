@@ -77,7 +77,9 @@ export function getHiddenSources(): HiddenSettings {
 }
 
 export function getSourceFields(id: string): readonly Field[] | undefined {
-    return fields$.value[id];
+    const fields = fields$.value[id];
+    // "Rate" was renamed to "Rating" (03-12-2025).
+    return fields?.map((field) => ((field as any) === 'Rate' ? 'Rating' : field));
 }
 
 export function getSourceSorting(id: string): SortParams | undefined {

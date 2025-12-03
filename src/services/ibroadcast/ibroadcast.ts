@@ -204,7 +204,7 @@ async function getFilters(
 }
 
 function getPlayableUrl(item: PlayableItem): string {
-    const {token, userId, bitrate: bitRate} = ibroadcastSettings;
+    const {token, userId, bitRate} = ibroadcastSettings;
     if (token && userId) {
         const id = getIdFromSrc(item);
         const fileName = (item.fileName || '').replace('128', bitRate);
