@@ -96,22 +96,17 @@ async function revokePlaylistPublic(playlist_id: number): Promise<void> {
     await post('revokeplaylistpublic', {playlist_id});
 }
 
-async function scrobble(trackId: number): Promise<void> {
-    const timeStamp = new Date().toISOString().slice(0, 19).replace('T', ' ');
+async function scrobble(id: number, event: 'play' | 'skip', timeStamp: number): Promise<void> {
+    const ts = new Date(timeStamp).toISOString().slice(0, 19).replace('T', ' ');
     await post('status', {
         history: [
             {
-                day: timeStamp.slice(0, 10),
+                day: ts.slice(0, 10),
                 detail: {
-                    [trackId]: [
-                        {
-                            event: 'play',
-                            ts: timeStamp,
-                        },
-                    ],
+                    [id]: [{event, ts}],
                 },
                 plays: {
-                    [trackId]: 1,
+                    [id]: event === 'play' ? 1 : 0,
                 },
             },
         ],

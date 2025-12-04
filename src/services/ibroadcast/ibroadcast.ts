@@ -1,4 +1,3 @@
-import {map, mergeMap} from 'rxjs';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import ItemType from 'types/ItemType';
 import FilterType from 'types/FilterType';
@@ -14,8 +13,6 @@ import Pin, {Pinnable} from 'types/Pin';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
-import {Logger} from 'utils';
-import {observeListen} from 'services/localdb/listens';
 import {
     observeConnecting,
     observeConnectionLogging,
@@ -37,14 +34,13 @@ import ibroadcastSources, {
 import IBroadcastPager from './IBroadcastPager';
 import ibroadcastSettings from './ibroadcastSettings';
 import {createPlaylistItemsPager, getIdFromSrc, getLibrarySectionFromItem} from './ibroadcastUtils';
+import {scrobble} from './ibroadcastScrobbler';
 import Credentials from './components/IBroadcastCredentials';
 import Login from './components/IBroadcastLogin';
 import ServerSettings from './components/IBroadcastServerSettings';
 
 const serviceId: MediaServiceId = 'ibroadcast';
 const streamingHost = '//streaming.ibroadcast.com';
-
-const logger = new Logger(serviceId);
 
 const ibroadcast: PersonalMediaService = {
     id: serviceId,
@@ -264,13 +260,4 @@ async function removePlaylistItems(
 ): Promise<void> {
     const id = getIdFromSrc(playlist);
     return ibroadcastLibrary.removePlaylistTracks(id, items.map(getIdFromSrc));
-}
-
-function scrobble(): void {
-    observeListen()
-        .pipe(
-            map((listen) => getIdFromSrc(listen)),
-            mergeMap((id) => ibroadcastLibrary.scrobble(id))
-        )
-        .subscribe(logger);
 }

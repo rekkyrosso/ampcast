@@ -41,7 +41,7 @@ export default function IBroadcastCredentials({service: ibroadcast}: MediaServic
             </fieldset>
             <fieldset className="credentials-requirements note">
                 <legend>Requirements</legend>
-                <p>Redirect URIs:</p>
+                <p>Redirect URI:</p>
                 <p className="credentials-callback">
                     <input type="text" value={redirectUri} readOnly />
                     <CopyButton onClick={() => copyToClipboard(redirectUri)} />

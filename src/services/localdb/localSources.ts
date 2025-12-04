@@ -1,4 +1,4 @@
-import {map} from 'rxjs';
+import {distinctUntilChanged, map} from 'rxjs';
 import MiniSearch from 'minisearch';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
@@ -8,7 +8,9 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
 import MediaSource, {AnyMediaSource, MediaSourceItems} from 'types/MediaSource';
 import Pager from 'types/Pager';
+import {observePlaybackState} from 'services/mediaPlayback/playback';
 import ObservablePager from 'services/pagers/ObservablePager';
+import WrappedPager from 'services/pagers/WrappedPager';
 import {recentlyPlayedTracksLayout} from 'components/MediaList/layouts';
 import {observeListens} from './listens';
 import playlists, {LocalPlaylistItem} from './playlists';
@@ -63,10 +65,11 @@ export const localScrobbles: MediaSource<MediaItem> = {
     },
 
     search({q = ''}: {q?: string} = {}): Pager<MediaItem> {
-        return new ObservablePager(
-            observeListens().pipe(
-                map((listens) => {
-                    if (q) {
+        const listens$ = observeListens();
+        if (q) {
+            return new ObservablePager(
+                listens$.pipe(
+                    map((listens) => {
                         const listensMap = new Map(
                             listens.toReversed().map((listen) => [listen.src, listen])
                         );
@@ -90,13 +93,21 @@ export const localScrobbles: MediaSource<MediaItem> = {
                                 boost: {title: 1.05, album: 0.5, genres: 0.25, src: 0.1},
                             })
                             .map((entry) => listensMap.get(entry.id)!);
-                    } else {
-                        return listens;
-                    }
-                })
-            ),
-            {passive: true}
-        );
+                    })
+                ),
+                {passive: true}
+            );
+        } else {
+            const nowPlaying$ = observePlaybackState().pipe(
+                map(({paused, currentTime, currentItem}) =>
+                    currentItem && (!paused || currentTime > 1) ? [currentItem] : []
+                ),
+                distinctUntilChanged(([a], [b]) => a?.id === b?.id)
+            );
+            const listensPager = new ObservablePager(listens$, {passive: true});
+            const nowPlayingPager = new ObservablePager<MediaItem>(nowPlaying$, {passive: true});
+            return new WrappedPager(nowPlayingPager, listensPager);
+        }
     },
 };
 

@@ -4,7 +4,6 @@ const fsp = require('fs/promises');
 const http = require('http');
 const argv = require('minimist')(process.argv.slice(2));
 const dotenv = require('dotenv');
-const handleProxy = require('./proxy');
 const handleProxyLogin = require('./proxy-login');
 const {host = 'localhost', port = 8000} = argv;
 const wwwDir = path.resolve(__dirname, './app/www');
@@ -51,9 +50,6 @@ async function handleGET(req, res) {
     let pathname = req.url.replace(/[?#].*$/, '');
     if (pathname === '/proxy-login') {
         await handleProxyLogin(req, res);
-        return;
-    } else if (pathname === '/proxy') {
-        await handleProxy(req, res);
         return;
     } else if (appHost && pathname === '/auth/spotify/callback/' && reqHost === `[::1]:${port}`) {
         // Route this back via the underlying host (not `[::1]`).
@@ -104,8 +100,6 @@ async function handlePOST(req, res) {
     const pathname = req.url.replace(/[?#].*$/, '');
     if (pathname === '/proxy-login') {
         await handleProxyLogin(req, res);
-    } else if (pathname === '/proxy') {
-        await handleProxy(req, res);
     } else {
         console.warn(`${req.method} ${pathname} FORBIDDEN`);
         res.writeHead(403, {'Content-Type': mimeTypes.text});

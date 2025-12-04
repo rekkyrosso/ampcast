@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, Subject, filter} from 'rxjs';
+import {BehaviorSubject, filter} from 'rxjs';
 import Dexie, {liveQuery} from 'dexie';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
@@ -13,7 +13,6 @@ const logger = new Logger('localdb/listens');
 
 const UNINITIALIZED: Listen[] = [];
 const listens$ = new BehaviorSubject<readonly Listen[]>(UNINITIALIZED);
-const listen$ = new Subject<Listen>();
 
 class ListensStore extends Dexie {
     readonly items!: Dexie.Table<Listen, number>;
@@ -55,10 +54,6 @@ export function observeListens(): Observable<readonly Listen[]> {
     return listens$.pipe(filter((items) => items !== UNINITIALIZED));
 }
 
-export function observeListen(): Observable<Listen> {
-    return listen$;
-}
-
 export function isListenedTo(duration: number, startedAt: number, endedAt: number): boolean {
     const minPlayTime = Math.min(duration / 2, 4 * 60) || 60;
     startedAt = Math.floor(startedAt / 1000);
@@ -76,18 +71,16 @@ export async function addListen(state: PlaybackState): Promise<void> {
         if (isListenedTo(item.duration, state.startedAt, state.endedAt)) {
             item = await musicbrainzApi.addMetadata(item, {strictMatch: true});
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
-            const {id, blob, blobUrl, unplayable, ...track} = removeUserData(item);
-            const listen = {
-                ...track,
+            const {id, blob, blobUrl, unplayable, ...listen} = removeUserData(item);
+            logger.log('add', item.src);
+            await store.items.add({
+                ...listen,
                 sessionId: session.id,
                 playedAt: Math.floor(state.startedAt / 1000),
                 endedAt: Math.floor(state.endedAt / 1000),
                 lastfmScrobbledAt: 0,
                 listenbrainzScrobbledAt: 0,
-            };
-            logger.log('add', item.src);
-            await store.items.add(listen);
-            listen$.next(listen);
+            });
         }
     } catch (err) {
         logger.error(err);

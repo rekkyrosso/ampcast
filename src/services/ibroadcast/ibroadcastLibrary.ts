@@ -368,18 +368,18 @@ export class IBroadcastLibrary {
     async rateAlbum(id: number, rating: number): Promise<void> {
         const library = await this.load();
         const discs = this.getAlbumDiscIds(library, id);
-        await Promise.all(discs.map((id) => ibroadcastApi.rateAlbum(Number(id), rating)));
         discs.forEach((id) => this.updateRating('albums', Number(id), rating));
+        await Promise.all(discs.map((id) => ibroadcastApi.rateAlbum(Number(id), rating)));
     }
 
     async rateArtist(id: number, rating: number): Promise<void> {
-        await ibroadcastApi.rateArtist(id, rating);
         this.updateRating('artists', id, rating);
+        await ibroadcastApi.rateArtist(id, rating);
     }
 
     async rateTrack(id: number, rating: number): Promise<void> {
-        await ibroadcastApi.rateTrack(id, rating);
         this.updateRating('tracks', id, rating);
+        await ibroadcastApi.rateTrack(id, rating);
     }
 
     async removePlaylistTracks(id: number, tracksToRemove: readonly number[]): Promise<void> {
@@ -396,7 +396,7 @@ export class IBroadcastLibrary {
         }
     }
 
-    async scrobble(id: number): Promise<void> {
+    async scrobble(id: number, event: 'play' | 'skip', timeStamp: number): Promise<void> {
         try {
             const library = await this.load();
             const tracks = library.tracks;
@@ -422,7 +422,7 @@ export class IBroadcastLibrary {
             } else {
                 throw Error('Track not found');
             }
-            await ibroadcastApi.scrobble(id);
+            await ibroadcastApi.scrobble(id, event, timeStamp);
         } catch (err) {
             logger.info('Failed to scrobble track', `(id=${id})`);
             logger.error(err);
