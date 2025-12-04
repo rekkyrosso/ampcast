@@ -213,11 +213,11 @@ export default function MediaList<T extends MediaObject>({
     const itemClassName = useCallback(
         (item: T) => {
             if (item?.itemType === ItemType.Media) {
-                const [serviceId, type, id] = item.src.split(':');
+                const [serviceId] = item.src.split(':');
                 const playing =
                     item.src === playingSrc ||
                     (playingCatalogId && item.apple?.catalogId === playingCatalogId) ||
-                    (type === 'listen' && id === 'now-playing')
+                    item.playedAt === -1
                         ? 'playing'
                         : '';
                 const unplayable =

@@ -1,11 +1,11 @@
-import {EMPTY, debounceTime, filter, map, mergeMap, switchMap} from 'rxjs';
+import {EMPTY, debounceTime, filter, map, mergeMap, switchMap, takeUntil, timer} from 'rxjs';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import {findScrobble, observeListens, updateListens} from 'services/localdb/listens';
-import {observePlaybackStart} from 'services/mediaPlayback/playback';
+import {observePlaybackEnd, observePlaybackStart} from 'services/mediaPlayback/playback';
 import {getServiceFromSrc} from 'services/mediaServices';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
-import scrobbleSettings from 'services/scrobbleSettings';
+import scrobbleSettings, {observeCanUpdateNowPlaying} from 'services/scrobbleSettings';
 import session from 'services/session';
 import {exists, Logger, partition} from 'utils';
 import listenbrainzApi from './listenbrainzApi';
@@ -20,12 +20,21 @@ export function scrobble(): void {
 
     observeIsLoggedIn()
         .pipe(
-            switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackStart() : EMPTY)),
-            filter(() => scrobbleSettings.canUpdateNowPlaying('listenbrainz')),
+            switchMap((isLoggedIn) =>
+                isLoggedIn ? observeCanUpdateNowPlaying('listenbrainz') : EMPTY
+            ),
+            switchMap((canUpdateNowPlaying) =>
+                canUpdateNowPlaying ? observePlaybackStart() : EMPTY
+            ),
             map(({currentItem}) => currentItem),
             filter(exists),
-            debounceTime(10_000),
             filter((item) => canScrobble(item)),
+            switchMap((item) =>
+                timer(10_000).pipe(
+                    map(() => item),
+                    takeUntil(observePlaybackEnd())
+                )
+            ),
             mergeMap((item) => listenbrainzApi.updateNowPlaying(item))
         )
         .subscribe(logger);

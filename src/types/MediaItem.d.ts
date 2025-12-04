@@ -8,7 +8,7 @@ export default interface MediaItem extends BaseMediaObject {
     readonly itemType: ItemType.Media;
     readonly mediaType: MediaType;
     readonly duration: number; // Seconds
-    readonly playedAt: number; // unix
+    readonly playedAt: number; // unix (a value of -1 means "playing now")
     // Everything below here should be optional.
     readonly linearType?: LinearType; // For radio streams
     readonly playbackType?: PlaybackType;

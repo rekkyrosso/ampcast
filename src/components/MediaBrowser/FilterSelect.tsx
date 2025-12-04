@@ -25,6 +25,7 @@ export default function FilterSelect({
     const [filters, setFilters] = useState<readonly MediaFilter[]>([]);
     const [filter, setFilter] = useState<MediaFilter | undefined>();
     const filterName = useFilterName(filterType, service.id);
+    const [loading, setLoading] = useState(true);
 
     useEffect(() => {
         if (filter && onSelect) {
@@ -34,8 +35,14 @@ export default function FilterSelect({
 
     useEffect(() => {
         const subscription = defer(() => service.getFilters!(filterType, itemType)).subscribe({
-            next: setFilters,
-            error: onError,
+            next: (filters) => {
+                setLoading(false);
+                setFilters(filters);
+            },
+            error: (err) => {
+                setLoading(false);
+                onError?.(err);
+            },
         });
         return () => subscription.unsubscribe();
     }, [service, filterType, itemType, onError]);
@@ -56,12 +63,17 @@ export default function FilterSelect({
     return (
         <div className="filter-select">
             <label htmlFor={id}>{filterName}:</label>
-            <select id={id} onChange={handleChange}>
-                {filters.map((filter, index) => (
-                    <option value={index} key={filter.id}>
-                        {filter.title}{filter.count === undefined ? '' : ` (${filter.count})`}
-                    </option>
-                ))}
+            <select id={id} disabled={loading} onChange={handleChange}>
+                {loading ? (
+                    <option>loading…</option>
+                ) : (
+                    filters.map((filter, index) => (
+                        <option value={index} key={filter.id}>
+                            {filter.title}
+                            {filter.count === undefined ? '' : ` (${filter.count})`}
+                        </option>
+                    ))
+                )}
             </select>
         </div>
     );

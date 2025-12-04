@@ -61,9 +61,14 @@ async function editPlaylist(playlist: MediaPlaylist): Promise<Navidrome.Playlist
     return response.json();
 }
 
+let genres: readonly MediaFilter[] | undefined = undefined;
+
 async function getGenres(): Promise<readonly MediaFilter[]> {
-    const genres = await get<Navidrome.Genre[]>('genre', {_sort: 'name'});
-    return genres.map(({id, name: title}) => ({id, title}));
+    if (!genres) {
+        const data = await get<Navidrome.Genre[]>('genre', {_sort: 'name'});
+        genres = data.map(({id, name: title}) => ({id, title}));
+    }
+    return genres;
 }
 
 async function getPage<T extends Navidrome.MediaObject>(

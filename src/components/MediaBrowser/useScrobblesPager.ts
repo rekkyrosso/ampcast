@@ -50,45 +50,46 @@ export default function useScrobblesPager(
         let lastPlayedAt = 0;
 
         const fetchRecentlyPlayed = async () => {
-            if (lastPlayedAt) {
-                let nowPlaying: MediaItem | undefined;
-                let items: readonly MediaItem[] = [];
-                const historyPager = createHistoryPager(lastPlayedAt + 1);
-                const nowPlayingPager = createNowPlayingPager?.();
-                if (nowPlayingPager) {
-                    [[nowPlaying], items] = await Promise.all([
-                        fetchFirstPage(nowPlayingPager),
-                        fetchFirstPage(historyPager),
-                    ]);
-                } else {
-                    items = await fetchFirstPage(historyPager);
+            try {
+                if (lastPlayedAt) {
+                    let nowPlaying: MediaItem | undefined;
+                    let items: readonly MediaItem[] = [];
+                    const historyPager = createHistoryPager(lastPlayedAt + 1);
+                    const nowPlayingPager = createNowPlayingPager?.();
+                    if (nowPlayingPager) {
+                        [[nowPlaying], items] = await Promise.all([
+                            fetchFirstPage(nowPlayingPager),
+                            fetchFirstPage(historyPager),
+                        ]);
+                    } else {
+                        items = await fetchFirstPage(historyPager);
+                    }
+                    lastPlayedAt = items[0]?.playedAt || lastPlayedAt + 1;
+                    // Try to retain previous items. They may have additional metadata and thumbnails.
+                    const prevItems = await fetchFirstPage(recentItemsPager, {keepAlive: true});
+                    const [[prevNowPlaying], prevRecentItems] = partition(prevItems, (item) =>
+                        item.src.endsWith(':now-playing')
+                    );
+                    const recentItems = uniqBy(
+                        'playedAt',
+                        items
+                            .map(
+                                (item) =>
+                                    prevRecentItems.find(
+                                        (prevItem) => prevItem.playedAt === item.playedAt
+                                    ) || item
+                            )
+                            .concat(prevRecentItems)
+                    );
+                    nowPlaying =
+                        nowPlaying?.title === prevNowPlaying?.title &&
+                        String(nowPlaying?.artists) === String(prevNowPlaying?.artists)
+                            ? prevNowPlaying
+                            : nowPlaying;
+                    recentItemsPager.next(nowPlaying ? [nowPlaying, ...recentItems] : recentItems);
                 }
-                lastPlayedAt = items[0]?.playedAt || lastPlayedAt + 1;
-                // Try to retain previous items. They may have additional metadata and thumbnails.
-                const prevItems = await fetchFirstPage(recentItemsPager, {
-                    timeout: 500,
-                    keepAlive: true,
-                });
-                const [[prevNowPlaying], prevRecentItems] = partition(prevItems, (item) =>
-                    item.src.endsWith(':now-playing')
-                );
-                const recentItems = uniqBy(
-                    'playedAt',
-                    items
-                        .map(
-                            (item) =>
-                                prevRecentItems.find(
-                                    (prevItem) => prevItem.playedAt === item.playedAt
-                                ) || item
-                        )
-                        .concat(prevRecentItems)
-                );
-                nowPlaying =
-                    nowPlaying?.title === prevNowPlaying?.title &&
-                    String(nowPlaying?.artists) === String(prevNowPlaying?.artists)
-                        ? prevNowPlaying
-                        : nowPlaying;
-                recentItemsPager.next(nowPlaying ? [nowPlaying, ...recentItems] : recentItems);
+            } catch (err) {
+                logger.error(err);
             }
         };
 

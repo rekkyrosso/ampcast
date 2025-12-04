@@ -102,7 +102,8 @@ export const localScrobbles: MediaSource<MediaItem> = {
                 map(({paused, currentTime, currentItem}) =>
                     currentItem && (!paused || currentTime > 1) ? [currentItem] : []
                 ),
-                distinctUntilChanged(([a], [b]) => a?.id === b?.id)
+                distinctUntilChanged(([a], [b]) => a?.id === b?.id),
+                map((items) => items.map((item) => ({...item, playedAt: -1})))
             );
             const listensPager = new ObservablePager(listens$, {passive: true});
             const nowPlayingPager = new ObservablePager<MediaItem>(nowPlaying$, {passive: true});

@@ -3,6 +3,7 @@ import {EMPTY, BehaviorSubject, distinctUntilChanged, filter, interval, map, swi
 import PlayableItem from 'types/PlayableItem';
 import Player from 'types/Player';
 import {exists} from 'utils';
+import mediaPlayback from '../mediaPlayback';
 import HTML5Player from './HTML5Player';
 import observeNearEnd from './observeNearEnd';
 
@@ -49,7 +50,12 @@ export default class DualAudioPlayer implements Player<PlayableItem> {
                 filter((atEnd) => atEnd)
             )
             .subscribe(() => {
-                if (this.autoplay && this.nextItem && this.nextItem.src === this.nextPlayer.src) {
+                if (
+                    !mediaPlayback.stopAfterCurrent &&
+                    this.autoplay &&
+                    this.nextItem &&
+                    this.nextItem.src === this.nextPlayer.src
+                ) {
                     this.nextPlayer.play();
                 }
             });

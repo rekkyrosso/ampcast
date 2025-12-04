@@ -267,7 +267,7 @@ const LastPlayed: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) =
     if (!item.playedAt) {
         return;
     }
-    if (item.src.endsWith(':listen:now-playing')) {
+    if (item.playedAt === -1) {
         return <span className="text">playing now</span>;
     }
     const date = new Date(item.playedAt * 1000);

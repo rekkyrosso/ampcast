@@ -1,4 +1,5 @@
-import {BehaviorSubject} from 'rxjs';
+import type {Observable} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
 import MediaService from 'types/MediaService';
 import MediaServiceId from 'types/MediaServiceId';
 import {LiteStorage} from 'utils';
@@ -34,6 +35,13 @@ export function setNoScrobble(scrobblerId: MediaServiceId, updates: Record<strin
 export function canUpdateNowPlaying(scrobblerId: MediaServiceId): boolean {
     const settings = options$.value;
     return settings[scrobblerId]?.updateNowPlaying ?? true;
+}
+
+export function observeCanUpdateNowPlaying(scrobblerId: MediaServiceId): Observable<boolean> {
+    return options$.pipe(
+        map((options) => options[scrobblerId]?.updateNowPlaying ?? true),
+        distinctUntilChanged()
+    );
 }
 
 export function getScrobbledAt(scrobblerId: MediaServiceId): ScrobblingOptions['scrobbledAt'] {

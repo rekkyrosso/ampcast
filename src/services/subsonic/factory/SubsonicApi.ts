@@ -23,6 +23,8 @@ export interface SubsonicApiSettings extends Partial<PersonalMediaServerSettings
 }
 
 export default class SubsonicApi {
+    private genres: readonly MediaFilter[] | undefined;
+
     constructor(
         private readonly serviceId: MediaServiceId,
         private readonly settings: SubsonicApiSettings
@@ -212,23 +214,28 @@ export default class SubsonicApi {
     }
 
     async getGenres(itemType: ItemType): Promise<readonly MediaFilter[]> {
-        const data = await this.get<{genres: {genre: Subsonic.Genre[]}}>('getGenres', undefined);
-        return (
-            data.genres.genre
-                ?.map(({value: id, albumCount, songCount}) => {
-                    const count = itemType === ItemType.Album ? albumCount : songCount;
-                    const title = id;
-                    return {id, title, count};
-                })
-                .filter((genre) => genre.count > 0)
-                .sort((a, b) => {
-                    if (a.count === b.count) {
-                        return a.title.localeCompare(b.title);
-                    } else {
-                        return b.count - a.count;
-                    }
-                }) || []
-        );
+        if (!this.genres) {
+            const data = await this.get<{genres: {genre: Subsonic.Genre[]}}>(
+                'getGenres',
+                undefined
+            );
+            this.genres =
+                data.genres.genre
+                    ?.map(({value: id, albumCount, songCount}) => {
+                        const count = itemType === ItemType.Album ? albumCount : songCount;
+                        const title = id;
+                        return {id, title, count};
+                    })
+                    .filter((genre) => genre.count > 0)
+                    .sort((a, b) => {
+                        if (a.count === b.count) {
+                            return a.title.localeCompare(b.title);
+                        } else {
+                            return b.count - a.count;
+                        }
+                    }) || [];
+        }
+        return this.genres;
     }
 
     async getIndexes(musicFolderId: string): Promise<Subsonic.Index[]> {
