@@ -29,6 +29,7 @@ import {
     recentlyAddedAlbumsLayout,
     recentlyPlayedTracksLayout,
     artistsLayout,
+    topTracksLayout,
 } from 'components/MediaList/layouts';
 
 const serviceId: MediaServiceId = 'navidrome';
@@ -240,13 +241,7 @@ const navidromeTopTracks: MediaSource<MediaItem> = {
     lockActionsStore: true,
     defaultHidden: true,
     primaryItems: {
-        layout: {
-            ...navidromeTracksLayout,
-            card: {
-                ...navidromeTracksLayout.card,
-                data: 'Rating',
-            },
-        },
+        layout: topTracksLayout,
     },
 
     search(): Pager<MediaItem> {
@@ -344,7 +339,7 @@ const navidromeRecentlyPlayed: MediaSource<MediaItem> = {
     icon: 'clock',
     itemType: ItemType.Media,
     primaryItems: {
-        layout: addRating(recentlyPlayedTracksLayout),
+        layout: recentlyPlayedTracksLayout,
     },
 
     search(): Pager<MediaItem> {
@@ -358,7 +353,7 @@ const navidromeMostPlayed: MediaSource<MediaItem> = {
     icon: 'most-played',
     itemType: ItemType.Media,
     primaryItems: {
-        layout: addRating(mostPlayedTracksLayout),
+        layout: mostPlayedTracksLayout,
     },
 
     search(): Pager<MediaItem> {

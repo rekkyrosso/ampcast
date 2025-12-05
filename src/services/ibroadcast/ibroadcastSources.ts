@@ -20,6 +20,7 @@ import {
     defaultMediaItemCard,
     mediaItemsLayout,
     mostPlayedTracksLayout,
+    topTracksLayout,
 } from 'components/MediaList/layouts';
 import ibroadcastLibrary from './ibroadcastLibrary';
 import IBroadcastPager from './IBroadcastPager';
@@ -145,13 +146,7 @@ const ibroadcastTopTracks: MediaSource<MediaItem> = {
     icon: 'star',
     itemType: ItemType.Media,
     primaryItems: {
-        layout: {
-            ...ibroadcastTracksLayout,
-            card: {
-                ...ibroadcastTracksLayout.card,
-                data: 'Rating',
-            },
-        },
+        layout: topTracksLayout,
     },
 
     search(): Pager<MediaItem> {
@@ -261,7 +256,7 @@ const ibroadcastMostPlayed: MediaSource<MediaItem> = {
     icon: 'most-played',
     itemType: ItemType.Media,
     primaryItems: {
-        layout: addRating(mostPlayedTracksLayout),
+        layout: mostPlayedTracksLayout,
     },
 
     search(): Pager<MediaItem> {

@@ -68,7 +68,6 @@ module.exports = (args) => {
                 'detect-browser',
                 'dexie',
                 'jsfft',
-                'idb-keyval',
                 'is-electron',
                 'md5',
                 'minisearch',

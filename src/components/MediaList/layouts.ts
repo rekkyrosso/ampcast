@@ -26,6 +26,8 @@ export const allMediaItemFields: readonly Field[] = [
     'Container',
 ];
 
+export const defaultMediaItemFields: readonly Field[] = ['Title', 'Artist', 'Album', 'Duration'];
+
 export const allAlbumFields: readonly Field[] = [
     'Title',
     'Artist',
@@ -42,28 +44,37 @@ export const allAlbumFields: readonly Field[] = [
 export const mediaItemsLayout: MediaListLayout = {
     view: 'card',
     card: defaultMediaItemCard,
-    details: ['Title', 'Artist', 'Album', 'Duration', 'Year', 'Genre'],
+    details: [...defaultMediaItemFields, 'Year', 'Genre'],
     extraFields: allMediaItemFields,
 };
+
+export const playlistItemsLayout: MediaListLayout = {...mediaItemsLayout, view: 'details'};
 
 export const recentlyPlayedTracksLayout: MediaListLayout = {
     view: 'card',
     card: {...defaultMediaItemCard, data: 'LastPlayed'},
-    details: ['Title', 'Artist', 'Album', 'Duration', 'LastPlayed'],
+    details: [...defaultMediaItemFields, 'LastPlayed'],
     extraFields: allMediaItemFields,
 };
 
 export const mostPlayedTracksLayout: MediaListLayout = {
     view: 'card',
     card: {...defaultMediaItemCard, data: 'PlayCount'},
-    details: ['Title', 'Artist', 'Album', 'Duration', 'PlayCount'],
+    details: ['Index', ...defaultMediaItemFields, 'PlayCount'],
+    extraFields: allMediaItemFields,
+};
+
+export const topTracksLayout: MediaListLayout = {
+    view: 'card',
+    card: {...defaultMediaItemCard, data: 'Rating'},
+    details: [...defaultMediaItemFields, 'Rating'],
     extraFields: allMediaItemFields,
 };
 
 export const albumTracksLayout: MediaListLayout = {
     view: 'details',
     card: {...defaultMediaItemCard, index: 'Track'},
-    details: ['Track', 'Title', 'Artist', 'Duration'],
+    details: ['Track', 'Title', 'Duration', 'Artist'],
     extraFields: allMediaItemFields,
 };
 
@@ -91,7 +102,7 @@ export const songChartsLayout: MediaListLayout = {
         h3: 'AlbumAndYear',
         data: 'Duration',
     },
-    details: ['Index', 'Title', 'Artist', 'Album', 'Duration', 'Year', 'Genre'],
+    details: ['Index', ...defaultMediaItemFields, 'Year', 'Genre'],
     extraFields: allMediaItemFields,
 };
 
@@ -157,13 +168,6 @@ export const playlistsLayout: MediaListLayout = {
     },
     details: ['Name', 'Owner', 'TrackCount', 'Progress'],
     extraFields: ['Description', 'AddedAt', 'ModifiedAt'],
-};
-
-export const playlistItemsLayout: MediaListLayout = {
-    view: 'details',
-    card: defaultMediaItemCard,
-    details: ['Title', 'Artist', 'Album', 'Duration', 'Year', 'Genre'],
-    extraFields: allMediaItemFields,
 };
 
 export function getDefaultLayout(itemType: ItemType): MediaListLayout {
