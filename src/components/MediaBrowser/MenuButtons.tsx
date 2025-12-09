@@ -31,7 +31,7 @@ export default function MenuButtons<T extends MediaObject>({source}: MenuButtons
         <div className="menu-buttons icon-buttons">
             {hasCreatePlaylistButton(source) ? (
                 <IconButton
-                    title="Create playlist…"
+                    title="New playlist…"
                     icon="add"
                     onClick={handleCreatePlaylistClick}
                 />

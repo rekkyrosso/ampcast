@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import ColorThief, {RGBColor} from 'colorthief';
+import Color from 'colorjs.io';
 import {TinyColor, mostReadable} from '@ctrl/tinycolor';
 import LinearType from 'types/LinearType';
 import PlaylistItem from 'types/PlaylistItem';
@@ -10,6 +11,7 @@ import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import ProvidedBy from 'components/Media/ProvidedBy';
 import PlaybackState from 'components/Media/PlaybackState';
 import ProgressBar from 'components/Media/ProgressBar';
+import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useVisualizerSettings from 'hooks/useVisualizerSettings';
 
 const defaultPalette = ['#3e3e3e', '#ebebeb'];
@@ -32,6 +34,8 @@ export default function CurrentlyPlaying({
     const [tone, setTone] = useState<'light' | 'dark'>('dark');
     const [textTone, setTextTone] = useState<'light' | 'dark'>('light');
     const [style, setStyle] = useState<React.CSSProperties>({});
+    const currentlyPlaying = useCurrentlyPlaying();
+    const isPlayingRadio = currentlyPlaying?.linearType === LinearType.Station;
 
     const handleThumbnailLoad = useCallback((src: string) => {
         const colorThief = new ColorThief();
@@ -48,8 +52,8 @@ export default function CurrentlyPlaying({
                     mostReadable(backgroundColor, palette, {
                         includeFallbackColors: true,
                         level: 'AA',
-                        size: 'large',
-                    })?.toHexString() || (isDark ? '#ffffff' : '#000000');
+                        size: 'small',
+                    })?.toHexString() || (isDark ? '#ebebeb' : '#000000');
                 setPalette(uniq([backgroundColor, textColor, ...palette]));
             } catch {
                 onerror();
@@ -83,18 +87,16 @@ export default function CurrentlyPlaying({
     }, []);
 
     useEffect(() => {
-        const [backgroundColor, textColor] = palette
-            .slice(0, 2)
-            .map((color) => new TinyColor(color));
-        const {h, s, l} = textColor.toHsl();
+        const [backgroundColor, textColor] = palette.slice(0, 2).map((color) => new Color(color));
+        const {h, s, l} = textColor.to('hsl');
         setStyle({
-            '--background-color': backgroundColor.toHexString(),
-            '--text-color-h': `${h}`,
-            '--text-color-s': `${Number(s) * 100}%`,
-            '--text-color-l': `${Number(l) * 100}%`,
+            '--background-color': backgroundColor.toString({format: 'hex'}),
+            '--text-color-h': `${h || 0}`,
+            '--text-color-s': `${Number(s)}%`,
+            '--text-color-l': `${Number(l)}%`,
         } as React.CSSProperties);
-        setTone(backgroundColor.isDark() ? 'dark' : 'light');
-        setTextTone(textColor.getBrightness() < 148 ? 'dark' : 'light');
+        setTone(backgroundColor.to('lch').l < 50 ? 'dark' : 'light');
+        setTextTone(textColor.to('lch').l >= 50 ? 'light' : 'dark');
         onPaletteChange?.(palette);
     }, [palette, onPaletteChange]);
 
@@ -132,7 +134,7 @@ export default function CurrentlyPlaying({
                             </h4>
                         ) : null}
                     </div>
-                    {item.linearType ? <Icon name="radio" className="live-radio" /> : null}
+                    {isPlayingRadio ? <Icon name="radio" className="live-radio" /> : null}
                 </>
             ) : null}
             <PlaybackState />

@@ -2,12 +2,28 @@
 
 .visualizer-coverart {
     --thumbnail-size: 45%;
+    --thumbnail-width: min(var(--thumbnail-size), 30vh);
     background-color: var(--background-color);
     text-rendering: optimizeLegibility;
+    font-size: 1.25em;
+
+    .media.fullscreen & {
+        --thumbnail-width: min(var(--thumbnail-size), 50vh);
+        font-size: 1.375em;
+    }
+
+    .media:fullscreen & {
+        --thumbnail-width: min(var(--thumbnail-size), 67vh);
+        font-size: 1.5em;
+    }
 
     &.arrange-row {
         .currently-playing {
             flex-direction: row;
+
+            &-thumbnail {
+                width: calc(var(--thumbnail-width) + 2em);
+            }
 
             .sub-title {
                 .media-source-label {
@@ -77,35 +93,16 @@
         &-thumbnail,
         &-text {
             line-height: 1.1;
-            font-size: 1.25em;
-
-            .media.fullscreen & {
-                font-size: 1.375em;
-            }
-
-            .media:fullscreen & {
-                font-size: 1.5em;
-            }
         }
 
         &-thumbnail {
             padding: 1em;
 
             .thumbnail {
-                --size: min(var(--thumbnail-size), 30vh);
                 position: relative;
-                width: var(--size);
-                height: var(--size);
+                width: var(--thumbnail-width);
+                height: var(--thumbnail-width);
                 padding: 0;
-                color: var(--grey2-color);
-
-                .media.fullscreen & {
-                    --size: min(var(--thumbnail-size), 50vh);
-                }
-
-                .media:fullscreen & {
-                    --size: min(var(--thumbnail-size), 67vh);
-                }
             }
         }
 
@@ -117,18 +114,31 @@
             hyphens: auto;
         }
 
-        &.text-light .currently-playing-text {
-            text-shadow: 2px 2px 0 rgba(16, 16, 16, 0.6);
-
-            .icon {
-                filter: drop-shadow(2px 2px 0 rgba(16, 16, 16, 0.4));
-            }
-
-            .media:fullscreen & {
-                text-shadow: 4px 4px 0 rgba(16, 16, 16, 0.6);
+        &.text-light {
+             .currently-playing-text {
+                text-shadow: 2px 2px 0 rgba(16, 16, 16, 0.8);
 
                 .icon {
-                    filter: drop-shadow(4px 4px 0 rgba(16, 16, 16, 0.4));
+                    filter: drop-shadow(2px 2px 0 rgba(16, 16, 16, 0.4));
+                }
+
+                .media:fullscreen & {
+                    text-shadow: 4px 4px 0 rgba(16, 16, 16, 0.6);
+
+                    .icon {
+                        filter: drop-shadow(4px 4px 0 rgba(16, 16, 16, 0.4));
+                    }
+                }
+            }
+
+            .provided-by .text {
+                color: white;
+                opacity: 0.75;
+                text-shadow: 1px 1px 0 rgba(16, 16, 16, 0.6);
+
+                .media:fullscreen & {
+                    opacity: 0.5;
+                    text-shadow: 2px 2px 0 rgba(16, 16, 16, 0.6);
                 }
             }
         }
@@ -138,8 +148,20 @@
             --progress-bar-color: var(--text-color);
         }
 
-        &.light .progress-bar {
-            --progress-bar-background-color: rgba(0, 0, 0, 0.2);
+        &.dark {
+             .playback-state {            
+                color: rgba(255, 255, 255, 0.6);
+            }
+        }
+
+        &.light {
+             .playback-state {            
+                color: rgba(0, 0, 0, 0.6);
+            }
+
+            .progress-bar {
+                --progress-bar-background-color: rgba(0, 0, 0, 0.2);
+            }
         }
 
         .live-radio {
@@ -152,9 +174,15 @@
 
         .provided-by {
             position: relative; /* break inherited opacity */
-            font-size: max(0.625em, 12px);
+            font-size: max(0.5em, 11px);
             margin-top: 0.5em;
-            align-items: normal;
+            align-items: flex-start;
+            line-height: 1;
+            color: black;
+
+            .text {
+                padding-bottom: .14em;
+            }
 
             .media.fullscreen & {
                 font-size: max(0.25em, 1rem);
@@ -173,11 +201,11 @@
         .sub-title {
             margin-top: 0.5em;
             font-size: 0.75em;
-            color: var(--grey2-color);
-        }
+            line-height: 1;
 
-        .playback-state {
-            color: var(--grey2-color);
+            .text {
+                padding-bottom: .14em;
+            }
         }
     }
 

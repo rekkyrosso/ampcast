@@ -5,6 +5,7 @@ declare namespace Subsonic {
         readonly id: string;
         readonly name: string;
         readonly starred?: string;
+        readonly userRating?: number;
         readonly album?: Album[];
         // OpenSubsonic extensions
         readonly musicBrainzId?: string;
@@ -38,6 +39,7 @@ declare namespace Subsonic {
         readonly playCount: number;
         readonly songCount: number;
         readonly starred?: string;
+        readonly userRating?: number;
         readonly year?: number;
         readonly song?: Song[];
         // OpenSubsonic extensions
@@ -73,6 +75,7 @@ declare namespace Subsonic {
         readonly playCount: number;
         readonly size: number;
         readonly starred?: string;
+        readonly userRating?: number;
         readonly suffix: string;
         readonly title: string;
         readonly track: number;
@@ -102,6 +105,7 @@ declare namespace Subsonic {
         readonly playCount: number;
         readonly size: number;
         readonly starred?: string;
+        readonly userRating?: number;
         readonly suffix: string;
         readonly title: string;
         readonly type: 'video';

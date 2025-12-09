@@ -31,7 +31,7 @@ float sampleMusic() {
 	return clamp(0.5 * (
         texture( iChannel0, vec2( 0.15, 0.25 ) ).x +
         texture( iChannel0, vec2( 0.30, 0.25 ) ).x
-    ), 0.15, 1.0);
+    ), 0.15, 0.85);
 }
 
 void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
@@ -48,8 +48,8 @@ void mainImage( out vec4 fragColor, in vec2 fragCoord ) {
     float c = waterHighlight(p, time, foaminess);
 	vec3 color = vec3(c * sampleMusic());
 
-    color = clamp((iBackgroundColor/255.) - color, 0.0, 1.0);
-    color = mix((iBackgroundColor/255.), color, -clearness);
+    color = clamp((iBackgroundColor/255.) + color, 0.0, 1.0);
+    color = mix((iBackgroundColor/255.), color, clearness);
 
 	fragColor = vec4(color, 1.0);
 }

@@ -14,7 +14,7 @@ export default class BeatsPlayer extends WaveformPlayer {
             onPaint: ({context2D, width, height, analyser}) => {
                 const barCount = 10;
                 const visualBarCount = barCount - 2;
-                const isFullscreen = isFullscreenMedia()
+                const isFullscreen = isFullscreenMedia();
                 const gapWidth = isFullscreen ? 5 : 3;
                 const bufferSize = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferSize);
@@ -60,7 +60,11 @@ export default class BeatsPlayer extends WaveformPlayer {
     }
 
     resize(parentWidth: number): void {
-        const width = Math.min(Math.max(parentWidth / 3, theme.fontSize * 9), 360);
+        const maxWidth = document.body.clientWidth / 4;
+        const width = Math.min(
+            Math.max(parentWidth / 3, theme.fontSize * 11.25),
+            isFullscreenMedia() ? maxWidth : maxWidth * 0.75
+        );
         super.resize(width, width * 0.225);
     }
 }

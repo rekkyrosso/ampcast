@@ -92,7 +92,6 @@ const navidrome: PersonalMediaService = {
     compareForRating,
     createPlaylist,
     createSourceFromPin,
-    deletePlaylist,
     editPlaylist,
     getFilters,
     getPlayableUrl,
@@ -200,10 +199,6 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
             );
         },
     } as MediaSource<T>;
-}
-
-async function deletePlaylist(playlist: MediaPlaylist): Promise<void> {
-    return navidromeApi.deletePlaylist(playlist);
 }
 
 async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {

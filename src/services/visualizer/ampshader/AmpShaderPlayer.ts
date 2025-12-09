@@ -49,7 +49,9 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
         this.analyser = context.createAnalyser();
 
         this.canvas.hidden = true;
-        this.canvas.className = `visualizer visualizer-ampshader`;
+        this.canvas.className = `visualizer visualizer-ampshader${
+            name === 'main' ? '' : '-' + name
+        }`;
         this.outputGl = this.canvas.getContext('2d')!;
 
         if (window.OffscreenCanvas) {

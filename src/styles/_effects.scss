@@ -35,7 +35,7 @@
 }
 
 @mixin pressable {
-    transform-origin: bottom right;
+    transform-origin: 50%;
 
     &:hover {
         filter: brightness(1.1);

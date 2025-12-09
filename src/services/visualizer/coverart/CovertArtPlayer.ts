@@ -71,6 +71,14 @@ export default class CovertArtPlayer extends AbstractVisualizerPlayer<CoverArtVi
         this.beatsPlayer.color = color;
     }
 
+    get color(): string {
+        return this.animatedBackground.color;
+    }
+
+    set color(color: string) {
+        this.animatedBackground.color = color;
+    }
+
     get hidden(): boolean {
         return this.#hidden;
     }

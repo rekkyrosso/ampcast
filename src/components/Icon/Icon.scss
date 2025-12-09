@@ -45,6 +45,14 @@
         }
     }
 
+    &-localdb {
+        fill: orange;
+
+        .light & {
+            fill: #c65102;
+        }
+    }
+
     &-visualizer {
         color: lime;
 
@@ -172,32 +180,43 @@
     }
 
     &-ibroadcast {
-        &-bg {
-            fill: #312927;
+        &-dot,
+        &-ib {
+            fill: var(--background-color);
         }
 
-        .ibroadcast-connected &.show-connectivity &-bg {
-            fill: #134a8e;
+        .ibroadcast-connected & {
+            &-bg {
+                fill: #134a8e;
+            }
+
+            &-dot {
+                fill: #ecedef;
+            }
+
+            &-ib {
+                fill: white;
+            }
         }
 
         .ibroadcast-connected .light &.show-connectivity &-bg {
             fill: #007bff;
         }
 
-        &-dot {
-            fill: #89878c;
-        }
+        &:not(.show-connectivity) {
+            .icon-ibroadcast {
+                &-bg {
+                    fill: #312927;
+                }
 
-        .ibroadcast-connected &.show-connectivity &-dot {
-            fill: #ecedef;
-        }
+                &-dot {
+                    fill: #89878c;
+                }
 
-        &-ib {
-            fill: #ecedef;
-        }
-
-        .ibroadcast-connected &.show-connectivity &-ib {
-            fill: white;
+                &-ib {
+                    fill: #ecedef;
+                }
+            }
         }
     }
 

@@ -26,7 +26,7 @@ export default function CoverArtVisualizer() {
     );
     const [player, setPlayer] = useState<CovertArtPlayer | null>(null);
     const [arrange, setArrange] = useState<'row' | 'column'>('row');
-    const [palette, setPalette] = useState<readonly string[]>(['#000000']);
+    const [palette, setPalette] = useState<readonly string[]>(['#000000', '#ffffff']);
     const backgroundColor = palette[0];
     const [width, setWidth] = useState(0);
     const [height, setHeight] = useState(0);
@@ -89,20 +89,39 @@ export default function CoverArtVisualizer() {
 
     useEffect(() => {
         if (player) {
+            const HEX = {format: 'hex'};
             const [backgroundColor, textColor] = palette
                 .slice(0, 2)
                 .map((color) => new Color(color));
-            let [, , ...colors] = palette;
-            colors = filterNotEmpty(colors, (color: any) => {
-                color = new Color(color);
-                return backgroundColor.deltaE2000(color) > 10;
-            });
-            colors = filterNotEmpty(colors, (color: any) => {
-                color = new Color(color);
-                return textColor.deltaE2000(color) > 10;
-            });
-            player.backgroundColor = backgroundColor.toString({format: 'hex'});
-            player.beatsColor = colors[0];
+            player.backgroundColor = backgroundColor.toString(HEX);
+            const [, , ...rest] = palette;
+            if (rest.length === 0) {
+                player.beatsColor = textColor.toString(HEX);
+                player.color = backgroundColor.toString(HEX);
+            } else {
+                let colors = rest.map((color) => new Color(color));
+                colors = filterNotEmpty(colors, (color) => backgroundColor.deltaE2000(color) > 20);
+                colors = filterNotEmpty(colors, (color) => textColor.deltaE2000(color) > 10);
+                let playerColors = filterNotEmpty(
+                    colors,
+                    (color) => backgroundColor.contrast(color, 'Lstar') < 20
+                );
+                playerColors = filterNotEmpty(colors, (color) => color.to('hsl').s > 20);
+                const playerColor = playerColors.toSorted(
+                    (a, b) =>
+                        backgroundColor.contrast(a, 'Lstar') - backgroundColor.contrast(b, 'Lstar')
+                )[0];
+                const beatsPlayerColors = filterNotEmpty(
+                    colors,
+                    (color) => playerColor.deltaE2000(color) > 10
+                );
+                player.beatsColor = (
+                    beatsPlayerColors[0] === playerColor
+                        ? beatsPlayerColors[1] || textColor
+                        : beatsPlayerColors[0]
+                ).toString(HEX);
+                player.color = playerColor.toString(HEX);
+            }
         }
     }, [player, palette]);
 

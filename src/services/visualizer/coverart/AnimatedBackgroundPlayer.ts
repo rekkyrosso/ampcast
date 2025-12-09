@@ -1,14 +1,20 @@
 import AudioManager from 'types/AudioManager';
 import {AmpShaderVisualizer} from 'types/Visualizer';
 import AmpShaderPlayer from '../ampshader/AmpShaderPlayer';
-import animatedBackground from './animatedBackground.frag';
+import animatedBackground from './gradientFlow.frag';
 
 export default class AnimatedBackgroundPlayer extends AmpShaderPlayer {
+    // private readonly visualizer: AmpShaderVisualizer = {
+    //     providerId: 'ampshader',
+    //     name: 'Foamy water by k_mouse',
+    //     shader: animatedBackground,
+    //     externalUrl: 'https://www.shadertoy.com/view/llcXW7',
+    // };
     private readonly visualizer: AmpShaderVisualizer = {
         providerId: 'ampshader',
-        name: 'Foamy water by k_mouse',
+        name: 'Gradient Flow by hahnzhu',
         shader: animatedBackground,
-        externalUrl: 'https://www.shadertoy.com/view/llcXW7',
+        externalUrl: 'https://www.shadertoy.com/view/wdyczG',
     };
 
     constructor(audio: AudioManager) {

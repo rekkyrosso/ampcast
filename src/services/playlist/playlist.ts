@@ -12,6 +12,7 @@ import {
 } from 'rxjs';
 import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import LookupStatus from 'types/LookupStatus';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
@@ -188,6 +189,7 @@ export async function injectAt(items: PlayableType, index: number): Promise<void
     if (additions.length > 0) {
         const newItems = additions.map((item) => ({
             ...removeUserData(item),
+            linearType: item.linearType === LinearType.Station ? item.linearType : undefined,
             playbackType: isDerivedPlaybackType(item) ? undefined : item.playbackType,
             id: nanoid(),
         }));

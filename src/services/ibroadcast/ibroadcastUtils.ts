@@ -412,7 +412,7 @@ export function sortTracks(
     };
     switch (sortBy) {
         case 'title':
-            return sortByTitle(a[map.title], b[map.title]);
+            return sortByTitle(a[map.title], b[map.title]) * sortOrder;
 
         case 'album':
             return sortByAlbum() * sortOrder || sortByTrack();

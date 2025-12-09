@@ -1,12 +1,17 @@
 .media {
     --progress-bar-height: 6px;
-    --progress-bar-background-color: rgba(128, 128, 128, 0.5);
-    --progress-bar-color: rgba(255, 255, 255, 0.8);
+    --progress-bar-background-color: rgba(32, 32, 32, 0.5);
+    --progress-bar-color: rgba(255, 255, 255, 0.25);
     border-radius: calc(var(--roundness) * 1rem);
     user-select: none;
     contain: strict;
     overflow: hidden;
     background: var(--black);
+
+    &:hover {
+        --progress-bar-background-color: rgba(128, 128, 128, 0.5);
+        --progress-bar-color: rgba(255, 255, 255, 0.8);
+    }
 
     &.is-playing-video {
         background: black;

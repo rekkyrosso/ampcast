@@ -305,7 +305,7 @@ export async function getMetadata<T extends plex.MediaObject>(
         enhancedObjects.forEach((enhancedObject) => {
             objectMap[enhancedObject.key] = enhancedObject as T;
         });
-        return objects.map((object) => objectMap[object.key]);
+        return objects.map((object) => (object.key ? objectMap[object.key] : object));
     } else {
         return objects;
     }

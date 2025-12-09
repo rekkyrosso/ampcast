@@ -45,7 +45,7 @@ export default function IBroadcastServerSettings({
             <fieldset>
                 <legend>Streaming</legend>
                 <p>
-                    <label htmlFor={`${id}-bitrate`}>Bitrate:</label>
+                    <label htmlFor={`${id}-bitrate`}>Bit rate:</label>
                     <select
                         id={`${id}-bitrate`}
                         defaultValue={ibroadcastSettings.bitRate}

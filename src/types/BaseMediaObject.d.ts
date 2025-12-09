@@ -24,9 +24,6 @@ type BaseMediaObject = UserData & {
     readonly apple?: {
         readonly catalogId: string;
     };
-    readonly subsonic?: {
-        readonly isDir?: boolean;
-    };
 };
 
 export default BaseMediaObject;

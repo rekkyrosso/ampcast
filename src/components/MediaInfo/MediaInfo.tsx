@@ -53,7 +53,7 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
                 <Artist artist={item.artists?.join(', ')} />
                 <AlbumAndYear album={item.album} year={item.year} />
                 <Track album={item.album} disc={item.disc} track={item.track} />
-                <StationName stationName={item.stationName} />
+                {item.linearType ? <StationName stationName={item.stationName} /> : null}
                 <Owner owner={item.owner} src={item.src} />
                 <Genre genres={item.genres} />
                 <div className="media-info-icon-bar">

@@ -24,11 +24,13 @@ export default interface Snapshot {
                 | 'src'
                 | 'duration'
                 | 'itemType'
+                | 'linearType'
                 | 'mediaType'
                 | 'playbackType'
                 | 'lookupStatus'
                 | 'startTime'
                 | 'badge'
+                | 'container'
                 | 'bitRate'
             > & {
                 readonly blob: boolean;

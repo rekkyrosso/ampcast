@@ -8,6 +8,7 @@ import {observeCurrentIndex, observeCurrentItem, observeSize} from 'services/pla
 import {ListViewHandle} from 'components/ListView';
 import Time from 'components/Time';
 import useObservable from 'hooks/useObservable';
+import usePaused from 'hooks/usePaused';
 import usePlaybackState from 'hooks/usePlaybackState';
 import useThrottledValue from 'hooks/useThrottledValue';
 import MediaButton from './MediaButton';
@@ -26,7 +27,8 @@ export default function MediaControls({playlistRef}: MediaControlsProps) {
     const currentIndex = useObservable(observeCurrentIndex, -1);
     const currentItem = useObservable(observeCurrentItem, null);
     const size = useObservable(observeSize, 0);
-    const {startedAt, currentTime, duration, paused} = usePlaybackState();
+    const {startedAt, currentTime, duration} = usePlaybackState();
+    const paused = usePaused();
     const isInfiniteStream = duration === MAX_DURATION;
     const unpausable = currentItem?.isLivePlayback || isInfiniteStream;
     const {showPlaylistMenu} = usePlaylistMenu(playlistRef);

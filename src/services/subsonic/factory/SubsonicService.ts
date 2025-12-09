@@ -4,6 +4,7 @@ import Action from 'types/Action';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
+import LibraryAction from 'types/LibraryAction';
 import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
@@ -11,10 +12,11 @@ import MediaItem from 'types/MediaItem';
 import MediaFilter from 'types/MediaFilter';
 import MediaFolderItem from 'types/MediaFolderItem';
 import MediaFolder from 'types/MediaFolder';
+import MediaListLayout from 'types/MediaListLayout';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {PersonalMediaServiceId} from 'types/MediaServiceId';
-import MediaSource, {MediaMultiSource} from 'types/MediaSource';
+import MediaSource, {MediaMultiSource, MediaSourceItems} from 'types/MediaSource';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
@@ -23,24 +25,40 @@ import PlayableItem from 'types/PlayableItem';
 import Pin, {Pinnable} from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
-import {getTextFromHtml, Logger} from 'utils';
-import actionsStore from 'services/actions/actionsStore';
+import {exists, getTextFromHtml, Logger, uniq} from 'utils';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
-import SubsonicPager from './SubsonicPager';
-import SubsonicApi from './SubsonicApi';
-import SubsonicSettings from './SubsonicSettings';
-import LibraryAction from 'types/LibraryAction';
-import SubsonicAuth from './SubsonicAuth';
-import subsonicScrobbler from './subsonicScrobbler';
 import FolderBrowser from 'components/MediaBrowser/FolderBrowser';
 import {
+    albumsLayout,
+    artistsLayout,
+    mediaItemsLayout,
     mostPlayedTracksLayout,
     radiosLayoutSmall,
     recentlyAddedAlbumsLayout,
 } from 'components/MediaList/layouts';
+import SubsonicApi from './SubsonicApi';
+import SubsonicAuth from './SubsonicAuth';
+import SubsonicPager from './SubsonicPager';
+import subsonicScrobbler from './subsonicScrobbler';
+import SubsonicSettings from './SubsonicSettings';
+
+function addRating(layout: MediaListLayout): MediaListLayout {
+    return {
+        ...layout,
+        details: uniq(layout.details.concat('Rating')),
+    };
+}
+
+const subsonicAlbumsLayout: MediaListLayout = addRating(albumsLayout);
+const subsonicAlbums: MediaSourceItems = {
+    layout: subsonicAlbumsLayout,
+};
+const subsonicTracks: MediaSourceItems = {
+    layout: addRating(mediaItemsLayout),
+};
 
 export default class SubsonicService implements PersonalMediaService {
     readonly api: SubsonicApi;
@@ -91,6 +109,7 @@ export default class SubsonicService implements PersonalMediaService {
                 this.createSearch<MediaAlbum>(ItemType.Album, {
                     id: 'albums',
                     title: 'Albums',
+                    primaryItems: subsonicAlbums,
                 }),
                 this.createSearch<MediaArtist>(ItemType.Artist, {
                     id: 'artists',
@@ -105,6 +124,7 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'heart',
             itemType: ItemType.Media,
             lockActionsStore: true,
+            primaryItems: subsonicTracks,
 
             search(): Pager<MediaItem> {
                 return new SubsonicPager(
@@ -124,13 +144,66 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'heart',
             itemType: ItemType.Album,
             lockActionsStore: true,
+            primaryItems: subsonicAlbums,
+
+            search(): Pager<MediaAlbum> {
+                return new SubsonicPager(
+                    service,
+                    ItemType.Album,
+                    async (): Promise<Page<Subsonic.Album>> => {
+                        const items = await api.getLikedAlbums();
+                        return {items};
+                    }
+                );
+            },
+        };
+
+        const likedArtists: MediaSource<MediaArtist> = {
+            id: `${id}/liked-artists`,
+            title: 'My Artists',
+            icon: 'heart',
+            itemType: ItemType.Artist,
+            lockActionsStore: true,
+            defaultHidden: true,
+            primaryItems: {
+                layout: addRating(artistsLayout),
+            },
+
+            search(): Pager<MediaArtist> {
+                return new SubsonicPager(
+                    service,
+                    ItemType.Artist,
+                    async (): Promise<Page<Subsonic.Artist>> => {
+                        const items = await api.getLikedArtists();
+                        return {items};
+                    }
+                );
+            },
+        };
+
+        const topAlbums: MediaSource<MediaAlbum> = {
+            id: `${id}/top-albums`,
+            title: 'Top Rated',
+            icon: 'star',
+            itemType: ItemType.Album,
+            lockActionsStore: true,
+            defaultHidden: true,
+            primaryItems: {
+                layout: {
+                    ...subsonicAlbumsLayout,
+                    card: {
+                        ...subsonicAlbumsLayout.card,
+                        data: 'Rating',
+                    },
+                },
+            },
 
             search(): Pager<MediaAlbum> {
                 return new SubsonicPager(
                     service,
                     ItemType.Album,
                     async (offset: number, count: number): Promise<Page<Subsonic.Album>> => {
-                        const items = await api.getLikedAlbums(offset, count);
+                        const items = await api.getTopAlbums(offset, count);
                         return {items};
                     }
                 );
@@ -143,7 +216,7 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'recently-added',
             itemType: ItemType.Album,
             primaryItems: {
-                layout: recentlyAddedAlbumsLayout,
+                layout: addRating(recentlyAddedAlbumsLayout),
             },
 
             search(): Pager<MediaAlbum> {
@@ -163,6 +236,7 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'Recently Played',
             icon: 'clock',
             itemType: ItemType.Album,
+            primaryItems: subsonicAlbums,
 
             search(): Pager<MediaAlbum> {
                 return new SubsonicPager(
@@ -182,7 +256,7 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'most-played',
             itemType: ItemType.Album,
             primaryItems: {
-                layout: mostPlayedTracksLayout,
+                layout: addRating(mostPlayedTracksLayout),
             },
 
             search(): Pager<MediaAlbum> {
@@ -222,6 +296,7 @@ export default class SubsonicService implements PersonalMediaService {
             itemType: ItemType.Media,
             filterType: FilterType.ByGenre,
             defaultHidden: true,
+            primaryItems: subsonicTracks,
 
             search(genre?: MediaFilter): Pager<MediaItem> {
                 if (genre) {
@@ -248,6 +323,7 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'genre',
             itemType: ItemType.Album,
             filterType: FilterType.ByGenre,
+            primaryItems: subsonicAlbums,
 
             search(genre?: MediaFilter): Pager<MediaAlbum> {
                 if (genre) {
@@ -271,6 +347,7 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'calendar',
             itemType: ItemType.Album,
             filterType: FilterType.ByDecade,
+            primaryItems: subsonicAlbums,
 
             search(decade?: MediaFilter): Pager<MediaAlbum> {
                 if (decade) {
@@ -294,6 +371,7 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'shuffle',
             itemType: ItemType.Media,
             defaultHidden: true,
+            primaryItems: subsonicTracks,
 
             search(): Pager<MediaItem> {
                 return new SubsonicPager(service, ItemType.Media, async () => {
@@ -309,6 +387,7 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'shuffle',
             itemType: ItemType.Album,
             defaultHidden: true,
+            primaryItems: subsonicAlbums,
 
             search(): Pager<MediaAlbum> {
                 return new SubsonicPager(service, ItemType.Album, async () => {
@@ -325,7 +404,9 @@ export default class SubsonicService implements PersonalMediaService {
             itemType: ItemType.Media,
             mediaType: MediaType.Video,
             defaultHidden: true,
-            disabled: id === 'gonic',
+            primaryItems: {
+                label: 'Videos',
+            },
 
             search(): Pager<MediaItem> {
                 return new SubsonicPager(
@@ -442,6 +523,8 @@ export default class SubsonicService implements PersonalMediaService {
         this.sources = [
             likedSongs,
             likedAlbums,
+            likedArtists,
+            ['ampache', 'gonic'].includes(this.id) ? topAlbums : undefined,
             recentlyAdded,
             recentlyPlayed,
             mostPlayed,
@@ -454,7 +537,7 @@ export default class SubsonicService implements PersonalMediaService {
             randomAlbums,
             musicVideos,
             folders,
-        ];
+        ].filter(exists);
 
         this.editablePlaylists = playlists;
 
@@ -507,12 +590,27 @@ export default class SubsonicService implements PersonalMediaService {
         return item.itemType === ItemType.Playlist;
     }
 
+    canRate<T extends MediaObject>(item: T): boolean {
+        switch (item.itemType) {
+            case ItemType.Media:
+                return item.mediaType === MediaType.Audio && !item.linearType;
+
+            case ItemType.Album:
+            case ItemType.Artist:
+                return !item.synthetic;
+
+            default:
+                return false;
+        }
+    }
+
     canStore<T extends MediaObject>(item: T): boolean {
         switch (item.itemType) {
             case ItemType.Media:
                 return !item.linearType;
 
             case ItemType.Album:
+            case ItemType.Artist:
                 return !item.synthetic;
 
             default:
@@ -586,13 +684,13 @@ export default class SubsonicService implements PersonalMediaService {
     async addMetadata<T extends MediaObject>(item: T): Promise<T> {
         const itemType = item.itemType;
         const id = this.getIdFromSrc(item);
+        if (item.synthetic) {
+            return item;
+        }
         if (itemType === ItemType.Media && item.linearType) {
             return item;
         }
         if (itemType === ItemType.Album) {
-            if (item.synthetic) {
-                return item;
-            }
             if (item.description === undefined) {
                 const info = await this.api.getAlbumInfo(id, item.subsonic?.isDir);
                 item = {
@@ -624,20 +722,18 @@ export default class SubsonicService implements PersonalMediaService {
                 this.logger.info('Could not create share link');
             }
         }
-        if (!this.canStore(item) || item.inLibrary !== undefined) {
+        if (item.inLibrary !== undefined && item.rating !== undefined) {
             return item;
         }
-        const inLibrary = actionsStore.getInLibrary(item);
-        if (inLibrary !== undefined) {
-            return {...item, inLibrary};
-        }
         if (itemType === ItemType.Album) {
-            const id = await this.getAlbumDirectoryId(item);
-            const directory = await this.api.getMusicDirectory(id);
-            return {...item, inLibrary: !!directory.starred};
+            const album = await this.api.getAlbum(id);
+            return {...item, inLibrary: !!album.starred, rating: album.userRating || 0};
+        } else if (itemType === ItemType.Artist) {
+            const artist = await this.api.getArtist(id);
+            return {...item, inLibrary: !!artist.starred, rating: artist.userRating || 0};
         } else {
             const song = await this.api.getSong(id);
-            return {...item, inLibrary: !!song.starred};
+            return {...item, inLibrary: !!song.starred, rating: song.userRating || 0};
         }
     }
 
@@ -679,21 +775,32 @@ export default class SubsonicService implements PersonalMediaService {
         return fetchFirstPage(pager, {timeout});
     }
 
-    async store(item: MediaObject, inLibrary: boolean): Promise<void> {
-        const method = inLibrary ? 'star' : 'unstar';
-        switch (item.itemType) {
-            case ItemType.Media: {
-                const [, , id] = item.src.split(':');
-                await this.api.get(method, {id});
-                break;
-            }
+    async rate(item: MediaObject, rating: number): Promise<void> {
+        if (!this.canRate(item)) {
+            return;
+        }
+        const id = this.getIdFromSrc(item);
+        await this.api.setRating(id, rating);
+    }
 
-            case ItemType.Album: {
-                // To stay in synch with the subsonic UI, we'll add likes to the directory rather than the album.
-                const id = await this.getAlbumDirectoryId(item);
+    async store(item: MediaObject, inLibrary: boolean): Promise<void> {
+        if (!this.canStore(item)) {
+            return;
+        }
+        const method = inLibrary ? 'star' : 'unstar';
+        const id = this.getIdFromSrc(item);
+        switch (item.itemType) {
+            case ItemType.Media:
                 await this.api.get(method, {id});
                 break;
-            }
+
+            case ItemType.Album:
+                await this.api.get(method, {albumId: id});
+                break;
+
+            case ItemType.Artist:
+                await this.api.get(method, {artistId: id});
+                break;
         }
     }
 
@@ -750,15 +857,6 @@ export default class SubsonicService implements PersonalMediaService {
                 );
             },
         };
-    }
-
-    private async getAlbumDirectoryId(album: MediaAlbum): Promise<string> {
-        const id = this.getIdFromSrc(album);
-        if (album.subsonic?.isDir) {
-            return id;
-        }
-        const [{parent}] = await this.api.getAlbumTracks(id);
-        return parent || '';
     }
 
     private getIdFromSrc({src}: {src: string}): string {

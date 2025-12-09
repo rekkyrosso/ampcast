@@ -123,7 +123,7 @@ function canPin(item: MediaObject): boolean {
 }
 
 function canRate<T extends MediaObject>(item: T): boolean {
-    return item.itemType !== ItemType.Playlist;
+    return item.itemType !== ItemType.Playlist && !item.synthetic;
 }
 
 function compareForRating<T extends MediaObject>(a: T, b: T): boolean {

@@ -252,8 +252,13 @@ export default class SubsonicApi {
         return data.internetRadioStations.internetRadioStation || [];
     }
 
-    async getLikedAlbums(offset: number, size: number): Promise<Subsonic.Album[]> {
-        return this.getAlbumList({type: 'starred', size, offset});
+    async getLikedAlbums(): Promise<Subsonic.Album[]> {
+        const musicFolderId = this.settings.libraryId;
+        const data = await this.get<{starred2: {album: Subsonic.Album[]}}>(
+            'getStarred2',
+            musicFolderId ? {musicFolderId} : undefined
+        );
+        return data.starred2.album || [];
     }
 
     async getLikedArtists(): Promise<Subsonic.Artist[]> {
@@ -414,6 +419,11 @@ export default class SubsonicApi {
         return data.songsByGenre.song || [];
     }
 
+    async getTopAlbums(offset: number, size: number): Promise<Subsonic.Album[]> {
+        // Doesn't work for older Subsonic servers.
+        return this.getAlbumList({type: 'highest', size, offset});
+    }
+
     async getVideos(): Promise<Subsonic.Video[]> {
         const data = await this.get<{videos: {video: Subsonic.Video[]}}>('getVideos');
         return data.videos.video || [];
@@ -516,17 +526,11 @@ export default class SubsonicApi {
     ): Promise<Subsonic.Album[]> {
         const musicFolderId = this.settings.libraryId;
         const params = {query, albumCount, albumOffset, songCount: 0, artistCount: 0};
-        const data = await this.get<{searchResult2: {album?: Subsonic.Album[]}}>(
-            'search2',
+        const data = await this.get<{searchResult3: {album?: Subsonic.Album[]}}>(
+            'search3',
             musicFolderId ? {...params, musicFolderId} : params
         );
-        return (
-            data.searchResult2.album?.map((album) => ({
-                ...album,
-                name:
-                    album.name || (album as any).album || (album as any).title || '[Unknown Album]',
-            })) || []
-        );
+        return data.searchResult3.album || [];
     }
 
     async searchArtists(
@@ -543,17 +547,17 @@ export default class SubsonicApi {
         return data.searchResult3.artist || [];
     }
 
+    async setRating(id: string, rating: number): Promise<void> {
+        const params = new URLSearchParams({id, rating: String(rating)});
+        await this.get(`setRating?${params}`);
+    }
+
     private async getAlbumList(params: Record<string, Primitive>): Promise<Subsonic.Album[]> {
         const musicFolderId = this.settings.libraryId;
-        const data = await this.get<{albumList: {album: Subsonic.Album[]}}>(
-            'getAlbumList',
+        const data = await this.get<{albumList2: {album: Subsonic.Album[]}}>(
+            'getAlbumList2',
             musicFolderId ? {...params, musicFolderId} : params
         );
-        return (
-            data.albumList.album?.map((album) => ({
-                ...album,
-                name: album.name || (album as any).album || '[Unknown Album]',
-            })) || []
-        );
+        return data.albumList2.album || [];
     }
 }

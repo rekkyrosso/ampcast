@@ -46,7 +46,6 @@ export interface IBroadcastLibraryQuery<T extends iBroadcast.LibrarySection> {
 }
 
 export class IBroadcastLibrary {
-    #timeStamp = 0;
     private readonly change$ = new Subject<IBroadcastLibraryChange>();
     private readonly id$ = new BehaviorSubject(1);
     private readonly searchFields = ['title', 'artist', 'album', 'genre'];
@@ -102,14 +101,9 @@ export class IBroadcastLibrary {
         return String(this.id$.value);
     }
 
-    get timeStamp(): number {
-        return this.#timeStamp;
-    }
-
     async load(): Promise<iBroadcast.Library> {
         if (!this.response) {
             this.response = await ibroadcastApi.getLibrary();
-            this.#timeStamp = Date.now();
         }
         return this.response.library;
     }
