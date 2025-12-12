@@ -13,7 +13,6 @@ import {
     switchMap,
     take,
     tap,
-    timer,
 } from 'rxjs';
 import LinearType from 'types/LinearType';
 import PlayableItem from 'types/PlayableItem';
@@ -47,7 +46,6 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     private loading = false;
     private stopped = false;
     private skipping = false;
-    private currentTimedMetadata: MusicKit.TimedMetadata | undefined;
     autoplay = false;
     loop = false;
     #muted = true;
@@ -79,17 +77,6 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                         return EMPTY;
                     }
                 })
-            )
-            .subscribe(logger);
-
-        this.observeItem()
-            .pipe(
-                tap(() => (this.currentTimedMetadata = undefined)),
-                switchMap(() => (this.isLinear ? this.playing$ : EMPTY)),
-                switchMap(() => timer(5000, 2000)),
-                map(() => (this.isLivePlayback ? this.currentTimedMetadata : this.nowPlayingItem)),
-                distinctUntilChanged(),
-                tap(this.nowPlaying$)
             )
             .subscribe(logger);
 
@@ -181,9 +168,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                     ? nowPlaying
                     : undefined
             ),
-            switchMap((nowPlaying) =>
-                nowPlaying ? createNowPlayingItem(nowPlaying, station) : of(station)
-            ),
+            map((nowPlaying) => (nowPlaying ? createNowPlayingItem(nowPlaying, station) : station)),
             distinctUntilChanged((a, b) => a.src === b.src)
         );
     }
@@ -237,7 +222,6 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         if (this.item?.startTime) {
             this.item$.next({...this.item, startTime: 0});
         }
-        this.currentTimedMetadata = undefined;
         this.safeStop();
     }
 
@@ -250,14 +234,12 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     async skipNext(): Promise<void> {
         if (this.isLinear && !this.isLivePlayback) {
             await this.player?.skipToNextItem();
-            this.nowPlaying$.next(this.nowPlayingItem);
         }
     }
 
     async skipPrev(): Promise<void> {
         if (this.isLinear && !this.isLivePlayback) {
             await this.player?.skipToPreviousItem();
-            this.nowPlaying$.next(this.nowPlayingItem);
         }
     }
 
@@ -276,10 +258,6 @@ export class MusicKitPlayer implements Player<PlayableItem> {
 
     private get item(): PlayableItem | null {
         return this.item$.value;
-    }
-
-    private get nowPlayingItem(): MusicKit.MediaItem | undefined {
-        return this.player?.nowPlayingItem;
     }
 
     private get paused(): boolean {
@@ -318,7 +296,8 @@ export class MusicKitPlayer implements Player<PlayableItem> {
             player.addEventListener(Events.playbackTimeDidChange, this.onTimeChange);
             player.addEventListener(Events.queuePositionDidChange, this.onQueuePositionDidChange);
             player.addEventListener(Events.mediaPlaybackError, this.onError);
-            // This event is undocumented.
+            // These events are undocumented.
+            player.addEventListener('nowPlayingItemDidChange', this.onNowPlayingItemDidChange);
             player.addEventListener('timedMetadataDidChange', this.onTimedMetadataDidChange);
 
             this.mutationObserver.observe(document.body, {childList: true});
@@ -523,7 +502,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                     this.safeStop();
                 } else {
                     const [, , id] = this.src?.split(':') ?? [];
-                    const nowPlayingItem = this.nowPlayingItem;
+                    const nowPlayingItem = this.player?.nowPlayingItem;
                     if (nowPlayingItem?.isPlayable === false && nowPlayingItem.id === id) {
                         // Apple Music plays 30 seconds of silence for unplayable tracks.
                         this.error$.next(Error('Unplayable'));
@@ -572,12 +551,22 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         }
     };
 
+    private readonly onNowPlayingItemDidChange: any = ({
+        item,
+    }: {
+        item: MusicKit.MediaItem | undefined;
+    }) => {
+        if (item) {
+            this.nowPlaying$.next(item);
+        }
+    };
+
     private readonly onTimedMetadataDidChange: any = (timedMetadata: MusicKit.TimedMetadata) => {
         // If the links have duplicate entries then this represents a transition between
         // the current track and the next. That means we get track changes a bit too early.
         // Wait for the unique links instead. (Hopefully this keeps on working).
         if (uniqBy('description', timedMetadata.links).length === timedMetadata.links.length) {
-            this.currentTimedMetadata = timedMetadata;
+            this.nowPlaying$.next(timedMetadata);
         }
     };
 

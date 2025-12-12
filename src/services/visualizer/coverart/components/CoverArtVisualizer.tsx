@@ -8,14 +8,13 @@ import audio from 'services/audio';
 import visualizerSettings, {
     observeVisualizerSettings,
 } from 'services/visualizer/visualizerSettings';
-import useCurrentTrack from 'hooks/useCurrentTrack';
 import useFontSize from 'hooks/useFontSize';
 import useObservable from 'hooks/useObservable';
 import useOnResize from 'hooks/useOnResize';
 import usePrevious from 'hooks/usePrevious';
 import coverart from '../coverart';
 import CurrentlyPlaying from './CurrentlyPlaying';
-import useNextTrack from './useNextTrack';
+import useCoverArtItems from './useCoverArtItems';
 import './CoverArtVisualizer.scss';
 
 export default function CoverArtVisualizer() {
@@ -32,8 +31,7 @@ export default function CoverArtVisualizer() {
     const [height, setHeight] = useState(0);
     const [thumbnailSize, setThumbnailSize] = useState(0);
     const fontSize = useFontSize(ref);
-    const currentTrack = useCurrentTrack();
-    const nextTrack = useNextTrack();
+    const {current: currentTrack, next: nextTrack} = useCoverArtItems();
     const item = currentTrack?.mediaType === MediaType.Video ? null : currentTrack;
     const prevItem = usePrevious(item);
     const nextItem = nextTrack?.mediaType === MediaType.Video ? null : nextTrack;
@@ -41,15 +39,16 @@ export default function CoverArtVisualizer() {
     const indexRef = useRef(0);
     const [item0, setItem0] = useState<PlaylistItem | null>(null);
     const [item1, setItem1] = useState<PlaylistItem | null>(null);
-    const [ready, setReady] = useState(false);
     const isItem0 = item0?.id === currentId;
-    const isItem1 = item1?.id === currentId;
+    const isItem1 = !isItem0;
+    const [paletteReady, setPaletteReady] = useState(false);
+    const paletteKey = String(palette);
 
     useEffect(() => {
-        setReady(false);
-        const timerId = setTimeout(() => setReady(true), 4500);
+        setPaletteReady(false);
+        const timerId = setTimeout(() => setPaletteReady(true), 4500);
         return () => clearTimeout(timerId);
-    }, [currentId]);
+    }, [paletteKey]);
 
     useEffect(() => {
         const player = coverart.createPlayer(audio) as CovertArtPlayer;
@@ -127,9 +126,9 @@ export default function CoverArtVisualizer() {
 
     return (
         <div
-            className={`visualizer visualizer-coverart arrange-${arrange} ${ready ? 'ready' : ''} ${
+            className={`visualizer visualizer-coverart arrange-${arrange} ${
                 coverArtAnimatedBackground ? 'animated-background-enabled' : ''
-            }`}
+            } ${paletteReady ? 'palette-ready' : ''}`}
             style={
                 {
                     '--background-color': backgroundColor,

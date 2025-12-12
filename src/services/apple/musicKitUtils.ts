@@ -112,10 +112,10 @@ export function createMediaObject<T extends MediaObject>(
     }
 }
 
-export async function createNowPlayingItem(
+export function createNowPlayingItem(
     nowPlaying: MusicKit.MediaItem | MusicKit.TimedMetadata,
     station: PlaylistItem
-): Promise<PlaylistItem> {
+): PlaylistItem {
     if (isTimedMetadata(nowPlaying)) {
         return {
             ...createFromTimedMetadata(nowPlaying, station),

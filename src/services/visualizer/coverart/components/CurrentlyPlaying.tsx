@@ -51,8 +51,8 @@ export default function CurrentlyPlaying({
                 const textColor =
                     mostReadable(backgroundColor, palette, {
                         includeFallbackColors: true,
-                        level: 'AA',
-                        size: 'small',
+                        level: 'AAA',
+                        size: 'large',
                     })?.toHexString() || (isDark ? '#ebebeb' : '#000000');
                 setPalette(uniq([backgroundColor, textColor, ...palette]));
             } catch {

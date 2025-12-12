@@ -266,7 +266,7 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
     }
 
     private get currentQueueItem(): PlaylistItem | null {
-        return this.items[this.position];
+        return this.items[this.position] || null;
     }
 
     private get position(): number {
