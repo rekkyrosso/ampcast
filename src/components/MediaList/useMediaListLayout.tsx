@@ -248,10 +248,17 @@ const TrackCount: RenderField<MediaPlaylist | MediaAlbum> = (item) => (
 
 const Year: RenderField<MediaAlbum | MediaItem> = (item) => <Text value={item.year || ''} />;
 
-const Genre: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => (
-    <Text value={item.genres?.join(', ')} />
-);
-
+const Genre: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
+    let genres = item.genres;
+    if (genres?.length) {
+        if (genres.length === 1) {
+            genres = genres[0].split(/\s*[,;/]\s*/);
+        }
+        return <Text value={genres.join(', ')} />;
+    } else {
+        return null;
+    }
+};
 const Owner: RenderField<MediaPlaylist | MediaItem> = (item) => <Text value={item.owner?.name} />;
 
 const FileName: RenderField<MediaFolderItem> = (item) => <Text value={item.fileName} />;

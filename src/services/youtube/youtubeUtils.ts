@@ -64,11 +64,19 @@ function createOwner({
 }
 
 function createPlaylistItemsPager(playlistId: string): Pager<MediaItem> {
-    return new YouTubePager('/playlistItems', {
-        playlistId,
-        part: 'contentDetails',
-        fields: 'items(contentDetails(videoId))',
-    });
+    return new YouTubePager(
+        '/playlistItems',
+        {
+            playlistId,
+            part: 'contentDetails',
+            fields: 'items(contentDetails(videoId))',
+        },
+        {
+            autofill: true,
+            autofillInterval: 1000,
+            autofillMaxPages: 10,
+        }
+    );
 }
 
 function createThumbnails(

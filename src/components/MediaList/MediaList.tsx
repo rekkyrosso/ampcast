@@ -100,6 +100,11 @@ export default function MediaList<T extends MediaObject>({
     }, []);
 
     useEffect(() => {
+        pager?.activate?.();
+        return () => pager?.deactivate?.();
+    }, [pager]);
+
+    useEffect(() => {
         if (success && onLoad) {
             onLoad();
         }

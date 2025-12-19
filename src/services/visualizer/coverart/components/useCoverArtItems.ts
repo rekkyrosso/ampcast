@@ -25,8 +25,8 @@ export default function useCoverArtItems(): CoverArtItems {
         const radioStation =
             currentItem?.linearType === LinearType.Station ? currentItem : undefined;
         if (radioStation) {
-            // Show the radio station artwork for 15 seconds before transitioning to the track.
-            const delayTime = 15_000;
+            // Show the radio station artwork for twelve seconds before transitioning to the track.
+            const delayTime = 12_000;
             const state = playback.getPlaybackState();
             const elapsedTime = Date.now() - state.startedAt;
             if (elapsedTime > delayTime) {

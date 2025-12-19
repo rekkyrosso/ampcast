@@ -1,3 +1,4 @@
+import MiniSearch from 'minisearch';
 import unidecode from 'unidecode';
 import {Except} from 'type-fest';
 import FilterType from 'types/FilterType';
@@ -130,6 +131,13 @@ async function getPage<T extends plex.MediaObject>(
         const page = await search(request);
         items = page.items as T[];
         total = page.total || items.length;
+        if (page.atEnd && request.params?.type === plexMediaType.Track) {
+            items = refineTracksSearchResults(
+                request.params?.title || '',
+                items as readonly plex.Track[]
+            ) as readonly T[];
+            total = items.length;
+        }
     } else {
         const {
             MediaContainer: {Metadata = [], size, totalSize},
@@ -459,6 +467,28 @@ async function librarySearch<T extends plex.RatingObject>(
         (item) =>
             item && item.type === type && item.librarySectionTitle === plexSettings.libraryTitle
     );
+}
+
+function refineTracksSearchResults(q: string, tracks: readonly plex.Track[]): readonly plex.Track[] {
+    const tracksMap = new Map(tracks.map((track) => [track.ratingKey, track]));
+    const fields = ['title', 'artist', 'album'];
+    const miniSearch = new MiniSearch({fields});
+    miniSearch.addAll(
+        tracks.map((track) => ({
+            id: track.ratingKey,
+            title: track.title,
+            artist: `${track.originalTitle || ''};${track.grandparentTitle || ''}`,
+            album: track.parentTitle || '',
+        }))
+    );
+    return miniSearch
+        .search(q, {
+            fields,
+            fuzzy: 0.2,
+            prefix: true,
+            boost: {artist: 0.5, album: 0.25},
+        })
+        .map((entry) => tracksMap.get(entry.id)!);
 }
 
 async function getMetadata<T extends plex.RatingObject>(

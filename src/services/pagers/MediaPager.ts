@@ -41,6 +41,8 @@ export type CreateChildPager<T extends MediaObject> = (
 ) => Pager<ChildOf<T>>;
 
 export default abstract class MediaPager<T extends MediaObject> implements Pager<T> {
+    protected readonly defaultAutofillMaxPages = 20;
+    #active$?: BehaviorSubject<boolean>;
     #additions$?: Subject<readonly T[]>;
     #busy$?: BehaviorSubject<boolean>;
     #disconnected = false;
@@ -106,6 +108,20 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
         );
     }
 
+    activate(): void {
+        if (this.#active$) {
+            this.#active$.next(true);
+        } else {
+            this.#active$ = new BehaviorSubject(true);
+        }
+    }
+
+    deactivate(): void {
+        if (this.#active$) {
+            this.#active$.next(false);
+        }
+    }
+
     disconnect(): void {
         if (!this.disconnected) {
             this.#disconnected = true;
@@ -123,6 +139,8 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
             this.#additions$?.complete();
             this.#size$?.complete();
             this.#error$?.complete();
+            this.#active$?.complete();
+            this.#busy$?.complete();
         }
     }
 
@@ -141,6 +159,10 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
         }
 
         this.fetches$.next({index, length});
+    }
+
+    protected get active(): boolean {
+        return this.#active$?.value || false;
     }
 
     protected get busy(): boolean {
@@ -221,6 +243,10 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
         }
     }
 
+    protected observeActive(): Observable<boolean> {
+        return this.active$.pipe(distinctUntilChanged());
+    }
+
     protected observeComplete(): Observable<readonly T[]> {
         return combineLatest([this.observeItems(), this.observeSize()]).pipe(
             filter(([items, size]) => items.reduce((total) => (total += 1), 0) === size),
@@ -282,6 +308,13 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
         } else {
             logger.warn('Not connected');
         }
+    }
+
+    private get active$(): BehaviorSubject<boolean> {
+        if (!this.#active$) {
+            this.#active$ = new BehaviorSubject(false);
+        }
+        return this.#active$;
     }
 
     private get additions$(): Subject<readonly T[]> {

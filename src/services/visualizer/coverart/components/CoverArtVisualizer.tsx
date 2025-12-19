@@ -11,7 +11,6 @@ import visualizerSettings, {
 import useFontSize from 'hooks/useFontSize';
 import useObservable from 'hooks/useObservable';
 import useOnResize from 'hooks/useOnResize';
-import usePrevious from 'hooks/usePrevious';
 import coverart from '../coverart';
 import CurrentlyPlaying from './CurrentlyPlaying';
 import useCoverArtItems from './useCoverArtItems';
@@ -33,7 +32,6 @@ export default function CoverArtVisualizer() {
     const fontSize = useFontSize(ref);
     const {current: currentTrack, next: nextTrack} = useCoverArtItems();
     const item = currentTrack?.mediaType === MediaType.Video ? null : currentTrack;
-    const prevItem = usePrevious(item);
     const nextItem = nextTrack?.mediaType === MediaType.Video ? null : nextTrack;
     const currentId = item?.id || '';
     const indexRef = useRef(0);
@@ -74,17 +72,14 @@ export default function CoverArtVisualizer() {
     });
 
     useEffect(() => {
-        let selectedIndex = indexRef.current ? 1 : 0;
-        if (prevItem !== undefined && item?.id !== prevItem?.id) {
-            selectedIndex = indexRef.current ? 0 : 1;
-        }
+        const selectedIndex = indexRef.current ? 0 : 1;
         if (selectedIndex === 0) {
             setItem0(item);
         } else {
             setItem1(item);
         }
         indexRef.current = selectedIndex;
-    }, [item, prevItem]);
+    }, [item]);
 
     useEffect(() => {
         if (player) {

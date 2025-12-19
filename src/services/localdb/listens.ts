@@ -1,9 +1,11 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, filter} from 'rxjs';
 import Dexie, {liveQuery} from 'dexie';
+import LinearType from 'types/LinearType';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import PlaybackState from 'types/PlaybackState';
+import PlaylistItem from 'types/PlaylistItem';
 import {Logger, fuzzyCompare} from 'utils';
 import {findBestMatch, removeUserData} from 'services/metadata';
 import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
@@ -54,6 +56,19 @@ export function observeListens(): Observable<readonly Listen[]> {
     return listens$.pipe(filter((items) => items !== UNINITIALIZED));
 }
 
+function isListen(item: PlaylistItem): boolean {
+    switch (item.linearType) {
+        case undefined:
+        case LinearType.OnDemand:
+        case LinearType.Station:
+        case LinearType.MusicTrack:
+            return true;
+
+        default:
+            return false;
+    }
+}
+
 export function isListenedTo(duration: number, startedAt: number, endedAt: number): boolean {
     const minPlayTime = Math.min(duration / 2, 4 * 60) || 60;
     startedAt = Math.floor(startedAt / 1000);
@@ -68,7 +83,7 @@ export async function addListen(state: PlaybackState): Promise<void> {
         if (!item || !state.startedAt || !state.endedAt) {
             throw Error('Invalid playback state');
         }
-        if (isListenedTo(item.duration, state.startedAt, state.endedAt)) {
+        if (isListen(item) && isListenedTo(item.duration, state.startedAt, state.endedAt)) {
             item = await musicbrainzApi.addMetadata(item, {strictMatch: true});
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const {id, blob, blobUrl, unplayable, ...listen} = removeUserData(item);

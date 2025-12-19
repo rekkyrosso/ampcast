@@ -88,7 +88,7 @@ function ToggleFavorite({visualizer}: {visualizer: Visualizer}) {
     return (
         <IconButtons>
             <IconButton
-                icon={isFavorite ? 'tick-fill' : 'plus'}
+                icon={isFavorite ? 'heart-fill' : 'heart'}
                 title={
                     isFavorite
                         ? t('Remove from Favorite Visualizers')

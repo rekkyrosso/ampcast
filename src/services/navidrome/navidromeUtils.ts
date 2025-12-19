@@ -71,15 +71,20 @@ export function createPlaylistItemsPager(
     itemSort?: SortParams
 ): Pager<MediaItem> {
     const id = getMediaObjectId(playlist);
-    return new NavidromeIndexedPager(ItemType.Media, `playlist/${id}/tracks`, {
-        playlist_id: id,
-        ...(itemSort
-            ? {
-                  _sort: itemSort.sortBy,
-                  _order: itemSort.sortOrder === -1 ? 'DESC' : 'ASC',
-              }
-            : {}),
-    });
+    return new NavidromeIndexedPager(
+        ItemType.Media,
+        `playlist/${id}/tracks`,
+        {
+            playlist_id: id,
+            ...(itemSort
+                ? {
+                      _sort: itemSort.sortBy,
+                      _order: itemSort.sortOrder === -1 ? 'DESC' : 'ASC',
+                  }
+                : {}),
+        },
+        {autofill: true, pageSize: 1000}
+    );
 }
 
 function createMediaItem(song: Navidrome.Song): MediaItem {

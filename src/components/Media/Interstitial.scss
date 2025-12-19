@@ -130,10 +130,4 @@
         opacity: 1;
         transition: opacity 400ms linear;
     }
-
-    /* (fullscreen & idle) this is a bit different to the other `opacity` changes. */
-
-    .media:not(.paused, .is-new-item, .no-visualizer.is-playing-audio).fullscreen.idle & {
-        opacity: 0; /* Hide but prevent interaction with anything behind. */
-    }
 }

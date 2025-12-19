@@ -9,9 +9,6 @@ import plexSettings from './plexSettings';
 import {createMediaObjects, getMediaAlbums, getMetadata} from './plexUtils';
 
 export default class PlexPager<T extends MediaObject> extends IndexedPager<T> {
-    static minPageSize = 10;
-    static maxPageSize = 500;
-
     constructor(
         plexRequest: PlexRequest,
         options?: Partial<PagerConfig<T>>,
@@ -38,7 +35,7 @@ export default class PlexPager<T extends MediaObject> extends IndexedPager<T> {
                 return {items, total: page.total};
             },
             {
-                pageSize: plexSettings.connection?.local ? PlexPager.maxPageSize : 200,
+                pageSize: plexSettings.connection?.local ? 500 : 200,
                 ...options,
             },
             createChildPager

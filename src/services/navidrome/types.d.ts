@@ -143,7 +143,7 @@ declare namespace Navidrome {
         readonly ownerName: string;
         readonly path: string;
         readonly public: boolean;
-        readonly rules: null;
+        readonly rules: Record<string, any> | null;
         readonly size: number;
         readonly songCount: number;
         readonly sync: boolean;

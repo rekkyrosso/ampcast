@@ -6,11 +6,10 @@ import {
     catchError,
     combineLatest,
     debounceTime,
-    delay,
     distinctUntilChanged,
     filter,
     firstValueFrom,
-    from,
+    fromEvent,
     interval,
     map,
     merge,
@@ -168,6 +167,9 @@ export class SpotifyPlayer implements Player<PlayableItem> {
                 tap(() => this.error$.next(Error('Not logged in')))
             )
             .subscribe(logger);
+
+        // Remove event listeners on page unload.
+        fromEvent(window, 'pagehide').subscribe(() => this.disconnect());
 
         // Log errors.
         this.observeError().subscribe(logger.error);
@@ -550,7 +552,7 @@ export class SpotifyPlayer implements Player<PlayableItem> {
         }
     }
 
-    private async disconnect(): Promise<void> {
+    private disconnect(): void {
         this.loadedSrc = '';
         this.loadError = undefined;
         const player = this.player;
@@ -562,7 +564,6 @@ export class SpotifyPlayer implements Player<PlayableItem> {
             player.removeListener('player_state_changed');
             player.removeListener('not_ready');
             player.removeListener('ready');
-            await this.safePause();
             player.disconnect();
             this.player = null;
         }
@@ -570,12 +571,12 @@ export class SpotifyPlayer implements Player<PlayableItem> {
 
     private async reconnect(): Promise<Spotify.Player> {
         logger.log('reconnect');
-        const reconnect$ = from(this.disconnect()).pipe(
-            delay(1000),
-            mergeMap(() => this.connect()),
-            delay(3000)
-        );
-        return firstValueFrom(reconnect$);
+        await this.safePause();
+        this.disconnect();
+        await sleep(1000);
+        const player = await this.connect();
+        await sleep(3000);
+        return player;
     }
 
     private async safePause(): Promise<void> {

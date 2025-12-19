@@ -23,9 +23,6 @@ import SubsonicApi from './SubsonicApi';
 import SubsonicService from './SubsonicService';
 
 export default class SubsonicPager<T extends MediaObject> extends SequentialPager<T> {
-    static minPageSize = 10;
-    static maxPageSize = 500;
-
     constructor(
         private readonly service: SubsonicService,
         itemType: T['itemType'],

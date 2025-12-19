@@ -14,8 +14,11 @@ export default interface Pager<T> {
     addItems?(items: readonly T[], atIndex?: number): void;
     moveItems?(items: readonly T[], toIndex: number): void;
     removeItems?(items: readonly T[]): void;
+    activate?(): void;
+    deactivate?(): void;
 }
 
+// TODO: This is really `MediaPagerConfig`.
 export interface PagerConfig<T = any> {
     readonly pageSize: number;
     readonly maxSize?: number;
@@ -24,6 +27,9 @@ export interface PagerConfig<T = any> {
     readonly noCache?: boolean; // disable caching (implementation specific)
     readonly childSort?: SortParams;
     readonly childSortId?: string;
+    readonly autofill?: boolean;
+    readonly autofillInterval?: number;
+    readonly autofillMaxPages?: number;
 }
 
 export interface Page<T> {

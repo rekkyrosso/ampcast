@@ -443,9 +443,11 @@ const appleRadio: MediaSource<MediaItem> = {
 
     search(genre?: MediaFilter): Pager<MediaItem> {
         if (genre) {
+            const path = '/v1/catalog/{{storefrontId}}';
+            const isLive = genre.id === '#live';
             return new MusicKitPager(
-                `/v1/catalog/{{storefrontId}}/station-genres/${genre.id}/stations`,
-                undefined,
+                isLive ? `${path}/stations` : `${path}/station-genres/${genre.id}/stations`,
+                isLive ? {'filter[featured]': 'apple-music-live-radio'} : undefined,
                 {pageSize: 50}
             );
         } else {

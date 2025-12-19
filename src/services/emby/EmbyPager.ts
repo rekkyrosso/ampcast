@@ -1,3 +1,4 @@
+import MiniSearch from 'minisearch';
 import unidecode from 'unidecode';
 import type {BaseItemDto} from '@jellyfin/sdk/lib/generated-client/models';
 import {Primitive} from 'type-fest';
@@ -13,9 +14,6 @@ import embyApi from './embyApi';
 import {createMediaObject} from './embyUtils';
 
 export default class EmbyPager<T extends MediaObject> extends IndexedPager<T> {
-    static minPageSize = 10;
-    static maxPageSize = 500;
-
     constructor(
         path: string,
         private readonly params: Record<string, Primitive> = {},
@@ -56,7 +54,7 @@ export default class EmbyPager<T extends MediaObject> extends IndexedPager<T> {
                 ...options,
                 pageSize: Math.min(
                     options?.maxSize || Infinity,
-                    options?.pageSize || (embySettings.isLocal ? EmbyPager.maxPageSize : 200)
+                    options?.pageSize || (embySettings.isLocal ? 500 : 200)
                 ),
             },
             createChildPager
@@ -88,6 +86,7 @@ export default class EmbyPager<T extends MediaObject> extends IndexedPager<T> {
                 Limit: this.pageSize,
             });
             items = uniqBy('Id', initialItems.concat(page.items));
+            items = this.refineTracksSearchResults(query, items);
         } else if (itemType === 'MusicAlbum') {
             // Fetch artist albums.
             const decode = (name: string) => unidecode(name).toLowerCase();
@@ -108,5 +107,30 @@ export default class EmbyPager<T extends MediaObject> extends IndexedPager<T> {
             );
         }
         return {items, total: items.length, atEnd: true};
+    }
+
+    private refineTracksSearchResults(
+        q: string,
+        tracks: readonly BaseItemDto[]
+    ): readonly BaseItemDto[] {
+        const tracksMap = new Map(tracks.map((track) => [track.Id, track]));
+        const fields = ['title', 'artist', 'album'];
+        const miniSearch = new MiniSearch({fields});
+        miniSearch.addAll(
+            tracks.map((track) => ({
+                id: track.Id,
+                title: track.Name,
+                artist: `${track.Artists || ''};${track.AlbumArtist || ''}`,
+                album: track.Album || '',
+            }))
+        );
+        return miniSearch
+            .search(q, {
+                fields,
+                fuzzy: 0.2,
+                prefix: true,
+                boost: {artist: 0.5, album: 0.25},
+            })
+            .map((entry) => tracksMap.get(entry.id)!);
     }
 }

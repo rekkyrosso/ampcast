@@ -60,7 +60,10 @@ export type MusicKitItem =
     | LibraryPlaylist
     | Station;
 
-export async function musicKitFetch<T = any>(href: string, params?: MusicKit.QueryParameters): Promise<T> {
+export async function musicKitFetch<T = any>(
+    href: string,
+    params?: MusicKit.QueryParameters
+): Promise<T> {
     const musicKit = MusicKit.getInstance();
     try {
         const response = await musicKit.api.music(href, params);
@@ -161,7 +164,13 @@ function createMediaPlaylist(
     mediaPlaylist.pager = new MusicKitPager(
         `${playlist.href!}/tracks`,
         {'include[library-songs]': 'catalog'},
-        {pageSize: 100, maxSize: item.isChart ? 100 : undefined},
+        {
+            pageSize: 100,
+            maxSize: item.isChart ? 100 : undefined,
+            autofill: !item.isChart,
+            autofillInterval: 1000,
+            autofillMaxPages: 10,
+        },
         mediaPlaylist as MediaPlaylist
     );
     return mediaPlaylist as SetRequired<MediaPlaylist, 'apple'>;

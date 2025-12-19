@@ -250,7 +250,10 @@ function createMediaPlaylist(playlist: plex.Playlist, noPager?: boolean): MediaP
         editable: true,
     };
     if (!noPager) {
-        (mediaPlaylist as any).pager = createPager({path: playlist.key});
+        (mediaPlaylist as any).pager = createPager(
+            {path: playlist.key},
+            {autofill: true, pageSize: 1000}
+        );
     }
     return mediaPlaylist as MediaPlaylist;
 }

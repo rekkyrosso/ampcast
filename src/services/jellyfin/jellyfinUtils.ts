@@ -256,11 +256,15 @@ export function createPlaylistItemsPager(
         sortOrder: 1,
     }
 ): Pager<MediaItem> {
-    return new JellyfinPager(`Users/${jellyfinSettings.userId}/Items`, {
-        ParentId: getId(playlist),
-        IncludeItemTypes: 'Audio,MusicVideo',
-        ...getSort(itemSort),
-    });
+    return new JellyfinPager(
+        `Users/${jellyfinSettings.userId}/Items`,
+        {
+            ParentId: getId(playlist),
+            IncludeItemTypes: 'Audio,MusicVideo',
+            ...getSort(itemSort),
+        },
+        {autofill: true, pageSize: 1000}
+    );
 }
 
 function createFolderPager(folder: MediaFolder, parent?: MediaFolder): Pager<MediaFolderItem> {

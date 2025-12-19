@@ -1,7 +1,21 @@
-import {catchError, debounceTime, filter, map, mergeMap, of, takeUntil} from 'rxjs';
+import {
+    EMPTY,
+    catchError,
+    concatMap,
+    debounceTime,
+    delay,
+    filter,
+    map,
+    mergeMap,
+    of,
+    startWith,
+    switchMap,
+    take,
+    takeUntil,
+} from 'rxjs';
 import MediaObject from 'types/MediaObject';
 import {Page, PagerConfig} from 'types/Pager';
-import {Logger} from 'utils';
+import {exists, Logger} from 'utils';
 import MediaPager, {CreateChildPager} from './MediaPager';
 
 enum FetchState {
@@ -43,6 +57,29 @@ export default class IndexedPager<T extends MediaObject> extends MediaPager<T> {
                 ),
                 logger
             );
+
+            if (this.config.autofill) {
+                this.subscribeTo(
+                    this.observeActive().pipe(
+                        switchMap((active) =>
+                            active ? this.observeAdditions().pipe(startWith([])) : EMPTY
+                        ),
+                        delay(this.config.autofillInterval || 0),
+                        map(() => this.getPageNumbersFromIndex(0, this.size!)),
+                        map(
+                            (pageNumbers) =>
+                                pageNumbers.filter(
+                                    (pageNumber) => this.fetchStates.get(pageNumber) === undefined
+                                )[0]
+                        ),
+                        filter(exists),
+                        concatMap((pageNumber) => this.fetchPage(pageNumber)),
+                        take(this.config.autofillMaxPages || this.defaultAutofillMaxPages),
+                        takeUntil(this.observeComplete())
+                    ),
+                    logger
+                );
+            }
         }
     }
 

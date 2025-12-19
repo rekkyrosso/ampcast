@@ -315,7 +315,10 @@ function Year<T extends MediaItem>({year}: Pick<T, 'year'>) {
 }
 
 function Genre<T extends MediaItem>({genres}: Pick<T, 'genres'>) {
-    if (genres) {
+    if (genres?.length) {
+        if (genres.length === 1) {
+            genres = genres[0].split(/\s*[,;/]\s*/);
+        }
         return (
             <p className="genre">
                 <span className="text-label">Genre:</span> {genres.join(', ')}

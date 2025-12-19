@@ -312,11 +312,11 @@ let appleGenres: readonly MediaFilter[] | undefined;
 let appleStationGenres: readonly MediaFilter[] | undefined;
 
 async function getGenres(filterType: FilterType): Promise<readonly MediaFilter[]> {
-    const isByGenre = filterType === FilterType.ByGenre;
-    let genres = isByGenre ? appleGenres : appleStationGenres;
+    const isByStationGenre = filterType === FilterType.ByAppleStationGenre;
+    let genres = isByStationGenre ? appleStationGenres : appleGenres;
     if (!genres) {
         const musicKit = MusicKit.getInstance();
-        const genreType = isByGenre ? 'genres' : 'station-genres';
+        const genreType = isByStationGenre ? 'station-genres' : 'genres';
         const {
             data: {data},
         } = await musicKit.api.music(`/v1/catalog/{{storefrontId}}/${genreType}`, {
@@ -327,13 +327,14 @@ async function getGenres(filterType: FilterType): Promise<readonly MediaFilter[]
                 id,
                 title: attributes.parentId || type === 'station-genres' ? attributes.name : '(all)',
             }))
+            .concat(isByStationGenre ? [{id: '#live', title: 'Live Radio'}] : [])
             .sort((a: MediaFilter, b: MediaFilter) => {
                 return a.title.localeCompare(b.title);
             });
-        if (isByGenre) {
-            appleGenres = genres;
-        } else {
+        if (isByStationGenre) {
             appleStationGenres = genres;
+        } else {
+            appleGenres = genres;
         }
     }
     return genres || [];

@@ -1,4 +1,20 @@
-import {catchError, concatMap, delayWhen, mergeMap, of, take, takeUntil, tap, timer} from 'rxjs';
+import {
+    EMPTY,
+    catchError,
+    concatMap,
+    delay,
+    delayWhen,
+    distinctUntilChanged,
+    map,
+    mergeMap,
+    of,
+    skipWhile,
+    switchMap,
+    take,
+    takeUntil,
+    tap,
+    timer,
+} from 'rxjs';
 import MediaObject from 'types/MediaObject';
 import {Page, PagerConfig} from 'types/Pager';
 import {exists, Logger, uniqBy} from 'utils';
@@ -65,6 +81,22 @@ export default class SequentialPager<T extends MediaObject> extends MediaPager<T
                 ),
                 logger
             );
+
+            if (this.config.autofill) {
+                this.subscribeTo(
+                    this.observeActive().pipe(
+                        switchMap((active) => (active ? this.observeItems() : EMPTY)),
+                        map((items) => items.length),
+                        skipWhile((itemCount) => itemCount === 0),
+                        distinctUntilChanged(),
+                        delay(this.config.autofillInterval || 0),
+                        tap((itemCount) => this.fetchAt(itemCount, this.pageSize)),
+                        take(this.config.autofillMaxPages || this.defaultAutofillMaxPages),
+                        takeUntil(this.observeComplete())
+                    ),
+                    logger
+                );
+            }
         }
     }
 

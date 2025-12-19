@@ -466,8 +466,12 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     private isLoadedItem(item: PlayableItem | null): boolean {
         if (this.player && item) {
             const [, , id] = item.src.split(':');
-            const {items, position} = this.player.queue;
-            return items[position]?.id === id;
+            if (this.isLinear) {
+                return this.player.nowPlayingItem?.container?.id === id;
+            } else {
+                const {items, position} = this.player.queue;
+                return items[position]?.id === id;
+            }
         }
         return false;
     }

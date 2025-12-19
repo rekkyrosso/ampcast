@@ -17,7 +17,8 @@ class PlaylistStore extends Dexie {
 
     async getCurrentItemId(): Promise<string> {
         try {
-            return this.keyval.get('currently-playing-id') || '';
+            const id = await this.keyval.get('currently-playing-id') || '';
+            return id;
         } catch (err) {
             logger.error(err);
             return '';
@@ -34,7 +35,8 @@ class PlaylistStore extends Dexie {
 
     async getItems(): Promise<PlaylistItem[]> {
         try {
-            return this.keyval.get('items') || [];
+            const items = await this.keyval.get('items') || [];
+            return items;
         } catch (err) {
             logger.error(err);
             return [];

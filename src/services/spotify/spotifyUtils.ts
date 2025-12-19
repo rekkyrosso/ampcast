@@ -173,7 +173,7 @@ function createMediaPlaylist(
         owned,
         editable: owned,
         inLibrary: owned ? false : inLibrary,
-        public: playlist.public
+        public: playlist.public,
     };
 }
 
@@ -299,13 +299,20 @@ function createPlaylistItemsPager(playlist: SpotifyPlaylist): Pager<MediaItem> {
         });
     } else {
         const market = getMarket();
-        return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
-            const {items, total, next} = await spotifyApi.getPlaylistTracks(playlist.id, {
-                offset,
-                limit,
-                market,
-            });
-            return {items: items.map((item) => item.track).filter(exists), total, next};
-        });
+        return new SpotifyPager(
+            async (offset: number, limit: number): Promise<SpotifyPage> => {
+                const {items, total, next} = await spotifyApi.getPlaylistTracks(playlist.id, {
+                    offset,
+                    limit,
+                    market,
+                });
+                return {items: items.map((item) => item.track).filter(exists), total, next};
+            },
+            {
+                autofill: true,
+                autofillInterval: 1000,
+                autofillMaxPages: 10,
+            }
+        );
     }
 }

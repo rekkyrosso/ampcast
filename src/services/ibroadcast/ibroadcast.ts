@@ -7,12 +7,13 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
 import MediaSource from 'types/MediaSource';
-import Pager from 'types/Pager';
+import Pager, {PagerConfig} from 'types/Pager';
 import PersonalMediaService from 'types/PersonalMediaService';
 import Pin, {Pinnable} from 'types/Pin';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
+import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {
     observeConnecting,
     observeConnectionLogging,
@@ -77,6 +78,7 @@ const ibroadcast: PersonalMediaService = {
     getPlayableUrl,
     getPlaybackType,
     getPlaylistByName,
+    lookup,
     movePlaylistItems,
     rate,
     removePlaylistItems,
@@ -229,6 +231,24 @@ async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
 
 async function getPlaylistByName(name: string): Promise<MediaPlaylist | undefined> {
     return ibroadcastLibrary.getPlaylistByName(name);
+}
+
+async function lookup(
+    artist: string,
+    title: string,
+    limit = 10,
+    timeout?: number
+): Promise<readonly MediaItem[]> {
+    if (!artist || !title) {
+        return [];
+    }
+    const options: Partial<PagerConfig> = {maxSize: limit, passive: true};
+    const pager = new IBroadcastPager(
+        'tracks',
+        () => ibroadcastLibrary.search('tracks', `${artist} ${title}`),
+        options
+    );
+    return fetchFirstPage(pager, {timeout});
 }
 
 async function movePlaylistItems(
