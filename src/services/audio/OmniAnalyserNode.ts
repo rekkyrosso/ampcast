@@ -1,3 +1,4 @@
+import {fromEvent, takeUntil} from 'rxjs';
 import PlaybackState from 'types/PlaybackState';
 import {getPlaybackState, observePlaybackState} from 'services/mediaPlayback/playback';
 import spotifyAudioAnalyser from 'services/spotify/spotifyAudioAnalyser';
@@ -11,18 +12,24 @@ export default class OmniAnalyserNode extends AnalyserNode {
     constructor(context: BaseAudioContext, options?: AnalyserOptions) {
         super(context, options);
 
+        const killed$ = fromEvent(window, 'pagehide');
+
         const isPlayingSpotify = ({currentItem}: PlaybackState) =>
             !!currentItem?.src.startsWith('spotify:');
 
         this.#isPlayingSpotify = isPlayingSpotify(getPlaybackState());
 
-        observePlaybackState().subscribe((state) => {
-            this.#isPlayingSpotify = isPlayingSpotify(state);
-        });
+        observePlaybackState()
+            .pipe(takeUntil(killed$))
+            .subscribe((state) => {
+                this.#isPlayingSpotify = isPlayingSpotify(state);
+            });
 
-        observeAudioSettings().subscribe(({useSystemAudio}) => {
-            this.#useSystemAudio = useSystemAudio;
-        });
+        observeAudioSettings()
+            .pipe(takeUntil(killed$))
+            .subscribe(({useSystemAudio}) => {
+                this.#useSystemAudio = useSystemAudio;
+            });
     }
 
     get isPlayingSpotify(): boolean {
