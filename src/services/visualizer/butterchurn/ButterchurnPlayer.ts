@@ -1,10 +1,9 @@
 import type {Observable} from 'rxjs';
-import {distinctUntilChanged, map, Subject, tap} from 'rxjs';
+import {distinctUntilChanged, fromEvent, map, Subject, tap} from 'rxjs';
 import butterchurn from 'butterchurn';
 import AudioManager from 'types/AudioManager';
 import {ButterchurnVisualizer, VisualizerReason} from 'types/Visualizer';
 import {Logger} from 'utils';
-import spotifyAudioAnalyser from 'services/spotify/spotifyAudioAnalyser';
 import visualizerSettings, {
     observeVisualizerSettings,
 } from 'services/visualizer/visualizerSettings';
@@ -13,34 +12,20 @@ import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 const logger = new Logger('ButterchurnPlayer');
 
 export default class ButterchurnPlayer extends AbstractVisualizerPlayer<ButterchurnVisualizer> {
+    #visualizer?: butterchurn.Visualizer;
     private readonly canvas = document.createElement('canvas');
-    private readonly context2D = this.canvas.getContext('2d')!;
+    private readonly context: AudioContext;
     private readonly source: AudioNode;
-    private readonly visualizer: butterchurn.Visualizer;
     private readonly error$ = new Subject<unknown>();
     private animationFrameId = 0;
-    private currentVisualizer: ButterchurnVisualizer | null = null;
+    private currentPreset: ButterchurnVisualizer | null = null;
 
     constructor({context, source}: AudioManager) {
         super();
+        this.context = context;
         this.source = source;
         this.canvas.className = 'visualizer visualizer-butterchurn';
         this.canvas.hidden = true;
-        this.visualizer = butterchurn.createVisualizer(context, this.canvas, {
-            width: 400,
-            height: 200,
-        });
-
-        const {analyser, fft} = (this.visualizer as any).audio;
-        const timeToFrequencyDomain = fft.timeToFrequencyDomain;
-
-        fft.timeToFrequencyDomain = (waveDataIn: Uint8Array): Float32Array => {
-            if (analyser.isPlayingSpotify) {
-                return spotifyAudioAnalyser.getFrequencyData(waveDataIn.length / 2);
-            } else {
-                return timeToFrequencyDomain.call(fft, waveDataIn);
-            }
-        };
 
         observeVisualizerSettings()
             .pipe(
@@ -49,6 +34,11 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
                 tap(() => this.toggleOpacity())
             )
             .subscribe(logger);
+
+        fromEvent(window, 'pagehide').subscribe(() => {
+            this.#visualizer?.disconnectAudio(this.source);
+            this.#visualizer = undefined;
+        });
 
         // Log errors.
         this.error$.subscribe(logger.error);
@@ -61,14 +51,16 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
     set hidden(hidden: boolean) {
         if (this.canvas.hidden !== hidden) {
             this.canvas.hidden = hidden;
-            if (hidden) {
-                logger.log('disconnect');
-                this.visualizer.disconnectAudio(this.source);
-            } else {
-                logger.log('connect');
-                this.visualizer.connectAudio(this.source);
-                if (!this.animationFrameId) {
-                    this.render();
+            if (this.#visualizer) {
+                if (hidden) {
+                    logger.log('disconnect');
+                    this.#visualizer.disconnectAudio(this.source);
+                } else {
+                    logger.log('connect');
+                    this.#visualizer.connectAudio(this.source);
+                    if (!this.animationFrameId) {
+                        this.render();
+                    }
                 }
             }
         }
@@ -82,14 +74,14 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
         parentElement.append(this.canvas);
     }
 
-    load(visualizer: ButterchurnVisualizer & VisualizerReason): void {
-        logger.log('load', visualizer.name);
-        if (visualizer.name !== this.currentVisualizer?.name) {
-            this.currentVisualizer = visualizer;
+    load(preset: ButterchurnVisualizer & VisualizerReason): void {
+        logger.log('load', preset.name);
+        if (preset.name !== this.currentPreset?.name) {
+            this.currentPreset = preset;
             this.cancelAnimation();
-            this.visualizer.loadPreset(
-                visualizer.data,
-                visualizer.reason === 'transition'
+            this.#visualizer?.loadPreset(
+                preset.data,
+                preset.reason === 'transition'
                     ? visualizerSettings.butterchurnTransitionDuration
                     : 0
             );
@@ -124,10 +116,11 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
         this.canvas.width = width;
         this.canvas.height = height;
         try {
-            // TODO: This spams error messages if no audio has played yet.
-            this.visualizer.setRendererSize(width, height);
-            if (this.animationFrameId) {
-                this.visualizer.render();
+            if (this.#visualizer) {
+                this.#visualizer.setRendererSize(width, height);
+                if (this.animationFrameId) {
+                    this.#visualizer.render();
+                }
             }
         } catch (err) {
             if (__dev__) {
@@ -136,9 +129,27 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
         }
     }
 
+    private get visualizer(): butterchurn.Visualizer {
+        if (!this.#visualizer) {
+            const visualizer = butterchurn.createVisualizer(this.context, this.canvas, {
+                width: this.canvas.width,
+                height: this.canvas.height,
+            });
+            if (this.currentPreset) {
+                visualizer.loadPreset(this.currentPreset.data, 0);
+            }
+            if (!this.hidden) {
+                visualizer.connectAudio(this.source);
+            }
+            this.#visualizer = visualizer;
+        }
+        return this.#visualizer!;
+    }
+
     private clear(): void {
         const {width, height} = this.canvas;
-        this.context2D.clearRect(0, 0, width, height);
+        const context2D = this.canvas.getContext('2d')!;
+        context2D.clearRect(0, 0, width, height);
     }
 
     private render(): void {
@@ -162,7 +173,7 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
     private toggleOpacity(): void {
         this.canvas.classList.toggle(
             'opaque',
-            !visualizerSettings.butterchurnTransparency || !!this.currentVisualizer?.opaque
+            !visualizerSettings.butterchurnTransparency || !!this.currentPreset?.opaque
         );
     }
 }

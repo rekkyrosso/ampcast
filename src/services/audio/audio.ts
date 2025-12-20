@@ -1,4 +1,4 @@
-import {combineLatest, distinctUntilChanged, filter, map, tap} from 'rxjs';
+import {combineLatest, distinctUntilChanged, filter, fromEvent, map, takeUntil, tap} from 'rxjs';
 import AudioManager from 'types/AudioManager';
 import AudioSettings from 'types/AudioSettings';
 import MediaType from 'types/MediaType';
@@ -32,12 +32,15 @@ class Audio implements AudioManager {
         this.#replayGain.connect(this.#output);
         this.#output.connect(this.#context.destination);
 
+        const killed$ = fromEvent(window, 'pagehide');
+
         // Map the current <audio> element to a source node that can be used by analysers.
         observePlaybackState()
             .pipe(
                 map((state) => this.getCurrentlyPlaying(state)),
                 filter(exists),
-                tap((item) => this.connectSourceNode(item))
+                tap((item) => this.connectSourceNode(item)),
+                takeUntil(killed$)
             )
             .subscribe(logger);
 
@@ -46,9 +49,12 @@ class Audio implements AudioManager {
             .pipe(
                 map(([item, settings]) => this.calculateReplayGain(item, settings)),
                 distinctUntilChanged(),
-                tap((value) => (this.#replayGain.gain.value = value))
+                tap((value) => (this.#replayGain.gain.value = value)),
+                takeUntil(killed$)
             )
             .subscribe(logger);
+
+        killed$.subscribe(() => this.#context.close());
     }
 
     get context(): AudioContext {
