@@ -5,13 +5,15 @@ import {PagerConfig} from 'types/Pager';
 import {Logger} from 'utils';
 import {getSourceSorting} from 'services/mediaServices/servicesSettings';
 import {CreateChildPager} from 'services/pagers/MediaPager';
-import SequentialPager from 'services/pagers/SequentialPager';
+import IndexedPager from 'services/pagers/IndexedPager';
 import ibroadcastLibrary, {IBroadcastLibraryChange} from './ibroadcastLibrary';
 import {createMediaObject} from './ibroadcastUtils';
 
 const logger = new Logger('IBroadcastPager');
 
-export default class IBroadcastPager<T extends MediaObject> extends SequentialPager<T> {
+export default class IBroadcastPager<T extends MediaObject> extends IndexedPager<T> {
+    private ids?: readonly number[];
+
     constructor(
         private readonly section: iBroadcast.LibrarySection,
         private readonly _fetchIds: () => Promise<readonly number[]>,
@@ -20,16 +22,17 @@ export default class IBroadcastPager<T extends MediaObject> extends SequentialPa
         private readonly _observeChanges?: () => Observable<IBroadcastLibraryChange<any>>
     ) {
         super(
-            async () => {
+            async (pageNumber, pageSize) => {
                 const library = await ibroadcastLibrary.load();
-                const ids = await _fetchIds();
+                if (!this.ids) {
+                    this.ids = await _fetchIds();
+                }
                 return {
-                    items: this.createItems(library, ids),
-                    total: ids.length,
-                    atEnd: true,
+                    items: this.createItems(library, (pageNumber - 1) * pageSize, pageSize),
+                    total: this.ids.length,
                 };
             },
-            {pageSize: Infinity, ...options},
+            {pageSize: 1000, ...options},
             createChildPager
         );
     }
@@ -47,7 +50,6 @@ export default class IBroadcastPager<T extends MediaObject> extends SequentialPa
         }
     }
 
-    protected createItem(library: iBroadcast.Library, id: number, index: number): T;
     protected createItem(library: iBroadcast.Library, id: number): T {
         return createMediaObject<T>(
             this.section,
@@ -57,13 +59,16 @@ export default class IBroadcastPager<T extends MediaObject> extends SequentialPa
         );
     }
 
-    private createItems(library: iBroadcast.Library, ids: readonly number[]): readonly T[] {
-        return ids.map((id, index) => this.createItem(library, id, index));
+    private createItems(library: iBroadcast.Library, offset: number, count: number): readonly T[] {
+        return this.ids!.slice(offset, offset + count).map((id) => this.createItem(library, id));
     }
 
     private async refresh(library: iBroadcast.Library): Promise<void> {
-        const ids = await this._fetchIds();
-        this.size = ids.length;
-        this.items = this.createItems(library, ids);
+        // Only refresh if the view is completely loaded.
+        if (this.size && this.size <= this.pageSize) {
+            this.ids = await this._fetchIds();
+            this.size = this.ids.length;
+            this.items = this.createItems(library, 0, this.size);
+        }
     }
 }

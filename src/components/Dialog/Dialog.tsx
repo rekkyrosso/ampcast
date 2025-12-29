@@ -7,9 +7,8 @@ import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import './Dialog.scss';
 
 export interface DialogProps
-    extends Except<React.DialogHTMLAttributes<HTMLDialogElement>, 'title' | 'onClose'> {
+    extends Except<React.DialogHTMLAttributes<HTMLDialogElement>, 'onClose'> {
     icon?: IconName;
-    title?: string;
     onClose: (returnValue: string) => void;
     ref?: React.Ref<DialogHandle | null>;
 }

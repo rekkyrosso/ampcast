@@ -64,7 +64,7 @@ export default function PopupMenu<T extends string>({
 
     useEffect(() => {
         if (focusable && autoFocus) {
-            const buttons = getButtons(containerRef.current);
+            const buttons = getPopupMenuButtons(containerRef.current);
             const button = buttons.find((button) => !button.disabled);
             setButtonId(button?.id || '');
             if (button) {
@@ -123,7 +123,7 @@ export default function PopupMenu<T extends string>({
             increment = -1;
         }
         if (increment) {
-            const buttons = getButtons(containerRef.current);
+            const buttons = getPopupMenuButtons(containerRef.current);
             let currentIndex =
                 buttons.indexOf(document.activeElement as HTMLButtonElement) + increment;
             let button = buttons[currentIndex];
@@ -167,6 +167,12 @@ export default function PopupMenu<T extends string>({
     );
 }
 
-function getButtons(menu: HTMLElement | null): readonly HTMLButtonElement[] {
-    return menu ? Array.from(menu.querySelectorAll<HTMLButtonElement>(':scope > li > button')) : [];
+export function getPopupMenuButtons(menu: HTMLElement | null): readonly HTMLButtonElement[] {
+    return menu
+        ? Array.from(
+              menu.querySelectorAll<HTMLButtonElement>(
+                  ':scope > li > button, :scope > .popup-menu-group > ul > li > button'
+              )
+          )
+        : [];
 }

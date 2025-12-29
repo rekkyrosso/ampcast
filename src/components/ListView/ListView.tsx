@@ -637,7 +637,7 @@ export default function ListView<T>({
         <div
             className={`list-view list-view-${layout.view} ${className} ${isThin ? 'thin' : ''} ${
                 hasFocus ? 'focus' : ''
-            }`}
+            } ${size === 0 ? 'empty' : ''}`}
             tabIndex={disabled ? undefined : isEmpty ? -1 : 0}
             onClick={handleClick}
             onContextMenu={handleContextMenu}
@@ -664,54 +664,52 @@ export default function ListView<T>({
                 onScroll={setScrollPosition}
                 ref={scrollableRef}
             >
+                {showTitles && (
+                    <FixedHeader>
+                        <ListViewHead
+                            width={width}
+                            clientLeft={scrollLeft}
+                            clientWidth={clientWidth}
+                            reorderable={reorderable}
+                            sizeable={sizeable}
+                            cols={cols}
+                            fontSize={fontSize}
+                            onColumnMove={onReorder}
+                            onColumnResize={onColumnResize}
+                        />
+                    </FixedHeader>
+                )}
                 {size === 0 && emptyMessage ? (
                     <Empty message={emptyMessage} />
                 ) : (
-                    <>
-                        {showTitles && (
-                            <FixedHeader>
-                                <ListViewHead
-                                    width={width}
-                                    clientLeft={scrollLeft}
-                                    clientWidth={clientWidth}
-                                    reorderable={reorderable}
-                                    sizeable={sizeable}
-                                    cols={cols}
-                                    fontSize={fontSize}
-                                    onColumnMove={onReorder}
-                                    onColumnResize={onColumnResize}
-                                />
-                            </FixedHeader>
-                        )}
-                        <ListViewBody
-                            title={title}
-                            width={sizeable ? width : undefined}
-                            pageSize={pageSize}
-                            rowHeight={rowHeight}
-                            cols={cols}
-                            items={items}
-                            itemKey={itemKey}
-                            itemClassName={itemClassName}
-                            listViewId={listViewId}
-                            selectedId={selectedId}
-                            selectedIds={disabled ? {} : selectedIds}
-                            scrollTop={scrollTop}
-                            dragIndex={moveable ? dragIndex : -1}
-                            draggable={disabled ? false : draggable || moveable}
-                            multiple={multiple}
-                            busy={isScrolling}
-                            view={layout.view}
-                        />
-                        <div
-                            className="list-view-cursor"
-                            style={{
-                                width: sizeable ? `${width}px` : undefined,
-                                transform: `translateY(${Math.max(rowIndex, 0) * rowHeight}px)`,
-                            }}
-                            ref={cursorRef}
-                        />
-                    </>
+                    <ListViewBody
+                        title={title}
+                        width={sizeable ? width : undefined}
+                        pageSize={pageSize}
+                        rowHeight={rowHeight}
+                        cols={cols}
+                        items={items}
+                        itemKey={itemKey}
+                        itemClassName={itemClassName}
+                        listViewId={listViewId}
+                        selectedId={selectedId}
+                        selectedIds={disabled ? {} : selectedIds}
+                        scrollTop={scrollTop}
+                        dragIndex={moveable ? dragIndex : -1}
+                        draggable={disabled ? false : draggable || moveable}
+                        multiple={multiple}
+                        busy={isScrolling}
+                        view={layout.view}
+                    />
                 )}
+                <div
+                    className="list-view-cursor"
+                    style={{
+                        width: sizeable ? `${width}px` : undefined,
+                        transform: `translateY(${Math.max(rowIndex, 0) * rowHeight}px)`,
+                    }}
+                    ref={cursorRef}
+                />
             </Scrollable>
             <ul
                 className="list-view-drag-image list-view-body"

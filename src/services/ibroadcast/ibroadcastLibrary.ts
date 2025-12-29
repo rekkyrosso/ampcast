@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, Subject, filter, map, skipWhile, tap} from 'rxjs';
+import {BehaviorSubject, Subject, filter, fromEvent, map, skipWhile, tap} from 'rxjs';
 import MiniSearch from 'minisearch';
 import MediaFilter from 'types/MediaFilter';
 import MediaPlaylist from 'types/MediaPlaylist';
@@ -65,6 +65,8 @@ export class IBroadcastLibrary {
                 tap(() => this.clear())
             )
             .subscribe(logger);
+
+        fromEvent(window, 'pagehide').subscribe(() => this.clear());
     }
 
     observeChanges<T extends iBroadcast.LibrarySection>(
@@ -163,9 +165,9 @@ export class IBroadcastLibrary {
 
     async deletePlaylist(id: number): Promise<void> {
         const library = await this.load();
-        await ibroadcastApi.deletePlaylist(id);
         delete library.playlists[id];
         this.dispatchSectionChange(library, 'playlists');
+        await ibroadcastApi.deletePlaylist(id);
     }
 
     async editPlaylist({

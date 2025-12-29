@@ -83,10 +83,7 @@
         pointer-events: none;
     }
 
-    &-body:empty + &-cursor {
-        border-color: var(--text-color);
-    }
-
+    &.empty &-cursor,
     &:not(:focus) &-cursor {
         visibility: hidden;
     }

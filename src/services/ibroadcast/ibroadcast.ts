@@ -159,11 +159,16 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
             const pinId = getIdFromSrc(pin);
             return new IBroadcastPager(
                 'playlists',
-                () =>
-                    ibroadcastLibrary.query({
+                async () => {
+                    const [playlist] = await ibroadcastLibrary.query({
                         section: 'playlists',
                         filter: (_, map, library, id) => id == pinId,
-                    }),
+                    });
+                    if (!playlist) {
+                        throw Error('Playlist not found');
+                    }
+                    return [playlist];
+                },
                 {
                     childSort: ibroadcastPlaylistItemsSort.defaultSort,
                     childSortId: `${serviceId}/pinned-playlist/2`,

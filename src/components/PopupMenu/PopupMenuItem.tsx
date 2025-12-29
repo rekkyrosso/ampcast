@@ -1,7 +1,7 @@
 import React, {useCallback, useId, useRef, useState} from 'react';
 import {stopPropagation} from 'utils';
 import useOnResize from 'hooks/useOnResize';
-import PopupMenu from './PopupMenu';
+import PopupMenu, {getPopupMenuButtons} from './PopupMenu';
 
 export interface PopupMenuItemProps<T extends string>
     extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -74,9 +74,7 @@ export default function PopupMenuItem<T extends string>({
                 (align === 'right' && code === 'ArrowLeft')
             ) {
                 event.stopPropagation();
-                const buttons = Array.from(
-                    popupRef.current!.querySelectorAll<HTMLButtonElement>(':scope > li > button')
-                );
+                const buttons = getPopupMenuButtons(popupRef.current);
                 const button = buttons.find((button) => !button.disabled);
                 button?.focus();
             }

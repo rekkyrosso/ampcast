@@ -162,11 +162,12 @@ export function createMediaPlaylist(
         editable: true,
         deletable: true,
         genres: getGenres('playlists', playlist, library, true),
-        items: {
-            deletable: true,
-            droppable: true,
-            moveable: true,
-        },
+        // TODO
+        // items: {
+        //     deletable: true,
+        //     droppable: true,
+        //     moveable: true,
+        // },
     };
     mediaPlaylist.pager = createPlaylistItemsPager(mediaPlaylist as MediaPlaylist, itemSort);
     return mediaPlaylist as MediaPlaylist;
@@ -177,7 +178,7 @@ export function createPlaylistItemsPager(
     itemSort?: SortParams
 ): Pager<MediaItem> {
     const id = getIdFromSrc(playlist);
-    return new IBroadcastPlaylistItemsPager(id, itemSort);
+    return new IBroadcastPlaylistItemsPager(id, itemSort, {autofill: true, autofillMaxPages: 100});
 }
 
 export function createMediaItem(
@@ -265,7 +266,7 @@ export function getGenres<T extends iBroadcast.LibrarySection>(
                 genres = uniq(trackGenres);
             }
         }
-        return genres?.length ? genres : undefined;
+        return genres?.length ? genres.slice(0, 10) : undefined;
     }
 }
 
