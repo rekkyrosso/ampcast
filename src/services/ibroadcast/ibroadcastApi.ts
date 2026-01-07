@@ -72,8 +72,9 @@ async function makePlaylistPublic(
     return post('makeplaylistpublic', {playlist_id});
 }
 
-async function getLibrary(): Promise<iBroadcast.LibraryResponse> {
-    return post('library', undefined, libraryHost);
+async function getLibrary(): Promise<iBroadcast.Library> {
+    const response = await post<iBroadcast.LibraryResponse>('library', undefined, libraryHost);
+    return response.library;
 }
 
 async function getStatus(): Promise<iBroadcast.StatusResponse> {

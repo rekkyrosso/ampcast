@@ -43,6 +43,7 @@ const loginUrls = [
     'https://accounts.google.com/',
     'https://app.plex.tv/auth',
     'https://www.last.fm/api/auth',
+    'https://oauth.ibroadcast.com/authorize',
 ];
 
 let mainWindow;

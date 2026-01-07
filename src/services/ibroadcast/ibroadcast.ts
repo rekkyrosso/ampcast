@@ -1,3 +1,4 @@
+import type {Observable} from 'rxjs';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import ItemType from 'types/ItemType';
 import FilterType from 'types/FilterType';
@@ -61,9 +62,13 @@ const ibroadcast: PersonalMediaService = {
     editablePlaylists: ibroadcastPlaylists,
     root: ibroadcastSearch,
     sources: ibroadcastSources,
+    get isLibraryLoading(): boolean {
+        return ibroadcastLibrary.loading;
+    },
     get libraryId(): string {
         return ibroadcastLibrary.id;
     },
+    observeIsLibraryLoading,
     observeLibraryId: () => ibroadcastLibrary.observeId(),
     addMetadata,
     addToPlaylist,
@@ -78,6 +83,7 @@ const ibroadcast: PersonalMediaService = {
     getPlayableUrl,
     getPlaybackType,
     getPlaylistByName,
+    loadLibrary,
     lookup,
     rate,
     observeConnecting,
@@ -92,6 +98,10 @@ const ibroadcast: PersonalMediaService = {
 };
 
 export default ibroadcast;
+
+function observeIsLibraryLoading(): Observable<boolean> {
+    return ibroadcastLibrary.observeLoading();
+}
 
 async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
     if (!canRate(item) || item.rating !== undefined) {
@@ -234,6 +244,10 @@ async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
 
 async function getPlaylistByName(name: string): Promise<MediaPlaylist | undefined> {
     return ibroadcastLibrary.getPlaylistByName(name);
+}
+
+async function loadLibrary(): Promise<void> {
+    await ibroadcastLibrary.load();
 }
 
 async function lookup(

@@ -1,0 +1,15 @@
+.library-loading-screen {
+    text-align: center;
+    bottom: var(--gutter-width);
+
+    .loading-text {
+        display: inline-flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+
+        .progress-ring {
+            margin-right: 0.5em;
+        }
+    }
+}
