@@ -309,34 +309,6 @@ export class IBroadcastLibrary {
         return albums[discs[0]][albums.map.disc] > 1;
     }
 
-    async movePlaylistTracks(
-        id: number,
-        tracksToMove: readonly number[],
-        beforeIndex: number
-    ): Promise<void> {
-        const library = await this.load();
-        const playlists = library.playlists;
-        const playlist = library.playlists[id];
-        if (playlist) {
-            const map = playlists.map;
-            const currentTracks: readonly number[] = playlist[map.tracks] || [];
-            const beforeId = currentTracks[beforeIndex];
-            if (tracksToMove.includes(beforeId)) {
-                // selection hasn't moved
-                return;
-            }
-            const newTracks = currentTracks.filter((id) => !tracksToMove.includes(id));
-            if (beforeIndex >= 0) {
-                newTracks.splice(beforeIndex, 0, ...tracksToMove);
-            } else {
-                newTracks.push(...tracksToMove);
-            }
-            await this.updatePlaylistTracks(id, newTracks);
-        } else {
-            throw Error('Playlist not found');
-        }
-    }
-
     async query<T extends iBroadcast.LibrarySection>({
         section,
         filter,
@@ -376,20 +348,6 @@ export class IBroadcastLibrary {
     async rateTrack(id: number, rating: number): Promise<void> {
         this.updateRating('tracks', id, rating);
         await ibroadcastApi.rateTrack(id, rating);
-    }
-
-    async removePlaylistTracks(id: number, tracksToRemove: readonly number[]): Promise<void> {
-        const library = await this.load();
-        const playlists = library.playlists;
-        const playlist = playlists[id];
-        if (playlist) {
-            const map = playlists.map;
-            const currentTracks: readonly number[] = playlist[map.tracks] || [];
-            const newTracks = currentTracks.filter((id) => !tracksToRemove.includes(id));
-            await this.updatePlaylistTracks(id, newTracks);
-        } else {
-            throw Error('Playlist not found');
-        }
     }
 
     async scrobble(id: number, event: 'play' | 'skip', timeStamp: number): Promise<void> {
@@ -449,6 +407,43 @@ export class IBroadcastLibrary {
         }
     }
 
+    async updatePlaylistTracks(id: number, tracks: readonly number[]): Promise<void> {
+        try {
+            const library = await this.load();
+            const playlists = library.playlists;
+            const playlist = playlists[id];
+            if (playlist) {
+                tracks = uniq(tracks);
+                const map = playlists.map;
+                const prevTracks: number[] = playlist[map.tracks] || [];
+                (playlist as any)[map.tracks] = tracks;
+                this.dispatchDataChange(library, 'playlists', id, ['tracks']);
+                dispatchMetadataChanges({
+                    match: (item) => item.src === `ibroadcast:playlist:${id}`,
+                    values: {
+                        trackCount: tracks.length,
+                        genres: getGenres('playlists', playlist, library, true),
+                    },
+                });
+                try {
+                    await ibroadcastApi.updatePlaylistTracks(id, tracks);
+                } catch (err) {
+                    if (tracks.length === 0 && prevTracks.length !== 0) {
+                        // Clearing playlists is currently not working. So reduce to a single track.
+                        await ibroadcastApi.updatePlaylistTracks(id, [prevTracks[0]]);
+                    } else {
+                        throw err;
+                    }
+                }
+            } else {
+                throw Error('Playlist not found');
+            }
+        } catch (err) {
+            logger.info('Failed to update playlist', `(id=${id})`);
+            logger.error(err);
+        }
+    }
+
     private clear(): void {
         this.response = undefined;
         this.albumsDiscIds = undefined;
@@ -467,9 +462,9 @@ export class IBroadcastLibrary {
             type: 'data',
             library,
             section,
+            map: library[section].map,
             id,
             fields: fields as any,
-            map: library[section].map,
         });
     }
 
@@ -585,43 +580,6 @@ export class IBroadcastLibrary {
             this.searches[section] = miniSearch;
         }
         return this.searches[section];
-    }
-
-    private async updatePlaylistTracks(id: number, tracks: readonly number[]): Promise<void> {
-        try {
-            const library = await this.load();
-            const playlists = library.playlists;
-            const playlist = playlists[id];
-            if (playlist) {
-                tracks = uniq(tracks);
-                const map = playlists.map;
-                const prevTracks: number[] = playlist[map.tracks] || [];
-                (playlist as any)[map.tracks] = tracks;
-                this.dispatchDataChange(library, 'playlists', id, ['tracks']);
-                dispatchMetadataChanges({
-                    match: (item) => item.src === `ibroadcast:playlist:${id}`,
-                    values: {
-                        trackCount: tracks.length,
-                        genres: getGenres('playlists', playlist, library, true),
-                    },
-                });
-                try {
-                    await ibroadcastApi.updatePlaylistTracks(id, tracks);
-                } catch (err) {
-                    if (tracks.length === 0 && prevTracks.length !== 0) {
-                        // Clearing playlists is currently not working. So reduce to a single track.
-                        await ibroadcastApi.updatePlaylistTracks(id, [prevTracks[0]]);
-                    } else {
-                        throw err;
-                    }
-                }
-            } else {
-                throw Error('Playlist not found');
-            }
-        } catch (err) {
-            logger.info('Failed to update playlist', `(id=${id})`);
-            logger.error(err);
-        }
     }
 
     private updateRating<T extends iBroadcast.RateableLibrarySection>(

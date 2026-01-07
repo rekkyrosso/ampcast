@@ -94,7 +94,7 @@ export const radiosLayoutSmall: MediaListLayout = {
 };
 
 export const songChartsLayout: MediaListLayout = {
-    view: 'card',
+    view: 'card small',
     card: {
         index: 'Index',
         h1: 'Title',

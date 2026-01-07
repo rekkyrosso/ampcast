@@ -1,10 +1,22 @@
 .media-list-status-bar {
     line-height: normal;
-    
-    p {
+    display: flex;
+    flex-direction: row;
+
+    &-text,
+    &-icons {
         display: flex;
         flex-direction: row;
         align-items: center;
+    }
+
+    &-text {
+        flex: auto;
+    }
+
+    &-icons {
+        flex: initial;
+        margin-left: auto;
     }
 
     .progress-ring {

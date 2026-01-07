@@ -12,6 +12,10 @@ export default class SimplePager<T> implements Pager<T> {
         return of(false);
     }
 
+    observeComplete(): Observable<void> {
+        return of(undefined);
+    }
+
     observeItems(): Observable<readonly T[]> {
         return this.items$;
     }

@@ -47,6 +47,26 @@ export function groupBy<T, K extends keyof any>(
     }, {} as Record<K, T[]>);
 }
 
+export function moveSubset<T>(
+    items: readonly T[],
+    subset: readonly T[],
+    toIndex: number
+): T[] {
+    const insertBeforeItem = items[toIndex];
+    if (subset.includes(insertBeforeItem)) {
+        // selection hasn't moved
+        return items as T[];
+    }
+    const newItems = items.filter((item) => !subset.includes(item));
+    const insertAtIndex = newItems.indexOf(insertBeforeItem);
+    if (insertAtIndex >= 0) {
+        newItems.splice(insertAtIndex, 0, ...subset);
+        return newItems;
+    } else {
+        return newItems.concat(subset);
+    }
+}
+
 export function partition<T>(values: readonly T[], predicate: (value: T) => boolean): [T[], T[]] {
     const truthy: T[] = [];
     const falsy: T[] = [];

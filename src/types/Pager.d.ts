@@ -6,6 +6,7 @@ export default interface Pager<T> {
     readonly pageSize: number;
     readonly maxSize?: number | undefined;
     observeBusy: () => Observable<boolean>;
+    observeComplete: () => Observable<void>;
     observeItems(): Observable<readonly T[]>;
     observeSize(): Observable<number>;
     observeError(): Observable<unknown>;

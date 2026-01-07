@@ -91,6 +91,15 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
         return this.busy$.pipe(distinctUntilChanged());
     }
 
+    observeComplete(): Observable<void> {
+        return combineLatest([this.observeItems(), this.observeSize()]).pipe(
+            // Accommodate sparse arrays.
+            filter(([items, size]) => items.reduce((total) => (total += 1), 0) === size),
+            map(() => undefined),
+            take(1)
+        );
+    }
+
     observeError(): Observable<unknown> {
         return this.error$.pipe(
             skipWhile((error) => error === undefined),
@@ -246,14 +255,6 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
 
     protected observeActive(): Observable<boolean> {
         return this.active$.pipe(distinctUntilChanged());
-    }
-
-    protected observeComplete(): Observable<readonly T[]> {
-        return combineLatest([this.observeItems(), this.observeSize()]).pipe(
-            filter(([items, size]) => items.reduce((total) => (total += 1), 0) === size),
-            map(([items]) => items),
-            take(1)
-        );
     }
 
     protected observeFetches(): Observable<PageFetch> {

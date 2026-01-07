@@ -162,12 +162,11 @@ export function createMediaPlaylist(
         editable: true,
         deletable: true,
         genres: getGenres('playlists', playlist, library, true),
-        // TODO
-        // items: {
-        //     deletable: true,
-        //     droppable: true,
-        //     moveable: true,
-        // },
+        items: {
+            deletable: true,
+            droppable: true,
+            moveable: true,
+        },
     };
     mediaPlaylist.pager = createPlaylistItemsPager(mediaPlaylist as MediaPlaylist, itemSort);
     return mediaPlaylist as MediaPlaylist;

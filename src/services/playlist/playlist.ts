@@ -20,7 +20,7 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import PlaybackType from 'types/PlaybackType';
 import Playlist, {PlayableType} from 'types/Playlist';
 import PlaylistItem from 'types/PlaylistItem';
-import {exists, isMiniPlayer, shuffle as shuffleArray, Logger} from 'utils';
+import {exists, isMiniPlayer, moveSubset, shuffle as shuffleArray, Logger} from 'utils';
 import {
     LookupStartEvent,
     LookupEndEvent,
@@ -206,19 +206,8 @@ export async function injectAt(items: PlayableType, index: number): Promise<void
 
 export async function moveSelection(selection: PlaylistItem[], beforeIndex: number): Promise<void> {
     const items = getItems();
-    const insertBeforeItem = items[beforeIndex];
-    if (selection.includes(insertBeforeItem)) {
-        // selection hasn't moved
-        return;
-    }
-    const newItems = items.filter((item) => !selection.includes(item));
-    const insertAtIndex = newItems.indexOf(insertBeforeItem);
-    if (insertAtIndex >= 0) {
-        newItems.splice(insertAtIndex, 0, ...selection);
-        setItems(newItems);
-    } else {
-        setItems(newItems.concat(selection));
-    }
+    const newItems = moveSubset(items, selection, beforeIndex);
+    setItems(newItems);
 }
 
 export function next(): void {

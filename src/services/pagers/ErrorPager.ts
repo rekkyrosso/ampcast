@@ -11,6 +11,10 @@ export default class ErrorPager<T> implements Pager<T> {
         return of(false);
     }
 
+    observeComplete(): Observable<void> {
+        return NEVER;
+    }
+
     observeItems(): Observable<readonly T[]> {
         return NEVER;
     }

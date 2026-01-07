@@ -11,6 +11,7 @@ export interface PagerState<T> {
     maxSize?: number | undefined;
     error: unknown;
     busy: boolean;
+    complete: boolean;
     loaded: boolean;
 }
 
@@ -20,6 +21,7 @@ const emptyState: PagerState<any> = {
     maxSize: undefined,
     error: undefined,
     busy: false,
+    complete: false,
     loaded: false,
 };
 
@@ -64,6 +66,11 @@ export default function usePager<T>(pager: Pager<T> | null) {
             subscription.add(
                 pager.observeBusy().subscribe((busy) => {
                     setState((state) => ({...state, busy}));
+                })
+            );
+            subscription.add(
+                pager.observeComplete?.().subscribe(() => {
+                    setState((state) => ({...state, complete: true}));
                 })
             );
             subscription.add(

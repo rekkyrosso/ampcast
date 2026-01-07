@@ -34,15 +34,25 @@ export default function PopupMenuItem<T extends string>({
             const menuItem = ref.current;
             const popup = popupRef.current;
             if (menuItem && popup) {
-                const {left, right, top} = menuItem.getBoundingClientRect();
+                const popup = popupRef.current!;
+                const popupRoot = popup.closest('dialog,body')!;
+                const {left, right, top, bottom, height} = menuItem.getBoundingClientRect();
                 const {width} = popup.getBoundingClientRect();
+                let x = 0;
+                let y = 0;
                 if (right + width + 1 >= document.body.clientWidth) {
                     setAlign('right');
-                    setPosition({x: left, y: top - 1});
+                    x = left;
                 } else {
                     setAlign('left');
-                    setPosition({x: right, y: top - 1});
+                    x = right;
                 }
+                if (top + popup.offsetHeight + height >= popupRoot.clientHeight) {
+                    y = bottom + 1;
+                } else {
+                    y = top - 1;
+                }
+                setPosition({x, y});
             }
         }
     }, [hasPopup]);

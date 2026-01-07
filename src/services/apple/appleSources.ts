@@ -352,7 +352,10 @@ const appleMusicVideoCharts: MediaSource<MediaItem> = {
     defaultHidden: true,
     primaryItems: {
         label: 'Videos',
-        layout: songChartsLayout,
+        layout: {
+            ...songChartsLayout,
+            view: 'card',
+        },
     },
 
     search(genre?: MediaFilter): Pager<MediaItem> {
@@ -380,10 +383,7 @@ const appleGlobalCharts: MediaSource<MediaPlaylist> = {
     icon: 'chart',
     itemType: ItemType.Playlist,
     secondaryItems: {
-        layout: {
-            ...songChartsLayout,
-            view: 'card small',
-        },
+        layout: songChartsLayout,
     },
 
     search(): Pager<MediaPlaylist> {
@@ -408,10 +408,7 @@ const appleCityCharts: MediaSource<MediaPlaylist> = {
     itemType: ItemType.Playlist,
     defaultHidden: true,
     secondaryItems: {
-        layout: {
-            ...songChartsLayout,
-            view: 'card small',
-        },
+        layout: songChartsLayout,
     },
 
     search(): Pager<MediaPlaylist> {

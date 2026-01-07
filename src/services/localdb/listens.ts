@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, filter} from 'rxjs';
+import {BehaviorSubject, filter, fromEvent} from 'rxjs';
 import Dexie, {liveQuery} from 'dexie';
 import LinearType from 'types/LinearType';
 import Listen from 'types/Listen';
@@ -36,7 +36,11 @@ class ListensStore extends Dexie {
                     });
             });
 
-        liveQuery(() => this.items.orderBy('playedAt').reverse().toArray()).subscribe(listens$);
+        const subscription = liveQuery(() =>
+            this.items.orderBy('playedAt').reverse().toArray()
+        ).subscribe(listens$);
+
+        fromEvent(window, 'pagehide').subscribe(() => subscription.unsubscribe());
 
         setTimeout(() => {
             try {

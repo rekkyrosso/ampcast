@@ -8,6 +8,7 @@ import {
     map,
     of,
     startWith,
+    switchMap,
     take,
     tap,
 } from 'rxjs';
@@ -48,12 +49,22 @@ export default class WrappedPager<T extends MediaObject> implements Pager<T> {
         );
     }
 
+    observeComplete(): Observable<void> {
+        return this.bodyPager
+            .observeComplete()
+            .pipe(
+                switchMap(() =>
+                    this.footerPager ? this.footerPager.observeComplete() : of(undefined)
+                )
+            );
+    }
+
     observeItems(): Observable<readonly T[]> {
         return combineLatest([
             this.headerPager?.observeItems() || of([]),
             this.bodyPager.observeItems(),
             this.footerPager?.observeItems() || of([]),
-            this.observeComplete(),
+            this.observeBodyComplete(),
         ]).pipe(
             map(([headerItems, bodyItems, footerItems, complete]) =>
                 headerItems.concat(complete ? bodyItems.concat(footerItems) : bodyItems)
@@ -66,7 +77,7 @@ export default class WrappedPager<T extends MediaObject> implements Pager<T> {
             this.observeHeaderSize(),
             this.bodyPager.observeSize(),
             this.footerPager?.observeSize() || of(0),
-            this.observeComplete(),
+            this.observeBodyComplete(),
         ]).pipe(
             map(
                 ([headerSize, bodySize, footerSize, complete]) =>
@@ -123,13 +134,13 @@ export default class WrappedPager<T extends MediaObject> implements Pager<T> {
 
             if (this.footerPager) {
                 this.subscribeTo(
-                    this.observeComplete().pipe(tap(() => this.footerPager!.fetchAt(0)))
+                    this.observeBodyComplete().pipe(tap(() => this.footerPager!.fetchAt(0)))
                 );
             }
         }
     }
 
-    private observeComplete(): Observable<boolean> {
+    private observeBodyComplete(): Observable<boolean> {
         return combineLatest([this.bodyPager.observeItems(), this.bodyPager.observeSize()]).pipe(
             map(([items, size]) => items.reduce((total) => (total += 1), 0) === size),
             startWith(false),

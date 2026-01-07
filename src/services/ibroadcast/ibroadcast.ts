@@ -79,9 +79,7 @@ const ibroadcast: PersonalMediaService = {
     getPlaybackType,
     getPlaylistByName,
     lookup,
-    movePlaylistItems,
     rate,
-    removePlaylistItems,
     observeConnecting,
     observeConnectionLogging,
     observeIsLoggedIn,
@@ -256,15 +254,6 @@ async function lookup(
     return fetchFirstPage(pager, {timeout});
 }
 
-async function movePlaylistItems(
-    playlist: MediaPlaylist,
-    items: readonly MediaItem[],
-    toIndex: number
-): Promise<void> {
-    const id = getIdFromSrc(playlist);
-    return ibroadcastLibrary.movePlaylistTracks(id, items.map(getIdFromSrc), toIndex);
-}
-
 async function rate(item: MediaObject, rating: number): Promise<void> {
     const id = getIdFromSrc(item);
     switch (item.itemType) {
@@ -277,12 +266,4 @@ async function rate(item: MediaObject, rating: number): Promise<void> {
         case ItemType.Media:
             return ibroadcastLibrary.rateTrack(id, rating);
     }
-}
-
-async function removePlaylistItems(
-    playlist: MediaPlaylist,
-    items: readonly MediaItem[]
-): Promise<void> {
-    const id = getIdFromSrc(playlist);
-    return ibroadcastLibrary.removePlaylistTracks(id, items.map(getIdFromSrc));
 }

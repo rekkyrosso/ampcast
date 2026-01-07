@@ -47,4 +47,4 @@ services:
       #- JELLYFIN_HOST="http://localhost:8096"
       #- JELLYFIN_USER=""
       #- JELLYFIN_PASSWORD=""
-      #- JELLYFIN_LOCKED=true # Prevents logging in with alternative credentials
+      #- JELLYFIN_LOCKED=true # Prevents logging in with alternative host/credentials

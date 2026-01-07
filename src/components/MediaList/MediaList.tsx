@@ -41,6 +41,7 @@ export interface MediaListProps<T extends MediaObject>
     defaultLayout?: MediaListLayout;
     layoutOptions?: Partial<MediaListLayout>;
     statusBar?: boolean;
+    statusBarIcons?: readonly React.ReactNode[];
     loadingText?: string;
     emptyMessage?: React.ReactNode;
     onError?: (error: unknown) => void;
@@ -61,6 +62,7 @@ export default function MediaList<T extends MediaObject>({
     pager = null,
     parentPlaylist,
     statusBar = true,
+    statusBarIcons,
     loadingText,
     emptyMessage,
     onContextMenu,
@@ -279,6 +281,7 @@ export default function MediaList<T extends MediaObject>({
                     loadingText={loadingText}
                     busy={busy}
                     selectedCount={selectedItems.length}
+                    icons={statusBarIcons}
                 />
             ) : null}
         </div>
