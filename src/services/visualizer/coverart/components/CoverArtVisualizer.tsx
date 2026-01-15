@@ -100,7 +100,7 @@ export default function CoverArtVisualizer() {
                     colors,
                     (color) => backgroundColor.contrast(color, 'Lstar') < 20
                 );
-                playerColors = filterNotEmpty(colors, (color) => color.to('hsl').s > 20);
+                playerColors = filterNotEmpty(colors, (color) => color.to('hsl').s! > 20);
                 const playerColor = playerColors.toSorted(
                     (a, b) =>
                         backgroundColor.contrast(a, 'Lstar') - backgroundColor.contrast(b, 'Lstar')

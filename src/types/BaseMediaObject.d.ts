@@ -24,6 +24,7 @@ type BaseMediaObject = UserData & {
     readonly apple?: {
         readonly catalogId: string;
     };
+    readonly nanoId?: string; // Transient id for uniqueness in lists.
 };
 
 export default BaseMediaObject;

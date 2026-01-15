@@ -1,8 +1,11 @@
 import {ListenData} from 'types/Listen';
 import MediaItem from 'types/MediaItem';
+import PlaylistItem from 'types/PlaylistItem';
 import UserData from 'types/UserData';
 
-const userDataKeys: (keyof UserData | keyof ListenData | 'lookupStatus' | 'startTime')[] = [
+type TransientData = Pick<PlaylistItem, 'lookupStatus' | 'startTime' | 'playlistItemId' | 'nanoId'>;
+
+const userDataKeys: (keyof UserData | keyof ListenData | keyof TransientData)[] = [
     'rating',
     'globalLikes',
     'globalRating',
@@ -15,6 +18,8 @@ const userDataKeys: (keyof UserData | keyof ListenData | 'lookupStatus' | 'start
     'sessionId',
     'lookupStatus',
     'startTime',
+    'playlistItemId',
+    'nanoId',
 ];
 
 export function removeUserData<T extends Partial<MediaItem>>(item: T): Subtract<T, UserData> {

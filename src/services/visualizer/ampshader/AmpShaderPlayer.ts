@@ -382,7 +382,7 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
 
     private toRgb(color: string): [number, number, number] {
         const [r, g, b] = new Color(color).srgb;
-        return [r * 255, g * 255, b * 255];
+        return [r! * 255, g! * 255, b! * 255];
     }
 
     private toggleOpacity(): void {

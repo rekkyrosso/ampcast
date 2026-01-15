@@ -1,7 +1,9 @@
 import React, {useCallback} from 'react';
 import {Except} from 'type-fest';
 import Action from 'types/Action';
+import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
+import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSource from 'types/MediaSource';
 import {getServiceFromSrc} from 'services/mediaServices';
@@ -82,6 +84,17 @@ export default function PlaylistItemsList({
         [parentPlaylist, pager]
     );
 
+    const canDropItem = useCallback(
+        (item: MediaObject): boolean => {
+            if (parentPlaylist && item.itemType === ItemType.Media) {
+                const [serviceId] = parentPlaylist.src.split(':');
+                return serviceId === 'localdb' || item.src.startsWith(`${serviceId}:`);
+            }
+            return false;
+        },
+        [parentPlaylist]
+    );
+
     return (
         <MediaItemList
             {...props}
@@ -90,6 +103,7 @@ export default function PlaylistItemsList({
             source={source}
             pager={pager}
             parentPlaylist={parentPlaylist}
+            canDropItem={canDropItem}
             droppable={droppable}
             droppableTypes={droppable ? parentPlaylist?.items?.droppableTypes : undefined}
             moveable={moveable}

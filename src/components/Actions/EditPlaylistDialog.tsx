@@ -6,9 +6,9 @@ import MediaServiceId from 'types/MediaServiceId';
 import {Logger} from 'utils';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {dispatchMetadataChanges} from 'services/metadata';
-import {removeRecentPlaylist, updateRecentPlaylist} from 'services/recentPlaylists';
 import Dialog, {DialogProps, alert, confirm, error, showDialog} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
+import {removeRecentPlaylist, updateRecentPlaylist} from './recentPlaylists';
 import './EditPlaylistDialog.scss';
 
 const logger = new Logger('EditPlaylistDialog');

@@ -11,13 +11,13 @@ import actionsStore from 'services/actions/actionsStore';
 import mediaPlayback from 'services/mediaPlayback';
 import pinStore from 'services/pins/pinStore';
 import playlist from 'services/playlist';
-import {addToRecentPlaylist, removeRecentPlaylist} from 'services/recentPlaylists';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {confirm, error} from 'components/Dialog';
 import {showMediaInfoDialog} from 'components/MediaInfo/MediaInfoDialog';
 import {showAddToPlaylistDialog} from './AddToPlaylistDialog';
 import {showCreatePlaylistDialog} from './CreatePlaylistDialog';
 import {showEditPlaylistDialog} from './EditPlaylistDialog';
+import {addToRecentPlaylist, removeRecentPlaylist} from './recentPlaylists';
 
 const logger = new Logger('performAction');
 
@@ -90,7 +90,7 @@ export default async function performAction<T extends MediaObject>(
                 const service = getServiceFromSrc(playlist);
                 if (service?.deletePlaylist) {
                     const confirmed = await confirm({
-                        icon: service.id,
+                        icon: service.icon,
                         title: 'Playlists',
                         message: `Delete playlist '${playlist.title}'?`,
                         okLabel: 'Delete',
@@ -120,7 +120,7 @@ export default async function performAction<T extends MediaObject>(
                 const service = getServiceFromSrc(playlist);
                 if (service?.removePlaylistItems || playlist.pager.removeItems) {
                     const confirmed = await confirm({
-                        icon: service?.id || 'playlist',
+                        icon: service?.icon || 'playlist',
                         title: 'Playlist',
                         message: `Remove ${items.length} item${
                             items.length === 1 ? '' : 's'

@@ -4,7 +4,6 @@ import ItemsByService from 'types/ItemsByService';
 import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {getServiceFromSrc} from 'services/mediaServices';
-import {getPlaylistItemsByService, getRecentPlaylists} from 'services/recentPlaylists';
 import PopupMenuButton from 'components/Button/PopupMenuButton';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import PopupMenu, {
@@ -15,6 +14,7 @@ import PopupMenu, {
 } from 'components/PopupMenu';
 import usePlaylistItems from './usePlaylistItems';
 import performAction from './performAction';
+import {getPlaylistItemsByService, getRecentPlaylists} from './recentPlaylists';
 
 export interface AddToPlaylistButtonProps<T extends MediaItem> {
     item: T;

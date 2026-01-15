@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import {ConditionalKeys} from 'type-fest';
-import globalDrag from 'services/globalDrag';
 import {browser} from 'utils';
 import Scrollable, {
     ScrollableClient,
@@ -16,6 +15,7 @@ import ListViewHead from './ListViewHead';
 import ListViewBody from './ListViewBody';
 import useColumns from './useColumns';
 import useSelectedItems from './useSelectedItems';
+import globalDrag from './globalDrag';
 import './ListView.scss';
 
 export interface ColumnSpec<T> {
@@ -100,6 +100,7 @@ export interface ListViewProps<T> {
     onScrollIndexChange?: (scrollIndex: number) => void;
     onPageSizeChange?: (pageSize: number) => void;
     onSelect?: (items: readonly T[]) => void;
+    canDropItem?: (item: any) => boolean;
     ref?: React.RefObject<ListViewHandle | null>;
 }
 
@@ -137,6 +138,7 @@ export default function ListView<T>({
     onPageSizeChange,
     onReorder,
     onSelect,
+    canDropItem,
     ref,
 }: ListViewProps<T>) {
     const listViewId = useId();
@@ -529,7 +531,7 @@ export default function ListView<T>({
                     effectAllowed = 'move';
                     setDropEffect(event, 'move');
                 }
-                globalDrag.setData(event, selectedItems);
+                globalDrag.setData<T>(event, selectedItems);
                 event.dataTransfer.effectAllowed = effectAllowed;
                 setDragStartIndex(rowIndex);
             } else {
@@ -543,7 +545,6 @@ export default function ListView<T>({
         (event: React.DragEvent) => {
             event.preventDefault();
             event.stopPropagation();
-            const dataTransfer = event.dataTransfer;
             if (droppable || moveable) {
                 const isDropTarget =
                     size === 0 || (event.target as HTMLElement).className === 'scrollable-body';
@@ -552,7 +553,7 @@ export default function ListView<T>({
                     setDropEffect(event, 'none');
                     setDragIndex(-1);
                 } else if (isDragging) {
-                    if (moveable && canDrop(dataTransfer, droppableTypes)) {
+                    if (moveable) {
                         setDropEffect(event, 'move');
                         setDragIndex(rowIndex);
                     } else {
@@ -560,7 +561,7 @@ export default function ListView<T>({
                         setDragIndex(-1);
                     }
                 } else {
-                    if (droppable && canDrop(dataTransfer, droppableTypes)) {
+                    if (droppable && isDroppable(event, droppableTypes, canDropItem)) {
                         setDropEffect(event, 'copy');
                         setDragIndex(rowIndex);
                     } else {
@@ -575,7 +576,7 @@ export default function ListView<T>({
                 setDragIndex(-1);
             }
         },
-        [size, isDragging, droppable, droppableTypes, moveable]
+        [size, isDragging, droppable, droppableTypes, moveable, canDropItem]
     );
 
     const handleDrop = useCallback(
@@ -589,7 +590,7 @@ export default function ListView<T>({
                 if (moveable && dropEffect === 'move') {
                     onMove?.(selectedItems, rowIndex);
                 } else if (droppable && dropEffect === 'copy') {
-                    const data = getDropData<T>(event, droppableTypes);
+                    const data = getDropData<T>(event, droppableTypes, canDropItem);
                     if (data) {
                         onDrop?.(data, rowIndex);
                     }
@@ -599,7 +600,7 @@ export default function ListView<T>({
             event.preventDefault();
             event.stopPropagation();
         },
-        [size, selectedItems, droppable, droppableTypes, moveable, onDrop, onMove]
+        [size, selectedItems, droppable, droppableTypes, moveable, onDrop, onMove, canDropItem]
     );
 
     const handleDragEnd = useCallback(() => {
@@ -788,37 +789,47 @@ function getNextIndexByKey(
     return Math.min(Math.max(index, 0), totalSize - 1);
 }
 
-function canDrop(dataTransfer: DataTransfer, droppableTypes: readonly string[]): boolean {
-    return getDroppableItem(dataTransfer, droppableTypes) !== null;
+function isDroppable(
+    event: React.DragEvent,
+    droppableTypes: readonly string[],
+    canDropItem?: (item: any) => boolean
+): boolean {
+    return getDroppableItems(event, droppableTypes, canDropItem) !== null;
 }
 
 function getDropData<T>(
     event: React.DragEvent,
-    droppableTypes: readonly string[]
+    droppableTypes: readonly string[],
+    canDropItem?: (item: any) => boolean
 ): readonly T[] | readonly File[] | DataTransferItem | null {
     const dataTransfer = event.dataTransfer;
     const types = dataTransfer.types;
-    if (types.includes(globalDrag.type)) {
-        return globalDrag.getData(event);
-    } else if (types.includes('Files')) {
+    if (types.includes('Files')) {
         return Array.from(dataTransfer.files).filter((item) =>
             droppableTypes.some((type) => compareTypes(type, item.type))
         );
     } else {
-        return getDroppableItem(dataTransfer, droppableTypes);
+        return getDroppableItems<T>(event, droppableTypes, canDropItem);
     }
 }
 
-function getDroppableItem(
-    dataTransfer: DataTransfer,
-    droppableTypes: readonly string[]
-): DataTransferItem | null {
+function getDroppableItems<T>(
+    event: React.DragEvent,
+    droppableTypes: readonly string[],
+    canDropItem: (item: any) => boolean = () => true
+): readonly T[] | DataTransferItem | null {
     const types = [globalDrag.type].concat(droppableTypes);
-    const items = Array.from(dataTransfer.items);
+    const items = Array.from(event.dataTransfer.items);
     for (const type of types) {
         for (const item of items) {
             if (compareTypes(type, item.type)) {
-                return item;
+                if (type === globalDrag.type) {
+                    const data = globalDrag.getData<T>();
+                    const items = data?.filter(canDropItem);
+                    return items?.length ? items : null;
+                } else {
+                    return item;
+                }
             }
         }
     }

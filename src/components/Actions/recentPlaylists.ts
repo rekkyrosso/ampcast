@@ -4,9 +4,10 @@ import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaService from 'types/MediaService';
 import ItemsByService from 'types/ItemsByService';
-import {getService, getServiceFromSrc} from 'services/mediaServices';
-import SimplePager from 'services/pagers/SimplePager';
 import {LiteStorage, groupBy} from 'utils';
+import {getService, getServiceFromSrc} from 'services/mediaServices';
+import {dispatchPlaylistItemsChange} from 'services/metadata';
+import SimplePager from 'services/pagers/SimplePager';
 
 const storage = new LiteStorage('recentPlaylists');
 
@@ -25,6 +26,7 @@ export async function addToRecentPlaylist(
     const playlistItems = itemsByService.find((items) => items.service === service)?.items || [];
     await service!.addToPlaylist!(playlist, playlistItems);
     addRecentPlaylist(playlist);
+    dispatchPlaylistItemsChange('added', playlist.src, playlistItems);
 }
 
 export function addRecentPlaylist(playlist: MediaPlaylist): void {

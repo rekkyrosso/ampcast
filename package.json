@@ -29,7 +29,7 @@
         "audiomotion-analyzer": "^4.0.0",
         "butterchurn": "^3.0.0-beta.4",
         "butterchurn-presets": "3.0.0-beta.4",
-        "colorjs.io": "0.5.2",
+        "colorjs.io": "^0.6.0",
         "colorthief": "^2.6.0",
         "d3-array": "^3.2.0",
         "d3-interpolate": "^3.0.1",

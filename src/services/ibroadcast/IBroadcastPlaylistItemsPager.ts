@@ -1,8 +1,9 @@
-import {Subject, debounceTime, mergeMap} from 'rxjs';
+import {Subject, debounceTime, filter, mergeMap, switchMap, tap} from 'rxjs';
 import MediaItem from 'types/MediaItem';
 import {PagerConfig} from 'types/Pager';
 import SortParams from 'types/SortParams';
-import {Logger, moveSubset, sleep} from 'utils';
+import {Logger, moveSubset} from 'utils';
+import {observePlaylistItemsChange} from 'services/metadata';
 import IBroadcastPager from './IBroadcastPager';
 import ibroadcastLibrary from './ibroadcastLibrary';
 import {createMediaItem, getIdFromSrc, sortTracks} from './ibroadcastUtils';
@@ -12,7 +13,7 @@ const logger = new Logger('IBroadcastPlaylistItemsPager');
 export default class IBroadcastPlaylistItemsPager extends IBroadcastPager<MediaItem> {
     private readonly sync$ = new Subject<void>();
     private positions: Record<number, number> = {};
-    private trackIds: readonly number[] = []; // Ids in track order
+    private trackIds: number[] = []; // Ids in track order
 
     constructor(
         private readonly playlistId: number,
@@ -53,43 +54,8 @@ export default class IBroadcastPlaylistItemsPager extends IBroadcastPager<MediaI
     // (add|move|remove)Items will only be called if the playlist is complete.
     // Need to trust the UI on this.
 
-    addItems(additions: readonly MediaItem[], toIndex = -1): void {
-        const trackIds = new Set(this.trackIds);
-
-        additions = additions.filter(
-            (item) => item.src.startsWith('ibroadcast:track:') && !trackIds.has(getIdFromSrc(item))
-        );
-        if (additions.length === 0) {
-            return;
-        }
-
-        const items = this.items.slice();
-
-        if (toIndex >= 0 && toIndex < items.length) {
-            // insert
-            items.splice(
-                toIndex,
-                0,
-                ...additions.map((item, index) => {
-                    return {...item, position: toIndex + index + 1};
-                })
-            );
-            this.trackIds = items.map(getIdFromSrc);
-        } else {
-            // append
-            additions.forEach((item, index) => {
-                const id = getIdFromSrc(item);
-                const position = trackIds.size + index + 1;
-                trackIds.add(id);
-                items.push({
-                    ...item,
-                    position,
-                });
-            });
-            this.trackIds = [...trackIds];
-        }
-        this.size = items.length;
-        this.items = items;
+    addItems(items: readonly MediaItem[], toIndex = -1): void {
+        this._addItems(items, toIndex);
         this.sync$.next();
     }
 
@@ -133,6 +99,17 @@ export default class IBroadcastPlaylistItemsPager extends IBroadcastPager<MediaI
                 ),
                 logger
             );
+            this.subscribeTo(
+                this.observeComplete().pipe(
+                    switchMap(() => observePlaylistItemsChange()),
+                    filter(
+                        ({type, src}) =>
+                            type === 'added' && src === `ibroadcast:playlist:${this.playlistId}`
+                    ),
+                    tap(({items}) => this._addItems(items))
+                ),
+                logger
+            );
         }
     }
 
@@ -140,24 +117,61 @@ export default class IBroadcastPlaylistItemsPager extends IBroadcastPager<MediaI
         return createMediaItem(id, library, this.positions[id]);
     }
 
+    private _addItems(additions: readonly MediaItem[], toIndex = -1): void {
+        const trackIds = new Set(this.trackIds);
+        additions = additions.filter(
+            (item) => item.src.startsWith('ibroadcast:track:') && !trackIds.has(getIdFromSrc(item))
+        );
+        if (additions.length === 0) {
+            return;
+        }
+
+        const items = this.items.slice();
+
+        if (toIndex >= 0 && toIndex < items.length) {
+            // insert
+            items.splice(
+                toIndex,
+                0,
+                ...additions.map((item, index) => {
+                    return {...item, position: toIndex + index + 1};
+                })
+            );
+            this.trackIds = items.map(getIdFromSrc);
+        } else {
+            // append
+            const size = this.trackIds.length;
+            additions.forEach((item, index) => {
+                const id = getIdFromSrc(item);
+                const position = size + index + 1;
+                this.trackIds.push(id);
+                items.push({
+                    ...item,
+                    position,
+                });
+            });
+        }
+        this.size = items.length;
+        this.items = items;
+    }
+
     private async synch(): Promise<void> {
+        this.busy = true;
         try {
-            await this.synchPositions();
+            this.synchPositions();
             await ibroadcastLibrary.updatePlaylistTracks(this.playlistId, this.trackIds);
         } catch (err) {
             logger.error(err);
         }
+        this.busy = false;
     }
 
-    private async synchPositions(): Promise<void> {
-        this.busy = true;
-        await sleep(1);
+    private synchPositions(): void {
         this.positions = {};
         this.trackIds.forEach((id, index) => (this.positions[id] = index + 1));
         this.items.forEach((item) => {
             const id = getIdFromSrc(item);
             (item as any).position = this.positions[id];
         });
-        this.busy = false;
     }
 }

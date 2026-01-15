@@ -130,6 +130,11 @@ async function login(
     return JSON.stringify({userId, token, credentials});
 }
 
+async function removeFromPlaylist(playlistId: string, ids: readonly string[]): Promise<void> {
+    const params = ids.map((id) => `id=${id}`).join('&');
+    await del(`playlist/${playlistId}/tracks?${params}`);
+}
+
 async function navidromeFetch(
     path: string,
     params: Record<string, Primitive> | undefined,
@@ -160,6 +165,7 @@ const navidromeApi = {
     createPlaylist,
     deletePlaylist,
     editPlaylist,
+    removeFromPlaylist,
     get,
     getGenres,
     getPage,

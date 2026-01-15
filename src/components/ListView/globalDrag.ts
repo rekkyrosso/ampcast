@@ -1,13 +1,13 @@
-let dragData: any = null;
+let dragData: readonly any[] | null = null;
 let dropEffect: DataTransfer['dropEffect'] = 'none'; // Fixes some browser bugs.
 
 const internalType = 'text/ampcast-items';
 
-function getData<T>(event: React.DragEvent): T | null {
-    return event.dataTransfer.getData(internalType) === '#globalDrag' ? dragData : null;
+function getData<T>(): readonly T[] | null {
+    return dragData;
 }
 
-function setData<T>(event: React.DragEvent, data: T): void {
+function setData<T>(event: React.DragEvent, data: readonly T[] | null): void {
     event.dataTransfer.setData(internalType, '#globalDrag');
     dragData = data;
 }

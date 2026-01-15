@@ -95,8 +95,8 @@ export default function CurrentlyPlaying({
             '--text-color-s': `${Number(s)}%`,
             '--text-color-l': `${Number(l)}%`,
         } as React.CSSProperties);
-        setTone(backgroundColor.to('lch').l < 50 ? 'dark' : 'light');
-        setTextTone(textColor.to('lch').l >= 50 ? 'light' : 'dark');
+        setTone(backgroundColor.to('lch').l! < 50 ? 'dark' : 'light');
+        setTextTone(textColor.to('lch').l! >= 50 ? 'light' : 'dark');
         onPaletteChange?.(palette);
     }, [palette, onPaletteChange]);
 

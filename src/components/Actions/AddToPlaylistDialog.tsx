@@ -6,12 +6,13 @@ import MediaService from 'types/MediaService';
 import MediaServiceId from 'types/MediaServiceId';
 import {Logger} from 'utils';
 import {getService} from 'services/mediaServices';
-import {addRecentPlaylist, getPlaylistItemsByService} from 'services/recentPlaylists';
+import {dispatchPlaylistItemsChange} from 'services/metadata';
 import Dialog, {DialogProps, error, showDialog} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import PlaylistList from 'components/MediaList/PlaylistList';
 import useEditablePlaylistsPager from './useEditablePlaylistsPager';
 import usePlaylistItems from './usePlaylistItems';
+import {addRecentPlaylist, getPlaylistItemsByService} from './recentPlaylists';
 import './AddToPlaylistDialog.scss';
 
 const logger = new Logger('AddToPlaylistDialog');
@@ -56,10 +57,11 @@ export default function AddToPlaylistDialog<T extends MediaItem>({
         if (selectedService?.addToPlaylist && selectedPlaylist) {
             dialogRef.current!.close();
             const option = itemsByService.find((option) => option.service === selectedService);
-            const items = option?.items;
             try {
-                await selectedService.addToPlaylist(selectedPlaylist, items!);
+                const items = option!.items;
+                await selectedService.addToPlaylist(selectedPlaylist, items);
                 addRecentPlaylist(selectedPlaylist);
+                dispatchPlaylistItemsChange('added', selectedPlaylist.src, items);
             } catch (err) {
                 logger.error(err);
                 await error('An error occurred while updating your playlist.');

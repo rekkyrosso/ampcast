@@ -4,11 +4,11 @@ import MediaService from 'types/MediaService';
 import MediaServiceId from 'types/MediaServiceId';
 import {Logger} from 'utils';
 import {getService} from 'services/mediaServices';
-import {addRecentPlaylist, getPlaylistItemsByService} from 'services/recentPlaylists';
 import Dialog, {DialogProps, alert, error, showDialog} from 'components/Dialog';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import {confirmOverWriteExistingPlaylist, noPublicOption} from './EditPlaylistDialog';
 import usePlaylistItems from './usePlaylistItems';
+import {addRecentPlaylist, getPlaylistItemsByService} from './recentPlaylists';
 
 const logger = new Logger('CreatePlaylistDialog');
 

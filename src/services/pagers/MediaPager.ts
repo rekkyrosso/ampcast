@@ -83,10 +83,6 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
         return !!this.config.passive;
     }
 
-    observeAdditions(): Observable<readonly T[]> {
-        return this.passive ? EMPTY : this.additions$;
-    }
-
     observeBusy(): Observable<boolean> {
         return this.busy$.pipe(distinctUntilChanged());
     }
@@ -255,6 +251,10 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
 
     protected observeActive(): Observable<boolean> {
         return this.active$.pipe(distinctUntilChanged());
+    }
+
+    protected observeAdditions(): Observable<readonly T[]> {
+        return this.passive ? EMPTY : this.additions$;
     }
 
     protected observeFetches(): Observable<PageFetch> {

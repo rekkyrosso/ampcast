@@ -14,11 +14,19 @@ export function isFullscreenMedia(): boolean {
 }
 
 export const isMiniPlayer = !!(
-    opener?.origin === location.origin &&
+    location.hash === '#mini-player' &&
     window.name === sessionStorage.getItem('ampcast/session/miniPlayerId') &&
-    location.hash === '#mini-player'
+    getOpenerOrigin() === location.origin
 );
 
 export function sleep(ms: number): Promise<void> {
     return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
+function getOpenerOrigin(): string {
+    try {
+        return window.opener.origin;
+    } catch {
+        return '';
+    }
 }

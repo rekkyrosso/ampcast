@@ -1,3 +1,4 @@
+import {nanoid} from 'nanoid';
 import {SetOptional, Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
@@ -16,7 +17,7 @@ import {MAX_DURATION} from 'services/constants';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
-import NavidromeIndexedPager from './NavidromeIndexedPager';
+import NavidromeIndexedPager, {NavidromePlaylistItemsPager} from './NavidromeIndexedPager';
 import navidromeSettings from './navidromeSettings';
 
 export function createMediaObject<T extends MediaObject>(
@@ -70,21 +71,8 @@ export function createPlaylistItemsPager(
     playlist: MediaPlaylist,
     itemSort?: SortParams
 ): Pager<MediaItem> {
-    const id = getMediaObjectId(playlist);
-    return new NavidromeIndexedPager(
-        ItemType.Media,
-        `playlist/${id}/tracks`,
-        {
-            playlist_id: id,
-            ...(itemSort
-                ? {
-                      _sort: itemSort.sortBy,
-                      _order: itemSort.sortOrder === -1 ? 'DESC' : 'ASC',
-                  }
-                : {}),
-        },
-        {autofill: true, pageSize: 1000}
-    );
+    const playlistId = getMediaObjectId(playlist);
+    return new NavidromePlaylistItemsPager(playlistId, itemSort);
 }
 
 function createMediaItem(song: Navidrome.Song): MediaItem {
@@ -102,6 +90,8 @@ function createMediaItem(song: Navidrome.Song): MediaItem {
         album: song.album === '[Unknown Album]' ? undefined : song.album,
         duration: song.duration,
         track: song.trackNumber,
+        nanoId: nanoid(), // For playlists
+        playlistItemId: song.playlistId ? song.id : undefined,
         position: song.playlistId ? Number(song.id) || 0 : undefined,
         disc: song.discNumber,
         rating: song.rating || 0,
@@ -190,6 +180,7 @@ function createMediaPlaylist(playlist: Navidrome.Playlist, itemSort?: SortParams
     const playlist_id = playlist.id;
     const src = `navidrome:playlist:${playlist_id}`;
     const owned = playlist.ownerId === navidromeSettings.userId;
+    const smart = !!playlist.rules;
 
     const mediaPlaylist: Writable<SetOptional<MediaPlaylist, 'pager'>> = {
         itemType: ItemType.Playlist,
@@ -205,11 +196,16 @@ function createMediaPlaylist(playlist: Navidrome.Playlist, itemSort?: SortParams
         isPinned: pinStore.isPinned(src),
         public: playlist.public,
         owned,
-        owner: {
-            name: playlist.ownerName,
-        },
+        owner: {name: playlist.ownerName},
         editable: owned,
         // deletable: owned, // TODO
+        items:
+            owned && !smart
+                ? {
+                      deletable: true,
+                      droppable: true,
+                  }
+                : undefined,
     };
     mediaPlaylist.pager = createPlaylistItemsPager(mediaPlaylist as MediaPlaylist, itemSort);
     return mediaPlaylist as MediaPlaylist;
@@ -258,7 +254,7 @@ function getExternalUrl(id: string): string {
     return `${navidromeSettings.host}/app/#/${id}/show`;
 }
 
-function getMediaObjectId(object: MediaObject): string {
+export function getMediaObjectId(object: MediaObject): string {
     const [, , id] = object.src.split(':');
     return id;
 }

@@ -37,6 +37,7 @@ export default interface MediaItem extends BaseMediaObject {
     readonly release_mbid?: string;
     readonly artist_mbids?: readonly string[];
     readonly caa_mbid?: string; // cover art archive
+    readonly playlistItemId?: string;
     // For files.
     readonly fileName?: string;
     readonly blob?: Blob;

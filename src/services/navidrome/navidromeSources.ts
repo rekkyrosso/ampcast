@@ -77,10 +77,10 @@ export const navidromePlaylistItemsSort: MediaListSort = {
     },
 };
 
-export const navidromePlaylistItems: MediaSourceItems<SetRequired<MediaItem, 'position'>> = {
+export const navidromePlaylistItems: MediaSourceItems<SetRequired<MediaItem, 'nanoId'>> = {
     layout: navidromePlaylistItemsLayout,
     sort: navidromePlaylistItemsSort,
-    itemKey: 'position',
+    itemKey: 'nanoId',
 };
 
 export const navidromeSearch: MediaMultiSource = {
