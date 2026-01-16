@@ -27,11 +27,15 @@ const ibroadcastSettings = {
     },
 
     get clientId(): string {
+        if (__target__ === 'electron' && location.port !== '29292') {
+            // The bundled `clientId` only works with the default port.
+            return authStorage.getString('clientId');
+        }
         return ib_client_id || authStorage.getString('clientId');
     },
 
     set clientId(clientId: string) {
-        if (!ib_client_id) {
+        if (!ib_client_id || __target__ === 'electron') {
             authStorage.setString('clientId', clientId);
             credentials$.next({clientId});
         }
