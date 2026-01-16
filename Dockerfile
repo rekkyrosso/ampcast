@@ -1,5 +1,5 @@
 # ---- Build ----
-FROM node:23-alpine AS builder
+FROM node:24-alpine AS builder
 
 LABEL org.opencontainers.image.title="ampcast" \
     org.opencontainers.image.description="A music player inspired by Winamp" \
@@ -18,7 +18,7 @@ RUN npm i
 RUN npm run build:docker
 
 # ---- Release ----
-FROM node:23-alpine AS release
+FROM node:24-alpine AS release
 WORKDIR /app
 
 # copy build
