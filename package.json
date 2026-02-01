@@ -1,6 +1,6 @@
 {
     "name": "ampcast",
-    "version": "0.9.24",
+    "version": "0.9.25",
     "description": "Ampcast music player",
     "homepage": "https://ampcast.app",
     "author": {
@@ -56,7 +56,7 @@
     },
     "devDependencies": {
         "@eslint/js": "^9.30.0",
-        "@eslint/json": "^0.14.0",
+        "@eslint/json": "^1.0.0",
         "@jellyfin/sdk": "^0.13.0",
         "@types/apple-music-api": "^0.4.1",
         "@types/d3-array": "^3.0.3",

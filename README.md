@@ -44,7 +44,7 @@ Use this [`docker-compose.yml`](https://raw.githubusercontent.com/rekkyrosso/amp
 
 ### From source code
 
-Requires Node >= 20.
+Requires Node >= 24.
 
 ```bash
 git clone https://github.com/rekkyrosso/ampcast.git

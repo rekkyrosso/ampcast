@@ -275,7 +275,7 @@ function getTrackGenres(
 ): readonly string[] | undefined {
     let genres: string[] | undefined;
     const map = library.tracks.map;
-    const genre: string = track[map.genre];
+    const genre: string = track?.[map.genre];
     if (genre) {
         genres = [genre];
         const genres_additional: string[] | undefined = track[map.genres_additional];

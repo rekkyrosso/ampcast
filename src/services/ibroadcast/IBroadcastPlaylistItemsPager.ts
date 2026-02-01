@@ -31,14 +31,14 @@ export default class IBroadcastPlaylistItemsPager extends IBroadcastPager<MediaI
                 if (!trackIds) {
                     throw Error('Tracks not found');
                 }
-                this.trackIds = trackIds;
+                const tracks = library.tracks;
+                this.trackIds = trackIds.filter((id) => !!tracks[id]);
                 trackIds.forEach((id, index) => (this.positions[id] = index + 1));
                 if (itemSort) {
                     const {sortBy, sortOrder} = itemSort;
                     if (sortBy === 'position') {
                         return sortOrder === -1 ? trackIds.toReversed() : trackIds;
                     }
-                    const tracks = library.tracks;
                     const map = tracks.map;
                     return trackIds.toSorted((a, b) =>
                         sortTracks(sortBy, sortOrder, tracks[a], tracks[b], map, library)
