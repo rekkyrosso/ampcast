@@ -1,5 +1,6 @@
 import ItemType from 'types/ItemType';
 import PlaybackType from 'types/PlaybackType';
+import browser from './browser';
 import {getContentType, getHeaders} from './fetch';
 
 const audio = document.createElement('audio');
@@ -12,7 +13,10 @@ export const mediaTypes: Record<string, ReadonlyArray<string>> = {
 };
 
 export function canPlayNativeHls(): boolean {
-    return mediaTypes.hls.some((type) => canPlayType('audio', type));
+    // TODO: Chrome browsers now support native HLS playback.
+    // However CORS restrictions mean that playback from personal media servers is unreliable.
+    // return mediaTypes.hls.some((type) => canPlayType('audio', type));
+    return browser.name === 'safari';
 }
 
 export function canPlayType(type: 'audio' | 'video', contentType: string): boolean {

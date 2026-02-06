@@ -5,7 +5,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import {Logger} from 'utils';
 import listenbrainzApi from 'services/listenbrainz/listenbrainzApi';
-import {observeMetadataChanges} from 'services/metadata';
+import {observeMetadataChange} from 'services/metadata';
 import {getServiceFromSrc} from 'services/mediaServices';
 
 const logger = new Logger('useActiveItem');
@@ -33,17 +33,8 @@ export default function useActiveItem<T extends MediaObject | null>(item: T) {
 
     useEffect(() => {
         if (activeItem) {
-            const subscription = observeMetadataChanges()
-                .pipe(
-                    tap((changes) => {
-                        for (const {match, values} of changes) {
-                            if (match(activeItem)) {
-                                setActiveItem({...activeItem, ...values});
-                                break;
-                            }
-                        }
-                    })
-                )
+            const subscription = observeMetadataChange(activeItem)
+                .pipe(tap((values) => setActiveItem({...activeItem, ...values})))
                 .subscribe(logger);
 
             return () => subscription.unsubscribe();

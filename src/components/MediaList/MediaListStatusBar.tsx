@@ -36,6 +36,7 @@ export default function MediaListStatusBar({
     const [pageSize, setPageSize] = useState(0);
     const itemCount = getArrayCount(items);
     const progress = getProgress(itemCount, size === undefined ? maxSize : size, pageSize || 50);
+    const complete = itemCount === size;
     const isWarning = error instanceof MediaSourceError;
     let statusText: React.ReactNode = '';
 
@@ -48,29 +49,28 @@ export default function MediaListStatusBar({
     if (loading) {
         statusText = <span className="message">{loadingText}…</span>;
     } else {
-        if (isWarning) {
+        if (busy && complete) {
+            statusText = <span className="message">Synching…</span>;
+        } else if (isWarning) {
             statusText = <span className="message">{error.message}</span>;
         } else if (error) {
             const message = getReadableErrorMessage(error);
-            statusText = (
-                <span className="message error">{`Error: ${message}`}</span>
-            );
+            statusText = <span className="message error">{`Error: ${message}`}</span>;
         } else if (itemCount === 0) {
             statusText = <span className="message">0 {itemNamePlural}</span>;
         } else {
             const selection = (
                 <span className="selected">({formatNumber(selectedCount)} selected)</span>
             );
-            const message =
-                itemCount === size
-                    ? `${size.toLocaleString()} ${size === 1 ? itemName : itemNamePlural}`
-                    : `Loaded ${formatNumber(itemCount)} of ${
-                          size === undefined
-                              ? maxSize || `${formatNumber(items.length)}+`
-                              : maxSize
-                              ? formatNumber(Math.min(size, maxSize))
-                              : formatNumber(size)
-                      } ${itemNamePlural}`;
+            const message = complete
+                ? `${size.toLocaleString()} ${size === 1 ? itemName : itemNamePlural}`
+                : `Loaded ${formatNumber(itemCount)} of ${
+                      size === undefined
+                          ? maxSize || `${formatNumber(items.length)}+`
+                          : maxSize
+                            ? formatNumber(Math.min(size, maxSize))
+                            : formatNumber(size)
+                  } ${itemNamePlural}`;
             statusText = (
                 <span className="message">
                     {message} {selection}
@@ -82,12 +82,12 @@ export default function MediaListStatusBar({
     return (
         <StatusBar className="media-list-status-bar">
             <p className="media-list-status-bar-text">
-                {isWarning ? null : <ProgressRing busy={busy} error={error} progress={progress} />}
+                {isWarning && !busy ? null : (
+                    <ProgressRing busy={busy} error={error} progress={progress} />
+                )}
                 {statusText}
             </p>
-            <div className="media-list-status-bar-icons">
-                {icons}
-            </div>
+            <div className="media-list-status-bar-icons">{icons}</div>
         </StatusBar>
     );
 }

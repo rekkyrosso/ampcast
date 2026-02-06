@@ -21,7 +21,7 @@ import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import pinStore from 'services/pins/pinStore';
-import MusicKitPager from './MusicKitPager';
+import MusicKitPager, {MusicKitPlaylistItemsPager} from './MusicKitPager';
 import {refreshToken} from './appleAuth';
 
 const logger = new Logger('MusicKitUtils');
@@ -140,7 +140,9 @@ export function createNowPlayingItem(
 function createMediaPlaylist(
     playlist: AppleMusicApi.Playlist | LibraryPlaylist
 ): SetRequired<MediaPlaylist, 'apple'> {
-    const item = createFromLibrary<AppleMusicApi.Playlist['attributes']>(playlist);
+    const item = createFromLibrary<AppleMusicApi.Playlist['attributes'] & {canEdit: boolean}>(
+        playlist
+    );
     const description = item.description?.standard || item.description?.short;
     const src = `apple:${playlist.type}:${playlist.id}`;
     const catalogId = getCatalogId(playlist);
@@ -160,18 +162,11 @@ function createMediaPlaylist(
         isPinned: pinStore.isPinned(src),
         inLibrary: playlist.type.startsWith('library-') || undefined,
         apple: {catalogId},
+        items: {droppable: item.canEdit},
     };
-    mediaPlaylist.pager = new MusicKitPager(
-        `${playlist.href!}/tracks`,
-        {'include[library-songs]': 'catalog'},
-        {
-            pageSize: 100,
-            maxSize: item.isChart ? 100 : undefined,
-            autofill: !item.isChart,
-            autofillInterval: 1000,
-            autofillMaxPages: 10,
-        },
-        mediaPlaylist as MediaPlaylist
+    mediaPlaylist.pager = new MusicKitPlaylistItemsPager(
+        mediaPlaylist as MediaPlaylist,
+        `${playlist.href!}/tracks`
     );
     return mediaPlaylist as SetRequired<MediaPlaylist, 'apple'>;
 }
@@ -210,8 +205,8 @@ function createMediaAlbum(
         albumType: item.isCompilation
             ? AlbumType.Compilation
             : item.isSingle
-            ? AlbumType.Single
-            : undefined,
+              ? AlbumType.Single
+              : undefined,
         src,
         externalUrl: item.url,
         title: item.name,

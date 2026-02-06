@@ -117,13 +117,16 @@ async function addToPlaylist<T extends MediaItem>(
     playlist: MediaPlaylist,
     items: readonly T[]
 ): Promise<void> {
+    if (items.length === 0) {
+        return;
+    }
     const musicKit = MusicKit.getInstance();
     const [, , id] = playlist.src.split(':');
     const tracks = items.map((item) => {
         const [, type, id] = item.src.split(':');
         return {id, type};
     });
-    return musicKit.api.music(`/v1/me/library/playlists/${id}/tracks`, undefined, {
+    await musicKit.api.music(`/v1/me/library/playlists/${id}/tracks`, undefined, {
         fetchOptions: {
             method: 'POST',
             body: JSON.stringify({data: tracks}),
@@ -206,7 +209,7 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
                 isLibraryItem
                     ? {
                           'include[library-playlists]': 'catalog',
-                          'fields[library-playlists]': 'name,playParams,artwork',
+                          'fields[library-playlists]': 'name,playParams,artwork,canEdit',
                       }
                     : {
                           'omit[resource:playlists]': 'relationships',

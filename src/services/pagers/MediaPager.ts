@@ -209,8 +209,8 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
 
     protected set items(items: readonly T[]) {
         const additions: T[] = [];
+        const keys = this.keys;
         if (!this.passive) {
-            const keys = this.keys;
             items = items.map((item) => {
                 const key = item[this.itemKey];
                 if (!keys.has(key)) {
@@ -225,6 +225,7 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
                 return item;
             });
         }
+        this.#keys = new Set(items.map((item) => item[this.itemKey]));
         if (this.#items$) {
             this.#items$.next(items);
         } else {
@@ -233,6 +234,13 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
         if (additions.length > 0) {
             this.additions$.next(additions);
         }
+    }
+
+    protected get keys(): Set<string> {
+        if (!this.#keys) {
+            this.#keys = new Set();
+        }
+        return this.#keys;
     }
 
     protected get size(): number | undefined {
@@ -354,13 +362,6 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
             this.#items$ = new BehaviorSubject<readonly T[]>(UNINITIALIZED);
         }
         return this.#items$;
-    }
-
-    private get keys(): Set<string> {
-        if (!this.#keys) {
-            this.#keys = new Set();
-        }
-        return this.#keys;
     }
 
     private get size$(): BehaviorSubject<number> {

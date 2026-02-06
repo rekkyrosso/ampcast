@@ -20,7 +20,8 @@
         position: relative;
         flex: auto;
         border: 1px solid #444;
-        border-top-right-radius: calc(var(--roundness) * 1em);
+        border-radius: calc(var(--roundness) * 1em);
+        border-top-left-radius: 0;
         margin-top: -1px;
     }
 

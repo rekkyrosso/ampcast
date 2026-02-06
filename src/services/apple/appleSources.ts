@@ -173,7 +173,7 @@ const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
 
     search(_, {sortBy, sortOrder} = appleLibrarySort.defaultSort): Pager<MediaPlaylist> {
         return new MusicKitPager('/v1/me/library/playlists', {
-            'fields[library-playlists]': 'name,playParams,artwork',
+            'fields[library-playlists]': 'name,playParams,artwork,canEdit',
             'include[library-playlists]': 'catalog',
             sort: `${sortOrder === -1 ? '-' : ''}${sortBy}`,
         });
@@ -188,7 +188,7 @@ export const appleEditablePlaylists: MediaSource<MediaPlaylist> = {
 
     search(): Pager<MediaPlaylist> {
         return new MusicKitPager('/v1/me/library/playlists', {
-            'fields[library-playlists]': 'name,playParams,artwork',
+            'fields[library-playlists]': 'name,playParams,artwork,canEdit',
             'include[library-playlists]': 'catalog',
             'filter[featured]': 'suggested',
         });

@@ -16,6 +16,7 @@ import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
 import {chunk} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
+import {dispatchMetadataChanges} from 'services/metadata';
 import fetchAllTracks from 'services/pagers/fetchAllTracks';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
@@ -83,6 +84,7 @@ const spotify: PublicMediaService = {
     getPlaybackType,
     lookup,
     lookupByISRC,
+    removePlaylistItems,
     store,
     bulkStore,
     observeConnecting,
@@ -124,19 +126,31 @@ function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
 
 async function addToPlaylist<T extends MediaItem>(
     playlist: MediaPlaylist,
-    items: readonly T[]
+    items: readonly T[],
+    position?: number
 ): Promise<void> {
     if (items?.length) {
         const [, , playlistId] = playlist.src.split(':');
-        const chunks = chunk(items, 100);
+        const chunkSize = 100;
+        const chunks = chunk(items, chunkSize);
+        let snapshotId = playlist.snapshotId;
         for (const chunk of chunks) {
-            await spotifyApiCallWithRetry(() =>
+            const {snapshot_id} = await spotifyApiCallWithRetry(() =>
                 spotifyApi.addTracksToPlaylist(
                     playlistId,
-                    chunk.map((item) => item.src)
+                    chunk.map((item) => item.src),
+                    position == null ? undefined : {position}
                 )
             );
+            snapshotId = snapshot_id;
+            if (position != null) {
+                position += chunkSize;
+            }
         }
+        dispatchMetadataChanges<MediaPlaylist>({
+            match: (object) => object.src === playlist.src,
+            values: {snapshotId},
+        });
     }
 }
 
@@ -174,12 +188,38 @@ async function createPlaylist<T extends MediaItem>(
 
 async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {
     const [, , playlistId] = playlist.src.split(':');
-    await spotifyApi.changePlaylistDetails(playlistId, {
-        name: playlist.title,
-        description: playlist.description || '',
-        public: !!playlist.public,
-    });
+    await spotifyApiCallWithRetry(() =>
+        spotifyApi.changePlaylistDetails(playlistId, {
+            name: playlist.title,
+            description: playlist.description || '',
+            public: !!playlist.public,
+        })
+    );
     return playlist;
+}
+async function removePlaylistItems(
+    playlist: MediaPlaylist,
+    items: readonly MediaItem[]
+): Promise<void> {
+    if (items.length > 0) {
+        const [, , playlistId] = playlist.src.split(':');
+        const chunks = chunk(items, 100);
+        let snapshotId = playlist.snapshotId!;
+        for (const chunk of chunks) {
+            const {snapshot_id} = await spotifyApiCallWithRetry(() =>
+                spotifyApi.removeTracksFromPlaylistWithSnapshotId(
+                    playlistId,
+                    chunk.map((item) => item.src),
+                    snapshotId
+                )
+            );
+            snapshotId = snapshot_id;
+        }
+        dispatchMetadataChanges<MediaPlaylist>({
+            match: (object) => object.src === playlist.src,
+            values: {snapshotId},
+        });
+    }
 }
 
 function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {

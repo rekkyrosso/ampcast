@@ -8,7 +8,9 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSource from 'types/MediaSource';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {getSourceSorting} from 'services/mediaServices/servicesSettings';
+import {dispatchPlaylistItemsChange} from 'services/metadata';
 import {performAction} from 'components/Actions';
+import {getPlaylistItemsByService} from 'components/Actions/recentPlaylists';
 import Icon from 'components/Icon';
 import usePager from 'hooks/usePager';
 import usePlaylistInject from 'hooks/usePlaylistInject';
@@ -28,11 +30,12 @@ export default function PlaylistItemsList({
     const defaultSort = source.secondaryItems?.sort?.defaultSort;
     const sorting = getSourceSorting(sourceId) || defaultSort;
     const pager = parentPlaylist?.pager || null;
-    const [{complete}] = usePager(pager);
-    const deletable = complete && parentPlaylist?.items?.deletable;
-    const droppable = complete && parentPlaylist?.items?.droppable;
+    const [{busy, complete}] = usePager(pager);
+    const unlocked = complete && !busy && parentPlaylist?.items?.droppable;
+    const deletable = unlocked && parentPlaylist?.items?.deletable;
+    const droppable = unlocked;
     const moveable =
-        complete &&
+        unlocked &&
         parentPlaylist?.items?.moveable &&
         (!defaultSort ||
             (sorting!.sortBy === defaultSort.sortBy &&
@@ -40,15 +43,22 @@ export default function PlaylistItemsList({
 
     const injectAt = useCallback(
         async (items: readonly MediaItem[], atIndex: number) => {
-            if (pager?.addItems) {
-                pager.addItems(items, moveable ? atIndex : undefined);
-            } else if (parentPlaylist) {
+            if (parentPlaylist) {
                 const service = getServiceFromSrc(parentPlaylist);
-                await service?.addToPlaylist?.(
-                    parentPlaylist,
-                    items,
-                    moveable ? atIndex : undefined
-                );
+                const itemsByService = getPlaylistItemsByService(items);
+                const additions = itemsByService.find((option) => option.service === service)?.items;
+                if (additions?.length) {
+                    if (pager?.addItems) {
+                        pager.addItems(additions, moveable ? atIndex : undefined);
+                    } else if (service?.addToPlaylist) {
+                        await service.addToPlaylist(
+                            parentPlaylist,
+                            additions,
+                            moveable ? atIndex : undefined
+                        );
+                        dispatchPlaylistItemsChange('added', parentPlaylist.src, additions);
+                    }
+                }
             }
         },
         [parentPlaylist, pager, moveable]
@@ -108,12 +118,16 @@ export default function PlaylistItemsList({
             droppableTypes={droppable ? parentPlaylist?.items?.droppableTypes : undefined}
             moveable={moveable}
             statusBarIcons={
-                droppable && complete
+                unlocked
                     ? undefined
                     : [
                           <span
                               title={
-                                  droppable ? 'Not fully loaded' : 'This playlist cannot be edited'
+                                  droppable
+                                      ? complete
+                                          ? 'Synching'
+                                          : 'Not fully loaded'
+                                      : 'This playlist cannot be edited'
                               }
                               key="locked"
                           >

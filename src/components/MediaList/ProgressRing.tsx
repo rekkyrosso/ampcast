@@ -16,7 +16,6 @@ export default function ProgressRing({progress, busy, error}: ProgressRingProps)
 
     if (complete) {
         error = undefined;
-        busy = false;
     }
 
     return (
@@ -30,24 +29,24 @@ export default function ProgressRing({progress, busy, error}: ProgressRingProps)
                 r={innerRadius}
                 cx={radius}
                 cy={radius}
-                opacity={error ? 1 : 0.4}
+                opacity={error && !busy ? 1 : 0.4}
             />
             <circle
                 strokeDasharray={`${circumference} ${circumference}`}
-                strokeDashoffset={(1 - (error ? 0 : busy ? 0.5 : progress)) * circumference}
+                strokeDashoffset={(1 - (busy ? 0.5 : error ? 0 : progress)) * circumference}
                 strokeWidth={strokeWidth}
-                fill={error ? 'red' : 'none'}
+                fill={error && !busy ? 'red' : 'none'}
                 r={innerRadius}
                 cx={radius}
                 cy={radius}
             />
-            {complete ? (
+            {complete && !busy ? (
                 <path
                     transform="scale(0.75) translate(3,3)"
                     d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
                 />
             ) : null}
-            {error ? (
+            {error && !busy ? (
                 <g transform={`rotate(45,${radius},${radius})`} fill="white" stroke="white">
                     <rect
                         x={radius / 2}

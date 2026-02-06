@@ -60,9 +60,6 @@ export default class IBroadcastPlaylistItemsPager extends IBroadcastPager<MediaI
     }
 
     moveItems(selection: readonly MediaItem[], toIndex: number): void {
-        if (selection.length === 0) {
-            return;
-        }
         const items = moveSubset(this.items, selection, toIndex);
         if (items !== this.items) {
             this.items = items;
@@ -158,10 +155,12 @@ export default class IBroadcastPlaylistItemsPager extends IBroadcastPager<MediaI
     private async synch(): Promise<void> {
         this.busy = true;
         try {
+            this.error = undefined;
             this.synchPositions();
             await ibroadcastLibrary.updatePlaylistTracks(this.playlistId, this.trackIds);
         } catch (err) {
             logger.error(err);
+            this.error = err;
         }
         this.busy = false;
     }

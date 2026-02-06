@@ -1,3 +1,4 @@
+import {SetOptional, Writable} from 'type-fest';
 import AlbumType from 'types/AlbumType';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
@@ -14,7 +15,7 @@ import SimplePager from 'services/pagers/SimplePager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
-import {exists, getTextFromHtml} from 'utils';
+import {getTextFromHtml} from 'utils';
 import spotify from './spotify';
 import spotifyApi, {
     SpotifyAlbum,
@@ -25,7 +26,7 @@ import spotifyApi, {
     SpotifyPlaylist,
     SpotifyTrack,
 } from './spotifyApi';
-import SpotifyPager, {SpotifyPage} from './SpotifyPager';
+import SpotifyPager, {SpotifyPage, SpotifyPlaylistItemsPager} from './SpotifyPager';
 import spotifySettings from './spotifySettings';
 
 export function createMediaObject<T extends MediaObject>(
@@ -114,8 +115,8 @@ function createMediaAlbum(album: SpotifyAlbum, inLibrary?: boolean | undefined):
             type === 'compilation'
                 ? AlbumType.Compilation
                 : type === 'single'
-                ? AlbumType.Single
-                : undefined,
+                  ? AlbumType.Single
+                  : undefined,
         src: album.uri,
         externalUrl,
         shareLink: externalUrl,
@@ -154,16 +155,16 @@ function createMediaPlaylist(
     inLibrary?: boolean | undefined
 ): MediaPlaylist {
     const owned = playlist.owner.id === spotifySettings.userId;
+    const trackCount = playlist.tracks.total
 
-    return {
+    const mediaPlaylist: Writable<SetOptional<MediaPlaylist, 'pager'>> = {
         itemType: ItemType.Playlist,
         src: playlist.uri,
         externalUrl: playlist.external_urls.spotify,
         title: playlist.name,
         description: playlist.description ? getTextFromHtml(playlist.description) : undefined,
         thumbnails: playlist.images as Thumbnail[],
-        trackCount: playlist.tracks.total,
-        pager: createPlaylistItemsPager(playlist),
+        trackCount,
         owner: {
             name: playlist.owner.display_name || '',
             url: playlist.owner.external_urls.spotify,
@@ -174,7 +175,15 @@ function createMediaPlaylist(
         editable: owned,
         inLibrary: owned ? false : inLibrary,
         public: playlist.public,
+        snapshotId: playlist.snapshot_id,
+        items: {
+            deletable: owned,
+            droppable: owned,
+            moveable: owned && trackCount <= SpotifyPlaylistItemsPager.MAX_SIZE_FOR_REORDER,
+        },
     };
+    mediaPlaylist.pager = new SpotifyPlaylistItemsPager(mediaPlaylist as MediaPlaylist);
+    return mediaPlaylist as MediaPlaylist;
 }
 
 function createMediaItemFromTrack(track: SpotifyTrack, inLibrary?: boolean | undefined): MediaItem {
@@ -284,35 +293,5 @@ function createAlbumTracksPager(album: SpotifyAlbum): Pager<MediaItem> {
                 next,
             };
         });
-    }
-}
-
-function createPlaylistItemsPager(playlist: SpotifyPlaylist): Pager<MediaItem> {
-    const tracks = playlist.tracks?.items;
-    if (tracks && tracks.length === playlist.tracks.total) {
-        return new SimpleMediaPager(async () => {
-            const items = tracks
-                .filter((item) => !!item.track)
-                .map((item) => createMediaItemFromTrack(item.track as SpotifyTrack));
-            addUserData(items);
-            return items;
-        });
-    } else {
-        const market = getMarket();
-        return new SpotifyPager(
-            async (offset: number, limit: number): Promise<SpotifyPage> => {
-                const {items, total, next} = await spotifyApi.getPlaylistTracks(playlist.id, {
-                    offset,
-                    limit,
-                    market,
-                });
-                return {items: items.map((item) => item.track).filter(exists), total, next};
-            },
-            {
-                autofill: true,
-                autofillInterval: 1000,
-                autofillMaxPages: 10,
-            }
-        );
     }
 }

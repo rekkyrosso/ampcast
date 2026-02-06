@@ -124,7 +124,7 @@ export class NavidromePlaylistItemsPager extends NavidromeIndexedPager<MediaItem
 
     addItems(items: readonly MediaItem[]): void {
         this._addItems(items);
-        navidromeApi.addToPlaylist(this.playlistId, items.map(getMediaObjectId));
+        this.synchAdditions(items);
     }
 
     // Navidrome uses `id` to provide a unique playlist id in the event of duplicates.
@@ -160,7 +160,7 @@ export class NavidromePlaylistItemsPager extends NavidromeIndexedPager<MediaItem
                 this.removals$.pipe(
                     filter((removals) => removals.length > 0),
                     debounceTime(500),
-                    mergeMap((removals) => this.synch(removals))
+                    mergeMap((removals) => this.synchRemovals(removals))
                 ),
                 logger
             );
@@ -199,15 +199,29 @@ export class NavidromePlaylistItemsPager extends NavidromeIndexedPager<MediaItem
         this.updateTrackCount();
     }
 
-    private async synch(removals: readonly string[]): Promise<void> {
+    private async synchAdditions(additions: readonly MediaItem[]) {
+        this.busy = true;
+        try {            
+            this.error = undefined;
+            await navidromeApi.addToPlaylist(this.playlistId, additions.map(getMediaObjectId));
+        } catch (err) {
+            logger.error(err);
+            this.error = err;
+        }
+        this.busy = false;
+    }
+
+    private async synchRemovals(removals: readonly string[]): Promise<void> {
         this.busy = true;
         try {
+            this.error = undefined;
             await navidromeApi.removeFromPlaylist(this.playlistId, removals);
             this.items.forEach((item) => ((item as any).playlistItemId = String(item.position)));
             this.items = this.items.slice();
             this.removals$.next([]);
         } catch (err) {
             logger.error(err);
+            this.error = err;
         }
         this.busy = false;
     }
