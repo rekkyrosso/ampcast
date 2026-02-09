@@ -1,4 +1,4 @@
-import {Except} from 'type-fest';
+import {Except, SetRequired} from 'type-fest';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
@@ -36,8 +36,9 @@ const spotifyMediaItems: MediaSourceItems = {
     layout: removeGenre(mediaItemsLayout),
 };
 
-const spotifyPlaylistItems: MediaSourceItems = {
+export const spotifyPlaylistItems: MediaSourceItems<SetRequired<MediaItem, 'nanoId'>> = {
     layout: removeGenre(playlistItemsLayout),
+    itemKey: 'nanoId'
 };
 
 export const spotifySearch: MediaMultiSource = {

@@ -1,9 +1,12 @@
 import {BehaviorSubject, debounceTime, filter, map, mergeMap, switchMap, tap} from 'rxjs';
+import {nanoid} from 'nanoid';
+import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {Page, PagerConfig} from 'types/Pager';
-import {exists, Logger, moveSubset} from 'utils';
+import ParentOf from 'types/ParentOf';
+import {exists, getMediaObjectId, Logger, moveSubset} from 'utils';
 import {
     dispatchMetadataChanges,
     observeMetadataChange,
@@ -27,7 +30,8 @@ export default class SpotifyPager<T extends MediaObject> extends SequentialPager
     constructor(
         fetch: (offset: number, limit: number, cursor: string) => Promise<SpotifyPage>,
         options?: Partial<PagerConfig<T>>,
-        inLibrary?: boolean | undefined
+        inLibrary?: boolean | undefined,
+        protected readonly parent?: ParentOf<T>
     ) {
         super(
             async (limit: number): Promise<Page<T>> => {
@@ -38,7 +42,15 @@ export default class SpotifyPager<T extends MediaObject> extends SequentialPager
                 this.pageNumber++;
                 this.cursor = next || '';
                 return {
-                    items: items.filter(exists).map((item) => createMediaObject(item, inLibrary)),
+                    items: items
+                        .filter(exists)
+                        .map((item, index) =>
+                            createMediaObject(
+                                item,
+                                inLibrary,
+                                parent?.itemType === ItemType.Playlist ? index + 1 : undefined
+                            )
+                        ),
                     total,
                     atEnd: !next,
                 };
@@ -64,11 +76,11 @@ export default class SpotifyPager<T extends MediaObject> extends SequentialPager
 // TODO: This needs to be exported from here to avoid circular references.
 
 export class SpotifyPlaylistItemsPager extends SpotifyPager<MediaItem> {
-    static MAX_SIZE_FOR_REORDER = 200;
+    static MAX_SIZE_FOR_REORDER = 1000;
     private readonly removals$ = new BehaviorSubject<readonly MediaItem[]>([]);
 
-    constructor(private readonly playlist: MediaPlaylist) {
-        const [, , playlistId] = playlist.src.split(':');
+    constructor(playlist: MediaPlaylist) {
+        const playlistId = getMediaObjectId(playlist);
         super(
             async (offset: number, limit: number) => {
                 const {items, total, next} = await spotifyApi.getPlaylistTracks(playlistId, {
@@ -82,37 +94,33 @@ export class SpotifyPlaylistItemsPager extends SpotifyPager<MediaItem> {
                 autofill: true,
                 autofillInterval: 1000,
                 autofillMaxPages: 10,
-            }
+                itemKey: 'nanoId' as any,
+            },
+            undefined,
+            playlist
         );
     }
 
     // (add|move|remove)Items will only be called if the playlist is complete.
     // Need to trust the UI on this.
 
-    addItems(items: readonly MediaItem[], position?: number): void {
-        items = items.filter((item) => !this.keys.has(item.src));
-        if (items.length === 0) {
-            return;
-        }
-        this._addItems(items, position);
-        this.synchAdditions(items, position);
+    addItems(additions: readonly MediaItem[], position?: number): void {
+        this._addItems(additions, position);
+        this.synchAdditions(additions, position);
     }
 
     moveItems(selection: readonly MediaItem[], toIndex: number): void {
         const items = moveSubset(this.items, selection, toIndex);
         if (items !== this.items) {
+            this.synchPositions(items);
             this.items = items;
             this.synchMoves();
         }
     }
 
     removeItems(removals: readonly MediaItem[]): void {
-        if (removals.length === 0) {
-            return;
-        }
-        const srcsToRemove = new Set<string>();
-        removals.forEach((item) => srcsToRemove.add(item.src));
-        const items = this.items.filter((item) => !srcsToRemove.has(item.src));
+        const idsToRemove = new Set(removals.map((item) => item.nanoId!));
+        const items = this.items.filter((item) => !idsToRemove.has(item.nanoId!));
         this.size = items.length;
         this.items = items;
         this.removals$.next(this.removals$.value.concat(removals));
@@ -149,18 +157,26 @@ export class SpotifyPlaylistItemsPager extends SpotifyPager<MediaItem> {
         }
     }
 
+    private get playlist(): MediaPlaylist {
+        return this.parent as MediaPlaylist;
+    }
+
     private _addItems(additions: readonly MediaItem[], position = -1): void {
-        additions = additions.filter((item) => !this.keys.has(item.src));
-        if (additions.length === 0) {
-            return;
-        }
-        let items = this.items.slice();
+        const items = this.items.slice();
         if (position >= 0 && position < items.length) {
             // insert
-            items.splice(position, 0, ...additions);
+            items.splice(position, 0, ...additions.map((item) => ({...item, nanoid: nanoid()})));
+            this.synchPositions(items);
         } else {
             // append
-            items = items.concat(additions);
+            additions.forEach((item) => {
+                const position = items.length + 1;
+                items.push({
+                    ...item,
+                    position,
+                    nanoId: nanoid(),
+                });
+            });
         }
         this.size = items.length;
         this.items = items;
@@ -182,12 +198,12 @@ export class SpotifyPlaylistItemsPager extends SpotifyPager<MediaItem> {
     private async synchMoves(): Promise<void> {
         this.busy = true;
         try {
-            // The Spotify API is pretty limited. And moved items need to be contiguous.
+            // The Spotify API is pretty limited, and moved items need to be contiguous.
             // We are also limited to only moving 100 items.
             // The only realistic way to implement item re-ordering is to clear the existing
             // playlist and then re-write it.
             this.error = undefined;
-            const [, , playlistId] = this.playlist.src.split(':');
+            const playlistId = getMediaObjectId(this.playlist);
             await spotifyApiCallWithRetry(() => spotifyApi.replaceTracksInPlaylist(playlistId, []));
             await spotify.addToPlaylist!(this.playlist, this.items);
         } catch (err) {
@@ -197,11 +213,26 @@ export class SpotifyPlaylistItemsPager extends SpotifyPager<MediaItem> {
         this.busy = false;
     }
 
+    private synchPositions(items: readonly MediaItem[]): void {
+        items.forEach((item, index) => ((item as any).position = index + 1));
+    }
+
     private async synchRemovals(removals: readonly MediaItem[]): Promise<void> {
         this.busy = true;
         try {
             this.error = undefined;
+            this.synchPositions(this.items);
+            this.items = this.items.slice();
             await spotify.removePlaylistItems!(this.playlist, removals);
+            // Spotify removes *all" items with the same `uri` (the same as ampcast's `src`).
+            // So we will have to put back any duplicates.
+            const srcsToRemove = new Set(removals.map((item) => item.src));
+            const restore = this.items
+                .filter((item) => srcsToRemove.has(item.src))
+                .sort((a, b) => a.position! - b.position!);
+            for (const item of restore) {
+                await spotify.addToPlaylist!(this.playlist, [item], item.position! - 1);
+            }
             this.removals$.next([]);
         } catch (err) {
             logger.error(err);

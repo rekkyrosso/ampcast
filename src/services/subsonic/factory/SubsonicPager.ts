@@ -1,3 +1,5 @@
+import {BehaviorSubject, debounceTime, filter, mergeMap, switchMap, tap} from 'rxjs';
+import {nanoid} from 'nanoid';
 import {SetOptional, SetRequired, Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
@@ -13,22 +15,23 @@ import Pager, {Page, PagerConfig} from 'types/Pager';
 import ParentOf from 'types/ParentOf';
 import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
-import {canPlayType} from 'utils';
+import {Logger, canPlayType, getMediaObjectId, moveSubset} from 'utils';
 import {MAX_DURATION} from 'services/constants';
+import {dispatchMetadataChanges, observePlaylistAdditions} from 'services/metadata';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
+import type SubsonicService from './SubsonicService';
 import SubsonicApi from './SubsonicApi';
-import SubsonicService from './SubsonicService';
 
 export default class SubsonicPager<T extends MediaObject> extends SequentialPager<T> {
     constructor(
-        private readonly service: SubsonicService,
+        protected readonly service: SubsonicService,
         itemType: T['itemType'],
         fetch: (offset: number, count: number) => Promise<Page<Subsonic.MediaObject>>,
         options?: Partial<PagerConfig<T>>,
-        private readonly parent?: ParentOf<T>
+        protected readonly parent?: ParentOf<T>
     ) {
         let pageNumber = 1;
 
@@ -38,7 +41,13 @@ export default class SubsonicPager<T extends MediaObject> extends SequentialPage
                 const {items, total, atEnd} = await fetch(offset, count);
                 pageNumber++;
                 return {
-                    items: items.map((item) => this.createMediaObject(itemType, item)),
+                    items: items.map((item, index) =>
+                        this.createMediaObject(
+                            itemType,
+                            item,
+                            parent?.itemType === ItemType.Playlist ? index + 1 : undefined
+                        )
+                    ),
                     total,
                     atEnd,
                 };
@@ -47,11 +56,15 @@ export default class SubsonicPager<T extends MediaObject> extends SequentialPage
         );
     }
 
-    private get api(): SubsonicApi {
+    protected get api(): SubsonicApi {
         return this.service.api;
     }
 
-    private createMediaObject(itemType: ItemType, item: Subsonic.MediaObject): T {
+    private createMediaObject(
+        itemType: ItemType,
+        item: Subsonic.MediaObject,
+        position?: number
+    ): T {
         switch (itemType) {
             case ItemType.Album:
                 return this.createMediaAlbum(item as Subsonic.Album) as T;
@@ -69,16 +82,19 @@ export default class SubsonicPager<T extends MediaObject> extends SequentialPage
                 if ('streamUrl' in item) {
                     return this.createRadioItem(item) as T;
                 } else {
-                    return this.createMediaItem(item as Subsonic.MediaItem) as T;
+                    return this.createMediaItem(item as Subsonic.MediaItem, position) as T;
                 }
         }
     }
 
-    private createMediaItem(item: Subsonic.MediaItem): SetRequired<MediaItem, 'fileName'> {
+    private createMediaItem(
+        item: Subsonic.MediaItem,
+        position?: number
+    ): SetRequired<MediaItem, 'fileName'> {
         if (item.type === 'video') {
-            return this.createMediaItemFromVideo(item);
+            return this.createMediaItemFromVideo(item, position);
         } else {
-            return this.createMediaItemFromSong(item);
+            return this.createMediaItemFromSong(item, position);
         }
     }
 
@@ -90,7 +106,10 @@ export default class SubsonicPager<T extends MediaObject> extends SequentialPage
         }
     }
 
-    private createMediaItemFromSong(song: Subsonic.Song): SetRequired<MediaItem, 'fileName'> {
+    private createMediaItemFromSong(
+        song: Subsonic.Song,
+        position?: number
+    ): SetRequired<MediaItem, 'fileName'> {
         return {
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
@@ -106,6 +125,9 @@ export default class SubsonicPager<T extends MediaObject> extends SequentialPage
             year: song.year || undefined,
             playedAt: 0,
             playCount: song.playCount,
+            position,
+            playlistItemId: position == null ? undefined : String(position - 1),
+            nanoId: position == null ? undefined : nanoid(),
             inLibrary: !!song.starred,
             rating: song.userRating || 0,
             genres: song.genre ? [song.genre] : undefined,
@@ -123,7 +145,10 @@ export default class SubsonicPager<T extends MediaObject> extends SequentialPage
         };
     }
 
-    private createMediaItemFromVideo(video: Subsonic.Video): SetRequired<MediaItem, 'fileName'> {
+    private createMediaItemFromVideo(
+        video: Subsonic.Video,
+        position?: number
+    ): SetRequired<MediaItem, 'fileName'> {
         const height = video.originalHeight || 0;
         return {
             itemType: ItemType.Media,
@@ -137,6 +162,9 @@ export default class SubsonicPager<T extends MediaObject> extends SequentialPage
             duration: video.duration,
             playedAt: 0,
             playCount: video.playCount,
+            position,
+            playlistItemId: position == null ? undefined : String(position - 1),
+            nanoId: position == null ? undefined : nanoid(),
             inLibrary: !!video.starred,
             thumbnails: this.createThumbnails(video.id),
             bitRate: video.bitRate,
@@ -201,7 +229,7 @@ export default class SubsonicPager<T extends MediaObject> extends SequentialPage
     private createMediaPlaylist(playlist: Subsonic.Playlist): MediaPlaylist {
         const src = `${this.service.id}:playlist:${playlist.id}`;
         const owned = playlist.owner === this.service.settings.userName;
-        return {
+        const mediaPlaylist: Writable<SetOptional<MediaPlaylist, 'pager'>> = {
             src,
             itemType: ItemType.Playlist,
             title: playlist.name,
@@ -210,14 +238,25 @@ export default class SubsonicPager<T extends MediaObject> extends SequentialPage
             modifiedAt: this.parseDate(playlist.changed),
             duration: playlist.duration,
             trackCount: playlist.songCount,
-            pager: this.createPlaylistItemsPager(playlist),
             thumbnails: this.createThumbnails(playlist.coverArt),
             isPinned: pinStore.isPinned(src),
             owned,
             owner: {name: playlist.owner},
             editable: owned,
             public: playlist.public,
+            items: owned
+                ? {
+                      deletable: true,
+                      droppable: true,
+                      moveable: true,
+                  }
+                : undefined,
         };
+        mediaPlaylist.pager = this.createPlaylistItemsPager(
+            mediaPlaylist as MediaPlaylist,
+            playlist.entry
+        );
+        return mediaPlaylist as MediaPlaylist;
     }
 
     private createMediaFolder(folder: Subsonic.Directory): MediaFolder {
@@ -233,6 +272,13 @@ export default class SubsonicPager<T extends MediaObject> extends SequentialPage
         };
         mediaFolder.pager = this.createFolderPager(mediaFolder as MediaFolder);
         return mediaFolder as MediaFolder;
+    }
+
+    createPlaylistItemsPager(
+        playlist: MediaPlaylist,
+        items?: readonly Subsonic.MediaItem[]
+    ): Pager<MediaItem> {
+        return new SubsonicPlaylistItemsPager(this.service, playlist, items);
     }
 
     private parseDate(date: string): number {
@@ -320,21 +366,6 @@ export default class SubsonicPager<T extends MediaObject> extends SequentialPage
         });
     }
 
-    private createPlaylistItemsPager(playlist: Subsonic.Playlist): Pager<MediaItem> {
-        if (playlist.entry) {
-            return new SimplePager(
-                playlist.entry.map(
-                    (entry) => this.createMediaObject(ItemType.Media, entry) as MediaItem
-                )
-            );
-        } else {
-            return new SubsonicPager(this.service, ItemType.Media, async () => {
-                const items = await this.api.getPlaylistItems(playlist.id);
-                return {items, atEnd: true};
-            });
-        }
-    }
-
     private createFolderPager(folder: MediaFolder): Pager<MediaFolderItem> {
         const [, , id] = folder.src.split(':');
         const folderPager = new SubsonicPager<MediaFolderItem>(
@@ -357,5 +388,186 @@ export default class SubsonicPager<T extends MediaObject> extends SequentialPage
         } else {
             return folderPager;
         }
+    }
+}
+
+// TODO: This needs to be exported from here to avoid circular references.
+
+const logger = new Logger('SubsonicPlaylistItemsPager');
+
+export class SubsonicPlaylistItemsPager extends SubsonicPager<MediaItem> {
+    private readonly removals$ = new BehaviorSubject<readonly number[]>([]);
+
+    constructor(
+        service: SubsonicService,
+        playlist: MediaPlaylist,
+        items?: readonly Subsonic.MediaItem[]
+    ) {
+        const [, , playlistId] = playlist.src.split(':');
+        super(
+            service,
+            ItemType.Media,
+            async () => {
+                if (!items) {
+                    items = await this.api.getPlaylistItems(playlistId);
+                }
+                return {items, atEnd: true};
+            },
+            {itemKey: 'nanoId' as any},
+            playlist
+        );
+    }
+
+    // (add|move|remove)Items will only be called if the playlist is complete.
+    // Need to trust the UI on this.
+
+    addItems(additions: readonly MediaItem[], position = -1): void {
+        const append = position < 0 || position >= this.size!;
+        this._addItems(additions, position);
+        if (append) {
+            this.synchAdditions(additions);
+        } else {
+            this.synch();
+        }
+    }
+
+    moveItems(selection: readonly MediaItem[], toIndex: number): void {
+        const items = moveSubset(this.items, selection, toIndex);
+        if (items !== this.items) {
+            this.synchPositions(items);
+            this.items = items;
+            this.synch();
+        }
+    }
+
+    // The Subsonic API uses indexes for removals.
+    // The playlist item index is stored in `playlistItemId` of `MediaItem`.
+
+    removeItems(removals: readonly MediaItem[]): void {
+        const indexesToRemove = new Set(removals.map((item) => Number(item.playlistItemId)));
+        const items = this.items.filter(
+            (item) => !indexesToRemove.has(Number(item.playlistItemId))
+        );
+        this.size = items.length;
+        this.items = items;
+        this.removals$.next(this.removals$.value.concat([...indexesToRemove]));
+        this.updateTrackCount();
+    }
+
+    protected connect(): void {
+        if (!this.disconnected && !this.connected) {
+            super.connect();
+            this.subscribeTo(
+                this.removals$.pipe(
+                    filter((removals) => removals.length > 0),
+                    debounceTime(500),
+                    mergeMap((removals) => this.synchRemovals(removals))
+                ),
+                logger
+            );
+            this.subscribeTo(
+                this.observeComplete().pipe(
+                    switchMap(() => observePlaylistAdditions(this.playlist)),
+                    tap(({items}) => this._addItems(items))
+                ),
+                logger
+            );
+        }
+    }
+
+    private get playlist(): MediaPlaylist {
+        return this.parent as MediaPlaylist;
+    }
+
+    private _addItems(additions: readonly MediaItem[], position = -1): void {
+        const items = this.items.slice();
+        if (position >= 0 && position < items.length) {
+            // insert
+            items.splice(position, 0, ...additions.map((item) => ({...item, nanoid: nanoid()})));
+            this.synchPositions(items);
+        } else {
+            // append
+            additions.forEach((item) => {
+                const position = items.length + 1;
+                items.push({
+                    ...item,
+                    position,
+                    playlistItemId: String(position),
+                    nanoId: nanoid(),
+                });
+            });
+        }
+        this.size = items.length;
+        this.items = items;
+        this.updateTrackCount();
+    }
+
+    private async synch(): Promise<void> {
+        this.busy = true;
+        try {
+            this.error = undefined;
+            const playlistId = getMediaObjectId(this.playlist);
+            const indexesToRemove: number[] = [];
+            this.items.forEach((item) => {
+                if (item.playlistItemId != null) {
+                    indexesToRemove.push(Number(item.playlistItemId));
+                }
+            });
+            const idsToAdd = this.items.map((item) => getMediaObjectId(item));
+            await this.api.removeFromPlaylist(playlistId, indexesToRemove);
+            await this.api.addToPlaylist(playlistId, idsToAdd);
+            this.synchPlaylistItemIds();
+        } catch (err) {
+            logger.error(err);
+            this.error = err;
+        }
+        this.busy = false;
+    }
+
+    private async synchAdditions(additions: readonly MediaItem[]) {
+        this.busy = true;
+        try {
+            this.error = undefined;
+            const playlistId = getMediaObjectId(this.playlist);
+            await this.api.addToPlaylist(playlistId, additions.map(getMediaObjectId));
+            this.synchPlaylistItemIds();
+        } catch (err) {
+            logger.error(err);
+            this.error = err;
+        }
+        this.busy = false;
+    }
+
+    private synchPlaylistItemIds(): void {
+        this.items.forEach((item) => ((item as any).playlistItemId = String(item.position! - 1)));
+        this.items = this.items.slice();
+    }
+
+    private synchPositions(items: readonly MediaItem[]): void {
+        items.forEach((item, index) => ((item as any).position = index + 1));
+    }
+
+    private async synchRemovals(removals: readonly number[]): Promise<void> {
+        this.busy = true;
+        try {
+            this.error = undefined;
+            this.synchPositions(this.items);
+            this.items = this.items.slice();
+            const playlistId = getMediaObjectId(this.playlist);
+            await this.api.removeFromPlaylist(playlistId, removals);
+            this.synchPlaylistItemIds();
+            this.removals$.next([]);
+        } catch (err) {
+            logger.error(err);
+            this.error = err;
+        }
+        this.busy = false;
+    }
+
+    private updateTrackCount(): void {
+        dispatchMetadataChanges({
+            match: (object) => object.src === this.playlist.src,
+            values: {trackCount: this.size},
+        });
     }
 }

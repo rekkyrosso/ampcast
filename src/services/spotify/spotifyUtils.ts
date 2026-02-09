@@ -1,3 +1,4 @@
+import {nanoid} from 'nanoid';
 import {SetOptional, Writable} from 'type-fest';
 import AlbumType from 'types/AlbumType';
 import ItemType from 'types/ItemType';
@@ -31,7 +32,8 @@ import spotifySettings from './spotifySettings';
 
 export function createMediaObject<T extends MediaObject>(
     item: SpotifyItem,
-    inLibrary?: boolean | undefined
+    inLibrary?: boolean | undefined,
+    position?: number
 ): T {
     switch (item.type) {
         case 'episode':
@@ -47,7 +49,7 @@ export function createMediaObject<T extends MediaObject>(
             return createMediaPlaylist(item, inLibrary) as T;
 
         case 'track':
-            return createMediaItemFromTrack(item, inLibrary) as T;
+            return createMediaItemFromTrack(item, inLibrary, position) as T;
     }
 }
 
@@ -155,7 +157,7 @@ function createMediaPlaylist(
     inLibrary?: boolean | undefined
 ): MediaPlaylist {
     const owned = playlist.owner.id === spotifySettings.userId;
-    const trackCount = playlist.tracks.total
+    const trackCount = playlist.tracks.total;
 
     const mediaPlaylist: Writable<SetOptional<MediaPlaylist, 'pager'>> = {
         itemType: ItemType.Playlist,
@@ -176,17 +178,23 @@ function createMediaPlaylist(
         inLibrary: owned ? false : inLibrary,
         public: playlist.public,
         snapshotId: playlist.snapshot_id,
-        items: {
-            deletable: owned,
-            droppable: owned,
-            moveable: owned && trackCount <= SpotifyPlaylistItemsPager.MAX_SIZE_FOR_REORDER,
-        },
+        items: owned
+            ? {
+                  deletable: true,
+                  droppable: true,
+                  moveable: trackCount <= SpotifyPlaylistItemsPager.MAX_SIZE_FOR_REORDER,
+              }
+            : undefined,
     };
     mediaPlaylist.pager = new SpotifyPlaylistItemsPager(mediaPlaylist as MediaPlaylist);
     return mediaPlaylist as MediaPlaylist;
 }
 
-function createMediaItemFromTrack(track: SpotifyTrack, inLibrary?: boolean | undefined): MediaItem {
+function createMediaItemFromTrack(
+    track: SpotifyTrack,
+    inLibrary?: boolean | undefined,
+    position?: number
+): MediaItem {
     const externalUrl = track.external_urls.spotify;
     const album = track.album;
 
@@ -205,6 +213,8 @@ function createMediaItemFromTrack(track: SpotifyTrack, inLibrary?: boolean | und
         playedAt: track.played_at
             ? Math.floor((new Date(track.played_at).getTime() || 0) / 1000)
             : 0,
+        position,
+        nanoId: position == null ? undefined : nanoid(),
         genres: (album as any)?.genres,
         disc: track.disc_number,
         track: track.track_number,

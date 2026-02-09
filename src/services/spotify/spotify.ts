@@ -36,6 +36,7 @@ import spotifySettings from './spotifySettings';
 import spotifySources, {
     createSearchPager,
     spotifyEditablePlaylists,
+    spotifyPlaylistItems,
     spotifySearch,
 } from './spotifySources';
 import {getMarket} from './spotifyUtils';
@@ -132,7 +133,7 @@ async function addToPlaylist<T extends MediaItem>(
     if (items?.length) {
         const [, , playlistId] = playlist.src.split(':');
         const chunkSize = 100;
-        const chunks = chunk(items, chunkSize);
+        const chunks = chunk(items, chunkSize).reverse();
         let snapshotId = playlist.snapshotId;
         for (const chunk of chunks) {
             const {snapshot_id} = await spotifyApiCallWithRetry(() =>
@@ -143,9 +144,6 @@ async function addToPlaylist<T extends MediaItem>(
                 )
             );
             snapshotId = snapshot_id;
-            if (position != null) {
-                position += chunkSize;
-            }
         }
         dispatchMetadataChanges<MediaPlaylist>({
             match: (object) => object.src === playlist.src,
@@ -233,6 +231,7 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
         sourceId: `${serviceId}/pinned-playlist`,
         icon: 'pin',
         isPin: true,
+        secondaryItems: spotifyPlaylistItems,
 
         search(): Pager<T> {
             const [, , id] = pin.src.split(':');
@@ -245,7 +244,7 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
                 return {items: [{...playlist, isChart: pin.isChart}], total: 1};
             });
         },
-    };
+    } as MediaSource<T>;
 }
 
 async function getFilters(filterType: FilterType): Promise<readonly MediaFilter[]> {

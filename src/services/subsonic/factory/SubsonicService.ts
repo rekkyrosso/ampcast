@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {Except, SetOptional, Writable} from 'type-fest';
+import {Except, SetOptional, SetRequired, Writable} from 'type-fest';
 import Action from 'types/Action';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import FilterType from 'types/FilterType';
@@ -58,6 +58,10 @@ const subsonicAlbums: MediaSourceItems = {
 };
 const subsonicTracks: MediaSourceItems = {
     layout: addRating(mediaItemsLayout),
+};
+
+export const subsonicPlaylistItems: MediaSourceItems<SetRequired<MediaItem, 'nanoId'>> = {
+    itemKey: 'nanoId',
 };
 
 export default class SubsonicService implements PersonalMediaService {
@@ -276,6 +280,7 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'Playlists',
             icon: 'playlist',
             itemType: ItemType.Playlist,
+            secondaryItems: subsonicPlaylistItems,
 
             search(): Pager<MediaPlaylist> {
                 return new SubsonicPager(
@@ -493,7 +498,7 @@ export default class SubsonicService implements PersonalMediaService {
                                                             id,
                                                             name,
                                                             title: name,
-                                                        } as Subsonic.Directory)
+                                                        }) as Subsonic.Directory
                                                 )
                                             )
                                             .flat()
@@ -657,6 +662,7 @@ export default class SubsonicService implements PersonalMediaService {
             sourceId: `${this.id}/pinned-playlist`,
             icon: 'pin',
             isPin: true,
+            secondaryItems: subsonicPlaylistItems,
 
             search(): Pager<T> {
                 const id = service.getIdFromSrc(pin);
@@ -669,7 +675,7 @@ export default class SubsonicService implements PersonalMediaService {
                     }
                 );
             },
-        };
+        } as MediaSource<T>;
     }
 
     async editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {

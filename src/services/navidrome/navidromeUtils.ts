@@ -12,7 +12,7 @@ import Pager from 'types/Pager';
 import PlaybackType from 'types/PlaybackType';
 import SortParams from 'types/SortParams';
 import Thumbnail from 'types/Thumbnail';
-import {getTextFromHtml} from 'utils';
+import {getMediaObjectId, getTextFromHtml} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
@@ -71,8 +71,7 @@ export function createPlaylistItemsPager(
     playlist: MediaPlaylist,
     itemSort?: SortParams
 ): Pager<MediaItem> {
-    const playlistId = getMediaObjectId(playlist);
-    return new NavidromePlaylistItemsPager(playlistId, itemSort);
+    return new NavidromePlaylistItemsPager(playlist, itemSort);
 }
 
 function createMediaItem(song: Navidrome.Song): MediaItem {
@@ -198,12 +197,12 @@ function createMediaPlaylist(playlist: Navidrome.Playlist, itemSort?: SortParams
         owned,
         owner: {name: playlist.ownerName},
         editable: owned,
-        // deletable: owned, // TODO
         items:
             owned && !smart
                 ? {
                       deletable: true,
                       droppable: true,
+                      moveable: true,
                   }
                 : undefined,
     };
@@ -252,11 +251,6 @@ function createAllTracksPager(artist: MediaArtist): Pager<MediaItem> {
 
 function getExternalUrl(id: string): string {
     return `${navidromeSettings.host}/app/#/${id}/show`;
-}
-
-export function getMediaObjectId(object: MediaObject): string {
-    const [, , id] = object.src.split(':');
-    return id;
 }
 
 function parseDate(date: string): number {
