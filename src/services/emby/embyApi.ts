@@ -15,7 +15,15 @@ import {Page} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
-import {canPlayNativeHls, canPlayVideo, groupBy, isHlsMedia} from 'utils';
+import {
+    canPlayNativeHls,
+    canPlayVideo,
+    chunk,
+    getMediaObjectId,
+    groupBy,
+    isHlsMedia,
+    uniq,
+} from 'utils';
 import {getPlaybackId} from 'services/mediaPlayback/playback';
 import embySettings, {EmbySettings} from './embySettings';
 
@@ -72,8 +80,11 @@ async function addToPlaylist(
     settings: EmbySettings = embySettings
 ): Promise<void> {
     const UserId = settings.userId;
-    const Ids = ids.join(',');
-    await embyFetch(`Playlists/${playlistId}/Items`, {Ids, UserId}, {method: 'POST'}, settings);
+    const chunks = chunk(uniq(ids), 300);
+    for (const chunk of chunks) {
+        const Ids = chunk.join(',');
+        await embyFetch(`Playlists/${playlistId}/Items`, {Ids, UserId}, {method: 'POST'}, settings);
+    }
 }
 
 async function createPlaylist(
@@ -97,7 +108,7 @@ async function editPlaylist(
     settings: EmbySettings = embySettings
 ): Promise<void> {
     const userId = settings.userId;
-    const [, , playlistId] = playlist.src.split(':');
+    const playlistId = getMediaObjectId(playlist);
     const path = `Items/${playlistId}`;
     const existingPlaylist = await get(`Users/${userId}/${path}`, undefined, settings);
     if (!existingPlaylist) {
@@ -194,7 +205,7 @@ async function fetchEmbyFilters(
     }
     const data = await get(filterType, params, settings);
     const filters = data.Items || [];
-    return filters.map(({Id: id, Name: title}) => ({id: id || title, title} as MediaFilter));
+    return filters.map(({Id: id, Name: title}) => ({id: id || title, title}) as MediaFilter);
 }
 
 async function getEndpointInfo(settings: EmbySettings = embySettings): Promise<EndPointInfo> {
@@ -211,7 +222,7 @@ async function getMusicLibraries(
             /^(audiobooks|music|musicvideos)$/.test(section.CollectionType!)
         ) || [];
     return libraries.map(
-        ({Id: id, Name: title, CollectionType: type}) => ({id, title, type} as PersonalMediaLibrary)
+        ({Id: id, Name: title, CollectionType: type}) => ({id, title, type}) as PersonalMediaLibrary
     );
 }
 

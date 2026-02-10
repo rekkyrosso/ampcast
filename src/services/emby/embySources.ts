@@ -29,7 +29,7 @@ import {
     recentlyAddedAlbumsLayout,
     recentlyPlayedTracksLayout,
 } from 'components/MediaList/layouts';
-import {createArtistAlbumsPager, createPlaylistItemsPager, getSort} from './embyUtils';
+import {createArtistAlbumsPager, createPlaylistItemsPager, getSortParams} from './embyUtils';
 
 const serviceId: MediaServiceId = 'emby';
 
@@ -132,7 +132,7 @@ const embyLikedSongs: MediaSource<MediaItem> = {
         return createItemsPager({
             ParentId: getMusicLibraryId(),
             Filters: 'IsFavorite',
-            ...getSort(sort),
+            ...getSortParams(sort),
         });
     },
 };
@@ -152,7 +152,7 @@ const embyLikedAlbums: MediaSource<MediaAlbum> = {
             ParentId: getMusicLibraryId(),
             Filters: 'IsFavorite',
             IncludeItemTypes: 'MusicAlbum',
-            ...getSort(sort),
+            ...getSortParams(sort),
         });
     },
 };
@@ -263,7 +263,7 @@ const embyPlaylists: MediaSource<MediaPlaylist> = {
             {
                 ParentId: getMusicLibraryId(),
                 IncludeItemTypes: 'Playlist',
-                ...getSort(sort),
+                ...getSortParams(sort),
             },
             {
                 childSort: embyPlaylistItemsSort.defaultSort,
@@ -305,7 +305,7 @@ const embyTracksByGenre: MediaSource<MediaItem> = {
                 ParentId: getMusicLibraryId(),
                 GenreIds: genre.id,
                 IncludeItemTypes: 'Audio',
-                ...getSort(sort),
+                ...getSortParams(sort),
             });
         } else {
             return new SimplePager();
@@ -327,7 +327,7 @@ const embyAlbumsByGenre: MediaSource<MediaAlbum> = {
                 ParentId: getMusicLibraryId(),
                 GenreIds: genre.id,
                 IncludeItemTypes: 'MusicAlbum',
-                ...getSort(sort),
+                ...getSortParams(sort),
             });
         } else {
             return new SimplePager();

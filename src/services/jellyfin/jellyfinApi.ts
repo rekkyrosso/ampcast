@@ -75,6 +75,12 @@ async function editPlaylist(playlist: MediaPlaylist): Promise<void> {
     return embyApi.editPlaylist(playlist, jellyfinSettings);
 }
 
+async function updatePlaylist(playlistId: string, ids: readonly string[]): Promise<void> {
+    const UserId = jellyfinSettings.userId;
+    const Ids = ids.join(',');
+    await post(`Playlists/${playlistId}`, {Ids, UserId});
+}
+
 const cachedFilters: Record<string, readonly MediaFilter[]> = {};
 
 async function getFilters(
@@ -162,6 +168,7 @@ async function getSystemInfo(): Promise<PublicSystemInfo> {
 const jellyfinApi = {
     addToPlaylist,
     createPlaylist,
+    updatePlaylist,
     delete: del,
     editPlaylist,
     get,

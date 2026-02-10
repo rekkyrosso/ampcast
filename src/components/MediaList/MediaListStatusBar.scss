@@ -26,4 +26,25 @@
     .message.error {
         color: inherit;
     }
+
+    .permission {
+        display: inline-flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 0 0.25em;
+        border: 1px inset var(--frame-text-color);
+        border-radius: 0.25em;
+        font-size: 0.875em;
+        opacity: 0.5;
+
+        .themed.light & {
+            opacity: 0.75;
+        }
+
+        & ~ .permission {
+            margin-left: 0.75em;
+        }
+    }
 }

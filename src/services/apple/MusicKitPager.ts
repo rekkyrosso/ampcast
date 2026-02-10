@@ -1,11 +1,11 @@
-import {mergeMap, switchMap, tap} from 'rxjs';
+import {filter, map, mergeMap, switchMap, tap} from 'rxjs';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {Page, PagerConfig} from 'types/Pager';
 import ParentOf from 'types/ParentOf';
-import {Logger} from 'utils';
+import {Logger, uniqBy} from 'utils';
 import {dispatchMetadataChanges, observePlaylistAdditions} from 'services/metadata';
 import SequentialPager from 'services/pagers/SequentialPager';
 import apple, {addUserData} from './apple';
@@ -106,13 +106,12 @@ export class MusicKitPlaylistItemsPager extends MusicKitPager<MediaItem> {
     // (add|move|remove)Items will only be called if the playlist is complete.
     // Need to trust the UI on this.
 
-    addItems(items: readonly MediaItem[]): void {
-        items = items.filter((item) => !this.keys.has(item.src));
-        if (items.length === 0) {
-            return;
+    addItems(additions: readonly MediaItem[]): void {
+        additions = uniqBy('src', additions).filter((item) => !this.keys.has(item.src));
+        if (additions.length > 0) {
+            this._addItems(additions);
+            this.synchAdditions(additions);
         }
-        this._addItems(items);
-        this.synchAdditions(items);
     }
 
     protected connect(): void {
@@ -121,7 +120,9 @@ export class MusicKitPlaylistItemsPager extends MusicKitPager<MediaItem> {
             this.subscribeTo(
                 this.observeComplete().pipe(
                     switchMap(() => observePlaylistAdditions(this.playlist)),
-                    tap(({items}) => this._addItems(items))
+                    map((items) => uniqBy('src', items).filter((item) => !this.keys.has(item.src))),
+                    filter((items) => items.length > 0),
+                    tap((items) => this._addItems(items))
                 ),
                 logger
             );
@@ -129,10 +130,6 @@ export class MusicKitPlaylistItemsPager extends MusicKitPager<MediaItem> {
     }
 
     private _addItems(additions: readonly MediaItem[]): void {
-        additions = additions.filter((item) => !this.keys.has(item.src));
-        if (additions.length === 0) {
-            return;
-        }
         // Append only.
         const items = this.items.concat(additions);
         this.size = items.length;

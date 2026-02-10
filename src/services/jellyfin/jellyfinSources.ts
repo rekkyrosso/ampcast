@@ -29,7 +29,7 @@ import {
     recentlyAddedAlbumsLayout,
     recentlyPlayedTracksLayout,
 } from 'components/MediaList/layouts';
-import {createArtistAlbumsPager, createPlaylistItemsPager, getSort} from './jellyfinUtils';
+import {createArtistAlbumsPager, createPlaylistItemsPager, getSortParams} from './jellyfinUtils';
 
 const serviceId: MediaServiceId = 'jellyfin';
 
@@ -132,7 +132,7 @@ const jellyfinLikedSongs: MediaSource<MediaItem> = {
         return createItemsPager({
             ParentId: getMusicLibraryId(),
             Filters: 'IsFavorite',
-            ...getSort(sort),
+            ...getSortParams(sort),
         });
     },
 };
@@ -152,7 +152,7 @@ const jellyfinLikedAlbums: MediaSource<MediaAlbum> = {
             ParentId: getMusicLibraryId(),
             Filters: 'IsFavorite',
             IncludeItemTypes: 'MusicAlbum',
-            ...getSort(sort),
+            ...getSortParams(sort),
         });
     },
 };
@@ -262,7 +262,7 @@ const jellyfinPlaylists: MediaSource<MediaPlaylist> = {
         return createItemsPager(
             {
                 IncludeItemTypes: 'Playlist',
-                ...getSort(sort),
+                ...getSortParams(sort),
             },
             {
                 childSort: jellyfinPlaylistItemsSort.defaultSort,
@@ -301,7 +301,7 @@ const jellyfinTracksByGenre: MediaSource<MediaItem> = {
                 ParentId: getMusicLibraryId(),
                 Genres: genre.id,
                 IncludeItemTypes: 'Audio',
-                ...getSort(sort),
+                ...getSortParams(sort),
             });
         } else {
             return new SimplePager();
@@ -323,7 +323,7 @@ const jellyfinAlbumsByGenre: MediaSource<MediaAlbum> = {
                 ParentId: getMusicLibraryId(),
                 IncludeItemTypes: 'MusicAlbum',
                 Genres: genre.id,
-                ...getSort(sort),
+                ...getSortParams(sort),
             });
         } else {
             return new SimplePager();

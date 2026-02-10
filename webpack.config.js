@@ -113,7 +113,7 @@ module.exports = (args) => {
                     // Prevent imported libraries from splitting.
                     'lib/music-metadata': {
                         name: 'lib/music-metadata',
-                        test: /[\\/]node_modules[\\/](music\-metadata)[\\/]/,
+                        test: /[\\/]node_modules[\\/](music\-metadata|(win\-guid))[\\/]/,
                         chunks: 'all',
                         enforce: true,
                     },

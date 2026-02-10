@@ -6,6 +6,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSource from 'types/MediaSource';
+import {exists} from 'utils';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {getSourceSorting} from 'services/mediaServices/servicesSettings';
 import {dispatchPlaylistItemsChange} from 'services/metadata';
@@ -41,12 +42,20 @@ export default function PlaylistItemsList({
             (sorting!.sortBy === defaultSort.sortBy &&
                 sorting!.sortOrder === defaultSort.sortOrder));
 
+    const permissions: string[] = [
+        moveable ? 'mov' : undefined,
+        deletable ? 'del' : undefined,
+        droppable ? 'add' : undefined,
+    ].filter(exists);
+
     const injectAt = useCallback(
         async (items: readonly MediaItem[], atIndex: number) => {
             if (parentPlaylist) {
                 const service = getServiceFromSrc(parentPlaylist);
                 const itemsByService = getPlaylistItemsByService(items);
-                const additions = itemsByService.find((option) => option.service === service)?.items;
+                const additions = itemsByService.find(
+                    (option) => option.service === service
+                )?.items;
                 if (additions?.length) {
                     if (pager?.addItems) {
                         pager.addItems(additions, moveable ? atIndex : undefined);
@@ -119,7 +128,11 @@ export default function PlaylistItemsList({
             moveable={moveable}
             statusBarIcons={
                 unlocked
-                    ? undefined
+                    ? permissions.map((permission) => (
+                          <span className="permission" key={permission}>
+                              {permission}
+                          </span>
+                      ))
                     : [
                           <span
                               title={

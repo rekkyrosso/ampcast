@@ -12,7 +12,7 @@ import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import type SubsonicSettings from './SubsonicSettings';
-import {Logger, shuffle} from 'utils';
+import {Logger, chunk, shuffle} from 'utils';
 import {createMediaItemFromUrl} from 'services/metadata';
 
 const logger = new Logger('SubsonicApi');
@@ -60,9 +60,12 @@ export default class SubsonicApi {
     }
 
     async addToPlaylist(playlistId: string, ids: readonly string[]): Promise<void> {
-        const params = new URLSearchParams({playlistId});
-        ids.forEach((id) => params.append('songIdToAdd', id));
-        await this.get(`updatePlaylist?${params}`);
+        const chunks = chunk(ids, 300);
+        for (const chunk of chunks) {
+            const params = new URLSearchParams({playlistId});
+            chunk.forEach((id) => params.append('songIdToAdd', id));
+            await this.get(`updatePlaylist?${params}`);
+        }
     }
 
     async createPlaylist(
@@ -81,20 +84,26 @@ export default class SubsonicApi {
                 throw Error('Playlist not found.');
             }
         }
-        const params = new URLSearchParams({
-            playlistId: playlist.id,
-            comment: description,
-            public: String(isPublic),
-        });
-        ids.forEach((id) => params.append('songIdToAdd', id));
-        await this.get(`updatePlaylist?${params}`);
+        const chunks = chunk(ids, 300);
+        for (const chunk of chunks) {
+            const params = new URLSearchParams({
+                playlistId: playlist.id,
+                comment: description,
+                public: String(isPublic),
+            });
+            chunk.forEach((id) => params.append('songIdToAdd', id));
+            await this.get(`updatePlaylist?${params}`);
+        }
         return playlist;
     }
 
     async removeFromPlaylist(playlistId: string, indexes: readonly number[]): Promise<void> {
-        const params = new URLSearchParams({playlistId});
-        indexes.forEach((index) => params.append('songIndexToRemove', String(index)));
-        await this.get(`updatePlaylist?${params}`);
+        const chunks = chunk(indexes.toSorted((a, b) => a - b), 300).reverse();
+        for (const chunk of chunks) {
+            const params = new URLSearchParams({playlistId});
+            chunk.forEach((index) => params.append('songIndexToRemove', String(index)));
+            await this.get(`updatePlaylist?${params}`);
+        }
     }
 
     async createShare(id: string): Promise<string> {

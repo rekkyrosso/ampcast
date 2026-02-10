@@ -75,8 +75,10 @@ export default class SpotifyPager<T extends MediaObject> extends SequentialPager
 
 // TODO: This needs to be exported from here to avoid circular references.
 
+const playlistLogger = new Logger('SpotifyPlaylistItemsPager');
+
 export class SpotifyPlaylistItemsPager extends SpotifyPager<MediaItem> {
-    static MAX_SIZE_FOR_REORDER = 1000;
+    static MAX_SIZE_FOR_REORDER = 500;
     private readonly removals$ = new BehaviorSubject<readonly MediaItem[]>([]);
 
     constructor(playlist: MediaPlaylist) {
@@ -133,9 +135,9 @@ export class SpotifyPlaylistItemsPager extends SpotifyPager<MediaItem> {
             this.subscribeTo(
                 this.observeComplete().pipe(
                     switchMap(() => observePlaylistAdditions(this.playlist)),
-                    tap(({items}) => this._addItems(items))
+                    tap((items) => this._addItems(items))
                 ),
-                logger
+                playlistLogger
             );
             this.subscribeTo(
                 this.removals$.pipe(
@@ -143,7 +145,7 @@ export class SpotifyPlaylistItemsPager extends SpotifyPager<MediaItem> {
                     debounceTime(500),
                     mergeMap((removals) => this.synchRemovals(removals))
                 ),
-                logger
+                playlistLogger
             );
             // Keep Spotify's `snapshotId` in synch.
             this.subscribeTo(
@@ -152,7 +154,7 @@ export class SpotifyPlaylistItemsPager extends SpotifyPager<MediaItem> {
                     filter((snapshotId) => !!snapshotId),
                     tap((snapshotId) => Object.assign(this.playlist, {snapshotId}))
                 ),
-                logger
+                playlistLogger
             );
         }
     }
@@ -189,7 +191,7 @@ export class SpotifyPlaylistItemsPager extends SpotifyPager<MediaItem> {
             this.error = undefined;
             await spotify.addToPlaylist!(this.playlist, additions, position);
         } catch (err) {
-            logger.error(err);
+            playlistLogger.error(err);
             this.error = err;
         }
         this.busy = false;
@@ -207,7 +209,7 @@ export class SpotifyPlaylistItemsPager extends SpotifyPager<MediaItem> {
             await spotifyApiCallWithRetry(() => spotifyApi.replaceTracksInPlaylist(playlistId, []));
             await spotify.addToPlaylist!(this.playlist, this.items);
         } catch (err) {
-            logger.error(err);
+            playlistLogger.error(err);
             this.error = err;
         }
         this.busy = false;
@@ -235,7 +237,7 @@ export class SpotifyPlaylistItemsPager extends SpotifyPager<MediaItem> {
             }
             this.removals$.next([]);
         } catch (err) {
-            logger.error(err);
+            playlistLogger.error(err);
             this.error = err;
         }
         this.busy = false;

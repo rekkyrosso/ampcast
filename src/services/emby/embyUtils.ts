@@ -13,10 +13,11 @@ import Pager from 'types/Pager';
 import ParentOf from 'types/ParentOf';
 import SortParams from 'types/SortParams';
 import Thumbnail from 'types/Thumbnail';
+import {getMediaObjectId} from 'utils';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
-import EmbyPager from './EmbyPager';
+import EmbyPager, {EmbyPlaylistItemsPager} from './EmbyPager';
 import embySettings from './embySettings';
 
 export function createMediaObject<T extends MediaObject>(
@@ -101,6 +102,7 @@ function createMediaPlaylist(playlist: BaseItemDto, itemSort?: SortParams): Medi
         isPinned: pinStore.isPinned(src),
         owned: true,
         editable: true,
+        items: {droppable: true},
     };
     mediaPlaylist.pager = createPlaylistItemsPager(mediaPlaylist as MediaPlaylist, itemSort);
     return mediaPlaylist as MediaPlaylist;
@@ -144,8 +146,8 @@ function createMediaItem(track: BaseItemDto): MediaItem {
         artists: track.Artists?.length
             ? track.Artists
             : track.AlbumArtist
-            ? [track.AlbumArtist]
-            : undefined,
+              ? [track.AlbumArtist]
+              : undefined,
         albumArtist: track.AlbumArtist || undefined,
         album: track.Album || undefined,
         disc: track.Album ? track.ParentIndexNumber || undefined : undefined,
@@ -158,8 +160,8 @@ function createMediaItem(track: BaseItemDto): MediaItem {
             ? track.IsHD === true
                 ? 'HD'
                 : track.IsHD === false
-                ? 'SD'
-                : undefined
+                  ? 'SD'
+                  : undefined
             : track.Container || undefined,
         container: track.Container || undefined,
     };
@@ -195,9 +197,9 @@ export function createArtistAlbumsPager(
     const allTracks = createArtistAllTracks(artist);
     const allTracksPager = new SimplePager<MediaAlbum>([allTracks]);
     const albumsPager = new EmbyPager<MediaAlbum>(`Users/${embySettings.userId}/Items`, {
-        AlbumArtistIds: getId(artist),
+        AlbumArtistIds: getMediaObjectId(artist),
         IncludeItemTypes: 'MusicAlbum',
-        ...getSort(albumSort),
+        ...getSortParams(albumSort),
     });
     return new WrappedPager(undefined, albumsPager, allTracksPager);
 }
@@ -205,7 +207,7 @@ export function createArtistAlbumsPager(
 function createArtistAllTracks(artist: MediaArtist): MediaAlbum {
     return {
         itemType: ItemType.Album,
-        src: `emby:all-tracks:${getId(artist)}`,
+        src: `emby:all-tracks:${getMediaObjectId(artist)}`,
         title: 'All Songs',
         artist: artist.title,
         thumbnails: artist.thumbnails,
@@ -217,7 +219,7 @@ function createArtistAllTracks(artist: MediaArtist): MediaAlbum {
 
 function createAllTracksPager(artist: MediaArtist): Pager<MediaItem> {
     return new EmbyPager<MediaItem>(`Users/${embySettings.userId}/Items`, {
-        ArtistIds: getId(artist),
+        ArtistIds: getMediaObjectId(artist),
         IncludeItemTypes: 'Audio',
         SortBy: 'SortName',
         SortOrder: 'Ascending',
@@ -239,15 +241,7 @@ export function createPlaylistItemsPager(
         sortOrder: 1,
     }
 ): Pager<MediaItem> {
-    return new EmbyPager(
-        `Users/${embySettings.userId}/Items`,
-        {
-            ParentId: getId(playlist),
-            IncludeItemTypes: 'Audio,MusicVideo',
-            ...getSort(itemSort),
-        },
-        {autofill: true, pageSize: 1000}
-    );
+    return new EmbyPlaylistItemsPager(playlist, itemSort);
 }
 
 function createFolderPager(folder: MediaFolder, parent?: MediaFolder): Pager<MediaFolderItem> {
@@ -293,12 +287,7 @@ function parseDate(date?: string | null): number | undefined {
     }
 }
 
-function getId({src}: {src: string}): string {
-    const [, , id] = src.split(':');
-    return id;
-}
-
-export function getSort({sortBy, sortOrder}: SortParams): {
+export function getSortParams({sortBy, sortOrder}: SortParams): {
     SortBy: string;
     SortOrder: string;
 } {
@@ -316,8 +305,8 @@ export function getSort({sortBy, sortOrder}: SortParams): {
                           (sortBy === 'ProductionYear' || sortBy === 'PremiereDate')
                               ? 'Descending'
                               : index === 0
-                              ? 'Descending'
-                              : 'Ascending'
+                                ? 'Descending'
+                                : 'Ascending'
                       )
                       .join(','),
     };

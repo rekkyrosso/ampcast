@@ -14,10 +14,6 @@ export default function ProgressRing({progress, busy, error}: ProgressRingProps)
     const circumference = innerRadius * 2 * Math.PI;
     const complete = progress === 1;
 
-    if (complete) {
-        error = undefined;
-    }
-
     return (
         <svg
             className={`progress-ring icon ${busy ? 'busy' : ''}`}

@@ -64,6 +64,9 @@ export function observePlaylistItemsChange(
 
 export function observePlaylistAdditions(
     playlist?: MediaPlaylist
-): Observable<PlaylistItemsChange> {
-    return observePlaylistItemsChange(playlist).pipe(filter(({type}) => type === 'added'));
+): Observable<readonly MediaItem[]> {
+    return observePlaylistItemsChange(playlist).pipe(
+        filter(({type}) => type === 'added'),
+        map(({items}) => items)
+    );
 }
