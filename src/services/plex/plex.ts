@@ -17,6 +17,7 @@ import Pin, {Pinnable} from 'types/Pin';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
+import {getMediaObjectId} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import SimplePager from 'services/pagers/SimplePager';
@@ -35,7 +36,6 @@ import plexMediaType from './plexMediaType';
 import PlexPager from './PlexPager';
 import {scrobble} from './plexScrobbler';
 import plexSettings from './plexSettings';
-import {getRatingKey} from './plexUtils';
 import plexSources, {createSearchPager, plexEditablePlaylists, plexSearch} from './plexSources';
 import Login from './components/PlexLogin';
 import ServerSettings from './components/PlexServerSettings';
@@ -172,7 +172,7 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
 
         search(): Pager<T> {
             return new PlexPager({
-                path: `/playlists/${getRatingKey(pin)}`,
+                path: `/playlists/${getMediaObjectId(pin)}`,
                 params: {
                     type: plexMediaType.Playlist,
                     playlistType: 'audio',
@@ -197,7 +197,7 @@ async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
     if (rating !== undefined) {
         return {...item, rating};
     }
-    const ratingKey = getRatingKey(item);
+    const ratingKey = getMediaObjectId(item);
     const [plexItem] = await plexApi.getMetadata<plex.RatingObject>([ratingKey]);
     return {...item, rating: Math.round((plexItem.userRating || 0) / 2)};
 }
@@ -261,7 +261,7 @@ async function rate(item: MediaObject, rating: number): Promise<void> {
         path: '/:/rate',
         method: 'PUT',
         params: {
-            key: getRatingKey(item),
+            key: getMediaObjectId(item),
             identifier: 'com.plexapp.plugins.library',
             rating: rating * 2 || -1,
         },

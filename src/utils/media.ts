@@ -1,5 +1,4 @@
 import ItemType from 'types/ItemType';
-import MediaObject from 'types/MediaObject';
 import PlaybackType from 'types/PlaybackType';
 import browser from './browser';
 import {getContentType, getHeaders} from './fetch';
@@ -91,12 +90,12 @@ export function getMediaLabel(itemType: ItemType, serviceId?: string): string {
     }
 }
 
-export function getMediaObjectId(object: MediaObject): string {
+export function getMediaObjectId(object: {src: string}): string {
     const [, , id] = object.src.split(':');
     return id;
 }
 
-export function getServiceId(object: MediaObject): string {
+export function getServiceId(object: {src: string}): string {
     const [id] = object.src.split(':');
     return id;
 }

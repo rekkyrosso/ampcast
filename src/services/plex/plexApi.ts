@@ -12,7 +12,7 @@ import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import {NoMusicLibraryError} from 'services/errors';
-import {browser, canPlayMedia, groupBy, partition, uniq, uniqBy} from 'utils';
+import {browser, canPlayMedia, getMediaObjectId, groupBy, partition, uniq, uniqBy} from 'utils';
 import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
 import plexSettings from './plexSettings';
@@ -149,8 +149,8 @@ async function getPage<T extends plex.MediaObject>(
 }
 
 async function addToPlaylist(playlist: MediaPlaylist, items: readonly MediaItem[]): Promise<void> {
-    const ratingKey = getRatingKeyFromSrc(playlist);
-    const path = `/playlists/${ratingKey}/items`;
+    const playlistId = getMediaObjectId(playlist);
+    const path = `/playlists/${playlistId}/items`;
     if (items.length > 0) {
         const uri = toPlexUri(items);
         await fetchJSON<plex.Playlist>({method: 'PUT', path, params: {uri}});
@@ -183,8 +183,16 @@ async function createPlaylist(
     return playlist as plex.Playlist;
 }
 
+async function clearPlaylist(playlist: MediaPlaylist): Promise<void> {
+    const playlistId = getMediaObjectId(playlist);
+    await plexFetch({
+        method: 'DELETE',
+        path: `/playlists/${playlistId}/items`,
+    });
+}
+
 async function editPlaylist(playlist: MediaPlaylist): Promise<void> {
-    const [, , ratingKey] = playlist.src.split(':');
+    const ratingKey = getMediaObjectId(playlist);
     await plexFetch({
         method: 'PUT',
         path: `/playlists/${ratingKey}`,
@@ -226,7 +234,7 @@ async function getPlayQueue(id: number): Promise<plex.PlayQueue> {
 }
 
 function toPlexUri(items: readonly MediaItem[]): string {
-    const ids = items.map(getRatingKeyFromSrc).join(',');
+    const ids = items.map(getMediaObjectId).join(',');
     return `server://${plexSettings.serverId}/com.plexapp.plugins.library/library/metadata/${ids}`;
 }
 
@@ -665,13 +673,9 @@ export function getPlexItemTypeFromMediaType(itemType: plexMediaType): plexItemT
     }
 }
 
-function getRatingKeyFromSrc({src}: {src: string}): string {
-    const [, , ratingKey] = src.split(':');
-    return ratingKey;
-}
-
 const plexApi = {
     addToPlaylist,
+    clearPlaylist,
     createPlaylist,
     createPlayQueue,
     editPlaylist,
