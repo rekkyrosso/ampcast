@@ -165,7 +165,7 @@ export class JellyfinPlaylistItemsPager extends JellyfinPager<MediaItem> {
     // Need to trust the UI on this.
 
     addItems(additions: readonly MediaItem[], atIndex = -1): void {
-        additions = uniqBy('src', additions).filter((item) => !this.keys.has(item.src));
+        additions = this.filterAdditions(additions);
         if (additions.length > 0) {
             this._addItems(additions, atIndex);
             this.synch$.next(true);
@@ -203,7 +203,7 @@ export class JellyfinPlaylistItemsPager extends JellyfinPager<MediaItem> {
             this.subscribeTo(
                 this.observeComplete().pipe(
                     switchMap(() => observePlaylistAdditions(this.playlist)),
-                    map((items) => uniqBy('src', items).filter((item) => !this.keys.has(item.src))),
+                    map((items) => this.filterAdditions(items)),
                     filter((items) => items.length > 0),
                     tap((items) => this._addItems(items))
                 ),
@@ -215,15 +215,17 @@ export class JellyfinPlaylistItemsPager extends JellyfinPager<MediaItem> {
     private _addItems(additions: readonly MediaItem[], atIndex = -1): void {
         const items = this.items.slice();
         if (atIndex >= 0 && atIndex < items.length) {
-            // insert
             items.splice(atIndex, 0, ...additions);
         } else {
-            // append
             items.push(...additions);
         }
         this.size = items.length;
         this.items = items;
         this.updateTrackCount();
+    }
+
+    private filterAdditions(additions: readonly MediaItem[]): readonly MediaItem[] {
+        return uniqBy('src', additions).filter((item) => !this.keys.has(item.src));
     }
 
     private async synch(): Promise<void> {

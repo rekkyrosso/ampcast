@@ -21,6 +21,7 @@ export interface ListViewBodyProps<T> {
     dragIndex: number;
     multiple?: boolean;
     busy: boolean;
+    cursor?: string;
     view: ListViewLayout<T>['view'];
 }
 
@@ -42,6 +43,7 @@ export default function ListViewBody<T>({
     dragIndex,
     multiple = false,
     busy,
+    cursor,
     view,
 }: ListViewBodyProps<T>) {
     const ref = useRef<HTMLOListElement>(null);
@@ -58,6 +60,7 @@ export default function ListViewBody<T>({
             draggable={draggable}
             style={{
                 width: width ? `${width}px` : undefined,
+                cursor
             }}
             aria-label={title}
             aria-multiselectable={multiple}

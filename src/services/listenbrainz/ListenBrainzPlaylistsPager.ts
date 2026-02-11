@@ -1,3 +1,4 @@
+import {SetOptional, Writable} from 'type-fest';
 import ItemType from 'types/ItemType';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {Page} from 'types/Pager';
@@ -49,23 +50,31 @@ export default class ListenBrainzPlaylistsPager extends SequentialPager<MediaPla
         const src = `listenbrainz:playlist:${playlist_mbid}`;
         const owned = playlist.creator === listenbrainzSettings.userId;
         const extension = playlist.extension?.['https://musicbrainz.org/doc/jspf#playlist'];
-        return {
+        const mediaPlaylist: Writable<SetOptional<MediaPlaylist, 'pager'>> = {
             itemType: ItemType.Playlist,
             src,
             title: playlist.title,
             description: this.getTextFromHtml(playlist.annotation),
             externalUrl: playlist.identifier,
+            modifiedAt: this.parseDate(extension?.last_modified_at),
             owned,
             owner: {
                 name: playlist.creator,
             },
             isPinned: pinStore.isPinned(src),
-            pager: new ListenBrainzPlaylistItemsPager(playlist_mbid),
             trackCount: undefined,
             public: extension?.public,
             editable: owned,
-            modifiedAt: this.parseDate(extension?.last_modified_at),
+            items: owned
+                ? {
+                      droppable: true,
+                      deletable: true,
+                      moveable: true,
+                  }
+                : undefined,
         };
+        mediaPlaylist.pager = new ListenBrainzPlaylistItemsPager(mediaPlaylist as MediaPlaylist);
+        return mediaPlaylist as MediaPlaylist;
     }
 
     private getTextFromHtml(html: string): string {

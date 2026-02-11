@@ -12,6 +12,14 @@
 
     &-text {
         flex: auto;
+        max-width: 100%;
+        overflow: hidden;
+        margin-right: 0.5em;
+
+        .message {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
     }
 
     &-icons {
@@ -37,11 +45,8 @@
         border: 1px inset var(--frame-text-color);
         border-radius: 0.25em;
         font-size: 0.875em;
-        opacity: 0.5;
-
-        .themed.light & {
-            opacity: 0.75;
-        }
+        opacity: 0.75;
+        filter: brightness(0.75);
 
         & ~ .permission {
             margin-left: 0.75em;

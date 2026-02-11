@@ -1,4 +1,4 @@
-import React, {useCallback} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {Except} from 'type-fest';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
@@ -7,6 +7,7 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSource from 'types/MediaSource';
 import {exists} from 'utils';
+import listenbrainzApi from 'services/listenbrainz/listenbrainzApi';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {getSourceSorting} from 'services/mediaServices/servicesSettings';
 import {dispatchPlaylistItemsChange} from 'services/metadata';
@@ -27,31 +28,37 @@ export default function PlaylistItemsList({
     source,
     ...props
 }: PlaylistItemsListProps) {
+    const [cursor, setCursor] = useState<string | undefined>(undefined);
     const sourceId = `${source.sourceId || source.id}/2`;
     const defaultSort = source.secondaryItems?.sort?.defaultSort;
     const sorting = getSourceSorting(sourceId) || defaultSort;
+    const config = parentPlaylist?.items;
     const pager = parentPlaylist?.pager || null;
-    const [{busy, complete}] = usePager(pager);
-    const unlocked = complete && !busy && parentPlaylist?.items?.droppable;
-    const deletable = unlocked && parentPlaylist?.items?.deletable;
+    const [{busy, complete, error}] = usePager(pager);
+    const unlocked = complete && !error && !busy && config?.droppable;
+    const deletable = unlocked && config?.deletable;
     const droppable = unlocked;
+    const droppableTypes = droppable ? config?.droppableTypes : undefined;
     const moveable =
         unlocked &&
-        parentPlaylist?.items?.moveable &&
+        config?.moveable &&
         (!defaultSort ||
             (sorting!.sortBy === defaultSort.sortBy &&
                 sorting!.sortOrder === defaultSort.sortOrder));
 
-    const permissions: string[] = [
-        moveable ? 'mov' : undefined,
-        deletable ? 'del' : undefined,
-        droppable ? 'add' : undefined,
-    ].filter(exists);
+    useEffect(() => {
+        setCursor(busy && complete ? 'progress' : undefined);
+    }, [busy, complete]);
 
     const injectAt = useCallback(
         async (items: readonly MediaItem[], atIndex: number) => {
             if (parentPlaylist) {
                 const service = getServiceFromSrc(parentPlaylist);
+                if (service?.id === 'listenbrainz') {
+                    setCursor('wait');
+                    items = await listenbrainzApi.addMetadata(items);
+                    setCursor(undefined);
+                }
                 const itemsByService = getPlaylistItemsByService(items);
                 const additions = itemsByService.find(
                     (option) => option.service === service
@@ -107,7 +114,11 @@ export default function PlaylistItemsList({
         (item: MediaObject): boolean => {
             if (parentPlaylist && item.itemType === ItemType.Media) {
                 const [serviceId] = parentPlaylist.src.split(':');
-                return serviceId === 'localdb' || item.src.startsWith(`${serviceId}:`);
+                return (
+                    serviceId === 'localdb' ||
+                    serviceId === 'listenbrainz' ||
+                    item.src.startsWith(`${serviceId}:`)
+                );
             }
             return false;
         },
@@ -124,15 +135,22 @@ export default function PlaylistItemsList({
             parentPlaylist={parentPlaylist}
             canDropItem={canDropItem}
             droppable={droppable}
-            droppableTypes={droppable ? parentPlaylist?.items?.droppableTypes : undefined}
+            droppableTypes={droppableTypes}
             moveable={moveable}
+            cursor={cursor}
             statusBarIcons={
                 unlocked
-                    ? permissions.map((permission) => (
-                          <span className="permission" key={permission}>
-                              {permission}
-                          </span>
-                      ))
+                    ? [
+                          moveable ? 'mov' : undefined,
+                          deletable ? 'del' : undefined,
+                          droppable ? 'add' : undefined,
+                      ]
+                          .filter(exists)
+                          .map((permission) => (
+                              <span className="permission" key={permission}>
+                                  {permission}
+                              </span>
+                          ))
                     : [
                           <span
                               title={

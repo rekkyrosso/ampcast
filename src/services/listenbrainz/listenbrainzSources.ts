@@ -62,7 +62,7 @@ const listenbrainzLovedTracks: MediaSource<MediaItem> = {
 
 export const listenbrainzPlaylists: MediaSource<MediaPlaylist> = {
     id: `${serviceId}/playlists`,
-    title: 'My Playlists',
+    title: 'Playlists',
     icon: 'playlist',
     itemType: ItemType.Playlist,
     defaultHidden: true,

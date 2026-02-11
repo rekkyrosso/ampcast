@@ -5,7 +5,7 @@ import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import {Logger, chunk, partition} from 'utils';
+import {Logger, chunk, getMediaObjectId, partition} from 'utils';
 import {dispatchMetadataChanges} from 'services/metadata';
 import {getScrobbledAt} from 'services/scrobbleSettings';
 import {getService} from 'services/mediaServices';
@@ -73,10 +73,13 @@ export class ListenBrainzApi {
             }
 
             // Map of `item.src` to `item`.
-            const itemMap: Record<string, T> = items.reduce((map, item) => {
-                map[item.src] = item;
-                return map;
-            }, {} as Record<string, T>);
+            const itemMap: Record<string, T> = items.reduce(
+                (map, item) => {
+                    map[item.src] = item;
+                    return map;
+                },
+                {} as Record<string, T>
+            );
 
             // Fetch or use cached result.
             // Caching the last result prevents repeated lookups for the same items.
@@ -157,11 +160,19 @@ export class ListenBrainzApi {
     ): Promise<void> {
         items = await this.addMetadata(items);
         items = items.filter((item) => item.recording_mbid);
-        const [, , playlist_mbid] = playlist.src.split(':');
+        const playlist_mbid = getMediaObjectId(playlist);
         return this.post(`playlist/${playlist_mbid}/item/add`, {
             playlist: {
-                track: items.map((item) => this.createTrack(item)),
+                track: items.map((item) => this.createPlaylistTrack(item)),
             },
+        });
+    }
+
+    async clearPlaylist(playlist: MediaPlaylist, size: number): Promise<void> {
+        const playlist_mbid = getMediaObjectId(playlist);
+        return this.post(`playlist/${playlist_mbid}/item/delete`, {
+            index: 1,
+            count: size,
         });
     }
 
@@ -207,14 +218,14 @@ export class ListenBrainzApi {
                 creator: userId,
                 title: name,
                 annotation: description,
-                track: items.map((item) => this.createTrack(item)),
+                track: items.map((item) => this.createPlaylistTrack(item)),
             },
         });
     }
 
     async editPlaylist(playlist: MediaPlaylist): Promise<void> {
         const userId = listenbrainzSettings.userId;
-        const [, , playlist_mbid] = playlist.src.split(':');
+        const playlist_mbid = getMediaObjectId(playlist);
         await this.post(`playlist/edit/${playlist_mbid}`, {
             playlist: {
                 extension: {
@@ -228,29 +239,6 @@ export class ListenBrainzApi {
                 annotation: playlist.description || '',
             },
         });
-    }
-
-    createTrack(item: MediaItem) {
-        const host = this.webHost;
-        const recording_mbid = item.recording_mbid;
-        const release_mbid = item.release_mbid || '';
-        return {
-            title: item.title,
-            id: recording_mbid,
-            identifier: recording_mbid ? `${host}/recording/${recording_mbid}` : '',
-            creator: item.artists?.join(' & '),
-            trackNum: item.track,
-            duration: item.duration,
-            extension: {
-                'https://musicbrainz.org/doc/jspf#track': {
-                    artist_identifiers:
-                        item.artist_mbids?.map((artist_mbid) => `${host}/artist/${artist_mbid}`) ||
-                        [],
-                    release_identifier: release_mbid ? `${host}/release/${release_mbid}` : '',
-                },
-            },
-            album: item.album || '',
-        };
     }
 
     async getInLibrary(items: readonly MediaItem[]): Promise<readonly boolean[]> {
@@ -366,6 +354,29 @@ export class ListenBrainzApi {
         const body = JSON.stringify(params);
         const response = await this.fetch(path, {method: 'POST', headers, body}, true);
         return response.json();
+    }
+
+    private createPlaylistTrack(item: MediaItem) {
+        const host = this.webHost;
+        const recording_mbid = item.recording_mbid;
+        const release_mbid = item.release_mbid || '';
+        return {
+            title: item.title,
+            id: recording_mbid,
+            identifier: recording_mbid ? `${host}/recording/${recording_mbid}` : '',
+            creator: item.artists?.join(' & '),
+            trackNum: item.track,
+            duration: item.duration,
+            extension: {
+                'https://musicbrainz.org/doc/jspf#track': {
+                    artist_identifiers:
+                        item.artist_mbids?.map((artist_mbid) => `${host}/artist/${artist_mbid}`) ||
+                        [],
+                    release_identifier: release_mbid ? `${host}/release/${release_mbid}` : '',
+                },
+            },
+            album: item.album || '',
+        };
     }
 
     private async fetch(path: string, init: RequestInit, signed = false): Promise<Response> {

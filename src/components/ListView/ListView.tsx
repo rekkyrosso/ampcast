@@ -80,6 +80,7 @@ export interface ListViewProps<T> {
     reorderable?: boolean; // Can reorder columns.
     disabled?: boolean;
     className?: string;
+    cursor?: string;
     emptyMessage?: React.ReactNode;
     onClick?: (item: T, rowIndex: number) => void;
     onDoubleClick?: (item: T, rowIndex: number) => void;
@@ -116,6 +117,7 @@ export default function ListView<T>({
     itemClassName = emptyString,
     layout,
     className = '',
+    cursor,
     selectedIndex = items.length === 0 ? -1 : 0,
     draggable,
     droppable,
@@ -700,6 +702,7 @@ export default function ListView<T>({
                         draggable={disabled ? false : draggable || moveable}
                         multiple={multiple}
                         busy={isScrolling}
+                        cursor={cursor}
                         view={layout.view}
                     />
                 )}
