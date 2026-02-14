@@ -74,7 +74,6 @@ module.exports = (args) => {
                 'react',
                 'react-dom',
                 'react-error-boundary',
-                'spotify-web-api-js',
                 'string-score',
                 'youtube-player',
                 // These are always included in `bundle.js`. Tree-shaking?

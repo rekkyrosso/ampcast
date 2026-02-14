@@ -50,6 +50,7 @@ type BaseMediaService = Auth & {
               readonly isCoverArt?: boolean; // Shows enough metadata to not require a hover state.
           };
     addMetadata?: <T extends MediaObject>(item: T) => Promise<T>;
+    addUserData?: (items: readonly MediaObject[]) => Promise<void>;
     addToPlaylist?: (
         playlist: MediaPlaylist,
         items: readonly MediaItem[],

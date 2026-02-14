@@ -1,13 +1,8 @@
-import {mergeMap} from 'rxjs';
 import MediaItem from 'types/MediaItem';
 import {Page} from 'types/Pager';
-import {Logger} from 'utils';
 import RecentlyPlayedPager from 'services/pagers/RecentlyPlayedPager';
 import {createMediaObjects, musicKitFetch} from './musicKitUtils';
 import MusicKitPager from './MusicKitPager';
-import {addUserData} from './apple';
-
-const logger = new Logger('MusicKitRecentlyPlayedPager');
 
 export default class MusicKitRecentlyPlayedPager extends RecentlyPlayedPager {
     constructor() {
@@ -25,16 +20,5 @@ export default class MusicKitRecentlyPlayedPager extends RecentlyPlayedPager {
             },
             {pageSize: 30, maxSize: 200}
         );
-    }
-
-    protected connect(): void {
-        if (!this.disconnected && !this.connected) {
-            super.connect();
-
-            this.subscribeTo(
-                this.observeAdditions().pipe(mergeMap((items) => addUserData(items))),
-                logger
-            );
-        }
     }
 }

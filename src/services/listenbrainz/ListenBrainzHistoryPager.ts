@@ -1,4 +1,4 @@
-import {from, mergeMap, tap} from 'rxjs';
+import {from, tap} from 'rxjs';
 import getYouTubeID from 'get-youtube-id';
 import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
@@ -60,13 +60,6 @@ export default class ListenBrainzHistoryPager extends SequentialPager<MediaItem>
     protected connect(): void {
         if (!this.disconnected && !this.connected) {
             super.connect();
-
-            this.subscribeTo(
-                this.observeAdditions().pipe(
-                    mergeMap((items) => listenbrainzApi.addUserData(items))
-                ),
-                logger
-            );
 
             if (this.fetchListenCount) {
                 this.subscribeTo(

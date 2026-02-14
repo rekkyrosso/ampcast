@@ -66,12 +66,6 @@ export default class ListenBrainzPlaylistItemsPager extends SequentialPager<Medi
             super.connect();
 
             this.subscribeTo(
-                this.observeAdditions().pipe(
-                    mergeMap((items) => listenbrainzApi.addUserData(items))
-                ),
-                logger
-            );
-            this.subscribeTo(
                 this.synch$.pipe(
                     filter((synch) => synch),
                     debounceTime(500),
@@ -79,6 +73,7 @@ export default class ListenBrainzPlaylistItemsPager extends SequentialPager<Medi
                 ),
                 logger
             );
+
             this.subscribeTo(
                 this.observeComplete().pipe(
                     switchMap(() => observePlaylistAdditions(this.playlist)),

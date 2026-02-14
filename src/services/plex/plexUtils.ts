@@ -441,9 +441,15 @@ export function createArtistAlbumsPager(
             new SimpleMediaPager<MediaAlbum>(async () => {
                 try {
                     const items = await fetchFirstPage(album.pager, {keepAlive: true});
-                    return items.length === 0 ? [] : [album];
+                    if (items.length === 0) {
+                        album.pager.disconnect();
+                        return [];
+                    } else {
+                        return [album];
+                    }
                 } catch (err) {
                     logger.error(err);
+                    album.pager.disconnect();
                     return [];
                 }
             });

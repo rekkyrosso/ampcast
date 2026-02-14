@@ -1,4 +1,4 @@
-import {filter, map, mergeMap, switchMap, tap} from 'rxjs';
+import {filter, map, switchMap, tap} from 'rxjs';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
@@ -8,7 +8,7 @@ import ParentOf from 'types/ParentOf';
 import {Logger, uniqBy} from 'utils';
 import {dispatchMetadataChanges, observePlaylistAdditions} from 'services/metadata';
 import SequentialPager from 'services/pagers/SequentialPager';
-import apple, {addUserData} from './apple';
+import apple from './apple';
 import {createMediaObjects, musicKitFetch, MusicKitItem} from './musicKitUtils';
 
 const logger = new Logger('MusicKitPager');
@@ -64,21 +64,6 @@ export default class MusicKitPager<T extends MediaObject> extends SequentialPage
             },
             {pageSize: 100, ...options}
         );
-    }
-
-    protected connect(): void {
-        if (!this.disconnected && !this.connected) {
-            super.connect();
-
-            if (!this.passive) {
-                this.subscribeTo(
-                    this.observeAdditions().pipe(
-                        mergeMap((items) => addUserData(items, this.parent))
-                    ),
-                    logger
-                );
-            }
-        }
     }
 }
 

@@ -140,20 +140,6 @@ export class ListenBrainzApi {
         }
     }
 
-    async addUserData(items: readonly MediaItem[]): Promise<void> {
-        items = items.filter((item) => !!item.recording_msid || !!item.recording_mbid);
-        if (items.length > 0) {
-            const inLibrary = await this.getInLibrary(items);
-
-            dispatchMetadataChanges(
-                items.map((item, index) => ({
-                    match: (object: MediaObject) => this.compareForRating(object, item),
-                    values: {inLibrary: inLibrary[index]},
-                }))
-            );
-        }
-    }
-
     async addToPlaylist<T extends MediaItem>(
         playlist: MediaPlaylist,
         items: readonly T[]

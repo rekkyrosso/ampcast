@@ -275,7 +275,6 @@ async function storeAccessToken(token: TokenResponse): Promise<void> {
 }
 
 async function nextAccessToken(access_token: string): Promise<void> {
-    spotifyApi.setAccessToken(access_token);
     await checkConnection();
     accessToken$.next(access_token);
 }
@@ -302,7 +301,7 @@ async function checkConnection(): Promise<void> {
     const getChartsCategoryId = async () => {
         try {
             if (!isRestrictedApi && !spotifySettings.chartsCategoryId) {
-                const {categories} = await spotifyApi.getCategories({limit: 50, locale: 'en_US'});
+                const {categories} = await spotifyApi.getCategories(0, 50, 'en_US');
                 const chartsCategory = categories.items.find(
                     (category) => category.name === 'Charts'
                 );

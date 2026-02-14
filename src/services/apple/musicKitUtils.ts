@@ -396,9 +396,15 @@ function createArtistAlbumsPager(artist: AppleMusicApi.Artist | LibraryArtist): 
     const topPager = new SimpleMediaPager<MediaAlbum>(async () => {
         try {
             const items = await fetchFirstPage(videos.pager, {keepAlive: true});
-            return items.length === 0 ? [topTracks] : [topTracks, videos];
+            if (items.length === 0) {
+                videos.pager.disconnect();
+                return [topTracks];
+            } else {
+                return [topTracks, videos];
+            }
         } catch (err) {
             logger.error(err);
+            videos.pager.disconnect();
             return [topTracks];
         }
     });

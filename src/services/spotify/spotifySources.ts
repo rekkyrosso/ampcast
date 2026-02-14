@@ -25,7 +25,6 @@ import {
 import spotifyApi, {SpotifyAlbum, SpotifyArtist, SpotifyPlaylist} from './spotifyApi';
 import SpotifyPager, {SpotifyPage} from './SpotifyPager';
 import spotifySettings from './spotifySettings';
-import {getMarket} from './spotifyUtils';
 import SpotifyRecentlyPlayedBrowser from './components/SpotifyRecentlyPlayedBrowser';
 
 const serviceId: MediaServiceId = 'spotify';
@@ -38,7 +37,7 @@ const spotifyMediaItems: MediaSourceItems = {
 
 export const spotifyPlaylistItems: MediaSourceItems<SetRequired<MediaItem, 'nanoId'>> = {
     layout: removeGenre(playlistItemsLayout),
-    itemKey: 'nanoId'
+    itemKey: 'nanoId',
 };
 
 export const spotifySearch: MediaMultiSource = {
@@ -124,17 +123,12 @@ const spotifyLikedSongs: MediaSource<MediaItem> = {
     primaryItems: spotifyMediaItems,
 
     search(): Pager<MediaItem> {
-        const market = getMarket();
         return new SpotifyPager(
             async (offset: number, limit: number): Promise<SpotifyPage> => {
-                const {items, total, next} = await spotifyApi.getMySavedTracks({
-                    offset,
-                    limit,
-                    market,
-                });
+                const {items, total, next} = await spotifyApi.getMyTracks(offset, limit);
                 return {items: items.filter(exists).map((item) => item.track), total, next};
             },
-            undefined,
+            {pageSize: 50},
             true
         );
     },
@@ -148,14 +142,9 @@ const spotifyLikedAlbums: MediaSource<MediaAlbum> = {
     lockActionsStore: true,
 
     search(): Pager<MediaAlbum> {
-        const market = getMarket();
         return new SpotifyPager(
             async (offset: number, limit: number): Promise<SpotifyPage> => {
-                const {items, total, next} = await spotifyApi.getMySavedAlbums({
-                    offset,
-                    limit,
-                    market,
-                });
+                const {items, total, next} = await spotifyApi.getMyAlbums(offset, limit);
                 return {items: items.filter(exists).map((item) => item.album), total, next};
             },
             {pageSize: 20},
@@ -174,19 +163,12 @@ const spotifyFollowedArtists: MediaSource<MediaArtist> = {
     search(): Pager<MediaArtist> {
         return new SpotifyPager(
             async (_, limit: number, after: string): Promise<SpotifyPage> => {
-                const options: Record<string, number | string> = {
-                    type: 'artist',
-                    limit,
-                };
-                if (after) {
-                    options.after = after;
-                }
                 const {
                     artists: {items, total, cursors},
-                } = await spotifyApi.getFollowedArtists(options);
+                } = await spotifyApi.getFollowedArtists(after, limit);
                 return {items, total, next: cursors?.after};
             },
-            undefined,
+            {pageSize: 50},
             true
         );
     },
@@ -201,16 +183,12 @@ const spotifyPlaylists: MediaSource<MediaPlaylist> = {
     secondaryItems: spotifyPlaylistItems,
 
     search(): Pager<MediaPlaylist> {
-        const market = getMarket();
         return new SpotifyPager(
             async (offset: number, limit: number): Promise<SpotifyPage> => {
-                const {items, total, next} = await spotifyApi.getUserPlaylists(
-                    spotifySettings.userId,
-                    {offset, limit, market}
-                );
+                const {items, total, next} = await spotifyApi.getMyPlaylists(offset, limit);
                 return {items: items as SpotifyPlaylist[], total, next};
             },
-            undefined,
+            {pageSize: 50},
             true
         );
     },
@@ -223,16 +201,11 @@ export const spotifyEditablePlaylists: MediaSource<MediaPlaylist> = {
     itemType: ItemType.Playlist,
 
     search(): Pager<MediaPlaylist> {
-        const market = getMarket();
         const userId = spotifySettings.userId;
         let nonEditableTotal = 0;
         return new SpotifyPager(
             async (offset: number, limit: number): Promise<SpotifyPage> => {
-                const {items, total, next} = await spotifyApi.getUserPlaylists(userId, {
-                    offset,
-                    limit,
-                    market,
-                });
+                const {items, total, next} = await spotifyApi.getMyPlaylists(offset, limit);
                 const [editable, nonEditable] = partition(
                     items,
                     (item) => item?.owner.id === userId
@@ -244,7 +217,7 @@ export const spotifyEditablePlaylists: MediaSource<MediaPlaylist> = {
                     next,
                 };
             },
-            undefined,
+            {pageSize: 50},
             true
         );
     },
@@ -260,15 +233,10 @@ const spotifyFeaturedPlaylists: MediaSource<MediaPlaylist> = {
     secondaryItems: spotifyPlaylistItems,
 
     search(): Pager<MediaPlaylist> {
-        const market = getMarket();
         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
             const {
                 playlists: {items, total, next},
-            } = await spotifyApi.getFeaturedPlaylists({
-                offset,
-                limit,
-                market,
-            });
+            } = await spotifyApi.getFeaturedPlaylists(offset, limit);
             return {items: items as SpotifyPlaylist[], total, next};
         });
     },
@@ -292,15 +260,10 @@ const spotifyNewReleases: MediaSource<MediaAlbum> = {
     },
 
     search(): Pager<MediaAlbum> {
-        const market = getMarket();
         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
             const {
                 albums: {items, total, next},
-            } = await spotifyApi.getNewReleases({
-                offset,
-                limit,
-                market,
-            });
+            } = await spotifyApi.getNewReleases(offset, limit);
             return {items: items as SpotifyAlbum[], total, next};
         });
     },
@@ -317,15 +280,10 @@ const spotifyPlaylistsByCategory: MediaSource<MediaPlaylist> = {
 
     search(category?: MediaFilter): Pager<MediaPlaylist> {
         if (category) {
-            const market = getMarket();
             return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
                 const {
                     playlists: {items, total, next},
-                } = await spotifyApi.getCategoryPlaylists(category.id, {
-                    offset,
-                    limit,
-                    market,
-                });
+                } = await spotifyApi.getCategoryPlaylists(category.id, offset, limit);
                 return {items: items as SpotifyPlaylist[], total, next};
             });
         } else {
@@ -345,7 +303,6 @@ const spotifyCharts: MediaSource<MediaPlaylist> = {
     },
 
     search(): Pager<MediaPlaylist> {
-        const market = getMarket();
         const categoryId = spotifySettings.chartsCategoryId;
         if (!categoryId) {
             throw new NoSpotifyChartsError();
@@ -353,15 +310,11 @@ const spotifyCharts: MediaSource<MediaPlaylist> = {
         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
             const {
                 playlists: {items, total, next},
-            } = await spotifyApi.getCategoryPlaylists(categoryId, {
-                offset,
-                limit,
-                market,
-            });
+            } = await spotifyApi.getCategoryPlaylists(categoryId, offset, limit);
             return {
                 items: items
                     .filter(exists)
-                    .map((item) => ({...item, isChart: true} as SpotifyPlaylist)),
+                    .map((item) => ({...item, isChart: true}) as SpotifyPlaylist),
                 total,
                 next,
             };
@@ -427,13 +380,12 @@ function search(
     itemType: ItemType,
     q: string
 ): (offset: number, limit: number) => Promise<SpotifyPage> {
-    const market = getMarket();
     switch (itemType) {
         case ItemType.Media:
             return async (offset: number, limit: number): Promise<SpotifyPage> => {
                 const {
                     tracks: {items, total, next},
-                } = await spotifyApi.searchTracks(q, {offset, limit, market});
+                } = await spotifyApi.searchTracks(q, offset, limit);
                 return {items, total, next};
             };
 
@@ -441,7 +393,7 @@ function search(
             return async (offset: number, limit: number): Promise<SpotifyPage> => {
                 const {
                     albums: {items, total, next},
-                } = await spotifyApi.searchAlbums(q, {offset, limit, market});
+                } = await spotifyApi.searchAlbums(q, offset, limit);
                 return {items: items as SpotifyAlbum[], total, next};
             };
 
@@ -449,7 +401,7 @@ function search(
             return async (offset: number, limit: number): Promise<SpotifyPage> => {
                 const {
                     artists: {items, total, next},
-                } = await spotifyApi.searchArtists(q, {offset, limit, market});
+                } = await spotifyApi.searchArtists(q, offset, limit);
                 return {items: items as SpotifyArtist[], total, next};
             };
 
@@ -457,7 +409,7 @@ function search(
             return async (offset: number, limit: number): Promise<SpotifyPage> => {
                 const {
                     playlists: {items, total, next},
-                } = await spotifyApi.searchPlaylists(q, {offset, limit, market});
+                } = await spotifyApi.searchPlaylists(q, offset, limit);
                 return {items: items as SpotifyPlaylist[], total, next};
             };
 

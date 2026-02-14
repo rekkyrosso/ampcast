@@ -1,4 +1,3 @@
-import {filter, map, mergeMap} from 'rxjs';
 import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
 import MediaAlbum from 'types/MediaAlbum';
@@ -12,10 +11,7 @@ import MusicBrainzAlbumTracksPager from 'services/musicbrainz/MusicBrainzAlbumTr
 import ErrorPager from 'services/pagers/ErrorPager';
 import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
-import {Logger} from 'utils';
 import listenbrainzApi from './listenbrainzApi';
-
-const logger = new Logger('ListenBrainzStatsPager');
 
 export default class ListenBrainzStatsPager<T extends MediaObject> extends SequentialPager<T> {
     constructor(
@@ -44,21 +40,6 @@ export default class ListenBrainzStatsPager<T extends MediaObject> extends Seque
             },
             {pageSize: 50, ...options}
         );
-    }
-
-    protected connect(): void {
-        if (!this.disconnected && !this.connected) {
-            super.connect();
-
-            this.subscribeTo(
-                this.observeAdditions().pipe(
-                    map((items) => items.filter((item) => item.itemType === ItemType.Media)),
-                    filter((items) => items.length > 0),
-                    mergeMap((items) => listenbrainzApi.addUserData(items as readonly MediaItem[]))
-                ),
-                logger
-            );
-        }
     }
 
     private createPage(response: ListenBrainz.Stats.Response): Page<T> {

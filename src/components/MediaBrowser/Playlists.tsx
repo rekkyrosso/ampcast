@@ -4,12 +4,12 @@ import {playlistItemsLayout} from 'components/MediaList/layouts';
 import PlaylistList from 'components/MediaList/PlaylistList';
 import PlaylistItemsList from 'components/MediaList/PlaylistItemsList';
 import Splitter from 'components/Splitter';
-import useIsPlaylistPlayable from 'hooks/useIsPlaylistPlayable';
+import usePager from 'hooks/usePager';
 import {PagedItemsProps} from './PagedItems';
 
 export default function Playlists({source, ...props}: PagedItemsProps<MediaPlaylist>) {
     const [[selectedPlaylist], setSelectedPlaylist] = useState<readonly MediaPlaylist[]>([]);
-    const draggable = useIsPlaylistPlayable(selectedPlaylist);
+    const [{complete: draggable}] = usePager(selectedPlaylist?.pager);
 
     const playlistList = (
         <PlaylistList

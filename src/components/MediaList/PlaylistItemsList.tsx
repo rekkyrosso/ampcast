@@ -139,32 +139,34 @@ export default function PlaylistItemsList({
             moveable={moveable}
             cursor={cursor}
             statusBarIcons={
-                unlocked
-                    ? [
-                          moveable ? 'mov' : undefined,
-                          deletable ? 'del' : undefined,
-                          droppable ? 'add' : undefined,
-                      ]
-                          .filter(exists)
-                          .map((permission) => (
-                              <span className="permission" key={permission}>
-                                  {permission}
-                              </span>
-                          ))
-                    : [
-                          <span
-                              title={
-                                  droppable
-                                      ? complete
-                                          ? 'Synching'
-                                          : 'Not fully loaded'
-                                      : 'This playlist cannot be edited'
-                              }
-                              key="locked"
-                          >
-                              <Icon name="locked" />
-                          </span>,
-                      ]
+                parentPlaylist
+                    ? unlocked
+                        ? [
+                              moveable ? 'mov' : undefined,
+                              deletable ? 'del' : undefined,
+                              droppable ? 'add' : undefined,
+                          ]
+                              .filter(exists)
+                              .map((permission) => (
+                                  <span className="permission" key={permission}>
+                                      {permission}
+                                  </span>
+                              ))
+                        : [
+                              <span
+                                  title={
+                                      droppable
+                                          ? complete
+                                              ? 'Synching'
+                                              : 'Not fully loaded'
+                                          : 'This playlist cannot be edited'
+                                  }
+                                  key="locked"
+                              >
+                                  <Icon name="locked" />
+                              </span>,
+                          ]
+                    : undefined
             }
             onDelete={deletable ? handleDelete : undefined}
             onDrop={droppable ? handleDrop : undefined}

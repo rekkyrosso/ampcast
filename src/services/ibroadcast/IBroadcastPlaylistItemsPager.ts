@@ -26,13 +26,16 @@ export default class IBroadcastPlaylistItemsPager extends IBroadcastPager<MediaI
                 const library = await ibroadcastLibrary.load();
                 const playlists = library.playlists;
                 const playlist = playlists[playlistId];
+                const tracks = library.tracks;
                 const map = playlists.map;
-                const trackIds: number[] | undefined = playlist?.[map.tracks]?.slice();
-                if (!trackIds) {
+                let trackIds: number[] | undefined = playlist?.[map.tracks]?.slice();
+                if (trackIds) {
+                    // Remove unknown id's.
+                    trackIds = trackIds.filter((id) => !!tracks[id]);
+                } else {
                     throw Error('Tracks not found');
                 }
-                const tracks = library.tracks;
-                this.trackIds = trackIds.filter((id) => !!tracks[id]);
+                this.trackIds = trackIds;
                 trackIds.forEach((id, index) => (this.positions[id] = index + 1));
                 if (itemSort) {
                     const {sortBy, sortOrder} = itemSort;

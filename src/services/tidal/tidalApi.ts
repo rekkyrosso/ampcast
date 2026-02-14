@@ -643,9 +643,15 @@ function createArtistAlbumsPager(artist: TidalArtist): Pager<MediaAlbum> {
     const topPager = new SimpleMediaPager<MediaAlbum>(async () => {
         try {
             const items = await fetchFirstPage(videos.pager, {keepAlive: true});
-            return items.length === 0 ? [topTracks] : [topTracks, videos];
+            if (items.length === 0) {
+                videos.pager.disconnect();
+                return [topTracks];
+            } else {
+                return [topTracks, videos];
+            }
         } catch (err) {
             logger.error(err);
+            videos.pager.disconnect();
             return [topTracks];
         }
     });
@@ -797,10 +803,10 @@ function getBadge(mediaTags: string[] | undefined): string | undefined {
     return mediaTags.includes('HIRES_LOSSLESS')
         ? 'max'
         : mediaTags.includes('LOSSLESS')
-        ? 'high'
-        : mediaTags.length === 0
-        ? 'low'
-        : undefined;
+          ? 'high'
+          : mediaTags.length === 0
+            ? 'low'
+            : undefined;
 }
 
 function isTidalVideo(item: TidalTrack | TidalVideo): item is TidalVideo {

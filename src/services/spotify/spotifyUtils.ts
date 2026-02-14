@@ -11,16 +11,13 @@ import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import PlaybackType from 'types/PlaybackType';
 import Thumbnail from 'types/Thumbnail';
-import {dispatchMetadataChanges} from 'services/metadata';
-import SimplePager from 'services/pagers/SimplePager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import WrappedPager from 'services/pagers/WrappedPager';
+import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import pinStore from 'services/pins/pinStore';
-import {getTextFromHtml} from 'utils';
-import spotify from './spotify';
+import {Logger, browser, getTextFromHtml} from 'utils';
 import spotifyApi, {
     SpotifyAlbum,
-    spotifyApiCallWithRetry,
     SpotifyArtist,
     SpotifyEpisode,
     SpotifyItem,
@@ -29,6 +26,8 @@ import spotifyApi, {
 } from './spotifyApi';
 import SpotifyPager, {SpotifyPage, SpotifyPlaylistItemsPager} from './SpotifyPager';
 import spotifySettings from './spotifySettings';
+
+const logger = new Logger('spotifyUtils');
 
 export function createMediaObject<T extends MediaObject>(
     item: SpotifyItem,
@@ -51,42 +50,6 @@ export function createMediaObject<T extends MediaObject>(
         case 'track':
             return createMediaItemFromTrack(item, inLibrary, position) as T;
     }
-}
-
-export async function addUserData<T extends MediaObject>(items: readonly T[]): Promise<void> {
-    items = items.filter(
-        (item) => item.inLibrary === undefined && spotify.canStore?.(item, items.length !== 1)
-    );
-    const [item] = items;
-    if (item) {
-        const ids = items.map((item) => item.src.split(':')[2]);
-        const inLibrary = await spotifyApiCallWithRetry(async () => {
-            switch (item.itemType) {
-                case ItemType.Album:
-                    return spotifyApi.containsMySavedAlbums(ids);
-
-                case ItemType.Artist:
-                    return spotifyApi.isFollowingArtists(ids);
-
-                case ItemType.Playlist:
-                    // Can only do one at a time.
-                    return spotifyApi.areFollowingPlaylist(ids[0], [spotifySettings.userId]);
-
-                default:
-                    return spotifyApi.containsMySavedTracks(ids);
-            }
-        });
-        dispatchMetadataChanges(
-            items.map(({src}, index) => ({
-                match: (item: MediaObject) => item.src === src,
-                values: {inLibrary: inLibrary[index]},
-            }))
-        );
-    }
-}
-
-export function getMarket(): string {
-    return spotifySettings.market;
 }
 
 function createMediaItemFromEpisode(episode: SpotifyEpisode): MediaItem {
@@ -131,11 +94,10 @@ function createMediaAlbum(album: SpotifyAlbum, inLibrary?: boolean | undefined):
         trackCount: album.total_tracks,
         pager: createAlbumTracksPager(album),
         inLibrary,
-        copyright:
-            album.copyrights
-                ?.map((copyright) => copyright.text)
-                .filter((text) => !!text)
-                .join(' | ') || undefined,
+        copyright: album.copyrights
+            ?.map((copyright) => copyright.text)
+            .filter((text) => !!text)
+            .join(' | '),
     };
 }
 
@@ -176,8 +138,7 @@ function createMediaPlaylist(
         owned,
         editable: owned,
         inLibrary: owned ? false : inLibrary,
-        public: playlist.public,
-        snapshotId: playlist.snapshot_id,
+        public: !!playlist.public,
         items: owned
             ? {
                   deletable: true,
@@ -190,7 +151,7 @@ function createMediaPlaylist(
     return mediaPlaylist as MediaPlaylist;
 }
 
-function createMediaItemFromTrack(
+export function createMediaItemFromTrack(
     track: SpotifyTrack,
     inLibrary?: boolean | undefined,
     position?: number
@@ -228,17 +189,36 @@ function createMediaItemFromTrack(
 }
 
 function createArtistAlbumsPager(artist: SpotifyArtist): Pager<MediaAlbum> {
-    const market = getMarket();
     const topTracks = createArtistTopTracks(artist);
-    const topTracksPager = new SimplePager([topTracks]);
+    const topTracksPager = new SimpleMediaPager<MediaAlbum>(async () => {
+        try {
+            // This uses a deprecated API call.
+            // Keep it, because it's quite a nice feature, and may still work in some older clients.
+            const items = await fetchFirstPage(topTracks.pager, {keepAlive: true});
+            if (items.length === 0) {
+                topTracks.pager.disconnect();
+                return [];
+            } else {
+                return [topTracks];
+            }
+        } catch (err) {
+            if (browser.isAmpcastApp) {
+                // It should work here.
+                // It may also work in some clients but we won't log the error.
+                logger.error(err);
+            }
+            topTracks.pager.disconnect();
+            return [];
+        }
+    });
     const albumsPager = new SpotifyPager<MediaAlbum>(
         async (offset: number, limit: number): Promise<SpotifyPage> => {
-            const {items, total, next} = await spotifyApi.getArtistAlbums(artist.id, {
+            const {items, total, next} = await spotifyApi.getArtistAlbums(
+                artist.id,
                 offset,
                 limit,
-                market,
-                include_groups: 'album,compilation,single',
-            });
+                'album,compilation,single'
+            );
             return {items: items as SpotifyAlbum[], total, next};
         }
     );
@@ -251,7 +231,7 @@ function createArtistTopTracks(artist: SpotifyArtist): MediaAlbum {
         src: `spotify:top-tracks:${artist.id}`,
         title: 'Top Tracks',
         artist: artist.name,
-        // thumbnails: artist.images as Thumbnail[], // Spotify branding
+        // thumbnails: artist.images as Thumbnail[], // Spotify branding rules
         pager: createTopTracksPager(artist),
         trackCount: undefined,
         synthetic: true,
@@ -259,14 +239,9 @@ function createArtistTopTracks(artist: SpotifyArtist): MediaAlbum {
 }
 
 function createTopTracksPager(artist: SpotifyArtist): Pager<MediaItem> {
-    const market = getMarket();
     return new SpotifyPager(
-        async (offset: number, limit: number): Promise<SpotifyPage> => {
-            const {tracks} = await spotifyApi.getArtistTopTracks(artist.id, market, {
-                offset,
-                limit,
-                market,
-            });
+        async (): Promise<SpotifyPage> => {
+            const {tracks} = await spotifyApi.getArtistTopTracks(artist.id);
             return {items: tracks as SpotifyTrack[], next: ''};
         },
         {pageSize: 30, maxSize: 100}
@@ -283,17 +258,11 @@ function createAlbumTracksPager(album: SpotifyAlbum): Pager<MediaItem> {
                     album: album as SpotifyApi.AlbumObjectSimplified,
                 })
             );
-            addUserData(items);
             return items;
         });
     } else {
-        const market = getMarket();
         return new SpotifyPager(async (offset: number, limit: number): Promise<SpotifyPage> => {
-            const {items, total, next} = await spotifyApi.getAlbumTracks(album.id, {
-                offset,
-                limit,
-                market,
-            });
+            const {items, total, next} = await spotifyApi.getAlbumTracks(album.id, offset, limit);
             return {
                 items: items.map((item) => ({
                     ...item,

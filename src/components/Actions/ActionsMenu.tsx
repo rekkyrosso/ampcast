@@ -12,7 +12,7 @@ import PopupMenu, {
     PopupMenuSeparator,
     showPopupMenu,
 } from 'components/PopupMenu';
-import useIsPlaylistPlayable from 'hooks/useIsPlaylistPlayable';
+import usePager from 'hooks/usePager';
 import {getLabelForAction} from './Actions';
 import {AddToPlaylistMenuItem} from './PlaylistActions';
 
@@ -45,7 +45,7 @@ export function ActionsMenuItems<T extends MediaObject>({
     const isPlaylist = item?.itemType === ItemType.Playlist;
     const playableTypes = [ItemType.Media, ItemType.Album, ItemType.Playlist];
     const allPlayable = items.every((item) => playableTypes.includes(item.itemType));
-    const playlistPlayable = useIsPlaylistPlayable(isPlaylist ? item : undefined);
+    const [{complete: playlistPlayable}] = usePager(isPlaylist ? item.pager : null);
     const playableNow = isPlaylist ? playlistPlayable : allPlayable;
     const canAddToPlaylist = item?.itemType === ItemType.Media;
 
@@ -175,7 +175,7 @@ function ContextualActions<T extends MediaObject>({item, inListView}: Contextual
                     key={Action.RemoveFromLibrary}
                 />
             ) : null}
-            {inListView && item.itemType === ItemType.Playlist ? (
+            {item.itemType === ItemType.Playlist ? (
                 <>
                     <PopupMenuSeparator />
                     {service?.editPlaylist ? (
@@ -186,7 +186,7 @@ function ContextualActions<T extends MediaObject>({item, inListView}: Contextual
                             key={Action.EditPlaylist}
                         />
                     ) : null}
-                    {service?.deletePlaylist ? (
+                    {inListView && service?.deletePlaylist ? (
                         <PopupMenuItem<Action>
                             label="Delete playlist"
                             acceleratorKey="Del"

@@ -41,15 +41,18 @@
         align-items: center;
         justify-content: center;
         text-align: center;
-        padding: 0 0.25em;
+        padding: 0 0.375em;
         border: 1px inset var(--frame-text-color);
-        border-radius: 0.25em;
+        border-radius: calc(var(--roundness) * 1em);
         font-size: 0.875em;
-        opacity: 0.75;
-        filter: brightness(0.75);
+        font-variant: small-caps;
+
+        .dark & {            
+            opacity: 0.75;
+        }
 
         & ~ .permission {
-            margin-left: 0.75em;
+            margin-left: 0.5em;
         }
     }
 }

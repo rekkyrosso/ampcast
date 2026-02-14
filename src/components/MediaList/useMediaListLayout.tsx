@@ -24,7 +24,6 @@ import StarRating from 'components/StarRating';
 import SunClock from 'components/SunClock';
 import Time from 'components/Time';
 import usePager from 'hooks/usePager';
-import useIsPlaylistPlayable from 'hooks/useIsPlaylistPlayable';
 import useMediaListFields from './useMediaListFields';
 import useMediaListView from './useMediaListView';
 import showDetailsMenu from './showDetailsMenu';
@@ -382,11 +381,10 @@ const Rating: RenderField = (item) => {
 };
 
 const Progress: RenderField<MediaPlaylist> = (playlist) => {
-    const [{items}] = usePager(playlist.pager);
+    const [{items, complete}] = usePager(playlist.pager);
     const playlistSize = playlist.trackCount;
     const itemCount = items.reduce((total) => (total += 1), 0);
-    const playable = useIsPlaylistPlayable(playlist);
-    return playable || playlistSize === 0 ? null : (
+    return complete || playlistSize === 0 ? null : (
         <progress
             max={playlistSize ?? 1}
             value={playlistSize == null ? 0 : itemCount}

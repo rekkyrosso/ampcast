@@ -1,4 +1,4 @@
-import {BehaviorSubject, debounceTime, filter, map, mergeMap, switchMap, tap} from 'rxjs';
+import {BehaviorSubject, debounceTime, filter, mergeMap, switchMap, tap} from 'rxjs';
 import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
@@ -7,20 +7,14 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import {Page, PagerConfig} from 'types/Pager';
 import ParentOf from 'types/ParentOf';
 import {exists, getMediaObjectId, Logger, moveSubset} from 'utils';
-import {
-    dispatchMetadataChanges,
-    observeMetadataChange,
-    observePlaylistAdditions,
-} from 'services/metadata';
+import {dispatchMetadataChanges, observePlaylistAdditions} from 'services/metadata';
 import SequentialPager from 'services/pagers/SequentialPager';
-import spotifyApi, {spotifyApiCallWithRetry, SpotifyItem} from './spotifyApi';
-import {addUserData, createMediaObject, getMarket} from './spotifyUtils';
+import spotifyApi, {SpotifyItem} from './spotifyApi';
+import {createMediaObject} from './spotifyUtils';
 import spotify from './spotify';
 
-const logger = new Logger('SpotifyPager');
-
 export interface SpotifyPage extends Page<SpotifyItem> {
-    readonly next?: string | undefined;
+    readonly next?: string | null;
 }
 
 export default class SpotifyPager<T extends MediaObject> extends SequentialPager<T> {
@@ -36,9 +30,7 @@ export default class SpotifyPager<T extends MediaObject> extends SequentialPager
         super(
             async (limit: number): Promise<Page<T>> => {
                 const offset = (this.pageNumber - 1) * limit;
-                const {items, total, next} = await spotifyApiCallWithRetry(() =>
-                    fetch(offset, limit, this.cursor)
-                );
+                const {items, total, next} = await fetch(offset, limit, this.cursor);
                 this.pageNumber++;
                 this.cursor = next || '';
                 return {
@@ -55,21 +47,8 @@ export default class SpotifyPager<T extends MediaObject> extends SequentialPager
                     atEnd: !next,
                 };
             },
-            {pageSize: 50, ...options}
+            {pageSize: 40, ...options}
         );
-    }
-
-    protected connect(): void {
-        if (!this.disconnected && !this.connected) {
-            super.connect();
-
-            if (!this.passive) {
-                this.subscribeTo(
-                    this.observeAdditions().pipe(mergeMap((items) => addUserData(items))),
-                    logger
-                );
-            }
-        }
     }
 }
 
@@ -85,14 +64,15 @@ export class SpotifyPlaylistItemsPager extends SpotifyPager<MediaItem> {
         const playlistId = getMediaObjectId(playlist);
         super(
             async (offset: number, limit: number) => {
-                const {items, total, next} = await spotifyApi.getPlaylistTracks(playlistId, {
+                const {items, total, next} = await spotifyApi.getPlaylistItems(
+                    playlistId,
                     offset,
-                    limit,
-                    market: getMarket(),
-                });
-                return {items: items.map((item) => item.track).filter(exists), total, next};
+                    limit
+                );
+                return {items: items.map((track) => track.item).filter(exists), total, next};
             },
             {
+                pageSize: 80,
                 autofill: true,
                 autofillInterval: 1000,
                 autofillMaxPages: 10,
@@ -147,15 +127,6 @@ export class SpotifyPlaylistItemsPager extends SpotifyPager<MediaItem> {
                 ),
                 playlistLogger
             );
-            // Keep Spotify's `snapshotId` in synch.
-            this.subscribeTo(
-                observeMetadataChange<MediaPlaylist>(this.playlist).pipe(
-                    map((values) => values.snapshotId),
-                    filter((snapshotId) => !!snapshotId),
-                    tap((snapshotId) => Object.assign(this.playlist, {snapshotId}))
-                ),
-                playlistLogger
-            );
         }
     }
 
@@ -206,7 +177,7 @@ export class SpotifyPlaylistItemsPager extends SpotifyPager<MediaItem> {
             // playlist and then re-write it.
             this.error = undefined;
             const playlistId = getMediaObjectId(this.playlist);
-            await spotifyApiCallWithRetry(() => spotifyApi.replaceTracksInPlaylist(playlistId, []));
+            await spotifyApi.clearPlaylist(playlistId);
             await spotify.addToPlaylist!(this.playlist, this.items);
         } catch (err) {
             playlistLogger.error(err);

@@ -23,6 +23,7 @@ import SortParams from 'types/SortParams';
 import {Logger, clamp, exists, uniq} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
 import {observeMetadataChanges} from 'services/metadata';
+import {getServiceFromSrc} from 'services/mediaServices';
 import {observeSourceSorting} from 'services/mediaServices/servicesSettings';
 
 export interface PageFetch {
@@ -292,6 +293,11 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
                 );
 
                 this.subscribeTo(
+                    this.observeAdditions().pipe(tap((items) => this.addUserData(items))),
+                    logger
+                );
+
+                this.subscribeTo(
                     observeMetadataChanges<T>().pipe(
                         tap((changes) => this.applyMetadataChanges(changes))
                     ),
@@ -438,6 +444,11 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
                 );
             }
         });
+    }
+
+    private addUserData(items: readonly T[]): void {
+        const service = getServiceFromSrc(items[0]);
+        service?.addUserData?.(items);
     }
 
     private updateChildSort(createChildPager: CreateChildPager<T>, childSort?: SortParams): void {

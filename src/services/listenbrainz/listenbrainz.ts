@@ -10,6 +10,7 @@ import Pager from 'types/Pager';
 import Pin, {Pinnable} from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import DataService from 'types/DataService';
+import {dispatchMetadataChanges} from 'services/metadata';
 import SimplePager from 'services/pagers/SimplePager';
 import listenbrainzApi from './listenbrainzApi';
 import {
@@ -47,6 +48,7 @@ const listenbrainz: DataService = {
     },
     editablePlaylists: listenbrainzPlaylists,
     addToPlaylist,
+    addUserData,
     canPin,
     canStore,
     compareForRating,
@@ -66,6 +68,20 @@ const listenbrainz: DataService = {
 };
 
 export default listenbrainz;
+
+async function addUserData<T extends MediaObject>(items: readonly T[]): Promise<void> {
+    items = items.filter((item) => item.inLibrary === undefined && canStore(item));
+    if (items.length > 0) {
+        const inLibrary = await listenbrainzApi.getInLibrary(items as readonly MediaItem[]);
+
+        dispatchMetadataChanges(
+            items.map((item, index) => ({
+                match: (object: MediaObject) => listenbrainzApi.compareForRating(object, item),
+                values: {inLibrary: inLibrary[index]},
+            }))
+        );
+    }
+}
 
 function canPin(item: MediaObject): boolean {
     return item.itemType === ItemType.Playlist;
