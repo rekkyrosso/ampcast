@@ -34,24 +34,38 @@ export default function Splitter({id = '', arrange = 'columns', children}: Split
     }, [noFirstPaneSize]);
 
     const handleMouseDown = useCallback(
-        (event: React.MouseEvent) => {
-            if (event.button === 0) {
-                const dragStartPos = vertical ? event.screenY : event.screenX;
+        (event: React.MouseEvent | React.TouchEvent) => {
+            let dragStartPos: number | undefined;
+            if ('touches' in event) {
+                const touch = event.touches[0];
+                dragStartPos = vertical ? touch?.screenY : touch?.screenX;
+            } else if ('button' in event && event.button === 0) {
+                event.preventDefault();
+                dragStartPos = vertical ? event.screenY : event.screenX;
+            }
+            if (typeof dragStartPos === 'number') {
                 const firstPaneSize = getFirstPaneSize(containerRef.current!, vertical);
                 setDragStartPos(dragStartPos);
                 setDragStartPaneSize(firstPaneSize);
-                event.preventDefault();
             }
         },
         [vertical]
     );
 
     const handleMouseMove = useCallback(
-        (event: MouseEvent) => {
-            const dragEndPos = vertical ? event.screenY : event.screenX;
-            const dragDistance = dragEndPos - dragStartPos;
-            const size = clamp(0.0001, dragStartPaneSize + dragDistance / containerSize, 1);
-            setFirstPaneSize(size);
+        (event: MouseEvent | TouchEvent) => {
+            let dragEndPos: number | undefined;
+            if ('touches' in event) {
+                const touch = event.touches[0];
+                dragEndPos = vertical ? touch?.screenY : touch?.screenX;
+            } else if ('button' in event) {
+                dragEndPos = vertical ? event.screenY : event.screenX;
+            }
+            if (typeof dragEndPos === 'number') {
+                const dragDistance = dragEndPos - dragStartPos;
+                const size = clamp(0.0001, dragStartPaneSize + dragDistance / containerSize, 1);
+                setFirstPaneSize(size);
+            }
         },
         [vertical, dragStartPos, dragStartPaneSize, containerSize]
     );
@@ -68,8 +82,11 @@ export default function Splitter({id = '', arrange = 'columns', children}: Split
             const body = document.body;
             const subscription = new Subscription();
             const fromMouseEvent = (type: string) => fromEvent<MouseEvent>(document, type);
+            const fromTouchEvent = (type: string) => fromEvent<TouchEvent>(document, type);
             subscription.add(fromMouseEvent('mouseup').subscribe(endDrag));
+            subscription.add(fromTouchEvent('touchend').subscribe(endDrag));
             subscription.add(fromMouseEvent('mousemove').subscribe(handleMouseMove));
+            subscription.add(fromTouchEvent('touchmove').subscribe(handleMouseMove));
             subscription.add(fromEvent(document, 'selectstart').subscribe(preventDefault));
             subscription.add(fromEvent(window, 'blur').subscribe(endDrag));
             body.style.cursor = vertical ? 'ns-resize' : 'ew-resize';
@@ -98,6 +115,7 @@ export default function Splitter({id = '', arrange = 'columns', children}: Split
                                 className={`layout-splitter ${dragging ? 'active' : ''}`}
                                 role="separator"
                                 onMouseDown={handleMouseDown}
+                                onTouchStart={handleMouseDown}
                                 key="splitter"
                             />
                         );

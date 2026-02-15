@@ -63,6 +63,7 @@ class MainTheme implements CurrentTheme {
     private readonly rootStyle: CSSStyleDeclaration;
     private readonly appStyle: CSSStyleDeclaration;
     private readonly playheadStyle: CSSStyleDeclaration;
+    private readonly scrollbarStyle: CSSStyleDeclaration;
     private readonly app = document.getElementById('app') as HTMLElement;
     private readonly system = document.getElementById('system') as HTMLElement;
     private readonly theme$ = new BehaviorSubject<CurrentTheme>(defaultTheme);
@@ -75,6 +76,7 @@ class MainTheme implements CurrentTheme {
         this.rootStyle = this.createStyle(':root');
         this.appStyle = this.createStyle('.app');
         this.playheadStyle = this.createStyle('#playhead');
+        this.scrollbarStyle = this.createStyle('.scrollable');
         this.system.classList.toggle('selection-dark', true);
         this.load();
 
@@ -322,6 +324,7 @@ class MainTheme implements CurrentTheme {
 
     set scrollbarTextColor(color: string) {
         this.setColor('scrollbarTextColor', color, this.defaultScrollbarTextColor);
+        this.createScrollbarButtons();
     }
 
     get selectedBackgroundColor(): string {
@@ -433,8 +436,8 @@ class MainTheme implements CurrentTheme {
         const primaryLightColor = this.isDark
             ? this.textColor
             : this.isFrameTextLight
-            ? this.frameTextColor
-            : this.backgroundColor;
+              ? this.frameTextColor
+              : this.backgroundColor;
         return [primaryLightColor, ...brightColor.tetrad().map((color) => color.toRgbString())];
     }
 
@@ -565,12 +568,29 @@ class MainTheme implements CurrentTheme {
             `<path fill='${color}' d='M 335.5,164.5 C 358.647,162.813 369.147,173.48 367,196.5C 361.494,211.009 350.994,216.842 335.5,214C 320.991,208.494 315.158,197.994 318,182.5C 320.683,173.318 326.517,167.318 335.5,164.5 Z'/>`,
             `<path fill='${color}' d='M 164.5,296.5 C 172.699,295.1 179.865,297.1 186,302.5C 201.99,327.582 224.823,341.582 254.5,344.5C 279.499,342.418 299.999,331.751 316,312.5C 318.955,308.756 321.789,304.922 324.5,301C 334.716,294.616 344.55,295.116 354,302.5C 358.296,308.845 359.63,315.845 358,323.5C 334.118,361.698 299.618,382.365 254.5,385.5C 209.382,382.365 174.882,361.698 151,323.5C 148.138,310.557 152.638,301.557 164.5,296.5 Z'/>`,
         ].join('');
-        const url = this.createBase64SVG(512, 512, svgContent);
+        const url = this.createSVGUrl(512, 512, svgContent);
         this.playheadStyle.setProperty('--smiley', url);
         this.playheadStyle.setProperty('--thumb-size', `${Math.round(this.fontSize * 1.25)}px`);
     }
 
-    private createBase64SVG(width: number, height: number, svgContent: string): string {
+    private createScrollbarButtons(): void {
+        const color = new TinyColor(
+            this.scrollbarTextColor || this.defaultScrollbarTextColor
+        ).toRgbString();
+        const buttons = new Map<string, string>([
+            ['horizontal-decrement', '100,50 50,75 100,100'],
+            ['horizontal-increment', '50,50 100,75 50,100'],
+            ['vertical-decrement', '50,100 75,50 100,100'],
+            ['vertical-increment', '50,50 75,100 100,50'],
+        ]);
+        for (const [name, points] of buttons.entries()) {
+            const svgContent = `<polygon fill='${color}' points='${points}'/>`;
+            const url = this.createSVGUrl(150, 150, svgContent);
+            this.scrollbarStyle.setProperty(`--scrollbar-${name}`, url);
+        }
+    }
+
+    private createSVGUrl(width: number, height: number, svgContent: string): string {
         const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}'>${svgContent}</svg>`;
         return `url("data:image/svg+xml;utf8,${svg}")`;
     }

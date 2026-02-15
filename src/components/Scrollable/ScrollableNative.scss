@@ -1,0 +1,11 @@
+.scrollable.scrollable-native {
+    overflow: auto;
+    scrollbar-color: var(--text-color) var(--background-color);
+
+    .scrollable-head {
+        position: sticky;
+        left: 0;
+        top: 0;
+        z-index: 1;
+    }
+}

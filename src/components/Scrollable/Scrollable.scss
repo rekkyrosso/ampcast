@@ -1,8 +1,37 @@
 .scrollable {
-    --scrollbar-size: calc(1.5em * var(--scrollbar-thickness));
+    --scrollbar-size: calc(1.33em * var(--scrollbar-thickness));
+    --scrollbar-button-background:
+        linear-gradient(to bottom,
+            var(--scrollbar-color-hi),
+            transparent 0.125em),
+        linear-gradient(to right,
+            var(--scrollbar-color-hi),
+            transparent 0.125em),
+        linear-gradient(to left,
+            var(--scrollbar-color-lo),
+            transparent 0.125em),
+        linear-gradient(to top,
+            var(--scrollbar-color-lo),
+            transparent 0.125em);
 
-    overflow: hidden;
-    border-radius: inherit;
+    --scrollbar-color-hover: hsl(var(--scrollbar-color-h),
+            var(--scrollbar-color-s),
+            calc(var(--scrollbar-color-l) + (100% - var(--scrollbar-color-l)) * 0.05));
+
+    --scrollbar-color-active: hsl(var(--scrollbar-color-h),
+            var(--scrollbar-color-s),
+            calc(var(--scrollbar-color-l) - var(--scrollbar-color-l) * 0.25));
+
+    .themed.light & {
+        --scrollbar-color-hover: hsl(var(--scrollbar-color-h),
+                var(--scrollbar-color-s),
+                calc(var(--scrollbar-color-l) + (100% - var(--scrollbar-color-l)) * 0.25));
+
+        --scrollbar-color-active: hsl(var(--scrollbar-color-h),
+                var(--scrollbar-color-s),
+                calc(var(--scrollbar-color-l) - var(--scrollbar-color-l) * 0.1));
+
+    }
 
     &,
     &-content {

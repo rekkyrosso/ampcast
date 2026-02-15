@@ -549,7 +549,7 @@ export default function ListView<T>({
             event.stopPropagation();
             if (droppable || moveable) {
                 const isDropTarget =
-                    size === 0 || (event.target as HTMLElement).className === 'scrollable-body';
+                    size === 0 || (event.target as HTMLElement).className.includes('scrollable');
                 const rowIndex = isDropTarget ? size : getRowIndexFromMouseEvent(event);
                 if (rowIndex === -1) {
                     setDropEffect(event, 'none');
