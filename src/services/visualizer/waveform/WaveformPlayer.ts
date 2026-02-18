@@ -16,7 +16,7 @@ export interface WaveformPaintData {
 }
 
 export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVisualizer> {
-    private readonly logger = new Logger(`WaveformPlayer/${this.name}`);
+    private readonly logger?: Logger;
     private readonly analyser: AnalyserNode;
     private readonly canvas = document.createElement('canvas');
     private readonly context2D = this.canvas.getContext('2d')!;
@@ -25,12 +25,15 @@ export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVis
     private animationFrameId = 0;
     private currentVisualizer = '';
 
-    constructor({context, source}: AudioManager, readonly name: string) {
+    constructor({context, source}: AudioManager, name = '') {
         super();
+        if (name === 'visualizer-waveform') {
+            this.logger = new Logger('WaveformPlayer');
+        }
         this.source = source;
         this.analyser = context.createAnalyser();
         this.canvas.hidden = true;
-        this.canvas.className = `visualizer visualizer-waveform visualizer-waveform-${name}`;
+        this.canvas.className = `visualizer ${name}`;
     }
 
     get hidden(): boolean {
@@ -41,11 +44,11 @@ export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVis
         if (this.canvas.hidden !== hidden) {
             this.canvas.hidden = hidden;
             if (hidden) {
-                this.logger.log('disconnect');
+                this.logger?.log('disconnect');
                 this.cancelAnimation();
                 this.source.disconnect(this.analyser);
             } else {
-                this.logger.log('connect');
+                this.logger?.log('connect');
                 this.source.connect(this.analyser);
                 if (!this.animationFrameId) {
                     this.render();
@@ -59,7 +62,7 @@ export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVis
     }
 
     load(visualizer: WaveformVisualizer): void {
-        this.logger.log('load', visualizer.name);
+        this.logger?.log('load', visualizer.name);
         if (this.currentVisualizer !== visualizer.name) {
             this.currentVisualizer = visualizer.name;
             this.cancelAnimation();
@@ -71,19 +74,19 @@ export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVis
     }
 
     play(): void {
-        this.logger.log('play');
+        this.logger?.log('play');
         if (!this.animationFrameId) {
             this.render();
         }
     }
 
     pause(): void {
-        this.logger.log('pause');
+        this.logger?.log('pause');
         this.cancelAnimation();
     }
 
     stop(): void {
-        this.logger.log('stop');
+        this.logger?.log('stop');
         this.cancelAnimation();
         this.clear();
     }

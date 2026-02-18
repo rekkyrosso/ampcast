@@ -4,7 +4,7 @@ import PlaylistItem from 'types/PlaylistItem';
 import {CoverArtVisualizer} from 'types/Visualizer';
 import {Logger} from 'utils';
 import {observeAudioSettings} from 'services/audio';
-import {getCurrentItem, observeCurrentItem} from 'services/playlist';
+import {observeCurrentItem} from 'services/playlist';
 import {isProviderSupported} from '../visualizer';
 import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 import visualizerSettings, {observeVisualizerSettings} from '../visualizerSettings';
@@ -16,8 +16,8 @@ const logger = new Logger('CovertArtPlayer');
 export default class CovertArtPlayer extends AbstractVisualizerPlayer<CoverArtVisualizer> {
     private readonly animatedBackground: AnimatedBackgroundPlayer;
     private readonly beatsPlayer: BeatsPlayer;
-    private element: HTMLElement | null = null;
-    #hidden = true;
+    private beatsPauseTimer = 0;
+    hidden = true;
 
     constructor(audio: AudioManager) {
         super();
@@ -30,7 +30,7 @@ export default class CovertArtPlayer extends AbstractVisualizerPlayer<CoverArtVi
                 map((settings) => settings.coverArtAnimatedBackground),
                 distinctUntilChanged(),
                 tap((animatedBackground) => {
-                    this.animatedBackground.hidden = this.hidden || !animatedBackground;
+                    this.animatedBackground.hidden = !animatedBackground;
                 })
             )
             .subscribe(logger);
@@ -40,7 +40,7 @@ export default class CovertArtPlayer extends AbstractVisualizerPlayer<CoverArtVi
                 map(([currentItem]) => this.canShowBeats(currentItem)),
                 distinctUntilChanged(),
                 tap((canShowBeats) => {
-                    this.beatsPlayer.hidden = this.hidden || !canShowBeats;
+                    this.beatsPlayer.hidden = !canShowBeats;
                 })
             )
             .subscribe(logger);
@@ -63,42 +63,39 @@ export default class CovertArtPlayer extends AbstractVisualizerPlayer<CoverArtVi
         this.animatedBackground.backgroundColor = backgroundColor;
     }
 
-    get beatsColor(): string {
-        return this.beatsPlayer.color;
-    }
-
-    set beatsColor(color: string) {
-        this.beatsPlayer.color = color;
-    }
-
-    get color(): string {
+    get backgroundColor2(): string {
         return this.animatedBackground.color;
     }
 
-    set color(color: string) {
+    set backgroundColor2(color: string) {
         this.animatedBackground.color = color;
     }
 
-    get hidden(): boolean {
-        return this.#hidden;
+    get beatsColor(): string {
+        return this.beatsPlayer.beatsColor;
     }
 
-    set hidden(hidden: boolean) {
-        this.#hidden = hidden;
-        this.animatedBackground.hidden = hidden || !visualizerSettings.coverArtAnimatedBackground;
-        this.beatsPlayer.hidden = hidden || !this.canShowBeats(getCurrentItem());
-        if (this.element) {
-            this.element.hidden = hidden;
-        }
+    set beatsColor(color: string) {
+        this.beatsPlayer.beatsColor = color;
+    }
+
+    get waveColor(): string {
+        return this.beatsPlayer.waveColor;
+    }
+
+    set waveColor(color: string) {
+        this.beatsPlayer.waveColor = color;
     }
 
     appendTo(element: HTMLElement): void {
-        const beatsContainer = element.querySelector('.beats-player') as HTMLElement;
-        if (beatsContainer) {
-            element.hidden = this.hidden;
-            this.element = element;
-            this.beatsPlayer.appendTo(beatsContainer);
-            this.animatedBackground.appendTo(element.querySelector('.animated-background')!);
+        const animatedBackgroundElement =
+            element.querySelector<HTMLElement>('.animated-background');
+        if (animatedBackgroundElement) {
+            this.animatedBackground.appendTo(animatedBackgroundElement);
+        }
+        const beatsElement = element.querySelector<HTMLElement>('.beats-player');
+        if (beatsElement) {
+            this.beatsPlayer.appendTo(beatsElement);
         }
     }
 
@@ -109,6 +106,7 @@ export default class CovertArtPlayer extends AbstractVisualizerPlayer<CoverArtVi
 
     play(): void {
         logger.log('play');
+        clearTimeout(this.beatsPauseTimer);
         if (visualizerSettings.coverArtAnimatedBackground) {
             this.animatedBackground.play();
         }
@@ -120,11 +118,13 @@ export default class CovertArtPlayer extends AbstractVisualizerPlayer<CoverArtVi
     pause(): void {
         logger.log('pause');
         this.animatedBackground.pause();
-        this.beatsPlayer.pause();
+        // Don't pause the animation until it has faded out.
+        this.beatsPauseTimer = setTimeout(() => this.beatsPlayer.pause(), 3_000) as any;
     }
 
     stop(): void {
         logger.log('stop');
+        clearTimeout(this.beatsPauseTimer);
         this.animatedBackground.stop();
         this.beatsPlayer.stop();
     }

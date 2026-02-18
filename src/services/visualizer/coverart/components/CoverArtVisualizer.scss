@@ -1,88 +1,90 @@
 @use 'styles/effects.scss';
 
 .visualizer-coverart {
-    --thumbnail-size: 45%;
-    --thumbnail-width: min(var(--thumbnail-size), 30vh);
-    background-color: var(--background-color);
     text-rendering: optimizeLegibility;
     font-size: 1.25em;
 
     .media.fullscreen & {
-        --thumbnail-width: min(var(--thumbnail-size), 50vh);
         font-size: 1.375em;
     }
 
     .media:fullscreen & {
-        --thumbnail-width: min(var(--thumbnail-size), 67vh);
         font-size: 1.5em;
     }
 
-    &.arrange-row {
-        .currently-playing {
-            flex-direction: row;
+    .currently-playing.arrange-row {
+        flex-direction: row;
 
-            &-thumbnail {
-                width: calc(var(--thumbnail-width) + 2em);
-            }
+        .currently-playing-thumbnail {
+            width: calc(var(--thumbnail-width) + 2em);
+        }
 
-            .sub-title {
-                .media-source-label {
-                    display: inline-flex;
-                    align-items: flex-start;
-                }
+        .sub-title {
+            .media-source-label {
+                display: inline-flex;
+                align-items: flex-start;
             }
         }
     }
 
-    &.arrange-column {
-        .currently-playing {
+    .currently-playing.arrange-column {
+        flex-direction: column;
+
+        .currently-playing-thumbnail {
+            display: flex;
             flex-direction: column;
+            align-items: center;
+        }
 
-            &-thumbnail {
-                display: flex;
-                flex-direction: column;
-                align-items: center;
-            }
+        .currently-playing-text {
+            padding: 0 1em;
+            text-align: center;
+        }
 
-            &-text {
-                padding: 0 1em;
-                text-align: center;
-            }
+        .sub-title {
+            .media-source-label {
+                display: block;
 
-            .sub-title {
-                .media-source-label {
-                    display: block;
-
-                    .text {
-                        display: inline;
-                    }
+                .text {
+                    display: inline;
                 }
             }
+        }
+
+        h5.sub-title {
+            display: none;
         }
     }
 
     .currently-playing {
+        --thumbnail-size: 45%;
+        --thumbnail-width: min(var(--thumbnail-size), 30vh);
         position: absolute;
         display: flex;
         inset: 0;
         color: var(--text-color);
-        transition: opacity 2s linear;
+        background-color: var(--background-color);
+        transition: opacity 2s linear 1s;
 
         .media.paused & {
-            transition-duration: 1s;
+            transition: none;
+        }
+
+        .media.fullscreen & {
+            --thumbnail-width: min(var(--thumbnail-size), 50vh);
+        }
+
+        .media:fullscreen & {
+            --thumbnail-width: min(var(--thumbnail-size), 67vh);
         }
 
         &[hidden] {
             display: flex;
             opacity: 0;
-        }
 
-        /* background-color */
-        &::before {
-            content: "";
-            position: absolute;
-            inset: 0;
-            background-color: var(--background-color);
+            .animated-background {
+                opacity: 0;
+            }
         }
 
         .cover-art {
@@ -107,7 +109,8 @@
         }
 
         &-text {
-            position: relative; /* break inherited opacity */
+            position: relative;
+            /* break inherited opacity */
             padding: 1em 1em 1em 0.5em;
             font-weight: bold;
             overflow-wrap: anywhere;
@@ -115,7 +118,7 @@
         }
 
         &.text-light {
-             .currently-playing-text {
+            .currently-playing-text {
                 text-shadow: 2px 2px 0 rgba(16, 16, 16, 0.8);
 
                 .icon {
@@ -149,13 +152,13 @@
         }
 
         &.dark {
-             .playback-state {            
+            .playback-state {
                 color: rgba(255, 255, 255, 0.6);
             }
         }
 
         &.light {
-             .playback-state {            
+            .playback-state {
                 color: rgba(0, 0, 0, 0.6);
             }
 
@@ -174,7 +177,8 @@
         }
 
         .provided-by {
-            position: relative; /* break inherited opacity */
+            position: relative;
+            /* break inherited opacity */
             font-size: max(0.5em, 11px);
             margin-top: 0.5em;
             align-items: flex-start;
@@ -196,21 +200,35 @@
 
         .title {
             @include effects.line-clamp(3);
+            font-size: max(1em, 10px);
             line-height: 1.2;
         }
 
         .sub-title {
             margin-top: 0.5em;
-            font-size: 0.75em;
+            font-size: max(0.75em, 9px);
             line-height: 1;
 
             .text {
                 padding-bottom: .14em;
             }
         }
+
+        h5.sub-title {
+            margin-top: 1em;
+            margin-left: 0.25em;
+            font-size: max(0.5em, 8px);
+
+            .text {
+                margin-left: 0.375em;
+                padding-bottom: .2em;
+            }
+        }
     }
 
     .animated-background {
+        transition: opacity 4s linear 4s;
+
         canvas {
             background-color: var(--background-color);
         }
@@ -224,12 +242,5 @@
     .media.loaded & .beats-player {
         opacity: 1;
         transition: opacity 4s linear;
-    }
-
-    &.animated-background-enabled.palette-ready {
-        .currently-playing::before {
-            opacity: 0;
-            transition: opacity 4s linear;
-        }
     }
 }

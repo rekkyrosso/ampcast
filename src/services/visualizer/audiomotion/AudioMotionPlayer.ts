@@ -92,8 +92,9 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
     }
 
     private registerGradients(): void {
+        const isMediaButtonLightEnough = new TinyColor(theme.mediaButtonColor).getBrightness() > 80;
         const brightColor = new TinyColor(
-            theme.isMediaButtonLight ? theme.mediaButtonColor : theme.defaultMediaButtonColor
+            isMediaButtonLightEnough ? theme.mediaButtonColor : theme.defaultMediaButtonColor
         );
         const luminousColor =
             [

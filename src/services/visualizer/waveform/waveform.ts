@@ -13,7 +13,7 @@ const waveform: VisualizerProvider<WaveformVisualizer> = {
     observeVisualizers: () => of(visualizers),
     createPlayer(audio) {
         if (!this.player) {
-            (this as any).player = new WaveformPlayer(audio, 'main');
+            (this as any).player = new WaveformPlayer(audio, 'visualizer-waveform');
         }
         return this.player!;
     },
