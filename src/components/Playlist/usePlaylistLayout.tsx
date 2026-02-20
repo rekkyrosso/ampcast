@@ -1,17 +1,15 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import LinearType from 'types/LinearType';
 import LookupStatus from 'types/LookupStatus';
 import PlaylistItem from 'types/PlaylistItem';
-import mediaPlayer from 'services/mediaPlayback/mediaPlayer';
 import {hasPlayableSrc} from 'services/mediaServices';
 import {ExplicitBadge, LivePlaybackBadge} from 'components/Badges';
 import Icon, {IconName} from 'components/Icon';
 import {ListViewLayout} from 'components/ListView';
-import MediaButton from 'components/MediaControls/MediaButton';
+import RadioButtons from 'components/MediaControls/RadioButtons';
 import Time from 'components/Time';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import usePaused from 'hooks/usePaused';
-import usePlaybackState from 'hooks/usePlaybackState';
 
 const playlistLayout: ListViewLayout<PlaylistItem> = {
     view: 'details',
@@ -56,7 +54,11 @@ export default function usePlaylistLayout(size: number): ListViewLayout<Playlist
                         ...col,
                         render: (item: PlaylistItem) => {
                             if (item.id === currentId && !paused && item.skippable) {
-                                return <Skip />;
+                                return (
+                                    <div className="radio-buttons">
+                                        <RadioButtons />
+                                    </div>
+                                );
                             } else {
                                 return Duration(item);
                             }
@@ -68,47 +70,6 @@ export default function usePlaylistLayout(size: number): ListViewLayout<Playlist
             }),
         };
     }, [sizeExponent, currentId, paused]);
-}
-
-function Skip() {
-    const [disabled, setDisabled] = useState(true);
-    const {currentTime, startedAt} = usePlaybackState();
-    const playbackStarted = currentTime >= 1 && Date.now() - startedAt >= 1000;
-
-    useEffect(() => {
-        if (playbackStarted) {
-            setDisabled(false);
-        }
-    }, [playbackStarted]);
-
-    const skipNext = useCallback(async () => {
-        setDisabled(true);
-        await mediaPlayer.skipNext();
-        setDisabled(false);
-    }, []);
-
-    const skipPrev = useCallback(async () => {
-        setDisabled(true);
-        await mediaPlayer.skipPrev();
-        setDisabled(false);
-    }, []);
-
-    return (
-        <div className="media-buttons">
-            <MediaButton
-                icon="play"
-                aria-label="Skip to previous track"
-                onClick={skipPrev}
-                disabled={disabled}
-            />
-            <MediaButton
-                icon="play"
-                aria-label="Skip to next track"
-                onClick={skipNext}
-                disabled={disabled}
-            />
-        </div>
-    );
 }
 
 function RowNumber(rowIndex: number, numberOfDigits = 0) {

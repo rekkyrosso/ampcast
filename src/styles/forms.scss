@@ -96,8 +96,14 @@ input[type="color"] {
 }
 
 input[type="range"] {
+    --track-color: currentColor;
+    --track-radius: var(--track-height);
     --track-height: 0.25em;
-    --thumb-size: 1.5em;
+    --thumb-color: currentColor;
+    --thumb-width: 1.5em;
+    --thumb-height: 1.5em;
+    --thumb-radius: var(--thumb-height);
+    --thumb-shadow: 0 0 1px calc(var(--thumb-height) / 10) var(--background-color);
 
     border: none;
     -webkit-appearance: none;
@@ -111,22 +117,22 @@ input[type="range"] {
     @mixin track {
         width: 100%;
         height: var(--track-height);
-        background-color: currentColor;
+        background-color: var(--track-color);
         border: none;
-        border-radius: var(--track-height);
+        border-radius: var(--track-radius);
         box-sizing: border-box;
     }
 
     @mixin thumb {
         appearance: none;
-        width: var(--thumb-size);
-        height: var(--thumb-size);
-        background-color: currentColor;
+        width: var(--thumb-width);
+        height: var(--thumb-height);
+        background-color: var(--thumb-color);
         border: 0;
-        border-radius: var(--thumb-size);
-        margin-top: calc(var(--track-height) / 2 - var(--thumb-size) / 2);
+        border-radius: var(--thumb-radius);
+        margin-top: calc(var(--track-height) / 2 - var(--thumb-height) / 2);
         box-sizing: border-box;
-        box-shadow: 0 0 1px calc(var(--thumb-size) / 10) var(--background-color);
+        box-shadow: var(--thumb-shadow);
     }
 
     &::-webkit-slider-runnable-track {

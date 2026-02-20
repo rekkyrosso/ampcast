@@ -1,0 +1,119 @@
+.media-controls-overlay {
+    .media-buttons,
+    .radio-buttons {
+        position: absolute;
+        left: 50%;
+        transform: translateX(-50%);
+    }
+
+    .volume-control {
+        position: absolute;
+        left: 0.5em;
+        top: 0.5em;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        justify-content: center;
+        font-size: max(0.375em, 1rem);
+        padding-right: 0.5em;
+        border-radius: 1em;
+        opacity: 0.75;
+
+        &:hover {
+            opacity: 1;
+        }
+
+        .icon-button {
+            width: 0.875em;
+            height: 0.875em;
+            border-radius: 50%;
+            background: none !important;
+            filter: none;
+
+            .icon {
+                width: inherit;
+                height: inherit;
+            }
+        }
+
+        input[type=range] {
+            --track-color: var(--soft-white);
+            --thumb-color: var(--soft-white);
+            --track-height: 0.15em;
+            --thumb-width: .625em;
+            --thumb-height: .625em;
+            width: 5em;
+            cursor: pointer;
+        }
+    }
+
+    .playback-control {
+        .media.fullscreen & {
+            font-size: max(3vw, 1.25rem);
+        }
+
+        .icon {
+            width: 1em;
+            height: 1em;
+        }
+    }
+
+    .media-buttons {
+        bottom: 1.5em;
+    }
+
+    .radio-buttons {
+        bottom: 2em;
+        margin-left: 5.75em;
+
+        .icon-button {
+            font-size: 0.375em;
+        }
+
+        .icon-radio {
+            font-size: 0.5em;
+            background: var(--soft-white);
+            color: black;
+            border-radius: 50%;
+            margin-right: 0.25em;
+            padding: 0.125em;
+            opacity: 0.5;
+        }
+    }
+
+    .time-control {
+        input[type=range] {
+            --track-height: var(--progress-bar-height);
+            --thumb-width: calc(8 * var(--progress-bar-height));
+            --thumb-height: var(--progress-bar-height);
+            --thumb-radius: var(--progress-bar-height);
+            --thumb-color: #242424;
+            --thumb-shadow: none;
+            --track-color: transparent;
+            --track-radius: 0;
+            position: absolute;
+            bottom: 0;
+            width: 100%;
+            height: var(--progress-bar-height);
+            color: transparent;
+            cursor: pointer;
+
+            &:disabled,
+            .media.paused & {
+                display: none;
+            }
+
+            &:disabled {
+                pointer-events: none;
+            }
+
+            &:hover {
+                --thumb-color: black;
+            }
+        }
+
+        time {
+            display: none;
+        }
+    }
+}

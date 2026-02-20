@@ -2,7 +2,7 @@ import {distinctUntilChanged, map} from 'rxjs';
 import AudioManager from 'types/AudioManager';
 import LinearType from 'types/LinearType';
 import {WaveformVisualizer} from 'types/Visualizer';
-import {isFullscreenMedia} from 'utils';
+import {isFullscreenMedia, isMiniPlayer} from 'utils';
 import theme from 'services/theme';
 import {observeCurrentItem} from 'services/mediaPlayback/playback';
 import WaveformPlayer from './WaveformPlayer';
@@ -19,20 +19,20 @@ export default class BeatsPlayer extends WaveformPlayer {
             onPaint: ({context2D, width, height, analyser}) => {
                 const barCount = 10;
                 const visualBarCount = barCount - 2;
-                const isFullscreen = isFullscreenMedia();
-                const gapWidth = isFullscreen ? 5 : 3;
+                const unit = width / 480;
+                const gapWidth = Math.round(unit * 5) || 1;
                 const bufferSize = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferSize);
                 const barWidth = (width - gapWidth * visualBarCount) / visualBarCount;
                 const heightFactor = height / 128;
                 const chunkSize = bufferSize / barCount;
                 const stop = bufferSize - 2 * chunkSize;
-                const minBarHeight = isFullscreen ? 12 : 8;
+                const minBarHeight = Math.round(unit * 12);
                 analyser.getByteFrequencyData(dataArray);
                 context2D.clearRect(0, 0, width, height);
                 context2D.fillStyle = this.beatsColor;
                 context2D.strokeStyle = 'rgba(0, 0, 0, .9)';
-                context2D.lineWidth = isFullscreen ? 2 : 1;
+                context2D.lineWidth = Math.round(unit * 2) || 1;
                 let x = 2;
                 for (let i = 0; i < stop; i += chunkSize) {
                     const chunkAverageValue =
@@ -56,8 +56,9 @@ export default class BeatsPlayer extends WaveformPlayer {
                 const bufferSize = analyser.frequencyBinCount;
                 const dataArray = new Uint8Array(bufferSize);
                 const sliceWidth = width / bufferSize;
+                const unit = width / 480;
                 analyser.getByteTimeDomainData(dataArray);
-                context2D.lineWidth = isFullscreenMedia() ? 4 : 2;
+                context2D.lineWidth = Math.round(unit * 4) || 1;
                 context2D.clearRect(0, 0, width, height);
                 context2D.strokeStyle = this.waveColor;
                 context2D.beginPath();
@@ -81,11 +82,10 @@ export default class BeatsPlayer extends WaveformPlayer {
 
         observeCurrentItem()
             .pipe(
-                map((item) => item?.linearType),
-                map((linearType) =>
-                    linearType === LinearType.Show || linearType === LinearType.Ad
-                        ? 'wave'
-                        : 'beats'
+                map((item) =>
+                    !item?.linearType || item.linearType === LinearType.MusicTrack
+                        ? 'beats'
+                        : 'wave'
                 ),
                 distinctUntilChanged()
             )
@@ -125,7 +125,7 @@ export default class BeatsPlayer extends WaveformPlayer {
         const maxWidth = document.body.clientWidth / 4;
         const width = Math.min(
             Math.max(parentWidth / 3, theme.fontSize * 11.25),
-            isFullscreenMedia() ? maxWidth : maxWidth * 0.75
+            isFullscreenMedia() ? (isMiniPlayer ? maxWidth * 3 : maxWidth) : maxWidth * 0.75
         );
         super.resize(width, width * 0.225);
     }

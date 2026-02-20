@@ -3,7 +3,7 @@
 .media-controls {
     font-family: var(--system-font-family);
 
-    .current-time-control,
+    .time-control,
     .playback-control,
     .volume-control,
     .media-buttons,
@@ -13,7 +13,31 @@
         align-items: center;
     }
 
-    .current-time-control,
+    .volume-control {
+        flex: auto;
+        min-width: 4.25rem;
+        max-width: 6.25rem;
+        margin-right: 0.25em;
+
+        .icon-button {
+            flex: initial;
+            width: 1.25em;
+            height: 1.25em;
+            border-radius: calc(var(--roundness) * 100%);
+            outline-offset: 0;
+        }
+
+        input[type=range] {
+            --track-height: 0.15em;
+            --thumb-width: .875em;
+            --thumb-height: .875em;
+            min-width: 3rem;
+            max-width: 5rem;
+        }
+    }
+
+
+    .time-control,
     .playback-control {
         margin-bottom: var(--gutter-width);
     }
@@ -25,7 +49,7 @@
             background-color: var(--media-button-color);
             background-image: var(--media-button-background);
             box-shadow: 0 0 1px 1px var(--black);
-            border-radius: calc(var(--roundness) * var(--thumb-size));
+            border-radius: calc(var(--roundness) * var(--thumb-height));
 
             &:hover {
                 filter: brightness(1.1);
@@ -71,7 +95,7 @@
         @mixin smiley-thumb {
             background-repeat: no-repeat;
             background-position: center;
-            background-size: var(--thumb-size);
+            background-size: var(--thumb-height);
             background-image:
                 var(--smiley),
                 var(--media-button-background);

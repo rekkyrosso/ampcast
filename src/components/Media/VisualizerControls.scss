@@ -3,9 +3,9 @@
     inset: 0;
     color: var(--soft-white);
 
-    .icon-button {
-        padding: 0.25em;
-        border-radius: 50%;
+    .icon-button,
+    .volume-control {
+        filter: brightness(0.75);
 
         .themed.light & {
             background: rgba(0, 0, 0, 0.92);
@@ -23,32 +23,17 @@
                 background: rgba(0, 0, 0, 0.92)
             }
         }
-    }
 
-    .app-title {
-        position: absolute;
-        left: 0.5em;
-        top: 0.25em;
-        font-size: max(1vw, 1rem);
-        text-shadow: 2px 2px 0 rgba(16, 16, 16, 0.8);
-
-        .media:not(:fullscreen) & {
-            display: none;
+        &:hover {
+            filter: brightness(1);
         }
-    }
-
-    .app-version {
-        background-color: transparent;
     }
 
     .icon-button {
         width: 1.33em;
         height: 1.33em;
-        filter: brightness(0.75);
-
-        &:hover {
-            filter: brightness(1);
-        }
+        padding: 0.25em;
+        border-radius: 50%;
 
         &-link {
             .media:fullscreen & {
@@ -63,7 +48,6 @@
     }
 
     .visualizer-buttons,
-    .media-buttons,
     .video-source-icon {
         position: absolute;
     }
@@ -71,21 +55,6 @@
     &-settings {
         right: 0.25em;
         top: 0.25em;
-    }
-
-    .media-buttons {
-        bottom: 1.5em;
-        left: 50%;
-        transform: translateX(-50%);
-
-        .media.fullscreen & {
-            font-size: max(3vw, 1.25rem);
-        }
-
-        .icon {
-            width: 1em;
-            height: 1em;
-        }
     }
 
     &-selector {
@@ -139,9 +108,8 @@
     }
 
     /* Show buttons on hover. */
-    .app-title,
     .visualizer-buttons:not(:hover),
-    .media-buttons,
+    .media-controls-overlay,
     .video-source-icon,
     .no-visualizer-reason,
     .progress-bar {
@@ -157,8 +125,7 @@
 
     .media.fullscreen:not(.idle) &:hover,
     .media.fullscreen.paused & {
-        .media-buttons,
-        .app-title,
+        .media-controls-overlay,
         .progress-bar {
             visibility: inherit;
         }

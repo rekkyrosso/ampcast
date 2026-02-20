@@ -8,7 +8,7 @@ import PlaylistItem from 'types/PlaylistItem';
 import ServiceType from 'types/ServiceType';
 import {Logger, browser, exists} from 'utils';
 import {observeCurrentItem, observePlaybackState} from 'services/mediaPlayback/playback';
-import mediaPlaybackSettings from 'services/mediaPlayback/mediaPlaybackSettings';
+import playbackSettings from 'services/mediaPlayback/playbackSettings';
 import {getServiceFromSrc} from 'services/mediaServices';
 import OmniAudioContext from './OmniAudioContext';
 import {observeAudioSettings} from './audioSettings';
@@ -27,7 +27,7 @@ class Audio implements AudioManager {
     readonly streamingSupported = browser.name !== 'safari';
 
     constructor() {
-        this.#output.gain.value = mediaPlaybackSettings.volume;
+        this.#output.gain.value = playbackSettings.volume;
         this.#input.connect(this.#replayGain);
         this.#replayGain.connect(this.#output);
         this.#output.connect(this.#context.destination);

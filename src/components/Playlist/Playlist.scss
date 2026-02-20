@@ -105,25 +105,21 @@
         display: none;
     }
 
-    .media-buttons {
+    .radio-buttons {
         display: inline-flex;
         gap: 0.125em;
         margin-right: -0.125em;
-    }
 
-    .media-button {
-        font-size: 0.375rem;
-        width: 1rem;
-        height: 1rem;
-        padding: 0.5rem;
+        .media-button {
+            font-size: 0.375rem;
+            width: 1rem;
+            height: 1rem;
+            padding: 0.5rem;
 
-        &:first-child .icon {
-            transform: rotate(180deg);
-        }
-
-        &:last-child {
-            margin-left: 0.25em;
-            margin-right: 0;
+            &:last-child {
+                margin-left: 0.25em;
+                margin-right: 0;
+            }
         }
     }
 }

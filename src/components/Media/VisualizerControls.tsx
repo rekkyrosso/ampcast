@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {debounceTime, filter, tap} from 'rxjs';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
@@ -12,7 +12,6 @@ import {
     nextVisualizer,
     observeNextVisualizerReason,
 } from 'services/visualizer';
-import AppTitle from 'components/App/AppTitle';
 import IconButton from 'components/Button/IconButton';
 import IconButtons from 'components/Button/IconButtons';
 import {showDialog} from 'components/Dialog';
@@ -32,7 +31,7 @@ import useMiniPlayerActive from 'hooks/useMiniPlayerActive';
 import usePreferences from 'hooks/usePreferences';
 import usePaused from 'hooks/usePaused';
 import useVisualizerSettings from 'hooks/useVisualizerSettings';
-import MediaButtons from './MediaButtons';
+import MediaControls from 'components/MediaControls';
 import ProgressBar from './ProgressBar';
 import Static from './Static';
 import VideoSourceIcon from './VideoSourceIcon';
@@ -44,7 +43,7 @@ export interface VisualizerControlsProps {
     onFullscreenToggle: () => void;
 }
 
-export default memo(function VisualizerControls({
+export default function VisualizerControls({
     fullscreen,
     onFullscreenToggle,
 }: VisualizerControlsProps) {
@@ -157,7 +156,6 @@ export default memo(function VisualizerControls({
             onContextMenu={handleContextMenu}
         >
             {showStatic ? <Static /> : null}
-            <AppTitle />
             <p className="media-state no-visualizer-reason">{noVisualizerReason}</p>
             <ProgressBar />
             <IconButtons className="visualizer-buttons visualizer-controls-settings">
@@ -205,11 +203,11 @@ export default memo(function VisualizerControls({
                     ) : null}
                 </IconButtons>
             )}
-            <MediaButtons />
+            {fullscreen || isMiniPlayer ? <MediaControls overlay /> : null}
             <VideoSourceIcon />
         </div>
     );
-});
+}
 
 function getNoVisualizerReason(visualizer: Visualizer | null): string {
     if (visualizer?.providerId === 'none' && visualizer.name) {

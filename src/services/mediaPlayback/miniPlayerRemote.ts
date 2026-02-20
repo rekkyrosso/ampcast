@@ -133,7 +133,7 @@ const connect = (
                 mediaPlayback.load(data);
                 break;
 
-            case 'loadNext':
+            case 'load-next':
                 mediaPlayer.loadNext(data);
                 break;
 
@@ -165,6 +165,14 @@ const connect = (
                 mediaPlayback.stop();
                 break;
 
+            case 'skip-next':
+                mediaPlayback.skipNext();
+                break;
+
+            case 'skip-prev':
+                mediaPlayback.skipPrev();
+                break;
+
             case 'next-visualizer':
                 nextVisualizer('next-clicked');
                 break;
@@ -175,14 +183,6 @@ const connect = (
 
             case 'set-item':
                 setItem(data);
-                break;
-
-            case 'set-muted':
-                mediaPlayback.muted = data;
-                break;
-
-            case 'set-volume':
-                mediaPlayback.volume = data;
                 break;
 
             case 'transfer-playback': {

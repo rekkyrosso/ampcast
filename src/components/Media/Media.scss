@@ -1,5 +1,5 @@
 .media {
-    --progress-bar-height: 6px;
+    --progress-bar-height: 7px;
     --progress-bar-background-color: rgba(32, 32, 32, 0.5);
     --progress-bar-color: rgba(255, 255, 255, 0.25);
     border-radius: calc(var(--roundness) * 1rem);
@@ -11,6 +11,10 @@
     &:hover {
         --progress-bar-background-color: rgba(128, 128, 128, 0.5);
         --progress-bar-color: rgba(255, 255, 255, 0.8);
+    }
+
+    &:not(.idle, .paused):hover {
+        --progress-bar-height: 14px;
     }
 
     &.is-playing-video {
@@ -76,13 +80,13 @@
         position: absolute;
         bottom: 1em;
         width: 100%;
-        font-size: max(0.5em, 12px);
+        font-size: max(0.375em, 12px);
         color: rgba(238, 238, 238, 0.6);
         text-align: center;
         line-height: 1;
     }
 
-    &.fullscreen &-state {
+    &:fullscreen &-state {
         margin-bottom: var(--progress-bar-height);
     }
 

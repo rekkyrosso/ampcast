@@ -235,7 +235,7 @@ const load = (item: PlaylistItem | null): void => {
 };
 
 const loadNext = (item: PlaylistItem | null): void => {
-    sendCommand('loadNext', safeMediaItem(item));
+    sendCommand('load-next', safeMediaItem(item));
 };
 
 const lock = (): void => sendCommand('lock');
@@ -273,6 +273,16 @@ const seek = (time: number): void => sendCommand('seek', time);
 const stop = (): void => {
     logger.log('stop');
     sendCommand('stop');
+};
+
+const skipNext = (): void => {
+    logger.log('skipNext');
+    sendCommand('skip-next');
+};
+
+const skipPrev = (): void => {
+    logger.log('skipPrev');
+    sendCommand('skip-prev');
 };
 
 const unlock = (): void => sendCommand('unlock');
@@ -342,16 +352,10 @@ const miniPlayer = {
     get playbackId(): string {
         return playbackState$.value.playbackId;
     },
-    // No need for getters apparently.
+    // No need for a getter apparently.
     set autoplay(autoplay: boolean) {
         _autoplay = autoplay;
         setValue('autoplay', autoplay);
-    },
-    set muted(muted: boolean) {
-        setValue('muted', muted);
-    },
-    set volume(volume: number) {
-        setValue('volume', volume);
     },
     observeActive,
     observeEnded,
@@ -371,6 +375,8 @@ const miniPlayer = {
     play,
     seek,
     stop,
+    skipPrev,
+    skipNext,
     unlock,
 };
 
