@@ -11,8 +11,8 @@ import preferences from 'services/preferences';
 import themeStore from 'services/theme/themeStore';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
 import visualizerStore from 'services/visualizer/visualizerStore';
-import {alert, error} from 'components/Dialog';
-import DialogButtons from 'components/Dialog/DialogButtons';
+import Button from 'components/Button';
+import {DialogButtons, alert, error} from 'components/Dialog';
 import useBackupEntries from './useBackupEntries';
 import './Backup.scss';
 
@@ -131,17 +131,17 @@ export default function Backup() {
                     ))}
                 </ul>
                 <p>
-                    <button type="button" onClick={handleExportClick}>
+                    <Button type="button" onClick={handleExportClick}>
                         Export…
-                    </button>
+                    </Button>
                 </p>
             </fieldset>
             <fieldset>
                 <legend>Import</legend>
                 <p>
-                    <button type="button" onClick={handleImportClick}>
+                    <Button type="button" onClick={handleImportClick}>
                         Import…
-                    </button>
+                    </Button>
                 </p>
             </fieldset>
             <DialogButtons />

@@ -4,7 +4,7 @@ import ItemsByService from 'types/ItemsByService';
 import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {getServiceFromSrc} from 'services/mediaServices';
-import PopupMenuButton from 'components/Button/PopupMenuButton';
+import {PopupMenuButton} from 'components/Button';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import PopupMenu, {
     PopupMenuItem,

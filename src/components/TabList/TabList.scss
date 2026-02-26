@@ -1,3 +1,5 @@
+@use 'styles/effects.scss';
+
 .tab-list {
     position: relative;
     isolation: isolate;
@@ -12,7 +14,7 @@
         z-index: 1;
 
         > li + li {
-            margin-left: 2px;
+            margin-left: 0.125em;
         }
     }
 
@@ -26,24 +28,21 @@
     }
 
     .tab {
+        @include effects.button;
+        @include effects.pressable;
+        --amb-chamfer: 0;
+        --amb-elevation: 0;
         position: relative;
-        background-image: none;
-        border-color: #444; /* TODO: Where did this color come from? */
+        padding: 0 1em;
+        border-color: #444;
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
-        padding-top: 0;
-        padding-bottom: 0;
         height: 1.75em;
 
         &[aria-selected="true"] {
             border-bottom: 1px solid var(--background-color);
             background-color: var(--background-color);
             color: var(--text-color);
-        }
-
-        &:active {
-            transform: none;
-            filter: none;
         }
     }
 

@@ -7,8 +7,7 @@ import MediaServiceId from 'types/MediaServiceId';
 import {Logger} from 'utils';
 import {getService} from 'services/mediaServices';
 import {dispatchPlaylistItemsChange} from 'services/metadata';
-import Dialog, {DialogProps, error, showDialog} from 'components/Dialog';
-import DialogButtons from 'components/Dialog/DialogButtons';
+import Dialog, {DialogButtons, DialogProps, error, showDialog} from 'components/Dialog';
 import PlaylistList from 'components/MediaList/PlaylistList';
 import useEditablePlaylistsPager from './useEditablePlaylistsPager';
 import usePlaylistItems from './usePlaylistItems';
@@ -70,7 +69,7 @@ export default function AddToPlaylistDialog<T extends MediaItem>({
     }, [selectedService, selectedPlaylist, itemsByService]);
 
     const handleSubmitClick = useCallback(
-        async (event: React.FormEvent) => {
+        async (event: React.SubmitEvent) => {
             event.preventDefault();
             await submit();
         },

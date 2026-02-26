@@ -12,7 +12,7 @@ export default function BSOD({error}: FallbackProps) {
     const factoryReset = useFactoryReset();
 
     const handleSubmit = useCallback(
-        async (event: React.FormEvent) => {
+        async (event: React.SubmitEvent) => {
             event.preventDefault();
             switch (ref.current?.['bsod-decision'].value) {
                 case 'clear-playlist':

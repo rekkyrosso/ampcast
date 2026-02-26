@@ -1,6 +1,6 @@
 import React, {useCallback, useState} from 'react';
+import Button from 'components/Button';
 import {MediaServiceSettingsGeneralProps} from './MediaServiceSettingsGeneral';
-import './DisconnectButton.scss';
 
 export default function DisconnectButton({service}: MediaServiceSettingsGeneralProps) {
     const [connected, setConnected] = useState(() => service.isConnected());
@@ -12,14 +12,14 @@ export default function DisconnectButton({service}: MediaServiceSettingsGeneralP
 
     return (
         <p>
-            <button
+            <Button
                 type="button"
                 className="disconnect-button"
                 onClick={handleDisconnect}
                 disabled={!connected}
             >
                 {connected ? `Disconnect from ${service.name}` : 'Not connected'}
-            </button>
+            </Button>
         </p>
     );
 }

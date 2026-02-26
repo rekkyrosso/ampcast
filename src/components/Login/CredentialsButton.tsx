@@ -1,5 +1,6 @@
 import React, {useCallback} from 'react';
 import MediaService from 'types/MediaService';
+import Button from 'components/Button';
 import {showCredentialsDialog} from 'components/Settings/MediaLibrarySettings/CredentialsDialog';
 
 export interface CredentialsButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -18,9 +19,9 @@ export default function CredentialsButton({
 
     return (
         <p>
-            <button {...props} className={className} onClick={handleClick}>
+            <Button {...props} className={className} onClick={handleClick}>
                 {children}
-            </button>
+            </Button>
         </p>
     );
 }

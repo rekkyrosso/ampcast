@@ -1,3 +1,5 @@
+@use 'styles/effects.scss';
+
 .icon-button {
     all: unset;
     display: inline-flex;
@@ -25,8 +27,8 @@
         }
     }
 
-    &:active {
-        transform: none;
+    .focus-visible &:focus {
+        @include effects.outline;
     }
 
     .icon {

@@ -1,4 +1,5 @@
 import React from 'react';
+import Button from 'components/Button';
 
 export interface DialogButtonsProps {
     value?: string;
@@ -13,12 +14,12 @@ export default function DialogButtons({
 }: DialogButtonsProps) {
     return (
         <footer className="dialog-buttons">
-            <button className="dialog-button-cancel" type="button" value="#cancel">
+            <Button className="dialog-button-cancel" type="button" value="#cancel">
                 Cancel
-            </button>
-            <button className="dialog-button-submit" value={value} disabled={disabled}>
+            </Button>
+            <Button className="dialog-button-submit" value={value} disabled={disabled}>
                 {submitText}
-            </button>
+            </Button>
         </footer>
     );
 }

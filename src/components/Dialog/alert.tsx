@@ -1,4 +1,5 @@
 import React from 'react';
+import Button from 'components/Button';
 import {IconName} from 'components/Icon';
 import Dialog, {DialogProps} from './Dialog';
 import showDialog from './showDialog';
@@ -34,7 +35,7 @@ export function AlertDialog({message, ...props}: AlertDialogProps) {
             <form method="dialog">
                 <div className="alert-message">{message}</div>
                 <footer className="dialog-buttons">
-                    <button>OK</button>
+                    <Button>OK</Button>
                 </footer>
             </form>
         </Dialog>

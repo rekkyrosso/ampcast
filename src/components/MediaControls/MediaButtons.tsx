@@ -3,7 +3,7 @@ import {clamp} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import mediaPlayback, {pause, play, stop} from 'services/mediaPlayback';
 import {observeCurrentIndex, observeCurrentItem, observeSize} from 'services/playlist';
-import IconButton from 'components/Button';
+import {IconButton} from 'components/Button';
 import useObservable from 'hooks/useObservable';
 import usePaused from 'hooks/usePaused';
 import usePlaybackState from 'hooks/usePlaybackState';

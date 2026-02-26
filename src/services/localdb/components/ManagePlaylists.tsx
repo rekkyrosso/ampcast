@@ -1,8 +1,8 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
-import {prompt} from 'components/Dialog';
+import Button from 'components/Button';
+import {DialogButtons, prompt} from 'components/Dialog';
 import ListBox from 'components/ListView/ListBox';
 import {ListViewHandle} from 'components/ListView';
-import DialogButtons from 'components/Dialog/DialogButtons';
 import {saveTextToFile} from 'utils';
 import playlists, {LocalPlaylist} from '../playlists';
 import useLocalPlaylists from './useLocalPlaylists';
@@ -100,27 +100,27 @@ export default function ManagePlaylists() {
                 ref={listViewRef}
             />
             <p className="manage-playlists-buttons">
-                <button type="button" onClick={handleRenameClick} disabled={!selectedPlaylist}>
+                <Button type="button" onClick={handleRenameClick} disabled={!selectedPlaylist}>
                     Rename…
-                </button>
-                <button type="button" onClick={handleExportClick} disabled={!selectedPlaylist}>
+                </Button>
+                <Button type="button" onClick={handleExportClick} disabled={!selectedPlaylist}>
                     Export…
-                </button>
-                <button
+                </Button>
+                <Button
                     className="manage-playlists-delete"
                     type="button"
                     onClick={handleDeleteClick}
                     disabled={!selectedPlaylist}
                 >
                     Delete
-                </button>
+                </Button>
             </p>
             <fieldset className="manage-playlists-import">
                 <legend>Import playlist</legend>
                 <p>
-                    <button type="button" onClick={handleImportClick}>
+                    <Button type="button" onClick={handleImportClick}>
                         Import…
-                    </button>
+                    </Button>
                 </p>
             </fieldset>
             <DialogButtons />

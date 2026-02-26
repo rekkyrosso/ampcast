@@ -1,3 +1,6 @@
+@use './libs/ambient.scss';
+@use './_effects.scss';
+
 :root {
     --black: black;
     --terminal--black: #282c34;
@@ -23,6 +26,7 @@
     --frame-color-h: 192;
     --frame-color-s: 4.7%;
     --frame-color-l: 21%;
+    --frame-color-l2: .21;
 
     --frame-text-color-h: 0;
     --frame-text-color-s: 0%;
@@ -42,6 +46,27 @@
 }
 
 .themed {
+    @include effects.surface;
+    --amb-light-hue: var(--frame-color-h);
+    --amb-light-saturation: var(--frame-color-s);
+    --amb-key-light-intensity: var(--frame-color-l2);
+    --amb-fill-light-intensity: 0.4;
+
+    --frame2-color-h: var(--frame-color-h);
+    --frame2-color-s: calc(var(--frame-color-s) + 5%);
+    --frame2-color-l: calc(var(--frame-color-l) + 5%);
+    --frame2-color-l2: min(calc(var(--frame-color-l2) + 0.05), 1);
+
+    --button-color-h: var(--frame-color-h);
+    --button-color-s: calc(var(--frame-color-s) + 5%);
+    --button-color-l: calc(var(--frame-color-l) + 5%);
+    --button-color-l2: min(calc(var(--frame-color-l2) + 0.05), 1);
+
+    --scrollbar-color-h: var(--button-color-h);
+    --scrollbar-color-s: var(--button-color-s);
+    --scrollbar-color-l: var(--button-color-l);
+    --scrollbar-color-l2: var(--button-color-l2);
+
     --background-color: hsl(var(--background-color-h),
             var(--background-color-s),
             var(--background-color-l));
@@ -94,7 +119,7 @@
             var(--scrollbar-color-s),
             var(--scrollbar-color-l));
 
-    --scrollbar-background-color: hsl(
+    --scrollbar-track-color: hsl(
         var(--scrollbar-color-h),
         var(--scrollbar-color-s),
         calc(var(--scrollbar-color-l) - var(--scrollbar-color-l) * 0.5)
@@ -112,17 +137,6 @@
             var(--media-button-text-color-s),
             var(--media-button-text-color-l));
 
-    --media-button-background: linear-gradient(hsl(var(--media-button-color-h),
-                var(--media-button-color-s),
-                calc(var(--media-button-color-l) + (100% - var(--media-button-color-l)) * 0.4)),
-            hsl(var(--media-button-color-h),
-                calc(var(--media-button-color-s) - var(--media-button-color-s) * 0.6),
-                calc(var(--media-button-color-l) - var(--media-button-color-l) * 0.3)));
-
-    --media-button-background-flat: hsl(var(--media-button-color-h),
-            calc(var(--media-button-color-s) + (100% - var(--media-button-color-s)) * 0.33),
-            calc(var(--media-button-color-l) + (100% - var(--media-button-color-l)) * 0.33));
-
     --selected-background-color: hsl(var(--selected-background-color-h),
             var(--selected-background-color-s),
             var(--selected-background-color-l));
@@ -139,6 +153,10 @@
     --app-border-radius: calc(var(--roundness) * var(--roundness) * 0.75rem);
     --even-row-background-color: rgba(255, 255, 255, 0.02);
     --hover-row-background-color: rgba(255, 255, 255, 0.08);
+    --button-elevation: 0;
+    --media-button-elevation: var(--button-elevation);
+
+    color: var(--frame-text-color);
 }
 
 .themed.light {
@@ -162,49 +180,6 @@
     --link-active-color: red;
 }
 
-.app,
-.system {
-    --frame2-color-h: var(--frame-color-h);
-    --frame2-color-s: calc(var(--frame-color-s) + 5%);
-    --frame2-color-l: calc(var(--frame-color-l) + 5%);
-}
-
-.app.frame-dark,
-.system.dark {
-    --frame2-color-hi: rgba(255, 255, 255, 0.2);
-    --frame2-color-lo: rgba(0, 0, 0, 0.4);
-    --button-color-hi: var(--frame2-color-hi);
-    --button-color-lo: var(--frame2-color-lo);
-}
-
-.app.frame-light,
-.system.light {
-    --frame2-color-hi: rgba(255, 255, 255, 0.5);
-    --frame2-color-lo: rgba(0, 0, 0, 0.25);
-    --button-color-hi: var(--frame2-color-hi);
-    --button-color-lo: var(--frame2-color-lo);
-}
-
-.app.button-dark {
-    --button-color-hi: rgba(255, 255, 255, 0.2);
-    --button-color-lo: rgba(0, 0, 0, 0.4);
-}
-
-.app.button-light {
-    --button-color-hi: rgba(255, 255, 255, 0.5);
-    --button-color-lo: rgba(0, 0, 0, 0.25);
-}
-
-.app.scrollbar-dark {
-    --scrollbar-color-hi: rgba(255, 255, 255, 0.2);
-    --scrollbar-color-lo: rgba(0, 0, 0, 0.4);
-}
-
-.app.scrollbar-light {
-    --scrollbar-color-hi: rgba(255, 255, 255, 0.5);
-    --scrollbar-color-lo: rgba(0, 0, 0, 0.25);
-}
-
 .app {
     accent-color: var(--frame-text-color);
 }
@@ -219,6 +194,13 @@
     color-scheme: light;
 }
 
+.system {
+    --button-elevation: 0;
+    --selected-text-color: white;
+    --selected-background-color: #0461d0;
+    --selected-background-color-blurred: #545454;
+}
+
 .system.dark {
     --background-color-h: 0;
     --background-color-s: 0%;
@@ -231,13 +213,16 @@
     --frame-color-h: 0;
     --frame-color-s: 0%;
     --frame-color-l: 28%;
+    --frame-color-l2: 0.28;
 
     --button-color-h: 0;
     --button-color-s: 0%;
-    --button-color-l: 31%;
+    --button-color-l: 28%;
+    --button-color-l2: .28;
 
     --frame-text-color: var(--soft-white);
     --button-text-color: var(--soft-white);
+    --scrollbar-text-color: var(--soft-white);
 
     accent-color: var(--soft-white);
     color-scheme: dark;
@@ -255,38 +240,24 @@
     --frame-color-h: 0;
     --frame-color-s: 0%;
     --frame-color-l: 74%;
+    --frame-color-l2: .74;
 
     --button-color-h: 0;
     --button-color-s: 5%;
-    --button-color-l: 79%;
+    --button-color-l: 82%;
+    --button-color-l2: .82;
 
     --frame-text-color: black;
     --button-text-color: black;
+    --scrollbar-text-color: black;
 
     accent-color: black;
     color-scheme: light;
 }
 
-.system {
-    --scrollbar-color-h: var(--button-color-h);
-    --scrollbar-color-s: var(--button-color-s);
-    --scrollbar-color-l: var(--button-color-l);
-    --scrollbar-text-color: var(--button-text-color);
-    --scrollbar-color-hi: var(--button-color-hi);
-    --scrollbar-color-lo: var(--button-color-lo);
-    --selected-text-color: white;
-    --selected-background-color: #0461d0;
-    --selected-background-color-blurred: #545454;
-}
-
 .themed.flat {
+    --amb-light-x: 0;
+    --amb-light-y: 0;
     --frame-color-hi: var(--frame-color);
     --frame-color-lo: var(--frame-color);
-    --frame2-color-hi: var(--frame2-color);
-    --frame2-color-lo: var(--frame2-color);
-    --button-color-hi: var(--button-color);
-    --button-color-lo: var(--button-color);
-    --scrollbar-color-hi: var(--scrollbar-color);
-    --scrollbar-color-lo: var(--scrollbar-color);
-    --media-button-background: var(--media-button-background-flat);
 }

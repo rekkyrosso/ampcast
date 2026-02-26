@@ -7,7 +7,7 @@ import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import {formatTime} from 'utils';
 import {copyMediaObjectToClipboard} from 'services/reporting';
-import CopyButton from 'components/Button/CopyButton';
+import {CopyButton} from 'components/Button';
 import DetailsBox from 'components/ListView/DetailsBox';
 import {MediaInfoProps} from './MediaInfo';
 import './MediaDetails.scss';

@@ -79,7 +79,7 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
     }, [settings, login, useProxy]);
 
     const handleSubmit = useCallback(
-        (event: React.FormEvent) => {
+        (event: React.SubmitEvent) => {
             event.preventDefault();
             submit();
         },

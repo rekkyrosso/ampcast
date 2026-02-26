@@ -1,2 +1,10 @@
-export {default} from './IconButton';
+export {default} from './Button';
+export * from './Button';
+export {default as CopyButton} from './CopyButton';
+export * from './CopyButton';
+export {default as IconButton} from './IconButton';
 export * from './IconButton';
+export {default as IconButtons} from './IconButtons';
+export * from './IconButtons';
+export {default as PopupMenuButton} from './PopupMenuButton';
+export * from './PopupMenuButton';

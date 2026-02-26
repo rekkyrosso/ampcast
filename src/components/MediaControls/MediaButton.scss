@@ -1,18 +1,54 @@
+@use 'styles/effects.scss';
+
 .media-button {
-    background-color: var(--media-button-color);
-    background-image: var(--media-button-background);
-    color: var(--media-button-text-color);
-    border: 0;
-    padding: 0.5rem;
-    width: 2rem;
-    height: 2rem;
-    font-size: 0.75rem;
+    @include effects.button;
+    @include effects.pressable;
+    --amb-light-hue: var(--media-button-color-h);
+    --amb-light-saturation: var(--media-button-color-s);
+    --amb-key-light-intensity: var(--media-button-color-l2);
+    --amb-chamfer: 1;
+    --amb-chamfer-width: 1;
+    --amb-elevation: var(--media-button-elevation);
+    --hover-light-intensity: min(calc(var(--media-button-color-l2) + 0.05), 1);
+    --active-light-intensity: max(calc(var(--media-button-color-l2) - 0.05), 0);
+    -webkit-appearance: none;
+    appearance: none;
     display: flex;
     flex-direction: row;
     align-items: center;
     justify-content: center;
-    box-shadow: 0 0 1px 1px var(--black);
+    text-align: center;
+    color: var(--media-button-text-color);
+    padding: 0.5rem;
+    width: 2rem;
+    height: 2rem;
+    font-size: 0.75rem;
+    border: 1px solid var(--black);
     border-radius: calc(var(--roundness) * 100%);
+    user-select: none;
+
+    & + & {
+        margin-left: 0.75em;
+    }
+
+    .media-buttons-concave & {
+        @include effects.concave;
+    }
+
+    .media-buttons-convex & {
+        @include effects.convex;
+    }
+
+    .focus-visible &:focus {
+        @include effects.outline;
+    }
+
+    &:active,
+    &.active {
+        .icon {
+            filter: brightness(0.75);
+        }
+    }
 
     &:first-child {
         margin-left: auto;

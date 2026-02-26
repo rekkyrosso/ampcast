@@ -2,8 +2,8 @@ import React, {useCallback, useState} from 'react';
 import {t} from 'services/i18n';
 import {getVisualizerProvider} from 'services/visualizer/visualizerProviders';
 import visualizerStore from 'services/visualizer/visualizerStore';
-import {confirm} from 'components/Dialog';
-import DialogButtons from 'components/Dialog/DialogButtons';
+import Button from 'components/Button';
+import {DialogButtons, confirm} from 'components/Dialog';
 import ListView, {ListViewLayout} from 'components/ListView';
 import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
 import useIsPlaying from 'hooks/useIsPlaying';
@@ -82,22 +82,22 @@ export default function VisualizerFavorites() {
                 onSelect={setSelectedFavorites}
             />
             <p className="visualizer-favorites-buttons">
-                <button
+                <Button
                     className="visualizer-favorites-add"
                     type="button"
                     disabled={!canAddCurrentVisualizer}
                     onClick={handleAddClick}
                 >
                     Add current visualizer
-                </button>
-                <button
+                </Button>
+                <Button
                     className="visualizer-favorites-delete"
                     type="button"
                     disabled={!selectedFavorite}
                     onClick={handleDeleteClick}
                 >
                     Remove
-                </button>
+                </Button>
             </p>
             <DialogButtons />
         </form>

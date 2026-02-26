@@ -1,4 +1,5 @@
 import React, {useCallback, useRef} from 'react';
+import Button from 'components/Button';
 import Icon, {IconName} from 'components/Icon';
 import './SearchBar.scss';
 
@@ -13,7 +14,7 @@ export default function SearchBar({name, icon, placeholder = 'Search', onSubmit}
     const inputRef = useRef<HTMLInputElement>(null);
 
     const handleSubmit = useCallback(
-        (event: React.FormEvent) => {
+        (event: React.SubmitEvent) => {
             event.preventDefault();
             const query = inputRef.current!.value;
             onSubmit?.(query);
@@ -34,9 +35,9 @@ export default function SearchBar({name, icon, placeholder = 'Search', onSubmit}
                     autoCapitalize="off"
                     ref={inputRef}
                 />
-                <button type="submit" title="Search">
+                <Button type="submit" title="Search">
                     <Icon name="search" />
-                </button>
+                </Button>
             </p>
         </form>
     );

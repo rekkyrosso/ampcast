@@ -1,8 +1,16 @@
 export {default} from './Dialog';
 export * from './Dialog';
+export {default as DialogButtons} from './DialogButtons';
+export * from './DialogButtons';
 export {default as alert} from './alert';
+export * from './alert';
 export {default as confirm} from './confirm';
+export * from './confirm';
 export {default as error} from './error';
+export * from './error';
 export {default as prompt} from './prompt';
+export * from './prompt';
 export {default as select} from './select';
+export * from './select';
 export {default as showDialog} from './showDialog';
+export * from './showDialog';

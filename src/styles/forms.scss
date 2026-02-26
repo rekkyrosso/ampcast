@@ -193,39 +193,11 @@ textarea {
     }
 }
 
-button,
-[role="button"] {
-    @include effects.button;
-    -webkit-appearance: none;
-    appearance: none;
-    padding: 0.125em 1em;
-    text-align: center;
-    white-space: nowrap;
-    user-select: none;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    @include effects.pressable;
-
-    &:disabled {
-        filter: grayscale(1);
-        background-image: none;
-        opacity: 0.5;
-        cursor: default;
-        pointer-events: none;
-    }
-
-    .focus-visible &:focus {
-        @include effects.outline;
-    }
-
-    & + & {
-        margin-left: 0.75em;
-    }
-
-    &.small {
-        padding: calc(0.25em - 1px) 0.875em;
-        font-size: 0.75em;
-    }
+button:disabled {
+    filter: grayscale(1);
+    opacity: 0.5;
+    cursor: default;
+    pointer-events: none;
 }
 
 .buttons {

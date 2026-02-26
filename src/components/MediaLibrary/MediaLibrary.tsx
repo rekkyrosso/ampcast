@@ -4,7 +4,7 @@ import Splitter from 'components/Splitter';
 import {SettingsDialog} from 'components/Settings';
 import {showDialog} from 'components/Dialog';
 import AppDragRegion from 'components/App/AppDragRegion';
-import IconButton from 'components/Button/IconButton';
+import {IconButton} from 'components/Button';
 import MediaSources, {MediaSourceView} from 'components/MediaSources';
 import './MediaLibrary.scss';
 

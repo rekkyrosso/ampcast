@@ -1,6 +1,8 @@
+@use 'styles/effects.scss';
+
 .scrollbar {
     position: absolute;
-    background: var(--scrollbar-background-color);
+    background: var(--scrollbar-track-color);
     border-radius: var(--app-border-radius);
     display: none;
 
@@ -20,22 +22,28 @@
 
     &-thumb,
     &-button {
+        @include effects.surface;
+        @include effects.pressable;
+        --amb-light-hue: var(--scrollbar-color-h);
+        --amb-light-saturation: var(--scrollbar-color-s);
+        --amb-key-light-intensity: var(--scrollbar-color-l2);
+        --amb-chamfer: 1;
+        --amb-chamfer-width: 1;
+        --hover-light-intensity: min(calc(var(--scrollbar-color-l2) + 0.05), 1);
+        --active-light-intensity: max(calc(var(--scrollbar-color-l2) - 0.05), 0);
         position: absolute;
         width: var(--scrollbar-size);
         height: var(--scrollbar-size);
         color: var(--scrollbar-text-color);
-        background-color: var(--scrollbar-color);
-        background-image: var(--scrollbar-button-background);
-        background-clip: padding-box;
         border: 1px solid var(--black);
         border-radius: var(--app-border-radius);
 
-        &:hover {
-            background-color: var(--scrollbar-color-hover);
+        .scrollbar-buttons-concave & {
+            @include effects.concave;
         }
 
-        &:active {
-            background-color: var(--scrollbar-color-active);
+        .scrollbar-buttons-convex & {
+            @include effects.convex;
         }
     }
 
@@ -43,53 +51,27 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background-repeat: no-repeat;
-        background-position: center;
-        background-size: var(--scrollbar-size);
+
+        .icon {
+            width: var(--scrollbar-size);
+            height: var(--scrollbar-size);
+        }
     }
 
     &-horizontal &-button-decrement {
         left: 0;
-        background-image:
-            var(--scrollbar-horizontal-decrement),
-            var(--scrollbar-button-background);
-
-        .app.flat & {
-            background-image: var(--scrollbar-horizontal-decrement);
-        }
     }
 
     &-horizontal &-button-increment {
         right: 0;
-        background-image:
-            var(--scrollbar-horizontal-increment),
-            var(--scrollbar-button-background);
-
-        .app.flat & {
-            background-image: var(--scrollbar-horizontal-increment);
-        }
     }
 
     &-vertical &-button-decrement {
         top: 0;
-        background-image:
-            var(--scrollbar-vertical-decrement),
-            var(--scrollbar-button-background);
-
-        .app.flat & {
-            background-image: var(--scrollbar-vertical-decrement);
-        }
     }
 
     &-vertical &-button-increment {
         bottom: 0;
-        background-image:
-            var(--scrollbar-vertical-increment),
-            var(--scrollbar-button-background);
-
-        .app.flat & {
-            background-image: var(--scrollbar-vertical-increment);
-        }
     }
 
     &-track {

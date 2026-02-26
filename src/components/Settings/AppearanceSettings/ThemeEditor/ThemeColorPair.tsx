@@ -1,6 +1,6 @@
 import React, {useCallback, useState} from 'react';
 import theme, {ThemeColorName} from 'services/theme';
-import IconButton from 'components/Button/IconButton';
+import Button, {IconButton} from 'components/Button';
 import useCurrentTheme from '../useCurrentTheme';
 import ThemeColor from './ThemeColor';
 
@@ -91,9 +91,9 @@ export default function ThemeColorPair({
                 />
             ) : null}
             {suggestedColors && nextSuggestion ? (
-                <button className="small" type="button" onClick={suggest}>
+                <Button className="small" type="button" onClick={suggest}>
                     Suggest
-                </button>
+                </Button>
             ) : null}
             {children}
         </p>

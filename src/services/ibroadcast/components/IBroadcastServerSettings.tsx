@@ -1,6 +1,7 @@
 import React, {useCallback, useId, useRef} from 'react';
 import {PersonalMediaServerSettingsProps} from 'components/Settings/MediaLibrarySettings/PersonalMediaServerSettings';
-import DialogButtons from 'components/Dialog/DialogButtons';
+import Button from 'components/Button';
+import {DialogButtons} from 'components/Dialog';
 import ExternalLink from 'components/ExternalLink';
 import useIsLibraryLoading from 'hooks/useIsLibraryLoading';
 import useIsLoggedIn from 'hooks/useIsLoggedIn';
@@ -32,13 +33,13 @@ export default function IBroadcastServerSettings({
             <fieldset>
                 <legend>Library</legend>
                 <p>
-                    <button
+                    <Button
                         type="button"
                         disabled={!isLoggedIn || isLibraryLoading}
                         onClick={reloadLibrary}
                     >
                         {isLoggedIn && isLibraryLoading ? 'Loading library…' : 'Reload library'}
-                    </button>
+                    </Button>
                 </p>
             </fieldset>
             <fieldset>

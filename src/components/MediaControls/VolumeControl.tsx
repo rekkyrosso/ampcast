@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useRef} from 'react';
 import {fromEvent, throttleTime} from 'rxjs';
 import {browser, clamp} from 'utils';
 import playbackSettings from 'services/mediaPlayback/playbackSettings';
-import IconButton from 'components/Button/IconButton';
+import {IconButton} from 'components/Button';
 import usePlaybackSettings from 'hooks/usePlaybackSettings';
 import {MediaControlsProps} from './MediaControls';
 

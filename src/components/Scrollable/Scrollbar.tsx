@@ -174,8 +174,8 @@ function Scrollbar({
 
     const handleThumbMouseDown = useCallback(
         (event: React.MouseEvent) => {
-            event.stopPropagation();
             if (event.button === 0) {
+                event.stopPropagation();
                 setDragStart(vertical ? event.screenY : event.screenX);
                 setDragThumbPosition(thumbPosition);
             }
@@ -229,7 +229,11 @@ function Scrollbar({
             <div
                 className="scrollbar-button scrollbar-button-decrement"
                 onMouseDown={handleDecrementMouseDown}
-            />
+            >
+                <svg className="icon" viewBox="0 0 150 150">
+                    <polygon points={vertical ? '50,100 75,50 100,100' : '100,50 50,75 100,100'} />
+                </svg>
+            </div>
             <div className="scrollbar-track" onMouseDown={handleTrackMouseDown} ref={trackRef}>
                 <div
                     className="scrollbar-thumb"
@@ -246,7 +250,11 @@ function Scrollbar({
             <div
                 className="scrollbar-button scrollbar-button-increment"
                 onMouseDown={handleIncrementMouseDown}
-            />
+            >
+                <svg className="icon" viewBox="0 0 150 150">
+                    <polygon points={vertical ? '50,50 75,100 100,50' : '50,50 100,75 50,100'} />
+                </svg>
+            </div>
         </div>
     );
 }

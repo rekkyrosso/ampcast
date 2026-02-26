@@ -1,8 +1,8 @@
 import React, {useCallback} from 'react';
 import Logger, {Log, LogLevel} from 'utils/Logger';
 import {copyLogsToClipboard} from 'services/reporting';
-import CopyButton from 'components/Button/CopyButton';
-import DialogButtons from 'components/Dialog/DialogButtons';
+import {CopyButton} from 'components/Button';
+import {DialogButtons} from 'components/Dialog';
 import ListView, {ListViewLayout} from 'components/ListView';
 import useLogs from './useLogs';
 import './Logs.scss';

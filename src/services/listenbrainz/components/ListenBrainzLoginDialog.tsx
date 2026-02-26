@@ -1,8 +1,7 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {Logger} from 'utils';
-import Dialog, {showDialog, DialogProps} from 'components/Dialog';
+import Dialog, {DialogButtons, showDialog, DialogProps} from 'components/Dialog';
 import ExternalLink from 'components/ExternalLink';
-import DialogButtons from 'components/Dialog/DialogButtons';
 import listenbrainzSettings from '../listenbrainzSettings';
 import listenbrainz from '../listenbrainz';
 import './ListenBrainzLoginDialog.scss';
@@ -64,7 +63,7 @@ export default function ListenBrainzLoginDialog(props: DialogProps) {
     }, []);
 
     const handleSubmit = useCallback(
-        (event: React.FormEvent) => {
+        (event: React.SubmitEvent) => {
             event.preventDefault();
             login();
         },

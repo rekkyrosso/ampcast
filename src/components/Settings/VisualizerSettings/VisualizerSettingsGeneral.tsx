@@ -4,7 +4,8 @@ import VisualizerSettings from 'types/VisualizerSettings';
 import {t} from 'services/i18n';
 import {isProviderSupported, observeVisualizerProvider} from 'services/visualizer';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
-import DialogButtons from 'components/Dialog/DialogButtons';
+import Button from 'components/Button';
+import {DialogButtons} from 'components/Dialog';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useObservable from 'hooks/useObservable';
 import useVisualizerProviders from 'hooks/useVisualizerProviders';
@@ -75,14 +76,14 @@ export default function VisualizerSettingsGeneral() {
                         </option>
                     ))}
                 </select>
-                <button
+                <Button
                     className={`use-provider ${isCurrentProvider ? 'in-use' : ''}`}
                     type="button"
                     disabled={isCurrentProvider || provider === 'all'}
                     onClick={useProvider}
                 >
                     {isCurrentProvider ? 'current provider' : 'Use this provider'}
-                </button>
+                </Button>
             </p>
             {provider === 'all' ? (
                 <AllProvidersSettings />

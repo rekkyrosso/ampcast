@@ -1,0 +1,48 @@
+@use 'styles/effects.scss';
+
+.button {
+    @include effects.button;
+    @include effects.pressable;
+    -webkit-appearance: none;
+    appearance: none;
+    padding: 0.125em 1em;
+    text-align: center;
+    white-space: nowrap;
+    user-select: none;
+    overflow: hidden;
+    text-overflow: ellipsis;
+
+    .buttons-concave & {
+        @include effects.concave;
+    }
+
+    .buttons-convex & {
+        @include effects.convex;
+    }
+
+    .focus-visible &:focus {
+        @include effects.outline;
+    }
+
+    & + & {
+        margin-left: 0.75em;
+    }
+
+    &.small {
+        padding: calc(0.25em - 1px) 0.875em;
+        font-size: 0.75em;
+    }
+
+    .system & {
+        text-shadow: 1px 1px 0 black;
+    }
+
+    .system.light & {
+        text-shadow: 1px 1px 0 white;
+    }
+
+    .system &.small,
+    .system.flat & {
+        text-shadow: none;
+    }
+}

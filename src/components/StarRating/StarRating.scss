@@ -3,11 +3,11 @@
 .star-rating {
     font-family: var(--system-font-family);
     font-weight: normal;
-    opacity: 0.75;
     user-select: none;
+    border-radius: calc(var(--roundness) * 0.5em);
 
-    &:hover {
-        opacity: 1;
+    .focus-visible &:focus {
+        @include effects.outline;
     }
 
     &-buttons {
@@ -15,22 +15,16 @@
         text-align: left;
         padding: 0 1px;
         white-space: nowrap;
+        opacity: 0.75;
+    }
+
+    &:hover &-buttons {
+        opacity: 1;
     }
 
     &-button {
         all: unset;
         cursor: pointer;
-        border-radius: calc(var(--roundness) * 0.5em);
-
-        &:hover {
-            opacity: 1;
-        }        
-
-        &:active,
-        &.active {
-            filter: none;
-            transform: none;
-        }
     }
 
     .half-star {
@@ -44,9 +38,5 @@
             display: inline-block;
             overflow: hidden;
         }
-    }
-
-    .focus-visible &:focus .selected {
-        @include effects.outline;
     }
 }

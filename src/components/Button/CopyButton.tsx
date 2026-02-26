@@ -1,5 +1,6 @@
 import React, {MouseEvent, useCallback, useState} from 'react';
 import Icon from 'components/Icon';
+import Button from './Button';
 import './CopyButton.scss';
 
 export interface CopyButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
@@ -36,7 +37,7 @@ export default function CopyButton({
     );
 
     return (
-        <button
+        <Button
             {...props}
             className={`copy-button ${copied ? 'copied' : ''} ${className}`}
             type="button"
@@ -46,6 +47,6 @@ export default function CopyButton({
         >
             <Icon name={copied ? 'clipboard-checked' : 'clipboard'} />
             <span className="text">{copied ? 'Copied' : children}</span>
-        </button>
+        </Button>
     );
 }

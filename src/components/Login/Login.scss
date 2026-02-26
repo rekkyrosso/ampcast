@@ -1,3 +1,5 @@
+@use 'styles/effects.scss';
+
 .login {
     text-align: center;
     bottom: var(--gutter-width);
@@ -19,12 +21,26 @@
     }
 
     .login-button.branded {
+        border: 1px solid var(--black);
         text-shadow: 1px 1px 0 rgba(16, 16, 16, 0.6);
         box-shadow: 1px 1px 0 rgba(16, 16, 16, 0.25);
         color: white;
 
+        &:hover {
+            filter: brightness(1.1);
+        }
+
+        &:active {
+            filter: brightness(0.95);
+            transform: scale(0.99);
+        }
+
+        .focus-visible &:focus {
+            @include effects.outline;
+        }
+
         &:disabled {
-            cursor: default;
+            filter: none;
 
             &.connecting {
                 opacity: 1;

@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import mediaPlayback from 'services/mediaPlayback';
 import Icon from 'components/Icon';
-import IconButton from 'components/Button';
+import {IconButton} from 'components/Button';
 import MediaButton from 'components/MediaControls/MediaButton';
 import usePlaybackState from 'hooks/usePlaybackState';
 import {MediaControlsProps} from './MediaControls';

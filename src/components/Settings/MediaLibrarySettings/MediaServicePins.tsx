@@ -2,8 +2,8 @@ import React, {useCallback, useState} from 'react';
 import MediaService from 'types/MediaService';
 import Pin from 'types/Pin';
 import pinStore from 'services/pins/pinStore';
-import {confirm} from 'components/Dialog';
-import DialogButtons from 'components/Dialog/DialogButtons';
+import Button from 'components/Button';
+import {DialogButtons, confirm} from 'components/Dialog';
 import ListBox from 'components/ListView/ListBox';
 import usePinsForService from './usePinsForService';
 import './MediaServicePins.scss';
@@ -46,13 +46,13 @@ export default function MediaServicePins({service, isolated}: MediaServicePinsPr
                 onSelect={setSelectedPins}
             />
             <p className="pinned-settings-buttons">
-                <button type="button" disabled={!selectedPin} onClick={handleRemoveClick}>
+                <Button type="button" disabled={!selectedPin} onClick={handleRemoveClick}>
                     Remove
-                </button>
+                </Button>
             </p>
             {isolated ? (
                 <footer className="dialog-buttons">
-                    <button className="dialog-button-submit">Close</button>
+                    <Button className="dialog-button-submit">Close</Button>
                 </footer>
             ) : (
                 <DialogButtons />

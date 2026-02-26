@@ -1,7 +1,8 @@
 import React, {useCallback, useId, useEffect} from 'react';
 import theme from 'services/theme';
 import fonts, {loadAllFonts} from 'services/theme/fonts';
-import DialogButtons from 'components/Dialog/DialogButtons';
+import Button from 'components/Button';
+import {DialogButtons} from 'components/Dialog';
 import ThemeColorPair from './ThemeColorPair';
 import useCurrentTheme from '../useCurrentTheme';
 import useSuggestedColors from './useSuggestedColors';
@@ -65,9 +66,9 @@ export default function ThemeEditor() {
                         readOnly
                         tabIndex={-1}
                     />
-                    <button className="small" type="button" onClick={handleSaveAsClick}>
+                    <Button className="small" type="button" onClick={handleSaveAsClick}>
                         Save as…
-                    </button>
+                    </Button>
                 </p>
                 <p key={`${themeKey}/font`}>
                     <label htmlFor={`${id}-font`}>Font:</label>

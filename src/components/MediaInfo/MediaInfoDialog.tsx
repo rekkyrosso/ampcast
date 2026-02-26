@@ -2,6 +2,7 @@ import React, {useRef} from 'react';
 import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import preferences from 'services/preferences';
+import Button from 'components/Button';
 import Dialog, {DialogProps, showDialog} from 'components/Dialog';
 import MediaInfo from './MediaInfo';
 import MediaInfoTabs from './MediaInfoTabs';
@@ -35,7 +36,7 @@ export default function MediaInfoDialog<T extends MediaObject>({
                     <MediaInfo item={activeItem} />
                 )}
                 <footer className="dialog-buttons">
-                    <button>Close</button>
+                    <Button>Close</Button>
                 </footer>
             </form>
         </Dialog>

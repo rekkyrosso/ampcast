@@ -1,6 +1,6 @@
 import React from 'react';
 import {ListViewHandle} from 'components/ListView';
-import IconButtons from 'components/Button/IconButtons';
+import {IconButtons} from 'components/Button';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import usePlaybackState from 'hooks/usePlaybackState';
 import MediaButtons from './MediaButtons';

@@ -1,4 +1,5 @@
 import React from 'react';
+import Button from 'components/Button';
 import AppTitle from './AppTitle';
 import './DesktopWarning.scss';
 
@@ -12,7 +13,7 @@ export default function DesktopWarning({onDismiss}: DesktopWarningProps) {
             <AppTitle />
             <p>This application is intended for a desktop browser.</p>
             <p>
-                <button onClick={onDismiss}>Proceed</button>
+                <Button onClick={onDismiss}>Proceed</Button>
             </p>
         </div>
     );

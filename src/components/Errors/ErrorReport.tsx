@@ -1,7 +1,7 @@
 import React, {useCallback} from 'react';
 import {getReadableErrorMessage} from 'services/errors';
 import {copyErrorReportToClipboard} from 'services/reporting';
-import CopyButton from 'components/Button/CopyButton';
+import {CopyButton} from 'components/Button';
 import './ErrorReport.scss';
 
 export interface ErrorReportProps {

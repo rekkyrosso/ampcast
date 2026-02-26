@@ -1,34 +1,16 @@
 @use 'styles/effects.scss';
 
-dialog {
-    border: 0;
-    padding: 0;
-    color: inherit;
-}
-
 .dialog {
+    @include effects.surface;
+    --amb-chamfer: 1;
+    --amb-chamfer-width: 2;
+    --amb-elevation: 3;
+    color: inherit;
     flex-direction: column;
     padding: 0;
     overflow: hidden;
-    color: var(--frame-text-color);
-    background-clip: padding-box;
-    background-color: var(--frame-color);
-    background-image:
-        linear-gradient(to bottom,
-            var(--frame-color-hi),
-            transparent 0.125rem),
-        linear-gradient(to right,
-            var(--frame-color-hi),
-            transparent 0.125rem),
-        linear-gradient(to left,
-            var(--frame-color-lo),
-            transparent 0.125rem),
-        linear-gradient(to top,
-            var(--frame-color-lo),
-            transparent 0.125rem);
-    border: 1px solid black;
+    border: 1px solid var(--black);
     border-radius: var(--app-border-radius);
-    box-shadow: rgba(0, 0, 0, 0.67) 4px 10px 20px;
     isolation: isolate;
     contain: content;
 
@@ -80,25 +62,25 @@ dialog {
     }
 
     &-close {
+        --amb-elevation: 0;
+        --amb-light-hue: 0;
+        --amb-light-saturation: 67%;
+        --amb-key-light-intensity: 0.5;
+        --hover-light-intensity: 0.55;
+        --active-light-intensity: 0.45;
         width: 1.25em;
         height: 1.25em;
-        margin: 0 0.5em 0 auto;
+        margin: 0 0.375em 0 auto;
         color: white;
-        background-color: rgb(155, 26, 37);
-        background-image:
-            linear-gradient(rgba(255, 255, 255, 0.2), rgba(0, 0, 0, 0) 0.125rem),
-            linear-gradient(to right, rgba(255, 255, 255, 0.2), rgba(0, 0, 0, 0) 0.125rem),
-            linear-gradient(to left, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0) 0.125rem),
-            linear-gradient(to top, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0) 0.125rem);
-        border-radius: 0.25em;
         padding: 0;
+        border-radius: var(--app-border-radius);
 
-        .app.flat & {
-            background-image: none;
+        .system & {
+            border-radius: 0.25em;
         }
 
         .icon {
-            width: 0.625em;
+            width: 0.5em;
             vertical-align: baseline;
         }
     }

@@ -1,5 +1,6 @@
 import React, {useRef} from 'react';
 import preferences from 'services/preferences';
+import Button from 'components/Button';
 import Dialog, {DialogProps} from 'components/Dialog';
 import useCurrentTrack from 'hooks/useCurrentTrack';
 import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
@@ -38,7 +39,7 @@ export default function CurrentlyPlayingDialog(props: DialogProps) {
                     <p>No media loaded.</p>
                 )}
                 <footer className="dialog-buttons">
-                    <button>Close</button>
+                    <Button>Close</Button>
                 </footer>
             </form>
         </Dialog>

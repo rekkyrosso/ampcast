@@ -14,7 +14,7 @@ export default interface Theme {
     readonly scrollbarThickness?: number;
     readonly mediaButtonColor?: string;
     readonly mediaButtonTextColor?: string;
-    readonly roundness: number;
-    readonly spacing: number;
-    readonly flat: boolean;
+    readonly roundness?: number;
+    readonly spacing?: number;
+    readonly flat?: boolean;
 }

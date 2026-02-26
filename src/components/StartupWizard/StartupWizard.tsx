@@ -3,6 +3,7 @@ import MediaService from 'types/MediaService';
 import ServiceType from 'types/ServiceType';
 import {getBrowsableServices} from 'services/mediaServices';
 import {allowMultiSelect, setHiddenSources} from 'services/mediaServices/servicesSettings';
+import Button from 'components/Button';
 import Dialog, {DialogProps} from 'components/Dialog';
 import MediaServiceList from 'components/Settings/MediaLibrarySettings/MediaServiceList';
 import {IconName} from 'components/Icon';
@@ -58,20 +59,20 @@ export default function StartupWizard(props: DialogProps) {
                 <footer className="dialog-buttons">
                     {pages.length > 1 ? (
                         <>
-                            <button type="button" disabled={pageNumber === 0} onClick={prev}>
+                            <Button type="button" disabled={pageNumber === 0} onClick={prev}>
                                 « Prev
-                            </button>
-                            <button
+                            </Button>
+                            <Button
                                 type="button"
                                 disabled={pageNumber >= pages.length - 1}
                                 onClick={next}
                             >
                                 Next »
-                            </button>
-                            <button className="dialog-button-submit">Finish</button>
+                            </Button>
+                            <Button className="dialog-button-submit">Finish</Button>
                         </>
                     ) : (
-                        <button className="dialog-button-submit">OK</button>
+                        <Button className="dialog-button-submit">OK</Button>
                     )}
                 </footer>
             </form>

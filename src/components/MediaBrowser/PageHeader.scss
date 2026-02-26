@@ -1,21 +1,17 @@
+@use 'styles/effects.scss';
+
 .page-header {
+    @include effects.surface;
+    --amb-light-hue: var(--frame2-color-h);
+    --amb-light-saturation: var(--frame2-color-s);
+    --amb-key-light-intensity: var(--frame2-color-l2);
+    --amb-chamfer: 1;
+    --amb-chamfer-width: 1;
     display: flex;
     flex-direction: row;
     align-items: center;
     font-size: 1.125em;
-    background: linear-gradient(
-        to bottom,
-        var(--frame2-color) 80%,
-        var(--frame-color)
-    );
     color: var(--frame-text-color);
-    border-width: 1px;
-    border-style: solid;
-    border-color:
-        var(--frame-color-hi)
-        var(--frame-color-lo)
-        var(--frame-color-lo)
-        var(--frame-color-hi);
     padding: 0.25em;
     margin-bottom: var(--gutter-width);
     border-radius: var(--app-border-radius);
@@ -24,14 +20,6 @@
     overflow: hidden;
     text-overflow: ellipsis;
     user-select: none;
-
-    .themed.flat & {
-        background: var(--frame2-color);
-    }
-
-    .themed.frame-dark.flat & {
-        border-color: var(--black);
-    }
 
     .media-source-label {
         max-width: 100%;

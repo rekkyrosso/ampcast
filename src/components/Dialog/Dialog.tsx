@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} fr
 import {Subscription, fromEvent} from 'rxjs';
 import {Except} from 'type-fest';
 import {clamp, preventDefault, stopPropagation} from 'utils';
+import Button from 'components/Button';
 import Icon, {IconName} from 'components/Icon';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import './Dialog.scss';
@@ -136,15 +137,16 @@ export default function Dialog({
         >
             <header className="dialog-head" onMouseDown={handleDragStart}>
                 <h2>{icon ? <MediaSourceLabel icon={icon} text={title} /> : title}</h2>
-                <div
+                <Button
                     className="dialog-close"
                     role="button"
+                    aria-label="Close"
+                    tabIndex={-1}
                     onClick={close}
                     onMouseDown={stopPropagation}
-                    aria-label="Close"
                 >
                     <Icon name="close" />
-                </div>
+                </Button>
             </header>
             <div className="dialog-body" onMouseDown={stopPropagation} onClick={handleBodyClick}>
                 {children}

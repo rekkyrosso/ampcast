@@ -1,4 +1,5 @@
 import React from 'react';
+import Button from 'components/Button';
 import {ErrorBoxProps} from './ErrorBox';
 import ErrorReport from './ErrorReport';
 
@@ -9,9 +10,9 @@ export default function UnhandledError({error, children, reportedBy='MediaBrowse
             <ErrorReport error={error} reportedBy={reportedBy} reportingId={reportingId} />
             {service && (
                 <p className="buttons">
-                    <button className="disconnect" onClick={service.logout}>
+                    <Button className="disconnect" onClick={service.logout}>
                         Reconnect to {service.name}...
-                    </button>
+                    </Button>
                 </p>
             )}
             {children}

@@ -1,6 +1,7 @@
 @use 'styles/effects.scss';
 
 .media-library {
+    --focus-ring-color: var(--frame-text-color);
     display: flex;
     flex-direction: column;
     height: 100%;
@@ -32,7 +33,7 @@
             }
         }
 
-        .icon-button {
+        .icon-button-settings {            
             flex: initial;
             margin: 0 calc(var(--gutter-width) + 0.25rem) 0 auto;
             outline-offset: 3px;

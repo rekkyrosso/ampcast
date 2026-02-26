@@ -54,6 +54,7 @@
         "youtube-player": "^5.5.2"
     },
     "devDependencies": {
+        "@ambientcss/css": "^1.1.1",
         "@eslint/js": "^9.30.0",
         "@eslint/json": "^1.0.0",
         "@jellyfin/sdk": "^0.13.0",

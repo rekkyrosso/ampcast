@@ -1,8 +1,7 @@
 import React, {useCallback, useRef} from 'react';
 import {copyToClipboard, Logger} from 'utils';
-import CopyButton from 'components/Button/CopyButton';
-import {error} from 'components/Dialog';
-import DialogButtons from 'components/Dialog/DialogButtons';
+import {CopyButton} from 'components/Button';
+import {DialogButtons, error} from 'components/Dialog';
 import CredentialsInput from 'components/Settings/MediaLibrarySettings/CredentialsInput';
 import CredentialsRegistration from 'components/Settings/MediaLibrarySettings/CredentialsRegistration';
 import {MediaServiceCredentialsProps} from 'components/Settings/MediaLibrarySettings/MediaServiceCredentials';

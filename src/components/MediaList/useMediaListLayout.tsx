@@ -18,7 +18,7 @@ import DefaultActions, {ActionsProps, performAction} from 'components/Actions';
 import {ExplicitBadge, getAlbumTypeText, LivePlaybackBadge} from 'components/Badges';
 import CoverArt from 'components/CoverArt';
 import Icon, {IconName} from 'components/Icon';
-import PopupMenuButton from 'components/Button/PopupMenuButton';
+import {PopupMenuButton} from 'components/Button';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import StarRating from 'components/StarRating';
 import SunClock from 'components/SunClock';

@@ -6,7 +6,7 @@ import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
 import {copyToClipboard} from 'utils';
-import CopyButton from 'components/Button/CopyButton';
+import {CopyButton} from 'components/Button';
 import Icon from 'components/Icon';
 import './Badge.scss';
 

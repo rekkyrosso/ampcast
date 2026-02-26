@@ -12,8 +12,7 @@ import {
     nextVisualizer,
     observeNextVisualizerReason,
 } from 'services/visualizer';
-import IconButton from 'components/Button/IconButton';
-import IconButtons from 'components/Button/IconButtons';
+import {IconButton, IconButtons} from 'components/Button';
 import {showDialog} from 'components/Dialog';
 import PopupMenu, {
     PopupMenuItem,

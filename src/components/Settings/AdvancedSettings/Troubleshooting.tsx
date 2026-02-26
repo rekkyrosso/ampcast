@@ -1,6 +1,6 @@
 import React, {useCallback} from 'react';
-import {confirm} from 'components/Dialog';
-import DialogButtons from 'components/Dialog/DialogButtons';
+import Button from 'components/Button';
+import {DialogButtons, confirm} from 'components/Dialog';
 import useFactoryReset from 'hooks/useFactoryReset';
 
 export default function Troubleshooting() {
@@ -32,9 +32,9 @@ export default function Troubleshooting() {
             <fieldset>
                 <legend>Options</legend>
                 <p>
-                    <button type="button" onClick={showFactoryReset}>
+                    <Button type="button" onClick={showFactoryReset}>
                         Factory Reset…
-                    </button>
+                    </Button>
                 </p>
             </fieldset>
             <DialogButtons />

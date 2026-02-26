@@ -3,6 +3,7 @@ import MediaListLayout from 'types/MediaListLayout';
 import MediaPlaylist from 'types/MediaPlaylist';
 import pinStore from 'services/pins/pinStore';
 import {performAction} from 'components/Actions';
+import Button from 'components/Button';
 import Icon from 'components/Icon';
 import {ErrorBoxProps} from 'components/Errors/ErrorBox';
 import {defaultMediaItemCard, playlistItemsLayout} from 'components/MediaList/layouts';
@@ -125,7 +126,7 @@ function PinnedPlaylistError({reportingId: src}: ErrorBoxProps) {
                 <span className="text">Failed to load playlist</span>
             </p>
             <p className="buttons">
-                <button onClick={unpin}>Unpin</button>
+                <Button onClick={unpin}>Unpin</Button>
             </p>
         </div>
     );

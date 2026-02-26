@@ -3,8 +3,7 @@ import Visualizer, {AmbientVideoVisualizer, NoVisualizer} from 'types/Visualizer
 import {t} from 'services/i18n';
 import {getVisualizerProvider} from 'services/visualizer/visualizerProviders';
 import visualizerStore from 'services/visualizer/visualizerStore';
-import IconButtons from 'components/Button/IconButtons';
-import IconButton from 'components/Button';
+import {IconButton, IconButtons} from 'components/Button';
 import ExternalLink from 'components/ExternalLink';
 import useYouTubeVideoInfo from 'hooks/useYouTubeVideoInfo';
 import {Owner} from './MediaInfo';

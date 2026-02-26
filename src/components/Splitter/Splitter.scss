@@ -1,3 +1,5 @@
+@use 'styles/effects.scss';
+
 .splitter {
     --layout-pane-min-size: 5em;
     --layout-splitter-size: 0.3125em;
@@ -26,21 +28,25 @@
     }
 
     .layout-splitter {
+        @include effects.surface;
+        --amb-light-hue: var(--frame2-color-h);
+        --amb-light-saturation: var(--frame2-color-s);
+        --amb-key-light-intensity: var(--frame2-color-l2);
+        --amb-chamfer: 1;
+        --amb-chamfer-width: 1;
         position: relative;
         flex: none;
-        background-color: var(--frame2-color);
-        border-width: 1px;
-        border-style: solid;
-        border-color:
-            var(--frame2-color-hi)
-            var(--frame2-color-lo)
-            var(--frame2-color-lo)
-            var(--frame2-color-hi);
         border-radius: calc(var(--roundness) * 1.5 * var(--layout-splitter-size));
         -webkit-app-region: no-drag;
 
-        &:hover {
+        &:hover,
+        &.active {
+            --amb-chamfer: 0;
             border: none;
+            background-image: none;
+        }
+
+        &:hover {
             filter: brightness(2);
 
             .frame-light & {
@@ -49,7 +55,6 @@
         }
 
         &.active {
-            border: none;
             filter: brightness(1.5);
 
             .frame-light & {

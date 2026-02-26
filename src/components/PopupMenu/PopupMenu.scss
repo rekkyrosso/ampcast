@@ -1,13 +1,15 @@
+@use 'styles/effects.scss';
+
 .popup-menu {
+    @include effects.button;
+    --amb-elevation: 1;
     position: fixed;
     display: flex;
     flex-direction: column;
     padding: 0;
     overflow: hidden;
-    background-color: var(--button-color);
     border: 1px solid var(--black);
     border-radius: var(--app-border-radius);
-    box-shadow: rgb(0 0 0 / 33%) 2px 5px 10px;
 
     button {
         border: 0;
@@ -19,7 +21,9 @@
         align-items: center;
         justify-content: center;
         padding-left: 1.25em;
-        background-image: none;
+        background: none;
+        background-color: transparent;
+        color: var(--button-text-color);
 
         &:focus {
             background-color: var(--button-text-color);
@@ -28,12 +32,6 @@
             .focus-visible & {
                 outline: none;
             }
-        }
-
-        &:hover,
-        &:active {
-            transform: none;
-            filter: none;
         }
     }
 

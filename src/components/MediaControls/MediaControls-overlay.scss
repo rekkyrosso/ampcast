@@ -86,8 +86,8 @@
             --track-height: var(--progress-bar-height);
             --thumb-width: calc(8 * var(--progress-bar-height));
             --thumb-height: var(--progress-bar-height);
-            --thumb-radius: var(--progress-bar-height);
-            --thumb-color: #242424;
+            --thumb-radius: calc(var(--progress-bar-height) * 0.5);
+            --thumb-color: #484848;
             --thumb-shadow: none;
             --track-color: transparent;
             --track-radius: 0;

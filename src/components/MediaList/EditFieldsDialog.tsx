@@ -1,7 +1,7 @@
 import React, {useCallback, useRef, useState} from 'react';
 import {Field} from 'types/MediaListLayout';
-import Dialog, {DialogProps, showDialog} from 'components/Dialog';
-import DialogButtons from 'components/Dialog/DialogButtons';
+import Button from 'components/Button';
+import Dialog, {DialogButtons, DialogProps, showDialog} from 'components/Dialog';
 import ListBox from 'components/ListView/ListBox';
 import {FieldSpec} from './useMediaListLayout';
 import './EditFieldsDialog.scss';
@@ -127,7 +127,7 @@ export default function EditFieldsDialog({
     }, [hideFields, visibleSelected]);
 
     const handleSubmit = useCallback(
-        (event: React.FormEvent) => {
+        (event: React.SubmitEvent) => {
             event.preventDefault();
             dialogRef.current!.close(JSON.stringify(visible.map((field) => field.id)));
         },
@@ -161,12 +161,12 @@ export default function EditFieldsDialog({
                         />
                     </div>
                     <p className="edit-fields-buttons">
-                        <button type="button" onClick={handleShowClick}>
+                        <Button type="button" onClick={handleShowClick}>
                             Show »
-                        </button>
-                        <button type="button" onClick={handleHideClick}>
+                        </Button>
+                        <Button type="button" onClick={handleHideClick}>
                             « Hide
-                        </button>
+                        </Button>
                     </p>
                     <div className="visible-fields">
                         <h3>Visible:</h3>
@@ -186,12 +186,12 @@ export default function EditFieldsDialog({
                             onSelect={setVisibleSelected}
                         />
                         <p className="visible-fields-buttons">
-                            <button className="small" type="button" onClick={handleMoveUpClick}>
+                            <Button className="small" type="button" onClick={handleMoveUpClick}>
                                 Move up
-                            </button>
-                            <button className="small" type="button" onClick={handleMoveDownClick}>
+                            </Button>
+                            <Button className="small" type="button" onClick={handleMoveDownClick}>
                                 Move down
-                            </button>
+                            </Button>
                         </p>
                     </div>
                 </div>

@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import ampcastElectron from 'services/ampcastElectron';
+import Button from 'components/Button';
 import AppTitle from './AppTitle';
 import './PortUnavailable.scss';
 
@@ -12,7 +13,7 @@ export default function PortUnavailable({onDismiss}: PortUnavailableProps) {
     const ref = useRef<HTMLFormElement>(null);
     const [preferredPort, setPreferredPort] = useState(0);
 
-    const handleSubmit = useCallback(async (event: React.FormEvent) => {
+    const handleSubmit = useCallback(async (event: React.SubmitEvent) => {
         event.preventDefault();
         
         const decision = ampcastElectron ? ref.current![id]?.value : 'dismiss';
@@ -86,7 +87,7 @@ export default function PortUnavailable({onDismiss}: PortUnavailableProps) {
                 </li>
             </ul>
             <p>
-                <button type="submit">Proceed</button>
+                <Button type="submit">Proceed</Button>
             </p>
         </form>
     );

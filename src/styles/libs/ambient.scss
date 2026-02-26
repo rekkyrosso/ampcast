@@ -1,0 +1,40 @@
+/*  https://github.com/kikkupico/ambientcss */
+
+/* ==========================================================================
+   Ambient CSS v0.1
+   A CSS framework for skeuomorphic interfaces
+
+   Physically-based lighting, shadows, textures and shading for creating
+   realistic UI elements - buttons, knobs, sliders, panels, indicators,
+   and any interface that benefits from depth and materiality.
+   ========================================================================== */
+
+/* --------------------------------------------------------------------------
+   LIGHTING MODEL (HSL-based)
+
+   Light Direction:
+   --amb-light-x : Horizontal component (-1 = left, 1 = right)
+   --amb-light-y : Vertical component (-1 = up, 1 = down)
+
+   Light Intensity:
+   --amb-key-light-intensity  : Main light (0-1), creates primary highlights/shadows
+   --amb-fill-light-intensity : Secondary light (0-1), softens shadows
+
+   Light Hue (HSL):
+   --amb-light-hue        : Hue of the light color (0-360)
+   --amb-light-saturation : Saturation of the light color (with % suffix)
+   -------------------------------------------------------------------------- */
+
+:root {
+  --amb-light-x: -1;
+  --amb-light-y: -1;
+  --amb-key-light-intensity: 0.9;
+  --amb-fill-light-intensity: 0.7;
+  --amb-light-hue: 234;
+  --amb-light-saturation: 15%;
+  --amb-chamfer: 0;
+  --amb-fillet: 0;
+  --amb-elevation: 0;
+  --amb-chamfer-width: 1;
+  --amb-fillet-width: 1;
+}

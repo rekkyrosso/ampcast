@@ -63,7 +63,6 @@ class MainTheme implements CurrentTheme {
     private readonly rootStyle: CSSStyleDeclaration;
     private readonly appStyle: CSSStyleDeclaration;
     private readonly playheadStyle: CSSStyleDeclaration;
-    private readonly scrollbarStyle: CSSStyleDeclaration;
     private readonly app = document.getElementById('app') as HTMLElement;
     private readonly system = document.getElementById('system') as HTMLElement;
     private readonly theme$ = new BehaviorSubject<CurrentTheme>(defaultTheme);
@@ -76,8 +75,8 @@ class MainTheme implements CurrentTheme {
         this.rootStyle = this.createStyle(':root');
         this.appStyle = this.createStyle('.app');
         this.playheadStyle = this.createStyle('#playhead');
-        this.scrollbarStyle = this.createStyle('.scrollable');
         this.system.classList.toggle('selection-dark', true);
+        this.system.classList.toggle('buttons-convex', true);
         this.load();
 
         this.observe()
@@ -147,8 +146,8 @@ class MainTheme implements CurrentTheme {
 
     get defaultMediaButtonColor(): string {
         const color = new TinyColor(this.frameColor).toHsl();
-        color.s += (1 - color.s) * 0.33;
-        color.l += (1 - color.l) * 0.5;
+        color.s += (1 - color.s) * 0.24;
+        color.l += (1 - color.l) * 0.625;
         return this.fromHsl(color);
     }
 
@@ -192,27 +191,6 @@ class MainTheme implements CurrentTheme {
         this.theme$.next({...this.current, flat});
     }
 
-    get focusRingColor(): string {
-        // TODO: This is mostly guesswork.
-        if (this.isFrameDark) {
-            return new TinyColor(
-                this.isMediaButtonLight ? this.mediaButtonColor : this.defaultMediaButtonColor
-            )
-                .saturate(20)
-                .triad()[1]
-                .lighten(20)
-                .toHexString();
-        } else if (this.isMediaButtonLight) {
-            return new TinyColor(this.frameColor).saturate(33).triad()[2].darken(33).toHexString();
-        } else {
-            return new TinyColor(this.mediaButtonColor)
-                .saturate(33)
-                .triad()[1]
-                .lighten(33)
-                .toHexString();
-        }
-    }
-
     get fontName(): string {
         return this.current.fontName;
     }
@@ -230,7 +208,6 @@ class MainTheme implements CurrentTheme {
 
     set fontSize(fontSize: number) {
         this.rootStyle.setProperty('--font-size', String(fontSize));
-        this.createPlayheadSmiley();
         ampcastElectron?.setFontSize(fontSize);
         fontSize$.next(fontSize);
     }
@@ -324,7 +301,6 @@ class MainTheme implements CurrentTheme {
 
     set scrollbarTextColor(color: string) {
         this.setColor('scrollbarTextColor', color, this.defaultScrollbarTextColor);
-        this.createScrollbarButtons();
     }
 
     get selectedBackgroundColor(): string {
@@ -454,8 +430,9 @@ class MainTheme implements CurrentTheme {
 
     private applyAppStyles(): void {
         this.setProperty('black', this.black);
-        this.setProperty('focus-ring-color', this.focusRingColor);
         this.toggleClasses(this.app);
+        // TODO: Better colours (frame and content, high contrast)
+        this.setProperty('focus-ring-color', this.textColor);
     }
 
     load(): void {
@@ -521,6 +498,7 @@ class MainTheme implements CurrentTheme {
         classList.toggle('scrollbar-light', this.isScrollbarLight);
         classList.toggle('selection-dark', this.isSelectionDark);
         classList.toggle('selection-light', this.isSelectionLight);
+        classList.toggle('media-buttons-convex', !this.flat);
     }
 
     private setColor(
@@ -538,11 +516,13 @@ class MainTheme implements CurrentTheme {
             this.setProperty(`${hslColorName}-h`, String(hsl.h));
             this.setProperty(`${hslColorName}-s`, `${hsl.s * 100}%`);
             this.setProperty(`${hslColorName}-l`, `${hsl.l * 100}%`);
+            this.setProperty(`${hslColorName}-l2`, hsl.l);
             this.theme$.next({...this.current, [colorName]: value ? color.toHexString() : ''});
         } else {
             this.setProperty(`${hslColorName}-h`, null);
             this.setProperty(`${hslColorName}-s`, null);
             this.setProperty(`${hslColorName}-l`, null);
+            this.setProperty(`${hslColorName}-l2`, null);
             this.theme$.next({...this.current, [colorName]: ''});
         }
     }
@@ -570,24 +550,6 @@ class MainTheme implements CurrentTheme {
         ].join('');
         const url = this.createSVGUrl(512, 512, svgContent);
         this.playheadStyle.setProperty('--smiley', url);
-        this.playheadStyle.setProperty('--thumb-size', `${Math.round(this.fontSize * 1.25)}px`);
-    }
-
-    private createScrollbarButtons(): void {
-        const color = new TinyColor(
-            this.scrollbarTextColor || this.defaultScrollbarTextColor
-        ).toRgbString();
-        const buttons = new Map<string, string>([
-            ['horizontal-decrement', '100,50 50,75 100,100'],
-            ['horizontal-increment', '50,50 100,75 50,100'],
-            ['vertical-decrement', '50,100 75,50 100,100'],
-            ['vertical-increment', '50,50 75,100 100,50'],
-        ]);
-        for (const [name, points] of buttons.entries()) {
-            const svgContent = `<polygon fill='${color}' points='${points}'/>`;
-            const url = this.createSVGUrl(150, 150, svgContent);
-            this.scrollbarStyle.setProperty(`--scrollbar-${name}`, url);
-        }
     }
 
     private createSVGUrl(width: number, height: number, svgContent: string): string {
