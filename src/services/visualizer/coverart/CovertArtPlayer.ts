@@ -105,7 +105,6 @@ export default class CovertArtPlayer extends AbstractVisualizerPlayer<CoverArtVi
     }
 
     play(): void {
-        logger.log('play');
         clearTimeout(this.beatsPauseTimer);
         if (visualizerSettings.coverArtAnimatedBackground) {
             this.animatedBackground.play();
@@ -116,14 +115,12 @@ export default class CovertArtPlayer extends AbstractVisualizerPlayer<CoverArtVi
     }
 
     pause(): void {
-        logger.log('pause');
         this.animatedBackground.pause();
         // Don't pause the animation until it has faded out.
         this.beatsPauseTimer = setTimeout(() => this.beatsPlayer.pause(), 3_000) as any;
     }
 
     stop(): void {
-        logger.log('stop');
         clearTimeout(this.beatsPauseTimer);
         this.animatedBackground.stop();
         this.beatsPlayer.stop();
