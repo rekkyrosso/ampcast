@@ -2,7 +2,7 @@
 
 html {
     background: #32312f;
-    font-family: var(--font-family);
+    font-family: var(--font-family, var(--system-font-family));
     font-size: calc(var(--font-size) * 1px);
     -webkit-font-smoothing: antialiased;
 }
@@ -57,12 +57,12 @@ code {
 
 .selected-text {
     color: var(--selected-text-color);
-    background-color: var(--selected-background-color-blurred);
+    background-color: var(--selected-color-blurred);
 }
 
 :focus .selected-text,
 .focus .selected-text {
-    background-color: var(--selected-background-color);
+    background-color: var(--selected-color);
 }
 
 .panel,

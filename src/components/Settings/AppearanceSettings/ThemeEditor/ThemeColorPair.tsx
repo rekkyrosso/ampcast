@@ -1,101 +1,130 @@
-import React, {useCallback, useState} from 'react';
-import theme, {ThemeColorName} from 'services/theme';
+import React, {useCallback, useId, useState} from 'react';
+import {t} from 'services/i18n';
+import theme from 'services/theme';
 import Button, {IconButton} from 'components/Button';
-import useCurrentTheme from '../useCurrentTheme';
+import {PopupProps, showPopup} from 'components/Popup';
 import ThemeColor from './ThemeColor';
+import useCurrentTheme from '../useCurrentTheme';
+import './ThemeColorPair.scss';
 
 export interface ThemeColorPairProps {
     label: string;
-    backgroundColorName: ThemeColorName;
-    textColorName: ThemeColorName;
-    defaultBackgroundColor?: string;
-    defaultTextColor?: string;
-    suggestedColors?: [string, string];
-    nextSuggestion?: () => void;
-    trackingColor?: string;
+    surface: 'content' | 'frame' | 'selected' | 'button' | 'mediaButton' | 'scrollbar' | 'splitter';
     children?: React.ReactNode;
+    Editor?: React.FC<PopupProps>;
 }
 
-export default function ThemeColorPair({
-    label,
-    backgroundColorName,
-    textColorName,
-    defaultBackgroundColor,
-    defaultTextColor,
-    suggestedColors,
-    nextSuggestion,
-    trackingColor = 'frame',
-    children,
-}: ThemeColorPairProps) {
+export default function ThemeColorPair({label, surface, children, Editor}: ThemeColorPairProps) {
+    const id = useId();
+    const [color, setColor] = useState(theme[surface].color);
+    const [textColor, setTextColor] = useState(theme[surface].textColor);
     const currentTheme = useCurrentTheme();
-    const lockable = defaultBackgroundColor && defaultTextColor;
-    const backgroundColor = currentTheme[backgroundColorName];
-    const textColor = currentTheme[textColorName];
-    const [originalBackgroundColor, setOriginalBackgroundColor] = useState(
-        () => backgroundColor || defaultBackgroundColor || ''
-    );
-    const [originalTextColor, setOriginalTextColor] = useState(
-        () => textColor || defaultTextColor || ''
-    );
-    const locked = !backgroundColor && !textColor;
-
-    const suggest = useCallback(() => {
-        if (suggestedColors && nextSuggestion) {
-            const [backgroundColor, textColor] = suggestedColors;
-            theme[backgroundColorName] = backgroundColor;
-            theme[textColorName] = textColor;
-            nextSuggestion();
-        }
-    }, [backgroundColorName, textColorName, suggestedColors, nextSuggestion]);
+    const lockable =
+        surface === 'button' ||
+        surface === 'mediaButton' ||
+        surface === 'scrollbar' ||
+        surface === 'splitter';
+    const locked = lockable && !currentTheme[surface]?.color;
+    const noTextColor = surface === 'splitter';
 
     const toggleLocked = useCallback(() => {
-        if (locked) {
-            theme[backgroundColorName] = originalBackgroundColor;
-            theme[textColorName] = originalTextColor;
-        } else {
-            theme[backgroundColorName] = '';
-            theme[textColorName] = '';
+        if (lockable) {
+            const currentSurface = currentTheme[surface];
+            if (locked) {
+                theme[surface] = {...currentSurface, color, textColor};
+            } else {
+                // eslint-disable-next-line @typescript-eslint/no-unused-vars
+                const {color, textColor, ...newSurface} = currentSurface || {};
+                theme[surface] = newSurface;
+            }
         }
-    }, [locked, backgroundColorName, textColorName, originalBackgroundColor, originalTextColor]);
+    }, [currentTheme, surface, lockable, locked, color, textColor]);
 
-    const swap = useCallback(() => {
-        const backgroundColor = theme[backgroundColorName];
-        const textColor = theme[textColorName];
-        theme[backgroundColorName] = textColor;
-        theme[textColorName] = backgroundColor;
-    }, [backgroundColorName, textColorName]);
+    const updateColor = useCallback(
+        (color: string) => {
+            if (lockable) {
+                theme[surface] = {...currentTheme[surface], color};
+            } else {
+                theme[surface] = {...theme[surface], color};
+            }
+            setColor(color);
+        },
+        [currentTheme, surface, lockable]
+    );
+
+    const updateTextColor = useCallback(
+        (textColor: string) => {
+            if (lockable) {
+                theme[surface] = {...currentTheme[surface], textColor};
+            } else {
+                theme[surface] = {...theme[surface], textColor};
+            }
+            setTextColor(textColor);
+        },
+        [currentTheme, surface, lockable]
+    );
+
+    const swapColors = useCallback(() => {
+        const {color: textColor, textColor: color} = theme[surface];
+        theme[surface] = {...currentTheme[surface], color, textColor};
+        setColor(color);
+        setTextColor(textColor);
+    }, [currentTheme, surface]);
+
+    const handleEditClick = useCallback(
+        async (event: React.MouseEvent<HTMLButtonElement>) => {
+            if (Editor) {
+                const button = event.target as HTMLButtonElement;
+                const rect = button.getBoundingClientRect();
+                await showPopup(
+                    (props: PopupProps) => <Editor {...props} />,
+                    rect.right,
+                    rect.bottom + 4,
+                    'right',
+                    true
+                );
+            }
+        },
+        [Editor]
+    );
 
     return (
-        <p className={`color-pair ${locked ? 'locked' : ''}`}>
-            <label>{label}:</label>
+        <p className={`theme-color-pair ${locked ? 'locked' : ''}`}>
+            <label htmlFor={id}>{label}:</label>
             <ThemeColor
-                colorName={backgroundColorName}
-                value={backgroundColor || defaultBackgroundColor}
-                title={`${label} background color`}
+                id={id}
+                value={theme[surface].color}
+                title={t(`${label} background color`)}
                 disabled={locked}
-                onChange={setOriginalBackgroundColor}
+                onChange={updateColor}
             />
-            <IconButton icon="swap" title="Swap" onClick={swap} disabled={locked} />
-            <ThemeColor
-                colorName={textColorName}
-                value={textColor || defaultTextColor}
-                title={`${label} text color`}
+            <IconButton
+                icon="swap"
+                title={t('Swap colors')}
+                onClick={swapColors}
                 disabled={locked}
-                onChange={setOriginalTextColor}
+                hidden={noTextColor}
+            />
+            <ThemeColor
+                value={theme[surface].textColor}
+                title={t(`${label} text color`)}
+                disabled={locked}
+                hidden={noTextColor}
+                onChange={updateTextColor}
             />
             {lockable ? (
                 <IconButton
                     icon={locked ? 'locked' : 'unlocked'}
-                    title={locked ? 'Allow editing' : `Lock to ${trackingColor} color`}
+                    title={locked ? t('Edit colors') : t('Use default colors')}
                     onClick={toggleLocked}
                 />
             ) : null}
-            {suggestedColors && nextSuggestion ? (
-                <Button className="small" type="button" onClick={suggest}>
-                    Suggest
+            {children}
+            {Editor ? (
+                <Button className="small" type="button" onClick={handleEditClick}>
+                    Style…
                 </Button>
             ) : null}
-            {children}
         </p>
     );
 }

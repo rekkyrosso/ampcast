@@ -1,0 +1,45 @@
+{
+    "name": "ASCII",
+    "fontName": "Inconsolata",
+    "frame": {
+        "color": "#000000",
+        "textColor": "#00c000"
+    },
+    "content": {
+        "color": "#000000",
+        "textColor": "#00c000"
+    },
+    "selected": {
+        "color": "#1b2237",
+        "textColor": "#ffffff"
+    },
+    "button": {
+        "surfaceStyle": "flat",
+        "elevation": 0,
+        "edgeStyle": "none",
+        "color": "#00c000",
+        "textColor": "#000000",
+        "borderColor": "#004001",
+        "borderWidth": 2.4
+    },
+    "mediaButton": {
+        "color": "#00c000",
+        "textColor": "#000000"
+    },
+    "scrollbar": {
+        "size": 0.67,
+        "color": "#006001",
+        "textColor": "#000000",
+        "borderColor": "#000000",
+        "borderWidth": 1
+    },
+    "splitter": {
+        "edgeStyle": "chamfer+1",
+        "size": 0.7,
+        "color": "#002901",
+        "textColor": "#d2d2d2"
+    },
+    "spacing": 0.36,
+    "roundness": 0,
+    "flat": true
+}

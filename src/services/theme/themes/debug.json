@@ -1,19 +1,46 @@
 {
     "name": "Debug",
     "fontName": "Cursive",
-    "backgroundColor": "#9dceec",
-    "textColor": "#0e0425",
-    "frameColor": "#00ad14",
-    "frameTextColor": "#fbf6ac",
-    "selectedBackgroundColor": "#ffcd03",
-    "selectedTextColor": "#000000",
-    "buttonColor": "#f57d20",
-    "buttonTextColor": "#000000",
-    "scrollbarColor": "#dd1a21",
-    "scrollbarTextColor": "#fff579",
-    "mediaButtonColor": "#f4f4f4",
-    "mediaButtonTextColor": "#181818",
-    "spacing": 0.38,
+    "frame": {
+        "color": "#00ad14",
+        "textColor": "#ffee00"
+    },
+    "content": {
+        "color": "#9dceec",
+        "textColor": "#0e0425"
+    },
+    "selected": {
+        "color": "#ffcd03",
+        "textColor": "#000000"
+    },
+    "button": {
+        "color": "#f57d20",
+        "textColor": "#000000",
+        "elevation": 0.4,
+        "edgeStyle": "fillet+2",
+        "borderWidth": 2.7,
+        "surfaceStyle": "convex"
+    },
+    "mediaButton": {
+        "color": "#f4f4f4",
+        "textColor": "#181818",
+        "surfaceStyle": "concave",
+        "edgeStyle": "fillet+2",
+        "borderColor": "#0c1c0e",
+        "borderWidth": 2.7,
+        "elevation": 2
+    },
+    "scrollbar": {
+        "color": "#dd1a21",
+        "textColor": "#fff579"
+    },
+    "splitter": {
+        "edgeStyle": "none",
+        "color": "#07deed",
+        "textColor": "#fbf6ac",
+        "size": 2
+    },
+    "spacing": 0.48,
     "roundness": 0.48,
     "flat": false
 }

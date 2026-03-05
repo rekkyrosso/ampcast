@@ -1,0 +1,57 @@
+.surface-editor {
+    font-size: max(0.75em, 12px);
+
+    p:has(> small) {
+        max-width: 16em;
+        margin: 0 auto 1em auto;
+        text-align: center;
+
+        small {
+            font-size: 0.875em;
+        }
+    }
+
+    .table-layout {
+        border-spacing: 0 0.5em;
+
+        p {
+            position: relative;
+        }
+
+        input[type=color] {
+            width: 1.5em;
+            height: 1.5em;
+
+            & + input[type=range] {
+                margin-left: 0.5em;
+                width: calc(100% - 2.5em);
+
+                &:has(+ .icon-button) {
+                    width: calc(100% - 4em);
+                }
+            }
+        }
+    }
+
+    .icon-button {
+        position: absolute;
+        right: 0;
+        top: 0.5em;
+        outline-width: 2px;
+        outline-offset: 2px;
+    }
+
+    input:has(+ .icon-button),
+    select:has(+ .icon-button) {
+        width: calc(100% - 2em);
+    }
+
+    .popup-buttons {
+        text-align: right;
+        margin: 2em 0 0 0;
+
+        .button {
+            text-shadow: none;
+        }
+    }
+}

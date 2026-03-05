@@ -10,14 +10,14 @@
         right: 0;
         top: 0;
         bottom: 0;
-        width: var(--scrollbar-size);
+        width: var(--scrollbar-width);
     }
 
     &-horizontal {
         left: 0;
         bottom: 0;
         right: 0;
-        height: var(--scrollbar-size);
+        height: var(--scrollbar-width);
     }
 
     &-thumb,
@@ -27,15 +27,18 @@
         --amb-light-hue: var(--scrollbar-color-h);
         --amb-light-saturation: var(--scrollbar-color-s);
         --amb-key-light-intensity: var(--scrollbar-color-l2);
-        --amb-chamfer: 1;
-        --amb-chamfer-width: 1;
-        --hover-light-intensity: min(calc(var(--scrollbar-color-l2) + 0.05), 1);
-        --active-light-intensity: max(calc(var(--scrollbar-color-l2) - 0.05), 0);
+        --amb-chamfer: var(--scrollbar-chamfer);
+        --amb-fillet: var(--scrollbar-fillet);
+        --hover-light-intensity: min(calc(var(--scrollbar-color-l2) + 0.025), 1);
+        --active-light-intensity: max(calc(var(--scrollbar-color-l2) - 0.025), 0);
         position: absolute;
-        width: var(--scrollbar-size);
-        height: var(--scrollbar-size);
+        width: var(--scrollbar-width);
+        height: var(--scrollbar-width);
         color: var(--scrollbar-text-color);
-        border: 1px solid var(--black);
+        border:
+            calc(var(--scrollbar-border-width, 1) * 0.0625em)
+            solid
+            var(--scrollbar-border-color, var(--black));
         border-radius: var(--app-border-radius);
 
         .scrollbar-buttons-concave & {
@@ -53,8 +56,8 @@
         justify-content: center;
 
         .icon {
-            width: var(--scrollbar-size);
-            height: var(--scrollbar-size);
+            width: var(--scrollbar-width);
+            height: var(--scrollbar-width);
         }
     }
 
@@ -81,23 +84,23 @@
     &-vertical &-track {
         left: 0;
         right: 0;
-        top: var(--scrollbar-size);
-        bottom: var(--scrollbar-size);
+        top: var(--scrollbar-width);
+        bottom: var(--scrollbar-width);
     }
 
     &-horizontal &-track {
-        left: var(--scrollbar-size);
-        right: var(--scrollbar-size);
+        left: var(--scrollbar-width);
+        right: var(--scrollbar-width);
         top: 0;
         bottom: 0;
     }
 
     &-horizontal &-thumb {
-        min-width: calc(var(--scrollbar-size) * 0.67);
+        min-width: calc(var(--scrollbar-width) * 0.67);
     }
 
     &-vertical &-thumb {
-        min-height: calc(var(--scrollbar-size) * 0.67);
+        min-height: calc(var(--scrollbar-width) * 0.67);
     }
 
     .overflow-x > &-horizontal,
@@ -106,18 +109,18 @@
     }
 
     .overflow-x.overflow-y > &-horizontal &-track {
-        right: calc(2 * var(--scrollbar-size));
+        right: calc(2 * var(--scrollbar-width));
     }
 
     .overflow-x.overflow-y > &-horizontal &-button-increment {
-        right: var(--scrollbar-size);
+        right: var(--scrollbar-width);
     }
 
     .overflow-x.overflow-y > &-vertical &-track {
-        bottom: calc(2 * var(--scrollbar-size));
+        bottom: calc(2 * var(--scrollbar-width));
     }
 
     .overflow-x.overflow-y > &-vertical &-button-increment {
-        bottom: var(--scrollbar-size);
+        bottom: var(--scrollbar-width);
     }
 }

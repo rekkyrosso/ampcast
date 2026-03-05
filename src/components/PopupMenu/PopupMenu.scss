@@ -2,7 +2,7 @@
 
 .popup-menu {
     @include effects.button;
-    --amb-elevation: 1;
+    --amb-elevation: 2;
     position: fixed;
     display: flex;
     flex-direction: column;
@@ -20,9 +20,8 @@
         flex-direction: row;
         align-items: center;
         justify-content: center;
-        padding-left: 1.25em;
-        background: none;
-        background-color: transparent;
+        padding: 0.125em 1em 0.125em 1.25em;
+        background: transparent;
         color: var(--button-text-color);
 
         &:focus {

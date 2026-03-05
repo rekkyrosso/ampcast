@@ -1,17 +1,37 @@
 {
     "name": "Contrast",
     "fontName": "Verdana",
-    "backgroundColor": "#051115",
-    "textColor": "#ddeff3",
-    "frameColor": "#c3c3c6",
-    "frameTextColor": "#000000",
-    "selectedBackgroundColor": "#1e25ae",
-    "selectedTextColor": "#ffffff",
-    "scrollbarColor": "#85858a",
-    "scrollbarTextColor": "#000000",
-    "scrollbarThickness": 1.33,
-    "mediaButtonColor": "#202037",
-    "mediaButtonTextColor": "#f8f8fc",
+    "frame": {
+        "color": "#c3c3c6",
+        "textColor": "#000000"
+    },
+    "content": {
+        "color": "#051115",
+        "textColor": "#ddeff3"
+    },
+    "selected": {
+        "color": "#1e25ae",
+        "textColor": "#ffffff"
+    },
+    "button": {
+        "color": "#000000",
+        "textColor": "#ffffff",
+        "borderWidth": 3
+    },
+    "mediaButton": {
+        "color": "#000000",
+        "textColor": "#f8f8fc"
+    },
+    "scrollbar": {
+        "color": "#ceced5",
+        "textColor": "#000000",
+        "size": 1.33
+    },
+    "splitter": {
+        "color": "#000000",
+        "textColor": "#000000",
+        "size": 1.4
+    },
     "spacing": 0.75,
     "roundness": 0.85,
     "flat": true

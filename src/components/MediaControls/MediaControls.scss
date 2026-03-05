@@ -1,7 +1,6 @@
 @use 'styles/effects.scss';
 
 .media-controls {
-    --focus-ring-color: var(--frame-text-color);
     font-family: var(--system-font-family);
 
     .time-control,
@@ -16,24 +15,21 @@
 
     .volume-control {
         flex: auto;
-        min-width: 4.25rem;
-        max-width: 6.25rem;
-        margin-right: 0.25em;
 
         .icon-button {
+            --border-width: calc(var(--media-button-border-width, 1) * 0.046875em);
             flex: initial;
-            width: 1.25em;
-            height: 1.25em;
+            width: calc(1.25em + 2 * var(--border-width));
+            height: calc(1.25em + 2 * var(--border-width));
             border-radius: calc(var(--roundness) * 100%);
             outline-offset: 0;
         }
 
         input[type=range] {
-            --track-height: 0.15em;
-            --thumb-width: 1em;
-            --thumb-height: 1em;
-            min-width: 3rem;
-            max-width: 5rem;
+            --track-height: 0.175em;
+            --thumb-width: calc(1em + 2 * var(--border-width));
+            --thumb-height: calc(1em + 2 * var(--border-width));
+            max-width: calc(4.5em + 2 * var(--border-width));
         }
     }
 
@@ -44,6 +40,7 @@
     }
 
     input[type=range] {
+        --border-width: calc(var(--media-button-border-width, 1) * 0.046875em);
         color: inherit;
 
         @mixin media-thumb {
@@ -51,12 +48,16 @@
             --amb-light-hue: var(--media-button-color-h);
             --amb-light-saturation: var(--media-button-color-s);
             --amb-key-light-intensity: var(--media-button-color-l2);
-            --amb-chamfer: 1;
-            --amb-chamfer-width: 1;
+            --amb-chamfer: var(--media-button-chamfer);
+            --amb-fillet: var(--media-button-fillet);
+            --amb-elevation: var(--media-button-elevation);
             --hover-light-intensity: min(calc(var(--media-button-color-l2) + 0.05), 1);
             --active-light-intensity: max(calc(var(--media-button-color-l2) - 0.05), 0);
             --thumb-shadow: none;
-            border: 1px solid var(--black);
+            border:
+                var(--border-width)
+                solid
+                var(--media-button-border-color, var(--black));
             border-radius: calc(var(--roundness) * var(--thumb-height));
             @include effects.pressable;
 
@@ -80,8 +81,8 @@
 
     .media-buttons {
         flex: auto;
-        margin-left: 0.25rem;
-        margin-right: 0.25rem;
+        margin-left: 0.5rem;
+        margin-right: 0.5rem;
     }
 
     time {
@@ -96,6 +97,9 @@
     }
 
     #playhead {
+        --border-width: calc(var(--media-button-border-width, 1) * 0.0546875em);
+        --thumb-width: calc(1.25em + 2 * var(--border-width));
+        --thumb-height: calc(1.25em + 2 * var(--border-width));
         display: flex;
         flex: auto;
         min-width: 4rem;

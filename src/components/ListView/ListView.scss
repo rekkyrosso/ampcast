@@ -43,12 +43,12 @@
         }
 
         &.selected {
-            background-color: var(--selected-background-color-blurred);
+            background-color: var(--selected-color-blurred);
         }
     }
 
     &.focus &-row.selected {
-        background-color: var(--selected-background-color);
+        background-color: var(--selected-color);
     }
 
     &-row.selected {
@@ -64,8 +64,16 @@
     }
 
     &-head &-cell {
-        @include effects.button;
+        @include effects.surface;
+        --amb-light-hue: var(--frame2-color-h);
+        --amb-light-saturation: var(--frame2-color-s);
+        --amb-key-light-intensity: var(--frame2-color-l2);
+        --amb-chamfer: 1;
+        --amb-fillet: 0;
+        --amb-elevation: 0;
+        color: var(--frame-text-color);
         padding: 0 calc(0.5em - 1px);
+        border: 1px solid var(--black);
         border-radius: var(--app-border-radius);
         height: inherit;
 
@@ -161,6 +169,7 @@
     }
 
     .empty-message {
-        margin: 1em;
+        margin: 2em 1em;
+        text-align: center;
     }
 }

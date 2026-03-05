@@ -1,13 +1,34 @@
 {
     "name": "Purplelicious (Winamp)",
     "fontName": "Arial",
-    "backgroundColor": "#000000",
-    "textColor": "#ffb464",
-    "frameColor": "#3e0445",
-    "frameTextColor": "#ffb464",
-    "selectedBackgroundColor": "#3e0445",
-    "selectedTextColor": "#ffb464",
-    "mediaButtonColor": "#a945a9",
+    "frame": {
+        "color": "#3e0445",
+        "textColor": "#ffb464"
+    },
+    "content": {
+        "color": "#000000",
+        "textColor": "#ffb464"
+    },
+    "selected": {
+        "color": "#3e0445",
+        "textColor": "#ffb464"
+    },
+    "mediaButton": {
+        "color": "#a945a9",
+        "surfaceStyle": "convex",
+        "elevation": 0.6
+    },
+    "scrollbar": {
+        "surfaceStyle": "convex",
+        "color": "#7e307e",
+        "textColor": "#170919",
+        "size": 0.7
+    },
+    "splitter": {
+        "color": "#0d0c0e",
+        "textColor": "#ffb464",
+        "size": 0.6
+    },
     "spacing": 0.21875,
     "roundness": 0.09375,
     "flat": false

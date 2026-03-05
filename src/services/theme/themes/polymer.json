@@ -1,0 +1,39 @@
+{
+    "name": "Polymer",
+    "fontName": "Space Grotesk",
+    "frame": {
+        "color": "#dcd7cb",
+        "textColor": "#32261a"
+    },
+    "content": {
+        "color": "#f9f2e1",
+        "textColor": "#0d0f12"
+    },
+    "selected": {
+        "color": "#caece1",
+        "textColor": "#000000"
+    },
+    "button": {
+        "borderColor": "black",
+        "borderWidth": 0,
+        "edgeStyle": "chamfer+2",
+        "elevation": 0,
+        "surfaceStyle": "flat"
+    },
+    "scrollbar": {
+        "elevation": 0.4,
+        "thickness": 0.9,
+        "borderColor": "#8c7b55",
+        "borderWidth": 1.3
+    },
+    "splitter": {
+        "borderColor": "black",
+        "borderWidth": 0,
+        "edgeStyle": "chamfer-1",
+        "elevation": 0,
+        "surfaceStyle": "flat"
+    },
+    "spacing": 0.6,
+    "roundness": 1,
+    "flat": false
+}

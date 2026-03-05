@@ -1,5 +1,6 @@
 .status-bar {
     padding: var(--gutter-width) 0;
+    font-family: var(--system-font-family);
     font-size: 0.75em;
     white-space: nowrap;
     overflow: hidden;

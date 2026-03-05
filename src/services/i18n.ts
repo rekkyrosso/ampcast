@@ -5,6 +5,7 @@ export function t(string: string): string {
     if (string && !en_us) {
         return string
             .replaceAll(/(F)avorit(e[ds]?|ing)\b/gi, '$1avourit$2')
+            .replaceAll(/(C)olor(s?)\b/gi, '$1olour$2')
             .replaceAll(/iz(e[drs]?|ing)\b/gi, 'is$1');
     }
     return string;

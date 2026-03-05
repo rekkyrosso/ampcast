@@ -45,7 +45,7 @@ export default function MediaServicePins({service, isolated}: MediaServicePinsPr
                 onDelete={handleRemoveClick}
                 onSelect={setSelectedPins}
             />
-            <p className="pinned-settings-buttons">
+            <p className="media-service-pins-buttons">
                 <Button type="button" disabled={!selectedPin} onClick={handleRemoveClick}>
                     Remove
                 </Button>

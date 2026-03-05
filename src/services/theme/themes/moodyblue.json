@@ -1,12 +1,22 @@
 {
     "name": "Moody Blue",
     "fontName": "Inter",
-    "backgroundColor": "#051a23",
-    "textColor": "#bec1c0",
-    "frameColor": "#125673",
-    "frameTextColor": "#d8eee7",
-    "selectedBackgroundColor": "#124373",
-    "selectedTextColor": "#ffffff",
+    "frame": {
+        "color": "#125673",
+        "textColor": "#d8eee7"
+    },
+    "content": {
+        "color": "#051a23",
+        "textColor": "#bec1c0"
+    },
+    "selected": {
+        "color": "#124373",
+        "textColor": "#ffffff"
+    },
+    "mediaButton": {
+        "surfaceStyle": "convex",
+        "elevation": 0.5
+    },
     "spacing": 0.5,
     "roundness": 1,
     "flat": false

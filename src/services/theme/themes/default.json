@@ -1,12 +1,25 @@
 {
     "name": "(boring default)",
     "fontName": "Arial",
-    "backgroundColor": "#0d0f12",
-    "textColor": "#8facbc",
-    "frameColor": "#32312f",
-    "frameTextColor": "#d1d1d1",
-    "selectedBackgroundColor": "#163d5a",
-    "selectedTextColor": "#ebebeb",
+    "frame": {
+        "color": "#32312f",
+        "textColor": "#d1d1d1"
+    },
+    "content": {
+        "color": "#0d0f12",
+        "textColor": "#8facbc"
+    },
+    "selected": {
+        "color": "#163d5a",
+        "textColor": "#ebebeb"
+    },
+    "button": {
+        "edgeStyle": "chamfer+2"
+    },
+    "mediaButton": {
+        "surfaceStyle": "convex",
+        "elevation": 0.3
+    },
     "spacing": 0.38,
     "roundness": 0.48,
     "flat": false

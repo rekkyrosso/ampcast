@@ -2,9 +2,8 @@
 
 .dialog {
     @include effects.surface;
-    --amb-chamfer: 1;
-    --amb-chamfer-width: 2;
-    --amb-elevation: 3;
+    --amb-fillet: 1;
+    --amb-elevation: 4;
     color: inherit;
     flex-direction: column;
     padding: 0;
@@ -73,6 +72,7 @@
         margin: 0 0.375em 0 auto;
         color: white;
         padding: 0;
+        border: 1px solid var(--black);
         border-radius: var(--app-border-radius);
 
         .system & {

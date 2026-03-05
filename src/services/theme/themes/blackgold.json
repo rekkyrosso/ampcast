@@ -1,12 +1,30 @@
 {
     "name": "Black Gold",
     "fontName": "Inter",
-    "backgroundColor": "#0d0c0c",
-    "textColor": "#a9aa92",
-    "frameColor": "#1c1c12",
-    "frameTextColor": "#e8e8bf",
-    "selectedBackgroundColor": "#46462d",
-    "selectedTextColor": "#ffffff",
+    "frame": {
+        "color": "#1c1c12",
+        "textColor": "#e8e8bf"
+    },
+    "content": {
+        "color": "#0d0c0c",
+        "textColor": "#a9aa92"
+    },
+    "selected": {
+        "color": "#46462d",
+        "textColor": "#ffffff"
+    },
+    "button": {
+        "surfaceStyle": "convex",
+        "elevation": 1.5
+    },
+    "mediaButton": {
+        "borderColor": "#14140d",
+        "borderWidth": 1.2,
+        "edgeStyle": "fillet+2",
+        "surfaceStyle": "concave",
+        "color": "#a6a659",
+        "textColor": "#14140d"
+    },
     "spacing": 0.375,
     "roundness": 0.25,
     "flat": false

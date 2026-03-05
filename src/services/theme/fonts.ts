@@ -17,25 +17,33 @@ const googleFont = (name: string, fallback = 'sans-serif'): Font => ({
 });
 
 const fonts: readonly Font[] = [
+    googleFont('Albert Sans'),
     {name: 'Arial', value: 'Arial,sans-serif'},
     googleFont('Bricolage Grotesque'),
     {name: 'Courier New', value: '"Courier New",Courier,monospace'},
     {name: 'Cursive', value: 'cursive'},
+    googleFont('Fraunces'),
     {name: 'Georgia', value: 'Georgia,serif'},
+    googleFont('Hind'),
+    googleFont('Inconsolata'),
     googleFont('Inter'),
     googleFont('Lato'),
+    googleFont('Lora'),
     {name: 'Monospace', value: 'monospace'},
     googleFont('Montserrat'),
     googleFont('Muli'),
     googleFont('Nunito Sans'),
     googleFont('Open Sans'),
     googleFont('Overpass'),
+    googleFont('Oxygen'),
     googleFont('Poppins'),
     googleFont('Roboto'),
+    googleFont('Space Grotesk'),
     {name: 'System UI', value: 'system-ui,sans-serif'},
     {name: 'Tahoma', value: 'Tahoma,Verdana,sans-serif'},
     {name: 'Times New Roman', value: '"Times New Roman",Times,serif'},
     googleFont('Ubuntu'),
+    googleFont('Urbanist'),
     {name: 'Verdana', value: 'Verdana,sans-serif'},
 ];
 

@@ -1,14 +1,30 @@
 {
     "name": "Radioactive",
-    "fontName": "Ubuntu",
-    "backgroundColor": "#0f0f10",
-    "textColor": "#d1f5d2",
-    "frameColor": "#322724",
-    "frameTextColor": "#c3feca",
-    "selectedBackgroundColor": "#43304b",
-    "selectedTextColor": "#ffffff",
-    "mediaButtonColor": "#b0e3b6",
-    "mediaButtonTextColor": "#021c05",
+    "fontName": "Space Grotesk",
+    "frame": {
+        "color": "#322724",
+        "textColor": "#c3feca"
+    },
+    "content": {
+        "color": "#0f0f10",
+        "textColor": "#d1f5d2"
+    },
+    "selected": {
+        "color": "#43304b",
+        "textColor": "#ffffff"
+    },
+    "button": {
+        "surfaceStyle": "concave",
+        "edgeStyle": "chamfer-1",
+        "borderWidth": 1.9,
+        "elevation": 1
+    },
+    "mediaButton": {
+        "color": "#b0e3b6",
+        "textColor": "#021c05",
+        "borderColor": "#000000",
+        "borderWidth": 2.8
+    },
     "spacing": 0.73,
     "roundness": 0.86,
     "flat": false

@@ -115,12 +115,13 @@ async function checkConnection(): Promise<boolean> {
         if (err.status === 401) {
             navidromeSettings.clear();
             connectionLogging$.next('Not authorized');
+            accessToken$.next('');
+            return false;
         } else {
             logger.error(err);
-            connectionLogging$.next(`Failed to connect: '${getReadableErrorMessage(err)}'`);
+            connectionLogging$.next('Connected with errors');
+            return true;
         }
-        accessToken$.next('');
-        return false;
     } finally {
         connecting$.next(false);
     }

@@ -11,7 +11,7 @@
         align-items: baseline;
     }
 
-    &-delete {
+    .button + &-delete {
         margin-top: 0.5em;
         margin-left: auto;
     }

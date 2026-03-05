@@ -31,10 +31,11 @@
         @include effects.button;
         @include effects.pressable;
         --amb-chamfer: 0;
+        --amb-fillet: 0;
         --amb-elevation: 0;
         position: relative;
         padding: 0 1em;
-        border-color: #444;
+        border: 1px solid #444;
         border-bottom-left-radius: 0;
         border-bottom-right-radius: 0;
         height: 1.75em;
@@ -43,6 +44,10 @@
             border-bottom: 1px solid var(--background-color);
             background-color: var(--background-color);
             color: var(--text-color);
+        }
+
+        .focus-visible &:focus {
+            @include effects.outline;
         }
     }
 

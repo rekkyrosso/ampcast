@@ -1,4 +1,5 @@
 import Theme from 'types/Theme';
+import ascii from './ascii.json';
 import astronaut from './astronaut.json';
 import blackgold from './blackgold.json';
 import boringDefault from './default.json';
@@ -6,14 +7,11 @@ import carbon from './carbon.json';
 import contrast from './contrast.json';
 import debug from './debug.json';
 import glacier from './glacier.json';
-import indigo from './indigo.json';
-import jeep from './jeep.json';
-import lego from './lego.json';
 import mellowyellow from './mellowyellow.json';
 import moodyblue from './moodyblue.json';
-import neon from './neon.json';
 import notebook from './notebook.json';
 import palepink from './palepink.json';
+import polymer from './polymer.json';
 import potpourri from './potpourri.json';
 import proton from './proton.json';
 import purplelicious from './purplelicious.json';
@@ -22,51 +20,37 @@ import saddle from './saddle.json';
 import treasure from './treasure.json';
 import velvet from './velvet.json';
 import winampClassic from './winamp-classic.json';
-import winampModern from './winamp-modern.json';
 
 export const emptyTheme: Required<Theme> = {
     name: '(none)',
     fontName: 'Arial',
-    // required colors
-    backgroundColor: 'black',
-    textColor: 'white',
-    frameColor: 'black',
-    frameTextColor: 'white',
-    selectedBackgroundColor: 'blue',
-    selectedTextColor: 'white',
-    // leave these empty
-    buttonColor: '',
-    buttonTextColor: '',
-    scrollbarColor: '',
-    scrollbarTextColor: '',
-    scrollbarThickness: 1,
-    mediaButtonColor: '',
-    mediaButtonTextColor: '',
+    content: {color: 'black', textColor: 'white'},
+    frame: {color: 'black', textColor: 'white'},
+    selected: {color: 'blue', textColor: 'white'},
+    button: {},
+    mediaButton: {},
+    scrollbar: {},
+    splitter: {},
     spacing: 0,
     roundness: 0,
     flat: false,
 };
 
-export const defaultTheme: Required<Theme> = {
-    ...emptyTheme,
-    ...boringDefault,
-};
+export const defaultTheme = boringDefault as Theme;
 
-const themes: readonly Theme[] = [
+const themes = [
     defaultTheme,
+    ascii,
     astronaut,
     blackgold,
     carbon,
     contrast,
     glacier,
-    indigo,
-    jeep,
-    lego,
     mellowyellow,
     moodyblue,
-    neon,
     notebook,
     palepink,
+    polymer,
     potpourri,
     proton,
     purplelicious,
@@ -75,8 +59,7 @@ const themes: readonly Theme[] = [
     treasure,
     velvet,
     winampClassic,
-    winampModern,
     debug,
-];
+] as Theme[];
 
 export default themes;

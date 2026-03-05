@@ -177,7 +177,9 @@ input + label {
 }
 
 input:disabled + label,
-label:has(+ input:disabled) {
+select:disabled + label,
+label:has(+ input:disabled),
+label:has(+ select:disabled) {
     color: var(--grey1-color);
 }
 

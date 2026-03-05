@@ -2,7 +2,7 @@
 
 .splitter {
     --layout-pane-min-size: 5em;
-    --layout-splitter-size: 0.3125em;
+    --layout-splitter-size: calc(var(--splitter-size) * 0.3125em);
     position: absolute;
     display: flex;
     flex-direction: row;
@@ -29,11 +29,11 @@
 
     .layout-splitter {
         @include effects.surface;
-        --amb-light-hue: var(--frame2-color-h);
-        --amb-light-saturation: var(--frame2-color-s);
-        --amb-key-light-intensity: var(--frame2-color-l2);
-        --amb-chamfer: 1;
-        --amb-chamfer-width: 1;
+        --amb-light-hue: var(--splitter-color-h);
+        --amb-light-saturation: var(--splitter-color-s);
+        --amb-key-light-intensity: var(--splitter-color-l2);
+        --amb-chamfer: var(--splitter-chamfer);
+        --amb-fillet: var(--splitter-fillet);
         position: relative;
         flex: none;
         border-radius: calc(var(--roundness) * 1.5 * var(--layout-splitter-size));
@@ -42,6 +42,7 @@
         &:hover,
         &.active {
             --amb-chamfer: 0;
+            --amb-fillet: 0;
             border: none;
             background-image: none;
         }

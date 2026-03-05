@@ -135,7 +135,7 @@ export default function Dialog({
             }}
             ref={dialogRef}
         >
-            <header className="dialog-head" onMouseDown={handleDragStart}>
+            <header className="dialog-head buttons-convex" onMouseDown={handleDragStart}>
                 <h2>{icon ? <MediaSourceLabel icon={icon} text={title} /> : title}</h2>
                 <Button
                     className="dialog-close"

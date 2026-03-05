@@ -1,59 +1,46 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, filter, tap} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, filter, skip, tap} from 'rxjs';
 import {TinyColor} from '@ctrl/tinycolor';
-import Theme from 'types/Theme';
+import {OptionalKeysOf, RequiredKeysOf} from 'type-fest';
+import Theme, {Button, MediaButton, Scrollbar, Splitter, Surface} from 'types/Theme';
 import ampcastElectron from 'services/ampcastElectron';
 import {LiteStorage, Logger} from 'utils';
+import {fromLegacyTheme} from './legacyTheme';
 import {emptyTheme, defaultTheme} from './themes';
 import themeStore from './themeStore';
 import fonts, {loadFont} from './fonts';
 
 const logger = new Logger('theme');
 
-export interface CurrentTheme extends Required<Theme> {
+export interface CurrentTheme extends Theme {
     readonly userTheme?: boolean;
 }
 
-export type ThemeColorName =
-    | 'backgroundColor'
-    | 'buttonColor'
-    | 'buttonTextColor'
-    | 'frameColor'
-    | 'frameTextColor'
-    | 'mediaButtonColor'
-    | 'mediaButtonTextColor'
-    | 'scrollbarColor'
-    | 'scrollbarTextColor'
-    | 'selectedBackgroundColor'
-    | 'selectedTextColor'
-    | 'textColor';
-
-type ThemeSchema = Partial<Record<keyof Theme, 'string' | 'number' | 'boolean'>>;
-
-const requiredProperties: ThemeSchema = {
+const requiredProperties: Record<
+    RequiredKeysOf<Theme>,
+    'object' | 'string' | 'number' | 'boolean'
+> = {
     name: 'string',
-    frameColor: 'string',
-    frameTextColor: 'string',
-    backgroundColor: 'string',
-    textColor: 'string',
-    selectedBackgroundColor: 'string',
-    selectedTextColor: 'string',
+    fontName: 'string',
+    frame: 'object',
+    content: 'object',
+    selected: 'object',
 };
 
-const optionalProperties: ThemeSchema = {
-    fontName: 'string',
-    mediaButtonColor: 'string',
-    mediaButtonTextColor: 'string',
-    buttonColor: 'string',
-    buttonTextColor: 'string',
-    scrollbarColor: 'string',
-    scrollbarTextColor: 'string',
-    scrollbarThickness: 'number',
+const optionalProperties: Record<
+    OptionalKeysOf<Theme>,
+    'object' | 'string' | 'number' | 'boolean'
+> = {
+    button: 'object',
+    mediaButton: 'object',
+    scrollbar: 'object',
+    splitter: 'object',
     spacing: 'number',
     roundness: 'number',
     flat: 'boolean',
 };
 
+const defaultFontName = 'Arial';
 const defaultFontSize = 17.2;
 const fontSize$ = new BehaviorSubject(defaultFontSize);
 
@@ -65,7 +52,7 @@ class MainTheme implements CurrentTheme {
     private readonly playheadStyle: CSSStyleDeclaration;
     private readonly app = document.getElementById('app') as HTMLElement;
     private readonly system = document.getElementById('system') as HTMLElement;
-    private readonly theme$ = new BehaviorSubject<CurrentTheme>(defaultTheme);
+    private readonly theme$ = new BehaviorSubject<CurrentTheme>({} as CurrentTheme);
     private applyingUpdate = false;
 
     constructor() {
@@ -77,15 +64,20 @@ class MainTheme implements CurrentTheme {
         this.playheadStyle = this.createStyle('#playhead');
         this.system.classList.toggle('selection-dark', true);
         this.system.classList.toggle('buttons-convex', true);
-        this.load();
+        this.system.classList.toggle('scrollbar-buttons-convex', true);
 
         this.observe()
-            .pipe(tap(() => this.applyAppStyles()))
+            .pipe(tap(() => this.applyStyles()))
             .subscribe(logger);
+
+        this.load();
     }
 
     observe(): Observable<CurrentTheme> {
-        return this.theme$.pipe(filter(() => !this.applyingUpdate));
+        return this.theme$.pipe(
+            skip(1),
+            filter(() => !this.applyingUpdate)
+        );
     }
 
     observeFontSize(this: unknown): Observable<number> {
@@ -93,11 +85,7 @@ class MainTheme implements CurrentTheme {
     }
 
     get backgroundColor(): string {
-        return this.current.backgroundColor;
-    }
-
-    set backgroundColor(color: string) {
-        this.setColor('backgroundColor', color);
+        return this.content.color;
     }
 
     get black(): string {
@@ -107,92 +95,61 @@ class MainTheme implements CurrentTheme {
             color.l -= color.l * 0.8;
             return this.fromHsl(color);
         } else {
-            return new TinyColor(this.backgroundColor).darken(33).toHexString();
+            return new TinyColor(this.content.color).darken(33).toHexString();
         }
     }
 
+    get button(): Button {
+        return {...this.defaultButton, ...this.current.button};
+    }
+
+    set button(button: Partial<Button> | undefined) {
+        this.theme$.next({...this.current, button});
+    }
+
     get buttonColor(): string {
-        return this.current.buttonColor;
+        return this.button.color;
     }
 
-    set buttonColor(color: string) {
-        this.setColor('buttonColor', color, this.defaultButtonColor);
-        this.scrollbarColor = this.current.scrollbarColor;
+    get content(): Surface {
+        return this.current.content;
     }
 
-    get buttonTextColor(): string {
-        return this.current.buttonTextColor;
-    }
-
-    set buttonTextColor(color: string) {
-        this.setColor('buttonTextColor', color, this.defaultButtonTextColor);
-        this.scrollbarTextColor = this.current.scrollbarTextColor;
+    set content(content: Surface) {
+        this.theme$.next({...this.current, content});
     }
 
     get current(): CurrentTheme {
         return this.theme$.value;
     }
 
-    get defaultButtonColor(): string {
-        const color = new TinyColor(this.frameColor).toHsl();
-        color.s += 0.05;
-        color.l += 0.05;
-        return this.fromHsl(color);
-    }
-
-    get defaultButtonTextColor(): string {
-        return this.frameTextColor;
-    }
-
     get defaultMediaButtonColor(): string {
-        const color = new TinyColor(this.frameColor).toHsl();
-        color.s += (1 - color.s) * 0.24;
-        color.l += (1 - color.l) * 0.625;
-        return this.fromHsl(color);
-    }
-
-    get defaultMediaButtonTextColor(): string {
-        const color = new TinyColor(this.mediaButtonColor || this.defaultMediaButtonColor).toHsl();
-        color.s -= color.s * 0.5;
-        color.l -= color.l * 0.9;
-        return this.fromHsl(color);
-    }
-
-    get defaultScrollbarColor(): string {
-        return this.buttonColor || this.defaultButtonColor;
-    }
-
-    get defaultScrollbarTextColor(): string {
-        return this.buttonTextColor || this.defaultButtonTextColor;
+        return this.defaultMediaButton.color;
     }
 
     get edited(): boolean {
-        const originalTheme = {
-            ...emptyTheme,
-            ...(this.userTheme
-                ? themeStore.getUserTheme(this.name)
-                : themeStore.getDefaultTheme(this.name)),
-        };
-        return originalTheme
-            ? !Object.keys(originalTheme).every(
-                  (propertyName) =>
-                      originalTheme[propertyName as keyof Theme] ===
-                      this[propertyName as keyof Theme]
-              )
-            : false;
+        return (
+            JSON.stringify(this.toJSON()) !==
+            JSON.stringify(
+                this.toJSON(
+                    this.userTheme
+                        ? themeStore.getUserTheme(this.name)
+                        : themeStore.getDefaultTheme(this.name)
+                )
+            )
+        );
     }
 
     get flat(): boolean {
-        return this.current.flat;
+        return !!this.current.flat;
     }
 
     set flat(flat: boolean) {
-        this.app.classList.toggle('flat', !!flat);
         this.theme$.next({...this.current, flat});
     }
 
     get fontName(): string {
-        return this.current.fontName;
+        return this.current.fontName || defaultFontName;
     }
 
     set fontName(fontName: string) {
@@ -203,7 +160,7 @@ class MainTheme implements CurrentTheme {
     }
 
     get fontSize(): number {
-        return fontSize$.getValue();
+        return fontSize$.value;
     }
 
     set fontSize(fontSize: number) {
@@ -212,131 +169,20 @@ class MainTheme implements CurrentTheme {
         fontSize$.next(fontSize);
     }
 
-    get frameColor(): string {
-        return this.current.frameColor;
+    get frame(): Surface {
+        return this.current.frame;
     }
 
-    set frameColor(color: string) {
-        this.setColor('frameColor', color);
-        this.buttonColor = this.current.buttonColor;
-        this.mediaButtonColor = this.current.mediaButtonColor;
-        if (ampcastElectron) {
-            ampcastElectron.setFrameColor(color);
-        } else {
-            let themeColorMeta = document.head.querySelector('meta[name="theme-color"]');
-            if (!themeColorMeta) {
-                themeColorMeta = document.createElement('meta');
-                themeColorMeta.setAttribute('name', 'theme-color');
-                document.head.append(themeColorMeta);
-            }
-            themeColorMeta.setAttribute('content', color);
-        }
+    set frame(frame: Surface) {
+        this.theme$.next({...this.current, frame});
+    }
+
+    get frameColor(): string {
+        return this.frame.color;
     }
 
     get frameTextColor(): string {
-        return this.current.frameTextColor;
-    }
-
-    set frameTextColor(color: string) {
-        this.setColor('frameTextColor', color);
-        this.buttonTextColor = this.current.buttonTextColor;
-        ampcastElectron?.setFrameTextColor(color);
-    }
-
-    get mediaButtonColor(): string {
-        return this.current.mediaButtonColor;
-    }
-
-    set mediaButtonColor(color: string) {
-        this.setColor('mediaButtonColor', color, this.defaultMediaButtonColor);
-        this.mediaButtonTextColor = this.current.mediaButtonTextColor;
-    }
-
-    get mediaButtonTextColor(): string {
-        return this.current.mediaButtonTextColor;
-    }
-
-    set mediaButtonTextColor(color: string) {
-        this.setColor('mediaButtonTextColor', color, this.defaultMediaButtonTextColor);
-        this.createPlayheadSmiley();
-    }
-
-    get name(): string {
-        return this.current.name;
-    }
-
-    set name(name: string) {
-        this.theme$.next({...this.current, name});
-    }
-
-    get roundness(): number {
-        return this.current.roundness;
-    }
-
-    set roundness(roundness: number) {
-        this.setProperty('roundness', roundness);
-        this.theme$.next({...this.current, roundness});
-    }
-
-    get scrollbarColor(): string {
-        return this.current.scrollbarColor;
-    }
-
-    set scrollbarColor(color: string) {
-        this.setColor('scrollbarColor', color, this.defaultScrollbarColor);
-    }
-
-    get scrollbarThickness(): number {
-        return this.current.scrollbarThickness;
-    }
-
-    set scrollbarThickness(scrollbarThickness: number) {
-        this.setProperty('scrollbar-thickness', scrollbarThickness);
-        this.theme$.next({...this.current, scrollbarThickness});
-    }
-
-    get scrollbarTextColor(): string {
-        return this.current.scrollbarTextColor;
-    }
-
-    set scrollbarTextColor(color: string) {
-        this.setColor('scrollbarTextColor', color, this.defaultScrollbarTextColor);
-    }
-
-    get selectedBackgroundColor(): string {
-        return this.current.selectedBackgroundColor;
-    }
-
-    set selectedBackgroundColor(color: string) {
-        this.setColor('selectedBackgroundColor', color);
-        const backgroundColor = new TinyColor(this.backgroundColor);
-        const blurredColor = backgroundColor.mix(new TinyColor(color).desaturate(50), 75);
-        this.setProperty('selected-background-color-blurred', blurredColor.toRgbString());
-    }
-
-    get selectedTextColor(): string {
-        return this.current.selectedTextColor;
-    }
-
-    set selectedTextColor(color: string) {
-        this.setColor('selectedTextColor', color);
-    }
-
-    get spacing(): number {
-        return this.current.spacing;
-    }
-
-    set spacing(spacing: number) {
-        this.setProperty('spacing', spacing);
-        this.theme$.next({...this.current, spacing});
-    }
-
-    get textColor(): string {
-        return this.current.textColor;
-    }
-
-    set textColor(color: string) {
-        this.setColor('textColor', color);
+        return this.frame.textColor;
     }
 
     get isDark(): boolean {
@@ -348,11 +194,11 @@ class MainTheme implements CurrentTheme {
     }
 
     get isButtonDark(): boolean {
-        return new TinyColor(this.buttonColor || this.defaultButtonColor).isDark();
+        return new TinyColor(this.buttonColor).isDark();
     }
 
     get isButtonLight(): boolean {
-        return new TinyColor(this.buttonColor || this.defaultButtonColor).isLight();
+        return new TinyColor(this.buttonColor).isLight();
     }
 
     get isFrameDark(): boolean {
@@ -376,19 +222,19 @@ class MainTheme implements CurrentTheme {
     }
 
     get isScrollbarDark(): boolean {
-        return new TinyColor(this.scrollbarColor || this.defaultScrollbarColor).isDark();
+        return new TinyColor(this.scrollbar.color).isDark();
     }
 
     get isScrollbarLight(): boolean {
-        return new TinyColor(this.scrollbarColor || this.defaultScrollbarColor).isLight();
+        return new TinyColor(this.scrollbar.color).isLight();
     }
 
     get isSelectionDark(): boolean {
-        return new TinyColor(this.selectedBackgroundColor).isDark();
+        return new TinyColor(this.selected.color).isDark();
     }
 
     get isSelectionLight(): boolean {
-        return new TinyColor(this.selectedBackgroundColor).isLight();
+        return new TinyColor(this.selected.color).isLight();
     }
 
     get isTextDark(): boolean {
@@ -399,12 +245,90 @@ class MainTheme implements CurrentTheme {
         return new TinyColor(this.textColor).isLight();
     }
 
+    get mediaButton(): MediaButton {
+        return {...this.defaultMediaButton, ...this.current.mediaButton};
+    }
+
+    set mediaButton(mediaButton: Partial<MediaButton> | undefined) {
+        this.theme$.next({...this.current, mediaButton});
+    }
+
+    get mediaButtonColor(): string {
+        return this.mediaButton.color;
+    }
+
+    get name(): string {
+        return this.current.name;
+    }
+
+    set name(name: string) {
+        this.theme$.next({...this.current, name});
+    }
+
+    get roundness(): number {
+        return this.current.roundness ?? 0.25;
+    }
+
+    set roundness(roundness: number) {
+        this.theme$.next({...this.current, roundness});
+    }
+
+    get scrollbar(): Scrollbar {
+        return {...this.defaultScrollbar, ...this.current.scrollbar};
+    }
+
+    set scrollbar(scrollbar: Partial<Scrollbar> | undefined) {
+        this.theme$.next({...this.current, scrollbar});
+    }
+
+    get splitter(): Splitter {
+        return {...this.defaultSplitter, ...this.current.splitter};
+    }
+
+    set splitter(splitter: Partial<Splitter> | undefined) {
+        this.theme$.next({...this.current, splitter});
+    }
+
+    get selected(): Surface {
+        return this.current.selected;
+    }
+
+    set selected(selected: Surface) {
+        this.theme$.next({...this.current, selected});
+    }
+
+    get spacing(): number {
+        return this.current.spacing ?? 0.375;
+    }
+
+    set spacing(spacing: number) {
+        this.theme$.next({...this.current, spacing});
+    }
+
+    get textColor(): string {
+        return this.content.textColor;
+    }
+
     get userTheme(): boolean {
         return !!this.current.userTheme;
     }
 
     set userTheme(userTheme: boolean) {
         this.theme$.next({...this.current, userTheme});
+    }
+
+    apply(theme: Theme & {userTheme?: boolean}): void {
+        this.applyingUpdate = true;
+        const defaultValues = theme.userTheme ? {} : themeStore.getDefaultTheme(theme.name) || {};
+        Object.assign(
+            this,
+            emptyTheme,
+            defaultValues,
+            {userTheme: undefined},
+            fromLegacyTheme(theme)
+        );
+        this.applyingUpdate = false;
+        this.theme$.next(this.current);
     }
 
     getVisualizerColors(): readonly string[] {
@@ -417,26 +341,8 @@ class MainTheme implements CurrentTheme {
         return [primaryLightColor, ...brightColor.tetrad().map((color) => color.toRgbString())];
     }
 
-    apply(theme: Theme & {userTheme?: boolean}): void {
-        this.applyingUpdate = true;
-        const defaultValues = theme.userTheme ? {} : themeStore.getDefaultTheme(theme.name) || {};
-        const values = {...emptyTheme, ...defaultValues, userTheme: undefined, ...theme};
-        this.frameColor = values.frameColor;
-        this.frameTextColor = values.frameTextColor;
-        Object.assign(this, values);
-        this.applyingUpdate = false;
-        this.theme$.next(this.current);
-    }
-
-    private applyAppStyles(): void {
-        this.setProperty('black', this.black);
-        this.toggleClasses(this.app);
-        // TODO: Better colours (frame and content, high contrast)
-        this.setProperty('focus-ring-color', this.textColor);
-    }
-
     load(): void {
-        const theme = this.storage.getJson<CurrentTheme>('current', defaultTheme);
+        const theme = this.storage.getJson<Theme>('current', defaultTheme);
         this.apply(theme);
         this.fontSize = this.storage.getNumber('fontSize', defaultFontSize);
         this.system.classList.toggle('dark', this.isDark);
@@ -450,84 +356,211 @@ class MainTheme implements CurrentTheme {
         this.system.classList.toggle('light', this.isLight);
     }
 
-    validate(data: any): data is Theme {
-        if (!data || typeof data !== 'object' || 'length' in data) {
-            return false;
-        }
-        return (
-            Object.keys(requiredProperties).every(
-                (key) => key in data && typeof data[key] === requiredProperties[key as keyof Theme]
-            ) &&
-            Object.keys(data).every(
-                (key) =>
-                    key in requiredProperties ||
-                    typeof data[key] === optionalProperties[key as keyof Theme]
-            )
-        );
-    }
-
-    toJSON(theme: Theme | string = this): Theme {
+    toJSON(theme: Theme | string = this.current): Theme {
         if (typeof theme === 'string') {
             // This function was invoked by `JSON.stringify`.
-            // eslint-disable-next-line @typescript-eslint/no-this-alias
-            theme = this;
+            theme = this.current;
+        } else {
+            theme = fromLegacyTheme(theme);
         }
         const data = Object.keys(requiredProperties).reduce((data, key) => {
             data[key] = theme[key as keyof Theme];
             return data;
         }, {} as any);
         Object.keys(optionalProperties).forEach((key) => {
-            if (theme[key as keyof Theme] !== emptyTheme[key as keyof Theme]) {
-                data[key] = theme[key as keyof Theme];
+            const value = theme[key as keyof Theme];
+            if (JSON.stringify(value) !== '{}') {
+                data[key] = value;
             }
         });
         return data;
     }
 
-    private toggleClasses(root: HTMLElement): void {
-        const classList = root.classList;
-        classList.toggle('dark', this.isDark);
-        classList.toggle('light', this.isLight);
-        classList.toggle('frame-dark', this.isFrameDark);
-        classList.toggle('frame-light', this.isFrameLight);
-        classList.toggle('frame-text-dark', this.isFrameTextDark);
-        classList.toggle('frame-text-light', this.isFrameTextLight);
-        classList.toggle('button-dark', this.isButtonDark);
-        classList.toggle('button-light', this.isButtonLight);
-        classList.toggle('scrollbar-dark', this.isScrollbarDark);
-        classList.toggle('scrollbar-light', this.isScrollbarLight);
-        classList.toggle('selection-dark', this.isSelectionDark);
-        classList.toggle('selection-light', this.isSelectionLight);
-        classList.toggle('media-buttons-convex', !this.flat);
+    validate(data: any): data is Theme {
+        if (!data || typeof data !== 'object' || 'length' in data) {
+            return false;
+        }
+        data = fromLegacyTheme(data);
+        console.log('validate', {data});
+        return (
+            Object.keys(requiredProperties).every(
+                (key) =>
+                    key in data &&
+                    typeof data[key] === requiredProperties[key as RequiredKeysOf<Theme>]
+            ) &&
+            Object.keys(data).every(
+                (key) =>
+                    key in requiredProperties ||
+                    typeof data[key] === optionalProperties[key as OptionalKeysOf<Theme>]
+            )
+        );
     }
 
-    private setColor(
-        colorName: ThemeColorName,
-        value: TinyColor | string | null,
-        defaultValue?: TinyColor | string | null
-    ): void {
-        const hslColorName = this.toDashName(colorName);
-        let color = value || defaultValue;
-        if (color) {
-            if (typeof color === 'string') {
-                color = new TinyColor(color);
+    private get defaultButton(): Button {
+        return {
+            color: this.defaultButtonColor,
+            textColor: this.frameTextColor,
+            borderColor: this.black,
+            borderWidth: 1,
+            edgeStyle: 'chamfer+1',
+            elevation: 0,
+            surfaceStyle: 'flat',
+        };
+    }
+
+    private get defaultButtonColor(): string {
+        const color = new TinyColor(this.frameColor).toHsl();
+        color.s += 0.05;
+        color.l += 0.05;
+        return this.fromHsl(color);
+    }
+
+    private get defaultMediaButton(): MediaButton {
+        const color = new TinyColor(this.frameColor).toHsl();
+        color.s += (1 - color.s) * 0.24;
+        color.l += (1 - color.l) * 0.625;
+        const textColor = new TinyColor(color).toHsl();
+        textColor.s -= color.s * 0.5;
+        textColor.l -= color.l * 0.9;
+        return {
+            ...this.button,
+            color: this.fromHsl(color),
+            textColor: this.fromHsl(textColor),
+        };
+    }
+
+    private get defaultScrollbar(): Scrollbar {
+        // eslint-disable-next-line @typescript-eslint/no-unused-vars
+        const {elevation, ...button} = this.button;
+        return {...button, size: 1};
+    }
+
+    private get defaultSplitter(): Splitter {
+        return {
+            color: this.defaultButtonColor,
+            textColor: this.frameTextColor,
+            edgeStyle: 'chamfer+1',
+            size: 1,
+        };
+    }
+
+    private applyStyles(): void {
+        this.setColor('backgroundColor', this.backgroundColor);
+        this.setColor('textColor', this.textColor);
+
+        const themeKeys = Object.keys(requiredProperties)
+            .concat(Object.keys(optionalProperties))
+            .filter(
+                (key) =>
+                    key !== 'name' && key !== 'content' && key !== 'flat' && key !== 'userTheme'
+            ) as (keyof Theme)[];
+
+        for (const key of themeKeys) {
+            const property = this[key];
+            if (typeof property === 'object') {
+                Object.keys(property).forEach((key2) => {
+                    const value = property[key2 as keyof Surface];
+                    if (key2 === 'edgeStyle') {
+                        let chamfer = 0;
+                        let fillet = 0;
+                        switch (value) {
+                            case 'chamfer+1':
+                                chamfer = 1;
+                                break;
+                            case 'chamfer+2':
+                                chamfer = 2;
+                                break;
+                            case 'chamfer-1':
+                                chamfer = -1;
+                                break;
+                            case 'fillet+1':
+                                fillet = 1;
+                                break;
+                            case 'fillet+2':
+                                fillet = 2;
+                                break;
+                            case 'fillet-1':
+                                fillet = -1;
+                                break;
+                        }
+                        this.setProperty(`${key}-chamfer`, chamfer);
+                        this.setProperty(`${key}-fillet`, fillet);
+                    } else if (/^color$|Color$/i.test(key2)) {
+                        this.setColor(`${key}-${key2}`, value as string);
+                    } else {
+                        this.setProperty(`${key}-${key2}`, value);
+                    }
+                });
+            } else if (/Color$/.test(key)) {
+                this.setColor(key, property as string);
+            } else {
+                this.setProperty(key, property);
             }
-            const hsl = color.toHsl();
-            this.setProperty(`${hslColorName}-h`, String(hsl.h));
-            this.setProperty(`${hslColorName}-s`, `${hsl.s * 100}%`);
-            this.setProperty(`${hslColorName}-l`, `${hsl.l * 100}%`);
-            this.setProperty(`${hslColorName}-l2`, hsl.l);
-            this.theme$.next({...this.current, [colorName]: value ? color.toHexString() : ''});
+        }
+
+        this.setProperty('black', this.black);
+        this.toggleClasses();
+        // TODO: Better colours (frame and content, high contrast)
+        this.setProperty('focus-ring-color', this.name === 'Contrast' ? 'red' : null);
+        this.createPlayheadSmiley();
+
+        // Set chrome color for Electron/PWA.
+        if (ampcastElectron) {
+            ampcastElectron.setFrameColor(this.frameColor);
         } else {
-            this.setProperty(`${hslColorName}-h`, null);
-            this.setProperty(`${hslColorName}-s`, null);
-            this.setProperty(`${hslColorName}-l`, null);
-            this.setProperty(`${hslColorName}-l2`, null);
-            this.theme$.next({...this.current, [colorName]: ''});
+            let themeColorMeta = document.head.querySelector('meta[name="theme-color"]');
+            if (!themeColorMeta) {
+                themeColorMeta = document.createElement('meta');
+                themeColorMeta.setAttribute('name', 'theme-color');
+                document.head.append(themeColorMeta);
+            }
+            themeColorMeta.setAttribute('content', this.frameColor);
+        }
+    }
+
+    private toggleClasses(): void {
+        const classes = this.app.classList;
+        const {flat, button, mediaButton, scrollbar} = this;
+        classes.toggle('flat', flat);
+        classes.toggle('dark', this.isDark);
+        classes.toggle('light', this.isLight);
+        classes.toggle('frame-dark', this.isFrameDark);
+        classes.toggle('frame-light', this.isFrameLight);
+        classes.toggle('frame-text-dark', this.isFrameTextDark);
+        classes.toggle('frame-text-light', this.isFrameTextLight);
+        classes.toggle('button-dark', this.isButtonDark);
+        classes.toggle('button-light', this.isButtonLight);
+        classes.toggle('scrollbar-dark', this.isScrollbarDark);
+        classes.toggle('scrollbar-light', this.isScrollbarLight);
+        classes.toggle('selection-dark', this.isSelectionDark);
+        classes.toggle('selection-light', this.isSelectionLight);
+        classes.toggle('buttons-concave', !flat && button.surfaceStyle === 'concave');
+        classes.toggle('buttons-convex', !flat && button.surfaceStyle === 'convex');
+        classes.toggle('media-buttons-concave', !flat && mediaButton.surfaceStyle === 'concave');
+        classes.toggle('media-buttons-convex', !flat && mediaButton.surfaceStyle === 'convex');
+        classes.toggle('scrollbar-buttons-concave', !flat && scrollbar.surfaceStyle === 'concave');
+        classes.toggle('scrollbar-buttons-convex', !flat && scrollbar.surfaceStyle === 'convex');
+    }
+
+    private setColor(colorName: string, color: string): void {
+        if (color) {
+            const hsl = new TinyColor(color).toHsl();
+            this.setProperty(`${colorName}-h`, String(hsl.h));
+            this.setProperty(`${colorName}-s`, `${hsl.s * 100}%`);
+            this.setProperty(`${colorName}-l`, `${hsl.l * 100}%`);
+            this.setProperty(`${colorName}-l2`, hsl.l);
+            this.setProperty(`${colorName}`, `hsl(${hsl.h},${hsl.s * 100}%,${hsl.l * 100}%)`);
+        } else {
+            this.setProperty(`${colorName}-h`, null);
+            this.setProperty(`${colorName}-s`, null);
+            this.setProperty(`${colorName}-l`, null);
+            this.setProperty(`${colorName}-l2`, null);
+            this.setProperty(`${colorName}`, null);
         }
     }
 
     private setProperty(propertyName: string, value: string | number | boolean | null): void {
+        propertyName = propertyName.replace(/[A-Z]/g, (char: string) => `-${char.toLowerCase()}`);
         this.appStyle.setProperty(`--${propertyName}`, value == null ? null : String(value));
     }
 
@@ -537,12 +570,8 @@ class MainTheme implements CurrentTheme {
         return rule.style;
     }
 
-    private get smileyColor(): string {
-        return this.mediaButtonTextColor || this.defaultMediaButtonTextColor;
-    }
-
     private createPlayheadSmiley(): void {
-        const color = new TinyColor(this.smileyColor).toRgbString();
+        const color = new TinyColor(this.mediaButton.textColor).toRgbString();
         const svgContent = [
             `<path fill='${color}' d='M 160.5,164.5 C 183.647,162.813 194.147,173.48 192,196.5C 186.494,211.009 175.994,216.842 160.5,214C 145.991,208.494 140.158,197.994 143,182.5C 145.683,173.318 151.517,167.318 160.5,164.5 Z'/>`,
             `<path fill='${color}' d='M 335.5,164.5 C 358.647,162.813 369.147,173.48 367,196.5C 361.494,211.009 350.994,216.842 335.5,214C 320.991,208.494 315.158,197.994 318,182.5C 320.683,173.318 326.517,167.318 335.5,164.5 Z'/>`,
@@ -555,10 +584,6 @@ class MainTheme implements CurrentTheme {
     private createSVGUrl(width: number, height: number, svgContent: string): string {
         const svg = `<svg xmlns='http://www.w3.org/2000/svg' width='${width}' height='${height}'>${svgContent}</svg>`;
         return `url("data:image/svg+xml;utf8,${svg}")`;
-    }
-
-    private toDashName(text: string): string {
-        return text.replace(/[A-Z]/g, (char: string) => `-${char.toLowerCase()}`);
     }
 
     private fromHsl({h, s, l}: {h: number; s: number; l: number}): string {

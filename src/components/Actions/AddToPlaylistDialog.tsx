@@ -25,6 +25,7 @@ export async function showAddToPlaylistDialog<T extends MediaItem>(
 export interface AddToPlaylistDialogProps<T extends MediaItem> extends DialogProps {
     items: readonly T[];
 }
+
 const defaultLayout: MediaListLayout = {
     view: 'card minimal',
     card: {

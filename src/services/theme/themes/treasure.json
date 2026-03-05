@@ -1,14 +1,26 @@
 {
     "name": "Treasure",
     "fontName": "Nunito Sans",
-    "backgroundColor": "#040323",
-    "textColor": "#dee5e8",
-    "frameColor": "#64211c",
-    "frameTextColor": "#e4d8d8",
-    "selectedBackgroundColor": "#373c0c",
-    "selectedTextColor": "#ffffff",
-    "mediaButtonColor": "#d1ca10",
-    "mediaButtonTextColor": "#12100d",
+    "content": {
+        "color": "#030e21",
+        "textColor": "#dee5e8"
+    },
+    "frame": {
+        "color": "#63311c",
+        "textColor": "#e4d8d8"
+    },
+    "selected": {
+        "color": "#373c0c",
+        "textColor": "#ffffff"
+    },
+    "mediaButton": {
+        "color": "#dad53e",
+        "textColor": "#12100d"
+    },
+    "splitter": {
+        "edgeStyle": "none",
+        "size": 1.8
+    },
     "spacing": 0.43,
     "roundness": 0.69,
     "flat": false

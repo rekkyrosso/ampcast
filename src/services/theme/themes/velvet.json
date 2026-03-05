@@ -1,17 +1,36 @@
 {
     "name": "Velvet",
     "fontName": "Lato",
-    "backgroundColor": "#160916",
-    "textColor": "#c2d7ea",
-    "frameColor": "#280b1f",
-    "frameTextColor": "#7de8e6",
-    "mediaButtonColor": "#ccae14",
-    "mediaButtonTextColor": "#0d0b04",
-    "selectedBackgroundColor": "#412438",
-    "selectedTextColor": "#ebebeb",
-    "scrollbarTextColor": "#d7bd3c",
-    "spacing": 0.85,
+    "frame": {
+        "color": "#280b1f",
+        "textColor": "#7de8e6"
+    },
+    "content": {
+        "color": "#160916",
+        "textColor": "#c2d7ea"
+    },
+    "selected": {
+        "color": "#412438",
+        "textColor": "#ebebeb"
+    },
+    "button": {
+        "edgeStyle": "none"
+    },
+    "mediaButton": {
+        "color": "#ccae14",
+        "textColor": "#0d0b04",
+        "surfaceStyle": "concave",
+        "edgeStyle": "chamfer+2",
+        "elevation": 1.5
+    },
+    "scrollbar": {
+        "textColor": "#fcd303",
+        "color": "#3e0f2f"
+    },
+    "splitter": {
+        "edgeStyle": "none"
+    },
+    "spacing": 0.69,
     "roundness": 0.67,
-    "scrollbarThickness": 1.33,
-    "flat": true
+    "flat": false
 }

@@ -1,17 +1,29 @@
 {
     "name": "Proton",
-    "fontName": "System UI",
-    "backgroundColor": "#120f0c",
-    "textColor": "#c4c7b8",
-    "frameColor": "#121211",
-    "frameTextColor": "#72bba4",
-    "selectedBackgroundColor": "#27493f",
-    "selectedTextColor": "#e6e8de",
-    "mediaButtonColor": "#43987d",
-    "mediaButtonTextColor": "#10100b",
-    "buttonColor": "#292924",
-    "buttonTextColor": "#72bba4",
-    "scrollbarThickness": 0.67,
+    "fontName": "Oxygen",
+    "frame": {
+        "color": "#121211",
+        "textColor": "#72bba4"
+    },
+    "content": {
+        "color": "#120f0c",
+        "textColor": "#c4c7b8"
+    },
+    "selected": {
+        "color": "#27493f",
+        "textColor": "#e6e8de"
+    },
+    "button": {
+        "color": "#292924",
+        "textColor": "#72bba4"
+    },
+    "mediaButton": {
+        "color": "#43987d",
+        "textColor": "#10100b"
+    },
+    "scrollbar": {
+        "size": 0.67
+    },
     "spacing": 0.375,
     "roundness": 0.53125,
     "flat": true

@@ -20,6 +20,11 @@
         @include effects.convex;
     }
 
+    &:disabled {
+        --surface-image: none;
+        box-shadow: none;
+    }
+
     .focus-visible &:focus {
         @include effects.outline;
     }
@@ -42,7 +47,8 @@
     }
 
     .system &.small,
-    .system.flat & {
+    .system.flat &,
+    .system &:disabled {
         text-shadow: none;
     }
 }

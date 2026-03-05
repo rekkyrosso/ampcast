@@ -21,10 +21,10 @@ export default function AppearanceSettingsGeneral() {
     const defaultThemes = useDefaultThemes();
     const userThemes = useUserThemes();
     const isUserTheme = !!currentTheme.userTheme;
-    const isLightTheme = new TinyColor(currentTheme.backgroundColor).isLight();
+    const isLightTheme = new TinyColor(currentTheme.content.color).isLight();
     const isDarkTheme = !isLightTheme;
     const [lightThemes, darkThemes] = partition(defaultThemes, (theme) =>
-        new TinyColor(theme.backgroundColor).isLight()
+        new TinyColor(theme.content.color).isLight()
     );
 
     useEffect(() => {
@@ -43,8 +43,8 @@ export default function AppearanceSettingsGeneral() {
         const newTheme = userThemeRef.current!.checked
             ? themeStore.getUserTheme(userThemesRef.current!.value)
             : lightThemeRef.current!.checked
-            ? themeStore.getDefaultTheme(lightThemesRef.current!.value)
-            : themeStore.getDefaultTheme(darkThemesRef.current!.value);
+              ? themeStore.getDefaultTheme(lightThemesRef.current!.value)
+              : themeStore.getDefaultTheme(darkThemesRef.current!.value);
         if (newTheme) {
             theme.apply(newTheme);
         }
@@ -66,6 +66,7 @@ export default function AppearanceSettingsGeneral() {
                             id={`${id}-dark-themes`}
                             value="dark"
                             checked={isDarkTheme && !isUserTheme}
+                            disabled={darkThemes.length === 0}
                             onChange={handleThemeChange}
                         />
                         <label htmlFor={`${id}-dark-themes`}>Dark themes:</label>
@@ -89,6 +90,7 @@ export default function AppearanceSettingsGeneral() {
                             id={`${id}-light-themes`}
                             value="light"
                             checked={isLightTheme && !isUserTheme}
+                            disabled={lightThemes.length === 0}
                             onChange={handleThemeChange}
                             ref={lightThemeRef}
                         />

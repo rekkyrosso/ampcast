@@ -41,12 +41,12 @@
     }
 
     .selected-text .tooltip {
-        background-color: var(--selected-background-color-blurred);
+        background-color: var(--selected-color-blurred);
     }
 
     &:focus .selected-text .tooltip,
     &.focus .selected-text .tooltip {
-        background-color: var(--selected-background-color);
+        background-color: var(--selected-color);
     }
 
     &-node,

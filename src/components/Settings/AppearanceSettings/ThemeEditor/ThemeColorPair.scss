@@ -1,0 +1,33 @@
+.theme-color-pair {
+    &.locked label {
+        color: var(--text-color);
+    }
+
+    input[type=color] {
+        width: 25%;
+        height: 1.375em;
+    }
+
+    button.small {
+        margin-left: 0.5em;
+        cursor: pointer;
+    }
+
+    .icon-button {
+        margin:  0 0.5em;
+        outline-width: 2px;
+        outline-offset: 2px;
+
+        &-swap {
+            font-size: 0.75em;
+
+            &:disabled {
+                opacity: 0.5;
+            }
+        }
+
+        & + button.small {
+            margin-left: 0;
+        }
+    }
+}

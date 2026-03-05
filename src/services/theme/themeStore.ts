@@ -4,7 +4,7 @@ import Dexie, {liveQuery} from 'dexie';
 import Theme from 'types/Theme';
 import UserTheme from 'types/UserTheme';
 import {Logger} from 'utils';
-import theme from './theme';
+import {fromLegacyTheme} from './legacyTheme';
 import themes from './themes';
 
 const logger = new Logger('themeStore');
@@ -26,11 +26,8 @@ class ThemeStore extends Dexie {
         liveQuery(() => this.themes.toArray()).subscribe((userThemes) =>
             this.themes$.next(
                 userThemes
+                    .map((userTheme) => fromLegacyTheme(userTheme))
                     .sort((a, b) => a.name.localeCompare(b.name, undefined, {sensitivity: 'base'}))
-                    .map((userTheme) => ({
-                        ...userTheme,
-                        toJSON: () => theme.toJSON(userTheme),
-                    }))
             )
         );
     }
@@ -52,7 +49,7 @@ class ThemeStore extends Dexie {
     }
 
     getUserThemes(): readonly UserTheme[] {
-        return this.themes$.getValue();
+        return this.themes$.value;
     }
 
     async addUserTheme(theme: Theme): Promise<void> {

@@ -1,15 +1,38 @@
 {
     "name": "Mellow Yellow",
     "fontName": "Poppins",
-    "backgroundColor": "#f5f2d1",
-    "textColor": "#1c1302",
-    "frameColor": "#fef4c3",
-    "frameTextColor": "#513506",
-    "selectedBackgroundColor": "#fdeb91",
-    "selectedTextColor": "#000000",
-    "mediaButtonColor": "#fffae1",
-    "mediaButtonTextColor": "#513506",
-    "spacing": 0.32,
+    "content": {
+        "color": "#f5f2d1",
+        "textColor": "#1c1302"
+    },
+    "frame": {
+        "color": "#fef4c3",
+        "textColor": "#342204"
+    },
+    "selected": {
+        "color": "#fdeb91",
+        "textColor": "#000000"
+    },
+    "button": {
+        "borderColor": "#513506",
+        "borderWidth": 1.9
+    },
+    "mediaButton": {
+        "color": "#fffae1",
+        "textColor": "#513506",
+        "borderWidth": 3
+    },
+    "scrollbar": {
+        "borderColor": "#513506",
+        "borderWidth": 1
+    },
+    "splitter": {
+        "color": "#f5de6b",
+        "textColor": "#342204",
+        "edgeStyle": "chamfer+1",
+        "size": 1.6
+    },
+    "spacing": 0.41,
     "roundness": 0.29,
     "flat": true
 }

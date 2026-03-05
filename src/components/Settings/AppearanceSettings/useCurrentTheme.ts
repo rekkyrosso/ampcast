@@ -14,5 +14,5 @@ export default function useCurrentTheme(): CurrentTheme {
         },
         []
     );
-    return useObservable(observeTheme, theme.current);
+    return useObservable(observeTheme, {...theme.current});
 }

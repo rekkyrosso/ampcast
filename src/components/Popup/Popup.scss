@@ -1,0 +1,58 @@
+@use 'styles/effects.scss';
+
+.popup {
+    @include effects.surface;
+    --amb-chamfer: 1;
+    --amb-elevation: 2;
+    color: inherit;
+    flex-direction: column;
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    border: 1px solid var(--black);
+    border-radius: var(--app-border-radius);
+    isolation: isolate;
+
+    &::backdrop {
+        background: none;
+    }
+
+    &[open] {
+        display: flex;
+    }
+
+    .system & {
+        border-radius: 0.5em;
+    }
+
+    &-body {
+        @include effects.inset;
+        position: relative;
+        flex: initial;
+        padding: 1em;
+        margin: 0;
+        border: 0;
+        border-radius:
+            calc(var(--app-border-radius) / 2)
+            calc(var(--app-border-radius) / 2)
+            var(--app-border-radius) 
+            var(--app-border-radius);
+
+        .system & {
+            border-radius: 0 0 0.5em 0.5em;
+        }
+
+        p {
+            margin: 0.5em 0;
+        }
+
+        legend + p:not(:last-child) {
+            margin-top: 0;
+        }
+    }
+
+    &-body &-buttons {
+        text-align: right;
+        margin: 2em 0 0 0;
+    }
+}

@@ -40,9 +40,16 @@
     --currently-playing-color-light: yellow;
     --currently-playing-color-dark: blue;
 
+    --button-chamfer: 1;
+    --button-fillet: 0;
+    --button-elevation: 0;
+    --media-button-elevation: 0;
+    --scrollbar-chamfer: 1;
+    --scrollbar-fillet: 0;
+    --scrollbar-size: 1;
+    --splitter-size: 1;
     --spacing: 0.375;
     --roundness: 0.25;
-    --scrollbar-thickness: 1;
 }
 
 .themed {
@@ -66,6 +73,11 @@
     --scrollbar-color-s: var(--button-color-s);
     --scrollbar-color-l: var(--button-color-l);
     --scrollbar-color-l2: var(--button-color-l2);
+
+    --splitter-color-h: var(--frame2-color-h);
+    --splitter-color-s: var(--frame2-color-s);
+    --splitter-color-l: var(--frame2-color-l);
+    --splitter-color-l2: var(--frame2-color-l2);
 
     --background-color: hsl(var(--background-color-h),
             var(--background-color-s),
@@ -120,9 +132,9 @@
             var(--scrollbar-color-l));
 
     --scrollbar-track-color: hsl(
-        var(--scrollbar-color-h),
-        var(--scrollbar-color-s),
-        calc(var(--scrollbar-color-l) - var(--scrollbar-color-l) * 0.5)
+        var(--frame2-color-h),
+        var(--frame2-color-s),
+        calc(var(--frame2-color-l) - var(--frame2-color-l) * 0.5)
     );
 
     --scrollbar-text-color: hsl(var(--scrollbar-text-color-h),
@@ -137,13 +149,13 @@
             var(--media-button-text-color-s),
             var(--media-button-text-color-l));
 
-    --selected-background-color: hsl(var(--selected-background-color-h),
-            var(--selected-background-color-s),
-            var(--selected-background-color-l));
+    --selected-color: hsl(var(--selected-color-h),
+            var(--selected-color-s),
+            var(--selected-color-l));
 
-    --selected-background-color-blurred: hsl(var(--selected-background-color-h),
-            calc(var(--selected-background-color-s) - var(--selected-background-color-s) * 0.5),
-            calc(var(--selected-background-color-l) - 5%));
+    --selected-color-blurred: hsl(var(--selected-color-h),
+            calc(var(--selected-color-s) - var(--selected-color-s) * 0.5),
+            calc(var(--selected-color-l) - 5%));
 
     --selected-text-color: hsl(var(--selected-text-color-h),
             var(--selected-text-color-s),
@@ -195,10 +207,10 @@
 }
 
 .system {
-    --button-elevation: 0;
+    --scrollbar-chamfer: 1;
     --selected-text-color: white;
-    --selected-background-color: #0461d0;
-    --selected-background-color-blurred: #545454;
+    --selected-color: #0461d0;
+    --selected-color-blurred: #545454;
 }
 
 .system.dark {

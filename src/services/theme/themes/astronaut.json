@@ -1,12 +1,22 @@
 {
     "name": "Astronaut",
     "fontName": "Roboto",
-    "backgroundColor": "#000000",
-    "textColor": "#95a5d6",
-    "frameColor": "#141415",
-    "frameTextColor": "#85b7fa",
-    "selectedBackgroundColor": "#221650",
-    "selectedTextColor": "#ffffff",
+    "frame": {
+        "color": "#141415",
+        "textColor": "#85b7fa"
+    },
+    "content": {
+        "color": "#000000",
+        "textColor": "#95a5d6"
+    },
+    "selected": {
+        "color": "#221650",
+        "textColor": "#ffffff"
+    },
+    "mediaButton": {
+        "surfaceStyle": "convex",
+        "edgeStyle": "fillet+1"
+    },
     "spacing": 0.72,
     "roundness": 0.57,
     "flat": false

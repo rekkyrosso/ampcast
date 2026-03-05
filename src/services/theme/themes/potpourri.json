@@ -1,14 +1,22 @@
 {
     "name": "Potpourri",
     "fontName": "Bricolage Grotesque",
-    "backgroundColor": "#f9f8dd",
-    "textColor": "#000000",
-    "frameColor": "#beaee0",
-    "frameTextColor": "#000000",
-    "selectedBackgroundColor": "#fcccc2",
-    "selectedTextColor": "#000000",
-    "mediaButtonColor": "#fcccc2",
-    "mediaButtonTextColor": "#000000",
+    "frame": {
+        "color": "#beaee0",
+        "textColor": "#000000"
+    },
+    "content": {
+        "color": "#f9f8dd",
+        "textColor": "#000000"
+    },
+    "selected": {
+        "color": "#fcccc2",
+        "textColor": "#000000"
+    },
+    "mediaButton": {
+        "color": "#fcccc2",
+        "textColor": "#000000"
+    },
     "spacing": 0.38,
     "roundness": 0.67,
     "flat": true

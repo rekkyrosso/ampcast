@@ -13,39 +13,7 @@
         width: 12.5em;
     }
 
-    input[type=color] {
-        width: 25%;
-        height: 1.375em;
-    }
-
     button.small {
         margin-left: 0.5em;
-    }
-
-    .color-pair {
-        &.locked label {
-            color: var(--grey1-color);
-        }
-
-        .icon-button {
-            margin:  0 0.5em;
-        }
-
-        .scrollbar-thickness {
-            font-size: 0.75em;
-        }
-    }
-
-    .icon-button {
-        outline-width: 2px;
-        outline-offset: 2px;
-
-        &-swap {
-            font-size: 0.75em;
-
-            &:disabled {
-                opacity: 0.5;
-            }
-        }
     }
 }

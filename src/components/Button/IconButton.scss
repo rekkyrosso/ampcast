@@ -14,6 +14,10 @@
     outline-offset: 2px;
     outline-width: 2px;
 
+    &[hidden] {
+        display: none;
+    }
+
     &:disabled {
         color: var(--grey1-color);
     }

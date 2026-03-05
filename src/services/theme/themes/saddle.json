@@ -1,13 +1,24 @@
 {
     "name": "Saddle",
     "fontName": "Bricolage Grotesque",
-    "backgroundColor": "#271607",
-    "textColor": "#cbbe86",
-    "frameColor": "#331d0a",
-    "frameTextColor": "#fedfc3",
-    "selectedBackgroundColor": "#5d3512",
-    "selectedTextColor": "#ffffff",
-    "mediaButtonColor": "#c18f67",
+    "frame": {
+        "color": "#331d0a",
+        "textColor": "#fedfc3"
+    },
+    "content": {
+        "color": "#271607",
+        "textColor": "#cbbe86"
+    },
+    "selected": {
+        "color": "#5d3512",
+        "textColor": "#ffffff"
+    },
+    "button": {
+        "surfaceStyle": "convex"
+    },
+    "mediaButton": {
+        "color": "#c18f67"
+    },
     "spacing": 0.375,
     "roundness": 0.34375,
     "flat": false

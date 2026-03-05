@@ -8,6 +8,6 @@
     }
 
     .scrollable {
-        --scrollbar-size: max(10px, calc(1.25em * var(--scrollbar-thickness)));
+        --scrollbar-width: max(10px, calc(1.25em * var(--scrollbar-size)));
     }
 }

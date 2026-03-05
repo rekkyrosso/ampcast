@@ -6,4 +6,12 @@
     .font-size label {
         display: table-cell;
     }
+
+    label:has(+ select:disabled) {
+        color: inherit;
+    }
+
+    label:has(+ select:empty) {
+        color: var(--grey1-color);
+    }
 }

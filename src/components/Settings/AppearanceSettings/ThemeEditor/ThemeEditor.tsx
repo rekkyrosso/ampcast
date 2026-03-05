@@ -3,6 +3,10 @@ import theme from 'services/theme';
 import fonts, {loadAllFonts} from 'services/theme/fonts';
 import Button from 'components/Button';
 import {DialogButtons} from 'components/Dialog';
+import ButtonEditor from './ButtonEditor';
+import MediaButtonEditor from './MediaButtonEditor';
+import ScrollbarEditor from './ScrollbarEditor';
+import SplitterEditor from './SplitterEditor';
 import ThemeColorPair from './ThemeColorPair';
 import useCurrentTheme from '../useCurrentTheme';
 import useSuggestedColors from './useSuggestedColors';
@@ -14,12 +18,10 @@ export default function ThemeEditor() {
     const currentTheme = useCurrentTheme();
     const themeName = `${currentTheme.name}${theme.edited ? ' (edited)' : ''}`;
     const themeKey = `${!!currentTheme.userTheme}/${currentTheme.name}`;
-    const [suggestedSelectionColors, nextSuggestedSelectionColors] = useSuggestedColors(
-        currentTheme.frameColor
-    );
+    const [suggestedColors, nextSuggestion] = useSuggestedColors(currentTheme.frame.color);
 
     useEffect(() => {
-        loadAllFonts(); // no point in cancelling this
+        loadAllFonts();
     }, []);
 
     const handleSubmit = useCallback(() => {
@@ -46,12 +48,13 @@ export default function ThemeEditor() {
         theme.flat = event.target.checked;
     }, []);
 
-    const handleScrollbarThicknessChange = useCallback(
-        (event: React.ChangeEvent<HTMLSelectElement>) => {
-            theme.scrollbarThickness = Number(event.target.value) || 1;
-        },
-        []
-    );
+    const suggest = useCallback(() => {
+        if (suggestedColors && nextSuggestion) {
+            const [color, textColor] = suggestedColors;
+            theme.selected = {color, textColor};
+            nextSuggestion();
+        }
+    }, [suggestedColors, nextSuggestion]);
 
     return (
         <form className="theme-editor" method="dialog" onSubmit={handleSubmit}>
@@ -85,61 +88,37 @@ export default function ThemeEditor() {
                         ))}
                     </select>
                 </p>
-                <ThemeColorPair
-                    label="Frame"
-                    backgroundColorName="frameColor"
-                    textColorName="frameTextColor"
-                    key={`${themeKey}/frame`}
-                />
-                <ThemeColorPair
-                    label="Content"
-                    backgroundColorName="backgroundColor"
-                    textColorName="textColor"
-                    key={`${themeKey}/content`}
-                />
-                <ThemeColorPair
-                    label="Selection"
-                    backgroundColorName="selectedBackgroundColor"
-                    textColorName="selectedTextColor"
-                    suggestedColors={suggestedSelectionColors}
-                    nextSuggestion={nextSuggestedSelectionColors}
-                    key={`${themeKey}/selection`}
-                />
-                <ThemeColorPair
-                    label="Media button"
-                    backgroundColorName="mediaButtonColor"
-                    textColorName="mediaButtonTextColor"
-                    defaultBackgroundColor={theme.defaultMediaButtonColor}
-                    defaultTextColor={theme.defaultMediaButtonTextColor}
-                    key={`${themeKey}/media-button`}
-                />
+                <ThemeColorPair label="Frame" surface="frame" key={`${themeKey}/frame`} />
+                <ThemeColorPair label="Content" surface="content" key={`${themeKey}/content`} />
+                <ThemeColorPair label="Selection" surface="selected" key={`${themeKey}/selected`}>
+                    <Button className="small" type="button" onClick={suggest}>
+                        Suggest
+                    </Button>
+                </ThemeColorPair>
                 <ThemeColorPair
                     label="Button"
-                    backgroundColorName="buttonColor"
-                    textColorName="buttonTextColor"
-                    defaultBackgroundColor={theme.defaultButtonColor}
-                    defaultTextColor={theme.defaultButtonTextColor}
+                    surface="button"
+                    Editor={ButtonEditor}
                     key={`${themeKey}/button`}
                 />
                 <ThemeColorPair
+                    label="Media button"
+                    surface="mediaButton"
+                    Editor={MediaButtonEditor}
+                    key={`${themeKey}/mediaButton`}
+                />
+                <ThemeColorPair
                     label="Scrollbar"
-                    backgroundColorName="scrollbarColor"
-                    textColorName="scrollbarTextColor"
-                    defaultBackgroundColor={theme.defaultScrollbarColor}
-                    defaultTextColor={theme.defaultScrollbarTextColor}
-                    trackingColor="button"
+                    Editor={ScrollbarEditor}
+                    surface="scrollbar"
                     key={`${themeKey}/scrollbar`}
-                >
-                    <select
-                        className="scrollbar-thickness"
-                        onChange={handleScrollbarThicknessChange}
-                        defaultValue={currentTheme.scrollbarThickness}
-                    >
-                        <option value="0.67">Thin</option>
-                        <option value="1">Medium</option>
-                        <option value="1.33">Thick</option>
-                    </select>
-                </ThemeColorPair>
+                />
+                <ThemeColorPair
+                    label="Splitter"
+                    surface="splitter"
+                    Editor={SplitterEditor}
+                    key={`${themeKey}/splitter`}
+                />
                 <p>
                     <label htmlFor={`${id}-spacing`}>Spacing:</label>
                     <input
@@ -148,7 +127,7 @@ export default function ThemeEditor() {
                         min={0}
                         max={1}
                         step={0.01}
-                        value={currentTheme.spacing}
+                        value={theme.spacing}
                         onChange={handleSpacingChange}
                     />
                 </p>
@@ -160,7 +139,7 @@ export default function ThemeEditor() {
                         min={0}
                         max={1}
                         step={0.01}
-                        value={currentTheme.roundness}
+                        value={theme.roundness}
                         onChange={handleRoundingChange}
                     />
                 </p>
@@ -169,7 +148,7 @@ export default function ThemeEditor() {
                     <input
                         type="checkbox"
                         id={`${id}-flat`}
-                        checked={currentTheme.flat}
+                        checked={theme.flat}
                         onChange={handleFlatChange}
                     />
                 </p>

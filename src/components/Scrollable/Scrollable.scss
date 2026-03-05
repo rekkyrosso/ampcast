@@ -1,5 +1,5 @@
 .scrollable {
-    --scrollbar-size: calc(1.33em * var(--scrollbar-thickness));
+    --scrollbar-width: calc(1.33em * var(--scrollbar-size));
 
     &,
     &-content {
@@ -11,8 +11,8 @@
         isolation: isolate;
         display: flex;
         flex-direction: column;
-        min-width: calc(2 * var(--scrollbar-size));
-        min-height: calc(2 * var(--scrollbar-size));
+        min-width: calc(2 * var(--scrollbar-width));
+        min-height: calc(2 * var(--scrollbar-width));
     }
 
     &-head {

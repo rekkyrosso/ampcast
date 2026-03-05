@@ -1,12 +1,39 @@
 {
     "name": "Pale Pink",
-    "fontName": "Muli",
-    "backgroundColor": "#f7f7f7",
-    "textColor": "#150e0e",
-    "frameColor": "#cfbdd0",
-    "frameTextColor": "#121111",
-    "selectedBackgroundColor": "#b9d8f3",
-    "selectedTextColor": "#000000",
+    "fontName": "Albert Sans",
+    "frame": {
+        "color": "#e2cee3",
+        "textColor": "#1d131d"
+    },
+    "content": {
+        "color": "#f4ebf5",
+        "textColor": "#150e0e"
+    },
+    "selected": {
+        "color": "#cee3e2",
+        "textColor": "#000000"
+    },
+    "mediaButton": {
+        "color": "#f6eaf7",
+        "textColor": "#1d131d",
+        "borderColor": "#582a5b",
+        "borderWidth": 0,
+        "edgeStyle": "chamfer+1",
+        "surfaceStyle": "convex"
+    },
+    "scrollbar": {
+        "color": "#edddee",
+        "textColor": "#422343",
+        "borderColor": "black",
+        "borderWidth": 1,
+        "edgeStyle": "chamfer+1",
+        "surfaceStyle": "flat"
+    },
+    "splitter": {
+        "color": "#f1e2f2",
+        "textColor": "#121111",
+        "edgeStyle": "chamfer+1"
+    },
     "spacing": 0.375,
     "roundness": 0.53125,
     "flat": true

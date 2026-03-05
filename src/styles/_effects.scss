@@ -3,6 +3,8 @@
     /*
         From: ambient.css:
         https://github.com/kikkupico/ambientcss
+
+        Note: Edited quite a bit.
     */
     background-color: hsl(
         var(--amb-light-hue)
@@ -11,39 +13,39 @@
     );
     box-shadow:
         hsl(
-                var(--amb-light-hue) var(--amb-light-saturation) 0% /
-                    calc(1 - var(--amb-fill-light-intensity))
+            var(--amb-light-hue) var(--amb-light-saturation) 0% /
+                calc(1 - var(--amb-fill-light-intensity))
             )
-            calc(var(--amb-light-x) * var(--amb-elevation) * -8px)
-            calc(var(--amb-light-y) * var(--amb-elevation) * -8px) calc(var(--amb-elevation) * 8px)
-            calc(var(--amb-elevation) * -4px),
-        inset calc(var(--amb-light-x) * var(--amb-chamfer-width) * -1px)
-            calc(var(--amb-light-y) * var(--amb-chamfer-width) * -1px) 0px 0px
+            calc(var(--amb-light-x) * var(--amb-elevation) * -0.25rem)
+            calc(var(--amb-light-y) * var(--amb-elevation) * -0.25rem) calc(var(--amb-elevation) * 0.25rem)
+            calc(var(--amb-elevation) * -0.125rem),
+        inset calc(var(--amb-light-x) * var(--amb-chamfer) * -0.03125em)
+            calc(var(--amb-light-y) * var(--amb-chamfer) * -0.03125rem) 0 0
             hsl(
                 var(--amb-light-hue) var(--amb-light-saturation) 100% /
-                    calc(var(--amb-chamfer) * var(--amb-key-light-intensity))
+                    calc(sign(abs(var(--amb-chamfer))) * var(--amb-key-light-intensity))
             ),
-        inset calc(var(--amb-light-x) * var(--amb-chamfer-width) * 1px)
-            calc(var(--amb-light-y) * var(--amb-chamfer-width) * 1px) 0px 0px
+        inset calc(var(--amb-light-x) * var(--amb-chamfer) * 0.03125rem)
+            calc(var(--amb-light-y) * var(--amb-chamfer) * 0.03125rem) 0 0
             hsl(
                 var(--amb-light-hue) var(--amb-light-saturation) 0% /
                     calc(
-                        var(--amb-chamfer) *
+                        sign(abs(var(--amb-chamfer))) *
                             calc(var(--amb-key-light-intensity) - var(--amb-fill-light-intensity))
                     )
             ),
-        inset calc(var(--amb-light-x) * var(--amb-fillet-width) * -2px)
-            calc(var(--amb-light-y) * var(--amb-fillet-width) * -2px) 2px 0px
+        inset calc(var(--amb-light-x) * var(--amb-fillet) * -0.0625rem)
+            calc(var(--amb-light-y) * var(--amb-fillet) * -0.0625rem) 0.0625rem 0
             hsl(
                 var(--amb-light-hue) var(--amb-light-saturation) 100% /
-                    calc(var(--amb-fillet) * var(--amb-key-light-intensity))
+                    calc(sign(abs(var(--amb-fillet))) * var(--amb-key-light-intensity))
             ),
-        inset calc(var(--amb-light-x) * var(--amb-fillet-width) * 2px)
-            calc(var(--amb-light-y) * var(--amb-fillet-width) * 2px) 2px 0px
+        inset calc(var(--amb-light-x) * var(--amb-fillet) * 0.0625rem)
+            calc(var(--amb-light-y) * var(--amb-fillet) * 0.0625rem) 0.0625rem 0
             hsl(
                 var(--amb-light-hue) var(--amb-light-saturation) 0% /
                     calc(
-                        var(--amb-fillet) *
+                        sign(abs(var(--amb-fillet))) *
                             calc(var(--amb-key-light-intensity) - var(--amb-fill-light-intensity))
                     )
             );
@@ -60,7 +62,7 @@
             var(--amb-light-hue)
 			var(--amb-light-saturation)
             calc(var(--amb-key-light-intensity) * 100%)
-        ) 33% 67%,
+        ) min(1.5rem, 50%) calc(100% - min(1.5rem, 50%)),
         hsl(
             var(--amb-light-hue),
             var(--amb-light-saturation),
@@ -81,7 +83,7 @@
             var(--amb-light-hue)
 			var(--amb-light-saturation)
             calc(var(--amb-key-light-intensity) * 100%)
-        ) 33% 67%,
+        ) min(1.5rem, 50%) calc(100% - min(1.5rem, 50%)),
         hsl(
             var(--amb-light-hue),
             var(--amb-light-saturation),
@@ -108,23 +110,27 @@
     --amb-light-hue: var(--button-color-h);
     --amb-light-saturation: var(--button-color-s);
     --amb-key-light-intensity: var(--button-color-l2);
-    --amb-chamfer: 1;
-    --amb-chamfer-width: 1;
+    --amb-chamfer: var(--button-chamfer);
+    --amb-fillet: var(--button-fillet);
     --amb-elevation: var(--button-elevation);
     --hover-light-intensity: min(calc(var(--button-color-l2) + 0.05), 1);
     --active-light-intensity: max(calc(var(--button-color-l2) - 0.05), 0);
     color: var(--button-text-color);
-    border: 1px solid var(--black);
+    border:
+        calc(var(--button-border-width, 1) * 0.0625em)
+        solid
+        var(--button-border-color, var(--black));
     border-radius: calc(var(--roundness) * 1em);
 }
 
 @mixin outline {
-    outline: solid var(--focus-ring-color);
+    outline: solid var(--focus-ring-color, #3390ff);
 }
 
 /* For browser-specific pseudo elements (e.g. --moz-*) */
 @mixin pressable-active {
     --amb-chamfer: 0;
+    --amb-fillet: 0;
     --amb-elevation: 0;
     --amb-key-light-intensity: var(--active-light-intensity);
 }
@@ -144,6 +150,7 @@
 
     &:disabled {
         --amb-chamfer: 0;
+        --amb-fillet: 0;
         --amb-light-x: 0;
         --amb-light-y: 0;
     }

@@ -1,5 +1,6 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import Theme from 'types/Theme';
+import theme from 'services/theme';
 import themeStore from 'services/theme/themeStore';
 import Button from 'components/Button';
 import {DialogButtons, prompt} from 'components/Dialog';
@@ -57,7 +58,10 @@ export default function UserThemes() {
             const name = selectedTheme.name;
             const userTheme = themeStore.getUserTheme(name);
             if (userTheme) {
-                saveTextToFile(`${name}.json`, JSON.stringify(userTheme, undefined, 4));
+                saveTextToFile(
+                    `${name}.json`,
+                    JSON.stringify(theme.toJSON(userTheme), undefined, 4)
+                );
             }
         }
     }, [selectedTheme]);

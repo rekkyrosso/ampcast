@@ -1,12 +1,34 @@
 {
     "name": "Glacier",
     "fontName": "Inter",
-    "backgroundColor": "#d9e6e8",
-    "textColor": "#08191b",
-    "frameColor": "#bfd4e8",
-    "frameTextColor": "#1c1c12",
-    "selectedBackgroundColor": "#ffffff",
-    "selectedTextColor": "#04030c",
+    "content": {
+        "color": "#d9e6e8",
+        "textColor": "#08191b"
+    },
+    "frame": {
+        "color": "#bfd4e8",
+        "textColor": "#1c1c12"
+    },
+    "selected": {
+        "color": "#ffffff",
+        "textColor": "#04030c"
+    },
+    "button": {
+        "elevation": 1,
+        "surfaceStyle": "convex",
+        "edgeStyle": "fillet+1"
+    },
+    "mediaButton": {
+        "borderWidth": 1,
+        "borderColor": "#08191b",
+        "textColor": "#08191b"
+    },
+    "scrollbar": {
+        "surfaceStyle": "concave"
+    },
+    "splitter": {
+        "edgeStyle": "chamfer-1"
+    },
     "spacing": 0.65,
     "roundness": 0.3,
     "flat": false
