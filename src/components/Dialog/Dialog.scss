@@ -75,6 +75,10 @@
         border: 1px solid var(--black);
         border-radius: var(--app-border-radius);
 
+        .flat & {
+            --surface-image: none;
+        }
+
         .system & {
             border-radius: 0.25em;
         }

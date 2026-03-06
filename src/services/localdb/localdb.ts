@@ -10,6 +10,7 @@ import Pager from 'types/Pager';
 import Pin, {Pinnable} from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import noAuth from 'services/mediaServices/noAuth';
+import ErrorPager from 'services/pagers/ErrorPager';
 import localSources, {
     localPlaylistItems,
     localPlaylistItemsSort,
@@ -80,15 +81,19 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
         secondaryItems: localPlaylistItems,
 
         search(): Pager<MediaPlaylist> {
-            return playlists.search(
-                {
-                    filter: (playlist) => playlist.src === pin.src,
-                },
-                {
-                    childSort: localPlaylistItemsSort.defaultSort,
-                    childSortId: `${serviceId}/pinned-playlist/2`,
-                }
-            );
+            if (playlists.getLocalPlaylist(pin.src)) {
+                return playlists.search(
+                    {
+                        filter: (playlist) => playlist.src === pin.src,
+                    },
+                    {
+                        childSort: localPlaylistItemsSort.defaultSort,
+                        childSortId: `${serviceId}/pinned-playlist/2`,
+                    }
+                );
+            } else {
+                return new ErrorPager('Not found');
+            }
         },
     } as MediaSource<T>;
 }

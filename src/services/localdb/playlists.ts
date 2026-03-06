@@ -160,6 +160,10 @@ class PlaylistsStore extends Dexie {
         }));
     }
 
+    getLocalPlaylist(src: string): LocalPlaylist | undefined {
+        return this.getLocalPlaylists().find((playlist) => playlist.src === src);
+    }
+
     getLocalPlaylists(): readonly LocalPlaylist[] {
         return this.localPlaylists$.value;
     }
@@ -181,7 +185,7 @@ class PlaylistsStore extends Dexie {
             const timeStamp = Math.floor(Date.now() / 1000);
             const {['#items']: items, ...playlist} = importedPlaylist;
             const existingPlaylist = await this.getPlaylistByName(playlist.title);
-            const src = existingPlaylist?.src || `localdb:playlist:${nanoid()}`;
+            const src = existingPlaylist?.src || playlist.src || `localdb:playlist:${nanoid()}`;
             await this.playlists.put({...playlist, src, addedAt: timeStamp, modifiedAt: timeStamp});
             await this.playlistItems.put({src, items});
         });

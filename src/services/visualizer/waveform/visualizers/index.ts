@@ -3,13 +3,7 @@ import {isFullscreenMedia} from 'utils';
 import theme from 'services/theme';
 
 function getThemeColor(): string {
-    return isFullscreenMedia()
-        ? theme.isFrameLight
-            ? theme.frameColor
-            : theme.isTextLight
-              ? theme.textColor
-              : theme.backgroundColor
-        : theme.textColor;
+    return isFullscreenMedia() ? '#00c000' : theme.textColor;
 }
 
 const wave: WaveformVisualizer = {
@@ -22,13 +16,15 @@ const wave: WaveformVisualizer = {
             const dataArray = new Uint8Array(bufferSize);
             const sliceWidth = width / bufferSize;
             analyser.getByteTimeDomainData(dataArray);
-            context2D.lineWidth = Math.round(theme.fontSize / (isFullscreenMedia() ? 2 : 4));
+            context2D.lineWidth = Math.round(theme.fontSize / (isFullscreenMedia() ? 3 : 6));
             context2D.clearRect(0, 0, width, height);
             context2D.strokeStyle = getThemeColor();
             context2D.beginPath();
+            const renderHeight = height * 0.75;
+            const yOffset = (height - renderHeight) / 2;
             let x = 0;
             for (let i = 0; i < bufferSize; i++) {
-                const y = (dataArray[i] / 255) * height;
+                const y = (dataArray[i] / 255) * renderHeight + yOffset;
                 if (i === 0) {
                     context2D.moveTo(x, y);
                 } else {

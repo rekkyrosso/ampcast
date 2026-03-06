@@ -113,6 +113,14 @@
         }
     }
 
+    .track,
+    .disc,
+    .duration,
+    .year,
+    .count {
+        font-variant-numeric: tabular-nums;
+    }
+
     &:focus .list-view-row.selected .star-rating {
         pointer-events: auto;
     }

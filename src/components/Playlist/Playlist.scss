@@ -72,11 +72,6 @@
                     letter-spacing: -0.0675em;
                 }
             }
-
-            &.duration .text {
-                font-family: monospace;
-                letter-spacing: -0.0675em;
-            }
         }
     }
 
@@ -115,6 +110,8 @@
             width: 1rem;
             height: 1rem;
             padding: 0.5rem;
+            box-sizing: border-box;
+            border-width: calc(var(--media-button-border-width, 1) * 0.09525em);
 
             &:last-child {
                 margin-left: 0.25em;

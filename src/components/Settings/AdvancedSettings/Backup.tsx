@@ -63,9 +63,6 @@ export default function Backup() {
                     if (backup.layout?.localStorage) {
                         Object.assign(localStorage, backup.layout.localStorage);
                     }
-                    if (backup.pins?.length) {
-                        await pinStore.addPins(backup.pins);
-                    }
                     if (backup.theme) {
                         localStorage.setItem('ampcast/theme/current', backup.theme);
                     }
@@ -90,6 +87,9 @@ export default function Backup() {
                     }
                     if (backup.playlists?.length) {
                         await playlists.importPlaylists(backup.playlists);
+                    }
+                    if (backup.pins?.length) {
+                        await pinStore.addPins(backup.pins);
                     }
                     await alert({
                         icon: 'settings',

@@ -15,7 +15,6 @@
     },
     "button": {
         "surfaceStyle": "flat",
-        "elevation": 0,
         "edgeStyle": "none",
         "color": "#00c000",
         "textColor": "#000000",
