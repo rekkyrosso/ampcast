@@ -19,16 +19,17 @@ export default interface MediaItem extends BaseMediaObject {
     readonly album?: string;
     readonly disc?: number;
     readonly track?: number; // Album track number
-    readonly position?: number; // Playlist position number
     readonly year?: number;
     readonly stationName?: string;
     readonly noScrobble?: boolean;
     readonly unplayable?: boolean;
     readonly copyright?: string;
-    // For playback.
+    // Playback.
     readonly startTime?: number;
     readonly srcs?: readonly string[]; // Playable sources that can't be derived from `src`.
-    readonly skippable?: boolean; // Some radios are skippable.
+    // Playlists.
+    readonly position?: number; // Playlist position number
+    readonly playlistItemId?: string;
     // External IDs.
     readonly isrc?: string;
     readonly recording_mbid?: string;
@@ -37,8 +38,7 @@ export default interface MediaItem extends BaseMediaObject {
     readonly release_mbid?: string;
     readonly artist_mbids?: readonly string[];
     readonly caa_mbid?: string; // cover art archive
-    readonly playlistItemId?: string;
-    // For files.
+    // Files.
     readonly fileName?: string;
     readonly blob?: Blob;
     readonly blobUrl?: string;
@@ -53,6 +53,14 @@ export default interface MediaItem extends BaseMediaObject {
     readonly container?: string;
     readonly explicit?: boolean;
     readonly shareLink?: string;
+    // For radio stations.
+    readonly country?: string;
+    readonly countryCode?: string;
+    readonly isFavoriteStation?: boolean;
+    readonly skippable?: boolean;
+    readonly 'radio-browser.info'?: {
+        readonly stationuuid: string;
+    };
     // For video.
     readonly aspectRatio?: number;
     // For YouTube videos (mainly).
@@ -67,6 +75,6 @@ export default interface MediaItem extends BaseMediaObject {
         readonly externalUrl?: string;
     };
     readonly plex?: {
-        readonly playQueueItemID?: number;
+        readonly playQueueItemID?: number; // TODO: Use `playlistItemId`.
     };
 }

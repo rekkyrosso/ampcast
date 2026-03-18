@@ -2,10 +2,11 @@ import React, {useCallback} from 'react';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import LibraryAction from 'types/LibraryAction';
+import LinearType from 'types/LinearType';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaService from 'types/MediaService';
-import {getServiceFromSrc} from 'services/mediaServices';
+import {getService, getServiceFromSrc} from 'services/mediaServices';
 import {IconButton, IconButtons, PopupMenuButton} from 'components/Button';
 import {IconName} from 'components/Icon';
 import StarRating from 'components/StarRating';
@@ -41,6 +42,7 @@ export default function Actions({
     showMenu = showActionsMenu,
 }: ActionsProps) {
     const service = getServiceFromSrc(item);
+    const internetRadio = getService('internet-radio');
     const tabIndex = inListView ? -1 : undefined;
 
     const togglePin = useCallback(() => {
@@ -56,6 +58,16 @@ export default function Actions({
             performAction(Action.RemoveFromLibrary, [item]);
         } else {
             performAction(Action.AddToLibrary, [item]);
+        }
+    }, [item]);
+
+    const toggleIsFavoriteStation = useCallback(() => {
+        if (item.itemType === ItemType.Media) {
+            if (item.isFavoriteStation) {
+                performAction(Action.RemoveStation, [item]);
+            } else {
+                performAction(Action.AddStation, [item]);
+            }
         }
     }, [item]);
 
@@ -134,6 +146,21 @@ export default function Actions({
                     disabled={service.id === 'apple' && item.inLibrary} // remove doesn't work (https://developer.apple.com/forums/thread/107807)
                     onClick={toggleInLibrary}
                     key="store"
+                />
+            ) : null}
+
+            {item.itemType === ItemType.Media &&
+            item.linearType === LinearType.Station &&
+            item.isFavoriteStation !== undefined &&
+            internetRadio?.canStore?.(item, inListView) ? (
+                <IconButton
+                    icon={item.isFavoriteStation ? 'heart-fill' : 'heart'}
+                    title={
+                        item.isFavoriteStation ? 'Remove from My Stations' : 'Add to My Stations'
+                    }
+                    tabIndex={tabIndex}
+                    onClick={toggleIsFavoriteStation}
+                    key="store-radio"
                 />
             ) : null}
         </IconButtons>

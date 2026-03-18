@@ -1,8 +1,7 @@
 .filter-select {
-    display: flex;
+    display: inline-flex;
     flex-direction: row;
     align-items: center;
-    margin-bottom: var(--gutter-width);
 
     label {
         flex: initial;

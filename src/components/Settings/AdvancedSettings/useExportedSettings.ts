@@ -7,6 +7,7 @@ import {getPersonalMediaServices} from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
 import playlists from 'services/localdb/playlists';
 import preferences from 'services/preferences';
+import stationStore from 'services/internetRadio/stationStore';
 import themeStore from 'services/theme/themeStore';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
 import visualizerStore from 'services/visualizer/visualizerStore';
@@ -16,13 +17,14 @@ type Backup = BackupFile['backup'];
 export interface BackupEntry<K extends keyof Backup> {
     key: K;
     title: string;
-    defaultChecked: boolean;
-    data: Backup[K];
+    defaultChecked?: boolean;
+    data: Backup[K] | undefined;
 }
 
-export default function useBackupEntries(): readonly BackupEntry<keyof Backup>[] {
+export default function useExportedSettings(): readonly BackupEntry<keyof Backup>[] {
     return useMemo(() => {
         const pins: Backup['pins'] = pinStore.getPins();
+        const favoriteStations: Backup['favoriteStations'] = stationStore.getFavorites();
         const userThemes: Backup['userThemes'] = themeStore.getUserThemes();
         const visualizerFavorites: Backup['visualizerFavorites'] = visualizerStore.getFavorites();
         const listens: Backup['listens'] = getListens().map((listen) => {
@@ -73,6 +75,12 @@ export default function useBackupEntries(): readonly BackupEntry<keyof Backup>[]
                 data: pins,
             },
             {
+                key: 'favoriteStations',
+                title: `My stations (${favoriteStations.length})`,
+                defaultChecked: true,
+                data: favoriteStations,
+            },
+            {
                 key: 'visualizerFavorites',
                 title: t(`Visualizer favorites (${visualizerFavorites.length})`),
                 defaultChecked: true,
@@ -92,7 +100,7 @@ export default function useBackupEntries(): readonly BackupEntry<keyof Backup>[]
             },
             {
                 key: 'listens',
-                title: `Playback history (${listens.length})`,
+                title: `Playback history (${listens.length.toLocaleString()})`,
                 defaultChecked: false,
                 data: listens,
             },

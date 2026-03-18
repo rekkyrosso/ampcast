@@ -27,9 +27,9 @@ import MediaPlayback from 'types/MediaPlayback';
 import Player from 'types/Player';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
-import {formatTime, getPlaybackTypeFromUrl, isMiniPlayer, Logger} from 'utils';
+import {formatTime, isMiniPlayer, Logger} from 'utils';
 import {MAX_DURATION} from 'services/constants';
-import {dispatchMetadataChanges} from 'services/metadata';
+import {createMediaItemFromUrl, dispatchMetadataChanges} from 'services/metadata';
 import lookup from 'services/lookup';
 import {hasPlayableSrc, getServiceFromSrc} from 'services/mediaServices';
 import playlist from 'services/playlist';
@@ -320,9 +320,8 @@ async function getPlaybackType(item: PlaylistItem): Promise<PlaybackType> {
             if (service?.getPlaybackType) {
                 playbackType = await service.getPlaybackType(item);
             } else if (/^https?:/.test(item.src)) {
-                playbackType = await getPlaybackTypeFromUrl(item.src);
-            } else {
-                playbackType = PlaybackType.Direct;
+                const lookup = await createMediaItemFromUrl(item.src);
+                playbackType = lookup.playbackType;
             }
             dispatchMetadataChanges({
                 match: (object) => object.src === item.src,
@@ -331,9 +330,8 @@ async function getPlaybackType(item: PlaylistItem): Promise<PlaybackType> {
         }
     } catch (err) {
         logger.error(err);
-        playbackType = PlaybackType.Direct;
     }
-    return playbackType;
+    return playbackType ?? PlaybackType.Direct;
 }
 
 const mediaPlayback: MediaPlayback = {
@@ -511,8 +509,9 @@ playlist
                 ? playback.observePlaybackState().pipe(
                       filter(({currentItem}) => currentItem?.id === item.id),
                       map(({duration}) => duration),
+                      distinctUntilChanged(),
                       filter((duration) => !!duration && duration !== item.duration),
-                      take(1),
+                      take(2),
                       tap((duration) =>
                           dispatchMetadataChanges({
                               match: (object) => object.src === item.src,

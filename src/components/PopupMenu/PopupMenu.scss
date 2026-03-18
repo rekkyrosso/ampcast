@@ -23,6 +23,7 @@
         padding: 0.125em 1em 0.125em 1.25em;
         background: transparent;
         color: var(--button-text-color);
+        user-select: none;
 
         &:focus {
             background-color: var(--button-text-color);

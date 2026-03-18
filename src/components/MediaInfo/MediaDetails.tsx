@@ -1,11 +1,12 @@
-import React, {useCallback, useMemo} from 'react';
+import React, {useCallback, useMemo, useState} from 'react';
 import AlbumType from 'types/AlbumType';
 import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
-import {formatTime} from 'utils';
+import {copyToClipboard, formatTime} from 'utils';
+import {MAX_DURATION} from 'services/constants';
 import {copyMediaObjectToClipboard} from 'services/reporting';
 import {CopyButton} from 'components/Button';
 import DetailsBox from 'components/ListView/DetailsBox';
@@ -13,6 +14,8 @@ import {MediaInfoProps} from './MediaInfo';
 import './MediaDetails.scss';
 
 export default function MediaDetails<T extends MediaObject>({item}: MediaInfoProps<T>) {
+    const [value, setValue] = useState<any>();
+
     const object = useMemo(() => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const {pager, parentFolder, ...object} = item as any;
@@ -20,6 +23,10 @@ export default function MediaDetails<T extends MediaObject>({item}: MediaInfoPro
     }, [item]);
 
     const handleCopyClick = useCallback(async () => {
+        await copyToClipboard(value);
+    }, [value]);
+
+    const handleCopyAllClick = useCallback(async () => {
         await copyMediaObjectToClipboard(item);
     }, [item]);
 
@@ -118,7 +125,7 @@ export default function MediaDetails<T extends MediaObject>({item}: MediaInfoPro
                 return value ? new Date(value * 1000).toLocaleDateString() : '';
 
             case 'duration':
-                return formatTime(value);
+                return Math.abs(value) >= MAX_DURATION ? '–:––' : formatTime(value);
 
             case 'thumbnails':
                 return `[${value?.length || 0}]`;
@@ -130,9 +137,17 @@ export default function MediaDetails<T extends MediaObject>({item}: MediaInfoPro
 
     return (
         <div className="media-details">
-            <DetailsBox object={object as T} renderItem={renderItem} title="Medial Details" />
+            <DetailsBox
+                object={object as T}
+                renderItem={renderItem}
+                onSelect={setValue}
+                title="Medial Details"
+            />
             <p>
-                <CopyButton onClick={handleCopyClick}>Copy data</CopyButton>
+                <CopyButton disabled={value === undefined} onClick={handleCopyClick}>
+                    Copy value
+                </CopyButton>
+                <CopyButton onClick={handleCopyAllClick}>Copy all</CopyButton>
             </p>
         </div>
     );

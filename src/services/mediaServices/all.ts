@@ -7,6 +7,7 @@ import emby from 'services/emby';
 import gonic from 'services/subsonic/gonic';
 import jellyfin from 'services/jellyfin';
 import ibroadcast from 'services/ibroadcast';
+import internetRadio from 'services/internetRadio';
 import lastfm from 'services/lastfm';
 import listenbrainz from 'services/listenbrainz';
 import localdb from 'services/localdb';
@@ -36,6 +37,7 @@ const allServices: readonly MediaService[] = [
     soundcloud,
     subsonic,
     youtube,
+    internetRadio,
     lastfm,
     listenbrainz,
     localdb,

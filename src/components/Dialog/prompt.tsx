@@ -1,4 +1,4 @@
-import React, {useCallback, useId, useState} from 'react';
+import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import {IconName} from 'components/Icon';
 import Dialog, {DialogProps} from './Dialog';
 import DialogButtons from './DialogButtons';
@@ -39,6 +39,7 @@ export function PromptDialog({
     ...props
 }: PromptDialogProps) {
     const id = useId();
+    const focusRef = useRef<HTMLElement | null>(null);
     const [value, setValue] = useState(suggestedValue);
 
     if (typeof message === 'string') {
@@ -46,6 +47,10 @@ export function PromptDialog({
     } else if (Array.isArray(message)) {
         message = message.map((text, i) => <p key={i}>{text}</p>);
     }
+
+    useEffect(() => {
+        focusRef.current?.focus();
+    }, []);
 
     const handleChange = useCallback(
         (event: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -72,7 +77,11 @@ export function PromptDialog({
                 {message}
                 <p>
                     {label ? <label htmlFor={id}>{label}: </label> : null}
-                    {type === 'textarea' ? <textarea {...inputProps} /> : <input {...inputProps} />}
+                    {type === 'textarea' ? (
+                        <textarea {...inputProps} ref={focusRef as any} />
+                    ) : (
+                        <input {...inputProps} ref={focusRef as any} />
+                    )}
                 </p>
                 <DialogButtons value={value} submitText={okLabel} />
             </form>

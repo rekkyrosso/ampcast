@@ -1,0 +1,27 @@
+.edit-station-dialog {
+    &-main {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        padding-left: 9.25em;
+        padding-bottom: 1em;
+        min-height: 9em;
+    }
+
+    .table-layout p {
+        line-height: 2.25;
+    }
+
+    .thumbnail {
+        position: absolute;
+        left: 0;
+        width: 8em;
+        height: 8em;
+        padding: 0;
+
+        .cover-art {
+            position: absolute;
+            inset: 0;
+        }
+    }
+}

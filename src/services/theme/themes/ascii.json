@@ -2,7 +2,7 @@
     "name": "ASCII",
     "fontName": "Inconsolata",
     "frame": {
-        "color": "#000000",
+        "color": "#101010",
         "textColor": "#00c000"
     },
     "content": {

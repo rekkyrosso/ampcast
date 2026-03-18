@@ -1,0 +1,15 @@
+.manage-stations {
+    .list-view {
+        height: 22em;
+    }
+
+    &-buttons {
+        text-align: right;
+        display: flex;
+        flex-direction: row;
+    }
+
+    .button + &-delete {
+        margin-left: auto;
+    }
+}

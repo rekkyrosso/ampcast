@@ -23,6 +23,7 @@ import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import pinStore from 'services/pins/pinStore';
+import stationStore from 'services/internetRadio/stationStore';
 import plexApi, {PlexRequest, getMusicLibraryId, getMusicLibraryPath} from './plexApi';
 import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
@@ -60,7 +61,7 @@ export function createMediaObject<T extends MediaObject>(
 
         case plexItemType.Playlist:
             if (isRadio(object)) {
-                return createRadioItem(object) as T;
+                return createRadioStation(object) as T;
             } else {
                 return createMediaPlaylist(object, noPager) as T;
             }
@@ -264,9 +265,10 @@ function createMediaPlaylist(playlist: plex.Playlist, noPager?: boolean): MediaP
     return mediaPlaylist as MediaPlaylist;
 }
 
-function createRadioItem(radio: plex.Radio): MediaItem {
+function createRadioStation(radio: plex.Radio): MediaItem {
+    const src = `plex:radio:${radio.key}`;
     return {
-        src: `plex:radio:${radio.key}`,
+        src,
         title: radio.title,
         itemType: ItemType.Media,
         mediaType: MediaType.Audio,
@@ -276,6 +278,7 @@ function createRadioItem(radio: plex.Radio): MediaItem {
         duration: MAX_DURATION,
         playedAt: 0,
         skippable: true,
+        isFavoriteStation: stationStore.isFavorite({src}),
     };
 }
 

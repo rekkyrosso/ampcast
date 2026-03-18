@@ -17,6 +17,7 @@ import {MAX_DURATION} from 'services/constants';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
+import stationStore from 'services/internetRadio/stationStore';
 import NavidromeIndexedPager, {NavidromePlaylistItemsPager} from './NavidromeIndexedPager';
 import navidromeSettings from './navidromeSettings';
 
@@ -38,7 +39,7 @@ export function createMediaObject<T extends MediaObject>(
 
         default:
             if (isRadio) {
-                return createRadioItem(item as Navidrome.Radio) as T;
+                return createRadioStation(item as Navidrome.Radio) as T;
             } else {
                 return createMediaItem(item as Navidrome.Song) as T;
             }
@@ -116,12 +117,13 @@ function createMediaItem(song: Navidrome.Song): MediaItem {
     };
 }
 
-function createRadioItem(radio: Navidrome.Radio): MediaItem {
+function createRadioStation(radio: Navidrome.Radio): MediaItem {
+    const src = `navidrome:radio:${radio.id}`;
     return {
+        src,
         itemType: ItemType.Media,
         mediaType: MediaType.Audio,
         linearType: LinearType.Station,
-        src: `navidrome:radio:${radio.id}`,
         srcs: [radio.streamUrl],
         externalUrl: radio.homePageUrl,
         title: radio.name,
@@ -129,6 +131,7 @@ function createRadioItem(radio: Navidrome.Radio): MediaItem {
         duration: MAX_DURATION,
         playedAt: 0,
         isExternalMedia: true,
+        isFavoriteStation: stationStore.isFavorite({src}),
     };
 }
 

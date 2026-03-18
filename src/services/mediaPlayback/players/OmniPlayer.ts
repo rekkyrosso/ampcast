@@ -6,12 +6,10 @@ import {
     distinctUntilChanged,
     filter,
     merge,
-    of,
     switchMap,
 } from 'rxjs';
 import AudioManager from 'types/AudioManager';
 import Player from 'types/Player';
-import PlaylistItem from 'types/PlaylistItem';
 
 export type CanPlay<T> = (src: T) => boolean;
 
@@ -124,13 +122,6 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
         return this.observeCurrentPlayer().pipe(
             switchMap((player) => (player ? merge(this.error$, player.observeError()) : EMPTY)),
             filter(() => !this.stopped)
-        );
-    }
-
-    observeNowPlaying(item: PlaylistItem): Observable<PlaylistItem> {
-        return this.observeCurrentPlayer().pipe(
-            switchMap((player) => player?.observeNowPlaying?.(item) || of(item)),
-            distinctUntilChanged()
         );
     }
 
@@ -284,26 +275,26 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
         }
     }
 
-    private get currentPlayer(): Player<S> | null {
+    protected get currentPlayer(): Player<S> | null {
         return this.player$.value;
     }
 
-    private get loadError(): Error | null {
+    protected get loadError(): Error | null {
         return this.#loadError;
     }
 
-    private set loadError(error: Error | null) {
+    protected set loadError(error: Error | null) {
         this.#loadError = error;
         if (error) {
             this.error$.next(error);
         }
     }
 
-    private get players(): IterableIterator<Player<S>> {
+    protected get players(): IterableIterator<Player<S>> {
         return this.#players.keys();
     }
 
-    private observeCurrentPlayer(): Observable<Player<S> | null> {
+    protected observeCurrentPlayer(): Observable<Player<S> | null> {
         return this.player$.pipe(distinctUntilChanged());
     }
 }

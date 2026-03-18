@@ -23,6 +23,7 @@ services:
       #    apple,spotify,
       #    airsonic,ampache,emby,gonic,ibroadcast,jellyfin,navidrome,plex,subsonic,
       #    youtube,
+      #    internet-radio,
       #    lastfm,listenbrainz
       # Disabling YouTube does not disable playback from YouTube.
       # The order of this list also defines the display order in the UI.

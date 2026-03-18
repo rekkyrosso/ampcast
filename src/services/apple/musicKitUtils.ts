@@ -21,6 +21,7 @@ import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import pinStore from 'services/pins/pinStore';
+import stationStore from 'services/internetRadio/stationStore';
 import MusicKitPager, {MusicKitPlaylistItemsPager} from './MusicKitPager';
 import {refreshToken} from './appleAuth';
 
@@ -318,9 +319,10 @@ function createRadioItem(station: Station): SetRequired<MediaItem, 'apple'> {
     const attributes = station.attributes;
     const description = attributes.editorialNotes?.standard || attributes.editorialNotes?.short;
     const catalogId = getCatalogId(station);
+    const src = `apple:${station.type}:${station.id}`;
 
     const mediaItem: Writable<SetRequired<MediaItem, 'apple'>> = {
-        src: `apple:${station.type}:${station.id}`,
+        src,
         itemType: ItemType.Media,
         mediaType: attributes.mediaKind === 'video' ? MediaType.Video : MediaType.Audio,
         linearType: LinearType.Station,
@@ -335,6 +337,7 @@ function createRadioItem(station: Station): SetRequired<MediaItem, 'apple'> {
         apple: {catalogId},
         shareLink: createShareLink('station', attributes.name, catalogId),
         skippable: !attributes.isLive,
+        isFavoriteStation: stationStore.isFavorite({src}),
     };
     return mediaItem;
 }

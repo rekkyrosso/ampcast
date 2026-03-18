@@ -13,6 +13,7 @@ import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
 import soundcloudApi from 'services/soundcloud/soundcloudApi';
 import youtubeApi from 'services/youtube/youtubeApi';
 import {createMediaItemFromStream} from './music-metadata-js';
+import {findBestMatch} from './matcher';
 import {parsePlaylist} from './playlistParser';
 
 const logger = new Logger('metadata');
@@ -44,6 +45,63 @@ export async function addMetadata<T extends MediaItem>(item: T, overWrite = fals
         const resultItem = bestOf(values as T, item);
         // Prefer `duration` provided by source.
         return {...resultItem, duration: item.duration || foundItem.duration};
+    }
+    return item;
+}
+
+export async function addMetadataToRadioTrack<T extends MediaItem = MediaItem>(
+    item: T
+): Promise<T> {
+    const {artists: [artist = ''] = [], title} = item;
+    if (artist) {
+        const transposedItem = {...item, title: artist, artists: [title]};
+        const trackSrc = item.src.replace(':show:', ':track:');
+
+        // First use MusicBrainz API.
+        const mbItems = await musicbrainzApi.search(artist, title);
+        let mbItem = musicbrainzApi.findBestMatch(mbItems, item);
+        if (!mbItem) {
+            mbItem = musicbrainzApi.findBestMatch(mbItems, transposedItem);
+        }
+        if (mbItem) {
+            const enhancedItem = bestOf(mbItem, item) as T;
+            const lastfmItem = await lastfmApi.addMetadata(enhancedItem);
+            return {
+                ...enhancedItem,
+                src: trackSrc,
+                linearType: LinearType.MusicTrack,
+                thumbnails: lastfmItem.thumbnails,
+                duration: item.duration || lastfmItem.duration,
+            };
+        }
+
+        // last.fm search.
+        const lastfmItems = await lastfmApi.search(`${artist} ${title}`);
+        const lastfmItem = lastfmItems.find(
+            (lastfmItem) =>
+                findBestMatch([lastfmItem], item) || findBestMatch([lastfmItem], transposedItem)
+        );
+        if (lastfmItem) {
+            const {title, artists, thumbnails} = lastfmItem;
+            return {
+                ...item,
+                src: trackSrc,
+                linearType: LinearType.MusicTrack,
+                title,
+                artists,
+                thumbnails,
+            };
+        }
+
+        // last.fm track info.
+        const enhancedItem = await lastfmApi.addMetadata<T>(item, {overWrite: true});
+        if (enhancedItem !== item) {
+            return {
+                ...enhancedItem,
+                src: trackSrc,
+                linearType: LinearType.MusicTrack,
+            };
+        }
     }
     return item;
 }
@@ -107,7 +165,8 @@ export async function createMediaItemFromUrl(
                 const contentType = headers?.get('content-type')?.toLowerCase() || '';
 
                 if (mediaTypes.hls.includes(contentType)) {
-                    return createMediaItemByPlaybackType(url, PlaybackType.HLSMetadata);
+                    // Only SomaFM supports `PlaybackType.HLSMetadata`.
+                    return createMediaItemByPlaybackType(url, PlaybackType.HLS);
                 } else if (mediaTypes.m3u.includes(contentType)) {
                     const text = await response.text();
                     return createMediaItemFromPlaylist(url, text);
@@ -134,7 +193,10 @@ export async function createMediaItemFromUrl(
         } catch (err) {
             logger.error(err);
         }
-        return createMediaItemByPlaybackType(url, PlaybackType.Direct);
+        return createMediaItemByPlaybackType(
+            url,
+            url.endsWith('.m3u8') ? PlaybackType.HLS : PlaybackType.Direct
+        );
     }
 }
 
@@ -229,7 +291,6 @@ function createMediaItemFromIcecastHeaders(
     };
 }
 
-// This is for soma.fm basically.
 async function createMediaItemFromPlaylist(url: string, playlist: string): Promise<MediaItem> {
     const [itemUrl] = parsePlaylist(playlist);
     if (itemUrl) {

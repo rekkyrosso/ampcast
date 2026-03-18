@@ -47,7 +47,9 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
             <div className="media-info-main">
                 <Thumbnail item={item} extendedSearch />
                 <Title title={item.title} />
-                {item.linearType === LinearType.Station ? null : (
+                {item.linearType === LinearType.Station ? (
+                    <Country country={item.country} />
+                ) : (
                     <Duration duration={item.duration} />
                 )}
                 <Artist artist={item.artists?.join(', ')} />
@@ -321,7 +323,7 @@ function Genre<T extends MediaItem>({genres}: Pick<T, 'genres'>) {
         }
         return (
             <p className="genre">
-                <span className="text-label">Genre:</span> {genres.join(', ')}
+                <span className="text-label">Genre:</span> {genres.slice(0, 10).join(', ')}
             </p>
         );
     } else {

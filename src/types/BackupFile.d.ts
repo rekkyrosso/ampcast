@@ -1,6 +1,7 @@
 import type {ExportedPlaylist} from 'services/localdb/playlists';
 import AudioSettings from './AudioSettings';
 import Listen from './Listen';
+import MediaItem from './MediaItem';
 import Preferences from './Preferences';
 import UserTheme from './UserTheme';
 import VisualizerFavorite from './VisualizerFavorite';
@@ -26,5 +27,6 @@ export default interface BackupFile {
         readonly visualizerSettings?: VisualizerSettings;
         readonly listens?: readonly Listen[];
         readonly playlists?: readonly ExportedPlaylist[];
+        readonly favoriteStations?: readonly MediaItem[];
     };
 }

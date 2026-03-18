@@ -1,3 +1,4 @@
+import type React from 'react';
 import BaseMediaService from './BaseMediaService';
 import ServiceType from './ServiceType';
 

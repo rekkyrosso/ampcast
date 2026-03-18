@@ -1,7 +1,8 @@
 import React, {useCallback, useRef} from 'react';
 import MediaService from 'types/MediaService';
 import ServiceType from 'types/ServiceType';
-import {getService} from 'services/mediaServices';
+import {partition} from 'utils';
+import {getService, isBranded} from 'services/mediaServices';
 import {allowMultiSelect, setHiddenSources} from 'services/mediaServices/servicesSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import MediaServiceList from './MediaServiceList';
@@ -19,6 +20,7 @@ export default function MediaServicesSettingsGeneral({
     const ref = useRef<HTMLFieldSetElement>(null);
     const isPublicMedia = serviceType === ServiceType.PublicMedia;
     const multiSelect = !isPublicMedia || allowMultiSelect;
+    const [branded, unbranded] = partition(services, (service) => isBranded(service));
 
     const handleSubmit = useCallback(async () => {
         const inputs = ref.current!.elements as HTMLInputElements;
@@ -50,7 +52,14 @@ export default function MediaServicesSettingsGeneral({
                         <p>No services configured.</p>
                     </div>
                 ) : (
-                    <MediaServiceList services={services} multiSelect={multiSelect} />
+                    <>
+                        {branded.length === 0 ? null : (
+                            <MediaServiceList services={branded} multiSelect={multiSelect} />
+                        )}
+                        {unbranded.length === 0 ? null : (
+                            <MediaServiceList services={unbranded} multiSelect={true} />
+                        )}
+                    </>
                 )}
             </fieldset>
             <DialogButtons />

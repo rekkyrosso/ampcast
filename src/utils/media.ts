@@ -1,7 +1,6 @@
 import ItemType from 'types/ItemType';
-import PlaybackType from 'types/PlaybackType';
 import browser from './browser';
-import {getContentType, getHeaders} from './fetch';
+import {getContentType} from './fetch';
 
 const audio = document.createElement('audio');
 const video = document.createElement('video');
@@ -98,19 +97,6 @@ export function getMediaObjectId(object: {src: string}): string {
 export function getServiceId(object: {src: string}): string {
     const [id] = object.src.split(':');
     return id;
-}
-
-export async function getPlaybackTypeFromUrl(url: string): Promise<PlaybackType> {
-    const headers = await getHeaders(url);
-    const contentType = headers.get('content-type')?.toLowerCase() || '';
-    if (mediaTypes.hls.includes(contentType)) {
-        return PlaybackType.HLS;
-    } else if (mediaTypes.m3u.includes(contentType)) {
-        // All the other options will fail anyway (for now).
-        return PlaybackType.IcecastM3u;
-    } else {
-        return PlaybackType.Direct;
-    }
 }
 
 export async function isHlsMedia(url: string): Promise<boolean> {

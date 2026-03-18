@@ -1,7 +1,8 @@
 import React, {useCallback, useMemo, useRef, useState} from 'react';
 import MediaService from 'types/MediaService';
 import ServiceType from 'types/ServiceType';
-import {getBrowsableServices} from 'services/mediaServices';
+import {partition} from 'utils';
+import {getBrowsableServices, isBranded} from 'services/mediaServices';
 import {allowMultiSelect, setHiddenSources} from 'services/mediaServices/servicesSettings';
 import Button from 'components/Button';
 import Dialog, {DialogProps} from 'components/Dialog';
@@ -116,6 +117,7 @@ interface ServicesProps {
 
 function Services({icon, title, className, multiSelect, services}: ServicesProps) {
     const ref = useRef<HTMLFieldSetElement>(null);
+    const [branded, unbranded] = partition(services, (service) => isBranded(service));
 
     const handleChange = useCallback(async () => {
         const inputs = ref.current!.elements as HTMLInputElements;
@@ -136,7 +138,12 @@ function Services({icon, title, className, multiSelect, services}: ServicesProps
             </h3>
             <fieldset className="media-services" onChange={handleChange} ref={ref}>
                 <legend>Enable</legend>
-                <MediaServiceList services={services} multiSelect={multiSelect} />
+                {branded.length === 0 ? null : (
+                    <MediaServiceList services={branded} multiSelect={multiSelect} />
+                )}
+                {unbranded.length === 0 ? null : (
+                    <MediaServiceList services={unbranded} multiSelect={true} />
+                )}
             </fieldset>
         </div>
     );

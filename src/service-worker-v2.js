@@ -11,8 +11,9 @@ const primaryAppFiles = [
 ].map(addVersionToPath);
 
 const cacheableOrigins = [
-    'https://fonts.googleapis.com',
-    'https://fonts.gstatic.com',
+    'https://fonts.googleapis.com/',
+    'https://fonts.gstatic.com/',
+    'https://cdnjs.cloudflare.com/ajax/libs/flag-icons/'
 ];
 
 self.addEventListener('install', (event) => {
@@ -74,7 +75,7 @@ function isCacheable(request) {
     if (url.origin === location.origin) {
         return url.pathname === '/' || url.pathname.startsWith(`/v${appVersion}/`);
     } else {
-        return cacheableOrigins.includes(url.origin);
+        return cacheableOrigins.some((origin) => url.href.startsWith(origin));
     }
 }
 

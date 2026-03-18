@@ -9,4 +9,5 @@ export default interface MediaArtist extends BaseMediaObject {
     // Everything below here should be optional.
     readonly artist_mbid?: string;
     readonly country?: string;
+    readonly countryCode?: string;
 }

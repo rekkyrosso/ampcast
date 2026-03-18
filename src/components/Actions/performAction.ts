@@ -12,6 +12,7 @@ import mediaPlayback from 'services/mediaPlayback';
 import pinStore from 'services/pins/pinStore';
 import playlist from 'services/playlist';
 import {getServiceFromSrc} from 'services/mediaServices';
+import stationStore from 'services/internetRadio/stationStore';
 import {confirm, error} from 'components/Dialog';
 import {showMediaInfoDialog} from 'components/MediaInfo/MediaInfoDialog';
 import {showAddToPlaylistDialog} from './AddToPlaylistDialog';
@@ -42,6 +43,11 @@ export default async function performAction<T extends MediaObject>(
         case Action.AddToLibrary:
         case Action.RemoveFromLibrary:
             performLibraryAction(action, item, payload);
+            break;
+
+        case Action.AddStation:
+        case Action.RemoveStation:
+            performStationAction(action, item as MediaItem);
             break;
 
         case Action.Pin:
@@ -213,6 +219,39 @@ async function performLibraryAction<T extends MediaObject>(
             case Action.RemoveFromLibrary:
                 await actionsStore.store(item, false);
                 break;
+        }
+    } catch (err) {
+        logger.info('Failed to perform action:', action);
+        logger.error(err);
+    }
+}
+
+async function performStationAction<T extends MediaItem>(
+    action: Action.AddStation | Action.RemoveStation,
+    station: T
+): Promise<void> {
+    if (!station) {
+        return;
+    }
+    try {
+        switch (action) {
+            case Action.AddStation:
+                await stationStore.addFavorite(station);
+                break;
+
+            case Action.RemoveStation: {
+                const confirmed = await confirm({
+                    icon: 'internet-radio',
+                    title: 'My Stations',
+                    message: `Remove station '${station.title}'?`,
+                    okLabel: 'Remove',
+                    storageId: 'remove-station'
+                });
+                if (confirmed) {
+                    await stationStore.removeFavorite(station);
+                }
+                break;
+            }
         }
     } catch (err) {
         logger.info('Failed to perform action:', action);

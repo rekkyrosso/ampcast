@@ -222,6 +222,10 @@ export function isPublicMediaService(service: MediaService): service is PublicMe
     return isMediaServiceType(service, ServiceType.PublicMedia);
 }
 
+export function isBranded(service: MediaService): boolean {
+    return ['apple', 'spotify', 'youtube'].includes(service.id);
+}
+
 export function isScrobbler(service: MediaService): boolean {
     return isDataService(service) && !!service.canScrobble;
 }

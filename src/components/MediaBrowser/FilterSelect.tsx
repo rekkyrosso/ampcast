@@ -70,7 +70,9 @@ export default function FilterSelect({
                     filters.map((filter, index) => (
                         <option value={index} key={filter.id}>
                             {filter.title}
-                            {filter.count === undefined ? '' : ` (${filter.count})`}
+                            {!filter.id || filter.count === undefined
+                                ? ''
+                                : ` (${filter.count.toLocaleString()})`}
                         </option>
                     ))
                 )}

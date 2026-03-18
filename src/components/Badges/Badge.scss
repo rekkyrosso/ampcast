@@ -17,7 +17,7 @@
     text-transform: uppercase;
     user-select: none;
     min-width: 1em;
-    height: calc(2em - 2px);
+    height: 2em;
 
     &.video .icon {
         margin-right: 0.5em;
@@ -31,7 +31,7 @@
 
     &.album-type,
     &.bit-rate  {
-        background-color: transparent;
+        background-color: var(--background-color);
         color: var(--text-color);
         border-color: var(--text-color);
         font-weight: normal;
@@ -58,6 +58,7 @@
 
     &.share-link {
         background: none;
+        box-shadow: none;
         color: var(--text-color);
         border-color: var(--text-color);
         text-align: left;

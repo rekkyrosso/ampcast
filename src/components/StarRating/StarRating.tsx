@@ -4,6 +4,7 @@ import './StarRating.scss';
 
 export interface StarRatingProps {
     value?: number; // 0 - 5
+    readOnly?: boolean;
     tabIndex?: number;
     increment?: 0.5 | 1;
     onChange?: (value: number) => void;
@@ -11,6 +12,7 @@ export interface StarRatingProps {
 
 export default function StarRating({
     value = 0,
+    readOnly,
     tabIndex = 0,
     increment = 1,
     onChange,
@@ -59,40 +61,55 @@ export default function StarRating({
             aria-valuemin={0}
             aria-valuemax={5}
             aria-valuenow={currentValue}
-            onKeyDown={handleKeyDown}
+            onKeyDown={readOnly ? undefined : handleKeyDown}
             tabIndex={tabIndex}
         >
             <div
                 className="star-rating-buttons"
                 onMouseDown={cancelEvent}
                 onMouseUp={stopPropagation}
-                onMouseMove={(event) => {
-                    const rect = buttonsRef.current!.getBoundingClientRect();
-                    const value = Math.ceil(((event.clientX - rect.left) / rect.width) * 10) / 2;
-                    setHoverValue(clamp(0, increment === 1 ? Math.ceil(value) : value, 5));
-                }}
-                onMouseLeave={() => {
-                    setRatingReset(false);
-                    setHoverValue(-1);
-                }}
+                onMouseMove={
+                    readOnly
+                        ? undefined
+                        : (event) => {
+                              const rect = buttonsRef.current!.getBoundingClientRect();
+                              const value =
+                                  Math.ceil(((event.clientX - rect.left) / rect.width) * 10) / 2;
+                              setHoverValue(
+                                  clamp(0, increment === 1 ? Math.ceil(value) : value, 5)
+                              );
+                          }
+                }
+                onMouseLeave={
+                    readOnly
+                        ? undefined
+                        : () => {
+                              setRatingReset(false);
+                              setHoverValue(-1);
+                          }
+                }
                 ref={buttonsRef}
             >
                 {[0, 1, 2, 3, 4].map((index) => (
                     <Star
                         index={index}
                         value={ratingReset ? 0 : hoverValue === -1 ? value : hoverValue}
-                        onClick={(event) => {
-                            if (event.button === 0) {
-                                if (value === hoverValue && !ratingReset) {
-                                    setRatingReset(true);
-                                    onChange?.(0);
-                                } else {
-                                    setRatingReset(false);
-                                    onChange?.(hoverValue);
-                                }
-                            }
-                        }}
-                        onMouseLeave={() => setRatingReset(false)}
+                        onClick={
+                            readOnly
+                                ? undefined
+                                : (event) => {
+                                      if (event.button === 0) {
+                                          if (value === hoverValue && !ratingReset) {
+                                              setRatingReset(true);
+                                              onChange?.(0);
+                                          } else {
+                                              setRatingReset(false);
+                                              onChange?.(hoverValue);
+                                          }
+                                      }
+                                  }
+                        }
+                        onMouseLeave={readOnly ? undefined : () => setRatingReset(false)}
                         key={index}
                     />
                 ))}

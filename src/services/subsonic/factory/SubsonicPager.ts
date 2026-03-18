@@ -22,6 +22,7 @@ import SequentialPager from 'services/pagers/SequentialPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
+import stationStore from 'services/internetRadio/stationStore';
 import type SubsonicService from './SubsonicService';
 import SubsonicApi from './SubsonicApi';
 
@@ -80,7 +81,7 @@ export default class SubsonicPager<T extends MediaObject> extends SequentialPage
 
             default:
                 if ('streamUrl' in item) {
-                    return this.createRadioItem(item) as T;
+                    return this.createRadioStation(item) as T;
                 } else {
                     return this.createMediaItem(item as Subsonic.MediaItem, position) as T;
                 }
@@ -173,9 +174,10 @@ export default class SubsonicPager<T extends MediaObject> extends SequentialPage
         };
     }
 
-    private createRadioItem(radio: Subsonic.Radio): MediaItem {
+    private createRadioStation(radio: Subsonic.Radio): MediaItem {
+        const src = `${this.service.id}:radio:${radio.id}`;
         return {
-            src: `${this.service.id}:radio:${radio.id}`,
+            src,
             srcs: [radio.streamUrl],
             title: radio.name,
             itemType: ItemType.Media,
@@ -185,6 +187,7 @@ export default class SubsonicPager<T extends MediaObject> extends SequentialPage
             duration: MAX_DURATION,
             playedAt: 0,
             isExternalMedia: true,
+            isFavoriteStation: stationStore.isFavorite({src}),
         };
     }
 

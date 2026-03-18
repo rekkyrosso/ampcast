@@ -1,4 +1,5 @@
 import type React from 'react';
+import type {DialogProps} from 'components/Dialog';
 import type {IconName} from 'components/Icon';
 import Auth from './Auth';
 import CreatePlaylistOptions from './CreatePlaylistOptions';
@@ -38,6 +39,10 @@ type BaseMediaService = Auth & {
     readonly Components?: {
         readonly Credentials?: React.FC<{service: MediaService}>;
         readonly Login?: React.FC<{service: MediaService}>;
+        // Radio stations.
+        EditStationDialog?: React.FC<DialogProps & {service: MediaService; station: MediaItem}>;
+        CreateStationDialog?: React.FC<DialogProps & {service: MediaService}>;
+        ManageStations?: React.FC<{service: MediaService}>;
     };
     // For services that play audio in an iframe.
     readonly iframeAudioPlayback?:

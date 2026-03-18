@@ -10,9 +10,7 @@ import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
 import {filterNotEmpty, getTextFromHtml, loadLibrary, toUtf8, uniq} from 'utils';
-import lastfmApi from 'services/lastfm/lastfmApi';
-import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
-import {bestOf, findBestMatch, parsePlaylistFromUrl} from 'services/metadata';
+import {addMetadataToRadioTrack, parsePlaylistFromUrl} from 'services/metadata';
 import HTML5Player from './HTML5Player';
 
 type IcecastMetadata = IcyMetadata & OggMetadata;
@@ -60,11 +58,8 @@ export class IcecastPlayer extends HTML5Player {
         this.player = new IcecastMetadataPlayer(endpoints as string[], {
             playbackMethod: 'html5',
             audioElement: this.element,
-            metadataTypes: [item.playbackType === PlaybackType.IcecastOgg ? 'ogg' : 'icy'] as any,
+            metadataTypes: item.playbackType === PlaybackType.IcecastOgg ? ['icy', 'ogg'] : ['icy'],
             onMetadata: (metadata: IcecastMetadata) => {
-                if (__dev__) {
-                    this.logger.info('onMetadata', metadata);
-                }
                 this.metadata$.next(metadata);
             },
             onError: (message: string, error?: Error) => {
@@ -131,7 +126,7 @@ export class IcecastPlayer extends HTML5Player {
         container: PlaylistItem
     ): Promise<PlaylistItem> {
         try {
-            return container.playbackType === PlaybackType.IcecastOgg
+            return metadata.TITLE
                 ? this.createNowPlayingItemOgg(metadata, container)
                 : this.createNowPlayingItemIcy(metadata, container);
         } catch (err) {
@@ -182,7 +177,7 @@ export class IcecastPlayer extends HTML5Player {
             return container;
         }
 
-        const item = await this.addMetadata({
+        const item = await addMetadataToRadioTrack<PlaylistItem>({
             id: nanoid(),
             src: `internet-radio:show:${metadata.StreamTitle}`,
             itemType: ItemType.Media,
@@ -227,7 +222,7 @@ export class IcecastPlayer extends HTML5Player {
         const date = metadata.DATE || '';
         const genre = metadata.GENRE;
 
-        const item = await this.addMetadata({
+        const item = await addMetadataToRadioTrack<PlaylistItem>({
             id: nanoid(),
             src: `internet-radio:show:${artist}-${title}`,
             itemType: ItemType.Media,
@@ -251,60 +246,6 @@ export class IcecastPlayer extends HTML5Player {
             }
         }
 
-        return item;
-    }
-
-    private async addMetadata(item: PlaylistItem): Promise<PlaylistItem> {
-        const {artists: [artist = ''] = [], title} = item;
-        if (artist) {
-            const transposedItem = {...item, title: artist, artists: [title]};
-
-            // First use MusicBrainzBadge.
-            const mbItems = await musicbrainzApi.search(artist, title);
-            let mbItem = musicbrainzApi.findBestMatch(mbItems, item);
-            if (!mbItem) {
-                mbItem = musicbrainzApi.findBestMatch(mbItems, transposedItem);
-            }
-            if (mbItem) {
-                const enhancedItem = bestOf(mbItem, item) as PlaylistItem;
-                const lastfmItem = await lastfmApi.addMetadata(enhancedItem);
-                return {
-                    ...enhancedItem,
-                    src: item.src.replace(':show:', ':track:'),
-                    linearType: LinearType.MusicTrack,
-                    thumbnails: lastfmItem.thumbnails,
-                    duration: item.duration || lastfmItem.duration,
-                };
-            }
-
-            // last.fm search.
-            const lastfmItems = await lastfmApi.search(`${artist} ${title}`);
-            const lastfmItem = lastfmItems.find(
-                (lastfmItem) =>
-                    findBestMatch([lastfmItem], item) || findBestMatch([lastfmItem], transposedItem)
-            );
-            if (lastfmItem) {
-                const {title, artists, thumbnails} = lastfmItem;
-                return {
-                    ...item,
-                    src: item.src.replace(':show:', ':track:'),
-                    linearType: LinearType.MusicTrack,
-                    title,
-                    artists,
-                    thumbnails,
-                };
-            }
-
-            // last.fm track info.
-            const enhancedItem = await lastfmApi.addMetadata<PlaylistItem>(item, {overWrite: true});
-            if (enhancedItem !== item) {
-                return {
-                    ...enhancedItem,
-                    src: item.src.replace(':show:', ':track:'),
-                    linearType: LinearType.MusicTrack,
-                };
-            }
-        }
         return item;
     }
 

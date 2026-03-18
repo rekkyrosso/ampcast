@@ -4,8 +4,13 @@
     }
 
     input[type=color] {
+        display: inline-block;
         width: 25%;
         height: 1.375em;
+
+        &[hidden] {
+            display: none;
+        }
     }
 
     button.small {

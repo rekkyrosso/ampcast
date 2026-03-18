@@ -38,10 +38,12 @@
     &-https,
     &-internet-radio,
     &-globe {
-        color: skyblue;
+        fill: skyblue;
+        stroke: skyblue;
 
         .themed.light & {
-            color: dodgerblue;
+            fill: dodgerblue;
+            stroke: dodgerblue;
         }
     }
 
@@ -69,10 +71,12 @@
 
     &-palette,
     &-globe,
+    &-internet-radio,
     &-visualizer,
     &-settings {
-        .tree-view-row.selected-text & {
+        .settings-dialog-sources .tree-view-row.selected-text & {
             fill: white;
+            stroke: white;
         }
     }
 
@@ -398,5 +402,10 @@
                 fill: rgba(16, 16, 16, 0.4);
             }
         }
+    }
+
+    &-flag {
+        width: auto;
+        height: 0.75em;
     }
 }

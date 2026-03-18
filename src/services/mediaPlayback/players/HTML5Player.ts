@@ -29,6 +29,7 @@ export default class HTML5Player implements Player<PlayableItem> {
     protected readonly paused$ = new BehaviorSubject(true);
     protected readonly playing$ = new Subject<void>();
     protected readonly item$ = new BehaviorSubject<PlayableItem | null>(null);
+    protected readonly duration$ = new Subject<number>();
     protected readonly error$ = new Subject<unknown>();
     protected hasWaited = false;
     protected loadedSrc = '';
@@ -37,7 +38,11 @@ export default class HTML5Player implements Player<PlayableItem> {
     #muted = true;
     #volume = 1;
 
-    constructor(readonly type: 'audio' | 'video', name: string, index?: 1 | 2) {
+    constructor(
+        readonly type: 'audio' | 'video',
+        name: string,
+        index?: 1 | 2
+    ) {
         this.logger = new Logger(`HTML5Player/${this.type}/${name}${index ? '-' + index : ''}`);
 
         const element = this.element;
@@ -74,6 +79,26 @@ export default class HTML5Player implements Player<PlayableItem> {
                         return EMPTY;
                     }
                 })
+            )
+            .subscribe(this.logger);
+
+        // Maintain `duration`.
+        this.observeItem()
+            .pipe(
+                tap((item) => this.duration$.next(item?.duration || 0)),
+                switchMap(() =>
+                    fromEvent(this.element, 'durationchange').pipe(
+                        map(() => this.element.duration),
+                        map((duration) =>
+                            this.isInfiniteStream
+                                ? MAX_DURATION
+                                : isNaN(duration)
+                                  ? this.item?.duration || 0
+                                  : duration
+                        ),
+                        tap((duration) => this.duration$.next(duration))
+                    )
+                )
             )
             .subscribe(this.logger);
 
@@ -160,26 +185,16 @@ export default class HTML5Player implements Player<PlayableItem> {
                 this.stopped
                     ? 0
                     : isFinite(currentTime)
-                    ? currentTime >= MAX_DURATION
-                        ? MAX_DURATION - Math.random() // Keep emitting.
-                        : currentTime
-                    : 0
+                      ? currentTime >= MAX_DURATION
+                          ? MAX_DURATION - Math.random() // Keep emitting.
+                          : currentTime
+                      : 0
             )
         );
     }
 
     observeDuration(): Observable<number> {
-        return fromEvent(this.element, 'durationchange').pipe(
-            startWith(undefined),
-            map(() => this.element.duration),
-            map((duration) =>
-                this.isInfiniteStream
-                    ? MAX_DURATION
-                    : isNaN(duration)
-                    ? this.item?.duration || 0
-                    : duration
-            )
-        );
+        return this.duration$;
     }
 
     observeEnded(): Observable<void> {
@@ -257,7 +272,12 @@ export default class HTML5Player implements Player<PlayableItem> {
     }
 
     protected get isInfiniteStream(): boolean {
-        return this.element.duration === Infinity || this.item?.isLivePlayback || false;
+        return (
+            this.element.duration === Infinity ||
+            this.item?.duration === MAX_DURATION ||
+            this.item?.isLivePlayback ||
+            false
+        );
     }
 
     protected get paused(): boolean {

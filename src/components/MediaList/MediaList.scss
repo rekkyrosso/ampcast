@@ -113,12 +113,14 @@
         }
     }
 
-    .track,
-    .disc,
-    .duration,
-    .year,
-    .count {
-        font-variant-numeric: tabular-nums;
+    .country {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        .icon {
+            margin-right: 0.25em;
+        }
     }
 
     &:focus .list-view-row.selected .star-rating {
@@ -269,6 +271,10 @@
         .h2 {
             top: 2.125em;
 
+            &.genre {
+                top: 2em;
+            }
+
             .text {
                 font-size: 1em;
             }
@@ -303,6 +309,7 @@
             line-height: normal;
 
             &.duration,
+            &.date,
             &.count {
                 display: inline-flex;
                 align-items: center;
@@ -371,6 +378,11 @@
             }
         }
 
+        .h3.genre {
+            @include effects.line-clamp(1);
+            line-height: normal;
+        }
+
         &:not(.thin) .list-view-row:not(.unplayable) {
             .data {
                 &.duration,
@@ -417,6 +429,10 @@
 
             .h3 {
                 top: 2.75em;
+
+                &.country {
+                    top: 3.125em;
+                }
 
                 &.rating {
                     top: 3em;
@@ -569,9 +585,12 @@
                 .data {
                     top: calc(0.5em + 1px);
                     right: calc(100% - 5.5em + 1px);
-                    background-color: rgba(0, 0, 0, 0.75);
-                    color: var(--soft-white);
-                    border-radius: var(--thumbnail-radius);
+
+                    &:not(.inline-badges) {
+                        background-color: rgba(0, 0, 0, 0.75);
+                        color: var(--soft-white);
+                        border-radius: var(--thumbnail-radius);
+                    }
 
                     &.duration,
                     &.count {
@@ -640,6 +659,17 @@
                 padding: 0.125em 0.25em;
                 overflow: visible;
             }
+        }
+    }
+
+    &:not(.thin) {
+        .track,
+        .disc,
+        .duration,
+        .date,
+        .year,
+        .count {
+            font-variant-numeric: tabular-nums;
         }
     }
 

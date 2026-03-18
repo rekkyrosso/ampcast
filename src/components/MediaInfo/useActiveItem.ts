@@ -1,12 +1,14 @@
 import {useEffect, useState} from 'react';
 import {defer, filter, mergeMap, of, tap} from 'rxjs';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import {Logger} from 'utils';
 import listenbrainzApi from 'services/listenbrainz/listenbrainzApi';
 import {observeMetadataChange} from 'services/metadata';
 import {getServiceFromSrc} from 'services/mediaServices';
+import stationStore from 'services/internetRadio/stationStore';
 
 const logger = new Logger('useActiveItem');
 
@@ -48,6 +50,9 @@ async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
     try {
         const service = getServiceFromSrc(item);
         item = (await service?.addMetadata?.(item)) || item;
+        if (item.itemType === ItemType.Media && item.linearType === LinearType.Station) {
+            item = {...item, isFavoriteStation: stationStore.isFavorite(item)};
+        }
     } catch (err) {
         logger.error(err);
     }

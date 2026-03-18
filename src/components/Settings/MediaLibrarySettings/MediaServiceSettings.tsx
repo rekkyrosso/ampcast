@@ -29,6 +29,13 @@ export default function MediaServiceSettings({service}: MediaServiceSettingsProp
                         panel: <StreamingSettings service={service} />,
                     });
                 }
+                const ManageStations = service.Components?.ManageStations;
+                if (ManageStations) {
+                    tabs.push({
+                        tab: 'My Stations',
+                        panel: <ManageStations service={service} />,
+                    });
+                }
                 break;
             }
             case ServiceType.PersonalMedia: {

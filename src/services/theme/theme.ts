@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, filter, skip, tap} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, filter, skipWhile, tap} from 'rxjs';
 import {TinyColor} from '@ctrl/tinycolor';
 import {OptionalKeysOf, RequiredKeysOf} from 'type-fest';
 import Theme, {Button, MediaButton, Scrollbar, Splitter, Surface} from 'types/Theme';
@@ -75,7 +75,7 @@ class MainTheme implements CurrentTheme {
 
     observe(): Observable<CurrentTheme> {
         return this.theme$.pipe(
-            skip(1),
+            skipWhile((theme) => !theme.name),
             filter(() => !this.applyingUpdate)
         );
     }
@@ -381,7 +381,6 @@ class MainTheme implements CurrentTheme {
             return false;
         }
         data = fromLegacyTheme(data);
-        console.log('validate', {data});
         return (
             Object.keys(requiredProperties).every(
                 (key) =>

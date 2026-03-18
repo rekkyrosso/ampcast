@@ -65,6 +65,28 @@
         }
     }
 
+    .filters {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-bottom: var(--gutter-width);
+
+        .filter-select {
+            flex: auto;
+            min-width: 0;
+
+            & + .menu-bar {
+                display: inline-flex;
+                margin-left: 0.5em;
+                flex: initial;
+
+                .menu-buttons {
+                    margin-right: 0;
+                }
+            }
+        }
+    }
+
     .error-screen {
         margin-bottom: var(--gutter-width);
     }
