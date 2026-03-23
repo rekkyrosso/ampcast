@@ -88,7 +88,6 @@ function AlbumInfo({item: album}: MediaInfoProps<MediaAlbum>) {
             <div className="media-info-main">
                 <Thumbnail item={album} extendedSearch />
                 <Title title={album.title} />
-                <TrackCount trackCount={album.trackCount} />
                 <Artist artist={album.artist} />
                 <Year year={album.year} />
                 <Genre genres={album.genres} />

@@ -25,7 +25,8 @@ export default class IBroadcastPager<T extends MediaObject> extends IndexedPager
             async (pageNumber, pageSize) => {
                 const library = await ibroadcastLibrary.load();
                 if (!this.ids) {
-                    this.ids = await _fetchIds();
+                    const ids = await _fetchIds();
+                    this.ids = ids.filter((id) => !!library[section][id]);
                 }
                 return {
                     items: this.createItems(library, (pageNumber - 1) * pageSize, pageSize),
