@@ -1,11 +1,9 @@
 import {EMPTY, debounceTime, filter, map, mergeMap, switchMap, takeUntil, timer} from 'rxjs';
 import Listen from 'types/Listen';
-import MediaItem from 'types/MediaItem';
 import {findScrobble, observeListens, updateListens} from 'services/localdb/listens';
 import {observePlaybackEnd, observePlaybackStart} from 'services/mediaPlayback/playback';
-import {getServiceFromSrc} from 'services/mediaServices';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
-import scrobbleSettings, {observeCanUpdateNowPlaying} from 'services/scrobbleSettings';
+import {canScrobbleTrack, observeCanUpdateNowPlaying} from 'services/scrobbleSettings';
 import session from 'services/session';
 import {exists, Logger, partition} from 'utils';
 import lastfmApi from './lastfmApi';
@@ -26,7 +24,7 @@ export function scrobble(): void {
             ),
             map(({currentItem}) => currentItem),
             filter(exists),
-            filter((item) => canScrobble(item)),
+            filter((item) => canScrobbleTrack('lastfm', item)),
             switchMap((item) =>
                 timer(10_000).pipe(
                     map(() => item),
@@ -73,7 +71,7 @@ export function scrobble(): void {
             const history = await fetchFirstPage(pager);
             const [ignore, unscrobbled] = partition(
                 listens,
-                (listen) => !canScrobble(listen) || !!findScrobble(history, listen)
+                (listen) => !canScrobbleTrack('lastfm', listen) || !!findScrobble(history, listen)
             );
             await updateListens(ignore.map((item) => ({...item, lastfmScrobbledAt: -1})));
             if (unscrobbled.length > 0) {
@@ -86,15 +84,6 @@ export function scrobble(): void {
         } catch (err) {
             logger.error(err);
         }
-    }
-
-    function canScrobble(item: MediaItem): boolean {
-        if (lastfmApi.canScrobble(item)) {
-            const service = getServiceFromSrc(item);
-            // `serviceId` might be "blob" or "file" so we'll attempt to scrobble.
-            return service ? scrobbleSettings.canScrobble('lastfm', service) : true;
-        }
-        return false;
     }
 }
 

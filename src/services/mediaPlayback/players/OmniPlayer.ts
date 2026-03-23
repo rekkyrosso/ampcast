@@ -7,9 +7,11 @@ import {
     filter,
     merge,
     switchMap,
+    of,
 } from 'rxjs';
 import AudioManager from 'types/AudioManager';
 import Player from 'types/Player';
+import PlaylistItem from 'types/PlaylistItem';
 
 export type CanPlay<T> = (src: T) => boolean;
 
@@ -122,6 +124,13 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
         return this.observeCurrentPlayer().pipe(
             switchMap((player) => (player ? merge(this.error$, player.observeError()) : EMPTY)),
             filter(() => !this.stopped)
+        );
+    }
+
+    observeNowPlaying(station: PlaylistItem): Observable<PlaylistItem> {
+        return this.observeCurrentPlayer().pipe(
+            switchMap((player) => player?.observeNowPlaying?.(station) || of(station)),
+            distinctUntilChanged()
         );
     }
 

@@ -9,7 +9,7 @@ import {exists} from 'utils';
 import lastfmApi from 'services/lastfm/lastfmApi';
 import {findListenByPlayedAt, getListens} from 'services/localdb/listens';
 import {getCoverArtThumbnails} from 'services/musicbrainz/coverart';
-import {getEnabledServices} from 'services/mediaServices';
+import {getServiceFromSrc} from 'services/mediaServices';
 import youtubeApi from 'services/youtube/youtubeApi';
 import {dispatchMetadataChanges} from './metadataChanges';
 import {getCoverArtFromBlob} from './music-metadata-js';
@@ -64,11 +64,10 @@ export async function findThumbnails(
     return thumbnails;
 }
 
-export function getThumbnailUrl(thumbnail: Thumbnail): string {
-    return getEnabledServices().reduce(
-        (url, service) => service?.getThumbnailUrl?.(url) ?? url,
-        thumbnail?.url || ''
-    );
+export function getThumbnailUrl(item: MediaObject, thumbnail: Thumbnail): string {
+    const service = getServiceFromSrc(item);
+    const url = thumbnail.url;
+    return service?.getThumbnailUrl?.(url) ?? url;
 }
 
 export function isSameThumbnails(

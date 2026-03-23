@@ -134,6 +134,7 @@ export function createNowPlayingItem(
             src: `apple:songs:${nowPlaying.id}`,
             linearType: LinearType.MusicTrack,
             stationName: station.title,
+            stationSrc: station.src,
         };
     }
 }
@@ -307,6 +308,7 @@ function createFromTimedMetadata(data: MusicKit.TimedMetadata, station?: MediaIt
         artists: artist ? [artist] : undefined,
         album: data.album,
         stationName: station?.title,
+        stationSrc: station?.src,
         duration: 0,
         playedAt: 0,
         unplayable: !catalogId || undefined,

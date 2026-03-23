@@ -13,10 +13,8 @@ export interface CurrentlyPlayingProps {
 export default function CurrentlyPlaying({item, visualizer}: CurrentlyPlayingProps) {
     return (
         <div className="currently-playing">
-            <MediaInfo item={item} />
-            {item.mediaType !== MediaType.Video ? (
-                <VisualizerInfo visualizer={visualizer} />
-            ) : null}
+            <MediaInfo item={item} scrobblingOptions={true} />
+            {item.mediaType !== MediaType.Video ? <VisualizerInfo visualizer={visualizer} /> : null}
         </div>
     );
 }

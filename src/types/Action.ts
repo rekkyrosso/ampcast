@@ -6,6 +6,7 @@ const enum Action {
     AddToLibrary = 'library-add',
     RemoveFromLibrary = 'library-remove',
     AddStation = 'station-add',
+    EditStation = 'station-edit',
     RemoveStation = 'station-remove',
     PlayNow = 'play-now',
     PlayNext = 'play-next',

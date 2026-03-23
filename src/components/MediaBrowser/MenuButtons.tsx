@@ -24,7 +24,7 @@ export default function MenuButtons<T extends MediaObject>({source}: MenuButtons
         const internetRadio = getService<PublicMediaService>('internet-radio');
         const CreateStationDialog = internetRadio?.Components?.CreateStationDialog;
         if (CreateStationDialog) {
-            showDialog((props) => <CreateStationDialog {...props} service={internetRadio} />);
+            showDialog((props) => <CreateStationDialog {...props} />);
         }
     }, []);
 

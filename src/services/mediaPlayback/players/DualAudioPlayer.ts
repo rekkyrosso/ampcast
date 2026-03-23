@@ -1,6 +1,7 @@
 import type {Observable} from 'rxjs';
 import {EMPTY, BehaviorSubject, distinctUntilChanged, filter, interval, map, switchMap} from 'rxjs';
 import PlayableItem from 'types/PlayableItem';
+import PlaylistItem from 'types/PlaylistItem';
 import Player from 'types/Player';
 import {exists} from 'utils';
 import mediaPlayback from '../mediaPlayback';
@@ -119,6 +120,12 @@ export default class DualAudioPlayer implements Player<PlayableItem> {
 
     observeError(): Observable<unknown> {
         return this.observeCurrentPlayer().pipe(switchMap((player) => player.observeError()));
+    }
+
+    observeNowPlaying(station: PlaylistItem): Observable<PlaylistItem> {
+        return this.observeCurrentPlayer().pipe(
+            switchMap((player) => player.observeNowPlaying(station))
+        );
     }
 
     observePlaying(): Observable<void> {

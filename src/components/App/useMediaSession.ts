@@ -45,7 +45,7 @@ function updateSession({
             artist: item?.artists?.join(', '),
             album: item?.album,
             artwork: item?.thumbnails?.map((thumbnail) => ({
-                src: getThumbnailUrl(thumbnail),
+                src: getThumbnailUrl(item, thumbnail),
                 sizes: `${thumbnail.width}x${thumbnail.height}`,
             })),
         });

@@ -13,6 +13,8 @@ const logger = new Logger('onlineRadioBoxApi');
 const apiHost = 'https://onlineradiobox.com/json';
 const scraperHost = 'https://scraper2.onlineradiobox.com';
 
+export const onlineRadioBoxIds: Record<string, string> = {};
+
 export async function fetchNowPlaying(
     station: PlaylistItem,
     prevTrack: PlaylistItem | null = null
@@ -24,11 +26,19 @@ export async function fetchNowPlaying(
         }
         const response = await fetch(`${scraperHost}/${orbId}?l=0&t=${Date.now()}`);
         if (!response.ok) {
+            if (response.status === 404) {
+                // Invalid `orbId`. Don't try again.
+                onlineRadioBoxIds[station.src] = '';
+            }
             logger.error(response);
             return null;
         }
         const nowPlaying: OnlineRadioBox.NowPlaying = await response.json();
         const nowPlayingTimeStamp = nowPlaying.updated * 1000;
+        if (nowPlayingTimeStamp === 0) {
+            // Never updated. Don't try again this session.
+            onlineRadioBoxIds[station.src] = '';
+        }
         let item = parseNowPlaying(station, nowPlaying);
         if (
             item?.src === prevTrack?.src ||
@@ -44,10 +54,6 @@ export async function fetchNowPlaying(
         }
         if (Date.now() - nowPlayingTimeStamp > 600_000) {
             // More that ten minutes old.
-            if (nowPlayingTimeStamp === 0) {
-                // Never updated. Don't try again this session.
-                orbIds[station.src] = '';
-            }
             return item?.linearType === LinearType.MusicTrack ? null : item;
         }
         return item;
@@ -57,53 +63,60 @@ export async function fetchNowPlaying(
     }
 }
 
-const orbIds: Record<string, string> = {};
 async function getOrbId(station: PlaylistItem): Promise<string> {
-    if (orbIds[station.src] === undefined) {
+    if (onlineRadioBoxIds[station.src] === undefined) {
         let orbId = '';
-        let countryCode = station.countryCode?.toLowerCase();
-        if (countryCode) {
-            if (countryCode === 'gb') {
-                countryCode = 'uk';
-            }
-            const searchableTitle = station.title.replace(/^([^(|[]*).*$/, '$1').trim();
-            const result = await Promise.all([
-                getStationsByName(searchableTitle, countryCode),
-                search(searchableTitle),
-            ]);
-            const stations = result.flat();
-            const compareTitles = (data: OnlineRadioBox.Station): boolean => {
-                if (
-                    data.title.localeCompare(searchableTitle, undefined, {
-                        sensitivity: 'base',
-                    }) === 0
-                ) {
-                    return true;
+        const orbUrl = station?.onlineradiobox?.url;
+        if (orbUrl) {
+            const [countryCode, alias] = orbUrl
+                .replace(/^https?:\/\/onlineradiobox\.\w+\//, '')
+                .split('/');
+            orbId = `${countryCode}.${alias}`;
+        } else {
+            let countryCode = station.countryCode?.toLowerCase();
+            if (countryCode) {
+                if (countryCode === 'gb') {
+                    countryCode = 'uk';
                 }
-                const trimTitle = (title: string): string => {
-                    return title
-                        .replace(' ' + data.country, '')
-                        .replace(' ' + data.cityName, '')
-                        .replace(' ' + data.frequency, '')
-                        .trim();
+                const searchableTitle = station.title.replace(/^([^(|[]*).*$/, '$1').trim();
+                const result = await Promise.all([
+                    getStationsByName(searchableTitle, countryCode),
+                    search(searchableTitle),
+                ]);
+                const stations = result.flat();
+                const compareTitles = (data: OnlineRadioBox.Station): boolean => {
+                    if (
+                        data.title.localeCompare(searchableTitle, undefined, {
+                            sensitivity: 'base',
+                        }) === 0
+                    ) {
+                        return true;
+                    }
+                    const trimTitle = (title: string): string => {
+                        return title
+                            .replace(' ' + data.country, '')
+                            .replace(' ' + data.cityName, '')
+                            .replace(' ' + data.frequency, '')
+                            .trim();
+                    };
+                    // A more loose comparison but probably right.
+                    return (
+                        trimTitle(data.title).localeCompare(trimTitle(searchableTitle), undefined, {
+                            sensitivity: 'base',
+                        }) === 0
+                    );
                 };
-                // A more loose comparison but probably right.
-                return (
-                    trimTitle(data.title).localeCompare(trimTitle(searchableTitle), undefined, {
-                        sensitivity: 'base',
-                    }) === 0
+                const orbStation = stations.find(
+                    (data) => data.country === countryCode && data.rank && compareTitles(data)
                 );
-            };
-            const orbStation = stations.find(
-                (data) => data.country === countryCode && data.rank && compareTitles(data)
-            );
-            if (orbStation) {
-                orbId = `${countryCode}.${orbStation.alias}`;
+                if (orbStation) {
+                    orbId = `${countryCode}.${orbStation.alias}`;
+                }
             }
         }
-        orbIds[station.src] = orbId;
+        onlineRadioBoxIds[station.src] = orbId;
     }
-    return orbIds[station.src];
+    return onlineRadioBoxIds[station.src];
 }
 
 function parseNowPlaying(
@@ -146,6 +159,7 @@ function createMediaItem(
         linearType: LinearType.Show,
         mediaType: MediaType.Audio,
         stationName: station.title,
+        stationSrc: station.src,
         duration: 0,
         playedAt: 0,
     };

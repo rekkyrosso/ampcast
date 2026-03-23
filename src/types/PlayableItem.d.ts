@@ -4,6 +4,8 @@ type PlayableItem = Pick<
     MediaItem,
     | 'src'
     | 'srcs'
+    | 'blob'
+    | 'blobUrl'
     | 'fileName'
     | 'linearType'
     | 'playbackType'

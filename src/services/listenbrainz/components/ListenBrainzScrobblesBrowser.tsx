@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
-import scrobbleSettings from 'services/scrobbleSettings';
+import {canUpdateNowPlaying} from 'services/scrobbleSettings';
 import ScrobblesBrowser from 'components/MediaBrowser/ScrobblesBrowser';
 import useScrobblesPager from 'components/MediaBrowser/useScrobblesPager';
 import ListenBrainzHistoryPager from '../ListenBrainzHistoryPager';
@@ -20,7 +20,7 @@ export default function ListenBrainzScrobblesBrowser({
         return new ListenBrainzHistoryPager('listens', min_ts ? {min_ts} : {max_ts}, true);
     }, []);
     const createNowPlayingPager = useCallback(() => {
-        if (scrobbleSettings.canUpdateNowPlaying('listenbrainz')) {
+        if (canUpdateNowPlaying('listenbrainz')) {
             return new ListenBrainzHistoryPager('playing-now');
         }
     }, []);

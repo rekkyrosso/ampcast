@@ -70,7 +70,7 @@
         "@types/md5": "^2.3.2",
         "@types/react": "^19.0.2",
         "@types/react-dom": "^19.0.2",
-        "@types/spotify-api": "^0.0.25",
+        "@types/spotify-api": "^0.0.26",
         "@types/spotify-web-playback-sdk": "^0.1.15",
         "@types/unidecode": "^1.1.0",
         "@types/wicg-file-system-access": "^2023.10.0",
@@ -101,7 +101,7 @@
         "typescript": "^5.9.2",
         "typescript-eslint": "^8.38.0",
         "webpack": "^5.74.0",
-        "webpack-cli": "^6.0.1"
+        "webpack-cli": "^7.0.2"
     },
     "engines": {
         "node": ">=24.x",

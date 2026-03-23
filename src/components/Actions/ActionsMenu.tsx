@@ -5,6 +5,7 @@ import LinearType from 'types/LinearType';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
+import MediaSource from 'types/MediaSource';
 import {browser} from 'utils';
 import {getService, getServiceFromSrc} from 'services/mediaServices';
 import PopupMenu, {
@@ -23,7 +24,7 @@ export async function showActionsMenu<T extends MediaObject>(
     x: number,
     y: number,
     align: 'left' | 'right' = 'left',
-    actionsMenuProps?: Pick<ActionsMenuProps<T>, 'inListView' | 'parentPlaylist'>
+    actionsMenuProps?: Pick<ActionsMenuProps<T>, 'inListView' | 'parentPlaylist' | 'source'>
 ): Promise<Action | undefined> {
     return showPopupMenu(
         (props: PopupMenuProps<Action>) => (
@@ -36,10 +37,37 @@ export async function showActionsMenu<T extends MediaObject>(
     );
 }
 
+export interface ActionsMenuProps<T extends MediaObject> {
+    items: readonly T[];
+    inListView?: boolean;
+    parentPlaylist?: MediaPlaylist;
+    source?: MediaSource<any>;
+}
+
+export default function ActionsMenu<T extends MediaObject>({
+    items,
+    inListView,
+    parentPlaylist,
+    source,
+    ...props
+}: PopupMenuProps<Action> & ActionsMenuProps<T>) {
+    return (
+        <PopupMenu<Action> {...props}>
+            <ActionsMenuItems
+                items={items}
+                inListView={inListView}
+                parentPlaylist={parentPlaylist}
+                source={source}
+            />
+        </PopupMenu>
+    );
+}
+
 export function ActionsMenuItems<T extends MediaObject>({
     items,
     inListView,
     parentPlaylist,
+    source,
 }: ActionsMenuProps<T>) {
     const item = items[0];
     const isSingleItem = items.length === 1 && !!item;
@@ -53,7 +81,9 @@ export function ActionsMenuItems<T extends MediaObject>({
     return (
         <>
             {allPlayable ? <PlayActions disabled={!playableNow} /> : null}
-            {isSingleItem ? <ContextualActions item={item} inListView={inListView} /> : null}
+            {isSingleItem ? (
+                <ContextualActions item={item} inListView={inListView} source={source} />
+            ) : null}
             {parentPlaylist?.items?.deletable ? (
                 <>
                     <PopupMenuItem
@@ -80,29 +110,6 @@ export function ActionsMenuItems<T extends MediaObject>({
                 />
             ) : null}
         </>
-    );
-}
-
-interface ActionsMenuProps<T extends MediaObject> {
-    items: readonly T[];
-    inListView?: boolean;
-    parentPlaylist?: MediaPlaylist;
-}
-
-function ActionsMenu<T extends MediaObject>({
-    items,
-    inListView,
-    parentPlaylist,
-    ...props
-}: PopupMenuProps<Action> & ActionsMenuProps<T>) {
-    return (
-        <PopupMenu<Action> {...props}>
-            <ActionsMenuItems
-                items={items}
-                inListView={inListView}
-                parentPlaylist={parentPlaylist}
-            />
-        </PopupMenu>
     );
 }
 
@@ -142,9 +149,14 @@ function PlayActions({disabled}: PlayActionsProps) {
 interface ContextualActionsProps<T extends MediaObject> {
     item: T;
     inListView?: boolean;
+    source?: MediaSource<any>;
 }
 
-function ContextualActions<T extends MediaObject>({item, inListView}: ContextualActionsProps<T>) {
+function ContextualActions<T extends MediaObject>({
+    item,
+    inListView,
+    source,
+}: ContextualActionsProps<T>) {
     const service = getServiceFromSrc(item);
     const internetRadio = getService('internet-radio');
 
@@ -184,13 +196,24 @@ function ContextualActions<T extends MediaObject>({item, inListView}: Contextual
             item.linearType === LinearType.Station &&
             item.isFavoriteStation !== undefined &&
             internetRadio?.canStore?.(item, inListView) ? (
-                <PopupMenuItem<Action>
-                    label={
-                        item.isFavoriteStation ? 'Remove from My Stations' : 'Add to My Stations'
-                    }
-                    value={item.isFavoriteStation ? Action.RemoveStation : Action.AddStation}
-                    key={item.isFavoriteStation ? Action.RemoveStation : Action.AddStation}
-                />
+                <>
+                    {source?.id === 'internet-radio/my-stations' ? (
+                        <PopupMenuItem<Action>
+                            label="Edit station…"
+                            value={Action.EditStation}
+                            key={Action.EditStation}
+                        />
+                    ) : null}
+                    <PopupMenuItem<Action>
+                        label={
+                            item.isFavoriteStation
+                                ? 'Remove from My Stations'
+                                : 'Add to My Stations'
+                        }
+                        value={item.isFavoriteStation ? Action.RemoveStation : Action.AddStation}
+                        key={item.isFavoriteStation ? Action.RemoveStation : Action.AddStation}
+                    />
+                </>
             ) : null}
 
             {item.itemType === ItemType.Playlist ? (

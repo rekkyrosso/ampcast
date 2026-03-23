@@ -6,8 +6,12 @@ import MediaType from 'types/MediaType';
 import {Logger} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import countries from 'services/countries';
+import {dispatchMetadataChanges} from 'services/metadata';
+import {canScrobbleRadio, setNoScrobbleRadio} from 'services/scrobbleSettings';
 import CoverArt from 'components/CoverArt';
-import Dialog, {DialogButtons, DialogProps, alert, showDialog} from 'components/Dialog';
+import Dialog, {DialogButtons, DialogProps, alert, error, showDialog} from 'components/Dialog';
+import ExternalLink from 'components/ExternalLink';
+import {onlineRadioBoxIds} from '../onlineRadioBox';
 import stationStore from '../stationStore';
 import './EditStationDialog.scss';
 
@@ -32,25 +36,44 @@ export default function EditStationDialog({station, ...props}: EditStationDialog
     const [valid, setValid] = useState(!isNewStation);
 
     const handleSubmit = useCallback(async () => {
+        const existingStation = station;
         try {
             const data = new FormData(ref.current!);
+            const src = data.get('src') as string;
             const thumbnail = data.get('thumbnail') as string;
-            const station: MediaItem = {
+            const orbUrl = data.get('orbUrl') as string;
+            const noScrobble = data.get('noScrobble') === 'on';
+            const editedStation: MediaItem = {
+                ...existingStation,
+                src,
                 itemType: ItemType.Media,
                 mediaType: MediaType.Audio,
                 linearType: LinearType.Station,
-                src: data.get('src') as string,
+                playbackType:
+                    src === existingStation?.src ? existingStation.playbackType : undefined,
                 title: data.get('title') as string,
-                externalUrl: data.get('externalUrl') as string,
-                description: data.get('description') as string,
-                countryCode: data.get('countryCode') as string,
-                country: countries.get(data.get('countryCode') as string),
+                externalUrl: (data.get('externalUrl') as string) || undefined,
+                description: (data.get('description') as string) || undefined,
+                countryCode: (data.get('countryCode') as string) || undefined,
+                country: countries.get(data.get('countryCode') as string) || undefined,
                 playedAt: 0,
                 duration: MAX_DURATION,
                 thumbnails: thumbnail ? [{url: thumbnail, width: 400, height: 400}] : undefined,
+                onlineradiobox: orbUrl ? {url: orbUrl.replace(/\?.*$/, '')} : undefined,
             };
-            await stationStore.addFavorite(station);
-            if (isNewStation) {
+            if (existingStation && src !== existingStation.src) {
+                setNoScrobbleRadio(existingStation.src, false);
+                await stationStore.removeFavorite(existingStation);
+            }
+            await stationStore.addFavorite(editedStation);
+            setNoScrobbleRadio(src, noScrobble);
+            if (existingStation) {
+                delete onlineRadioBoxIds[existingStation.src];
+                dispatchMetadataChanges({
+                    match: (object) => object.src === existingStation.src,
+                    values: {...editedStation},
+                });
+            } else {
                 await alert({
                     icon: 'internet-radio',
                     title: 'My Stations',
@@ -59,8 +82,14 @@ export default function EditStationDialog({station, ...props}: EditStationDialog
             }
         } catch (err) {
             logger.error(err);
+            if (!existingStation) {
+                await error({
+                    title: 'My Stations',
+                    message: 'An error occurred while creating your station',
+                });
+            }
         }
-    }, [isNewStation]);
+    }, [station]);
 
     const handleChange = useCallback(() => {
         setValid(ref.current!.checkValidity());
@@ -95,6 +124,7 @@ export default function EditStationDialog({station, ...props}: EditStationDialog
                                 id={`${id}-src`}
                                 name="src"
                                 defaultValue={station?.src}
+                                disabled={station && !/^https?:/.test(station.src)}
                                 placeholder="URL (required)"
                                 required
                             />
@@ -144,9 +174,35 @@ export default function EditStationDialog({station, ...props}: EditStationDialog
                                 name="description"
                                 defaultValue={station?.description}
                                 rows={2}
-                                cols={40}
                                 placeholder="(optional)"
                             />
+                        </p>
+                        <p>
+                            <label htmlFor={`${id}-orb-url`}>
+                                <ExternalLink href="https://onlineradiobox.com/" rel="noreferrer">
+                                    Online Radio Box
+                                </ExternalLink>
+                                :
+                            </label>
+                            <input
+                                type="url"
+                                id={`${id}-orb-url`}
+                                name="orbUrl"
+                                defaultValue={station?.onlineradiobox?.url}
+                                placeholder="URL (optional)"
+                                title="This station's page (may help with metadata acquisition)"
+                            />
+                        </p>
+                        <p>
+                            <input
+                                id={`${id}-no-scrobble`}
+                                name="noScrobble"
+                                type="checkbox"
+                                defaultChecked={station ? !canScrobbleRadio(station.src) : false}
+                            />
+                            <label htmlFor={`${id}-no-scrobble`}>
+                                Don&apos;t scrobble tracks from this station
+                            </label>
                         </p>
                     </div>
                 </div>

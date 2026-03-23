@@ -1,3 +1,4 @@
+import React from 'react';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import LibraryAction from 'types/LibraryAction';
@@ -11,9 +12,9 @@ import actionsStore from 'services/actions/actionsStore';
 import mediaPlayback from 'services/mediaPlayback';
 import pinStore from 'services/pins/pinStore';
 import playlist from 'services/playlist';
-import {getServiceFromSrc} from 'services/mediaServices';
+import {getService, getServiceFromSrc} from 'services/mediaServices';
 import stationStore from 'services/internetRadio/stationStore';
-import {confirm, error} from 'components/Dialog';
+import {confirm, DialogProps, error, showDialog} from 'components/Dialog';
 import {showMediaInfoDialog} from 'components/MediaInfo/MediaInfoDialog';
 import {showAddToPlaylistDialog} from './AddToPlaylistDialog';
 import {showCreatePlaylistDialog} from './CreatePlaylistDialog';
@@ -46,6 +47,7 @@ export default async function performAction<T extends MediaObject>(
             break;
 
         case Action.AddStation:
+        case Action.EditStation:
         case Action.RemoveStation:
             performStationAction(action, item as MediaItem);
             break;
@@ -227,7 +229,7 @@ async function performLibraryAction<T extends MediaObject>(
 }
 
 async function performStationAction<T extends MediaItem>(
-    action: Action.AddStation | Action.RemoveStation,
+    action: Action.AddStation | Action.EditStation | Action.RemoveStation,
     station: T
 ): Promise<void> {
     if (!station) {
@@ -239,13 +241,24 @@ async function performStationAction<T extends MediaItem>(
                 await stationStore.addFavorite(station);
                 break;
 
+            case Action.EditStation: {
+                const internetRadio = getService('internet-radio');
+                const EditStationDialog = internetRadio?.Components?.EditStationDialog;
+                if (EditStationDialog) {
+                    await showDialog((props: DialogProps) => (
+                        <EditStationDialog {...props} station={station} />
+                    ));
+                }
+                break;
+            }
+
             case Action.RemoveStation: {
                 const confirmed = await confirm({
                     icon: 'internet-radio',
                     title: 'My Stations',
                     message: `Remove station '${station.title}'?`,
                     okLabel: 'Remove',
-                    storageId: 'remove-station'
+                    storageId: 'remove-station',
                 });
                 if (confirmed) {
                     await stationStore.removeFavorite(station);

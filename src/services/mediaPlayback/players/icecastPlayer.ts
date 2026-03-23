@@ -24,12 +24,12 @@ export class IcecastPlayer extends HTML5Player {
         super('audio', name);
     }
 
-    observeNowPlaying(container: PlaylistItem): Observable<PlaylistItem> {
+    observeNowPlaying(station: PlaylistItem): Observable<PlaylistItem> {
         return this.metadata$.pipe(
-            map((metadata) => (this.src === container.src ? metadata : undefined)),
+            map((metadata) => (this.src === station.src ? metadata : undefined)),
             distinctUntilChanged((a, b) => a?.StreamTitle === b?.StreamTitle),
             switchMap((metadata) =>
-                metadata ? this.createNowPlayingItem(metadata, container) : of(container)
+                metadata ? this.createNowPlayingItem(metadata, station) : of(station)
             )
         );
     }
@@ -137,13 +137,13 @@ export class IcecastPlayer extends HTML5Player {
 
     private async createNowPlayingItemIcy(
         metadata: IcyMetadata,
-        container: PlaylistItem
+        station: PlaylistItem
     ): Promise<PlaylistItem> {
         let artist = '';
         let title = getTextFromHtml(toUtf8(metadata?.StreamTitle || '')).replace(/\n+/g, ' ');
         let album: string | undefined;
         if (!title) {
-            return container;
+            return station;
         }
         const trimRegExp = /^[-\s]+|[-\s]+$/;
         const matchWithQuotes = /^"([^"]+)" by ([^"]+) from "([^"]*)"$/i.exec(title);
@@ -174,7 +174,7 @@ export class IcecastPlayer extends HTML5Player {
             }
         }
         if (!title) {
-            return container;
+            return station;
         }
 
         const item = await addMetadataToRadioTrack<PlaylistItem>({
@@ -186,13 +186,14 @@ export class IcecastPlayer extends HTML5Player {
             title,
             artists: artist ? [artist] : undefined,
             album,
-            stationName: container.linearType === LinearType.Station ? container.title : undefined,
+            stationName: station.linearType === LinearType.Station ? station.title : undefined,
+            stationSrc: station.src,
             duration: 0,
             playedAt: 0,
         });
 
         if (!item.thumbnails) {
-            let thumbnails = container.thumbnails;
+            let thumbnails = station.thumbnails;
             if (metadata.StreamUrl?.startsWith('http')) {
                 thumbnails = [
                     {
@@ -212,11 +213,11 @@ export class IcecastPlayer extends HTML5Player {
 
     private async createNowPlayingItemOgg(
         metadata: OggMetadata,
-        container: PlaylistItem
+        station: PlaylistItem
     ): Promise<PlaylistItem> {
         const title = metadata.TITLE;
         if (!title) {
-            return container;
+            return station;
         }
         const artist = metadata.ARTIST || '';
         const date = metadata.DATE || '';
@@ -232,7 +233,8 @@ export class IcecastPlayer extends HTML5Player {
             artists: artist ? [artist] : undefined,
             album: metadata.ALBUM,
             genres: genre ? [genre] : undefined,
-            stationName: container.linearType === LinearType.Station ? container.title : undefined,
+            stationName: station.linearType === LinearType.Station ? station.title : undefined,
+            stationSrc: station.src,
             duration: 0,
             playedAt: 0,
             isrc: metadata.ISRC,
@@ -240,7 +242,7 @@ export class IcecastPlayer extends HTML5Player {
         });
 
         if (!item.thumbnails) {
-            const thumbnails = container.thumbnails;
+            const thumbnails = station.thumbnails;
             if (thumbnails) {
                 return {...item, thumbnails};
             }

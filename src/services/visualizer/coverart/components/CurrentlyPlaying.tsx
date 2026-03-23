@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import Color from 'colorjs.io';
 import ColorThief, {RGBColor} from 'colorthief';
 import {TinyColor, mostReadable} from '@ctrl/tinycolor';
@@ -6,6 +6,7 @@ import LinearType from 'types/LinearType';
 import PlaylistItem from 'types/PlaylistItem';
 import type CovertArtPlayer from '../CovertArtPlayer';
 import {filterNotEmpty} from 'utils';
+import {getServiceFromSrc} from 'services/mediaServices';
 import {isProviderSupported} from 'services/visualizer';
 import Icon from 'components/Icon';
 import {Thumbnail} from 'components/MediaInfo';
@@ -28,6 +29,8 @@ export interface CurrentlyPlayingProps {
 
 export default function CurrentlyPlaying({item, player, hidden = false}: CurrentlyPlayingProps) {
     const ref = useRef<HTMLDivElement>(null);
+    const service = item ? getServiceFromSrc(item) : undefined;
+    const [isLoggedIn, setIsLoggedIn] = useState(() => service?.isLoggedIn() ?? false);
     const {coverArtBeats, fullscreenProgress} = useVisualizerSettings();
     const [arrange, setArrange] = useState<'row' | 'column'>('row');
     const [width, setWidth] = useState(0);
@@ -46,6 +49,15 @@ export default function CurrentlyPlaying({item, player, hidden = false}: Current
     useEffect(() => {
         player?.appendTo(ref.current!);
     }, [player]);
+
+    useLayoutEffect(() => {
+        if (service) {
+            const subscription = service.observeIsLoggedIn().subscribe(setIsLoggedIn);
+            return () => subscription.unsubscribe();
+        } else {
+            setIsLoggedIn(false);
+        }
+    }, [service]);
 
     useEffect(() => {
         if (width * height * fontSize > 0) {
@@ -182,7 +194,7 @@ export default function CurrentlyPlaying({item, player, hidden = false}: Current
                             extendedSearch={!hidden}
                             onLoad={handleThumbnailLoad}
                             onError={handleThumbnailError}
-                            key={item.id}
+                            key={`${item.id}/${isLoggedIn}`}
                         />
                         <ProvidedBy item={item} />
                     </div>

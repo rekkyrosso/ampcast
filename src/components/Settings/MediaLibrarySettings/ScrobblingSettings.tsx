@@ -3,11 +3,11 @@ import DataService from 'types/DataService';
 import {getPlayableServices} from 'services/mediaServices';
 import {
     ScrobblingOptions,
-    canScrobble,
+    canScrobbleService,
     canUpdateNowPlaying,
     getScrobbledAt,
-    setNoScrobble,
-    updateOptions,
+    setNoScrobbleService,
+    updateScrobblingOptions,
 } from 'services/scrobbleSettings';
 import DialogButtons from 'components/Dialog/DialogButtons';
 
@@ -28,13 +28,13 @@ export default function ScrobblingSettings({service: scrobbler}: ScrobblingSetti
         for (const input of scrobbleInputs) {
             scrobbleSettings[input.value] = !input.checked;
         }
-        setNoScrobble(scrobbler.id, scrobbleSettings);
+        setNoScrobbleService(scrobbler.id, scrobbleSettings);
 
         const scrobblingOptions: Partial<ScrobblingOptions> = {};
         scrobblingOptions.updateNowPlaying = updateNowPlayingRef.current!.checked;
         scrobblingOptions.scrobbledAt = scrobbledAtRef.current!
             .value as ScrobblingOptions['scrobbledAt'];
-        updateOptions(scrobbler, scrobblingOptions);
+        updateScrobblingOptions(scrobbler, scrobblingOptions);
     }, [scrobbler]);
 
     return (
@@ -48,7 +48,7 @@ export default function ScrobblingSettings({service: scrobbler}: ScrobblingSetti
                                 id={`${id}-${service.id}`}
                                 type="checkbox"
                                 value={service.id}
-                                defaultChecked={canScrobble(scrobbler.id, service)}
+                                defaultChecked={canScrobbleService(scrobbler.id, service)}
                                 disabled={service.id === 'youtube'}
                             />
                             <label htmlFor={`${id}-${service.id}`}>{service.name}</label>

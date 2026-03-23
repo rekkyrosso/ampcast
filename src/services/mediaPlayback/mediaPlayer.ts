@@ -1,6 +1,3 @@
-import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, map, of, switchMap} from 'rxjs';
-import LinearType from 'types/LinearType';
 import MediaType from 'types/MediaType';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
@@ -18,8 +15,6 @@ import icecastPlayer from './players/icecastPlayer';
 import OmniPlayer from './players/OmniPlayer';
 
 export class MediaPlayer extends OmniPlayer<PlaylistItem | null, PlayableItem> {
-    private nowPlaying$ = new BehaviorSubject<PlaylistItem | null>(null);
-
     constructor() {
         super(
             'mediaPlayer',
@@ -30,10 +25,6 @@ export class MediaPlayer extends OmniPlayer<PlaylistItem | null, PlayableItem> {
                     throw Error('Not playable (explicit)');
                 } else if (item.unplayable) {
                     throw Error('Not playable');
-                } else if (item.blobUrl) {
-                    return {...item, src: item.blobUrl};
-                } else if (item.blob) {
-                    return {...item, src: URL.createObjectURL(item.blob)};
                 } else {
                     return item;
                 }
@@ -89,42 +80,6 @@ export class MediaPlayer extends OmniPlayer<PlaylistItem | null, PlayableItem> {
             [soundcloudPlayer, (item) => !!item?.src.startsWith('soundcloud:')],
             [youtubePlayer, (item) => !!item?.src.startsWith('youtube:')],
         ]);
-    }
-
-    get nowPlaying(): PlaylistItem | null {
-        return this.nowPlaying$.value;
-    }
-
-    set nowPlaying(item: PlaylistItem | null) {
-        this.nowPlaying$.next(item);
-    }
-
-    observeNowPlaying(station: PlaylistItem): Observable<PlaylistItem> {
-        return this.observeCurrentPlayer().pipe(
-            switchMap(
-                (player) =>
-                    player?.observeNowPlaying?.(station) ||
-                    (this.isInternetRadio(station)
-                        ? this.nowPlaying$.pipe(
-                              map((item) =>
-                                  item && item.stationName === station.title ? item : station
-                              )
-                          )
-                        : of(station))
-            ),
-            distinctUntilChanged()
-        );
-    }
-
-    private isInternetRadio(item: PlaylistItem): boolean {
-        return (
-            item.linearType === LinearType.Station &&
-            /^https?:/.test(item.src) &&
-            // Hopefully, other playback types will acquire metadata for us.
-            (item.playbackType === undefined ||
-                item.playbackType === PlaybackType.Direct ||
-                item.playbackType === PlaybackType.HLS)
-        );
     }
 }
 

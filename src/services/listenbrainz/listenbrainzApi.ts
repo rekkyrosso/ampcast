@@ -1,13 +1,12 @@
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import ItemType from 'types/ItemType';
-import LinearType from 'types/LinearType';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {Logger, chunk, getMediaObjectId, partition} from 'utils';
 import {dispatchMetadataChanges} from 'services/metadata';
-import {getScrobbledAt} from 'services/scrobbleSettings';
+import {canScrobbleTrack, getScrobbledAt} from 'services/scrobbleSettings';
 import {getService} from 'services/mediaServices';
 import listenbrainzSettings from './listenbrainzSettings';
 
@@ -18,16 +17,6 @@ export class ListenBrainzApi {
     private readonly webHost = 'https://musicbrainz.org';
     private rateLimitRemainingCalls = 2;
     private rateLimitResetTime = 0;
-
-    canScrobble(item: MediaItem | null): boolean {
-        return (
-            !!item &&
-            !!item.title &&
-            !!item.artists?.[0] &&
-            (!item.linearType || item.linearType === LinearType.MusicTrack) &&
-            (item.duration > 30 || !item.duration)
-        );
-    }
 
     async store(item: MediaItem, inLibrary: boolean): Promise<void> {
         if (item.recording_msid || item.recording_mbid) {
@@ -307,7 +296,7 @@ export class ListenBrainzApi {
 
     async updateNowPlaying(item: MediaItem): Promise<void> {
         try {
-            if (this.canScrobble(item)) {
+            if (canScrobbleTrack('listenbrainz', item)) {
                 logger.log('updateNowPlaying', item.src);
                 await this.post(`submit-listens`, {
                     listen_type: 'playing_now',

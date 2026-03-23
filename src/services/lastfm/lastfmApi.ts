@@ -1,13 +1,12 @@
 import md5 from 'md5';
 import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
-import LinearType from 'types/LinearType';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import Thumbnail from 'types/Thumbnail';
-import {getScrobbledAt} from 'services/scrobbleSettings';
+import {canScrobbleTrack, getScrobbledAt} from 'services/scrobbleSettings';
 import {Logger, exists} from 'utils';
 import {AddMetadataOptions, bestOf, isSameTrack} from 'services/metadata';
 import lastfmSettings from './lastfmSettings';
@@ -30,16 +29,6 @@ export class LastFmApi {
         string += secret;
 
         return md5(string);
-    }
-
-    canScrobble(item: MediaItem | null): boolean {
-        return (
-            !!item &&
-            !!item.title &&
-            !!item.artists?.[0] &&
-            (!item.linearType || item.linearType === LinearType.MusicTrack) &&
-            (item.duration > 30 || !item.duration)
-        );
     }
 
     async scrobble(items: Listen[]): Promise<void> {
@@ -73,7 +62,7 @@ export class LastFmApi {
 
     async updateNowPlaying(item: MediaItem): Promise<void> {
         try {
-            if (this.canScrobble(item)) {
+            if (canScrobbleTrack('lastfm', item)) {
                 logger.log('updateNowPlaying', item.src);
                 await this.post({
                     method: 'track.updateNowPlaying',

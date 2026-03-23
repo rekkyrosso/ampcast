@@ -3,25 +3,38 @@
         display: flex;
         flex-direction: column;
         position: relative;
-        padding-left: 9.25em;
-        padding-bottom: 1em;
-        min-height: 9em;
+        width: 50em;
     }
 
     .table-layout p {
         line-height: 2.25;
+
+        input[type=checkbox] {
+            display: table-cell;
+            width: 1em;
+            margin-left: calc(100% - 1em);
+            text-align: right;
+        }
     }
 
     .thumbnail {
         position: absolute;
         left: 0;
-        width: 8em;
-        height: 8em;
+        width: 10em;
+        height: 10em;
         padding: 0;
 
         .cover-art {
             position: absolute;
             inset: 0;
+        }
+    }
+
+    .external-link {
+        text-decoration: underline;
+
+        .icon {
+            display: none;
         }
     }
 }

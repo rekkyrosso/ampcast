@@ -16,16 +16,21 @@ import ExternalLink from 'components/ExternalLink';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import TextBox from 'components/TextBox';
 import Time from 'components/Time';
+import ScrobblingOptions from './ScrobblingOptions';
 import './MediaInfo.scss';
 
 export interface MediaInfoProps<T extends MediaObject> {
     item: T;
+    scrobblingOptions?: boolean;
 }
 
-export default function MediaInfo<T extends MediaObject>({item}: MediaInfoProps<T>) {
+export default function MediaInfo<T extends MediaObject>({
+    item,
+    scrobblingOptions,
+}: MediaInfoProps<T>) {
     switch (item.itemType) {
         case ItemType.Media:
-            return <MediaItemInfo item={item} />;
+            return <MediaItemInfo item={item} scrobblingOptions={scrobblingOptions} />;
 
         case ItemType.Artist:
             return <ArtistInfo item={item} />;
@@ -41,7 +46,10 @@ export default function MediaInfo<T extends MediaObject>({item}: MediaInfoProps<
     }
 }
 
-function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
+function MediaItemInfo({
+    item,
+    scrobblingOptions = item.linearType === LinearType.Station,
+}: MediaInfoProps<MediaItem>) {
     return (
         <article className="media-info">
             <div className="media-info-main">
@@ -69,6 +77,7 @@ function MediaItemInfo({item}: MediaInfoProps<MediaItem>) {
                 src={item.src}
                 isExternalMedia={item.isExternalMedia}
             />
+            {scrobblingOptions ? <ScrobblingOptions item={item} /> : null}
         </article>
     );
 }

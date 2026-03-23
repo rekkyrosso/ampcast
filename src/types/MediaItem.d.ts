@@ -20,8 +20,6 @@ export default interface MediaItem extends BaseMediaObject {
     readonly disc?: number;
     readonly track?: number; // Album track number
     readonly year?: number;
-    readonly stationName?: string;
-    readonly noScrobble?: boolean;
     readonly unplayable?: boolean;
     readonly copyright?: string;
     // Playback.
@@ -53,15 +51,21 @@ export default interface MediaItem extends BaseMediaObject {
     readonly container?: string;
     readonly explicit?: boolean;
     readonly shareLink?: string;
-    // For radio stations.
+    // Radio stations.
     readonly country?: string;
     readonly countryCode?: string;
     readonly isFavoriteStation?: boolean;
     readonly skippable?: boolean;
+    readonly onlineradiobox?: {
+        readonly url: string;
+    };
     readonly 'radio-browser.info'?: {
         readonly stationuuid: string;
     };
-    // For video.
+    // Radio tracks.
+    readonly stationName?: string;
+    readonly stationSrc?: string;
+    // Videos.
     readonly aspectRatio?: number;
     // For YouTube videos (mainly).
     readonly owner?: {
@@ -75,6 +79,6 @@ export default interface MediaItem extends BaseMediaObject {
         readonly externalUrl?: string;
     };
     readonly plex?: {
-        readonly playQueueItemID?: number; // TODO: Use `playlistItemId`.
+        readonly playQueueItemID?: number;
     };
 }

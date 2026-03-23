@@ -31,6 +31,7 @@ import {
 } from 'services/lookup';
 import {observeMetadataChanges, removeUserData} from 'services/metadata';
 import fetchAllTracks from 'services/pagers/fetchAllTracks';
+import {getNoScrobbleTracks, setNoScrobbleTracks} from 'services/scrobbleSettings';
 import playlistStore from './playlistStore';
 
 const logger = new Logger('playlist');
@@ -453,6 +454,19 @@ if (isMiniPlayer) {
                 if (changed) {
                     setItems(items);
                 }
+            })
+        )
+        .subscribe(logger);
+
+    // Remove expired `noScrobbleTracks`.
+    observe()
+        .pipe(
+            debounceTime(500),
+            tap((items) => {
+                const playlistSrcs = new Set(items.map((item) => item.src));
+                const prevSrcs = getNoScrobbleTracks();
+                const nextSrcs = prevSrcs.filter((src) => playlistSrcs.has(src));
+                setNoScrobbleTracks(nextSrcs);
             })
         )
         .subscribe(logger);

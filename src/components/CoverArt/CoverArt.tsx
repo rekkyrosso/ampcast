@@ -24,20 +24,13 @@ export interface CoverArtProps {
 }
 
 export default function CoverArt({item, className = '', placeholder, ...props}: CoverArtProps) {
-    const [ready, setReady] = useState(!placeholder);
     const overlayIcon = item.itemType === ItemType.Album && getOverlayIcon(item);
-
-    useEffect(() => {
-        if (!placeholder) {
-            setReady(true);
-        }
-    }, [placeholder]);
 
     return (
         <figure
             className={`cover-art ${className} ${overlayIcon ? 'cover-art-' + overlayIcon : ''}`}
         >
-            {ready ? <CoverArtImage {...props} item={item} key={item.src} /> : null}
+            {placeholder ? null : <CoverArtImage {...props} item={item} key={item.src} />}
         </figure>
     );
 }
@@ -47,7 +40,7 @@ function CoverArtImage({item, size, extendedSearch, onLoad, onError}: CoverArtPr
     const [thumbnails, setThumbnails] = useState(() => item.thumbnails);
     const hasThumbnails = !!thumbnails?.length;
     const thumbnail = hasThumbnails ? findBestThumbnail(thumbnails, size) : undefined;
-    const src = thumbnail ? getThumbnailUrl(thumbnail) : '';
+    const src = thumbnail ? getThumbnailUrl(item, thumbnail) : '';
     const overlayIcon = item.itemType === ItemType.Album && getOverlayIcon(item);
 
     useEffect(() => {

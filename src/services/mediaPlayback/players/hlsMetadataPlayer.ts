@@ -96,6 +96,7 @@ export class HLSMetadataPlayer extends HLSPlayer {
                     artists: artist ? [artist] : undefined,
                     stationName:
                         container.linearType === LinearType.Station ? container.title : stationName,
+                    stationSrc: container.src,
                     duration: Number(id3('TLEN')) / 1000 || 0,
                     playedAt: 0,
                     year: Number(id3('TORY')) || undefined,

@@ -40,8 +40,8 @@ type BaseMediaService = Auth & {
         readonly Credentials?: React.FC<{service: MediaService}>;
         readonly Login?: React.FC<{service: MediaService}>;
         // Radio stations.
-        EditStationDialog?: React.FC<DialogProps & {service: MediaService; station: MediaItem}>;
-        CreateStationDialog?: React.FC<DialogProps & {service: MediaService}>;
+        EditStationDialog?: React.FC<DialogProps & {station: MediaItem}>;
+        CreateStationDialog?: React.FC<DialogProps>;
         ManageStations?: React.FC<{service: MediaService}>;
     };
     // For services that play audio in an iframe.

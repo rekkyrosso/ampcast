@@ -121,6 +121,8 @@ function getServicesLocalStorage(): Record<string, string> {
     const storage: Record<string, string> = {};
     const keys = [
         'scrobbling/noScrobble',
+        'scrobbling/noScrobbleRadios',
+        'scrobbling/noScrobbleTracks',
         'scrobbling/options',
         'services/hidden',
         'services/sorting',

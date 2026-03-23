@@ -204,11 +204,13 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
         return this.player.observePlaying();
     }
 
-    observeNowPlaying(radio: PlaylistItem): Observable<PlaylistItem> {
+    observeNowPlaying(station: PlaylistItem): Observable<PlaylistItem> {
         return this.nowPlaying$.pipe(
-            map((item) => (this.src === radio.src ? item : null)),
+            map((item) => (this.src === station.src ? item : null)),
             distinctUntilChanged(),
-            map((item) => (item ? {...item, stationName: radio.title} : radio))
+            map((item) =>
+                item ? {...item, stationName: station.title, stationSrc: station.src} : station
+            )
         );
     }
 

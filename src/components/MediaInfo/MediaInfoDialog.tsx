@@ -10,16 +10,26 @@ import useActiveItem from './useActiveItem';
 import useMediaInfoDialog from './useMediaInfoDialog';
 import './MediaInfoDialog.scss';
 
-export interface MediaInfoDialogProps<T extends MediaObject = MediaObject> extends DialogProps {
-    item: T;
+export interface MediaInfoDialogOptions {
+    scrobblingOptions?: boolean;
 }
 
-export async function showMediaInfoDialog<T extends MediaObject>(item: T): Promise<void> {
-    await showDialog((props: DialogProps) => <MediaInfoDialog {...props} item={item} />);
+export type MediaInfoDialogProps<T extends MediaObject = MediaObject> = DialogProps & {
+    item: T;
+} & MediaInfoDialogOptions;
+
+export async function showMediaInfoDialog<T extends MediaObject>(
+    item: T,
+    options?: MediaInfoDialogOptions
+): Promise<void> {
+    await showDialog((props: DialogProps) => (
+        <MediaInfoDialog {...props} item={item} {...options} />
+    ));
 }
 
 export default function MediaInfoDialog<T extends MediaObject>({
     item,
+    scrobblingOptions,
     ...props
 }: MediaInfoDialogProps<T>) {
     const ref = useRef<HTMLDialogElement>(null);
@@ -31,9 +41,9 @@ export default function MediaInfoDialog<T extends MediaObject>({
         <Dialog {...props} className="media-info-dialog" icon="info" title={title} ref={ref}>
             <form method="dialog">
                 {preferences.mediaInfoTabs ? (
-                    <MediaInfoTabs item={activeItem} />
+                    <MediaInfoTabs item={activeItem} scrobblingOptions={scrobblingOptions} />
                 ) : (
-                    <MediaInfo item={activeItem} />
+                    <MediaInfo item={activeItem} scrobblingOptions={scrobblingOptions} />
                 )}
                 <footer className="dialog-buttons">
                     <Button>Close</Button>

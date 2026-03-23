@@ -8,7 +8,10 @@ import stationStore from '../stationStore';
 
 export function createRadioStation(station: RadioBrowserInfo.Station): MediaItem {
     const stationuuid = station.stationuuid;
-    const src = station.url_resolved;
+    let src = station.url_resolved;
+    if (location.protocol === 'https:') {
+        src = src.replace(/^http:/, 'https:');
+    }
     return {
         src,
         itemType: ItemType.Media,

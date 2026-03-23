@@ -108,7 +108,7 @@ export default function Playlist({onSelect, onPlay, onEject, ref, ...props}: Pla
 
     const handleInfo = useCallback(async ([item]: readonly PlaylistItem[]) => {
         if (item) {
-            await showMediaInfoDialog(item);
+            await showMediaInfoDialog(item, {scrobblingOptions: true});
         }
     }, []);
 
@@ -142,7 +142,7 @@ export default function Playlist({onSelect, onPlay, onEject, ref, ...props}: Pla
                     break;
 
                 case 'info':
-                    await showMediaInfoDialog(selectedItems[0]);
+                    await showMediaInfoDialog(selectedItems[0], {scrobblingOptions: true});
                     break;
 
                 case 'select-all':

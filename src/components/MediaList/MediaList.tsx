@@ -29,11 +29,10 @@ const defaultMediaListLayout: MediaListLayout = {
     details: ['Title'],
 };
 
-export interface MediaListProps<T extends MediaObject>
-    extends Except<
-        SetOptional<ListViewProps<T>, 'itemKey'>,
-        'items' | 'itemClassName' | 'layout' | 'storageId'
-    > {
+export interface MediaListProps<T extends MediaObject> extends Except<
+    SetOptional<ListViewProps<T>, 'itemKey'>,
+    'items' | 'itemClassName' | 'layout' | 'storageId'
+> {
     source?: MediaSource<any>;
     level?: 1 | 2 | 3;
     pager: Pager<T> | null;
@@ -154,7 +153,7 @@ export default function MediaList<T extends MediaObject>({
                 x,
                 y,
                 button === -1 ? 'right' : 'left',
-                {inListView: true, parentPlaylist}
+                {inListView: true, parentPlaylist, source}
             );
             if (action) {
                 if (action === Action.DeletePlaylistItems) {
@@ -164,7 +163,7 @@ export default function MediaList<T extends MediaObject>({
                 }
             }
         },
-        [parentPlaylist]
+        [parentPlaylist, source]
     );
 
     const handleDoubleClick = useCallback(

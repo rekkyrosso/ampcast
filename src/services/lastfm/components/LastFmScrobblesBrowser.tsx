@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
 import MediaSource from 'types/MediaSource';
-import scrobbleSettings from 'services/scrobbleSettings';
+import {canUpdateNowPlaying} from 'services/scrobbleSettings';
 import ScrobblesBrowser from 'components/MediaBrowser/ScrobblesBrowser';
 import useScrobblesPager from 'components/MediaBrowser/useScrobblesPager';
 import LastFmHistoryPager from '../LastFmHistoryPager';
@@ -20,7 +20,7 @@ export default function LastFmScrobblesBrowser({
         return new LastFmHistoryPager('listens', from ? {from} : {to});
     }, []);
     const createNowPlayingPager = useCallback(() => {
-        if (scrobbleSettings.canUpdateNowPlaying('lastfm')) {
+        if (canUpdateNowPlaying('lastfm')) {
             return new LastFmHistoryPager('now-playing');
         }
     }, []);

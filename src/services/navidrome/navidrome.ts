@@ -284,7 +284,9 @@ async function getServerInfo(): Promise<Record<string, string>> {
 }
 
 function getThumbnailUrl(url: string): string {
-    return url.replace('{navidrome-credentials}', navidromeSettings.credentials);
+    return isLoggedIn()
+        ? url.replace('{navidrome-credentials}', navidromeSettings.credentials)
+        : 'data:image/png;';
 }
 
 async function lookup(

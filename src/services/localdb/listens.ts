@@ -9,6 +9,7 @@ import PlaylistItem from 'types/PlaylistItem';
 import {Logger, fuzzyCompare} from 'utils';
 import {findBestMatch, removeUserData} from 'services/metadata';
 import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
+import {canScrobbleTrack} from 'services/scrobbleSettings';
 import session from 'services/session';
 
 const logger = new Logger('localdb/listens');
@@ -97,8 +98,8 @@ export async function addListen(state: PlaybackState): Promise<void> {
                 sessionId: session.id,
                 playedAt: Math.floor(state.startedAt / 1000),
                 endedAt: Math.floor(state.endedAt / 1000),
-                lastfmScrobbledAt: 0,
-                listenbrainzScrobbledAt: 0,
+                lastfmScrobbledAt: canScrobbleTrack('lastfm', item) ? 0 : -1,
+                listenbrainzScrobbledAt: canScrobbleTrack('listenbrainz', item) ? 0 : -1,
             });
         }
     } catch (err) {
