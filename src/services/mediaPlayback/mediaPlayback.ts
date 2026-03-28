@@ -15,6 +15,7 @@ import {
     mergeMap,
     of,
     race,
+    skip,
     skipWhile,
     switchMap,
     take,
@@ -27,6 +28,7 @@ import MediaPlayback from 'types/MediaPlayback';
 import Player from 'types/Player';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
+import RepeatMode from 'types/RepeatMode';
 import {formatTime, isMiniPlayer, Logger} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import {createMediaItemFromUrl, dispatchMetadataChanges} from 'services/metadata';
@@ -47,6 +49,7 @@ const loadingLocked$ = new BehaviorSubject(!isMiniPlayer);
 const killed$ = new Subject<void>();
 
 let _autoplay = false;
+let _stopAfterCurrent = false;
 let currentNavigation: 'prev' | 'next' = 'next';
 
 export function observeCurrentTime(): Observable<number> {
@@ -335,7 +338,6 @@ async function getPlaybackType(item: PlaylistItem): Promise<PlaybackType> {
 }
 
 const mediaPlayback: MediaPlayback = {
-    stopAfterCurrent: false,
     get autoplay(): boolean {
         return _autoplay;
     },
@@ -348,17 +350,26 @@ const mediaPlayback: MediaPlayback = {
     get hidden(): boolean {
         return false;
     },
-    get loop(): boolean {
-        return playbackSettings.loop;
-    },
-    set loop(loop: boolean) {
-        playbackSettings.loop = loop;
-    },
     get muted(): boolean {
         return playbackSettings.muted;
     },
     set muted(muted: boolean) {
         playbackSettings.muted = muted;
+    },
+    get repeatMode(): RepeatMode {
+        return playbackSettings.repeatMode;
+    },
+    set repeatMode(repeatMode: RepeatMode) {
+        playbackSettings.repeatMode = repeatMode;
+    },
+    get stopAfterCurrent(): boolean {
+        return _stopAfterCurrent;
+    },
+    set stopAfterCurrent(stopAfterCurrent: boolean) {
+        _stopAfterCurrent = stopAfterCurrent;
+        if (stopAfterCurrent && playbackSettings.repeatMode === RepeatMode.One) {
+            playbackSettings.repeatMode = RepeatMode.None;
+        }
     },
     get volume(): number {
         return playbackSettings.volume;
@@ -390,9 +401,10 @@ export default mediaPlayback;
 
 observePlaybackSettings()
     .pipe(
-        tap(({volume, muted}) => {
+        tap(({volume, muted, repeatMode}) => {
             mediaPlayer.volume = volume;
             mediaPlayer.muted = muted;
+            mediaPlayer.loop = repeatMode === RepeatMode.One;
         })
     )
     .subscribe(logger);
@@ -419,10 +431,16 @@ playlist
 if (!isMiniPlayer) {
     // Stop/next after playback ended.
     observeEnded()
-        .pipe(takeUntil(killed$))
+        .pipe(
+            filter(() => !mediaPlayer.loop),
+            takeUntil(killed$)
+        )
         .subscribe(() => {
             if (playlist.atEnd) {
-                if (playbackSettings.loop && !mediaPlayback.stopAfterCurrent) {
+                if (
+                    !mediaPlayback.stopAfterCurrent &&
+                    mediaPlayback.repeatMode === RepeatMode.All
+                ) {
                     if (playlist.atStart) {
                         play();
                     } else {
@@ -441,6 +459,7 @@ if (!isMiniPlayer) {
             }
         });
 
+    // `stopAfterCurrent`.
     playback
         .observePlaybackEnd()
         .pipe(takeUntil(killed$))
@@ -486,46 +505,43 @@ if (!isMiniPlayer) {
                 }
             }
         });
-}
 
-// Stop if the playlist is cleared.
-playlist
-    .observeSize()
-    .pipe(
-        map((size) => size === 0),
-        distinctUntilChanged(),
-        skipWhile((isEmpty) => isEmpty),
-        filter((isEmpty) => isEmpty)
-    )
-    .subscribe(stop);
-
-// Use `duration` from media playback (it's more reliable).
-playlist
-    .observeCurrentItem()
-    .pipe(
-        map((item) => (item?.duration === MAX_DURATION ? null : item)),
-        switchMap((item) =>
-            item
-                ? playback.observePlaybackState().pipe(
-                      filter(({currentItem}) => currentItem?.id === item.id),
-                      map(({duration}) => duration),
-                      distinctUntilChanged(),
-                      filter((duration) => !!duration && duration !== item.duration),
-                      take(2),
-                      tap((duration) =>
-                          dispatchMetadataChanges({
-                              match: (object) => object.src === item.src,
-                              values: {duration},
-                          })
-                      )
-                  )
-                : EMPTY
+    // Stop if the playlist is cleared.
+    playlist
+        .observeSize()
+        .pipe(
+            map((size) => size === 0),
+            distinctUntilChanged(),
+            skipWhile((isEmpty) => isEmpty),
+            filter((isEmpty) => isEmpty)
         )
-    )
-    .subscribe(logger);
+        .subscribe(stop);
 
-// Mini player doesn't have a playlist (just the currently loaded item).
-if (!isMiniPlayer) {
+    // Use `duration` from media playback (it's more reliable).
+    playlist
+        .observeCurrentItem()
+        .pipe(
+            map((item) => (item?.duration === MAX_DURATION ? null : item)),
+            switchMap((item) =>
+                item
+                    ? playback.observePlaybackState().pipe(
+                          filter(({currentItem}) => currentItem?.id === item.id),
+                          map(({duration}) => duration),
+                          distinctUntilChanged(),
+                          filter((duration) => !!duration && duration !== item.duration),
+                          take(2),
+                          tap((duration) =>
+                              dispatchMetadataChanges({
+                                  match: (object) => object.src === item.src,
+                                  values: {duration},
+                              })
+                          )
+                      )
+                    : EMPTY
+            )
+        )
+        .subscribe(logger);
+
     observePlaying().subscribe(() => (currentNavigation = 'next'));
 
     // Unlock loading after 300ms. Nothing wil be loaded until then.
@@ -543,6 +559,7 @@ if (!isMiniPlayer) {
         )
         .subscribe(logger);
 
+    // Pre-load next item.
     loadingLocked$
         .pipe(
             distinctUntilChanged(),
@@ -574,6 +591,18 @@ if (!isMiniPlayer) {
             distinctUntilChanged((a, b) => a?.id === b?.id),
             debounceTime(3_000),
             mergeMap((item) => getPlayableItem(item))
+        )
+        .subscribe(logger);
+
+    // Reset repeat mode after change of track.
+    playlist
+        .observeCurrentItem()
+        .pipe(
+            skipWhile((item) => !item),
+            skip(1),
+            distinctUntilChanged((a, b) => a?.id === b?.id),
+            filter(() => mediaPlayback.repeatMode === RepeatMode.One),
+            tap(() => (mediaPlayback.repeatMode = RepeatMode.None))
         )
         .subscribe(logger);
 }

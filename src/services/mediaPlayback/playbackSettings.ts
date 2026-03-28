@@ -1,25 +1,26 @@
 import type {Observable} from 'rxjs';
 import {map, startWith} from 'rxjs';
 import PlaybackSettings from 'types/PlaybackSettings';
+import RepeatMode from 'types/RepeatMode';
 import {LiteStorage} from 'utils';
 
 const storage = new LiteStorage('playback');
 
 const playbackSettings: PlaybackSettings = {
-    get loop(): boolean {
-        return storage.getBoolean('loop');
-    },
-
-    set loop(loop: boolean) {
-        storage.setBoolean('loop', loop);
-    },
-
     get muted(): boolean {
         return storage.getBoolean('muted');
     },
 
     set muted(muted: boolean) {
         storage.setBoolean('muted', muted);
+    },
+
+    get repeatMode(): RepeatMode {
+        return storage.getNumber('repeatMode');
+    },
+
+    set repeatMode(repeatMode: RepeatMode) {
+        storage.setNumber('repeatMode', repeatMode);
     },
 
     get volume(): number {

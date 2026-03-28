@@ -42,11 +42,12 @@ export class MixcloudPlayer implements Player<PlayableItem> {
     loop = false;
     #muted = true;
     #volume = 1;
+    #atEnd = false;
 
     constructor() {
         this.element.hidden = true;
         this.element.className = 'mixcloud-player';
-        this.element.allow = 'autoplay';
+        this.element.allow = 'encrypted-media *; autoplay *;';
         this.element.style.visibility = mixcloud.iframeAudioPlayback?.showContent
             ? 'inherit'
             : 'hidden';
@@ -247,10 +248,18 @@ export class MixcloudPlayer implements Player<PlayableItem> {
             });
             events.pause.on(() => {
                 if (!this.paused) {
-                    player.play();
+                    if (this.#atEnd) {
+                        this.ended$.next();
+                        if (this.loop) {
+                            player.play();
+                        }
+                    } else {
+                        player.play();
+                    }
                 }
             });
             events.progress.on((currentTime: number, duration: number) => {
+                this.#atEnd = currentTime === duration;
                 this.duration$.next(duration);
                 if (!this.stopped) {
                     this.currentTime$.next(currentTime);
@@ -267,7 +276,7 @@ export class MixcloudPlayer implements Player<PlayableItem> {
             this.playerLoaded$.next(true);
         });
 
-        this.element.src = `https://www.mixcloud.com/widget/iframe/?feed=${this.key}`;
+        this.element.src = `https://www.mixcloud.com/widget/iframe/?feed=${this.key}&hide_artwork=1&autoplay=1&ts=${Date.now()}`;
     }
 
     private async loadAndPlay(item: PlayableItem): Promise<void> {
@@ -280,6 +289,7 @@ export class MixcloudPlayer implements Player<PlayableItem> {
         }
 
         const startTime = item.startTime || 0;
+        this.#atEnd = false;
 
         // Don't use async functions here (doesn't seem true async).
         this.player.getCurrentKey().then((currentKey: string) => {

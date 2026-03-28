@@ -12,10 +12,10 @@ async function getMediaItem(url: string): Promise<MediaItem> {
     if (!response.ok) {
         switch (response.status) {
             case 401:
-                throw Error('Embedding prevented by track owner');
+                throw Error('Embedding prevented by owner');
 
             case 403:
-                throw Error('Private track');
+                throw Error('Private');
 
             case 404:
                 throw Error('Track does not exist');
@@ -28,7 +28,7 @@ async function getMediaItem(url: string): Promise<MediaItem> {
     const item: Mixcloud.Cloudcast = await response.json();
 
     if (item?.audio_length === undefined) {
-        throw Error('Not a valid Mixcloud cloudcast URL.');
+        throw Error('Not a valid Mixcloud URL.');
     }
 
     url = item.url || url;

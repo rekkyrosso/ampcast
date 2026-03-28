@@ -1,13 +1,18 @@
 import React from 'react';
 import PlaylistItem from 'types/PlaylistItem';
+import RepeatMode from 'types/RepeatMode';
 import {browser} from 'utils';
+import {MAX_DURATION} from 'services/constants';
 import {AddToPlaylistMenuItem} from 'components/Actions';
 import PopupMenu, {
     PopupMenuItem,
+    PopupMenuItemCheckbox,
     PopupMenuProps,
     PopupMenuSeparator,
     showPopupMenu,
 } from 'components/PopupMenu';
+import useCurrentlyPlayingId from 'hooks/useCurrentlyPlayingId';
+import usePlaybackSettings from 'hooks/usePlaybackSettings';
 
 export default async function showActionsMenu(
     items: readonly PlaylistItem[],
@@ -45,6 +50,9 @@ function ActionsMenu({items, selectedItems, rowIndex, ...props}: ActionsMenuProp
     const selectedCount = selectedItems.length;
     const allSelected = selectedCount === itemCount;
     const isSingleSelection = selectedCount === 1;
+    const selectedItem = isSingleSelection ? selectedItems[0] : null;
+    const currentId = useCurrentlyPlayingId();
+    const {repeatMode} = usePlaybackSettings();
 
     return (
         <PopupMenu {...props}>
@@ -84,6 +92,20 @@ function ActionsMenu({items, selectedItems, rowIndex, ...props}: ActionsMenuProp
             ) : null}
             <PopupMenuSeparator />
             <AddToPlaylistMenuItem items={selectedItems} />
+            {selectedItem?.id === currentId ? (
+                <>
+                    <PopupMenuSeparator />
+                    <PopupMenuItemCheckbox
+                        label="Repeat"
+                        value="toggle-repeat"
+                        key="toggle-repeat"
+                        checked={repeatMode === RepeatMode.One}
+                        disabled={
+                            !!selectedItem?.linearType || selectedItem?.duration === MAX_DURATION
+                        }
+                    />
+                </>
+            ) : null}
             <PopupMenuSeparator />
             {isSingleSelection ? (
                 <PopupMenuItem

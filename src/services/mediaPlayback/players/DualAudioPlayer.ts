@@ -53,6 +53,7 @@ export default class DualAudioPlayer implements Player<PlayableItem> {
             .subscribe(() => {
                 if (
                     !mediaPlayback.stopAfterCurrent &&
+                    !this.loop &&
                     this.autoplay &&
                     this.nextItem &&
                     this.nextItem.src === this.nextPlayer.src

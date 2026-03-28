@@ -1,5 +1,7 @@
+import RepeatMode from './RepeatMode';
+
 export default interface PlaybackSettings {
-    loop: boolean;
+    repeatMode: RepeatMode;
     muted: boolean;
     volume: number;
 }

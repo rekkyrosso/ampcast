@@ -106,10 +106,16 @@ import technoCore from './technoCore.frag';
 import uctumi from './uctumi.frag';
 import violentEyeSimulator314 from './violentEyeSimulator314.frag';
 import voyager from './voyager.frag';
+import vt220DancingAtNight from './vt220DancingAtNight.frag';
 import wavesRemix from './wavesRemix.frag';
 import yearOfTruchets018 from './yearOfTruchets018.frag';
 
 const presets: AmpShaderVisualizer[] = [
+    {
+        id: 'tfjSzc',
+        name: 'vt220 dancing at night  by ArthurTent',
+        shader: vt220DancingAtNight,
+    },
     {
         id: 'tccXR2',
         name: 'Radial Audio Spectrum 🔊 GLSL Vi by mickaellherminez',

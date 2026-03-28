@@ -216,7 +216,7 @@ export default class YouTubePlayer implements Player<PlayableItem> {
 
     observeEnded(): Observable<void> {
         return this.observeState().pipe(
-            filter((state) => state === YT.PlayerState.ENDED && !this.loop),
+            filter((state) => state === YT.PlayerState.ENDED),
             map(() => undefined)
         );
     }

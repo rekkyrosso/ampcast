@@ -12,6 +12,7 @@ declare namespace MusicKit {
         readonly isPlaying: boolean;
         readonly version: string;
         bitrate: number;
+        repeatMode: PlayerRepeatMode,
         volume: number;
         // TODO: These overrides don't work well enough.
         clearQueue(): Promise<void>;
@@ -60,5 +61,11 @@ declare namespace MusicKit {
         waiting = 8,
         stalled = 9,
         completed = 10,
+    }
+
+    enum PlayerRepeatMode {
+        none = 0,
+        one = 1,
+        all = 2,
     }
 }

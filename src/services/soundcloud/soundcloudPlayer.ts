@@ -239,7 +239,13 @@ export class SoundCloudPlayer implements Player<PlayableItem> {
                     this.currentTime$.next(currentPosition / 1000);
                 }
             });
-            player.bind(FINISH, () => this.ended$.next());
+            player.bind(FINISH, () => {
+                this.ended$.next();
+                if (this.loop) {
+                    player.seekTo(0);
+                    player.play();
+                }
+            });
             player.bind(ERROR, (e: unknown) => this.error$.next(e));
 
             this.player = player;

@@ -47,7 +47,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     private stopped = false;
     private skipping = false;
     autoplay = false;
-    loop = false;
+    #loop = false;
     #muted = true;
     #volume = 1;
 
@@ -118,6 +118,19 @@ export class MusicKitPlayer implements Player<PlayableItem> {
 
     set hidden(hidden: boolean) {
         this.element.hidden = hidden;
+    }
+
+    get loop(): boolean {
+        return this.#loop;
+    }
+
+    set loop(loop: boolean) {
+        this.#loop = loop;
+        if (this.player) {
+            this.player.repeatMode = loop
+                ? MusicKit.PlayerRepeatMode.one
+                : MusicKit.PlayerRepeatMode.none;
+        }
     }
 
     get muted(): boolean {
@@ -289,6 +302,9 @@ export class MusicKitPlayer implements Player<PlayableItem> {
             const player = (this.player = MusicKit.getInstance());
             const Events = MusicKit.Events;
 
+            player.repeatMode = this.loop
+                ? MusicKit.PlayerRepeatMode.one
+                : MusicKit.PlayerRepeatMode.none;
             this.synchVolume();
 
             player.addEventListener(Events.playbackStateDidChange, this.onPlaybackStateChange);
@@ -511,17 +527,21 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                         // Apple Music plays 30 seconds of silence for unplayable tracks.
                         this.error$.next(Error('Unplayable'));
                         this.stop();
+                    } else if (this.loop && this.ended) {
+                        this.playing$.next();
                     }
-                    // TODO: This is probably not true any more.
-                    // We can't emit the `playing` event here.
-                    // It causes problems in Firefox (possibly related to DRM and visualizers).
-                    // Emitting the event after a successful call to `player.play()` works just as well.
                 }
                 break;
             }
 
             case MusicKit.PlaybackStates.ended:
                 if (!this.ended && !this.loading && !this.isLinear) {
+                    this.ended$.next();
+                }
+                break;
+
+            case MusicKit.PlaybackStates.stopped:
+                if (this.loop && !this.stopped) {
                     this.ended$.next();
                 }
                 break;

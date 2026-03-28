@@ -1,4 +1,5 @@
 import type {ListViewLayout} from 'components/ListView';
+import MediaObject from './MediaObject';
 
 export type Field =
     | 'Index'
@@ -51,7 +52,7 @@ export interface DetailsView {
     readonly fields: readonly Field[];
 }
 
-export default interface MediaListLayout {
+export default interface MediaListLayout<T extends MediaObject = MediaObject> {
     readonly card: CardView;
     readonly details: readonly Field[];
     readonly extraFields?: readonly Field[]; // Can overlap with `details`.

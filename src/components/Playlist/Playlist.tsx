@@ -3,13 +3,17 @@ import {Except} from 'type-fest';
 import Action from 'types/Action';
 import LookupStatus from 'types/LookupStatus';
 import PlaylistItem from 'types/PlaylistItem';
+import RepeatMode from 'types/RepeatMode';
+import playbackSettings from 'services/mediaPlayback/playbackSettings';
 import playlist from 'services/playlist';
 import {performAction} from 'components/Actions';
+import Icon from 'components/Icon';
 import ListView, {ListViewHandle, ListViewProps} from 'components/ListView';
 import MediaListStatusBar from 'components/MediaList/MediaListStatusBar';
-import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
+import useCurrentlyPlayingId from 'hooks/useCurrentlyPlayingId';
 import useObservable from 'hooks/useObservable';
 import useOnDragStart from 'components/MediaList/useOnDragStart';
+import usePlaybackSettings from 'hooks/usePlaybackSettings';
 import usePlaylistInject from 'hooks/usePlaylistInject';
 import usePreferences from 'hooks/usePreferences';
 import {showMediaInfoDialog} from 'components/MediaInfo/MediaInfoDialog';
@@ -39,8 +43,8 @@ export default function Playlist({onSelect, onPlay, onEject, ref, ...props}: Pla
     const items = useObservable(playlist.observe, []);
     const size = items.length;
     const layout = usePlaylistLayout(size);
-    const item = useCurrentlyPlaying();
-    const currentId = item?.id;
+    const currentId = useCurrentlyPlayingId();
+    const {repeatMode} = usePlaybackSettings();
     const [selectedItems, setSelectedItems] = useState<readonly PlaylistItem[]>([]);
     const onDragStart = useOnDragStart(selectedItems);
     const inject = usePlaylistInject(playlist.injectAt);
@@ -49,12 +53,11 @@ export default function Playlist({onSelect, onPlay, onEject, ref, ...props}: Pla
     const {disableExplicitContent} = usePreferences();
 
     useEffect(() => {
-        if (noStartIndex && item) {
-            const selectedId = item.id;
-            const rowIndex = items.findIndex((item) => item.id === selectedId);
+        if (noStartIndex && currentId) {
+            const rowIndex = items.findIndex((item) => item.id === currentId);
             setStartIndex(rowIndex);
         }
-    }, [noStartIndex, item, items]);
+    }, [noStartIndex, items, currentId]);
 
     const itemClassName = useCallback(
         (item: PlaylistItem) => {
@@ -155,6 +158,14 @@ export default function Playlist({onSelect, onPlay, onEject, ref, ...props}: Pla
                     break;
                 }
 
+                case 'toggle-repeat': {
+                    playbackSettings.repeatMode =
+                        playbackSettings.repeatMode === RepeatMode.One
+                            ? RepeatMode.None
+                            : RepeatMode.One;
+                    break;
+                }
+
                 default:
                     performAction(action as Action, selectedItems);
                     break;
@@ -193,6 +204,22 @@ export default function Playlist({onSelect, onPlay, onEject, ref, ...props}: Pla
                 items={items}
                 size={items.length}
                 selectedCount={selectedItems.length}
+                icons={
+                    repeatMode
+                        ? [
+                              <span
+                                  title={
+                                      repeatMode === RepeatMode.One
+                                          ? 'The current track is on repeat'
+                                          : 'The playlist is on repeat'
+                                  }
+                                  key="repeat"
+                              >
+                                  <Icon name="loop" />
+                              </span>,
+                          ]
+                        : undefined
+                }
             />
         </div>
     );

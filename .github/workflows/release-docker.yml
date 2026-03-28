@@ -1,11 +1,7 @@
 name: Release docker
 permissions: write-all
 
-on:
-  workflow_dispatch:
-  push:
-    tags:
-      - 'v*'
+on: workflow_dispatch
 
 env:
   REGISTRY: ghcr.io

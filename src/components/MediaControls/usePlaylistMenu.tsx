@@ -1,4 +1,5 @@
 import React, {useCallback} from 'react';
+import RepeatMode from 'types/RepeatMode';
 import mediaPlayback from 'services/mediaPlayback';
 import playback from 'services/mediaPlayback/playback';
 import playlist from 'services/playlist';
@@ -31,8 +32,16 @@ export default function usePlaylistMenu(listViewRef: React.RefObject<ListViewHan
                     mediaPlayback.stopAfterCurrent = !mediaPlayback.stopAfterCurrent;
                     break;
 
-                case 'loop':
-                    mediaPlayback.loop = !mediaPlayback.loop;
+                case 'repeat-none':
+                    mediaPlayback.repeatMode = RepeatMode.None;
+                    break;
+
+                case 'repeat-one':
+                    mediaPlayback.repeatMode = RepeatMode.One;
+                    break;
+
+                case 'repeat-all':
+                    mediaPlayback.repeatMode = RepeatMode.All;
                     break;
 
                 case 'clear':

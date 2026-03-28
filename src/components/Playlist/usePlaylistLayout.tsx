@@ -2,14 +2,16 @@ import React, {useMemo} from 'react';
 import LinearType from 'types/LinearType';
 import LookupStatus from 'types/LookupStatus';
 import PlaylistItem from 'types/PlaylistItem';
+import RepeatMode from 'types/RepeatMode';
 import {hasPlayableSrc} from 'services/mediaServices';
 import {ExplicitBadge, LivePlaybackBadge} from 'components/Badges';
 import Icon, {IconName} from 'components/Icon';
 import {ListViewLayout} from 'components/ListView';
 import RadioButtons from 'components/MediaControls/RadioButtons';
 import Time from 'components/Time';
-import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
+import useCurrentlyPlayingId from 'hooks/useCurrentlyPlayingId';
 import usePaused from 'hooks/usePaused';
+import usePlaybackSettings from 'hooks/usePlaybackSettings';
 
 const playlistLayout: ListViewLayout<PlaylistItem> = {
     view: 'details',
@@ -23,8 +25,8 @@ const playlistLayout: ListViewLayout<PlaylistItem> = {
 };
 
 export default function usePlaylistLayout(size: number): ListViewLayout<PlaylistItem> {
-    const item = useCurrentlyPlaying();
-    const currentId = item?.id;
+    const currentId = useCurrentlyPlayingId();
+    const {repeatMode} = usePlaybackSettings();
     const paused = usePaused();
     const sizeExponent = String(size).length;
 
@@ -37,10 +39,19 @@ export default function usePlaylistLayout(size: number): ListViewLayout<Playlist
                         ...col,
                         render: (item: PlaylistItem, {rowIndex}) => {
                             const rowNumber = RowNumber(rowIndex, sizeExponent);
-                            if (item.id === currentId) {
+                            if (currentId === item.id) {
                                 return (
                                     <>
-                                        <Icon name={paused ? 'pause' : 'play'} />
+                                        <Icon
+                                            name={paused ? 'pause' : 'play'}
+                                            className={
+                                                repeatMode === RepeatMode.One
+                                                    ? 'loop-one'
+                                                    : repeatMode === RepeatMode.All
+                                                      ? 'loop-all'
+                                                      : ''
+                                            }
+                                        />
                                         {rowNumber}
                                     </>
                                 );
@@ -69,7 +80,7 @@ export default function usePlaylistLayout(size: number): ListViewLayout<Playlist
                 }
             }),
         };
-    }, [sizeExponent, currentId, paused]);
+    }, [sizeExponent, currentId, paused, repeatMode]);
 }
 
 function RowNumber(rowIndex: number, numberOfDigits = 0) {

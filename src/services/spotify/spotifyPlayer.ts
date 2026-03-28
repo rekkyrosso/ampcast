@@ -58,7 +58,7 @@ export class SpotifyPlayer implements Player<PlayableItem> {
     private hasWaited = false;
     autoplay = false;
     hidden = true;
-    loop = false;
+    #loop = false;
     #muted = true;
     #volume = 1;
 
@@ -173,6 +173,17 @@ export class SpotifyPlayer implements Player<PlayableItem> {
 
         // Log errors.
         this.observeError().subscribe(logger.error);
+    }
+
+    get loop(): boolean {
+        return this.#loop;
+    }
+
+    set loop(loop: boolean) {
+        this.#loop = loop;
+        if (this.player) {
+            this.setRepeatMode(loop ? 'track' : 'off');
+        }
     }
 
     get muted(): boolean {
@@ -481,6 +492,23 @@ export class SpotifyPlayer implements Player<PlayableItem> {
         }
     }
 
+    private async setRepeatMode(mode: 'track' | 'context' | 'off'): Promise<void> {
+        try {
+            const response = await fetch(
+                `${spotifyPlayerApi}/repeat?device_id=${this.deviceId}&state=${mode}`,
+                {
+                    method: 'PUT',
+                    headers: {Authorization: `Bearer ${this.token}`},
+                }
+            );
+            if (!response.ok) {
+                throw response;
+            }
+        } catch (err) {
+            logger.error(err);
+        }
+    }
+
     private async connect(): Promise<Spotify.Player> {
         if (!this.token) {
             throw Error('No access token');
@@ -546,6 +574,9 @@ export class SpotifyPlayer implements Player<PlayableItem> {
             if (loaded) {
                 this.player = await this.connect();
                 await this.player.activateElement();
+                if (this.loop) {
+                    await this.setRepeatMode('track');
+                }
             } else {
                 throw Error('Spotify player not loaded');
             }

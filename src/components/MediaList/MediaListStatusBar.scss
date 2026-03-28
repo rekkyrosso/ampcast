@@ -25,6 +25,8 @@
     &-icons {
         flex: initial;
         margin-left: auto;
+        opacity: 0.67;
+        font-size: 0.875em;
     }
 
     .progress-ring {
@@ -44,12 +46,7 @@
         padding: 0 0.375em;
         border: 1px inset var(--frame-text-color);
         border-radius: calc(var(--roundness) * 1em);
-        font-size: 0.875em;
         font-variant: small-caps;
-
-        .dark & {            
-            opacity: 0.75;
-        }
 
         & ~ .permission {
             margin-left: 0.5em;

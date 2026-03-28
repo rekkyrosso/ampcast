@@ -289,6 +289,10 @@ export class LastFmApi {
         if (item.track_mbid) {
             params.mbid = item.track_mbid;
         }
+        if (item.linearType) {
+            // Radio playback.
+            params.chosenByUser = '0';
+        }
         return params;
     }
 

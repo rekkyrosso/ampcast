@@ -38,6 +38,7 @@ export default class HTML5Player implements Player<PlayableItem> {
     protected loadedSrc = '';
     protected stopped = false;
     autoplay = false;
+    loop = false;
     #muted = true;
     #volume = 1;
 
@@ -105,6 +106,14 @@ export default class HTML5Player implements Player<PlayableItem> {
             )
             .subscribe(this.logger);
 
+        // Loop playback, using `element.loop` means we don't get an `ended` event.
+        fromEvent(this.element, 'ended')
+            .pipe(
+                filter(() => this.loop),
+                tap(() => this.safePlay())
+            )
+            .subscribe(this.logger);
+
         fromEvent(element, 'error')
             .pipe(map(() => element.error))
             .subscribe(this.error$);
@@ -142,14 +151,6 @@ export default class HTML5Player implements Player<PlayableItem> {
 
     get item(): PlayableItem | null {
         return this.item$.value;
-    }
-
-    get loop(): boolean {
-        return this.element.loop;
-    }
-
-    set loop(loop: boolean) {
-        this.element.loop = loop;
     }
 
     get muted(): boolean {

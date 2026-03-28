@@ -7,6 +7,21 @@
     vertical-align: middle;
     overflow: visible;
 
+    &-play {
+        &-loop-one,
+        &-loop-all {
+            display: none;
+        }
+
+        &.loop-one &-loop-one {
+            display: inline;
+        }
+
+        &.loop-all &-loop-all {
+            display: inline;
+        }
+    }
+
     &-star-inner {
         fill: none;
     }

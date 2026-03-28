@@ -65,6 +65,10 @@
                     position: absolute;
                     width: 67%;
                     max-width: 0.75em;
+
+                    & + .number {
+                        visibility: hidden;
+                    }
                 }
 
                 .number {
@@ -76,12 +80,8 @@
     }
 
     .playing {
+        .text,
         .index .number {
-            visibility: hidden;
-            padding-right: 0;
-        }
-
-        .text {
             padding-right: 0;
         }
     
@@ -117,6 +117,12 @@
                 margin-left: 0.25em;
                 margin-right: 0;
             }
+        }
+    }
+
+    .media-list-status-bar {
+        &-icons {
+            margin-right: 0.25em;
         }
     }
 }
