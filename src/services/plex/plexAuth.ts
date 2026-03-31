@@ -1,6 +1,6 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, Subject, distinctUntilChanged, filter, mergeMap} from 'rxjs';
-import {Logger, partition, uniqBy} from 'utils';
+import {Logger, openLoginPopup, partition, uniqBy} from 'utils';
 import {getReadableErrorMessage} from 'services/errors';
 import plexSettings from './plexSettings';
 import plexApi, {apiHost} from './plexApi';
@@ -140,7 +140,7 @@ async function obtainAccessToken(): Promise<{id: string; accessToken: string}> {
             forwardUrl
         )}&context%5Bdevice%5D%5Bproduct%5D=${__app_name__}`;
 
-        authWindow = window.open(`${plexAuthHost}#?${params}`, 'Plex', 'popup');
+        authWindow = openLoginPopup(`${plexAuthHost}#?${params}`, 'Plex');
 
         const pollAuthWindowClosed = setInterval(() => {
             if (authWindow?.closed) {

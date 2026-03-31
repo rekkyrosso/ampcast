@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useId, useMemo, useRef} from 'react';
-import {browser} from 'utils';
 import preferences from 'services/preferences';
 import DialogButtons from 'components/Dialog/DialogButtons';
 
@@ -35,19 +34,17 @@ export default function AppPreferences() {
                         Use <kbd>spacebar</kbd> to toggle play/pause
                     </label>
                 </p>
-                {browser.isElectron ? null : (
-                    <p>
-                        <input
-                            type="checkbox"
-                            id={`${id}-mini-player`}
-                            defaultChecked={originalPreferences.miniPlayer}
-                            onChange={(e) => (preferences.miniPlayer = e.target.checked)}
-                        />
-                        <label htmlFor={`${id}-mini-player`}>
-                            Enable popout playback window (experimental)
-                        </label>
-                    </p>
-                )}
+                <p>
+                    <input
+                        type="checkbox"
+                        id={`${id}-mini-player`}
+                        defaultChecked={originalPreferences.miniPlayer}
+                        onChange={(e) => (preferences.miniPlayer = e.target.checked)}
+                    />
+                    <label htmlFor={`${id}-mini-player`}>
+                        Enable popout playback window (experimental)
+                    </label>
+                </p>
             </fieldset>
             <fieldset>
                 <legend>Browsing</legend>

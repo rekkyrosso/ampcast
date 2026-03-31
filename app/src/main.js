@@ -37,6 +37,9 @@ if (!app.isPackaged) {
 
 initSystemAudio();
 
+const appIcon = nativeImage.createFromPath(path.join(__dirname, 'icon.png'));
+appIcon.setTemplateImage(true);
+
 const loginUrls = [
     'https://authorize.music.apple.com/',
     'https://accounts.spotify.com/authorize',
@@ -70,9 +73,6 @@ async function createSplashScreen(mainWindowState) {
 }
 
 async function createMainWindow(url, mainWindowState) {
-    const image = nativeImage.createFromPath(path.join(__dirname, 'icon.png'));
-    image.setTemplateImage(true);
-
     const {x, y, width, height} = mainWindowState;
 
     mainWindow = new BrowserWindow({
@@ -83,7 +83,7 @@ async function createMainWindow(url, mainWindowState) {
         height,
         minWidth: 800,
         minHeight: 600,
-        icon: image,
+        icon: appIcon,
         backgroundColor: '#32312f',
         titleBarStyle: 'hidden',
         titleBarOverlay: {
@@ -99,12 +99,33 @@ async function createMainWindow(url, mainWindowState) {
 
     // Open links in the default browser.
     mainWindow.webContents.setWindowOpenHandler(({url}) => {
-        // Ignore links from login buttons.
-        if (loginUrls.some((loginUrl) => url.startsWith(loginUrl))) {
-            return {action: 'allow'};
+        if (url === `http://localhost:${server.port}/#mini-player`) {
+            return {
+                action: 'allow',
+                overrideBrowserWindowOptions: {
+                    backgroundColor: '#32312f',
+                    titleBarStyle: 'hidden',
+                    alwaysOnTop: true,
+                    skipTaskbar: true,
+                    webPreferences: {
+                        preload: path.join(__dirname, 'preload.js'),
+                    },
+                }
+            }
+        } else if (loginUrls.some((loginUrl) => url.startsWith(loginUrl))) {
+            return {
+                action: 'allow',
+                overrideBrowserWindowOptions: {
+                    icon: appIcon,
+                    minimizable: false,
+                    autoHideMenuBar: true,
+                    modal: true,
+                }
+            }
+        } else {
+            shell.openExternal(url);
+            return {action: 'deny'};
         }
-        shell.openExternal(url);
-        return {action: 'deny'};
     });
 
     mainWindowState.manage(mainWindow);

@@ -506,6 +506,7 @@ class MainTheme implements CurrentTheme {
         // Set chrome color for Electron/PWA.
         if (ampcastElectron) {
             ampcastElectron.setFrameColor(this.frameColor);
+            ampcastElectron.setFrameTextColor(this.frameTextColor);
         } else {
             let themeColorMeta = document.head.querySelector('meta[name="theme-color"]');
             if (!themeColorMeta) {

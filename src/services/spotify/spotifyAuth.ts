@@ -1,7 +1,7 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, Subject, distinctUntilChanged, map} from 'rxjs';
 import {nanoid} from 'nanoid';
-import {Logger} from 'utils';
+import {Logger, openLoginPopup} from 'utils';
 import ampcastElectron from 'services/ampcastElectron';
 import {getReadableErrorMessage} from 'services/errors';
 import spotifyApi from './spotifyApi';
@@ -176,7 +176,7 @@ async function obtainAccessToken(state: string): Promise<TokenResponse> {
             state,
         });
 
-        authWindow = window.open(`${spotifyAccounts}/authorize?${params}`, 'Spotify', 'popup');
+        authWindow = openLoginPopup(`${spotifyAccounts}/authorize?${params}`, 'Spotify');
 
         const pollAuthWindowClosed = setInterval(() => {
             if (authWindow?.closed) {

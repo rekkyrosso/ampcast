@@ -2,13 +2,15 @@ import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} fr
 import {Subscription, fromEvent} from 'rxjs';
 import {Except} from 'type-fest';
 import {clamp, preventDefault, stopPropagation} from 'utils';
-import Button from 'components/Button';
-import Icon, {IconName} from 'components/Icon';
+import {CloseButton} from 'components/Button';
+import {IconName} from 'components/Icon';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import './Dialog.scss';
 
-export interface DialogProps
-    extends Except<React.DialogHTMLAttributes<HTMLDialogElement>, 'onClose'> {
+export interface DialogProps extends Except<
+    React.DialogHTMLAttributes<HTMLDialogElement>,
+    'onClose'
+> {
     icon?: IconName;
     onClose: (returnValue: string) => void;
     ref?: React.Ref<DialogHandle | null>;
@@ -137,16 +139,7 @@ export default function Dialog({
         >
             <header className="dialog-head buttons-convex" onMouseDown={handleDragStart}>
                 <h2>{icon ? <MediaSourceLabel icon={icon} text={title} /> : title}</h2>
-                <Button
-                    className="dialog-close"
-                    role="button"
-                    aria-label="Close"
-                    tabIndex={-1}
-                    onClick={close}
-                    onMouseDown={stopPropagation}
-                >
-                    <Icon name="close" />
-                </Button>
+                <CloseButton onClick={close} />
             </header>
             <div className="dialog-body" onMouseDown={stopPropagation} onClick={handleBodyClick}>
                 {children}

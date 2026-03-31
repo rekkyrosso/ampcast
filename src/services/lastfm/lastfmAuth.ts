@@ -1,6 +1,6 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, Subject, distinctUntilChanged, filter, map, mergeMap} from 'rxjs';
-import {Logger} from 'utils';
+import {Logger, openLoginPopup} from 'utils';
 import {getReadableErrorMessage} from 'services/errors';
 import lastfmApi from './lastfmApi';
 import lastfmSettings from './lastfmSettings';
@@ -108,10 +108,9 @@ async function obtainAccessToken(): Promise<string> {
 
         window.addEventListener('message', receiveMessage, false);
 
-        authWindow = window.open(
+        authWindow = openLoginPopup(
             `${lastfmApiAuth}?api_key=${lastfmSettings.apiKey}&cb=${callback}`,
-            'last.fm',
-            'popup'
+            'last.fm'
         );
 
         const pollAuthWindowClosed = setInterval(() => {

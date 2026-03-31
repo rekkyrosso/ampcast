@@ -11,6 +11,7 @@ import theme from 'services/theme';
 import {nextVisualizer, observeCurrentVisualizer} from 'services/visualizer';
 import mediaPlayer from './mediaPlayer';
 import playback from './playback';
+import miniPlayerSettings from './miniPlayerSettings';
 
 const logger = new Logger('miniPlayerRemote');
 
@@ -113,6 +114,13 @@ const connect = (
             takeUntil(killed$)
         )
         .subscribe(({providerId, name}) => emitEvent('visualizer-change', {providerId, name}));
+
+    window.addEventListener('resize', () => {
+        if (!document.fullscreenElement) {
+            miniPlayerSettings.width = window.outerWidth;
+            miniPlayerSettings.height = window.outerHeight;
+        }
+    });
 
     window.addEventListener('message', (event: MessageEvent) => {
         if (event.origin !== location.origin || event.source !== opener) {

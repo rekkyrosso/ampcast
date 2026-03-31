@@ -1,7 +1,7 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, Subject, distinctUntilChanged, map} from 'rxjs';
 import {nanoid} from 'nanoid';
-import {Logger} from 'utils';
+import {Logger, openLoginPopup} from 'utils';
 import {getReadableErrorMessage} from 'services/errors';
 import ibroadcastSettings from './ibroadcastSettings';
 import ibroadcastApi from './ibroadcastApi';
@@ -144,7 +144,7 @@ async function obtainAccessToken(state: string): Promise<TokenResponse> {
             state,
         });
 
-        authWindow = window.open(`${ibroadcastOAuth}/authorize?${params}`, 'iBroadcast', 'popup');
+        authWindow = openLoginPopup(`${ibroadcastOAuth}/authorize?${params}`, 'iBroadcast');
 
         const pollAuthWindowClosed = setInterval(() => {
             if (authWindow?.closed) {

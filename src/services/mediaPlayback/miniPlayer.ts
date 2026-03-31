@@ -20,13 +20,14 @@ import Playback from 'types/Playback';
 import PlaylistItem from 'types/PlaylistItem';
 import PlaybackState from 'types/PlaybackState';
 import Visualizer from 'types/Visualizer';
-import {Logger, isMiniPlayer} from 'utils';
+import {Logger, isMiniPlayer, openPopup} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import playlist from 'services/playlist';
 import session from 'services/session';
 import theme from 'services/theme';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
 import defaultPlaybackState from './defaultPlaybackState';
+import miniPlayerSettings from './miniPlayerSettings';
 
 const logger = new Logger('miniPlayer');
 
@@ -248,10 +249,11 @@ const open = (): void => {
         throw Error('Not allowed');
     }
     if (!miniPlayerWindow) {
-        miniPlayerWindow = window.open(
+        miniPlayerWindow = openPopup(
             `${location.href}#mini-player`,
             session.miniPlayerId,
-            'popup'
+            miniPlayerSettings.width,
+            miniPlayerSettings.height
         );
     }
     miniPlayerWindow?.focus();

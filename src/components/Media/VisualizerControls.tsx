@@ -3,7 +3,7 @@ import {debounceTime, filter, tap} from 'rxjs';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import Visualizer from 'types/Visualizer';
-import {browser, isMiniPlayer} from 'utils';
+import {isMiniPlayer} from 'utils';
 import {getServiceFromSrc} from 'services/mediaServices';
 import miniPlayer from 'services/mediaPlayback/miniPlayer';
 import {
@@ -67,7 +67,7 @@ export default function VisualizerControls({
         iframe?.showCoverArt;
     const noVisualizerReason = getNoVisualizerReason(currentVisualizer);
     const preferences = usePreferences();
-    const miniPlayerEnabled = preferences.miniPlayer && !isMiniPlayer && !browser.isElectron;
+    const miniPlayerEnabled = preferences.miniPlayer && !isMiniPlayer;
     const miniPlayerActive = useMiniPlayerActive();
     const showStatic = nextClicked && !paused && !hideSelector && !miniPlayerActive;
 

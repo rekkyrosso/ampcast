@@ -134,16 +134,18 @@ function loadNext(item: PlaylistItem | null): void {
 
 export function play(): void {
     logger.log('play');
-    mediaPlayback.autoplay = true;
-    currentNavigation = 'next';
-    unlockLoading();
-    if (miniPlayer.active) {
-        miniPlayer.play();
-    } else {
-        playback.play();
-        if (!playback.paused) {
-            mediaPlayer.play();
-            visualizerPlayer.play();
+    if (playlist.size > 0) {
+        currentNavigation = 'next';
+        unlockLoading();
+        mediaPlayback.autoplay = true;
+        if (miniPlayer.active) {
+            miniPlayer.play();
+        } else {
+            playback.play();
+            if (!playback.paused) {
+                mediaPlayer.play();
+                visualizerPlayer.play();
+            }
         }
     }
 }
