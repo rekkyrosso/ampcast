@@ -102,7 +102,7 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     }
 
     get hidden(): boolean {
-        return this.canvas.hidden;
+        return !!this.canvas.hidden;
     }
 
     set hidden(hidden: boolean) {

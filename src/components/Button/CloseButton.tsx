@@ -9,7 +9,6 @@ export default function CloseButton(props: ButtonProps) {
         <Button
             {...props}
             className="close-button"
-            role="button"
             type="button"
             aria-label="Close"
             tabIndex={-1}

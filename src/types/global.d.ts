@@ -24,6 +24,8 @@ interface Window {
     readonly SC?: any; // SoundCloud
 }
 
+declare module '*.scss';
+
 declare module '*.frag' {
     const value: string;
     export = value;

@@ -110,8 +110,8 @@ async function createMainWindow(url, mainWindowState) {
                     webPreferences: {
                         preload: path.join(__dirname, 'preload.js'),
                     },
-                }
-            }
+                },
+            };
         } else if (loginUrls.some((loginUrl) => url.startsWith(loginUrl))) {
             return {
                 action: 'allow',
@@ -120,8 +120,8 @@ async function createMainWindow(url, mainWindowState) {
                     minimizable: false,
                     autoHideMenuBar: true,
                     modal: true,
-                }
-            }
+                },
+            };
         } else {
             shell.openExternal(url);
             return {action: 'deny'};

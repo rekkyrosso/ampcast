@@ -79,7 +79,7 @@ export class MixcloudPlayer implements Player<PlayableItem> {
     }
 
     get hidden(): boolean {
-        return this.element.hidden;
+        return !!this.element.hidden;
     }
 
     set hidden(hidden: boolean) {

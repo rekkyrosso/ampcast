@@ -1,14 +1,9 @@
 {
     "compilerOptions": {
         "target": "es2021",
-        "lib": [
-            "dom",
-            "dom.iterable",
-            "esnext"
-        ],
+        "types": ["*"],
+        "lib": ["dom", "dom.iterable", "esnext"],
         "skipLibCheck": true,
-        "esModuleInterop": true,
-        "allowSyntheticDefaultImports": true,
         "strict": true,
         "forceConsistentCasingInFileNames": true,
         "module": "esnext",
@@ -16,28 +11,11 @@
         "resolveJsonModule": true,
         "isolatedModules": true,
         "jsx": "react",
-        "baseUrl": "src",
         "paths": {
-            "assets/*": [ "assets/*" ],
-            "components/*": [ "components/*" ],
-            "hooks/*": [ "hooks/*" ],
-            "styles/*": ["styles/*"],
-            "types/*": [ "types/*" ],
-            "utils/*": [ "utils/*" ],
-            "libs/*": [ "../libs/*" ]
+            "*": ["./src/*"]
         },
-        "typeRoots": [
-            "node_modules/musickit-typescript",
-            "node_modules/@types"
-        ]
+        "typeRoots": ["node_modules/musickit-typescript", "node_modules/@types"]
     },
-    "include": [
-        "libs/**/*",
-        "src/**/*"
-    ],
-    "exclude": [
-        "www",
-        "www-dev",
-        "node_modules"
-    ]
+    "include": ["**/*.ts", "**/*.tsx", "**/*.d.ts"],
+    "exclude": ["app", "www-dev", "node_modules"]
 }

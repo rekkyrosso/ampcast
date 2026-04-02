@@ -49,7 +49,7 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
     }
 
     get hidden(): boolean {
-        return this.element.hidden;
+        return !!this.element.hidden;
     }
 
     set hidden(hidden: boolean) {

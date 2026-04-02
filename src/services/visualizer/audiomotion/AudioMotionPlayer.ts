@@ -40,7 +40,7 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
     }
 
     get hidden(): boolean {
-        return this.element.hidden;
+        return !!this.element.hidden;
     }
 
     set hidden(hidden: boolean) {

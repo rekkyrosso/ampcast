@@ -60,7 +60,7 @@ export default class SpotifyVizPlayer extends AbstractVisualizerPlayer<SpotifyVi
     }
 
     get hidden(): boolean {
-        return this.canvas.hidden;
+        return !!this.canvas.hidden;
     }
 
     set hidden(hidden: boolean) {
