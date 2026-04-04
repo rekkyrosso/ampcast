@@ -440,14 +440,16 @@ export class MusicKitPlayer implements Player<PlayableItem> {
 
     protected async safeReload(item: PlayableItem): Promise<void> {
         if (this.isLoadedItem(item)) {
+            const startTime = item.startTime || 0;
             try {
-                await this.player?.seekToTime(item.startTime || 0);
+                await this.player?.seekToTime(startTime);
             } catch (err) {
                 logger.error(err);
             }
             if (this.autoplay) {
                 await this.safePlay();
             }
+            this.currentTime$.next(startTime);
         } else {
             this.loadedSrc = '';
             this.item$.next({...item});

@@ -13,14 +13,6 @@
         height: 2rem;
     }
 
-    .close-button {
-        position: absolute;
-        right: var(--gutter-width);
-        top: var(--gutter-width);
-        -webkit-app-region: no-drag;
-        z-index: 1;
-    }
-
     .media {
         top: calc(var(--gutter-width) / 2 + 2rem);
     }

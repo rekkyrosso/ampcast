@@ -139,17 +139,20 @@ export default class DualAudioPlayer implements Player<PlayableItem> {
 
     load(item: PlayableItem): void {
         const prevPlayer = this.currentPlayer;
-        const nextPlayer = this.nextPlayer.src === item.src ? this.nextPlayer : this.currentPlayer;
+        const nextPlayer = this.nextPlayer.src === item.src ? this.nextPlayer : prevPlayer;
 
         this.player$.next(nextPlayer);
 
         prevPlayer.autoplay = false;
         nextPlayer.autoplay = this.autoplay;
 
-        if (nextPlayer.src !== item.src) {
+        if (nextPlayer.src === item.src) {
+            nextPlayer.seek(item.startTime || 0);
+            if (this.autoplay) {
+                nextPlayer.play();
+            }
+        } else {
             nextPlayer.load(item);
-        } else if (this.autoplay) {
-            nextPlayer.play();
         }
     }
 

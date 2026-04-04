@@ -30,11 +30,6 @@ if (!app.requestSingleInstanceLock()) {
     app.quit();
 }
 
-if (!app.isPackaged) {
-    // https://github.com/electron/electron/issues/38790
-    app.commandLine.appendSwitch('disable-features', 'WidgetLayering');
-}
-
 initSystemAudio();
 
 const appIcon = nativeImage.createFromPath(path.join(__dirname, 'icon.png'));
@@ -105,6 +100,13 @@ async function createMainWindow(url, mainWindowState) {
                 overrideBrowserWindowOptions: {
                     backgroundColor: '#32312f',
                     titleBarStyle: 'hidden',
+                    titleBarOverlay: {
+                        color: 'rgba(0,0,0,0)',
+                        symbolColor: 'white',
+                        height: 24,
+                    },
+                    minimizable: false,
+                    maximizable: false,
                     alwaysOnTop: true,
                     skipTaskbar: true,
                     webPreferences: {
@@ -220,10 +222,10 @@ app.whenReady().then(async () => {
         createBridge();
 
         await createMainWindow(url, mainWindowState);
-        splash.close();
+        splash.destroy();
         await checkForUpdatesAndNotify();
 
-        // For mac apparently.
+        // For macOS.
         app.on('activate', async () => {
             if (BrowserWindow.getAllWindows().length === 0) {
                 if (!mainWindow) {

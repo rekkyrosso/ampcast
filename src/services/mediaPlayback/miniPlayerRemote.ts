@@ -1,4 +1,14 @@
-import {filter, firstValueFrom, fromEvent, map, merge, race, takeUntil, timer} from 'rxjs';
+import {
+    debounceTime,
+    filter,
+    firstValueFrom,
+    fromEvent,
+    map,
+    merge,
+    race,
+    takeUntil,
+    timer,
+} from 'rxjs';
 import {Writable} from 'type-fest';
 import MediaPlayback from 'types/MediaPlayback';
 import PlaybackState from 'types/PlaybackState';
@@ -115,12 +125,14 @@ const connect = (
         )
         .subscribe(({providerId, name}) => emitEvent('visualizer-change', {providerId, name}));
 
-    window.addEventListener('resize', () => {
-        if (!document.fullscreenElement) {
-            miniPlayerSettings.width = window.outerWidth;
-            miniPlayerSettings.height = window.outerHeight;
-        }
-    });
+    fromEvent(window, 'resize')
+        .pipe(debounceTime(50))
+        .subscribe(() => {
+            if (!document.fullscreenElement) {
+                miniPlayerSettings.width = window.outerWidth;
+                miniPlayerSettings.height = window.outerHeight;
+            }
+        });
 
     window.addEventListener('message', (event: MessageEvent) => {
         if (event.origin !== location.origin || event.source !== opener) {
