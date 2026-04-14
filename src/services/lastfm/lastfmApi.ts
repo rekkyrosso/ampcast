@@ -6,7 +6,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import Thumbnail from 'types/Thumbnail';
-import {canScrobbleTrack, getScrobbledAt} from 'services/scrobbleSettings';
+import {canScrobbleTrack, getScrobbledAt, getScrobbleData} from 'services/scrobbleSettings';
 import {Logger, exists} from 'utils';
 import {AddMetadataOptions, bestOf, isSameTrack} from 'services/metadata';
 import lastfmSettings from './lastfmSettings';
@@ -272,10 +272,11 @@ export class LastFmApi {
 
     private getScrobbleParams(item: MediaItem): Record<string, string> {
         const params: Record<string, string> = {};
-        params.track = item.title;
-        params.artist = item.artists![0];
-        if (item.album && item.album !== '[Unknown Album]') {
-            params.album = item.album;
+        const {title, artist, album} = getScrobbleData(item);
+        params.track = title;
+        params.artist = artist;
+        if (album) {
+            params.album = album;
             if (item.albumArtist) {
                 params.albumArtist = item.albumArtist;
             }

@@ -24,13 +24,21 @@ export interface CoverArtProps {
 }
 
 export default function CoverArt({item, className = '', placeholder, ...props}: CoverArtProps) {
+    const [ready, setReady] = useState(!placeholder);
     const overlayIcon = item.itemType === ItemType.Album && getOverlayIcon(item);
+
+    useEffect(() => {
+        if (!placeholder) {
+            // Prevents thumbnail flickering when scrolling.
+            setReady(true);
+        }
+    }, [placeholder]);
 
     return (
         <figure
             className={`cover-art ${className} ${overlayIcon ? 'cover-art-' + overlayIcon : ''}`}
         >
-            {placeholder ? null : <CoverArtImage {...props} item={item} key={item.src} />}
+            {ready ? <CoverArtImage {...props} item={item} key={item.src} /> : null}
         </figure>
     );
 }

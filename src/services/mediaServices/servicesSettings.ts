@@ -1,7 +1,9 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, map, skipWhile} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged, map, skipWhile, startWith} from 'rxjs';
 import MediaListLayout, {Field} from 'types/MediaListLayout';
 import SortParams from 'types/SortParams';
+import MediaService from 'types/MediaService';
+import MediaServiceId from 'types/MediaServiceId';
 import MediaSource from 'types/MediaSource';
 import {LiteStorage} from 'utils';
 import {isMediaService} from './mediaServices';
@@ -37,6 +39,18 @@ export function observeVisibilityChanges(): Observable<void> {
     );
 }
 
+export function observeScrobblingEnabled(): Observable<boolean> {
+    return observeVisibilityChanges().pipe(
+        map(() => isScrobblingEnabled()),
+        startWith(isScrobblingEnabled()),
+        distinctUntilChanged()
+    );
+}
+
+export function isScrobblingEnabled(): boolean {
+    return isServiceVisible('lastfm') || isServiceVisible('listenbrainz');
+}
+
 export function observeSourceFields(id: string): Observable<readonly Field[] | undefined> {
     return fields$.pipe(
         map(() => getSourceFields(id)),
@@ -63,6 +77,16 @@ export function observeSourceVisibility(source: AnyMediaSource): Observable<bool
         map(() => isSourceVisible(source)),
         distinctUntilChanged()
     );
+}
+
+export function isServiceHidden(service: MediaService | MediaServiceId): boolean {
+    const id = typeof service === 'string' ? service : service.id;
+    const settings = hidden$.value;
+    return settings[id] ?? !isStartupService(id);
+}
+
+export function isServiceVisible(service: MediaService | MediaServiceId): boolean {
+    return !isServiceHidden(service);
 }
 
 export function isSourceHidden(source: AnyMediaSource): boolean {

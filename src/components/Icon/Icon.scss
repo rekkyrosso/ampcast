@@ -8,16 +8,16 @@
     overflow: visible;
 
     &-play {
-        &-loop-one,
-        &-loop-all {
+        &-repeat-one,
+        &-repeat-all {
             display: none;
         }
 
-        &.loop-one &-loop-one {
+        &.repeat-one &-repeat-one {
             display: inline;
         }
 
-        &.loop-all &-loop-all {
+        &.repeat-all &-repeat-all {
             display: inline;
         }
     }

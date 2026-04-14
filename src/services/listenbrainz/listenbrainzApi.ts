@@ -6,7 +6,7 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {Logger, chunk, getMediaObjectId, partition} from 'utils';
 import {dispatchMetadataChanges} from 'services/metadata';
-import {canScrobbleTrack, getScrobbledAt} from 'services/scrobbleSettings';
+import {canScrobbleTrack, getScrobbledAt, getScrobbleData} from 'services/scrobbleSettings';
 import {getService} from 'services/mediaServices';
 import listenbrainzSettings from './listenbrainzSettings';
 
@@ -471,13 +471,14 @@ export class ListenBrainzApi {
                 }
             }
         }
+        const {title, artist, album} = getScrobbleData(item);
         const params: Mutable<ListenBrainz.ListenMetadata> = {
-            track_name: item.title,
-            artist_name: item.artists![0],
+            track_name: title,
+            artist_name: artist,
             additional_info: info,
         };
-        if (item.album && item.album !== '[Unknown Album]') {
-            params.release_name = item.album;
+        if (album) {
+            params.release_name = album;
         }
         return params;
     }

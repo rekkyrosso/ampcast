@@ -49,7 +49,6 @@ export default function ScrobblingSettings({service: scrobbler}: ScrobblingSetti
                                 type="checkbox"
                                 value={service.id}
                                 defaultChecked={canScrobbleService(scrobbler.id, service)}
-                                disabled={service.id === 'youtube'}
                             />
                             <label htmlFor={`${id}-${service.id}`}>{service.name}</label>
                         </li>

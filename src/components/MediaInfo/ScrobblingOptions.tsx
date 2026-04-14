@@ -1,65 +1,113 @@
-import React, {useCallback, useId} from 'react';
+import React, {useCallback, useId, useState} from 'react';
 import LinearType from 'types/LinearType';
-import MediaItem from 'types/MediaItem';
+import PlaylistItem from 'types/PlaylistItem';
 import {getService, getServiceFromSrc} from 'services/mediaServices';
-import {isSourceVisible} from 'services/mediaServices/servicesSettings';
+import {isScrobblingEnabled, isSourceVisible} from 'services/mediaServices/servicesSettings';
 import {
     canScrobbleRadio,
     canScrobbleService,
     getNoScrobbleTrack,
+    getScrobbleData,
     setNoScrobbleRadio,
     setNoScrobbleTrack,
 } from 'services/scrobbleSettings';
+import Button from 'components/Button';
+import {showEditScrobbleDataDialog} from './EditScrobbleDataDialog';
 
-export interface ScrobblingOptionsProps<T extends MediaItem> {
+export interface ScrobblingOptionsProps<T extends PlaylistItem> {
     item: T;
 }
 
-export default function ScrobblingOptions<T extends MediaItem>({item}: ScrobblingOptionsProps<T>) {
-    const lastfm = getService('lastfm');
-    const listenbrainz = getService('listenbrainz');
-    return (lastfm && isSourceVisible(lastfm)) ||
-        (listenbrainz && isSourceVisible(listenbrainz)) ? (
-        <p className="scrobbling-options">
-            {getNoScrobbleReason(item) || <ScrobblingOptionsInput item={item} />}
-        </p>
+export default function ScrobblingOptions<T extends PlaylistItem>({
+    item,
+}: ScrobblingOptionsProps<T>) {
+    const canScrobble = isScrobblingEnabled();
+    const noScrobbleReason = canScrobble ? getNoScrobbleReason(item) : '';
+    return canScrobble ? (
+        noScrobbleReason ? (
+            <p className="scrobbling-options">{noScrobbleReason}</p>
+        ) : item.linearType === LinearType.Station ? (
+            <RadioScrobblingOptions station={item} />
+        ) : (
+            <TrackScrobblingOptions track={item} />
+        )
     ) : null;
 }
 
-function ScrobblingOptionsInput<T extends MediaItem>({item}: {item: T}) {
+function RadioScrobblingOptions<T extends PlaylistItem>({station}: {station: T}) {
     const id = useId();
-    const isStation = item.linearType === LinearType.Station;
 
     const handleChange = useCallback(
         (event: React.ChangeEvent<HTMLInputElement>) => {
             const noScrobble = event.target.checked;
-            if (item.linearType === LinearType.Station) {
-                setNoScrobbleRadio(item.src, noScrobble);
-            } else {
-                setNoScrobbleTrack(item.src, noScrobble);
-            }
+            setNoScrobbleRadio(station.src, noScrobble);
         },
-        [item]
+        [station]
     );
 
     return (
-        <>
+        <p className="scrobbling-options">
             <input
                 id={`${id}-no-scrobble`}
                 type="checkbox"
-                defaultChecked={
-                    isStation ? !canScrobbleRadio(item.src) : getNoScrobbleTrack(item.src)
-                }
+                defaultChecked={!canScrobbleRadio(station.src)}
                 onChange={handleChange}
             />
             <label htmlFor={`${id}-no-scrobble`}>
-                Don&apos;t scrobble {isStation ? 'tracks from this station' : 'this track'}
+                Don&apos;t scrobble tracks from this station
             </label>
-        </>
+        </p>
     );
 }
 
-function getNoScrobbleReason<T extends MediaItem>(item: T): string {
+function TrackScrobblingOptions<T extends PlaylistItem>({track}: {track: T}) {
+    const id = useId();
+    const {title, artist} = getScrobbleData(track);
+    const [scrobblingDisabled, setScrobblingDisabled] = useState(() =>
+        getNoScrobbleTrack(track.src)
+    );
+
+    const handleChange = useCallback(
+        (event: React.ChangeEvent<HTMLInputElement>) => {
+            const noScrobble = event.target.checked;
+            setNoScrobbleTrack(track.src, noScrobble);
+            setScrobblingDisabled(noScrobble);
+        },
+        [track]
+    );
+
+    const editScrobbleData = useCallback(() => {
+        showEditScrobbleDataDialog(track);
+    }, [track]);
+
+    return (
+        <p className="scrobbling-options">
+            {title && artist ? (
+                <>
+                    <input
+                        id={`${id}-no-scrobble`}
+                        type="checkbox"
+                        defaultChecked={getNoScrobbleTrack(track.src)}
+                        onChange={handleChange}
+                    />
+                    <label htmlFor={`${id}-no-scrobble`}>Don&apos;t scrobble this track</label>
+                </>
+            ) : (
+                'Not enough metadata to scrobble this track'
+            )}
+            <Button
+                type="button"
+                className="small"
+                disabled={scrobblingDisabled}
+                onClick={editScrobbleData}
+            >
+                Scrobble as…
+            </Button>
+        </p>
+    );
+}
+
+function getNoScrobbleReason<T extends PlaylistItem>(item: T): string {
     const lastfm = getService('lastfm');
     const listenbrainz = getService('listenbrainz');
     const internetRadio = getService('internet-radio');
@@ -98,16 +146,14 @@ function getNoScrobbleReason<T extends MediaItem>(item: T): string {
             return '';
         }
         if (item.linearType !== LinearType.MusicTrack) {
-            return `This item cannot be scrobbled`;
+            return 'This item cannot be scrobbled';
         }
         if (item.stationSrc && !canScrobbleRadio(item.stationSrc)) {
             return 'Scrobbling is disabled for this radio station';
         }
     }
-    if (!item.title || !item.artists?.[0]) {
-        return 'Not enough metadata to scrobble this track';
-    }
-    if (item.duration && item.duration < 30) {
+    const duration = item.duration;
+    if (duration && duration < 30) {
         return 'This track is too short to be scrobbled';
     }
     return '';

@@ -25,6 +25,7 @@ import {
     reconnect,
     clearAccessToken,
 } from './youtubeAuth';
+import {addMetadata, scrobble} from './youtubeScrobbler';
 import youtubeSettings from './youtubeSettings';
 import youtubeSources, {
     youtubePlaylistLayout,
@@ -46,7 +47,6 @@ const youtube: PublicMediaService = {
     serviceType: ServiceType.PublicMedia,
     primaryMediaType: MediaType.Video,
     Components: {Credentials, Login},
-    defaultNoScrobble: true,
     internetRequired: true,
     get credentialsLocked(): boolean {
         return youtubeSettings.credentialsLocked;
@@ -55,6 +55,7 @@ const youtube: PublicMediaService = {
     editablePlaylists: youtubePlaylists,
     root: youtubeSearch,
     sources: youtubeSources,
+    addMetadata,
     addToPlaylist,
     canPin,
     compareForRating,
@@ -62,6 +63,7 @@ const youtube: PublicMediaService = {
     createSourceFromPin,
     editPlaylist,
     getPlaybackType,
+    scrobble,
     observeConnecting,
     observeConnectionLogging,
     observeIsLoggedIn,

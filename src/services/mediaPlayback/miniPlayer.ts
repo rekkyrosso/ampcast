@@ -19,9 +19,11 @@ import MediaPlayback from 'types/MediaPlayback';
 import Playback from 'types/Playback';
 import PlaylistItem from 'types/PlaylistItem';
 import PlaybackState from 'types/PlaybackState';
+import ScrobbleData from 'types/ScrobbleData';
 import Visualizer from 'types/Visualizer';
 import {Logger, isMiniPlayer, openPopup} from 'utils';
 import {MAX_DURATION} from 'services/constants';
+import {dispatchMetadataChanges} from 'services/metadata';
 import playlist from 'services/playlist';
 import session from 'services/session';
 import theme from 'services/theme';
@@ -122,6 +124,15 @@ const connect = (
             case 'playback-state-change':
                 playbackState$.next(data);
                 break;
+
+            case 'scrobble-data-change': {
+                const {src, scrobbleAs} = data;
+                dispatchMetadataChanges({
+                    match: (object) => object.src === src,
+                    values: {scrobbleAs},
+                });
+                break;
+            }
 
             case 'visualizer-change':
                 if (active$.value) {
@@ -302,6 +313,10 @@ const setItem = (item: PlaylistItem | null): void => {
     setValue('item', safeMediaItem(item));
 };
 
+const setScrobbleData = (data: ScrobbleData): void => {
+    setValue('scrobble-data', data);
+};
+
 const setValue = (name: string, value?: any): void => {
     sendCommand(`set-${name}`, value);
 };
@@ -379,6 +394,7 @@ const miniPlayer = {
     stop,
     skipPrev,
     skipNext,
+    setScrobbleData,
     unlock,
 };
 

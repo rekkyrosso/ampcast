@@ -401,6 +401,7 @@ const mediaPlayback: MediaPlayback = {
 
 export default mediaPlayback;
 
+// Synch playback settings.
 observePlaybackSettings()
     .pipe(
         tap(({volume, muted, repeatMode}) => {
@@ -411,6 +412,7 @@ observePlaybackSettings()
     )
     .subscribe(logger);
 
+// Connect miniPlayer.
 if (isMiniPlayer) {
     miniPlayerRemote.connect(mediaPlayback, lockLoading, unlockLoading);
 } else {
@@ -531,7 +533,7 @@ if (!isMiniPlayer) {
                           map(({duration}) => duration),
                           distinctUntilChanged(),
                           filter((duration) => !!duration && duration !== item.duration),
-                          take(2),
+                          take(2), // If the duration keeps changing then maybe it's not so reliable.
                           tap((duration) =>
                               dispatchMetadataChanges({
                                   match: (object) => object.src === item.src,
@@ -561,7 +563,7 @@ if (!isMiniPlayer) {
         )
         .subscribe(logger);
 
-    // Pre-load next item.
+    // Load current item and pre-load next item.
     loadingLocked$
         .pipe(
             distinctUntilChanged(),

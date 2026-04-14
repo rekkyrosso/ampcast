@@ -3,14 +3,15 @@ import ItemType from './ItemType';
 import LinearType from './LinearType';
 import MediaType from './MediaType';
 import PlaybackType from './PlaybackType';
+import ScrobbleData from './ScrobbleData';
 
 export default interface MediaItem extends BaseMediaObject {
     readonly itemType: ItemType.Media;
-    readonly mediaType: MediaType;
     readonly duration: number; // Seconds
     readonly playedAt: number; // unix (a value of -1 means "playing now")
     // Everything below here should be optional.
     readonly linearType?: LinearType; // For radio streams
+    readonly mediaType?: MediaType;
     readonly playbackType?: PlaybackType;
     readonly isExternalMedia?: boolean; // Not provided by the associated `MediaService` (described by `src`)
     readonly isLivePlayback?: boolean;
@@ -72,6 +73,8 @@ export default interface MediaItem extends BaseMediaObject {
         readonly name: string;
         readonly url?: string;
     };
+    // Alternative scrobble data.
+    readonly scrobbleAs?: ScrobbleData;
     // For last.fm/ListenBrainz: (partial) link to original source (if any).
     readonly link?: {
         readonly src: string;

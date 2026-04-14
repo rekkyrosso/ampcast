@@ -110,7 +110,7 @@ export default class YouTubePlayer implements Player<PlayableItem> {
                     }
                 })
             )
-            .subscribe(this.logger);
+            .subscribe(logger);
 
         this.observeVideoSize()
             .pipe(

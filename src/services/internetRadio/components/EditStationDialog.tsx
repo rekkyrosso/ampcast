@@ -103,8 +103,8 @@ export default function EditStationDialog({station, ...props}: EditStationDialog
             title={isNewStation ? 'New station' : 'Edit station'}
         >
             <form method="dialog" onChange={handleChange} onSubmit={handleSubmit} ref={ref}>
+                <Thumbnail url={thumbnailUrl} />
                 <div className="edit-station-dialog-main">
-                    <Thumbnail url={thumbnailUrl} />
                     <div className="table-layout">
                         <p>
                             <label htmlFor={`${id}-title`}>Name:</label>

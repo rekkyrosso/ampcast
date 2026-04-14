@@ -1,25 +1,7 @@
 .edit-station-dialog {
-    &-main {
-        display: flex;
-        flex-direction: column;
-        position: relative;
-        width: 50em;
-    }
-
-    .table-layout p {
-        line-height: 2.25;
-
-        input[type=checkbox] {
-            display: table-cell;
-            width: 1em;
-            margin-left: calc(100% - 1em);
-            text-align: right;
-        }
-    }
-
     .thumbnail {
         position: absolute;
-        left: 0;
+        left: 1em;
         width: 10em;
         height: 10em;
         padding: 0;
@@ -27,6 +9,36 @@
         .cover-art {
             position: absolute;
             inset: 0;
+        }
+    }
+
+    &-main {
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        left: 6em;
+        width: 40em;
+    }
+
+    textarea {
+        resize: vertical;
+        min-height: 2em;
+        max-height: 8em;
+    }
+
+    .table-layout {
+        width: calc(100% - 6em);
+
+        p {
+            line-height: 2.25;
+
+            &:has(input[type=checkbox]) {
+                text-align: right;
+
+                label {
+                    text-align: left;
+                }
+            }
         }
     }
 

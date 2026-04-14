@@ -13,6 +13,7 @@ import {Writable} from 'type-fest';
 import MediaPlayback from 'types/MediaPlayback';
 import PlaybackState from 'types/PlaybackState';
 import PlaylistItem from 'types/PlaylistItem';
+import ScrobbleData from 'types/ScrobbleData';
 import {Logger, isMiniPlayer} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import {loadMediaServices} from 'services/mediaServices';
@@ -52,6 +53,12 @@ const connect = (
     const setItem = (item: PlaylistItem | null) => {
         document.title = item ? getTitle(item) : defaultTitle;
         playlist.setItems(item ? [item] : []);
+    };
+
+    const setScrobbleData = (scrobbleAs: ScrobbleData) => {
+        if (playback.currentItem) {
+            playback.currentItem = {...playback.currentItem, scrobbleAs};
+        }
     };
 
     const transferPlayback = async (transferredState: PlaybackState) => {
@@ -205,6 +212,10 @@ const connect = (
                 setItem(data);
                 break;
 
+            case 'set-scrobble-data':
+                setScrobbleData(data);
+                break;
+
             case 'transfer-playback': {
                 transferPlayback(data);
                 break;
@@ -225,6 +236,11 @@ const next = (): void => {
     emitEvent('next');
 };
 
+const onScrobbleDataChange = (src: string, scrobbleAs: ScrobbleData): void => {
+    logger.log('onScrobbleDataChange');
+    emitEvent('scrobble-data-change', {src, scrobbleAs});
+};
+
 const emitEvent = (eventType: string, data?: any): void => {
     if (opener) {
         const name = `mini-player-on-${eventType}`;
@@ -236,6 +252,7 @@ const miniPlayerRemote = {
     connect,
     prev,
     next,
+    onScrobbleDataChange,
 };
 
 export default miniPlayerRemote;

@@ -17,6 +17,7 @@ import stationStore from 'services/internetRadio/stationStore';
 import {confirm, DialogProps, error, showDialog} from 'components/Dialog';
 import {showMediaInfoDialog} from 'components/MediaInfo/MediaInfoDialog';
 import {showAddToPlaylistDialog} from './AddToPlaylistDialog';
+import confirmDeleteStation from './confirmDeleteStation';
 import {showCreatePlaylistDialog} from './CreatePlaylistDialog';
 import {showEditPlaylistDialog} from './EditPlaylistDialog';
 import {addToRecentPlaylist, removeRecentPlaylist} from './recentPlaylists';
@@ -253,13 +254,7 @@ async function performStationAction<T extends MediaItem>(
             }
 
             case Action.RemoveStation: {
-                const confirmed = await confirm({
-                    icon: 'internet-radio',
-                    title: 'My Stations',
-                    message: `Remove station '${station.title}'?`,
-                    okLabel: 'Remove',
-                    storageId: 'remove-station',
-                });
+                const confirmed = await confirmDeleteStation(station.title);
                 if (confirmed) {
                     await stationStore.removeFavorite(station);
                 }

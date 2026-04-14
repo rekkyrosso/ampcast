@@ -4,6 +4,7 @@ import LinearType from 'types/LinearType';
 import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
 import MediaServiceId from 'types/MediaServiceId';
+import ScrobbleData from 'types/ScrobbleData';
 import {LiteStorage, uniq} from 'utils';
 import {getService, getServiceFromSrc} from 'services/mediaServices';
 
@@ -32,7 +33,12 @@ export function canScrobbleService(scrobblerId: MediaServiceId, service: MediaSe
 }
 
 export function canScrobbleTrack(scrobblerId: MediaServiceId, item: MediaItem | null): boolean {
-    if (!item || !item.title || !item.artists?.[0] || (item.duration && item.duration < 30)) {
+    if (!item) {
+        return false;
+    }
+    const {title, artist} = getScrobbleData(item);
+    const duration = item.duration;
+    if (!title || !artist || (duration && duration < 30)) {
         // Basic last.fm/ListenBrainz scrobbling rules.
         return false;
     }
@@ -61,6 +67,14 @@ export function canScrobbleTrack(scrobblerId: MediaServiceId, item: MediaItem | 
         }
     }
     return !getNoScrobbleTrack(item.src);
+}
+
+export function getScrobbleData(item: MediaItem): ScrobbleData {
+    const scrobbleAs = item.scrobbleAs;
+    const title = scrobbleAs?.title || item.title;
+    const artist = scrobbleAs?.artist || item.artists?.[0] || '';
+    const album = scrobbleAs?.album || item.album;
+    return {title, artist, album};
 }
 
 export function setNoScrobbleService(

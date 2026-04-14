@@ -9,7 +9,7 @@ import MediaType from 'types/MediaType';
 import PlaylistItem from 'types/PlaylistItem';
 import Thumbnail from 'types/Thumbnail';
 import {groupBy} from 'utils';
-import {addMetadata, dispatchMetadataChanges} from 'services/metadata';
+import {addMetadataToRadioTrack, dispatchMetadataChanges} from 'services/metadata';
 import HLSPlayer from './HLSPlayer';
 
 type TAG = string;
@@ -62,19 +62,19 @@ export class HLSMetadataPlayer extends HLSPlayer {
         });
     }
 
-    observeNowPlaying(container: PlaylistItem): Observable<PlaylistItem> {
+    observeNowPlaying(station: PlaylistItem): Observable<PlaylistItem> {
         return this.metadata$.pipe(
-            map((metadata) => (this.src === container.src ? metadata : undefined)),
+            map((metadata) => (this.src === station.src ? metadata : undefined)),
             distinctUntilChanged((a, b) => a?.key === b?.key),
             switchMap((metadata) =>
-                metadata ? this.createNowPlayingItem(metadata, container) : of(container)
+                metadata ? this.createNowPlayingItem(metadata, station) : of(station)
             )
         );
     }
 
     private async createNowPlayingItem(
         metadata: HLSMetadata,
-        container: PlaylistItem
+        station: PlaylistItem
     ): Promise<PlaylistItem> {
         if (__dev__) {
             this.logger.info('onMetadata', metadata);
@@ -83,37 +83,33 @@ export class HLSMetadataPlayer extends HLSPlayer {
             const id3 = this.createId3TagReader(metadata);
             const artist = id3('TPE1');
             const stationName = id3('TRSN');
-            const item = await addMetadata<PlaylistItem>(
-                {
-                    id: nanoid(),
-                    src: `internet-radio:track:${metadata.key}`,
-                    itemType: ItemType.Media,
-                    mediaType: MediaType.Audio,
-                    linearType: LinearType.MusicTrack,
-                    title: metadata.title,
-                    description: id3('TIT3'),
-                    album: id3('ALB'),
-                    artists: artist ? [artist] : undefined,
-                    stationName:
-                        container.linearType === LinearType.Station ? container.title : stationName,
-                    stationSrc: container.src,
-                    duration: Number(id3('TLEN')) / 1000 || 0,
-                    playedAt: 0,
-                    year: Number(id3('TORY')) || undefined,
-                    badge: id3('TFLT'),
-                    bitRate: Number(id3('TXXX', 'adr')) || undefined,
-                    isrc: id3('TSRC'),
-                    externalUrl: id3('WORS'),
-                },
-                true
-            );
+            const item = await addMetadataToRadioTrack<PlaylistItem>({
+                id: nanoid(),
+                src: `internet-radio:track:${metadata.key}`,
+                itemType: ItemType.Media,
+                mediaType: MediaType.Audio,
+                linearType: LinearType.MusicTrack,
+                title: metadata.title,
+                description: id3('TIT3'),
+                album: id3('ALB'),
+                artists: artist ? [artist] : undefined,
+                stationName:
+                    station.linearType === LinearType.Station ? station.title : stationName,
+                stationSrc: station.src,
+                duration: Number(id3('TLEN')) / 1000 || 0,
+                playedAt: 0,
+                year: Number(id3('TORY')) || undefined,
+                badge: id3('TFLT'),
+                bitRate: Number(id3('TXXX', 'adr')) || undefined,
+                isrc: id3('TSRC'),
+                externalUrl: id3('WORS'),
+            });
             if (stationName && stationName !== this.currentStationName) {
                 this.currentStationName = stationName;
-                this.updateStationMetadata(stationName, metadata, container);
+                this.updateStationMetadata(stationName, metadata, station);
             }
             if (!item.thumbnails) {
-                const thumbnails =
-                    this.createThumbnails(metadata.tags.WXXX) || container.thumbnails;
+                const thumbnails = this.createThumbnails(metadata.tags.WXXX) || station.thumbnails;
                 if (thumbnails) {
                     return {...item, thumbnails};
                 }
@@ -121,7 +117,7 @@ export class HLSMetadataPlayer extends HLSPlayer {
             return item;
         } catch (err) {
             this.logger.error(err);
-            return container;
+            return station;
         }
     }
 
@@ -142,15 +138,15 @@ export class HLSMetadataPlayer extends HLSPlayer {
     private updateStationMetadata(
         stationName: string,
         metadata: HLSMetadata,
-        container: PlaylistItem
+        station: PlaylistItem
     ): void {
-        if (container.linearType) {
+        if (station.linearType) {
             // It already knows it's a station.
             return;
         }
         const id3 = this.createId3TagReader(metadata);
         dispatchMetadataChanges<MediaItem>({
-            match: (item) => item.src === container.src,
+            match: (item) => item.src === station.src,
             values: {
                 title: stationName,
                 linearType: LinearType.Station,

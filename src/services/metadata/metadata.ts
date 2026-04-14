@@ -23,39 +23,10 @@ export interface AddMetadataOptions {
     strictMatch?: boolean;
 }
 
-export async function addMetadata<T extends MediaItem>(item: T, overWrite = false): Promise<T> {
-    let foundItem: MediaItem | undefined;
-    if (overWrite) {
-        const lastfmItem = await lastfmApi.addMetadata(item, {overWrite: true});
-        if (lastfmItem === item) {
-            // Not enhanced (same item).
-            const musicbrainzItem = await musicbrainzApi.addMetadata(item, {overWrite: true});
-            if (musicbrainzItem !== item) {
-                foundItem = musicbrainzItem;
-            }
-        } else {
-            foundItem = await musicbrainzApi.addMetadata(lastfmItem, {overWrite: false});
-        }
-    } else {
-        foundItem = await musicbrainzApi.addMetadata(item, {overWrite: false});
-    }
-    if (foundItem && foundItem !== item) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const {src, externalUrl, playedAt, ...values} = foundItem;
-        const resultItem = bestOf(values as T, item);
-        // Prefer `duration` provided by source.
-        return {...resultItem, duration: item.duration || foundItem.duration};
-    }
-    return item;
-}
-
-export async function addMetadataToRadioTrack<T extends MediaItem = MediaItem>(
-    item: T
-): Promise<T> {
+export async function addMetadata<T extends MediaItem>(item: T): Promise<T> {
     const {artists: [artist = ''] = [], title} = item;
     if (artist) {
         const transposedItem = {...item, title: artist, artists: [title]};
-        const trackSrc = item.src.replace(':show:', ':track:');
 
         // First use MusicBrainz API.
         const mbItems = await musicbrainzApi.search(artist, title);
@@ -68,8 +39,7 @@ export async function addMetadataToRadioTrack<T extends MediaItem = MediaItem>(
             const lastfmItem = await lastfmApi.addMetadata(enhancedItem);
             return {
                 ...enhancedItem,
-                src: trackSrc,
-                linearType: LinearType.MusicTrack,
+                src: item.src,
                 thumbnails: lastfmItem.thumbnails,
                 duration: item.duration || lastfmItem.duration,
             };
@@ -85,8 +55,7 @@ export async function addMetadataToRadioTrack<T extends MediaItem = MediaItem>(
             const {title, artists, thumbnails} = lastfmItem;
             return {
                 ...item,
-                src: trackSrc,
-                linearType: LinearType.MusicTrack,
+                src: item.src,
                 title,
                 artists,
                 thumbnails,
@@ -96,14 +65,23 @@ export async function addMetadataToRadioTrack<T extends MediaItem = MediaItem>(
         // last.fm track info.
         const enhancedItem = await lastfmApi.addMetadata<T>(item, {overWrite: true});
         if (enhancedItem !== item) {
-            return {
-                ...enhancedItem,
-                src: trackSrc,
-                linearType: LinearType.MusicTrack,
-            };
+            return {...enhancedItem, src: item.src};
         }
     }
     return item;
+}
+
+export async function addMetadataToRadioTrack<T extends MediaItem>(item: T): Promise<T> {
+    const enhancedItem = await addMetadata(item);
+    if (enhancedItem === item) {
+        return item;
+    } else {
+        return {
+            ...enhancedItem,
+            src: item.src.replace(':show:', ':track:'),
+            linearType: LinearType.MusicTrack,
+        };
+    }
 }
 
 export function bestOf<T extends MediaObject>(a: T, b: Partial<T> = {}): T {
@@ -130,6 +108,33 @@ export function bestOf<T extends MediaObject>(a: T, b: Partial<T> = {}): T {
         }
     }
     return result;
+}
+
+export async function createMediaItemFromTitle(title: string): Promise<MediaItem | null> {
+    const separators = '-\u2013\u2014/|:~'
+        .split('')
+        .map((separator) => [separator + separator, separator])
+        .flat();
+    for (const separator of separators) {
+        if (title.includes(separator)) {
+            const [artist, ...rest] = title.split(separator);
+            const lookupItem: MediaItem = {
+                src: '',
+                itemType: ItemType.Media,
+                title: rest.join(separator).trim(),
+                artists: [artist.trim()],
+                duration: 0,
+                playedAt: 0,
+            };
+            const foundItem = await addMetadata(lookupItem);
+            if (foundItem === lookupItem) {
+                return null;
+            } else {
+                return foundItem;
+            }
+        }
+    }
+    return null;
 }
 
 export async function createMediaItemFromUrl(

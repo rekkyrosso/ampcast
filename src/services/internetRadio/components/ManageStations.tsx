@@ -5,9 +5,9 @@ import Button from 'components/Button';
 import {DialogButtons} from 'components/Dialog';
 import ListView, {ListViewHandle, ListViewLayout} from 'components/ListView';
 import {Country, IconTitle} from 'components/MediaList/useMediaListLayout';
+import confirmDeleteStation from 'components/Actions/confirmDeleteStation';
 import stationStore from '../stationStore';
 import useFavoriteStations from './useFavoriteStations';
-import confirmDeleteStation from './confirmDeleteStation';
 import {showEditStationDialog} from './EditStationDialog';
 import './ManageStations.scss';
 

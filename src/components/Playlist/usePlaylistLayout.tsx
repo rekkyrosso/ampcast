@@ -46,9 +46,9 @@ export default function usePlaylistLayout(size: number): ListViewLayout<Playlist
                                             name={paused ? 'pause' : 'play'}
                                             className={
                                                 repeatMode === RepeatMode.One
-                                                    ? 'loop-one'
+                                                    ? 'repeat-one'
                                                     : repeatMode === RepeatMode.All
-                                                      ? 'loop-all'
+                                                      ? 'repeat-all'
                                                       : ''
                                             }
                                         />

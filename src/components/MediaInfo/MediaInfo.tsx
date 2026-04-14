@@ -8,6 +8,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
+import PlaylistItem from 'types/PlaylistItem';
 import {getService} from 'services/mediaServices';
 import DefaultActions, {ActionsProps} from 'components/Actions';
 import Badges from 'components/Badges';
@@ -77,7 +78,7 @@ function MediaItemInfo({
                 src={item.src}
                 isExternalMedia={item.isExternalMedia}
             />
-            {scrobblingOptions ? <ScrobblingOptions item={item} /> : null}
+            {scrobblingOptions && isPlaylistItem(item) ? <ScrobblingOptions item={item} /> : null}
         </article>
     );
 }
@@ -357,4 +358,8 @@ export function Thumbnail({className = '', ...props}: CoverArtProps) {
 
 function Actions({item}: ActionsProps) {
     return <DefaultActions item={item} inInfoView />;
+}
+
+function isPlaylistItem(item: MediaObject): item is PlaylistItem {
+    return item.itemType === ItemType.Media && 'id' in item;
 }
