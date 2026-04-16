@@ -1,5 +1,6 @@
 import type {ReadableLog} from 'utils/Logger';
 import ErrorReport from './ErrorReport';
+import Snapshot from './Snapshot';
 
 export default interface Report {
     readonly ampcastVersion: string;
@@ -32,6 +33,7 @@ export default interface Report {
         readonly userThemes: number;
         readonly visualizerFavorites: number;
     };
+    readonly snapshot: Snapshot;
     readonly errorReport?: ErrorReport;
     readonly logs?: readonly ReadableLog[];
 }

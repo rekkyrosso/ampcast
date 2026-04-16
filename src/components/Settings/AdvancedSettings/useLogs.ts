@@ -1,4 +1,5 @@
-import Logger, {Log} from 'utils/Logger';
+import Log from 'types/Log';
+import {Logger} from 'utils';
 import useObservable from 'hooks/useObservable';
 
 export default function useLogs(): readonly Log[] {

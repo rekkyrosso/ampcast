@@ -9,4 +9,18 @@
             margin-top: 1em;
         }
     }
+
+    .help {
+        margin: 4em 2em 0 2em;
+        text-align: center;
+        font-size: 0.875em;
+
+        p {
+            margin-top: 1em;
+        }
+
+        .external-link {
+            text-decoration: underline;
+        }
+    }
 }

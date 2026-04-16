@@ -1,10 +1,11 @@
 import ErrorReport from 'types/ErrorReport';
+import LogLevel from 'types/LogLevel';
+import {ReadableLog} from 'types/Log';
 import MediaObject from 'types/MediaObject';
 import PlaybackState from 'types/PlaybackState';
 import Report from 'types/Report';
 import Snapshot from 'types/Snapshot';
-import {browser, copyToClipboard, getElapsedTimeText, isMiniPlayer} from 'utils';
-import Logger, {LogLevel, ReadableLog} from 'utils/Logger';
+import {Logger, browser, copyToClipboard, getElapsedTimeText, isMiniPlayer} from 'utils';
 import audio from 'services/audio';
 import {audioSettings} from 'services/audio';
 import {getListens} from 'services/localdb/listens';
@@ -27,7 +28,8 @@ export function copyErrorReportToClipboard(
     reportingId?: string
 ): Promise<void> {
     const errorReport = createErrorReport(error, reportedBy, reportingId);
-    return copyReportToClipboard({errorReport});
+    const logs = getReadableLogs(10);
+    return copyReportToClipboard({errorReport, logs});
 }
 
 export function copyLogsToClipboard(): Promise<void> {
@@ -50,7 +52,6 @@ export function createErrorReport(
         reportedBy,
         reportingId,
         error: getReportableError(error),
-        snapshot: getSnapshot(),
     };
 }
 
@@ -96,6 +97,7 @@ function copyReportToClipboard(entries: Pick<Report, 'errorReport' | 'logs'>): P
             userThemes: themeStore.getUserThemes().length,
             visualizerFavorites: visualizerStore.getFavorites().length,
         },
+        snapshot: getSnapshot(),
     };
     return copyToClipboard(report);
 }
@@ -107,8 +109,8 @@ function getReportableError(error: any): ErrorReport['error'] {
                   typeof error === 'string'
                       ? error
                       : typeof error.message === 'string'
-                      ? error.message
-                      : String(error),
+                        ? error.message
+                        : String(error),
               httpStatus: error.status,
               httpStatusText: error.statusText,
               stack: String(error.stack || '').split(/\n\s*/),
@@ -116,14 +118,14 @@ function getReportableError(error: any): ErrorReport['error'] {
         : null;
 }
 
-function getReadableLogs(): readonly ReadableLog[] {
+function getReadableLogs(count = Logger.logs.length): readonly ReadableLog[] {
     const readableLogLevel: Record<LogLevel, 'info' | 'log' | 'Warn' | 'ERROR'> = {
         [LogLevel.Info]: 'info',
         [LogLevel.Log]: 'log',
         [LogLevel.Warn]: 'Warn',
         [LogLevel.Error]: 'ERROR',
     };
-    return Logger.logs.map((entry) => {
+    return Logger.logs.slice(0, count).map((entry) => {
         // eslint-disable-next-line @typescript-eslint/no-unused-vars
         const {id, level, message, timeStamp, ...log} = entry;
         const label = readableLogLevel[level];

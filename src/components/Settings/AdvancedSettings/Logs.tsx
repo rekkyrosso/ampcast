@@ -1,5 +1,7 @@
 import React, {useCallback} from 'react';
-import Logger, {Log, LogLevel} from 'utils/Logger';
+import Log from 'types/Log';
+import LogLevel from 'types/LogLevel';
+import {Logger} from 'utils';
 import {copyLogsToClipboard} from 'services/reporting';
 import {CopyButton} from 'components/Button';
 import {DialogButtons} from 'components/Dialog';
@@ -42,8 +44,8 @@ export default function Logs() {
         return level === LogLevel.Error
             ? 'log error'
             : level === LogLevel.Warn
-            ? 'log warn'
-            : 'log';
+              ? 'log warn'
+              : 'log';
     }, []);
 
     return (

@@ -1,45 +1,15 @@
 import type {Observable, Observer} from 'rxjs';
 import {BehaviorSubject} from 'rxjs';
 import ErrorReport from 'types/ErrorReport';
+import Log from 'types/Log';
+import LogLevel from 'types/LogLevel';
 
 type AnyObserver = Partial<Observer<any>>;
 type BasicConsole = Pick<Console, 'info' | 'log' | 'warn' | 'error'>;
 
-export const enum LogLevel {
-    Info = 1,
-    Log = 2,
-    Warn = 3,
-    Error = 4,
-}
-
-export interface Log {
-    readonly id: string;
-    readonly timeStamp: number;
-    readonly level: LogLevel;
-    readonly message: string;
-    readonly errorReport?: ErrorReport;
-    readonly repeats?: number;
-}
-
-export type ReadableLog = Pick<Log, 'timeStamp' | 'errorReport' | 'repeats'> &
-    (
-        | {
-              info: string;
-          }
-        | {
-              log: string;
-          }
-        | {
-              Warn: string;
-          }
-        | {
-              ERROR: string;
-          }
-    );
-
 const logs$ = new BehaviorSubject<readonly Log[]>([]);
 
-const logLimit = 200;
+const logLimit = 100;
 let logCount = 0;
 
 function observeLogs(): Observable<readonly Log[]> {
