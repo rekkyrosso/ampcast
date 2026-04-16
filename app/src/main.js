@@ -30,6 +30,12 @@ if (!app.requestSingleInstanceLock()) {
     app.quit();
 }
 
+// Enable screen sharing (Linux).
+app.commandLine.appendSwitch('--enable-usermedia-screen-capturing');
+if (!app.commandLine.hasSwitch('enable-features')) {
+    app.commandLine.appendSwitch('enable-features', 'WebRTCPipeWireCapturer');
+}
+
 initSystemAudio();
 
 const appIcon = nativeImage.createFromPath(path.join(__dirname, 'icon.png'));
