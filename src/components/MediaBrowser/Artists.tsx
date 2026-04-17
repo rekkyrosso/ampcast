@@ -19,8 +19,6 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
         <ArtistList
             {...props}
             title={source.title}
-            itemKey={source.primaryItems?.itemKey}
-            layoutOptions={source.primaryItems?.layout}
             source={source}
             level={1}
             onSelect={setSelectedArtist}
@@ -31,9 +29,7 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
         <AlbumList
             title={selectedArtist ? `${selectedArtist.title}: Albums` : ''}
             className="artist-albums"
-            itemKey={source.secondaryItems?.itemKey}
             pager={albumsPager}
-            layoutOptions={source.secondaryItems?.layout}
             source={source}
             level={2}
             onSelect={setSelectedAlbum}
@@ -45,10 +41,8 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
         <MediaItemList
             title={selectedAlbum ? `${selectedAlbum.title}: Tracks` : ''}
             className={`album-tracks ${selectedAlbum?.multiDisc ? 'multi-disc' : ''}`}
-            itemKey={source.tertiaryItems?.itemKey}
             pager={tracksPager}
             defaultLayout={albumTracksLayout}
-            layoutOptions={source.tertiaryItems?.layout}
             source={source}
             level={3}
             key={selectedAlbum?.src}

@@ -6,13 +6,7 @@ import {PagedItemsProps} from './PagedItems';
 export default function MediaItems({source, ...props}: PagedItemsProps<MediaItem>) {
     return (
         <div className="panel">
-            <MediaItemList
-                {...props}
-                title={source.title}
-                itemKey={source.primaryItems?.itemKey}
-                layoutOptions={source.primaryItems?.layout}
-                source={source}
-            />
+            <MediaItemList {...props} title={source.title} source={source} />
         </div>
     );
 }

@@ -30,6 +30,7 @@ export interface MediaSourceItems<T extends MediaObject = MediaObject> {
     readonly layout?: Partial<MediaListLayout>;
     readonly sort?: MediaListSort;
     readonly itemKey?: ConditionalKeys<T, string | number>;
+    readonly emptyMessage?: string;
 }
 
 export default interface MediaSource<T extends MediaObject = MediaObject> {

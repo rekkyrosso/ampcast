@@ -1,13 +1,13 @@
 import React, {useCallback, useEffect, useId, useReducer, useRef, useState} from 'react';
 import {interval} from 'rxjs';
-import {Except, SetOptional} from 'type-fest';
+import {Except} from 'type-fest';
 import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaListLayout, {Field} from 'types/MediaListLayout';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import MediaSource from 'types/MediaSource';
+import MediaSource, {MediaSourceItems} from 'types/MediaSource';
 import Pager from 'types/Pager';
 import {setSourceFields} from 'services/mediaServices/servicesSettings';
 import {ActionsProps, performAction, showActionsMenu} from 'components/Actions';
@@ -30,19 +30,18 @@ const defaultMediaListLayout: MediaListLayout = {
 };
 
 export interface MediaListProps<T extends MediaObject> extends Except<
-    SetOptional<ListViewProps<T>, 'itemKey'>,
-    'items' | 'itemClassName' | 'layout' | 'storageId'
+    ListViewProps<T>,
+    'items' | 'itemKey' | 'itemClassName' | 'layout' | 'storageId'
 > {
     source?: MediaSource<any>;
     level?: 1 | 2 | 3;
     pager: Pager<T> | null;
     parentPlaylist?: T extends MediaItem ? MediaPlaylist : never;
     defaultLayout?: MediaListLayout;
-    layoutOptions?: Partial<MediaListLayout>;
     statusBar?: boolean;
     statusBarIcons?: readonly React.ReactNode[];
     loadingText?: string;
-    emptyMessage?: React.ReactNode;
+    emptyMessage?: string;
     onError?: (error: unknown) => void;
     onLoad?: () => void;
     Actions?: React.FC<ActionsProps>;
@@ -53,9 +52,7 @@ export default function MediaList<T extends MediaObject>({
     source,
     level = 1,
     className = '',
-    itemKey = 'src' as never, // TODO: Huh?
     defaultLayout = defaultMediaListLayout,
-    layoutOptions,
     draggable = false,
     reorderable = true,
     pager = null,
@@ -78,6 +75,8 @@ export default function MediaList<T extends MediaObject>({
     const [, forceUpdate] = useReducer((i) => i + 1, 0);
     const id = source ? `${source.sourceId || source.id}/${level}` : uniqueId;
     const containerRef = useRef<HTMLDivElement | null>(null);
+    const sourceItems = getSourceItems(source, level); // view config
+    const {itemKey = 'src', layout: layoutOptions} = sourceItems;
     const layout = useMediaListLayout(id, defaultLayout, layoutOptions, Actions, parentPlaylist);
     const [scrollIndex, setScrollIndex] = useState(0);
     const [pageSize, setPageSize] = useState(0);
@@ -93,6 +92,8 @@ export default function MediaList<T extends MediaObject>({
     const viewClassName = useViewClassName(layout);
     const {disableExplicitContent} = usePreferences();
     const onDragStart = useOnDragStart(selectedItems);
+
+    emptyMessage = emptyMessage || sourceItems?.emptyMessage;
 
     useEffect(() => {
         // Make sure `LastPlayed` fields etc are updated.
@@ -255,7 +256,7 @@ export default function MediaList<T extends MediaObject>({
                     layout={layout}
                     items={items}
                     itemClassName={itemClassName}
-                    itemKey={itemKey}
+                    itemKey={itemKey as any}
                     emptyMessage={loaded && empty ? emptyMessage : ''}
                     draggable={draggable}
                     reorderable={reorderable}
@@ -285,4 +286,17 @@ export default function MediaList<T extends MediaObject>({
             ) : null}
         </div>
     );
+}
+
+function getSourceItems<T extends MediaObject>(
+    source?: MediaSource<any>,
+    level?: 1 | 2 | 3
+): MediaSourceItems<T> {
+    const sourceItems =
+        level === 3
+            ? source?.tertiaryItems
+            : level === 2
+              ? source?.secondaryItems
+              : source?.primaryItems;
+    return sourceItems || {};
 }

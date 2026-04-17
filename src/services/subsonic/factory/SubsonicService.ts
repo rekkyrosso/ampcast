@@ -128,7 +128,10 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'heart',
             itemType: ItemType.Media,
             lockActionsStore: true,
-            primaryItems: subsonicTracks,
+            primaryItems: {
+                ...subsonicTracks,
+                emptyMessage: "You don't have any liked songs.",
+            },
 
             search(): Pager<MediaItem> {
                 return new SubsonicPager(
@@ -148,7 +151,10 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'heart',
             itemType: ItemType.Album,
             lockActionsStore: true,
-            primaryItems: subsonicAlbums,
+            primaryItems: {
+                ...subsonicAlbums,
+                emptyMessage: "You don't have any liked albums.",
+            },
 
             search(): Pager<MediaAlbum> {
                 return new SubsonicPager(
@@ -170,6 +176,7 @@ export default class SubsonicService implements PersonalMediaService {
             lockActionsStore: true,
             defaultHidden: true,
             primaryItems: {
+                emptyMessage: "You don't have any liked artists.",
                 layout: addRating(artistsLayout),
             },
 

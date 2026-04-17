@@ -127,6 +127,7 @@ const navidromeLikedSongs: MediaSource<MediaItem> = {
     itemType: ItemType.Media,
     lockActionsStore: true,
     primaryItems: {
+        emptyMessage: t("You don't have any favorite songs."),
         layout: navidromeTracksLayout,
         sort: {
             sortOptions: {
@@ -162,6 +163,7 @@ const navidromeLikedAlbums: MediaSource<MediaAlbum> = {
     itemType: ItemType.Album,
     lockActionsStore: true,
     primaryItems: {
+        emptyMessage: t("You don't have any favorite albums."),
         layout: navidromeAlbumsLayout,
         sort: {
             sortOptions: {
@@ -197,6 +199,7 @@ const navidromeLikedArtists: MediaSource<MediaArtist> = {
     lockActionsStore: true,
     defaultHidden: true,
     primaryItems: {
+        emptyMessage: t("You don't have any favorite artists."),
         sort: {
             sortOptions: {
                 name: 'Name',

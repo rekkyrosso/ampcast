@@ -173,7 +173,6 @@ const plexRecentlyAdded: MediaSource<MediaAlbum> = {
             path: getMusicLibraryPath(),
             params: {
                 type: plexMediaType.Album,
-                'addedAt>>': '-6mon',
                 sort: 'addedAt:desc',
             },
         });

@@ -16,6 +16,7 @@ import MediaSource, {AnyMediaSource, MediaMultiSource} from 'types/MediaSource';
 import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
 import {NoMusicLibraryError, NoMusicVideoLibraryError} from 'services/errors';
+import {t} from 'services/i18n';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
@@ -126,7 +127,10 @@ const jellyfinLikedSongs: MediaSource<MediaItem> = {
     icon: 'heart',
     itemType: ItemType.Media,
     lockActionsStore: true,
-    primaryItems: {sort: jellyfinSongsSort},
+    primaryItems: {
+        emptyMessage: t("You don't have any favorite songs."),
+        sort: jellyfinSongsSort,
+    },
 
     search(_, sort = jellyfinSongsSort.defaultSort): Pager<MediaItem> {
         return createItemsPager({
@@ -144,6 +148,7 @@ const jellyfinLikedAlbums: MediaSource<MediaAlbum> = {
     itemType: ItemType.Album,
     lockActionsStore: true,
     primaryItems: {
+        emptyMessage: t("You don't have any favorite albums."),
         sort: jellyfinAlbumsSort,
     },
 
@@ -164,7 +169,12 @@ const jellyfinLikedArtists: MediaSource<MediaArtist> = {
     itemType: ItemType.Artist,
     lockActionsStore: true,
     defaultHidden: true,
-    secondaryItems: {sort: jellyfinArtistAlbumsSort},
+    primaryItems: {
+        emptyMessage: t("You don't have any favorite artists."),
+    },
+    secondaryItems: {
+        sort: jellyfinArtistAlbumsSort,
+    },
 
     search(): Pager<MediaArtist> {
         return new JellyfinPager(

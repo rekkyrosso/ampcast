@@ -15,8 +15,6 @@ export default function Albums({source, ...props}: PagedItemsProps<MediaAlbum>) 
         <AlbumList
             {...props}
             title={source.title}
-            itemKey={source.primaryItems?.itemKey}
-            layoutOptions={source.primaryItems?.layout}
             source={source}
             level={1}
             onSelect={setSelectedAlbum}
@@ -27,10 +25,8 @@ export default function Albums({source, ...props}: PagedItemsProps<MediaAlbum>) 
         <MediaItemList
             title={selectedAlbum ? `${selectedAlbum.title}: Tracks` : ''}
             className={`album-tracks ${selectedAlbum?.multiDisc ? 'multi-disc' : ''}`}
-            itemKey={source.secondaryItems?.itemKey}
             pager={tracksPager}
             defaultLayout={albumTracksLayout}
-            layoutOptions={source.secondaryItems?.layout}
             source={source}
             level={2}
             key={selectedAlbum?.src}

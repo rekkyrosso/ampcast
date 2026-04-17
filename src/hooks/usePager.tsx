@@ -15,14 +15,16 @@ export interface PagerState<T> {
     loaded: boolean;
 }
 
-const emptyState: PagerState<any> = {
-    items: [],
-    size: 0,
-    maxSize: undefined,
-    error: undefined,
-    busy: false,
-    complete: false,
-    loaded: false,
+const emptyState = (): PagerState<any> => {
+    return {
+        items: [],
+        size: 0,
+        maxSize: undefined,
+        error: undefined,
+        busy: false,
+        complete: false,
+        loaded: false,
+    };
 };
 
 export default function usePager<T>(pager: Pager<T> | null) {
@@ -38,7 +40,7 @@ export default function usePager<T>(pager: Pager<T> | null) {
 
     useLayoutEffect(() => {
         setState({
-            ...emptyState,
+            ...emptyState(),
             size: pager ? undefined : 0,
             maxSize: pager?.maxSize,
         });

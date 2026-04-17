@@ -15,8 +15,6 @@ export default function Playlists({source, ...props}: PagedItemsProps<MediaPlayl
         <PlaylistList
             {...props}
             title={source.title}
-            itemKey={source.primaryItems?.itemKey}
-            layoutOptions={source.primaryItems?.layout}
             source={source}
             level={1}
             draggable={draggable}
@@ -27,10 +25,8 @@ export default function Playlists({source, ...props}: PagedItemsProps<MediaPlayl
     const playlistItems = (
         <PlaylistItemsList
             title={selectedPlaylist ? `${selectedPlaylist.title}: Tracks` : ''}
-            itemKey={source.secondaryItems?.itemKey}
             parentPlaylist={selectedPlaylist}
             defaultLayout={playlistItemsLayout}
-            layoutOptions={source.secondaryItems?.layout}
             source={source}
             level={2}
             key={selectedPlaylist?.src}

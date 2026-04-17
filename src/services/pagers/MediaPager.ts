@@ -378,6 +378,9 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
     }
 
     private applyMetadataChanges(changes: readonly MetadataChange<T>[]): void {
+        if (this.items.length === 0) {
+            return;
+        }
         let changed = false;
         const items = this.items.map((item) => {
             for (const {match, values} of changes) {
@@ -452,6 +455,9 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
     }
 
     private updateChildSort(createChildPager: CreateChildPager<T>, childSort?: SortParams): void {
+        if (this.items.length === 0) {
+            return;
+        }
         this.items = this.items.map((item) => {
             if ('pager' in item) {
                 item.pager.disconnect();

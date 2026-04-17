@@ -16,6 +16,7 @@ import MediaSource, {AnyMediaSource, MediaMultiSource} from 'types/MediaSource';
 import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
 import {NoMusicLibraryError, NoMusicVideoLibraryError} from 'services/errors';
+import {t} from 'services/i18n';
 import {CreateChildPager} from 'services/pagers/MediaPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
@@ -126,7 +127,10 @@ const embyLikedSongs: MediaSource<MediaItem> = {
     icon: 'heart',
     itemType: ItemType.Media,
     lockActionsStore: true,
-    primaryItems: {sort: embySongsSort},
+    primaryItems: {
+        emptyMessage: t("You don't have any favorite songs."),
+        sort: embySongsSort,
+    },
 
     search(_, sort = embySongsSort.defaultSort): Pager<MediaItem> {
         return createItemsPager({
@@ -144,6 +148,7 @@ const embyLikedAlbums: MediaSource<MediaAlbum> = {
     itemType: ItemType.Album,
     lockActionsStore: true,
     primaryItems: {
+        emptyMessage: t("You don't have any favorite albums."),
         sort: embyAlbumsSort,
     },
 
@@ -164,7 +169,12 @@ const embyLikedArtists: MediaSource<MediaArtist> = {
     itemType: ItemType.Artist,
     lockActionsStore: true,
     defaultHidden: true,
-    secondaryItems: {sort: embyArtistAlbumsSort},
+    primaryItems: {
+        emptyMessage: t("You don't have any favorite artists."),
+    },
+    secondaryItems: {
+        sort: embyArtistAlbumsSort,
+    },
 
     search(): Pager<MediaArtist> {
         return new EmbyPager(
