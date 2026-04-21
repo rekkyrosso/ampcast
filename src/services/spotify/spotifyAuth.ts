@@ -2,12 +2,9 @@ import type {Observable} from 'rxjs';
 import {BehaviorSubject, Subject, distinctUntilChanged, map} from 'rxjs';
 import {nanoid} from 'nanoid';
 import {Logger, openLoginPopup} from 'utils';
-import ampcastElectron from 'services/ampcastElectron';
 import {getReadableErrorMessage} from 'services/errors';
 import spotifyApi from './spotifyApi';
 import spotifySettings from './spotifySettings';
-
-const isRestrictedApi = spotifySettings.restrictedApi;
 
 const logger = new Logger('spotifyAuth');
 
@@ -94,25 +91,9 @@ export async function reconnect(): Promise<void> {
     await clearAccessToken();
 }
 
-export async function getRedirectUri(): Promise<string> {
-    const authPath = '/auth/spotify/callback/';
-    if (location.protocol === 'https:') {
-        return `${location.origin}${authPath}`;
-    } else {
-        let address = '[::1]';
-        if (ampcastElectron) {
-            const localAddress = await ampcastElectron.getLocalhostIP();
-            address = localAddress === '127.0.0.1' ? localAddress : '[::1]';
-        }
-        return `http://${address}:${location.port}${authPath}`;
-    }
-}
-
 // Based on: https://github.com/JMPerez/spotify-dedup/blob/master/dedup/oauthManager.ts
 
 async function obtainAccessToken(state: string): Promise<TokenResponse> {
-    const redirectUri = await getRedirectUri();
-
     return new Promise((resolve, reject) => {
         let authWindow: Window | null = null;
 
@@ -153,7 +134,6 @@ async function obtainAccessToken(state: string): Promise<TokenResponse> {
             'user-read-currently-playing',
             // Spotify Playback SDK requirements
             'streaming',
-            'user-read-email',
             'user-read-private',
             // Manage Playlists
             'playlist-read-private',
@@ -169,7 +149,7 @@ async function obtainAccessToken(state: string): Promise<TokenResponse> {
         const params = new URLSearchParams({
             client_id: spotifySettings.clientId,
             scope: spotifyScopes.join(' '),
-            redirect_uri: redirectUri,
+            redirect_uri: spotifySettings.redirectUri,
             response_type: 'code',
             code_challenge_method: 'S256',
             code_challenge,
@@ -188,7 +168,6 @@ async function obtainAccessToken(state: string): Promise<TokenResponse> {
 }
 
 // https://github.com/tobika/spotify-auth-PKCE-example/blob/main/public/main.js
-
 function generateRandomString(length: number): string {
     const possible = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
     let text = '';
@@ -207,7 +186,6 @@ async function generateCodeChallenge(codeVerifier: string): Promise<string> {
 }
 
 async function exchangeToken(token: string): Promise<TokenResponse> {
-    const redirectUri = await getRedirectUri();
     const response = await fetch(`${spotifyAccounts}/api/token`, {
         method: 'POST',
         headers: {
@@ -217,7 +195,7 @@ async function exchangeToken(token: string): Promise<TokenResponse> {
             client_id: spotifySettings.clientId,
             grant_type: 'authorization_code',
             code: token,
-            redirect_uri: redirectUri,
+            redirect_uri: spotifySettings.redirectUri,
             code_verifier: spotifySettings.codeVerifier,
         }),
     });
@@ -296,11 +274,11 @@ async function checkConnection(): Promise<void> {
     const getUserId = async () => {
         const me = await spotifyApi.getMe();
         spotifySettings.userId = me.id;
-        spotifySettings.market = me.country;
+        spotifySettings.market = me.country; // Not really deprecated.
     };
     const getChartsCategoryId = async () => {
         try {
-            if (!isRestrictedApi && !spotifySettings.chartsCategoryId) {
+            if (!spotifySettings.restrictedApi && !spotifySettings.chartsCategoryId) {
                 const {categories} = await spotifyApi.getCategories(0, 50, 'en_US');
                 const chartsCategory = categories.items.find(
                     (category) => category.name === 'Charts'

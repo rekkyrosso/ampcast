@@ -90,7 +90,7 @@ async function getArtist(id: string): Promise<SpotifyApi.SingleArtistResponse> {
 async function getArtistAlbums(
     id: string,
     offset = 0,
-    limit = libraryItemsChunkSize,
+    limit = 10,
     include_groups = ''
 ): Promise<SpotifyApi.ArtistsAlbumsResponse> {
     const market = spotifySettings.market;
@@ -182,7 +182,7 @@ async function getPlaylist(id: string, fields = ''): Promise<SpotifyApi.SinglePl
 async function getPlaylistItems(
     playlistId: string,
     offset = 0,
-    limit = libraryItemsChunkSize
+    limit = 50
 ): Promise<SpotifyApi.PlaylistItemResponse> {
     const market = spotifySettings.market;
     return get(`/playlists/${playlistId}/items`, {offset, limit, market});

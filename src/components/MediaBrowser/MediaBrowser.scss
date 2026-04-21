@@ -28,7 +28,7 @@
     .splitter-columns {
         > .layout-splitter {
             top: 0;
-            height: calc(100% - 3 * var(--gutter-width));
+            height: calc(100% - 0.75em - calc(2 * var(--gutter-width)));
         }
 
         > .layout-pane:first-child > .panel {
@@ -41,7 +41,11 @@
             }
 
             > .splitter-rows {
-                > .layout-splitter,
+                > .layout-splitter {
+                    left: var(--gutter-width);
+                    width: calc(100% - var(--gutter-width));
+                }
+
                 > .layout-pane > .panel {
                     left: var(--gutter-width);
                 }

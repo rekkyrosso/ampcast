@@ -26,19 +26,6 @@ const app = http.createServer(async (req, res) => {
     const url = req.url.replace(/[?#].*$/, '');
     try {
         let pathname = url;
-        if (pathname === '/auth/spotify/callback/') {
-            const host = req.headers.host || '';
-            if (host.startsWith('[::1]:') || host.startsWith('127.0.0.1:')) {
-                const port = host.slice(host.startsWith('[::1]:') ? 6 : 10);
-                console.log('Redirect:', {
-                    from: `${host}${pathname}`,
-                    to: `${HOST}:${port}${pathname}`,
-                });
-                res.writeHead(302, {Location: `http://${HOST}:${port}${req.url}`});
-                res.end();
-                return;
-            }
-        }
         if (pathname.endsWith('/')) {
             pathname += 'index.html';
         }

@@ -13,6 +13,7 @@ jobs:
       IBROADCAST_CLIENT_ID: ${{secrets.IBROADCAST_CLIENT_ID}}
       LASTFM_API_KEY: ${{secrets.LF_API_KEY}}
       LASTFM_API_SECRET: ${{secrets.LF_API_SECRET}}
+      SPOTIFY_CLIENT_ID: ${{secrets.SPOTIFY_CLIENT_ID}}
       GH_TOKEN: ${{secrets.GITHUB_TOKEN}}
 
     steps:

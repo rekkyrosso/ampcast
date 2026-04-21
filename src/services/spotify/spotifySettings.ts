@@ -59,10 +59,21 @@ const spotifySettings = {
         userStorage.setString('market', market);
     },
 
+    get redirectUri(): string {
+        const authCallback = 'auth/spotify/callback/';
+        if (location.protocol === 'https:') {
+            return `${location.origin}/${authCallback}`;
+        } else if (__target__ === 'electron') {
+            return `ampcast://${authCallback}`;
+        } else {
+            return `http://[::1]:${location.port}/${authCallback}`;
+        }
+    },
+
     get restrictedApi(): boolean {
         // https://developer.spotify.com/blog/2024-11-27-changes-to-the-web-api
         // https://ampcast.app is exempt from these changes.
-        return !browser.isAmpcastApp;
+        return !(browser.isAmpcastApp || __target__ === 'electron');
     },
 
     get token(): TokenStore | null {

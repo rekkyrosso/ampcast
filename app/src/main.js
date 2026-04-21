@@ -2,6 +2,7 @@ import {
     app,
     components,
     ipcMain,
+    protocol,
     safeStorage,
     shell,
     BrowserWindow,
@@ -216,6 +217,23 @@ app.whenReady().then(async () => {
     try {
         let [port] = await Promise.all([server.start(), components.whenReady()]);
         let url = `http://localhost:${port}/`;
+
+        protocol.handle('ampcast', (request) => {
+            const pathname = request.url.slice('ampcast://'.length);
+            if (pathname.startsWith('auth/spotify/callback/')) {
+                return new Response('', {
+                    status: 302,
+                    headers: {Location: `${url}${pathname}`},
+                });
+            } else {
+                return new Response('<h1>Not found</h1>', {
+                    headers: {
+                        status: 404,
+                        'content-type': 'text/html',
+                    },
+                });
+            }
+        });
 
         contextMenu({showSaveImageAs: true, showSelectAll: false});
         Menu.setApplicationMenu(Menu.buildFromTemplate(menu));

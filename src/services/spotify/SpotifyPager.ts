@@ -10,6 +10,7 @@ import {exists, getMediaObjectId, Logger, moveSubset} from 'utils';
 import {dispatchMetadataChanges, observePlaylistAdditions} from 'services/metadata';
 import SequentialPager from 'services/pagers/SequentialPager';
 import spotifyApi, {SpotifyItem} from './spotifyApi';
+import spotifySettings from './spotifySettings';
 import {createMediaObject} from './spotifyUtils';
 import spotify from './spotify';
 
@@ -72,7 +73,7 @@ export class SpotifyPlaylistItemsPager extends SpotifyPager<MediaItem> {
                 return {items: items.map((track) => track.item).filter(exists), total, next};
             },
             {
-                pageSize: 80,
+                pageSize: spotifySettings?.restrictedApi ? 50 : 80,
                 autofill: true,
                 autofillInterval: 1000,
                 autofillMaxPages: 10,
