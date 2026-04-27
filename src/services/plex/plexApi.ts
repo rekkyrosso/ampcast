@@ -3,6 +3,7 @@ import unidecode from 'unidecode';
 import {Except} from 'type-fest';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
+import Lyrics from 'types/Lyrics';
 import MediaFilter from 'types/MediaFilter';
 import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
@@ -300,6 +301,21 @@ async function getFilters(
     }
 }
 
+async function getLyrics(path: string): Promise<Lyrics | null> {
+    const {
+        MediaContainer: {Lyrics: lyrics},
+    } = await fetchJSON<plex.LyricsResponse>({path});
+    const synched: Lyrics['synched'] = lyrics[0].Line.filter((line) => !!line.startOffset).map(
+        (line) => ({
+            text: line.Span?.[0].text || '',
+            startTime: line.startOffset / 1000,
+            endTime: (line.endOffset || 0) / 1000,
+        })
+    );
+    const plain = synched.map((line) => line.text);
+    return {plain, synched};
+}
+
 const cachedFilters: Record<string, readonly MediaFilter[]> = {};
 async function getPlexFilters(
     itemType: ItemType,
@@ -477,7 +493,10 @@ async function librarySearch<T extends plex.RatingObject>(
     );
 }
 
-function refineTracksSearchResults(q: string, tracks: readonly plex.Track[]): readonly plex.Track[] {
+function refineTracksSearchResults(
+    q: string,
+    tracks: readonly plex.Track[]
+): readonly plex.Track[] {
     const tracksMap = new Map(tracks.map((track) => [track.ratingKey, track]));
     const fields = ['title', 'artist', 'album'];
     const miniSearch = new MiniSearch({fields});
@@ -684,6 +703,7 @@ const plexApi = {
     fetchJSON,
     getFilters,
     getHeaders,
+    getLyrics,
     getMetadata,
     getMusicLibraries,
     getPage,

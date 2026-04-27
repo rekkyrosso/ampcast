@@ -344,11 +344,12 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
         ]);
         return tracks.map((track, index) => {
             const album = albums.find((album) => album.src.endsWith(`:${track.parentRatingKey}`));
+            const item = createMediaItemFromTrack(track, album);
             return {
-                ...createMediaItemFromTrack(track, album),
+                ...item,
                 id: nanoid(),
                 linearType: LinearType.MusicTrack,
-                plex: {playQueueItemID: queueItems[index].playQueueItemID},
+                plex: {...item.plex, playQueueItemID: queueItems[index].playQueueItemID},
             };
         });
     }

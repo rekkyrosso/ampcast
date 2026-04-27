@@ -1,6 +1,6 @@
 {
     "name": "ampcast",
-    "version": "0.9.27",
+    "version": "0.9.28",
     "description": "Ampcast music player",
     "homepage": "https://ampcast.app",
     "author": {
@@ -84,7 +84,7 @@
         "eslint": "^9.30.0",
         "eslint-plugin-react": "^7.37.5",
         "eslint-plugin-react-hooks": "^7.0.0",
-        "eslint-webpack-plugin": "^5.0.2",
+        "eslint-webpack-plugin": "^6.0.0",
         "flag-icons": "^7.5.0",
         "globals": "^17.0.0",
         "icecast-metadata-player": "1.17.13",

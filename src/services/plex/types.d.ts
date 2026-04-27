@@ -270,6 +270,39 @@ declare namespace plex {
         readonly uri: string;
     }
 
+    interface LyricsResponse {
+        readonly MediaContainer: LyricsData;
+    }
+
+    interface LyricsData {
+        readonly Lyrics: readonly Lyrics[];
+        readonly size: number;
+    }
+
+    interface Lyrics {
+        readonly Line: readonly Line[];
+        readonly album: string;
+        readonly artist: string;
+        readonly author: string;
+        readonly by: string;
+        readonly minLines: number;
+        readonly provider: string;
+        readonly timed: boolean;
+        readonly title: string;
+    }
+
+    interface Line {
+        readonly startOffset: number;
+        readonly endOffset?: number;
+        readonly Span?: readonly Span[];
+    }
+
+    interface Span {
+        readonly text: string;
+        readonly startOffset: number;
+        readonly endOffset?: number;
+    }
+
     interface PlayQueue {
         readonly Metadata: readonly PlayQueueItem[];
         readonly identifier: string;

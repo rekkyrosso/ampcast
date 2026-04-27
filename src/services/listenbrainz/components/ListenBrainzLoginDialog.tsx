@@ -9,7 +9,7 @@ import './ListenBrainzLoginDialog.scss';
 const logger = new Logger('ListenBrainzLoginDialog');
 
 export async function showListenBrainzLoginDialog(): Promise<string> {
-    return showDialog(ListenBrainzLoginDialog, true);
+    return showDialog(ListenBrainzLoginDialog);
 }
 
 export default function ListenBrainzLoginDialog(props: DialogProps) {

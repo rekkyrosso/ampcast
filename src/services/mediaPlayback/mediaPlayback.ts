@@ -609,6 +609,17 @@ if (!isMiniPlayer) {
             tap(() => (mediaPlayback.repeatMode = RepeatMode.None))
         )
         .subscribe(logger);
+
+    // Reset repeat mode if the playlist is cleared.
+    playlist
+        .observeSize()
+        .pipe(
+            map((size) => size === 0),
+            distinctUntilChanged(),
+            filter((isEmpty) => isEmpty),
+            tap(() => (mediaPlayback.repeatMode = RepeatMode.None))
+        )
+        .subscribe(logger);
 }
 
 fromEvent(window, 'pagehide').subscribe(kill);

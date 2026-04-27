@@ -9,12 +9,9 @@ export async function showEmbyLoginDialog(
     service: MediaService,
     settings: EmbySettings
 ): Promise<string> {
-    return showDialog(
-        (props: DialogProps) => (
-            <EmbyLoginDialog {...props} service={service} settings={settings} />
-        ),
-        true
-    );
+    return showDialog((props: DialogProps) => (
+        <EmbyLoginDialog {...props} service={service} settings={settings} />
+    ));
 }
 
 export interface EmbyLoginDialogProps extends DialogProps {

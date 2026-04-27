@@ -18,7 +18,14 @@ export async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
         return item;
     }
     const title = sanitizeTitle(item.title);
-    const foundItem = await createMediaItemFromTitle(title);
+    let foundItem = await createMediaItemFromTitle(title);
+    if (foundItem === null) {
+        const owner = item.owner?.name;
+        if (owner?.includes(' - ')) {
+            const [artist] = owner.split(' - ');
+            foundItem = await createMediaItemFromTitle(`${artist} - ${item.title}`);
+        }
+    }
     const scrobbleAs: ScrobbleData = {
         artist: foundItem?.artists?.[0] || '',
         title: foundItem?.title || '',

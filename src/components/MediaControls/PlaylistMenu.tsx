@@ -51,7 +51,7 @@ export default function PlaylistMenu(props: PopupMenuProps) {
             <PopupMenuItem label="Add from file…" value="add-from-file" key="add-from-file" />
             <PopupMenuItem label="Add from url…" value="add-from-url" key="add-from-url" />
             <PopupMenuSeparator />
-            <PopupMenuItem label="Repeat" key="repeat">
+            <PopupMenuItem label="Repeat" disabled={isEmpty} key="repeat">
                 <PopupMenuItemGroup>
                     <PopupMenuItemRadio
                         label="None"

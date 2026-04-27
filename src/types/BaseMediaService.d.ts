@@ -6,6 +6,7 @@ import CreatePlaylistOptions from './CreatePlaylistOptions';
 import FilterType from './FilterType';
 import ItemType from './ItemType';
 import LibraryAction from './LibraryAction';
+import Lyrics from './Lyrics';
 import MediaFilter from './MediaFilter';
 import MediaItem from './MediaItem';
 import MediaObject from './MediaObject';
@@ -78,6 +79,7 @@ type BaseMediaService = Auth & {
         data: string
     ) => Promise<readonly MediaItem[]>;
     getFilters?: (filterType: FilterType, itemType: ItemType) => Promise<readonly MediaFilter[]>;
+    getLyrics?: (item: MediaItem) => Promise<Lyrics | null>;
     getMediaObject?: <T extends MediaObject>(src: string) => Promise<T>;
     getPlayableUrl?: (item: PlayableItem) => string;
     getPlaybackType?: (item: MediaItem) => Promise<PlaybackType>;

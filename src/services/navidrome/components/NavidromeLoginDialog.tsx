@@ -6,7 +6,7 @@ import navidrome from '../navidrome';
 import navidromeApi from '../navidromeApi';
 
 export async function showNavidromeLoginDialog(): Promise<string> {
-    return showDialog(NavidromeLoginDialog, true);
+    return showDialog(NavidromeLoginDialog);
 }
 
 export default function NavidromeLoginDialog(props: DialogProps) {

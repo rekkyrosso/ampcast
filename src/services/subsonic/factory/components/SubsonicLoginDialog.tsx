@@ -5,10 +5,7 @@ import SubsonicService from '../SubsonicService';
 import './SubsonicLoginDialog.scss';
 
 export async function showSubsonicLoginDialog(service: SubsonicService): Promise<string> {
-    return showDialog(
-        (props: DialogProps) => <SubsonicLoginDialog {...props} service={service} />,
-        true
-    );
+    return showDialog((props: DialogProps) => <SubsonicLoginDialog {...props} service={service} />);
 }
 
 export type SubsonicLoginDialogProps = DialogProps & {

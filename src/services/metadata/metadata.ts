@@ -113,7 +113,12 @@ export function bestOf<T extends MediaObject>(a: T, b: Partial<T> = {}): T {
 export async function createMediaItemFromTitle(title: string): Promise<MediaItem | null> {
     const separators = '-\u2013\u2014/|:~'
         .split('')
-        .map((separator) => [separator + separator, separator])
+        .map((separator) => [
+            ` ${separator + separator} `,
+            ` ${separator} `,
+            separator + separator,
+            separator,
+        ])
         .flat();
     for (const separator of separators) {
         if (title.includes(separator)) {

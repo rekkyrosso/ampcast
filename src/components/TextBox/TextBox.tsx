@@ -4,7 +4,7 @@ import './TextBox.scss';
 
 export type TextBoxProps = React.HTMLAttributes<HTMLElement>;
 
-export default function TextBox({className, children}: TextBoxProps) {
+export default function TextBox({className = '', children}: TextBoxProps) {
     const containerRef = useRef<HTMLDivElement>(null);
     const [height, setHeight] = useState(0);
 

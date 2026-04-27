@@ -3,6 +3,7 @@ import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
+import Lyrics from 'types/Lyrics';
 import MediaItem from 'types/MediaItem';
 import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
@@ -87,6 +88,7 @@ const plex: PersonalMediaService = {
     createSourceFromPin,
     editPlaylist,
     getFilters,
+    getLyrics,
     getMediaObject,
     getPlayableUrl,
     getPlaybackType,
@@ -187,6 +189,20 @@ async function getFilters(
     itemType: ItemType
 ): Promise<readonly MediaFilter[]> {
     return plexApi.getFilters(filterType, itemType);
+}
+
+async function getLyrics(item: MediaItem): Promise<Lyrics | null> {
+    const ratingKey = getMediaObjectId(item);
+    const [track] = await plexApi.getMetadata<plex.Track>([ratingKey]);
+    const lyricsStream = track.Media?.[0]?.Part?.[0]?.Stream?.find(
+        (stream) => stream.streamType === 4
+    );
+    if (lyricsStream) {
+        const key = (lyricsStream as any).key; // TODO: Improve types.
+        const lyrics = plexApi.getLyrics(key);
+        return lyrics;
+    }
+    return null;
 }
 
 async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
