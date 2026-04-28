@@ -3,6 +3,7 @@ import Action from 'types/Action';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
+import Lyrics from 'types/Lyrics';
 import MediaFilter from 'types/MediaFilter';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
@@ -89,6 +90,7 @@ const emby: PersonalMediaService = {
     createSourceFromPin,
     editPlaylist,
     getFilters,
+    getLyrics,
     getMediaObject,
     getPlayableUrl,
     getPlaybackType,
@@ -190,6 +192,11 @@ async function getFilters(
     itemType: ItemType
 ): Promise<readonly MediaFilter[]> {
     return embyApi.getFilters(filterType, itemType);
+}
+
+async function getLyrics(item: MediaItem): Promise<Lyrics | null> {
+    const id = getIdFromSrc(item);
+    return embyApi.getLyrics(id);
 }
 
 async function addMetadata<T extends MediaObject>(item: T): Promise<T> {

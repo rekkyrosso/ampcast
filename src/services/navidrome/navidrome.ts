@@ -3,6 +3,7 @@ import Action from 'types/Action';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
+import Lyrics from 'types/Lyrics';
 import MediaItem from 'types/MediaItem';
 import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
@@ -94,6 +95,7 @@ const navidrome: PersonalMediaService = {
     createSourceFromPin,
     editPlaylist,
     getFilters,
+    getLyrics,
     getPlayableUrl,
     getPlaybackType,
     getServerInfo,
@@ -217,6 +219,10 @@ async function getFilters(filterType: FilterType): Promise<readonly MediaFilter[
         default:
             throw Error('Not supported');
     }
+}
+
+async function getLyrics(item: MediaItem): Promise<Lyrics | null> {
+    return subsonicApi.getLyrics(item);
 }
 
 async function addMetadata<T extends MediaObject>(item: T): Promise<T> {

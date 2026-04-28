@@ -1,40 +1,43 @@
 import Lyrics from 'types/Lyrics';
 import MediaItem from 'types/MediaItem';
-import MediaType from 'types/MediaType';
 import {Logger} from 'utils';
-// import {getServiceFromSrc, isBranded} from 'services/mediaServices';
-import {getServiceFromSrc} from 'services/mediaServices';
+import {LyricsNotAvailableError} from 'services/errors';
+import {getServiceFromSrc, isBranded, isPlayableSrc} from 'services/mediaServices';
+import lrclib from './lrclib';
 
 const logger = new Logger('lyrics');
 
 const lyricsCache: Record<string, Lyrics | null> = {};
 
-export function canShowLyrics(item: MediaItem): boolean {
-    if (item.mediaType === MediaType.Video) {
-        return false;
-    }
-    const service = getServiceFromSrc(item);
-    // return service ? !isBranded(service) : true; // TODO: Fallback to LRCLIB.
-    return !!service?.getLyrics;
-}
-
 export async function getLyrics(item: MediaItem): Promise<Lyrics | null> {
     const src = item.src;
+    if (!isPlayableSrc(src, true)) {
+        throw new LyricsNotAvailableError();
+    }
+    const service = getServiceFromSrc(item);
+    if (service && isBranded(service)) {
+        throw new LyricsNotAvailableError();
+    }
     if (lyricsCache[src] === undefined) {
-        const service = getServiceFromSrc(item);
+        let lyrics: Lyrics | null = null;
         if (service?.getLyrics) {
             try {
-                lyricsCache[src] = await service.getLyrics(item);
+                lyrics = await service.getLyrics(item);
             } catch (err) {
-                logger.error(err);
-                throw err; // TODO: Fallback to LRCLIB.
+                logger.warn(err);
             }
         }
-        // TODO: Fallback to LRCLIB.
+        if (!lyrics?.synced) {
+            try {
+                const lrclibLyrics = await lrclib.getLyrics(item);
+                if (lrclibLyrics?.synced) {
+                    lyrics = lrclibLyrics;
+                }
+            } catch (err) {
+                logger.warn(err);
+            }
+        }
+        lyricsCache[src] = lyrics || null;
     }
-    return lyricsCache[src] ?? null;
+    return lyricsCache[src];
 }
-
-// export function parsePlainLyrics(lyrics: string): readonly string[] {
-//     return lyrics.trim().split(/\s*\n\s*/);
-// }

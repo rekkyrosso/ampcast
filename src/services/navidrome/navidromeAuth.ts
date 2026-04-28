@@ -107,6 +107,7 @@ async function checkConnection(): Promise<boolean> {
     try {
         const [libraries] = await Promise.all([
             subsonicApi.getMusicLibraries(),
+            subsonicApi.getServerInfo(),
             navidromeApi.get('playlist', {_end: 1}),
         ]);
         navidromeSettings.libraries = libraries;

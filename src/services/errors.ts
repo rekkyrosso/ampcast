@@ -27,6 +27,10 @@ export class NoSpotifyChartsError extends MediaSourceError {
     readonly message = 'Spotify charts not found';
 }
 
+export class LyricsNotAvailableError extends MediaSourceError {
+    readonly message = 'Lyrics not available';
+}
+
 const statusCodes: Record<number, string> = {
     401: 'Unauthorized',
     403: 'Forbidden',

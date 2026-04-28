@@ -305,15 +305,15 @@ async function getLyrics(path: string): Promise<Lyrics | null> {
     const {
         MediaContainer: {Lyrics: lyrics},
     } = await fetchJSON<plex.LyricsResponse>({path});
-    const synched: Lyrics['synched'] = lyrics[0].Line.filter((line) => !!line.startOffset).map(
+    const synced: Lyrics['synced'] = lyrics[0].Line.filter((line) => !!line.startOffset).map(
         (line) => ({
             text: line.Span?.[0].text || '',
             startTime: line.startOffset / 1000,
             endTime: (line.endOffset || 0) / 1000,
         })
     );
-    const plain = synched.map((line) => line.text);
-    return {plain, synched};
+    const plain = synced.map((line) => line.text);
+    return {plain, synced};
 }
 
 const cachedFilters: Record<string, readonly MediaFilter[]> = {};

@@ -6,8 +6,8 @@ import PlaybackState from 'types/PlaybackState';
 import Report from 'types/Report';
 import Snapshot from 'types/Snapshot';
 import {Logger, browser, copyToClipboard, getElapsedTimeText, isMiniPlayer} from 'utils';
-import audio from 'services/audio';
-import {audioSettings} from 'services/audio';
+import audio, {audioSettings} from 'services/audio';
+import {getReadableErrorMessage} from 'services/errors';
 import {getListens} from 'services/localdb/listens';
 import mediaPlayback from 'services/mediaPlayback';
 import {getPlaybackState} from 'services/mediaPlayback/playback';
@@ -103,19 +103,19 @@ function copyReportToClipboard(entries: Pick<Report, 'errorReport' | 'logs'>): P
 }
 
 function getReportableError(error: any): ErrorReport['error'] {
-    return error
-        ? {
-              message:
-                  typeof error === 'string'
-                      ? error
-                      : typeof error.message === 'string'
-                        ? error.message
-                        : String(error),
-              httpStatus: error.status,
-              httpStatusText: error.statusText,
-              stack: String(error.stack || '').split(/\n\s*/),
-          }
-        : null;
+    const message = getReadableErrorMessage(error);
+    if (error instanceof Response) {
+        const response = {
+            status: error.status,
+            statusText: error.statusText,
+        };
+        return {message, response};
+    }
+    if (error instanceof Error) {
+        const stack = String(error.stack || '').split(/\n/);
+        return {message, stack};
+    }
+    return {message};
 }
 
 function getReadableLogs(count = Logger.logs.length): readonly ReadableLog[] {

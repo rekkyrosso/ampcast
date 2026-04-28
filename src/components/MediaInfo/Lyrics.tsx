@@ -1,7 +1,7 @@
 import React from 'react';
 import MediaItem from 'types/MediaItem';
-import {canShowLyrics} from 'services/lyrics';
-import {getServiceFromSrc} from 'services/mediaServices';
+import {LyricsNotAvailableError} from 'services/errors';
+import {getServiceFromSrc, isBranded} from 'services/mediaServices';
 import ErrorBox from 'components/Errors/ErrorBox';
 import TextBox from 'components/TextBox';
 import useLyrics from 'hooks/useLyrics';
@@ -15,34 +15,38 @@ export default function Lyrics({item}: LyricsProps) {
 
     return (
         <div className="media-info-lyrics">
-            {canShowLyrics(item) ? (
-                loaded ? (
-                    error ? (
-                        <ErrorBox error={error} reportedBy="Lyrics" />
-                    ) : lyrics ? (
-                        <TextBox>
-                            {lyrics?.plain.map((text, index) => (
-                                <p key={index}>{text}</p>
-                            ))}
-                        </TextBox>
-                    ) : (
-                        <p>Lyrics not found</p>
-                    )
+            {loaded ? (
+                error ? (
+                    <LyricsError item={item} error={error} />
+                ) : lyrics ? (
+                    <TextBox>
+                        {lyrics?.plain.map((text, index) => (
+                            <p key={index}>{text}</p>
+                        ))}
+                    </TextBox>
                 ) : (
-                    <p>Loading lyrics…</p>
+                    <p>Lyrics not found</p>
                 )
             ) : (
-                <LyricsNotAvailable item={item} />
+                <p>Loading lyrics…</p>
             )}
         </div>
     );
 }
 
-function LyricsNotAvailable({item}: LyricsProps) {
-    const service = getServiceFromSrc(item);
-    return (
-        <div className="note">
-            <p>{service ? `Lyrics not available for ${service.name}.` : 'Lyrics not available.'}</p>
-        </div>
-    );
+function LyricsError({item, error}: LyricsProps & {error: unknown}) {
+    if (error instanceof LyricsNotAvailableError) {
+        const service = getServiceFromSrc(item);
+        return (
+            <div className="note lyrics-not-available">
+                <p>
+                    {service && isBranded(service)
+                        ? `Lyrics not available for ${service.name}`
+                        : error.message}
+                </p>
+            </div>
+        );
+    } else {
+        return <ErrorBox error={error} reportedBy="Lyrics" />;
+    }
 }

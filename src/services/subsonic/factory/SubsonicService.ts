@@ -6,6 +6,7 @@ import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import LibraryAction from 'types/LibraryAction';
 import LinearType from 'types/LinearType';
+import Lyrics from 'types/Lyrics';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
@@ -692,6 +693,10 @@ export default class SubsonicService implements PersonalMediaService {
 
     async getFilters(filterType: FilterType, itemType: ItemType): Promise<readonly MediaFilter[]> {
         return this.api.getFilters(filterType, itemType);
+    }
+
+    async getLyrics(item: MediaItem): Promise<Lyrics | null> {
+        return this.api.getLyrics(item);
     }
 
     async addMetadata<T extends MediaObject>(item: T): Promise<T> {

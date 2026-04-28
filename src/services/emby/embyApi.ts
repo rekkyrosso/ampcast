@@ -7,6 +7,7 @@ import type {
 import {Primitive} from 'type-fest';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
+import Lyrics from 'types/Lyrics';
 import MediaFilter from 'types/MediaFilter';
 import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
@@ -213,6 +214,42 @@ async function getEndpointInfo(settings: EmbySettings = embySettings): Promise<E
     return info;
 }
 
+interface TrackEvent {
+    readonly EndPositionTicks: number;
+    readonly StartPositionTicks: number;
+    readonly Text: string;
+}
+
+async function getLyrics(id: string): Promise<Lyrics | null> {
+    const item = await get<BaseItemDto>(`Users/${embySettings.userId}/Items/${id}`);
+    const mediaSource = item.MediaSources?.[0];
+    if (mediaSource) {
+        const track = mediaSource.MediaStreams?.filter(
+            (stream) =>
+                stream.Type === 'Subtitle' &&
+                stream.Index === mediaSource.DefaultSubtitleStreamIndex
+        )[0];
+        if (track) {
+            const data = await get<{TrackEvents: readonly TrackEvent[]}>(
+                `Items/${id}/${mediaSource.Id}/Subtitles/${track.Index}/Stream.js`
+            );
+            const lines = data.TrackEvents;
+            if (lines) {
+                const synced: Lyrics['synced'] = lines.map((line) => {
+                    return {
+                        startTime: (line.StartPositionTicks || 0) / 10_000_000,
+                        endTime: (line.EndPositionTicks || 0) / 10_000_000,
+                        text: line.Text || '',
+                    };
+                });
+                const plain = synced.map((line) => line.text);
+                return {plain, synced};
+            }
+        }
+    }
+    return null;
+}
+
 async function getMusicLibraries(
     settings: EmbySettings = embySettings
 ): Promise<readonly PersonalMediaLibrary[]> {
@@ -403,6 +440,7 @@ const embyApi = {
     getPage,
     getFilters,
     getEndpointInfo,
+    getLyrics,
     getMusicLibraries,
     getPlayableUrl,
     getPlaybackType,

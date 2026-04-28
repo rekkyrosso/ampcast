@@ -1,9 +1,9 @@
 export default interface Lyrics {
     readonly plain: readonly string[];
-    readonly synched?: readonly SynchedLyric[];
+    readonly synced?: readonly SyncedLyric[];
 }
 
-export interface SynchedLyric {
+export interface SyncedLyric {
     readonly startTime: number; // seconds
     readonly endTime: number;
     readonly text: string;

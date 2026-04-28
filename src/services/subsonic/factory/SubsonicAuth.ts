@@ -116,7 +116,10 @@ export default class SubsonicAuth implements Auth {
 
     private async checkConnection(): Promise<boolean> {
         try {
-            const libraries = await this.api.getMusicLibraries();
+            const [libraries] = await Promise.all([
+                this.api.getMusicLibraries(),
+                this.api.getServerInfo(),
+            ]);
             this.settings.libraries = libraries;
             return true;
         } catch (err: any) {

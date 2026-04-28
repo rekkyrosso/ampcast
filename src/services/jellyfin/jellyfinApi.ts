@@ -2,12 +2,14 @@ import type {
     BaseItemDto,
     BaseItemDtoQueryResult,
     EndPointInfo,
+    LyricDto,
     PublicSystemInfo,
     QueryFiltersLegacy,
 } from '@jellyfin/sdk/lib/generated-client/models';
 import {Primitive} from 'type-fest';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
+import Lyrics from 'types/Lyrics';
 import MediaFilter from 'types/MediaFilter';
 import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
@@ -136,6 +138,24 @@ async function getEndpointInfo(): Promise<EndPointInfo> {
     return embyApi.getEndpointInfo(jellyfinSettings);
 }
 
+async function getLyrics(id: string): Promise<Lyrics | null> {
+    const data = await get<LyricDto>(`Audio/${id}/Lyrics`);
+    const lines = data.Lyrics;
+    if (lines) {
+        const synced: Lyrics['synced'] = lines.map((line, index) => {
+            const nextLine = lines[index + 1];
+            return {
+                startTime: (line.Start || 0) / 10_000_000,
+                endTime: (nextLine?.Start || 0) / 10_000_000,
+                text: line.Text || '',
+            };
+        });
+        const plain = synced.map((line) => line.text);
+        return {plain, synced};
+    }
+    return null;
+}
+
 async function getMusicLibraries(): Promise<readonly PersonalMediaLibrary[]> {
     return embyApi.getMusicLibraries(jellyfinSettings);
 }
@@ -175,6 +195,7 @@ const jellyfinApi = {
     getPage,
     getEndpointInfo,
     getFilters,
+    getLyrics,
     getMusicLibraries,
     getPlayableUrl,
     getPlaybackType,

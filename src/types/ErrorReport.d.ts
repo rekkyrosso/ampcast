@@ -3,8 +3,10 @@ export default interface ErrorReport {
     readonly reportingId: string; // id of logger or `MediaSource` id
     readonly error: {
         readonly message: string;
-        readonly httpStatus?: number;
-        readonly httpStatusText?: string;
-        readonly stack: string[];
-    } | null;
+        readonly response?: {
+            readonly status: number;
+            readonly statusText: string;
+        };
+        readonly stack?: string[];
+    };
 }

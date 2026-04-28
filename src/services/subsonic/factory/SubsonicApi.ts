@@ -4,7 +4,9 @@ import {Primitive} from 'type-fest';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
+import Lyrics from 'types/Lyrics';
 import MediaFilter from 'types/MediaFilter';
+import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
@@ -12,7 +14,7 @@ import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import type SubsonicSettings from './SubsonicSettings';
-import {Logger, chunk, shuffle} from 'utils';
+import {Logger, chunk, getMediaObjectId, shuffle} from 'utils';
 import {createMediaItemFromUrl} from 'services/metadata';
 
 const logger = new Logger('SubsonicApi');
@@ -24,11 +26,16 @@ export interface SubsonicApiSettings extends Partial<PersonalMediaServerSettings
 
 export default class SubsonicApi {
     private genres: readonly MediaFilter[] | undefined;
+    #openSubsonic = false;
 
     constructor(
         private readonly serviceId: MediaServiceId,
         private readonly settings: SubsonicApiSettings
     ) {}
+
+    get openSubsonic(): boolean {
+        return this.#openSubsonic;
+    }
 
     async get<T>(
         path: string,
@@ -98,7 +105,10 @@ export default class SubsonicApi {
     }
 
     async removeFromPlaylist(playlistId: string, indexes: readonly number[]): Promise<void> {
-        const chunks = chunk(indexes.toSorted((a, b) => a - b), 300).reverse();
+        const chunks = chunk(
+            indexes.toSorted((a, b) => a - b),
+            300
+        ).reverse();
         for (const chunk of chunks) {
             const params = new URLSearchParams({playlistId});
             chunk.forEach((index) => params.append('songIndexToRemove', String(index)));
@@ -288,6 +298,20 @@ export default class SubsonicApi {
         return data.starred2.song || [];
     }
 
+    async getLyrics(item: MediaItem): Promise<Lyrics | null> {
+        if (this.openSubsonic) {
+            try {
+                const lyrics = await this.getLyricsBySongId(item);
+                if (lyrics) {
+                    return lyrics;
+                }
+            } catch (err) {
+                logger.error(err);
+            }
+        }
+        return this.getLyricsByArtistAndTitle(item);
+    }
+
     async getMostPlayed(offset: number, size: number): Promise<Subsonic.Album[]> {
         return this.getAlbumList({type: 'frequent', size, offset});
     }
@@ -406,10 +430,12 @@ export default class SubsonicApi {
 
     async getServerInfo(): Promise<Record<string, string>> {
         const data = await this.ping();
+        this.#openSubsonic = !!data.openSubsonic;
         return {
             'Server type': data.type || '',
             'Server version': data.serverVersion || '',
             'Subsonic version': data.version || '',
+            openSubsonic: String(this.openSubsonic),
         };
     }
 
@@ -506,8 +532,8 @@ export default class SubsonicApi {
     async ping(
         host = this.settings.host,
         credentials = this.settings.credentials
-    ): Promise<Subsonic.PingResponse> {
-        return this.get<Subsonic.PingResponse>('ping', undefined, {host, credentials});
+    ): Promise<Subsonic.Ping> {
+        return this.get<Subsonic.Ping>('ping', undefined, {host, credentials});
     }
 
     async scrobble(params: Subsonic.ScrobbleParams): Promise<Response> {
@@ -568,5 +594,44 @@ export default class SubsonicApi {
             musicFolderId ? {...params, musicFolderId} : params
         );
         return data.albumList2.album || [];
+    }
+
+    private async getLyricsByArtistAndTitle(item: MediaItem): Promise<Lyrics | null> {
+        const {artists: [artist = ''] = [], title} = item;
+        if (artist && title) {
+            const data = await this.get<{lyrics?: Subsonic.Lyrics}>('getLyrics', {artist, title});
+            const text = data.lyrics?.value;
+            if (text) {
+                return {plain: text.split(/\n/)};
+            }
+        }
+        return null;
+    }
+
+    private async getLyricsBySongId(item: MediaItem): Promise<Lyrics | null> {
+        if (!this.openSubsonic) {
+            throw Error('Not supported');
+        }
+        const id = getMediaObjectId(item);
+        const data = await this.get<{lyricsList: Subsonic.LyricsList}>('getLyricsBySongId', {id});
+        const lyrics = data.lyricsList.structuredLyrics?.filter((lyrics) => lyrics.synced)[0];
+        if (lyrics) {
+            const lines = lyrics.line;
+            if (lyrics.synced) {
+                const synced: Lyrics['synced'] = lines.map((line, index) => {
+                    const nextLine = lines[index + 1];
+                    return {
+                        startTime: line.start,
+                        endTime: nextLine?.start || 0,
+                        text: line.value || '',
+                    };
+                });
+                const plain = synced.map((line) => line.text);
+                return {plain, synced};
+            } else {
+                return {plain: lines.map((line) => line.value || '')};
+            }
+        }
+        return null;
     }
 }
