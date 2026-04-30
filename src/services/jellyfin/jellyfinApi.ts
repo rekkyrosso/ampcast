@@ -141,8 +141,8 @@ async function getEndpointInfo(): Promise<EndPointInfo> {
 async function getLyrics(id: string): Promise<Lyrics | null> {
     const data = await get<LyricDto>(`Audio/${id}/Lyrics`);
     const lines = data.Lyrics;
-    if (lines) {
-        const synced: Lyrics['synced'] = lines.map((line, index) => {
+    if (lines?.length) {
+        const lyrics: Lyrics['synced'] = lines.map((line, index) => {
             const nextLine = lines[index + 1];
             return {
                 startTime: (line.Start || 0) / 10_000_000,
@@ -150,8 +150,9 @@ async function getLyrics(id: string): Promise<Lyrics | null> {
                 text: line.Text || '',
             };
         });
-        const plain = synced.map((line) => line.text);
-        return {plain, synced};
+        const plain = lyrics.map((line) => line.text);
+        const synced = lyrics.filter((line) => line.startTime !== line.endTime);
+        return {plain, synced: synced.length ? synced : undefined};
     }
     return null;
 }

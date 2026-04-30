@@ -1,4 +1,5 @@
 import React, {useId} from 'react';
+import {t} from 'services/i18n';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
 
 export default function CoverArtSettings() {
@@ -26,6 +27,17 @@ export default function CoverArtSettings() {
                     }
                 />
                 <label htmlFor={`${id}-animated-background`}>Animated background</label>
+            </p>
+            <p>
+                <input
+                    id={`${id}-lyrics`}
+                    type="checkbox"
+                    defaultChecked={visualizerSettings.coverArtLyrics}
+                    onChange={(e) => (visualizerSettings.coverArtLyrics = e.target.checked)}
+                />
+                <label htmlFor={`${id}-lyrics`}>
+                    {t('Show synchronized lyrics (where available)')}
+                </label>
             </p>
         </fieldset>
     );

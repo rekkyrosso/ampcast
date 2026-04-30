@@ -20,11 +20,13 @@ async function getLyrics(item: MediaItem): Promise<Lyrics | null> {
         }
         const data: LRCLIB.Lyrics[] = await response.json();
         let matches: readonly LyricsItem[] = data
-            .filter((data) => Math.abs(data.duration - item.duration) < 2)
+            .filter((data) => !!(data.plainLyrics || data.syncedLyrics))
             .map((data) => createMediaItem(data));
-
         matches = filterMatches(matches, item);
         matches = filterNotEmpty(matches, (match) => !!match.syncedLyrics);
+        matches = matches.toSorted(
+            (a, b) => Math.abs(a.duration - item.duration) - Math.abs(b.duration - item.duration)
+        );
         const match = matches[0];
         if (match) {
             const plain = match.plainLyrics.split(/\n/);

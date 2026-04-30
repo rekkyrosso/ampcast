@@ -1,0 +1,38 @@
+.synchronized-lyrics {
+    position: relative;
+    text-align: center;
+    font-family: system-ui;
+    font-weight: normal;
+    font-style: italic;
+    margin-top: 1em;
+    min-height: 3.5em;
+    max-height: 6em;
+    color: var(--text-color-max);
+    overflow: hidden;
+
+    &[hidden] {
+        display: block;
+        visibility: hidden;
+    }
+
+    p {
+        font-size: 0.75em;
+        margin-bottom: 0.5em;
+        transition-property: opacity, transform;
+        transition-duration: 600ms;
+        transition-timing-function: ease;
+        transform: scale(0.75);
+        opacity: 0;
+
+        &.current {
+            opacity: 1;
+            transform: none;
+        }
+
+        /* Adjacent to current line. */
+        &:has(+ p.current),
+        &.current + p {
+            opacity: 0.5;
+        }
+    }
+}

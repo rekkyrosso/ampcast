@@ -234,16 +234,17 @@ async function getLyrics(id: string): Promise<Lyrics | null> {
                 `Items/${id}/${mediaSource.Id}/Subtitles/${track.Index}/Stream.js`
             );
             const lines = data.TrackEvents;
-            if (lines) {
-                const synced: Lyrics['synced'] = lines.map((line) => {
+            if (lines?.length) {
+                const lyrics: Lyrics['synced'] = lines.map((line) => {
                     return {
                         startTime: (line.StartPositionTicks || 0) / 10_000_000,
                         endTime: (line.EndPositionTicks || 0) / 10_000_000,
                         text: line.Text || '',
                     };
                 });
-                const plain = synced.map((line) => line.text);
-                return {plain, synced};
+                const plain = lyrics.map((line) => line.text);
+                const synced = lyrics.filter((line) => line.startTime !== line.endTime);
+                return {plain, synced: synced.length ? synced : undefined};
             }
         }
     }

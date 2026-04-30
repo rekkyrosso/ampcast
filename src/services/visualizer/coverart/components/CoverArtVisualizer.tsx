@@ -13,6 +13,7 @@ import './CoverArtVisualizer.scss';
 export default function CoverArtVisualizer() {
     const ref = useRef<HTMLDivElement>(null);
     const player = useMemo(() => coverart.createPlayer(audio) as CovertArtController, []);
+    const [hidden, setHidden] = useState(true);
     const {current: currentTrack, next: nextTrack} = useCoverArtItems();
     const item = currentTrack?.mediaType === MediaType.Video ? null : currentTrack;
     const nextItem = nextTrack?.mediaType === MediaType.Video ? null : nextTrack;
@@ -33,6 +34,8 @@ export default function CoverArtVisualizer() {
 
     useEffect(() => {
         player.appendTo(ref.current!);
+        const subscription = player.observeHidden().subscribe(setHidden);
+        return () => subscription.unsubscribe();
     }, [player]);
 
     useEffect(() => {
@@ -49,8 +52,18 @@ export default function CoverArtVisualizer() {
 
     return (
         <div className="visualizer visualizer-coverart" ref={ref}>
-            <CurrentlyPlaying item={item0} player={player?.player0} hidden={!isItem0} key="item0" />
-            <CurrentlyPlaying item={item1} player={player?.player1} hidden={!isItem1} key="item1" />
+            <CurrentlyPlaying
+                item={item0}
+                player={player?.player0}
+                hidden={hidden || !isItem0}
+                key="item0"
+            />
+            <CurrentlyPlaying
+                item={item1}
+                player={player?.player1}
+                hidden={hidden || !isItem1}
+                key="item1"
+            />
             {/* Preload next item thumbnail */}
             {nextItem ? (
                 <div hidden>

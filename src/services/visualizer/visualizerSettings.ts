@@ -101,6 +101,14 @@ const visualizerSettings: VisualizerSettings = {
         storage.setBoolean('coverArtBeats', enabled);
     },
 
+    get coverArtLyrics(): boolean {
+        return storage.getBoolean('coverArtLyrics', true);
+    },
+
+    set coverArtLyrics(enabled: boolean) {
+        storage.setBoolean('coverArtLyrics', enabled);
+    },
+
     get fallbackProvider(): Extract<VisualizerProviderId, 'none' | 'coverart'> {
         return storage.getString('fallbackProvider', 'none');
     },

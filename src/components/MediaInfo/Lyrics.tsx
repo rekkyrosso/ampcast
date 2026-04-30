@@ -5,22 +5,23 @@ import {getServiceFromSrc, isBranded} from 'services/mediaServices';
 import ErrorBox from 'components/Errors/ErrorBox';
 import TextBox from 'components/TextBox';
 import useLyrics from 'hooks/useLyrics';
+import './Lyrics.scss';
 
 export interface LyricsProps {
     item: MediaItem;
 }
 
 export default function Lyrics({item}: LyricsProps) {
-    const {lyrics, loaded, error} = useLyrics(item);
+    const {plainLyrics, loaded, error} = useLyrics(item);
 
     return (
-        <div className="media-info-lyrics">
+        <div className="lyrics">
             {loaded ? (
                 error ? (
                     <LyricsError item={item} error={error} />
-                ) : lyrics ? (
+                ) : plainLyrics ? (
                     <TextBox>
-                        {lyrics?.plain.map((text, index) => (
+                        {plainLyrics.map((text, index) => (
                             <p key={index}>{text}</p>
                         ))}
                     </TextBox>

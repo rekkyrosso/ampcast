@@ -158,36 +158,4 @@
             margin-left: auto;
         }
     }
-
-    &-lyrics {
-        height: 100%;
-
-        .text-box {
-            max-height: 100%;
-            line-height: 1.5;
-            font-family: system-ui;
-            font-style: italic;
-
-            .scrollable {
-                --scrollbar-width: max(10px, calc(1em * var(--scrollbar-size)));
-            }
-
-            p {
-                margin: 0;
-
-                &:empty {
-                    margin-top: 1em;
-                }
-            }
-        }
-
-        .lyrics-not-available {
-            text-align: center;
-        }
-
-        .error-box {
-            border: 0;
-            padding: 0;
-        }
-    }
 }

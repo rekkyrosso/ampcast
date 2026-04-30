@@ -18,6 +18,7 @@ import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useFontSize from 'hooks/useFontSize';
 import useOnResize from 'hooks/useOnResize';
 import useVisualizerSettings from 'hooks/useVisualizerSettings';
+import SynchronizedLyrics from './SynchronizedLyrics';
 
 const defaultPalette = ['#3e3e3e', '#ebebeb'];
 
@@ -31,7 +32,7 @@ export default function CurrentlyPlaying({item, player, hidden = false}: Current
     const ref = useRef<HTMLDivElement>(null);
     const service = item ? getServiceFromSrc(item) : undefined;
     const [isLoggedIn, setIsLoggedIn] = useState(() => service?.isLoggedIn() ?? false);
-    const {coverArtBeats, fullscreenProgress} = useVisualizerSettings();
+    const {coverArtBeats, coverArtLyrics, fullscreenProgress} = useVisualizerSettings();
     const [arrange, setArrange] = useState<'row' | 'column'>('row');
     const [width, setWidth] = useState(0);
     const [height, setHeight] = useState(0);
@@ -174,7 +175,7 @@ export default function CurrentlyPlaying({item, player, hidden = false}: Current
 
     return (
         <div
-            className={`currently-playing arrange-${arrange} themed ${tone} text-${textTone} `}
+            className={`currently-playing arrange-${arrange} themed ${tone} text-${textTone} ${beatsEnabled ? 'beats-enabled' : ''}`}
             hidden={hidden}
             style={
                 {
@@ -194,38 +195,48 @@ export default function CurrentlyPlaying({item, player, hidden = false}: Current
                             extendedSearch={!hidden}
                             onLoad={handleThumbnailLoad}
                             onError={handleThumbnailError}
-                            key={`${item.id}/${isLoggedIn}`}
+                            key={`${item.id}/${isLoggedIn}/thumbnail`}
                         />
                         <ProvidedBy item={item} />
                     </div>
                     <div className="currently-playing-text">
-                        <h3 className="title">{item.title}</h3>
-                        {item.artists?.length ? (
-                            <h4 className="sub-title">
-                                {isPlayingTrack ? (
-                                    <MediaSourceLabel
-                                        icon="artist"
-                                        text={item.artists.join(' ● ')}
-                                    />
-                                ) : (
-                                    item.artists.join(', ')
-                                )}
-                            </h4>
-                        ) : null}
-                        {item.linearType !== LinearType.Station &&
-                        (isPlayingRadio ? item.stationName : item.album) ? (
-                            <h5 className="sub-title">
-                                {isPlayingRadio ? (
-                                    <MediaSourceLabel icon="radio" text={item.stationName} />
-                                ) : (
-                                    <MediaSourceLabel
-                                        icon="album"
-                                        text={
-                                            item.year ? `${item.album} (${item.year})` : item.album
-                                        }
-                                    />
-                                )}
-                            </h5>
+                        <div className="metadata">
+                            <h3 className="title">{item.title}</h3>
+                            {item.artists?.length ? (
+                                <h4 className="sub-title">
+                                    {isPlayingTrack ? (
+                                        <MediaSourceLabel
+                                            icon="artist"
+                                            text={item.artists.join(' ● ')}
+                                        />
+                                    ) : (
+                                        item.artists.join(', ')
+                                    )}
+                                </h4>
+                            ) : null}
+                            {item.linearType !== LinearType.Station &&
+                            (isPlayingRadio ? item.stationName : item.album) ? (
+                                <h5 className="sub-title">
+                                    {isPlayingRadio ? (
+                                        <MediaSourceLabel icon="radio" text={item.stationName} />
+                                    ) : (
+                                        <MediaSourceLabel
+                                            icon="album"
+                                            text={
+                                                item.year
+                                                    ? `${item.album} (${item.year})`
+                                                    : item.album
+                                            }
+                                        />
+                                    )}
+                                </h5>
+                            ) : null}
+                        </div>
+                        {coverArtLyrics && !hidden ? (
+                            <SynchronizedLyrics
+                                item={item}
+                                key={`${item.id}/${isLoggedIn}/lyrics`}
+                            />
                         ) : null}
                     </div>
                     {isPlayingRadio ? <Icon name="radio" className="live-radio" /> : null}

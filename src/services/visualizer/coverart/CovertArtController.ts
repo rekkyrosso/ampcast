@@ -1,3 +1,5 @@
+import type {Observable} from 'rxjs';
+import {BehaviorSubject, distinctUntilChanged} from 'rxjs';
 import AudioManager from 'types/AudioManager';
 import {CoverArtVisualizer} from 'types/Visualizer';
 import {Logger} from 'utils';
@@ -10,7 +12,7 @@ export default class CovertArtController extends AbstractVisualizerPlayer<CoverA
     readonly player0: CovertArtPlayer;
     readonly player1: CovertArtPlayer;
     private element: HTMLElement | null = null;
-    #hidden = true;
+    private hidden$ = new BehaviorSubject(false);
     #currentIndex: 0 | 1 = 0;
 
     constructor(audio: AudioManager) {
@@ -41,11 +43,11 @@ export default class CovertArtController extends AbstractVisualizerPlayer<CoverA
     }
 
     get hidden(): boolean {
-        return this.#hidden;
+        return this.hidden$.value;
     }
 
     set hidden(hidden: boolean) {
-        this.#hidden = hidden;
+        this.hidden$.next(hidden);
         if (this.element) {
             this.element.hidden = hidden;
         }
@@ -54,6 +56,10 @@ export default class CovertArtController extends AbstractVisualizerPlayer<CoverA
         } else {
             this.currentPlayer.play();
         }
+    }
+
+    observeHidden(): Observable<boolean> {
+        return this.hidden$.pipe(distinctUntilChanged());
     }
 
     appendTo(element: HTMLElement): void {

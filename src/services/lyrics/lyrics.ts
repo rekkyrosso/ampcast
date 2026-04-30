@@ -24,17 +24,46 @@ export async function getLyrics(item: MediaItem): Promise<Lyrics | null> {
             try {
                 lyrics = await service.getLyrics(item);
             } catch (err) {
-                logger.warn(err);
+                logger.error(err);
             }
+        }
+        // Ignore empty arrays.
+        if (lyrics?.synced?.length === 0) {
+            (lyrics as any).synced = undefined;
         }
         if (!lyrics?.synced) {
             try {
                 const lrclibLyrics = await lrclib.getLyrics(item);
-                if (lrclibLyrics?.synced) {
+                if (lrclibLyrics?.synced || !lyrics) {
                     lyrics = lrclibLyrics;
                 }
             } catch (err) {
-                logger.warn(err);
+                logger.error(err);
+            }
+        }
+        // Ignore empty arrays (again).
+        if (lyrics?.synced?.length === 0) {
+            (lyrics as any).synced = undefined;
+        }
+        if (lyrics?.synced) {
+            // Tidy up synced lyrics.
+            // Make them suitable for display.
+            const firstLine = lyrics.synced[0];
+            if (firstLine.startTime !== 0) {
+                // Add a blank first line.
+                const newFirstLine = {
+                    startTime: Math.max(firstLine.startTime - 10, 0),
+                    endTime: firstLine.startTime,
+                    text: '',
+                };
+                (lyrics.synced as any).unshift(newFirstLine);
+            }
+            const lastLine = lyrics.synced.at(-1);
+            if (lastLine?.endTime === 0) {
+                const endTime = lastLine.startTime + 5;
+                (lastLine as any).endTime = item.duration
+                    ? Math.min(endTime, item.duration)
+                    : endTime;
             }
         }
         lyricsCache[src] = lyrics || null;

@@ -5,7 +5,8 @@ import MediaItem from 'types/MediaItem';
 import {getLyrics} from 'services/lyrics';
 
 export interface LyricsResponse {
-    readonly lyrics?: Lyrics | null;
+    readonly plainLyrics?: Lyrics['plain'];
+    readonly syncedLyrics?: Lyrics['synced'];
     readonly error?: unknown;
     readonly loaded: boolean;
 }
@@ -26,7 +27,12 @@ export default function useLyrics(item: MediaItem): LyricsResponse {
         setResponse(notLoaded);
         if (currentItem) {
             const subscription = defer(() => from(getLyrics(currentItem))).subscribe({
-                next: (lyrics) => setResponse({lyrics, loaded: true}),
+                next: (lyrics) =>
+                    setResponse({
+                        plainLyrics: lyrics?.plain,
+                        syncedLyrics: lyrics?.synced,
+                        loaded: true,
+                    }),
                 error: (error) => setResponse({error, loaded: true}),
             });
             return () => subscription.unsubscribe();

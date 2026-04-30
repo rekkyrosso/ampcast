@@ -1,5 +1,4 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
-import {fromEvent, map} from 'rxjs';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import {isMiniPlayer} from 'utils';
@@ -11,6 +10,7 @@ import CoverArtVisualizer from 'components/CoverArtVisualizer';
 import useBaseFontSize from 'hooks/useBaseFontSize';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
+import useIsFullscreen from 'hooks/useIsFullscreen';
 import useMiniPlayerActive from 'hooks/useMiniPlayerActive';
 import useMouseBusy from 'hooks/useMouseBusy';
 import useOnResize from 'hooks/useOnResize';
@@ -29,21 +29,21 @@ export default memo(function Media() {
     const playersRef = useRef<HTMLDivElement>(null);
     const {fullscreenProgress, provider} = useVisualizerSettings();
     const miniPlayerActive = useMiniPlayerActive();
-    const [fullscreen, setFullScreen] = useState(false);
+    const isFullscreen = useIsFullscreen();
     const [newItem, setNewItem] = useState(false);
     const item = useCurrentlyPlaying();
     const itemId = item?.id;
     const isPlayingVideo = item?.mediaType === MediaType.Video;
     const visualizer = useCurrentVisualizer();
     const noVisualizer = !visualizer || visualizer.providerId === 'none';
-    const iframe =
+    const iframePlayback =
         item?.playbackType === PlaybackType.IFrame
             ? getServiceFromSrc(item)?.iframeAudioPlayback
             : undefined;
     const isShowingCoverArt =
         !isPlayingVideo &&
         (visualizer?.providerId === 'coverart' ||
-            (provider !== 'none' && iframe?.showContent && iframe.isCoverArt));
+            (provider !== 'none' && iframePlayback?.showContent && iframePlayback.isCoverArt));
     const isIdle = !useMouseBusy(ref.current, 4000);
     const loadingState = useLoadingState();
     const paused = usePaused();
@@ -58,13 +58,6 @@ export default memo(function Media() {
         mediaPlayback.appendTo(playersRef.current!);
     }, []);
 
-    useEffect(() => {
-        const subscription = fromEvent(document, 'fullscreenchange')
-            .pipe(map(() => document.fullscreenElement === ref.current))
-            .subscribe(setFullScreen);
-        return () => subscription.unsubscribe();
-    }, []);
-
     useOnResize(ref, ({width, height}) => {
         setStyle({
             fontSize: `${Math.max(Math.sqrt(width * height) * 0.03, baseFontSize)}px`,
@@ -73,22 +66,22 @@ export default memo(function Media() {
     });
 
     const handleDoubleClick = useCallback(() => {
-        if (fullscreen) {
+        if (isFullscreen) {
             document.exitFullscreen();
         } else if (!miniPlayer.closed) {
             miniPlayer.focus();
         } else {
             ref.current!.requestFullscreen();
         }
-    }, [fullscreen]);
+    }, [isFullscreen]);
 
     const toggleFullscreen = useCallback(() => {
-        if (fullscreen) {
+        if (isFullscreen) {
             document.exitFullscreen();
         } else {
             ref.current!.requestFullscreen();
         }
-    }, [fullscreen]);
+    }, [isFullscreen]);
 
     return (
         <div
@@ -97,7 +90,7 @@ export default memo(function Media() {
             } ${noVisualizer ? 'no-visualizer' : ''}  ${
                 isShowingCoverArt ? 'is-showing-cover-art' : ''
             } ${isIdle ? 'idle' : ''} ${newItem ? 'is-new-item' : ''} ${
-                fullscreen || isMiniPlayer ? 'fullscreen' : ''
+                isFullscreen || isMiniPlayer ? 'fullscreen' : ''
             } ${miniPlayerActive ? 'mini-player-active' : ''}`}
             id="media"
             onDoubleClick={handleDoubleClick}
@@ -107,8 +100,8 @@ export default memo(function Media() {
             <div id="players" ref={playersRef} />
             <CoverArtVisualizer />
             <Interstitial />
-            {(fullscreen || isMiniPlayer) && fullscreenProgress ? <ProgressBar /> : null}
-            <VisualizerControls fullscreen={fullscreen} onFullscreenToggle={toggleFullscreen} />
+            {(isFullscreen || isMiniPlayer) && fullscreenProgress ? <ProgressBar /> : null}
+            <VisualizerControls fullscreen={isFullscreen} onFullscreenToggle={toggleFullscreen} />
         </div>
     );
 });

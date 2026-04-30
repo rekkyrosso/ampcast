@@ -89,7 +89,7 @@
 
     --text-color-max: hsl(var(--text-color-h),
             var(--text-color-s),
-            max(var(--text-color-l), 80%));
+            max(var(--text-color-l), 85%));
 
     --grey1-color: hsl(var(--text-color-h),
             calc(var(--text-color-s) * 0.5),
@@ -179,7 +179,7 @@
 
     --text-color-max: hsl(var(--text-color-h),
             var(--text-color-s),
-            min(var(--text-color-l), 20%));
+            min(var(--text-color-l), 10%));
 
     --grey1-color: hsl(var(--text-color-h),
             calc(var(--text-color-s) * 0.5),
