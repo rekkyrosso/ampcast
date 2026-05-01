@@ -1,8 +1,10 @@
 import React from 'react';
 import MediaItem from 'types/MediaItem';
 import {LyricsNotAvailableError} from 'services/errors';
-import {getServiceFromSrc, isBranded} from 'services/mediaServices';
+import {t} from 'services/i18n';
+import {getServiceFromSrc} from 'services/mediaServices';
 import ErrorBox from 'components/Errors/ErrorBox';
+import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
 import TextBox from 'components/TextBox';
 import useLyrics from 'hooks/useLyrics';
 import './Lyrics.scss';
@@ -12,7 +14,7 @@ export interface LyricsProps {
 }
 
 export default function Lyrics({item}: LyricsProps) {
-    const {plainLyrics, loaded, error} = useLyrics(item);
+    const {plainLyrics, syncedLyrics, loaded, error} = useLyrics(item);
 
     return (
         <div className="lyrics">
@@ -20,11 +22,21 @@ export default function Lyrics({item}: LyricsProps) {
                 error ? (
                     <LyricsError item={item} error={error} />
                 ) : plainLyrics ? (
-                    <TextBox>
-                        {plainLyrics.map((text, index) => (
-                            <p key={index}>{text}</p>
-                        ))}
-                    </TextBox>
+                    <>
+                        <TextBox>
+                            {plainLyrics.map((text, index) => (
+                                <p key={index}>{text}</p>
+                            ))}
+                        </TextBox>
+                        {syncedLyrics ? (
+                            <p>
+                                <MediaSourceLabel
+                                    icon="clock"
+                                    text={t('Synchronized lyrics available')}
+                                />
+                            </p>
+                        ) : null}
+                    </>
                 ) : (
                     <p>Lyrics not found</p>
                 )
@@ -41,8 +53,8 @@ function LyricsError({item, error}: LyricsProps & {error: unknown}) {
         return (
             <div className="note lyrics-not-available">
                 <p>
-                    {service && isBranded(service)
-                        ? `Lyrics not available for ${service.name}`
+                    {service?.lyricsDisabled
+                        ? `Lyrics not supported for ${service.name}`
                         : error.message}
                 </p>
             </div>

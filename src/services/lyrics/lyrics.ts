@@ -1,8 +1,9 @@
+import LinearType from 'types/LinearType';
 import Lyrics from 'types/Lyrics';
 import MediaItem from 'types/MediaItem';
 import {Logger} from 'utils';
 import {LyricsNotAvailableError} from 'services/errors';
-import {getServiceFromSrc, isBranded, isPlayableSrc} from 'services/mediaServices';
+import {getServiceFromSrc, isPlayableSrc} from 'services/mediaServices';
 import lrclib from './lrclib';
 
 const logger = new Logger('lyrics');
@@ -10,12 +11,15 @@ const logger = new Logger('lyrics');
 const lyricsCache: Record<string, Lyrics | null> = {};
 
 export async function getLyrics(item: MediaItem): Promise<Lyrics | null> {
-    const src = item.src;
-    if (!isPlayableSrc(src, true)) {
+    const service = getServiceFromSrc(item);
+    if (service?.lyricsDisabled) {
         throw new LyricsNotAvailableError();
     }
-    const service = getServiceFromSrc(item);
-    if (service && isBranded(service)) {
+    if (item.linearType && item.linearType !== LinearType.MusicTrack) {
+        throw new LyricsNotAvailableError();
+    }
+    const src = item.src;
+    if (!isPlayableSrc(src, true)) {
         throw new LyricsNotAvailableError();
     }
     if (lyricsCache[src] === undefined) {

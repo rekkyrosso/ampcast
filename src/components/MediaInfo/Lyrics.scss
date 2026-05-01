@@ -22,6 +22,14 @@
                 margin-top: 1em;
             }
         }
+
+        & + p {
+            font-style: italic;
+            font-size: 0.75em;
+            position: absolute;
+            bottom: -3em;
+            left: 0;
+        }
     }
 
     .error-box {

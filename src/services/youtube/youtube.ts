@@ -47,6 +47,7 @@ const youtube: PublicMediaService = {
     serviceType: ServiceType.PublicMedia,
     primaryMediaType: MediaType.Video,
     Components: {Credentials, Login},
+    lyricsDisabled: true,
     internetRequired: true,
     get credentialsLocked(): boolean {
         return youtubeSettings.credentialsLocked;

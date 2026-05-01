@@ -33,6 +33,7 @@ type BaseMediaService = Auth & {
     readonly credentialsRequired?: boolean;
     readonly credentialsUrl?: string;
     readonly defaultNoScrobble?: boolean;
+    readonly lyricsDisabled?: boolean;
     readonly icons?: Partial<Record<LibraryAction, IconName>>;
     readonly labels?: Partial<Record<LibraryAction, string>>;
     readonly editablePlaylists?: MediaSource<MediaPlaylist>;

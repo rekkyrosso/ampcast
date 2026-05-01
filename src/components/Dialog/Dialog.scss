@@ -60,10 +60,6 @@
         }
     }
 
-    .close-button {
-        margin: 0 0.375em 0 auto;
-    }
-
     &-body {
         @include effects.inset;
         position: relative;

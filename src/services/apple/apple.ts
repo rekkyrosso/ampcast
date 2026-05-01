@@ -54,6 +54,7 @@ const apple: PublicMediaService = {
         return appleSettings.credentialsLocked;
     },
     credentialsRequired: true,
+    lyricsDisabled: true,
     root: appleSearch,
     sources: appleSources,
     icons: {

@@ -1,7 +1,5 @@
 export {default} from './Button';
 export * from './Button';
-export {default as CloseButton} from './CloseButton';
-export * from './CloseButton';
 export {default as CopyButton} from './CopyButton';
 export * from './CopyButton';
 export {default as IconButton} from './IconButton';

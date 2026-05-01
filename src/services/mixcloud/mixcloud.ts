@@ -10,6 +10,7 @@ const mixcloud: PublicMediaService = {
     url: 'https://www.mixcloud.com',
     serviceType: ServiceType.PublicMedia,
     defaultNoScrobble: true,
+    lyricsDisabled: true,
     iframeAudioPlayback: {
         // Mixcloud player shows mainly interactive content.
         // Use CoverArt visualizer instead.

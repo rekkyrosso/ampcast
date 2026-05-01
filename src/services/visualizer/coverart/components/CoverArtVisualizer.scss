@@ -229,7 +229,7 @@
         .title {
             @include effects.line-clamp(3);
             font-size: max(1em, 10px);
-            line-height: 1.2;
+            line-height: 1.25;
         }
 
         .sub-title {

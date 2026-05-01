@@ -1,4 +1,4 @@
-.close-button {
+.dialog .close-button {
     --amb-elevation: 0;
     --amb-light-hue: 0;
     --amb-light-saturation: 67%;
@@ -12,6 +12,7 @@
     width: 1.25em;
     height: 1.25em;
     color: white;
+    margin: 0 0.375em 0 auto;
     padding: 0;
     border: 1px solid var(--black);
     border-radius: var(--app-border-radius);

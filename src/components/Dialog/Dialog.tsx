@@ -2,9 +2,9 @@ import React, {useCallback, useEffect, useImperativeHandle, useRef, useState} fr
 import {Subscription, fromEvent} from 'rxjs';
 import {Except} from 'type-fest';
 import {clamp, preventDefault, stopPropagation} from 'utils';
-import {CloseButton} from 'components/Button';
 import {IconName} from 'components/Icon';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
+import CloseButton from './CloseButton';
 import './Dialog.scss';
 
 export interface DialogProps extends Except<
@@ -139,7 +139,7 @@ export default function Dialog({
         >
             <header className="dialog-head buttons-convex" onMouseDown={handleDragStart}>
                 <h2>{icon ? <MediaSourceLabel icon={icon} text={title} /> : title}</h2>
-                <CloseButton onClick={close} />
+                <CloseButton close={close} />
             </header>
             <div className="dialog-body" onMouseDown={stopPropagation} onClick={handleBodyClick}>
                 {children}

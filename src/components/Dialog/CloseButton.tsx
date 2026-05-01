@@ -1,20 +1,22 @@
 import React from 'react';
 import {stopPropagation} from 'utils';
 import Icon from 'components/Icon';
-import Button, {ButtonProps} from './Button';
 import './CloseButton.scss';
 
-export default function CloseButton(props: ButtonProps) {
+export interface CloseButtonProps {
+    close: () => void;
+}
+
+export default function CloseButton({close}: CloseButtonProps) {
     return (
-        <Button
-            {...props}
-            className="close-button"
-            type="button"
+        <div
+            className="close-button button"
+            role="button"
             aria-label="Close"
-            tabIndex={-1}
+            onClick={close}
             onMouseDown={stopPropagation}
         >
             <Icon name="close" />
-        </Button>
+        </div>
     );
 }

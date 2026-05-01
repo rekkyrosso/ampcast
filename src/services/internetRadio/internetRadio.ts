@@ -21,6 +21,7 @@ const internetRadio: PublicMediaService = {
     icon: serviceId,
     url: '',
     serviceType: ServiceType.PublicMedia,
+    lyricsDisabled: true,
     root: radioBrowserInfoSearch,
     sources: internetRadioSources,
     Components: {CreateStationDialog, EditStationDialog, ManageStations},
