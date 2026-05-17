@@ -200,6 +200,10 @@ function TrackScrobblingOptions({track, noScrobbleReason}: TrackScrobblingOption
 }
 
 export function updateScrobbleData(item: PlaylistItem, values: ScrobbleData): void {
+    dispatchMetadataChanges({
+        match: (object) => object.src === item.src,
+        values,
+    });
     if (item.linearType && playback.currentItem?.id === item.id) {
         // Update playback metadata for radio tracks.
         if (miniPlayer.active) {
@@ -208,10 +212,6 @@ export function updateScrobbleData(item: PlaylistItem, values: ScrobbleData): vo
             playback.currentItem = {...playback.currentItem, ...values};
         }
     } else {
-        dispatchMetadataChanges({
-            match: (object) => object.src === item.src,
-            values,
-        });
         if (isMiniPlayer) {
             miniPlayerRemote.onScrobbleDataChange(item.src, values);
         }

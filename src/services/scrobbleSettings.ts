@@ -196,7 +196,7 @@ export function getNoScrobbleReasonText<T extends MediaItem>(
             return 'Not enough metadata to scrobble this track';
 
         case NoScrobbleReason.MetadataNotVerified:
-            return 'This track could not be identified';
+            return 'This track could not be verified';
 
         case NoScrobbleReason.DisabledByService:
             return service
