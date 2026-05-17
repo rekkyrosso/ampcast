@@ -5,7 +5,11 @@ import UserData from 'types/UserData';
 
 type TransientData = Pick<
     PlaylistItem,
-    'lookupStatus' | 'startTime' | 'playlistItemId' | 'isFavoriteStation' | 'nanoId'
+    | 'lookupStatus'
+    | 'startTime'
+    | 'playlistItemId'
+    | 'isFavoriteStation'
+    | 'nanoId'
 >;
 
 const userDataKeys: (keyof UserData | keyof ListenData | keyof TransientData)[] = [
@@ -21,7 +25,9 @@ const userDataKeys: (keyof UserData | keyof ListenData | keyof TransientData)[] 
     'sessionId',
     'lookupStatus',
     'startTime',
+    'endedAt',
     'playlistItemId',
+    'isFavoriteStation',
     'nanoId',
 ];
 
@@ -29,7 +35,7 @@ export function removeUserData<T extends Partial<MediaItem>>(item: T): Subtract<
     const keys = Object.keys(item) as (keyof T)[];
     return keys.reduce(
         (result, key) => {
-            if (item[key] !== undefined && !userDataKeys.includes(key as any)) {
+            if (!userDataKeys.includes(key as any)) {
                 (result as any)[key] = item[key];
             }
             return result;

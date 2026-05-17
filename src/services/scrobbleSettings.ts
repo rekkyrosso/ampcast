@@ -1,75 +1,52 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, distinctUntilChanged, map} from 'rxjs';
+import {distinctUntilChanged, map} from 'rxjs';
 import LinearType from 'types/LinearType';
 import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
-import MediaServiceId from 'types/MediaServiceId';
-import ScrobbleData from 'types/ScrobbleData';
+import MediaServiceId, {ScrobblerId} from 'types/MediaServiceId';
+import NoScrobbleReason from 'types/NoScrobbleReason';
 import {LiteStorage, uniq} from 'utils';
 import {getService, getServiceFromSrc} from 'services/mediaServices';
+import {
+    isScrobblingEnabled,
+    isServiceVisible,
+    isSourceVisible,
+} from 'services/mediaServices/servicesSettings';
 
-export interface ScrobblingOptions {
+export interface ScrobblerOptions {
     scrobbledAt: 'playedAt' | 'endedAt';
     updateNowPlaying: boolean;
 }
 
-type BooleanSettings = Record<string, boolean | undefined>;
-type NoScrobbleSettings = Record<string, BooleanSettings | undefined>;
-type ScrobblingOptionsSettings = Record<string, ScrobblingOptions | undefined>;
+type NoScrobbleSettings = Record<
+    ScrobblerId,
+    Record<MediaServiceId, boolean | undefined> | undefined
+>;
+type ScrobblerOptionsSettings = Record<ScrobblerId, ScrobblerOptions | undefined>;
 
 const storage = new LiteStorage('scrobbling');
-const noScrobble$ = new BehaviorSubject<NoScrobbleSettings>(storage.getJson('noScrobble', {}));
-const options$ = new BehaviorSubject<ScrobblingOptionsSettings>(storage.getJson('options', {}));
+
+export function observeScrobbleSettingsChange(): Observable<void> {
+    return storage.observeChange();
+}
 
 export function canScrobbleRadio(src: string): boolean {
     const srcs = storage.getJson<string[]>('noScrobbleRadios', []);
     return !srcs.includes(src);
 }
 
-export function canScrobbleService(scrobblerId: MediaServiceId, service: MediaService): boolean {
-    const settings = noScrobble$.value;
+export function canScrobbleService(scrobblerId: ScrobblerId, service: MediaService): boolean {
+    const settings = storage.getJson<NoScrobbleSettings>('noScrobble', {} as NoScrobbleSettings);
     const scrobblerSettings = settings[scrobblerId];
-    return !(scrobblerSettings?.[service.id] ?? service.defaultNoScrobble);
+    // Why do we need to cast `service.id` to `MediaServiceId`?
+    return !(scrobblerSettings?.[service.id as MediaServiceId] ?? service.defaultNoScrobble);
 }
 
-export function canScrobbleTrack(scrobblerId: MediaServiceId, item: MediaItem | null): boolean {
-    if (!item) {
-        return false;
-    }
-    const {title, artist} = getScrobbleData(item);
-    const duration = item.duration;
-    if (!title || !artist || (duration && duration < 30)) {
-        // Basic last.fm/ListenBrainz scrobbling rules.
-        return false;
-    }
-    const service = getServiceFromSrc(item);
-    if (service && !canScrobbleService(scrobblerId, service)) {
-        // Scrobbling is disabled for this media service.
-        return false;
-    }
-    if (item.linearType) {
-        if (item.linearType !== LinearType.MusicTrack) {
-            // This is a radio station/show/ad and can't be scrobbled.
-            return false;
-        }
-        if (item.stationSrc) {
-            if (item.stationSrc.startsWith('http')) {
-                const internetRadio = getService('internet-radio');
-                if (internetRadio && !canScrobbleService(scrobblerId, internetRadio)) {
-                    // Scrobbling of any internet radio is disabled.
-                    return false;
-                }
-            }
-            if (!canScrobbleRadio(item.stationSrc)) {
-                // Scrobbling of this radio station is disabled.
-                return false;
-            }
-        }
-    }
-    return !getNoScrobbleTrack(item.src);
+export function canScrobbleTrack(scrobblerId: ScrobblerId, item: MediaItem | null): boolean {
+    return item ? getNoScrobbleReason(item, scrobblerId) === NoScrobbleReason.None : false;
 }
 
-export function getScrobbleData(item: MediaItem): ScrobbleData {
+export function getScrobbleAs(item: MediaItem): NonNullable<MediaItem['scrobbleAs']> {
     const scrobbleAs = item.scrobbleAs;
     const title = scrobbleAs?.title || item.title;
     const artist = scrobbleAs?.artist || item.artists?.[0] || '';
@@ -78,15 +55,14 @@ export function getScrobbleData(item: MediaItem): ScrobbleData {
 }
 
 export function setNoScrobbleService(
-    scrobblerId: MediaServiceId,
+    scrobblerId: ScrobblerId,
     updates: Record<string, boolean>
 ): void {
-    const settings = noScrobble$.value;
+    const settings = storage.getJson<NoScrobbleSettings>('noScrobble', {} as NoScrobbleSettings);
     const scrobblerSettings = settings[scrobblerId];
     const newScrobblerSettings = {...scrobblerSettings, ...updates};
     const newSettings = {...settings, ...{[scrobblerId]: newScrobblerSettings}};
     storage.setJson('noScrobble', newSettings);
-    noScrobble$.next(newSettings);
 }
 
 export function setNoScrobbleRadio(src: string, noScrobble: boolean): void {
@@ -97,52 +73,156 @@ export function setNoScrobbleRadio(src: string, noScrobble: boolean): void {
     storage.setJson('noScrobbleRadios', nextSrcs);
 }
 
-export function getNoScrobbleTrack(src: string): boolean {
-    const srcs = storage.getJson<string[]>('noScrobbleTracks', []);
-    return srcs.includes(src);
-}
-
-export function setNoScrobbleTrack(src: string, noScrobble: boolean): void {
-    const prevSrcs = storage.getJson<string[]>('noScrobbleTracks', []);
-    const nextSrcs = noScrobble
-        ? uniq(prevSrcs.concat(src))
-        : prevSrcs.filter((prevSrc) => prevSrc !== src);
-    storage.setJson('noScrobbleTracks', nextSrcs);
-}
-
-export function getNoScrobbleTracks(): readonly string[] {
-    return storage.getJson('noScrobbleTracks', []);
-}
-
-export function setNoScrobbleTracks(srcs: readonly string[]): void {
-    storage.setJson('noScrobbleTracks', srcs);
-}
-
-export function canUpdateNowPlaying(scrobblerId: MediaServiceId): boolean {
-    const settings = options$.value;
+export function canUpdateNowPlaying(scrobblerId: ScrobblerId): boolean {
+    const settings = storage.getJson('options', {} as ScrobblerOptionsSettings);
     return settings[scrobblerId]?.updateNowPlaying ?? true;
 }
 
-export function observeCanUpdateNowPlaying(scrobblerId: MediaServiceId): Observable<boolean> {
-    return options$.pipe(
+export function observeCanUpdateNowPlaying(scrobblerId: ScrobblerId): Observable<boolean> {
+    return observeScrobbleSettingsChange().pipe(
+        map(() => storage.getJson('options', {} as ScrobblerOptionsSettings)),
         map((options) => options[scrobblerId]?.updateNowPlaying ?? true),
         distinctUntilChanged()
     );
 }
 
-export function getScrobbledAt(scrobblerId: MediaServiceId): ScrobblingOptions['scrobbledAt'] {
-    const settings = options$.value;
+export function getScrobbledAt(scrobblerId: ScrobblerId): ScrobblerOptions['scrobbledAt'] {
+    const settings = storage.getJson('options', {} as ScrobblerOptionsSettings);
     return settings[scrobblerId]?.scrobbledAt ?? 'playedAt';
 }
 
 export function updateScrobblingOptions(
-    scrobbler: MediaService,
-    options: Partial<ScrobblingOptions>
+    scrobblerId: ScrobblerId,
+    options: Partial<ScrobblerOptions>
 ): void {
-    const settings = options$.value;
-    const scrobblerSettings = settings[scrobbler.id];
+    const settings = storage.getJson('options', {} as ScrobblerOptionsSettings);
+    const scrobblerSettings = settings[scrobblerId];
     const newScrobblerSettings = {...scrobblerSettings, ...options};
-    const newSettings = {...settings, ...{[scrobbler.id]: newScrobblerSettings}};
+    const newSettings = {...settings, ...{[scrobblerId]: newScrobblerSettings}};
     storage.setJson('options', newSettings);
-    options$.next(newSettings);
+}
+
+export function getNoScrobbleReason<T extends MediaItem>(
+    item: T,
+    scrobblerId?: ScrobblerId
+): NoScrobbleReason {
+    if (!isScrobblingEnabled()) {
+        return NoScrobbleReason.ScrobblingDisabled;
+    }
+    if (scrobblerId && !isServiceVisible(scrobblerId)) {
+        return NoScrobbleReason.ScrobblingDisabled;
+    }
+    // Return the least fixable ones first.
+    const duration = item.duration;
+    if (duration && duration < 30) {
+        return NoScrobbleReason.TooShort;
+    }
+    if (
+        item.linearType &&
+        item.linearType !== LinearType.MusicTrack &&
+        item.linearType !== LinearType.Show
+    ) {
+        return NoScrobbleReason.InvalidType;
+    }
+    if (item.scrobbleOverride !== 'scrobble') {
+        const service = getItemService(item);
+        if (service) {
+            if (scrobblerId) {
+                if (!canScrobbleService(scrobblerId, service)) {
+                    return NoScrobbleReason.DisabledByService;
+                }
+            } else {
+                const lastfm = getService('lastfm');
+                const listenbrainz = getService('listenbrainz');
+                if (lastfm && isSourceVisible(lastfm)) {
+                    if (listenbrainz && isSourceVisible(listenbrainz)) {
+                        if (
+                            !canScrobbleService(lastfm.id, service) &&
+                            !canScrobbleService(listenbrainz.id, service)
+                        ) {
+                            return NoScrobbleReason.DisabledByService;
+                        }
+                    } else if (!canScrobbleService(lastfm.id, service)) {
+                        return NoScrobbleReason.DisabledByService;
+                    }
+                } else if (
+                    listenbrainz &&
+                    isSourceVisible(listenbrainz) &&
+                    !canScrobbleService(listenbrainz.id, service)
+                ) {
+                    return NoScrobbleReason.DisabledByService;
+                }
+            }
+        }
+        if (item.linearType && item.stationSrc && !canScrobbleRadio(item.stationSrc)) {
+            return NoScrobbleReason.DisabledByStation;
+        }
+    }
+    const {title, artist} = getScrobbleAs(item);
+    if (!title || !artist) {
+        return NoScrobbleReason.NotEnoughMetadata;
+    }
+    if (item.linearType === LinearType.Show) {
+        return NoScrobbleReason.MetadataNotVerified;
+    }
+    if (item.scrobbleOverride === 'no-scrobble') {
+        return NoScrobbleReason.DisabledByTrack;
+    }
+    return NoScrobbleReason.None;
+}
+
+export function getNoScrobbleReasonText<T extends MediaItem>(
+    reason: NoScrobbleReason,
+    item: T
+): string {
+    const service = getItemService(item);
+    switch (reason) {
+        case NoScrobbleReason.None:
+            return '';
+
+        case NoScrobbleReason.ScrobblingDisabled:
+            return 'Scrobbling is disabled';
+
+        case NoScrobbleReason.TooShort:
+            return 'This track is too short to be scrobbled';
+
+        case NoScrobbleReason.TooLong:
+            return 'This track is too long to be scrobbled';
+
+        case NoScrobbleReason.InvalidType:
+            return 'This item cannot be scrobbled';
+
+        case NoScrobbleReason.NotEnoughMetadata:
+            return 'Not enough metadata to scrobble this track';
+
+        case NoScrobbleReason.MetadataNotVerified:
+            return 'This track could not be identified';
+
+        case NoScrobbleReason.DisabledByService:
+            return service
+                ? `Scrobbling is disabled for ${service.name}`
+                : 'Scrobbling is disabled';
+
+        case NoScrobbleReason.DisabledByStation:
+            return item.stationName
+                ? `Scrobbling is disabled for '${item.stationName}'`
+                : 'Scrobbling is disabled for this station';
+
+        case NoScrobbleReason.DisabledByTrack:
+            return 'Scrobbling is disabled for this track';
+    }
+}
+
+function getItemService(item: MediaItem): MediaService | undefined {
+    let service = getServiceFromSrc(item);
+    if (!service && item.linearType) {
+        if (item.linearType === LinearType.Station) {
+            if (item.src.startsWith('http')) {
+                service = getService('internet-radio');
+            }
+        } else if (item.stationSrc?.startsWith('http')) {
+            service = getService('internet-radio');
+        }
+    }
+    return service;
 }

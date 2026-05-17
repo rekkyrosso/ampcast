@@ -1,6 +1,6 @@
 import {EMPTY, debounceTime, filter, map, mergeMap, switchMap, takeUntil, timer} from 'rxjs';
 import Listen from 'types/Listen';
-import {findScrobble, observeListens, updateListens} from 'services/localdb/listens';
+import {findScrobble, observeUnscrobbled, updateListens} from 'services/localdb/listens';
 import {observePlaybackEnd, observePlaybackStart} from 'services/mediaPlayback/playback';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {canScrobbleTrack, observeCanUpdateNowPlaying} from 'services/scrobbleSettings';
@@ -39,21 +39,20 @@ export function scrobble(): void {
 
     observeIsLoggedIn()
         .pipe(
-            switchMap((isLoggedIn) => (isLoggedIn ? observeListens() : EMPTY)),
-            map((items) => items.filter((item) => !item.listenbrainzScrobbledAt)),
+            switchMap((isLoggedIn) => (isLoggedIn ? observeUnscrobbled('listenbrainz') : EMPTY)),
             debounceTime(10_000),
             mergeMap((items) => scrobble(items))
         )
         .subscribe(logger);
 
-    async function scrobble(listens: Listen[]): Promise<void> {
+    async function scrobble(listens: readonly Listen[]): Promise<void> {
         try {
             // Only scrobble listens that originated in this window.
             // Or old unscrobbled items.
             const oneHourAgo = Math.floor(Date.now() / 1000) - 3600;
             listens = listens.filter(
                 (listen) =>
-                    !listen.listenbrainzScrobbledAt &&
+                    canScrobbleTrack('listenbrainz', listen) &&
                     (listen.sessionId === session.id || oneHourAgo > listen.playedAt)
             );
             if (listens.length === 0) {
@@ -71,19 +70,28 @@ export function scrobble(): void {
             };
             const pager = new ListenBrainzHistoryPager('listens', params, undefined, {maxSize});
             const history = await fetchFirstPage(pager);
-            const [ignore, unscrobbled] = partition(
+            const scrobbledAt = Math.floor(Date.now() / 1000);
+            const [unscrobbled, scrobbled] = partition(
                 listens,
-                (listen) =>
-                    !canScrobbleTrack('listenbrainz', listen) || !!findScrobble(history, listen)
+                (listen) => !findScrobble(history, listen)
             );
-            await updateListens(ignore.map((item) => ({...item, listenbrainzScrobbledAt: -1})));
+            if (scrobbled.length > 0) {
+                await updateListens(
+                    scrobbled.map((item) => ({
+                        playedAt: item.playedAt,
+                        listenbrainzScrobbledAt: item.endedAt || scrobbledAt,
+                    }))
+                );
+            }
             if (unscrobbled.length > 0) {
                 unscrobbled.reverse();
                 unscrobbled.length = Math.min(unscrobbled.length, maxScrobbles);
                 await listenbrainzApi.scrobble(unscrobbled);
-                const listenbrainzScrobbledAt = Math.floor(Date.now() / 1000);
                 await updateListens(
-                    unscrobbled.map((item) => ({...item, listenbrainzScrobbledAt}))
+                    unscrobbled.map((item) => ({
+                        playedAt: item.playedAt,
+                        listenbrainzScrobbledAt: scrobbledAt,
+                    }))
                 );
             }
         } catch (err) {

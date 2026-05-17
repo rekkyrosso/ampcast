@@ -92,9 +92,6 @@ export function createMediaItemFromTrack(
         return isNaN(value) ? undefined : value;
     };
     album = album || (parent as MediaAlbum);
-    if (album?.title === '' || album?.title === '[Unknown Album]') {
-        album = undefined;
-    }
 
     return {
         src: getSrc('audio', track),
@@ -112,7 +109,7 @@ export function createMediaItemFromTrack(
               ? [album.artist]
               : undefined,
         albumArtist: album?.artist,
-        album: album?.title,
+        album: album?.title === '[Unknown Album]' ? undefined : album?.title || undefined,
         duration: track.duration / 1000,
         track: track.index,
         disc: track.parentIndex,

@@ -3,7 +3,6 @@ import ItemType from './ItemType';
 import LinearType from './LinearType';
 import MediaType from './MediaType';
 import PlaybackType from './PlaybackType';
-import ScrobbleData from './ScrobbleData';
 
 export default interface MediaItem extends BaseMediaObject {
     readonly itemType: ItemType.Media;
@@ -73,8 +72,13 @@ export default interface MediaItem extends BaseMediaObject {
         readonly name: string;
         readonly url?: string;
     };
-    // Alternative scrobble data.
-    readonly scrobbleAs?: ScrobbleData;
+    // Scrobbling.
+    readonly scrobbleAs?: {
+        readonly title: string;
+        readonly artist: string;
+        readonly album?: string;
+    };
+    readonly scrobbleOverride?: 'scrobble' | 'no-scrobble';
     // For last.fm/ListenBrainz: (partial) link to original source (if any).
     readonly link?: {
         readonly src: string;

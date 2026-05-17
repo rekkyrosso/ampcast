@@ -4,12 +4,17 @@
     --am-color: hsla(from currentColor h s l / var(--am-alpha));
     --pm-color: hsla(from currentColor h s l / var(--pm-alpha));
 
+    .light & {
+        --am-color: hsla(from currentColor h s l / calc(100% - var(--am-alpha)));
+        --pm-color: hsla(from currentColor h s l / calc(100% - var(--pm-alpha)));
+    }
+
     display: inline-block;
     width: 1em;
     height: 1em;
     margin-right: 0.1875em;
     background-image: linear-gradient(180deg, var(--am-color) 50%, var(--pm-color) 50%);
     border-radius: 50%;
-    border: 0.125em solid;
+    border: 0.0625em solid;
     aspect-ratio: 1;
 }

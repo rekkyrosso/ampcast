@@ -6,7 +6,7 @@ import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {Logger, chunk, getMediaObjectId, partition} from 'utils';
 import {dispatchMetadataChanges} from 'services/metadata';
-import {canScrobbleTrack, getScrobbledAt, getScrobbleData} from 'services/scrobbleSettings';
+import {canScrobbleTrack, getScrobbledAt, getScrobbleAs} from 'services/scrobbleSettings';
 import {getService} from 'services/mediaServices';
 import listenbrainzSettings from './listenbrainzSettings';
 
@@ -471,7 +471,7 @@ export class ListenBrainzApi {
                 }
             }
         }
-        const {title, artist, album} = getScrobbleData(item);
+        const {title, artist, album} = getScrobbleAs(item);
         const params: Mutable<ListenBrainz.ListenMetadata> = {
             track_name: title,
             artist_name: artist,

@@ -1,0 +1,25 @@
+.localdb-browser {
+    .scrobble-status {
+        padding-right: 0;
+    }
+
+    .scrobbling-options {
+        display: none;
+
+        .button {
+            padding: 0 0.5em;
+        }
+    }
+
+    &:has(.options[data-selected-id="localdb/lastfm/unscrobbled"]) {
+        .scrobbling-options.lastfm {
+            display: flex;
+        }
+    }
+
+    &:has(.options[data-selected-id="localdb/listenbrainz/unscrobbled"]) {
+        .scrobbling-options.listenbrainz {
+            display: flex;
+        }
+    }
+}

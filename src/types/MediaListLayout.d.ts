@@ -37,7 +37,8 @@ export type Field =
     | 'Container'
     | 'Thumbnail'
     | 'Rating'
-    | 'Progress';
+    | 'Progress'
+    | 'ScrobbleStatus';
 
 export interface CardView {
     readonly index?: 'Index' | 'Track' | 'Position';

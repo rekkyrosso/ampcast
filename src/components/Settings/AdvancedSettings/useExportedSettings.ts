@@ -29,7 +29,11 @@ export default function useExportedSettings(): readonly BackupEntry<keyof Backup
         const visualizerFavorites: Backup['visualizerFavorites'] = visualizerStore.getFavorites();
         const listens: Backup['listens'] = getListens().map((listen) => {
             if (!listen.lastfmScrobbledAt || !listen.listenbrainzScrobbledAt) {
-                return {...listen, lastfmScrobbledAt: -1, listenbrainzScrobbledAt: -1};
+                return {
+                    ...listen,
+                    lastfmScrobbledAt: listen.lastfmScrobbledAt || -1,
+                    listenbrainzScrobbledAt: listen.listenbrainzScrobbledAt - 1,
+                };
             }
             return listen;
         });
@@ -122,7 +126,6 @@ function getServicesLocalStorage(): Record<string, string> {
     const keys = [
         'scrobbling/noScrobble',
         'scrobbling/noScrobbleRadios',
-        'scrobbling/noScrobbleTracks',
         'scrobbling/options',
         'services/hidden',
         'services/sorting',

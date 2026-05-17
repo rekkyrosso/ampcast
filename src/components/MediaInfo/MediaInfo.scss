@@ -78,6 +78,7 @@
         display: flex;
         margin-top: 0.5em;
         gap: 0.25em;
+        overflow-wrap: anywhere;
 
         .text-label {
             white-space: nowrap;
@@ -146,16 +147,9 @@
     }
 
     .scrobbling-options {
-        display: flex;
-        flex-direction: row;
-        align-items: center;
         margin-top: 1.5em;
         border-top: 1px solid;
         padding-top: 1.5em;
         font-size: 0.75em;
-
-        .button {
-            margin-left: auto;
-        }
     }
 }

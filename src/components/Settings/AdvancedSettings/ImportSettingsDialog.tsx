@@ -4,7 +4,7 @@ import BackupFile from 'types/BackupFile';
 import Listen from 'types/Listen';
 import {Logger} from 'utils';
 import {audioSettings} from 'services/audio';
-import {updateListens} from 'services/localdb/listens';
+import {addListens} from 'services/localdb/listens';
 import playlists from 'services/localdb/playlists';
 import pinStore from 'services/pins/pinStore';
 import preferences from 'services/preferences';
@@ -67,9 +67,10 @@ export default function ImportSettingsDialog({backup, ...props}: ImportSettingsD
                 Object.assign(visualizerSettings, backup.visualizerSettings);
             }
             if (backup.listens?.length) {
-                await updateListens(
+                await addListens(
                     backup.listens.map((item: Writable<Listen>) => {
                         // These fields may be in old backup data.
+                        // version 0.9.22
                         delete item.unplayable;
                         delete item.blobUrl;
                         return item;

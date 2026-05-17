@@ -3,6 +3,10 @@
     align-items: flex-end;
     font-size: 0.875em;
 
+    &[hidden] {
+        display: none;
+    }
+
     ul {
         margin-left: auto;
         margin-right: auto;

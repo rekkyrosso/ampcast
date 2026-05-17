@@ -31,7 +31,6 @@ import {
 } from 'services/lookup';
 import {observeMetadataChanges, removeUserData} from 'services/metadata';
 import fetchAllTracks from 'services/pagers/fetchAllTracks';
-import {getNoScrobbleTracks, setNoScrobbleTracks} from 'services/scrobbleSettings';
 import playlistStore from './playlistStore';
 
 const logger = new Logger('playlist');
@@ -190,9 +189,10 @@ export async function injectAt(items: PlayableType, index: number): Promise<void
     if (additions.length > 0) {
         const newItems = additions.map((item) => ({
             ...removeUserData(item),
+            id: nanoid(),
             linearType: item.linearType === LinearType.Station ? item.linearType : undefined,
             playbackType: isDerivedPlaybackType(item) ? undefined : item.playbackType,
-            id: nanoid(),
+            scrobbleOverride: undefined
         }));
         if (index >= 0 && index < all.length) {
             // insert
@@ -454,19 +454,6 @@ if (isMiniPlayer) {
                 if (changed) {
                     setItems(items);
                 }
-            })
-        )
-        .subscribe(logger);
-
-    // Remove expired `noScrobbleTracks`.
-    observe()
-        .pipe(
-            debounceTime(500),
-            tap((items) => {
-                const playlistSrcs = new Set(items.map((item) => item.src));
-                const prevSrcs = getNoScrobbleTracks();
-                const nextSrcs = prevSrcs.filter((src) => playlistSrcs.has(src));
-                setNoScrobbleTracks(nextSrcs);
             })
         )
         .subscribe(logger);

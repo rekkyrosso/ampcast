@@ -1,15 +1,15 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, filter, fromEvent} from 'rxjs';
+import {BehaviorSubject, filter, fromEvent, map, merge} from 'rxjs';
 import Dexie, {liveQuery} from 'dexie';
 import LinearType from 'types/LinearType';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import PlaybackState from 'types/PlaybackState';
-import PlaylistItem from 'types/PlaylistItem';
+import {ScrobblerId} from 'types/MediaServiceId';
 import {Logger, fuzzyCompare} from 'utils';
 import {findBestMatch, removeUserData} from 'services/metadata';
 import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
-import {canScrobbleTrack} from 'services/scrobbleSettings';
+import {observeScrobbleSettingsChange} from 'services/scrobbleSettings';
 import session from 'services/session';
 
 const logger = new Logger('localdb/listens');
@@ -61,17 +61,10 @@ export function observeListens(): Observable<readonly Listen[]> {
     return listens$.pipe(filter((items) => items !== UNINITIALIZED));
 }
 
-function isListen(item: PlaylistItem): boolean {
-    switch (item.linearType) {
-        case undefined:
-        case LinearType.OnDemand:
-        case LinearType.Station:
-        case LinearType.MusicTrack:
-            return true;
-
-        default:
-            return false;
-    }
+export function observeUnscrobbled(scrobblerId: ScrobblerId): Observable<readonly Listen[]> {
+    return merge(observeListens(), observeScrobbleSettingsChange()).pipe(
+        map(() => getListens().filter((item) => item[`${scrobblerId}ScrobbledAt`] === 0))
+    );
 }
 
 export function isListenedTo(duration: number, startedAt: number, endedAt: number): boolean {
@@ -88,18 +81,20 @@ export async function addListen(state: PlaybackState): Promise<void> {
         if (!item || !state.startedAt || !state.endedAt) {
             throw Error('Invalid playback state');
         }
-        if (isListen(item) && isListenedTo(item.duration, state.startedAt, state.endedAt)) {
-            item = await musicbrainzApi.addMetadata(item, {strictMatch: true});
+        if (isListenedTo(item.duration, state.startedAt, state.endedAt)) {
+            logger.log('add', item.src);
+            if (!item.linearType || item.linearType === LinearType.MusicTrack) {
+                item = await musicbrainzApi.addMetadata(item, {strictMatch: true});
+            }
             // eslint-disable-next-line @typescript-eslint/no-unused-vars
             const {id, blob, blobUrl, unplayable, ...listen} = removeUserData(item);
-            logger.log('add', item.src);
             await store.items.add({
                 ...listen,
                 sessionId: session.id,
                 playedAt: Math.floor(state.startedAt / 1000),
                 endedAt: Math.floor(state.endedAt / 1000),
-                lastfmScrobbledAt: canScrobbleTrack('lastfm', item) ? 0 : -1,
-                listenbrainzScrobbledAt: canScrobbleTrack('listenbrainz', item) ? 0 : -1,
+                lastfmScrobbledAt: 0,
+                listenbrainzScrobbledAt: 0,
             });
         }
     } catch (err) {
@@ -107,30 +102,17 @@ export async function addListen(state: PlaybackState): Promise<void> {
     }
 }
 
-export async function updateListens(items: readonly Listen[]): Promise<void> {
+export async function addListens(listens: readonly Listen[]): Promise<void> {
     try {
-        if (items.length > 0) {
-            await store.items.bulkPut(items);
+        // Dexie throws lots of errors if *all* of the additions are duplicates.
+        // So manually filter instead.
+        const existingKeys = new Set(getListens().map((listen) => listen.playedAt));
+        listens = listens.filter((listen) => !existingKeys.has(listen.playedAt));
+        if (listens.length > 0) {
+            await store.items.bulkAdd(listens);
         }
-    } catch (err) {
+    } catch (err: any) {
         logger.error(err);
-    }
-}
-
-export function findScrobble(
-    scrobbles: readonly MediaItem[],
-    listen: Listen,
-    timeFuzziness = 5
-): MediaItem | undefined {
-    const startTime = listen.playedAt - timeFuzziness;
-    const endTime = (listen.endedAt || listen.playedAt + listen.duration) + timeFuzziness;
-    for (const scrobble of scrobbles) {
-        const scrobbledAt = scrobble.playedAt;
-        if (scrobbledAt >= startTime && scrobbledAt <= endTime) {
-            if (matchTitle(listen, scrobble, 0.5)) {
-                return scrobble;
-            }
-        }
     }
 }
 
@@ -161,22 +143,75 @@ export function findListenByPlayedAt(item: MediaItem, timeFuzziness = 5): Listen
     }
 }
 
+export function findScrobble(
+    scrobbles: readonly MediaItem[],
+    listen: Listen,
+    timeFuzziness = 5
+): MediaItem | undefined {
+    const startTime = listen.playedAt - timeFuzziness;
+    const endTime = (listen.endedAt || listen.playedAt + listen.duration) + timeFuzziness;
+    for (const scrobble of scrobbles) {
+        const scrobbledAt = scrobble.playedAt;
+        if (scrobbledAt >= startTime && scrobbledAt <= endTime) {
+            if (matchTitle(listen, scrobble, 0.5)) {
+                return scrobble;
+            }
+        }
+    }
+}
+
 export function getListens(): readonly Listen[] {
     return listens$.value;
+}
+
+export function isListen(item: MediaItem): item is Listen {
+    return 'lastfmScrobbledAt' in item;
+}
+
+export function isRecentListen(item: MediaItem): boolean {
+    const twoWeeks = 2 * 7 * 24 * 60 * 60;
+    const twoWeeksAgo = Math.floor(Date.now() / 1000) - twoWeeks;
+    return isListen(item) && item.endedAt > twoWeeksAgo;
+}
+
+export async function updateListens(
+    updates: readonly (Pick<Listen, 'playedAt'> & Partial<Listen>)[]
+): Promise<void> {
+    try {
+        if (updates.length > 0) {
+            await store.transaction('rw', store.items, async () => {
+                const keys = updates.map((update) => update.playedAt);
+                await store.items
+                    .where('playedAt')
+                    .anyOf(keys)
+                    .modify((listen, ref) => {
+                        ref.value = {
+                            ...listen,
+                            ...updates.find((update) => update.playedAt === listen.playedAt),
+                        };
+                    });
+            });
+        }
+    } catch (err) {
+        logger.error(err);
+    }
 }
 
 function matchTitle(item: MediaItem, listen: MediaItem, tolerance?: number): boolean {
     return fuzzyCompare(item.title, listen.title, tolerance);
 }
 
-async function markExpired(serviceName: string): Promise<void> {
-    const scrobbledAt = `${serviceName}ScrobbledAt`;
-    const twoWeeks = 2 * 7 * 24 * 60 * 60;
-    const twoWeeksAgo = Math.floor(Date.now() / 1000) - twoWeeks;
+async function markExpired(scrobblerId: ScrobblerId): Promise<void> {
+    const scrobbledAt = `${scrobblerId}ScrobbledAt`;
     const unscrobbled = await store.items.where(scrobbledAt).equals(0).toArray();
-    await updateListens(
-        unscrobbled
-            .filter((item) => item.playedAt < twoWeeksAgo)
-            .map((item) => ({...item, [scrobbledAt]: -1}))
-    );
+    const expired = unscrobbled
+        .filter((listen) => !isRecentListen(listen))
+        .map((listen) => ({...listen, [scrobbledAt]: -1}));
+    try {
+        if (expired.length > 0) {
+            await store.items.bulkPut(expired);
+        }
+    } catch (err) {
+        logger.error(err);
+    }
 }

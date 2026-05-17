@@ -72,19 +72,19 @@ export type MediaMultiSource<T extends MediaObject = MediaObject> = Pick<
     | 'Component'
 > & {isPin?: false} & (T extends MediaAlbum
         ? {
-              readonly sources: readonly MediaSource<MediaAlbum>[];
+              readonly sources: readonly MediaSource<T>[];
           }
         : T extends MediaArtist
         ? {
-              readonly sources: readonly MediaSource<MediaArtist>[];
+              readonly sources: readonly MediaSource<T>[];
           }
         : T extends MediaItem
         ? {
-              readonly sources: readonly MediaSource<MediaItem>[];
+              readonly sources: readonly MediaSource<T>[];
           }
         : T extends MediaPlaylist
         ? {
-              readonly sources: readonly MediaSource<MediaPlaylist>[];
+              readonly sources: readonly MediaSource<T>[];
           }
         : {
               readonly sources: readonly (

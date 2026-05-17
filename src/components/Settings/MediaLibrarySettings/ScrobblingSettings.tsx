@@ -2,7 +2,7 @@ import React, {useCallback, useId, useMemo, useRef} from 'react';
 import DataService from 'types/DataService';
 import {getPlayableServices} from 'services/mediaServices';
 import {
-    ScrobblingOptions,
+    ScrobblerOptions,
     canScrobbleService,
     canUpdateNowPlaying,
     getScrobbledAt,
@@ -30,11 +30,11 @@ export default function ScrobblingSettings({service: scrobbler}: ScrobblingSetti
         }
         setNoScrobbleService(scrobbler.id, scrobbleSettings);
 
-        const scrobblingOptions: Partial<ScrobblingOptions> = {};
+        const scrobblingOptions: Partial<ScrobblerOptions> = {};
         scrobblingOptions.updateNowPlaying = updateNowPlayingRef.current!.checked;
         scrobblingOptions.scrobbledAt = scrobbledAtRef.current!
-            .value as ScrobblingOptions['scrobbledAt'];
-        updateScrobblingOptions(scrobbler, scrobblingOptions);
+            .value as ScrobblerOptions['scrobbledAt'];
+        updateScrobblingOptions(scrobbler.id, scrobblingOptions);
     }, [scrobbler]);
 
     return (
@@ -55,12 +55,12 @@ export default function ScrobblingSettings({service: scrobbler}: ScrobblingSetti
                     ))}
                 </ul>
             </fieldset>
-            <fieldset className="scrobbling-options">
+            <fieldset className="scrobbler-options">
                 <legend>Options</legend>
                 <p>
                     <label htmlFor={`${id}-scrobbled-at`}>Scrobble time:</label>
                     <select
-                        id={`${id}-scrobbling-options`}
+                        id={`${id}-scrobbled-at`}
                         defaultValue={getScrobbledAt(scrobbler.id)}
                         ref={scrobbledAtRef}
                     >

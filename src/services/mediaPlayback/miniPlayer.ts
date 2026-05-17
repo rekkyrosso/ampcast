@@ -126,10 +126,10 @@ const connect = (
                 break;
 
             case 'scrobble-data-change': {
-                const {src, scrobbleAs} = data;
+                const {src, values} = data;
                 dispatchMetadataChanges({
                     match: (object) => object.src === src,
-                    values: {scrobbleAs},
+                    values,
                 });
                 break;
             }
@@ -313,8 +313,8 @@ const setItem = (item: PlaylistItem | null): void => {
     setValue('item', safeMediaItem(item));
 };
 
-const setScrobbleData = (data: ScrobbleData): void => {
-    setValue('scrobble-data', data);
+const setScrobbleData = (values: ScrobbleData): void => {
+    setValue('scrobble-data', values);
 };
 
 const setValue = (name: string, value?: any): void => {

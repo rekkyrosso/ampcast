@@ -6,12 +6,14 @@ import './MediaSourceSelector.scss';
 
 export interface MediaSourceSelectorProps<T extends MediaObject> {
     sources: readonly MediaSource<T>[];
+    hidden?: boolean;
     withButtons?: boolean;
     onSourceChange?: (source: MediaSource<T>) => void;
 }
 
 export default function MediaSourceSelector<T extends MediaObject>({
     sources,
+    hidden,
     withButtons,
     onSourceChange,
 }: MediaSourceSelectorProps<T>) {
@@ -23,7 +25,11 @@ export default function MediaSourceSelector<T extends MediaObject>({
     }, [selectedSource, onSourceChange]);
 
     return (
-        <div className="media-source-selector options">
+        <div
+            className="media-source-selector options"
+            hidden={hidden}
+            data-selected-id={selectedSource?.id}
+        >
             <ul>
                 {sources.map((source, index) => (
                     <li key={source.id}>

@@ -1,5 +1,5 @@
-export default interface ScrobbleData {
-    readonly title: string;
-    readonly artist: string;
-    readonly album?: string;
-}
+import MediaItem from './MediaItem';
+
+type ScrobbleData = Pick<MediaItem, 'linearType' | 'scrobbleAs' | 'scrobbleOverride'>;
+
+export default ScrobbleData;

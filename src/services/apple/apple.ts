@@ -63,7 +63,7 @@ const apple: PublicMediaService = {
     },
     labels: {
         [Action.AddToLibrary]: 'Add to Apple Music Library',
-        [Action.RemoveFromLibrary]: 'Saved to Apple Music Library',
+        [Action.RemoveFromLibrary]: 'Remove from Apple Music Library',
     },
     editablePlaylists: appleEditablePlaylists,
     addMetadata,

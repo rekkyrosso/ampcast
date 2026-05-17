@@ -596,6 +596,13 @@ export default class SubsonicApi {
         return data.albumList2.album || [];
     }
 
+    private async getExtensionSupported(
+        extensionName: Subsonic.OpenSubsonicExtensionName
+    ): Promise<boolean> {
+        const extensions = await this.getOpenSubsonicExtensions();
+        return !!extensions[extensionName];
+    }
+
     private async getLyricsByArtistAndTitle(item: MediaItem): Promise<Lyrics | null> {
         const {artists: [artist = ''] = [], title} = item;
         if (artist && title) {
@@ -612,6 +619,10 @@ export default class SubsonicApi {
         if (!this.openSubsonic) {
             throw Error('Not supported');
         }
+        const isSupported = await this.getExtensionSupported('songLyrics');
+        if (!isSupported) {
+            throw Error('Not supported');
+        }
         const id = getMediaObjectId(item);
         const data = await this.get<{lyricsList: Subsonic.LyricsList}>('getLyricsBySongId', {id});
         const lyrics = data.lyricsList.structuredLyrics?.filter((lyrics) => lyrics.synced)[0];
@@ -621,8 +632,8 @@ export default class SubsonicApi {
                 const synced: Lyrics['synced'] = lines.map((line, index) => {
                     const nextLine = lines[index + 1];
                     return {
-                        startTime: line.start,
-                        endTime: nextLine?.start || 0,
+                        startTime: (line.start || 0) / 1000,
+                        endTime: (nextLine?.start || 0) / 1000,
                         text: line.value || '',
                     };
                 });
@@ -633,5 +644,31 @@ export default class SubsonicApi {
             }
         }
         return null;
+    }
+
+    private openSubsonicExtensions:
+        | Record<Subsonic.OpenSubsonicExtensionName, boolean | undefined>
+        | undefined;
+
+    private async getOpenSubsonicExtensions(): Promise<Record<string, boolean | undefined>> {
+        if (!this.openSubsonicExtensions) {
+            this.openSubsonicExtensions = {} as Record<
+                Subsonic.OpenSubsonicExtensionName,
+                boolean | undefined
+            >;
+            try {
+                if (this.openSubsonic) {
+                    const data = await this.get<{
+                        openSubsonicExtensions: Subsonic.OpenSubsonicExtension[];
+                    }>('getOpenSubsonicExtensions');
+                    data.openSubsonicExtensions.forEach(
+                        (extension) => (this.openSubsonicExtensions![extension.name] = true)
+                    );
+                }
+            } catch (err) {
+                logger.error(err);
+            }
+        }
+        return this.openSubsonicExtensions;
     }
 }

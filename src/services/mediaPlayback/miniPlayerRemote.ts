@@ -55,9 +55,9 @@ const connect = (
         playlist.setItems(item ? [item] : []);
     };
 
-    const setScrobbleData = (scrobbleAs: ScrobbleData) => {
+    const setScrobbleData = (values: ScrobbleData) => {
         if (playback.currentItem) {
-            playback.currentItem = {...playback.currentItem, scrobbleAs};
+            playback.currentItem = {...playback.currentItem, ...values};
         }
     };
 
@@ -236,9 +236,9 @@ const next = (): void => {
     emitEvent('next');
 };
 
-const onScrobbleDataChange = (src: string, scrobbleAs: ScrobbleData): void => {
+const onScrobbleDataChange = (src: string, values: ScrobbleData): void => {
     logger.log('onScrobbleDataChange');
-    emitEvent('scrobble-data-change', {src, scrobbleAs});
+    emitEvent('scrobble-data-change', {src, values});
 };
 
 const emitEvent = (eventType: string, data?: any): void => {

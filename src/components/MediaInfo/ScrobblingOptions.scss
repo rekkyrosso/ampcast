@@ -1,0 +1,21 @@
+.scrobbling-options {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+
+    .status {
+        flex: auto;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        margin-right: 0.5em;
+    }
+
+    .button {
+        margin-left: auto;
+        flex: initial;
+
+        &.scrobble-as {
+            cursor: pointer;
+        }
+    }
+}

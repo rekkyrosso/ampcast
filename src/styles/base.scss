@@ -81,6 +81,7 @@ code {
 
 .page {
     @include effects.inset;
+    bottom: var(--gutter-width);
     padding: 1rem;
     border-radius: var(--app-border-radius);
     overflow: hidden;

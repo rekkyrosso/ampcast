@@ -106,6 +106,10 @@
         pointer-events: none;
     }
 
+    &:focus .list-view-row.selected .star-rating {
+        pointer-events: auto;
+    }
+
     .listen-date {
         .text {
             display: inline-flex;
@@ -121,10 +125,6 @@
         .icon {
             margin-right: 0.25em;
         }
-    }
-
-    &:focus .list-view-row.selected .star-rating {
-        pointer-events: auto;
     }
 
     .list-view-row {

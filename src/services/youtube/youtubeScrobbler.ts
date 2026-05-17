@@ -1,7 +1,7 @@
 import {EMPTY, distinctUntilChanged, filter, mergeMap, switchMap} from 'rxjs';
 import ItemType from 'types/ItemType';
+import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
-import ScrobbleData from 'types/ScrobbleData';
 import {Logger, exists} from 'utils';
 import {createMediaItemFromTitle, dispatchMetadataChanges} from 'services/metadata';
 import {observeCurrentItem} from 'services/playlist';
@@ -26,7 +26,7 @@ export async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
             foundItem = await createMediaItemFromTitle(`${artist} - ${item.title}`);
         }
     }
-    const scrobbleAs: ScrobbleData = {
+    const scrobbleAs: MediaItem['scrobbleAs'] = {
         artist: foundItem?.artists?.[0] || '',
         title: foundItem?.title || '',
         album: foundItem?.album || '',

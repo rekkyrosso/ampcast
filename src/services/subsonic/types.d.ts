@@ -214,4 +214,21 @@ declare namespace Subsonic {
         readonly serverVersion?: string;
         readonly type?: string;
     }
+
+    type OpenSubsonicExtensionName =
+        | 'apiKeyAuthentication'
+        | 'getPodcastEpisode'
+        | 'formPost'
+        | 'indexBasedQueue'
+        | 'playbackReport'
+        | 'songLyrics'
+        | 'sonicSimilarity'
+        | 'template'
+        | 'transcodeOffset'
+        | 'transcoding';
+
+    interface OpenSubsonicExtension {
+        readonly name: OpenSubsonicExtensionName;
+        readonly versions: readonly number[];
+    }
 }

@@ -841,6 +841,9 @@ export default class SubsonicService implements PersonalMediaService {
             itemType,
             id: `${this.id}/search/${props.id}`,
             icon: 'search',
+            primaryItems: !api.openSubsonic
+                ? {emptyMessage: 'Please enter a search term'}
+                : undefined,
 
             search({q = ''}: {q?: string} = {}): Pager<T> {
                 q = q.trim();
@@ -850,23 +853,17 @@ export default class SubsonicService implements PersonalMediaService {
                     async (offset: number, count: number) => {
                         switch (itemType) {
                             case ItemType.Media: {
-                                const items = await (q
-                                    ? api.searchSongs(q, offset, count)
-                                    : api.getRandomSongs());
+                                const items = await api.searchSongs(q, offset, count);
                                 return {items};
                             }
 
                             case ItemType.Album: {
-                                const items = await (q
-                                    ? api.searchAlbums(q, offset, count)
-                                    : api.getRandomAlbums());
+                                const items = await api.searchAlbums(q, offset, count);
                                 return {items};
                             }
 
                             case ItemType.Artist: {
-                                const items = await (q
-                                    ? api.searchArtists(q, offset, count)
-                                    : api.getRandomArtists());
+                                const items = await api.searchArtists(q, offset, count);
                                 return {items};
                             }
 

@@ -27,6 +27,7 @@ import CoverArt from 'components/CoverArt';
 import Icon, {IconName, Flag} from 'components/Icon';
 import {PopupMenuButton} from 'components/Button';
 import MediaSourceLabel from 'components/MediaSources/MediaSourceLabel';
+import ScrobblingOptions from 'components/MediaInfo/ScrobblingOptions';
 import StarRating from 'components/StarRating';
 import SunClock from 'components/SunClock';
 import Time from 'components/Time';
@@ -424,6 +425,19 @@ export const Country: RenderField<MediaItem | MediaArtist> = (item) => {
     );
 };
 
+const ScrobbleStatus: RenderField<MediaItem> = (item) => {
+    return (
+        <ul>
+            <li>
+                <ScrobblingOptions item={item} scrobblerId="lastfm" />
+            </li>
+            <li>
+                <ScrobblingOptions item={item} scrobblerId="listenbrainz" />
+            </li>
+        </ul>
+    );
+};
+
 function Text({value = ''}: {value?: string | number | boolean}) {
     return value === '' || value == null ? null : <span className="text">{value}</span>;
 }
@@ -585,6 +599,7 @@ const mediaFields: MediaFields = {
         render: ListenDate,
         align: 'right',
         className: 'listen-date date',
+        width: 8,
     },
     MultiDisc: {
         id: 'MultiDisc',
@@ -624,6 +639,13 @@ const mediaFields: MediaFields = {
         title: 'Country',
         render: Country,
         className: 'country',
+    },
+    ScrobbleStatus: {
+        id: 'ScrobbleStatus',
+        title: 'Status',
+        render: ScrobbleStatus,
+        className: 'scrobble-status',
+        width: 32,
     },
 };
 
