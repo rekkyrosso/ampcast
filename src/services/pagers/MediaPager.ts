@@ -16,6 +16,7 @@ import {
 import {ConditionalKeys} from 'type-fest';
 import ChildOf from 'types/ChildOf';
 import ItemType from 'types/ItemType';
+import MediaAlbum from 'types/MediaAlbum';
 import MediaObject from 'types/MediaObject';
 import MetadataChange from 'types/MetadataChange';
 import Pager, {PagerConfig} from 'types/Pager';
@@ -407,13 +408,15 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
                             const index = this.items.findIndex((item) => item.src === src);
                             if (index !== -1) {
                                 const items = this.items.slice();
-                                const item = items[index];
+                                const item = items[index] as MediaAlbum;
                                 const discs = uniq(
                                     tracks.map((track) => track.disc).filter(exists)
                                 );
                                 const multiDisc = discs.length > 1 || discs[0] > 1;
-                                items[index] = {...item, multiDisc};
-                                this.items$.next(items);
+                                if (item.multiDisc !== multiDisc) {
+                                    items[index] = {...(item as T), multiDisc};
+                                    this.items$.next(items);
+                                }
                             }
                         })
                     ),
@@ -432,14 +435,16 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
             ) {
                 this.subscribeTo(
                     item.pager.observeSize().pipe(
-                        tap((size) => {
+                        tap((trackCount) => {
                             const src = item.src;
                             const index = this.items.findIndex((item) => item.src === src);
                             if (index !== -1) {
                                 const items = this.items.slice();
-                                const item = items[index];
-                                items[index] = {...item, trackCount: size};
-                                this.items$.next(items);
+                                const item = items[index] as MediaAlbum;
+                                if (item.trackCount !== trackCount) {
+                                    items[index] = {...(item as T), trackCount};
+                                    this.items$.next(items);
+                                }
                             }
                         })
                     ),

@@ -8,7 +8,6 @@ import MediaFolderItem from 'types/MediaFolderItem';
 import MediaItem from 'types/MediaItem';
 import MediaFilter from 'types/MediaFilter';
 import MediaListLayout from 'types/MediaListLayout';
-import MediaListSort from 'types/MediaListSort';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
@@ -31,30 +30,28 @@ import FolderBrowser from 'components/MediaBrowser/FolderBrowser';
 import {
     albumsLayout,
     artistsLayout,
+    defaultMediaItemCard,
     mediaItemsLayout,
     mostPlayedTracksLayout,
-    playlistItemsLayout,
     radiosLayoutSmall,
     recentlyAddedAlbumsLayout,
     recentlyPlayedTracksLayout,
     topTracksLayout,
 } from 'components/MediaList/layouts';
+import {
+    getAlbumSort,
+    getTrackSort,
+    plexAlbumsSort,
+    plexArtistAlbumsSort,
+    plexPlaylistItemsSort,
+    plexPlaylistsSort,
+    plexPlaylistsSortMap,
+    plexTracksSort,
+} from './plexSorting';
 
 const serviceId: MediaServiceId = 'plex';
 
 const plexTracksLayout: MediaListLayout = addRating(mediaItemsLayout);
-
-const plexTracksSort: MediaListSort = {
-    sortOptions: {
-        titleSort: 'Title',
-        'album.titleSort': 'Album',
-        'artist.titleSort': 'Album Artist',
-    },
-    defaultSort: {
-        sortBy: 'artist.titleSort',
-        sortOrder: 1,
-    },
-};
 
 const plexTracks: MediaSourceItems = {
     layout: plexTracksLayout,
@@ -63,36 +60,20 @@ const plexTracks: MediaSourceItems = {
 
 const plexAlbumsLayout: MediaListLayout = addRating(albumsLayout);
 
-const plexAlbumsSort: MediaListSort = {
-    sortOptions: {
-        titleSort: 'Title',
-        'artist.titleSort': 'Artist',
-        year: 'Year',
-    },
-    defaultSort: {
-        sortBy: 'artist.titleSort',
-        sortOrder: 1,
-    },
-};
-
 const plexAlbums: MediaSourceItems = {
     layout: plexAlbumsLayout,
     sort: plexAlbumsSort,
 };
 
-const plexArtistAlbumsSort: MediaListSort = {
-    sortOptions: {
-        titleSort: 'Title',
-        year: 'Year',
-    },
-    defaultSort: {
-        sortBy: 'year',
-        sortOrder: -1,
-    },
+const plexPlaylistItemsLayout: Partial<MediaListLayout> = {
+    view: 'details',
+    card: defaultMediaItemCard,
+    details: ['Position', 'Title', 'Artist', 'Album', 'Duration', 'Year', 'Genre', 'Rating'],
 };
 
-const plexPlaylistItems: MediaSourceItems = {
-    layout: addRating(playlistItemsLayout),
+export const plexPlaylistItems: MediaSourceItems = {
+    layout: plexPlaylistItemsLayout,
+    sort: plexPlaylistItemsSort,
 };
 
 export const plexSearch: MediaMultiSource = {
@@ -310,17 +291,7 @@ const plexPlaylists: MediaSource<MediaPlaylist> = {
     icon: 'playlist',
     itemType: ItemType.Playlist,
     primaryItems: {
-        sort: {
-            sortOptions: {
-                titleSort: 'Name',
-                addedAt: 'Date Added',
-                lastViewedAt: 'Last Played',
-            },
-            defaultSort: {
-                sortBy: 'titleSort',
-                sortOrder: 1,
-            },
-        },
+        sort: plexPlaylistsSort,
     },
     secondaryItems: plexPlaylistItems,
 
@@ -334,7 +305,7 @@ const plexPlaylists: MediaSource<MediaPlaylist> = {
             params: {
                 type: plexMediaType.Playlist,
                 playlistType: 'audio',
-                sort: `${sortBy}:${sortOrder === -1 ? 'desc' : 'asc'}`,
+                sort: `${plexPlaylistsSortMap[sortBy] || sortBy}:${sortOrder === -1 ? 'desc' : 'asc'}`,
             },
         });
     },
@@ -764,20 +735,4 @@ function addRating(layout: MediaListLayout): MediaListLayout {
         ...layout,
         details: uniq(layout.details.concat('Rating')),
     };
-}
-
-function getAlbumSort({sortBy, sortOrder} = plexAlbumsSort.defaultSort) {
-    return `${sortBy}:${sortOrder === -1 ? 'desc' : 'asc'}${
-        sortBy === 'artist.titleSort'
-            ? ',album.titleSort,album.index,album.id,album.originallyAvailableAt'
-            : ''
-    }`;
-}
-
-function getTrackSort({sortBy, sortOrder} = plexAlbumsSort.defaultSort) {
-    return `${sortBy}:${sortOrder === -1 ? 'desc' : 'asc'}${
-        sortBy === 'artist.titleSort'
-            ? ',album.titleSort,album.year,track.absoluteIndex,track.index,track.titleSort,track.id'
-            : ''
-    }`;
 }

@@ -1,4 +1,28 @@
 .progress-ring {
+    &-bg {
+        fill: none;
+    }
+
+    &.complete &-bg {
+        fill: green;
+
+        .frame-light & {
+            fill: lime;
+        }
+    }
+
+    &.error {
+        stroke: var(--frame-text-color);
+    }
+
+    &.error &-bg {
+        fill: var(--error-color);
+    }
+
+    &.busy &-bg {
+        fill: none;
+    }
+
     &.busy {
         animation: progress-spin 1s linear infinite;
     }

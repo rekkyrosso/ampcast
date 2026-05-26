@@ -29,6 +29,7 @@ import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
 import plexSettings from './plexSettings';
 import PlexPager, {PlexPlaylistItemsPager} from './PlexPager';
+import {plexAlbumsSortMap, plexArtistAlbumsSort} from './plexSorting';
 
 const logger = new Logger('plexUtils');
 
@@ -77,10 +78,23 @@ export function createMediaObject<T extends MediaObject>(
     }
 }
 
+export function createPlaylistItems<T extends MediaItem>(
+    tracks: readonly plex.Track[],
+    parent: ParentOf<T>,
+    albums: readonly MediaAlbum[] = [],
+    offset: number
+): readonly T[] {
+    return tracks.map((track, index) => {
+        const album = albums.find((album) => album.src.endsWith(`:${track.parentRatingKey}`));
+        return createMediaItemFromTrack(track, album, parent, offset + index + 1) as T;
+    });
+}
+
 export function createMediaItemFromTrack(
     track: plex.Track,
     album?: MediaAlbum | undefined,
-    parent?: MediaObject
+    parent?: MediaObject,
+    position?: number
 ): MediaItem {
     const media = track.Media?.[0];
     const part = media?.Part?.[0];
@@ -91,7 +105,7 @@ export function createMediaItemFromTrack(
         const value = parseFloat(numeric);
         return isNaN(value) ? undefined : value;
     };
-    album = album || (parent as MediaAlbum);
+    album = album || (parent?.itemType === ItemType.Album ? parent : undefined);
 
     return {
         src: getSrc('audio', track),
@@ -100,6 +114,7 @@ export function createMediaItemFromTrack(
         mediaType: MediaType.Audio,
         title,
         fileName,
+        position,
         description: track.summary,
         externalUrl: getExternalUrl(track),
         addedAt: track.addedAt,
@@ -430,7 +445,7 @@ function createFolderPager(folder: MediaFolder, parent?: MediaObject): Pager<Med
 
 export function createArtistAlbumsPager(
     artist: MediaArtist,
-    albumSort?: SortParams
+    {sortBy, sortOrder} = plexArtistAlbumsSort.defaultSort
 ): Pager<MediaAlbum> {
     const otherTracks = createArtistOtherTracks(artist);
     if (artist.synthetic) {
@@ -458,9 +473,7 @@ export function createArtistAlbumsPager(
             params: {
                 'artist.id': getMediaObjectId(artist),
                 type: plexMediaType.Album,
-                sort: albumSort
-                    ? `${albumSort.sortBy}:${albumSort.sortOrder === -1 ? 'desc' : 'asc'}`
-                    : 'year:desc',
+                sort: `${plexAlbumsSortMap[sortBy] || sortBy}:${sortOrder === -1 ? 'desc' : 'asc'}`,
             },
         });
         const videos = createArtistVideos(artist);

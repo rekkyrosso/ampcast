@@ -1,5 +1,6 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {animationFrameScheduler, timer} from 'rxjs';
+import SortParams from 'types/SortParams';
 import {clamp} from 'utils';
 import {Column} from './ListView';
 import ListViewHeadCell from './ListViewHeadCell';
@@ -14,8 +15,12 @@ export interface ListViewHeadProps<T> {
     fontSize: number;
     reorderable?: boolean;
     sizeable?: boolean;
+    sortable?: readonly string[];
+    sortParams?: SortParams;
+    savedSortParams?: SortParams;
     onColumnMove?: (col: Column<T>, toIndex: number) => void;
     onColumnResize: (col: Column<T>, width: number) => void;
+    onSort?: (params: SortParams) => void;
 }
 
 export default function ListViewHead<T>({
@@ -26,8 +31,12 @@ export default function ListViewHead<T>({
     fontSize,
     reorderable,
     sizeable,
+    sortable,
+    sortParams,
+    savedSortParams,
     onColumnMove,
     onColumnResize,
+    onSort,
 }: ListViewHeadProps<T>) {
     const ref = useRef<HTMLHeadingElement>(null);
     const [dragIndex, setDragIndex] = useState(-1);
@@ -128,6 +137,13 @@ export default function ListViewHead<T>({
         [onColumnMove, dragCol, dragOverIndex]
     );
 
+    const handleSort = useCallback(
+        (params: SortParams) => {
+            onSort?.(params);
+        },
+        [onSort]
+    );
+
     return (
         <header
             className="list-view-head"
@@ -159,6 +175,16 @@ export default function ListViewHead<T>({
                             {...col}
                             draggable={reorderable}
                             insertBefore={index === dragOverIndex}
+                            sortable={sortable?.includes(col.id)}
+                            sortOrder={
+                                sortParams?.sortBy === col.id ? sortParams.sortOrder : undefined
+                            }
+                            savedSortOrder={
+                                savedSortParams?.sortBy === col.id
+                                    ? savedSortParams?.sortOrder
+                                    : undefined
+                            }
+                            onSort={handleSort}
                             key={col.id}
                         />
                     ))}{' '}

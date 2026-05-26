@@ -7,7 +7,6 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {PagerConfig} from 'types/Pager';
-import SortParams from 'types/SortParams';
 import {Logger, getMediaObjectId, moveSubset} from 'utils';
 import {getSourceSorting} from 'services/mediaServices/servicesSettings';
 import {dispatchMetadataChanges, observePlaylistAdditions} from 'services/metadata';
@@ -15,6 +14,7 @@ import {CreateChildPager} from 'services/pagers/MediaPager';
 import IndexedPager from 'services/pagers/IndexedPager';
 import navidromeApi from './navidromeApi';
 import navidromeSettings from './navidromeSettings';
+import {navidromePlaylistItemsSort, navidromeSongsSortMap} from './navidromeSorting';
 import {createMediaObject} from './navidromeUtils';
 
 export default class NavidromeIndexedPager<T extends MediaObject> extends IndexedPager<T> {
@@ -101,21 +101,18 @@ export class NavidromePlaylistItemsPager extends NavidromeIndexedPager<MediaItem
 
     constructor(
         private readonly playlist: MediaPlaylist,
-        private readonly itemSort?: SortParams,
+        private readonly itemSort = navidromePlaylistItemsSort.defaultSort,
         options?: Partial<PagerConfig<MediaItem>>
     ) {
         const playlistId = getMediaObjectId(playlist);
+        const {sortBy, sortOrder} = itemSort;
         super(
             ItemType.Media,
             `playlist/${playlistId}/tracks`,
             {
                 playlist_id: playlistId,
-                ...(itemSort
-                    ? {
-                          _sort: itemSort.sortBy,
-                          _order: itemSort.sortOrder === -1 ? 'DESC' : 'ASC',
-                      }
-                    : {}),
+                _sort: navidromeSongsSortMap[sortBy] || sortBy,
+                _order: sortOrder === -1 ? 'DESC' : 'ASC',
             },
             {autofill: true, pageSize: 1000, itemKey: 'nanoId' as any, ...options}
         );

@@ -98,7 +98,7 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
             )}
             <PlaylistItemsList
                 title={`${source.title}: Tracks`}
-                parentPlaylist={pinnedPlaylist}
+                parent={pinnedPlaylist}
                 defaultLayout={defaultItemsLayout}
                 source={source}
                 level={2}

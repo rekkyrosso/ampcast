@@ -31,6 +31,10 @@ export class LyricsNotAvailableError extends MediaSourceError {
     readonly message = 'Lyrics not available';
 }
 
+export class OpenSubsonicRequiredError extends MediaSourceError {
+    readonly message = 'OpenSubsonic server required';
+}
+
 const statusCodes: Record<number, string> = {
     401: 'Unauthorized',
     403: 'Forbidden',

@@ -4,15 +4,16 @@ import ItemType from 'types/ItemType';
 import Listen from 'types/Listen';
 import MediaItem from 'types/MediaItem';
 import MediaListLayout from 'types/MediaListLayout';
-import MediaListSort from 'types/MediaListSort';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId, {ScrobblerId} from 'types/MediaServiceId';
 import MediaSource, {AnyMediaSource, MediaMultiSource, MediaSourceItems} from 'types/MediaSource';
 import Pager from 'types/Pager';
 import {observePlaybackState} from 'services/mediaPlayback/playback';
+import {localeCompare} from 'services/metadata';
 import ObservablePager from 'services/pagers/ObservablePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import {recentlyPlayedTracksLayout} from 'components/MediaList/layouts';
+import {localPlaylistItemsSort, localPlaylistsSort} from './localSorting';
 import {isRecentListen, observeListens} from './listens';
 import playlists, {LocalPlaylistItem} from './playlists';
 import UnscrobbledBrowser from './components/UnscrobbledBrowser';
@@ -26,18 +27,6 @@ export const localPlaylistLayout: Partial<MediaListLayout> = {
         data: 'TrackCount',
     },
     details: ['Name', 'Description', 'TrackCount'],
-};
-
-export const localPlaylistItemsSort: MediaListSort = {
-    sortOptions: {
-        position: 'Position',
-        title: 'Title',
-        artist: 'Artist',
-    },
-    defaultSort: {
-        sortBy: 'position',
-        sortOrder: 1,
-    },
 };
 
 export const localPlaylistItems: MediaSourceItems<LocalPlaylistItem> = {
@@ -121,16 +110,7 @@ export const localPlaylists: MediaSource<MediaPlaylist> = {
     itemType: ItemType.Playlist,
     primaryItems: {
         layout: localPlaylistLayout,
-        sort: {
-            sortOptions: {
-                title: 'Name',
-                modifiedAt: 'Date Modified',
-            },
-            defaultSort: {
-                sortBy: 'modifiedAt',
-                sortOrder: -1,
-            },
-        },
+        sort: localPlaylistsSort,
     },
     secondaryItems: localPlaylistItems,
 
@@ -142,11 +122,8 @@ export const localPlaylists: MediaSource<MediaPlaylist> = {
             {
                 sort: (a, b) => {
                     switch (sortBy) {
-                        case 'title':
-                            return (
-                                a.title.localeCompare(b.title, undefined, {sensitivity: 'base'}) *
-                                sortOrder
-                            );
+                        case 'Name':
+                            return localeCompare(a.title, b.title) * sortOrder;
 
                         default:
                             return ((a.modifiedAt || 0) - (b.modifiedAt || 0)) * sortOrder;

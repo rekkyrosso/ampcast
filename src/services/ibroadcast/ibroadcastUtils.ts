@@ -350,13 +350,13 @@ export function sortAlbums(
         return sortByTitle(artistA, artistB);
     };
     switch (sortBy) {
-        case 'title':
+        case 'Title':
             return sortByTitle(a[map.name], b[map.name]) * sortOrder;
 
-        case 'artist':
+        case 'Artist':
             return sortByArtist() * sortOrder || sortByTitle(a[map.name], b[map.name]);
 
-        case 'year':
+        case 'Year':
             return (
                 (a[map.year] - b[map.year]) * sortOrder ||
                 sortByArtist() ||
@@ -411,16 +411,16 @@ export function sortTracks(
         return discA === discB ? a[map.track] - b[map.track] : discA - discB;
     };
     switch (sortBy) {
-        case 'title':
+        case 'Title':
             return sortByTitle(a[map.title], b[map.title]) * sortOrder;
 
-        case 'album':
+        case 'Album':
             return sortByAlbum() * sortOrder || sortByTrack();
 
-        case 'artist':
+        case 'Artist':
             return sortByArtist() * sortOrder || sortByAlbum() || sortByTrack();
 
-        case 'year':
+        case 'Year':
             return sortByYear() * sortOrder || sortByAlbum() || sortByTrack();
 
         default:

@@ -1,10 +1,10 @@
 const enum AlbumType {
-    Album = 0,
-    LiveAlbum = 1,
-    Compilation = 3,
-    Soundtrack = 4,
-    Single = 11,
-    EP = 12,
+    Album = 'Album',
+    LiveAlbum = 'Live',
+    Compilation = 'Compilation',
+    Soundtrack = 'Soundtrack',
+    Single = 'Single',
+    EP = 'EP',
 }
 
 export default AlbumType;

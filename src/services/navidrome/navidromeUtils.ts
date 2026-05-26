@@ -20,6 +20,7 @@ import pinStore from 'services/pins/pinStore';
 import stationStore from 'services/internetRadio/stationStore';
 import NavidromeIndexedPager, {NavidromePlaylistItemsPager} from './NavidromeIndexedPager';
 import navidromeSettings from './navidromeSettings';
+import {navidromeAlbumsSortMap, navidromeArtistAlbumsSort} from './navidromeSorting';
 
 export function createMediaObject<T extends MediaObject>(
     itemType: T['itemType'],
@@ -48,22 +49,15 @@ export function createMediaObject<T extends MediaObject>(
 
 export function createArtistAlbumsPager(
     artist: MediaArtist,
-    albumSort?: SortParams
+    {sortBy, sortOrder} = navidromeArtistAlbumsSort.defaultSort
 ): Pager<MediaAlbum> {
     const id = getMediaObjectId(artist);
     const allTracks = createArtistAllTracks(artist);
     const allTracksPager = new SimplePager<MediaAlbum>([allTracks]);
     const albumsPager = new NavidromeIndexedPager<MediaAlbum>(ItemType.Album, 'album', {
         album_artist_id: id,
-        ...(albumSort
-            ? {
-                  _sort: albumSort.sortBy,
-                  _order: albumSort.sortOrder === -1 ? 'DESC' : 'ASC',
-              }
-            : {
-                  _sort: 'minYear',
-                  _order: 'DESC',
-              }),
+        _sort: navidromeAlbumsSortMap[sortBy] || sortBy,
+        _order: sortOrder === -1 ? 'DESC' : 'ASC',
     });
     return new WrappedPager(undefined, albumsPager, allTracksPager);
 }

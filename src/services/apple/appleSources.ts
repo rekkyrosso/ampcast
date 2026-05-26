@@ -34,9 +34,14 @@ const radioLayout: MediaListLayout = {
     details: ['Title', 'Description'],
 };
 
+const sortMap: Record<string, string> = {
+    Name: 'name',
+    Title: 'name',
+};
+
 const appleLibrarySort: MediaListSort = {
     sortOptions: {
-        name: 'Title',
+        Title: 'Title',
         dateAdded: 'Date Added',
     },
     defaultSort: {
@@ -124,7 +129,7 @@ const appleLibrarySongs: MediaSource<MediaItem> = {
     search(_, {sortBy, sortOrder} = appleLibrarySort.defaultSort): Pager<MediaItem> {
         return new MusicKitPager('/v1/me/library/songs', {
             'include[library-songs]': 'catalog',
-            sort: `${sortOrder === -1 ? '-' : ''}${sortBy}`,
+            sort: `${sortOrder === -1 ? '-' : ''}${sortMap[sortBy] || sortBy}`,
         });
     },
 };
@@ -141,7 +146,7 @@ const appleLibraryAlbums: MediaSource<MediaAlbum> = {
         return new MusicKitPager('/v1/me/library/albums', {
             'fields[library-albums]': 'name,artistName,playParams,artwork',
             'include[library-albums]': 'catalog',
-            sort: `${sortOrder === -1 ? '-' : ''}${sortBy}`,
+            sort: `${sortOrder === -1 ? '-' : ''}${sortMap[sortBy] || sortBy}`,
         });
     },
 };
@@ -153,6 +158,14 @@ const appleLibraryArtists: MediaSource<MediaArtist> = {
     itemType: ItemType.Artist,
     lockActionsStore: true,
     defaultHidden: true,
+    primaryItems: {
+        sort: {
+            defaultSort: {
+                sortBy: 'Name',
+                sortOrder: 1,
+            },
+        },
+    },
 
     search(): Pager<MediaArtist> {
         return new MusicKitPager('/v1/me/library/artists', {
@@ -175,7 +188,7 @@ const appleLibraryPlaylists: MediaSource<MediaPlaylist> = {
         return new MusicKitPager('/v1/me/library/playlists', {
             'fields[library-playlists]': 'name,playParams,artwork,canEdit',
             'include[library-playlists]': 'catalog',
-            sort: `${sortOrder === -1 ? '-' : ''}${sortBy}`,
+            sort: `${sortOrder === -1 ? '-' : ''}${sortMap[sortBy] || sortBy}`,
         });
     },
 };
@@ -211,7 +224,7 @@ const appleLibraryVideos: MediaSource<MediaItem> = {
     search(_, {sortBy, sortOrder} = appleLibrarySort.defaultSort): Pager<MediaItem> {
         return new MusicKitPager('/v1/me/library/music-videos', {
             'include[library-music-videos]': 'catalog',
-            sort: `${sortOrder === -1 ? '-' : ''}${sortBy}`,
+            sort: `${sortOrder === -1 ? '-' : ''}${sortMap[sortBy] || sortBy}`,
         });
     },
 };

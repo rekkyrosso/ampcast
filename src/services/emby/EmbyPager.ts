@@ -16,7 +16,8 @@ import IndexedPager from 'services/pagers/IndexedPager';
 import {getSourceSorting} from 'services/mediaServices/servicesSettings';
 import embySettings from './embySettings';
 import embyApi from './embyApi';
-import {createMediaObject, getSortParams} from './embyUtils';
+import {embyPlaylistItemsSortMap, getSortParams} from './embySorting';
+import {createMediaObject} from './embyUtils';
 
 export default class EmbyPager<T extends MediaObject> extends IndexedPager<T> {
     constructor(
@@ -154,7 +155,7 @@ export class EmbyPlaylistItemsPager extends EmbyPager<MediaItem> {
             {
                 ParentId: getMediaObjectId(playlist),
                 IncludeItemTypes: 'Audio,MusicVideo',
-                ...getSortParams(itemSort),
+                ...getSortParams(itemSort, embyPlaylistItemsSortMap),
             },
             {autofill: true, pageSize: 1000}
         );

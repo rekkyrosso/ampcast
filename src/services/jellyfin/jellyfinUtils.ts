@@ -20,6 +20,12 @@ import WrappedPager from 'services/pagers/WrappedPager';
 import JellyfinPager, {JellyfinPlaylistItemsPager} from './JellyfinPager';
 import jellyfinApi from './jellyfinApi';
 import jellyfinSettings from './jellyfinSettings';
+import {
+    jellyfinArtistAlbumsSort,
+    jellyfinPlaylistItemsSort,
+    getSortParams,
+    jellyfinArtistAlbumsSortMap,
+} from './jellyfinSorting';
 
 type LegacyBaseItemDto = BaseItemDto & {LUFS?: number | null};
 
@@ -217,17 +223,14 @@ function createAlbumTracksPager(album: BaseItemDto): Pager<MediaItem> {
 
 export function createArtistAlbumsPager(
     artist: MediaArtist,
-    albumSort: SortParams = {
-        sortBy: 'ProductionYear,PremiereDate,SortName',
-        sortOrder: -1,
-    }
+    albumSort = jellyfinArtistAlbumsSort.defaultSort
 ): Pager<MediaAlbum> {
     const allTracks = createArtistAllTracks(artist);
     const allTracksPager = new SimplePager<MediaAlbum>([allTracks]);
     const albumsPager = new JellyfinPager<MediaAlbum>(`Users/${jellyfinSettings.userId}/Items`, {
         AlbumArtistIds: getMediaObjectId(artist),
         IncludeItemTypes: 'MusicAlbum',
-        ...getSortParams(albumSort),
+        ...getSortParams(albumSort, jellyfinArtistAlbumsSortMap),
     });
     return new WrappedPager(undefined, albumsPager, allTracksPager);
 }
@@ -256,10 +259,7 @@ function createAllTracksPager(artist: MediaArtist): Pager<MediaItem> {
 
 export function createPlaylistItemsPager(
     playlist: MediaPlaylist,
-    itemSort: SortParams = {
-        sortBy: 'ListItemOrder',
-        sortOrder: 1,
-    }
+    itemSort = jellyfinPlaylistItemsSort.defaultSort
 ): Pager<MediaItem> {
     return new JellyfinPlaylistItemsPager(playlist, itemSort);
 }
@@ -305,29 +305,4 @@ function parseDate(date?: string | null): number | undefined {
         const time = Date.parse(date) || 0;
         return time < 0 ? 0 : Math.round(time / 1000);
     }
-}
-
-export function getSortParams({sortBy, sortOrder}: SortParams): {
-    SortBy: string;
-    SortOrder: string;
-} {
-    return {
-        SortBy: sortBy,
-        SortOrder:
-            sortOrder === 1
-                ? 'Ascending'
-                : // Pad with 'Ascending'.
-                  sortBy
-                      .split(',')
-                      .map((sortBy, index, keys) =>
-                          index === 1 &&
-                          (keys[0] === 'ProductionYear' || keys[0] === 'PremiereDate') &&
-                          (sortBy === 'ProductionYear' || sortBy === 'PremiereDate')
-                              ? 'Descending'
-                              : index === 0
-                                ? 'Descending'
-                                : 'Ascending'
-                      )
-                      .join(','),
-    };
 }

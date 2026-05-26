@@ -6,6 +6,7 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaSource from 'types/MediaSource';
+import SortParams from 'types/SortParams';
 import {exists} from 'utils';
 import listenbrainzApi from 'services/listenbrainz/listenbrainzApi';
 import {getServiceFromSrc} from 'services/mediaServices';
@@ -21,19 +22,22 @@ import {MediaListProps} from './MediaList';
 
 type PlaylistItemsListProps = Except<MediaListProps<MediaItem>, 'pager' | 'source'> & {
     source: MediaSource<MediaPlaylist>;
+    parent?: MediaPlaylist;
 };
 
 export default function PlaylistItemsList({
-    parentPlaylist,
+    parent: playlist,
     source,
     ...props
 }: PlaylistItemsListProps) {
     const [cursor, setCursor] = useState<string | undefined>(undefined);
     const sourceId = `${source.sourceId || source.id}/2`;
     const defaultSort = source.secondaryItems?.sort?.defaultSort;
-    const sorting = getSourceSorting(sourceId) || defaultSort;
-    const config = parentPlaylist?.items;
-    const pager = parentPlaylist?.pager || null;
+    const externalSort = getSourceSorting(sourceId) || defaultSort;
+    const [internalSort, setInternalSort] = useState<SortParams | undefined>(undefined);
+    const sortParams = internalSort || externalSort;
+    const config = playlist?.items;
+    const pager = playlist?.pager || null;
     const [{busy, complete, error}] = usePager(pager);
     const unlocked = complete && !error && !busy && config?.droppable;
     const deletable = unlocked && config?.deletable;
@@ -42,9 +46,9 @@ export default function PlaylistItemsList({
     const moveable =
         unlocked &&
         config?.moveable &&
-        (!defaultSort ||
-            (sorting!.sortBy === defaultSort.sortBy &&
-                sorting!.sortOrder === defaultSort.sortOrder));
+        defaultSort &&
+        defaultSort.sortBy === sortParams?.sortBy &&
+        defaultSort.sortOrder === sortParams?.sortOrder;
 
     useEffect(() => {
         setCursor(busy && complete ? 'progress' : undefined);
@@ -52,8 +56,8 @@ export default function PlaylistItemsList({
 
     const injectAt = useCallback(
         async (items: readonly MediaItem[], atIndex: number) => {
-            if (parentPlaylist) {
-                const service = getServiceFromSrc(parentPlaylist);
+            if (playlist) {
+                const service = getServiceFromSrc(playlist);
                 if (service?.id === 'listenbrainz') {
                     setCursor('wait');
                     items = await listenbrainzApi.addMetadata(items);
@@ -68,25 +72,25 @@ export default function PlaylistItemsList({
                         pager.addItems(additions, moveable ? atIndex : undefined);
                     } else if (service?.addToPlaylist) {
                         await service.addToPlaylist(
-                            parentPlaylist,
+                            playlist,
                             additions,
                             moveable ? atIndex : undefined
                         );
-                        dispatchPlaylistItemsChange('added', parentPlaylist.src, additions);
+                        dispatchPlaylistItemsChange('added', playlist.src, additions);
                     }
                 }
             }
         },
-        [parentPlaylist, pager, moveable]
+        [playlist, pager, moveable]
     );
 
     const inject = usePlaylistInject(injectAt);
 
     const handleDelete = useCallback(
         (items: readonly MediaItem[]) => {
-            performAction(Action.DeletePlaylistItems, items, parentPlaylist);
+            performAction(Action.DeletePlaylistItems, items, playlist);
         },
-        [parentPlaylist]
+        [playlist]
     );
 
     const handleDrop = useCallback(
@@ -100,20 +104,20 @@ export default function PlaylistItemsList({
         (items: readonly MediaItem[], toIndex: number) => {
             if (pager?.moveItems) {
                 pager.moveItems(items, toIndex);
-            } else if (parentPlaylist) {
-                const service = getServiceFromSrc(parentPlaylist);
+            } else if (playlist) {
+                const service = getServiceFromSrc(playlist);
                 if (service?.movePlaylistItems) {
-                    service.movePlaylistItems(parentPlaylist, items, toIndex);
+                    service.movePlaylistItems(playlist, items, toIndex);
                 }
             }
         },
-        [parentPlaylist, pager]
+        [playlist, pager]
     );
 
     const canDropItem = useCallback(
         (item: MediaObject): boolean => {
-            if (parentPlaylist && item.itemType === ItemType.Media) {
-                const [serviceId] = parentPlaylist.src.split(':');
+            if (playlist && item.itemType === ItemType.Media) {
+                const [serviceId] = playlist.src.split(':');
                 return (
                     serviceId === 'localdb' ||
                     serviceId === 'listenbrainz' ||
@@ -122,7 +126,7 @@ export default function PlaylistItemsList({
             }
             return false;
         },
-        [parentPlaylist]
+        [playlist]
     );
 
     return (
@@ -132,14 +136,14 @@ export default function PlaylistItemsList({
             emptyMessage="Empty playlist"
             source={source}
             pager={pager}
-            parentPlaylist={parentPlaylist}
+            parent={playlist}
             canDropItem={canDropItem}
             droppable={droppable}
             droppableTypes={droppableTypes}
             moveable={moveable}
             cursor={cursor}
             statusBarIcons={
-                parentPlaylist
+                playlist
                     ? unlocked
                         ? [
                               moveable ? 'mov' : undefined,
@@ -171,6 +175,7 @@ export default function PlaylistItemsList({
             onDelete={deletable ? handleDelete : undefined}
             onDrop={droppable ? handleDrop : undefined}
             onMove={moveable ? handleMove : undefined}
+            onInternalSort={setInternalSort}
         />
     );
 }

@@ -1,5 +1,7 @@
 import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import {ConditionalKeys} from 'type-fest';
+import SortParams from 'types/SortParams';
+import SortType from 'types/SortType';
 import {browser} from 'utils';
 import Scrollable, {
     ScrollableClient,
@@ -23,6 +25,8 @@ export interface ColumnSpec<T> {
     readonly title?: React.ReactNode;
     readonly className?: string;
     readonly align?: 'left' | 'right' | 'center';
+    readonly sortType?: SortType;
+    readonly unsortable?: boolean;
     readonly width?: number; // starting width (only in a sizeable layout)
     readonly render: (
         item: T,
@@ -71,13 +75,15 @@ export interface ListViewProps<T> {
     storageId?: string;
     itemClassName?: (item: T) => string;
     selectedIndex?: number;
-    sortable?: boolean;
     draggable?: boolean;
     droppable?: boolean;
     droppableTypes?: readonly string[]; // mime types for file drops
     moveable?: boolean; // Can reorder rows.
     multiple?: boolean;
     reorderable?: boolean; // Can reorder columns.
+    sortable?: readonly string[];
+    sortParams?: SortParams;
+    savedSortParams?: SortParams;
     disabled?: boolean;
     className?: string;
     cursor?: string;
@@ -96,11 +102,12 @@ export interface ListViewProps<T> {
     onDelete?: (items: readonly T[]) => void;
     onEnter?: (items: readonly T[], cmdKey: boolean, shiftKey: boolean) => void;
     onInfo?: (items: readonly T[]) => void;
-    onReorder?: (col: Column<T>, toIndex: number) => void;
+    onReorderCols?: (col: Column<T>, toIndex: number) => void;
     onRowIndexChange?: (rowIndex: number) => void;
     onScrollIndexChange?: (scrollIndex: number) => void;
     onPageSizeChange?: (pageSize: number) => void;
     onSelect?: (items: readonly T[]) => void;
+    onSort?: (params: SortParams) => void;
     canDropItem?: (item: any) => boolean;
     ref?: React.RefObject<ListViewHandle | null>;
 }
@@ -125,6 +132,9 @@ export default function ListView<T>({
     multiple,
     moveable,
     reorderable,
+    sortable,
+    sortParams,
+    savedSortParams,
     disabled,
     emptyMessage,
     onClick,
@@ -138,8 +148,9 @@ export default function ListView<T>({
     onRowIndexChange,
     onScrollIndexChange,
     onPageSizeChange,
-    onReorder,
+    onReorderCols,
     onSelect,
+    onSort,
     canDropItem,
     ref,
 }: ListViewProps<T>) {
@@ -675,10 +686,14 @@ export default function ListView<T>({
                             clientWidth={clientWidth}
                             reorderable={reorderable}
                             sizeable={sizeable}
+                            sortable={sortable}
+                            sortParams={sortParams}
+                            savedSortParams={savedSortParams}
                             cols={cols}
                             fontSize={fontSize}
-                            onColumnMove={onReorder}
+                            onColumnMove={onReorderCols}
                             onColumnResize={onColumnResize}
+                            onSort={onSort}
                         />
                     </FixedHeader>
                 )}

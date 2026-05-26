@@ -3,7 +3,7 @@ import {Field} from 'types/MediaListLayout';
 import Button from 'components/Button';
 import Dialog, {DialogButtons, DialogProps, showDialog} from 'components/Dialog';
 import ListBox from 'components/ListView/ListBox';
-import {FieldSpec} from './useMediaListLayout';
+import type {FieldSpec} from './mediaListFields';
 import './EditFieldsDialog.scss';
 
 export async function showEditFieldsDialog(

@@ -34,6 +34,7 @@ export default class SpotifyPager<T extends MediaObject> extends SequentialPager
                 const {items, total, next} = await fetch(offset, limit, this.cursor);
                 this.pageNumber++;
                 this.cursor = next || '';
+                const size = this.items.length;
                 return {
                     items: items
                         .filter(exists)
@@ -41,7 +42,9 @@ export default class SpotifyPager<T extends MediaObject> extends SequentialPager
                             createMediaObject(
                                 item,
                                 inLibrary,
-                                parent?.itemType === ItemType.Playlist ? index + 1 : undefined
+                                parent?.itemType === ItemType.Playlist
+                                    ? size + index + 1
+                                    : undefined
                             )
                         ),
                     total,

@@ -52,7 +52,12 @@ function UnscrobbledItems({service, sources}: UnscrobbledItemsProps) {
                 sources={sources}
                 onSourceChange={setSelectedSource}
             />
-            <PagedItems service={service} source={selectedSource} pager={pager} />
+            <PagedItems
+                service={service}
+                source={selectedSource}
+                pager={pager}
+                key={selectedSource.id}
+            />
         </>
     );
 }

@@ -52,6 +52,7 @@ export default function FolderBrowser({service, source}: FolderBrowserProps) {
                     source={source}
                     onEnter={handleEnter}
                     onDoubleClick={handleDoubleClick}
+                    key={path}
                 />
             </div>
         </>

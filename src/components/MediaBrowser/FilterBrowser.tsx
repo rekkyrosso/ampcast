@@ -59,7 +59,7 @@ export default function FilterBrowser<T extends MediaObject>({
             {error ? (
                 <ErrorBox error={error} reportedBy="FilterSelect" reportingId={source.id} />
             ) : (
-                <PagedItems service={service} source={source} pager={pager} />
+                <PagedItems service={service} source={source} pager={pager} key={filter?.id} />
             )}
         </>
     );

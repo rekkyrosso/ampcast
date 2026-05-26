@@ -26,7 +26,8 @@ import PlayableItem from 'types/PlayableItem';
 import Pin, {Pinnable} from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
-import {exists, getTextFromHtml, Logger, uniq} from 'utils';
+import {getTextFromHtml, Logger, uniq} from 'utils';
+import {OpenSubsonicRequiredError} from 'services/errors';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
@@ -35,6 +36,7 @@ import FolderBrowser from 'components/MediaBrowser/FolderBrowser';
 import {
     albumsLayout,
     artistsLayout,
+    defaultMediaItemCard,
     mediaItemsLayout,
     mostPlayedTracksLayout,
     radiosLayoutSmall,
@@ -61,8 +63,21 @@ const subsonicTracks: MediaSourceItems = {
     layout: addRating(mediaItemsLayout),
 };
 
+const subsonicPlaylistItemsLayout: Partial<MediaListLayout> = {
+    view: 'details',
+    card: defaultMediaItemCard,
+    details: ['Position', 'Title', 'Artist', 'Album', 'Duration', 'Year', 'Rating'],
+};
+
 export const subsonicPlaylistItems: MediaSourceItems<SetRequired<MediaItem, 'nanoId'>> = {
     itemKey: 'nanoId',
+    layout: subsonicPlaylistItemsLayout,
+    sort: {
+        defaultSort: {
+            sortBy: 'Position',
+            sortOrder: 1,
+        },
+    },
 };
 
 export default class SubsonicService implements PersonalMediaService {
@@ -211,6 +226,9 @@ export default class SubsonicService implements PersonalMediaService {
             },
 
             search(): Pager<MediaAlbum> {
+                if (!service.api.openSubsonic) {
+                    throw new OpenSubsonicRequiredError();
+                }
                 return new SubsonicPager(
                     service,
                     ItemType.Album,
@@ -537,7 +555,7 @@ export default class SubsonicService implements PersonalMediaService {
             likedSongs,
             likedAlbums,
             likedArtists,
-            ['ampache', 'gonic'].includes(this.id) ? topAlbums : undefined,
+            topAlbums,
             recentlyAdded,
             recentlyPlayed,
             mostPlayed,
@@ -550,7 +568,7 @@ export default class SubsonicService implements PersonalMediaService {
             randomAlbums,
             musicVideos,
             folders,
-        ].filter(exists);
+        ];
 
         this.editablePlaylists = playlists;
 

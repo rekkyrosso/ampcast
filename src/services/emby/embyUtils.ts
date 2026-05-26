@@ -19,6 +19,12 @@ import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
 import EmbyPager, {EmbyPlaylistItemsPager} from './EmbyPager';
 import embySettings from './embySettings';
+import {
+    embyArtistAlbumsSort,
+    embyArtistAlbumsSortMap,
+    embyPlaylistItemsSort,
+    getSortParams,
+} from './embySorting';
 
 export function createMediaObject<T extends MediaObject>(
     item: BaseItemDto,
@@ -189,17 +195,14 @@ function createThumbnail(id: string, width: number, height = width): Thumbnail {
 
 export function createArtistAlbumsPager(
     artist: MediaArtist,
-    albumSort: SortParams = {
-        sortBy: 'ProductionYear,PremiereDate,SortName',
-        sortOrder: -1,
-    }
+    albumSort = embyArtistAlbumsSort.defaultSort
 ): Pager<MediaAlbum> {
     const allTracks = createArtistAllTracks(artist);
     const allTracksPager = new SimplePager<MediaAlbum>([allTracks]);
     const albumsPager = new EmbyPager<MediaAlbum>(`Users/${embySettings.userId}/Items`, {
         AlbumArtistIds: getMediaObjectId(artist),
         IncludeItemTypes: 'MusicAlbum',
-        ...getSortParams(albumSort),
+        ...getSortParams(albumSort, embyArtistAlbumsSortMap),
     });
     return new WrappedPager(undefined, albumsPager, allTracksPager);
 }
@@ -236,10 +239,7 @@ function createAlbumTracksPager(album: BaseItemDto): Pager<MediaItem> {
 
 export function createPlaylistItemsPager(
     playlist: MediaPlaylist,
-    itemSort: SortParams = {
-        sortBy: 'ListItemOrder',
-        sortOrder: 1,
-    }
+    itemSort = embyPlaylistItemsSort.defaultSort
 ): Pager<MediaItem> {
     return new EmbyPlaylistItemsPager(playlist, itemSort);
 }
@@ -285,29 +285,4 @@ function parseDate(date?: string | null): number | undefined {
         const time = Date.parse(date) || 0;
         return time < 0 ? 0 : Math.round(time / 1000);
     }
-}
-
-export function getSortParams({sortBy, sortOrder}: SortParams): {
-    SortBy: string;
-    SortOrder: string;
-} {
-    return {
-        SortBy: sortBy,
-        SortOrder:
-            sortOrder === 1
-                ? 'Ascending'
-                : // Pad with 'Ascending'.
-                  sortBy
-                      .split(',')
-                      .map((sortBy, index, keys) =>
-                          index === 1 &&
-                          (keys[0] === 'ProductionYear' || keys[0] === 'PremiereDate') &&
-                          (sortBy === 'ProductionYear' || sortBy === 'PremiereDate')
-                              ? 'Descending'
-                              : index === 0
-                                ? 'Descending'
-                                : 'Ascending'
-                      )
-                      .join(','),
-    };
 }

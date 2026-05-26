@@ -37,7 +37,12 @@ import plexMediaType from './plexMediaType';
 import PlexPager from './PlexPager';
 import {scrobble} from './plexScrobbler';
 import plexSettings from './plexSettings';
-import plexSources, {createSearchPager, plexEditablePlaylists, plexSearch} from './plexSources';
+import plexSources, {
+    createSearchPager,
+    plexEditablePlaylists,
+    plexPlaylistItems,
+    plexSearch,
+} from './plexSources';
 import Login from './components/PlexLogin';
 import ServerSettings from './components/PlexServerSettings';
 import './bootstrap';
@@ -171,6 +176,7 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
         sourceId: `${serviceId}/pinned-playlist`,
         icon: 'pin',
         isPin: true,
+        secondaryItems: plexPlaylistItems,
 
         search(): Pager<T> {
             return new PlexPager({
@@ -181,7 +187,7 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
                 },
             });
         },
-    };
+    } as MediaSource<T>;
 }
 
 async function getFilters(

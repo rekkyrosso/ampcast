@@ -16,7 +16,8 @@ import IndexedPager from 'services/pagers/IndexedPager';
 import {getSourceSorting} from 'services/mediaServices/servicesSettings';
 import jellyfinSettings from './jellyfinSettings';
 import jellyfinApi from './jellyfinApi';
-import {createMediaObject, getSortParams} from './jellyfinUtils';
+import {jellyfinPlaylistItemsSortMap, getSortParams} from './jellyfinSorting';
+import {createMediaObject} from './jellyfinUtils';
 
 export default class JellyfinPager<T extends MediaObject> extends IndexedPager<T> {
     constructor(
@@ -155,7 +156,7 @@ export class JellyfinPlaylistItemsPager extends JellyfinPager<MediaItem> {
             {
                 ParentId: getMediaObjectId(playlist),
                 IncludeItemTypes: 'Audio,MusicVideo',
-                ...getSortParams(itemSort),
+                ...getSortParams(itemSort, jellyfinPlaylistItemsSortMap),
             },
             {autofill: true, pageSize: 1000}
         );

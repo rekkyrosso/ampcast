@@ -8,7 +8,6 @@ import MediaFolder from 'types/MediaFolder';
 import MediaFolderItem from 'types/MediaFolderItem';
 import MediaItem from 'types/MediaItem';
 import MediaListLayout from 'types/MediaListLayout';
-import MediaListSort from 'types/MediaListSort';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
@@ -30,45 +29,20 @@ import {
     recentlyAddedAlbumsLayout,
     recentlyPlayedTracksLayout,
 } from 'components/MediaList/layouts';
-import {createArtistAlbumsPager, createPlaylistItemsPager, getSortParams} from './jellyfinUtils';
+import {
+    jellyfinAlbumsSort,
+    jellyfinAlbumsSortMap,
+    jellyfinArtistAlbumsSort,
+    jellyfinPlaylistItemsSort,
+    jellyfinPlaylistsSort,
+    jellyfinPlaylistsSortMap,
+    jellyfinSongsSort,
+    jellyfinSongsSortMap,
+    getSortParams,
+} from './jellyfinSorting';
+import {createArtistAlbumsPager, createPlaylistItemsPager} from './jellyfinUtils';
 
 const serviceId: MediaServiceId = 'jellyfin';
-
-const jellyfinSongsSort: MediaListSort = {
-    sortOptions: {
-        Name: 'Title',
-        'Artist,Album,SortName': 'Artist',
-        'Album,SortName': 'Album',
-        'AlbumArtist,Album,SortName': 'Album Artist',
-    },
-    defaultSort: {
-        sortBy: 'AlbumArtist,Album,SortName',
-        sortOrder: 1,
-    },
-};
-
-const jellyfinAlbumsSort: MediaListSort = {
-    sortOptions: {
-        SortName: 'Title',
-        'AlbumArtist,SortName': 'Artist',
-        'ProductionYear,PremiereDate,AlbumArtist,Album,SortName': 'Year',
-    },
-    defaultSort: {
-        sortBy: 'AlbumArtist,SortName',
-        sortOrder: 1,
-    },
-};
-
-const jellyfinArtistAlbumsSort: MediaListSort = {
-    sortOptions: {
-        SortName: 'Title',
-        'ProductionYear,PremiereDate,SortName': 'Year',
-    },
-    defaultSort: {
-        sortBy: 'ProductionYear,PremiereDate,SortName',
-        sortOrder: -1,
-    },
-};
 
 const jellyfinPlaylistLayout: Partial<MediaListLayout> = {
     card: {
@@ -78,18 +52,6 @@ const jellyfinPlaylistLayout: Partial<MediaListLayout> = {
         data: 'TrackCount',
     },
     details: ['Name', 'Genre', 'TrackCount', 'Progress'],
-};
-
-export const jellyfinPlaylistItemsSort: MediaListSort = {
-    sortOptions: {
-        ListItemOrder: 'Position',
-        SortName: 'Title',
-        'Artist,Album,ParentIndexNumber,IndexNumber,SortName': 'Artist',
-    },
-    defaultSort: {
-        sortBy: 'ListItemOrder',
-        sortOrder: 1,
-    },
 };
 
 export const jellyfinSearch: MediaMultiSource = {
@@ -136,7 +98,7 @@ const jellyfinLikedSongs: MediaSource<MediaItem> = {
         return createItemsPager({
             ParentId: getMusicLibraryId(),
             Filters: 'IsFavorite',
-            ...getSortParams(sort),
+            ...getSortParams(sort, jellyfinSongsSortMap),
         });
     },
 };
@@ -157,7 +119,7 @@ const jellyfinLikedAlbums: MediaSource<MediaAlbum> = {
             ParentId: getMusicLibraryId(),
             Filters: 'IsFavorite',
             IncludeItemTypes: 'MusicAlbum',
-            ...getSortParams(sort),
+            ...getSortParams(sort, jellyfinAlbumsSortMap),
         });
     },
 };
@@ -253,16 +215,7 @@ const jellyfinPlaylists: MediaSource<MediaPlaylist> = {
     itemType: ItemType.Playlist,
     primaryItems: {
         layout: jellyfinPlaylistLayout,
-        sort: {
-            sortOptions: {
-                SortName: 'Name',
-                'DateCreated,SortName': 'Date Created',
-            },
-            defaultSort: {
-                sortBy: 'SortName',
-                sortOrder: 1,
-            },
-        },
+        sort: jellyfinPlaylistsSort,
     },
     secondaryItems: {
         sort: jellyfinPlaylistItemsSort,
@@ -272,7 +225,7 @@ const jellyfinPlaylists: MediaSource<MediaPlaylist> = {
         return createItemsPager(
             {
                 IncludeItemTypes: 'Playlist',
-                ...getSortParams(sort),
+                ...getSortParams(sort, jellyfinPlaylistsSortMap),
             },
             {
                 childSort: jellyfinPlaylistItemsSort.defaultSort,
@@ -311,7 +264,7 @@ const jellyfinTracksByGenre: MediaSource<MediaItem> = {
                 ParentId: getMusicLibraryId(),
                 Genres: genre.id,
                 IncludeItemTypes: 'Audio',
-                ...getSortParams(sort),
+                ...getSortParams(sort, jellyfinSongsSortMap),
             });
         } else {
             return new SimplePager();
@@ -333,7 +286,7 @@ const jellyfinAlbumsByGenre: MediaSource<MediaAlbum> = {
                 ParentId: getMusicLibraryId(),
                 IncludeItemTypes: 'MusicAlbum',
                 Genres: genre.id,
-                ...getSortParams(sort),
+                ...getSortParams(sort, jellyfinAlbumsSortMap),
             });
         } else {
             return new SimplePager();

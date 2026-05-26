@@ -36,11 +36,11 @@ import {
 import jellyfinSettings from './jellyfinSettings';
 import JellyfinPager from './JellyfinPager';
 import jellyfinApi from './jellyfinApi';
+import {jellyfinPlaylistItemsSort} from './jellyfinSorting';
 import jellyfinSources, {
     createItemsPager,
     createSearchPager,
     jellyfinEditablePlaylists,
-    jellyfinPlaylistItemsSort,
     jellyfinSearch,
 } from './jellyfinSources';
 import {createPlaylistItemsPager} from './jellyfinUtils';

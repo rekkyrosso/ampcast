@@ -24,6 +24,7 @@ export default function ScrobblesBrowser({
                 service={service}
                 source={source}
                 defaultLayout={recentlyPlayedTracksLayout}
+                key={source.id}
             />
         </>
     );

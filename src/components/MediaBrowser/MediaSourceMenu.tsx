@@ -105,43 +105,46 @@ function getMenuItems(source: MediaSource<any>, level: 1 | 2 | 3, itemType: Item
         level === 3
             ? source.tertiaryItems
             : level === 2
-            ? source.secondaryItems
-            : source.primaryItems;
+              ? source.secondaryItems
+              : source.primaryItems;
     const menuItems: MenuItems = {
         label: items?.label || getDefaultLabel(source.id, itemType),
     };
     if (items?.sort) {
         const sorting = getSourceSorting(id) || items.sort.defaultSort;
-        const sortOptions = items.sort.sortOptions;
-        menuItems.sort = (
-            <>
-                <PopupMenuItemGroup>
-                    {Object.keys(sortOptions).map((sortBy) => (
+        const sortOptions = items.sort.sortOptions || {};
+        const sortKeys = Object.keys(sortOptions);
+        if (sortKeys.length > 1) {
+            menuItems.sort = (
+                <>
+                    <PopupMenuItemGroup>
+                        {sortKeys.map((sortBy) => (
+                            <PopupMenuItemRadio
+                                label={`Sort by: ${sortOptions[sortBy]}`}
+                                checked={sorting.sortBy === sortBy}
+                                onClick={() => setSourceSorting(id, {...sorting, sortBy})}
+                                key={sortBy}
+                            />
+                        ))}
+                    </PopupMenuItemGroup>
+                    <PopupMenuSeparator />
+                    <PopupMenuItemGroup>
                         <PopupMenuItemRadio
-                            label={`Sort by: ${sortOptions[sortBy]}`}
-                            checked={sorting.sortBy === sortBy}
-                            onClick={() => setSourceSorting(id, sortBy, sorting.sortOrder)}
-                            key={sortBy}
+                            label="Sort Ascending"
+                            checked={sorting.sortOrder === 1}
+                            onClick={() => setSourceSorting(id, {...sorting, sortOrder: 1})}
+                            key="1"
                         />
-                    ))}
-                </PopupMenuItemGroup>
-                <PopupMenuSeparator />
-                <PopupMenuItemGroup>
-                    <PopupMenuItemRadio
-                        label="Sort Ascending"
-                        checked={sorting.sortOrder === 1}
-                        onClick={() => setSourceSorting(id, sorting.sortBy, 1)}
-                        key="1"
-                    />
-                    <PopupMenuItemRadio
-                        label="Sort Descending"
-                        checked={sorting.sortOrder === -1}
-                        onClick={() => setSourceSorting(id, sorting.sortBy, -1)}
-                        key="-1"
-                    />
-                </PopupMenuItemGroup>
-            </>
-        );
+                        <PopupMenuItemRadio
+                            label="Sort Descending"
+                            checked={sorting.sortOrder === -1}
+                            onClick={() => setSourceSorting(id, {...sorting, sortOrder: -1})}
+                            key="-1"
+                        />
+                    </PopupMenuItemGroup>
+                </>
+            );
+        }
     }
     const views = items?.layout?.views || ['card', 'card compact', 'card small', 'details'];
     const listView = document.getElementById(id);

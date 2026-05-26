@@ -65,6 +65,8 @@ function getColumns<T>(layout: ListViewLayout<T>, storageId?: string): readonly 
             id = String(index),
             title = '',
             className = '',
+            unsortable = false,
+            sortType = '',
             align = 'left',
             onContextMenu = preventDefault,
         } = spec;
@@ -78,6 +80,8 @@ function getColumns<T>(layout: ListViewLayout<T>, storageId?: string): readonly 
             id,
             title,
             className,
+            unsortable,
+            sortType,
             align,
             index,
             left,

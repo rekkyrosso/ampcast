@@ -36,11 +36,11 @@ import EmbyPager from './EmbyPager';
 import embySettings from './embySettings';
 import embyApi from './embyApi';
 import embyScrobbler from './embyScrobbler';
+import {embyPlaylistItemsSort} from './embySorting';
 import embySources, {
     createItemsPager,
     createSearchPager,
     embyEditablePlaylists,
-    embyPlaylistItemsSort,
     embySearch,
 } from './embySources';
 import {createPlaylistItemsPager} from './embyUtils';

@@ -4,9 +4,14 @@ import {t} from 'services/i18n';
 import {audioSettings} from 'services/audio';
 import {getListens} from 'services/localdb/listens';
 import {getPersonalMediaServices} from 'services/mediaServices';
+import {
+    getServicesLayoutSettingsKeys,
+    getServicesSettingsKeys,
+} from 'services/mediaServices/servicesSettings';
 import pinStore from 'services/pins/pinStore';
 import playlists from 'services/localdb/playlists';
 import preferences from 'services/preferences';
+import {getScrobbleSettingsKeys} from 'services/scrobbleSettings';
 import stationStore from 'services/internetRadio/stationStore';
 import themeStore from 'services/theme/themeStore';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
@@ -114,7 +119,7 @@ export default function useExportedSettings(): readonly BackupEntry<keyof Backup
 
 function getLayoutLocalStorage(): Record<string, string> {
     const storage: Record<string, string> = {};
-    const keys = ['services/fields', 'services/view'].map((key) => `ampcast/${key}`);
+    const keys = getServicesLayoutSettingsKeys().map((key) => `ampcast/${key}`);
     for (const key of keys) {
         storage[key] = localStorage[key];
     }
@@ -124,13 +129,10 @@ function getLayoutLocalStorage(): Record<string, string> {
 function getServicesLocalStorage(): Record<string, string> {
     const storage: Record<string, string> = {};
     const keys = [
-        'scrobbling/noScrobble',
-        'scrobbling/noScrobbleRadios',
-        'scrobbling/options',
-        'services/hidden',
-        'services/sorting',
         'lookup/preferPersonalMedia',
         'apple/bitrate',
+        ...getScrobbleSettingsKeys(),
+        ...getServicesSettingsKeys(),
         ...getPersonalMediaServices()
             .map((service) => service.id)
             .map((id) => [`${id}/host`, `${id}/libraries`, `${id}/libraryId`])

@@ -18,6 +18,10 @@ export interface ScrobblerOptions {
     updateNowPlaying: boolean;
 }
 
+export function getScrobbleSettingsKeys(): readonly string[] {
+    return ['noScrobble', 'noScrobbleRadios', 'options'].map((key) => `scrobbling/${key}`);
+}
+
 type NoScrobbleSettings = Record<
     ScrobblerId,
     Record<MediaServiceId, boolean | undefined> | undefined

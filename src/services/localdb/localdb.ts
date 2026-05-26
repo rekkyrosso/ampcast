@@ -11,9 +11,9 @@ import Pin, {Pinnable} from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import noAuth from 'services/mediaServices/noAuth';
 import ErrorPager from 'services/pagers/ErrorPager';
+import {localPlaylistItemsSort} from './localSorting';
 import localSources, {
     localPlaylistItems,
-    localPlaylistItemsSort,
     localPlaylistLayout,
     localPlaylists,
     localScrobbles,

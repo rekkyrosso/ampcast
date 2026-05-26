@@ -36,9 +36,9 @@ import {
 } from './navidromeAuth';
 import NavidromeIndexedPager from './NavidromeIndexedPager';
 import navidromeSettings from './navidromeSettings';
+import {navidromePlaylistItemsSort} from './navidromeSorting';
 import navidromeSources, {
     navidromePlaylistItems,
-    navidromePlaylistItemsSort,
     navidromePlaylistLayout,
     navidromePlaylists,
     navidromeSearch,

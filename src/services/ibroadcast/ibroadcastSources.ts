@@ -41,11 +41,11 @@ const ibroadcastAlbumsLayout: MediaListLayout = addRating(albumsLayout);
 
 const ibroadcastArtistAlbumsSort: MediaListSort = {
     sortOptions: {
-        title: 'Title',
-        year: 'Year',
+        Title: 'Title',
+        Year: 'Year',
     },
     defaultSort: {
-        sortBy: 'year',
+        sortBy: 'Year',
         sortOrder: -1,
     },
 };
@@ -68,12 +68,12 @@ const ibroadcastPlaylistItemsLayout: Partial<MediaListLayout> = {
 
 export const ibroadcastPlaylistItemsSort: MediaListSort = {
     sortOptions: {
-        position: 'Position',
-        title: 'Title',
-        artist: 'Artist',
+        Position: 'Position',
+        Title: 'Title',
+        Artist: 'Artist',
     },
     defaultSort: {
-        sortBy: 'position',
+        sortBy: 'Position',
         sortOrder: 1,
     },
 };
@@ -284,7 +284,7 @@ export const ibroadcastPlaylists: MediaSource<MediaPlaylist> = {
         layout: ibroadcastPlaylistLayout,
         sort: {
             sortOptions: {
-                title: 'Name',
+                Name: 'Name',
                 '': 'Date Created',
             },
             defaultSort: {
@@ -306,7 +306,7 @@ export const ibroadcastPlaylists: MediaSource<MediaPlaylist> = {
                     section: 'playlists',
                     filter: (playlist, map) => !playlist[map.type],
                     sort:
-                        sortBy === 'title'
+                        sortBy === 'Title'
                             ? (a, b, map) => sortByTitle(a[map.name], b[map.name])
                             : undefined,
                     reverse: sortOrder === -1,
@@ -332,12 +332,12 @@ const ibroadcastTracksByGenre: MediaSource<MediaItem> = {
         layout: ibroadcastTracksLayout,
         sort: {
             sortOptions: {
-                title: 'Title',
-                artist: 'Artist',
-                album: 'Album',
+                Title: 'Title',
+                Artist: 'Artist',
+                Album: 'Album',
             },
             defaultSort: {
-                sortBy: 'album',
+                sortBy: 'Album',
                 sortOrder: 1,
             },
         },
@@ -372,12 +372,12 @@ const ibroadcastAlbumsByGenre: MediaSource<MediaAlbum> = {
         layout: ibroadcastAlbumsLayout,
         sort: {
             sortOptions: {
-                title: 'Title',
-                artist: 'Artist',
-                year: 'Year',
+                Title: 'Title',
+                Artist: 'Artist',
+                Year: 'Year',
             },
             defaultSort: {
-                sortBy: 'artist',
+                sortBy: 'Artist',
                 sortOrder: 1,
             },
         },

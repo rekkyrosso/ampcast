@@ -61,6 +61,7 @@ export default function HistoryBrowser({
                 source={source}
                 pager={pager}
                 defaultLayout={defaultLayout}
+                key={startAt}
             />
         </>
     );

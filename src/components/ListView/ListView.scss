@@ -76,6 +76,30 @@
         border: 1px solid var(--black);
         border-radius: var(--app-border-radius);
         height: inherit;
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+
+        &.sortable {
+            cursor: pointer;
+        }
+
+        &.align-right {
+            flex-direction: row-reverse;
+        }
+
+        .text {
+            flex: auto;
+            height: inherit;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            min-width: 1em;
+        }
+
+        .marker {
+            flex: initial;
+            pointer-events: all;
+        }
 
         &.insert-before {
             transform: translateX(0.5em);

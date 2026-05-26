@@ -41,6 +41,7 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
         <MediaItemList
             title={selectedAlbum ? `${selectedAlbum.title}: Tracks` : ''}
             className={`album-tracks ${selectedAlbum?.multiDisc ? 'multi-disc' : ''}`}
+            parent={selectedAlbum}
             pager={tracksPager}
             defaultLayout={albumTracksLayout}
             source={source}

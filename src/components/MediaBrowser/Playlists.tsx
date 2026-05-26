@@ -25,7 +25,7 @@ export default function Playlists({source, ...props}: PagedItemsProps<MediaPlayl
     const playlistItems = (
         <PlaylistItemsList
             title={selectedPlaylist ? `${selectedPlaylist.title}: Tracks` : ''}
-            parentPlaylist={selectedPlaylist}
+            parent={selectedPlaylist}
             defaultLayout={playlistItemsLayout}
             source={source}
             level={2}
