@@ -18,12 +18,15 @@ import PopupMenu, {
 
 export async function showMediaSourceMenu(
     source: MediaSource<any>,
+    isSearch: boolean,
     target: HTMLElement,
     x: number,
     y: number
 ): Promise<void> {
     await showPopupMenu(
-        (props: PopupMenuProps) => <MediaSourceMenu {...props} source={source} />,
+        (props: PopupMenuProps) => (
+            <MediaSourceMenu {...props} source={source} isSearch={isSearch} />
+        ),
         target,
         x,
         y,
@@ -33,18 +36,19 @@ export async function showMediaSourceMenu(
 
 interface MediaSourceMenuProps {
     source: MediaSource<any>;
+    isSearch?: boolean;
 }
 
-function MediaSourceMenu({source, ...props}: PopupMenuProps & MediaSourceMenuProps) {
+function MediaSourceMenu({source, isSearch, ...props}: PopupMenuProps & MediaSourceMenuProps) {
     return (
         <PopupMenu {...props}>
-            <MediaSourceMenuItems source={source} />
+            <MediaSourceMenuItems source={source} isSearch={isSearch} />
         </PopupMenu>
     );
 }
 
-export function MediaSourceMenuItems({source}: MediaSourceMenuProps) {
-    const primaryMenuItems = getMenuItems(source, 1, source.itemType);
+export function MediaSourceMenuItems({source, isSearch}: MediaSourceMenuProps) {
+    const primaryMenuItems = getMenuItems(source, 1, source.itemType, isSearch);
     let secondaryMenuItems: MenuItems | undefined;
     let tertiaryMenuItems: MenuItems | undefined;
     if (source.secondaryItems?.layout?.view !== 'none' && source.itemType !== ItemType.Media) {
@@ -99,7 +103,12 @@ interface MenuItems {
     view?: React.ReactNode;
 }
 
-function getMenuItems(source: MediaSource<any>, level: 1 | 2 | 3, itemType: ItemType): MenuItems {
+function getMenuItems(
+    source: MediaSource<any>,
+    level: 1 | 2 | 3,
+    itemType: ItemType,
+    isSearch?: boolean
+): MenuItems {
     const id = `${source.sourceId || source.id}/${level}`;
     const items: MediaSourceItems | undefined =
         level === 3
@@ -110,7 +119,7 @@ function getMenuItems(source: MediaSource<any>, level: 1 | 2 | 3, itemType: Item
     const menuItems: MenuItems = {
         label: items?.label || getDefaultLabel(source.id, itemType),
     };
-    if (items?.sort) {
+    if (items?.sort && !isSearch) {
         const sorting = getSourceSorting(id) || items.sort.defaultSort;
         const sortOptions = items.sort.sortOptions || {};
         const sortKeys = Object.keys(sortOptions);

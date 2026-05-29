@@ -28,17 +28,6 @@ export const navidromeRadiosSortMap: Record<string, string> = {
     AddedAt: 'createdAt',
 };
 
-export const navidromePlaylistsSort: MediaListSort = {
-    sortOptions: {
-        Name: 'Name',
-        ModifiedAt: 'Date Modified',
-    },
-    defaultSort: {
-        sortBy: 'ModifiedAt',
-        sortOrder: -1,
-    },
-};
-
 export const navidromePlaylistItemsSort: MediaListSort = {
     sortOptions: {
         Position: 'Position',

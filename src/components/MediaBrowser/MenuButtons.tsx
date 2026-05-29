@@ -12,9 +12,13 @@ import './MenuButtons.scss';
 
 export interface MenuButtonsProps<T extends MediaObject> {
     source: MediaSource<T>;
+    isSearch?: boolean;
 }
 
-export default function MenuButtons<T extends MediaObject>({source}: MenuButtonsProps<T>) {
+export default function MenuButtons<T extends MediaObject>({
+    source,
+    isSearch = false,
+}: MenuButtonsProps<T>) {
     const createPlaylist = useCallback(() => {
         const [serviceId] = source.id.split('/');
         showCreatePlaylistDialog([], getService(serviceId));
@@ -31,9 +35,9 @@ export default function MenuButtons<T extends MediaObject>({source}: MenuButtons
     const showOptionsMenu = useCallback(
         async (button: HTMLButtonElement) => {
             const {right, bottom} = button.getBoundingClientRect();
-            await showMediaSourceMenu(source, button, right, bottom + 4);
+            await showMediaSourceMenu(source, isSearch, button, right, bottom + 4);
         },
-        [source]
+        [source, isSearch]
     );
 
     return (

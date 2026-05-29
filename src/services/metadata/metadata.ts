@@ -110,8 +110,15 @@ export function bestOf<T extends MediaObject>(a: T, b: Partial<T> = {}): T {
     return result;
 }
 
-export async function createMediaItemFromTitle(text: string): Promise<MediaItem | null> {
+export async function createMediaItemFromTitle(text = ''): Promise<MediaItem | null> {
     const [artist, title] = splitTitle(text);
+    return createMediaItemFromArtistAndTitle(artist, title);
+}
+
+export async function createMediaItemFromArtistAndTitle(
+    artist = '',
+    title = ''
+): Promise<MediaItem | null> {
     if (artist && title) {
         const lookupItem: MediaItem = {
             title,

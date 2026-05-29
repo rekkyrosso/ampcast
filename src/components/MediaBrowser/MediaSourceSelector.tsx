@@ -6,6 +6,7 @@ import './MediaSourceSelector.scss';
 
 export interface MediaSourceSelectorProps<T extends MediaObject> {
     sources: readonly MediaSource<T>[];
+    isSearch?: boolean;
     hidden?: boolean;
     withButtons?: boolean;
     onSourceChange?: (source: MediaSource<T>) => void;
@@ -13,6 +14,7 @@ export interface MediaSourceSelectorProps<T extends MediaObject> {
 
 export default function MediaSourceSelector<T extends MediaObject>({
     sources,
+    isSearch,
     hidden,
     withButtons,
     onSourceChange,
@@ -45,7 +47,7 @@ export default function MediaSourceSelector<T extends MediaObject>({
                     </li>
                 ))}
             </ul>
-            {withButtons ? <MenuButtons source={selectedSource} /> : null}
+            {withButtons ? <MenuButtons source={selectedSource} isSearch={isSearch} /> : null}
         </div>
     );
 }

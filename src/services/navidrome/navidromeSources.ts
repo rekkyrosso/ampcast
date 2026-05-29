@@ -23,7 +23,6 @@ import {
     navidromeArtistAlbumsSort,
     navidromeArtistsSortMap,
     navidromePlaylistItemsSort,
-    navidromePlaylistsSort,
     navidromePlaylistsSortMap,
     navidromeRadiosSort,
     navidromeRadiosSortMap,
@@ -76,34 +75,93 @@ export const navidromeSearch: MediaMultiSource = {
     icon: 'search',
     searchable: true,
     sources: [
-        createSearch<MediaItem>(ItemType.Media, {
-            id: 'songs',
-            title: 'Songs',
-            primaryItems: {
-                layout: {
-                    ...navidromeTracksLayout,
-                    view: 'details',
+        createSearch<MediaItem>(
+            ItemType.Media,
+            {
+                id: 'songs',
+                title: 'Songs',
+                primaryItems: {
+                    layout: {
+                        ...navidromeTracksLayout,
+                        view: 'details',
+                    },
+                    sort: {
+                        sortOptions: {
+                            Title: 'Title',
+                            Artist: 'Artist',
+                            Album: 'Album',
+                            AlbumArtist: 'Album Artist',
+                        },
+                        defaultSort: {
+                            sortBy: 'AlbumArtist',
+                            sortOrder: 1,
+                        },
+                    },
                 },
             },
-        }),
-        createSearch<MediaAlbum>(ItemType.Album, {
-            id: 'albums',
-            title: 'Albums',
-            primaryItems: {
-                layout: navidromeAlbumsLayout,
+            navidromeSongsSortMap
+        ),
+        createSearch<MediaAlbum>(
+            ItemType.Album,
+            {
+                id: 'albums',
+                title: 'Albums',
+                primaryItems: {
+                    layout: navidromeAlbumsLayout,
+                    sort: {
+                        sortOptions: {
+                            Title: 'Title',
+                            Artist: 'Artist',
+                            Year: 'Year',
+                        },
+                        defaultSort: {
+                            sortBy: 'Artist',
+                            sortOrder: 1,
+                        },
+                    },
+                },
             },
-        }),
-        createSearch<MediaArtist>(ItemType.Artist, {
-            id: 'artists',
-            title: 'Artists',
-            secondaryItems: {sort: navidromeArtistAlbumsSort},
-        }),
-        createSearch<MediaPlaylist>(ItemType.Playlist, {
-            id: 'playlists',
-            title: 'Playlists',
-            primaryItems: {layout: navidromePlaylistLayout},
-            secondaryItems: navidromePlaylistItems,
-        }),
+            navidromeAlbumsSortMap
+        ),
+        createSearch<MediaArtist>(
+            ItemType.Artist,
+            {
+                id: 'artists',
+                title: 'Artists',
+                primaryItems: {
+                    sort: {
+                        defaultSort: {
+                            sortBy: 'Name',
+                            sortOrder: 1,
+                        },
+                    },
+                },
+                secondaryItems: {sort: navidromeArtistAlbumsSort},
+            },
+            {Name: 'name'}
+        ),
+        createSearch<MediaPlaylist>(
+            ItemType.Playlist,
+            {
+                id: 'playlists',
+                title: 'Playlists',
+                primaryItems: {
+                    layout: navidromePlaylistLayout,
+                    sort: {
+                        sortOptions: {
+                            Name: 'Name',
+                            ModifiedAt: 'Date Modified',
+                        },
+                        defaultSort: {
+                            sortBy: 'Name',
+                            sortOrder: 1,
+                        },
+                    },
+                },
+                secondaryItems: navidromePlaylistItems,
+            },
+            navidromePlaylistsSortMap
+        ),
     ],
 };
 
@@ -363,7 +421,16 @@ export const navidromePlaylists: MediaSource<MediaPlaylist> = {
     itemType: ItemType.Playlist,
     primaryItems: {
         layout: navidromePlaylistLayout,
-        sort: navidromePlaylistsSort,
+        sort: {
+            sortOptions: {
+                Name: 'Name',
+                ModifiedAt: 'Date Modified',
+            },
+            defaultSort: {
+                sortBy: 'ModifiedAt',
+                sortOrder: -1,
+            },
+        },
     },
     secondaryItems: navidromePlaylistItems,
 
@@ -542,7 +609,8 @@ export default sources;
 
 function createSearch<T extends MediaObject>(
     itemType: T['itemType'],
-    props: Except<MediaSource<T>, 'itemType' | 'icon' | 'search'>
+    props: Except<MediaSource<T>, 'itemType' | 'icon' | 'search'>,
+    sortMap: Record<string, string>
 ): MediaSource<T> {
     const id = `${serviceId}/search/${props.id}`;
     return {
@@ -551,30 +619,33 @@ function createSearch<T extends MediaObject>(
         id,
         icon: 'search',
 
-        search({q = ''}: {q?: string} = {}): Pager<T> {
+        search(
+            {q = ''}: {q?: string} = {},
+            sort = props.primaryItems?.sort?.defaultSort
+        ): Pager<T> {
             q = q.trim();
+            const params: Record<string, string> = {};
+            if (sort && !q) {
+                const {sortBy, sortOrder} = sort;
+                params._sort = sortMap[sortBy] || sortBy;
+                params._order = sortOrder === -1 ? 'DESC' : 'ASC';
+            }
             switch (itemType) {
                 case ItemType.Media:
-                    return new NavidromeIndexedPager(itemType, 'song', {
-                        title: q,
-                        _sort: 'artist',
-                    });
+                    params.title = q;
+                    return new NavidromeIndexedPager(itemType, 'song', params);
 
                 case ItemType.Album:
-                    return new NavidromeIndexedPager(itemType, 'album', {
-                        name: q,
-                        _sort: 'album',
-                    });
+                    params.name = q;
+                    return new NavidromeIndexedPager(itemType, 'album', params);
 
                 case ItemType.Artist:
+                    params.name = q;
+                    params.role = q ? 'artist' : 'albumartist';
                     return new NavidromeIndexedPager(
                         itemType,
                         'artist',
-                        {
-                            name: q,
-                            role: q ? 'artist' : 'albumartist',
-                            _sort: 'name',
-                        },
+                        params,
                         {
                             childSort: navidromeArtistAlbumsSort.defaultSort,
                             childSortId: `${id}/2`,
@@ -583,10 +654,11 @@ function createSearch<T extends MediaObject>(
                     );
 
                 case ItemType.Playlist:
+                    params.q = q;
                     return new NavidromeIndexedPager(
                         itemType,
                         'playlist',
-                        {q, _sort: 'name'},
+                        params,
                         {
                             childSort: navidromePlaylistItemsSort.defaultSort,
                             childSortId: `${id}/2`,

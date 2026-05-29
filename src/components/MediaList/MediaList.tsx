@@ -43,6 +43,7 @@ export interface MediaListProps<T extends MediaObject> extends Except<
     | 'storageId'
 > {
     source?: MediaSource<any>;
+    isSearchResult?: boolean;
     level?: 1 | 2 | 3;
     pager: Pager<T> | null;
     parent?: ParentOf<T>;
@@ -60,6 +61,7 @@ export interface MediaListProps<T extends MediaObject> extends Except<
 
 export default function MediaList<T extends MediaObject>({
     source,
+    isSearchResult = false,
     level = 1,
     className = '',
     defaultLayout = defaultMediaListLayout,
@@ -108,12 +110,15 @@ export default function MediaList<T extends MediaObject>({
         () =>
             complete
                 ? layout.cols.filter((col) => !col.unsortable).map((col) => col.id!)
-                : Object.keys(sourceItems.sort?.sortOptions || {}),
-        [complete, sourceItems, layout]
+                : isSearchResult
+                  ? []
+                  : Object.keys(sourceItems.sort?.sortOptions || {}),
+        [complete, sourceItems, layout, isSearchResult]
     );
     const {sortedItems, sortParams, savedSortParams, onSort} = useMediaListSort(
         id,
         items,
+        isSearchResult,
         sourceItems,
         complete,
         parent,

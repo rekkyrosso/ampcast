@@ -2,7 +2,7 @@ import MediaListSort from 'types/MediaListSort';
 import SortParams from 'types/SortParams';
 
 export const jellyfinSongsSortMap: Record<string, string> = {
-    Title: 'Name',
+    Title: 'SortName',
     Artist: 'Artist,Album,SortName',
     Album: 'Album,SortName',
     AlbumArtist: 'AlbumArtist,Album,SortName',
@@ -58,17 +58,6 @@ export const jellyfinArtistAlbumsSort: MediaListSort = {
 export const jellyfinPlaylistsSortMap: Record<string, string> = {
     Name: 'SortName',
     '': 'DateCreated,SortName',
-};
-
-export const jellyfinPlaylistsSort: MediaListSort = {
-    sortOptions: {
-        Name: 'Name',
-        '': 'Date Added',
-    },
-    defaultSort: {
-        sortBy: 'Name',
-        sortOrder: 1,
-    },
 };
 
 export const jellyfinPlaylistItemsSortMap: Record<string, string> = {

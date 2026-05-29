@@ -34,7 +34,6 @@ import {
     jellyfinAlbumsSortMap,
     jellyfinArtistAlbumsSort,
     jellyfinPlaylistItemsSort,
-    jellyfinPlaylistsSort,
     jellyfinPlaylistsSortMap,
     jellyfinSongsSort,
     jellyfinSongsSortMap,
@@ -60,26 +59,72 @@ export const jellyfinSearch: MediaMultiSource = {
     icon: 'search',
     searchable: true,
     sources: [
-        createSearch<MediaItem>(ItemType.Media, {
-            id: 'songs',
-            title: 'Songs',
-            primaryItems: {layout: {view: 'details'}},
-        }),
-        createSearch<MediaAlbum>(ItemType.Album, {
-            id: 'albums',
-            title: 'Albums',
-        }),
-        createSearch<MediaArtist>(ItemType.Artist, {
-            id: 'artists',
-            title: 'Artists',
-            secondaryItems: {sort: jellyfinArtistAlbumsSort},
-        }),
-        createSearch<MediaPlaylist>(ItemType.Playlist, {
-            id: 'playlists',
-            title: 'Playlists',
-            primaryItems: {layout: jellyfinPlaylistLayout},
-            secondaryItems: {sort: jellyfinPlaylistItemsSort},
-        }),
+        createSearch<MediaItem>(
+            ItemType.Media,
+            {
+                id: 'songs',
+                title: 'Songs',
+                primaryItems: {
+                    layout: {view: 'details'},
+                    sort: jellyfinSongsSort,
+                },
+            },
+            jellyfinSongsSortMap
+        ),
+        createSearch<MediaAlbum>(
+            ItemType.Album,
+            {
+                id: 'albums',
+                title: 'Albums',
+                primaryItems: {
+                    sort: jellyfinAlbumsSort,
+                },
+            },
+            jellyfinAlbumsSortMap
+        ),
+        createSearch<MediaArtist>(
+            ItemType.Artist,
+            {
+                id: 'artists',
+                title: 'Artists',
+                primaryItems: {
+                    sort: {
+                        defaultSort: {
+                            sortBy: 'Name',
+                            sortOrder: 1,
+                        },
+                    },
+                },
+                secondaryItems: {
+                    sort: jellyfinArtistAlbumsSort,
+                },
+            },
+            {Name: 'SortName'}
+        ),
+        createSearch<MediaPlaylist>(
+            ItemType.Playlist,
+            {
+                id: 'playlists',
+                title: 'Playlists',
+                primaryItems: {
+                    layout: jellyfinPlaylistLayout,
+                    sort: {
+                        sortOptions: {
+                            Name: 'Name',
+                            '': 'Date Added',
+                        },
+                        defaultSort: {
+                            sortBy: 'Name',
+                            sortOrder: 1,
+                        },
+                    },
+                },
+                secondaryItems: {
+                    sort: jellyfinPlaylistItemsSort,
+                },
+            },
+            jellyfinPlaylistsSortMap
+        ),
     ],
 };
 
@@ -215,7 +260,16 @@ const jellyfinPlaylists: MediaSource<MediaPlaylist> = {
     itemType: ItemType.Playlist,
     primaryItems: {
         layout: jellyfinPlaylistLayout,
-        sort: jellyfinPlaylistsSort,
+        sort: {
+            sortOptions: {
+                Name: 'Name',
+                '': 'Date Added',
+            },
+            defaultSort: {
+                sortBy: '',
+                sortOrder: -1,
+            },
+        },
     },
     secondaryItems: {
         sort: jellyfinPlaylistItemsSort,
@@ -509,7 +563,8 @@ export default jellyfinSources;
 
 function createSearch<T extends MediaObject>(
     itemType: T['itemType'],
-    props: Except<MediaSource<T>, 'itemType' | 'icon' | 'search'>
+    props: Except<MediaSource<T>, 'itemType' | 'icon' | 'search'>,
+    sortMap: Record<string, string>
 ): MediaSource<T> {
     const id = `${serviceId}/search/${props.id}`;
     let options: Partial<PagerConfig<T>> | undefined;
@@ -537,8 +592,17 @@ function createSearch<T extends MediaObject>(
         itemType,
         icon: 'search',
 
-        search({q = ''}: {q?: string} = {}): Pager<T> {
-            return createSearchPager(itemType, q, undefined, options, createChildPager);
+        search(
+            {q = ''}: {q?: string} = {},
+            sort = props.primaryItems?.sort?.defaultSort
+        ): Pager<T> {
+            return createSearchPager(
+                itemType,
+                q,
+                sort && !q ? getSortParams(sort, sortMap) : undefined,
+                options,
+                createChildPager
+            );
         },
     };
 }
@@ -551,7 +615,6 @@ export function createSearchPager<T extends MediaObject>(
     createChildPager?: CreateChildPager<T>
 ): Pager<T> {
     const params: Record<string, string> = {
-        SortBy: 'SortName',
         SearchTerm: q.trim(),
         ...filters,
     };
@@ -566,13 +629,11 @@ export function createSearchPager<T extends MediaObject>(
             case ItemType.Media:
                 params.ParentId = getMusicLibraryId();
                 params.IncludeItemTypes = 'Audio';
-                params.SortBy = 'AlbumArtist,Album,SortName';
                 break;
 
             case ItemType.Album:
                 params.ParentId = getMusicLibraryId();
                 params.IncludeItemTypes = 'MusicAlbum';
-                params.SortBy = 'AlbumArtist,SortName';
                 break;
 
             case ItemType.Playlist:

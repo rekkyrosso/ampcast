@@ -9,9 +9,8 @@ import SortParams from 'types/SortParams';
 import {setSourceSorting} from 'services/mediaServices/servicesSettings';
 import {sorter} from 'services/metadata';
 import useSorting from 'hooks/useSorting';
-import {getField} from './mediaListFields';
 
-const defaultAlbumSort: SortParams = {
+const albumTracksSort: SortParams = {
     sortBy: 'Track',
     sortOrder: 1,
 };
@@ -19,24 +18,28 @@ const defaultAlbumSort: SortParams = {
 export default function useMediaListSort<T extends MediaObject>(
     id: string,
     items: readonly T[],
+    isSearchResult: boolean,
     sourceItems: MediaSourceItems,
     complete: boolean,
     parent?: ParentOf<T>,
     onInternalSort?: (params: SortParams) => void
 ) {
-    const defaultSort =
-        sourceItems.sort?.defaultSort || (isAlbum(parent) ? defaultAlbumSort : undefined);
-    const externalSortParams = useSorting(id);
+    const defaultSort = isSearchResult
+        ? undefined
+        : sourceItems.sort?.defaultSort || (isAlbum(parent) ? albumTracksSort : undefined);
+    const externalSortParams = useSorting(isSearchResult ? '' : id);
     const [internalSortParams, setInternalSortParams] = useState<SortParams | undefined>();
     const [sortedItems, setSortedItems] = useState<readonly T[]>(items);
     const sortParams = internalSortParams || externalSortParams || defaultSort;
-    const [savedSortParams, setSavedSortParams] = useState<SortParams | undefined>(
-        () =>
-            externalSortParams ||
-            // Only store the default sort if there are sort options
-            (sourceItems.sort?.sortOptions ? defaultSort : undefined)
+    const [savedSortParams, setSavedSortParams] = useState<SortParams | undefined>(() =>
+        isSearchResult
+            ? undefined
+            : externalSortParams ||
+              // Only store the default sort if there are sort options
+              (sourceItems.sort?.sortOptions ? defaultSort : undefined)
     );
     const [sorting, setSorting] = useState(false);
+    const size = items.length;
 
     const onSort = useCallback(
         (params: SortParams) => {
@@ -47,23 +50,28 @@ export default function useMediaListSort<T extends MediaObject>(
                 setSourceSorting(id, params);
             }
         },
-        [id, complete, setInternalSortParams]
+        [id, complete]
     );
 
     useEffect(() => {
-        if (externalSortParams) {
+        document.body.classList.toggle('busy', sorting && size > 10_000);
+    }, [sorting, size]);
+
+    useEffect(() => {
+        if (externalSortParams && !isSearchResult) {
             setSavedSortParams(externalSortParams);
             setInternalSortParams(undefined);
         }
-    }, [externalSortParams]);
+    }, [externalSortParams, isSearchResult]);
 
     useEffect(() => {
         if (internalSortParams) {
             const {sortBy, sortOrder} = internalSortParams;
-            setSortedItems(
-                sorter.sort(items, sortBy as Field, sortOrder, getField(sortBy as Field)?.sortType)
-            );
-            setSorting(false);
+            const timerId = setTimeout(() => {
+                setSortedItems(sorter.sort(items, sortBy as Field, sortOrder));
+                setSorting(false);
+            });
+            return () => clearTimeout(timerId);
         } else {
             setSortedItems(items);
         }
@@ -76,7 +84,7 @@ export default function useMediaListSort<T extends MediaObject>(
     }, [internalSortParams, onInternalSort]);
 
     useEffect(() => {
-        if (internalSortParams) {
+        if (internalSortParams && !isSearchResult) {
             const externalSortKeys = Object.keys(sourceItems.sort?.sortOptions || {});
             if (externalSortKeys.includes(internalSortParams.sortBy)) {
                 // If the internal sort matches an external sort then save it and use it next time.
@@ -84,7 +92,7 @@ export default function useMediaListSort<T extends MediaObject>(
                 setSavedSortParams(internalSortParams);
             }
         }
-    }, [id, internalSortParams, sourceItems]);
+    }, [id, internalSortParams, sourceItems, isSearchResult]);
 
     return {
         sortedItems: sorting ? [] : sortedItems,

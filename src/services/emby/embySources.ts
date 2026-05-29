@@ -34,7 +34,6 @@ import {
     embyAlbumsSortMap,
     embyArtistAlbumsSort,
     embyPlaylistItemsSort,
-    embyPlaylistsSort,
     embyPlaylistsSortMap,
     embySongsSort,
     embySongsSortMap,
@@ -60,26 +59,72 @@ export const embySearch: MediaMultiSource = {
     icon: 'search',
     searchable: true,
     sources: [
-        createSearch<MediaItem>(ItemType.Media, {
-            id: 'songs',
-            title: 'Songs',
-            primaryItems: {layout: {view: 'details'}},
-        }),
-        createSearch<MediaAlbum>(ItemType.Album, {
-            id: 'albums',
-            title: 'Albums',
-        }),
-        createSearch<MediaArtist>(ItemType.Artist, {
-            id: 'artists',
-            title: 'Artists',
-            secondaryItems: {sort: embyArtistAlbumsSort},
-        }),
-        createSearch<MediaPlaylist>(ItemType.Playlist, {
-            id: 'playlists',
-            title: 'Playlists',
-            primaryItems: {layout: embyPlaylistLayout},
-            secondaryItems: {sort: embyPlaylistItemsSort},
-        }),
+        createSearch<MediaItem>(
+            ItemType.Media,
+            {
+                id: 'songs',
+                title: 'Songs',
+                primaryItems: {
+                    layout: {view: 'details'},
+                    sort: embySongsSort,
+                },
+            },
+            embySongsSortMap
+        ),
+        createSearch<MediaAlbum>(
+            ItemType.Album,
+            {
+                id: 'albums',
+                title: 'Albums',
+                primaryItems: {
+                    sort: embyAlbumsSort,
+                },
+            },
+            embyAlbumsSortMap
+        ),
+        createSearch<MediaArtist>(
+            ItemType.Artist,
+            {
+                id: 'artists',
+                title: 'Artists',
+                primaryItems: {
+                    sort: {
+                        defaultSort: {
+                            sortBy: 'Name',
+                            sortOrder: 1,
+                        },
+                    },
+                },
+                secondaryItems: {
+                    sort: embyArtistAlbumsSort,
+                },
+            },
+            {Name: 'SortName'}
+        ),
+        createSearch<MediaPlaylist>(
+            ItemType.Playlist,
+            {
+                id: 'playlists',
+                title: 'Playlists',
+                primaryItems: {
+                    layout: embyPlaylistLayout,
+                    sort: {
+                        sortOptions: {
+                            Name: 'Name',
+                            AddedAt: 'Date Added',
+                        },
+                        defaultSort: {
+                            sortBy: 'Name',
+                            sortOrder: 1,
+                        },
+                    },
+                },
+                secondaryItems: {
+                    sort: embyPlaylistItemsSort,
+                },
+            },
+            embyPlaylistsSortMap
+        ),
     ],
 };
 
@@ -215,7 +260,16 @@ const embyPlaylists: MediaSource<MediaPlaylist> = {
     itemType: ItemType.Playlist,
     primaryItems: {
         layout: embyPlaylistLayout,
-        sort: embyPlaylistsSort,
+        sort: {
+            sortOptions: {
+                Name: 'Name',
+                AddedAt: 'Date Added',
+            },
+            defaultSort: {
+                sortBy: 'AddedAt',
+                sortOrder: -1,
+            },
+        },
     },
     secondaryItems: {
         sort: embyPlaylistItemsSort,
@@ -513,7 +567,8 @@ export default embySources;
 
 function createSearch<T extends MediaObject>(
     itemType: T['itemType'],
-    props: Except<MediaSource<T>, 'itemType' | 'icon' | 'search'>
+    props: Except<MediaSource<T>, 'itemType' | 'icon' | 'search'>,
+    sortMap: Record<string, string>
 ): MediaSource<T> {
     const id = `${serviceId}/search/${props.id}`;
     let options: Partial<PagerConfig<T>> | undefined;
@@ -541,8 +596,17 @@ function createSearch<T extends MediaObject>(
         itemType,
         icon: 'search',
 
-        search({q = ''}: {q?: string} = {}): Pager<T> {
-            return createSearchPager(itemType, q, undefined, options, createChildPager);
+        search(
+            {q = ''}: {q?: string} = {},
+            sort = props.primaryItems?.sort?.defaultSort
+        ): Pager<T> {
+            return createSearchPager(
+                itemType,
+                q,
+                sort && !q ? getSortParams(sort, sortMap) : undefined,
+                options,
+                createChildPager
+            );
         },
     };
 }
@@ -570,12 +634,10 @@ export function createSearchPager<T extends MediaObject>(
 
         case ItemType.Artist:
             params.IncludeItemTypes = 'MusicArtist';
-            params.SortBy = 'SortName';
             break;
 
         case ItemType.Playlist:
             params.IncludeItemTypes = 'Playlist';
-            params.SortBy = 'SortName';
             break;
     }
     return createItemsPager(params, options, createChildPager);

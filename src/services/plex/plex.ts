@@ -269,7 +269,7 @@ async function lookup(
         return [];
     }
     return fetchFirstPage(
-        createSearchPager<MediaItem>(ItemType.Media, `${artist} ${title}`, {
+        createSearchPager<MediaItem>(ItemType.Media, `${artist} ${title}`, undefined, {
             pageSize: limit,
             maxSize: limit,
             passive: true,

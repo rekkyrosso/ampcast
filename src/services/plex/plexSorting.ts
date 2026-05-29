@@ -52,17 +52,6 @@ export const plexPlaylistsSortMap: Record<string, string> = {
     AddedAt: 'addedAt',
 };
 
-export const plexPlaylistsSort: MediaListSort = {
-    sortOptions: {
-        Name: 'Name',
-        AddedAt: 'Date Added',
-    },
-    defaultSort: {
-        sortBy: 'Name',
-        sortOrder: 1,
-    },
-};
-
 export const plexPlaylistItemsSort: MediaListSort = {
     defaultSort: {
         sortBy: 'Position',
@@ -79,11 +68,21 @@ export function getAlbumSort({sortBy, sortOrder} = plexAlbumsSort.defaultSort) {
     }`;
 }
 
-export function getTrackSort({sortBy, sortOrder} = plexAlbumsSort.defaultSort) {
+export function getTrackSort({sortBy, sortOrder} = plexTracksSort.defaultSort) {
     sortBy = plexTracksSortMap[sortBy] || sortBy;
     return `${sortBy}:${sortOrder === -1 ? 'desc' : 'asc'}${
         sortBy === 'artist.titleSort'
             ? ',album.titleSort,album.year,track.absoluteIndex,track.index,track.titleSort,track.id'
             : ''
     }`;
+}
+
+export function getPlaylistSort(
+    {sortBy, sortOrder} = {
+        sortBy: 'Name',
+        sortOrder: 1,
+    }
+) {
+    sortBy = plexPlaylistsSortMap[sortBy] || sortBy;
+    return `${sortBy}:${sortOrder === -1 ? 'desc' : 'asc'}`;
 }

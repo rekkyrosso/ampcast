@@ -27,10 +27,6 @@ import usePager from 'hooks/usePager';
 
 export type FieldSpec = Except<ColumnSpec<any>, 'id'> & {id: Field};
 
-export function getField(id: Field): FieldSpec {
-    return mediaListFields[id];
-}
-
 type RenderField<T extends MediaObject = MediaObject> = ColumnSpec<T>['render'];
 
 const Index: RenderField = (_, info) => <Text value={info.rowIndex + 1} />;
@@ -327,7 +323,6 @@ const mediaListFields: Record<Field, FieldSpec> = {
         align: 'right',
         width: 5,
         className: 'index track',
-        sortType: 'number',
     },
     Disc: {
         id: 'Disc',
@@ -336,7 +331,6 @@ const mediaListFields: Record<Field, FieldSpec> = {
         align: 'right',
         width: 4,
         className: 'disc',
-        sortType: 'number',
     },
     Position: {
         id: 'Position',
@@ -345,31 +339,27 @@ const mediaListFields: Record<Field, FieldSpec> = {
         align: 'right',
         width: 4,
         className: 'index position',
-        sortType: 'number',
     },
     Artist: {
         id: 'Artist',
         title: 'Artist',
         render: Artist,
         className: 'artist',
-        sortType: 'title',
     },
     AlbumArtist: {
         id: 'AlbumArtist',
         title: 'Album Artist',
         render: AlbumArtist,
         className: 'artist',
-        sortType: 'title',
     },
-    Title: {id: 'Title', title: 'Title', render: Title, className: 'title', sortType: 'locale'},
-    Name: {id: 'Name', title: 'Name', render: Title, className: 'title', sortType: 'title'},
+    Title: {id: 'Title', title: 'Title', render: Title, className: 'title'},
+    Name: {id: 'Name', title: 'Name', render: Title, className: 'title'},
     FileName: {id: 'FileName', title: 'FileName', render: FileName, className: 'title'},
     IconTitle: {
         id: 'IconTitle',
         title: 'Title',
         render: IconTitle,
         className: 'title',
-        sortType: 'locale',
     },
     Description: {
         id: 'Description',
@@ -377,7 +367,7 @@ const mediaListFields: Record<Field, FieldSpec> = {
         render: Description,
         className: 'description',
     },
-    Album: {id: 'Album', title: 'Album', render: Album, className: 'album', sortType: 'locale'},
+    Album: {id: 'Album', title: 'Album', render: Album, className: 'album'},
     AlbumType: {
         id: 'AlbumType',
         title: 'Type',
@@ -389,7 +379,6 @@ const mediaListFields: Record<Field, FieldSpec> = {
         title: 'Album',
         render: AlbumAndYear,
         className: 'album',
-        sortType: 'locale',
     },
     Duration: {
         id: 'Duration',
@@ -398,7 +387,6 @@ const mediaListFields: Record<Field, FieldSpec> = {
         align: 'right',
         width: 5,
         className: 'duration',
-        sortType: 'number',
     },
     FileIcon: {
         id: 'FileIcon',
@@ -414,7 +402,6 @@ const mediaListFields: Record<Field, FieldSpec> = {
         align: 'right',
         width: 5,
         className: 'play-count count',
-        sortType: 'number',
     },
     TrackCount: {
         id: 'TrackCount',
@@ -423,7 +410,6 @@ const mediaListFields: Record<Field, FieldSpec> = {
         align: 'right',
         width: 8,
         className: 'track-count count',
-        sortType: 'number',
     },
     Year: {
         id: 'Year',
@@ -432,17 +418,15 @@ const mediaListFields: Record<Field, FieldSpec> = {
         align: 'right',
         width: 5,
         className: 'year',
-        sortType: 'number',
     },
     Views: {
         id: 'Views',
         title: 'Views',
         render: Views,
         className: 'views count',
-        sortType: 'number',
     },
     Genre: {id: 'Genre', title: 'Genre', render: Genre, width: 10, className: 'genre'},
-    Owner: {id: 'Owner', title: 'Owner', render: Owner, className: 'owner', sortType: 'locale'},
+    Owner: {id: 'Owner', title: 'Owner', render: Owner, className: 'owner'},
     BitRate: {
         id: 'BitRate',
         title: 'BitRate',
@@ -450,7 +434,6 @@ const mediaListFields: Record<Field, FieldSpec> = {
         align: 'right',
         width: 6,
         className: 'bitrate',
-        sortType: 'number',
     },
     Container: {
         id: 'Container',
@@ -464,7 +447,6 @@ const mediaListFields: Record<Field, FieldSpec> = {
         title: 'Copyright',
         render: Copyright,
         className: 'copyright',
-        sortType: 'locale',
     },
     AddedAt: {
         id: 'AddedAt',
@@ -472,7 +454,6 @@ const mediaListFields: Record<Field, FieldSpec> = {
         render: AddedAt,
         align: 'right',
         className: 'added-at date',
-        sortType: 'number',
     },
     ModifiedAt: {
         id: 'ModifiedAt',
@@ -480,7 +461,6 @@ const mediaListFields: Record<Field, FieldSpec> = {
         render: ModifiedAt,
         align: 'right',
         className: 'modified-at date',
-        sortType: 'number',
     },
     Released: {
         id: 'Released',
@@ -488,7 +468,6 @@ const mediaListFields: Record<Field, FieldSpec> = {
         render: Released,
         align: 'right',
         className: 'released-at date',
-        sortType: 'number',
     },
     LastPlayed: {
         id: 'LastPlayed',
@@ -496,7 +475,6 @@ const mediaListFields: Record<Field, FieldSpec> = {
         render: LastPlayed,
         align: 'right',
         className: 'played-at date',
-        sortType: 'number',
     },
     ListenDate: {
         id: 'ListenDate',
@@ -504,7 +482,7 @@ const mediaListFields: Record<Field, FieldSpec> = {
         render: ListenDate,
         align: 'right',
         className: 'listen-date date',
-        sortType: 'number',
+
         width: 9,
     },
     MultiDisc: {
@@ -527,7 +505,6 @@ const mediaListFields: Record<Field, FieldSpec> = {
         align: 'right',
         width: 8,
         className: 'rating',
-        sortType: 'number',
     },
     Progress: {
         id: 'Progress',

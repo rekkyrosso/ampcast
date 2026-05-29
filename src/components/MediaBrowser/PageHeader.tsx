@@ -9,13 +9,14 @@ export interface PageHeaderProps {
     icon: IconName;
     children: React.ReactNode;
     source?: MediaSource;
+    isSearch?: boolean;
 }
 
-export default function PageHeader({icon, source, children}: PageHeaderProps) {
+export default function PageHeader({icon, source, isSearch, children}: PageHeaderProps) {
     return (
         <h2 className="page-header">
             <MediaSourceLabel icon={icon} text={children} />
-            {source ? <MenuButtons source={source} /> : null}
+            {source ? <MenuButtons source={source} isSearch={isSearch} /> : null}
         </h2>
     );
 }

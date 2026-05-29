@@ -60,17 +60,6 @@ export const embyPlaylistsSortMap: Record<string, string> = {
     AddedAt: 'DateCreated,SortName',
 };
 
-export const embyPlaylistsSort: MediaListSort = {
-    sortOptions: {
-        Name: 'Name',
-        AddedAt: 'Date Added',
-    },
-    defaultSort: {
-        sortBy: 'Name',
-        sortOrder: 1,
-    },
-};
-
 export const embyPlaylistItemsSortMap: Record<string, string> = {
     Position: 'ListItemOrder',
     Title: 'SortName',

@@ -127,7 +127,15 @@ body.dragging {
         pointer-events: none;
     }
 
-    & * {
+    * {
+        cursor: inherit !important;
+    }
+}
+
+body.busy {
+    cursor: wait;
+
+    * {
         cursor: inherit !important;
     }
 }

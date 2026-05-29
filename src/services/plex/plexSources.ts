@@ -40,12 +40,11 @@ import {
 } from 'components/MediaList/layouts';
 import {
     getAlbumSort,
+    getPlaylistSort,
     getTrackSort,
     plexAlbumsSort,
     plexArtistAlbumsSort,
     plexPlaylistItemsSort,
-    plexPlaylistsSort,
-    plexPlaylistsSortMap,
     plexTracksSort,
 } from './plexSorting';
 
@@ -82,35 +81,73 @@ export const plexSearch: MediaMultiSource = {
     icon: 'search',
     searchable: true,
     sources: [
-        createSearch<MediaItem>(ItemType.Media, {
-            id: 'tracks',
-            title: 'Tracks',
-            primaryItems: {
-                layout: {
-                    ...plexTracksLayout,
-                    view: 'details',
+        createSearch<MediaItem>(
+            ItemType.Media,
+            {
+                id: 'tracks',
+                title: 'Tracks',
+                primaryItems: {
+                    layout: {
+                        ...plexTracksLayout,
+                        view: 'details',
+                    },
+                    sort: plexTracksSort,
                 },
             },
-        }),
-        createSearch<MediaAlbum>(ItemType.Album, {
-            id: 'albums',
-            title: 'Albums',
-            primaryItems: {
-                layout: plexAlbumsLayout,
+            getTrackSort
+        ),
+        createSearch<MediaAlbum>(
+            ItemType.Album,
+            {
+                id: 'albums',
+                title: 'Albums',
+                primaryItems: {
+                    layout: plexAlbumsLayout,
+                    sort: plexAlbumsSort,
+                },
             },
-        }),
-        createSearch<MediaArtist>(ItemType.Artist, {
-            id: 'artists',
-            title: 'Artists',
-            secondaryItems: {
-                sort: plexArtistAlbumsSort,
+            getAlbumSort
+        ),
+        createSearch<MediaArtist>(
+            ItemType.Artist,
+            {
+                id: 'artists',
+                title: 'Artists',
+                primaryItems: {
+                    sort: {
+                        defaultSort: {
+                            sortBy: 'Name',
+                            sortOrder: 1,
+                        },
+                    },
+                },
+                secondaryItems: {
+                    sort: plexArtistAlbumsSort,
+                },
             },
-        }),
-        createSearch<MediaPlaylist>(ItemType.Playlist, {
-            id: 'playlists',
-            title: 'Playlists',
-            secondaryItems: plexPlaylistItems,
-        }),
+            () => 'titleSort'
+        ),
+        createSearch<MediaPlaylist>(
+            ItemType.Playlist,
+            {
+                id: 'playlists',
+                title: 'Playlists',
+                primaryItems: {
+                    sort: {
+                        sortOptions: {
+                            Name: 'Name',
+                            AddedAt: 'Date Added',
+                        },
+                        defaultSort: {
+                            sortBy: 'Name',
+                            sortOrder: 1,
+                        },
+                    },
+                },
+                secondaryItems: plexPlaylistItems,
+            },
+            getPlaylistSort
+        ),
     ],
 };
 
@@ -291,21 +328,27 @@ const plexPlaylists: MediaSource<MediaPlaylist> = {
     icon: 'playlist',
     itemType: ItemType.Playlist,
     primaryItems: {
-        sort: plexPlaylistsSort,
+        sort: {
+            sortOptions: {
+                Name: 'Name',
+                AddedAt: 'Date Added',
+            },
+            defaultSort: {
+                sortBy: 'AddedAt',
+                sortOrder: -1,
+            },
+        },
     },
     secondaryItems: plexPlaylistItems,
 
-    search(
-        _,
-        {sortBy, sortOrder} = plexPlaylists.primaryItems!.sort!.defaultSort
-    ): Pager<MediaPlaylist> {
+    search(_, sort = plexPlaylists.primaryItems!.sort!.defaultSort): Pager<MediaPlaylist> {
         getMusicLibraryId(); // Make sure to throw even if not needed
         return new PlexPager({
             path: '/playlists/all',
             params: {
                 type: plexMediaType.Playlist,
                 playlistType: 'audio',
-                sort: `${plexPlaylistsSortMap[sortBy] || sortBy}:${sortOrder === -1 ? 'desc' : 'asc'}`,
+                sort: getPlaylistSort(sort),
             },
         });
     },
@@ -686,7 +729,8 @@ export default plexSources;
 
 function createSearch<T extends MediaObject>(
     itemType: T['itemType'],
-    props: Except<MediaSource<T>, 'itemType' | 'icon' | 'search'>
+    props: Except<MediaSource<T>, 'itemType' | 'icon' | 'search'>,
+    getSort?: (params: SortParams) => string
 ): MediaSource<T> {
     const id = `${serviceId}/search/${props.id}`;
     return {
@@ -695,10 +739,14 @@ function createSearch<T extends MediaObject>(
         itemType,
         icon: 'search',
 
-        search({q = ''}: {q?: string} = {}): Pager<T> {
+        search(
+            {q = ''}: {q?: string} = {},
+            sort = props.primaryItems?.sort?.defaultSort
+        ): Pager<T> {
             return createSearchPager(
                 itemType,
                 q,
+                sort && !q ? getSort?.(sort) : undefined,
                 itemType === ItemType.Artist
                     ? {
                           childSort: plexArtistAlbumsSort.defaultSort,
@@ -714,12 +762,13 @@ function createSearch<T extends MediaObject>(
 export function createSearchPager<T extends MediaObject>(
     itemType: T['itemType'],
     q: string,
+    sort?: string,
     options?: Partial<PagerConfig<T>>,
     createChildPager?: CreateChildPager<T>
 ): Pager<T> {
     getMusicLibraryId(); // Make sure to throw even if not needed
     const path = itemType === ItemType.Playlist ? '/playlists/all' : getMusicLibraryPath();
-    const params: Record<string, string> = {};
+    const params: Record<string, string> = sort ? {sort} : {};
     if (q) {
         params.title = q.trim();
     }

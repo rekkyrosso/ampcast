@@ -260,12 +260,7 @@ class PlaylistsStore extends Dexie {
                         if (sortBy === 'Position') {
                             return sortOrder === -1 ? items.toReversed() : items.slice();
                         } else {
-                            return sorter.sort(
-                                items,
-                                sortBy as Field,
-                                sortOrder,
-                                sortBy === 'Artist' ? 'title' : 'locale'
-                            );
+                            return sorter.sort(items, sortBy as Field, sortOrder);
                         }
                     }
                     return items;

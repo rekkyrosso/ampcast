@@ -22,6 +22,7 @@ export interface PagedItemsProps<T extends MediaObject> {
     defaultLayout?: MediaListLayout;
     loadingText?: string;
     emptyMessage?: string;
+    isSearchResult?: boolean;
 }
 
 export default function PagedItems<T extends MediaObject>(props: PagedItemsProps<T>) {

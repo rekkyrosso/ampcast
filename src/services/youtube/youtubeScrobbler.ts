@@ -3,10 +3,14 @@ import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import {Logger, exists} from 'utils';
-import {createMediaItemFromTitle, dispatchMetadataChanges} from 'services/metadata';
+import {getListens} from 'services/localdb/listens';
+import {
+    createMediaItemFromArtistAndTitle,
+    createMediaItemFromTitle,
+    dispatchMetadataChanges,
+} from 'services/metadata';
 import {observeCurrentItem} from 'services/playlist';
 import {observeScrobblingEnabled} from 'services/mediaServices/servicesSettings';
-import youtube from './youtube';
 
 const logger = new Logger('youtubeScrobbler');
 
@@ -18,24 +22,31 @@ export async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
         return item;
     }
     const title = sanitizeTitle(item.title);
-    let foundItem = await createMediaItemFromTitle(title);
-    if (foundItem === null) {
+    let foundItem = getScrobbleDataFromListens(item.src);
+    if (!foundItem) {
+        foundItem = await createMediaItemFromTitle(title);
+    }
+    if (!foundItem) {
         const owner = item.owner?.name;
-        if (owner?.includes(' - ')) {
+        if (owner) {
             const [artist] = owner.split(' - ');
-            foundItem = await createMediaItemFromTitle(`${artist} - ${item.title}`);
+            foundItem = await createMediaItemFromArtistAndTitle(artist, title);
         }
     }
-    const scrobbleAs: MediaItem['scrobbleAs'] = {
-        artist: foundItem?.artists?.[0] || '',
-        title: foundItem?.title || '',
-        album: foundItem?.album || '',
-    };
-    dispatchMetadataChanges({
-        match: (object) => object.src === item.src,
-        values: {scrobbleAs},
-    });
-    return {...item, scrobbleAs};
+    if (foundItem) {
+        const scrobbleAs: MediaItem['scrobbleAs'] = foundItem.scrobbleAs || {
+            artist: foundItem.artists?.[0] || '',
+            title: foundItem.title,
+            album: foundItem.album,
+        };
+        dispatchMetadataChanges({
+            match: (object) => object.src === item.src,
+            values: {scrobbleAs},
+        });
+        return {...item, scrobbleAs};
+    } else {
+        return item;
+    }
 }
 
 export function scrobble(): void {
@@ -46,9 +57,13 @@ export function scrobble(): void {
             distinctUntilChanged((a, b) => a?.src === b?.src),
             filter(exists),
             filter((item) => item.src.startsWith('youtube:video:') && !item.scrobbleAs),
-            mergeMap((item) => youtube.addMetadata!(item))
+            mergeMap((item) => addMetadata(item))
         )
         .subscribe(logger);
+}
+
+function getScrobbleDataFromListens(src: string): MediaItem | null {
+    return getListens().find((listen) => listen.src === src && listen.scrobbleAs?.artist) || null;
 }
 
 function sanitizeTitle(title: string): string {

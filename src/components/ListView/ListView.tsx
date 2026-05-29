@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
 import {ConditionalKeys} from 'type-fest';
 import SortParams from 'types/SortParams';
-import SortType from 'types/SortType';
 import {browser} from 'utils';
 import Scrollable, {
     ScrollableClient,
@@ -25,7 +24,6 @@ export interface ColumnSpec<T> {
     readonly title?: React.ReactNode;
     readonly className?: string;
     readonly align?: 'left' | 'right' | 'center';
-    readonly sortType?: SortType;
     readonly unsortable?: boolean;
     readonly width?: number; // starting width (only in a sizeable layout)
     readonly render: (

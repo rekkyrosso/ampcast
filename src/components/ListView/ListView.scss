@@ -82,10 +82,15 @@
 
         &.sortable {
             cursor: pointer;
-        }
 
-        &.align-right {
-            flex-direction: row-reverse;
+            &.align-left {
+                padding-right: 0.25em;
+            }
+
+            &.align-right {
+                padding-left: 0.25em;
+                flex-direction: row-reverse;
+            }
         }
 
         .text {

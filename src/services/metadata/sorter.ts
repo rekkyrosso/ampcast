@@ -4,15 +4,59 @@ import MediaItem from 'types/MediaItem';
 import {Field} from 'types/MediaListLayout';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import SortType from 'types/SortType';
+
+type SortType =
+    | '' // default sort
+    | 'number' // including dates
+    | 'title' // title text (e.g. ignore leading "The")
+    | 'locale'; // use `localeCompare`
+
+const sortTypes: Record<Field, SortType> = {
+    Index: 'number',
+    Track: 'number',
+    Disc: 'number',
+    Position: 'number',
+    Artist: 'title',
+    AlbumArtist: 'title',
+    Title: 'locale',
+    Name: 'title',
+    FileName: 'locale',
+    IconTitle: 'locale',
+    Description: 'locale',
+    Album: 'locale',
+    AlbumType: '',
+    AlbumAndYear: 'locale',
+    Duration: 'number',
+    FileIcon: '',
+    PlayCount: 'number',
+    TrackCount: 'number',
+    Year: 'number',
+    Views: 'number',
+    Genre: 'locale',
+    Owner: 'locale',
+    BitRate: 'number',
+    Container: 'locale',
+    Copyright: 'locale',
+    AddedAt: 'number',
+    ModifiedAt: 'number',
+    Released: 'number',
+    LastPlayed: 'number',
+    ListenDate: 'number',
+    MultiDisc: '',
+    Thumbnail: '',
+    Rating: 'number',
+    Progress: '',
+    Badges: '',
+    Country: 'locale',
+    ScrobbleStatus: '',
+};
 
 function sort<T extends MediaObject>(
     items: readonly T[],
     sortBy: Field,
-    sortOrder: 1 | -1,
-    sortType?: SortType
+    sortOrder: 1 | -1
 ): readonly T[] {
-    return items.toSorted((a, b) => compare(a, b, sortBy, sortOrder, sortType));
+    return items.toSorted((a, b) => compare(a, b, sortBy, sortOrder, sortTypes[sortBy]));
 }
 
 export default {sort};

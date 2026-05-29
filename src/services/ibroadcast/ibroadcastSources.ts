@@ -424,7 +424,7 @@ const ibroadcastTracksByDecade: MediaSource<MediaItem> = {
                                 library.albums[track[map.album_id]]?.[library.albums.map.year],
                             decade.id
                         ),
-                    sort: (a, b, map, library) => sortTracks('year', -1, a, b, map, library),
+                    sort: (a, b, map, library) => sortTracks('Year', -1, a, b, map, library),
                 })
             );
         } else {
@@ -449,7 +449,7 @@ const ibroadcastAlbumsByDecade: MediaSource<MediaAlbum> = {
                 ibroadcastLibrary.query({
                     section: 'albums',
                     filter: (album, map) => filterByDecade(album[map.year], decade.id),
-                    sort: (a, b, map, library) => sortAlbums('year', -1, a, b, map, library),
+                    sort: (a, b, map, library) => sortAlbums('Year', -1, a, b, map, library),
                 })
             );
         } else {

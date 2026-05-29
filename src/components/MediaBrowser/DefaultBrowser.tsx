@@ -19,6 +19,7 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
     const pager = useSearch(selectedSource, query);
     const searchable = !!source.searchable;
     const showPagerHeader = !searchable && !source.isPin;
+    const isSearch = !!query;
 
     useEffect(() => {
         if (selectedSource?.lockActionsStore) {
@@ -36,7 +37,7 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
     return (
         <>
             {showPagerHeader ? (
-                <PageHeader icon={service.icon} source={selectedSource}>
+                <PageHeader icon={service.icon} source={selectedSource} isSearch={isSearch}>
                     {source === service.root ? service.name : `${service.name}: ${source.title}`}
                 </PageHeader>
             ) : null}
@@ -53,9 +54,10 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
                     sources={sources}
                     onSourceChange={setSelectedSource}
                     withButtons={searchable}
+                    isSearch={isSearch}
                 />
             ) : showPagerHeader || selectedSource.isPin ? null : (
-                <MenuBar source={selectedSource} />
+                <MenuBar source={selectedSource} isSearch={isSearch} />
             )}
             <PagedItems
                 service={service}
@@ -63,7 +65,8 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
                 pager={pager}
                 loadingText={query ? 'Searching' : undefined}
                 emptyMessage={query ? 'No results' : undefined}
-                key={selectedSource?.id}
+                isSearchResult={isSearch}
+                key={`${selectedSource?.id}?q=${query}`}
             />
         </>
     );
