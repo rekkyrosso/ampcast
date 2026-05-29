@@ -83,19 +83,30 @@ export async function musicKitFetch<T = any>(
 
 export function createMediaObjects<T extends MediaObject>(
     items: readonly MusicKitItem[],
-    parent?: ParentOf<T>
+    parent?: ParentOf<T>,
+    offset = 0
 ): T[] {
-    return items.map((item) => createMediaObject(item, parent) as T);
+    return items.map(
+        (item, index) =>
+            createMediaObject(
+                item,
+                parent,
+                parent?.itemType === ItemType.Playlist && parent.isChart
+                    ? offset + index + 1
+                    : undefined
+            ) as T
+    );
 }
 
 export function createMediaObject<T extends MediaObject>(
     item: MusicKitItem,
-    parent?: ParentOf<T>
+    parent?: ParentOf<T>,
+    position?: number
 ): T {
     switch (item.type) {
         case 'playlists':
         case 'library-playlists':
-            return createMediaPlaylist(item) as T;
+            return createMediaPlaylist(item, position) as T;
 
         case 'artists':
         case 'library-artists':
@@ -103,13 +114,13 @@ export function createMediaObject<T extends MediaObject>(
 
         case 'albums':
         case 'library-albums':
-            return createMediaAlbum(item) as T;
+            return createMediaAlbum(item, position) as T;
 
         case 'songs':
         case 'library-songs':
         case 'music-videos':
         case 'library-music-videos':
-            return createMediaItem(item, parent as ParentOf<MediaItem>) as T;
+            return createMediaItem(item, parent as ParentOf<MediaItem>, position) as T;
 
         case 'stations':
             return createRadioItem(item) as T;
@@ -140,7 +151,8 @@ export function createNowPlayingItem(
 }
 
 function createMediaPlaylist(
-    playlist: AppleMusicApi.Playlist | LibraryPlaylist
+    playlist: AppleMusicApi.Playlist | LibraryPlaylist,
+    position?: number
 ): SetRequired<MediaPlaylist, 'apple'> {
     const item = createFromLibrary<AppleMusicApi.Playlist['attributes'] & {canEdit: boolean}>(
         playlist
@@ -151,6 +163,7 @@ function createMediaPlaylist(
 
     const mediaPlaylist: Writable<SetOptional<SetRequired<MediaPlaylist, 'apple'>, 'pager'>> = {
         src,
+        position,
         itemType: ItemType.Playlist,
         externalUrl: item.url,
         title: item.name,
@@ -194,7 +207,8 @@ function createMediaArtist(
 }
 
 function createMediaAlbum(
-    album: AppleMusicApi.Album | LibraryAlbum
+    album: AppleMusicApi.Album | LibraryAlbum,
+    position?: number
 ): SetRequired<MediaAlbum, 'apple'> {
     const item = createFromLibrary<AppleMusicApi.Album['attributes']>(album);
     const src = `apple:${album.type}:${album.id}`;
@@ -210,6 +224,7 @@ function createMediaAlbum(
               ? AlbumType.Single
               : undefined,
         src,
+        position,
         externalUrl: item.url,
         title: item.name,
         description: description ? getTextFromHtml(description) : undefined,
@@ -237,7 +252,8 @@ function createMediaAlbum(
 
 function createMediaItem(
     song: AppleMusicApi.Song | LibrarySong | MusicVideo | LibraryMusicVideo,
-    parent?: ParentOf<MediaItem>
+    parent?: ParentOf<MediaItem>,
+    position?: number
 ): SetRequired<MediaItem, 'apple'> {
     const item = createFromLibrary<AppleMusicApi.Song['attributes']>(song);
     const {id, kind} = item.playParams || {
@@ -255,6 +271,7 @@ function createMediaItem(
         mediaType: kind === 'musicVideo' ? MediaType.Video : MediaType.Audio,
         playbackType: PlaybackType.HLS,
         src,
+        position,
         externalUrl: item.url,
         title: item.name,
         description: description ? getTextFromHtml(description) : undefined,

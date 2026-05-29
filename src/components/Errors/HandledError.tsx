@@ -16,7 +16,7 @@ export default function HandledError({error, service, children}: HandledErrorPro
                 </h2>
             ) : null}
             <div className="error-report">
-                <pre className="note">{error?.message || String(error)}</pre>
+                <p className="note">{error?.message || String(error)}</p>
             </div>
             {children}
         </div>

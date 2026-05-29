@@ -1,4 +1,5 @@
 import React, {useCallback, useRef} from 'react';
+import {preventDefault} from 'utils';
 import Button from 'components/Button';
 import Icon, {IconName} from 'components/Icon';
 import './SearchBar.scss';
@@ -12,6 +13,12 @@ export interface SearchBarProps {
 
 export default function SearchBar({name, icon, placeholder = 'Search', onSubmit}: SearchBarProps) {
     const inputRef = useRef<HTMLInputElement>(null);
+
+    const clear = useCallback(() => {
+        const input = inputRef.current!;
+        input.value = '';
+        input.focus();
+    }, []);
 
     const handleSubmit = useCallback(
         (event: React.SubmitEvent) => {
@@ -35,6 +42,15 @@ export default function SearchBar({name, icon, placeholder = 'Search', onSubmit}
                     autoCapitalize="off"
                     ref={inputRef}
                 />
+                <Button
+                    type="button"
+                    title="Clear"
+                    tabIndex={-1}
+                    onClick={clear}
+                    onMouseDown={preventDefault}
+                >
+                    <Icon name="clear" />
+                </Button>
                 <Button type="submit" title="Search">
                     <Icon name="search" />
                 </Button>

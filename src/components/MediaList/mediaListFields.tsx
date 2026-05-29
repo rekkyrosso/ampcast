@@ -91,7 +91,7 @@ const MultiDisc: RenderField<MediaAlbum> = (item) => <Text value={item.multiDisc
 
 const Copyright: RenderField<MediaAlbum | MediaItem> = (item) => <Text value={item.copyright} />;
 
-const Position: RenderField<MediaItem> = (item) => <Text value={item.position || '-'} />;
+const Position: RenderField = (item) => <Text value={item.position || '-'} />;
 
 const Artist: RenderField<MediaAlbum | MediaItem> = (item) => (
     <Text value={item.itemType === ItemType.Media ? item.artists?.join(', ') : item.artist} />

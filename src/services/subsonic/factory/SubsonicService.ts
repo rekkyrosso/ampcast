@@ -125,6 +125,9 @@ export default class SubsonicService implements PersonalMediaService {
                 this.createSearch<MediaItem>(ItemType.Media, {
                     id: 'songs',
                     title: 'Songs',
+                    primaryItems: {
+                        layout: {view: 'details'},
+                    },
                 }),
                 this.createSearch<MediaAlbum>(ItemType.Album, {
                     id: 'albums',
@@ -859,9 +862,12 @@ export default class SubsonicService implements PersonalMediaService {
             itemType,
             id: `${this.id}/search/${props.id}`,
             icon: 'search',
-            primaryItems: !api.openSubsonic
-                ? {emptyMessage: 'Please enter a search term'}
-                : undefined,
+            primaryItems: {
+                ...props.primaryItems,
+                get emptyMessage() {
+                    return api.openSubsonic ? undefined : 'Please enter a search term';
+                },
+            },
 
             search({q = ''}: {q?: string} = {}): Pager<T> {
                 q = q.trim();

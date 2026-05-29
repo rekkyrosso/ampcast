@@ -317,6 +317,12 @@ const spotifyCharts: MediaSource<MediaPlaylist> = {
     disabled: isRestrictedApi,
     secondaryItems: {
         layout: removeGenre(songChartsLayout),
+        sort: {
+            defaultSort: {
+                sortBy: 'Position',
+                sortOrder: 1,
+            },
+        },
     },
 
     search(): Pager<MediaPlaylist> {

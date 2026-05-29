@@ -96,13 +96,13 @@ export const radiosLayoutSmall: MediaListLayout = {
 export const songChartsLayout: MediaListLayout = {
     view: 'card small',
     card: {
-        index: 'Index',
+        index: 'Position',
         h1: 'Title',
         h2: 'Artist',
         h3: 'AlbumAndYear',
         data: 'Duration',
     },
-    details: ['Index', ...defaultMediaItemFields, 'Year', 'Genre'],
+    details: ['Position', ...defaultMediaItemFields, 'Year', 'Genre'],
     extraFields: allMediaItemFields,
 };
 

@@ -38,7 +38,28 @@
         align-items: center;
         justify-content: center;
         padding: 0.5em;
-        margin-left: var(--gutter-width);
         aspect-ratio: 1;
+
+        &[type="button"] {
+            display: none;
+            position: absolute;
+            right: 2.5em;
+            background: none;
+            border: 0;
+            box-shadow: none;
+            color: var(--grey2-color);
+        }
+
+        &[type="submit"] {
+            margin-left: var(--gutter-width);
+        }
+    }
+
+    input:not(:placeholder-shown) {
+        padding-right: 2em;
+
+        & + button[type="button"] {
+            display: flex;
+        }
     }
 }

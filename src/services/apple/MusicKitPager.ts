@@ -42,8 +42,9 @@ export default class MusicKitPager<T extends MediaObject> extends SequentialPage
                         this.nextPageUrl || href,
                         limit ? (params ? {...params, limit} : {limit}) : params
                     );
+                    const size = this.items.length;
                     const result = toPage(response.data);
-                    const items = createMediaObjects(result.items, parent);
+                    const items = createMediaObjects(result.items, parent, size);
                     const total = result.total;
                     const atEnd = !result.nextPageUrl;
                     this.nextPageUrl = result.nextPageUrl;

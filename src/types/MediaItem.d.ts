@@ -26,7 +26,6 @@ export default interface MediaItem extends BaseMediaObject {
     readonly startTime?: number;
     readonly srcs?: readonly string[]; // Playable sources that can't be derived from `src`.
     // Playlists.
-    readonly position?: number; // Playlist position number
     readonly playlistItemId?: string;
     // External IDs.
     readonly isrc?: string;

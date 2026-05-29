@@ -20,6 +20,7 @@ type BaseMediaObject = UserData & {
     readonly addedAt?: number; // unix
     readonly genres?: readonly string[];
     readonly thumbnails?: readonly Thumbnail[];
+    readonly position?: number; // Chart position (or playlist position)
     readonly synthetic?: boolean; // Created by ampcast, does not exist as metadata (e.g. "Top Tracks")
     readonly apple?: {
         readonly catalogId: string;
