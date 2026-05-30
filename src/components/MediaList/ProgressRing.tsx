@@ -45,8 +45,7 @@ export default function ProgressRing({progress, busy, error}: ProgressRingProps)
                 </g>
             ) : complete && !busy ? (
                 <path
-                    fill="white"
-                    stroke="white"
+                    className="progress-ring-tick"
                     transform="scale(0.67) translate(5,5)"
                     d="M9 16.17 4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"
                     strokeWidth={2}

@@ -68,27 +68,56 @@ export default class YouTubePager<T extends MediaObject> extends SequentialPager
     private async createItems({kind, items = []}: YouTubePage, cacheKey: string): Promise<T[]> {
         switch (kind) {
             case 'youtube#playlistListResponse':
-                return items.map(
-                    (item) => createMediaPlaylist(item as YouTubePlaylist) as unknown as T
-                );
+                return items.map((item) => createMediaPlaylist(item as YouTubePlaylist) as T);
 
             case 'youtube#playlistItemListResponse': {
                 const videoIds = items.map(
                     (item) => (item as YouTubePlaylistItem).contentDetails!.videoId!
                 );
+                const size = this.items.length;
                 const videos = await this.fetchVideos(videoIds, cacheKey);
-                return videos.map((video) => createMediaItem(video) as unknown as T);
+                return videos.map((video, index) => createMediaItem(video, size + index + 1) as T);
             }
 
             case 'youtube#searchListResponse': {
-                const videoIds = items.map((item) => (item as YouTubeSearchResult).id!.videoId!);
-                const videos = await this.fetchVideos(videoIds, cacheKey);
-                return videos.map((video) => createMediaItem(video) as unknown as T);
+                if ((items[0]?.id as any)?.kind === 'youtube#playlist') {
+                    const playlistIds = items.map(
+                        (item) => (item as YouTubeSearchResult).id!.playlistId!
+                    );
+                    const playlists = await this.fetchPlaylists(playlistIds, cacheKey);
+                    return playlists.map((playlist) => createMediaPlaylist(playlist) as T);
+                } else {
+                    const videoIds = items.map(
+                        (item) => (item as YouTubeSearchResult).id!.videoId!
+                    );
+                    const videos = await this.fetchVideos(videoIds, cacheKey);
+                    return videos.map((video) => createMediaItem(video) as T);
+                }
             }
 
             default:
-                return items.map((item) => createMediaItem(item as YouTubeVideo) as unknown as T);
+                return items.map((item) => createMediaItem(item as YouTubeVideo) as T);
         }
+    }
+
+    private async fetchPlaylists(
+        playlistIds: string[],
+        cacheKey: string
+    ): Promise<readonly YouTubePlaylist[]> {
+        const playlistsCacheKey = `${cacheKey}/playlists`;
+        const cachedResult =
+            await this.getFromCache<YouTubeCacheable<YouTubePlaylist>>(playlistsCacheKey);
+        const result = await this.fetch<YouTubeCacheable<YouTubePlaylist>>(
+            '/playlists',
+            {
+                id: playlistIds.join(','),
+                part: 'snippet,contentDetails,status',
+                fields: `etag,${YouTubePager.playlistFields}`,
+            },
+            cachedResult
+        );
+        await this.saveToCache(playlistsCacheKey, result);
+        return result.items || [];
     }
 
     private async fetchVideos(
@@ -96,9 +125,8 @@ export default class YouTubePager<T extends MediaObject> extends SequentialPager
         cacheKey: string
     ): Promise<readonly YouTubeVideo[]> {
         const videosCacheKey = `${cacheKey}/videos`;
-        const cachedResult = await this.getFromCache<YouTubeCacheable<YouTubeVideo>>(
-            videosCacheKey
-        );
+        const cachedResult =
+            await this.getFromCache<YouTubeCacheable<YouTubeVideo>>(videosCacheKey);
         const result = await this.fetch<YouTubeCacheable<YouTubeVideo>>(
             '/videos',
             {

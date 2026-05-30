@@ -455,14 +455,10 @@
                 }
             }
 
-            .owner,
-            .genre {
-                -webkit-line-clamp: 1;
-            }
-
-            .owner,
             .genre,
             .description {
+                line-height: 1;
+
                 .text {
                     font-size: 0.75em;
                 }
@@ -525,6 +521,12 @@
                     height: 1.125em;
                     padding: 0 0.375em;
                 }
+            }
+
+            .genre,
+            .description {
+                -webkit-line-clamp: 1;
+                line-height: normal;
             }
 
             .actions {

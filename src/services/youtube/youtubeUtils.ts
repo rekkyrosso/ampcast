@@ -31,7 +31,7 @@ export function createMediaPlaylist(playlist: gapi.client.youtube.Playlist): Med
     };
 }
 
-export function createMediaItem(video: gapi.client.youtube.Video): MediaItem {
+export function createMediaItem(video: gapi.client.youtube.Video, position?: number): MediaItem {
     return {
         itemType: ItemType.Media,
         mediaType: MediaType.Video,
@@ -45,6 +45,7 @@ export function createMediaItem(video: gapi.client.youtube.Video): MediaItem {
         globalLikes: parseNumber(video.statistics?.likeCount),
         globalPlayCount: parseNumber(video.statistics?.viewCount),
         playedAt: 0,
+        position,
     };
 }
 

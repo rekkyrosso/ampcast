@@ -28,10 +28,10 @@ import {
 import {addMetadata, scrobble} from './youtubeScrobbler';
 import youtubeSettings from './youtubeSettings';
 import youtubeSources, {
+    youtubePlaylistItems,
     youtubePlaylistLayout,
     youtubePlaylists,
     youtubeSearch,
-    youtubeVideoItems,
 } from './youtubeSources';
 import Credentials from './components/YouTubeCredentials';
 import Login from './components/YouTubeLogin';
@@ -170,7 +170,7 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
         primaryItems: {
             layout: youtubePlaylistLayout,
         },
-        secondaryItems: youtubeVideoItems,
+        secondaryItems: youtubePlaylistItems,
 
         search(): Pager<T> {
             const [, , playlistId] = pin.src.split(':');

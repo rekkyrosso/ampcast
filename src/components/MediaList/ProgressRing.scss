@@ -11,6 +11,14 @@
         }
     }
 
+    &-tick {
+        fill: white;
+
+        .frame-light & {
+            fill: black;
+        }
+    }
+
     &.error {
         stroke: var(--frame-text-color);
     }
