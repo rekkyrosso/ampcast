@@ -3,7 +3,7 @@ import {BehaviorSubject, combineLatest, filter, map} from 'rxjs';
 import Dexie, {liveQuery} from 'dexie';
 import MediaObject from 'types/MediaObject';
 import Pin, {Pinnable} from 'types/Pin';
-import {dispatchMetadataChanges} from 'services/metadata';
+import {dispatchMetadataChanges, titleCompare} from 'services/metadata';
 import {Logger} from 'utils';
 
 const logger = new Logger('pinStore');
@@ -117,12 +117,7 @@ class PinStore extends Dexie {
         }
         return pins
             .filter((pin) => pin.src.startsWith(`${serviceId}:`))
-            .sort((a, b) =>
-                a.title.localeCompare(b.title, undefined, {
-                    sensitivity: 'accent',
-                    ignorePunctuation: true,
-                })
-            );
+            .sort((a, b) => titleCompare(a.title, b.title));
     }
 }
 

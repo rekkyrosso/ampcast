@@ -14,14 +14,14 @@ import MediaFilter from 'types/MediaFilter';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {Logger, uniq} from 'utils';
 import {observeIsLoggedIn} from 'services/mediaServices';
-import {dispatchMetadataChanges} from 'services/metadata';
+import {dispatchMetadataChanges, localeCompare} from 'services/metadata';
 import ibroadcastApi from './ibroadcastApi';
 import {createMediaPlaylist, getGenres, getIdFromSrc, getSystemPlaylistId} from './ibroadcastUtils';
 
 const logger = new Logger('ibroadcastLibrary');
 
 export type IBroadcastLibraryChange<
-    T extends iBroadcast.LibrarySection = iBroadcast.LibrarySection
+    T extends iBroadcast.LibrarySection = iBroadcast.LibrarySection,
 > = {
     readonly library: iBroadcast.Library;
     readonly section: T;
@@ -301,7 +301,7 @@ export class IBroadcastLibrary {
                 }
             }
             this.genres[section] = [...genresMap.keys()]
-                .sort((a, b) => a.localeCompare(b, undefined, {sensitivity: 'base'}))
+                .sort((a, b) => localeCompare(a, b))
                 .map((genre) => ({
                     id: genre,
                     title: genre,
@@ -588,8 +588,8 @@ export class IBroadcastLibrary {
                         section === 'tracks'
                             ? artists[data[id][tracksMap.artist_id]]?.[artistsMap.name] || ''
                             : section === 'albums'
-                            ? artists[data[id][albumsMap.artist_id]]?.[artistsMap.name] || ''
-                            : '',
+                              ? artists[data[id][albumsMap.artist_id]]?.[artistsMap.name] || ''
+                              : '',
                     album:
                         section === 'tracks'
                             ? albums[data[id][tracksMap.album_id]]?.[albumsMap.name] || ''

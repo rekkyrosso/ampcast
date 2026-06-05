@@ -4,7 +4,7 @@ import Dexie, {liveQuery} from 'dexie';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import {Logger} from 'utils';
-import {dispatchMetadataChanges} from 'services/metadata';
+import {dispatchMetadataChanges, titleCompare} from 'services/metadata';
 
 const logger = new Logger('stationStore');
 
@@ -22,11 +22,7 @@ class StationStore extends Dexie {
         });
 
         liveQuery(() => this.favorites.toArray()).subscribe((favorites) =>
-            favorites$.next(
-                favorites.sort((a, b) =>
-                    a.title.localeCompare(b.title, undefined, {sensitivity: 'base'})
-                )
-            )
+            favorites$.next(favorites.sort((a, b) => titleCompare(a.title, b.title)))
         );
     }
 

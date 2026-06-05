@@ -6,7 +6,7 @@ import MediaType from 'types/MediaType';
 import PlaylistItem from 'types/PlaylistItem';
 import Thumbnail from 'types/Thumbnail';
 import {Logger, uniq} from 'utils';
-import {addMetadataToRadioTrack} from 'services/metadata';
+import {addMetadataToRadioTrack, localeCompare} from 'services/metadata';
 
 const logger = new Logger('onlineRadioBoxApi');
 
@@ -85,11 +85,7 @@ async function getOrbId(station: PlaylistItem): Promise<string> {
                 ]);
                 const stations = result.flat();
                 const compareTitles = (data: OnlineRadioBox.Station): boolean => {
-                    if (
-                        data.title.localeCompare(searchableTitle, undefined, {
-                            sensitivity: 'base',
-                        }) === 0
-                    ) {
+                    if (localeCompare(data.title, searchableTitle) === 0) {
                         return true;
                     }
                     const trimTitle = (title: string): string => {
@@ -100,11 +96,7 @@ async function getOrbId(station: PlaylistItem): Promise<string> {
                             .trim();
                     };
                     // A more loose comparison but probably right.
-                    return (
-                        trimTitle(data.title).localeCompare(trimTitle(searchableTitle), undefined, {
-                            sensitivity: 'base',
-                        }) === 0
-                    );
+                    return localeCompare(trimTitle(data.title), trimTitle(searchableTitle)) === 0;
                 };
                 const orbStation = stations.find(
                     (data) => data.country === countryCode && data.rank && compareTitles(data)

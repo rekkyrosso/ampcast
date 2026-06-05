@@ -1,5 +1,6 @@
 import {Primitive} from 'type-fest';
 import {Logger, getRandomValue, uniq, uniqBy} from 'utils';
+import {titleCompare} from 'services/metadata';
 
 const logger = new Logger('radioBrowserInfoApi');
 
@@ -7,11 +8,7 @@ let countries: RadioBrowserInfo.Country[];
 async function getCountries(): Promise<readonly RadioBrowserInfo.Country[]> {
     if (!countries) {
         countries = await get('/countries', {hidebroken: true});
-        countries.sort((a, b) =>
-            a.name.replace(/^The\s/i, '').localeCompare(b.name.replace(/^The\s/i, ''), undefined, {
-                sensitivity: 'base',
-            })
-        );
+        countries.sort((a, b) => titleCompare(a.name, b.name));
         countries = [
             {
                 iso_3166_1: '',

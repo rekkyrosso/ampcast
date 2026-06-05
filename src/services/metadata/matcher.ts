@@ -1,6 +1,7 @@
 import unidecode from 'unidecode';
 import MediaItem from 'types/MediaItem';
 import {filterNotEmpty, fuzzyCompare} from 'utils';
+import {localeCompare} from './sorter';
 
 const regFeaturedArtists = /\s*[\s[({](with\s|featuring\s|feat[\s.]+|ft[\s.]+).+$/i;
 
@@ -296,7 +297,7 @@ function normalizeArtistAndTitle(item: MediaItem): string {
 }
 
 function compareString(a: string, b = ''): boolean {
-    return a.localeCompare(b, undefined, {sensitivity: 'accent'}) === 0;
+    return localeCompare(a, b) === 0;
 }
 
 function stringIncludes(a: string, b = ''): boolean {

@@ -10,6 +10,7 @@ import Pager from 'types/Pager';
 import SortParams from 'types/SortParams';
 import Thumbnail from 'types/Thumbnail';
 import {exists, uniq} from 'utils';
+import {localeCompare} from 'services/metadata';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import pinStore from 'services/pins/pinStore';
 import ibroadcastLibrary from './ibroadcastLibrary';
@@ -429,5 +430,5 @@ export function sortTracks(
 }
 
 export function sortByTitle(a: string, b: string): number {
-    return (a || '').localeCompare(b || '', undefined, {sensitivity: 'base'});
+    return localeCompare(a, b);
 }

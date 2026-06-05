@@ -4,6 +4,7 @@ import Dexie, {liveQuery} from 'dexie';
 import Theme from 'types/Theme';
 import UserTheme from 'types/UserTheme';
 import {Logger} from 'utils';
+import {titleCompare} from 'services/metadata';
 import {fromLegacyTheme} from './legacyTheme';
 import themes from './themes';
 
@@ -27,7 +28,7 @@ class ThemeStore extends Dexie {
             this.themes$.next(
                 userThemes
                     .map((userTheme) => fromLegacyTheme(userTheme))
-                    .sort((a, b) => a.name.localeCompare(b.name, undefined, {sensitivity: 'base'}))
+                    .sort((a, b) => titleCompare(a.name, b.name))
             )
         );
     }

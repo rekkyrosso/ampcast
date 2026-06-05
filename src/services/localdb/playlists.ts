@@ -12,7 +12,7 @@ import Pager, {PagerConfig} from 'types/Pager';
 import UserData from 'types/UserData';
 import {Logger} from 'utils';
 import {getSourceSorting} from 'services/mediaServices/servicesSettings';
-import {removeUserData, sorter} from 'services/metadata';
+import {removeUserData, sorter, titleCompare} from 'services/metadata';
 import DexiePager from 'services/pagers/DexiePager';
 import SimplePager from 'services/pagers/SimplePager';
 import pinStore from 'services/pins/pinStore';
@@ -66,11 +66,7 @@ class PlaylistsStore extends Dexie {
         });
 
         liveQuery(() => this.playlists.toArray()).subscribe((playlists) =>
-            this.localPlaylists$.next(
-                playlists.sort((a, b) =>
-                    a.title.localeCompare(b.title, undefined, {sensitivity: 'base'})
-                )
-            )
+            this.localPlaylists$.next(playlists.sort((a, b) => titleCompare(a.title, b.title)))
         );
     }
 

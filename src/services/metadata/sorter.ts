@@ -225,7 +225,10 @@ function trackCompare(a: MediaItem, b: MediaItem): number {
 }
 
 export function localeCompare(a = '', b = ''): number {
-    return a.localeCompare(b, undefined, {sensitivity: 'base'});
+    return a.localeCompare(b, undefined, {
+        sensitivity: 'accent',
+        ignorePunctuation: true,
+    });
 }
 
 export function titleCompare(a = '', b = ''): number {
