@@ -48,6 +48,11 @@
             border: 0;
             box-shadow: none;
             color: var(--grey2-color);
+
+            &:hover,
+            &:active {
+                color: var(--text-color);
+            } 
         }
 
         &[type="submit"] {

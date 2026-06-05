@@ -204,11 +204,13 @@ export class MusicKitPlayer implements Player<PlayableItem> {
 
     loadNext(item: PlayableItem | null): void {
         if (this.player && item && !this.isLinear && !item.linearType) {
-            const [, , id] = item.src.split(':');
-            const queue = this.player.queue;
-            if (queue.length > 0 && queue.items[queue.position + 1]?.id !== id) {
-                const queueItem = this.getQueueItem(item);
-                this.player.playNext(queueItem).then(undefined, logger.warn);
+            const [, type, id] = item.src.split(':');
+            if (!type.includes('video')) {
+                const queue = this.player.queue;
+                if (queue.length > 0 && queue.items[queue.position + 1]?.id !== id) {
+                    const queueItem = this.getQueueItem(item);
+                    this.player.playNext(queueItem).then(undefined, logger.warn);
+                }
             }
         }
     }
@@ -549,7 +551,9 @@ export class MusicKitPlayer implements Player<PlayableItem> {
                 break;
 
             case MusicKit.PlaybackStates.completed:
-                this.ended$.next();
+                if (!this.ended) {
+                    this.ended$.next();
+                }
                 break;
         }
     };

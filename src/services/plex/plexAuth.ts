@@ -199,7 +199,7 @@ export async function getConnection(server: plex.Device): Promise<plex.Connectio
         (connection) => connection.local
     );
     const httpConnections: plex.Connection[] = [];
-    if (location.protocol === 'http:' && !server.httpsRequired) {
+    if (!server.httpsRequired) {
         for (const connection of localConnections) {
             httpConnections.push({
                 ...connection,

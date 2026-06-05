@@ -56,10 +56,6 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
             setConnecting(true);
             setMessage('Connecting...');
 
-            if (location.protocol === 'https:' && !host.startsWith('https:')) {
-                throw Error('https required');
-            }
-
             const credentials = await login(host, userName, password, useProxy);
 
             dialogRef.current!.close(credentials);

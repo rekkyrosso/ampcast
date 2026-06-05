@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import MediaSource, {AnyMediaSource, MediaMultiSource} from 'types/MediaSource';
 import actionsStore from 'services/actions/actionsStore';
 import SearchBar from 'components/SearchBar';
@@ -14,6 +14,7 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
     const sources = useSortedSources(
         isMediaMultiSource(source) ? source.sources : [source as MediaSource]
     );
+    const textRef = useRef('');
     const [selectedSource, setSelectedSource] = useState<MediaSource>(sources[0]);
     const [query, setQuery] = useState('');
     const pager = useSearch(selectedSource, query);
@@ -34,6 +35,19 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
         return () => actionsStore.unlock();
     }, [selectedSource]);
 
+    const handleTextChange = useCallback((text: string) => {
+        textRef.current = text;
+    }, []);
+
+    const handleSourceChange = useCallback((source: MediaSource) => {
+        setSelectedSource(source);
+        setQuery(textRef.current);
+    }, []);
+
+    const handleSubmit = useCallback(() => {
+        setQuery(textRef.current);
+    }, []);
+
     return (
         <>
             {showPagerHeader ? (
@@ -46,13 +60,14 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
                     name={`search-${service.id}`}
                     icon={service.icon}
                     placeholder={selectedSource.searchPlaceholder || `Search ${service.name}`}
-                    onSubmit={setQuery}
+                    onChange={handleTextChange}
+                    onSubmit={handleSubmit}
                 />
             ) : null}
             {sources.length > 1 ? (
                 <MediaSourceSelector
                     sources={sources}
-                    onSourceChange={setSelectedSource}
+                    onSourceChange={handleSourceChange}
                     withButtons={searchable}
                     isSearch={isSearch}
                 />

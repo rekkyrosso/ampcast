@@ -174,7 +174,7 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
                 },
                 {
                     childSort: embyPlaylistItemsSort.defaultSort,
-                    childSortId: `${pin.src}/2`,
+                    childSortId: `${serviceId}/pinned-playlist/2`,
                 },
                 createPlaylistItemsPager
             );
