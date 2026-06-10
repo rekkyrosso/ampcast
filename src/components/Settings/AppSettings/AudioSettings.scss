@@ -17,5 +17,9 @@
 
     p:has(> small) {
         margin-top: 1em;
+
+        & + p {
+            margin-top: 0.5em;
+        }
     }
 }

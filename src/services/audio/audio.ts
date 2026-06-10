@@ -7,20 +7,26 @@ import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
 import ServiceType from 'types/ServiceType';
 import {Logger, browser, exists} from 'utils';
+import ampcastElectron from 'services/ampcastElectron';
 import {observeCurrentItem, observePlaybackState} from 'services/mediaPlayback/playback';
 import playbackSettings from 'services/mediaPlayback/playbackSettings';
 import {getServiceFromSrc} from 'services/mediaServices';
 import OmniAudioContext from './OmniAudioContext';
-import {observeAudioSettings} from './audioSettings';
+import SystemAudio from './SystemAudioContext';
+import audioSettings, {observeAudioSettings} from './audioSettings';
 
 const logger = new Logger('audio');
 
 class Audio implements AudioManager {
     #sourceNodes = new WeakMap<HTMLAudioElement, MediaElementAudioSourceNode>();
-    #context = new OmniAudioContext({latencyHint: 'playback'});
-    #input = this.#context.createDelay();
-    #replayGain = this.#context.createGain();
-    #output = this.#context.createGain();
+    #omniContext = new OmniAudioContext();
+    #input = this.#omniContext.createDelay();
+    #replayGain = this.#omniContext.createGain();
+    #output = this.#omniContext.createGain();
+    #systemContext =
+        audioSettings.useSystemAudio && ampcastElectron
+            ? new SystemAudio(ampcastElectron)
+            : undefined;
 
     // Safari doesn't currently support web audio for streamed media.
     // https://developer.apple.com/forums/thread/56362
@@ -30,7 +36,7 @@ class Audio implements AudioManager {
         this.#output.gain.value = playbackSettings.volume;
         this.#input.connect(this.#replayGain);
         this.#replayGain.connect(this.#output);
-        this.#output.connect(this.#context.destination);
+        this.#output.connect(this.#omniContext.destination);
 
         const killed$ = fromEvent(window, 'pagehide');
 
@@ -54,11 +60,14 @@ class Audio implements AudioManager {
             )
             .subscribe(logger);
 
-        killed$.subscribe(() => this.#context.close());
+        killed$.subscribe(() => {
+            this.#omniContext.close();
+            this.#systemContext?.close();
+        });
     }
 
     get context(): AudioContext {
-        return this.#context;
+        return this.#systemContext || this.#omniContext;
     }
 
     get replayGain(): number {
@@ -66,7 +75,7 @@ class Audio implements AudioManager {
     }
 
     get source(): AudioNode {
-        return this.#input;
+        return this.#systemContext?.source || this.#input;
     }
 
     get volume(): number {
@@ -75,6 +84,10 @@ class Audio implements AudioManager {
 
     set volume(volume: number) {
         this.#output.gain.value = volume;
+    }
+
+    async ready(): Promise<void> {
+        return this.#systemContext?.ready();
     }
 
     private calculateReplayGain(
@@ -94,9 +107,8 @@ class Audio implements AudioManager {
 
         const {albumGain, albumPeak, trackGain, trackPeak} = item;
         const isAlbumMode = replayGainMode === 'album';
-        // prettier-ignore
         const gain = isAlbumMode ? (albumGain ?? trackGain) : (trackGain ?? albumGain);
-        const peak = (isAlbumMode ? albumPeak ?? trackPeak : trackPeak ?? albumPeak) ?? 1;
+        const peak = (isAlbumMode ? (albumPeak ?? trackPeak) : (trackPeak ?? albumPeak)) ?? 1;
         const preventClipping = true;
 
         if (gain == null) {
@@ -144,7 +156,7 @@ class Audio implements AudioManager {
         const audios = this.getAudioElements(item);
         for (const audio of audios) {
             if (!this.#sourceNodes.has(audio)) {
-                const sourceNode = this.context!.createMediaElementSource(audio);
+                const sourceNode = this.#omniContext.createMediaElementSource(audio);
                 sourceNode.connect(this.#input);
                 this.#sourceNodes.set(audio, sourceNode);
             }

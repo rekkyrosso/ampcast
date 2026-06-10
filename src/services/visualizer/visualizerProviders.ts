@@ -1,5 +1,6 @@
 import type {Observable} from 'rxjs';
 import {BehaviorSubject, map, mergeMap, of, skipWhile, switchMap, tap} from 'rxjs';
+import audio from 'services/audio';
 import Visualizer from 'types/Visualizer';
 import VisualizerProvider from 'types/VisualizerProvider';
 import {loadLibrary, Logger} from 'utils';
@@ -44,6 +45,7 @@ export function getVisualizerProvider(providerId: string): VisualizerProvider | 
 
 export async function loadVisualizers(): Promise<readonly VisualizerProvider[]> {
     if (getVisualizerProviders().length === 0) {
+        await audio.ready();
         await loadLibrary('visualizers');
         const {default: visualizers} = await import(
             /* webpackMode: "weak" */

@@ -2,7 +2,7 @@ import React, {useCallback, useEffect, useId, useMemo, useRef} from 'react';
 import ReplayGainMode from 'types/ReplayGainMode';
 import {browser} from 'utils';
 import {audioSettings} from 'services/audio';
-import DialogButtons from 'components/Dialog/DialogButtons';
+import {DialogButtons, alert} from 'components/Dialog';
 import useAudioSettings from 'hooks/useAudioSettings';
 import useCurrentTrack from 'hooks/useCurrentTrack';
 import './AudioSettings.scss';
@@ -16,9 +16,19 @@ export default function AudioSettings() {
     const {replayGainMode} = useAudioSettings();
     const hasReplayGainMetadata = (currentTrack?.albumGain ?? currentTrack?.trackGain) != null;
 
-    const handleSubmit = useCallback(() => {
+    const handleSubmit = useCallback(async () => {
         submitted.current = true;
-        audioSettings.useSystemAudio = useSystemAudioRef.current!.checked;
+        const useSystemAudio = useSystemAudioRef.current!.checked;
+        if (audioSettings.useSystemAudio !== useSystemAudio) {
+            audioSettings.useSystemAudio = useSystemAudio;
+            await alert({
+                icon: 'ampcast',
+                title: 'Reload required',
+                message: <p>The application will now reload.</p>,
+                system: true,
+            });
+            location.reload();
+        }
     }, []);
 
     useEffect(() => {
@@ -49,6 +59,9 @@ export default function AudioSettings() {
                         <small>
                             This will enable visualizers for Spotify, SoundCloud and Mixcloud.
                         </small>
+                    </p>
+                    <p>
+                        <small>Reload required.</small>
                     </p>
                 </fieldset>
             ) : null}

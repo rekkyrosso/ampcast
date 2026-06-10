@@ -1,6 +1,7 @@
 import {
     app,
     components,
+    desktopCapturer,
     ipcMain,
     protocol,
     safeStorage,
@@ -15,7 +16,6 @@ import contextMenu from 'electron-context-menu';
 import unhandled from 'electron-unhandled';
 import windowStateKeeper from 'electron-window-state';
 import Store from 'electron-store';
-import {initMain as initSystemAudio} from 'electron-audio-loopback';
 import path from 'node:path';
 import {__dirname} from './config.js';
 import server from './server.js';
@@ -30,8 +30,6 @@ if (!app.requestSingleInstanceLock()) {
     // Prevent multiple instances of the app
     app.quit();
 }
-
-initSystemAudio();
 
 const appIcon = nativeImage.createFromPath(path.join(__dirname, 'icon.png'));
 appIcon.setTemplateImage(true);
@@ -196,6 +194,29 @@ function createBridge() {
     ipcMain.handle('clearCredentials', () => {
         credentials.clear();
     });
+
+    // System audio.
+    ipcMain.handle('enable-loopback-audio', () => {
+        mainWindow?.webContents.session.setDisplayMediaRequestHandler(async (_, callback) => {
+            if (isMac()) {
+                try {
+                    const [source] = await desktopCapturer.getSources({
+                        thumbnailSize: {height: 0, width: 0},
+                        types: ['screen'],
+                    });
+                    callback(source ? {audio: 'loopback', video: source} : {});
+                } catch (err) {
+                    log.warn('Failed to capture system audio', err);
+                    callback({});
+                }
+            } else {
+                callback({audio: 'loopback'});
+            }
+        });
+    });
+    ipcMain.handle('disable-loopback-audio', () => {
+        mainWindow?.webContents.session.setDisplayMediaRequestHandler(null);
+    });
 }
 
 async function checkForUpdatesAndNotify() {
@@ -204,7 +225,7 @@ async function checkForUpdatesAndNotify() {
     try {
         await autoUpdater.checkForUpdatesAndNotify();
     } catch (err) {
-        console.error(err);
+        log.error(err);
     }
 }
 
@@ -258,7 +279,7 @@ app.whenReady().then(async () => {
 });
 
 app.on('window-all-closed', () => {
-    if (process.platform !== 'darwin') {
+    if (!isMac()) {
         app.quit();
     }
 });
@@ -271,3 +292,7 @@ app.on('second-instance', () => {
         mainWindow.show();
     }
 });
+
+function isMac() {
+    return process.platform === 'darwin';
+}

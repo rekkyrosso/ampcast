@@ -22,7 +22,7 @@ export default function PersonalMediaServerInfo({service}: PersonalMediaServerSe
                     ))}
                 </div>
             ) : (
-                <p>Not available</p>
+                <p>Not connected</p>
             )}
         </fieldset>
     ) : null;
