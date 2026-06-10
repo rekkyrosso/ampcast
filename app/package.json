@@ -23,8 +23,8 @@
     },
     "devDependencies": {
         "@electron/notarize": "^3.1.0",
-        "electron": "github:castlabs/electron-releases#v41.1.1+wvcus",
-        "electron-builder": "^26.8.1"
+        "electron": "github:castlabs/electron-releases#v41.7.1+wvcus",
+        "electron-builder": "26.8.1"
     },
     "dependencies": {
         "electron-context-menu": "^4.1.1",
@@ -84,9 +84,9 @@
             ],
             "icon": "assets/icons/ampcast.png",
             "desktop": {
-              "entry": {
-                "startupWMClass": "ampcast"
-              }
+                "entry": {
+                    "startupWMClass": "ampcast"
+                }
             },
             "category": "AudioVideo;Audio;Player"
         },
