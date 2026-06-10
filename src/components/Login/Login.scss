@@ -156,4 +156,14 @@
             display: none;
         }
     }
+
+    .error {
+        p {
+            margin-bottom: 0.5em;
+
+            & + p {
+                margin-top: 0;
+            }
+        }
+    }
 }

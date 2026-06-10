@@ -39,7 +39,7 @@ export default function BSOD({error}: FallbackProps) {
     return (
         <div className="bsod">
             <form onSubmit={handleSubmit} ref={ref}>
-                <h2>ampcast fatal error</h2>
+                <h2>{__app_name__}: Fatal error</h2>
                 <ErrorReport error={error} reportedBy="BSOD" />
                 <fieldset>
                     <legend>Recovery</legend>

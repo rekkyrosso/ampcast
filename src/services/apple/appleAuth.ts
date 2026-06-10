@@ -73,13 +73,10 @@ export async function reconnect(): Promise<void> {
             if (musicKit.isAuthorized) {
                 await setFavoriteSongsId(musicKit);
                 isLoggedIn$.next(true);
-            } else {
-                connectionLogging$.next('Not authorized');
             }
         }
     } catch (err) {
         logger.error(err);
-        connectionLogging$.next(`Failed to connect: '${getReadableErrorMessage(err)}'`);
     }
     connecting$.next(false);
 }
@@ -127,8 +124,9 @@ const musicKitPromise = new Promise<MusicKit.MusicKitInstance>((resolve, reject)
 });
 
 export async function getMusicKitInstance(): Promise<MusicKit.MusicKitInstance> {
-    if (window.MusicKit) {
-        return MusicKit.getInstance();
+    const musicKit = window.MusicKit?.getInstance();
+    if (musicKit?.isAuthorized) {
+        return musicKit;
     } else {
         if (!appleSettings.devToken) {
             throw Error('No developer token');

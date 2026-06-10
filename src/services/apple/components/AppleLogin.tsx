@@ -19,7 +19,22 @@ export default function AppleLogin({service: apple}: LoginProps) {
                 <>
                     <LoginRequired service={apple} />
                     <LoginButton service={apple} disabled={!musicKit} />
-                    {error ? <p className="error">Could not load Apple MusicKit library.</p> : null}
+                    {error ? (
+                        <>
+                            <div className="error">
+                                <p>Could not load Apple MusicKit library.</p>
+                                {error.message ? <p>{error.message}</p> : null}
+                            </div>
+                            {__target__ === 'electron' && error.message?.includes('expired') ? (
+                                <p>
+                                    <em>
+                                        Please make sure that you are using the latest version of{' '}
+                                        {__app_name__}.
+                                    </em>
+                                </p>
+                            ) : null}
+                        </>
+                    ) : null}
                 </>
             ) : (
                 <>
