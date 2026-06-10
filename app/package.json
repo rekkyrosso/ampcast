@@ -83,6 +83,11 @@
                 "tar.xz"
             ],
             "icon": "assets/icons/ampcast.png",
+            "desktop": {
+              "entry": {
+                "startupWMClass": "ampcast"
+              }
+            },
             "category": "AudioVideo;Audio;Player"
         },
         "nsis": {
