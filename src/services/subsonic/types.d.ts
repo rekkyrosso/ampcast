@@ -166,6 +166,15 @@ declare namespace Subsonic {
     type DirectoryItem = Directory | MediaItem;
     type MediaObject = Album | Artist | Playlist | DirectoryItem | Radio;
 
+    interface ReportPlaybackParams {
+        readonly mediaId: string;
+        readonly mediaType: string;
+        readonly positionMs: number;
+        readonly state: 'starting' | 'playing' | 'paused' | 'stopped';
+        readonly playbackRate?: number;
+        readonly ignoreScrobble?: boolean;
+    }
+
     interface ScrobbleParams {
         readonly id: string;
         readonly time?: number;

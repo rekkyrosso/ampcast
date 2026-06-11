@@ -1,6 +1,6 @@
+import type {Observable} from 'rxjs';
 import {
     EMPTY,
-    Observable,
     distinctUntilChanged,
     filter,
     mergeMap,

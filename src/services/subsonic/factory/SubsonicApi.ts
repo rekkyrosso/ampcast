@@ -26,14 +26,16 @@ export interface SubsonicApiSettings extends Partial<PersonalMediaServerSettings
 
 export default class SubsonicApi {
     private genres: readonly MediaFilter[] | undefined;
-    #openSubsonic = false;
+    #openSubsonic: Record<Subsonic.OpenSubsonicExtensionName, boolean | undefined> | undefined;
 
     constructor(
         private readonly serviceId: MediaServiceId,
         private readonly settings: SubsonicApiSettings
     ) {}
 
-    get openSubsonic(): boolean {
+    get openSubsonic():
+        | Record<Subsonic.OpenSubsonicExtensionName, boolean | undefined>
+        | undefined {
         return this.#openSubsonic;
     }
 
@@ -430,12 +432,14 @@ export default class SubsonicApi {
 
     async getServerInfo(): Promise<Record<string, string>> {
         const data = await this.ping();
-        this.#openSubsonic = !!data.openSubsonic;
+        if (!this.#openSubsonic && data.openSubsonic) {
+            this.#openSubsonic = await this.getOpenSubsonicExtensions();
+        }
         return {
             'Server type': data.type || '',
             'Server version': data.serverVersion || '',
             'Subsonic version': data.version || '',
-            openSubsonic: String(this.openSubsonic),
+            OpenSubsonic: String(!!data.openSubsonic),
         };
     }
 
@@ -536,8 +540,15 @@ export default class SubsonicApi {
         return this.get<Subsonic.Ping>('ping', undefined, {host, credentials});
     }
 
-    async scrobble(params: Subsonic.ScrobbleParams): Promise<Response> {
-        return this.get('scrobble', params as any);
+    async reportPlayback(params: Subsonic.ReportPlaybackParams): Promise<void> {
+        if (!this.openSubsonic?.playbackReport) {
+            throw Error('Not supported');
+        }
+        await this.get('reportPlayback', params as any);
+    }
+
+    async scrobble(params: Subsonic.ScrobbleParams): Promise<void> {
+        await this.get('scrobble', params as any);
     }
 
     async searchSongs(
@@ -596,13 +607,6 @@ export default class SubsonicApi {
         return data.albumList2.album || [];
     }
 
-    private async getExtensionSupported(
-        extensionName: Subsonic.OpenSubsonicExtensionName
-    ): Promise<boolean> {
-        const extensions = await this.getOpenSubsonicExtensions();
-        return !!extensions[extensionName];
-    }
-
     private async getLyricsByArtistAndTitle(item: MediaItem): Promise<Lyrics | null> {
         const {artists: [artist = ''] = [], title} = item;
         if (artist && title) {
@@ -616,11 +620,7 @@ export default class SubsonicApi {
     }
 
     private async getLyricsBySongId(item: MediaItem): Promise<Lyrics | null> {
-        if (!this.openSubsonic) {
-            throw Error('Not supported');
-        }
-        const isSupported = await this.getExtensionSupported('songLyrics');
-        if (!isSupported) {
+        if (!this.openSubsonic?.songLyrics) {
             throw Error('Not supported');
         }
         const id = getMediaObjectId(item);
@@ -646,29 +646,17 @@ export default class SubsonicApi {
         return null;
     }
 
-    private openSubsonicExtensions:
-        | Record<Subsonic.OpenSubsonicExtensionName, boolean | undefined>
-        | undefined;
-
     private async getOpenSubsonicExtensions(): Promise<Record<string, boolean | undefined>> {
-        if (!this.openSubsonicExtensions) {
-            this.openSubsonicExtensions = {} as Record<
-                Subsonic.OpenSubsonicExtensionName,
-                boolean | undefined
-            >;
-            try {
-                if (this.openSubsonic) {
-                    const data = await this.get<{
-                        openSubsonicExtensions: Subsonic.OpenSubsonicExtension[];
-                    }>('getOpenSubsonicExtensions');
-                    data.openSubsonicExtensions.forEach(
-                        (extension) => (this.openSubsonicExtensions![extension.name] = true)
-                    );
-                }
-            } catch (err) {
-                logger.error(err);
-            }
+        try {
+            const data = await this.get<{
+                openSubsonicExtensions: Subsonic.OpenSubsonicExtension[];
+            }>('getOpenSubsonicExtensions');
+            const extensions: Record<string, boolean | undefined> = {};
+            data.openSubsonicExtensions.forEach((extension) => (extensions[extension.name] = true));
+            return extensions;
+        } catch (err) {
+            logger.error(err);
+            return {};
         }
-        return this.openSubsonicExtensions;
     }
 }
