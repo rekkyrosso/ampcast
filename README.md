@@ -1,4 +1,4 @@
-# Ampcast
+# <img width="24px" src="./app/www/icon-192.png" alt="Ampcast"></img> Ampcast
 
 A music player inspired by Winamp.
 
