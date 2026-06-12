@@ -14,12 +14,12 @@ export default function PlaybackState() {
             {loadingState === 'error'
                 ? 'error'
                 : paused
-                ? started
-                    ? 'paused'
-                    : ''
-                : loadingState === 'loaded'
-                ? 'playing'
-                : loadingState}
+                  ? started
+                      ? 'paused'
+                      : ''
+                  : loadingState === 'loaded'
+                    ? 'playing'
+                    : loadingState}
         </p>
     );
 }

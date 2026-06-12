@@ -1,41 +1,35 @@
-import {BehaviorSubject, filter, firstValueFrom, map} from 'rxjs';
 import AmpcastElectron from 'types/AmpcastElectron';
 import {browser, Logger} from 'utils';
 
 export default class SystemAudioContext extends AudioContext {
-    #ready$ = new BehaviorSubject(false);
-    #audio = new Audio();
-    #source: AudioNode | undefined;
+    #output = this.createGain();
 
     constructor(electron: AmpcastElectron) {
         super({latencyHint: 'playback'});
         this.createAudio(electron);
     }
 
-    get source(): AudioNode | undefined {
-        return this.#source;
+    get output(): AudioNode {
+        return this.#output;
     }
 
-    async ready(): Promise<void> {
-        return firstValueFrom(
-            this.#ready$.pipe(
-                filter((ready) => ready),
-                map(() => undefined)
-            )
-        );
+    setVolume(volume: number): void {
+        // Amplify the signal when the volume is lowered.
+        this.#output.gain.value = volume ? Math.min(1 + 1 / volume, 21) : 0;
     }
 
     private async createAudio(electron: AmpcastElectron): Promise<void> {
         try {
+            const audio = new Audio();
             const stream = await this.getSystemAudioStream(electron);
-            this.#source = this.createMediaStreamSource(stream);
-            this.#audio.muted = true;
-            this.#audio.autoplay = true;
-            this.#audio.srcObject = stream;
+            const source = this.createMediaStreamSource(stream);
+            source.connect(this.output);
+            audio.muted = true;
+            audio.autoplay = true;
+            audio.srcObject = stream;
         } catch (err) {
             new Logger('SystemAudioContext').error(err);
         }
-        this.#ready$.next(true);
     }
 
     private async getSystemAudioStream(electron: AmpcastElectron): Promise<MediaStream> {

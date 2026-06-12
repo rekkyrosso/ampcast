@@ -30,9 +30,7 @@ export default memo(function Media() {
     const {fullscreenProgress, provider} = useVisualizerSettings();
     const miniPlayerActive = useMiniPlayerActive();
     const isFullscreen = useIsFullscreen();
-    const [newItem, setNewItem] = useState(false);
     const item = useCurrentlyPlaying();
-    const itemId = item?.id;
     const isPlayingVideo = item?.mediaType === MediaType.Video;
     const visualizer = useCurrentVisualizer();
     const noVisualizer = !visualizer || visualizer.providerId === 'none';
@@ -47,12 +45,6 @@ export default memo(function Media() {
     const isIdle = !useMouseBusy(ref.current, 4000);
     const loadingState = useLoadingState();
     const paused = usePaused();
-
-    useEffect(() => {
-        const timerId = setTimeout(() => setNewItem(false), 10_000);
-        setNewItem(true);
-        return () => clearTimeout(timerId);
-    }, [itemId]);
 
     useEffect(() => {
         mediaPlayback.appendTo(playersRef.current!);
@@ -89,7 +81,7 @@ export default memo(function Media() {
                 isPlayingVideo ? 'is-playing-video' : 'is-playing-audio'
             } ${noVisualizer ? 'no-visualizer' : ''}  ${
                 isShowingCoverArt ? 'is-showing-cover-art' : ''
-            } ${isIdle ? 'idle' : ''} ${newItem ? 'is-new-item' : ''} ${
+            } ${isIdle ? 'idle' : ''} ${
                 isFullscreen || isMiniPlayer ? 'fullscreen' : ''
             } ${miniPlayerActive ? 'mini-player-active' : ''}`}
             id="media"

@@ -6,12 +6,14 @@ import themeStore from 'services/theme/themeStore';
 import DialogButtons from 'components/Dialog/DialogButtons';
 import useCurrentTheme from './useCurrentTheme';
 import useDefaultThemes from './useDefaultThemes';
+import useRecentThemes from './useRecentThemes';
 import useUserThemes from './useUserThemes';
 import './AppearanceSettingsGeneral.scss';
 
 export default function AppearanceSettingsGeneral() {
     const id = useId();
     const currentTheme = useCurrentTheme();
+    const {getRecentTheme, setRecentTheme} = useRecentThemes();
     const darkThemesRef = useRef<HTMLSelectElement>(null);
     const lightThemesRef = useRef<HTMLSelectElement>(null);
     const lightThemeRef = useRef<HTMLInputElement>(null);
@@ -37,18 +39,26 @@ export default function AppearanceSettingsGeneral() {
         };
     }, []);
 
-    const handleSubmit = useCallback(() => theme.save(), []);
+    const handleSubmit = useCallback(() => {
+        theme.save();
+    }, []);
 
     const handleThemeChange = useCallback(() => {
+        const darkTheme = darkThemesRef.current!.value;
+        const lightTheme = lightThemesRef.current!.value;
+        const userTheme = userThemesRef.current!.value;
         const newTheme = userThemeRef.current!.checked
-            ? themeStore.getUserTheme(userThemesRef.current!.value)
+            ? themeStore.getUserTheme(userTheme)
             : lightThemeRef.current!.checked
-              ? themeStore.getDefaultTheme(lightThemesRef.current!.value)
-              : themeStore.getDefaultTheme(darkThemesRef.current!.value);
+              ? themeStore.getDefaultTheme(lightTheme)
+              : themeStore.getDefaultTheme(darkTheme);
+        setRecentTheme('dark', darkTheme);
+        setRecentTheme('light', lightTheme);
+        setRecentTheme('user', userTheme);
         if (newTheme) {
             theme.apply(newTheme);
         }
-    }, []);
+    }, [setRecentTheme]);
 
     const handleFontSizeChange = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
         theme.fontSize = event.target.valueAsNumber;
@@ -71,7 +81,11 @@ export default function AppearanceSettingsGeneral() {
                         />
                         <label htmlFor={`${id}-dark-themes`}>Dark themes:</label>
                         <select
-                            value={isUserTheme || isLightTheme ? undefined : currentTheme.name}
+                            value={
+                                isUserTheme || isLightTheme
+                                    ? getRecentTheme('dark', darkThemes)
+                                    : currentTheme.name
+                            }
                             disabled={isUserTheme || isLightTheme}
                             onChange={handleThemeChange}
                             ref={darkThemesRef}
@@ -96,7 +110,11 @@ export default function AppearanceSettingsGeneral() {
                         />
                         <label htmlFor={`${id}-light-themes`}>Light themes:</label>
                         <select
-                            value={isUserTheme || isDarkTheme ? undefined : currentTheme.name}
+                            value={
+                                isUserTheme || isDarkTheme
+                                    ? getRecentTheme('light', lightThemes)
+                                    : currentTheme.name
+                            }
                             disabled={isUserTheme || isDarkTheme}
                             onChange={handleThemeChange}
                             ref={lightThemesRef}
@@ -121,7 +139,9 @@ export default function AppearanceSettingsGeneral() {
                         />
                         <label htmlFor={`${id}-user-themes`}>My themes:</label>
                         <select
-                            value={isUserTheme ? currentTheme.name : undefined}
+                            value={
+                                isUserTheme ? currentTheme.name : getRecentTheme('user', userThemes)
+                            }
                             onChange={handleThemeChange}
                             disabled={!isUserTheme}
                             ref={userThemesRef}
@@ -135,7 +155,6 @@ export default function AppearanceSettingsGeneral() {
                     </p>
                 </div>
             </fieldset>
-
             <fieldset>
                 <legend>Preferences</legend>
                 <div className="table-layout">
@@ -153,7 +172,6 @@ export default function AppearanceSettingsGeneral() {
                     </p>
                 </div>
             </fieldset>
-
             <DialogButtons />
         </form>
     );

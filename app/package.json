@@ -24,7 +24,7 @@
     "devDependencies": {
         "@electron/notarize": "^3.1.0",
         "electron": "github:castlabs/electron-releases#v41.7.1+wvcus",
-        "electron-builder": "26.8.1"
+        "electron-builder": "^26.15.2"
     },
     "dependencies": {
         "electron-context-menu": "^4.1.1",
@@ -51,7 +51,7 @@
         "afterPack": "scripts/afterPack.cjs",
         "afterSign": "scripts/afterSign.cjs",
         "electronDownload": {
-            "mirror": "https://github.com/castlabs/electron-releases/releases/download/v"
+            "mirror": "https://github.com/castlabs/electron-releases/releases/download/"
         },
         "mac": {
             "target": {

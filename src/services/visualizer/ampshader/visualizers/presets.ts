@@ -103,6 +103,7 @@ import speaker from './speaker.frag';
 import spectralizer from './spectralizer.frag';
 import symmetricalSoundVisualiser from './symmetricalSoundVisualiser.frag';
 import technoCore from './technoCore.frag';
+import tombWorld from './tombWorld.frag';
 import uctumi from './uctumi.frag';
 import violentEyeSimulator314 from './violentEyeSimulator314.frag';
 import voyager from './voyager.frag';
@@ -112,8 +113,13 @@ import yearOfTruchets018 from './yearOfTruchets018.frag';
 
 const presets: AmpShaderVisualizer[] = [
     {
+        id: 'tcKBR3',
+        name: 'Tomb World of Silicon Beats by mrange',
+        shader: tombWorld,
+    },
+    {
         id: 'tfjSzc',
-        name: 'vt220 dancing at night  by ArthurTent',
+        name: 'vt220 dancing at night by ArthurTent',
         shader: vt220DancingAtNight,
     },
     {

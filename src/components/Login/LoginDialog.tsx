@@ -144,7 +144,7 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
                             name={`${id}-host`}
                             defaultValue={settings.host}
                             disabled={useProxy}
-                            placeholder={`${location.protocol}//`}
+                            placeholder="http://"
                             autoComplete={useProxy ? 'off' : `section-${id} url`}
                             readOnly={readOnly}
                             required

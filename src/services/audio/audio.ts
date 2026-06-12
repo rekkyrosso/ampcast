@@ -33,7 +33,7 @@ class Audio implements AudioManager {
     readonly streamingSupported = browser.name !== 'safari';
 
     constructor() {
-        this.#output.gain.value = playbackSettings.volume;
+        this.volume = playbackSettings.volume;
         this.#input.connect(this.#replayGain);
         this.#replayGain.connect(this.#output);
         this.#output.connect(this.#omniContext.destination);
@@ -75,7 +75,7 @@ class Audio implements AudioManager {
     }
 
     get source(): AudioNode {
-        return this.#systemContext?.source || this.#input;
+        return this.#systemContext?.output || this.#input;
     }
 
     get volume(): number {
@@ -84,10 +84,7 @@ class Audio implements AudioManager {
 
     set volume(volume: number) {
         this.#output.gain.value = volume;
-    }
-
-    async ready(): Promise<void> {
-        return this.#systemContext?.ready();
+        this.#systemContext?.setVolume(volume);
     }
 
     private calculateReplayGain(
