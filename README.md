@@ -6,6 +6,8 @@
 
 <p align="center">Winamp-style music player that aggregates your music in one place.</p>
 
+<img alt="Screenshot of the main page" src="screenshots/main-page.png"/>
+
 ## Features
 
 * Supports Plex, Jellyfin, Emby, iBroadcast, Navidrome and Subsonic (and variants)
