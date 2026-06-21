@@ -6,8 +6,6 @@
 
 <p align="center">A music player inspired by Winamp.</p>
 
-<img alt="Screenshot of the main page" src="screenshots/main-page.png"/>
-
 ## Features
 
 * Supports Plex, Jellyfin, Emby, iBroadcast, Navidrome and Subsonic (and variants)
