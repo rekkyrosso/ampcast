@@ -1,6 +1,10 @@
-# Ampcast
+<p align="center">
+  <img width="96px" src="./app/www/icon-192.png" alt="Ampcast"></img>
+</p>
 
-A music player inspired by Winamp.
+<h1 align="center">Ampcast</h1>
+
+<p align="center">A music player inspired by Winamp.</p>
 
 ## Features
 
