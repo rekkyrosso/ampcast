@@ -4,7 +4,7 @@
 
 <h1 align="center">Ampcast</h1>
 
-<p align="center">Winamp-style music player that aggregates your music in one place.</p>
+<p align="center">A music player inspired by Winamp.</p>
 
 <img alt="Screenshot of the main page" src="screenshots/main-page.png"/>
 
@@ -17,7 +17,7 @@
 * Playback from last.fm/ListenBrainz (via search of logged in services)
 * Gapless playback / ReplayGain / Lyrics
 
-## Demo
+## Web app / PWA
 
 Available at https://ampcast.app
 
@@ -42,78 +42,11 @@ docker run --name ampcast -p 8000:8000 ghcr.io/rekkyrosso/ampcast:latest
 
 Or with `docker-compose`:
 
-```yaml
-services:
-  ampcast:
-    container_name: ampcast
-    image: ghcr.io/rekkyrosso/ampcast:latest
-    restart: unless-stopped
-    ports:
-      - 8000:8000
-```
-
-<details>
-  
-<summary>Full docker compose, with all the options</summary>
-
-```yaml
-services:
-  ampcast:
-    container_name: ampcast
-    image: ghcr.io/rekkyrosso/ampcast:latest
-    restart: unless-stopped
-    ports:
-      - 8000:8000
-
-    # All environment variables are optional.
-    # You can delete this entire section.
-
-    environment:
-      # Credentials
-      - APPLE_MUSIC_DEV_TOKEN=""
-      - GOOGLE_CLIENT_ID="" # For YouTube API access
-      - IBROADCAST_CLIENT_ID=""
-      - LASTFM_API_KEY=""
-      - LASTFM_API_SECRET=""
-      - SPOTIFY_CLIENT_ID=""
-
-      # Enabled media services.
-      # Available services:
-      #    apple,spotify,
-      #    airsonic,ampache,emby,gonic,ibroadcast,jellyfin,navidrome,plex,subsonic,
-      #    youtube,
-      #    internet-radio,
-      #    lastfm,listenbrainz
-      # Disabling YouTube does not disable playback from YouTube.
-      # The order of this list also defines the display order in the UI.
-      - ENABLED_SERVICES="" # Leave blank for all services
-
-      # Initially visible services.
-      # Changing this later will likely only affect new users.
-      - STARTUP_SERVICES="" # If you leave this blank you will get a start-up wizard
-
-      ## Example:
-      - ENABLED_SERVICES="spotify,navidrome,lastfm,listenbrainz"
-      - STARTUP_SERVICES="spotify,navidrome,lastfm"
-
-      # Personal media servers.
-      # Pre-configure a server HOST.
-      # Add USER/PASSWORD for automated login (optional).
-      # Mark the server as LOCKED to prevent editing any of the supplied fields.
-      # Available servers:
-      #    AIRSONIC,AMPACHE,EMBY,GONIC,JELLYFIN,NAVIDROME,SUBSONIC
-
-      ## Example:
-      - JELLYFIN_HOST="http://localhost:8096"
-      - JELLYFIN_USER=""
-      - JELLYFIN_PASSWORD=""
-      - JELLYFIN_LOCKED=true # Prevents logging in with alternative host/credentials
-```
-</details>
-
 ```bash
 docker-compose up -d
 ```
+
+Use this [`docker-compose.yml`](https://raw.githubusercontent.com/rekkyrosso/ampcast/refs/heads/main/docker-compose.yml) file as a template.
 
 ### From source code
 
