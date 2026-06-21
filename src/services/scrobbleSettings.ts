@@ -1,5 +1,5 @@
 import type {Observable} from 'rxjs';
-import {distinctUntilChanged, map} from 'rxjs';
+import {distinctUntilChanged, map, startWith} from 'rxjs';
 import LinearType from 'types/LinearType';
 import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
@@ -84,8 +84,8 @@ export function canUpdateNowPlaying(scrobblerId: ScrobblerId): boolean {
 
 export function observeCanUpdateNowPlaying(scrobblerId: ScrobblerId): Observable<boolean> {
     return observeScrobbleSettingsChange().pipe(
-        map(() => storage.getJson('options', {} as ScrobblerOptionsSettings)),
-        map((options) => options[scrobblerId]?.updateNowPlaying ?? true),
+        startWith(undefined),
+        map(() => canUpdateNowPlaying(scrobblerId)),
         distinctUntilChanged()
     );
 }

@@ -197,11 +197,18 @@ export function prev(): void {
     logger.log('prev');
     if (isMiniPlayer) {
         miniPlayerRemote.prev();
-    } else if (!playlist.atStart) {
+    } else if (
+        !playlist.atStart ||
+        (mediaPlayback.repeatMode === RepeatMode.All && !playlist.atEnd)
+    ) {
         mediaPlayback.stopAfterCurrent = false;
         currentNavigation = 'prev';
         lockLoading();
-        playlist.prev();
+        if (playlist.atStart) {
+            playlist.setCurrentIndex(playlist.size - 1);
+        } else {
+            playlist.prev();
+        }
     }
 }
 
@@ -209,11 +216,18 @@ export function next(): void {
     logger.log('next');
     if (isMiniPlayer) {
         miniPlayerRemote.next();
-    } else if (!playlist.atEnd) {
+    } else if (
+        !playlist.atEnd ||
+        (mediaPlayback.repeatMode === RepeatMode.All && !playlist.atStart)
+    ) {
         mediaPlayback.stopAfterCurrent = false;
         currentNavigation = 'next';
         lockLoading();
-        playlist.next();
+        if (playlist.atEnd) {
+            playlist.setCurrentIndex(0);
+        } else {
+            playlist.next();
+        }
     }
 }
 

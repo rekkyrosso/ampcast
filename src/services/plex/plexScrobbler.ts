@@ -9,14 +9,13 @@ import {
     map,
     merge,
     mergeMap,
-    pairwise,
     skip,
     switchMap,
     takeUntil,
     tap,
 } from 'rxjs';
 import PlaybackState from 'types/PlaybackState';
-import {exists, Logger} from 'utils';
+import {Logger} from 'utils';
 import playback, {
     observePlaybackStart,
     observePlaybackEnd,
@@ -56,23 +55,10 @@ export function scrobble(): void {
 
     observeIsLoggedIn()
         .pipe(
-            switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackState() : EMPTY)),
-            pairwise(),
-            map(([prevState, nextState]) =>
-                isPlexItem(prevState) && !isPlexItem(nextState) ? prevState.currentItem : null
-            ),
-            filter(exists),
-            tap(() => stopped$.next()),
-            mergeMap((prevItem) => reportStop(prevItem)),
-            takeUntil(killed$)
-        )
-        .subscribe(logger);
-
-    observeIsLoggedIn()
-        .pipe(
             switchMap((isLoggedIn) => (isLoggedIn ? observePlaybackEnd() : EMPTY)),
             filter(isPlexItem),
-            mergeMap(({currentItem}) => reportProgress(currentItem!, 0, 'paused')),
+            tap(() => stopped$.next()),
+            mergeMap(({currentItem}) => reportStop(currentItem!)),
             takeUntil(killed$)
         )
         .subscribe(logger);
