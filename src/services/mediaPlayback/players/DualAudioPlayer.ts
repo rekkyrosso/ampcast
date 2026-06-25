@@ -1,5 +1,14 @@
 import type {Observable} from 'rxjs';
-import {EMPTY, BehaviorSubject, distinctUntilChanged, filter, interval, map, switchMap} from 'rxjs';
+import {
+    EMPTY,
+    BehaviorSubject,
+    asapScheduler,
+    distinctUntilChanged,
+    filter,
+    interval,
+    map,
+    switchMap,
+} from 'rxjs';
 import PlayableItem from 'types/PlayableItem';
 import PlaylistItem from 'types/PlaylistItem';
 import Player from 'types/Player';
@@ -13,6 +22,7 @@ export default class DualAudioPlayer implements Player<PlayableItem> {
     private readonly player$ = new BehaviorSubject<HTML5Player>(this.player1);
     private readonly nextItem$ = new BehaviorSubject<PlayableItem | null>(null);
     #autoplay = false;
+    #silent = false;
 
     constructor(
         name: string,
@@ -27,8 +37,9 @@ export default class DualAudioPlayer implements Player<PlayableItem> {
         });
 
         // Load next track.
-        observeNearEnd(this, 5)
+        this.observeCurrentPlayer()
             .pipe(
+                switchMap((player) => observeNearEnd(player, 5)),
                 switchMap((nearEnd) => (nearEnd ? this.nextItem$ : EMPTY)),
                 distinctUntilChanged(),
                 filter(exists)
@@ -38,17 +49,21 @@ export default class DualAudioPlayer implements Player<PlayableItem> {
             });
 
         // Gapless playback.
-        observeNearEnd(this, 2)
+        this.observeCurrentPlayer()
             .pipe(
-                switchMap((nearEnd) => (nearEnd ? interval(10) : EMPTY)),
-                map(() => {
-                    const {currentTime, duration, item} = this.currentPlayer;
-                    // These numbers come from the 'feishin' project.
-                    const delay = item?.container === 'flac' ? 0.065 : 0.116;
-                    return currentTime + delay >= duration;
-                }),
-                distinctUntilChanged(),
-                filter((atEnd) => atEnd)
+                switchMap((player) =>
+                    observeNearEnd(player, 2).pipe(
+                        switchMap((nearEnd) => (nearEnd ? interval(4, asapScheduler) : EMPTY)),
+                        map(() => {
+                            const {currentTime, duration, item} = player;
+                            // These numbers come from the 'feishin' project.
+                            const delay = item?.container === 'flac' ? 0.065 : 0.116;
+                            return currentTime + delay >= duration;
+                        }),
+                        distinctUntilChanged(),
+                        filter((atEnd) => atEnd)
+                    )
+                )
             )
             .subscribe(() => {
                 if (
@@ -108,29 +123,45 @@ export default class DualAudioPlayer implements Player<PlayableItem> {
     }
 
     observeCurrentTime(): Observable<number> {
-        return this.observeCurrentPlayer().pipe(switchMap((player) => player.observeCurrentTime()));
+        return this.observeCurrentPlayer().pipe(
+            switchMap((player) => player.observeCurrentTime()),
+            filter(() => !this.#silent)
+        );
     }
 
     observeDuration(): Observable<number> {
-        return this.observeCurrentPlayer().pipe(switchMap((player) => player.observeDuration()));
+        return this.observeCurrentPlayer().pipe(
+            switchMap((player) => player.observeDuration()),
+            filter(() => !this.#silent)
+        );
     }
 
     observeEnded(): Observable<void> {
-        return this.observeCurrentPlayer().pipe(switchMap((player) => player.observeEnded()));
+        return this.observeCurrentPlayer().pipe(
+            switchMap((player) => player.observeEnded()),
+            filter(() => !this.#silent)
+        );
     }
 
     observeError(): Observable<unknown> {
-        return this.observeCurrentPlayer().pipe(switchMap((player) => player.observeError()));
+        return this.observeCurrentPlayer().pipe(
+            switchMap((player) => player.observeError()),
+            filter(() => !this.#silent)
+        );
     }
 
     observeNowPlaying(station: PlaylistItem): Observable<PlaylistItem> {
         return this.observeCurrentPlayer().pipe(
-            switchMap((player) => player.observeNowPlaying(station))
+            switchMap((player) => player.observeNowPlaying(station)),
+            filter(() => !this.#silent)
         );
     }
 
     observePlaying(): Observable<void> {
-        return this.observeCurrentPlayer().pipe(switchMap((player) => player.observePlaying()));
+        return this.observeCurrentPlayer().pipe(
+            switchMap((player) => player.observePlaying()),
+            filter(() => !this.#silent)
+        );
     }
 
     appendTo(parentElement: HTMLElement): void {
@@ -140,14 +171,16 @@ export default class DualAudioPlayer implements Player<PlayableItem> {
     load(item: PlayableItem): void {
         const prevPlayer = this.currentPlayer;
         const nextPlayer = this.nextPlayer.src === item.src ? this.nextPlayer : prevPlayer;
+        const isLoaded = nextPlayer.src === item.src;
 
+        this.#silent = !isLoaded;
         this.player$.next(nextPlayer);
+        this.#silent = false;
 
         prevPlayer.autoplay = false;
         nextPlayer.autoplay = this.autoplay;
 
-        if (nextPlayer.src === item.src) {
-            nextPlayer.seek(item.startTime || 0);
+        if (isLoaded) {
             if (this.autoplay) {
                 nextPlayer.play();
             }

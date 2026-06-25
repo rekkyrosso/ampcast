@@ -31,7 +31,7 @@ export class SoundCloudPlayer implements Player<PlayableItem> {
     private readonly paused$ = new BehaviorSubject(true);
     private readonly playing$ = new Subject<void>();
     private readonly currentTime$ = new Subject<number>();
-    private readonly duration$ = new Subject<number>();
+    private readonly duration$ = new BehaviorSubject(0);
     private readonly ended$ = new Subject<void>();
     private readonly error$ = new Subject<unknown>();
     private readonly playerLoaded$ = new BehaviorSubject(false);
@@ -73,6 +73,13 @@ export class SoundCloudPlayer implements Player<PlayableItem> {
                 })
             )
             .subscribe(logger);
+
+        this.observeItem()
+            .pipe(distinctUntilChanged((a, b) => a?.src === b?.src))
+            .subscribe((item) => {
+                this.duration$.next(item?.duration || 0);
+                this.currentTime$.next(item?.startTime || 0);
+            });
 
         this.observeError().subscribe(logger.error);
     }

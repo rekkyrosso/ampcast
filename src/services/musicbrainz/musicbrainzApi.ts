@@ -191,8 +191,8 @@ async function addMetadataByTrackId<T extends MediaItem>(
                 overWrite
             );
             if (!overWrite) {
-                dispatchMetadataChanges<MediaItem>({
-                    match: (item) => item.track_mbid === track_mbid,
+                dispatchMetadataChanges({
+                    match: (item) => (item as MediaItem).track_mbid === track_mbid,
                     values,
                 });
             }
@@ -238,8 +238,8 @@ async function addMetadataByRecordingId<T extends MediaItem>(
                 overWrite
             );
             if (!overWrite) {
-                dispatchMetadataChanges<MediaItem>({
-                    match: (item) => item.recording_mbid === recording_mbid,
+                dispatchMetadataChanges({
+                    match: (item) => (item as MediaItem).recording_mbid === recording_mbid,
                     values,
                 });
             }
@@ -282,8 +282,8 @@ async function addMetadataByISRC<T extends MediaItem>(
                 overWrite
             );
             if (!overWrite) {
-                dispatchMetadataChanges<MediaItem>({
-                    match: (item) => item.isrc === isrc,
+                dispatchMetadataChanges({
+                    match: (item) => (item as MediaItem).isrc === isrc,
                     values,
                 });
             }

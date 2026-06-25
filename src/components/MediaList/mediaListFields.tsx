@@ -106,7 +106,7 @@ const AlbumType: RenderField<MediaAlbum> = (album) => {
 };
 
 const Duration: RenderField<MediaPlaylist | MediaItem> = (item) => (
-    <Time className="text" time={item.duration || 0} />
+    <Time className="text" time={item.duration || 0} asDuration />
 );
 
 const PlayCount: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => (

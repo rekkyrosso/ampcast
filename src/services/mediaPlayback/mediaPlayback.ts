@@ -29,7 +29,7 @@ import Player from 'types/Player';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
 import RepeatMode from 'types/RepeatMode';
-import {formatTime, isMiniPlayer, Logger} from 'utils';
+import {formatDuration, formatTime, isMiniPlayer, Logger} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import {createMediaItemFromUrl, dispatchMetadataChanges} from 'services/metadata';
 import lookup from 'services/lookup';
@@ -546,11 +546,11 @@ if (!isMiniPlayer) {
                           filter(({currentItem}) => currentItem?.id === item.id),
                           map(({duration}) => duration),
                           distinctUntilChanged(),
-                          filter((duration) => !!duration && duration !== item.duration),
+                          filter((duration) => duration > 0 && duration !== item.duration),
                           take(2), // If the duration keeps changing then maybe it's not so reliable.
                           tap((duration) =>
                               dispatchMetadataChanges({
-                                  match: (object) => object.src === item.src,
+                                  match: (object) => (object as PlaylistItem).id === item.id,
                                   values: {duration},
                               })
                           )
@@ -644,7 +644,9 @@ playback
     .observePlaybackStart()
     .pipe(map((state) => state.currentItem?.src))
     .subscribe(logger.rx('playbackStart'));
-observeDuration().pipe(map(formatTime), distinctUntilChanged()).subscribe(logger.rx('duration'));
+observeDuration()
+    .pipe(map(formatDuration), distinctUntilChanged())
+    .subscribe(logger.rx('duration'));
 observeCurrentTime()
     .pipe(
         filter((time) => Math.floor(time) % 30 === 0),

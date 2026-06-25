@@ -4,7 +4,7 @@ import LinearType from 'types/LinearType';
 import MediaObject from 'types/MediaObject';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
-import {copyToClipboard, formatTime} from 'utils';
+import {copyToClipboard, formatDuration} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import {copyMediaObjectToClipboard} from 'services/reporting';
 import {CopyButton} from 'components/Button';
@@ -112,7 +112,7 @@ export default function MediaDetails<T extends MediaObject>({item}: MediaInfoPro
                 return value ? new Date(value * 1000).toLocaleDateString() : '';
 
             case 'duration':
-                return Math.abs(value) >= MAX_DURATION ? '–:––' : formatTime(value);
+                return Math.abs(value) >= MAX_DURATION ? '–:––' : formatDuration(value);
 
             case 'thumbnails':
                 return `[${value?.length || 0}]`;

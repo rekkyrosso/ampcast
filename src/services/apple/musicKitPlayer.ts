@@ -30,7 +30,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     private player?: MusicKit.MusicKitInstance;
     private mutationObserver: MutationObserver;
     private readonly paused$ = new BehaviorSubject(true);
-    private readonly duration$ = new Subject<number>();
+    private readonly duration$ = new BehaviorSubject(0);
     private readonly currentTime$ = new Subject<number>();
     private readonly ended$ = new Subject<void>();
     private readonly playing$ = new Subject<void>();
@@ -94,6 +94,13 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         this.observePlaying().subscribe(() => (this.ended = false));
         this.observeEnded().subscribe(() => (this.ended = true));
 
+        this.observeItem()
+            .pipe(distinctUntilChanged((a, b) => a?.src === b?.src))
+            .subscribe((item) => {
+                this.duration$.next(item?.duration || 0);
+                this.currentTime$.next(item?.startTime || 0);
+            });
+
         // Log errors.
         this.observeError().subscribe(logger.error);
 
@@ -153,13 +160,12 @@ export class MusicKitPlayer implements Player<PlayableItem> {
 
     observeCurrentTime(): Observable<number> {
         return this.currentTime$.pipe(
-            distinctUntilChanged(),
             filter(() => this.player?.playbackState !== MusicKit.PlaybackStates.seeking)
         );
     }
 
     observeDuration(): Observable<number> {
-        return this.duration$.pipe(distinctUntilChanged());
+        return this.duration$;
     }
 
     observePlaying(): Observable<void> {

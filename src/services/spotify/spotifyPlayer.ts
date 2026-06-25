@@ -44,6 +44,8 @@ export class SpotifyPlayer implements Player<PlayableItem> {
     private player: Spotify.Player | null = null;
     private readonly accessToken$ = new BehaviorSubject('');
     private readonly paused$ = new BehaviorSubject(true);
+    private readonly duration$ = new BehaviorSubject(0);
+    private readonly currentTime$ = new Subject<number>();
     private readonly item$ = new BehaviorSubject<PlayableItem | null>(null);
     private readonly nextItem$ = new BehaviorSubject<PlayableItem | null>(null);
     private readonly playing$ = new Subject<void>();
@@ -134,6 +136,44 @@ export class SpotifyPlayer implements Player<PlayableItem> {
             )
             .subscribe(logger);
 
+        // Maintain `duration$`.
+        this.observeItem()
+            .pipe(
+                distinctUntilChanged((a, b) => a?.src === b?.src),
+                tap((item) => this.duration$.next(item?.duration || 0)),
+                switchMap(() => this.observeCurrentTrackState()),
+                map((track) => track.duration / 1000),
+                distinctUntilChanged(),
+                tap((duration) => this.duration$.next(duration))
+            )
+            .subscribe(logger);
+
+        // Maintain `currentTime$`.
+        this.observeItem()
+            .pipe(
+                distinctUntilChanged((a, b) => a?.src === b?.src),
+                tap((item) => this.currentTime$.next(item?.startTime || 0)),
+                switchMap(() =>
+                    merge(
+                        this.observeState(),
+                        this.observePaused().pipe(
+                            switchMap((paused) =>
+                                paused
+                                    ? this.getCurrentState()
+                                    : interval(250).pipe(mergeMap(() => this.getCurrentState()))
+                            )
+                        )
+                    )
+                ),
+                filter((state) =>
+                    this.compareTrackSrc(state?.track_window?.current_track, this.src)
+                ),
+                map((state) => state!.position / 1000),
+                distinctUntilChanged(),
+                tap((currentTime) => this.currentTime$.next(currentTime))
+            )
+            .subscribe(logger);
+
         // Queue next track.
         observeNearEnd(this, 10)
             .pipe(
@@ -209,27 +249,11 @@ export class SpotifyPlayer implements Player<PlayableItem> {
     }
 
     observeCurrentTime(): Observable<number> {
-        return merge(
-            this.observeState(),
-            this.observePaused().pipe(
-                switchMap((paused) =>
-                    paused
-                        ? this.getCurrentState()
-                        : interval(250).pipe(mergeMap(() => this.getCurrentState()))
-                )
-            )
-        ).pipe(
-            filter((state) => this.compareTrackSrc(state?.track_window?.current_track, this.src)),
-            map((state) => state!.position / 1000),
-            distinctUntilChanged()
-        );
+        return this.currentTime$;
     }
 
     observeDuration(): Observable<number> {
-        return this.observeCurrentTrackState().pipe(
-            map((track) => track.duration / 1000),
-            distinctUntilChanged()
-        );
+        return this.duration$;
     }
 
     observeEnded(): Observable<void> {

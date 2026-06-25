@@ -143,5 +143,5 @@ function RowTitle(item: PlaylistItem) {
 }
 
 function Duration(item: PlaylistItem) {
-    return <Time className="text" time={item.duration} />;
+    return <Time className="text" time={item.duration} asDuration />;
 }

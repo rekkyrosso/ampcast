@@ -110,11 +110,11 @@ export class ListenBrainzApi {
                 itemMap[lookupItem.src] = {...lookupItem, ...values};
             });
 
-            dispatchMetadataChanges<MediaItem>(
+            dispatchMetadataChanges(
                 values.map((values, index) => {
                     const lookupItem = lookupItems[index];
                     return {
-                        match: (item: MediaItem) => item.src === lookupItem.src,
+                        match: (item: MediaObject) => (item as MediaItem).src === lookupItem.src,
                         values,
                     };
                 })

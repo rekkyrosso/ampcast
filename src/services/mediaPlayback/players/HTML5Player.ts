@@ -11,7 +11,6 @@ import {
     mergeMap,
     of,
     skipWhile,
-    startWith,
     switchMap,
     take,
     tap,
@@ -32,7 +31,8 @@ export default class HTML5Player implements Player<PlayableItem> {
     protected readonly paused$ = new BehaviorSubject(true);
     protected readonly playing$ = new Subject<void>();
     protected readonly item$ = new BehaviorSubject<PlayableItem | null>(null);
-    protected readonly duration$ = new Subject<number>();
+    protected readonly duration$ = new BehaviorSubject(0);
+    protected readonly currentTime$ = new Subject<number>();
     protected readonly error$ = new Subject<unknown>();
     protected hasWaited = false;
     protected loadedSrc = '';
@@ -86,27 +86,31 @@ export default class HTML5Player implements Player<PlayableItem> {
             )
             .subscribe(this.logger);
 
-        // Maintain `duration`.
+        // Maintain `duration$`.
         this.observeItem()
             .pipe(
+                distinctUntilChanged((a, b) => a?.src === b?.src),
                 tap((item) => this.duration$.next(item?.duration || 0)),
-                switchMap(() =>
-                    fromEvent(this.element, 'durationchange').pipe(
-                        map(() => this.element.duration),
-                        map((duration) =>
-                            this.isInfiniteStream
-                                ? MAX_DURATION
-                                : isNaN(duration)
-                                  ? this.item?.duration || 0
-                                  : duration
-                        ),
-                        tap((duration) => this.duration$.next(duration))
-                    )
-                )
+                switchMap(() => fromEvent(this.element, 'durationchange')),
+                filter(() => !this.stopped),
+                map(() => this.duration),
+                tap((duration) => this.duration$.next(duration))
             )
             .subscribe(this.logger);
 
-        // Loop playback, using `element.loop` means we don't get an `ended` event.
+        // Maintain `currentTime$`.
+        this.observeItem()
+            .pipe(
+                distinctUntilChanged((a, b) => a?.src === b?.src),
+                tap((item) => this.currentTime$.next(item?.startTime || 0)),
+                switchMap(() => fromEvent(this.element, 'timeupdate')),
+                map(() => this.currentTime),
+                tap((currentTime) => this.currentTime$.next(currentTime))
+            )
+            .subscribe(this.logger);
+
+        // Loop playback.
+        // Using `element.loop` means we don't get an `ended` event.
         fromEvent(this.element, 'ended')
             .pipe(
                 filter(() => this.loop),
@@ -134,11 +138,23 @@ export default class HTML5Player implements Player<PlayableItem> {
     }
 
     get currentTime(): number {
-        return this.element.currentTime;
+        const currentTime = this.element.currentTime;
+        return this.stopped
+            ? 0
+            : isFinite(currentTime)
+              ? currentTime >= MAX_DURATION
+                  ? MAX_DURATION - Math.random() // Keep emitting.
+                  : currentTime
+              : 0;
     }
 
     get duration(): number {
-        return this.element.duration;
+        const duration = this.element.duration;
+        return this.isInfiniteStream
+            ? MAX_DURATION
+            : isNaN(duration)
+              ? this.item?.duration || 0
+              : duration;
     }
 
     get hidden(): boolean {
@@ -182,19 +198,7 @@ export default class HTML5Player implements Player<PlayableItem> {
     }
 
     observeCurrentTime(): Observable<number> {
-        return fromEvent(this.element, 'timeupdate').pipe(
-            startWith(undefined),
-            map(() => this.element.currentTime),
-            map((currentTime) =>
-                this.stopped
-                    ? 0
-                    : isFinite(currentTime)
-                      ? currentTime >= MAX_DURATION
-                          ? MAX_DURATION - Math.random() // Keep emitting.
-                          : currentTime
-                      : 0
-            )
-        );
+        return this.currentTime$;
     }
 
     observeDuration(): Observable<number> {
@@ -279,6 +283,7 @@ export default class HTML5Player implements Player<PlayableItem> {
     }
 
     seek(time: number): void {
+        this.logger.log('seek', time, this.currentTime);
         if (!this.isInfiniteStream) {
             this.element.currentTime = time;
         }

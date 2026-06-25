@@ -4,9 +4,8 @@ import {LiteStorage} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import {seek} from 'services/mediaPlayback';
 import {observeCurrentTime} from 'services/mediaPlayback/playback';
-import {observeCurrentItem} from 'services/playlist';
 import Time from 'components/Time';
-import useObservable from 'hooks/useObservable';
+import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import usePaused from 'hooks/usePaused';
 import usePlaybackState from 'hooks/usePlaybackState';
 import useThrottledValue from 'hooks/useThrottledValue';
@@ -16,12 +15,13 @@ const storage = new LiteStorage('currentTimeControl', 'session');
 
 export default function TimeControl({overlay}: MediaControlsProps) {
     const playheadRef = useRef<HTMLInputElement>(null);
-    const currentItem = useObservable(observeCurrentItem, null);
+    const currentItem = useCurrentlyPlaying();
+    const currentId = currentItem?.id;
     const {startedAt, currentTime, duration} = usePlaybackState();
     const paused = usePaused();
     const isInfiniteStream = duration === MAX_DURATION;
     const unpausable = currentItem?.isLivePlayback || isInfiniteStream;
-    const [seekTime, setSeekTime] = useThrottledValue(-1, 300, {trailing: true});
+    const [seekTime, setSeekTime, unsetSeekTime] = useThrottledValue(-1, 300, {trailing: true});
     const [seeking, setSeeking] = useState(false);
     const [showRemainingTime, setShowRemainingTime] = useState(() =>
         storage.getBoolean('showRemainingTime')
@@ -57,7 +57,15 @@ export default function TimeControl({overlay}: MediaControlsProps) {
         if (seekTime !== -1) {
             seek(seekTime);
         }
+        const timerId = setTimeout(() => setSeeking(false), 500);
+        return () => clearTimeout(timerId);
     }, [seekTime]);
+
+    useEffect(() => {
+        setSeeking(false);
+        unsetSeekTime();
+        playheadRef.current!.valueAsNumber = 0;
+    }, [currentId, unsetSeekTime]);
 
     const handleSeekChange = useCallback(
         (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -67,7 +75,9 @@ export default function TimeControl({overlay}: MediaControlsProps) {
         [setSeekTime]
     );
 
-    const stopSeeking = useCallback(() => setSeeking(false), []);
+    const stopSeeking = useCallback(() => {
+        setSeeking(false);
+    }, []);
 
     return (
         <div className="time-control">

@@ -37,6 +37,11 @@ export function formatDate(date: number | string | Date = Date.now()): string {
     ).padStart(2, '0')}`;
 }
 
+export function formatDuration(seconds: number): string {
+    const rounding = 0.9; // Suits YouTube rounding. :)
+    return formatTime(seconds + rounding); // Round up duration.
+}
+
 export function formatMonth(date?: number | string | Date): string {
     return formatDate(date).slice(0, 7);
 }

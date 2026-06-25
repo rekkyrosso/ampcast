@@ -1,8 +1,9 @@
 import React from 'react';
+import LinearType from 'types/LinearType';
 import RepeatMode from 'types/RepeatMode';
 import {MAX_DURATION} from 'services/constants';
 import mediaPlayback from 'services/mediaPlayback';
-import {observeSize} from 'services/playlist';
+import playlist from 'services/playlist';
 import PopupMenu, {
     PopupMenuItem,
     PopupMenuItemCheckbox,
@@ -12,16 +13,15 @@ import PopupMenu, {
     PopupMenuSeparator,
 } from 'components/PopupMenu';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
-import useObservable from 'hooks/useObservable';
 import usePaused from 'hooks/usePaused';
 import usePlaybackSettings from 'hooks/usePlaybackSettings';
 
 export default function PlaylistMenu(props: PopupMenuProps) {
-    const size = useObservable(observeSize, 0);
-    const isEmpty = size === 0;
+    const isEmpty = playlist.size === 0;
     const currentItem = useCurrentlyPlaying();
     const {repeatMode} = usePlaybackSettings();
     const paused = usePaused();
+    const canSave = playlist.getItems().some((item) => item.linearType !== LinearType.Station);
 
     return (
         <PopupMenu {...props}>
@@ -44,7 +44,7 @@ export default function PlaylistMenu(props: PopupMenuProps) {
             <PopupMenuItem
                 label="Save as playlist…"
                 value="save-as-playlist"
-                disabled={isEmpty}
+                disabled={!canSave}
                 key="save-as-playlist"
             />
             <PopupMenuSeparator />

@@ -60,6 +60,8 @@ export default class YouTubePlayer implements Player<PlayableItem> {
     private Player: ReturnType<typeof YouTubeFactory> | null = null;
     private readonly item$ = new BehaviorSubject<PlayableItem | null>(null);
     private readonly paused$ = new BehaviorSubject(true);
+    private readonly duration$ = new BehaviorSubject(0);
+    private readonly currentTime$ = new Subject<number>();
     private readonly size$ = new BehaviorSubject<Size>({width: 0, height: 0});
     private readonly error$ = new Subject<unknown>();
     private readonly playerLoaded$ = new BehaviorSubject(false);
@@ -133,6 +135,41 @@ export default class YouTubePlayer implements Player<PlayableItem> {
             )
             .subscribe(logger);
 
+        // Maintain `duration$`.
+        this.observeItem()
+            .pipe(
+                distinctUntilChanged((a, b) => a?.src === b?.src),
+                tap((item) => this.duration$.next(item?.duration || 0)),
+                switchMap(() => this.observeState()),
+                map(() => this.player?.getDuration() || 0),
+                distinctUntilChanged(),
+                filter((duration) => duration !== 0),
+                tap((duration) => this.duration$.next(duration))
+            )
+            .subscribe(this.logger);
+
+        // Maintain `currentTime$`.
+        this.observeItem()
+            .pipe(
+                distinctUntilChanged((a, b) => a?.src === b?.src),
+                tap((item) => this.currentTime$.next(item?.startTime || 0)),
+                switchMap(() => this.observeState()),
+                switchMap((state) =>
+                    state === YT.PlayerState.PLAYING
+                        ? timer(
+                              250 - (Math.round(this.player!.getCurrentTime() * 1000) % 250),
+                              250
+                          ).pipe(
+                              map(() => this.player!.getCurrentTime()),
+                              takeUntil(this.observeState())
+                          )
+                        : EMPTY
+                ),
+                distinctUntilChanged(),
+                tap((currentTime) => this.currentTime$.next(currentTime))
+            )
+            .subscribe(this.logger);
+
         // The video might get paused if the tab is hidden/minimized.
         fromEvent(document, 'visibilitychange')
             .pipe(
@@ -191,27 +228,11 @@ export default class YouTubePlayer implements Player<PlayableItem> {
     }
 
     observeCurrentTime(): Observable<number> {
-        return this.observeState().pipe(
-            switchMap((state) =>
-                state === YT.PlayerState.PLAYING
-                    ? timer(
-                          250 - (Math.round(this.player!.getCurrentTime() * 1000) % 250),
-                          250
-                      ).pipe(
-                          map(() => this.player!.getCurrentTime()),
-                          takeUntil(this.observeState())
-                      )
-                    : EMPTY
-            )
-        );
+        return this.currentTime$;
     }
 
     observeDuration(): Observable<number> {
-        return this.observeState().pipe(
-            map(() => this.player?.getDuration() || 0),
-            filter((duration) => duration !== 0),
-            distinctUntilChanged()
-        );
+        return this.duration$;
     }
 
     observeEnded(): Observable<void> {

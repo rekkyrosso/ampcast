@@ -170,7 +170,7 @@ function Description<T extends MediaPlaylist>({description}: Pick<T, 'descriptio
 function Duration<T extends MediaItem>({duration}: Pick<T, 'duration'>) {
     return (
         <p className="duration">
-            <Time className="text" time={duration || 0} />
+            <Time className="text" time={duration} asDuration />
         </p>
     );
 }

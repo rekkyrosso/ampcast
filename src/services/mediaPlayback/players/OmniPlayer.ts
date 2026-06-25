@@ -28,6 +28,7 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
     #volume = 1;
     #width = 0;
     #height = 0;
+    #silent = false;
 
     constructor(
         id: string,
@@ -107,42 +108,44 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
     observeCurrentTime(): Observable<number> {
         return this.observeCurrentPlayer().pipe(
             switchMap((player) => (player ? player.observeCurrentTime() : EMPTY)),
-            distinctUntilChanged()
+            filter(() => !this.#silent)
         );
     }
 
     observeDuration(): Observable<number> {
         // Make sure this re-emits when a new item is loaded.
         return this.player$.pipe(
-            switchMap((player) =>
-                player ? player.observeDuration().pipe(distinctUntilChanged()) : EMPTY
-            )
+            switchMap((player) => (player ? player.observeDuration() : EMPTY)),
+            filter(() => !this.#silent)
         );
     }
 
     observeEnded(): Observable<void> {
         return this.observeCurrentPlayer().pipe(
-            switchMap((player) => (player ? player.observeEnded() : EMPTY))
+            switchMap((player) => (player ? player.observeEnded() : EMPTY)),
+            filter(() => !this.#silent)
         );
     }
 
     observeError(): Observable<unknown> {
         return this.observeCurrentPlayer().pipe(
             switchMap((player) => (player ? merge(this.error$, player.observeError()) : EMPTY)),
-            filter(() => !this.stopped)
+            filter(() => !this.#silent && !this.stopped)
         );
     }
 
     observeNowPlaying(station: PlaylistItem): Observable<PlaylistItem> {
         return this.observeCurrentPlayer().pipe(
             switchMap((player) => player?.observeNowPlaying?.(station) || of(station)),
-            distinctUntilChanged()
+            distinctUntilChanged(),
+            filter(() => !this.#silent)
         );
     }
 
     observePlaying(): Observable<void> {
         return this.observeCurrentPlayer().pipe(
-            switchMap((player) => (player ? player.observePlaying() : EMPTY))
+            switchMap((player) => (player ? player.observePlaying() : EMPTY)),
+            filter(() => !this.#silent)
         );
     }
 
@@ -154,7 +157,7 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
         const prevPlayer = this.currentPlayer;
         const nextPlayer = this.selectPlayer(src);
 
-        this.player$.next(null); // turn off event streams
+        this.#silent = true; // turn off event streams
 
         if (prevPlayer && prevPlayer !== nextPlayer) {
             prevPlayer.autoplay = false;
@@ -171,10 +174,14 @@ export default class OmniPlayer<T, S = T> implements Player<T> {
 
         if (nextPlayer && !this.#players.has(nextPlayer)) {
             this.loadError = Error('Player not registered');
+            this.player$.next(null);
+            this.#silent = false;
             return;
         }
 
-        this.player$.next(nextPlayer); // turn on event streams
+        this.player$.next(nextPlayer);
+
+        this.#silent = false; // turn on event streams
 
         if (nextPlayer) {
             try {

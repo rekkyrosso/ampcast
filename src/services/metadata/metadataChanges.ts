@@ -8,7 +8,7 @@ import MetadataChange from 'types/MetadataChange';
 const changes$ = new Subject<readonly MetadataChange<any>[]>();
 
 export function dispatchMetadataChanges<T extends MediaObject>(change: MetadataChange<T>): void;
-export function dispatchMetadataChanges<T extends MediaObject>(changes: MetadataChange<T>[]): void;
+export function dispatchMetadataChanges<T extends MediaObject>(changes: readonly MetadataChange<T>[]): void;
 export function dispatchMetadataChanges<T extends MediaObject>(
     change: MetadataChange<T> | readonly MetadataChange<T>[]
 ): void {

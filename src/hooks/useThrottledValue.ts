@@ -1,4 +1,4 @@
-import {useEffect, useState} from 'react';
+import {useCallback, useEffect, useState} from 'react';
 import {throttleTime, ThrottleConfig} from 'rxjs';
 import useSubject from './useSubject';
 
@@ -9,13 +9,23 @@ export default function useThrottledValue<T>(
 ) {
     const [throttledValue, setThrottledValue] = useState<T>(initialValue);
     const [value$, nextValue] = useSubject<T>();
+    const [reset, setReset] = useState(false);
 
     useEffect(() => {
-        const subscription = value$
-            .pipe(throttleTime(duration, undefined, {leading, trailing}))
-            .subscribe(setThrottledValue);
-        return () => subscription.unsubscribe();
-    }, [value$, duration, leading, trailing]);
+        if (reset) {
+            setReset(false);
+            setThrottledValue(initialValue);
+        } else {
+            const subscription = value$
+                .pipe(throttleTime(duration, undefined, {leading, trailing}))
+                .subscribe(setThrottledValue);
+            return () => subscription.unsubscribe();
+        }
+    }, [value$, duration, leading, trailing, initialValue, reset]);
 
-    return [throttledValue, nextValue] as const;
+    const resetValue = useCallback(() => {
+        setReset(true);
+    }, []);
+
+    return [throttledValue, nextValue, resetValue] as const;
 }
