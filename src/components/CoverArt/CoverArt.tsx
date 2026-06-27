@@ -48,7 +48,7 @@ function CoverArtImage({item, size, extendedSearch, onLoad, onError}: CoverArtPr
     const [thumbnails, setThumbnails] = useState(() => item.thumbnails);
     const hasThumbnails = !!thumbnails?.length;
     const thumbnail = hasThumbnails ? findBestThumbnail(thumbnails, size) : undefined;
-    const src = thumbnail ? getThumbnailUrl(item, thumbnail) : '';
+    const src = thumbnail ? getThumbnailUrl(thumbnail) : '';
     const overlayIcon = item.itemType === ItemType.Album && getOverlayIcon(item);
 
     useEffect(() => {
@@ -139,6 +139,9 @@ function getOverlayIcon(item: MediaAlbum): IconName | '' {
     switch (type) {
         case 'top-tracks':
             return 'star';
+
+        case 'artist-radios':
+            return 'radio';
 
         case 'videos':
             return 'video';

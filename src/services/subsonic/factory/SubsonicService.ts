@@ -789,9 +789,7 @@ export default class SubsonicService implements PersonalMediaService {
     }
 
     getThumbnailUrl(url: string): string {
-        return this.isLoggedIn()
-            ? url.replace(`{${this.id}-credentials}`, this.settings.credentials)
-            : 'data:image/png;';
+        return url.replace(`{${this.id}-credentials}`, this.settings.credentials);
     }
 
     async lookup(

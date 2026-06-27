@@ -2,6 +2,7 @@ import {filterMatches} from 'services/metadata';
 import ItemType from 'types/ItemType';
 import Lyrics, {SyncedLyric} from 'types/Lyrics';
 import MediaItem from 'types/MediaItem';
+import MediaType from 'types/MediaType';
 import {filterNotEmpty} from 'utils';
 
 type LyricsItem = MediaItem & Pick<LRCLIB.Lyrics, 'plainLyrics' | 'syncedLyrics'>;
@@ -41,6 +42,7 @@ function createMediaItem(lyrics: LRCLIB.Lyrics): LyricsItem {
     return {
         src: `lrclib:lyrics:${lyrics.id}`,
         itemType: ItemType.Media,
+        mediaType: MediaType.Audio,
         title: lyrics.trackName,
         artists: lyrics.artistName ? [lyrics.artistName] : undefined,
         album: lyrics.albumName,

@@ -6,11 +6,11 @@ import PlaybackType from './PlaybackType';
 
 export default interface MediaItem extends BaseMediaObject {
     readonly itemType: ItemType.Media;
+    readonly mediaType: MediaType;
     readonly duration: number; // Seconds
     readonly playedAt: number; // unix (a value of -1 means "playing now")
     // Everything below here should be optional.
     readonly linearType?: LinearType; // For radio streams
-    readonly mediaType?: MediaType;
     readonly playbackType?: PlaybackType;
     readonly isExternalMedia?: boolean; // Not provided by the associated `MediaService` (described by `src`)
     readonly isLivePlayback?: boolean;

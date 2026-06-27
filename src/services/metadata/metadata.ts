@@ -125,6 +125,7 @@ export async function createMediaItemFromArtistAndTitle(
             artists: [artist],
             src: '',
             itemType: ItemType.Media,
+            mediaType: MediaType.Audio,
             duration: 0,
             playedAt: 0,
         };

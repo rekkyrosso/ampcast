@@ -45,6 +45,7 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
     private playQueue: plex.PlayQueue | undefined;
     private items: readonly PlaylistItem[] = [];
     private loadedSrc = '';
+    private size = 0;
     #autoplay = false;
 
     constructor() {
@@ -88,8 +89,7 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
         this.player
             .observeEnded()
             .pipe(
-                map(() => this.position === this.trackCount - 1),
-                distinctUntilChanged(),
+                map(() => this.position === this.size - 1),
                 filter((atEnd) => atEnd),
                 tap(() => this.ended$.next())
             )
@@ -100,7 +100,7 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
             .observeEnded()
             .pipe(
                 map(() => this.position + 1),
-                filter((position) => position < this.trackCount),
+                filter((position) => position < this.size),
                 tap(this.position$),
                 mergeMap((position) => this.getPlayableItem(position)),
                 tap((item) => this.loadPlayer(item))
@@ -120,9 +120,8 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
         // Keep `playQueue` updated.
         this.position$
             .pipe(
-                filter(() => this.items.length < this.trackCount),
+                filter(() => this.items.length < this.size),
                 map((position) => position >= this.items.length - 10),
-                distinctUntilChanged(),
                 filter((nearEnd) => nearEnd),
                 mergeMap(() => this.refreshPlayQueue())
             )
@@ -283,10 +282,6 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
         return this.radio?.src;
     }
 
-    private get trackCount(): number {
-        return this.playQueue?.playQueueTotalCount || 0;
-    }
-
     private observePaused(): Observable<boolean> {
         return this.paused$.pipe(distinctUntilChanged());
     }
@@ -296,10 +291,14 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
     }
 
     private async loadAndPlay(item: PlayableItem): Promise<void> {
-        this.playQueue = await plexApi.createPlayQueue(item, {
+        this.playQueue = undefined;
+        this.size = 0;
+        const playQueue = await plexApi.createPlayQueue(item, {
             maxDegreesOfSeparation: plexSettings.radioDegreesOfSeparation,
         });
-        this.items = await this.createPlaylistItems(this.playQueue.Metadata);
+        this.playQueue = playQueue;
+        this.size = playQueue.playQueueTotalCount ?? playQueue.size + 5;
+        this.items = await this.createPlaylistItems(playQueue.Metadata);
         const playableItem = await this.getPlayableItem(0);
         if (!playableItem) {
             throw Error('No radio tracks');
@@ -382,6 +381,7 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
             const newQueueItems = playQueue.Metadata.filter(
                 (queueItem) => !existingKeys.includes(queueItem.ratingKey)
             );
+            this.size = playQueue.playQueueTotalCount ?? playQueue.size + 5;
             if (newQueueItems.length > 0) {
                 const items = await this.createPlaylistItems(newQueueItems);
                 this.items = this.items.concat(items);
@@ -390,7 +390,7 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
     }
 
     private async skipTo(position: number): Promise<void> {
-        if (position >= 0 && position < this.trackCount) {
+        if (position >= 0 && position < this.size) {
             this.player.stop();
             this.player.autoplay = this.autoplay;
             this.position$.next(position);

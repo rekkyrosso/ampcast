@@ -290,9 +290,7 @@ async function getServerInfo(): Promise<Record<string, string>> {
 }
 
 function getThumbnailUrl(url: string): string {
-    return isLoggedIn()
-        ? url.replace('{navidrome-credentials}', navidromeSettings.credentials)
-        : 'data:image/png;';
+    return url.replace('{navidrome-credentials}', navidromeSettings.credentials);
 }
 
 async function lookup(

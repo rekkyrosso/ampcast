@@ -1,3 +1,4 @@
+import {v4 as uuid} from 'uuid';
 import MiniSearch from 'minisearch';
 import unidecode from 'unidecode';
 import {Except} from 'type-fest';
@@ -134,7 +135,7 @@ async function getPage<T extends plex.MediaObject>(
         total = page.total || items.length;
         if (page.atEnd && request.params?.type === plexMediaType.Track) {
             items = refineTracksSearchResults(
-                request.params?.title || '',
+                request.params?.originalTitle || request.params?.title || '',
                 items as readonly plex.Track[]
             ) as readonly T[];
             total = items.length;
@@ -208,8 +209,13 @@ async function createPlayQueue(
     {src}: {src: string},
     params: Record<string, any> = {}
 ): Promise<plex.PlayQueue> {
-    const [, type, ratingKey] = src.split(':');
-    const key = type === 'radio' ? ratingKey : `/library/metadata/${ratingKey}`;
+    const [, type, id] = src.split(':');
+    const key =
+        type === 'artist-radio'
+            ? `/library/metadata/${id}/station/${uuid()}?type=10`
+            : type === 'radio'
+              ? id
+              : `/library/metadata/${id}`;
     const {MediaContainer: playQueue} = await fetchJSON<plex.PlayQueueResponse>({
         path: '/playQueues',
         method: 'POST',

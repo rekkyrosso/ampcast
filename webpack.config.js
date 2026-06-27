@@ -75,6 +75,7 @@ module.exports = (args) => {
                 'react-dom',
                 'react-error-boundary',
                 'string-score',
+                'uuid',
                 'youtube-player',
                 // These are always included in `bundle.js`. Tree-shaking?
                 // '@ctrl/tinycolor',
