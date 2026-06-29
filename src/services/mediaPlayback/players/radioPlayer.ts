@@ -13,53 +13,54 @@ import {
     switchMap,
     take,
     tap,
+    takeUntil,
+    delayWhen,
+    race,
+    timer,
+    merge,
 } from 'rxjs';
 import {nanoid} from 'nanoid';
 import LinearType from 'types/LinearType';
-import MetadataChange from 'types/MetadataChange';
+import MediaItem from 'types/MediaItem';
+import MediaService from 'types/MediaService';
+import Pager from 'types/Pager';
 import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import Player from 'types/Player';
 import PlaylistItem from 'types/PlaylistItem';
 import {Logger} from 'utils';
-import {observeMetadataChanges} from 'services/metadata';
 import HLSPlayer from 'services/mediaPlayback/players/HLSPlayer';
 import HTML5Player from 'services/mediaPlayback/players/HTML5Player';
 import OmniPlayer from 'services/mediaPlayback/players/OmniPlayer';
 import observeNearEnd from 'services/mediaPlayback/players/observeNearEnd';
-import plexApi from './plexApi';
-import plexSettings from './plexSettings';
-import {createMediaItemFromTrack, getMediaAlbums, getMetadata} from './plexUtils';
+import {getServiceFromSrc} from 'services/mediaServices';
 
-const logger = new Logger('plexRadioPlayer');
+const logger = new Logger('radioPlayer');
 
-export class PlexRadioPlayer implements Player<PlayableItem> {
+export class RadioPlayer implements Player<PlayableItem> {
     private readonly player: OmniPlayer<PlayableItem>;
+    private readonly pager$ = new BehaviorSubject<Pager<MediaItem> | null>(null);
     private readonly radio$ = new BehaviorSubject<PlayableItem | null>(null);
     private readonly paused$ = new BehaviorSubject(true);
     private readonly ended$ = new Subject<void>();
     private readonly error$ = new Subject<unknown>();
     private readonly skip$ = new Subject<void>();
-    private readonly nowPlaying$ = new Subject<PlaylistItem | null>();
+    private readonly nowPlaying$ = new Subject<PlaylistItem | undefined>();
     private readonly position$ = new BehaviorSubject(0);
-    private playQueue: plex.PlayQueue | undefined;
     private items: readonly PlaylistItem[] = [];
     private loadedSrc = '';
-    private size = 0;
     #autoplay = false;
 
     constructor() {
-        const hlsPlayer = new HLSPlayer('audio', 'plex-radio-hls');
-        const html5Player = new HTML5Player('audio', 'plex-radio-html5');
+        const hlsPlayer = new HLSPlayer('audio', 'radio-player-hls');
+        const html5Player = new HTML5Player('audio', 'radio-player-html5');
 
-        this.player = new OmniPlayer('plexRadioPlayer');
+        this.player = new OmniPlayer('radioPlayer');
 
         this.player.registerPlayers([
             [html5Player, () => true],
             [hlsPlayer, (item) => item?.playbackType === PlaybackType.HLS],
         ]);
-
-        this.player.observeError().subscribe(this.error$);
 
         // Load new radios.
         this.observePaused()
@@ -85,20 +86,22 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
             )
             .subscribe(logger);
 
+        const endedOrError$ = merge(this.player.observeEnded(), this.player.observeError());
+
         // `ended`.
-        this.player
-            .observeEnded()
+        this.pager$
             .pipe(
-                map(() => this.position === this.size - 1),
+                switchMap((pager) => (pager ? endedOrError$ : EMPTY)),
+                map(() => this.position >= this.size - 1),
                 filter((atEnd) => atEnd),
                 tap(() => this.ended$.next())
             )
             .subscribe(logger);
 
         // Load next radio track.
-        this.player
-            .observeEnded()
+        this.pager$
             .pipe(
+                switchMap((pager) => (pager ? endedOrError$ : EMPTY)),
                 map(() => this.position + 1),
                 filter((position) => position < this.size),
                 tap(this.position$),
@@ -108,38 +111,74 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
             .subscribe(logger);
 
         // Delay loading after skipping.
-        this.skip$
+        this.pager$
             .pipe(
-                debounceTime(300),
+                switchMap((pager) => (pager ? this.skip$ : EMPTY)),
+                debounceTime(500),
                 map(() => this.position),
                 mergeMap((position) => this.getPlayableItem(position)),
                 tap((item) => this.loadPlayer(item))
             )
             .subscribe(logger);
 
-        // Keep `playQueue` updated.
-        this.position$
+        // Prepare next track.
+        this.pager$
             .pipe(
-                filter(() => this.items.length < this.size),
-                map((position) => position >= this.items.length - 10),
-                filter((nearEnd) => nearEnd),
-                mergeMap(() => this.refreshPlayQueue())
-            )
-            .subscribe(logger);
-
-        // Prepare for next track.
-        observeNearEnd(this, 10)
-            .pipe(
+                switchMap((pager) => (pager ? observeNearEnd(this, 10) : EMPTY)),
                 filter((nearEnd) => nearEnd),
                 map(() => this.position + 1),
+                filter((position) => position < this.size),
                 mergeMap((position) => this.getPlayableItem(position))
             )
             .subscribe(logger);
 
-        // Refresh play queue on metadata changes.
-        observeMetadataChanges<PlaylistItem>()
-            .pipe(tap((changes) => this.applyMetadataChanges(changes)))
+        // Maintain `items`.
+        this.pager$
+            .pipe(
+                switchMap((pager) => pager?.observeItems() || of([])),
+                map((items) => this.createPlaylistItems(items)),
+                tap((items) => (this.items = items))
+            )
             .subscribe(logger);
+
+        // Play first track.
+        this.pager$
+            .pipe(
+                switchMap((pager) => pager?.observeItems().pipe(take(1)) || EMPTY),
+                mergeMap(() => this.getPlayableItem(0)),
+                tap((item) => this.loadPlayer(item))
+            )
+            .subscribe(logger);
+
+        // Keep the pager in synch.
+        this.pager$
+            .pipe(
+                switchMap((pager) =>
+                    pager
+                        ? this.position$.pipe(
+                              delayWhen(() => race(this.observePlaying(), timer(500))),
+                              debounceTime(500),
+                              tap((position) => pager.fetchAt(position))
+                          )
+                        : EMPTY
+                )
+            )
+            .subscribe(logger);
+
+        // Catch initial pager error.
+        this.pager$
+            .pipe(
+                switchMap((pager) =>
+                    pager ? pager.observeError().pipe(takeUntil(pager.observeItems())) : EMPTY
+                ),
+                tap((error) => this.error$.next(error))
+            )
+            .subscribe(logger);
+
+        // Log player errors.
+        this.pager$
+            .pipe(switchMap((pager) => (pager ? this.player.observeError() : EMPTY)))
+            .subscribe(logger.error);
     }
 
     get autoplay(): boolean {
@@ -217,11 +256,12 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
         this.player.appendTo(parentElement);
     }
 
-    load(item: PlayableItem): void {
-        logger.log('load', item.src);
-        this.radio$.next(item);
+    load(radio: PlayableItem): void {
+        logger.log('load', radio.src);
+        const isLoaded = radio.src === this.loadedSrc; // Do this before updating `radio$` stream (synchronous).
+        this.radio$.next(radio);
         this.paused$.next(!this.autoplay);
-        if (item.src === this.loadedSrc) {
+        if (isLoaded) {
             this.loadPlayer(this.currentQueueItem);
         }
     }
@@ -266,8 +306,8 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
         this.player.resize(width, height);
     }
 
-    private get currentQueueItem(): PlaylistItem | null {
-        return this.items[this.position] || null;
+    private get currentQueueItem(): PlaylistItem | undefined {
+        return this.items[this.position] || undefined;
     }
 
     private get position(): number {
@@ -276,6 +316,15 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
 
     private get radio(): PlayableItem | null {
         return this.radio$.value;
+    }
+
+    private get service(): MediaService | undefined {
+        return this.radio ? getServiceFromSrc(this.radio) : undefined;
+    }
+
+    private get size(): number {
+        // Accommodate sparse arrays (`IndexedPager`).
+        return this.items.reduce((total) => (total += 1), 0);
     }
 
     private get src(): string | undefined {
@@ -291,24 +340,20 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
     }
 
     private async loadAndPlay(item: PlayableItem): Promise<void> {
-        this.playQueue = undefined;
-        this.size = 0;
-        const playQueue = await plexApi.createPlayQueue(item, {
-            maxDegreesOfSeparation: plexSettings.radioDegreesOfSeparation,
-        });
-        this.playQueue = playQueue;
-        this.size = playQueue.playQueueTotalCount ?? playQueue.size + 5;
-        this.items = await this.createPlaylistItems(playQueue.Metadata);
-        const playableItem = await this.getPlayableItem(0);
-        if (!playableItem) {
-            throw Error('No radio tracks');
-        }
-        this.loadedSrc = item.src;
+        // Reset state.
+        this.loadedSrc = '';
+        this.pager$.next(null);
         this.position$.next(0);
-        this.loadPlayer(playableItem);
+        if (!this.service?.createRadioPager) {
+            throw Error('Radio not found');
+        }
+        const pager = this.service.createRadioPager(item.src);
+        this.loadedSrc = item.src;
+        this.pager$.next(pager);
+        this.position$.next(0); // Start fetching radio tracks.
     }
 
-    private loadPlayer(item: PlaylistItem | null): void {
+    private loadPlayer(item: PlaylistItem | undefined): void {
         if (item) {
             this.player.load(item);
             this.nowPlaying$.next(item);
@@ -317,51 +362,25 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
         }
     }
 
-    private applyMetadataChanges(changes: readonly MetadataChange<PlaylistItem>[]): void {
-        let changed = false;
-        const items = this.items.map((item) => {
-            for (const {match, values} of changes) {
-                if (match(item)) {
-                    changed = true;
-                    return {...item, ...values};
-                }
-            }
-            return item;
-        });
-        if (changed) {
-            this.items = items;
-            this.nowPlaying$.next(this.currentQueueItem);
-        }
-    }
-
-    private async createPlaylistItems(
-        queueItems: readonly plex.PlayQueueItem[]
-    ): Promise<readonly PlaylistItem[]> {
-        const [tracks, albums] = await Promise.all([
-            getMetadata(queueItems),
-            getMediaAlbums(queueItems),
-        ]);
-        return tracks.map((track, index) => {
-            const album = albums.find((album) => album.src.endsWith(`:${track.parentRatingKey}`));
-            const item = createMediaItemFromTrack(track, album);
+    private createPlaylistItems(items: readonly MediaItem[]): readonly PlaylistItem[] {
+        return items.map((item) => {
             return {
                 ...item,
                 id: nanoid(),
                 linearType: LinearType.MusicTrack,
-                plex: {...item.plex, playQueueItemID: queueItems[index].playQueueItemID},
             };
         });
     }
 
-    async getPlayableItem(position: number): Promise<PlaylistItem | null> {
+    async getPlayableItem(position: number): Promise<PlaylistItem | undefined> {
         const items = this.items as PlaylistItem[]; // Mutable.
         let item = items[position];
         if (!item) {
-            return null;
+            return;
         }
         try {
             if (item.playbackType === undefined) {
-                const playbackType = await plexApi.getPlaybackType(item);
+                const playbackType = await this.service?.getPlaybackType?.(item);
                 item = {...item, playbackType};
                 items[position] = item; // Mutate.
             }
@@ -369,24 +388,6 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
             logger.error(err);
         }
         return item;
-    }
-
-    private async refreshPlayQueue(): Promise<void> {
-        if (this.playQueue) {
-            const existingKeys = this.items.map((item) => {
-                const [, , ratingKey] = item.src.split(':');
-                return ratingKey;
-            });
-            const playQueue = await plexApi.getPlayQueue(this.playQueue.playQueueID);
-            const newQueueItems = playQueue.Metadata.filter(
-                (queueItem) => !existingKeys.includes(queueItem.ratingKey)
-            );
-            this.size = playQueue.playQueueTotalCount ?? playQueue.size + 5;
-            if (newQueueItems.length > 0) {
-                const items = await this.createPlaylistItems(newQueueItems);
-                this.items = this.items.concat(items);
-            }
-        }
     }
 
     private async skipTo(position: number): Promise<void> {
@@ -400,4 +401,4 @@ export class PlexRadioPlayer implements Player<PlayableItem> {
     }
 }
 
-export default new PlexRadioPlayer();
+export default new RadioPlayer();

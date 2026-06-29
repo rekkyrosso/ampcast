@@ -586,13 +586,7 @@ async function getRadioStations(): Promise<PlexRadioStations> {
 function getPlayableUrl(item: PlayableItem): string {
     const {host, accessToken} = plexSettings;
     if (host && accessToken) {
-        if (item.playbackType === PlaybackType.Direct) {
-            const [src] = item.srcs || [];
-            if (!src) {
-                throw Error('No playable source');
-            }
-            return `${host}${src}?X-Plex-Token=${accessToken}`;
-        } else {
+        if (item.playbackType === PlaybackType.HLS) {
             const [, type, ratingKey] = item.src.split(':');
             const mediaType = type === 'video' ? 'video' : 'music';
             const params = new URLSearchParams({
@@ -610,6 +604,12 @@ function getPlayableUrl(item: PlayableItem): string {
                     'add-transcode-target(type=musicProfile&context=streaming&protocol=dash&container=mp4&audioCodec=aac)+add-transcode-target(type=musicProfile&context=streaming&protocol=hls&container=mpegts&audioCodec=aac,mp3)',
             });
             return `${host}/${mediaType}/:/transcode/universal/start.mpd?${params}`;
+        } else {
+            const [src] = item.srcs || [];
+            if (!src) {
+                throw Error('No playable source');
+            }
+            return `${host}${src}?X-Plex-Token=${accessToken}`;
         }
     } else {
         throw Error('Not logged in');

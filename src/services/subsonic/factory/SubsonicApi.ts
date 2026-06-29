@@ -200,6 +200,14 @@ export default class SubsonicApi {
         return data.artistInfo2;
     }
 
+    async getArtistRadioTracks(id: string, count = 200): Promise<Subsonic.MediaItem[]> {
+        const data = await this.get<{similarSongs2: {song: Subsonic.MediaItem[]}}>(
+            'getSimilarSongs2',
+            {id, count}
+        );
+        return data.similarSongs2.song || [];
+    }
+
     async getArtistTopTracks(artist: string, count = 50): Promise<Subsonic.MediaItem[]> {
         const data = await this.get<{topSongs: {song: Subsonic.MediaItem[]}}>('getTopSongs', {
             artist,
@@ -355,8 +363,12 @@ export default class SubsonicApi {
     getPlayableUrl(item: PlayableItem): string {
         const {host, credentials} = this.settings;
         if (host && credentials) {
-            if (item.linearType) {
-                return item.srcs![0]; // Let this throw
+            if (item.linearType === LinearType.Station) {
+                const url = item.srcs?.[0];
+                if (!url) {
+                    throw Error('No radio stream URL');
+                }
+                return url;
             } else {
                 const [, type, id] = item.src.split(':');
                 if (item.playbackType === PlaybackType.HLS) {
@@ -379,7 +391,10 @@ export default class SubsonicApi {
             return item.playbackType;
         }
         if (item.linearType === LinearType.Station) {
-            const url = item.srcs![0]; // Let this throw
+            const url = item.srcs?.[0];
+            if (!url) {
+                throw Error('No radio stream URL');
+            }
             const mediaItem = await createMediaItemFromUrl(url);
             return mediaItem.playbackType || PlaybackType.Direct;
         }

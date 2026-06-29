@@ -18,6 +18,7 @@ import {getTextFromHtml, Logger, uniqBy} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import {bestOf} from 'services/metadata';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
+import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import pinStore from 'services/pins/pinStore';
@@ -415,6 +416,8 @@ function createArtistAlbumsPager(artist: AppleMusicApi.Artist | LibraryArtist): 
     }
     const topTracks = createArtistTopTracks(artist);
     const videos = createArtistVideos(artist);
+    const radios = createArtistRadios(artist);
+    const radiosPager = new SimplePager([radios]);
     const topPager = new SimpleMediaPager<MediaAlbum>(async () => {
         try {
             const items = await fetchFirstPage(videos.pager, {keepAlive: true});
@@ -430,7 +433,7 @@ function createArtistAlbumsPager(artist: AppleMusicApi.Artist | LibraryArtist): 
             return [topTracks];
         }
     });
-    return new WrappedPager(topPager, albumsPager);
+    return new WrappedPager(topPager, albumsPager, radiosPager);
 }
 
 function createArtistTopTracks(
@@ -446,6 +449,24 @@ function createArtistTopTracks(
         artist: item.name,
         genres: getGenres(item),
         pager: createTopTracksPager(artist),
+        synthetic: true,
+        inLibrary: false,
+        trackCount: undefined,
+        apple: {catalogId: ''},
+    };
+}
+
+function createArtistRadios(artist: AppleMusicApi.Artist | LibraryArtist): MediaAlbum {
+    const item = createFromLibrary<AppleMusicApi.Artist['attributes']>(artist);
+
+    return {
+        itemType: ItemType.Album,
+        src: `apple:radios:${artist.id}`,
+        title: 'Radios',
+        thumbnails: createThumbnails(item as any),
+        artist: item.name,
+        genres: getGenres(item),
+        pager: createRadiosPager(artist),
         synthetic: true,
         inLibrary: false,
         trackCount: undefined,
@@ -473,6 +494,14 @@ function createArtistVideos(artist: AppleMusicApi.Artist | LibraryArtist): Media
 
 function createTopTracksPager(artist: AppleMusicApi.Artist | LibraryArtist): Pager<MediaItem> {
     return createArtistViewPager(artist, 'top-songs');
+}
+
+function createRadiosPager(artist: AppleMusicApi.Artist | LibraryArtist): Pager<MediaItem> {
+    return new MusicKitPager(
+        `/v1/catalog/{{storefrontId}}/stations?`,
+        {ids: `ra.${artist.id}`},
+        {maxSize: 50, pageSize: 0}
+    );
 }
 
 function createVideosPager(artist: AppleMusicApi.Artist | LibraryArtist): Pager<MediaItem> {

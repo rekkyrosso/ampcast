@@ -1,6 +1,13 @@
-import SubsonicApi from 'services/subsonic/factory/SubsonicApi';
+import SubsonicService from 'services/subsonic/factory/SubsonicService';
 import navidromeSettings from './navidromeSettings';
 
-const subsonicApi = new SubsonicApi('navidrome', navidromeSettings);
+export const subsonicService = new SubsonicService(
+    {
+        id: 'navidrome',
+        name: 'Navidrome',
+        url: '',
+    },
+    navidromeSettings
+);
 
-export default subsonicApi;
+export default subsonicService.api;

@@ -43,7 +43,7 @@ import {createArtistAlbumsPager, createPlaylistItemsPager} from './jellyfinUtils
 
 const serviceId: MediaServiceId = 'jellyfin';
 
-const jellyfinPlaylistLayout: Partial<MediaListLayout> = {
+export const jellyfinPlaylistLayout: Partial<MediaListLayout> = {
     card: {
         h1: 'Name',
         h2: 'Genre',
@@ -596,13 +596,22 @@ function createSearch<T extends MediaObject>(
             {q = ''}: {q?: string} = {},
             sort = props.primaryItems?.sort?.defaultSort
         ): Pager<T> {
-            return createSearchPager(
-                itemType,
-                q,
-                sort && !q ? getSortParams(sort, sortMap) : undefined,
-                options,
-                createChildPager
-            );
+            const sortParams = sort && !q ? getSortParams(sort, sortMap) : undefined;
+            if (itemType === ItemType.Artist && !q) {
+                return new JellyfinPager<T>(
+                    'Artists/AlbumArtists',
+                    {
+                        ParentId: getMusicLibraryId(),
+                        UserId: jellyfinSettings.userId,
+                        ...sortParams,
+                    },
+                    options,
+                    undefined,
+                    createChildPager
+                );
+            } else {
+                return createSearchPager(itemType, q, sortParams, options, createChildPager);
+            }
         },
     };
 }

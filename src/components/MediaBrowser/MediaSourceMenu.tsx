@@ -16,17 +16,23 @@ import PopupMenu, {
     showPopupMenu,
 } from 'components/PopupMenu';
 
-export async function showMediaSourceMenu(
-    source: MediaSource<any>,
-    isSearch: boolean,
-    target: HTMLElement,
-    x: number,
-    y: number
-): Promise<void> {
+interface ShowMediaSourceMenuParams {
+    source: MediaSource;
+    target: HTMLElement;
+    x: number;
+    y: number;
+    isSearch?: boolean;
+    syntheticAlbumSource?: MediaSource | null;
+}
+
+export async function showMediaSourceMenu({
+    target,
+    x,
+    y,
+    ...params
+}: ShowMediaSourceMenuParams): Promise<void> {
     await showPopupMenu(
-        (props: PopupMenuProps) => (
-            <MediaSourceMenu {...props} source={source} isSearch={isSearch} />
-        ),
+        (props: PopupMenuProps) => <MediaSourceMenu {...props} {...params} />,
         target,
         x,
         y,
@@ -34,20 +40,33 @@ export async function showMediaSourceMenu(
     );
 }
 
-interface MediaSourceMenuProps {
-    source: MediaSource<any>;
-    isSearch?: boolean;
-}
+export type MediaSourceMenuProps = Pick<
+    ShowMediaSourceMenuParams,
+    'source' | 'isSearch' | 'syntheticAlbumSource'
+>;
 
-function MediaSourceMenu({source, isSearch, ...props}: PopupMenuProps & MediaSourceMenuProps) {
+function MediaSourceMenu({
+    source,
+    isSearch,
+    syntheticAlbumSource,
+    ...props
+}: PopupMenuProps & MediaSourceMenuProps) {
     return (
         <PopupMenu {...props}>
-            <MediaSourceMenuItems source={source} isSearch={isSearch} />
+            <MediaSourceMenuItems
+                source={source}
+                isSearch={isSearch}
+                syntheticAlbumSource={syntheticAlbumSource}
+            />
         </PopupMenu>
     );
 }
 
-export function MediaSourceMenuItems({source, isSearch}: MediaSourceMenuProps) {
+export function MediaSourceMenuItems({
+    source,
+    isSearch,
+    syntheticAlbumSource,
+}: MediaSourceMenuProps) {
     const primaryMenuItems = getMenuItems(source, 1, source.itemType, isSearch);
     let secondaryMenuItems: MenuItems | undefined;
     let tertiaryMenuItems: MenuItems | undefined;
@@ -55,7 +74,7 @@ export function MediaSourceMenuItems({source, isSearch}: MediaSourceMenuProps) {
         const itemType = source.itemType === ItemType.Artist ? ItemType.Album : ItemType.Media;
         secondaryMenuItems = getMenuItems(source, 2, itemType);
         if (source.tertiaryItems?.layout?.view !== 'none' && source.itemType === ItemType.Artist) {
-            tertiaryMenuItems = getMenuItems(source, 3, ItemType.Media);
+            tertiaryMenuItems = getMenuItems(syntheticAlbumSource || source, 3, ItemType.Media);
         }
     }
     if (secondaryMenuItems) {

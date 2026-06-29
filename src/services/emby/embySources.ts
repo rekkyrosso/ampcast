@@ -43,7 +43,7 @@ import {createArtistAlbumsPager, createPlaylistItemsPager} from './embyUtils';
 
 const serviceId: MediaServiceId = 'emby';
 
-const embyPlaylistLayout: Partial<MediaListLayout> = {
+export const embyPlaylistLayout: Partial<MediaListLayout> = {
     card: {
         h1: 'Name',
         h2: 'Genre',
@@ -600,13 +600,22 @@ function createSearch<T extends MediaObject>(
             {q = ''}: {q?: string} = {},
             sort = props.primaryItems?.sort?.defaultSort
         ): Pager<T> {
-            return createSearchPager(
-                itemType,
-                q,
-                sort && !q ? getSortParams(sort, sortMap) : undefined,
-                options,
-                createChildPager
-            );
+            const sortParams = sort && !q ? getSortParams(sort, sortMap) : undefined;
+            if (itemType === ItemType.Artist && !q) {
+                return new EmbyPager<T>(
+                    'Artists/AlbumArtists',
+                    {
+                        ParentId: getMusicLibraryId(),
+                        UserId: embySettings.userId,
+                        ...sortParams,
+                    },
+                    options,
+                    undefined,
+                    createChildPager
+                );
+            } else {
+                return createSearchPager(itemType, q, sortParams, options, createChildPager);
+            }
         },
     };
 }

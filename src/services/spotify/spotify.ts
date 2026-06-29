@@ -107,10 +107,11 @@ function canPin(item: MediaObject): boolean {
 }
 
 function canStore<T extends MediaObject>(item: T, inListView?: boolean): boolean {
+    if (item.synthetic) {
+        return false;
+    }
     switch (item.itemType) {
         case ItemType.Album:
-            return !item.synthetic;
-
         case ItemType.Artist:
         case ItemType.Media:
             return true;

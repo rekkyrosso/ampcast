@@ -10,7 +10,7 @@ import Pager from 'types/Pager';
 import SortParams from 'types/SortParams';
 import Thumbnail from 'types/Thumbnail';
 import {exists, uniq} from 'utils';
-import {localeCompare} from 'services/metadata';
+import {localeCompare, sorter} from 'services/metadata';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import pinStore from 'services/pins/pinStore';
 import ibroadcastLibrary from './ibroadcastLibrary';
@@ -69,13 +69,17 @@ export function createArtistAlbumsPager(
         const artistMap = library.artists.map;
         const albumsMap = library.albums.map;
         const tracksMap = library.tracks.map;
+        const albumTrackIds = new Set<number>();
         const allTrackIds = new Set<number>(artist?.[artistMap.tracks] || []);
         const albumIds: number[] = [];
         Object.keys(library.albums).forEach((albumId) => {
             const album = library.albums[albumId];
             if (album?.[albumsMap.artist_id] === id) {
                 albumIds.push(Number(albumId));
-                album[albumsMap.tracks]?.forEach((id: number) => allTrackIds.add(id));
+                album[albumsMap.tracks]?.forEach((id: number) => {
+                    albumTrackIds.add(id);
+                    allTrackIds.add(id);
+                });
             }
         });
         Object.keys(library.tracks).forEach((trackId) => {
@@ -94,15 +98,36 @@ export function createArtistAlbumsPager(
             );
         }
         const albums = albumIds.map((id) => createMediaAlbum(id, library));
+        const hasAlbums = albums.length > 0;
+        if (hasAlbums) {
+            const otherTrackIds = [...allTrackIds].filter((id) => !albumTrackIds.has(id));
+            if (otherTrackIds.length > 0) {
+                const otherTracksAlbum: MediaAlbum = {
+                    itemType: ItemType.Album,
+                    src: `ibroadcast:other-tracks:${id}`,
+                    title: 'Other Tracks',
+                    artist: artist[artistMap.name],
+                    thumbnails: createThumbnails(artist[artistMap.artwork_id]),
+                    pager: new SimpleMediaPager(async () => {
+                        const tracks = otherTrackIds.map((id) => createMediaItem(id, library));
+                        return sorter.sort(tracks, 'Year');
+                    }),
+                    trackCount: otherTrackIds.length,
+                    synthetic: true,
+                };
+                albums.push(otherTracksAlbum);
+            }
+        }
         const allTracksAlbum: MediaAlbum = {
             itemType: ItemType.Album,
-            src: `ibroadcast:all-tracks:${id}`,
-            title: 'All Tracks',
+            src: `ibroadcast:${hasAlbums ? 'all' : 'other'}-tracks:${id}`,
+            title: hasAlbums ? 'All Tracks' : 'Tracks',
             artist: artist[artistMap.name],
             thumbnails: createThumbnails(artist[artistMap.artwork_id]),
-            pager: new SimpleMediaPager(async () =>
-                [...allTrackIds].map((id) => createMediaItem(id, library))
-            ),
+            pager: new SimpleMediaPager(async () => {
+                const tracks = [...allTrackIds].map((id) => createMediaItem(id, library));
+                return sorter.sort(tracks, 'Year');
+            }),
             trackCount: allTrackIds.size,
             synthetic: true,
         };

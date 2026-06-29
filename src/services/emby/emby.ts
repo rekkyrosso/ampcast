@@ -3,6 +3,7 @@ import Action from 'types/Action';
 import CreatePlaylistOptions from 'types/CreatePlaylistOptions';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import Lyrics from 'types/Lyrics';
 import MediaFilter from 'types/MediaFilter';
 import MediaItem from 'types/MediaItem';
@@ -41,6 +42,7 @@ import embySources, {
     createItemsPager,
     createSearchPager,
     embyEditablePlaylists,
+    embyPlaylistLayout,
     embySearch,
 } from './embySources';
 import {createPlaylistItemsPager} from './embyUtils';
@@ -87,6 +89,7 @@ const emby: PersonalMediaService = {
     canStore,
     compareForRating,
     createPlaylist,
+    createRadioPager,
     createSourceFromPin,
     editPlaylist,
     getFilters,
@@ -115,9 +118,12 @@ function canPin(item: MediaObject): boolean {
 }
 
 function canStore<T extends MediaObject>(item: T): boolean {
+    if (item.synthetic) {
+        return false;
+    }
     switch (item.itemType) {
-        case ItemType.Album:
-            return !item.synthetic;
+        case ItemType.Media:
+            return item.linearType !== LinearType.Station;
 
         case ItemType.Folder:
             return false;
@@ -153,6 +159,14 @@ async function createPlaylist<T extends MediaItem>(
     };
 }
 
+function createRadioPager(src: string): Pager<MediaItem> {
+    const [, type, id] = src.split(':');
+    if (type !== 'artist-radio') {
+        throw Error('Not supported');
+    }
+    return new EmbyPager(`Items/${id}/InstantMix`, {UserId: embySettings.userId});
+}
+
 function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
     if (pin.itemType !== ItemType.Playlist) {
         throw Error('Unsupported Pin type.');
@@ -164,7 +178,12 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
         sourceId: `${serviceId}/pinned-playlist`,
         icon: 'pin',
         isPin: true,
-        secondaryItems: {sort: embyPlaylistItemsSort},
+        primaryItems: {
+            layout: embyPlaylistLayout,
+        },
+        secondaryItems: {
+            sort: embyPlaylistItemsSort,
+        },
 
         search(): Pager<MediaPlaylist> {
             return createItemsPager(

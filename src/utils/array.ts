@@ -10,6 +10,13 @@ export function chunk<T>(values: readonly T[], chunkSize = 1): T[][] {
     return chunks;
 }
 
+export function compareArrays<T>(a: readonly T[], b: readonly T[]): boolean {
+    if (a.length !== b.length) {
+        return false;
+    }
+    return a.every((value, index) => b[index] === value);
+}
+
 export function filterNotEmpty<T>(
     values: readonly T[],
     predicate: (value: T, index: number, array: readonly T[]) => unknown
@@ -37,21 +44,20 @@ export function groupBy<T, K extends keyof any>(
         typeof criteria === 'function'
             ? criteria
             : (value: T) => value[criteria as unknown as keyof T] as K; // TypeScript master ;)
-    return values.reduce((groups, value) => {
-        const key = getKey(value);
-        if (!groups[key]) {
-            groups[key] = [];
-        }
-        groups[key].push(value);
-        return groups;
-    }, {} as Record<K, T[]>);
+    return values.reduce(
+        (groups, value) => {
+            const key = getKey(value);
+            if (!groups[key]) {
+                groups[key] = [];
+            }
+            groups[key].push(value);
+            return groups;
+        },
+        {} as Record<K, T[]>
+    );
 }
 
-export function moveSubset<T>(
-    items: readonly T[],
-    subset: readonly T[],
-    toIndex: number
-): T[] {
+export function moveSubset<T>(items: readonly T[], subset: readonly T[], toIndex: number): T[] {
     const insertBeforeItem = items[toIndex];
     if (subset.includes(insertBeforeItem)) {
         // selection hasn't moved

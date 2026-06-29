@@ -16,12 +16,12 @@ import MediaFolder from 'types/MediaFolder';
 import MediaListLayout from 'types/MediaListLayout';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
-import {PersonalMediaServiceId} from 'types/MediaServiceId';
 import MediaSource, {MediaMultiSource, MediaSourceItems} from 'types/MediaSource';
 import MediaType from 'types/MediaType';
 import Pager, {Page, PagerConfig} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
+import {PersonalMediaServiceId} from 'types/MediaServiceId';
 import PlayableItem from 'types/PlayableItem';
 import Pin, {Pinnable} from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
@@ -47,6 +47,7 @@ import SubsonicAuth from './SubsonicAuth';
 import SubsonicPager from './SubsonicPager';
 import subsonicScrobbler from './subsonicScrobbler';
 import SubsonicSettings from './SubsonicSettings';
+import SubsonicUtils from './SubsonicUtils';
 
 function addRating(layout: MediaListLayout): MediaListLayout {
     return {
@@ -82,10 +83,14 @@ export const subsonicPlaylistItems: MediaSourceItems<SetRequired<MediaItem, 'nan
 
 export default class SubsonicService implements PersonalMediaService {
     readonly api: SubsonicApi;
-    readonly logger = new Logger(this.id);
-    readonly settings: SubsonicSettings;
+    readonly utils: SubsonicUtils;
+    readonly logger: Logger;
     readonly serviceType = ServiceType.PersonalMedia;
-    readonly icon = this.id;
+    readonly id: PersonalMediaServiceId;
+    readonly icon: PersonalMediaServiceId;
+    readonly name: string;
+    readonly url: string;
+    readonly listingName: string | undefined;
     readonly root: MediaMultiSource;
     readonly sources: PersonalMediaService['sources'];
     readonly labels: Partial<Record<LibraryAction, string>>;
@@ -98,14 +103,24 @@ export default class SubsonicService implements PersonalMediaService {
     readonly reconnect: (this: unknown) => Promise<void>;
 
     constructor(
-        readonly id: PersonalMediaServiceId,
-        readonly name: string,
-        readonly url: string,
-        readonly listingName?: string
+        {
+            id,
+            name,
+            url,
+            listingName,
+        }: Pick<PersonalMediaService, 'id' | 'name' | 'url' | 'listingName'>,
+        readonly settings = new SubsonicSettings(id)
     ) {
+        this.id = id;
+        this.icon = id;
+        this.name = name;
+        this.url = url;
+        this.listingName = listingName;
+        this.utils = new SubsonicUtils(this);
+        this.logger = new Logger(id);
+
         // eslint-disable-next-line @typescript-eslint/no-this-alias
         const service = this;
-        const settings = (this.settings = new SubsonicSettings(id));
         const api = (this.api = new SubsonicApi(id, settings));
         const auth = new SubsonicAuth(this);
 
@@ -625,13 +640,16 @@ export default class SubsonicService implements PersonalMediaService {
     }
 
     canRate<T extends MediaObject>(item: T): boolean {
+        if (item.synthetic) {
+            return false;
+        }
         switch (item.itemType) {
             case ItemType.Media:
-                return item.mediaType === MediaType.Audio && !item.linearType;
+                return item.mediaType === MediaType.Audio && item.linearType !== LinearType.Station;
 
             case ItemType.Album:
             case ItemType.Artist:
-                return !item.synthetic;
+                return true;
 
             default:
                 return false;
@@ -639,13 +657,16 @@ export default class SubsonicService implements PersonalMediaService {
     }
 
     canStore<T extends MediaObject>(item: T): boolean {
+        if (item.synthetic) {
+            return false;
+        }
         switch (item.itemType) {
             case ItemType.Media:
-                return !item.linearType;
+                return item.linearType !== LinearType.Station;
 
             case ItemType.Album:
             case ItemType.Artist:
-                return !item.synthetic;
+                return true;
 
             default:
                 return false;
@@ -678,6 +699,17 @@ export default class SubsonicService implements PersonalMediaService {
         };
     }
 
+    createRadioPager(src: string): Pager<MediaItem> {
+        const [, type, id] = src.split(':');
+        if (type !== 'artist-radio') {
+            throw Error('Not supported');
+        }
+        return new SubsonicPager<MediaItem>(this, ItemType.Media, async () => {
+            const items = await this.api.getArtistRadioTracks(id);
+            return {items, atEnd: true};
+        });
+    }
+
     createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
         if (pin.itemType !== ItemType.Playlist) {
             throw Error('Unsupported Pin type.');
@@ -705,6 +737,13 @@ export default class SubsonicService implements PersonalMediaService {
                 );
             },
         } as MediaSource<T>;
+    }
+
+    createTopTracksPager(name: string): Pager<MediaItem> {
+        return new SubsonicPager(this, ItemType.Media, async () => {
+            const items = await this.api.getArtistTopTracks(name);
+            return {items, atEnd: true};
+        });
     }
 
     async editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {

@@ -140,7 +140,7 @@ function getOverlayIcon(item: MediaAlbum): IconName | '' {
         case 'top-tracks':
             return 'star';
 
-        case 'artist-radios':
+        case 'radios':
             return 'radio';
 
         case 'videos':

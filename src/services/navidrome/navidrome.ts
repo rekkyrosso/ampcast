@@ -44,7 +44,7 @@ import navidromeSources, {
     navidromeSearch,
 } from './navidromeSources';
 import navidromeApi from './navidromeApi';
-import subsonicApi from './subsonicApi';
+import subsonicApi, {subsonicService} from './subsonicApi';
 import {createPlaylistItemsPager} from './navidromeUtils';
 
 const serviceId: MediaServiceId = 'navidrome';
@@ -94,6 +94,7 @@ const navidrome: PersonalMediaService = {
     createPlaylist,
     createSourceFromPin,
     editPlaylist,
+    createRadioPager,
     getFilters,
     getLyrics,
     getPlayableUrl,
@@ -121,15 +122,16 @@ function canPin(item: MediaObject): boolean {
 }
 
 function canRate<T extends MediaObject>(item: T): boolean {
+    if (item.synthetic) {
+        return false;
+    }
     switch (item.itemType) {
         case ItemType.Media:
             return !item.linearType;
 
         case ItemType.Artist:
-            return true;
-
         case ItemType.Album:
-            return !item.synthetic;
+            return true;
 
         default:
             return false;
@@ -223,6 +225,10 @@ async function getFilters(filterType: FilterType): Promise<readonly MediaFilter[
 
 async function getLyrics(item: MediaItem): Promise<Lyrics | null> {
     return subsonicApi.getLyrics(item);
+}
+
+function createRadioPager(src: string): Pager<MediaItem> {
+    return subsonicService.createRadioPager(src);
 }
 
 async function addMetadata<T extends MediaObject>(item: T): Promise<T> {

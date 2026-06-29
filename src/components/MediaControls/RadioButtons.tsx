@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
+import {stopPropagation} from 'utils';
 import mediaPlayback from 'services/mediaPlayback';
 import Icon from 'components/Icon';
 import {IconButton} from 'components/Button';
@@ -38,6 +39,7 @@ export default function RadioButtons({overlay}: MediaControlsProps) {
                 icon="play-reversed"
                 title="Previous radio track"
                 onClick={skipPrev}
+                onDoubleClick={stopPropagation}
                 disabled={disabled}
                 tabIndex={tabIndex}
             />
@@ -45,6 +47,7 @@ export default function RadioButtons({overlay}: MediaControlsProps) {
                 icon="play"
                 title="Next radio track"
                 onClick={skipNext}
+                onDoubleClick={stopPropagation}
                 disabled={disabled}
                 tabIndex={tabIndex}
             />

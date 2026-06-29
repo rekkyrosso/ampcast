@@ -81,11 +81,21 @@ declare namespace Subsonic {
         readonly track: number;
         readonly type: 'music';
         readonly year?: number;
-        // OpenSubsonic extensions
+        // OpenSubsonic extensions.
+        readonly albumArtist?: string;
+        readonly albumArtists?: readonly {
+            readonly id: string;
+            readonly name: string;
+        }[];
+        readonly bitDepth?: number;
+        readonly bpm?: number;
         readonly musicBrainzId?: string;
+        readonly isrc?: readonly string[];
         readonly replayGain?: {
             readonly albumGain: number;
+            readonly albumPeak: number;
             readonly trackGain: number;
+            readonly trackPeak: number;
         };
     }
 

@@ -12,6 +12,7 @@ import HLSPlayer from './players/HLSPlayer';
 import hlsMetadataPlayer from './players/hlsMetadataPlayer';
 import HTML5Player from './players/HTML5Player';
 import icecastPlayer from './players/icecastPlayer';
+import radioPlayer from './players/radioPlayer';
 import OmniPlayer from './players/OmniPlayer';
 
 export class MediaPlayer extends OmniPlayer<PlaylistItem | null, PlayableItem> {
@@ -75,6 +76,11 @@ export class MediaPlayer extends OmniPlayer<PlaylistItem | null, PlayableItem> {
                 (item) =>
                     item?.mediaType === MediaType.Audio &&
                     item.playbackType === PlaybackType.HLSMetadata,
+            ],
+            [
+                radioPlayer,
+                (item) =>
+                    !!item?.src.startsWith('plex:radio:') || !!item?.src.includes(':artist-radio:'),
             ],
             [mixcloudPlayer, (item) => !!item?.src.startsWith('mixcloud:')],
             [soundcloudPlayer, (item) => !!item?.src.startsWith('soundcloud:')],

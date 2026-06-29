@@ -13,6 +13,7 @@ import MediaObject from './MediaObject';
 import MediaPlaylist from './MediaPlaylist';
 import MediaService from './MediaService';
 import MediaSource, {AnyMediaSource} from './MediaSource';
+import Pager from './Pager';
 import PlayableItem from './PlayableItem';
 import PlaybackType from './PlaybackType';
 import Pin, {Pinnable} from './Pin';
@@ -72,6 +73,7 @@ type BaseMediaService = Auth & {
         name: string,
         options?: CreatePlaylistOptions<T>
     ) => Promise<MediaPlaylist>;
+    createRadioPager?: (src: string) => Pager<MediaItem>;
     createSourceFromPin?: <T extends Pinnable>(pin: Pin) => MediaSource<T>;
     deletePlaylist?: (playlist: MediaPlaylist) => Promise<void>;
     editPlaylist?: (playlist: MediaPlaylist) => Promise<MediaPlaylist>;

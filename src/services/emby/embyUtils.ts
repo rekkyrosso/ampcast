@@ -1,6 +1,7 @@
 import {SetOptional, Writable} from 'type-fest';
 import type {BaseItemDto} from '@jellyfin/sdk/lib/generated-client/models';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaFolder from 'types/MediaFolder';
@@ -11,9 +12,12 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import ParentOf from 'types/ParentOf';
+import PlaybackType from 'types/PlaybackType';
 import SortParams from 'types/SortParams';
 import Thumbnail from 'types/Thumbnail';
 import {getMediaObjectId} from 'utils';
+import {MAX_DURATION} from 'services/constants';
+import stationStore from 'services/internetRadio/stationStore';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import pinStore from 'services/pins/pinStore';
@@ -198,13 +202,14 @@ export function createArtistAlbumsPager(
     albumSort = embyArtistAlbumsSort.defaultSort
 ): Pager<MediaAlbum> {
     const allTracks = createArtistAllTracks(artist);
-    const allTracksPager = new SimplePager<MediaAlbum>([allTracks]);
+    const radios = createArtistRadios(artist);
+    const otherTracksPager = new SimplePager<MediaAlbum>([allTracks, radios]);
     const albumsPager = new EmbyPager<MediaAlbum>(`Users/${embySettings.userId}/Items`, {
         AlbumArtistIds: getMediaObjectId(artist),
         IncludeItemTypes: 'MusicAlbum',
         ...getSortParams(albumSort, embyArtistAlbumsSortMap),
     });
-    return new WrappedPager(undefined, albumsPager, allTracksPager);
+    return new WrappedPager(undefined, albumsPager, otherTracksPager);
 }
 
 function createArtistAllTracks(artist: MediaArtist): MediaAlbum {
@@ -224,9 +229,38 @@ function createAllTracksPager(artist: MediaArtist): Pager<MediaItem> {
     return new EmbyPager<MediaItem>(`Users/${embySettings.userId}/Items`, {
         ArtistIds: getMediaObjectId(artist),
         IncludeItemTypes: 'Audio',
-        SortBy: 'SortName',
+        SortBy: 'ProductionYear,PremiereDate,Album,ParentIndexNumber,IndexNumber',
         SortOrder: 'Ascending',
     });
+}
+
+function createArtistRadios(artist: MediaArtist): MediaAlbum {
+    const id = getMediaObjectId(artist);
+    const src = `emby:artist-radio:${id}`;
+    const radio: MediaItem = {
+        src,
+        title: `${artist.title} - Radio`,
+        itemType: ItemType.Media,
+        mediaType: MediaType.Audio,
+        linearType: LinearType.Station,
+        playbackType: PlaybackType.Direct,
+        duration: MAX_DURATION,
+        thumbnails: artist.thumbnails,
+        playedAt: 0,
+        skippable: true,
+        isFavoriteStation: stationStore.isFavorite({src}),
+        synthetic: true,
+    };
+    return {
+        itemType: ItemType.Album,
+        src: `emby:radios:${id}`,
+        title: 'Radios',
+        artist: artist.title,
+        thumbnails: artist.thumbnails,
+        pager: new SimplePager([radio]),
+        trackCount: undefined,
+        synthetic: true,
+    };
 }
 
 function createAlbumTracksPager(album: BaseItemDto): Pager<MediaItem> {

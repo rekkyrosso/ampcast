@@ -35,6 +35,7 @@ import {
 import plexApi from './plexApi';
 import plexMediaType from './plexMediaType';
 import PlexPager from './PlexPager';
+import PlexRadioPager from './PlexRadioPager';
 import {scrobble} from './plexScrobbler';
 import plexSettings from './plexSettings';
 import plexSources, {
@@ -45,7 +46,6 @@ import plexSources, {
 } from './plexSources';
 import Login from './components/PlexLogin';
 import ServerSettings from './components/PlexServerSettings';
-import './bootstrap';
 
 const serviceId: MediaServiceId = 'plex';
 
@@ -90,6 +90,7 @@ const plex: PersonalMediaService = {
     canRate,
     compareForRating,
     createPlaylist,
+    createRadioPager,
     createSourceFromPin,
     editPlaylist,
     getFilters,
@@ -123,7 +124,7 @@ function canPin(item: MediaObject): boolean {
 }
 
 function canRate<T extends MediaObject>(item: T): boolean {
-    if (!item.src.startsWith(`${serviceId}:`) || item.synthetic) {
+    if (item.synthetic) {
         return false;
     }
     switch (item.itemType) {
@@ -158,6 +159,14 @@ async function createPlaylist<T extends MediaItem>(
         pager: new SimplePager(),
         trackCount: items.length,
     };
+}
+
+function createRadioPager(src: string): Pager<MediaItem> {
+    const [, type] = src.split(':');
+    if (type !== 'radio' && type !== 'artist-radio') {
+        throw Error('Not supported');
+    }
+    return new PlexRadioPager(src);
 }
 
 async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {

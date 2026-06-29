@@ -61,7 +61,8 @@ export class IBroadcastLibrary {
     private readonly searchFields = ['title', 'artist', 'album', 'genre'];
     // Caches.
     private libraryPromise: Promise<iBroadcast.Library> | undefined;
-    private albumsDiscIds: Record<string, readonly string[]> | undefined = undefined;
+    private albumArtistIds: readonly number[] | undefined;
+    private albumsDiscIds: Record<string, readonly string[]> | undefined;
     private decades: Partial<Record<'albums' | 'tracks', readonly MediaFilter[]>> = {};
     private genres: Partial<Record<iBroadcast.LibrarySection, readonly MediaFilter[]>> = {};
     private searches: Partial<Record<iBroadcast.LibrarySection, MiniSearch>> = {};
@@ -421,6 +422,10 @@ export class IBroadcastLibrary {
                 })
                 .map((result) => result.id);
         } else {
+            if (section === 'artists' && !q) {
+                const library = await this.load();
+                return this.getAlbumArtistIds(library);
+            }
             return this.query<T>({
                 section,
                 filter: (entry, map) =>
@@ -469,6 +474,7 @@ export class IBroadcastLibrary {
 
     private clear(): void {
         this.libraryPromise = undefined;
+        this.albumArtistIds = undefined;
         this.albumsDiscIds = undefined;
         this.decades = {};
         this.genres = {};
@@ -502,6 +508,26 @@ export class IBroadcastLibrary {
             section,
             map: library[section].map,
         });
+    }
+
+    private getAlbumArtistIds(library: iBroadcast.Library): readonly number[] {
+        if (!this.albumArtistIds) {
+            const albumArtistIds = new Set<number>();
+            const albums = library.albums;
+            const map = albums.map;
+            Object.keys(albums).forEach((id) => {
+                if (id === 'map') {
+                    return;
+                }
+                const album = albums[id];
+                const albumArtistId = album?.[map.artist_id];
+                if (albumArtistId) {
+                    albumArtistIds.add(albumArtistId);
+                }
+            });
+            this.albumArtistIds = [...albumArtistIds];
+        }
+        return this.albumArtistIds;
     }
 
     private getAlbumDiscIds(library: iBroadcast.Library, id: number): readonly string[] {

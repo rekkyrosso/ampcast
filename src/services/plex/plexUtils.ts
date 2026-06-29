@@ -538,10 +538,11 @@ function createArtistRadios(artist: MediaArtist): MediaAlbum {
         playedAt: 0,
         skippable: true,
         isFavoriteStation: stationStore.isFavorite({src}),
+        synthetic: true,
     };
     return {
         itemType: ItemType.Album,
-        src: `plex:artist-radios:${id}`,
+        src: `plex:radios:${id}`,
         title: 'Radios',
         artist: artist.title,
         thumbnails: artist.thumbnails,

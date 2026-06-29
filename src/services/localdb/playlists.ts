@@ -335,7 +335,7 @@ class PlaylistsStore extends Dexie {
         return {...localPlaylistItem, id: nanoid()};
     }
 
-    private async getLocalPlaylistItems(src: string): Promise<readonly LocalPlaylistItem[]> {
+    async getLocalPlaylistItems(src: string): Promise<readonly LocalPlaylistItem[]> {
         const playlistItems = await this.playlistItems.get(src);
         return playlistItems?.items || [];
     }

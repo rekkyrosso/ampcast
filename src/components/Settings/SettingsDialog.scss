@@ -22,6 +22,10 @@
         .icon-settings {
             fill: var(--grey2-color);
         }
+
+        .scrollable {
+            --scrollbar-width: max(10px, calc(1.25em * var(--scrollbar-size)));
+        }
     }
 
     &-source {

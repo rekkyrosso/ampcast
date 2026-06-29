@@ -1,6 +1,14 @@
 import SubsonicSettings from 'services/subsonic/factory/SubsonicSettings';
 
 export class NavidromeSettings extends SubsonicSettings {
+    get serverVersion(): string {
+        return this.storage.getString('serverVersion', '0.0.0');
+    }
+
+    set serverVersion(version: string) {
+        this.storage.setString('serverVersion', version);
+    }
+
     get token(): string {
         return this.storage.getString('token');
     }

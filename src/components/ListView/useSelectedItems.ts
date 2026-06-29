@@ -1,7 +1,7 @@
 import {useCallback, useEffect, useMemo, useState} from 'react';
 import {ConditionalKeys} from 'type-fest';
 import usePrevious from 'hooks/usePrevious';
-import {exists} from 'utils';
+import {compareArrays, exists} from 'utils';
 
 export default function useSelectedItems<T>(
     items: readonly T[],
@@ -100,13 +100,6 @@ export default function useSelectedItems<T>(
     );
 
     return {selectedItems, selectedIds, selectAll, selectAt, selectRange, toggleSelectionAt};
-}
-
-function compareArrays<T>(array1: readonly T[], array2: readonly T[]): boolean {
-    if (array1.length !== array2.length) {
-        return false;
-    }
-    return array1.every((value, index) => array2[index] === value);
 }
 
 function getSelectedIds<T>(

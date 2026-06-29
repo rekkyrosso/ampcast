@@ -140,15 +140,16 @@ function canPin(item: MediaObject): boolean {
 }
 
 function canStore<T extends MediaObject>(item: T): boolean {
+    if (item.synthetic) {
+        return false;
+    }
     switch (item.itemType) {
         case ItemType.Media:
             return item.linearType !== LinearType.Station;
 
+        case ItemType.Album:
         case ItemType.Playlist:
             return true;
-
-        case ItemType.Album:
-            return !item.synthetic;
 
         default:
             return false;

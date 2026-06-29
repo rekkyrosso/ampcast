@@ -76,7 +76,7 @@ const Track: RenderField<MediaItem> = (item) => (
     <span className="text">
         {item.track ? (
             <>
-                <span className="disc">{item.disc || '?'}.</span>
+                <span className={`disc ${item.disc ? '' : 'disc-empty'}`}>{item.disc || '?'}.</span>
                 {item.track}
             </>
         ) : (
@@ -125,7 +125,7 @@ const Genre: RenderField<MediaPlaylist | MediaAlbum | MediaItem> = (item) => {
         if (genres.length === 1) {
             genres = genres[0].split(/\s*[,;/]\s*/);
         }
-        return <Text value={genres.join(', ')} />;
+        return <Text value={genres.slice(0, 10).join(', ')} />;
     } else {
         return null;
     }

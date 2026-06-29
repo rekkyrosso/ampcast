@@ -54,7 +54,7 @@ const sortTypes: Record<Field, SortType> = {
 function sort<T extends MediaObject>(
     items: readonly T[],
     sortBy: Field,
-    sortOrder: 1 | -1
+    sortOrder: 1 | -1 = 1
 ): readonly T[] {
     return items.toSorted((a, b) => compare(a, b, sortBy, sortOrder, sortTypes[sortBy]));
 }
@@ -218,7 +218,7 @@ function albumCompare(a: MediaAlbum, b: MediaAlbum): number {
 
 function trackCompare(a: MediaItem, b: MediaItem): number {
     return (
-        titleCompare(String(a.artists || ''), String(b.artists || '')) ||
+        titleCompare(a.albumArtist, b.albumArtist) ||
         localeCompare(a.album, b.album) ||
         (a.disc === b.disc ? (a.track || 0) - (b.track || 0) : (a.disc || 0) - (b.disc || 0))
     );

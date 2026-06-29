@@ -1,4 +1,6 @@
 import stringScore from 'string-score';
+import semverCoerce from 'semver/functions/coerce';
+import semverGte from 'semver/functions/gte';
 
 export function decode(value: string): string {
     try {
@@ -17,6 +19,10 @@ export function decode(value: string): string {
 
 export function fuzzyCompare(a: string, b: string, tolerance = 0.9): boolean {
     return Math.max(stringScore(a, b, 0.99), stringScore(b, a, 0.99)) >= tolerance;
+}
+
+export function checkVersion(currentVersion: string, requiredVersion: string): boolean {
+    return semverGte(semverCoerce(currentVersion)!, requiredVersion);
 }
 
 export function stringContainsMusic(text: string): boolean {

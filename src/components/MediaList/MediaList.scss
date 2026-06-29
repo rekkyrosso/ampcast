@@ -457,6 +457,7 @@
 
             .genre,
             .description {
+                margin-top: 0.25em;
                 line-height: 1;
 
                 .text {
@@ -678,6 +679,12 @@
 
     .media-items:not(.multi-disc) & {
         .disc {
+            display: none;
+        }
+    }
+
+    .media-items.synthetic & {
+        .disc-empty {
             display: none;
         }
     }

@@ -105,12 +105,13 @@ observeAccessToken()
 
 async function checkConnection(): Promise<boolean> {
     try {
-        const [libraries] = await Promise.all([
+        const [libraries, pingData] = await Promise.all([
             subsonicApi.getMusicLibraries(),
-            subsonicApi.getServerInfo(),
+            subsonicApi.ping(),
             navidromeApi.get('playlist', {_end: 1}),
         ]);
         navidromeSettings.libraries = libraries;
+        navidromeSettings.serverVersion = pingData.serverVersion || '0.0.0';
         return true;
     } catch (err: any) {
         if (err.status === 401) {
