@@ -104,7 +104,7 @@ export default function MediaList<T extends MediaObject>({
     const playingSrc = playingItem?.src;
     const playingCatalogId = playingItem?.apple?.catalogId;
     const viewClassName = useViewClassName(layout);
-    const {disableExplicitContent} = usePreferences();
+    const {disableExplicitContent, doubleClickBehavior} = usePreferences();
     const onDragStart = useOnDragStart(selectedItems);
     const sortable = useMemo(
         () =>
@@ -200,12 +200,12 @@ export default function MediaList<T extends MediaObject>({
     const handleDoubleClick = useCallback(
         (item: T, rowIndex: number) => {
             if (isPlayable(item)) {
-                performAction(Action.Queue, [item]);
+                performAction(doubleClickBehavior, [item]);
             } else {
                 onDoubleClick?.(item, rowIndex);
             }
         },
-        [onDoubleClick, isPlayable]
+        [onDoubleClick, isPlayable, doubleClickBehavior]
     );
 
     const handleEnter = useCallback(

@@ -34,6 +34,7 @@ export default memo(function Media() {
     const isPlayingVideo = item?.mediaType === MediaType.Video;
     const visualizer = useCurrentVisualizer();
     const noVisualizer = !visualizer || visualizer.providerId === 'none';
+    const loadingState = useLoadingState();
     const iframePlayback =
         item?.playbackType === PlaybackType.IFrame
             ? getServiceFromSrc(item)?.iframeAudioPlayback
@@ -41,9 +42,11 @@ export default memo(function Media() {
     const isShowingCoverArt =
         !isPlayingVideo &&
         (visualizer?.providerId === 'coverart' ||
-            (provider !== 'none' && iframePlayback?.showContent && iframePlayback.isCoverArt));
+            (provider !== 'none' &&
+                iframePlayback?.showContent &&
+                iframePlayback.isCoverArt &&
+                loadingState !== 'loading'));
     const isIdle = !useMouseBusy(ref.current, 4000);
-    const loadingState = useLoadingState();
     const paused = usePaused();
 
     useEffect(() => {

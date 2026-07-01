@@ -178,12 +178,7 @@ function getSnapshot(): Snapshot {
         audio: {
             volume: audio.volume,
             replayGain: audio.replayGain,
-            settings: {
-                replayGain: {
-                    mode: audioSettings.replayGainMode,
-                    preAmp: audioSettings.replayGainPreAmp,
-                },
-            },
+            settings: {...audioSettings},
             streamingSupported: audio.streamingSupported,
         },
         playback: {

@@ -1,5 +1,7 @@
 import React, {useCallback, useEffect, useId, useMemo, useRef} from 'react';
+import Action from 'types/Action';
 import preferences from 'services/preferences';
+import {t} from 'services/i18n';
 import DialogButtons from 'components/Dialog/DialogButtons';
 
 export default function AppPreferences() {
@@ -23,6 +25,18 @@ export default function AppPreferences() {
         <form className="app-preferences" method="dialog" onSubmit={handleSubmit}>
             <fieldset>
                 <legend>Playback</legend>
+                <p>
+                    <label htmlFor={`${id}-double-click`}>{t('Double-click behavior:')}</label>
+                    <select
+                        id={`${id}-double-click`}
+                        defaultValue={preferences.doubleClickBehavior}
+                        onChange={(e) => (preferences.doubleClickBehavior = e.target.value as any)}
+                    >
+                        <option value={Action.PlayNow}>Play now</option>
+                        <option value={Action.PlayNext}>Play next</option>
+                        <option value={Action.Queue}>Queue</option>
+                    </select>
+                </p>
                 <p>
                     <input
                         type="checkbox"

@@ -1,4 +1,5 @@
 import {Except} from 'type-fest';
+import AudioSettings from 'types/AudioSettings';
 import PlaybackState from './PlaybackState';
 import PlaylistItem from './PlaylistItem';
 import Theme from './Theme';
@@ -6,12 +7,7 @@ import Theme from './Theme';
 export default interface Snapshot {
     readonly audio: {
         readonly replayGain: number;
-        readonly settings: {
-            readonly replayGain: {
-                readonly mode: string;
-                readonly preAmp: number;
-            };
-        };
+        readonly settings: AudioSettings;
         readonly streamingSupported: boolean;
         readonly volume: number;
     };
@@ -19,23 +15,25 @@ export default interface Snapshot {
         readonly isMiniPlayer: boolean;
         readonly isMiniPlayerRemote: boolean;
         readonly state: Except<PlaybackState, 'currentItem'> & {
-            readonly currentItem: Pick<
-                PlaylistItem,
-                | 'src'
-                | 'duration'
-                | 'itemType'
-                | 'linearType'
-                | 'mediaType'
-                | 'playbackType'
-                | 'lookupStatus'
-                | 'startTime'
-                | 'badge'
-                | 'container'
-                | 'bitRate'
-            > & {
-                readonly blob: boolean;
-                readonly blobUrl: boolean;
-            } | null;
+            readonly currentItem:
+                | (Pick<
+                      PlaylistItem,
+                      | 'src'
+                      | 'duration'
+                      | 'itemType'
+                      | 'linearType'
+                      | 'mediaType'
+                      | 'playbackType'
+                      | 'lookupStatus'
+                      | 'startTime'
+                      | 'badge'
+                      | 'container'
+                      | 'bitRate'
+                  > & {
+                      readonly blob: boolean;
+                      readonly blobUrl: boolean;
+                  })
+                | null;
         };
         readonly volume: number;
     };

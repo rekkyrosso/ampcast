@@ -239,8 +239,8 @@ export class NavidromePlaylistItemsPager extends NavidromeIndexedPager<MediaItem
     }
 
     private synchPositions(items: readonly MediaItem[]): void {
-        const {sortBy = 'id', sortOrder = 1} = this.itemSort || {};
-        if (sortBy === 'id' && sortOrder === 1) {
+        const {sortBy = 'Position', sortOrder = 1} = this.itemSort || {};
+        if (sortBy === 'Position' && sortOrder === 1) {
             items.forEach((item, index) => ((item as any).position = index + 1));
         } else {
             const newPositions: Record<number, number> = {};

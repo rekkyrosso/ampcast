@@ -46,7 +46,7 @@ export class SoundCloudPlayer implements Player<MediaItem> {
     constructor() {
         this.element.hidden = true;
         this.element.className = 'soundcloud-player';
-        this.element.allow = 'autoplay';
+        this.element.allow = 'encrypted-media *; autoplay *;';
         this.element.style.visibility = soundcloud.iframeAudioPlayback?.showContent
             ? 'inherit'
             : 'hidden';

@@ -1,16 +1,17 @@
 import type {Observable} from 'rxjs';
 import {map, startWith} from 'rxjs';
+import Action from 'types/Action';
 import Preferences from 'types/Preferences';
 import {LiteStorage} from 'utils';
 
 const storage = new LiteStorage('preferences');
 
 const preferences: Preferences = {
-    get albumsOrTracks(): 'albums' | 'tracks' {
+    get albumsOrTracks(): Preferences['albumsOrTracks'] {
         return storage.getString('albumsOrTracks', 'tracks');
     },
 
-    set albumsOrTracks(albumsOrTracks: 'albums' | 'tracks') {
+    set albumsOrTracks(albumsOrTracks: Preferences['albumsOrTracks']) {
         storage.setString('albumsOrTracks', albumsOrTracks);
     },
 
@@ -20,6 +21,14 @@ const preferences: Preferences = {
 
     set disableExplicitContent(disabled: boolean) {
         storage.setBoolean('disableExplicitContent', disabled);
+    },
+
+    get doubleClickBehavior(): Preferences['doubleClickBehavior'] {
+        return storage.getString('doubleClickBehavior', Action.Queue);
+    },
+
+    set doubleClickBehavior(behavior: Preferences['doubleClickBehavior']) {
+        storage.setString('doubleClickBehavior', behavior);
     },
 
     get markExplicitContent(): boolean {

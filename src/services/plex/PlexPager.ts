@@ -124,9 +124,12 @@ export class PlexPlaylistItemsPager extends PlexPager<MediaItem> {
         if (atIndex >= 0 && atIndex < items.length) {
             // insert
             items.splice(atIndex, 0, ...additions);
+            this.synchPositions(items);
         } else {
             // append
-            items.push(...additions);
+            additions.forEach((item) => {
+                items.push({...item, position: items.length + 1});
+            });
         }
         this.size = items.length;
         this.items = items;
@@ -137,6 +140,7 @@ export class PlexPlaylistItemsPager extends PlexPager<MediaItem> {
         this.busy = true;
         try {
             this.error = undefined;
+            this.synchPositions(this.items);
             await plexApi.clearPlaylist(this.playlist);
             await plexApi.addToPlaylist(this.playlist, this.items);
             this.synch$.next(false);
@@ -145,6 +149,10 @@ export class PlexPlaylistItemsPager extends PlexPager<MediaItem> {
             this.error = err;
         }
         this.busy = false;
+    }
+
+    private synchPositions(items: readonly MediaItem[]): void {
+        items.forEach((item, index) => ((item as any).position = index + 1));
     }
 
     private updateTrackCount(): void {
