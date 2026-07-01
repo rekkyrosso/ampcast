@@ -237,7 +237,7 @@ const getPlaybackState = (): PlaybackState => playbackState$.value;
 const load = (item: PlaylistItem | null): void => {
     if (!isMiniPlayer) {
         if (miniPlayerWindow) {
-            logger.log('load', item?.src ?? null);
+            logger.log('load', item?.src, item?.startTime || 0);
             if (_autoplay) {
                 forceFocusOnFirstPlay();
             }

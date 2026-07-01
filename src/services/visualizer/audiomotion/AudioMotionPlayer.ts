@@ -16,7 +16,7 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
     private currentVisualizer = '';
 
     constructor({context, source}: AudioManager) {
-        super();
+        super('audiomotion');
 
         this.source = source;
         this.element.className = `visualizer visualizer-audiomotion`;

@@ -14,7 +14,6 @@ import MediaPlaylist from './MediaPlaylist';
 import MediaService from './MediaService';
 import MediaSource, {AnyMediaSource} from './MediaSource';
 import Pager from './Pager';
-import PlayableItem from './PlayableItem';
 import PlaybackType from './PlaybackType';
 import Pin, {Pinnable} from './Pin';
 
@@ -73,7 +72,7 @@ type BaseMediaService = Auth & {
         name: string,
         options?: CreatePlaylistOptions<T>
     ) => Promise<MediaPlaylist>;
-    createRadioPager?: (src: string) => Pager<MediaItem>;
+    createRadioPager?: (radio: MediaItem) => Pager<MediaItem>;
     createSourceFromPin?: <T extends Pinnable>(pin: Pin) => MediaSource<T>;
     deletePlaylist?: (playlist: MediaPlaylist) => Promise<void>;
     editPlaylist?: (playlist: MediaPlaylist) => Promise<MediaPlaylist>;
@@ -84,7 +83,7 @@ type BaseMediaService = Auth & {
     getFilters?: (filterType: FilterType, itemType: ItemType) => Promise<readonly MediaFilter[]>;
     getLyrics?: (item: MediaItem) => Promise<Lyrics | null>;
     getMediaObject?: <T extends MediaObject>(src: string) => Promise<T>;
-    getPlayableUrl?: (item: PlayableItem) => string;
+    getPlayableUrl?: (item: MediaItem) => string;
     getPlaybackType?: (item: MediaItem) => Promise<PlaybackType>;
     getPlaylistByName?: (name: string) => Promise<MediaPlaylist | undefined>;
     getThumbnailUrl?: (url: string) => string;

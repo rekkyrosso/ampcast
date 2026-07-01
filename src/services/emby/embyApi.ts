@@ -14,7 +14,6 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import {Page} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
-import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import {
     canPlayNativeHls,
@@ -347,7 +346,7 @@ async function embyFetch(
     return response;
 }
 
-function getPlayableUrl(item: PlayableItem, settings: EmbySettings = embySettings): string {
+function getPlayableUrl(item: MediaItem, settings: EmbySettings = embySettings): string {
     const {apiHost, userId, token, deviceId} = settings;
     if (apiHost && userId && token && deviceId) {
         const [, type, id, mediaSourceId] = item.src.split(':');

@@ -11,7 +11,6 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaType from 'types/MediaType';
 import {Page} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
-import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import {NoMusicLibraryError} from 'services/errors';
 import {browser, canPlayMedia, getMediaObjectId, groupBy, partition, uniq, uniqBy} from 'utils';
@@ -583,7 +582,7 @@ async function getRadioStations(): Promise<PlexRadioStations> {
     return cachedRadioStations;
 }
 
-function getPlayableUrl(item: PlayableItem): string {
+function getPlayableUrl(item: MediaItem): string {
     const {host, accessToken} = plexSettings;
     if (host && accessToken) {
         if (item.playbackType === PlaybackType.HLS) {

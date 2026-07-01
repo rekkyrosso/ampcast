@@ -251,7 +251,7 @@ function createArtistAllTracksPager(artist: MediaArtist): Pager<MediaItem> {
             artists_id: id, // Doesn't work prior to v0.56.0.
             _sort: 'album',
         },
-        {autofill: true, pageSize: 1000}
+        {autofill: true}
     );
 }
 

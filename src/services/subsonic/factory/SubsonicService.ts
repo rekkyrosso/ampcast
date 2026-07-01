@@ -22,7 +22,6 @@ import Pager, {Page, PagerConfig} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
 import {PersonalMediaServiceId} from 'types/MediaServiceId';
-import PlayableItem from 'types/PlayableItem';
 import Pin, {Pinnable} from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
@@ -32,7 +31,6 @@ import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
-import FolderBrowser from 'components/MediaBrowser/FolderBrowser';
 import {
     albumsLayout,
     artistsLayout,
@@ -498,7 +496,6 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'Folders',
             icon: 'folder',
             itemType: ItemType.Folder,
-            Component: FolderBrowser,
 
             search(): Pager<MediaFolderItem> {
                 const root: Writable<SetOptional<MediaFolder, 'pager'>> = {
@@ -699,8 +696,8 @@ export default class SubsonicService implements PersonalMediaService {
         };
     }
 
-    createRadioPager(src: string): Pager<MediaItem> {
-        const [, type, id] = src.split(':');
+    createRadioPager(item: MediaItem): Pager<MediaItem> {
+        const [, type, id] = item.src.split(':');
         if (type !== 'artist-radio') {
             throw Error('Not supported');
         }
@@ -815,11 +812,11 @@ export default class SubsonicService implements PersonalMediaService {
         }
     }
 
-    async getPlaybackType(item: PlayableItem): Promise<PlaybackType> {
+    async getPlaybackType(item: MediaItem): Promise<PlaybackType> {
         return this.api.getPlaybackType(item);
     }
 
-    getPlayableUrl(item: PlayableItem): string {
+    getPlayableUrl(item: MediaItem): string {
         return this.api.getPlayableUrl(item);
     }
 

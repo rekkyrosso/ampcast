@@ -121,7 +121,6 @@ export default function MediaList<T extends MediaObject>({
         isSearchResult,
         sourceItems,
         complete,
-        parent,
         onInternalSort
     );
 

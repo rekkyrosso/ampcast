@@ -11,8 +11,8 @@ import {
     withLatestFrom,
 } from 'rxjs';
 import AudioManager from 'types/AudioManager';
-import PlayableItem from 'types/PlayableItem';
-import PlaylistItem from 'types/PlaylistItem';
+import MediaItem from 'types/MediaItem';
+import MediaType from 'types/MediaType';
 import Player from 'types/Player';
 import {AmbientVideoVisualizer} from 'types/Visualizer';
 import {observeAudioSettings} from 'services/audio';
@@ -36,7 +36,7 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
     private readonly beatsPlayer: BeatsPlayer;
 
     constructor(audio: AudioManager) {
-        super();
+        super('ambientvideo');
 
         this.beatsPlayer = new BeatsPlayer(audio);
         this.videoPlayer = this.createVideoPlayer(this.beatsPlayer);
@@ -104,11 +104,20 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
     }
 
     load(visualizer: AmbientVideoVisualizer): void {
+        if (visualizer.src.startsWith('youtube:')) {
+            const [, , videoId] = visualizer.src.split(':');
+            const key = this.getProgressKey();
+            const progress = this.storage.getJson<ProgressRecord>(key, {});
+            const startTime = progress[videoId] || (key === 'progress' ? 120 : 0);
+            visualizer = {...visualizer, startTime};
+        }
+        logger.log('load', visualizer.name, visualizer.startTime || 0);
         this.videoPlayer.load(visualizer);
         this.beatsPlayer.load();
     }
 
     play(): void {
+        logger.log('play');
         this.videoPlayer.play();
         if (visualizerSettings.ambientVideoBeats) {
             this.beatsPlayer.play();
@@ -116,11 +125,13 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
     }
 
     pause(): void {
+        logger.log('pause');
         this.videoPlayer.pause();
         this.beatsPlayer.pause();
     }
 
     stop(): void {
+        logger.log('stop');
         this.videoPlayer.pause();
         this.beatsPlayer.stop();
     }
@@ -131,26 +142,9 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
     }
 
     private createVideoPlayer(beatsPlayer: Player<any>): Player<AmbientVideoVisualizer> {
-        const html5Player = new HTML5Player('video', 'ambient');
+        const html5Player = new HTML5Player(MediaType.Video, 'ambient');
         const youtubePlayer = this.createYouTubePlayer();
-
-        const mapVideoSrc = ({video}: AmbientVideoVisualizer): PlayableItem => {
-            const src = video.src;
-            if (src.startsWith('youtube:')) {
-                const [, , videoId] = src.split(':');
-                const key = this.getProgressKey();
-                const progress = this.storage.getJson<ProgressRecord>(key, {});
-                const startTime = progress[videoId] || (key === 'progress' ? 120 : 0);
-                return {src, startTime};
-            } else {
-                return video;
-            }
-        };
-
-        const videoPlayer = new OmniPlayer<AmbientVideoVisualizer, PlayableItem>(
-            'ambientVideoPlayer',
-            mapVideoSrc
-        );
+        const videoPlayer = new OmniPlayer<AmbientVideoVisualizer>('ambientVideoPlayer');
 
         videoPlayer.loop = true;
         videoPlayer.volume = 0;
@@ -158,16 +152,10 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
 
         // Register the beats player so that it gets appended to the DOM.
         // But we don't really want it controlled after that.
-        videoPlayer.registerPlayers(
-            // These selectors get evaluated in reverse order.
-            // So put defaults first.
-            [
-                [html5Player, (item) => !!item],
-                [youtubePlayer, (item) => !!item?.video.src.startsWith('youtube:')],
-                [beatsPlayer, () => false],
-            ]
+        videoPlayer.addPlayers(
+            // These selectors get evaluated in reverse order, so put defaults first.
+            [html5Player, youtubePlayer, beatsPlayer]
         );
-        videoPlayer.unregisterPlayer(beatsPlayer);
 
         return videoPlayer;
     }
@@ -204,7 +192,7 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
         return youtubePlayer;
     }
 
-    private canShowBeats(currentItem: PlaylistItem | null): boolean {
+    private canShowBeats(currentItem: MediaItem | null): boolean {
         return (
             !!currentItem &&
             visualizerSettings.ambientVideoBeats &&

@@ -117,6 +117,11 @@ export default class BeatsPlayer extends WaveformPlayer {
         this.#waveColor = color;
     }
 
+    canPlay(): boolean {
+        // This is a widget not a proper player.
+       return false;
+    }
+
     load(): void {
         super.load(this.style === 'beats' ? this.beats : this.wave);
     }

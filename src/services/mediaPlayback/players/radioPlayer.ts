@@ -7,6 +7,7 @@ import {
     debounceTime,
     distinctUntilChanged,
     filter,
+    firstValueFrom,
     map,
     mergeMap,
     of,
@@ -24,54 +25,43 @@ import LinearType from 'types/LinearType';
 import MediaItem from 'types/MediaItem';
 import MediaService from 'types/MediaService';
 import Pager from 'types/Pager';
-import PlayableItem from 'types/PlayableItem';
-import PlaybackType from 'types/PlaybackType';
 import Player from 'types/Player';
 import PlaylistItem from 'types/PlaylistItem';
 import {Logger} from 'utils';
-import HLSPlayer from 'services/mediaPlayback/players/HLSPlayer';
-import HTML5Player from 'services/mediaPlayback/players/HTML5Player';
-import OmniPlayer from 'services/mediaPlayback/players/OmniPlayer';
 import observeNearEnd from 'services/mediaPlayback/players/observeNearEnd';
 import {getServiceFromSrc} from 'services/mediaServices';
 
-const logger = new Logger('radioPlayer');
-
-export class RadioPlayer implements Player<PlayableItem> {
-    private readonly player: OmniPlayer<PlayableItem>;
+export default class RadioPlayer implements Player<MediaItem> {
+    private readonly logger: Logger;
+    private readonly station$ = new BehaviorSubject<MediaItem | null>(null);
     private readonly pager$ = new BehaviorSubject<Pager<MediaItem> | null>(null);
-    private readonly radio$ = new BehaviorSubject<PlayableItem | null>(null);
     private readonly paused$ = new BehaviorSubject(true);
     private readonly ended$ = new Subject<void>();
     private readonly error$ = new Subject<unknown>();
     private readonly skip$ = new Subject<void>();
     private readonly nowPlaying$ = new Subject<PlaylistItem | undefined>();
     private readonly position$ = new BehaviorSubject(0);
-    private items: readonly PlaylistItem[] = [];
+    private tracks: readonly PlaylistItem[] = [];
     private loadedSrc = '';
     #autoplay = false;
 
-    constructor() {
-        const hlsPlayer = new HLSPlayer('audio', 'radio-player-hls');
-        const html5Player = new HTML5Player('audio', 'radio-player-html5');
+    constructor(
+        name: string,
+        private readonly player: Player<MediaItem>,
+        readonly canPlay: (item: MediaItem) => boolean
+    ) {
+        const logger = (this.logger = new Logger(`RadioPlayer/${name}`));
 
-        this.player = new OmniPlayer('radioPlayer');
-
-        this.player.registerPlayers([
-            [html5Player, () => true],
-            [hlsPlayer, (item) => item?.playbackType === PlaybackType.HLS],
-        ]);
-
-        // Load new radios.
+        // Load new radio stations.
         this.observePaused()
             .pipe(
                 filter((paused) => !paused),
                 take(1),
-                switchMap(() => this.observeRadio()),
-                switchMap((item) => {
-                    if (item && item.src !== this.loadedSrc) {
+                switchMap(() => this.observeStation()),
+                switchMap((station) => {
+                    if (station && station.src !== this.loadedSrc) {
                         return of(undefined).pipe(
-                            mergeMap(() => this.loadAndPlay(item)),
+                            mergeMap(() => this.loadAndPlay(station)),
                             catchError((error) => {
                                 this.loadedSrc = '';
                                 this.error$.next(error);
@@ -114,7 +104,7 @@ export class RadioPlayer implements Player<PlayableItem> {
         this.pager$
             .pipe(
                 switchMap((pager) => (pager ? this.skip$ : EMPTY)),
-                debounceTime(500),
+                debounceTime(300),
                 map(() => this.position),
                 mergeMap((position) => this.getPlayableItem(position)),
                 tap((item) => this.loadPlayer(item))
@@ -132,12 +122,12 @@ export class RadioPlayer implements Player<PlayableItem> {
             )
             .subscribe(logger);
 
-        // Maintain `items`.
+        // Maintain radio `tracks`.
         this.pager$
             .pipe(
                 switchMap((pager) => pager?.observeItems() || of([])),
-                map((items) => this.createPlaylistItems(items)),
-                tap((items) => (this.items = items))
+                map((tracks) => this.createPlaylistItems(tracks)),
+                tap((tracks) => (this.tracks = tracks))
             )
             .subscribe(logger);
 
@@ -146,7 +136,7 @@ export class RadioPlayer implements Player<PlayableItem> {
             .pipe(
                 switchMap((pager) => pager?.observeItems().pipe(take(1)) || EMPTY),
                 mergeMap(() => this.getPlayableItem(0)),
-                tap((item) => this.loadPlayer(item))
+                tap((track) => this.loadPlayer(track))
             )
             .subscribe(logger);
 
@@ -246,9 +236,7 @@ export class RadioPlayer implements Player<PlayableItem> {
         return this.nowPlaying$.pipe(
             map((item) => (this.src === station.src ? item : null)),
             distinctUntilChanged(),
-            map((item) =>
-                item ? {...item, stationName: station.title, stationSrc: station.src} : station
-            )
+            map((item) => item || station)
         );
     }
 
@@ -256,18 +244,18 @@ export class RadioPlayer implements Player<PlayableItem> {
         this.player.appendTo(parentElement);
     }
 
-    load(radio: PlayableItem): void {
-        logger.log('load', radio.src);
-        const isLoaded = radio.src === this.loadedSrc; // Do this before updating `radio$` stream (synchronous).
-        this.radio$.next(radio);
+    load(station: MediaItem): void {
+        this.logger.log('load', station.src);
+        const isLoaded = station.src === this.loadedSrc; // Do this before updating `station$` stream (synchronous).
+        this.station$.next(station);
         this.paused$.next(!this.autoplay);
         if (isLoaded) {
-            this.loadPlayer(this.currentQueueItem);
+            this.loadPlayer(this.currentTrack);
         }
     }
 
     play(): void {
-        logger.log('play');
+        this.logger.log('play');
         this.paused$.next(false);
         if (this.src === this.loadedSrc) {
             this.player.play();
@@ -275,13 +263,13 @@ export class RadioPlayer implements Player<PlayableItem> {
     }
 
     pause(): void {
-        logger.log('pause');
+        this.logger.log('pause');
         this.paused$.next(true);
         this.player.pause();
     }
 
     stop(): void {
-        logger.log('stop');
+        this.logger.log('stop');
         this.paused$.next(true);
         this.player.stop();
     }
@@ -306,40 +294,40 @@ export class RadioPlayer implements Player<PlayableItem> {
         this.player.resize(width, height);
     }
 
-    private get currentQueueItem(): PlaylistItem | undefined {
-        return this.items[this.position] || undefined;
+    private get currentTrack(): PlaylistItem | undefined {
+        return this.tracks[this.position] || undefined;
     }
 
     private get position(): number {
         return this.position$.value;
     }
 
-    private get radio(): PlayableItem | null {
-        return this.radio$.value;
+    private get station(): MediaItem | null {
+        return this.station$.value;
     }
 
     private get service(): MediaService | undefined {
-        return this.radio ? getServiceFromSrc(this.radio) : undefined;
+        return this.station ? getServiceFromSrc(this.station) : undefined;
     }
 
     private get size(): number {
         // Accommodate sparse arrays (`IndexedPager`).
-        return this.items.reduce((total) => (total += 1), 0);
+        return this.tracks.reduce((total) => (total += 1), 0);
     }
 
     private get src(): string | undefined {
-        return this.radio?.src;
+        return this.station?.src;
     }
 
     private observePaused(): Observable<boolean> {
         return this.paused$.pipe(distinctUntilChanged());
     }
 
-    private observeRadio(): Observable<PlayableItem | null> {
-        return this.radio$.pipe(distinctUntilChanged());
+    private observeStation(): Observable<MediaItem | null> {
+        return this.station$.pipe(distinctUntilChanged());
     }
 
-    private async loadAndPlay(item: PlayableItem): Promise<void> {
+    private async loadAndPlay(station: MediaItem): Promise<void> {
         // Reset state.
         this.loadedSrc = '';
         this.pager$.next(null);
@@ -347,8 +335,8 @@ export class RadioPlayer implements Player<PlayableItem> {
         if (!this.service?.createRadioPager) {
             throw Error('Radio not found');
         }
-        const pager = this.service.createRadioPager(item.src);
-        this.loadedSrc = item.src;
+        const pager = this.service.createRadioPager(station);
+        this.loadedSrc = station.src;
         this.pager$.next(pager);
         this.position$.next(0); // Start fetching radio tracks.
     }
@@ -368,12 +356,14 @@ export class RadioPlayer implements Player<PlayableItem> {
                 ...item,
                 id: nanoid(),
                 linearType: LinearType.MusicTrack,
+                stationName: this.station?.title,
+                stationSrc: this.station?.src,
             };
         });
     }
 
     async getPlayableItem(position: number): Promise<PlaylistItem | undefined> {
-        const items = this.items as PlaylistItem[]; // Mutable.
+        const items = this.tracks as PlaylistItem[]; // Mutable.
         let item = items[position];
         if (!item) {
             return;
@@ -385,7 +375,7 @@ export class RadioPlayer implements Player<PlayableItem> {
                 items[position] = item; // Mutate.
             }
         } catch (err) {
-            logger.error(err);
+            this.logger.error(err);
         }
         return item;
     }
@@ -395,10 +385,13 @@ export class RadioPlayer implements Player<PlayableItem> {
             this.player.stop();
             this.player.autoplay = this.autoplay;
             this.position$.next(position);
-            this.nowPlaying$.next(this.currentQueueItem);
+            this.nowPlaying$.next(this.currentTrack);
             this.skip$.next();
+            return firstValueFrom(
+                race(this.observePlaying(), this.observeError(), timer(3_000)).pipe(
+                    map(() => undefined)
+                )
+            );
         }
     }
 }
-
-export default new RadioPlayer();

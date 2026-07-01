@@ -11,7 +11,6 @@ import MediaSource from 'types/MediaSource';
 import Pager, {PagerConfig} from 'types/Pager';
 import PersonalMediaService from 'types/PersonalMediaService';
 import Pin, {Pinnable} from 'types/Pin';
-import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
@@ -214,7 +213,7 @@ async function getFilters(
     }
 }
 
-function getPlayableUrl(item: PlayableItem): string {
+function getPlayableUrl(item: MediaItem): string {
     const {token, userId, bitRate} = ibroadcastSettings;
     if (token && userId) {
         const id = getIdFromSrc(item);

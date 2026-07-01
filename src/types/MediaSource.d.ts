@@ -71,6 +71,7 @@ export type MediaMultiSource<T extends MediaObject = MediaObject> = Pick<
     | 'lockActionsStore'
     | 'Component'
 > & {
+    readonly itemType?: never;
     readonly isPin?: false;
     readonly sources: readonly MediaSource<T>[];
 };

@@ -1,6 +1,8 @@
 import type Hls from 'hls.js';
 import type {HlsConfig} from 'hls.js';
-import PlayableItem from 'types/PlayableItem';
+import MediaItem from 'types/MediaItem';
+import MediaType from 'types/MediaType';
+import PlaybackType from 'types/PlaybackType';
 import {canPlayNativeHls} from 'utils';
 import audio from 'services/audio';
 import HTML5Player from './HTML5Player';
@@ -12,7 +14,7 @@ export default class HLSPlayer extends HTML5Player {
     private Hls: typeof Hls | null = null;
     private player: Hls | null = null;
 
-    constructor(type: 'audio' | 'video', name = 'hls', index?: 1 | 2) {
+    constructor(type: MediaType, name = 'hls', index?: 1 | 2) {
         super(type, name, index);
 
         if (this.hasNativeSupport) {
@@ -25,7 +27,7 @@ export default class HLSPlayer extends HTML5Player {
     // But doesn't work with streamed media in Safari.
     set muted(muted: boolean) {
         super.muted = muted;
-        if (this.type === 'audio' && !audio.streamingSupported) {
+        if (this.mediaType === MediaType.Audio && !audio.streamingSupported) {
             this.element.muted = muted;
         }
     }
@@ -35,12 +37,19 @@ export default class HLSPlayer extends HTML5Player {
     // But doesn't work with streamed media in Safari.
     set volume(volume: number) {
         super.volume = volume;
-        if (this.type === 'audio' && !audio.streamingSupported) {
+        if (this.mediaType === MediaType.Audio && !audio.streamingSupported) {
             this.element.volume = volume;
         }
     }
 
-    load(item: PlayableItem): void {
+    canPlay(item: MediaItem): boolean {
+        return (
+            super.canPlay(item) &&
+            [PlaybackType.HLS, PlaybackType.HLSMetadata].includes(item.playbackType!)
+        );
+    }
+
+    load(item: MediaItem): void {
         if (!this.hasNativeSupport) {
             this.loadPlayer();
         }
@@ -78,7 +87,7 @@ export default class HLSPlayer extends HTML5Player {
         await this.waitForFirstLogin();
     }
 
-    protected async loadAndPlay(item: PlayableItem): Promise<void> {
+    protected async loadAndPlay(item: MediaItem): Promise<void> {
         if (this.hasNativeSupport) {
             return super.loadAndPlay(item);
         }
@@ -145,7 +154,7 @@ export default class HLSPlayer extends HTML5Player {
         }
     }
 
-    private setMediaSrc(item: PlayableItem): void {
+    private setMediaSrc(item: MediaItem): void {
         if (this.player) {
             const mediaSrc = this.getMediaSrc(item);
             this.player.stopLoad();

@@ -9,7 +9,7 @@ import {
     map,
     switchMap,
 } from 'rxjs';
-import PlayableItem from 'types/PlayableItem';
+import MediaItem from 'types/MediaItem';
 import PlaylistItem from 'types/PlaylistItem';
 import Player from 'types/Player';
 import {exists} from 'utils';
@@ -17,10 +17,10 @@ import mediaPlayback from '../mediaPlayback';
 import HTML5Player from './HTML5Player';
 import observeNearEnd from './observeNearEnd';
 
-export default class DualAudioPlayer implements Player<PlayableItem> {
+export default class DualAudioPlayer implements Player<MediaItem> {
     private readonly element = document.createElement('div');
     private readonly player$ = new BehaviorSubject<HTML5Player>(this.player1);
-    private readonly nextItem$ = new BehaviorSubject<PlayableItem | null>(null);
+    private readonly nextItem$ = new BehaviorSubject<MediaItem | null>(null);
     #autoplay = false;
     #silent = false;
 
@@ -168,7 +168,11 @@ export default class DualAudioPlayer implements Player<PlayableItem> {
         parentElement.appendChild(this.element);
     }
 
-    load(item: PlayableItem): void {
+    canPlay(item: MediaItem): boolean {
+        return this.player1.canPlay(item);
+    }
+
+    load(item: MediaItem): void {
         const prevPlayer = this.currentPlayer;
         const nextPlayer = this.nextPlayer.src === item.src ? this.nextPlayer : prevPlayer;
         const isLoaded = nextPlayer.src === item.src;
@@ -189,7 +193,7 @@ export default class DualAudioPlayer implements Player<PlayableItem> {
         }
     }
 
-    loadNext(item: PlayableItem | null): void {
+    loadNext(item: MediaItem | null): void {
         this.nextItem$.next(item);
     }
 
@@ -220,7 +224,7 @@ export default class DualAudioPlayer implements Player<PlayableItem> {
         return this.player$.value;
     }
 
-    private get nextItem(): PlayableItem | null {
+    private get nextItem(): MediaItem | null {
         return this.nextItem$.value;
     }
 

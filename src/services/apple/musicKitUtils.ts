@@ -499,8 +499,8 @@ function createTopTracksPager(artist: AppleMusicApi.Artist | LibraryArtist): Pag
 function createRadiosPager(artist: AppleMusicApi.Artist | LibraryArtist): Pager<MediaItem> {
     return new MusicKitPager(
         `/v1/catalog/{{storefrontId}}/stations?`,
-        {ids: `ra.${artist.id}`},
-        {maxSize: 50, pageSize: 0}
+        {ids: [`ra.a-${artist.id}`, `ra.${artist.id}`]},
+        {pageSize: 0}
     );
 }
 

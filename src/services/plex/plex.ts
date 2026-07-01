@@ -15,7 +15,6 @@ import Pager from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
 import Pin, {Pinnable} from 'types/Pin';
-import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
 import {getMediaObjectId} from 'utils';
@@ -161,12 +160,12 @@ async function createPlaylist<T extends MediaItem>(
     };
 }
 
-function createRadioPager(src: string): Pager<MediaItem> {
-    const [, type] = src.split(':');
+function createRadioPager(item: MediaItem): Pager<MediaItem> {
+    const [, type] = item.src.split(':');
     if (type !== 'radio' && type !== 'artist-radio') {
         throw Error('Not supported');
     }
-    return new PlexRadioPager(src);
+    return new PlexRadioPager(item.src);
 }
 
 async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {
@@ -242,7 +241,7 @@ async function getMediaObject<T extends MediaObject>(src: string): Promise<T> {
     return fetchFirstItem<T>(pager, {timeout: 2000});
 }
 
-function getPlayableUrl(item: PlayableItem): string {
+function getPlayableUrl(item: MediaItem): string {
     return plexApi.getPlayableUrl(item);
 }
 

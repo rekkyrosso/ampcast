@@ -26,7 +26,6 @@ import PlexPager from './PlexPager';
 import PlexRecentlyPlayedPager from './PlexRecentlyPlayedPager';
 import plexSettings from './plexSettings';
 import {createArtistAlbumsPager} from './plexUtils';
-import FolderBrowser from 'components/MediaBrowser/FolderBrowser';
 import {
     albumsLayout,
     artistsLayout,
@@ -658,7 +657,6 @@ const plexFolders: MediaSource<MediaFolderItem> = {
     title: 'Folders',
     icon: 'folder',
     itemType: ItemType.Folder,
-    Component: FolderBrowser,
 
     search(): Pager<MediaFolderItem> {
         const root: Writable<SetOptional<MediaFolder, 'pager'>> = {

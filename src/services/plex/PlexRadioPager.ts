@@ -8,7 +8,7 @@ import {createMediaItemFromTrack, getMediaAlbums, getMetadata} from './plexUtils
 export default class PlexRadioPager extends MediaPager<MediaItem> {
     private playQueueID = 0;
 
-    constructor(private readonly src: string) {
+    constructor(readonly src: string) {
         super({pageSize: 5});
     }
 
@@ -42,10 +42,9 @@ export default class PlexRadioPager extends MediaPager<MediaItem> {
             const existingKeys = this.items.map(getMediaObjectId);
             const playQueue = await (this.playQueueID
                 ? plexApi.getPlayQueue(this.playQueueID)
-                : plexApi.createPlayQueue(
-                      {src: this.src},
-                      {maxDegreesOfSeparation: plexSettings.radioDegreesOfSeparation}
-                  ));
+                : plexApi.createPlayQueue(this, {
+                      maxDegreesOfSeparation: plexSettings.radioDegreesOfSeparation,
+                  }));
             const items = await this.createItems(
                 playQueue.Metadata.filter(
                     (queueItem) => !existingKeys.includes(queueItem.ratingKey)

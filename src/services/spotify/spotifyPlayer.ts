@@ -24,7 +24,7 @@ import {
     timer,
     withLatestFrom,
 } from 'rxjs';
-import PlayableItem from 'types/PlayableItem';
+import MediaItem from 'types/MediaItem';
 import Player from 'types/Player';
 import {Logger, exists, loadScript, sleep} from 'utils';
 import observeNearEnd from 'services/mediaPlayback/players/observeNearEnd';
@@ -40,14 +40,14 @@ const logger = new Logger('spotifyPlayer');
 const spotifyPlayerApi = 'https://api.spotify.com/v1/me/player';
 const spotifyPlayerSdk = 'https://sdk.scdn.co/spotify-player.js';
 
-export class SpotifyPlayer implements Player<PlayableItem> {
+export class SpotifyPlayer implements Player<MediaItem> {
     private player: Spotify.Player | null = null;
     private readonly accessToken$ = new BehaviorSubject('');
     private readonly paused$ = new BehaviorSubject(true);
     private readonly duration$ = new BehaviorSubject(0);
     private readonly currentTime$ = new Subject<number>();
-    private readonly item$ = new BehaviorSubject<PlayableItem | null>(null);
-    private readonly nextItem$ = new BehaviorSubject<PlayableItem | null>(null);
+    private readonly item$ = new BehaviorSubject<MediaItem | null>(null);
+    private readonly nextItem$ = new BehaviorSubject<MediaItem | null>(null);
     private readonly playing$ = new Subject<void>();
     private readonly ended$ = new Subject<void>();
     private readonly error$ = new Subject<unknown>();
@@ -278,8 +278,12 @@ export class SpotifyPlayer implements Player<PlayableItem> {
         // Automatically appended by Spotify Player SDK.
     }
 
-    load(item: PlayableItem): void {
-        logger.log('load', item.src);
+    canPlay(item: MediaItem): boolean {
+        return item.src.startsWith('spotify:');
+    }
+
+    load(item: MediaItem): void {
+        logger.log('load', item.src, item.startTime || 0);
         if (this.autoplay) {
             this.stopped = false;
         }
@@ -290,7 +294,7 @@ export class SpotifyPlayer implements Player<PlayableItem> {
         }
     }
 
-    loadNext(item: PlayableItem | null): void {
+    loadNext(item: MediaItem | null): void {
         this.nextItem$.next(item);
     }
 
@@ -331,7 +335,7 @@ export class SpotifyPlayer implements Player<PlayableItem> {
         return this.player?.getCurrentState() || null;
     }
 
-    private get item(): PlayableItem | null {
+    private get item(): MediaItem | null {
         return this.item$.value;
     }
 
@@ -358,7 +362,7 @@ export class SpotifyPlayer implements Player<PlayableItem> {
         );
     }
 
-    private observeItem(): Observable<PlayableItem | null> {
+    private observeItem(): Observable<MediaItem | null> {
         return this.item$.pipe(distinctUntilChanged());
     }
 
@@ -375,7 +379,7 @@ export class SpotifyPlayer implements Player<PlayableItem> {
         this.playerLoaded$.next(true);
     };
 
-    private async loadAndPlay(item: PlayableItem, retryCount = 2): Promise<void> {
+    private async loadAndPlay(item: MediaItem, retryCount = 2): Promise<void> {
         if (this.paused) {
             // Playback was paused during the loading of the Spotify player.
             return;
@@ -493,7 +497,7 @@ export class SpotifyPlayer implements Player<PlayableItem> {
         }
     }
 
-    private async addToQueue(item: PlayableItem): Promise<void> {
+    private async addToQueue(item: MediaItem): Promise<void> {
         try {
             const queue = this.state$.value?.track_window?.next_tracks;
             if (!this.autoplay || !this.token || !item || item.src === this.src || queue?.[0]) {
@@ -659,7 +663,7 @@ export class SpotifyPlayer implements Player<PlayableItem> {
         }
     }
 
-    protected async safeReload(item: PlayableItem): Promise<void> {
+    protected async safeReload(item: MediaItem): Promise<void> {
         try {
             const state = await this.getCurrentState();
             if (this.compareTrackSrc(state?.track_window?.current_track, item.src)) {

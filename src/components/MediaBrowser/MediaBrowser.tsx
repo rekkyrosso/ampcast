@@ -1,6 +1,7 @@
 import './MediaBrowser.scss';
 import React, {useEffect} from 'react';
 import {ErrorBoundary} from 'react-error-boundary';
+import ItemType from 'types/ItemType';
 import MediaService from 'types/MediaService';
 import {AnyMediaSource} from 'types/MediaSource';
 import {isPersonalMediaService} from 'services/mediaServices';
@@ -10,6 +11,7 @@ import useIsLoggedIn from 'hooks/useIsLoggedIn';
 import DefaultBrowser from './DefaultBrowser';
 import ErrorScreen from './ErrorScreen';
 import FilterBrowser from './FilterBrowser';
+import FolderBrowser from './FolderBrowser';
 import LibraryLoadingScreen from './LibraryLoadingScreen';
 import useErrorScreen from './useErrorScreen';
 import useNoInternetError from './useNoInternetError';
@@ -25,7 +27,12 @@ export default function MediaBrowser({service, source}: MediaBrowserProps) {
     const renderError = useErrorScreen(service, source);
     const noInternetError = useNoInternetError(service);
     const Browser =
-        source.Component || ('filterType' in source ? (FilterBrowser as any) : DefaultBrowser);
+        source.Component ||
+        (source.itemType === ItemType.Folder
+            ? FolderBrowser
+            : 'filterType' in source
+              ? (FilterBrowser as any)
+              : DefaultBrowser);
 
     useEffect(() => {
         if (isPersonalMediaService(service)) {

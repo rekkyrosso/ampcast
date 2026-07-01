@@ -181,8 +181,6 @@ class Audio implements AudioManager {
     private getAudioElementSelector(item: PlaylistItem): string {
         if (item.src.startsWith('apple:')) {
             return 'audio#apple-music-player';
-        } else if (item.src.startsWith('tidal:')) {
-            return '#tidal-player-root #video-one';
         } else {
             return '.html5-audio';
         }

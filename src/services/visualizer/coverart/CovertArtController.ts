@@ -16,7 +16,8 @@ export default class CovertArtController extends AbstractVisualizerPlayer<CoverA
     #currentIndex: 0 | 1 = 0;
 
     constructor(audio: AudioManager) {
-        super();
+        super('coverart');
+
         this.player0 = new CovertArtPlayer(audio);
         this.player1 = new CovertArtPlayer(audio);
     }

@@ -6,6 +6,7 @@ import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
+import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
 import Thumbnail from 'types/Thumbnail';
 import {groupBy} from 'utils';
@@ -31,8 +32,8 @@ export class HLSMetadataPlayer extends HLSPlayer {
     private readonly metadata$ = new Subject<HLSMetadata | undefined>();
     private currentStationName = '';
 
-    constructor(name = 'hls-metadata') {
-        super('audio', name);
+    constructor() {
+        super(MediaType.Audio, 'hls-metadata');
 
         this.observeItem().subscribe(() => (this.currentStationName = ''));
 
@@ -70,6 +71,10 @@ export class HLSMetadataPlayer extends HLSPlayer {
                 metadata ? this.createNowPlayingItem(metadata, station) : of(station)
             )
         );
+    }
+
+    canPlay(item: MediaItem): boolean {
+        return super.canPlay(item) && item.playbackType === PlaybackType.HLSMetadata;
     }
 
     private async createNowPlayingItem(

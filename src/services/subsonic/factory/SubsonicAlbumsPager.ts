@@ -32,7 +32,7 @@ export default class SubsonicAlbumsPager extends SimpleMediaPager<MediaAlbum> {
                 );
                 for (const song of songs.flat()) {
                     const album = albums.find((album) => song.albumId === album.id);
-                    if (song.artistId === artist.id || artist.id === album?.artistId) {
+                    if (artist.id === song.artistId || artist.id === album?.artistId) {
                         const item = this.utils.createMediaItemFromSong(song);
                         allTracks.push(item);
                         if (artist.id !== album?.artistId) {

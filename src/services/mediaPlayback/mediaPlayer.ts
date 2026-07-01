@@ -1,6 +1,5 @@
+import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
-import PlayableItem from 'types/PlayableItem';
-import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
 import audio from 'services/audio';
 import preferences from 'services/preferences';
@@ -12,80 +11,82 @@ import HLSPlayer from './players/HLSPlayer';
 import hlsMetadataPlayer from './players/hlsMetadataPlayer';
 import HTML5Player from './players/HTML5Player';
 import icecastPlayer from './players/icecastPlayer';
-import radioPlayer from './players/radioPlayer';
+import RadioPlayer from './players/RadioPlayer';
 import OmniPlayer from './players/OmniPlayer';
 
-export class MediaPlayer extends OmniPlayer<PlaylistItem | null, PlayableItem> {
+export class MediaPlayer extends OmniPlayer<PlaylistItem> {
     constructor() {
-        super(
-            'mediaPlayer',
-            (item) => {
-                if (!item) {
-                    throw Error('No source');
-                } else if (preferences.disableExplicitContent && item.explicit) {
-                    throw Error('Not playable (explicit)');
-                } else if (item.unplayable) {
-                    throw Error('Not playable');
-                } else {
-                    return item;
-                }
-            },
-            audio
-        );
+        super('mediaPlayer');
 
         // Audio players.
-        const hlsAudioPlayer = new HLSPlayer('audio');
-        const html5AudioPlayer = new DualAudioPlayer(
+        const hlsAudioPlayer = new HLSPlayer(MediaType.Audio);
+        const dualAudioPlayer = new DualAudioPlayer(
             'main',
-            new HTML5Player('audio', 'main', 1),
-            new HTML5Player('audio', 'main', 2)
+            new HTML5Player(MediaType.Audio, 'main', 1),
+            new HTML5Player(MediaType.Audio, 'main', 2)
+        );
+
+        // Radio player.
+        const radioPlayer = new RadioPlayer(
+            'main',
+            new OmniPlayer<MediaItem>('html5Radio', [
+                new HTML5Player(MediaType.Audio, 'radio'),
+                new HLSPlayer(MediaType.Audio, 'radio'),
+            ]),
+            (item) => item.src.includes(':radio:') || item.src.includes(':artist-radio:')
         );
 
         // Video players.
-        const hlsVideoPlayer = new HLSPlayer('video');
-        const html5VideoPlayer = new HTML5Player('video', 'main');
+        const hlsVideoPlayer = new HLSPlayer(MediaType.Video);
+        const html5VideoPlayer = new HTML5Player(MediaType.Video, 'main');
         const youtubePlayer = new YouTubePlayer('main');
 
-        this.registerPlayers([
-            // These selectors get evaluated in reverse order.
-            // So put defaults first.
-            [html5AudioPlayer, (item) => item?.mediaType === MediaType.Audio],
-            [html5VideoPlayer, (item) => item?.mediaType === MediaType.Video],
-            [
-                hlsAudioPlayer,
-                (item) =>
-                    item?.mediaType === MediaType.Audio && item.playbackType === PlaybackType.HLS,
-            ],
-            [
-                hlsVideoPlayer,
-                (item) =>
-                    item?.mediaType === MediaType.Video && item.playbackType === PlaybackType.HLS,
-            ],
-            [
-                icecastPlayer,
-                (item) =>
-                    item?.mediaType === MediaType.Audio &&
-                    [
-                        PlaybackType.Icecast,
-                        PlaybackType.IcecastM3u,
-                        PlaybackType.IcecastOgg,
-                    ].includes(item.playbackType!),
-            ],
-            [
-                hlsMetadataPlayer,
-                (item) =>
-                    item?.mediaType === MediaType.Audio &&
-                    item.playbackType === PlaybackType.HLSMetadata,
-            ],
-            [
-                radioPlayer,
-                (item) =>
-                    !!item?.src.startsWith('plex:radio:') || !!item?.src.includes(':artist-radio:'),
-            ],
-            [mixcloudPlayer, (item) => !!item?.src.startsWith('mixcloud:')],
-            [soundcloudPlayer, (item) => !!item?.src.startsWith('soundcloud:')],
-            [youtubePlayer, (item) => !!item?.src.startsWith('youtube:')],
+        // These selectors get evaluated in reverse order, so put defaults first.
+        this.addPlayers([
+            dualAudioPlayer,
+            html5VideoPlayer,
+            hlsAudioPlayer,
+            hlsVideoPlayer,
+            icecastPlayer,
+            hlsMetadataPlayer,
+            radioPlayer,
+            mixcloudPlayer,
+            soundcloudPlayer,
+            youtubePlayer,
         ]);
+    }
+
+    get muted(): boolean {
+        return super.muted;
+    }
+
+    set muted(muted: boolean) {
+        super.muted = muted;
+        audio.volume = this.muted ? 0 : this.volume;
+    }
+
+    get volume(): number {
+        return super.volume;
+    }
+
+    set volume(volume: number) {
+        super.volume = volume;
+        audio.volume = this.muted ? 0 : this.volume;
+    }
+
+    protected validate(item: PlaylistItem | null): item is PlaylistItem {
+        if (super.validate(item)) {
+            if (item.unplayable) {
+                throw Error('Not playable');
+            } else if (preferences.disableExplicitContent && item.explicit) {
+                throw Error('Not playable (explicit)');
+            } else {
+                return true;
+            }
+        } else {
+            // `super.validate` will throw if `item` is null, so we'll never get here.
+            return false;
+        }
     }
 }
 

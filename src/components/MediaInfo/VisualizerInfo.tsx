@@ -31,7 +31,7 @@ function VisualizerDetail({visualizer}: {visualizer: Visualizer}) {
         return <p className="no-visualizer-reason">{getNoVisualizerReason(visualizer)}</p>;
     } else {
         const isYouTubeVideo =
-            visualizer.providerId === 'ambientvideo' && visualizer.video.src.startsWith('youtube:');
+            visualizer.providerId === 'ambientvideo' && visualizer.src.startsWith('youtube:');
         const externalUrl = visualizer
             ? visualizer.externalUrl || getVisualizerProvider(visualizer.providerId)?.externalUrl
             : undefined;
@@ -53,9 +53,9 @@ function VisualizerDetail({visualizer}: {visualizer: Visualizer}) {
 }
 
 function YouTubeVideoInfo({visualizer}: {visualizer: AmbientVideoVisualizer}) {
-    const video = useYouTubeVideoInfo(visualizer.video.src);
+    const video = useYouTubeVideoInfo(visualizer.src);
     const visualizerWithTitle = useMemo(
-        () => ({...visualizer, title: video?.title}),
+        () => ({...visualizer, title: video?.title || ''}),
         [visualizer, video]
     );
     return video ? (

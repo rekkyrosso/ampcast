@@ -17,14 +17,12 @@ import plex from 'services/plex';
 import soundcloud from 'services/soundcloud';
 import spotify from 'services/spotify';
 import subsonic from 'services/subsonic';
-// import tidal from 'services/tidal';
 import youtube from 'services/youtube';
 import buildConfig from './buildConfig';
 
 const allServices: readonly MediaService[] = [
     apple,
     spotify,
-    // tidal,
     airsonic,
     ampache,
     emby,

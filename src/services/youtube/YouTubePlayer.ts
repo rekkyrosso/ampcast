@@ -22,7 +22,7 @@ import {
     timer,
 } from 'rxjs';
 import YouTubeFactory from 'youtube-player';
-import PlayableItem from 'types/PlayableItem';
+import MediaItem from 'types/MediaItem';
 import Player from 'types/Player';
 import {Logger} from 'utils';
 import youtubeApi from './youtubeApi';
@@ -39,7 +39,6 @@ const compareSize = (a: Size, b: Size) => a.width === b.width && a.height === b.
 const defaultAspectRatio = 16 / 9;
 
 const playerVars: YT.PlayerVars = {
-    autohide: 1,
     autoplay: 0,
     controls: 0,
     disablekb: 1,
@@ -47,18 +46,16 @@ const playerVars: YT.PlayerVars = {
     origin: location.origin,
     fs: 0,
     iv_load_policy: 3,
-    modestbranding: 1, // deprecated
     rel: 0,
-    showinfo: 0,
 };
 
-export default class YouTubePlayer implements Player<PlayableItem> {
+export default class YouTubePlayer implements Player<MediaItem> {
     static readonly host = host;
     static readonly playerVars = playerVars;
     private readonly logger: Logger;
     private readonly player: YT.Player | null = null;
     private Player: ReturnType<typeof YouTubeFactory> | null = null;
-    private readonly item$ = new BehaviorSubject<PlayableItem | null>(null);
+    private readonly item$ = new BehaviorSubject<MediaItem | null>(null);
     private readonly paused$ = new BehaviorSubject(true);
     private readonly duration$ = new BehaviorSubject(0);
     private readonly currentTime$ = new Subject<number>();
@@ -261,8 +258,12 @@ export default class YouTubePlayer implements Player<PlayableItem> {
         parentElement.appendChild(this.element);
     }
 
-    load(item: PlayableItem): void {
-        this.logger.log('load', item.src);
+    canPlay(item: MediaItem): boolean {
+        return item.src.startsWith('youtube:');
+    }
+
+    load(item: MediaItem): void {
+        this.logger.log('load', item.src, item.startTime || 0);
         this.item$.next(item);
         this.paused$.next(!this.autoplay);
         if (item.src === this.loadedSrc) {
@@ -313,7 +314,7 @@ export default class YouTubePlayer implements Player<PlayableItem> {
         this.element.remove();
     }
 
-    private get item(): PlayableItem | null {
+    private get item(): MediaItem | null {
         return this.item$.value;
     }
 
@@ -325,7 +326,7 @@ export default class YouTubePlayer implements Player<PlayableItem> {
         return this.item?.src;
     }
 
-    private observeItem(): Observable<PlayableItem | null> {
+    private observeItem(): Observable<MediaItem | null> {
         return this.item$.pipe(distinctUntilChanged());
     }
 
@@ -374,7 +375,7 @@ export default class YouTubePlayer implements Player<PlayableItem> {
         }
     }
 
-    private async loadAndPlay(item: PlayableItem): Promise<void> {
+    private async loadAndPlay(item: MediaItem): Promise<void> {
         if (this.paused) {
             return;
         }

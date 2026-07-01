@@ -36,7 +36,7 @@ export default function RadioButtons({overlay}: MediaControlsProps) {
         <>
             {overlay ? <Icon name="radio" /> : null}
             <Button
-                icon="play-reversed"
+                icon="radio-prev"
                 title="Previous radio track"
                 onClick={skipPrev}
                 onDoubleClick={stopPropagation}
@@ -44,7 +44,7 @@ export default function RadioButtons({overlay}: MediaControlsProps) {
                 tabIndex={tabIndex}
             />
             <Button
-                icon="play"
+                icon="radio-next"
                 title="Next radio track"
                 onClick={skipNext}
                 onDoubleClick={stopPropagation}

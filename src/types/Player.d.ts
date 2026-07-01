@@ -16,6 +16,7 @@ export default interface Player<T> {
     observeNowPlaying?(item: PlaylistItem): Observable<PlaylistItem>; // radio playback
     observePlaying(): Observable<void>;
     appendTo(parentElement: HTMLElement): void;
+    canPlay(src: T): boolean;
     load(src: T): void;
     loadNext?(src: T | null): void;
     pause(): void;

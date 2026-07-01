@@ -15,7 +15,7 @@ import {
     take,
     timer,
 } from 'rxjs';
-import PlayableItem from 'types/PlayableItem';
+import MediaItem from 'types/MediaItem';
 import Player from 'types/Player';
 import {loadScript, Logger} from 'utils';
 import mixcloud from './mixcloud';
@@ -24,10 +24,10 @@ const logger = new Logger('mixcloudPlayer');
 
 type MixcloudIFramePlayer = any; // TODO
 
-export class MixcloudPlayer implements Player<PlayableItem> {
+export class MixcloudPlayer implements Player<MediaItem> {
     private player: MixcloudIFramePlayer | null = null;
     private readonly element = document.createElement('iframe');
-    private readonly item$ = new BehaviorSubject<PlayableItem | null>(null);
+    private readonly item$ = new BehaviorSubject<MediaItem | null>(null);
     private readonly paused$ = new BehaviorSubject(true);
     private readonly playing$ = new Subject<void>();
     private readonly currentTime$ = new Subject<number>();
@@ -134,8 +134,12 @@ export class MixcloudPlayer implements Player<PlayableItem> {
     appendTo(parentElement: HTMLElement): void {
         parentElement.appendChild(this.element);
     }
+    
+    canPlay(item: MediaItem): boolean {
+        return item.src.startsWith('mixcloud:');
+    }
 
-    load(item: PlayableItem): void {
+    load(item: MediaItem): void {
         logger.log('load', item.src);
         if (this.autoplay) {
             this.stopped = false;
@@ -189,7 +193,7 @@ export class MixcloudPlayer implements Player<PlayableItem> {
         return window.Mixcloud?.PlayerWidget;
     }
 
-    private get item(): PlayableItem | null {
+    private get item(): MediaItem | null {
         return this.item$.value;
     }
 
@@ -209,7 +213,7 @@ export class MixcloudPlayer implements Player<PlayableItem> {
         }
     }
 
-    private observeItem(): Observable<PlayableItem | null> {
+    private observeItem(): Observable<MediaItem | null> {
         return this.item$.pipe(distinctUntilChanged());
     }
 
@@ -286,7 +290,7 @@ export class MixcloudPlayer implements Player<PlayableItem> {
         this.element.src = `https://www.mixcloud.com/widget/iframe/?feed=${this.key}&hide_artwork=1&autoplay=1&ts=${Date.now()}`;
     }
 
-    private async loadAndPlay(item: PlayableItem): Promise<void> {
+    private async loadAndPlay(item: MediaItem): Promise<void> {
         if (this.paused) {
             return;
         }

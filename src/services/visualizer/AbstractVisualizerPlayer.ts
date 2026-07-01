@@ -2,6 +2,7 @@ import type {Observable} from 'rxjs';
 import {EMPTY} from 'rxjs';
 import Player from 'types/Player';
 import Visualizer from 'types/Visualizer';
+import VisualizerProviderId from 'types/VisualizerProviderId';
 
 export default abstract class AbstractVisualizerPlayer<T extends Visualizer> implements Player<T> {
     #autoplay = false;
@@ -11,11 +12,13 @@ export default abstract class AbstractVisualizerPlayer<T extends Visualizer> imp
 
     abstract hidden: boolean;
     abstract appendTo(parentElement: HTMLElement): void;
-    abstract load(src: T): void;
+    abstract load(visualizer: T): void;
     abstract play(): void;
     abstract pause(): void;
     abstract stop(): void;
     abstract resize(width: number, height: number): void;
+
+    constructor(readonly providerId: VisualizerProviderId) {}
 
     get autoplay(): boolean {
         return this.#autoplay;
@@ -43,6 +46,10 @@ export default abstract class AbstractVisualizerPlayer<T extends Visualizer> imp
 
     observePlaying(): Observable<void> {
         return EMPTY;
+    }
+
+    canPlay(visualizer: Visualizer): boolean {
+        return visualizer.providerId === this.providerId;
     }
 
     seek(): void {

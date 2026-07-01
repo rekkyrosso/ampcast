@@ -15,7 +15,7 @@ import {
     take,
     timer,
 } from 'rxjs';
-import PlayableItem from 'types/PlayableItem';
+import MediaItem from 'types/MediaItem';
 import Player from 'types/Player';
 import {loadScript, Logger} from 'utils';
 import soundcloud from './soundcloud';
@@ -24,10 +24,10 @@ const logger = new Logger('soundcloudPlayer');
 
 type SoundCloudIFramePlayer = any; // TODO
 
-export class SoundCloudPlayer implements Player<PlayableItem> {
+export class SoundCloudPlayer implements Player<MediaItem> {
     private player: SoundCloudIFramePlayer | null = null;
     private readonly element = document.createElement('iframe');
-    private readonly item$ = new BehaviorSubject<PlayableItem | null>(null);
+    private readonly item$ = new BehaviorSubject<MediaItem | null>(null);
     private readonly paused$ = new BehaviorSubject(true);
     private readonly playing$ = new Subject<void>();
     private readonly currentTime$ = new Subject<number>();
@@ -134,7 +134,11 @@ export class SoundCloudPlayer implements Player<PlayableItem> {
         parentElement.appendChild(this.element);
     }
 
-    load(item: PlayableItem): void {
+    canPlay(item: MediaItem): boolean {
+        return item.src.startsWith('soundcloud:');
+    }
+
+    load(item: MediaItem): void {
         logger.log('load', item.src);
         if (this.autoplay) {
             this.stopped = false;
@@ -189,7 +193,7 @@ export class SoundCloudPlayer implements Player<PlayableItem> {
         return window.SC?.Widget;
     }
 
-    private get item(): PlayableItem | null {
+    private get item(): MediaItem | null {
         return this.item$.value;
     }
 
@@ -209,7 +213,7 @@ export class SoundCloudPlayer implements Player<PlayableItem> {
         }
     }
 
-    private observeItem(): Observable<PlayableItem | null> {
+    private observeItem(): Observable<MediaItem | null> {
         return this.item$.pipe(distinctUntilChanged());
     }
 
@@ -273,7 +277,7 @@ export class SoundCloudPlayer implements Player<PlayableItem> {
         return this.Widget;
     }
 
-    private async loadAndPlay(item: PlayableItem): Promise<void> {
+    private async loadAndPlay(item: MediaItem): Promise<void> {
         if (this.paused) {
             return;
         }

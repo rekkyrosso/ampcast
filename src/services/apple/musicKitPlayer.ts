@@ -15,7 +15,7 @@ import {
     tap,
 } from 'rxjs';
 import LinearType from 'types/LinearType';
-import PlayableItem from 'types/PlayableItem';
+import MediaItem from 'types/MediaItem';
 import PlaylistItem from 'types/PlaylistItem';
 import Player from 'types/Player';
 import {Logger, uniqBy} from 'utils';
@@ -26,7 +26,7 @@ import {createNowPlayingItem} from './musicKitUtils';
 
 const logger = new Logger('MusicKitPlayer');
 
-export class MusicKitPlayer implements Player<PlayableItem> {
+export class MusicKitPlayer implements Player<MediaItem> {
     private player?: MusicKit.MusicKitInstance;
     private mutationObserver: MutationObserver;
     private readonly paused$ = new BehaviorSubject(true);
@@ -39,7 +39,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
     >();
     private readonly error$ = new Subject<unknown>();
     private readonly element: HTMLElement;
-    private readonly item$ = new BehaviorSubject<PlayableItem | null>(null);
+    private readonly item$ = new BehaviorSubject<MediaItem | null>(null);
     private loadedSrc = '';
     private hasWaited = false;
     private ended = false;
@@ -196,8 +196,12 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         parentElement.appendChild(this.element);
     }
 
-    load(item: PlayableItem): void {
-        logger.log('load', item.src);
+    canPlay(item: MediaItem): boolean {
+        return item.src.startsWith('apple:');
+    }
+
+    load(item: MediaItem): void {
+        logger.log('load', item.src, item.startTime || 0);
         if (this.autoplay) {
             this.stopped = false;
         }
@@ -208,7 +212,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         }
     }
 
-    loadNext(item: PlayableItem | null): void {
+    loadNext(item: MediaItem | null): void {
         if (this.player && item && !this.isLinear && !item.linearType) {
             const [, type, id] = item.src.split(':');
             if (!type.includes('video')) {
@@ -277,7 +281,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         return !!this.item?.isLivePlayback;
     }
 
-    private get item(): PlayableItem | null {
+    private get item(): MediaItem | null {
         return this.item$.value;
     }
 
@@ -289,7 +293,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         return this.item?.src;
     }
 
-    private observeItem(): Observable<PlayableItem | null> {
+    private observeItem(): Observable<MediaItem | null> {
         return this.item$.pipe(distinctUntilChanged());
     }
 
@@ -332,7 +336,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         }
     }
 
-    private async loadAndPlay(item: PlayableItem): Promise<void> {
+    private async loadAndPlay(item: MediaItem): Promise<void> {
         let player = this.player;
         if (!player) {
             player = await this.createPlayer();
@@ -394,7 +398,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         }
     }
 
-    private getQueueItem(item: PlayableItem): MusicKit.SetQueueOptions {
+    private getQueueItem(item: MediaItem): MusicKit.SetQueueOptions {
         const [, type, id] = item.src.split(':');
 
         // "(library-)?music-videos" => "musicVideo"
@@ -446,7 +450,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         }
     }
 
-    protected async safeReload(item: PlayableItem): Promise<void> {
+    protected async safeReload(item: MediaItem): Promise<void> {
         if (this.isLoadedItem(item)) {
             const startTime = item.startTime || 0;
             try {
@@ -489,7 +493,7 @@ export class MusicKitPlayer implements Player<PlayableItem> {
         }
     }
 
-    private isLoadedItem(item: PlayableItem | null): boolean {
+    private isLoadedItem(item: MediaItem | null): boolean {
         if (this.player && item) {
             const [, , id] = item.src.split(':');
             if (this.isLinear) {

@@ -15,7 +15,6 @@ import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {Page} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
-import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import {groupBy} from 'utils';
 import embyApi from 'services/emby/embyApi';
@@ -174,7 +173,7 @@ async function post(path: string, params: Record<string, Primitive> = {}): Promi
     return embyApi.post(path, params, jellyfinSettings);
 }
 
-function getPlayableUrl(item: PlayableItem): string {
+function getPlayableUrl(item: MediaItem): string {
     return embyApi.getPlayableUrl(item, jellyfinSettings);
 }
 

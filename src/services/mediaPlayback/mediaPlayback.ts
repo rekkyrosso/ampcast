@@ -95,7 +95,7 @@ export function eject(): void {
 }
 
 export function load(item: PlaylistItem | null): void {
-    logger.log('load', item?.src);
+    logger.log('load', item?.src, item?.startTime || 0);
     if (miniPlayer.active) {
         miniPlayer.load(item);
     } else {

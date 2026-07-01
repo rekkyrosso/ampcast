@@ -3,13 +3,13 @@ import type {Options as AudioMotionOptions} from 'audiomotion-analyzer';
 import type {SpotifyVizConfig} from 'services/visualizer/spotifyviz/SpotifyVizPlayer';
 import type {WaveformConfig} from 'services/visualizer/waveform/WaveformPlayer';
 import BaseVisualizer from './BaseVisualizer';
+import MediaItem from './MediaItem';
 import NextVisualizerReason from './NextVisualizerReason';
-import PlayableItem from './PlayableItem';
 import VisualizerProviderId from './VisualizerProviderId';
 
 export interface NoVisualizer extends BaseVisualizer {
-    providerId: 'none';
-    name: '' | 'not loaded' | 'not supported' | 'error';
+    readonly providerId: 'none';
+    readonly name: '' | 'not loaded' | 'not supported' | 'error';
     // Link to the visualizer that isn't working.
     readonly link: {
         readonly providerId: VisualizerProviderId;
@@ -17,39 +17,40 @@ export interface NoVisualizer extends BaseVisualizer {
     };
 }
 
-export interface AmbientVideoVisualizer extends BaseVisualizer {
-    providerId: 'ambientvideo';
-    video: PlayableItem;
+interface AmbientVideo extends BaseVisualizer {
+    readonly providerId: 'ambientvideo';
 }
 
+export type AmbientVideoVisualizer = AmbientVideo & MediaItem;
+
 export interface AmpShaderVisualizer extends BaseVisualizer {
-    providerId: 'ampshader';
-    shader: string;
+    readonly providerId: 'ampshader';
+    readonly shader: string;
 }
 
 export interface AudioMotionVisualizer extends BaseVisualizer {
-    providerId: 'audiomotion';
-    options: AudioMotionOptions;
+    readonly providerId: 'audiomotion';
+    readonly options: AudioMotionOptions;
 }
 
 export interface ButterchurnVisualizer extends BaseVisualizer {
-    providerId: 'butterchurn';
-    data: MilkdropRawData;
+    readonly providerId: 'butterchurn';
+    readonly data: MilkdropRawData;
 }
 
 export interface CoverArtVisualizer extends BaseVisualizer {
-    providerId: 'coverart';
-    component: React.FC;
+    readonly providerId: 'coverart';
+    readonly component: React.FC;
 }
 
 export interface SpotifyVizVisualizer extends BaseVisualizer {
-    providerId: 'spotifyviz';
-    config: SpotifyVizConfig;
+    readonly providerId: 'spotifyviz';
+    readonly config: SpotifyVizConfig;
 }
 
 export interface WaveformVisualizer extends BaseVisualizer {
-    providerId: 'waveform';
-    config: WaveformConfig;
+    readonly providerId: 'waveform';
+    readonly config: WaveformConfig;
 }
 
 export interface VisualizerReason {

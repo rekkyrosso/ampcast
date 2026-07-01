@@ -1,19 +1,11 @@
 import {useCallback, useEffect, useState} from 'react';
-import ItemType from 'types/ItemType';
 import {Field} from 'types/MediaListLayout';
-import MediaAlbum from 'types/MediaAlbum';
 import MediaObject from 'types/MediaObject';
 import {MediaSourceItems} from 'types/MediaSource';
-import ParentOf from 'types/ParentOf';
 import SortParams from 'types/SortParams';
 import {setSourceSorting} from 'services/mediaServices/servicesSettings';
 import {sorter} from 'services/metadata';
 import useSorting from 'hooks/useSorting';
-
-const albumTracksSort: SortParams = {
-    sortBy: 'Track',
-    sortOrder: 1,
-};
 
 export default function useMediaListSort<T extends MediaObject>(
     id: string,
@@ -21,12 +13,9 @@ export default function useMediaListSort<T extends MediaObject>(
     isSearchResult: boolean,
     sourceItems: MediaSourceItems,
     complete: boolean,
-    parent?: ParentOf<T>,
     onInternalSort?: (params: SortParams) => void
 ) {
-    const defaultSort = isSearchResult
-        ? undefined
-        : sourceItems.sort?.defaultSort || (isAlbum(parent) ? albumTracksSort : undefined);
+    const defaultSort = isSearchResult ? undefined : sourceItems.sort?.defaultSort;
     const externalSortParams = useSorting(isSearchResult ? '' : id);
     const [internalSortParams, setInternalSortParams] = useState<SortParams | undefined>();
     const [sortedItems, setSortedItems] = useState<readonly T[]>(items);
@@ -100,8 +89,4 @@ export default function useMediaListSort<T extends MediaObject>(
         savedSortParams,
         onSort,
     };
-}
-
-function isAlbum(item?: MediaObject): item is MediaAlbum {
-    return item?.itemType === ItemType.Album && !item.synthetic;
 }

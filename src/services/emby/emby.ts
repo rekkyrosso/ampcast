@@ -14,7 +14,6 @@ import MediaSource from 'types/MediaSource';
 import Pager, {PagerConfig} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
-import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import Pin, {Pinnable} from 'types/Pin';
 import ServiceType from 'types/ServiceType';
@@ -159,8 +158,8 @@ async function createPlaylist<T extends MediaItem>(
     };
 }
 
-function createRadioPager(src: string): Pager<MediaItem> {
-    const [, type, id] = src.split(':');
+function createRadioPager(item: MediaItem): Pager<MediaItem> {
+    const [, type, id] = item.src.split(':');
     if (type !== 'artist-radio') {
         throw Error('Not supported');
     }
@@ -239,7 +238,7 @@ async function getMediaObject<T extends MediaObject>(src: string): Promise<T> {
     return fetchFirstItem<T>(pager, {timeout: 2000});
 }
 
-function getPlayableUrl(item: PlayableItem): string {
+function getPlayableUrl(item: MediaItem): string {
     return embyApi.getPlayableUrl(item);
 }
 

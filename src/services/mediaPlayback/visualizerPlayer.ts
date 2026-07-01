@@ -1,4 +1,4 @@
-import {fromEvent, of, skipWhile, switchMap, takeUntil, tap} from 'rxjs';
+import {fromEvent, map, of, skipWhile, switchMap, takeUntil, tap} from 'rxjs';
 import Visualizer from 'types/Visualizer';
 import {Logger} from 'utils';
 import audio from 'services/audio';
@@ -20,14 +20,8 @@ visualizerPlayer.volume = 0.07;
 observeVisualizerProviders()
     .pipe(
         skipWhile((providers) => providers.length === 0),
-        tap((providers) =>
-            visualizerPlayer.registerPlayers(
-                providers.map((provider) => [
-                    provider.createPlayer(audio),
-                    (visualizer) => visualizer.providerId === provider.id,
-                ])
-            )
-        ),
+        map((providers) => providers.map((provider) => provider.createPlayer(audio))),
+        tap((players) => visualizerPlayer.addPlayers(players)),
         switchMap(() => miniPlayer.observeActive()),
         switchMap((active) => (active ? of(noVisualizer) : observeNextVisualizer())),
         tap((visualizer) => visualizerPlayer.load(visualizer)),

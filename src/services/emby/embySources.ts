@@ -23,7 +23,6 @@ import WrappedPager from 'services/pagers/WrappedPager';
 import EmbyPager from './EmbyPager';
 import EmbyRecentlyPlayedPager from './EmbyRecentlyPlayedPager';
 import embySettings from './embySettings';
-import FolderBrowser from 'components/MediaBrowser/FolderBrowser';
 import {
     mostPlayedTracksLayout,
     recentlyAddedAlbumsLayout,
@@ -494,7 +493,6 @@ const embyFolders: MediaSource<MediaFolderItem> = {
     title: 'Folders',
     icon: 'folder',
     itemType: ItemType.Folder,
-    Component: FolderBrowser,
 
     search(): Pager<MediaFolderItem> {
         const root: Writable<SetOptional<MediaFolder, 'pager'>> = {

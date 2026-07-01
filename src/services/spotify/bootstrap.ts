@@ -1,7 +1,8 @@
 import mediaPlayer from 'services/mediaPlayback/mediaPlayer';
 import spotifyAudioAnalyser from './spotifyAudioAnalyser';
 import spotifyPlayer from './spotifyPlayer';
+import spotifyRadioPlayer from './spotifyRadioPlayer';
 
 spotifyAudioAnalyser.player = spotifyPlayer;
 
-mediaPlayer.registerPlayer(spotifyPlayer, (item) => !!item?.src.startsWith('spotify:'));
+mediaPlayer.addPlayers([spotifyPlayer, spotifyRadioPlayer]);

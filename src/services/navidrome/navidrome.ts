@@ -13,7 +13,6 @@ import MediaSource from 'types/MediaSource';
 import Pager, {PagerConfig} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
-import PlayableItem from 'types/PlayableItem';
 import Pin, {Pinnable} from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
@@ -227,8 +226,8 @@ async function getLyrics(item: MediaItem): Promise<Lyrics | null> {
     return subsonicApi.getLyrics(item);
 }
 
-function createRadioPager(src: string): Pager<MediaItem> {
-    return subsonicService.createRadioPager(src);
+function createRadioPager(item: MediaItem): Pager<MediaItem> {
+    return subsonicService.createRadioPager(item);
 }
 
 async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
@@ -283,11 +282,11 @@ async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
     return bestOf(item, metadata);
 }
 
-function getPlayableUrl(item: PlayableItem): string {
+function getPlayableUrl(item: MediaItem): string {
     return subsonicApi.getPlayableUrl(item);
 }
 
-async function getPlaybackType(item: PlayableItem): Promise<PlaybackType> {
+async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
     return subsonicApi.getPlaybackType(item);
 }
 

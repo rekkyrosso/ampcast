@@ -65,8 +65,6 @@ declare module 'icecast-metadata-js' {
     }
 }
 
-declare type TidalMusicPlayer = typeof import('@tidal-music/player');
-
 declare module 'jsfft' {
     interface ComplexArray {
         real: Float32Array;

@@ -28,9 +28,9 @@ export default function VideoSourceIcon() {
         }
     } else if (
         visualizer?.providerId === 'ambientvideo' &&
-        visualizer.video.src.startsWith('youtube:')
+        visualizer.src.startsWith('youtube:')
     ) {
-        return <YouTubeIcon src={visualizer.video.src} />;
+        return <YouTubeIcon src={visualizer.src} />;
     }
 }
 

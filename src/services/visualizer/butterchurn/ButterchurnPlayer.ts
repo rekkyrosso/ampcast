@@ -21,7 +21,8 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
     private currentPreset: ButterchurnVisualizer | null = null;
 
     constructor({context, source}: AudioManager) {
-        super();
+        super('butterchurn');
+
         this.context = context;
         this.source = source;
         this.canvas.className = 'visualizer visualizer-butterchurn';

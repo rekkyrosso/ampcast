@@ -26,7 +26,8 @@ export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVis
     private currentVisualizer = '';
 
     constructor({context, source}: AudioManager, name = '') {
-        super();
+        super('waveform');
+
         if (name === 'visualizer-waveform') {
             this.logger = new Logger('WaveformPlayer');
         }

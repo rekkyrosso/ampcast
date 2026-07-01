@@ -23,7 +23,6 @@ import {CreateChildPager} from 'services/pagers/MediaPager';
 import JellyfinPager from './JellyfinPager';
 import JellyfinRecentlyPlayedPager from './JellyfinRecentlyPlayedPager';
 import jellyfinSettings from './jellyfinSettings';
-import FolderBrowser from 'components/MediaBrowser/FolderBrowser';
 import {
     mostPlayedTracksLayout,
     recentlyAddedAlbumsLayout,
@@ -490,7 +489,6 @@ const jellyfinFolders: MediaSource<MediaFolderItem> = {
     title: 'Folders',
     icon: 'folder',
     itemType: ItemType.Folder,
-    Component: FolderBrowser,
 
     search(): Pager<MediaFolderItem> {
         const root: Writable<SetOptional<MediaFolder, 'pager'>> = {

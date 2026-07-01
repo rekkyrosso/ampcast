@@ -254,12 +254,16 @@ function createArtistAllTracks(artist: MediaArtist): MediaAlbum {
 }
 
 function createAllTracksPager(artist: MediaArtist): Pager<MediaItem> {
-    return new JellyfinPager<MediaItem>(`Users/${jellyfinSettings.userId}/Items`, {
-        ArtistIds: getMediaObjectId(artist),
-        IncludeItemTypes: 'Audio',
-        SortBy: 'ProductionYear,PremiereDate,Album,ParentIndexNumber,IndexNumber',
-        SortOrder: 'Ascending',
-    });
+    return new JellyfinPager<MediaItem>(
+        `Users/${jellyfinSettings.userId}/Items`,
+        {
+            ArtistIds: getMediaObjectId(artist),
+            IncludeItemTypes: 'Audio',
+            SortBy: 'ProductionYear,PremiereDate,Album,ParentIndexNumber,IndexNumber',
+            SortOrder: 'Ascending',
+        },
+        {autofill: true}
+    );
 }
 
 function createArtistRadios(artist: MediaArtist): MediaAlbum {

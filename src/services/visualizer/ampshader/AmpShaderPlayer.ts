@@ -43,7 +43,7 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
     #color = '';
 
     constructor({context, source}: AudioManager, name = '') {
-        super();
+        super('ampshader');
 
         if (name === 'visualizer-ampshader') {
             this.logger = new Logger('AmpShaderPlayer');

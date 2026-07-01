@@ -20,7 +20,7 @@ export default class CovertArtPlayer extends AbstractVisualizerPlayer<CoverArtVi
     hidden = true;
 
     constructor(audio: AudioManager) {
-        super();
+        super('coverart');
 
         this.animatedBackground = new AnimatedBackgroundPlayer(audio);
         this.beatsPlayer = new BeatsPlayer(audio);

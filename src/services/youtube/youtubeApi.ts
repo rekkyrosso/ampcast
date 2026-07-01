@@ -51,8 +51,14 @@ function createAmbientVideo(videoId: string, startTime?: number): AmbientVideoVi
     return {
         providerId: 'ambientvideo',
         name: videoId,
+        title: '',
+        itemType: ItemType.Media,
+        mediaType: MediaType.Video,
+        src: `youtube:video:${videoId}`,
         externalUrl: getVideoUrl(videoId),
-        video: {src: `youtube:video:${videoId}`, startTime},
+        duration: 0,
+        playedAt: 0,
+        startTime,
     };
 }
 
@@ -164,7 +170,7 @@ function getVideoUrl(videoId: string): string {
 }
 
 function isVideoId(id: string): boolean {
-    return /[\w-]{11}/.test(id)
+    return /[\w-]{11}/.test(id);
 }
 
 const youtubeApi = {

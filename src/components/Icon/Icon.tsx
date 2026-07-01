@@ -14,7 +14,6 @@ export type IconName =
     | 'ampcast'
     | 'localdb'
     | 'play'
-    | 'play-reversed'
     | 'pause'
     | 'stop'
     | 'volume'
@@ -22,6 +21,8 @@ export type IconName =
     | 'loop'
     | 'prev'
     | 'next'
+    | 'radio-prev'
+    | 'radio-next'
     | 'left'
     | 'right'
     | 'shuffle'
@@ -144,13 +145,6 @@ export default function Icon({name, className = ''}: IconProps) {
                 </svg>
             );
 
-        case 'play-reversed':
-            return (
-                <svg className={className} viewBox="0 0 448 512" transform="rotate(180)">
-                    <path d="M424.4 214.7L72.4 6.6C43.8-10.3 0 6.1 0 47.9V464c0 37.5 40.7 60.1 72.4 41.3l352-208c31.4-18.5 31.5-64.1 0-82.6z" />
-                </svg>
-            );
-
         case 'pause':
             return (
                 <svg className={className} viewBox="0 0 448 512">
@@ -213,6 +207,20 @@ export default function Icon({name, className = ''}: IconProps) {
             return (
                 <svg className={className} viewBox="0 0 448 512">
                     <path d="M384 44v424c0 6.6-5.4 12-12 12h-48c-6.6 0-12-5.4-12-12V291.6l-195.5 181C95.9 489.7 64 475.4 64 448V64c0-27.4 31.9-41.7 52.5-24.6L312 219.3V44c0-6.6 5.4-12 12-12h48c6.6 0 12 5.4 12 12z" />
+                </svg>
+            );
+
+        case 'radio-prev':
+            return (
+                <svg className={className} viewBox="0 0 16 16">
+                    <path d="m3.86 8.753 5.482 4.796c.646.566 1.658.106 1.658-.753V3.204a1 1 0 0 0-1.659-.753l-5.48 4.796a1 1 0 0 0 0 1.506z" />
+                </svg>
+            );
+
+        case 'radio-next':
+            return (
+                <svg className={className} viewBox="0 0 16 16">
+                    <path d="m12.14 8.753-5.482 4.796c-.646.566-1.658.106-1.658-.753V3.204a1 1 0 0 1 1.659-.753l5.48 4.796a1 1 0 0 1 0 1.506z" />
                 </svg>
             );
 

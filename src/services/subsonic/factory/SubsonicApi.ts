@@ -11,7 +11,6 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
-import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import type SubsonicSettings from './SubsonicSettings';
 import {Logger, chunk, getMediaObjectId, shuffle} from 'utils';
@@ -360,7 +359,7 @@ export default class SubsonicApi {
         );
     }
 
-    getPlayableUrl(item: PlayableItem): string {
+    getPlayableUrl(item: MediaItem): string {
         const {host, credentials} = this.settings;
         if (host && credentials) {
             if (item.linearType === LinearType.Station) {
@@ -386,7 +385,7 @@ export default class SubsonicApi {
         }
     }
 
-    async getPlaybackType(item: PlayableItem): Promise<PlaybackType> {
+    async getPlaybackType(item: MediaItem): Promise<PlaybackType> {
         if (item.playbackType !== undefined) {
             return item.playbackType;
         }

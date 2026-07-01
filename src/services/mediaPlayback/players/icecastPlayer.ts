@@ -5,8 +5,8 @@ import type IcecastMetadataPlayer from 'icecast-metadata-player';
 import type {IcyMetadata, OggMetadata} from 'icecast-metadata-player';
 import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
+import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
-import PlayableItem from 'types/PlayableItem';
 import PlaybackType from 'types/PlaybackType';
 import PlaylistItem from 'types/PlaylistItem';
 import {filterNotEmpty, getTextFromHtml, loadLibrary, toUtf8, uniq} from 'utils';
@@ -20,8 +20,8 @@ export class IcecastPlayer extends HTML5Player {
     private player: IcecastMetadataPlayer | null = null;
     private readonly metadata$ = new Subject<IcecastMetadata | undefined>();
 
-    constructor(name = 'icecast') {
-        super('audio', name);
+    constructor() {
+        super(MediaType.Audio, 'icecast');
     }
 
     observeNowPlaying(station: PlaylistItem): Observable<PlaylistItem> {
@@ -34,7 +34,16 @@ export class IcecastPlayer extends HTML5Player {
         );
     }
 
-    protected async loadAndPlay(item: PlayableItem): Promise<void> {
+    canPlay(item: MediaItem): boolean {
+        return (
+            super.canPlay(item) &&
+            [PlaybackType.Icecast, PlaybackType.IcecastM3u, PlaybackType.IcecastOgg].includes(
+                item.playbackType!
+            )
+        );
+    }
+
+    protected async loadAndPlay(item: MediaItem): Promise<void> {
         this.loadedSrc = item.src;
 
         if (this.player) {
