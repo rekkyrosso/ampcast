@@ -46,7 +46,7 @@ export default class ListenBrainzNewAlbumsPager extends SimpleMediaPager<MediaAl
             releasedAt: Math.round(releaseDate.getTime() / 1000) || undefined,
             pager: mbid
                 ? new MusicBrainzAlbumTracksPager(mbid)
-                : new ErrorPager(Error('No MusicBrainz id')),
+                : new ErrorPager(() => Error('No MusicBrainz id')),
         };
     }
 }

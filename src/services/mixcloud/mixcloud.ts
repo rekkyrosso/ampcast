@@ -12,7 +12,7 @@ const mixcloud: PublicMediaService = {
     defaultNoScrobble: true,
     lyricsDisabled: true,
     iframeAudioPlayback: {
-        // Mixcloud player shows mainly interactive content.
+        // The Mixcloud player shows mainly interactive content.
         // Use CoverArt visualizer instead.
         showCoverArt: true,
     },

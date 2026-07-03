@@ -252,7 +252,7 @@ class Lookup {
                     searchString(item.albumArtist || removeFeaturedArtists(artist)),
                     searchString(removeFeaturedArtists(title)),
                     10,
-                    2000
+                    5_000
                 );
                 return filterMatches(matches, item, isrcs, strict);
             }

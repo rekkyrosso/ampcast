@@ -5,7 +5,7 @@ import Pager from 'types/Pager';
 export default class ErrorPager<T> implements Pager<T> {
     readonly pageSize = 0;
 
-    constructor(private readonly error: unknown) {}
+    constructor(private readonly createError: () => unknown) {}
 
     observeBusy(): Observable<boolean> {
         return of(false);
@@ -24,7 +24,7 @@ export default class ErrorPager<T> implements Pager<T> {
     }
 
     observeError(): Observable<unknown> {
-        return of(this.error);
+        return of(this.createError());
     }
 
     fetchAt(): void {

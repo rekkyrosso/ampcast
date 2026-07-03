@@ -9,6 +9,7 @@ import MediaFolderItem from 'types/MediaFolderItem';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
+import MediaServiceId from 'types/MediaServiceId';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import ParentOf from 'types/ParentOf';
@@ -29,6 +30,8 @@ import {
     embyPlaylistItemsSort,
     getSortParams,
 } from './embySorting';
+
+const serviceId: MediaServiceId = 'emby';
 
 export function createMediaObject<T extends MediaObject>(
     item: BaseItemDto,
@@ -57,7 +60,7 @@ export function createMediaObject<T extends MediaObject>(
 function createMediaArtist(artist: BaseItemDto, albumSort?: SortParams): MediaArtist {
     const mediaArtist: Writable<SetOptional<MediaArtist, 'pager'>> = {
         itemType: ItemType.Artist,
-        src: `emby:artist:${artist.Id}`,
+        src: `${serviceId}:artist:${artist.Id}`,
         externalUrl: getExternalUrl(artist),
         title: artist.Name || '',
         description: artist.Overview || undefined,
@@ -74,7 +77,7 @@ function createMediaArtist(artist: BaseItemDto, albumSort?: SortParams): MediaAr
 function createMediaAlbum(album: BaseItemDto): MediaAlbum {
     return {
         itemType: ItemType.Album,
-        src: `emby:album:${album.Id}`,
+        src: `${serviceId}:album:${album.Id}`,
         externalUrl: getExternalUrl(album),
         title: album.Name || '',
         description: album.Overview ?? undefined,
@@ -94,7 +97,7 @@ function createMediaAlbum(album: BaseItemDto): MediaAlbum {
 }
 
 function createMediaPlaylist(playlist: BaseItemDto, itemSort?: SortParams): MediaPlaylist {
-    const src = `emby:playlist:${playlist.Id}`;
+    const src = `${serviceId}:playlist:${playlist.Id}`;
     const mediaPlaylist: Writable<SetOptional<MediaPlaylist, 'pager'>> = {
         src,
         itemType: ItemType.Playlist,
@@ -122,7 +125,7 @@ function createMediaFolder(folder: BaseItemDto, parent?: MediaFolder): MediaFold
     const fileName = getFileName(folder.Path || '') || folder.Name || '[unknown]';
     const mediaFolder: Writable<SetOptional<MediaFolder, 'pager'>> = {
         itemType: ItemType.Folder,
-        src: `emby:folder:${folder.Id}`,
+        src: `${serviceId}:folder:${folder.Id}`,
         title: folder.Name || '[unknown]',
         fileName,
         path: parent ? `${parent.path}/${fileName}` : '/',
@@ -139,7 +142,7 @@ function createMediaItem(track: BaseItemDto): MediaItem {
     return {
         itemType: ItemType.Media,
         mediaType: isVideo ? MediaType.Video : MediaType.Audio,
-        src: `emby:${isVideo ? 'video' : 'audio'}:${track.Id}:${
+        src: `${serviceId}:${isVideo ? 'video' : 'audio'}:${track.Id}:${
             (track as any).PresentationUniqueKey || ''
         }`,
         externalUrl: getExternalUrl(track),
@@ -215,7 +218,7 @@ export function createArtistAlbumsPager(
 function createArtistAllTracks(artist: MediaArtist): MediaAlbum {
     return {
         itemType: ItemType.Album,
-        src: `emby:all-tracks:${getMediaObjectId(artist)}`,
+        src: `${serviceId}:all-tracks:${getMediaObjectId(artist)}`,
         title: 'All Songs',
         artist: artist.title,
         thumbnails: artist.thumbnails,
@@ -240,7 +243,7 @@ function createAllTracksPager(artist: MediaArtist): Pager<MediaItem> {
 
 function createArtistRadios(artist: MediaArtist): MediaAlbum {
     const id = getMediaObjectId(artist);
-    const src = `emby:artist-radio:${id}`;
+    const src = `${serviceId}:artist-radio:${id}`;
     const radio: MediaItem = {
         src,
         title: `${artist.title} - Radio`,
@@ -257,7 +260,7 @@ function createArtistRadios(artist: MediaArtist): MediaAlbum {
     };
     return {
         itemType: ItemType.Album,
-        src: `emby:radios:${id}`,
+        src: `${serviceId}:radios:${id}`,
         title: 'Radios',
         artist: artist.title,
         thumbnails: artist.thumbnails,

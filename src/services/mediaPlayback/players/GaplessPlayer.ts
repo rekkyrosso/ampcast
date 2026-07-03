@@ -13,11 +13,11 @@ import MediaItem from 'types/MediaItem';
 import PlaylistItem from 'types/PlaylistItem';
 import Player from 'types/Player';
 import {exists} from 'utils';
-import mediaPlayback from '../mediaPlayback';
+import mediaPlayback from 'services/mediaPlayback';
 import HTML5Player from './HTML5Player';
 import observeNearEnd from './observeNearEnd';
 
-export default class DualAudioPlayer implements Player<MediaItem> {
+export default class GaplessPlayer implements Player<MediaItem> {
     private readonly element = document.createElement('div');
     private readonly player$ = new BehaviorSubject<HTML5Player>(this.player1);
     private readonly nextItem$ = new BehaviorSubject<MediaItem | null>(null);
@@ -25,16 +25,13 @@ export default class DualAudioPlayer implements Player<MediaItem> {
     #silent = false;
 
     constructor(
-        name: string,
         private readonly player1: HTML5Player,
         private readonly player2: HTML5Player
     ) {
+        this.element.id = 'gaplessPlayer';
+
         this.player1.appendTo(this.element);
         this.player2.appendTo(this.element);
-
-        this.observeCurrentPlayer().subscribe((player) => {
-            this.element.className = `dual-audio-${name} player-${player === this.player1 ? 1 : 2}`;
-        });
 
         // Load next track.
         this.observeCurrentPlayer()

@@ -102,6 +102,24 @@ export class LastFmApi {
         return item;
     }
 
+    async getArtistTopTracks(artist: string, limit = 20): Promise<readonly LastFm.Track[]> {
+        const {toptracks} = await this.get<{toptracks: any}>({
+            method: 'artist.getTopTracks',
+            artist,
+            limit,
+        });
+        return toptracks.track;
+    }
+
+    async getSimilarArtists(artist: string, limit = 20): Promise<readonly LastFm.Artist[]> {
+        const {similarartists} = await this.get<{similarartists: any}>({
+            method: 'artist.getSimilar',
+            artist,
+            limit,
+        });
+        return similarartists.artist;
+    }
+
     async getThumbnails(
         item: MediaObject,
         signal?: AbortSignal
@@ -155,7 +173,7 @@ export class LastFmApi {
                 } else {
                     params.autocorrect = '1';
                 }
-                const {album} = await lastfmApi.get<LastFm.AlbumInfoResponse>(params, signal);
+                const {album} = await this.get<LastFm.AlbumInfoResponse>(params, signal);
                 if (album) {
                     if ('error' in album) {
                         throw Error((album.error as any)?.message || 'Not found');
@@ -189,7 +207,7 @@ export class LastFmApi {
                 } else {
                     params.autocorrect = '1';
                 }
-                const {track} = await lastfmApi.get<LastFm.TrackInfoResponse>(params, signal);
+                const {track} = await this.get<LastFm.TrackInfoResponse>(params, signal);
                 if (track) {
                     if ('error' in track) {
                         throw Error((track.error as any)?.message || 'Not found');

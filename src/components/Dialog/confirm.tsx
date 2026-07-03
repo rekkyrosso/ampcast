@@ -69,7 +69,7 @@ export function ConfirmDialog({
                 <div className="confirm-message">{message}</div>
                 <DialogButtons value="confirmed" submitText={okLabel} />
                 {storageId ? (
-                    <footer className="confirm-dialog-storage">
+                    <footer className="prevent-future-messages">
                         <input id={id} type="checkbox" ref={storageRef} />
                         <label htmlFor={id}>{storagePrompt}</label>
                     </footer>

@@ -157,6 +157,7 @@ enum Playability {
     Never = 0,
     Always = 1,
     LoggedIn = 2,
+    RadioOnly = 3,
 }
 
 const playabilityByServiceId: Record<
@@ -185,9 +186,10 @@ const playabilityByServiceId: Record<
     spotify: Playability.LoggedIn,
     subsonic: Playability.LoggedIn,
     tidal: Playability.LoggedIn,
+    // Radio only (via lookup services).
+    lastfm: Playability.RadioOnly,
     // Not playable.
     localdb: Playability.Never,
-    lastfm: Playability.Never,
     listenbrainz: Playability.Never,
 };
 
@@ -198,6 +200,9 @@ export function isPlayableSrc(src: string, immediate?: boolean): boolean {
             playabilityByServiceId[serviceId as MediaServiceId] || Playability.Never;
         if (playability === Playability.Never) {
             return false;
+        }
+        if (playability === Playability.RadioOnly) {
+            return type === 'artist-radio';
         }
         if (playability === Playability.Always) {
             if (serviceId === 'internet-radio') {

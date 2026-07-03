@@ -7,6 +7,7 @@ import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
+import MediaServiceId from 'types/MediaServiceId';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import PlaybackType from 'types/PlaybackType';
@@ -22,6 +23,8 @@ import NavidromeIndexedPager, {NavidromePlaylistItemsPager} from './NavidromeInd
 import navidromeSettings from './navidromeSettings';
 import {navidromeAlbumsSortMap, navidromeArtistAlbumsSort} from './navidromeSorting';
 import {subsonicService} from './subsonicApi';
+
+const serviceId: MediaServiceId = 'navidrome';
 
 export function createMediaObject<T extends MediaObject>(
     itemType: T['itemType'],
@@ -81,7 +84,7 @@ function createMediaItem(song: Navidrome.Song): MediaItem {
         itemType: ItemType.Media,
         mediaType: MediaType.Audio,
         playbackType: PlaybackType.Direct,
-        src: `navidrome:audio:${id}`,
+        src: `${serviceId}:audio:${id}`,
         externalUrl: getExternalUrl(`album/${song.albumId}`),
         title: song.title,
         addedAt: parseDate(song.createdAt),
@@ -118,7 +121,7 @@ function createMediaItem(song: Navidrome.Song): MediaItem {
 }
 
 function createRadioStation(radio: Navidrome.Radio): MediaItem {
-    const src = `navidrome:radio:${radio.id}`;
+    const src = `${serviceId}:radio:${radio.id}`;
     return {
         src,
         itemType: ItemType.Media,
@@ -139,7 +142,7 @@ function createMediaAlbum(album: Navidrome.Album): MediaAlbum {
     const album_id = album.id;
     return {
         itemType: ItemType.Album,
-        src: `navidrome:album:${album_id}`,
+        src: `${serviceId}:album:${album_id}`,
         externalUrl: getExternalUrl(`album/${album_id}`),
         title: album.name,
         addedAt: parseDate(album.createdAt),
@@ -162,7 +165,7 @@ function createMediaArtist(artist: Navidrome.Artist, albumSort?: SortParams): Me
     const artist_id = artist.id;
     const mediaArtist: Writable<SetOptional<MediaArtist, 'pager'>> = {
         itemType: ItemType.Artist,
-        src: `navidrome:artist:${artist_id}`,
+        src: `${serviceId}:artist:${artist_id}`,
         externalUrl: getExternalUrl(`artist/${artist_id}`),
         title: artist.name,
         description: getTextFromHtml(artist.biography) || undefined,
@@ -178,7 +181,7 @@ function createMediaArtist(artist: Navidrome.Artist, albumSort?: SortParams): Me
 
 function createMediaPlaylist(playlist: Navidrome.Playlist, itemSort?: SortParams): MediaPlaylist {
     const playlist_id = playlist.id;
-    const src = `navidrome:playlist:${playlist_id}`;
+    const src = `${serviceId}:playlist:${playlist_id}`;
     const owned = playlist.ownerId === navidromeSettings.userId;
     const smart = !!playlist.rules;
 
@@ -232,7 +235,7 @@ function createArtistAllTracks(artist: MediaArtist): MediaAlbum {
     const id = getMediaObjectId(artist);
     return {
         itemType: ItemType.Album,
-        src: `navidrome:all-tracks:${id}`,
+        src: `${serviceId}:all-tracks:${id}`,
         title: 'All Songs',
         artist: artist.title,
         thumbnails: artist.thumbnails,
@@ -257,7 +260,7 @@ function createArtistAllTracksPager(artist: MediaArtist): Pager<MediaItem> {
 
 function createArtistRadios(artist: MediaArtist): MediaAlbum {
     const id = getMediaObjectId(artist);
-    const src = `navidrome:artist-radio:${id}`;
+    const src = `${serviceId}:artist-radio:${id}`;
     const radio: MediaItem = {
         src,
         title: `${artist.title} - Radio`,
@@ -274,7 +277,7 @@ function createArtistRadios(artist: MediaArtist): MediaAlbum {
     };
     return {
         itemType: ItemType.Album,
-        src: `navidrome:radios:${id}`,
+        src: `${serviceId}:radios:${id}`,
         title: 'Radios',
         artist: artist.title,
         thumbnails: artist.thumbnails,
@@ -288,7 +291,7 @@ function createArtistTopTracks(artist: MediaArtist): MediaAlbum {
     const id = getMediaObjectId(artist);
     return {
         itemType: ItemType.Album,
-        src: `navidrome:top-tracks:${id}`,
+        src: `${serviceId}:top-tracks:${id}`,
         title: 'Top Songs',
         artist: artist.title,
         thumbnails: artist.thumbnails,

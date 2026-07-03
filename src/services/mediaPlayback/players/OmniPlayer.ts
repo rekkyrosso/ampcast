@@ -95,6 +95,20 @@ export default class OmniPlayer<T> implements Player<T> {
         }
     }
 
+    observeCanSkipNext(): Observable<boolean> {
+        return this.observeCurrentPlayer().pipe(
+            switchMap((player) => player?.observeCanSkipNext?.() ?? of(false)),
+            filter(() => !this.silent)
+        );
+    }
+
+    observeCanSkipPrev(): Observable<boolean> {
+        return this.observeCurrentPlayer().pipe(
+            switchMap((player) => player?.observeCanSkipPrev?.() ?? of(false)),
+            filter(() => !this.silent)
+        );
+    }
+
     observeCurrentTime(): Observable<number> {
         return this.observeCurrentPlayer().pipe(
             switchMap((player) => (player ? player.observeCurrentTime() : EMPTY)),
@@ -126,7 +140,7 @@ export default class OmniPlayer<T> implements Player<T> {
 
     observeNowPlaying(station: PlaylistItem): Observable<PlaylistItem> {
         return this.observeCurrentPlayer().pipe(
-            switchMap((player) => player?.observeNowPlaying?.(station) || of(station)),
+            switchMap((player) => player?.observeNowPlaying?.(station) ?? of(station)),
             distinctUntilChanged(),
             filter(() => !this.silent)
         );

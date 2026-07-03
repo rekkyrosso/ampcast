@@ -19,7 +19,7 @@ export default class AudioMotionPlayer extends AbstractVisualizerPlayer<AudioMot
         super('audiomotion');
 
         this.source = source;
-        this.element.className = `visualizer visualizer-audiomotion`;
+        this.element.className = `visualizer-audiomotion visualizer`;
         this.element.hidden = true;
 
         this.visualizer = new AudioMotionAnalyzer(this.element, {

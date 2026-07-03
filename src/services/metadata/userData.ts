@@ -33,7 +33,7 @@ const userDataKeys: (keyof UserData | keyof ListenData | keyof TransientData)[] 
 
 export function removeUserData<T extends Partial<MediaItem>>(item: T): Subtract<T, UserData> {
     const keys = Object.keys(item) as (keyof T)[];
-    return keys.reduce(
+    const result = keys.reduce(
         (result, key) => {
             if (!userDataKeys.includes(key as any)) {
                 (result as any)[key] = item[key];
@@ -42,4 +42,8 @@ export function removeUserData<T extends Partial<MediaItem>>(item: T): Subtract<
         },
         {} as unknown as Subtract<T, UserData>
     );
+    if (result.plex) {
+        delete (result.plex as any).playQueueItemID
+    }
+    return result;
 }

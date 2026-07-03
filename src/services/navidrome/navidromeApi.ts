@@ -112,22 +112,20 @@ async function login(
         // ignore
     }
 
-    if (!response.ok) {
+    if (response.ok) {
+        const {token, subsonicSalt, subsonicToken, id: userId, username} = data;
+        const credentials = `u=${username}&s=${subsonicSalt}&t=${subsonicToken}&v=1.16.1&c=${__app_name__}&f=json`;
+        if (!token) {
+            throw Error('No token returned');
+        }
+        return JSON.stringify({userId, token, credentials});
+    } else {
         if (data?.error) {
             throw data.error;
         } else {
             throw response;
         }
     }
-
-    const {token, subsonicSalt, subsonicToken, id: userId, name} = data;
-    const credentials = `u=${name}&s=${subsonicSalt}&t=${subsonicToken}&v=1.16.1&c=${__app_name__}&f=json`;
-
-    if (!token) {
-        throw Error('No token returned');
-    }
-
-    return JSON.stringify({userId, token, credentials});
 }
 
 async function removeFromPlaylist(playlistId: string, ids: readonly string[]): Promise<void> {

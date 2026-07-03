@@ -1,11 +1,16 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {stopPropagation} from 'utils';
 import mediaPlayback from 'services/mediaPlayback';
+import mediaPlayer from 'services/mediaPlayback/mediaPlayer';
 import Icon from 'components/Icon';
 import {IconButton} from 'components/Button';
 import MediaButton from 'components/MediaControls/MediaButton';
+import useObservable from 'hooks/useObservable';
 import usePlaybackState from 'hooks/usePlaybackState';
 import {MediaControlsProps} from './MediaControls';
+
+const observeCanSkipNext = () => mediaPlayer.observeCanSkipNext();
+const observeCanSkipPrev = () => mediaPlayer.observeCanSkipPrev();
 
 export default function RadioButtons({overlay}: MediaControlsProps) {
     const Button = overlay ? IconButton : MediaButton;
@@ -13,6 +18,8 @@ export default function RadioButtons({overlay}: MediaControlsProps) {
     const {currentTime, startedAt} = usePlaybackState();
     const playbackStarted = currentTime >= 1 && Date.now() - startedAt >= 1000;
     const tabIndex = overlay ? -1 : undefined;
+    const canSkipNext = useObservable(observeCanSkipNext, false);
+    const canSkipPrev = useObservable(observeCanSkipPrev, false);
 
     useEffect(() => {
         if (playbackStarted) {
@@ -40,7 +47,7 @@ export default function RadioButtons({overlay}: MediaControlsProps) {
                 title="Previous radio track"
                 onClick={skipPrev}
                 onDoubleClick={stopPropagation}
-                disabled={disabled}
+                disabled={disabled || !canSkipPrev}
                 tabIndex={tabIndex}
             />
             <Button
@@ -48,7 +55,7 @@ export default function RadioButtons({overlay}: MediaControlsProps) {
                 title="Next radio track"
                 onClick={skipNext}
                 onDoubleClick={stopPropagation}
-                disabled={disabled}
+                disabled={disabled || !canSkipNext}
                 tabIndex={tabIndex}
             />
         </>

@@ -5,6 +5,7 @@ import DataService from 'types/DataService';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaServiceId from 'types/MediaServiceId';
+import Pager from 'types/Pager';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
 import {getTextFromHtml} from 'utils';
@@ -20,6 +21,7 @@ import {
     logout,
     reconnect,
 } from './lastfmAuth';
+import LastFmArtistRadioPager from './LastFmArtistRadioPager';
 import lastfmSettings from './lastfmSettings';
 import {scrobble} from './lastfmScrobbler';
 import lastfmSources, {lastfmScrobbles} from './lastfmSources';
@@ -51,6 +53,7 @@ const lastfm: DataService = {
     addMetadata,
     canStore,
     compareForRating,
+    createRadioPager,
     scrobble,
     store,
     observeConnecting,
@@ -94,6 +97,10 @@ function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
 
 function compareString(a: string, b = ''): boolean {
     return localeCompare(a, b) === 0;
+}
+
+function createRadioPager(item: MediaItem): Pager<MediaItem> {
+    return new LastFmArtistRadioPager(item);
 }
 
 async function addMetadata<T extends MediaObject>(item: T): Promise<T> {

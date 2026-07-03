@@ -4,7 +4,7 @@ import PlaylistItem from 'types/PlaylistItem';
 import {CoverArtVisualizer} from 'types/Visualizer';
 import {Logger} from 'utils';
 import {observeAudioSettings} from 'services/audio';
-import {observeCurrentItem} from 'services/playlist';
+import {observeCurrentItem} from 'services/mediaPlayback/playback';
 import {isProviderSupported} from '../visualizer';
 import AbstractVisualizerPlayer from '../AbstractVisualizerPlayer';
 import visualizerSettings, {observeVisualizerSettings} from '../visualizerSettings';

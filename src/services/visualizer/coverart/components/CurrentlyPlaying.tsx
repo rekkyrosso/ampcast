@@ -202,7 +202,7 @@ export default function CurrentlyPlaying({item, player, hidden = false}: Current
                     <div className="currently-playing-text">
                         <div className="metadata">
                             <h3 className="title">{item.title}</h3>
-                            {item.artists?.length ? (
+                            {item.artists?.length && item.linearType !== LinearType.Station ? (
                                 <h4 className="sub-title">
                                     {isPlayingTrack ? (
                                         <MediaSourceLabel

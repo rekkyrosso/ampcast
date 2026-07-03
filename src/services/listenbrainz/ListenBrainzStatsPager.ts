@@ -94,7 +94,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> extends Seque
             trackCount: undefined,
             pager: mbid
                 ? new MusicBrainzAlbumTracksPager(mbid)
-                : new ErrorPager(Error('No MusicBrainz id')),
+                : new ErrorPager(() => Error('No MusicBrainz id')),
         };
     }
 

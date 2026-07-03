@@ -81,8 +81,8 @@ export default class YouTubePlayer implements Player<MediaItem> {
 
         this.targetId = `youtube-iframe-${id}`;
 
-        element.hidden = true;
         element.className = 'youtube-video';
+        element.hidden = true;
         wrapper.className = 'youtube-video-wrapper';
         target.id = this.targetId;
         wrapper.append(target);

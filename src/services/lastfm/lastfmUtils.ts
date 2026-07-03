@@ -1,21 +1,31 @@
 import {nanoid} from 'nanoid';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
+import MediaServiceId from 'types/MediaServiceId';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
+import PlaybackType from 'types/PlaybackType';
+import {MAX_DURATION} from 'services/constants';
+import {MusicCatalogRequiredError} from 'services/errors';
+import {dispatchMetadataChanges} from 'services/metadata';
+import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
+import stationStore from 'services/internetRadio/stationStore';
 import WrappedPager from 'services/pagers/WrappedPager';
 import LastFmPager from './LastFmPager';
 import lastfmApi from './lastfmApi';
 import lastfmSettings from './lastfmSettings';
 
+const serviceId: MediaServiceId = 'lastfm';
+
 export function createMediaObjects<T extends MediaObject>(
     itemType: T['itemType'],
     items: readonly LastFm.MediaObject[],
-    playCountName: keyof LastFm.MediaObject = 'playcount',
+    playCountName: 'playcount' | 'userplaycount' = 'playcount',
     album?: LastFm.Album,
     inLibrary?: true | undefined
 ): readonly T[] {
@@ -39,9 +49,9 @@ export function createMediaObjects<T extends MediaObject>(
     }
 }
 
-function createMediaItem(
+export function createMediaItem(
     track: LastFm.Track,
-    playCountName: keyof LastFm.MediaObject,
+    playCountName: 'playcount' | 'userplaycount' = 'playcount',
     album?: LastFm.Album,
     inLibrary?: true | undefined
 ): MediaItem {
@@ -54,8 +64,8 @@ function createMediaItem(
         mediaType: MediaType.Audio,
         src:
             playedAt || isNowPlaying
-                ? `lastfm:listen:${isNowPlaying ? 'now-playing' : playedAt}`
-                : `lastfm:track:${nanoid()}`,
+                ? `${serviceId}:listen:${isNowPlaying ? 'now-playing' : playedAt}`
+                : `${serviceId}:track:${nanoid()}`,
         artists: track.artist ? [track.artist.name] : undefined,
         album: album?.name || track.album?.['#text'],
         albumArtist: album?.artist.name,
@@ -74,7 +84,7 @@ function createMediaAlbum(
 ): MediaAlbum {
     return {
         ...(createMediaObject(ItemType.Album, album, playCountName) as MediaAlbum),
-        src: `lastfm:album:${nanoid()}`,
+        src: `${serviceId}:album:${nanoid()}`,
         artist: album.artist.name,
         year: album.wiki?.published
             ? new Date(album.wiki.published).getFullYear() || undefined
@@ -89,7 +99,7 @@ function createMediaArtist(
 ): MediaArtist {
     return {
         ...(createMediaObject(ItemType.Artist, artist, playCountName) as MediaArtist),
-        src: `lastfm:artist:${nanoid()}`,
+        src: `${serviceId}:artist:${nanoid()}`,
         pager: createArtistAlbumsPager(artist),
     };
 }
@@ -99,9 +109,60 @@ function createArtistTopTracks(artist: LastFm.Artist): MediaAlbum {
         itemType: ItemType.Album,
         title: 'Top Tracks',
         thumbnails: lastfmApi.createThumbnails(artist.image),
-        src: `lastfm:top-tracks:${nanoid()}`,
+        src: `${serviceId}:top-tracks:${nanoid()}`,
         artist: artist.name,
         pager: createTopTracksPager(artist),
+        trackCount: undefined,
+        synthetic: true,
+    };
+}
+
+function createArtistRadios(artist: LastFm.Artist): MediaAlbum {
+    const artistName = artist.name;
+    const radiosId = `${serviceId}:radios`;
+    const radiosSrc = `${radiosId}:${artistName}`;
+    const radioSrc = `${serviceId}:artist-radio:${artistName}`;
+    const thumbnails = lastfmApi.createThumbnails(artist.image);
+
+    const radio: MediaItem = {
+        src: radioSrc,
+        title: `${artistName} - Radio`,
+        itemType: ItemType.Media,
+        mediaType: MediaType.Audio,
+        linearType: LinearType.Station,
+        playbackType: PlaybackType.Direct,
+        artists: [artistName],
+        duration: MAX_DURATION,
+        thumbnails,
+        playedAt: 0,
+        skippable: true,
+        isFavoriteStation: stationStore.isFavorite({src: radioSrc}),
+        synthetic: true,
+    };
+
+    // Synthetic album that contains the radio.
+    return {
+        itemType: ItemType.Album,
+        src: radiosSrc,
+        title: 'Radios',
+        artist: artistName,
+        thumbnails,
+        pager: new SimpleMediaPager(async () => {
+            if (MusicCatalogRequiredError.canIgnore(radiosId)) {
+                return [radio];
+            } else {
+                throw new MusicCatalogRequiredError(radiosId, () => {
+                    // This is the callback function when the user clicks
+                    // "proceed" to ignore the error message.
+
+                    // Replace this pager with one that will show the radios.
+                    dispatchMetadataChanges<MediaAlbum>({
+                        match: (object) => object.src === radiosSrc,
+                        values: {pager: new SimplePager([radio])},
+                    });
+                });
+            }
+        }),
         trackCount: undefined,
         synthetic: true,
     };
@@ -125,7 +186,8 @@ function createMediaObject(
 
 function createArtistAlbumsPager(artist: LastFm.Artist): Pager<MediaAlbum> {
     const topTracks = createArtistTopTracks(artist);
-    const topTracksPager = new SimplePager([topTracks]);
+    const radios = createArtistRadios(artist);
+    const syntheticAlbumsPager = new SimpleMediaPager(async () => [topTracks, radios]);
     const albumsPager = new LastFmPager<MediaAlbum>(
         {
             method: 'artist.getTopAlbums',
@@ -140,7 +202,7 @@ function createArtistAlbumsPager(artist: LastFm.Artist): Pager<MediaAlbum> {
         },
         {maxSize: 100, playCountName: 'userplaycount'}
     );
-    return new WrappedPager(topTracksPager, albumsPager);
+    return new WrappedPager(syntheticAlbumsPager, albumsPager);
 }
 
 function createAlbumTracksPager(album: LastFm.Album): Pager<MediaItem> {

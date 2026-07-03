@@ -92,7 +92,7 @@ function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
                     }
                 );
             } else {
-                return new ErrorPager('Not found');
+                return new ErrorPager(() => Error('Not found'));
             }
         },
     } as MediaSource<T>;

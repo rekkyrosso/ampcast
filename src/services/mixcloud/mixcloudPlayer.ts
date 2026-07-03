@@ -45,9 +45,9 @@ export class MixcloudPlayer implements Player<MediaItem> {
     #atEnd = false;
 
     constructor() {
-        this.element.hidden = true;
         this.element.className = 'mixcloud-player';
         this.element.allow = 'encrypted-media *; autoplay *;';
+        this.element.hidden = true;
         this.element.style.visibility = mixcloud.iframeAudioPlayback?.showContent
             ? 'inherit'
             : 'hidden';

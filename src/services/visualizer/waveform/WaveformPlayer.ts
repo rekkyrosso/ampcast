@@ -33,8 +33,8 @@ export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVis
         }
         this.source = source;
         this.analyser = context.createAnalyser();
+        this.canvas.className = `${name} visualizer`;
         this.canvas.hidden = true;
-        this.canvas.className = `visualizer ${name}`;
     }
 
     get hidden(): boolean {

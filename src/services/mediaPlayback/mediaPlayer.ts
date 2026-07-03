@@ -1,12 +1,13 @@
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
+import Player from 'types/Player';
 import PlaylistItem from 'types/PlaylistItem';
 import audio from 'services/audio';
 import preferences from 'services/preferences';
 import mixcloudPlayer from 'services/mixcloud/mixcloudPlayer';
 import soundcloudPlayer from 'services/soundcloud/soundcloudPlayer';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
-import DualAudioPlayer from './players/DualAudioPlayer';
+import GaplessPlayer from './players/GaplessPlayer';
 import HLSPlayer from './players/HLSPlayer';
 import hlsMetadataPlayer from './players/hlsMetadataPlayer';
 import HTML5Player from './players/HTML5Player';
@@ -14,37 +15,38 @@ import icecastPlayer from './players/icecastPlayer';
 import RadioPlayer from './players/RadioPlayer';
 import OmniPlayer from './players/OmniPlayer';
 
+// Audio players.
+const html5AudioPlayer = new HTML5Player(MediaType.Audio, 'main');
+const hlsAudioPlayer = new HLSPlayer(MediaType.Audio);
+const gaplessAudioPlayer = new GaplessPlayer(
+    new HTML5Player(MediaType.Audio, 'gapless', 1),
+    new HTML5Player(MediaType.Audio, 'gapless', 2)
+);
+
+// Video players.
+const hlsVideoPlayer = new HLSPlayer(MediaType.Video);
+const html5VideoPlayer = new HTML5Player(MediaType.Video, 'main');
+const youtubePlayer = new YouTubePlayer('main');
+
+// Radio player.
+const mainRadioPlayer = new OmniPlayer<MediaItem>('radioPlayer', [
+    html5AudioPlayer,
+    hlsAudioPlayer,
+    youtubePlayer, // last.fm radio lookups might return YouTube videos (unlikely, but possible).
+]);
+const radioPlayer = new RadioPlayer(
+    'main',
+    mainRadioPlayer,
+    (item) => item.src.includes(':radio:') || item.src.includes(':artist-radio:')
+);
+
 export class MediaPlayer extends OmniPlayer<PlaylistItem> {
     constructor() {
-        super('mediaPlayer');
-
-        // Audio players.
-        const hlsAudioPlayer = new HLSPlayer(MediaType.Audio);
-        const dualAudioPlayer = new DualAudioPlayer(
-            'main',
-            new HTML5Player(MediaType.Audio, 'main', 1),
-            new HTML5Player(MediaType.Audio, 'main', 2)
-        );
-
-        // Radio player.
-        const radioPlayer = new RadioPlayer(
-            'main',
-            new OmniPlayer<MediaItem>('html5Radio', [
-                new HTML5Player(MediaType.Audio, 'radio'),
-                new HLSPlayer(MediaType.Audio, 'radio'),
-            ]),
-            (item) => item.src.includes(':radio:') || item.src.includes(':artist-radio:')
-        );
-
-        // Video players.
-        const hlsVideoPlayer = new HLSPlayer(MediaType.Video);
-        const html5VideoPlayer = new HTML5Player(MediaType.Video, 'main');
-        const youtubePlayer = new YouTubePlayer('main');
-
-        // These selectors get evaluated in reverse order, so put defaults first.
-        this.addPlayers([
-            dualAudioPlayer,
+        // These players get evaluated in reverse order, so put defaults first.
+        super('mediaPlayer', [
+            html5AudioPlayer,
             html5VideoPlayer,
+            gaplessAudioPlayer,
             hlsAudioPlayer,
             hlsVideoPlayer,
             icecastPlayer,
@@ -72,6 +74,10 @@ export class MediaPlayer extends OmniPlayer<PlaylistItem> {
     set volume(volume: number) {
         super.volume = volume;
         audio.volume = this.muted ? 0 : this.volume;
+    }
+
+    addRadioPlayer(player: Player<MediaItem>): void {
+        mainRadioPlayer.addPlayer(player);
     }
 
     protected validate(item: PlaylistItem | null): item is PlaylistItem {

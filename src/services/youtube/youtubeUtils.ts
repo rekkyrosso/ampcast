@@ -1,6 +1,7 @@
 import ItemType from 'types/ItemType';
 import MediaItem from 'types/MediaItem';
 import MediaPlaylist from 'types/MediaPlaylist';
+import MediaServiceId from 'types/MediaServiceId';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import PlaybackType from 'types/PlaybackType';
@@ -11,8 +12,10 @@ import youtube from './youtube';
 import youtubeApi from './youtubeApi';
 import YouTubePager from './YouTubePager';
 
+const serviceId: MediaServiceId = 'youtube';
+
 export function createMediaPlaylist(playlist: gapi.client.youtube.Playlist): MediaPlaylist {
-    const src = `youtube:playlist:${playlist.id}`;
+    const src = `${serviceId}:playlist:${playlist.id}`;
     return {
         src,
         itemType: ItemType.Playlist,
@@ -36,7 +39,7 @@ export function createMediaItem(video: gapi.client.youtube.Video, position?: num
         itemType: ItemType.Media,
         mediaType: MediaType.Video,
         playbackType: PlaybackType.IFrame,
-        src: `youtube:video:${video.id}`,
+        src: `${serviceId}:video:${video.id}`,
         externalUrl: youtubeApi.getVideoUrl(video.id!),
         title: video.snippet?.title || video.id!,
         duration: parseISO8601(video.contentDetails?.duration || ''),

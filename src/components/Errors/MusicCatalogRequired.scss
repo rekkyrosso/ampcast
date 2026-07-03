@@ -1,0 +1,21 @@
+.music-catalog-required {
+    font-size: max(0.75em, 11px);
+
+    p {
+        margin-top: 1em;
+
+        &:has(button) {
+            margin-top: 1.5em;
+        }
+    }
+
+    .prevent-future-messages {
+        display: flex;
+        flex-direction: row;
+        align-items: center;
+        margin-top: 2em;
+        font-size: max(0.875em, 9px);
+        font-style: italic;
+        line-height: normal;
+    }
+}

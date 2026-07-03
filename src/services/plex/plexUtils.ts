@@ -10,6 +10,7 @@ import MediaFolderItem from 'types/MediaFolderItem';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
+import MediaServiceId from 'types/MediaServiceId';
 import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
 import ParentOf from 'types/ParentOf';
@@ -32,6 +33,8 @@ import PlexPager, {PlexPlaylistItemsPager} from './PlexPager';
 import {plexAlbumsSortMap, plexArtistAlbumsSort} from './plexSorting';
 
 const logger = new Logger('plexUtils');
+
+const serviceId: MediaServiceId = 'plex';
 
 export function createMediaObjects<T extends MediaObject>(
     objects: readonly plex.MediaObject[],
@@ -278,7 +281,7 @@ function createMediaPlaylist(playlist: plex.Playlist, noPager?: boolean): MediaP
 }
 
 function createRadioStation(radio: plex.Radio): MediaItem {
-    const src = `plex:radio:${radio.key}`;
+    const src = `${serviceId}:radio:${radio.key}`;
     return {
         src,
         title: radio.title,
@@ -297,7 +300,7 @@ function createRadioStation(radio: plex.Radio): MediaItem {
 function createMediaFolder(folder: plex.Folder, parent?: MediaObject): MediaFolder {
     const mediaFolder: Writable<SetOptional<MediaFolder, 'pager'>> = {
         itemType: ItemType.Folder,
-        src: `plex:folder:${folder.key}`,
+        src: `${serviceId}:folder:${folder.key}`,
         title: folder.title,
         fileName: folder.title,
         path: parent?.itemType === ItemType.Folder ? `${parent.path}/${folder.title}` : '/',
@@ -407,7 +410,7 @@ function getRating(rating: number | undefined): number | undefined {
 }
 
 function getSrc(type: string, object: plex.MediaObject): string {
-    return `plex:${type}:${object.ratingKey || nanoid()}`;
+    return `${serviceId}:${type}:${object.ratingKey || nanoid()}`;
 }
 
 function createThumbnails(thumb: string): Thumbnail[] | undefined {
@@ -487,7 +490,7 @@ export function createArtistAlbumsPager(
 function createArtistOtherTracks(artist: MediaArtist): MediaAlbum {
     return {
         itemType: ItemType.Album,
-        src: `plex:other-tracks:${getMediaObjectId(artist)}`,
+        src: `${serviceId}:other-tracks:${getMediaObjectId(artist)}`,
         title: artist.synthetic ? 'Tracks' : 'Other Tracks',
         artist: artist.title,
         thumbnails: artist.thumbnails,
@@ -500,7 +503,7 @@ function createArtistOtherTracks(artist: MediaArtist): MediaAlbum {
 function createArtistAllTracks(artist: MediaArtist): MediaAlbum {
     return {
         itemType: ItemType.Album,
-        src: `plex:all-tracks:${getMediaObjectId(artist)}`,
+        src: `${serviceId}:all-tracks:${getMediaObjectId(artist)}`,
         title: 'All Tracks',
         artist: artist.title,
         thumbnails: artist.thumbnails,
@@ -513,7 +516,7 @@ function createArtistAllTracks(artist: MediaArtist): MediaAlbum {
 function createArtistVideos(artist: MediaArtist): MediaAlbum {
     return {
         itemType: ItemType.Album,
-        src: `plex:videos:${getMediaObjectId(artist)}`,
+        src: `${serviceId}:videos:${getMediaObjectId(artist)}`,
         title: 'Music Videos',
         artist: artist.title,
         thumbnails: artist.thumbnails,
@@ -525,7 +528,7 @@ function createArtistVideos(artist: MediaArtist): MediaAlbum {
 
 function createArtistRadios(artist: MediaArtist): MediaAlbum {
     const id = getMediaObjectId(artist);
-    const src = `plex:artist-radio:${id}`;
+    const src = `${serviceId}:artist-radio:${id}`;
     const radio: MediaItem = {
         src,
         title: `${artist.title} - Radio`,
@@ -542,7 +545,7 @@ function createArtistRadios(artist: MediaArtist): MediaAlbum {
     };
     return {
         itemType: ItemType.Album,
-        src: `plex:radios:${id}`,
+        src: `${serviceId}:radios:${id}`,
         title: 'Radios',
         artist: artist.title,
         thumbnails: artist.thumbnails,

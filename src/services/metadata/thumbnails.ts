@@ -1,6 +1,7 @@
 import getYouTubeID from 'get-youtube-id';
 import unidecode from 'unidecode';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
@@ -18,8 +19,13 @@ export async function findThumbnails(
     extendedSearch = false,
     signal?: AbortSignal
 ): Promise<readonly Thumbnail[] | undefined> {
-    if (!item || (item.itemType !== ItemType.Album && item.itemType !== ItemType.Media)) {
-        return undefined;
+    if (
+        !item ||
+        item.synthetic ||
+        (item.itemType !== ItemType.Album && item.itemType !== ItemType.Media) ||
+        (item.itemType === ItemType.Media && item.linearType === LinearType.Station)
+    ) {
+        return;
     }
     if (item.itemType === ItemType.Media) {
         const externalUrl = item.link?.externalUrl;

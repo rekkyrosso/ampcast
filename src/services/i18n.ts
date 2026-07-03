@@ -4,10 +4,11 @@ export function t(string: string): string {
     // Let's keep this simple for now.
     if (string && !en_us) {
         return string
-            .replaceAll(/(F)avorit(e[ds]?|ing)\b/gi, '$1avourit$2')
-            .replaceAll(/(C)olor(s?)\b/gi, '$1olour$2')
-            .replaceAll(/(B)ehavior\b/gi, '$1ehaviour')
-            .replaceAll(/iz(e[drs]?|ing)\b/gi, 'is$1');
+            .replaceAll(/(F|f)avorit(e[ds]?|ing)\b/g, '$1avourit$2')
+            .replaceAll(/(C|c)olor(s?)\b/g, '$1olour$2')
+            .replaceAll(/(B|b)ehavior\b/g, '$1ehaviour')
+            .replaceAll(/(C|c)atalog\b/g, '$1atalogue')
+            .replaceAll(/iz(e[drs]?|ing)\b/g, 'is$1');
     }
     return string;
 }

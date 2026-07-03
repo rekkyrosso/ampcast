@@ -4,6 +4,7 @@ import {
     BehaviorSubject,
     Subject,
     catchError,
+    combineLatest,
     debounceTime,
     distinctUntilChanged,
     filter,
@@ -56,7 +57,6 @@ export default class RadioPlayer implements Player<MediaItem> {
         this.observePaused()
             .pipe(
                 filter((paused) => !paused),
-                take(1),
                 switchMap(() => this.observeStation()),
                 switchMap((station) => {
                     if (station && station.src !== this.loadedSrc) {
@@ -212,6 +212,20 @@ export default class RadioPlayer implements Player<MediaItem> {
         this.player.volume = volume;
     }
 
+    observeCanSkipNext(): Observable<boolean> {
+        return combineLatest([this.position$, this.observeSize()]).pipe(
+            map(([position, size]) => position < size),
+            distinctUntilChanged()
+        );
+    }
+
+    observeCanSkipPrev(): Observable<boolean> {
+        return this.position$.pipe(
+            map((position) => position !== 0),
+            distinctUntilChanged()
+        );
+    }
+
     observeCurrentTime(): Observable<number> {
         return this.player.observeCurrentTime();
     }
@@ -283,11 +297,7 @@ export default class RadioPlayer implements Player<MediaItem> {
     }
 
     async skipPrev(): Promise<void> {
-        if (this.position === 0) {
-            this.seek(0);
-        } else {
-            return this.skipTo(this.position - 1);
-        }
+        return this.skipTo(this.position - 1);
     }
 
     resize(width: number, height: number): void {
@@ -311,8 +321,7 @@ export default class RadioPlayer implements Player<MediaItem> {
     }
 
     private get size(): number {
-        // Accommodate sparse arrays (`IndexedPager`).
-        return this.tracks.reduce((total) => (total += 1), 0);
+        return this.count(this.tracks);
     }
 
     private get src(): string | undefined {
@@ -321,6 +330,14 @@ export default class RadioPlayer implements Player<MediaItem> {
 
     private observePaused(): Observable<boolean> {
         return this.paused$.pipe(distinctUntilChanged());
+    }
+
+    private observeSize(): Observable<number> {
+        return this.pager$.pipe(
+            switchMap((pager) => (pager ? pager.observeItems() : of([]))),
+            map((items) => this.count(items)),
+            distinctUntilChanged()
+        );
     }
 
     private observeStation(): Observable<MediaItem | null> {
@@ -393,5 +410,10 @@ export default class RadioPlayer implements Player<MediaItem> {
                 )
             );
         }
+    }
+
+    private count<T>(items: readonly T[]): number {
+        // Accommodate sparse arrays (`IndexedPager`).
+        return items.reduce((total) => (total += 1), 0);
     }
 }

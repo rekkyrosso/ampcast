@@ -10,8 +10,9 @@ const soundcloud: PublicMediaService = {
     url: 'https://soundcloud.com',
     serviceType: ServiceType.PublicMedia,
     iframeAudioPlayback: {
-        showContent: true,
-        isCoverArt: true,
+        // The SoundCloud player shows mainly interactive content.
+        // Use CoverArt visualizer instead.
+        showCoverArt: true,
     },
     compareForRating: () => false,
 };

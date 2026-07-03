@@ -22,7 +22,7 @@ export default function useSource<T extends MediaObject>(
             return () => pager?.disconnect();
         } catch (err) {
             if (err instanceof MediaSourceError) {
-                const pager = new ErrorPager<T>(err);
+                const pager = new ErrorPager<T>(() => err);
                 setPager(pager);
             } else {
                 throw err;

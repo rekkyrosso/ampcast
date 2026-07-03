@@ -17,7 +17,7 @@ import Player from 'types/Player';
 import {AmbientVideoVisualizer} from 'types/Visualizer';
 import {observeAudioSettings} from 'services/audio';
 import HTML5Player from 'services/mediaPlayback/players/HTML5Player';
-import {getCurrentItem, observeCurrentItem} from 'services/playlist';
+import playback, {observeCurrentItem} from 'services/mediaPlayback/playback';
 import YouTubePlayer from 'services/youtube/YouTubePlayer';
 import OmniPlayer from 'services/mediaPlayback/players/OmniPlayer';
 import {LiteStorage, Logger} from 'utils';
@@ -76,7 +76,7 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
 
     set hidden(hidden: boolean) {
         this.videoPlayer.hidden = hidden;
-        this.beatsPlayer.hidden = hidden || !this.canShowBeats(getCurrentItem());
+        this.beatsPlayer.hidden = hidden || !this.canShowBeats(playback.currentItem);
     }
 
     observeCurrentTime(): Observable<number> {

@@ -8,6 +8,7 @@ import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
+import MediaServiceId from 'types/MediaServiceId';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import ParentOf from 'types/ParentOf';
@@ -25,10 +26,6 @@ import pinStore from 'services/pins/pinStore';
 import stationStore from 'services/internetRadio/stationStore';
 import MusicKitPager, {MusicKitPlaylistItemsPager} from './MusicKitPager';
 import {refreshToken} from './appleAuth';
-
-const logger = new Logger('MusicKitUtils');
-
-const webHost = 'https://music.apple.com';
 
 type LibrarySong = Omit<AppleMusicApi.Song, 'type'> & {type: 'library-songs'};
 type MusicVideo = Omit<AppleMusicApi.Song, 'type'> & {type: 'music-videos'};
@@ -61,6 +58,11 @@ export type MusicKitItem =
     | AppleMusicApi.Playlist
     | LibraryPlaylist
     | Station;
+
+const serviceId: MediaServiceId = 'apple';
+const webHost = 'https://music.apple.com';
+
+const logger = new Logger('MusicKitUtils');
 
 export async function musicKitFetch<T = any>(
     href: string,
@@ -143,7 +145,7 @@ export function createNowPlayingItem(
         return {
             ...createMediaItem(nowPlaying),
             id: nanoid(),
-            src: `apple:songs:${nowPlaying.id}`,
+            src: `${serviceId}:songs:${nowPlaying.id}`,
             linearType: LinearType.MusicTrack,
             stationName: station.title,
             stationSrc: station.src,
@@ -159,7 +161,7 @@ function createMediaPlaylist(
         playlist
     );
     const description = item.description?.standard || item.description?.short;
-    const src = `apple:${playlist.type}:${playlist.id}`;
+    const src = `${serviceId}:${playlist.type}:${playlist.id}`;
     const catalogId = getCatalogId(playlist);
 
     const mediaPlaylist: Writable<SetOptional<SetRequired<MediaPlaylist, 'apple'>, 'pager'>> = {
@@ -196,7 +198,7 @@ function createMediaArtist(
 
     return {
         itemType: ItemType.Artist,
-        src: `apple:${artist.type}:${artist.id}`,
+        src: `${serviceId}:${artist.type}:${artist.id}`,
         externalUrl: item.url,
         title: item.name,
         description: description ? getTextFromHtml(description) : undefined,
@@ -212,7 +214,7 @@ function createMediaAlbum(
     position?: number
 ): SetRequired<MediaAlbum, 'apple'> {
     const item = createFromLibrary<AppleMusicApi.Album['attributes']>(album);
-    const src = `apple:${album.type}:${album.id}`;
+    const src = `${serviceId}:${album.type}:${album.id}`;
     const description = item.editorialNotes?.standard || item.editorialNotes?.short;
     const catalogId = getCatalogId(album);
     const releaseDate = new Date(item.releaseDate);
@@ -261,7 +263,7 @@ function createMediaItem(
         id: song.id,
         kind: song.type === 'music-videos' ? 'musicVideo' : 'song',
     };
-    const src = `apple:${song.type}:${id}`;
+    const src = `${serviceId}:${song.type}:${id}`;
     const description = item.editorialNotes?.standard || item.editorialNotes?.short;
     const isLibraryItem = song.type.startsWith('library-');
     const isPlaylistItem = parent?.itemType === ItemType.Playlist;
@@ -316,7 +318,7 @@ function createFromTimedMetadata(data: MusicKit.TimedMetadata, station?: MediaIt
             return {url, width: size, height: size};
         });
     return {
-        src: `apple:${type}:${id}`,
+        src: `${serviceId}:${type}:${id}`,
         linearType: type === 'shows' ? LinearType.Show : LinearType.MusicTrack,
         itemType: ItemType.Media,
         mediaType: MediaType.Audio,
@@ -339,7 +341,7 @@ function createRadioItem(station: Station): SetRequired<MediaItem, 'apple'> {
     const attributes = station.attributes;
     const description = attributes.editorialNotes?.standard || attributes.editorialNotes?.short;
     const catalogId = getCatalogId(station);
-    const src = `apple:${station.type}:${station.id}`;
+    const src = `${serviceId}:${station.type}:${station.id}`;
 
     const mediaItem: Writable<SetRequired<MediaItem, 'apple'>> = {
         src,
@@ -443,7 +445,7 @@ function createArtistTopTracks(
 
     return {
         itemType: ItemType.Album,
-        src: `apple:top-tracks:${artist.id}`,
+        src: `${serviceId}:top-tracks:${artist.id}`,
         title: 'Top Tracks',
         thumbnails: createThumbnails(item as any),
         artist: item.name,
@@ -461,7 +463,7 @@ function createArtistRadios(artist: AppleMusicApi.Artist | LibraryArtist): Media
 
     return {
         itemType: ItemType.Album,
-        src: `apple:radios:${artist.id}`,
+        src: `${serviceId}:radios:${artist.id}`,
         title: 'Radios',
         thumbnails: createThumbnails(item as any),
         artist: item.name,
@@ -479,7 +481,7 @@ function createArtistVideos(artist: AppleMusicApi.Artist | LibraryArtist): Media
 
     return {
         itemType: ItemType.Album,
-        src: `apple:videos:${artist.id}`,
+        src: `${serviceId}:videos:${artist.id}`,
         title: 'Music Videos',
         thumbnails: createThumbnails(item as any),
         artist: item.name,

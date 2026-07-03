@@ -25,7 +25,7 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
 
         this.context = context;
         this.source = source;
-        this.canvas.className = 'visualizer visualizer-butterchurn';
+        this.canvas.className = 'visualizer-butterchurn visualizer';
         this.canvas.hidden = true;
 
         observeVisualizerSettings()

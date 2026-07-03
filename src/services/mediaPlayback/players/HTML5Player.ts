@@ -49,18 +49,16 @@ export default class HTML5Player implements Player<MediaItem> {
         index?: 1 | 2
     ) {
         const type = this.type;
-        this.logger = new Logger(`HTML5Player/${type}/${name}${index ? '-' + index : ''}`);
+        name = index ? `${name}-${index}` : name;
+        this.logger = new Logger(`HTML5Player/${type}/${name}`);
 
         const element = this.element;
+        element.className = `html5-${type}-${name} html5-${type}`;
         element.hidden = true;
         element.muted = mediaType === MediaType.Video;
         element.volume = 1;
         element.autoplay = false;
         element.preload = 'metadata';
-        element.className = `html5-${type} html5-${type}-${name}`;
-        if (index) {
-            element.id = `html5-${type}-${name}-${index}`;
-        }
         element.crossOrigin = 'anonymous';
 
         // Load new items.
@@ -289,7 +287,6 @@ export default class HTML5Player implements Player<MediaItem> {
     }
 
     seek(time: number): void {
-        this.logger.log('seek', time, this.currentTime);
         if (!this.isInfiniteStream) {
             this.element.currentTime = time;
         }

@@ -1,4 +1,5 @@
 import React from 'react';
+import LinearType from 'types/LinearType';
 import {isMiniPlayer} from 'utils';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useCurrentTrack from 'hooks/useCurrentTrack';
@@ -21,7 +22,7 @@ export default function Interstitial() {
                 {item ? (
                     <>
                         <h2 className="title">{item.title}</h2>
-                        {item.artists?.length ? (
+                        {item.artists?.length && item.linearType !== LinearType.Station ? (
                             <>
                                 <span className="by">by</span>
                                 <h3 className="sub-title">{item.artists.join(', ')}</h3>

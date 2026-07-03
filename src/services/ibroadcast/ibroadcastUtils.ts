@@ -5,6 +5,7 @@ import MediaArtist from 'types/MediaArtist';
 import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
+import MediaServiceId from 'types/MediaServiceId';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import SortParams from 'types/SortParams';
@@ -15,6 +16,8 @@ import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import pinStore from 'services/pins/pinStore';
 import ibroadcastLibrary from './ibroadcastLibrary';
 import IBroadcastPlaylistItemsPager from './IBroadcastPlaylistItemsPager';
+
+const serviceId: MediaServiceId = 'ibroadcast';
 
 export function createMediaObject<T extends MediaObject>(
     section: iBroadcast.LibrarySection,
@@ -47,7 +50,7 @@ function createMediaArtist(
     const trackIds: number[] | undefined = artist[map.tracks];
     const mediaArtist: Writable<SetOptional<MediaArtist, 'pager'>> = {
         itemType: ItemType.Artist,
-        src: `ibroadcast:artist:${id}`,
+        src: `${serviceId}:artist:${id}`,
         externalUrl: trackIds ? getExternalUrl(id, 'artists') : undefined,
         title: artist[map.name],
         rating: artist[map.rating],
@@ -104,7 +107,7 @@ export function createArtistAlbumsPager(
             if (otherTrackIds.length > 0) {
                 const otherTracksAlbum: MediaAlbum = {
                     itemType: ItemType.Album,
-                    src: `ibroadcast:other-tracks:${id}`,
+                    src: `${serviceId}:other-tracks:${id}`,
                     title: 'Other Tracks',
                     artist: artist[artistMap.name],
                     thumbnails: createThumbnails(artist[artistMap.artwork_id]),
@@ -120,7 +123,7 @@ export function createArtistAlbumsPager(
         }
         const allTracksAlbum: MediaAlbum = {
             itemType: ItemType.Album,
-            src: `ibroadcast:${hasAlbums ? 'all' : 'other'}-tracks:${id}`,
+            src: `${serviceId}:${hasAlbums ? 'all' : 'other'}-tracks:${id}`,
             title: hasAlbums ? 'All Tracks' : 'Tracks',
             artist: artist[artistMap.name],
             thumbnails: createThumbnails(artist[artistMap.artwork_id]),
@@ -147,7 +150,7 @@ function createMediaAlbum(id: number, library: iBroadcast.Library): MediaAlbum {
     const firstTrack = tracks[trackIds[0]];
     return {
         itemType: ItemType.Album,
-        src: `ibroadcast:album:${id}`,
+        src: `${serviceId}:album:${id}`,
         externalUrl: getExternalUrl(id, 'albums'),
         title: album[map.name],
         thumbnails: createThumbnails(firstTrack?.[tracks.map.artwork_id]),
@@ -171,7 +174,7 @@ export function createMediaPlaylist(
     const playlists = library.playlists;
     const playlist = playlists[id];
     const map = playlists.map;
-    const src = `ibroadcast:playlist:${id}`;
+    const src = `${serviceId}:playlist:${id}`;
     const trackIds: number[] = playlist[map.tracks];
     const owned = !playlist[map.type];
     const mediaPlaylist: Writable<SetOptional<MediaPlaylist, 'pager'>> = {
@@ -225,7 +228,7 @@ export function createMediaItem(
     return {
         itemType: ItemType.Media,
         mediaType: MediaType.Audio,
-        src: `ibroadcast:track:${id}`,
+        src: `${serviceId}:track:${id}`,
         // externalUrl: getExternalUrl(id, 'tracks'), // Doesn't work.
         title: track[map.title],
         fileName: track[map.file],

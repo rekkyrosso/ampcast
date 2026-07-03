@@ -8,7 +8,7 @@ let mainPlayQueueItemID = 0;
 
 export async function reportStart(item: MediaItem): Promise<void> {
     try {
-        if (!item.linearType) {
+        if (!item.plex?.playQueueItemID) {
             mainPlayQueueItemID = 0;
             const playQueue = await plexApi.createPlayQueue(item);
             mainPlayQueueItemID = playQueue.playQueueSelectedItemID;
@@ -44,7 +44,7 @@ async function reportState(
     state: 'stopped' | 'paused' | 'playing' | 'buffering' | 'error',
     currentTime = 0
 ): Promise<void> {
-    const playQueueItemID = item.linearType ? item.plex?.playQueueItemID : mainPlayQueueItemID;
+    const playQueueItemID = item.plex?.playQueueItemID || mainPlayQueueItemID;
     if (playQueueItemID) {
         const [, , ratingKey] = item.src.split(':');
         await plexApi.fetch({

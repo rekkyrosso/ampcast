@@ -40,6 +40,7 @@ export class MusicKitPlayer implements Player<MediaItem> {
     private readonly error$ = new Subject<unknown>();
     private readonly element: HTMLElement;
     private readonly item$ = new BehaviorSubject<MediaItem | null>(null);
+    private readonly position$ = new BehaviorSubject(0);
     private loadedSrc = '';
     private hasWaited = false;
     private ended = false;
@@ -53,9 +54,9 @@ export class MusicKitPlayer implements Player<MediaItem> {
 
     constructor() {
         const element = (this.element = document.createElement('div'));
-        element.hidden = true;
-        element.className = 'apple-video';
         element.id = 'apple-music-video-container';
+        element.className = 'apple-video';
+        element.hidden = true;
 
         // Load new tracks.
         this.observePaused()
@@ -156,6 +157,28 @@ export class MusicKitPlayer implements Player<MediaItem> {
     set volume(volume: number) {
         this.#volume = volume;
         this.synchVolume();
+    }
+
+    observeCanSkipNext(): Observable<boolean> {
+        return this.item$.pipe(
+            switchMap((item) =>
+                item?.linearType && !item.isLivePlayback
+                    ? this.position$.pipe(map((position) => position < this.size))
+                    : of(false)
+            ),
+            distinctUntilChanged()
+        );
+    }
+
+    observeCanSkipPrev(): Observable<boolean> {
+        return this.item$.pipe(
+            switchMap((item) =>
+                item?.linearType && !item.isLivePlayback
+                    ? this.position$.pipe(map((position) => position !== 0))
+                    : of(false)
+            ),
+            distinctUntilChanged()
+        );
     }
 
     observeCurrentTime(): Observable<number> {
@@ -287,6 +310,10 @@ export class MusicKitPlayer implements Player<MediaItem> {
 
     private get paused(): boolean {
         return this.paused$.value;
+    }
+
+    private get size(): number {
+        return this.player?.queue.length || 0;
     }
 
     private get src(): string | undefined {
@@ -573,11 +600,13 @@ export class MusicKitPlayer implements Player<MediaItem> {
     };
 
     private readonly onQueuePositionDidChange: any = ({
+        position,
         oldPosition,
     }: {
-        oldPosition: number;
         position: number;
+        oldPosition: number;
     }) => {
+        this.position$.next(position);
         if (oldPosition !== -1 && !this.skipping && !this.isLinear) {
             this.ended$.next();
         }

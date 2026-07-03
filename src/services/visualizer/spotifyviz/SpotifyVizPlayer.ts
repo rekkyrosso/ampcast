@@ -35,7 +35,7 @@ export default class SpotifyVizPlayer extends AbstractVisualizerPlayer<SpotifyVi
         super('spotifyviz');
 
         this.canvas.hidden = true;
-        this.canvas.className = `visualizer visualizer-spotifyviz`;
+        this.canvas.className = `visualizer-spotifyviz visualizer`;
 
         const analyser = this.analyser;
 

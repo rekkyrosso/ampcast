@@ -51,7 +51,7 @@ export default function CoverArtVisualizer() {
     }, [item, changed, currentIndex]);
 
     return (
-        <div className="visualizer visualizer-coverart" ref={ref}>
+        <div className="visualizer-coverart visualizer" ref={ref}>
             <CurrentlyPlaying
                 item={item0}
                 player={player?.player0}
