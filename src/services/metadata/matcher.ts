@@ -241,6 +241,18 @@ function compareTitleStrings(match: MediaItem, matchedTitle: string, title: stri
     return false;
 }
 
+const splitTitle = /(\s-|\(|\[|\||\s\/)/;
+
+export function fuzzyCompareTrackTitles(artist: string, a: string, b: string): boolean {
+    const regArtist = new RegExp(
+        `\\s?[-–/:]?\\s?${RegExp.escape(artist.toLowerCase())}\\s?[-–/:]?\\s?`,
+        'g'
+    );
+    a = a.toLowerCase().replaceAll(regArtist, ' ').split(splitTitle)[0];
+    b = b.toLowerCase().replaceAll(regArtist, ' ').split(splitTitle)[0];
+    return fuzzyCompare(normalize(a, true), normalize(b, true), 0.75);
+}
+
 function compareAlbum<T extends MediaItem>(match: MediaItem, item: T, strict: boolean): boolean {
     if (!match.album || !item.album) {
         return false;
@@ -311,11 +323,12 @@ function stringIncludes(a: string, b = ''): boolean {
 }
 
 function normalize(string: string, removeTagsAndSymbols?: boolean): string {
-    let result = unidecode(string).replace(/\s\s+/g, ' ').trim();
+    let result = unidecode(string.replaceAll(' & ', ' and ').replace(/\s\s+/g, ' ').trim());
     if (removeTagsAndSymbols) {
         result = result
             .replace(/^\[[^\]]*\]\s*|\s*\[[^\]]*\]$|\s*\([^)]*\)$/g, '') // remove tags
             .replace(/[\x21-\x2f]|[\x3a-\x40]|[\x5b-\x60]|[\x7b-\x7f]/g, '') // remove symbols
+            .replace(/\s\s+/g, ' ')
             .trim();
     }
     return result;

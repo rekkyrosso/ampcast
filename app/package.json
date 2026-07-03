@@ -80,6 +80,7 @@
         "linux": {
             "target": [
                 "AppImage",
+                "deb",
                 "tar.xz"
             ],
             "icon": "assets/icons/ampcast.png",

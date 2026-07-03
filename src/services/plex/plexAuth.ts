@@ -1,5 +1,13 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, Subject, distinctUntilChanged, filter, mergeMap} from 'rxjs';
+import {
+    EMPTY,
+    BehaviorSubject,
+    Subject,
+    distinctUntilChanged,
+    filter,
+    mergeMap,
+    switchMap,
+} from 'rxjs';
 import {Logger, openLoginPopup, partition, uniqBy} from 'utils';
 import {getReadableErrorMessage} from 'services/errors';
 import plexSettings from './plexSettings';
@@ -53,15 +61,15 @@ export async function login(): Promise<void> {
         try {
             connecting$.next(true);
             connectionLogging$.next('');
-            const {id, accessToken} = await connect();
+            const {id, accessToken} = await obtainAccessToken();
             plexSettings.userId = id;
             accessToken$.next(accessToken);
         } catch (err) {
             logger.error(err);
             connectionLogging$.next(`Failed to connect: '${getReadableErrorMessage(err)}'`);
             await refreshPin();
+            connecting$.next(false);
         }
-        connecting$.next(false);
     }
 }
 
@@ -75,15 +83,8 @@ export async function logout(): Promise<void> {
 
 export async function reconnect(): Promise<void> {
     if (plexSettings.accessToken) {
-        connecting$.next(true);
         accessToken$.next(plexSettings.accessToken);
     }
-}
-
-async function connect(): Promise<{id: string; accessToken: string}> {
-    const {id, accessToken} = await obtainAccessToken();
-    await establishConnection(accessToken);
-    return {id, accessToken};
 }
 
 async function obtainAccessToken(): Promise<{id: string; accessToken: string}> {
@@ -151,40 +152,43 @@ async function obtainAccessToken(): Promise<{id: string; accessToken: string}> {
     });
 }
 
-async function establishConnection(accessToken: string): Promise<void> {
-    const {server, connection} = plexSettings;
-    if (server && connection) {
-        connectionLogging$.next('Trying existing connection…');
-        if (await testConnection(server, connection)) {
-            return;
-        } else {
-            plexSettings.server = null;
-            plexSettings.connection = null;
+async function establishConnection(accessToken: string): Promise<boolean> {
+    try {
+        const {server, connection} = plexSettings;
+        if (server && connection) {
+            connectionLogging$.next('Trying existing connection…');
+            if (await testConnection(server, connection)) {
+                return true;
+            }
         }
-    }
 
-    connectionLogging$.next(`Searching for ${connection ? 'a new' : 'a'} connection…`);
+        connectionLogging$.next(`Searching for ${connection ? 'a new' : 'a'} connection…`);
 
-    const servers = await plexApi.getServers(accessToken);
+        const servers = await plexApi.getServers(accessToken);
 
-    if (servers.length === 0) {
-        const message = 'Could not find a Plex server';
-        connectionLogging$.next(message);
-        throw Error(message);
-    }
-
-    for (const server of servers) {
-        const connection = await getConnection(server);
-        if (connection) {
-            plexSettings.server = server;
-            plexSettings.connection = connection;
-            return;
+        if (servers.length === 0) {
+            connectionLogging$.next('Could not find a Plex server');
+            return false;
         }
-    }
 
-    const message = 'Could not establish a connection';
-    connectionLogging$.next(message);
-    throw Error(message);
+        for (const server of servers) {
+            const connection = await getConnection(server);
+            if (connection) {
+                plexSettings.server = server;
+                plexSettings.connection = connection;
+                connectionLogging$.next('Connection established');
+                return true;
+            }
+        }
+
+        connectionLogging$.next('Could not establish a connection');
+        return false;
+    } catch (err: any) {
+        connectionLogging$.next('Error establishing a connection');
+        connectionLogging$.next(`ERROR: ${getReadableErrorMessage(err)}`);
+        logger.error(err);
+        return false;
+    }
 }
 
 export async function getConnection(server: plex.Device): Promise<plex.Connection | null> {
@@ -256,6 +260,8 @@ async function testConnection(server: plex.Device, connection: plex.Connection):
 observeAccessToken()
     .pipe(
         filter((token) => !!token),
+        mergeMap((token) => establishConnection(token)),
+        filter((connected) => connected),
         mergeMap(() => checkConnection())
     )
     .subscribe(isLoggedIn$);
@@ -268,7 +274,7 @@ async function checkConnection(): Promise<boolean> {
         if (err.status === 401) {
             plexSettings.clear();
             accessToken$.next('');
-            connectionLogging$.next('Connection failed');
+            connectionLogging$.next('Not authorized');
             return false;
         } else {
             logger.error(err);
@@ -280,6 +286,10 @@ async function checkConnection(): Promise<boolean> {
     }
 }
 
-observeConnectionLogging()
-    .pipe(filter((status) => status !== ''))
+// Logging.
+observeConnecting()
+    .pipe(
+        switchMap((connecting) => (connecting ? observeConnectionLogging() : EMPTY)),
+        filter((status) => !!status)
+    )
     .subscribe(logger.rx());

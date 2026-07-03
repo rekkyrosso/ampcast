@@ -3,7 +3,7 @@ import ItemType from 'types/ItemType';
 import Lyrics, {SyncedLyric} from 'types/Lyrics';
 import MediaItem from 'types/MediaItem';
 import MediaType from 'types/MediaType';
-import {filterNotEmpty} from 'utils';
+import {filterNotEmpty, uniqBy} from 'utils';
 
 type LyricsItem = MediaItem & Pick<LRCLIB.Lyrics, 'plainLyrics' | 'syncedLyrics'>;
 
@@ -54,12 +54,17 @@ function createMediaItem(lyrics: LRCLIB.Lyrics): LyricsItem {
 }
 
 function parseSyncedLyrics(lyrics: string | null): Lyrics['synced'] | undefined {
-    return lyrics
-        ?.split(/\n/)
-        .map(parseSyncedLyric)
-        .map((lyric, index, lyrics) => {
-            return {...lyric, endTime: lyrics.at(index + 1)?.startTime || 0};
-        });
+    if (lyrics) {
+        return uniqBy(
+            'startTime',
+            lyrics
+                ?.split(/\n/)
+                .map(parseSyncedLyric)
+                .map((lyric, index, lyrics) => {
+                    return {...lyric, endTime: lyrics.at(index + 1)?.startTime || 0};
+                })
+        );
+    }
 }
 
 function parseSyncedLyric(line: string): Pick<SyncedLyric, 'startTime' | 'text'> {

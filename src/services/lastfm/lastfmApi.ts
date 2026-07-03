@@ -102,19 +102,30 @@ export class LastFmApi {
         return item;
     }
 
-    async getArtistTopTracks(artist: string, limit = 20): Promise<readonly LastFm.Track[]> {
+    async getArtistTopTracks(
+        artist: string,
+        mbid = '',
+        limit = 20
+    ): Promise<readonly LastFm.Track[]> {
         const {toptracks} = await this.get<{toptracks: any}>({
             method: 'artist.getTopTracks',
             artist,
+            mbid,
             limit,
         });
         return toptracks.track;
     }
 
-    async getSimilarArtists(artist: string, limit = 20): Promise<readonly LastFm.Artist[]> {
+    async getSimilarArtists(
+        artist: string,
+        mbid = '',
+        limit = 20
+    ): Promise<readonly LastFm.Artist[]> {
         const {similarartists} = await this.get<{similarartists: any}>({
             method: 'artist.getSimilar',
             artist,
+            mbid,
+            autocorrect: '1',
             limit,
         });
         return similarartists.artist;
