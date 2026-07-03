@@ -32,6 +32,10 @@ jobs:
         working-directory: ./app
         run: npm install
 
-      - name: Build and package electron app
+      - name: Build and package linux app
         working-directory: ./app
         run: npm exec electron-builder -- --publish always --linux
+
+      - name: Build and package linux-arm64 app
+        working-directory: ./app
+        run: npm exec electron-builder -- --publish always --linux --arm64

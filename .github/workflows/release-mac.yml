@@ -49,6 +49,6 @@ jobs:
         working-directory: ./app
         run: python -m castlabs_evs.account reauth -A ${{secrets.CASTLABS_ACCOUNT_NAME}} -P ${{secrets.CASTLABS_PASSWORD}}
 
-      - name: Build and package electron app
+      - name: Build and package mac app
         working-directory: ./app
         run: npm exec electron-builder -- --publish always --mac
