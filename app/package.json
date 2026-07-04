@@ -23,7 +23,7 @@
     },
     "devDependencies": {
         "@electron/notarize": "^3.1.0",
-        "electron": "github:castlabs/electron-releases#v41.7.1+wvcus",
+        "electron": "github:castlabs/electron-releases#v43.0.0+wvcus",
         "electron-builder": "^26.15.2"
     },
     "dependencies": {
@@ -80,7 +80,6 @@
         "linux": {
             "target": [
                 "AppImage",
-                "deb",
                 "tar.xz"
             ],
             "icon": "assets/icons/ampcast.png",

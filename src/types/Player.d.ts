@@ -27,6 +27,6 @@ export default interface Player<T> {
     observeCanSkipNext?(): Observable<boolean>;
     observeCanSkipPrev?(): Observable<boolean>;
     observeNowPlaying?(item: PlaylistItem): Observable<PlaylistItem>;
-    skipNext?(): Promise<void>; 
+    skipNext?(): Promise<void>;
     skipPrev?(): Promise<void>;
 }

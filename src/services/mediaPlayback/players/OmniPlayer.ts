@@ -31,7 +31,9 @@ export default class OmniPlayer<T> implements Player<T> {
 
     constructor(id: string, players: Player<T>[] = []) {
         this.element.id = id;
-        this.addPlayers(players);
+        for (const player of players) {
+            this.addPlayer(player);
+        }
     }
 
     get autoplay(): boolean {
@@ -165,12 +167,6 @@ export default class OmniPlayer<T> implements Player<T> {
             }
             player.appendTo(this.element);
             this.players.push(player);
-        }
-    }
-
-    addPlayers(players: readonly Player<T>[]): void {
-        for (const player of players) {
-            this.addPlayer(player);
         }
     }
 

@@ -144,18 +144,15 @@ export default class AmbientVideoPlayer extends AbstractVisualizerPlayer<Ambient
     private createVideoPlayer(beatsPlayer: Player<any>): Player<AmbientVideoVisualizer> {
         const html5Player = new HTML5Player(MediaType.Video, 'ambient');
         const youtubePlayer = this.createYouTubePlayer();
-        const videoPlayer = new OmniPlayer<AmbientVideoVisualizer>('ambientVideoPlayer');
+        const videoPlayer = new OmniPlayer<AmbientVideoVisualizer>('ambientVideoPlayer', [
+            html5Player,
+            youtubePlayer,
+            beatsPlayer, // Register the beats player so that it gets appended to the DOM.
+        ]);
 
         videoPlayer.loop = true;
         videoPlayer.volume = 0;
         videoPlayer.hidden = true;
-
-        // Register the beats player so that it gets appended to the DOM.
-        // But we don't really want it controlled after that.
-        videoPlayer.addPlayers(
-            // These selectors get evaluated in reverse order, so put defaults first.
-            [html5Player, youtubePlayer, beatsPlayer]
-        );
 
         return videoPlayer;
     }

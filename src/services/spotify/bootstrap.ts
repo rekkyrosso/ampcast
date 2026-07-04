@@ -3,6 +3,4 @@ import spotifyAudioAnalyser from './spotifyAudioAnalyser';
 import spotifyPlayer from './spotifyPlayer';
 
 spotifyAudioAnalyser.player = spotifyPlayer;
-
-mediaPlayer.addRadioPlayer(spotifyPlayer);
-mediaPlayer.addPlayer(spotifyPlayer); // Do this last.
+mediaPlayer.addPlayer(spotifyPlayer, true);

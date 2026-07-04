@@ -35,7 +35,3 @@ jobs:
       - name: Build and package linux app
         working-directory: ./app
         run: npm exec electron-builder -- --publish always --linux
-
-      - name: Build and package linux-arm64 app
-        working-directory: ./app
-        run: npm exec electron-builder -- --publish always --linux --arm64

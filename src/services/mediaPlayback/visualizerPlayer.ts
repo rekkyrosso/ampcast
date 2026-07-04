@@ -21,7 +21,7 @@ observeVisualizerProviders()
     .pipe(
         skipWhile((providers) => providers.length === 0),
         map((providers) => providers.map((provider) => provider.createPlayer(audio))),
-        tap((players) => visualizerPlayer.addPlayers(players)),
+        tap((players) => players.forEach((player) => visualizerPlayer.addPlayer(player))),
         switchMap(() => miniPlayer.observeActive()),
         switchMap((active) => (active ? of(noVisualizer) : observeNextVisualizer())),
         tap((visualizer) => visualizerPlayer.load(visualizer)),

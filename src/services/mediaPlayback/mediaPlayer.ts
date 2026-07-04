@@ -29,16 +29,11 @@ const html5VideoPlayer = new HTML5Player(MediaType.Video, 'main');
 const youtubePlayer = new YouTubePlayer('main');
 
 // Radio player.
-const mainRadioPlayer = new OmniPlayer<MediaItem>('radioPlayer', [
+const radioPlayer = new RadioPlayer([
     html5AudioPlayer,
     hlsAudioPlayer,
     youtubePlayer, // last.fm radio lookups might return YouTube videos (unlikely, but possible).
 ]);
-const radioPlayer = new RadioPlayer(
-    'main',
-    mainRadioPlayer,
-    (item) => item.src.includes(':radio:') || item.src.includes(':artist-radio:')
-);
 
 export class MediaPlayer extends OmniPlayer<PlaylistItem> {
     constructor() {
@@ -76,8 +71,11 @@ export class MediaPlayer extends OmniPlayer<PlaylistItem> {
         audio.volume = this.muted ? 0 : this.volume;
     }
 
-    addRadioPlayer(player: Player<MediaItem>): void {
-        mainRadioPlayer.addPlayer(player);
+    addPlayer(player: Player<MediaItem>, addToRadioPlayer?: boolean): void {
+        if (addToRadioPlayer) {
+            radioPlayer.addPlayer(player);
+        }
+        super.addPlayer(player);
     }
 
     protected validate(item: PlaylistItem | null): item is PlaylistItem {

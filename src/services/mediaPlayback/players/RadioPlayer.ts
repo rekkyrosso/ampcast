@@ -31,9 +31,12 @@ import PlaylistItem from 'types/PlaylistItem';
 import {Logger} from 'utils';
 import observeNearEnd from 'services/mediaPlayback/players/observeNearEnd';
 import {getServiceFromSrc} from 'services/mediaServices';
+import OmniPlayer from './OmniPlayer';
+
+const logger = new Logger('radioPlayer');
 
 export default class RadioPlayer implements Player<MediaItem> {
-    private readonly logger: Logger;
+    private readonly player: OmniPlayer<MediaItem>;
     private readonly station$ = new BehaviorSubject<MediaItem | null>(null);
     private readonly pager$ = new BehaviorSubject<Pager<MediaItem> | null>(null);
     private readonly paused$ = new BehaviorSubject(true);
@@ -46,12 +49,8 @@ export default class RadioPlayer implements Player<MediaItem> {
     private loadedSrc = '';
     #autoplay = false;
 
-    constructor(
-        name: string,
-        private readonly player: Player<MediaItem>,
-        readonly canPlay: (item: MediaItem) => boolean
-    ) {
-        const logger = (this.logger = new Logger(`RadioPlayer/${name}`));
+    constructor(players?: Player<MediaItem>[]) {
+        this.player = new OmniPlayer('radioPlayer', players);
 
         // Load new radio stations.
         this.observePaused()
@@ -254,12 +253,20 @@ export default class RadioPlayer implements Player<MediaItem> {
         );
     }
 
+    addPlayer(player: Player<MediaItem>): void {
+        this.player.addPlayer(player);
+    }
+
     appendTo(parentElement: HTMLElement): void {
         this.player.appendTo(parentElement);
     }
 
+    canPlay(item: MediaItem): boolean {
+        return item.src.includes(':radio:') || item.src.includes(':artist-radio:');
+    }
+
     load(station: MediaItem): void {
-        this.logger.log('load', station.src);
+        logger.log('load', station.src);
         const isLoaded = station.src === this.loadedSrc; // Do this before updating `station$` stream (synchronous).
         this.station$.next(station);
         this.paused$.next(!this.autoplay);
@@ -269,7 +276,7 @@ export default class RadioPlayer implements Player<MediaItem> {
     }
 
     play(): void {
-        this.logger.log('play');
+        logger.log('play');
         this.paused$.next(false);
         if (this.src === this.loadedSrc) {
             this.player.play();
@@ -277,13 +284,13 @@ export default class RadioPlayer implements Player<MediaItem> {
     }
 
     pause(): void {
-        this.logger.log('pause');
+        logger.log('pause');
         this.paused$.next(true);
         this.player.pause();
     }
 
     stop(): void {
-        this.logger.log('stop');
+        logger.log('stop');
         this.paused$.next(true);
         this.player.stop();
     }
@@ -321,7 +328,7 @@ export default class RadioPlayer implements Player<MediaItem> {
     }
 
     private get size(): number {
-        return this.count(this.tracks);
+        return this.#count(this.tracks);
     }
 
     private get src(): string | undefined {
@@ -335,7 +342,7 @@ export default class RadioPlayer implements Player<MediaItem> {
     private observeSize(): Observable<number> {
         return this.pager$.pipe(
             switchMap((pager) => (pager ? pager.observeItems() : of([]))),
-            map((items) => this.count(items)),
+            map((items) => this.#count(items)),
             distinctUntilChanged()
         );
     }
@@ -392,7 +399,7 @@ export default class RadioPlayer implements Player<MediaItem> {
                 items[position] = item; // Mutate.
             }
         } catch (err) {
-            this.logger.error(err);
+            logger.error(err);
         }
         return item;
     }
@@ -412,7 +419,7 @@ export default class RadioPlayer implements Player<MediaItem> {
         }
     }
 
-    private count<T>(items: readonly T[]): number {
+    #count<T>(items: readonly T[]): number {
         // Accommodate sparse arrays (`IndexedPager`).
         return items.reduce((total) => (total += 1), 0);
     }
