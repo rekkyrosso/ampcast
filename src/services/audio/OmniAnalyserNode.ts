@@ -1,9 +1,10 @@
 import {fromEvent, takeUntil} from 'rxjs';
 import PlaybackState from 'types/PlaybackState';
+import type {SpotifyAudioAnalyser} from 'services/spotify/spotifyAudioAnalyser';
 import {getPlaybackState, observePlaybackState} from 'services/mediaPlayback/playback';
-import spotifyAudioAnalyser from 'services/spotify/spotifyAudioAnalyser';
 
 export default class OmniAnalyserNode extends AnalyserNode {
+    static spotifyAudioAnalyser: SpotifyAudioAnalyser | undefined;
     #isPlayingSpotify = false;
 
     constructor(context: BaseAudioContext, options?: AnalyserOptions) {
@@ -23,13 +24,9 @@ export default class OmniAnalyserNode extends AnalyserNode {
             });
     }
 
-    get isPlayingSpotify(): boolean {
-        return this.#isPlayingSpotify;
-    }
-
     getByteFrequencyData(data: Uint8Array<ArrayBuffer>): void {
         if (this.#isPlayingSpotify) {
-            spotifyAudioAnalyser.getByteFrequencyData(data);
+            this.spotifyAnalyser?.getByteFrequencyData(data);
         } else {
             super.getByteFrequencyData(data);
         }
@@ -37,7 +34,7 @@ export default class OmniAnalyserNode extends AnalyserNode {
 
     getByteTimeDomainData(data: Uint8Array<ArrayBuffer>): void {
         if (this.#isPlayingSpotify) {
-            spotifyAudioAnalyser.getByteTimeDomainData(data);
+            this.spotifyAnalyser?.getByteTimeDomainData(data);
         } else {
             super.getByteTimeDomainData(data);
         }
@@ -45,7 +42,7 @@ export default class OmniAnalyserNode extends AnalyserNode {
 
     getFloatFrequencyData(data: Float32Array<ArrayBuffer>): void {
         if (this.#isPlayingSpotify) {
-            spotifyAudioAnalyser.getFloatFrequencyData(data);
+            this.spotifyAnalyser?.getFloatFrequencyData(data);
         } else {
             super.getFloatFrequencyData(data);
         }
@@ -53,9 +50,13 @@ export default class OmniAnalyserNode extends AnalyserNode {
 
     getFloatTimeDomainData(data: Float32Array<ArrayBuffer>): void {
         if (this.#isPlayingSpotify) {
-            spotifyAudioAnalyser.getFloatTimeDomainData(data);
+            this.spotifyAnalyser?.getFloatTimeDomainData(data);
         } else {
             super.getFloatTimeDomainData(data);
         }
+    }
+
+    private get spotifyAnalyser(): SpotifyAudioAnalyser | undefined {
+        return OmniAnalyserNode.spotifyAudioAnalyser;
     }
 }

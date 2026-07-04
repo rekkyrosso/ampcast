@@ -1,4 +1,3 @@
-import {v4 as uuid} from 'uuid';
 import MiniSearch from 'minisearch';
 import unidecode from 'unidecode';
 import {Except} from 'type-fest';
@@ -13,7 +12,16 @@ import {Page} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PlaybackType from 'types/PlaybackType';
 import {NoMusicLibraryError} from 'services/errors';
-import {browser, canPlayMedia, getMediaObjectId, groupBy, partition, uniq, uniqBy} from 'utils';
+import {
+    browser,
+    canPlayMedia,
+    getMediaObjectId,
+    groupBy,
+    partition,
+    uniq,
+    uniqBy,
+    uuid4,
+} from 'utils';
 import plexItemType from './plexItemType';
 import plexMediaType from './plexMediaType';
 import plexSettings from './plexSettings';
@@ -211,7 +219,7 @@ async function createPlayQueue(
     const [, type, id] = src.split(':');
     const key =
         type === 'artist-radio'
-            ? `/library/metadata/${id}/station/${uuid()}?type=10`
+            ? `/library/metadata/${id}/station/${uuid4()}?type=10`
             : type === 'radio'
               ? id
               : `/library/metadata/${id}`;

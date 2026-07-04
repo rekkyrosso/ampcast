@@ -48,7 +48,6 @@
         "semver": "^7.8.5",
         "string-score": "^1.0.1",
         "unidecode": "^1.0.1",
-        "uuid": "^14.0.1",
         "youtube-player": "^5.5.2"
     },
     "devDependencies": {

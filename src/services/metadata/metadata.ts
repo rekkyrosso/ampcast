@@ -1,4 +1,4 @@
-import {IcecastReadableStream} from 'icecast-metadata-js';
+import IcecastReadableStream from 'icecast-metadata-js/src/IcecastReadableStream';
 import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
 import MediaItem from 'types/MediaItem';

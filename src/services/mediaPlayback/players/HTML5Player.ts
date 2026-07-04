@@ -23,7 +23,7 @@ import PlaylistItem from 'types/PlaylistItem';
 import Player from 'types/Player';
 import {Logger} from 'utils';
 import {MAX_DURATION} from 'services/constants';
-import {observeInternetRadioTrack} from 'services/internetRadio';
+import observeInternetRadioTrack from 'services/internetRadio/observeInternetRadioTrack';
 import {getServiceFromSrc, waitForLogin} from 'services/mediaServices';
 
 export default class HTML5Player implements Player<MediaItem> {

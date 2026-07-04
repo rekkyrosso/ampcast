@@ -59,6 +59,7 @@ module.exports = (args) => {
             'lib/music-metadata': 'music-metadata',
             'lib/unidecode': 'unidecode',
             'lib/vendors': [
+                '@ctrl/tinycolor',
                 'colorjs.io',
                 'colorthief',
                 'd3-array',
@@ -67,12 +68,17 @@ module.exports = (args) => {
                 'detect-browser',
                 'dexie',
                 'jsfft',
+                'icecast-metadata-js/src/IcecastReadableStream',
                 'is-electron',
                 'md5',
                 'minisearch',
+                'nanoid',
                 'react',
-                'react-dom',
+                'react-dom/client',
                 'react-error-boundary',
+                'rxjs',
+                'semver/functions/coerce',
+                'semver/functions/gte',
                 'string-score',
                 'youtube-player',
             ],
@@ -199,10 +205,6 @@ module.exports = (args) => {
                 ? undefined
                 : new CopyPlugin({
                       patterns: [
-                          {
-                              from: './src/service-worker.js',
-                              to: wwwDir,
-                          },
                           {
                               from: './src/service-worker-v2.js',
                               to: wwwDir,

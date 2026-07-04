@@ -47,8 +47,8 @@ declare module 'string-score' {
     export default 'string-score' as (target: string, query: string, fuzziness?: number) => number;
 }
 
-declare module 'icecast-metadata-js' {
-    export class IcecastReadableStream {
+declare module 'icecast-metadata-js/src/IcecastReadableStream' {
+    export default class IcecastReadableStream {
         constructor(
             response: Response,
             options: {
