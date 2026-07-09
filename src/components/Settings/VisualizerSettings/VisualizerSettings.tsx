@@ -1,24 +1,26 @@
-import React, {useMemo} from 'react';
-import {t} from 'services/i18n';
-import TabList, {TabItem} from 'components/TabList';
-import VisualizerSettingsGeneral from './VisualizerSettingsGeneral';
-import VisualizerFavorites from './VisualizerFavorites';
-import './VisualizerSettings.scss';
+import React, {Suspense, lazy, useEffect} from 'react';
+import {firstValueFrom, map} from 'rxjs';
+import {
+    loadVisualizers,
+    observeVisualizerComponents,
+} from 'services/visualizer/visualizerProviders';
+
+const LazyVisualizerSettings = lazy(() => getVisualizerSettings());
 
 export default function VisualizerSettings() {
-    const tabs: TabItem[] = useMemo(
-        () => [
-            {
-                tab: 'General',
-                panel: <VisualizerSettingsGeneral />,
-            },
-            {
-                tab: t('Favorites'),
-                panel: <VisualizerFavorites />,
-            },
-        ],
-        []
-    );
+    useEffect(() => {
+        loadVisualizers();
+    }, []);
 
-    return <TabList className="visualizer-settings" items={tabs} label="Visualizers" />;
+    return (
+        <Suspense fallback={<div className="visualizer-settings" />}>
+            <LazyVisualizerSettings />
+        </Suspense>
+    );
+}
+
+function getVisualizerSettings(): Promise<{default: React.FC}> {
+    return firstValueFrom(
+        observeVisualizerComponents().pipe(map(({Settings}) => ({default: Settings})))
+    );
 }

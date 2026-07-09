@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useId, useMemo, useRef, useState} from 'react';
 import MediaType from 'types/MediaType';
 import VisualizerSettings from 'types/VisualizerSettings';
+import {VisualizerSettingsComponentHandle} from 'types/VisualizerComponents';
 import {t} from 'services/i18n';
 import {isProviderSupported, observeVisualizerProvider} from 'services/visualizer';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
@@ -9,34 +10,27 @@ import {DialogButtons} from 'components/Dialog';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useObservable from 'hooks/useObservable';
 import useVisualizerProviders from 'hooks/useVisualizerProviders';
-import AmbientVideoSettings from './AmbientVideoSettings';
-import AmpshaderSettings from './AmpshaderSettings';
-import ButterchurnSettings from './ButterchurnSettings';
-import CoverArtSettings from './CoverArtSettings';
 import VisualizerRandomness from './VisualizerRandomness';
 import useVisualizerFavorites from './useVisualizerFavorites';
 
 export default function VisualizerSettingsGeneral() {
     const id = useId();
+    const componentRef = useRef<VisualizerSettingsComponentHandle>(null);
     const submitted = useRef(false);
     const originalSettings = useMemo(() => ({...visualizerSettings}), []);
     const favorites = useVisualizerFavorites();
     const providers = useVisualizerProviders();
-    const [provider, setProvider] = useState<string>(originalSettings.provider);
+    const [providerId, setProviderId] = useState<string>(originalSettings.provider);
     const currentProvider = useObservable(observeVisualizerProvider, originalSettings.provider);
-    const isCurrentProvider = provider === currentProvider;
-    const [ambientVideoSource, setAmbientVideoSource] = useState(
-        visualizerSettings.ambientVideoSource
-    );
-    const [useAmbientVideoSource, setUseAmbientVideoSource] = useState(
-        visualizerSettings.useAmbientVideoSource
-    );
+    const isCurrentProvider = providerId === currentProvider;
+    const selectedProvider = providers.find((provider) => provider.id === providerId);
+    const Component = selectedProvider?.Components?.Settings;
 
     const useProvider = useCallback(() => {
-        if (provider !== 'all') {
-            visualizerSettings.provider = provider as VisualizerSettings['provider'];
+        if (providerId !== 'all') {
+            visualizerSettings.provider = providerId as VisualizerSettings['provider'];
         }
-    }, [provider]);
+    }, [providerId]);
 
     useEffect(() => {
         return () => {
@@ -52,9 +46,8 @@ export default function VisualizerSettingsGeneral() {
 
     const handleSubmit = useCallback(() => {
         submitted.current = true;
-        visualizerSettings.useAmbientVideoSource = useAmbientVideoSource;
-        visualizerSettings.ambientVideoSource = ambientVideoSource;
-    }, [ambientVideoSource, useAmbientVideoSource]);
+        componentRef.current?.submit?.();
+    }, []);
 
     return (
         <form className="visualizer-settings-general" method="dialog" onSubmit={handleSubmit}>
@@ -63,7 +56,7 @@ export default function VisualizerSettingsGeneral() {
                 <select
                     id={`${id}-provider`}
                     defaultValue={originalSettings.provider}
-                    onChange={(e) => setProvider(e.target.value)}
+                    onChange={(e) => setProviderId(e.target.value)}
                     key={providers.length}
                 >
                     <option value="all">(all)</option>
@@ -79,34 +72,25 @@ export default function VisualizerSettingsGeneral() {
                 <Button
                     className={`use-provider ${isCurrentProvider ? 'in-use' : ''}`}
                     type="button"
-                    disabled={isCurrentProvider || provider === 'all'}
+                    disabled={isCurrentProvider || providerId === 'all'}
                     onClick={useProvider}
                 >
                     {isCurrentProvider ? 'current provider' : 'Use this provider'}
                 </Button>
             </p>
-            {provider === 'all' ? (
+            {Component ? (
+                <Component ref={componentRef} />
+            ) : providerId === 'all' ? (
                 <AllProvidersSettings />
-            ) : provider === 'random' ? (
+            ) : providerId === 'random' ? (
                 <VisualizerRandomness />
-            ) : provider === 'ambientvideo' ? (
-                <AmbientVideoSettings
-                    onAmbientVideoSourceChange={setAmbientVideoSource}
-                    onUseAmbientVideoSourceChange={setUseAmbientVideoSource}
-                />
-            ) : provider === 'ampshader' ? (
-                <AmpshaderSettings />
-            ) : provider === 'butterchurn' ? (
-                <ButterchurnSettings />
-            ) : provider === 'coverart' ? (
-                <CoverArtSettings />
             ) : (
                 <NoOptions />
             )}
-            {provider === 'favorites' && favorites.length === 0 ? (
+            {providerId === 'favorites' && favorites.length === 0 ? (
                 <p className="compatibility">You don&apos;t have any {t('favorites')}.</p>
-            ) : ['all', 'none', 'favorites', 'random', 'coverart'].includes(provider) ? null : (
-                <Compatibility provider={provider} />
+            ) : ['all', 'none', 'favorites', 'random', 'coverart'].includes(providerId) ? null : (
+                <Compatibility provider={providerId} />
             )}
             <DialogButtons />
         </form>

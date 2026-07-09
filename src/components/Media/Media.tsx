@@ -1,12 +1,10 @@
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useRef, useState} from 'react';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import {isMiniPlayer} from 'utils';
 import {getServiceFromSrc} from 'services/mediaServices';
 import mediaPlayback from 'services/mediaPlayback';
 import miniPlayer from 'services/mediaPlayback/miniPlayer';
-import './Visualizer.scss';
-import CoverArtVisualizer from 'components/CoverArtVisualizer';
 import useBaseFontSize from 'hooks/useBaseFontSize';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useCurrentVisualizer from 'hooks/useCurrentVisualizer';
@@ -17,6 +15,7 @@ import useOnResize from 'hooks/useOnResize';
 import usePaused from 'hooks/usePaused';
 import useVisualizerSettings from 'hooks/useVisualizerSettings';
 import Interstitial from './Interstitial';
+import Players from './Players';
 import ProgressBar from './ProgressBar';
 import VisualizerControls from './VisualizerControls';
 import useLoadingState from './useLoadingState';
@@ -26,7 +25,6 @@ export default memo(function Media() {
     const ref = useRef<HTMLDivElement>(null);
     const [style, setStyle] = useState<React.CSSProperties>({});
     const baseFontSize = useBaseFontSize();
-    const playersRef = useRef<HTMLDivElement>(null);
     const {fullscreenProgress, provider} = useVisualizerSettings();
     const miniPlayerActive = useMiniPlayerActive();
     const isFullscreen = useIsFullscreen();
@@ -48,10 +46,6 @@ export default memo(function Media() {
                 loadingState !== 'loading'));
     const isIdle = !useMouseBusy(ref.current, 4000);
     const paused = usePaused();
-
-    useEffect(() => {
-        mediaPlayback.appendTo(playersRef.current!);
-    }, []);
 
     useOnResize(ref, ({width, height}) => {
         setStyle({
@@ -92,8 +86,7 @@ export default memo(function Media() {
             style={style}
             ref={ref}
         >
-            <div id="players" ref={playersRef} />
-            <CoverArtVisualizer />
+            <Players />
             <Interstitial />
             {(isFullscreen || isMiniPlayer) && fullscreenProgress ? <ProgressBar /> : null}
             <VisualizerControls fullscreen={isFullscreen} onFullscreenToggle={toggleFullscreen} />

@@ -2,6 +2,7 @@ import VisualizerProvider from 'types/VisualizerProvider';
 import {ButterchurnVisualizer} from 'types/Visualizer';
 import ButterchurnPlayer from './ButterchurnPlayer';
 import {getVisualizers, observeVisualizers} from './visualizers';
+import ButterchurnSettings from './components/ButterchurnSettings';
 
 const butterchurn: VisualizerProvider<ButterchurnVisualizer> = {
     id: 'butterchurn',
@@ -10,6 +11,9 @@ const butterchurn: VisualizerProvider<ButterchurnVisualizer> = {
     externalUrl: 'https://butterchurnviz.com/',
     get visualizers() {
         return getVisualizers();
+    },
+    Components: {
+        Settings: ButterchurnSettings,
     },
     observeVisualizers,
     createPlayer(audio) {

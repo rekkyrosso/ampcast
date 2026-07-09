@@ -15,12 +15,12 @@ import PlaylistItem from 'types/PlaylistItem';
 export type CanPlay<T> = (src: T) => boolean;
 
 export default class OmniPlayer<T> implements Player<T> {
-    private readonly element = document.createElement('div');
     private readonly players: Player<T>[] = [];
     private readonly player$ = new BehaviorSubject<Player<T> | null>(null);
     private readonly error$ = new Subject<unknown>();
     private stopped = true;
     private silent = true;
+    #element: HTMLElement = document.createElement('div');
     #loadError: Error | null = null;
     #autoplay = false;
     #loop = false;
@@ -281,6 +281,14 @@ export default class OmniPlayer<T> implements Player<T> {
         return src ? (this.players.findLast((player) => player.canPlay(src)) ?? null) : null;
     }
 
+    useElement(element: HTMLElement): void {
+        element.hidden = this.hidden;
+        for (const player of this.players) {
+            player.appendTo(element);
+        }
+        this.#element = element;
+    }
+
     protected get currentPlayer(): Player<T> | null {
         return this.player$.value;
     }
@@ -306,5 +314,9 @@ export default class OmniPlayer<T> implements Player<T> {
             throw Error('No source');
         }
         return true;
+    }
+
+    private get element(): HTMLElement {
+        return this.#element;
     }
 }

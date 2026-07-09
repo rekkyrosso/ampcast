@@ -14,7 +14,7 @@ export default function CoverArtVisualizer() {
     );
 }
 
-async function getCoverArtVisualizer(): Promise<{default: React.FC}> {
+function getCoverArtVisualizer(): Promise<{default: React.FC}> {
     return firstValueFrom(
         observeVisualizerProviders().pipe(
             mergeMap((providers) => providers),

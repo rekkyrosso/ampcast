@@ -78,11 +78,6 @@ export function observePlaying(): Observable<void> {
     return observeActivePlayer().pipe(switchMap((player) => player.observePlaying()));
 }
 
-function appendTo(parentElement: HTMLElement): void {
-    mediaPlayer.appendTo(parentElement);
-    visualizerPlayer.appendTo(parentElement);
-}
-
 export function eject(): void {
     logger.log('eject');
     if (mediaPlayback.stopAfterCurrent) {
@@ -398,7 +393,6 @@ const mediaPlayback: MediaPlayback = {
     observeEnded,
     observeError,
     observePlaying,
-    appendTo,
     eject,
     load,
     loadAndPlay,

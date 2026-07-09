@@ -2,6 +2,7 @@ import VisualizerProvider from 'types/VisualizerProvider';
 import {AmbientVideoVisualizer} from 'types/Visualizer';
 import AmbientVideoPlayer from './AmbientVideoPlayer';
 import {getVisualizers, observeVisualizers} from './visualizers';
+import AmbientVideoSettings from './components/AmbientVideoSettings';
 
 const ambientvideo: VisualizerProvider<AmbientVideoVisualizer> = {
     id: 'ambientvideo',
@@ -9,6 +10,9 @@ const ambientvideo: VisualizerProvider<AmbientVideoVisualizer> = {
     defaultHidden: true,
     get visualizers() {
         return getVisualizers();
+    },
+    Components: {
+        Settings: AmbientVideoSettings,
     },
     observeVisualizers,
     createPlayer(audio) {

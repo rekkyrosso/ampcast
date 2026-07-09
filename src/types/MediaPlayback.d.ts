@@ -4,7 +4,7 @@ import PlaylistItem from './PlaylistItem';
 import RepeatMode from './RepeatMode';
 
 export default interface MediaPlayback extends SetRequired<
-    Except<Player<PlaylistItem | null>, 'loop' | 'canPlay'>,
+    Except<Player<PlaylistItem | null>, 'loop' | 'appendTo' | 'canPlay'>,
     'skipNext' | 'skipPrev'
 > {
     repeatMode: RepeatMode;

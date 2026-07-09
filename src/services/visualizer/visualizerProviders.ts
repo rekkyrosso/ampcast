@@ -1,12 +1,18 @@
 import type {Observable} from 'rxjs';
-import {BehaviorSubject, map, mergeMap, of, skipWhile, switchMap, tap} from 'rxjs';
+import {BehaviorSubject, filter, map, mergeMap, of, skipWhile, switchMap, tap} from 'rxjs';
 import Visualizer from 'types/Visualizer';
+import VisualizerComponents from 'types/VisualizerComponents';
 import VisualizerProvider from 'types/VisualizerProvider';
-import {loadLibrary, Logger} from 'utils';
+import {exists, loadLibrary, Logger} from 'utils';
 
 const logger = new Logger('visualizerProviders');
 
+const visualizerComponents$ = new BehaviorSubject<VisualizerComponents | null>(null);
 const visualizerProviders$ = new BehaviorSubject<readonly VisualizerProvider[]>([]);
+
+export function observeVisualizerComponents(): Observable<VisualizerComponents> {
+    return visualizerComponents$.pipe(filter(exists));
+}
 
 export function observeVisualizerProviders(): Observable<readonly VisualizerProvider[]> {
     return visualizerProviders$;
@@ -42,18 +48,18 @@ export function getVisualizerProvider(providerId: string): VisualizerProvider | 
     return getVisualizerProviders().find((provider) => provider.id === providerId);
 }
 
-export async function loadVisualizers(): Promise<readonly VisualizerProvider[]> {
+export async function loadVisualizers(): Promise<void> {
     if (getVisualizerProviders().length === 0) {
         await loadLibrary('visualizers');
-        const {default: visualizers} = await import(
+        const {visualizers, Components} = await import(
             /* webpackMode: "weak" */
             './visualizers'
         );
         if (getVisualizerProviders().length === 0) {
             visualizerProviders$.next(visualizers);
+            visualizerComponents$.next(Components);
         }
     }
-    return getVisualizerProviders();
 }
 
 // Log visualizer counts.

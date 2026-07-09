@@ -54,10 +54,10 @@ export function getServices(): readonly MediaService[] {
     return services$.value;
 }
 
-export async function loadMediaServices(): Promise<readonly MediaService[]> {
+export async function loadMediaServices(): Promise<void> {
     if (getServices().length === 0) {
         await loadLibrary('media-services');
-        const {default: services} = await import(
+        const {services} = await import(
             /* webpackMode: "weak" */
             './all'
         );
@@ -66,7 +66,6 @@ export async function loadMediaServices(): Promise<readonly MediaService[]> {
             services$.next(services);
         }
     }
-    return getServices();
 }
 export function getBrowsableServices(): readonly Browsable<MediaService>[];
 export function getBrowsableServices<T extends MediaService>(

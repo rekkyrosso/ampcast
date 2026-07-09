@@ -2,12 +2,16 @@ import VisualizerProvider from 'types/VisualizerProvider';
 import {AmpShaderVisualizer} from 'types/Visualizer';
 import AmpShaderPlayer from './AmpShaderPlayer';
 import {getVisualizers, observeVisualizers} from './visualizers';
+import AmpshaderSettings from './components/AmpshaderSettings';
 
 const ampshader: VisualizerProvider<AmpShaderVisualizer> = {
     id: 'ampshader',
     name: 'ampshader',
     get visualizers() {
         return getVisualizers();
+    },
+    Components: {
+        Settings: AmpshaderSettings,
     },
     observeVisualizers,
     createPlayer(audio) {

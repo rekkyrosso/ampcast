@@ -1,3 +1,4 @@
+import VisualizerComponents from 'types/VisualizerComponents';
 import VisualizerProvider from 'types/VisualizerProvider';
 import {browser, exists} from 'utils';
 import ambientvideo from './ambientvideo';
@@ -7,8 +8,9 @@ import butterchurn from './butterchurn';
 import coverart from './coverart';
 import spotifyviz from './spotifyviz';
 import waveform from './waveform';
+import VisualizerSettings from './components/Settings/VisualizerSettings';
 
-const visualizers: VisualizerProvider[] = [
+export const visualizers: VisualizerProvider[] = [
     ambientvideo,
     ampshader,
     audiomotion,
@@ -18,4 +20,6 @@ const visualizers: VisualizerProvider[] = [
     waveform,
 ].filter(exists);
 
-export default visualizers;
+export const Components: VisualizerComponents = {
+    Settings: VisualizerSettings,
+};

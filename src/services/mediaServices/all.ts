@@ -51,6 +51,5 @@ if (enabledServices.length === 0) {
 }
 
 const disabledServices = allServices.filter((service) => !enabledServices.includes(service));
-const services = enabledServices.concat(disabledServices);
 
-export default services;
+export const services = enabledServices.concat(disabledServices);

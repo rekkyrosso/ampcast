@@ -1,15 +1,11 @@
-import {useEffect, useState} from 'react';
-import {defer} from 'rxjs';
-import MediaService from 'types/MediaService';
-import {getServices, loadMediaServices} from 'services/mediaServices';
+import {useEffect} from 'react';
+import {getServices, loadMediaServices, observeMediaServices} from 'services/mediaServices';
+import useObservable from './useObservable';
 
 export default function useMediaServices() {
-    const [services, setServices] = useState<readonly MediaService[]>(() => getServices());
-
     useEffect(() => {
-        const subscription = defer(() => loadMediaServices()).subscribe(setServices);
-        return () => subscription.unsubscribe();
+        loadMediaServices();
     }, []);
 
-    return services;
+    return useObservable(observeMediaServices, getServices());
 }

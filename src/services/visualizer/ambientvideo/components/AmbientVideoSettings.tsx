@@ -1,20 +1,24 @@
-import React, {useCallback, useId, useRef, useState} from 'react';
+import React, {useCallback, useId, useImperativeHandle, useRef, useState} from 'react';
+import {VisualizerSettingsComponentHandle} from 'types/VisualizerComponents';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
 import youtubeApi from 'services/youtube/youtubeApi';
 
 export interface AmbientVideoSettingsProps {
-    onAmbientVideoSourceChange: (ambientVideoSource: string) => void;
-    onUseAmbientVideoSourceChange: (useAmbientVideoSource: boolean) => void;
+    ref?: React.Ref<VisualizerSettingsComponentHandle | null>;
 }
 
-export default function AmbientVideoSettings({
-    onAmbientVideoSourceChange,
-    onUseAmbientVideoSourceChange,
-}: AmbientVideoSettingsProps) {
+export default function AmbientVideoSettings({ref}: AmbientVideoSettingsProps) {
     const id = useId();
     const ambientVideoSourceRef = useRef<HTMLInputElement>(null);
     const useAmbientVideoSourceRef = useRef<HTMLInputElement>(null);
     const [useSource, setUseSource] = useState(() => !!visualizerSettings.useAmbientVideoSource);
+
+    useImperativeHandle(ref, () => ({
+        submit: () => {
+            visualizerSettings.useAmbientVideoSource = useAmbientVideoSourceRef.current!.checked;
+            visualizerSettings.ambientVideoSource = ambientVideoSourceRef.current!.value;
+        },
+    }));
 
     const handleSourceChange = useCallback(() => {
         const useAmbientVideoSource = useAmbientVideoSourceRef.current!.checked;
@@ -25,9 +29,7 @@ export default function AmbientVideoSettings({
             ambientVideoSourceRef.current!.value = '';
         }
         setUseSource(useAmbientVideoSource);
-        onUseAmbientVideoSourceChange(useAmbientVideoSource);
-        onAmbientVideoSourceChange(ambientVideoSourceRef.current!.value);
-    }, [onAmbientVideoSourceChange, onUseAmbientVideoSourceChange]);
+    }, []);
 
     const handleSourceInput = useCallback(() => {
         const url = ambientVideoSourceRef.current!.value;
@@ -39,10 +41,7 @@ export default function AmbientVideoSettings({
             }
         }
         ambientVideoSourceRef.current!.setCustomValidity(validityMessage);
-        if (!validityMessage) {
-            onAmbientVideoSourceChange(url);
-        }
-    }, [onAmbientVideoSourceChange]);
+    }, []);
 
     return (
         <div className="ambient-video-settings">
