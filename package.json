@@ -1,6 +1,6 @@
 {
     "name": "ampcast",
-    "version": "0.9.30",
+    "version": "0.9.31",
     "description": "Ampcast music player",
     "homepage": "https://ampcast.app",
     "author": {
@@ -26,7 +26,7 @@
         "butterchurn": "^3.0.0-beta.4",
         "butterchurn-presets": "3.0.0-beta.4",
         "colorjs.io": "^0.6.0",
-        "colorthief": "^2.7.0",
+        "colorthief": "^3.4.0",
         "d3-array": "^3.2.0",
         "d3-interpolate": "^3.0.1",
         "d3-scale": "^4.0.2",

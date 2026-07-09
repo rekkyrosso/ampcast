@@ -161,6 +161,8 @@ export default class ButterchurnPlayer extends AbstractVisualizerPlayer<Butterch
         }
         if (this.autoplay && !this.hidden) {
             this.animationFrameId = requestAnimationFrame(() => this.render());
+        } else {
+            this.animationFrameId = 0;
         }
     }
 

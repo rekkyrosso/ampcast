@@ -33,7 +33,7 @@ export default class BeatsPlayer extends WaveformPlayer {
                 context2D.fillStyle = this.beatsColor;
                 context2D.strokeStyle = 'rgba(0, 0, 0, .9)';
                 context2D.lineWidth = Math.round(unit * 2) || 1;
-                let x = 2;
+                let x = 1;
                 for (let i = 0; i < stop; i += chunkSize) {
                     const chunkAverageValue =
                         dataArray

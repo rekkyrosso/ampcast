@@ -3,8 +3,10 @@ import MediaType from 'types/MediaType';
 import PlaylistItem from 'types/PlaylistItem';
 import type CovertArtController from '../CovertArtController';
 import audio from 'services/audio';
+import fonts, {loadFont} from 'services/theme/fonts';
 import {Thumbnail} from 'components/MediaInfo';
 import usePrevious from 'hooks/usePrevious';
+import useVisualizerSettings from 'hooks/useVisualizerSettings';
 import coverart from '../coverart';
 import CurrentlyPlaying from './CurrentlyPlaying';
 import useCoverArtItems from './useCoverArtItems';
@@ -12,6 +14,7 @@ import './CoverArtVisualizer.scss';
 
 export default function CoverArtVisualizer() {
     const ref = useRef<HTMLDivElement>(null);
+    const {coverArtFont} = useVisualizerSettings();
     const player = useMemo(() => coverart.createPlayer(audio) as CovertArtController, []);
     const [hidden, setHidden] = useState(true);
     const {current: currentTrack, next: nextTrack} = useCoverArtItems();
@@ -49,6 +52,17 @@ export default function CoverArtVisualizer() {
             }
         }
     }, [item, changed, currentIndex]);
+
+    useEffect(() => {
+        const style = ref.current!.style;
+        if (coverArtFont) {
+            const font = fonts.find((font) => font.name === coverArtFont) || fonts[0];
+            style.setProperty('--font-family', font.value);
+            loadFont(font);
+        } else {
+            style.removeProperty('--font-family');
+        }
+    }, [coverArtFont]);
 
     return (
         <div className="visualizer-coverart visualizer" ref={ref}>

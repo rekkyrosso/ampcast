@@ -125,8 +125,10 @@ export default class SpotifyVizPlayer extends AbstractVisualizerPlayer<SpotifyVi
 
     private render(now = performance.now()): void {
         this.renderFrame(now);
-        if (this.autoplay && !this.canvas.hidden) {
+        if (this.autoplay && !this.hidden) {
             this.animationFrameId = requestAnimationFrame((now) => this.render(now));
+        } else {
+            this.animationFrameId = 0;
         }
     }
 

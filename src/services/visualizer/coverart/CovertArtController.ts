@@ -83,8 +83,7 @@ export default class CovertArtController extends AbstractVisualizerPlayer<CoverA
 
     pause(): void {
         logger.log('pause');
-        this.player0.pause();
-        this.player1.pause();
+        this.currentPlayer.pause();
     }
 
     stop(): void {

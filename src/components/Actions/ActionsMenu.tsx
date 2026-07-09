@@ -9,6 +9,7 @@ import MediaSource from 'types/MediaSource';
 import {browser} from 'utils';
 import {isListen} from 'services/localdb/listens';
 import {getService, getServiceFromSrc} from 'services/mediaServices';
+import {isServiceVisible} from 'services/mediaServices/servicesSettings';
 import PopupMenu, {
     PopupMenuItem,
     PopupMenuProps,
@@ -192,10 +193,12 @@ function ContextualActions<T extends MediaObject>({
             ) : null}
 
             {item.itemType === ItemType.Media &&
-            !isListen(item) &&
             item.linearType === LinearType.Station &&
             item.isFavoriteStation !== undefined &&
-            internetRadio?.canStore?.(item, inListView) ? (
+            internetRadio &&
+            isServiceVisible(internetRadio) &&
+            !isListen(item) &&
+            internetRadio.canStore?.(item, inListView) ? (
                 <>
                     {source?.id === 'internet-radio/my-stations' ? (
                         <PopupMenuItem<Action>

@@ -15,6 +15,7 @@ export default interface VisualizerSettings {
     butterchurnTransparency: boolean;
     coverArtAnimatedBackground: boolean;
     coverArtBeats: boolean;
+    coverArtFont: string;
     coverArtLyrics: boolean;
     fullscreenProgress: boolean;
     lockedVisualizer: Pick<Visualizer, 'providerId' | 'name'> | null;

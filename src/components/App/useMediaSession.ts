@@ -10,8 +10,6 @@ import useObservable from 'hooks/useObservable';
 
 const logger = new Logger('useMediaSession');
 
-// This doesn't really work for Spotify and YouTube because they play in an iframe.
-
 export default function useMediaSession() {
     const state = useObservable(observePlaybackState, undefined);
     useEffect(() => updateSession(state), [state]);

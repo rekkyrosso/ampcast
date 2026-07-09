@@ -524,6 +524,8 @@ class MainTheme implements CurrentTheme {
         classes.toggle('flat', flat);
         classes.toggle('dark', this.isDark);
         classes.toggle('light', this.isLight);
+        classes.toggle('text-dark', this.isTextDark);
+        classes.toggle('text-light', this.isTextLight);
         classes.toggle('frame-dark', this.isFrameDark);
         classes.toggle('frame-light', this.isFrameLight);
         classes.toggle('frame-text-dark', this.isFrameTextDark);

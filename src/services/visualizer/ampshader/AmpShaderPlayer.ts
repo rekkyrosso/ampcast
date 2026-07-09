@@ -343,6 +343,8 @@ export default class AmpShaderPlayer extends AbstractVisualizerPlayer<AmpShaderV
         this.renderFrame();
         if (this.autoplay && !this.hidden) {
             this.animationFrameId = requestAnimationFrame(() => this.render());
+        } else {
+            this.animationFrameId = 0;
         }
     }
 

@@ -1,11 +1,8 @@
 import React, {useCallback, useEffect, useLayoutEffect, useRef, useState} from 'react';
 import Color from 'colorjs.io';
-import ColorThief, {RGBColor} from 'colorthief';
-import {TinyColor, mostReadable} from '@ctrl/tinycolor';
 import LinearType from 'types/LinearType';
 import PlaylistItem from 'types/PlaylistItem';
 import type CovertArtPlayer from '../CovertArtPlayer';
-import {filterNotEmpty} from 'utils';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {isProviderSupported} from 'services/visualizer';
 import Icon from 'components/Icon';
@@ -19,8 +16,7 @@ import useFontSize from 'hooks/useFontSize';
 import useOnResize from 'hooks/useOnResize';
 import useVisualizerSettings from 'hooks/useVisualizerSettings';
 import SynchronizedLyrics from './SynchronizedLyrics';
-
-const defaultPalette = ['#3e3e3e', '#ebebeb'];
+import useCoverArtColors, {isDark} from './useCoverArtColors';
 
 export interface CurrentlyPlayingProps {
     item: PlaylistItem | null;
@@ -38,7 +34,8 @@ export default function CurrentlyPlaying({item, player, hidden = false}: Current
     const [height, setHeight] = useState(0);
     const [thumbnailSize, setThumbnailSize] = useState(0);
     const fontSize = useFontSize(ref);
-    const [palette, setPalette] = useState<string[]>(defaultPalette);
+    const [covertArtUrl, setCovertArtUrl] = useState('');
+    const coverArtColors = useCoverArtColors(covertArtUrl);
     const [tone, setTone] = useState<'light' | 'dark'>('dark');
     const [textTone, setTextTone] = useState<'light' | 'dark'>('light');
     const [style, setStyle] = useState<React.CSSProperties>({});
@@ -46,6 +43,7 @@ export default function CurrentlyPlaying({item, player, hidden = false}: Current
     const isPlayingTrack = item && (!item.linearType || item.linearType === LinearType.MusicTrack);
     const isPlayingRadio = currentlyPlaying?.linearType === LinearType.Station;
     const beatsEnabled = coverArtBeats && (item ? isProviderSupported('waveform', item) : true);
+    const itemId = item?.id;
 
     useEffect(() => {
         player?.appendTo(ref.current!);
@@ -59,6 +57,10 @@ export default function CurrentlyPlaying({item, player, hidden = false}: Current
             setIsLoggedIn(false);
         }
     }, [service]);
+
+    useLayoutEffect(() => {
+        setCovertArtUrl('');
+    }, [itemId]);
 
     useEffect(() => {
         if (width * height * fontSize > 0) {
@@ -79,99 +81,36 @@ export default function CurrentlyPlaying({item, player, hidden = false}: Current
         setHeight(height);
     });
 
-    const handleThumbnailLoad = useCallback((src: string) => {
-        const colorThief = new ColorThief();
-        const img = new Image();
-        const onerror = () => setPalette(defaultPalette);
-        const onload = (img: HTMLImageElement) => {
-            try {
-                const toRGB = (color: RGBColor) => `rgb(${color.map(Number)})`;
-                const toColor = (color: RGBColor) => new TinyColor(toRGB(color)).toHexString();
-                const backgroundColor = toColor(colorThief.getColor(img));
-                const isDark = new TinyColor(backgroundColor).isDark();
-                const palette = colorThief.getPalette(img)?.map(toColor) || defaultPalette;
-                const textColor =
-                    mostReadable(backgroundColor, palette, {
-                        includeFallbackColors: true,
-                        level: 'AA',
-                        size: 'small',
-                    })?.toHexString() || (isDark ? '#ebebeb' : '#000000');
-                setPalette([backgroundColor, textColor, ...palette]);
-            } catch {
-                onerror();
-            }
-        };
-        img.crossOrigin = 'anonymous';
-        img.src = src;
-
-        if (img.complete) {
-            onload(img);
-        } else {
-            img.onload = () => onload(img);
-            img.onerror = () => {
-                // Try again but break the cache.
-                const img = new Image();
-                img.crossOrigin = 'anonymous';
-                img.src = `${src}${src.includes('?') ? '&' : '?'}retry-ts=${Date.now()}`;
-
-                if (img.complete) {
-                    onload(img);
-                } else {
-                    img.onerror = onerror;
-                    img.onload = () => onload(img);
-                }
-            };
-        }
+    const handleThumbnailLoad = useCallback((url: string) => {
+        setCovertArtUrl(url);
     }, []);
 
     const handleThumbnailError = useCallback(() => {
-        setPalette(defaultPalette);
+        setCovertArtUrl('');
     }, []);
 
     useEffect(() => {
-        if (!player) {
-            return;
+        if (player) {
+            const {
+                backgroundColors: [backgroundColor, backgroundColor2],
+                textColor,
+                beatsColor,
+            } = coverArtColors;
+            const textColorHsl = new Color(textColor).to('hsl');
+            setStyle({
+                '--background-color': backgroundColor,
+                '--text-color-h': `${textColorHsl.h || 0}`,
+                '--text-color-s': `${Number(textColorHsl.s)}%`,
+                '--text-color-l': `${Number(textColorHsl.l)}%`,
+            } as React.CSSProperties);
+            setTone(isDark(backgroundColor) ? 'dark' : 'light');
+            setTextTone(isDark(textColor) ? 'dark' : 'light');
+            player.backgroundColor = backgroundColor;
+            player.backgroundColor2 = backgroundColor2;
+            player.waveColor = textColor;
+            player.beatsColor = beatsColor;
         }
-        const HEX = {format: 'hex'};
-        const [backgroundColor, textColor] = palette.slice(0, 2).map((color) => new Color(color));
-        const {h, s, l} = textColor.to('hsl');
-        setStyle({
-            '--background-color': backgroundColor.toString(HEX),
-            '--text-color-h': `${h || 0}`,
-            '--text-color-s': `${Number(s)}%`,
-            '--text-color-l': `${Number(l)}%`,
-        } as React.CSSProperties);
-        setTone(backgroundColor.to('lch').l! < 50 ? 'dark' : 'light');
-        setTextTone(textColor.to('lch').l! >= 50 ? 'light' : 'dark');
-        player.backgroundColor = backgroundColor.toString(HEX);
-        player.waveColor = textColor.toString(HEX);
-        const [, , ...rest] = palette;
-        if (rest.length === 0) {
-            player.beatsColor = textColor.toString(HEX);
-            player.backgroundColor2 = backgroundColor.toString(HEX);
-        } else {
-            let colors = rest.map((color) => new Color(color));
-            colors = filterNotEmpty(colors, (color) => backgroundColor.deltaE2000(color) > 20);
-            colors = filterNotEmpty(colors, (color) => textColor.deltaE2000(color) > 10);
-            const backgroundColors = filterNotEmpty(colors, (color) => color.to('hsl').s! > 20);
-            let backgroundColor2 = backgroundColors.toSorted(
-                (a, b) =>
-                    backgroundColor.contrast(a, 'Lstar') - backgroundColor.contrast(b, 'Lstar')
-            )[0];
-            while (backgroundColor.contrast(backgroundColor2, 'Lstar') > 25) {
-                backgroundColor2 = backgroundColor.mix(backgroundColor2, 0.9);
-            }
-            const beatsColors = colors
-                .filter(
-                    (color) =>
-                        backgroundColor.deltaE2000(color) > 10 &&
-                        backgroundColor2.deltaE2000(color) > 10
-                )
-                .toSorted((a, b) => b.to('hsl').s! - a.to('hsl').s!);
-            player.beatsColor = (beatsColors[0] || textColor).toString(HEX);
-            player.backgroundColor2 = backgroundColor2.toString(HEX);
-        }
-    }, [player, palette]);
+    }, [player, coverArtColors]);
 
     return (
         <div
@@ -195,7 +134,7 @@ export default function CurrentlyPlaying({item, player, hidden = false}: Current
                             extendedSearch={!hidden}
                             onLoad={handleThumbnailLoad}
                             onError={handleThumbnailError}
-                            key={`${item.id}/${isLoggedIn}/thumbnail`}
+                            key={`${itemId}/${isLoggedIn}/thumbnail`}
                         />
                         <ProvidedBy item={item} />
                     </div>
@@ -235,7 +174,7 @@ export default function CurrentlyPlaying({item, player, hidden = false}: Current
                         {coverArtLyrics && !hidden ? (
                             <SynchronizedLyrics
                                 item={item}
-                                key={`${item.id}/${isLoggedIn}/lyrics`}
+                                key={`${itemId}/${isLoggedIn}/lyrics`}
                             />
                         ) : null}
                     </div>

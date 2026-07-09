@@ -1,7 +1,7 @@
-import React, {useCallback, useId, useEffect} from 'react';
+import React, {useCallback, useId} from 'react';
 import theme from 'services/theme';
-import fonts, {loadAllFonts} from 'services/theme/fonts';
 import Button from 'components/Button';
+import useFonts from 'hooks/useFonts';
 import {DialogButtons} from 'components/Dialog';
 import ButtonEditor from './ButtonEditor';
 import MediaButtonEditor from './MediaButtonEditor';
@@ -19,10 +19,7 @@ export default function ThemeEditor() {
     const themeName = `${currentTheme.name}${theme.edited ? ' (edited)' : ''}`;
     const themeKey = `${!!currentTheme.userTheme}/${currentTheme.name}`;
     const [suggestedColors, nextSuggestion] = useSuggestedColors(currentTheme.frame.color);
-
-    useEffect(() => {
-        loadAllFonts();
-    }, []);
+    const fonts = useFonts();
 
     const handleSubmit = useCallback(() => {
         theme.save();

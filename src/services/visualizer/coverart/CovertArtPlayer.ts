@@ -16,7 +16,7 @@ const logger = new Logger('CovertArtPlayer');
 export default class CovertArtPlayer extends AbstractVisualizerPlayer<CoverArtVisualizer> {
     private readonly animatedBackground: AnimatedBackgroundPlayer;
     private readonly beatsPlayer: BeatsPlayer;
-    private beatsPauseTimer = 0;
+    private beatsPauseTimer: ReturnType<typeof setTimeout> | undefined;
     hidden = true;
 
     constructor(audio: AudioManager) {
@@ -117,7 +117,8 @@ export default class CovertArtPlayer extends AbstractVisualizerPlayer<CoverArtVi
     pause(): void {
         this.animatedBackground.pause();
         // Don't pause the animation until it has faded out.
-        this.beatsPauseTimer = setTimeout(() => this.beatsPlayer.pause(), 3_000) as any;
+        clearTimeout(this.beatsPauseTimer);
+        this.beatsPauseTimer = setTimeout(() => this.beatsPlayer.pause(), 3_000);
     }
 
     stop(): void {

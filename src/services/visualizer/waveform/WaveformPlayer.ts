@@ -108,6 +108,8 @@ export default class WaveformPlayer extends AbstractVisualizerPlayer<WaveformVis
         this.renderFrame(now);
         if (this.autoplay && !this.hidden) {
             this.animationFrameId = requestAnimationFrame((now) => this.render(now));
+        } else {
+            this.animationFrameId = 0;
         }
     }
 

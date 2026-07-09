@@ -1,6 +1,7 @@
 @use 'styles/effects.scss';
 
 .visualizer-coverart {
+    font-family: var(--font-family, var(--system-font-family));
     text-rendering: optimizeLegibility;
     font-size: 1.25em;
     overflow: hidden;
