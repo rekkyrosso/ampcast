@@ -19,7 +19,6 @@ import {getTextFromHtml, Logger, uniqBy} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import {bestOf} from 'services/metadata';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
-import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import pinStore from 'services/pins/pinStore';
@@ -419,15 +418,14 @@ function createArtistAlbumsPager(artist: AppleMusicApi.Artist | LibraryArtist): 
     const topTracks = createArtistTopTracks(artist);
     const videos = createArtistVideos(artist);
     const radios = createArtistRadios(artist);
-    const radiosPager = new SimplePager([radios]);
-    const topPager = new SimpleMediaPager<MediaAlbum>(async () => {
+    const syntheticAlbumsPager = new SimpleMediaPager<MediaAlbum>(async () => {
         try {
             const items = await fetchFirstPage(videos.pager, {keepAlive: true});
             if (items.length === 0) {
                 videos.pager.disconnect();
-                return [topTracks];
+                return [topTracks, radios];
             } else {
-                return [topTracks, videos];
+                return [topTracks, radios, videos];
             }
         } catch (err) {
             logger.error(err);
@@ -435,7 +433,7 @@ function createArtistAlbumsPager(artist: AppleMusicApi.Artist | LibraryArtist): 
             return [topTracks];
         }
     });
-    return new WrappedPager(topPager, albumsPager, radiosPager);
+    return new WrappedPager(syntheticAlbumsPager, albumsPager);
 }
 
 function createArtistTopTracks(

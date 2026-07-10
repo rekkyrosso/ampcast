@@ -20,21 +20,6 @@ const connecting$ = new BehaviorSubject(false);
 const connectionLogging$ = new Subject<string>();
 const isLoggedIn$ = new BehaviorSubject(false);
 
-let pin: plex.Pin;
-export async function refreshPin(): Promise<plex.Pin> {
-    pin = await plexApi.fetchJSON<plex.Pin>({
-        host: apiHost,
-        path: `/pins`,
-        method: 'POST',
-        params: {strong: 'true'},
-    });
-    return pin;
-}
-
-function observeAccessToken(): Observable<string> {
-    return accessToken$.pipe(distinctUntilChanged());
-}
-
 export function isConnected(): boolean {
     return !!plexSettings.server;
 }
@@ -67,7 +52,6 @@ export async function login(): Promise<void> {
         } catch (err) {
             logger.error(err);
             connectionLogging$.next(`Failed to connect: '${getReadableErrorMessage(err)}'`);
-            await refreshPin();
             connecting$.next(false);
         }
     }
@@ -88,6 +72,7 @@ export async function reconnect(): Promise<void> {
 }
 
 async function obtainAccessToken(): Promise<{id: string; accessToken: string}> {
+    const pin = await refreshPin();
     return new Promise((resolve, reject) => {
         const forwardUrl = `${location.origin}/auth/plex/callback/`;
         const plexAuthHost = `https://app.plex.tv/auth`;
@@ -149,6 +134,15 @@ async function obtainAccessToken(): Promise<{id: string; accessToken: string}> {
                 reject({message: 'Cancelled'});
             }
         }, 500);
+    });
+}
+
+function refreshPin(): Promise<plex.Pin> {
+    return plexApi.fetchJSON<plex.Pin>({
+        host: apiHost,
+        path: `/pins`,
+        method: 'POST',
+        params: {strong: 'true'},
     });
 }
 
@@ -257,8 +251,9 @@ async function testConnection(server: plex.Device, connection: plex.Connection):
     }
 }
 
-observeAccessToken()
+accessToken$
     .pipe(
+        distinctUntilChanged(),
         filter((token) => !!token),
         mergeMap((token) => establishConnection(token)),
         filter((connected) => connected),

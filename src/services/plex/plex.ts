@@ -43,7 +43,6 @@ import plexSources, {
     plexPlaylistItems,
     plexSearch,
 } from './plexSources';
-import Login from './components/PlexLogin';
 import ServerSettings from './components/PlexServerSettings';
 
 const serviceId: MediaServiceId = 'plex';
@@ -54,7 +53,7 @@ const plex: PersonalMediaService = {
     icon: serviceId,
     url: 'https://www.plex.tv',
     serviceType: ServiceType.PersonalMedia,
-    Components: {Login, ServerSettings},
+    Components: {ServerSettings},
     get internetRequired() {
         return plexSettings.internetRequired;
     },

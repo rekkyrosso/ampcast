@@ -32,6 +32,10 @@ textarea {
     border-radius: calc(var(--roundness) * 1em);
 }
 
+button {
+    user-select: none
+}
+
 input,
 textarea {
     @include effects.inset;
