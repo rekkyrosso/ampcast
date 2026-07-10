@@ -186,14 +186,14 @@ const connect = (
 
     const handleClose = async (): Promise<void> => {
         const state: Writable<PlaybackState> = playback.getPlaybackState();
-        const {currentTime, playbackId, startedAt} = state;
+        const {currentTime, playbackId, startedAt, paused} = state;
         state.paused = true; // pause after transfer back
         playbackState$.next(state);
         playback.suspend();
         miniPlayerWindow = null;
         firstPlay = true;
         active$.next(false);
-        mediaPlayback.autoplay = false; // remain paused
+        mediaPlayback.autoplay = !paused;
         const currentItem = playlist.getCurrentItem();
         if (currentItem) {
             const isLiveStreaming =

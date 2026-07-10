@@ -1,4 +1,8 @@
+@use 'styles/effects.scss';
+
 .dialog .close-button {
+    @include effects.button;
+    @include effects.pressable;
     --amb-elevation: 0;
     --amb-light-hue: 0;
     --amb-light-saturation: 67%;

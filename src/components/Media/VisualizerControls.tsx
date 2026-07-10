@@ -6,6 +6,7 @@ import Visualizer from 'types/Visualizer';
 import {isMiniPlayer} from 'utils';
 import {getServiceFromSrc} from 'services/mediaServices';
 import miniPlayer from 'services/mediaPlayback/miniPlayer';
+import {miniPlayerRemote} from 'services/mediaPlayback';
 import {
     lockVisualizer,
     unlockVisualizer,
@@ -173,7 +174,14 @@ export default function VisualizerControls({
                         onClick={onFullscreenToggle}
                     />
                 )}
-                {miniPlayerEnabled ? (
+                {isMiniPlayer ? (
+                    <IconButton
+                        icon="link-back"
+                        title="Return to main window"
+                        tabIndex={-1}
+                        onClick={miniPlayerRemote.exit}
+                    />
+                ) : miniPlayerEnabled ? (
                     <IconButton
                         icon="link"
                         title={miniPlayerActive ? 'Playback window' : 'Open playback in new window'}

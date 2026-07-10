@@ -28,6 +28,8 @@ const logger = new Logger('miniPlayerRemote');
 
 const defaultTitle = `${__app_name__} mini player`;
 
+let resumePlaybackOnClose = false;
+
 const connect = (
     mediaPlayback: MediaPlayback,
     lockLoading: () => void,
@@ -105,7 +107,13 @@ const connect = (
     };
 
     beforeunload$.subscribe(() => emitEvent('unloaded'));
-    pagehide$.subscribe(() => emitEvent('closed'));
+    pagehide$.subscribe(() => {
+        if (!resumePlaybackOnClose) {
+            playback.pause();
+            emitEvent('playback-state-change', playback.getPlaybackState());
+        }
+        emitEvent('closed');
+    });
 
     mediaPlayer.observePlaying().subscribe(() => emitEvent('playing'));
     mediaPlayer.observeEnded().subscribe(() => emitEvent('ended'));
@@ -226,6 +234,11 @@ const connect = (
     emitEvent('loaded');
 };
 
+const exit = (): void => {
+    resumePlaybackOnClose = true;
+    window.close();
+};
+
 const prev = (): void => {
     logger.log('prev');
     emitEvent('prev');
@@ -250,6 +263,7 @@ const emitEvent = (eventType: string, data?: any): void => {
 
 const miniPlayerRemote = {
     connect,
+    exit,
     prev,
     next,
     onScrobbleDataChange,

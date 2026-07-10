@@ -182,6 +182,9 @@ export default class GaplessPlayer implements Player<MediaItem> {
         nextPlayer.autoplay = this.autoplay;
 
         if (isLoaded) {
+            if (item.startTime) {
+                nextPlayer.seek(item.startTime);
+            }
             if (this.autoplay) {
                 nextPlayer.play();
             }

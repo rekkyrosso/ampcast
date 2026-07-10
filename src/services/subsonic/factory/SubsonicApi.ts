@@ -308,7 +308,7 @@ export default class SubsonicApi {
     }
 
     async getLyrics(item: MediaItem): Promise<Lyrics | null> {
-        if (this.openSubsonic) {
+        if (this.openSubsonic?.songLyrics) {
             try {
                 const lyrics = await this.getLyricsBySongId(item);
                 if (lyrics) {
