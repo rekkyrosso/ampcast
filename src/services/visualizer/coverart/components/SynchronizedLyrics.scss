@@ -9,6 +9,11 @@
     max-height: 6em;
     color: var(--text-color-max);
     overflow: hidden;
+    transition: opacity 600ms ease 600ms;
+
+    &:empty {
+        opacity: 0;
+    }
 
     &[hidden] {
         display: block;

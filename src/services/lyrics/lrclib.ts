@@ -17,7 +17,11 @@ async function getLyrics(item: MediaItem): Promise<Lyrics | null> {
             headers: {Accept: 'application/json'},
         });
         if (!response.ok) {
-            throw response;
+            if (response.status === 404) {
+                return null;
+            } else {
+                throw response;
+            }
         }
         const data: LRCLIB.Lyrics[] = await response.json();
         let matches: readonly LyricsItem[] = data
@@ -32,7 +36,15 @@ async function getLyrics(item: MediaItem): Promise<Lyrics | null> {
         if (match) {
             const plain = match.plainLyrics.split(/\n/);
             const synced = parseSyncedLyrics(match.syncedLyrics);
-            return {plain, synced};
+            return {
+                plain,
+                synced,
+                provider: {
+                    icon: 'lrclib',
+                    name: 'LRCLIB',
+                    url: 'https://lrclib.net/',
+                },
+            };
         }
     }
     return null;

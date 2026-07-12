@@ -1,6 +1,7 @@
 import LinearType from 'types/LinearType';
-import Lyrics from 'types/Lyrics';
+import Lyrics, {SyncedLyric} from 'types/Lyrics';
 import MediaItem from 'types/MediaItem';
+import MediaService from 'types/MediaService';
 import {Logger} from 'utils';
 import {LyricsNotAvailableError} from 'services/errors';
 import {getServiceFromSrc, isPlayableSrc} from 'services/mediaServices';
@@ -8,69 +9,103 @@ import lrclib from './lrclib';
 
 const logger = new Logger('lyrics');
 
-const lyricsCache: Record<string, Lyrics | null> = {};
+const lyricsCache: Record<string, Lyrics | Promise<Lyrics | null> | null> = {};
 
 export async function getLyrics(item: MediaItem): Promise<Lyrics | null> {
     const service = getServiceFromSrc(item);
-    if (service?.lyricsDisabled) {
-        throw new LyricsNotAvailableError();
-    }
-    if (item.linearType && item.linearType !== LinearType.MusicTrack) {
-        throw new LyricsNotAvailableError();
-    }
     const src = item.src;
-    if (!isPlayableSrc(src, true)) {
+    if (
+        service?.lyricsDisabled ||
+        (item.linearType && item.linearType !== LinearType.MusicTrack) ||
+        item.duration > 1_200 ||
+        !isPlayableSrc(src, true)
+    ) {
         throw new LyricsNotAvailableError();
     }
-    if (lyricsCache[src] === undefined) {
-        let lyrics: Lyrics | null = null;
-        if (service?.getLyrics) {
-            try {
-                lyrics = await service.getLyrics(item);
-            } catch (err) {
-                logger.error(err);
-            }
-        }
-        // Ignore empty arrays.
-        if (lyrics?.synced?.length === 0) {
-            (lyrics as any).synced = undefined;
-        }
-        if (!lyrics?.synced) {
-            try {
-                const lrclibLyrics = await lrclib.getLyrics(item);
-                if (lrclibLyrics?.synced || !lyrics) {
-                    lyrics = lrclibLyrics;
-                }
-            } catch (err) {
-                logger.error(err);
-            }
-        }
-        // Ignore empty arrays (again).
-        if (lyrics?.synced?.length === 0) {
-            (lyrics as any).synced = undefined;
-        }
-        if (lyrics?.synced) {
-            // Tidy up synced lyrics.
-            // Make them suitable for display.
-            const firstLine = lyrics.synced[0];
-            if (firstLine.startTime !== 0) {
-                // Add a blank first line.
-                const newFirstLine = {
-                    startTime: Math.max(firstLine.startTime - 10, 0),
-                    endTime: firstLine.startTime,
-                    text: '',
-                };
-                (lyrics.synced as any).unshift(newFirstLine);
-            }
-            const lastLine = lyrics.synced.at(-1);
-            if (lastLine?.endTime === 0) {
-                const endTime = lastLine.startTime + 5;
-                (lastLine as any).endTime = item.duration
-                    ? Math.min(endTime, item.duration)
-                    : endTime;
-            }
-        }
-        lyricsCache[src] = lyrics || null;
+    const cached = lyricsCache[src];
+    if (cached === undefined) {
+        const promise = fetchLyrics(service, item);
+        lyricsCache[src] = promise;
+        const lyrics = await promise;
+        return lyrics;
+    } else if (cached instanceof Promise) {
+        const lyrics = await cached;
+        return lyrics;
+    } else {
+        return cached;
     }
-    return lyricsCache[src];
+}
+
+async function fetchLyrics(
+    service: MediaService | undefined,
+    item: MediaItem
+): Promise<Lyrics | null> {
+    let lyrics: Lyrics | null = null;
+    // Fetch from the media service first.
+    if (service?.getLyrics) {
+        try {
+            lyrics = await service.getLyrics(item);
+            if (lyrics) {
+                lyrics = {
+                    ...lyrics,
+                    provider: {
+                        icon: service.icon,
+                        name: service.name,
+                    },
+                };
+            }
+        } catch (err: any) {
+            if (err.status !== 404) {
+                logger.error(err);
+            }
+        }
+    }
+    // Ignore empty arrays.
+    if (lyrics?.synced?.length === 0) {
+        (lyrics as any).synced = undefined;
+    }
+    // Fetch from LRCLIB if there are no synced lyrics.
+    if (!lyrics?.synced) {
+        try {
+            const lrclibLyrics = await lrclib.getLyrics(item);
+            if (lrclibLyrics?.synced || !lyrics) {
+                lyrics = lrclibLyrics;
+            }
+        } catch (err) {
+            logger.error(err);
+        }
+    }
+    if (lyrics?.synced?.length) {
+        (lyrics as any).synced = enhanceSyncedLyrics(item, lyrics.synced);
+    } else {
+        (lyrics as any).synced = undefined;
+    }
+    lyrics = lyrics || null;
+    lyricsCache[item.src] = lyrics;
+    return lyrics;
+}
+
+function enhanceSyncedLyrics(
+    item: MediaItem,
+    synced: readonly SyncedLyric[]
+): readonly SyncedLyric[] {
+    // Tidy up synced lyrics (make them suitable for display).
+    // We are going to mutate the response data.
+    const firstLine = synced[0];
+    if (firstLine.startTime !== 0) {
+        // Add a blank first line (this will be converted to something prettier).
+        const newFirstLine = {
+            startTime: Math.max(firstLine.startTime - 10, 0),
+            endTime: firstLine.startTime,
+            text: '',
+        };
+        (synced as any).unshift(newFirstLine);
+    }
+    // Make sure the last line has an `endTime`.
+    const lastLine = synced.at(-1);
+    if (lastLine?.endTime === 0) {
+        const endTime = lastLine.startTime + 5;
+        (lastLine as any).endTime = item.duration ? Math.min(endTime, item.duration) : endTime;
+    }
+    return synced;
 }

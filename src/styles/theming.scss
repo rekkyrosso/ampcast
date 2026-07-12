@@ -171,7 +171,7 @@
     color: var(--frame-text-color);
 }
 
-.text-dark {
+.themed.text-dark {
     --text-color-max: hsl(var(--text-color-h),
         var(--text-color-s),
         min(var(--text-color-l), 10%));

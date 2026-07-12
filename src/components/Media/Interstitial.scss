@@ -1,14 +1,13 @@
 @use 'styles/effects.scss';
 
 .interstitial {
-    --shadow-color: rgba(16, 16, 16, 0.8);
-    --shadow-small: 1px 1px 0 var(--shadow-color);
-    --shadow-large: 2px 2px 0 var(--shadow-color);
+    --shadow-depth: max(1px, 0.0625em);
     position: absolute;
     inset: 0;
     color: var(--soft-white);
     text-align: center;
     text-rendering: optimizeLegibility;
+    text-shadow: var(--shadow-depth) var(--shadow-depth) 0 rgba(16, 16, 16, 0.9);
 
     &::before,
     .currently-playing {
@@ -37,7 +36,6 @@
         align-items: center;
         justify-content: center;
         padding: 2em;
-        text-shadow: var(--shadow-small);
         background: radial-gradient(rgba(0, 0, 0, 0.6), rgba(0, 0, 0, 0));
 
         .mini-player-active & {
@@ -45,7 +43,6 @@
         }
 
         .media.fullscreen & {
-            text-shadow: var(--shadow-large);
             padding-bottom: 4em;
         }
 

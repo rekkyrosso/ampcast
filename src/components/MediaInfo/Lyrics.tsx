@@ -1,4 +1,5 @@
 import React from 'react';
+import {LyricsProvider} from 'types/Lyrics';
 import MediaItem from 'types/MediaItem';
 import {LyricsNotAvailableError} from 'services/errors';
 import {t} from 'services/i18n';
@@ -14,22 +15,21 @@ export interface LyricsProps {
 }
 
 export default function Lyrics({item}: LyricsProps) {
-    const {plainLyrics, syncedLyrics, loaded, error} = useLyrics(item);
+    const {lyrics, loaded, error} = useLyrics(item);
 
     return (
         <div className="lyrics">
             {loaded ? (
-                error ? (
-                    <LyricsError item={item} error={error} />
-                ) : plainLyrics ? (
+                lyrics ? (
                     <>
                         <TextBox>
-                            {plainLyrics.map((text, index) => (
+                            {lyrics.plain.map((text, index) => (
                                 <p key={index}>{text}</p>
                             ))}
                         </TextBox>
-                        {syncedLyrics ? (
-                            <p>
+                        {lyrics.provider ? <ProvidedBy {...lyrics.provider} /> : null}
+                        {lyrics.synced ? (
+                            <p className="synced-available">
                                 <MediaSourceLabel
                                     icon="clock"
                                     text={t('Synchronized lyrics available')}
@@ -37,6 +37,8 @@ export default function Lyrics({item}: LyricsProps) {
                             </p>
                         ) : null}
                     </>
+                ) : error ? (
+                    <LyricsError item={item} error={error} />
                 ) : (
                     <p>Lyrics not found</p>
                 )
@@ -62,4 +64,13 @@ function LyricsError({item, error}: LyricsProps & {error: unknown}) {
     } else {
         return <ErrorBox error={error} reportedBy="Lyrics" />;
     }
+}
+
+function ProvidedBy({icon, name}: LyricsProvider) {
+    const providedBy = `Provided by ${name}`;
+    return (
+        <p className="external-view">
+            {icon ? <MediaSourceLabel icon={icon} text={providedBy} /> : providedBy}
+        </p>
+    );
 }

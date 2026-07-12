@@ -10,7 +10,7 @@ import {
     getSwatches,
 } from 'colorthief';
 import {mostReadable} from '@ctrl/tinycolor';
-import {exists} from 'utils';
+import {exists, filterNotEmpty} from 'utils';
 
 export interface CovertArtColors {
     readonly backgroundColors: readonly [string, string];
@@ -25,7 +25,7 @@ export const defaultColors: CovertArtColors = {
 };
 
 export function isDark(color: string): boolean {
-    return new Color(color).to('lch').l! < 55;
+    return new Color(color).to('lch').l! < 50;
 }
 
 export default function useCoverArtColors(coverArtUrl: string): CovertArtColors {
@@ -209,7 +209,7 @@ function getTextColor(
     return (
         mostReadable(backgroundColor, colors, {
             level: 'AA',
-            size: 'large',
+            size: 'small',
         })?.toHexString() || fallbackColor
     );
 }
@@ -221,9 +221,9 @@ function getBeatsColor(
     textColor: string
 ): string {
     const backgroundColor = mixBackgroundColors(backgroundColors);
-    const testColor = (color: ColorThiefColor | undefined): boolean => {
+    const testColor = (color: ColorThiefColor | undefined, color2: string): boolean => {
         // Not too similar to the background colour(s).
-        return !!color && new Color(backgroundColor).deltaE2000(color.hex()) > 20;
+        return !!color && new Color(color2).deltaE2000(color.hex()) > 20;
     };
     const getSwatch = (key: keyof SwatchMap) => swatches?.[key]?.color;
     const mostVibrant = [findMostVibrant(palette), getSwatch('Vibrant')];
@@ -233,9 +233,10 @@ function getBeatsColor(
         getSwatch(isDark(backgroundColor) ? 'LightMuted' : 'DarkMuted'),
         getSwatch('Muted'),
     ].filter((color) => color && color.hex() !== textColor);
-    const colors = mostVibrant.concat(otherColors);
-    const beatsColor = colors.find((color) => testColor(color));
-    return beatsColor?.hex() || textColor;
+    let colors = mostVibrant.concat(otherColors);
+    colors = colors.filter((color) => testColor(color, backgroundColor));
+    colors = filterNotEmpty(colors, (color) => testColor(color, textColor));
+    return colors[0]?.hex() || textColor;
 }
 
 function mixBackgroundColors([a, b]: [string, string]): string {

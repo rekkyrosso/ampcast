@@ -147,31 +147,24 @@
             }
         }
 
-        &.text-light {
+        &.dark.text-light {
+            --shadow-depth: max(1px, 0.0625em);
+            --shadow: var(--shadow-depth) var(--shadow-depth) 0 rgba(16, 16, 16, 0.9);
+
             .currently-playing-text {
-                text-shadow: 2px 2px 0 rgba(16, 16, 16, 0.8);
+                text-shadow: var(--shadow);
 
                 .icon {
-                    filter: drop-shadow(2px 2px 0 rgba(16, 16, 16, 0.4));
-                }
-
-                .media:fullscreen & {
-                    text-shadow: 4px 4px 0 rgba(16, 16, 16, 0.6);
-
-                    .icon {
-                        filter: drop-shadow(4px 4px 0 rgba(16, 16, 16, 0.4));
-                    }
+                    filter: drop-shadow(var(--shadow));
                 }
             }
 
             .provided-by .text {
                 color: white;
                 opacity: 0.75;
-                text-shadow: 1px 1px 0 rgba(16, 16, 16, 0.6);
 
                 .media:fullscreen & {
                     opacity: 0.5;
-                    text-shadow: 2px 2px 0 rgba(16, 16, 16, 0.6);
                 }
             }
         }

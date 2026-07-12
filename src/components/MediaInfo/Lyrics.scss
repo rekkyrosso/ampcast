@@ -1,4 +1,6 @@
 .lyrics {
+    display: flex;
+    flex-direction: column;
     height: 100%;
 
     &-not-available {
@@ -6,10 +8,12 @@
     }
 
     .text-box {
+        flex: auto;
         max-height: 100%;
         line-height: 1.5;
         font-family: system-ui;
         font-style: italic;
+        margin-bottom: 1em;
 
         .scrollable {
             --scrollbar-width: max(10px, calc(1em * var(--scrollbar-size)));
@@ -23,13 +27,22 @@
             }
         }
 
-        & + p {
-            font-style: italic;
-            font-size: 0.75em;
-            position: absolute;
-            bottom: -3em;
-            left: 0;
+        & ~ p {
+            margin: 0;
         }
+    }
+
+    .external-view {
+        font-size: max(9px, 0.75em);
+
+        & + .synced-available {
+            margin-top: 0.25em;
+        }
+    } 
+
+    .synced-available {
+        font-style: italic;
+        font-size: max(8px, 0.625em);
     }
 
     .error-box {

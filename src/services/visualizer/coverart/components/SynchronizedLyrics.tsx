@@ -14,10 +14,10 @@ export default function SynchronizedLyrics({item}: SynchronizedLyricsProps) {
     const ref = useRef<HTMLDivElement | null>(null);
     const isFullscreen = useIsFullscreen();
     const [hidden, setHidden] = useState(true);
-    const {syncedLyrics} = useLyrics(item);
+    const {lyrics} = useLyrics(item);
     const currentTime = useCurrentTime();
     const currentIndex =
-        syncedLyrics?.findIndex(
+        lyrics?.synced?.findIndex(
             (line) => currentTime >= line.startTime && currentTime < line.endTime
         ) ?? -1;
 
@@ -47,6 +47,7 @@ export default function SynchronizedLyrics({item}: SynchronizedLyricsProps) {
     }, [scrollIntoView, currentIndex]);
 
     useEffect(() => {
+        // Detect if lyrics overflow the text container.
         const lyrics = ref.current;
         if (lyrics) {
             const root = lyrics.parentElement;
@@ -67,7 +68,7 @@ export default function SynchronizedLyrics({item}: SynchronizedLyricsProps) {
 
     return (
         <div className="synchronized-lyrics" hidden={hidden} ref={ref}>
-            {syncedLyrics?.map((line, index) => (
+            {lyrics?.synced?.map((line, index) => (
                 <p className={index === currentIndex ? 'current' : undefined} key={line.startTime}>
                     {/\S/.test(line.text) ? line.text : '♫ ♫ ♫'}
                 </p>
