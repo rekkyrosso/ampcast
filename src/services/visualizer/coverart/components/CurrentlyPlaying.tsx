@@ -3,6 +3,7 @@ import Color from 'colorjs.io';
 import LinearType from 'types/LinearType';
 import PlaylistItem from 'types/PlaylistItem';
 import type CovertArtPlayer from '../CovertArtPlayer';
+import {isDark} from 'utils';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {isProviderSupported} from 'services/visualizer';
 import Icon from 'components/Icon';
@@ -16,7 +17,7 @@ import useFontSize from 'hooks/useFontSize';
 import useOnResize from 'hooks/useOnResize';
 import useVisualizerSettings from 'hooks/useVisualizerSettings';
 import SynchronizedLyrics from './SynchronizedLyrics';
-import useCoverArtColors, {isDark} from './useCoverArtColors';
+import useCoverArtColors from './useCoverArtColors';
 
 export interface CurrentlyPlayingProps {
     item: PlaylistItem | null;

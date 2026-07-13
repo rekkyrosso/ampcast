@@ -6,6 +6,7 @@ export type Randomness = Readonly<Record<VisualizerProviderId, number>>;
 export default interface VisualizerSettings {
     provider: VisualizerProviderId | 'favorites' | 'random';
     fallbackProvider: Extract<VisualizerProviderId, 'none' | 'coverart'>;
+    fontName: string;
     ambientVideoBeats: boolean;
     ambientVideoSource: string;
     useAmbientVideoSource: boolean;
@@ -15,7 +16,6 @@ export default interface VisualizerSettings {
     butterchurnTransparency: boolean;
     coverArtAnimatedBackground: boolean;
     coverArtBeats: boolean;
-    coverArtFont: string;
     coverArtLyrics: boolean;
     fullscreenProgress: boolean;
     lockedVisualizer: Pick<Visualizer, 'providerId' | 'name'> | null;

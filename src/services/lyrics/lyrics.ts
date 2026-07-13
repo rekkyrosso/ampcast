@@ -17,6 +17,7 @@ export async function getLyrics(item: MediaItem): Promise<Lyrics | null> {
     if (
         service?.lyricsDisabled ||
         (item.linearType && item.linearType !== LinearType.MusicTrack) ||
+        item.duration < 30 ||
         item.duration > 1_200 ||
         !isPlayableSrc(src, true)
     ) {
@@ -75,10 +76,11 @@ async function fetchLyrics(
             logger.error(err);
         }
     }
-    if (lyrics?.synced?.length) {
-        (lyrics as any).synced = enhanceSyncedLyrics(item, lyrics.synced);
-    } else {
+    if (lyrics?.synced?.length === 0) {
         (lyrics as any).synced = undefined;
+    }
+    if (lyrics?.synced) {
+        (lyrics as any).synced = enhanceSyncedLyrics(item, lyrics.synced);
     }
     lyrics = lyrics || null;
     lyricsCache[item.src] = lyrics;

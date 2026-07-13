@@ -101,14 +101,6 @@ const visualizerSettings: VisualizerSettings = {
         storage.setBoolean('coverArtBeats', enabled);
     },
 
-    get coverArtFont(): string {
-        return storage.getString('coverArtFont');
-    },
-
-    set coverArtFont(font: string) {
-        storage.setString('coverArtFont', font);
-    },
-
     get coverArtLyrics(): boolean {
         return storage.getBoolean('coverArtLyrics', true);
     },
@@ -123,6 +115,14 @@ const visualizerSettings: VisualizerSettings = {
 
     set fallbackProvider(provider: Extract<VisualizerProviderId, 'none' | 'coverart'>) {
         storage.setString('fallbackProvider', provider);
+    },
+
+    get fontName(): string {
+        return storage.getString('fontName');
+    },
+
+    set fontName(fontName: string) {
+        storage.setString('fontName', fontName);
     },
 
     get fullscreenProgress(): boolean {

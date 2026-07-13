@@ -1,6 +1,5 @@
 import React, {useCallback, useId, useEffect, useMemo, useRef} from 'react';
-import {TinyColor} from '@ctrl/tinycolor';
-import {partition} from 'utils';
+import {isLight, partition} from 'utils';
 import theme from 'services/theme';
 import themeStore from 'services/theme/themeStore';
 import DialogButtons from 'components/Dialog/DialogButtons';
@@ -23,10 +22,10 @@ export default function AppearanceSettingsGeneral() {
     const defaultThemes = useDefaultThemes();
     const userThemes = useUserThemes();
     const isUserTheme = !!currentTheme.userTheme;
-    const isLightTheme = new TinyColor(currentTheme.content.color).isLight();
+    const isLightTheme = isLight(currentTheme.content.color);
     const isDarkTheme = !isLightTheme;
     const [lightThemes, darkThemes] = partition(defaultThemes, (theme) =>
-        new TinyColor(theme.content.color).isLight()
+        isLight(theme.content.color)
     );
 
     useEffect(() => {

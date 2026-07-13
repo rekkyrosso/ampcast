@@ -13,9 +13,11 @@
 
     &-tick {
         fill: white;
+        stroke: white;
 
         .frame-light & {
             fill: black;
+            stroke: black;
         }
     }
 

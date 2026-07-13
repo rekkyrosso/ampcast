@@ -4,7 +4,7 @@ import {TinyColor} from '@ctrl/tinycolor';
 import {OptionalKeysOf, RequiredKeysOf} from 'type-fest';
 import Theme, {Button, MediaButton, Scrollbar, Splitter, Surface} from 'types/Theme';
 import ampcastElectron from 'services/ampcastElectron';
-import {LiteStorage, Logger} from 'utils';
+import {isDark, isLight, LiteStorage, Logger} from 'utils';
 import {fromLegacyTheme} from './legacyTheme';
 import {emptyTheme, defaultTheme} from './themes';
 import themeStore from './themeStore';
@@ -186,63 +186,63 @@ class MainTheme implements CurrentTheme {
     }
 
     get isDark(): boolean {
-        return new TinyColor(this.backgroundColor).isDark();
+        return isDark(this.backgroundColor);
     }
 
     get isLight(): boolean {
-        return new TinyColor(this.backgroundColor).isLight();
+        return isLight(this.backgroundColor);
     }
 
     get isButtonDark(): boolean {
-        return new TinyColor(this.buttonColor).isDark();
+        return isDark(this.buttonColor);
     }
 
     get isButtonLight(): boolean {
-        return new TinyColor(this.buttonColor).isLight();
+        return isLight(this.buttonColor);
     }
 
     get isFrameDark(): boolean {
-        return new TinyColor(this.frameColor).isDark();
+        return isDark(this.frameColor);
     }
 
     get isFrameLight(): boolean {
-        return new TinyColor(this.frameColor).isLight();
+        return isLight(this.frameColor);
     }
 
     get isFrameTextDark(): boolean {
-        return new TinyColor(this.frameTextColor).isDark();
+        return isDark(this.frameTextColor);
     }
 
     get isFrameTextLight(): boolean {
-        return new TinyColor(this.frameTextColor).isLight();
+        return isLight(this.frameTextColor);
     }
 
     get isMediaButtonLight(): boolean {
-        return new TinyColor(this.mediaButtonColor).isLight();
+        return isLight(this.mediaButtonColor);
     }
 
     get isScrollbarDark(): boolean {
-        return new TinyColor(this.scrollbar.color).isDark();
+        return isDark(this.scrollbar.color);
     }
 
     get isScrollbarLight(): boolean {
-        return new TinyColor(this.scrollbar.color).isLight();
+        return isLight(this.scrollbar.color);
     }
 
     get isSelectionDark(): boolean {
-        return new TinyColor(this.selected.color).isDark();
+        return isDark(this.selected.color);
     }
 
     get isSelectionLight(): boolean {
-        return new TinyColor(this.selected.color).isLight();
+        return isLight(this.selected.color);
     }
 
     get isTextDark(): boolean {
-        return new TinyColor(this.textColor).isDark();
+        return isDark(this.textColor);
     }
 
     get isTextLight(): boolean {
-        return new TinyColor(this.textColor).isLight();
+        return isLight(this.textColor);
     }
 
     get mediaButton(): MediaButton {

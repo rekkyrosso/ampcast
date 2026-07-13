@@ -1,8 +1,8 @@
 import React, {useCallback, useId} from 'react';
 import theme from 'services/theme';
 import Button from 'components/Button';
-import useFonts from 'hooks/useFonts';
 import {DialogButtons} from 'components/Dialog';
+import FontSelect from 'components/FontSelect';
 import ButtonEditor from './ButtonEditor';
 import MediaButtonEditor from './MediaButtonEditor';
 import ScrollbarEditor from './ScrollbarEditor';
@@ -19,7 +19,6 @@ export default function ThemeEditor() {
     const themeName = `${currentTheme.name}${theme.edited ? ' (edited)' : ''}`;
     const themeKey = `${!!currentTheme.userTheme}/${currentTheme.name}`;
     const [suggestedColors, nextSuggestion] = useSuggestedColors(currentTheme.frame.color);
-    const fonts = useFonts();
 
     const handleSubmit = useCallback(() => {
         theme.save();
@@ -72,18 +71,11 @@ export default function ThemeEditor() {
                 </p>
                 <p key={`${themeKey}/font`}>
                     <label htmlFor={`${id}-font`}>Font:</label>
-                    <select
-                        className="font-selector"
+                    <FontSelect
                         id={`${id}-font`}
                         defaultValue={currentTheme.fontName}
                         onChange={handleFontChange}
-                    >
-                        {fonts.map(({name, loaded}) => (
-                            <option value={name} disabled={loaded === false} key={name}>
-                                {name}
-                            </option>
-                        ))}
-                    </select>
+                    />
                 </p>
                 <ThemeColorPair label="Frame" surface="frame" key={`${themeKey}/frame`} />
                 <ThemeColorPair label="Content" surface="content" key={`${themeKey}/content`} />

@@ -1,7 +1,6 @@
 @use 'styles/effects.scss';
 
 .visualizer-coverart {
-    font-family: var(--font-family, var(--system-font-family));
     text-rendering: optimizeLegibility;
     font-size: 1.25em;
     overflow: hidden;
@@ -86,6 +85,7 @@
         background-color: var(--background-color);
         transition: opacity 2s linear 1s;
         overflow: hidden;
+        border-radius: calc(var(--roundness) * 1rem);
 
         .media.paused & {
             transition: none;
@@ -202,6 +202,7 @@
 
         .provided-by {
             position: relative; /* break inherited opacity */
+            font-family: var(--system-font-family);
             font-size: max(0.5em, 11px);
             margin-top: 0.5em;
             align-items: flex-start;

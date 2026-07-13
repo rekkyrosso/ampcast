@@ -40,7 +40,7 @@
         "md5": "^2.3.0",
         "minisearch": "^7.2.0",
         "music-metadata": "^11.0.0",
-        "nanoid": "^5.0.1",
+        "nanoid": "^6.0.0",
         "react": "^19.0.0",
         "react-dom": "^19.0.0",
         "react-error-boundary": "^6.0.0",

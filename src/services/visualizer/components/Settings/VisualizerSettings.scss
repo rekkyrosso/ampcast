@@ -38,4 +38,8 @@
         margin-top: 2em;
         font-style: italic;
     }
+
+    p:has(.font-select) {
+        margin-bottom: 0.75em;
+    }
 }

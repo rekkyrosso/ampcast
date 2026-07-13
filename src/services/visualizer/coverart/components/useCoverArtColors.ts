@@ -10,7 +10,7 @@ import {
     getSwatches,
 } from 'colorthief';
 import {mostReadable} from '@ctrl/tinycolor';
-import {exists, filterNotEmpty} from 'utils';
+import {exists, filterNotEmpty, isDark} from 'utils';
 
 export interface CovertArtColors {
     readonly backgroundColors: readonly [string, string];
@@ -23,10 +23,6 @@ export const defaultColors: CovertArtColors = {
     textColor: '#ebebeb',
     beatsColor: '#808080',
 };
-
-export function isDark(color: string): boolean {
-    return new Color(color).to('lch').l! < 50;
-}
 
 export default function useCoverArtColors(coverArtUrl: string): CovertArtColors {
     const [coverArtColors, setCoverArtColors] = useState<CovertArtColors>(defaultColors);

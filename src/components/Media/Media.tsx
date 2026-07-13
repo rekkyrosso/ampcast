@@ -1,8 +1,9 @@
-import React, {memo, useCallback, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import MediaType from 'types/MediaType';
 import PlaybackType from 'types/PlaybackType';
 import {isMiniPlayer} from 'utils';
 import {getServiceFromSrc} from 'services/mediaServices';
+import fonts, {loadFont} from 'services/theme/fonts';
 import mediaPlayback from 'services/mediaPlayback';
 import miniPlayer from 'services/mediaPlayback/miniPlayer';
 import useBaseFontSize from 'hooks/useBaseFontSize';
@@ -25,7 +26,7 @@ export default memo(function Media() {
     const ref = useRef<HTMLDivElement>(null);
     const [style, setStyle] = useState<React.CSSProperties>({});
     const baseFontSize = useBaseFontSize();
-    const {fullscreenProgress, provider} = useVisualizerSettings();
+    const {fontName, fullscreenProgress, provider} = useVisualizerSettings();
     const miniPlayerActive = useMiniPlayerActive();
     const isFullscreen = useIsFullscreen();
     const item = useCurrentlyPlaying();
@@ -47,10 +48,21 @@ export default memo(function Media() {
     const isIdle = !useMouseBusy(ref.current, 4000);
     const paused = usePaused();
 
+    useEffect(() => {
+        const style = ref.current!.style;
+        const font = fonts.find((font) => font.name === fontName);
+        if (font) {
+            loadFont(font);
+            style.setProperty('--visualizer-font-family', font.value);
+        } else {
+            style.removeProperty('--visualizer-font-family');
+        }
+    }, [fontName]);
+
     useOnResize(ref, ({width, height}) => {
         setStyle({
             fontSize: `${Math.max(Math.sqrt(width * height) * 0.03, baseFontSize)}px`,
-        } as React.CSSProperties);
+        });
         mediaPlayback.resize(width, height);
     });
 
