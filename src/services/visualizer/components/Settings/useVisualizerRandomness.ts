@@ -1,7 +1,7 @@
 import VisualizerProviderId from 'types/VisualizerProviderId';
-import {browser} from 'utils';
 import {getVisualizerProvider} from 'services/visualizer/visualizerProviders';
 import visualizerSettings from 'services/visualizer/visualizerSettings';
+import {exists} from 'utils';
 
 export interface Weighting {
     readonly id: VisualizerProviderId;
@@ -25,13 +25,14 @@ function getWeightings(isSpotify: boolean): readonly Weighting[] {
     const randomness = visualizerSettings[isSpotify ? 'spotifyRandomness' : 'randomness'];
     const providerIds = Object.keys(randomness) as VisualizerProviderId[];
     return providerIds
-        .filter((id) => (id === 'spotifyviz' ? browser.isAmpcastApp : true))
-        .map((id) => {
-            const provider = getVisualizerProvider(id);
+        .map((id) => getVisualizerProvider(id))
+        .filter(exists)
+        .map((provider) => {
+            const id = provider.id;
             const label = provider?.shortName || provider?.name || id;
             const value = randomness[id];
             const hidden = id === 'none';
-            const disabled = isSpotify ? id === 'ambientvideo' : id === 'spotifyviz';
+            const disabled = isSpotify && id === 'ambientvideo';
             return {id, label, value, disabled, hidden};
         })
         .sort((a, b) => a.id.localeCompare(b.id));

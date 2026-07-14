@@ -11,7 +11,6 @@ const defaultRandomness: Randomness = {
     audiomotion: 4,
     butterchurn: 74,
     coverart: 1,
-    spotifyviz: 0,
     waveform: 1,
 };
 
@@ -21,8 +20,7 @@ const defaultSpotifyRandomness: Randomness = {
     ampshader: 60,
     audiomotion: 9,
     butterchurn: 4,
-    coverart: 1,
-    spotifyviz: 6,
+    coverart: 7,
     waveform: 0,
 };
 
@@ -158,11 +156,10 @@ const visualizerSettings: VisualizerSettings = {
     },
 
     get randomness(): Randomness {
-        const randomness = {
+        return {
             ...defaultRandomness,
             ...storage.getJson('randomness', defaultRandomness),
         };
-        return {...randomness, spotifyviz: 0};
     },
 
     set randomness(randomness: Randomness) {
@@ -187,7 +184,6 @@ const visualizerSettings: VisualizerSettings = {
         return {
             ...randomness,
             ambientvideo: 0,
-            spotifyviz: browser.isAmpcastApp ? randomness.spotifyviz : 0,
         };
     },
 

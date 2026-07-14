@@ -5,7 +5,6 @@ type VisualizerProviderId =
     | 'audiomotion'
     | 'butterchurn'
     | 'coverart'
-    | 'spotifyviz'
     | 'waveform'
     ;
 

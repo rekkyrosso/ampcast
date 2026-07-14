@@ -1,6 +1,5 @@
 import type React from 'react';
 import type {Options as AudioMotionOptions} from 'audiomotion-analyzer';
-import type {SpotifyVizConfig} from 'services/visualizer/spotifyviz/SpotifyVizPlayer';
 import type {WaveformConfig} from 'services/visualizer/waveform/WaveformPlayer';
 import BaseVisualizer from './BaseVisualizer';
 import MediaItem from './MediaItem';
@@ -43,11 +42,6 @@ export interface CoverArtVisualizer extends BaseVisualizer {
     readonly component: React.FC;
 }
 
-export interface SpotifyVizVisualizer extends BaseVisualizer {
-    readonly providerId: 'spotifyviz';
-    readonly config: SpotifyVizConfig;
-}
-
 export interface WaveformVisualizer extends BaseVisualizer {
     readonly providerId: 'waveform';
     readonly config: WaveformConfig;
@@ -64,7 +58,6 @@ type Visualizer =
     | AudioMotionVisualizer
     | ButterchurnVisualizer
     | CoverArtVisualizer
-    | SpotifyVizVisualizer
     | WaveformVisualizer;
 
 export default Visualizer;

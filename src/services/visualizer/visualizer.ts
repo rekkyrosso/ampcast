@@ -111,9 +111,6 @@ export function isProviderSupported(providerId: string, item: MediaItem): boolea
         case 'coverart':
             return true;
 
-        case 'spotifyviz':
-            return spotifyAnalyserEnabled && isSpotify;
-
         case 'ambientvideo':
             return !isSpotify;
 
