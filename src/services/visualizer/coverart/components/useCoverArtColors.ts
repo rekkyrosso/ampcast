@@ -9,8 +9,7 @@ import {
     getPalette,
     getSwatches,
 } from 'colorthief';
-import {mostReadable} from '@ctrl/tinycolor';
-import {exists, filterNotEmpty, isDark} from 'utils';
+import {exists, filterNotEmpty, isDark, isDarker, isReadable, mostReadable} from 'utils';
 
 export interface CovertArtColors {
     readonly backgroundColors: readonly [string, string];
@@ -66,7 +65,7 @@ export default function useCoverArtColors(coverArtUrl: string): CovertArtColors 
         };
 
         img.crossOrigin = 'anonymous';
-        img.src = coverArtUrl;
+        img.src = tweakUrl(coverArtUrl);
 
         if (img.complete) {
             onload(img);
@@ -193,7 +192,6 @@ function getTextColor(
     backgroundColors: [string, string]
 ): string {
     const backgroundColor = mixBackgroundColors(backgroundColors);
-    const fallbackColor = isDark(backgroundColor) ? '#ffffff' : '#000000';
     const colors = palette
         .map((color) => color.hex())
         .concat(
@@ -202,12 +200,24 @@ function getTextColor(
                 .filter(exists)
                 .map((swatch) => swatch.color.hex())
         );
-    return (
-        mostReadable(backgroundColor, colors, {
-            level: 'AA',
-            size: 'small',
-        })?.toHexString() || fallbackColor
-    );
+    let textColor = mostReadable(backgroundColor, colors);
+    if (!isReadable(backgroundColor, textColor)) {
+        // If we can't find a good text colour then find
+        // a suitable light/dark colour and mix it with white/black.
+        const mixColor = isDarker(textColor, backgroundColor) ? '#000000' : '#ffffff';
+        let readableColor = new Color(textColor);
+        if (isReadable(backgroundColor, mixColor)) {
+            while (!isReadable(backgroundColor, readableColor)) {
+                readableColor = new Color(mixColor).mix(readableColor, 0.9);
+            }
+        }
+        if (isReadable(backgroundColor, readableColor)) {
+            textColor = readableColor.toString({format: 'hex'});
+        } else {
+            textColor = isDark(backgroundColor) ? '#ffffff' : '#000000';
+        }
+    }
+    return textColor;
 }
 
 function getBeatsColor(
@@ -244,9 +254,22 @@ function findMostVibrant(palette: readonly ColorThiefColor[]): ColorThiefColor |
         color.oklch().c > mostVibrant.oklch().c ? color : mostVibrant
     );
     // Only return a dominant vibrant colour. Otherwise, use the swatches.
-    if (vibrantColor.proportion > 0.1 && vibrantColor.oklch().c > 0.1) {
+    if (vibrantColor.proportion > 0.05 && vibrantColor.oklch().c > 0.1) {
         return vibrantColor;
     }
+}
+
+function tweakUrl(src: string): string {
+    // Re-arrange the search params to create a new URL.
+    // This will bust the cache and return the same resource.
+    // This fixes Plex errors re-fetching an image.
+    const url = new URL(src);
+    const [[key, value = ''] = []] = [...url.searchParams];
+    if (key) {
+        url.searchParams.delete(key);
+        url.searchParams.append(key, value);
+    }
+    return String(url);
 }
 
 // function logColors(palette: readonly ColorThiefColor[], swatches: SwatchMap | null) {
@@ -262,13 +285,22 @@ function findMostVibrant(palette: readonly ColorThiefColor[]): ColorThiefColor |
 //     }
 //     console.log('--------------------------------------------');
 // }
-
-// function logColor(color: ColorThiefColor, name = '') {
+//
+// function logColor(color: ColorThiefColor | Color | string, name: any = '', ...args: any[]) {
+//     if (color instanceof Color) {
+//         color = color.toString({format: 'hex'});
+//     } else if (typeof color === 'object' && 'hex' in color) {
+//         name = `${Math.round(color.proportion * 1000) / 10}% ${name}`;
+//         color = color.hex();
+//     }
 //     console.log(
-//         `%c${color.hex()} ${Math.round(color.proportion * 1000) / 10}% ${name}`,
-//         `background-color: ${color.hex()};
-//          color: ${color.contrast.foreground};
-//          text-shadow: 1px 1px 1px ${color.isDark ? 'black' : 'rgba(0,0,0,0.2)'};
-//          padding: 3px;`
+//         `%c${color}`,
+//         `display: inline-block;
+//          background-color: ${color};
+//          color: contrast-color(${color});
+//          border: 1px solid black;
+//          padding: 1px 4px;`,
+//         name,
+//         ...args
 //     );
 // }

@@ -3,7 +3,7 @@ import Color from 'colorjs.io';
 import LinearType from 'types/LinearType';
 import PlaylistItem from 'types/PlaylistItem';
 import type CovertArtPlayer from '../CovertArtPlayer';
-import {isDark} from 'utils';
+import {isDark, isLighter} from 'utils';
 import {getServiceFromSrc} from 'services/mediaServices';
 import {isProviderSupported} from 'services/visualizer';
 import Icon from 'components/Icon';
@@ -39,6 +39,7 @@ export default function CurrentlyPlaying({item, player, hidden = false}: Current
     const coverArtColors = useCoverArtColors(covertArtUrl);
     const [tone, setTone] = useState<'light' | 'dark'>('dark');
     const [textTone, setTextTone] = useState<'light' | 'dark'>('light');
+    const [textShadow, setTextShadow] = useState(false);
     const [style, setStyle] = useState<React.CSSProperties>({});
     const currentlyPlaying = useCurrentlyPlaying();
     const isPlayingTrack = item && (!item.linearType || item.linearType === LinearType.MusicTrack);
@@ -106,6 +107,7 @@ export default function CurrentlyPlaying({item, player, hidden = false}: Current
             } as React.CSSProperties);
             setTone(isDark(backgroundColor) ? 'dark' : 'light');
             setTextTone(isDark(textColor) ? 'dark' : 'light');
+            setTextShadow(isLighter(textColor, backgroundColor))
             player.backgroundColor = backgroundColor;
             player.backgroundColor2 = backgroundColor2;
             player.waveColor = textColor;
@@ -139,7 +141,7 @@ export default function CurrentlyPlaying({item, player, hidden = false}: Current
                         />
                         <ProvidedBy item={item} />
                     </div>
-                    <div className="currently-playing-text">
+                    <div className={`currently-playing-text ${textShadow ? 'text-shadow' : ''}`}>
                         <div className="metadata">
                             <h3 className="title">{item.title}</h3>
                             {item.artists?.length && item.linearType !== LinearType.Station ? (

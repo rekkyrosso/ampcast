@@ -1,6 +1,6 @@
 import {useCallback, useEffect, useState} from 'react';
-import {mostReadable, TinyColor} from '@ctrl/tinycolor';
-import {shuffle, uniq} from 'utils';
+import {TinyColor} from '@ctrl/tinycolor';
+import {mostReadable, shuffle, uniq} from 'utils';
 
 type SuggestedColors = [string, string][];
 
@@ -10,28 +10,22 @@ export default function useSuggestedColors(color: string) {
 
     useEffect(() => {
         const tinyColor = new TinyColor(color);
-        const backgrounds = uniq(
-            [
-                ...tinyColor.triad(),
-                ...tinyColor.tetrad(),
-                ...tinyColor.splitcomplement(),
-                ...tinyColor.analogous(),
-                ...tinyColor.monochromatic(),
-                tinyColor.lighten(),
-                tinyColor.darken(),
-                tinyColor.saturate(),
-                tinyColor.desaturate(),
-                tinyColor.greyscale(),
-                tinyColor.brighten(),
-            ].map((color) => color.toHexString())
-        ).map((hex) => new TinyColor(hex));
-        const suggestions: [string, string][] = backgrounds.reverse().map((color) => [
-            color.toHexString(),
-            mostReadable(color, ['black', 'white'], {
-                includeFallbackColors: true,
-                level: 'AA',
-                size: 'large',
-            })!.toHexString(),
+        const backgrounds = [
+            ...tinyColor.triad(),
+            ...tinyColor.tetrad(),
+            ...tinyColor.splitcomplement(),
+            ...tinyColor.analogous(),
+            ...tinyColor.monochromatic(),
+            tinyColor.lighten(),
+            tinyColor.darken(),
+            tinyColor.saturate(),
+            tinyColor.desaturate(),
+            tinyColor.greyscale(),
+            tinyColor.brighten(),
+        ].map((color) => color.toHexString());
+        const suggestions: [string, string][] = uniq(backgrounds).map((color) => [
+            color,
+            mostReadable(color),
         ]);
         setSuggestions(shuffle(suggestions));
         setSelectedIndex(suggestions.length === -1 ? -1 : 0);
