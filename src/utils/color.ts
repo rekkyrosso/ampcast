@@ -42,7 +42,7 @@ export function readability(backgroundColor: Color | string, textColor: Color | 
 export function isReadable(
     backgroundColor: Color | string,
     textColor: Color | string,
-    level = 2.95 // AA+Large(ish)
+    level = 3 // AA+Large
 ): boolean {
     return readability(backgroundColor, textColor) >= level;
 }

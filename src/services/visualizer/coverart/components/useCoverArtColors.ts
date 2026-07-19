@@ -9,7 +9,15 @@ import {
     getPalette,
     getSwatches,
 } from 'colorthief';
-import {exists, filterNotEmpty, isDark, isDarker, isReadable, mostReadable} from 'utils';
+import {
+    exists,
+    filterNotEmpty,
+    isDark,
+    isDarker,
+    isReadable,
+    mostReadable,
+    readability,
+} from 'utils';
 
 export interface CovertArtColors {
     readonly backgroundColors: readonly [string, string];
@@ -59,7 +67,8 @@ export default function useCoverArtColors(coverArtUrl: string): CovertArtColors 
                 } else {
                     setCoverArtColors(defaultColors);
                 }
-            } catch {
+            } catch (err) {
+                console.error(err);
                 setCoverArtColors(defaultColors);
             }
         };
@@ -200,24 +209,26 @@ function getTextColor(
                 .filter(exists)
                 .map((swatch) => swatch.color.hex())
         );
-    let textColor = mostReadable(backgroundColor, colors);
-    if (!isReadable(backgroundColor, textColor)) {
+
+    const textColor = mostReadable(backgroundColor, colors);
+    if (isReadable(backgroundColor, textColor)) {
+        return textColor;
+    }
+    if (readability(backgroundColor, textColor) > 1.5) {
         // If we can't find a good text colour then find
         // a suitable light/dark colour and mix it with white/black.
-        const mixColor = isDarker(textColor, backgroundColor) ? '#000000' : '#ffffff';
         let readableColor = new Color(textColor);
+        const mixColor = isDarker(textColor, backgroundColor) ? '#000000' : '#ffffff';
         if (isReadable(backgroundColor, mixColor)) {
             while (!isReadable(backgroundColor, readableColor)) {
                 readableColor = new Color(mixColor).mix(readableColor, 0.9);
             }
         }
         if (isReadable(backgroundColor, readableColor)) {
-            textColor = readableColor.toString({format: 'hex'});
-        } else {
-            textColor = isDark(backgroundColor) ? '#ffffff' : '#000000';
+            return readableColor.toString({format: 'hex'});
         }
     }
-    return textColor;
+    return isDark(backgroundColor) ? '#ffffff' : '#000000';
 }
 
 function getBeatsColor(
@@ -232,7 +243,10 @@ function getBeatsColor(
         return !!color && new Color(color2).deltaE2000(color.hex()) > 20;
     };
     const getSwatch = (key: keyof SwatchMap) => swatches?.[key]?.color;
-    const mostVibrant = [findMostVibrant(palette), getSwatch('Vibrant')];
+    const mostVibrant = [
+        findMostVibrant(palette.filter((color) => !backgroundColors.includes(color.hex()))),
+        getSwatch('Vibrant'),
+    ];
     const otherColors = [
         getSwatch(isDark(backgroundColor) ? 'LightVibrant' : 'DarkVibrant'),
         getSwatch(isDark(backgroundColor) ? 'DarkVibrant' : 'LightVibrant'),
@@ -250,12 +264,14 @@ function mixBackgroundColors([a, b]: [string, string]): string {
 }
 
 function findMostVibrant(palette: readonly ColorThiefColor[]): ColorThiefColor | undefined {
-    const vibrantColor = palette.reduce((mostVibrant, color) =>
-        color.oklch().c > mostVibrant.oklch().c ? color : mostVibrant
-    );
-    // Only return a dominant vibrant colour. Otherwise, use the swatches.
-    if (vibrantColor.proportion > 0.05 && vibrantColor.oklch().c > 0.1) {
-        return vibrantColor;
+    if (palette.length > 0) {
+        const vibrantColor = palette.reduce((mostVibrant, color) =>
+            color.oklch().c > mostVibrant.oklch().c ? color : mostVibrant
+        );
+        // Only return a dominant vibrant colour. Otherwise, use the swatches.
+        if (vibrantColor.proportion > 0.05 && vibrantColor.oklch().c > 0.1) {
+            return vibrantColor;
+        }
     }
 }
 

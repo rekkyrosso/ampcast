@@ -8,7 +8,7 @@ const LazyCoverArtVisualizer = lazy(() => getCoverArtVisualizer());
 
 export default function CoverArtVisualizer() {
     return (
-        <Suspense fallback={<div className="visualizer visualizer-coverart" />}>
+        <Suspense fallback={<div className="visualizer-visualizer coverart" hidden />}>
             <LazyCoverArtVisualizer />
         </Suspense>
     );

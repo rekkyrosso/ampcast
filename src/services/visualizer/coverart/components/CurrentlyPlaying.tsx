@@ -15,6 +15,7 @@ import ProgressBar from 'components/Media/ProgressBar';
 import useCurrentlyPlaying from 'hooks/useCurrentlyPlaying';
 import useFontSize from 'hooks/useFontSize';
 import useOnResize from 'hooks/useOnResize';
+import usePrevious from 'hooks/usePrevious';
 import useVisualizerSettings from 'hooks/useVisualizerSettings';
 import SynchronizedLyrics from './SynchronizedLyrics';
 import useCoverArtColors from './useCoverArtColors';
@@ -28,7 +29,7 @@ export interface CurrentlyPlayingProps {
 export default function CurrentlyPlaying({item, player, hidden = false}: CurrentlyPlayingProps) {
     const ref = useRef<HTMLDivElement>(null);
     const service = item ? getServiceFromSrc(item) : undefined;
-    const [isLoggedIn, setIsLoggedIn] = useState(() => service?.isLoggedIn() ?? false);
+    const [isLoggedIn, setIsLoggedIn] = useState(() => service?.isLoggedIn() ?? true);
     const {coverArtBeats, coverArtLyrics, fullscreenProgress} = useVisualizerSettings();
     const [arrange, setArrange] = useState<'row' | 'column'>('row');
     const [width, setWidth] = useState(0);
@@ -45,24 +46,27 @@ export default function CurrentlyPlaying({item, player, hidden = false}: Current
     const isPlayingTrack = item && (!item.linearType || item.linearType === LinearType.MusicTrack);
     const isPlayingRadio = currentlyPlaying?.linearType === LinearType.Station;
     const beatsEnabled = coverArtBeats && (item ? isProviderSupported('waveform', item) : true);
-    const itemId = item?.id;
+    const itemId = item?.id || '';
+    const prevItemId = usePrevious(itemId);
 
     useEffect(() => {
         player?.appendTo(ref.current!);
     }, [player]);
 
     useLayoutEffect(() => {
+        if (prevItemId !== undefined && itemId !== prevItemId) {
+            setCovertArtUrl('');
+        }
+    }, [itemId, prevItemId]);
+
+    useLayoutEffect(() => {
         if (service) {
             const subscription = service.observeIsLoggedIn().subscribe(setIsLoggedIn);
             return () => subscription.unsubscribe();
         } else {
-            setIsLoggedIn(false);
+            setIsLoggedIn(true);
         }
     }, [service]);
-
-    useLayoutEffect(() => {
-        setCovertArtUrl('');
-    }, [itemId]);
 
     useEffect(() => {
         if (width * height * fontSize > 0) {
@@ -107,7 +111,7 @@ export default function CurrentlyPlaying({item, player, hidden = false}: Current
             } as React.CSSProperties);
             setTone(isDark(backgroundColor) ? 'dark' : 'light');
             setTextTone(isDark(textColor) ? 'dark' : 'light');
-            setTextShadow(isLighter(textColor, backgroundColor))
+            setTextShadow(isLighter(textColor, backgroundColor));
             player.backgroundColor = backgroundColor;
             player.backgroundColor2 = backgroundColor2;
             player.waveColor = textColor;
@@ -134,7 +138,7 @@ export default function CurrentlyPlaying({item, player, hidden = false}: Current
                         <Thumbnail
                             item={item}
                             size={800}
-                            extendedSearch={!hidden}
+                            extendedSearch
                             onLoad={handleThumbnailLoad}
                             onError={handleThumbnailError}
                             key={`${itemId}/${isLoggedIn}/thumbnail`}

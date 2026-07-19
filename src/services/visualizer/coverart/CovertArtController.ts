@@ -49,9 +49,6 @@ export default class CovertArtController extends AbstractVisualizerPlayer<CoverA
 
     set hidden(hidden: boolean) {
         this.hidden$.next(hidden);
-        if (this.element) {
-            this.element.hidden = hidden;
-        }
         if (hidden) {
             this.currentPlayer.pause();
         } else {
