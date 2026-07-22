@@ -96,13 +96,7 @@ export async function reconnect(): Promise<void> {
     await clearAccessToken();
 }
 
-export async function getRedirectUri(): Promise<string> {
-    return `${location.origin}/auth/ibroadcast/callback/`;
-}
-
 async function obtainAccessToken(state: string): Promise<TokenResponse> {
-    const redirectUri = await getRedirectUri();
-
     return new Promise((resolve, reject) => {
         let authWindow: Window | null = null;
 
@@ -136,7 +130,7 @@ async function obtainAccessToken(state: string): Promise<TokenResponse> {
 
         const params = new URLSearchParams({
             client_id: ibroadcastSettings.clientId,
-            redirect_uri: redirectUri,
+            redirect_uri: ibroadcastSettings.redirectUri,
             response_type: 'code',
             code_challenge_method: 'S256',
             code_challenge,
@@ -173,7 +167,6 @@ async function generateCodeChallenge(codeVerifier: string): Promise<string> {
 }
 
 async function exchangeToken(token: string): Promise<TokenResponse> {
-    const redirectUri = await getRedirectUri();
     const response = await fetch(`${ibroadcastOAuth}/token`, {
         method: 'POST',
         headers: {
@@ -183,7 +176,7 @@ async function exchangeToken(token: string): Promise<TokenResponse> {
             client_id: ibroadcastSettings.clientId,
             grant_type: 'authorization_code',
             code: token,
-            redirect_uri: redirectUri,
+            redirect_uri: ibroadcastSettings.redirectUri,
             code_verifier: ibroadcastSettings.codeVerifier,
         }),
     });

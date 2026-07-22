@@ -935,7 +935,7 @@ export default class SubsonicService implements PersonalMediaService {
     }
 
     private getIdFromSrc({src}: {src: string}): string {
-        const [, , id] = src.split(':');
-        return id;
+        const [, , ...rest] = src.split(':');
+        return rest.join(':');
     }
 }

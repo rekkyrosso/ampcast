@@ -369,7 +369,8 @@ export default class SubsonicApi {
                 }
                 return url;
             } else {
-                const [, type, id] = item.src.split(':');
+                const [, type, ...rest] = item.src.split(':');
+                const id = rest.join(':');
                 if (item.playbackType === PlaybackType.HLS) {
                     return `${host}/rest/hls.m3u8?id=${id}&${credentials}`;
                 } else {

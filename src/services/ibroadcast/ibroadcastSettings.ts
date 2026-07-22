@@ -53,6 +53,10 @@ const ibroadcastSettings = {
         return !!ib_client_id;
     },
 
+    get redirectUri(): string {
+        return `${location.origin}/auth/ibroadcast/callback/`;
+    },
+
     get token(): TokenStore | null {
         return authStorage.getJson('token');
     },

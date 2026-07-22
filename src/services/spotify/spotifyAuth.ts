@@ -216,7 +216,7 @@ export async function refreshToken(): Promise<string> {
         const response = await fetch(`${spotifyAccounts}/api/token`, {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/x-www-form-urlencoded;charset=UTF-8',
+                'Content-Type': 'application/x-www-form-urlencoded',
             },
             body: new URLSearchParams({
                 client_id: spotifySettings.clientId,
@@ -229,6 +229,9 @@ export async function refreshToken(): Promise<string> {
             throw response;
         }
         const token = await response.json();
+        if (!token.refresh_token) {
+            token.refresh_token = refresh_token;
+        }
         await storeAccessToken(token);
         return token.access_token;
     } else {
@@ -248,6 +251,7 @@ async function storeAccessToken(token: TokenResponse): Promise<void> {
         ) as any;
     } catch (err) {
         logger.error(err);
+        connectionLogging$.next(`Failed to connect: '${getReadableErrorMessage(err)}'`);
         await clearAccessToken();
     }
 }

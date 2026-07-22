@@ -12,7 +12,7 @@ export default function IBroadcastCredentials({service: ibroadcast}: MediaServic
     const ref = useRef<HTMLFormElement>(null);
     const {clientId} = useCredentials();
     const clientIdRef = useRef<HTMLInputElement>(null);
-    const redirectUri = `${location.origin}/auth/ibroadcast/callback/`;
+    const redirectUri = ibroadcastSettings.redirectUri;
     const locked = ibroadcast.credentialsLocked;
 
     const handleSubmit = useCallback(async () => {
