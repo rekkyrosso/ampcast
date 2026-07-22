@@ -35,6 +35,7 @@ const sortTypes: Record<Field, SortType> = {
     Genre: 'locale',
     Owner: 'locale',
     BitRate: 'number',
+    Bpm: 'number',
     Container: 'locale',
     Copyright: 'locale',
     AddedAt: 'number',
@@ -201,6 +202,8 @@ function getNumber<T extends MediaObject>(item: T, field: Field): number {
             return (item as MediaAlbum).trackCount || 0;
         case 'BitRate':
             return (item as MediaItem).bitRate || 0;
+        case 'Bpm':
+            return (item as MediaItem).bpm || 0;
         case 'Rating':
             return (item as MediaItem).rating || 0;
         default:

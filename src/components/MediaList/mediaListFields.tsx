@@ -68,6 +68,8 @@ export const IconTitle: RenderField = (item, info) => {
 
 const BitRate: RenderField<MediaItem> = (item) => <Text value={item.bitRate} />;
 
+const Bpm: RenderField<MediaItem> = (item) => <Text value={item.bpm || ''} />;
+
 const Container: RenderField<MediaItem> = (item) => <Text value={item.badge} />;
 
 const Description: RenderField = (item) => <Text value={item.description} />;
@@ -434,6 +436,14 @@ const mediaListFields: Record<Field, FieldSpec> = {
         align: 'right',
         width: 6,
         className: 'bitrate',
+    },
+    Bpm: {
+        id: 'Bpm',
+        title: 'BPM',
+        render: Bpm,
+        align: 'right',
+        width: 5,
+        className: 'bpm',
     },
     Container: {
         id: 'Container',
