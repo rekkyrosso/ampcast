@@ -65,6 +65,7 @@ declare namespace Navidrome {
         readonly artistId: string;
         readonly bitRate: number;
         readonly bookmarkPosition: number;
+        readonly bpm?: number;
         readonly catalogNum: string;
         readonly channels: number;
         readonly compilation: boolean;

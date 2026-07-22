@@ -47,6 +47,7 @@ export default interface MediaItem extends BaseMediaObject {
     // Badges.
     readonly badge?: string;
     readonly bitRate?: number;
+    readonly bpm?: number;
     readonly container?: string;
     readonly explicit?: boolean;
     readonly shareLink?: string;

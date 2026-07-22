@@ -33,6 +33,7 @@ export type Field =
     | 'LastPlayed'
     | 'ListenDate'
     | 'BitRate'
+    | 'Bpm'
     | 'Badges'
     | 'Container'
     | 'Thumbnail'

@@ -23,6 +23,7 @@ export const allMediaItemFields: readonly Field[] = [
     'Rating',
     'AddedAt',
     'BitRate',
+    'Bpm',
     'Container',
 ];
 

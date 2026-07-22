@@ -114,6 +114,7 @@ function createMediaItem(song: Navidrome.Song): MediaItem {
         trackGain: song.rgTrackGain,
         trackPeak: song.rgTrackPeak,
         bitRate: song.bitRate,
+        bpm: song.bpm,
         badge: song.suffix,
         container: song.suffix,
         unplayable: song.missing || undefined,

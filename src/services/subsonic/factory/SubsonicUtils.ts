@@ -153,6 +153,7 @@ export default class SubsonicUtils {
             genres: song.genre ? [song.genre] : undefined,
             thumbnails: this.createThumbnails(song.coverArt),
             bitRate: song.bitRate,
+            bpm: song.bpm,
             badge: song.suffix,
             container: song.contentType?.replace('audio/', ''),
             // OpenSubsonic extensions
