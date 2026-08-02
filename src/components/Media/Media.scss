@@ -22,6 +22,10 @@
         background: black;
     }
 
+    &.exporting #visualizerPlayer {
+        visibility: hidden;
+    }
+
     /* Fullscreen or mini-player. */
     &.fullscreen {
         /* Actual fullscreen. */

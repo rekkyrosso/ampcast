@@ -12,7 +12,9 @@ import actionsStore from 'services/actions/actionsStore';
 import mediaPlayback from 'services/mediaPlayback';
 import pinStore from 'services/pins/pinStore';
 import playlist from 'services/playlist';
+import exportPlaylist from 'services/playlist/exportPlaylist';
 import {getService, getServiceFromSrc} from 'services/mediaServices';
+import fetchAllTracks from 'services/pagers/fetchAllTracks';
 import stationStore from 'services/internetRadio/stationStore';
 import {confirm, DialogProps, error, showDialog} from 'components/Dialog';
 import {showMediaInfoDialog} from 'components/MediaInfo/MediaInfoDialog';
@@ -92,6 +94,21 @@ export default async function performAction<T extends MediaObject>(
         case Action.EditPlaylist:
             await showEditPlaylistDialog(item as MediaPlaylist);
             break;
+
+        case Action.ExportPlaylist: {
+            const mediaPlaylist = item as MediaPlaylist;
+            try {
+                const tracks = await fetchAllTracks(mediaPlaylist);
+                await exportPlaylist(tracks, mediaPlaylist.title);
+            } catch (err) {
+                logger.error(err);
+                await error({
+                    title: 'Playlist export failed',
+                    message: err instanceof Error ? err.message : String(err),
+                });
+            }
+            break;
+        }
 
         case Action.DeletePlaylist: {
             const playlist = item as MediaPlaylist;

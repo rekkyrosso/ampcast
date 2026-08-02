@@ -83,6 +83,10 @@ type BaseMediaService = Auth & {
     getFilters?: (filterType: FilterType, itemType: ItemType) => Promise<readonly MediaFilter[]>;
     getLyrics?: (item: MediaItem) => Promise<Lyrics | null>;
     getMediaObject?: <T extends MediaObject>(src: string) => Promise<T>;
+    getExportUrl?: (
+        item: MediaItem,
+        options: {format: 'mp3'; bitRate: number}
+    ) => string;
     getPlayableUrl?: (item: MediaItem) => string;
     getPlaybackType?: (item: MediaItem) => Promise<PlaybackType>;
     getPlaylistByName?: (name: string) => Promise<MediaPlaylist | undefined>;

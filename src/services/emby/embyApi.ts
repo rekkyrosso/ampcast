@@ -398,6 +398,35 @@ function getPlayableUrl(item: MediaItem, settings: EmbySettings = embySettings):
     }
 }
 
+function getExportUrl(
+    item: MediaItem,
+    options: {format: 'mp3'; bitRate: number},
+    settings: EmbySettings = embySettings
+): string {
+    const {apiHost, userId, token, deviceId} = settings;
+    if (!apiHost || !userId || !token || !deviceId) {
+        throw Error('Not logged in');
+    }
+    const [, type, id, mediaSourceId] = item.src.split(':');
+    if (type !== 'audio') {
+        throw Error('Only audio tracks can be exported');
+    }
+    const params = new URLSearchParams({
+        static: 'false',
+        container: options.format,
+        audioCodec: options.format,
+        audioBitRate: String(options.bitRate),
+        allowAudioStreamCopy: 'false',
+        allowVideoStreamCopy: 'false',
+        enableAudioVbrEncoding: 'false',
+        mediaSourceId: mediaSourceId || id,
+        userId,
+        deviceId,
+        api_key: token,
+    });
+    return `${apiHost}/Audio/${id}/stream.${options.format}?${params}`;
+}
+
 async function getPlaybackType(
     item: MediaItem,
     settings: EmbySettings = embySettings
@@ -442,6 +471,7 @@ const embyApi = {
     getEndpointInfo,
     getLyrics,
     getMusicLibraries,
+    getExportUrl,
     getPlayableUrl,
     getPlaybackType,
     getSystemInfo,

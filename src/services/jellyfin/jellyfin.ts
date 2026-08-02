@@ -94,6 +94,7 @@ const jellyfin: PersonalMediaService = {
     getFilters,
     getLyrics,
     getMediaObject,
+    getExportUrl,
     getPlayableUrl,
     getPlaybackType,
     getServerInfo,
@@ -240,6 +241,10 @@ async function getMediaObject<T extends MediaObject>(src: string): Promise<T> {
 
 function getPlayableUrl(item: MediaItem): string {
     return jellyfinApi.getPlayableUrl(item);
+}
+
+function getExportUrl(item: MediaItem, options: {format: 'mp3'; bitRate: number}): string {
+    return jellyfinApi.getExportUrl(item, options);
 }
 
 async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
