@@ -13,17 +13,8 @@
         margin-top: calc(var(--gutter-width) / 2);
         white-space: nowrap;
 
-        @mixin chromeless {
-            margin-top: 0;
-            user-select: none;
-        }
-
         @media (display-mode: window-controls-overlay) {
-            @include chromeless;
-        }
-
-        .electron & {
-            @include chromeless;
+            user-select: none;
         }
 
         .electron-mac & {
@@ -32,30 +23,38 @@
             }
         }
 
-        .icon-button-settings {            
-            flex: initial;
-            margin: 0 calc(var(--gutter-width) + 0.25rem) 0 auto;
-            outline-offset: 3px;
-            -webkit-app-region: no-drag;
+        .browser-controls {
+            position: absolute;
+            left: max(
+                calc(
+                    var(--sources-width, 0) +
+                    var(--layout-splitter-size) +
+                    3 * var(--gutter-width)
+                ),
+                9em
+            );
             z-index: 1;
+            -webkit-app-region: no-drag;
+
+            .icon-button {
+                cursor: default;
+            }
+        }
+
+        .icon-button {
+            outline-offset: 3px;
+
+            &-settings {
+                margin-left: auto;
+                margin-right: calc(var(--gutter-width) + 0.25em);
+                z-index: 1;
+                -webkit-app-region: no-drag;
+            }
         }
     }
 
     .app-title {
         margin-left: var(--gutter-width);
-
-        @mixin chromeless {
-            margin-left: 0.5em;
-            margin-top: 0.25em;
-        }
-
-        @media (display-mode: window-controls-overlay) {
-            @include chromeless;
-        }
-
-        .electron & {
-            @include chromeless;
-        }
     }
 
     &-body {

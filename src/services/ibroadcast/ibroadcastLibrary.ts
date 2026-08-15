@@ -11,12 +11,19 @@ import {
 } from 'rxjs';
 import MiniSearch from 'minisearch';
 import MediaFilter from 'types/MediaFilter';
+import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {Logger, uniq} from 'utils';
 import {observeIsLoggedIn} from 'services/mediaServices';
 import {dispatchMetadataChanges, localeCompare} from 'services/metadata';
 import ibroadcastApi from './ibroadcastApi';
-import {createMediaPlaylist, getGenres, getIdFromSrc, getSystemPlaylistId} from './ibroadcastUtils';
+import {
+    createMediaObject,
+    createMediaPlaylist,
+    getGenres,
+    getIdFromSrc,
+    getSystemPlaylistId,
+} from './ibroadcastUtils';
 
 const logger = new Logger('ibroadcastLibrary');
 
@@ -310,6 +317,12 @@ export class IBroadcastLibrary {
                 }));
         }
         return this.genres[section];
+    }
+
+    async getMediaObject<T extends MediaObject>(src: string): Promise<T> {
+        const library = await this.load();
+        const [, type, id] = src.split(':');
+        return createMediaObject(`${type}s` as iBroadcast.LibrarySection, Number(id), library);
     }
 
     async getPlaylistByName(name: string): Promise<MediaPlaylist | undefined> {

@@ -7,7 +7,6 @@ import {
     combineLatest,
     distinctUntilChanged,
     filter,
-    fromEvent,
     map,
     skipWhile,
     take,
@@ -316,8 +315,6 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
             }
 
             this.subscribeTo(this.observeComplete().pipe(tap(() => (this.busy = false))), logger);
-
-            fromEvent(window, 'pagehide').subscribe(() => this.disconnect());
         }
     }
 

@@ -1,0 +1,10 @@
+.media-object-browser {
+    background-color: var(--background-color);
+    color: var(--text-color);
+    border-radius: var(--app-border-radius);
+    margin-bottom: var(--gutter-width);
+        
+    &-content {
+        padding: 1em;
+    }
+}

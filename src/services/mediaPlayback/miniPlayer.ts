@@ -261,7 +261,7 @@ const open = (): void => {
     }
     if (!miniPlayerWindow) {
         miniPlayerWindow = openPopup(
-            `${location.href}#mini-player`,
+            `${location.origin}/#mini-player`,
             session.miniPlayerId,
             miniPlayerSettings.width,
             miniPlayerSettings.height

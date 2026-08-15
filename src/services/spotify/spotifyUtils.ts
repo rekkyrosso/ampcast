@@ -74,6 +74,7 @@ function createMediaAlbum(album: SpotifyAlbum, inLibrary?: boolean | undefined):
     const externalUrl = album.external_urls.spotify;
     const releaseDate = new Date(album.release_date);
     const type = album.album_type;
+    const albumArtists = album.artists;
     return {
         itemType: ItemType.Album,
         albumType:
@@ -86,7 +87,7 @@ function createMediaAlbum(album: SpotifyAlbum, inLibrary?: boolean | undefined):
         externalUrl,
         shareLink: externalUrl,
         title: album.name,
-        artist: album.artists.map((artist) => artist.name).join(', '),
+        artist: albumArtists.map((artist) => artist.name).join(', '),
         // genres: album.genres, // always an empty array
         year: releaseDate.getFullYear(),
         releasedAt: Math.round(releaseDate.getTime() / 1000),
@@ -98,6 +99,10 @@ function createMediaAlbum(album: SpotifyAlbum, inLibrary?: boolean | undefined):
             ?.map((copyright) => copyright.text)
             .filter((text) => !!text)
             .join(' | '),
+        links: {
+            self: true,
+            artist: albumArtists?.length === 1 ? albumArtists[0].uri : undefined,
+        },
     };
 }
 
@@ -111,6 +116,9 @@ function createMediaArtist(artist: SpotifyArtist, inLibrary?: boolean | undefine
         thumbnails: artist.images as Thumbnail[],
         pager: createArtistAlbumsPager(artist),
         inLibrary,
+        links: {
+            self: true,
+        },
     };
 }
 
@@ -146,6 +154,9 @@ function createMediaPlaylist(
                   moveable: (trackCount || 0) <= SpotifyPlaylistItemsPager.MAX_SIZE_FOR_REORDER,
               }
             : undefined,
+        links: {
+            self: true,
+        },
     };
     mediaPlaylist.pager = new SpotifyPlaylistItemsPager(mediaPlaylist as MediaPlaylist);
     return mediaPlaylist as MediaPlaylist;
@@ -158,6 +169,7 @@ export function createMediaItemFromTrack(
 ): MediaItem {
     const externalUrl = track.external_urls?.spotify;
     const album = track.album;
+    const albumArtists = album?.artists;
 
     return {
         itemType: ItemType.Media,
@@ -168,7 +180,7 @@ export function createMediaItemFromTrack(
         shareLink: externalUrl,
         title: track.name,
         artists: track.artists?.map((artist) => artist.name),
-        albumArtist: album?.artists.map((artist) => artist.name).join(', '),
+        albumArtist: albumArtists?.map((artist) => artist.name).join(', '),
         album: album?.name,
         duration: track.duration_ms / 1000,
         playedAt: track.played_at
@@ -185,6 +197,12 @@ export function createMediaItemFromTrack(
         unplayable: track.is_playable === false ? true : undefined,
         explicit: track.explicit,
         inLibrary,
+        links: {
+            self: true,
+            album: album?.uri,
+            artists: track.artists?.map((artist) => artist.uri),
+            albumArtist: albumArtists?.length === 1 ? albumArtists[0].uri : undefined,
+        },
     };
 }
 

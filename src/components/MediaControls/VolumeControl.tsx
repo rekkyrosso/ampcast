@@ -48,9 +48,8 @@ export default function VolumeControl({overlay}: MediaControlsProps) {
         <div className={`volume-control volume-${volumeLabel}`} ref={ref}>
             <IconButton
                 icon={isMuted ? 'muted' : 'volume'}
-                className="in-frame"
                 aria-label={isMuted ? 'Unmute' : 'Mute'}
-                title={isMuted ? 'unmute' : 'mute'}
+                title={isMuted ? 'Unmute' : 'Mute'}
                 tabIndex={overlay ? -1 : undefined}
                 onClick={handleMuteClick}
             />

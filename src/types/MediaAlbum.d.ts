@@ -24,6 +24,9 @@ export default interface MediaAlbum extends BaseMediaObject {
     readonly explicit?: boolean;
     readonly badge?: string;
     readonly shareLink?: string;
+    readonly links?: BaseMediaObject['links'] & {
+        readonly artist?: string;
+    };
     readonly subsonic?: {
         readonly isDir?: boolean;
     };

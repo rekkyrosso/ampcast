@@ -1,5 +1,5 @@
 import type React from 'react';
-import {ConditionalKeys} from 'type-fest';
+import {ConditionalKeys, Except} from 'type-fest';
 import type {IconName} from 'components/Icon';
 import ChildOf from './ChildOf';
 import FilterType from './FilterType';
@@ -49,6 +49,7 @@ export default interface MediaSource<T extends MediaObject = MediaObject> {
         : never;
     readonly searchable?: boolean;
     readonly searchPlaceholder?: string;
+    readonly singular?: boolean; // Single item as primary item.
     readonly defaultHidden?: boolean;
     readonly disabled?: boolean;
     readonly isPin?: boolean;
@@ -73,7 +74,15 @@ export type MediaMultiSource<T extends MediaObject = MediaObject> = Pick<
 > & {
     readonly itemType?: never;
     readonly isPin?: false;
+    readonly singular?: false;
     readonly sources: readonly MediaSource<T>[];
+};
+
+export type MediaObjectSource<T extends MediaObject = MediaObject> = Except<
+    MediaSource<T>,
+    'itemType'
+> & {
+    readonly itemType?: never;
 };
 
 export type AnyMediaSource =
@@ -83,4 +92,5 @@ export type AnyMediaSource =
     | MediaSource<MediaFolderItem>
     | MediaSource<MediaPlaylist>
     | MediaSource<Pinnable>
-    | MediaMultiSource;
+    | MediaMultiSource
+    | MediaObjectSource;

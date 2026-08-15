@@ -14,6 +14,7 @@ import {setSourceFields} from 'services/mediaServices/servicesSettings';
 import {ActionsProps, performAction, showActionsMenu} from 'components/Actions';
 import ErrorBox, {ErrorBoxProps} from 'components/Errors/ErrorBox';
 import ListView, {Column, ListViewProps} from 'components/ListView';
+import useHistory from 'components/MediaBrowser/useHistory';
 import useFirstValue from 'hooks/useFirstValue';
 import usePager from 'hooks/usePager';
 import usePlaybackState from 'hooks/usePlaybackState';
@@ -85,6 +86,7 @@ export default function MediaList<T extends MediaObject>({
     ...props
 }: MediaListProps<T>) {
     const uniqueId = useId();
+    const [inactive, setInactive] = useState(false);
     const [, forceUpdate] = useReducer((i) => i + 1, 0);
     const id = source ? `${source.sourceId || source.id}/${level}` : uniqueId;
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -123,6 +125,15 @@ export default function MediaList<T extends MediaObject>({
         complete,
         onInternalSort
     );
+    const {currentKey} = useHistory();
+
+    useEffect(() => {
+        // Don't render `ListView`s if the component is hidden in the history stack.
+        // This creates a lighter DOM but has no other benefit.
+        const historyItem = containerRef.current!.closest('.history-item') as HTMLElement;
+        const historyKey = historyItem?.dataset.key;
+        setInactive(historyKey !== currentKey);
+    }, [currentKey]);
 
     useEffect(() => {
         // Make sure `LastPlayed` fields etc are updated.
@@ -290,6 +301,7 @@ export default function MediaList<T extends MediaObject>({
                     emptyMessage={
                         loaded && empty ? emptyMessage || sourceItems?.emptyMessage : undefined
                     }
+                    hidden={inactive}
                     draggable={draggable}
                     reorderable={reorderable}
                     sortable={sortable}
@@ -307,7 +319,7 @@ export default function MediaList<T extends MediaObject>({
                     onSelect={handleSelect}
                 />
             )}
-            {statusBar ? (
+            {statusBar && !inactive ? (
                 <MediaListStatusBar
                     items={items}
                     error={error}

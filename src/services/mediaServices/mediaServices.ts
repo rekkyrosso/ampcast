@@ -125,6 +125,12 @@ export function getService<T extends MediaService>(serviceId: string): T | undef
     return getServices().find<T>((service): service is T => service.id === serviceId);
 }
 
+export function getServiceFromPath(path: string): MediaService | undefined {
+    const [a, b] = path.split('/');
+    const serviceId = a === 'pins' ? b : a;
+    return getService(serviceId);
+}
+
 export function getServiceFromSrc({src}: {src?: string} = {}): MediaService | undefined {
     const [serviceId] = String(src).split(':');
     return getService(serviceId);

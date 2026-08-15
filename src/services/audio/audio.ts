@@ -59,11 +59,6 @@ class Audio implements AudioManager {
                 takeUntil(killed$)
             )
             .subscribe(logger);
-
-        killed$.subscribe(() => {
-            this.#omniContext.close();
-            this.#systemContext?.close();
-        });
     }
 
     get context(): AudioContext {

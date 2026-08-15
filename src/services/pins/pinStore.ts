@@ -101,8 +101,11 @@ class PinStore extends Dexie {
     }
 
     isPinned(src: string): boolean {
-        const pins = this.pins$.value;
-        return pins.findIndex((pin) => pin.src === src) !== -1;
+        return !!this.getPin(src);
+    }
+
+    getPin(src: string): Pin | undefined {
+        return this.getPins().find((pin) => pin.src === src);
     }
 
     getPins(): readonly Pin[] {
@@ -110,7 +113,7 @@ class PinStore extends Dexie {
     }
 
     getPinsForService(serviceId: string): readonly Pin[] {
-        const pins = this.pins$.value.slice();
+        const pins = this.getPins().slice();
         const lockedPin = this.lockedPin$.value;
         if (lockedPin && !pins.find((pin) => pin.src === lockedPin.src)) {
             pins.push(lockedPin);

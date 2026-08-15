@@ -56,6 +56,9 @@ function createMediaArtist(
         rating: artist[map.rating],
         genres: getGenres('artists', artist, library, true),
         thumbnails: createThumbnails(artist[map.artwork_id]),
+        links: {
+            self: true,
+        },
     };
     mediaArtist.pager = createArtistAlbumsPager(mediaArtist as MediaArtist, albumSort);
     return mediaArtist as MediaArtist;
@@ -163,6 +166,10 @@ function createMediaAlbum(id: number, library: iBroadcast.Library): MediaAlbum {
         pager: new SimpleMediaPager(async () => {
             return trackIds.map((id) => createMediaItem(id, library));
         }),
+        links: {
+            self: true,
+            artist: artistId ? `${serviceId}:artist:${artistId}` : undefined,
+        },
     };
 }
 
@@ -196,6 +203,9 @@ export function createMediaPlaylist(
             droppable: true,
             moveable: true,
         },
+        links: {
+            self: true,
+        },
     };
     mediaPlaylist.pager = createPlaylistItemsPager(mediaPlaylist as MediaPlaylist, itemSort);
     return mediaPlaylist as MediaPlaylist;
@@ -219,8 +229,10 @@ export function createMediaItem(
     const tracks = library.tracks;
     const track = tracks[id];
     const map = tracks.map;
-    const artist = artists[track[map.artist_id]];
-    const album = albums[track[map.album_id]];
+    const artistId = track[map.artist_id];
+    const artist = artists[artistId];
+    const albumId = track[map.album_id];
+    const album = albums[albumId];
     const albumArtistId = album?.[albums.map.artist_id];
     const albumArtist = artists[albumArtistId];
     const replayGain = Number(track[map.replay_gain]);
@@ -249,6 +261,12 @@ export function createMediaItem(
         trackGain: isNaN(replayGain) ? undefined : replayGain,
         container,
         badge: container,
+        links: {
+            self: true,
+            album: album ? `${serviceId}:album:${albumId}` : undefined,
+            albumArtist: albumArtist && albumArtistId ? `${serviceId}:artist:${albumArtistId}` : undefined,
+            artists: artist ? [`${serviceId}:artist:${artistId}`] : undefined,
+        },
     };
 }
 

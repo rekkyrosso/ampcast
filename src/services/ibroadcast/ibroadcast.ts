@@ -79,6 +79,7 @@ const ibroadcast: PersonalMediaService = {
     deletePlaylist,
     editPlaylist,
     getFilters,
+    getMediaObject,
     getPlayableUrl,
     getPlaybackType,
     getPlaylistByName,
@@ -211,6 +212,10 @@ async function getFilters(
         default:
             throw Error('Not supported');
     }
+}
+
+function getMediaObject<T extends MediaObject>(src: string): Promise<T> {
+    return ibroadcastLibrary.getMediaObject(src);
 }
 
 function getPlayableUrl(item: MediaItem): string {

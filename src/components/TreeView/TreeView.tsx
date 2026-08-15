@@ -36,7 +36,7 @@ export interface TreeViewProps<T> {
     onDelete?: (item: T) => void;
     onEnter?: (item: T) => void;
     onInfo?: (item: T) => void;
-    onSelect?: (item: T | null) => void;
+    onSelect?: (item: T) => void;
     ref?: React.RefObject<TreeViewHandle | null>;
 }
 

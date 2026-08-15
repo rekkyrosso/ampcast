@@ -1,7 +1,7 @@
 import {useLayoutEffect, useState} from 'react';
 import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
-import MediaSource from 'types/MediaSource';
+import MediaSource, {MediaObjectSource} from 'types/MediaSource';
 import Pager from 'types/Pager';
 import SearchParams from 'types/SearchParams';
 import {MediaSourceError} from 'services/errors';
@@ -9,7 +9,7 @@ import ErrorPager from 'services/pagers/ErrorPager';
 import useSorting from './useSorting';
 
 export default function useSource<T extends MediaObject>(
-    source: MediaSource<T> | null,
+    source: MediaSource<T> | MediaObjectSource<T> | null,
     params?: SearchParams | MediaFilter | Record<string, unknown>
 ): Pager<T> | null {
     const [pager, setPager] = useState<Pager<T> | null>(null);

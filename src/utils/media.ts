@@ -103,3 +103,8 @@ export async function isHlsMedia(url: string): Promise<boolean> {
     const contentType = await getContentType(url);
     return mediaTypes.hls.includes(contentType);
 }
+
+export function srcToPath(src: string): string {
+    const [serviceId, type = '', ...rest] = src.split(':');
+    return `${serviceId}/${type}/${rest.join(':')}`;
+}

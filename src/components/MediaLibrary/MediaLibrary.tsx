@@ -1,36 +1,43 @@
-import React, {memo, useCallback, useState} from 'react';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import {browser} from 'utils';
 import AppTitle from 'components/App/AppTitle';
-import Splitter from 'components/Splitter';
-import {SettingsDialog} from 'components/Settings';
-import {showDialog} from 'components/Dialog';
 import AppDragRegion from 'components/App/AppDragRegion';
-import {IconButton} from 'components/Button';
-import MediaSources, {MediaSourceView} from 'components/MediaSources';
+import BrowserControls from 'components/MediaBrowser/BrowserControls';
+import BrowserHistory from 'components/MediaBrowser/BrowserHistory';
+import MediaSources from 'components/MediaSources';
+import Splitter from 'components/Splitter';
+import useHistory from 'components/MediaBrowser/useHistory';
+import {ResizeRect} from 'hooks/useOnResize';
+import SettingsButton from './SettingsButton';
 import './MediaLibrary.scss';
 
 export default memo(function MediaLibrary() {
-    const [source, setSource] = useState<MediaSourceView | null>(null);
+    const ref = useRef<HTMLDivElement | null>(null);
+    const [path, setPath] = useState<string>('');
+    const {navigateTo} = useHistory();
 
-    const openSettingsDialog = useCallback(() => {
-        showDialog(SettingsDialog, true);
+    useEffect(() => {
+        if (path) {
+            navigateTo(path);
+        }
+    }, [navigateTo, path]);
+
+    const handleResize = useCallback(({width}: ResizeRect) => {
+        ref.current?.style.setProperty('--sources-width', `${width}px`);
     }, []);
 
     return (
-        <div className="media-library">
+        <div className="media-library" ref={ref}>
             <header className="media-library-head">
                 <AppTitle />
                 <AppDragRegion />
-                <IconButton
-                    icon="settings"
-                    className="in-frame"
-                    title="Settings"
-                    onClick={openSettingsDialog}
-                />
+                {browser.isElectron ? <BrowserControls /> : null}
+                <SettingsButton />
             </header>
             <div className="media-library-body">
                 <Splitter id="media-library-layout" arrange="columns">
-                    <MediaSources onSelect={setSource} />
-                    {source?.view || <div className="panel" />}
+                    <MediaSources onResize={handleResize} onSelect={setPath} />
+                    <BrowserHistory />
                 </Splitter>
             </div>
         </div>

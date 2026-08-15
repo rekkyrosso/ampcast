@@ -1,25 +1,21 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import MediaService from 'types/MediaService';
-import {AnyMediaSource} from 'types/MediaSource';
 import {LiteStorage} from 'utils';
+import {getServiceFromPath} from 'services/mediaServices';
 import {showDialog} from 'components/Dialog';
 import StartupWizard from 'components/StartupWizard';
 import TreeView, {TreeViewHandle} from 'components/TreeView';
+import useOnResize, {ResizeRect} from 'hooks/useOnResize';
 import useMediaSources from './useMediaSources';
 import showMediaSourcesMenu from './showMediaSourcesMenu';
 
 export const storage = new LiteStorage('sources');
 
-export interface MediaSourceView {
-    readonly source: MediaService | AnyMediaSource;
-    readonly view: React.ReactNode;
-}
-
 export interface MediaSourcesProps {
-    onSelect?: (source: MediaSourceView | null) => void;
+    onResize?: (rect: ResizeRect) => void;
+    onSelect?: (source: string) => void;
 }
 
-export default function MediaSources({onSelect}: MediaSourcesProps) {
+export default function MediaSources({onResize, onSelect}: MediaSourcesProps) {
     const ref = useRef<HTMLDivElement | null>(null);
     const treeViewRef = useRef<TreeViewHandle>(null);
     const sources = useMediaSources();
@@ -39,13 +35,18 @@ export default function MediaSources({onSelect}: MediaSourcesProps) {
         }
     }, [sources, wizardShown]);
 
-    const handleContextMenu = useCallback(async (item: MediaSourceView, x: number, y: number) => {
-        showMediaSourcesMenu(item, ref.current!, x, y);
+    useOnResize(ref, (rect) => onResize?.(rect));
+
+    const handleContextMenu = useCallback(async (path: string, x: number, y: number) => {
+        const service = getServiceFromPath(path);
+        if (service) {
+            showMediaSourcesMenu(service, ref.current!, x, y);
+        }
     }, []);
 
     return (
         <div className="panel media-sources" ref={ref}>
-            <TreeView<MediaSourceView>
+            <TreeView<string>
                 roots={sources || []}
                 onContextMenu={handleContextMenu}
                 onSelect={onSelect}

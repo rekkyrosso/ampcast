@@ -1,6 +1,5 @@
 import React, {useCallback} from 'react';
 import MediaService from 'types/MediaService';
-import {getService} from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
 import {confirm} from 'components/Dialog';
 import PopupMenu, {
@@ -11,17 +10,16 @@ import PopupMenu, {
 } from 'components/PopupMenu';
 import {showMediaServiceSettingsDialog} from 'components/Settings/MediaLibrarySettings/MediaServiceSettingsDialog';
 import {showMediaServicePinsDialog} from 'components/Settings/MediaLibrarySettings/MediaServicePinsDialog';
-import {MediaSourceView} from './MediaSources';
 import {showEditSourcesDialog} from './EditSourcesDialog';
 
 export default async function showMediaSourcesMenu(
-    item: MediaSourceView,
+    service: MediaService,
     target: HTMLElement,
     x: number,
     y: number
 ): Promise<string | undefined> {
     return showPopupMenu(
-        (props: PopupMenuProps) => <MediaSourcesMenu {...props} source={item.source} />,
+        (props: PopupMenuProps) => <MediaSourcesMenu {...props} service={service} />,
         target,
         x,
         y,
@@ -30,27 +28,24 @@ export default async function showMediaSourcesMenu(
 }
 
 interface MediaSourcesMenuProps {
-    source: MediaSourceView['source'];
+    service: MediaService;
 }
 
-function MediaSourcesMenu({source, ...props}: PopupMenuProps & MediaSourcesMenuProps) {
-    const isService = isMediaService(source);
-    const [serviceId] = source.id.split(/\/|:/);
-    const service = getService(serviceId);
-    const hasPins = pinStore.getPinsForService(serviceId).length > 0;
+function MediaSourcesMenu({service, ...props}: PopupMenuProps & MediaSourcesMenuProps) {
+    const hasPins = pinStore.getPinsForService(service.id).length > 0;
 
     const handleDisconnectClick = useCallback(async () => {
-        if (isMediaService(source)) {
+        if (service) {
             const confirmed = await confirm({
-                icon: source.id,
-                title: source.name,
-                message: `Disconnect from ${source.name}?`,
+                icon: service.id,
+                title: service.name,
+                message: `Disconnect from ${service.name}?`,
             });
             if (confirmed) {
-                source.logout();
+                service.logout();
             }
         }
-    }, [source]);
+    }, [service]);
 
     const handleSettingsClick = useCallback(() => {
         if (service) {
@@ -72,37 +67,22 @@ function MediaSourcesMenu({source, ...props}: PopupMenuProps & MediaSourcesMenuP
 
     return (
         <PopupMenu {...props}>
-            {isService ? (
-                <>
-                    <PopupMenuItem
-                        label={`${source.name} Settings…`}
-                        onClick={handleSettingsClick}
-                    />
-                    {!source.noAuth && source.isConnected() ? (
-                        <PopupMenuItem
-                            label={`Disconnect from ${source.name}…`}
-                            onClick={handleDisconnectClick}
-                        />
-                    ) : null}
-                    <PopupMenuSeparator />
-                    <PopupMenuItem label="Edit sources…" onClick={handleEditSourcesClick} />
-                    {service?.createSourceFromPin ? (
-                        <PopupMenuItem
-                            label="Manage pins…"
-                            onClick={handleManagePinsClick}
-                            disabled={!hasPins}
-                        />
-                    ) : null}
-                </>
-            ) : (source as any).isPin ? (
-                <PopupMenuItem label="Manage pins…" onClick={handleManagePinsClick} />
-            ) : (
-                <PopupMenuItem label="Edit sources…" onClick={handleEditSourcesClick} />
-            )}
+            <PopupMenuItem label={`${service.name} Settings…`} onClick={handleSettingsClick} />
+            {!service.noAuth && service.isConnected() ? (
+                <PopupMenuItem
+                    label={`Disconnect from ${service.name}…`}
+                    onClick={handleDisconnectClick}
+                />
+            ) : null}
+            <PopupMenuSeparator />
+            <PopupMenuItem label="Edit sources…" onClick={handleEditSourcesClick} />
+            {service?.createSourceFromPin ? (
+                <PopupMenuItem
+                    label="Manage pins…"
+                    onClick={handleManagePinsClick}
+                    disabled={!hasPins}
+                />
+            ) : null}
         </PopupMenu>
     );
-}
-
-function isMediaService(source: MediaSourceView['source']): source is MediaService {
-    return 'serviceType' in source;
 }

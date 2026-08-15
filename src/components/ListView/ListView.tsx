@@ -83,6 +83,7 @@ export interface ListViewProps<T> {
     sortParams?: SortParams;
     savedSortParams?: SortParams;
     disabled?: boolean;
+    hidden?: boolean;
     className?: string;
     cursor?: string;
     emptyMessage?: React.ReactNode;
@@ -134,6 +135,7 @@ export default function ListView<T>({
     sortParams,
     savedSortParams,
     disabled,
+    hidden,
     emptyMessage,
     onClick,
     onDoubleClick,
@@ -650,6 +652,7 @@ export default function ListView<T>({
             className={`list-view list-view-${layout.view} ${className} ${isThin ? 'thin' : ''} ${
                 hasFocus ? 'focus' : ''
             } ${size === 0 ? 'empty' : ''}`}
+            hidden={hidden}
             tabIndex={disabled ? undefined : isEmpty ? -1 : 0}
             onClick={handleClick}
             onContextMenu={handleContextMenu}
@@ -676,7 +679,7 @@ export default function ListView<T>({
                 onScroll={setScrollPosition}
                 ref={scrollableRef}
             >
-                {showTitles && (
+                {hidden || !showTitles ? null : (
                     <FixedHeader>
                         <ListViewHead
                             width={width}
@@ -695,7 +698,7 @@ export default function ListView<T>({
                         />
                     </FixedHeader>
                 )}
-                {size === 0 && emptyMessage ? (
+                {hidden ? null : size === 0 && emptyMessage ? (
                     <Empty message={emptyMessage} />
                 ) : (
                     <ListViewBody

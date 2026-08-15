@@ -13,6 +13,7 @@ import ErrorScreen from './ErrorScreen';
 import FilterBrowser from './FilterBrowser';
 import FolderBrowser from './FolderBrowser';
 import LibraryLoadingScreen from './LibraryLoadingScreen';
+import MediaObjectBrowser from './MediaObjectBrowser';
 import useErrorScreen from './useErrorScreen';
 import useNoInternetError from './useNoInternetError';
 
@@ -26,13 +27,14 @@ export default function MediaBrowser({service, source}: MediaBrowserProps) {
     const isLibraryLoading = useIsLibraryLoading(service);
     const renderError = useErrorScreen(service, source);
     const noInternetError = useNoInternetError(service);
-    const Browser =
-        source.Component ||
-        (source.itemType === ItemType.Folder
-            ? FolderBrowser
-            : 'filterType' in source
-              ? (FilterBrowser as any)
-              : DefaultBrowser);
+    const Browser = source.singular
+        ? MediaObjectBrowser
+        : source.Component ||
+          (source.itemType === ItemType.Folder
+              ? FolderBrowser
+              : 'filterType' in source
+                ? (FilterBrowser as any)
+                : DefaultBrowser);
 
     useEffect(() => {
         if (isPersonalMediaService(service)) {
