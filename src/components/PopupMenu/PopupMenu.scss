@@ -1,5 +1,10 @@
 @use 'styles/effects.scss';
 
+/* TODO: Why is the first CSS selector corrupted? */
+.fix-electron-error {
+    color: inherit;
+}
+
 .popup-menu {
     @include effects.button;
     --amb-elevation: 2;
