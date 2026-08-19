@@ -42,8 +42,6 @@ export default function PlexServerSettings({service: plex}: PersonalMediaServerS
                 plexSettings.libraries = server.libraries;
                 if (plexSettings.libraryId === libraryId) {
                     // Make sure the new value gets pushed through `observeLibraryId()`.
-                    // `libraryId` is used as a key to refresh the `MediaBrowser` component.
-                    // `libraryId` is not unique across servers.
                     plexSettings.libraryId = '';
                 }
             }

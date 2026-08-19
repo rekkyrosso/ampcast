@@ -4,13 +4,12 @@ import {PagerConfig} from 'types/Pager';
 import {getSourceSorting} from 'services/mediaServices/servicesSettings';
 import {CreateChildPager} from 'services/pagers/MediaPager';
 import SequentialPager from 'services/pagers/SequentialPager';
-import navidromeApi from './navidromeApi';
-import navidromeSettings from './navidromeSettings';
+import navidromeApi, {getMusicLibraryId} from './navidromeApi';
 import {createMediaObject} from './navidromeUtils';
 
 export default class NavidromeSequentialPager<
     T extends MediaObject,
-    S extends Navidrome.MediaObject
+    S extends Navidrome.MediaObject,
 > extends SequentialPager<T> {
     constructor(
         itemType: T['itemType'],
@@ -28,7 +27,7 @@ export default class NavidromeSequentialPager<
                     ...params,
                     _start,
                     _end,
-                    library_id: navidromeSettings.libraryId,
+                    library_id: getMusicLibraryId(),
                 });
                 _start = _end;
                 const items = filterItems(result.items);

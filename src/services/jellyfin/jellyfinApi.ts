@@ -16,7 +16,8 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import {Page} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PlaybackType from 'types/PlaybackType';
-import {groupBy} from 'utils';
+import {getLibraryIdFromPath, groupBy} from 'utils';
+import {NoMusicLibraryError} from 'services/errors';
 import embyApi from 'services/emby/embyApi';
 import jellyfinSettings from './jellyfinSettings';
 
@@ -88,11 +89,12 @@ async function getFilters(
     filterType: FilterType,
     itemType: ItemType
 ): Promise<readonly MediaFilter[]> {
-    const cacheKey = `${filterType}-${itemType}`;
+    const libraryId = getMusicLibraryId();
+    const cacheKey = `${libraryId}-${itemType}-${filterType}`;
     if (!cachedFilters[cacheKey]) {
         const params = {
             UserId: jellyfinSettings.userId,
-            ParentId: jellyfinSettings.libraryId,
+            ParentId: libraryId,
             IncludeItemTypes: 'Audio',
         };
         switch (itemType) {
@@ -158,6 +160,14 @@ async function getLyrics(id: string): Promise<Lyrics | null> {
 
 async function getMusicLibraries(): Promise<readonly PersonalMediaLibrary[]> {
     return embyApi.getMusicLibraries(jellyfinSettings);
+}
+
+export function getMusicLibraryId(): string {
+    const libraryId = getLibraryIdFromPath() ?? jellyfinSettings.libraryId;
+    if (!libraryId) {
+        throw new NoMusicLibraryError();
+    }
+    return libraryId;
 }
 
 async function login(

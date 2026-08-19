@@ -19,11 +19,13 @@ import {
     canPlayNativeHls,
     canPlayVideo,
     chunk,
+    getLibraryIdFromPath,
     getMediaObjectId,
     groupBy,
     isHlsMedia,
     uniq,
 } from 'utils';
+import {NoMusicLibraryError} from 'services/errors';
 import {getPlaybackId} from 'services/mediaPlayback/playback';
 import embySettings, {EmbySettings} from './embySettings';
 
@@ -153,7 +155,8 @@ async function getFilters(
     itemType: ItemType,
     settings: EmbySettings = embySettings
 ): Promise<readonly MediaFilter[]> {
-    const key = `${settings.serverId}:${itemType}:${filterType}`;
+    const libraryId = getMusicLibraryId();
+    const key = `${settings.serverId}:${libraryId}:${itemType}:${filterType}`;
     if (!filtersCache[key]) {
         switch (filterType) {
             case FilterType.ByDecade:
@@ -185,7 +188,7 @@ async function fetchEmbyFilters(
 ): Promise<readonly MediaFilter[]> {
     const params = {
         UserId: settings.userId,
-        ParentId: settings.libraryId,
+        ParentId: getMusicLibraryId(),
         IncludeItemTypes: 'Audio',
         SortBy: 'SortName',
         Recursive: true,
@@ -261,6 +264,14 @@ async function getMusicLibraries(
     return libraries.map(
         ({Id: id, Name: title, CollectionType: type}) => ({id, title, type}) as PersonalMediaLibrary
     );
+}
+
+export function getMusicLibraryId(): string {
+    const libraryId = getLibraryIdFromPath() ?? embySettings.libraryId;
+    if (!libraryId) {
+        throw new NoMusicLibraryError();
+    }
+    return libraryId;
 }
 
 async function login(

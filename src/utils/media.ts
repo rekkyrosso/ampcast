@@ -108,3 +108,9 @@ export function srcToPath(src: string): string {
     const [serviceId, type = '', ...rest] = src.split(':');
     return `${serviceId}/${type}/${rest.join(':')}`;
 }
+
+export function getLibraryIdFromPath(): string | null {
+    const [, search] = location.hash.split('?');
+    const params = new URLSearchParams(search);
+    return params.get('libraryId');
+}

@@ -1,5 +1,5 @@
 import RecentlyPlayedPager from 'services/pagers/RecentlyPlayedPager';
-import embyApi from './embyApi';
+import embyApi, {getMusicLibraryId} from './embyApi';
 import embySettings from './embySettings';
 import {createMediaObject} from './embyUtils';
 
@@ -8,7 +8,7 @@ export default class EmbyRecentlyPlayedPager extends RecentlyPlayedPager {
         super(
             async (offset, count) => {
                 const page = await embyApi.getPage(`Users/${embySettings.userId}/Items`, {
-                    ParentId: embySettings.libraryId,
+                    ParentId: getMusicLibraryId(),
                     SortBy: 'DatePlayed',
                     SortOrder: 'Descending',
                     Filters: 'IsPlayed',

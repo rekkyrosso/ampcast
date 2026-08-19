@@ -12,8 +12,7 @@ import {getSourceSorting} from 'services/mediaServices/servicesSettings';
 import {dispatchMetadataChanges, observePlaylistAdditions} from 'services/metadata';
 import {CreateChildPager} from 'services/pagers/MediaPager';
 import IndexedPager from 'services/pagers/IndexedPager';
-import navidromeApi from './navidromeApi';
-import navidromeSettings from './navidromeSettings';
+import navidromeApi, {getMusicLibraryId} from './navidromeApi';
 import {navidromePlaylistItemsSort, navidromeSongsSortMap} from './navidromeSorting';
 import {createMediaObject} from './navidromeUtils';
 
@@ -33,7 +32,7 @@ export default class NavidromeIndexedPager<T extends MediaObject> extends Indexe
                     ...params,
                     _start,
                     _end,
-                    library_id: navidromeSettings.libraryId,
+                    library_id: getMusicLibraryId(),
                 });
                 if (
                     path === 'song' &&

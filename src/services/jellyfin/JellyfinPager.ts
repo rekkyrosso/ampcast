@@ -15,7 +15,7 @@ import {CreateChildPager} from 'services/pagers/MediaPager';
 import IndexedPager from 'services/pagers/IndexedPager';
 import {getSourceSorting} from 'services/mediaServices/servicesSettings';
 import jellyfinSettings from './jellyfinSettings';
-import jellyfinApi from './jellyfinApi';
+import jellyfinApi, {getMusicLibraryId} from './jellyfinApi';
 import {jellyfinPlaylistItemsSortMap, getSortParams} from './jellyfinSorting';
 import {createMediaObject} from './jellyfinUtils';
 
@@ -70,7 +70,7 @@ export default class JellyfinPager<T extends MediaObject> extends IndexedPager<T
         initialItems: readonly BaseItemDto[]
     ): Promise<Page<BaseItemDto>> {
         const path = `Users/${jellyfinSettings.userId}/Items`;
-        const params = {ParentId: jellyfinSettings.libraryId};
+        const params = {ParentId: getMusicLibraryId()};
         const itemType = this.params.IncludeItemTypes;
         const query = this.params.SearchTerm as string;
         let items: readonly BaseItemDto[] = initialItems;

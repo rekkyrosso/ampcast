@@ -6,8 +6,7 @@ import PersonalMediaServerSettings from './PersonalMediaServerSettings';
 import ServiceType from './ServiceType';
 
 export default interface PersonalMediaService
-    extends BaseMediaService,
-        Partial<PersonalMediaServerSettings> {
+    extends BaseMediaService, Partial<PersonalMediaServerSettings> {
     readonly host: string;
     readonly serviceType: ServiceType.PersonalMedia;
     // Everything below here should be optional.
@@ -16,7 +15,7 @@ export default interface PersonalMediaService
     };
     readonly isLibraryLoading?: boolean;
     observeIsLibraryLoading?(this: unknown): Observable<boolean>;
-    getLibraries?: () => Promise<readonly PersonalMediaLibrary[]>;
-    getServerInfo?: () => Promise<Record<string, string>>;
-    loadLibrary?: () => Promise<void>;
+    getLibraries?(this: unknown): Promise<readonly PersonalMediaLibrary[]>;
+    getServerInfo?(this: unknown): Promise<Record<string, string>>;
+    loadLibrary?(this: unknown): Promise<void>;
 }

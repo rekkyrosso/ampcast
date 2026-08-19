@@ -14,7 +14,7 @@ import MediaServiceId from 'types/MediaServiceId';
 import MediaSource, {AnyMediaSource, MediaMultiSource} from 'types/MediaSource';
 import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
-import {NoMusicLibraryError, NoMusicVideoLibraryError} from 'services/errors';
+import {NoMusicVideoLibraryError} from 'services/errors';
 import {t} from 'services/i18n';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
@@ -28,6 +28,7 @@ import {
     recentlyAddedAlbumsLayout,
     recentlyPlayedTracksLayout,
 } from 'components/MediaList/layouts';
+import {getMusicLibraryId} from './jellyfinApi';
 import {
     jellyfinAlbumsSort,
     jellyfinAlbumsSortMap,
@@ -663,12 +664,4 @@ export function createItemsPager<T extends MediaObject>(
         undefined,
         createChildPager
     );
-}
-
-function getMusicLibraryId(): string {
-    const libraryId = jellyfinSettings.libraryId;
-    if (!libraryId) {
-        throw new NoMusicLibraryError();
-    }
-    return libraryId;
 }

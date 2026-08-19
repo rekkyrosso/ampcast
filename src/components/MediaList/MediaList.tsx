@@ -128,12 +128,14 @@ export default function MediaList<T extends MediaObject>({
     const {currentKey} = useHistory();
 
     useEffect(() => {
-        // Don't render `ListView`s if the component is hidden in the history stack.
-        // This creates a lighter DOM but has no other benefit.
-        const historyItem = containerRef.current!.closest('.history-item') as HTMLElement;
-        const historyKey = historyItem?.dataset.key;
-        setInactive(historyKey !== currentKey);
-    }, [currentKey]);
+        if (source) {
+            // Don't render `ListView`s if the component is hidden in the history stack.
+            // This creates a lighter DOM but has no other benefit.
+            const historyItem = containerRef.current!.closest('.history-item') as HTMLElement;
+            const historyKey = historyItem?.dataset.key;
+            setInactive(historyKey !== currentKey);
+        }
+    }, [source, currentKey]);
 
     useEffect(() => {
         // Make sure `LastPlayed` fields etc are updated.

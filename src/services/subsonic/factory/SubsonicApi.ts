@@ -13,7 +13,7 @@ import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaServerSettings from 'types/PersonalMediaServerSettings';
 import PlaybackType from 'types/PlaybackType';
 import type SubsonicSettings from './SubsonicSettings';
-import {Logger, chunk, getMediaObjectId, shuffle} from 'utils';
+import {Logger, chunk, getLibraryIdFromPath, getMediaObjectId, shuffle} from 'utils';
 import {createMediaItemFromUrl} from 'services/metadata';
 
 const logger = new Logger('SubsonicApi');
@@ -181,7 +181,7 @@ export default class SubsonicApi {
     }
 
     async getArtists(): Promise<Subsonic.Artist[]> {
-        const musicFolderId = this.settings.libraryId;
+        const musicFolderId = this.getMusicLibraryId();
         const data = await this.get<{artists: {index: [{artist: Subsonic.Artist[]}]}}>(
             'getArtists',
             musicFolderId ? {musicFolderId} : undefined
@@ -281,7 +281,7 @@ export default class SubsonicApi {
     }
 
     async getLikedAlbums(): Promise<Subsonic.Album[]> {
-        const musicFolderId = this.settings.libraryId;
+        const musicFolderId = this.getMusicLibraryId();
         const data = await this.get<{starred2: {album: Subsonic.Album[]}}>(
             'getStarred2',
             musicFolderId ? {musicFolderId} : undefined
@@ -290,7 +290,7 @@ export default class SubsonicApi {
     }
 
     async getLikedArtists(): Promise<Subsonic.Artist[]> {
-        const musicFolderId = this.settings.libraryId;
+        const musicFolderId = this.getMusicLibraryId();
         const data = await this.get<{starred2: {artist: Subsonic.Artist[]}}>(
             'getStarred2',
             musicFolderId ? {musicFolderId} : undefined
@@ -299,7 +299,7 @@ export default class SubsonicApi {
     }
 
     async getLikedSongs(): Promise<Subsonic.Song[]> {
-        const musicFolderId = this.settings.libraryId;
+        const musicFolderId = this.getMusicLibraryId();
         const data = await this.get<{starred2: {song: Subsonic.Song[]}}>(
             'getStarred2',
             musicFolderId ? {musicFolderId} : undefined
@@ -357,6 +357,10 @@ export default class SubsonicApi {
                 ?.sort((a, b) => a.name.localeCompare(b.name))
                 .map(({id, name: title}) => ({id: String(id), title})) || []
         );
+    }
+
+    getMusicLibraryId(): string {
+        return getLibraryIdFromPath() ?? this.settings.libraryId ?? '';
     }
 
     getPlayableUrl(item: MediaItem): string {
@@ -429,7 +433,7 @@ export default class SubsonicApi {
     }
 
     async getRandomSongs(size = 100): Promise<Subsonic.Song[]> {
-        const musicFolderId = this.settings.libraryId;
+        const musicFolderId = this.getMusicLibraryId();
         const data = await this.get<{randomSongs: {song: Subsonic.Song[]}}>(
             'getRandomSongs',
             musicFolderId ? {musicFolderId, size} : {size}
@@ -464,7 +468,7 @@ export default class SubsonicApi {
     }
 
     async getSongsByGenre(genre: string, offset: number, count: number): Promise<Subsonic.Song[]> {
-        const musicFolderId = this.settings.libraryId;
+        const musicFolderId = this.getMusicLibraryId();
         const params = {genre, offset, count};
         const data = await this.get<{songsByGenre: {song: Subsonic.Song[]}}>(
             'getSongsByGenre',
@@ -571,7 +575,7 @@ export default class SubsonicApi {
         songOffset: number,
         songCount: number
     ): Promise<Subsonic.Song[]> {
-        const musicFolderId = this.settings.libraryId;
+        const musicFolderId = this.getMusicLibraryId();
         const params = {query, songOffset, songCount, albumCount: 0, artistCount: 0};
         const data = await this.get<{searchResult3: {song?: Subsonic.Song[]}}>(
             'search3',
@@ -585,7 +589,7 @@ export default class SubsonicApi {
         albumOffset: number,
         albumCount: number
     ): Promise<Subsonic.Album[]> {
-        const musicFolderId = this.settings.libraryId;
+        const musicFolderId = this.getMusicLibraryId();
         const params = {query, albumCount, albumOffset, songCount: 0, artistCount: 0};
         const data = await this.get<{searchResult3: {album?: Subsonic.Album[]}}>(
             'search3',
@@ -599,7 +603,7 @@ export default class SubsonicApi {
         artistOffset: number,
         artistCount: number
     ): Promise<Subsonic.Artist[]> {
-        const musicFolderId = this.settings.libraryId;
+        const musicFolderId = this.getMusicLibraryId();
         const params = {query, artistOffset, artistCount, songCount: 0, albumCount: 0};
         const data = await this.get<{searchResult3: {artist?: Subsonic.Artist[]}}>(
             'search3',
@@ -614,7 +618,7 @@ export default class SubsonicApi {
     }
 
     private async getAlbumList(params: Record<string, Primitive>): Promise<Subsonic.Album[]> {
-        const musicFolderId = this.settings.libraryId;
+        const musicFolderId = this.getMusicLibraryId();
         const data = await this.get<{albumList2: {album: Subsonic.Album[]}}>(
             'getAlbumList2',
             musicFolderId ? {...params, musicFolderId} : params

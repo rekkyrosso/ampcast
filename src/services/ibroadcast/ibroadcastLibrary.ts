@@ -5,7 +5,6 @@ import {
     distinctUntilChanged,
     filter,
     fromEvent,
-    map,
     skipWhile,
     tap,
 } from 'rxjs';
@@ -63,7 +62,6 @@ export interface IBroadcastLibraryQuery<T extends iBroadcast.LibrarySection> {
 
 export class IBroadcastLibrary {
     private readonly change$ = new Subject<IBroadcastLibraryChange>();
-    private readonly id$ = new BehaviorSubject(1);
     private readonly loading$ = new BehaviorSubject(true);
     private readonly searchFields = ['title', 'artist', 'album', 'genre'];
     // Caches.
@@ -95,10 +93,6 @@ export class IBroadcastLibrary {
         >;
     }
 
-    observeId(): Observable<string> {
-        return this.id$.pipe(map((id) => String(id)));
-    }
-
     observeLoading(): Observable<boolean> {
         return this.loading$.pipe(distinctUntilChanged());
     }
@@ -121,10 +115,6 @@ export class IBroadcastLibrary {
         );
     }
 
-    get id(): string {
-        return String(this.id$.value);
-    }
-
     get loading(): boolean {
         return this.loading$.value;
     }
@@ -138,10 +128,10 @@ export class IBroadcastLibrary {
         return this.libraryPromise!;
     }
 
-    reload(): void {
+    async reload(): Promise<void> {
         if (!this.loading) {
             this.clear();
-            this.load().then(() => this.id$.next(this.id$.value + 1));
+            await this.load();
         }
     }
 

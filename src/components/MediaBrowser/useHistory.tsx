@@ -7,7 +7,7 @@ import Pager from 'types/Pager';
 import {Pinnable} from 'types/Pin';
 import {Logger} from 'utils';
 import {WEB_LINKS} from 'services/features';
-import {getServiceFromPath} from 'services/mediaServices';
+import {getServiceFromPath, isPersonalMediaService} from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import useObservable from 'hooks/useObservable';
@@ -35,26 +35,13 @@ const observeState = () => state$;
 if (WEB_LINKS) {
     fromEvent<PopStateEvent>(window, 'popstate')
         .pipe(map((event) => event.state))
-        .subscribe((state) => {
-            const entry = performance.getEntriesByType('navigation')[0];
-            console.log('PopStateEvent', state, (entry as any)?.type);
-            state$.next(state);
-        });
-
-    // TODO: Needed?
-    // fromEvent(window, 'pageshow').subscribe(() => {
-    //     const entry = performance.getEntriesByType('navigation')[0];
-    //     if ((entry as any)?.type === 'back_forward') {
-    //         location.reload();
-    //     }
-    // });
+        .subscribe(state$);
 
     state$.subscribe((state) => {
         if (state) {
             const {key, path} = state;
             const historyItem = stack$.value.find((entry) => entry.key === key);
             if (!historyItem) {
-                console.log('NO_HISTORY');
                 const entry = createHistoryEntry(key, path);
                 stack$.next(stack$.value.concat(entry));
             }
@@ -87,13 +74,50 @@ export default function useHistory() {
                 const path = state.path;
                 stack[index] = createHistoryEntry(key, path);
                 stack$.next(stack);
-                history.replaceState({...state, key}, '', `#!/${path}`);
+                if (WEB_LINKS) {
+                    history.replaceState({...state, key}, '', `#!/${path}`);
+                }
+                state$.next({...state, key});
+            }
+        }
+    }, []);
+
+    const switchLibrary = useCallback((libraryId: string) => {
+        const state = state$.value;
+        if (state) {
+            const currentKey = state.key;
+            const stack = stack$.value.slice();
+            const index = stack.findIndex((entry) => entry.key === currentKey);
+            if (index !== -1) {
+                const key = nanoid(); // New `key`.
+                const [pathname, search] = state.path.split('?');
+                let path = pathname;
+                if (search) {
+                    const params = new URLSearchParams(search);
+                    if (params.has('libraryId')) {
+                        params.set('libraryId', libraryId);
+                    }
+                    path = `${pathname}?${params}`;
+                }
+                stack[index] = createHistoryEntry(key, path);
+                stack$.next(stack);
+                if (WEB_LINKS) {
+                    history.replaceState({...state, key}, '', `#!/${path}`);
+                }
                 state$.next({...state, key});
             }
         }
     }, []);
 
     const navigateTo = useCallback((path: string) => {
+        if (WEB_LINKS) {
+            const service = getServiceFromPath(path);
+            const libraryId =
+                service && isPersonalMediaService(service) ? service.libraryId : undefined;
+            if (libraryId !== undefined) {
+                path = `${path}?libraryId=${libraryId}`;
+            }
+        }
         logger.log('navigateTo', path);
         const key = nanoid();
         const state = {key, path};
@@ -119,10 +143,12 @@ export default function useHistory() {
         forward,
         navigateTo,
         refresh,
+        switchLibrary,
     };
 }
 
 function createHistoryEntry(key: string, path: string): HistoryEntry {
+    path = path.replace(/\?.*$/, '');
     const service = getServiceFromPath(path);
     const source = path.startsWith('pins/')
         ? createSourceFromPinsPath(path)

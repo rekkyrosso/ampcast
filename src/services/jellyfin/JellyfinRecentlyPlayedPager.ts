@@ -1,5 +1,5 @@
 import RecentlyPlayedPager from 'services/pagers/RecentlyPlayedPager';
-import jellyfinApi from './jellyfinApi';
+import jellyfinApi, {getMusicLibraryId} from './jellyfinApi';
 import jellyfinSettings from './jellyfinSettings';
 import {createMediaObject} from './jellyfinUtils';
 
@@ -8,7 +8,7 @@ export default class JellyfinRecentlyPlayedPager extends RecentlyPlayedPager {
         super(
             async (offset, count) => {
                 const page = await jellyfinApi.getPage(`Users/${jellyfinSettings.userId}/Items`, {
-                    ParentId: jellyfinSettings.libraryId,
+                    ParentId: getMusicLibraryId(),
                     SortBy: 'DatePlayed',
                     SortOrder: 'Descending',
                     Filters: 'IsPlayed',

@@ -3,6 +3,7 @@ import {PersonalMediaServerSettingsProps} from 'components/Settings/MediaLibrary
 import Button from 'components/Button';
 import {DialogButtons} from 'components/Dialog';
 import ExternalLink from 'components/ExternalLink';
+import useHistory from 'components/MediaBrowser/useHistory';
 import useIsLibraryLoading from 'hooks/useIsLibraryLoading';
 import useIsLoggedIn from 'hooks/useIsLoggedIn';
 import ibroadcastSettings from '../ibroadcastSettings';
@@ -12,17 +13,19 @@ export default function IBroadcastServerSettings({
     service: ibroadcast,
 }: PersonalMediaServerSettingsProps) {
     const id = useId();
+    const bitRateRef = useRef<HTMLSelectElement>(null);
     const isLoggedIn = useIsLoggedIn(ibroadcast);
     const isLibraryLoading = useIsLibraryLoading(ibroadcast);
-    const bitRateRef = useRef<HTMLSelectElement>(null);
+    const {refresh} = useHistory();
 
     const handleSubmit = useCallback(() => {
         ibroadcastSettings.bitRate = bitRateRef.current!.value;
     }, []);
 
-    const reloadLibrary = useCallback(() => {
-        ibroadcastLibrary.reload();
-    }, []);
+    const reloadLibrary = useCallback(async () => {
+        await ibroadcastLibrary.reload();
+        refresh();
+    }, [refresh]);
 
     return (
         <form className="personal-media-server-settings" method="dialog" onSubmit={handleSubmit}>

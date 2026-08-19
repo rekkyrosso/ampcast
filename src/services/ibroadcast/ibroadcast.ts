@@ -64,11 +64,7 @@ const ibroadcast: PersonalMediaService = {
     get isLibraryLoading(): boolean {
         return ibroadcastLibrary.loading;
     },
-    get libraryId(): string {
-        return ibroadcastLibrary.id;
-    },
     observeIsLibraryLoading,
-    observeLibraryId: () => ibroadcastLibrary.observeId(),
     addMetadata,
     addToPlaylist,
     canPin,

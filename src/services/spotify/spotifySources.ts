@@ -71,15 +71,11 @@ export const spotifySearch: MediaMultiSource = {
             id: 'artists',
             title: 'Artists',
         }),
-        ...(spotifySettings.restrictedApi
-            ? []
-            : [
-                  createSearch<MediaPlaylist>(ItemType.Playlist, {
-                      id: 'playlists',
-                      title: 'Playlists',
-                      secondaryItems: spotifyPlaylistItems,
-                  }),
-              ]),
+        createSearch<MediaPlaylist>(ItemType.Playlist, {
+            id: 'playlists',
+            title: 'Playlists',
+            secondaryItems: spotifyPlaylistItems,
+        }),
     ],
 };
 

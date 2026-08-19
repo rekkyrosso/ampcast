@@ -1,5 +1,8 @@
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import {skip} from 'rxjs';
 import {browser} from 'utils';
+import {WEB_LINKS} from 'services/features';
+import {getServiceFromPath, isPersonalMediaService} from 'services/mediaServices';
 import AppTitle from 'components/App/AppTitle';
 import AppDragRegion from 'components/App/AppDragRegion';
 import BrowserControls from 'components/MediaBrowser/BrowserControls';
@@ -14,13 +17,24 @@ import './MediaLibrary.scss';
 export default memo(function MediaLibrary() {
     const ref = useRef<HTMLDivElement | null>(null);
     const [path, setPath] = useState<string>('');
-    const {navigateTo} = useHistory();
+    const {currentPath, navigateTo, switchLibrary} = useHistory();
+    const service = getServiceFromPath(currentPath);
 
     useEffect(() => {
         if (path) {
             navigateTo(path);
         }
     }, [navigateTo, path]);
+
+    useEffect(() => {
+        if (service && isPersonalMediaService(service)) {
+            const subscription = service
+                .observeLibraryId?.()
+                .pipe(skip(1))
+                .subscribe(switchLibrary);
+            return () => subscription?.unsubscribe();
+        }
+    }, [service, switchLibrary]);
 
     const handleResize = useCallback(({width}: ResizeRect) => {
         ref.current?.style.setProperty('--sources-width', `${width}px`);
@@ -31,7 +45,7 @@ export default memo(function MediaLibrary() {
             <header className="media-library-head">
                 <AppTitle />
                 <AppDragRegion />
-                {browser.isElectron ? <BrowserControls /> : null}
+                {WEB_LINKS && browser.isElectron ? <BrowserControls /> : null}
                 <SettingsButton />
             </header>
             <div className="media-library-body">

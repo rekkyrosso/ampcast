@@ -15,6 +15,7 @@ import {NoMusicLibraryError} from 'services/errors';
 import {
     browser,
     canPlayMedia,
+    getLibraryIdFromPath,
     getMediaObjectId,
     groupBy,
     partition,
@@ -341,7 +342,8 @@ async function getPlexFilters(
     itemType: ItemType,
     filterName: string
 ): Promise<readonly MediaFilter[]> {
-    const cacheKey = `${itemType}-${filterName}`;
+    const libraryId = getMusicLibraryId();
+    const cacheKey = `${libraryId}-${itemType}-${filterName}`;
     if (!cachedFilters[cacheKey]) {
         const type = getPlexMediaType(itemType);
         const {
@@ -371,7 +373,7 @@ export function getMusicLibraryPath(path = 'all'): string {
 }
 
 export function getMusicLibraryId(): string {
-    const libraryId = plexSettings.libraryId;
+    const libraryId = getLibraryIdFromPath() ?? plexSettings.libraryId;
     if (!libraryId) {
         throw new NoMusicLibraryError();
     }
