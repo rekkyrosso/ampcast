@@ -24,7 +24,7 @@ interface LookupItem<T extends MediaItem> {
     index: number;
 }
 
-type MBMediaItem = MediaItem & {
+export type MBMediaItem = MediaItem & {
     musicBrainz: {
         readonly status: string;
         readonly country: string;

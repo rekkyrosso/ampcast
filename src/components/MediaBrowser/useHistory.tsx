@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import {BehaviorSubject, fromEvent, map} from 'rxjs';
 import {nanoid} from 'nanoid';
 import MediaObject from 'types/MediaObject';
-import MediaSource, {MediaObjectSource} from 'types/MediaSource';
+import MediaSource, {AnyMediaSource, MediaObjectSource} from 'types/MediaSource';
 import Pager from 'types/Pager';
 import {Pinnable} from 'types/Pin';
 import {Logger} from 'utils';
@@ -14,8 +14,6 @@ import useObservable from 'hooks/useObservable';
 import ErrorScreen from './ErrorScreen';
 import MediaBrowser from './MediaBrowser';
 
-const logger = new Logger('history');
-
 export interface HistoryEntry {
     readonly key: string;
     readonly node: React.ReactNode;
@@ -25,6 +23,10 @@ export type HistoryState = {
     readonly key: string;
     readonly path: string;
 };
+
+const MAX_SIZE = 50;
+
+const logger = new Logger('history');
 
 const stack$ = new BehaviorSubject<HistoryEntry[]>([]);
 const state$ = new BehaviorSubject<HistoryState | null>(null);
@@ -43,7 +45,9 @@ if (WEB_LINKS) {
             const historyItem = stack$.value.find((entry) => entry.key === key);
             if (!historyItem) {
                 const entry = createHistoryEntry(key, path);
-                stack$.next(stack$.value.concat(entry));
+                const stack = stack$.value.slice();
+                stack.unshift(entry);
+                stack$.next(stack.slice(0, MAX_SIZE));
             }
         }
     });
@@ -84,7 +88,7 @@ export default function useHistory() {
 
     const switchLibrary = useCallback((libraryId: string) => {
         const state = state$.value;
-        if (state) {
+        if (state && getMediaSource(state.path)) {
             const currentKey = state.key;
             const stack = stack$.value.slice();
             const index = stack.findIndex((entry) => entry.key === currentKey);
@@ -110,7 +114,7 @@ export default function useHistory() {
     }, []);
 
     const navigateTo = useCallback((path: string) => {
-        if (WEB_LINKS) {
+        if (WEB_LINKS  && getMediaSource(path)) {
             const service = getServiceFromPath(path);
             const libraryId =
                 service && isPersonalMediaService(service) ? service.libraryId : undefined;
@@ -118,21 +122,30 @@ export default function useHistory() {
                 path = `${path}?libraryId=${libraryId}`;
             }
         }
-        logger.log('navigateTo', path);
-        const key = nanoid();
-        const state = {key, path};
-        const entry = createHistoryEntry(key, path);
-        if (WEB_LINKS) {
-            stack$.next(stack$.value.concat(entry));
-            if (history.state) {
-                history.pushState(state, '', `#!/${path}`);
-            } else {
-                history.replaceState(state, '', `#!/${path}`);
-            }
-        } else {
-            stack$.next([entry]);
+        const initialized = !!state$.value;
+        if (!initialized) {
+            path = history.state?.path || path;
         }
-        state$.next(state);
+        if (path !== state$.value?.path) {
+            logger.log('navigateTo', path);
+            const key = nanoid();
+            const state = {key, path};
+            const entry = createHistoryEntry(key, path);
+            if (WEB_LINKS) {
+                const currentKey = state$.value?.key;
+                const stack = stack$.value;
+                const index = stack.findIndex((entry) => entry.key === currentKey);
+                stack$.next([entry, ...stack.slice(0, index + 1)].slice(0, MAX_SIZE));
+                if (initialized) {
+                    history.pushState(state, '', `#!/${path}`);
+                } else {
+                    history.replaceState(state, '', `#!/${path}`);
+                }
+            } else {
+                stack$.next([entry]);
+            }
+            state$.next(state);
+        }
     }, []);
 
     return {
@@ -151,10 +164,8 @@ function createHistoryEntry(key: string, path: string): HistoryEntry {
     path = path.replace(/\?.*$/, '');
     const service = getServiceFromPath(path);
     const source = path.startsWith('pins/')
-        ? createSourceFromPinsPath(path)
-        : service?.id === path
-          ? service.root
-          : (service?.sources?.find((source) => source.id === path) ?? createSourceFromPath(path));
+        ? createPin(path)
+        : (getMediaSource(path) ?? createMediaObjectSource(path));
     if (service && source) {
         return {
             key,
@@ -172,7 +183,15 @@ function createHistoryEntry(key: string, path: string): HistoryEntry {
     }
 }
 
-function createSourceFromPath(path: string): MediaObjectSource | undefined {
+function getMediaSource(path: string): AnyMediaSource | undefined {
+    path = path.replace(/\?.*$/, '');
+    const service = getServiceFromPath(path);
+    return service?.id === path
+        ? service.root
+        : service?.sources?.find((source) => source.id === path);
+}
+
+function createMediaObjectSource(path: string): MediaObjectSource | undefined {
     const service = getServiceFromPath(path);
     if (service?.getMediaObject) {
         const src = path.replaceAll('/', ':');
@@ -191,7 +210,7 @@ function createSourceFromPath(path: string): MediaObjectSource | undefined {
     }
 }
 
-function createSourceFromPinsPath(path: string): MediaSource<Pinnable> | undefined {
+function createPin(path: string): MediaSource<Pinnable> | undefined {
     const service = getServiceFromPath(path);
     const src = path.slice(5).replaceAll('/', ':');
     const pin = pinStore.getPin(src);

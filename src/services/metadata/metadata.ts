@@ -9,7 +9,7 @@ import {Logger, mediaTypes, toUtf8, uniq} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import lastfmApi from 'services/lastfm/lastfmApi';
 import mixcloudApi from 'services/mixcloud/mixcloudApi';
-import musicbrainzApi from 'services/musicbrainz/musicbrainzApi';
+import musicbrainzApi, {MBMediaItem} from 'services/musicbrainz/musicbrainzApi';
 import soundcloudApi from 'services/soundcloud/soundcloudApi';
 import youtubeApi from 'services/youtube/youtubeApi';
 import {createMediaItemFromStream} from './music-metadata-js';
@@ -29,7 +29,12 @@ export async function addMetadata<T extends MediaItem>(item: T): Promise<T> {
         const transposedItem = {...item, title: artist, artists: [title]};
 
         // First use MusicBrainz API.
-        const mbItems = await musicbrainzApi.search(artist, title);
+        let mbItems: readonly MBMediaItem[] = [];
+        try {
+            mbItems = await musicbrainzApi.search(artist, title);
+        } catch (err) {
+            logger.error(err);
+        }
         let mbItem = musicbrainzApi.findBestMatch(mbItems, item);
         if (!mbItem) {
             mbItem = musicbrainzApi.findBestMatch(mbItems, transposedItem);

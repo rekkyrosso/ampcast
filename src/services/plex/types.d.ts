@@ -66,6 +66,7 @@ declare namespace plex {
         readonly updatedAt: number; // Date
         readonly viewCount: number;
         readonly librarySectionTitle?: string;
+        readonly librarySectionID?: number;
         readonly rating?: number;
         readonly ratingCount?: number;
         readonly saved?: boolean;

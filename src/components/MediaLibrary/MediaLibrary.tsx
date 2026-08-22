@@ -9,6 +9,7 @@ import BrowserControls from 'components/MediaBrowser/BrowserControls';
 import BrowserHistory from 'components/MediaBrowser/BrowserHistory';
 import MediaSources from 'components/MediaSources';
 import Splitter from 'components/Splitter';
+import {TreeViewHandle} from 'components/TreeView';
 import useHistory from 'components/MediaBrowser/useHistory';
 import {ResizeRect} from 'hooks/useOnResize';
 import SettingsButton from './SettingsButton';
@@ -16,9 +17,17 @@ import './MediaLibrary.scss';
 
 export default memo(function MediaLibrary() {
     const ref = useRef<HTMLDivElement | null>(null);
-    const [path, setPath] = useState<string>('');
+    const sourcesRef = useRef<TreeViewHandle>(null);
+    const [path, setPath] = useState('');
     const {currentPath, navigateTo, switchLibrary} = useHistory();
     const service = getServiceFromPath(currentPath);
+
+    useEffect(() => {
+        const [path] = currentPath.split('?');
+        if (path) {
+            sourcesRef.current?.scrollIntoView(path);
+        }
+    }, [currentPath]);
 
     useEffect(() => {
         if (path) {
@@ -36,7 +45,7 @@ export default memo(function MediaLibrary() {
         }
     }, [service, switchLibrary]);
 
-    const handleResize = useCallback(({width}: ResizeRect) => {
+    const handleSourcesResize = useCallback(({width}: ResizeRect) => {
         ref.current?.style.setProperty('--sources-width', `${width}px`);
     }, []);
 
@@ -50,7 +59,11 @@ export default memo(function MediaLibrary() {
             </header>
             <div className="media-library-body">
                 <Splitter id="media-library-layout" arrange="columns">
-                    <MediaSources onResize={handleResize} onSelect={setPath} />
+                    <MediaSources
+                        onResize={handleSourcesResize}
+                        onSelect={setPath}
+                        ref={sourcesRef}
+                    />
                     <BrowserHistory />
                 </Splitter>
             </div>

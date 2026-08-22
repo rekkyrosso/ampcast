@@ -13,17 +13,17 @@ export const storage = new LiteStorage('sources');
 export interface MediaSourcesProps {
     onResize?: (rect: ResizeRect) => void;
     onSelect?: (source: string) => void;
+    ref?: React.RefObject<TreeViewHandle | null>;
 }
 
-export default function MediaSources({onResize, onSelect}: MediaSourcesProps) {
-    const ref = useRef<HTMLDivElement | null>(null);
-    const treeViewRef = useRef<TreeViewHandle>(null);
+export default function MediaSources({onResize, onSelect, ref}: MediaSourcesProps) {
+    const containerRef = useRef<HTMLDivElement | null>(null);
     const sources = useMediaSources();
     const [wizardShown, setWizardShown] = useState(false);
 
     useEffect(() => {
-        treeViewRef.current!.focus();
-    }, []);
+        ref?.current?.focus();
+    }, [ref]);
 
     useEffect(() => {
         if (sources) {
@@ -35,23 +35,23 @@ export default function MediaSources({onResize, onSelect}: MediaSourcesProps) {
         }
     }, [sources, wizardShown]);
 
-    useOnResize(ref, (rect) => onResize?.(rect));
+    useOnResize(containerRef, (rect) => onResize?.(rect));
 
     const handleContextMenu = useCallback(async (path: string, x: number, y: number) => {
         const service = getServiceFromPath(path);
         if (service) {
-            showMediaSourcesMenu(service, ref.current!, x, y);
+            showMediaSourcesMenu(service, containerRef.current!, x, y);
         }
     }, []);
 
     return (
-        <div className="panel media-sources" ref={ref}>
+        <div className="panel media-sources" ref={containerRef}>
             <TreeView<string>
                 roots={sources || []}
                 onContextMenu={handleContextMenu}
                 onSelect={onSelect}
                 storageId={storage.id}
-                ref={treeViewRef}
+                ref={ref}
             />
         </div>
     );

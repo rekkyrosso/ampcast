@@ -109,6 +109,7 @@ export function createMediaItemFromTrack(
         return isNaN(value) ? undefined : value;
     };
     album = album || (parent?.itemType === ItemType.Album ? parent : undefined);
+    const artistLink = album?.links?.artist;
 
     return {
         src: getSrc('audio', track),
@@ -123,7 +124,7 @@ export function createMediaItemFromTrack(
         addedAt: track.addedAt,
         artists: track.originalTitle
             ? [track.originalTitle]
-            : album?.artist
+            : album?.artist && album.artist !== 'Various Artists' // TODO: Language specific?
               ? [album.artist]
               : undefined,
         albumArtist: album?.artist,
@@ -149,11 +150,21 @@ export function createMediaItemFromTrack(
         badge: media.audioCodec,
         container: media.container,
         explicit: track.contentRating ? track.contentRating === 'explicit' : undefined,
+        links: {
+            self: true,
+            artists:
+                artistLink && track.grandparentRatingKey !== getMusicLibraryId()
+                    ? [artistLink]
+                    : undefined,
+            album: album?.src,
+            albumArtist: artistLink,
+        },
     };
 }
 
 function createMediaAlbum(album: plex.Album, noPager?: boolean): MediaAlbum {
     const {Format: [format] = [], Subformat: [subformat] = []} = album;
+    const parentRatingKey = album.parentRatingKey;
     const mediaAlbum = {
         src: getSrc('album', album),
         itemType: ItemType.Album,
@@ -181,6 +192,10 @@ function createMediaAlbum(album: plex.Album, noPager?: boolean): MediaAlbum {
         genres: getGenres(album),
         thumbnails: createThumbnails(album.thumb || album.parentThumb),
         release_mbid: getMbid(album),
+        links: {
+            self: true,
+            artist: parentRatingKey ? `${serviceId}:artist:${parentRatingKey}` : undefined,
+        },
     };
     if (!noPager) {
         (mediaAlbum as any).pager = createPager(
@@ -211,6 +226,9 @@ function createMediaArtist(
         thumbnails: createThumbnails(artist.thumb),
         artist_mbid: getMbid(artist),
         synthetic: artist.ratingKey ? undefined : true,
+        links: {
+            self: true,
+        },
     };
     if (!noPager) {
         (mediaArtist as any).pager = createArtistAlbumsPager(mediaArtist as MediaArtist, albumSort);
@@ -271,6 +289,9 @@ function createMediaPlaylist(playlist: plex.Playlist, noPager?: boolean): MediaP
                   droppable: true,
                   moveable: true,
               },
+        links: {
+            self: true,
+        },
     };
     if (!noPager) {
         (mediaPlaylist as any).pager = new PlexPlaylistItemsPager(mediaPlaylist as MediaPlaylist, {
