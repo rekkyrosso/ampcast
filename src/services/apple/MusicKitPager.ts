@@ -20,8 +20,7 @@ export interface MusicKitPage extends Page<MusicKitItem> {
 export default class MusicKitPager<T extends MediaObject> extends SequentialPager<T> {
     private nextPageUrl: string | undefined = undefined;
 
-    static toPage(response: any): MusicKitPage {
-        const result = response.data[0]?.relationships?.tracks || response;
+    static toPage(result: any): MusicKitPage {
         const items = result.data || [];
         const nextPageUrl = result.next;
         const total = result.meta?.total;
@@ -32,7 +31,7 @@ export default class MusicKitPager<T extends MediaObject> extends SequentialPage
         href: string,
         params?: MusicKit.QueryParameters,
         options?: Partial<PagerConfig<T>>,
-        private readonly parent?: ParentOf<T>,
+        parent?: ParentOf<T>,
         toPage = MusicKitPager.toPage
     ) {
         super(
@@ -77,7 +76,14 @@ export class MusicKitPlaylistItemsPager extends MusicKitPager<MediaItem> {
     ) {
         super(
             tracksUrl,
-            {'include[library-songs]': 'catalog'},
+            {
+                'include[songs]': 'artists,albums',
+                'include[library-songs]': 'catalog,artists,albums',
+                'include[albums]': 'artists',
+                'include[library-albums]': 'catalog,artists',
+                'include[library-artists]': 'catalog',
+                'omit[resource:artists]': 'relationships',
+            },
             {
                 pageSize: 100,
                 maxSize: playlist.isChart ? 100 : undefined,

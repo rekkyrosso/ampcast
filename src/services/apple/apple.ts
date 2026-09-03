@@ -351,10 +351,15 @@ async function getMediaObject<T extends MediaObject>(src: string): Promise<T> {
     const isLibraryItem = type.startsWith('library-');
     const path = isLibraryItem ? '/v1/me/library' : '/v1/catalog/{{storefrontId}}';
     const pager = new MusicKitPager<T>(
-        `${path}/${type.replace('library-', '')}/${id}${isLibraryItem ? '/catalog' : ''}`,
-        isLibraryItem
-            ? undefined
-            : {[`omit[resource:${type.replace('library-', '')}]`]: 'relationships'},
+        `${path}/${type.replace('library-', '')}/${id}${isLibraryItem && !type.endsWith('playlists') ? '/catalog' : ''}`,
+        {
+            'include[songs]': 'artists,albums',
+            'include[library-songs]': 'catalog,artists,albums',
+            'include[albums]': 'artists',
+            'include[library-albums]': 'catalog,artists',
+            'include[library-artists]': 'catalog',
+            'omit[resource:artists]': 'relationships',
+        },
         {passive: true, pageSize: 0}
     );
     return fetchFirstItem<T>(pager, {timeout: 2000});

@@ -69,12 +69,16 @@ function createMediaArtist(artist: BaseItemDto, albumSort?: SortParams): MediaAr
         inLibrary: artist.UserData?.IsFavorite,
         thumbnails: createThumbnails(artist),
         artist_mbid: artist.ProviderIds?.MusicBrainzArtist ?? undefined,
+        links: {
+            self: true,
+        },
     };
     mediaArtist.pager = createArtistAlbumsPager(mediaArtist as MediaArtist, albumSort);
     return mediaArtist as MediaArtist;
 }
 
 function createMediaAlbum(album: BaseItemDto): MediaAlbum {
+    const [artist] = album.AlbumArtists || [];
     return {
         itemType: ItemType.Album,
         src: `${serviceId}:album:${album.Id}`,
@@ -89,10 +93,14 @@ function createMediaAlbum(album: BaseItemDto): MediaAlbum {
         inLibrary: album.UserData?.IsFavorite,
         thumbnails: createThumbnails(album),
         trackCount: album.ChildCount || undefined,
-        artist: album.AlbumArtist || undefined,
+        artist: artist?.Name || undefined,
         year: album.ProductionYear || undefined,
         release_mbid: album.ProviderIds?.MusicBrainzAlbum ?? undefined,
         pager: createAlbumTracksPager(album),
+        links: {
+            self: true,
+            artist: artist ? `${serviceId}:artist:${artist.Id}` : undefined,
+        },
     };
 }
 
@@ -115,7 +123,12 @@ function createMediaPlaylist(playlist: BaseItemDto, itemSort?: SortParams): Medi
         isPinned: pinStore.isPinned(src),
         owned: true,
         editable: true,
-        items: {droppable: true},
+        items: {
+            droppable: true,
+        },
+        links: {
+            self: true,
+        },
     };
     mediaPlaylist.pager = createPlaylistItemsPager(mediaPlaylist as MediaPlaylist, itemSort);
     return mediaPlaylist as MediaPlaylist;
@@ -136,6 +149,7 @@ function createMediaFolder(folder: BaseItemDto, parent?: MediaFolder): MediaFold
 }
 
 function createMediaItem(track: BaseItemDto): MediaItem {
+    const [albumArtist] = track.AlbumArtists || [];
     const isVideo = track.MediaType === 'Video';
     const [source] = track.MediaSources || [];
     const artist_mbid = track.ProviderIds?.MusicBrainzArtist;
@@ -156,12 +170,8 @@ function createMediaItem(track: BaseItemDto): MediaItem {
         genres: track.Genres || undefined,
         thumbnails: createThumbnails(track),
         inLibrary: track.UserData?.IsFavorite,
-        artists: track.Artists?.length
-            ? track.Artists
-            : track.AlbumArtist
-              ? [track.AlbumArtist]
-              : undefined,
-        albumArtist: track.AlbumArtist || undefined,
+        artists: track.Artists?.length ? track.Artists : undefined,
+        albumArtist: albumArtist?.Name || undefined,
         album: track.Album || undefined,
         disc: track.Album ? track.ParentIndexNumber || undefined : undefined,
         track: track.Album ? track.IndexNumber || 0 : 0,
@@ -177,6 +187,17 @@ function createMediaItem(track: BaseItemDto): MediaItem {
                   : undefined
             : track.Container || undefined,
         container: track.Container || undefined,
+        links: isVideo
+            ? undefined
+            : {
+                  self: true,
+                  album:
+                      track.Album && track.AlbumId
+                          ? `${serviceId}:album:${track.AlbumId}`
+                          : undefined,
+                  albumArtist: albumArtist ? `${serviceId}:artist:${albumArtist.Id}` : undefined,
+                  artists: track.ArtistItems?.map((artist) => `${serviceId}:artist:${artist.Id}`),
+              },
     };
 }
 
@@ -225,6 +246,9 @@ function createArtistAllTracks(artist: MediaArtist): MediaAlbum {
         pager: createAllTracksPager(artist),
         trackCount: undefined,
         synthetic: true,
+        links: {
+            artist: artist.src,
+        },
     };
 }
 
@@ -267,6 +291,9 @@ function createArtistRadios(artist: MediaArtist): MediaAlbum {
         pager: new SimplePager([radio]),
         trackCount: undefined,
         synthetic: true,
+        links: {
+            artist: artist.src,
+        },
     };
 }
 

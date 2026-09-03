@@ -63,18 +63,39 @@ export const appleSearch: MediaMultiSource = {
     icon: 'search',
     searchable: true,
     sources: [
-        createSearch<MediaItem>('songs', {
-            title: 'Songs',
-            itemType: ItemType.Media,
-        }),
-        createSearch<MediaAlbum>('albums', {
-            title: 'Albums',
-            itemType: ItemType.Album,
-        }),
-        createSearch<MediaArtist>('artists', {
-            title: 'Artists',
-            itemType: ItemType.Artist,
-        }),
+        createSearch<MediaItem>(
+            'songs',
+            {
+                title: 'Songs',
+                itemType: ItemType.Media,
+            },
+            {
+                'include[songs]': 'artists,albums',
+                'include[albums]': 'artists',
+                'omit[resource:artists]': 'relationships',
+            }
+        ),
+        createSearch<MediaAlbum>(
+            'albums',
+            {
+                title: 'Albums',
+                itemType: ItemType.Album,
+            },
+            {
+                'include[albums]': 'artists',
+                'omit[resource:artists]': 'relationships',
+            }
+        ),
+        createSearch<MediaArtist>(
+            'artists',
+            {
+                title: 'Artists',
+                itemType: ItemType.Artist,
+            },
+            {
+                'omit[resource:artists]': 'relationships',
+            }
+        ),
         createSearch<MediaPlaylist>('playlists', {
             title: 'Playlists',
             itemType: ItemType.Playlist,
@@ -84,11 +105,19 @@ export const appleSearch: MediaMultiSource = {
             itemType: ItemType.Media,
             primaryItems: {layout: radioLayout},
         }),
-        createSearch<MediaItem>('music-videos', {
-            title: 'Videos',
-            itemType: ItemType.Media,
-            mediaType: MediaType.Video,
-        }),
+        createSearch<MediaItem>(
+            'music-videos',
+            {
+                title: 'Videos',
+                itemType: ItemType.Media,
+                mediaType: MediaType.Video,
+            },
+            {
+                'include[music-videos]': 'artists,albums',
+                'include[albums]': 'artists',
+                'omit[resource:artists]': 'relationships',
+            }
+        ),
     ],
 };
 
@@ -143,7 +172,10 @@ const appleLibrarySongs: MediaSource<MediaItem> = {
             return createSearchPager('library-songs', q);
         } else {
             return new MusicKitPager('/v1/me/library/songs', {
-                'include[library-songs]': 'catalog',
+                'include[library-songs]': 'catalog,artists,albums',
+                'include[library-albums]': 'catalog,artists',
+                'include[library-artists]': 'catalog',
+                'omit[resource:artists]': 'relationships',
                 sort: `${sortOrder === -1 ? '-' : ''}${sortMap[sortBy] || sortBy}`,
             });
         }
@@ -169,7 +201,9 @@ const appleLibraryAlbums: MediaSource<MediaAlbum> = {
         } else {
             return new MusicKitPager('/v1/me/library/albums', {
                 'fields[library-albums]': 'name,artistName,playParams,artwork',
-                'include[library-albums]': 'catalog',
+                'include[library-albums]': 'catalog,artists',
+                'include[library-artists]': 'catalog',
+                'omit[resource:artists]': 'relationships',
                 sort: `${sortOrder === -1 ? '-' : ''}${sortMap[sortBy] || sortBy}`,
             });
         }
@@ -271,7 +305,10 @@ const appleLibraryVideos: MediaSource<MediaItem> = {
             return createSearchPager('library-music-videos', q);
         } else {
             return new MusicKitPager('/v1/me/library/music-videos', {
-                'include[library-music-videos]': 'catalog',
+                'include[library-music-videos]': 'catalog,artists,albums',
+                'include[library-albums]': 'catalog,artists',
+                'include[library-artists]': 'catalog',
+                'omit[resource:artists]': 'relationships',
                 sort: `${sortOrder === -1 ? '-' : ''}${sortMap[sortBy] || sortBy}`,
             });
         }
@@ -294,7 +331,12 @@ const appleFavoriteSongs: MediaSource<MediaItem> = {
         }
         return new MusicKitPager(
             `/v1/me/library/playlists/${playlistId}/tracks`,
-            {'include[library-songs]': 'catalog'},
+            {
+                'include[library-songs]': 'catalog,artists,albums',
+                'include[library-albums]': 'catalog,artists',
+                'include[library-artists]': 'catalog',
+                'omit[resource:artists]': 'relationships',
+            },
             undefined,
             {
                 src: `apple:library-playlists:${playlistId}`,
@@ -319,7 +361,13 @@ const appleSongCharts: MediaSource<MediaItem> = {
         if (genre) {
             return new MusicKitPager(
                 '/v1/catalog/{{storefrontId}}/charts',
-                {types: 'songs', genre: genre.id},
+                {
+                    types: 'songs',
+                    genre: genre.id,
+                    'include[songs]': 'artists,albums',
+                    'include[albums]': 'artists',
+                    'omit[resource:artists]': 'relationships',
+                },
                 {maxSize: 200, pageSize: 50},
                 {itemType: ItemType.Playlist, isChart: true} as any,
                 (response: any): MusicKitPage => {
@@ -358,7 +406,12 @@ const appleAlbumCharts: MediaSource<MediaAlbum> = {
         if (genre) {
             return new MusicKitPager(
                 '/v1/catalog/{{storefrontId}}/charts',
-                {types: 'albums', genre: genre.id},
+                {
+                    types: 'albums',
+                    genre: genre.id,
+                    'include[albums]': 'artists',
+                    'omit[resource:artists]': 'relationships',
+                },
                 {maxSize: 200, pageSize: 50},
                 {itemType: ItemType.Playlist, isChart: true} as any,
                 (response: any): MusicKitPage => {
@@ -430,7 +483,13 @@ const appleMusicVideoCharts: MediaSource<MediaItem> = {
         if (genre) {
             return new MusicKitPager(
                 '/v1/catalog/{{storefrontId}}/charts',
-                {types: 'music-videos', genre: genre.id},
+                {
+                    types: 'music-videos',
+                    genre: genre.id,
+                    'include[music-videos]': 'artists,albums',
+                    'include[albums]': 'artists',
+                    'omit[resource:artists]': 'relationships',
+                },
                 {maxSize: 200, pageSize: 50},
                 {itemType: ItemType.Playlist, isChart: true} as any,
                 (response: any): MusicKitPage => {
@@ -612,7 +671,6 @@ function createSearchPager<T extends MediaObject>(
             ...filters,
             types: type,
             term: q,
-            [`omit[resource:${type}]`]: 'relationships',
         };
         return new MusicKitPager(
             type.startsWith('library-')

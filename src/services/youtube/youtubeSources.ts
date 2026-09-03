@@ -87,11 +87,15 @@ const youtubeLikes: MediaSource<MediaItem> = {
     primaryItems: youtubeVideoItems,
 
     search(): Pager<MediaItem> {
-        return new YouTubePager('/videos', {
-            myRating: 'like',
-            part: 'snippet,contentDetails,statistics',
-            fields: YouTubePager.videoFields,
-        });
+        return new YouTubePager(
+            '/videos',
+            {
+                myRating: 'like',
+                part: 'snippet,contentDetails,statistics',
+                fields: YouTubePager.videoFields,
+            },
+            {maxSize: 1000}
+        );
     },
 };
 

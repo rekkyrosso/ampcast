@@ -518,6 +518,9 @@ function createArtistOtherTracks(artist: MediaArtist): MediaAlbum {
         pager: createArtistOtherTracksPager(artist),
         trackCount: undefined,
         synthetic: true,
+        links: {
+            artist: artist.src,
+        },
     };
 }
 
@@ -531,6 +534,9 @@ function createArtistAllTracks(artist: MediaArtist): MediaAlbum {
         pager: createArtistAllTracksPager(artist),
         trackCount: undefined,
         synthetic: true,
+        links: {
+            artist: artist.src,
+        },
     };
 }
 
@@ -544,6 +550,9 @@ function createArtistVideos(artist: MediaArtist): MediaAlbum {
         pager: createArtistVideosPager(artist),
         trackCount: undefined,
         synthetic: true,
+        links: {
+            artist: artist.src,
+        },
     };
 }
 

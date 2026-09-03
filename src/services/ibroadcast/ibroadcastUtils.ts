@@ -69,6 +69,7 @@ export function createArtistAlbumsPager(
     albumSort?: SortParams
 ): Pager<MediaAlbum> {
     const id = getIdFromSrc(artist);
+    const artistSrc = artist.src;
     return new SimpleMediaPager(async () => {
         const library = await ibroadcastLibrary.load();
         const artist = library.artists[id];
@@ -120,6 +121,9 @@ export function createArtistAlbumsPager(
                     }),
                     trackCount: otherTrackIds.length,
                     synthetic: true,
+                    links: {
+                        artist: artistSrc,
+                    },
                 };
                 albums.push(otherTracksAlbum);
             }
@@ -136,6 +140,9 @@ export function createArtistAlbumsPager(
             }),
             trackCount: allTrackIds.size,
             synthetic: true,
+            links: {
+                artist: artistSrc,
+            },
         };
         return albums.concat(allTracksAlbum);
     });
@@ -264,7 +271,8 @@ export function createMediaItem(
         links: {
             self: true,
             album: album ? `${serviceId}:album:${albumId}` : undefined,
-            albumArtist: albumArtist && albumArtistId ? `${serviceId}:artist:${albumArtistId}` : undefined,
+            albumArtist:
+                albumArtist && albumArtistId ? `${serviceId}:artist:${albumArtistId}` : undefined,
             artists: artist ? [`${serviceId}:artist:${artistId}`] : undefined,
         },
     };

@@ -9,6 +9,9 @@ export default class MusicKitRecentlyPlayedPager extends RecentlyPlayedPager {
         super(
             async (offset: number, limit: number): Promise<Page<MediaItem>> => {
                 const response = await musicKitFetch('/v1/me/recent/played/tracks', {
+                    'include[songs]': 'artists,albums',
+                    'include[albums]': 'artists',
+                    'omit[resource:artists]': 'relationships',
                     offset,
                     limit,
                 });

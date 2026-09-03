@@ -114,7 +114,7 @@ export default function useHistory() {
     }, []);
 
     const navigateTo = useCallback((path: string) => {
-        if (WEB_LINKS  && getMediaSource(path)) {
+        if (WEB_LINKS && getMediaSource(path)) {
             const service = getServiceFromPath(path);
             const libraryId =
                 service && isPersonalMediaService(service) ? service.libraryId : undefined;
@@ -123,8 +123,8 @@ export default function useHistory() {
             }
         }
         const initialized = !!state$.value;
-        if (!initialized) {
-            path = history.state?.path || path;
+        if (WEB_LINKS && !initialized) {
+            path = location.hash.slice(3) || path;
         }
         if (path !== state$.value?.path) {
             logger.log('navigateTo', path);

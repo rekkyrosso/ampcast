@@ -44,7 +44,7 @@ import navidromeSources, {
 } from './navidromeSources';
 import navidromeApi from './navidromeApi';
 import subsonicApi, {subsonicService} from './subsonicApi';
-import {createPlaylistItemsPager} from './navidromeUtils';
+import {createMediaObject, createPlaylistItemsPager} from './navidromeUtils';
 
 const serviceId: MediaServiceId = 'navidrome';
 
@@ -96,6 +96,7 @@ const navidrome: PersonalMediaService = {
     createRadioPager,
     getFilters,
     getLyrics,
+    getMediaObject,
     getPlayableUrl,
     getPlaybackType,
     getServerInfo,
@@ -224,6 +225,25 @@ async function getFilters(filterType: FilterType): Promise<readonly MediaFilter[
 
 async function getLyrics(item: MediaItem): Promise<Lyrics | null> {
     return subsonicApi.getLyrics(item);
+}
+
+const itemTypes: Record<string, ItemType> = {
+    album: ItemType.Album,
+    artist: ItemType.Artist,
+    playlist: ItemType.Playlist,
+    audio: ItemType.Media,
+};
+
+async function getMediaObject<T extends MediaObject>(src: string): Promise<T> {
+    const [, type, id] = src.split(':');
+    const itemType = itemTypes[type];
+    if (itemType === undefined) {
+        throw Error('Not supported');
+    }
+    const data = await navidromeApi.get<Navidrome.MediaObject>(
+        `${type === 'audio' ? 'song' : type}/${id}`
+    );
+    return createMediaObject(itemType, data);
 }
 
 function createRadioPager(item: MediaItem): Pager<MediaItem> {

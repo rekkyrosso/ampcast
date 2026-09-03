@@ -11,6 +11,7 @@ import attemptAtVdjEffects from './attemptAtVdjEffects.frag';
 import audioFlightV2 from './audioFlightV2.frag';
 import audioPulsar from './audioPulsar.frag';
 import audioReactiveFractal from './audioReactiveFractal.frag';
+import audioReactiveLiquidBlobs from './audioReactiveLiquidBlobs.frag';
 import audioReactiveScene1 from './audioReactiveScene1.frag';
 import audioSpectrum from './audioSpectrum.frag';
 import audioVisualizer from './audioVisualizer.frag';
@@ -23,10 +24,12 @@ import basicAudioVisualizerModified from './basicAudioVisualizerModified.frag';
 import beatOfBrokenHearts from './beatOfBrokenHearts.frag';
 import brokowi from './brokowi .frag';
 import bubbles from './bubbles.frag';
+import buildings2D from './buildings2D.frag';
 import burnSoundWave from './burnSoundWave.frag';
 import carelsAudioVisualizer from './carelsAudioVisualizer.frag';
 import cavitation from './cavitation.frag';
 import chromaticResonance from './chromaticResonance.frag';
+import chromaticWaveInterference from './chromaticWaveInterference.frag';
 import circuits from './circuits.frag';
 import cityAtNight from './cityAtNight.frag';
 import clairDeLune from './clairDeLune.frag';
@@ -57,12 +60,15 @@ import goatranceTrip from './goatranceTrip.frag';
 import hilbertColor from './hilbertColor.frag';
 import io from './io.frag';
 import issues from './issues.frag';
+import jaesMagicalGem from './jaesMagicalGem.frag';
 import jellify from './jellify.frag';
+import jiggyGeometry from './jiggyGeometry.frag';
 import lelabah from './lelabah.frag';
 import lightningStorm from './lightningStorm.frag';
 import mandelKoch from './mandelKoch.frag';
 import mellowRainbowBlob from './mellowRainbowBlob.frag';
 import morph from './morph.frag';
+import movingAudioHamsa from './movingAudioHamsa.frag';
 import music_Spheres from './music_Spheres.frag';
 import musicalDandelions from './musicalDandelions.frag';
 import musicMandelBoxColour from './musicMandelBoxColour.frag';
@@ -72,6 +78,7 @@ import myLightShow from './myLightShow.frag';
 import nanoKontrol2 from './nanoKontrol2.frag';
 import nautilus from './nautilus.frag';
 import neonPyramid from './neonPyramid.frag';
+import neonRingSpectrum from './neonRingSpectrum.frag';
 import neonRiverVisualizer from './neonRiverVisualizer.frag';
 import noiseNoiseRaymarching from './noiseNoiseRaymarching.frag';
 import oscEqualizer from './oscEqualizer.frag';
@@ -86,6 +93,8 @@ import purpleSpaghetti from './purpleSpaghetti.frag';
 import radialAudioSpectrum from './radialAudioSpectrum.frag';
 import radialSoundVisualizer from './radialSoundVisualizer.frag';
 import rainbow from './rainbow.frag';
+import raymarchedMandelbaumReactive from './raymarchedMandelbaumReactive.frag';
+import reactive001 from './reactive001.frag';
 import russianRoulette from './russianRoulette.frag';
 import sailingBeyond from './sailingBeyond.frag';
 import shadowDancing from './shadowDancing.frag';
@@ -101,6 +110,7 @@ import spaceWithMusic from './spaceWithMusic.frag';
 import spaceshipConsole from './spaceshipConsole.frag';
 import speaker from './speaker.frag';
 import spectralizer from './spectralizer.frag';
+import squareParty from './squareParty.frag';
 import symmetricalSoundVisualiser from './symmetricalSoundVisualiser.frag';
 import technoCore from './technoCore.frag';
 import tombWorld from './tombWorld.frag';
@@ -112,6 +122,56 @@ import wavesRemix from './wavesRemix.frag';
 import yearOfTruchets018 from './yearOfTruchets018.frag';
 
 const presets: AmpShaderVisualizer[] = [
+    {
+        id: 'f3jSDV',
+        name: 'NEON RING SPECTRUM by nolascoin',
+        shader: neonRingSpectrum,
+    },
+    {
+        id: 'Nfc3Wl',
+        name: 'Square Party by ArthurTent',
+        shader: squareParty,
+    },
+    {
+        id: 'Ml23zy',
+        name: 'Buildings 2D by lamogui',
+        shader: buildings2D,
+    },
+    {
+        id: 'NfSXDc',
+        name: 'Reactive001 by PAEz',
+        shader: reactive001,
+    },
+    {
+        id: 's3l3Wl',
+        name: 'Raymarched Mandelbaum Reactive by enbe',
+        shader: raymarchedMandelbaumReactive,
+    },
+    {
+        id: '3c3fDr',
+        name: 'Audio Reactive Liquid Blobs by matthewscherf',
+        shader: audioReactiveLiquidBlobs,
+    },
+    {
+        id: 'WcdyRj',
+        name: 'Chromatic Wave Interference by OneHung',
+        shader: chromaticWaveInterference,
+    },
+    {
+        id: 'tfVcWG',
+        name: 'Jiggy Geometry by OneHung',
+        shader: jiggyGeometry,
+    },
+    {
+        id: 'wfVBzV',
+        name: 'Jaes magical gem - Dark by PAEz',
+        shader: jaesMagicalGem,
+    },
+    {
+        id: 's3BSRK',
+        name: 'Moving Audio Hamsa by ArthurTent',
+        shader: movingAudioHamsa,
+    },
     {
         id: 'tcKBR3',
         name: 'Tomb World of Silicon Beats by mrange',

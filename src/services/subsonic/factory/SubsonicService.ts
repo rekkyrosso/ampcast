@@ -756,6 +756,31 @@ export default class SubsonicService implements PersonalMediaService {
         return this.api.getLyrics(item);
     }
 
+    async getMediaObject<T extends MediaObject>(src: string): Promise<T> {
+        const [, type, ...rest] = src.split(':');
+        const id = rest.join(':');
+        switch (type) {
+            case 'album': {
+                const album = await this.api.getAlbum(id);
+                return this.utils.createMediaAlbum(album) as T;
+            }
+            case 'artist': {
+                const artist = await this.api.getArtist(id);
+                return this.utils.createMediaArtist(artist) as T;
+            }
+            case 'audio': {
+                const song = await this.api.getSong(id);
+                return this.utils.createMediaItemFromSong(song) as T;
+            }
+            case 'playlist': {
+                const playlist = await this.api.getPlaylist(id);
+                return this.utils.createMediaPlaylist(playlist) as T;
+            }
+            default:
+                throw Error('Not supported');
+        }
+    }
+
     async addMetadata<T extends MediaObject>(item: T): Promise<T> {
         const itemType = item.itemType;
         const id = this.getIdFromSrc(item);

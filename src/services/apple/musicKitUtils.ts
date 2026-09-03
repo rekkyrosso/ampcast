@@ -180,6 +180,9 @@ function createMediaPlaylist(
         inLibrary: playlist.type.startsWith('library-') || undefined,
         apple: {catalogId},
         items: {droppable: item.canEdit},
+        links: {
+            self: true,
+        },
     };
     mediaPlaylist.pager = new MusicKitPlaylistItemsPager(
         mediaPlaylist as MediaPlaylist,
@@ -205,6 +208,9 @@ function createMediaArtist(
         genres: getGenres(item),
         pager: createArtistAlbumsPager(artist),
         apple: {catalogId},
+        links: {
+            self: !!catalogId,
+        },
     };
 }
 
@@ -217,8 +223,10 @@ function createMediaAlbum(
     const description = item.editorialNotes?.standard || item.editorialNotes?.short;
     const catalogId = getCatalogId(album);
     const releaseDate = new Date(item.releaseDate);
+    const isLibraryAlbum = album.type.startsWith('library-');
+    const artist = album?.relationships?.artists?.data[0];
 
-    const mediaAlbum: Writable<SetOptional<SetRequired<MediaAlbum, 'apple'>, 'pager'>> = {
+    return {
         itemType: ItemType.Album,
         albumType: item.isCompilation
             ? AlbumType.Compilation
@@ -231,25 +239,33 @@ function createMediaAlbum(
         title: item.name,
         description: description ? getTextFromHtml(description) : undefined,
         thumbnails: createThumbnails(item),
-        artist: item.artistName,
+        artist: artist?.attributes?.name || album.attributes?.artistName,
         trackCount: item.trackCount,
         genres: getGenres(item),
         releasedAt: Math.round(releaseDate.getTime() / 1000) || undefined,
         year: releaseDate.getFullYear() || undefined,
         unplayable: !item.playParams || undefined,
-        inLibrary: album.type.startsWith('library-') || undefined,
+        inLibrary: isLibraryAlbum || undefined,
         copyright: item?.copyright,
         explicit: item?.contentRating === 'explicit',
         shareLink: createShareLink('album', item.name, catalogId),
         apple: {catalogId},
+        links: {
+            self: !!catalogId,
+            artist: artist ? getLink(artist) : undefined,
+        },
+        pager: new MusicKitPager(
+            `${album.href!}/tracks`,
+            {
+                'include[songs]': 'artists,albums',
+                'include[library-songs]': 'catalog,artists,albums',
+                'include[albums]': 'artists',
+                'include[library-artists]': 'catalog',
+                'omit[resource:artists]': 'relationships',
+            },
+            {pageSize: 100}
+        ),
     };
-    mediaAlbum.pager = new MusicKitPager(
-        `${album.href!}/tracks`,
-        {'include[library-songs]': 'catalog'},
-        {pageSize: 100},
-        mediaAlbum as MediaAlbum
-    );
-    return mediaAlbum as SetRequired<MediaAlbum, 'apple'>;
 }
 
 function createMediaItem(
@@ -267,8 +283,12 @@ function createMediaItem(
     const isLibraryItem = song.type.startsWith('library-');
     const isPlaylistItem = parent?.itemType === ItemType.Playlist;
     const catalogId = getCatalogId(song);
+    const catalogRelationships = getCatalog<AppleMusicApi.Song>(song)?.relationships;
+    const album = catalogRelationships?.albums?.data[0] || song.relationships?.albums?.data[0];
+    const albumArtist = album?.relationships?.artists?.data[0];
+    const artists = catalogRelationships?.artists?.data || song.relationships?.artists.data;
 
-    const mediaItem: Writable<SetRequired<MediaItem, 'apple'>> = {
+    return {
         itemType: ItemType.Media,
         mediaType: kind === 'musicVideo' ? MediaType.Video : MediaType.Audio,
         playbackType: PlaybackType.HLS,
@@ -278,8 +298,8 @@ function createMediaItem(
         title: item.name,
         description: description ? getTextFromHtml(description) : undefined,
         thumbnails: createThumbnails(item),
-        artists: [item.artistName],
-        albumArtist: parent?.itemType === ItemType.Album ? parent.artist : undefined,
+        artists: artists?.map((artist) => artist.attributes?.name || ''),
+        albumArtist: albumArtist?.attributes?.name || album?.attributes?.artistName,
         album: item.albumName,
         duration: item.durationInMillis / 1000,
         genres: getGenres(item),
@@ -297,8 +317,13 @@ function createMediaItem(
             item.name,
             catalogId
         ),
+        links: {
+            self: !isLibraryItem,
+            album: album ? getLink(album) : undefined,
+            albumArtist: albumArtist ? getLink(albumArtist) : undefined,
+            artists: artists?.map((artist) => getLink(artist)),
+        },
     };
-    return mediaItem;
 }
 
 function createFromTimedMetadata(data: MusicKit.TimedMetadata, station?: MediaItem): MediaItem {
@@ -410,7 +435,10 @@ function createThumbnail(
 
 function createArtistAlbumsPager(artist: AppleMusicApi.Artist | LibraryArtist): Pager<MediaAlbum> {
     const albumsPager = new MusicKitPager<MediaAlbum>(`${artist.href!}/albums`, {
-        'include[library-albums]': 'catalog',
+        'include[albums]': 'artists',
+        'include[library-albums]': 'catalog,artists',
+        'include[library-artists]': 'catalog',
+        'omit[resource:artists]': 'relationships',
     });
     if (artist.type.startsWith('library-')) {
         return albumsPager;
@@ -453,6 +481,9 @@ function createArtistTopTracks(
         inLibrary: false,
         trackCount: undefined,
         apple: {catalogId: ''},
+        links: {
+            artist: `${serviceId}:${artist.type}:${artist.id}`,
+        },
     };
 }
 
@@ -471,6 +502,9 @@ function createArtistRadios(artist: AppleMusicApi.Artist | LibraryArtist): Media
         inLibrary: false,
         trackCount: undefined,
         apple: {catalogId: ''},
+        links: {
+            artist: `${serviceId}:${artist.type}:${artist.id}`,
+        },
     };
 }
 
@@ -489,6 +523,9 @@ function createArtistVideos(artist: AppleMusicApi.Artist | LibraryArtist): Media
         inLibrary: false,
         trackCount: undefined,
         apple: {catalogId: ''},
+        links: {
+            artist: `${serviceId}:${artist.type}:${artist.id}`,
+        },
     };
 }
 
@@ -528,6 +565,11 @@ function createArtistViewPager(
             return {items, total, nextPageUrl};
         }
     );
+}
+
+function getLink(item: MusicKit.Resource): string {
+    const catalogId = getCatalogId(item);
+    return catalogId ? `${serviceId}:${item.type.replace('library-', '')}:${catalogId}` : '';
 }
 
 function getCatalog<T extends MusicKitItem>(item: MusicKit.Resource): T {

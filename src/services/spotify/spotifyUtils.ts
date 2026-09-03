@@ -252,6 +252,9 @@ function createArtistTopTracks(artist: SpotifyArtist): MediaAlbum {
         pager: createTopTracksPager(artist),
         trackCount: undefined,
         synthetic: true,
+        links: {
+            artist: artist.uri,
+        },
     };
 }
 

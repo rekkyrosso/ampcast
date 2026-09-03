@@ -88,7 +88,10 @@ function createMediaItem(song: Navidrome.Song): MediaItem {
         externalUrl: getExternalUrl(`album/${song.albumId}`),
         title: song.title,
         addedAt: parseDate(song.createdAt),
-        artists: song.artist === '[Unknown Artist]' ? undefined : [song.artist],
+        artists:
+            song.artist === '[Unknown Artist]'
+                ? undefined
+                : song.participants?.artist?.map((artist) => artist.name) || [song.artist],
         albumArtist: song.albumArtist === '[Unknown Artist]' ? undefined : song.albumArtist,
         album: song.album === '[Unknown Album]' ? undefined : song.album,
         duration: song.duration,
@@ -118,6 +121,23 @@ function createMediaItem(song: Navidrome.Song): MediaItem {
         badge: song.suffix,
         container: song.suffix,
         unplayable: song.missing || undefined,
+        links: {
+            self: true,
+            album:
+                song.albumId && song.album !== '[Unknown Album]'
+                    ? `${serviceId}:album:${song.albumId}`
+                    : undefined,
+            albumArtist:
+                song.albumArtistId && song.albumArtist !== '[Unknown Album]'
+                    ? `${serviceId}:artist:${song.albumArtistId}`
+                    : undefined,
+            artists:
+                song.artistId && song.artist !== '[Unknown Artist]'
+                    ? song.participants?.artist?.map(
+                          (artist) => `${serviceId}:artist:${artist.id}`
+                      ) || [`${serviceId}:artist:${song.artistId}`]
+                    : undefined,
+        },
     };
 }
 
@@ -159,6 +179,10 @@ function createMediaAlbum(album: Navidrome.Album): MediaAlbum {
         thumbnails: createThumbnails(album_id),
         release_mbid: album.mbzAlbumId,
         artist_mbids: album.mbzAlbumArtistId ? [album.mbzAlbumArtistId] : undefined,
+        links: {
+            self: true,
+            artist: album.albumArtistId ? `${serviceId}:artist:${album.albumArtistId}` : undefined,
+        },
     };
 }
 
@@ -175,6 +199,9 @@ function createMediaArtist(artist: Navidrome.Artist, albumSort?: SortParams): Me
         genres: artist.genres?.map((genre) => genre.name),
         thumbnails: createThumbnails(artist_id),
         artist_mbid: artist.mbzArtistId,
+        links: {
+            self: true,
+        },
     };
     mediaArtist.pager = createArtistAlbumsPager(mediaArtist as MediaArtist, albumSort);
     return mediaArtist as MediaArtist;
@@ -210,6 +237,9 @@ function createMediaPlaylist(playlist: Navidrome.Playlist, itemSort?: SortParams
                       moveable: true,
                   }
                 : undefined,
+        links: {
+            self: true,
+        },
     };
     mediaPlaylist.pager = createPlaylistItemsPager(mediaPlaylist as MediaPlaylist, itemSort);
     return mediaPlaylist as MediaPlaylist;
@@ -243,6 +273,9 @@ function createArtistAllTracks(artist: MediaArtist): MediaAlbum {
         pager: createArtistAllTracksPager(artist),
         trackCount: undefined,
         synthetic: true,
+        links: {
+            artist: artist.src,
+        },
     };
 }
 
@@ -285,6 +318,9 @@ function createArtistRadios(artist: MediaArtist): MediaAlbum {
         pager: new SimplePager([radio]),
         trackCount: undefined,
         synthetic: true,
+        links: {
+            artist: artist.src,
+        },
     };
 }
 
@@ -299,6 +335,9 @@ function createArtistTopTracks(artist: MediaArtist): MediaAlbum {
         pager: subsonicService.createTopTracksPager(artist.title),
         trackCount: undefined,
         synthetic: true,
+        links: {
+            artist: artist.src,
+        },
     };
 }
 

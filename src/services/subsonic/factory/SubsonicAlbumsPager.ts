@@ -55,6 +55,10 @@ export default class SubsonicAlbumsPager extends SimpleMediaPager<MediaAlbum> {
         return this.service.api;
     }
 
+    private get serviceId(): string {
+        return this.service.id;
+    }
+
     private get utils(): SubsonicUtils {
         return this.service.utils;
     }
@@ -62,26 +66,32 @@ export default class SubsonicAlbumsPager extends SimpleMediaPager<MediaAlbum> {
     private createAllTracks(artist: Subsonic.Artist, items: readonly MediaItem[]): MediaAlbum {
         return {
             itemType: ItemType.Album,
-            src: `${this.service.id}:all-tracks:${artist.id}`,
+            src: `${this.serviceId}:all-tracks:${artist.id}`,
             title: 'All Songs',
             artist: artist.name,
             thumbnails: this.utils.createThumbnails(artist.coverArt),
             pager: new SimpleMediaPager(async () => sorter.sort(items, 'Year')),
             trackCount: undefined,
             synthetic: true,
+            links: {
+                artist: `${this.serviceId}:artist:${artist.id}`,
+            },
         };
     }
 
     private createOtherTracks(artist: Subsonic.Artist, items: readonly MediaItem[]): MediaAlbum {
         return {
             itemType: ItemType.Album,
-            src: `${this.service.id}:other-tracks:${artist.id}`,
+            src: `${this.serviceId}:other-tracks:${artist.id}`,
             title: 'Other Songs',
             artist: artist.name,
             thumbnails: this.utils.createThumbnails(artist.coverArt),
             pager: new SimpleMediaPager(async () => sorter.sort(items, 'Year')),
             trackCount: undefined,
             synthetic: true,
+            links: {
+                artist: `${this.serviceId}:artist:${artist.id}`,
+            },
         };
     }
 }
