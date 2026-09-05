@@ -415,13 +415,13 @@ function addMissingValues(
         (values as any).duration = duration || item.duration || 0;
         return values;
     } else {
-        let {duration, track, year, isrc, albumArtist} = item;
+        let {duration, track, year, isrc, albumArtists} = item;
         duration = duration || foundItem.duration;
         track = track || foundItem.track;
         year = year || foundItem.year;
         isrc = isrc || foundItem.isrc;
-        albumArtist = albumArtist || foundItem.albumArtist;
-        return {...values, duration, track, year, isrc, albumArtist};
+        albumArtists = albumArtists || foundItem.albumArtists;
+        return {...values, duration, track, year, isrc, albumArtists};
     }
 }
 
@@ -515,7 +515,7 @@ export function createMediaItem(
         title: track.title,
         artists: artists?.map((artist) => artist.name),
         album: release.title,
-        albumArtist: albumArtist?.name,
+        albumArtists: albumArtist?.name ? [albumArtist.name] : undefined,
         duration: track.length / 1000 || 0,
         track: Number(track.number),
         recording_mbid: recording.id,

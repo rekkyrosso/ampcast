@@ -74,7 +74,6 @@ function createMediaAlbum(album: SpotifyAlbum, inLibrary?: boolean | undefined):
     const externalUrl = album.external_urls.spotify;
     const releaseDate = new Date(album.release_date);
     const type = album.album_type;
-    const albumArtists = album.artists;
     return {
         itemType: ItemType.Album,
         albumType:
@@ -87,7 +86,7 @@ function createMediaAlbum(album: SpotifyAlbum, inLibrary?: boolean | undefined):
         externalUrl,
         shareLink: externalUrl,
         title: album.name,
-        artist: albumArtists.map((artist) => artist.name).join(', '),
+        artists: album.artists?.map((artist) => artist.name),
         // genres: album.genres, // always an empty array
         year: releaseDate.getFullYear(),
         releasedAt: Math.round(releaseDate.getTime() / 1000),
@@ -101,7 +100,7 @@ function createMediaAlbum(album: SpotifyAlbum, inLibrary?: boolean | undefined):
             .join(' | '),
         links: {
             self: true,
-            artist: albumArtists?.length === 1 ? albumArtists[0].uri : undefined,
+            artists: album.artists?.map((artist) => getArtistLink(artist)),
         },
     };
 }
@@ -169,7 +168,6 @@ export function createMediaItemFromTrack(
 ): MediaItem {
     const externalUrl = track.external_urls?.spotify;
     const album = track.album;
-    const albumArtists = album?.artists;
 
     return {
         itemType: ItemType.Media,
@@ -180,7 +178,7 @@ export function createMediaItemFromTrack(
         shareLink: externalUrl,
         title: track.name,
         artists: track.artists?.map((artist) => artist.name),
-        albumArtist: albumArtists?.map((artist) => artist.name).join(', '),
+        albumArtists: album?.artists?.map((artist) => artist.name),
         album: album?.name,
         duration: track.duration_ms / 1000,
         playedAt: track.played_at
@@ -201,7 +199,7 @@ export function createMediaItemFromTrack(
             self: true,
             album: album?.uri,
             artists: track.artists?.map((artist) => artist.uri),
-            albumArtist: albumArtists?.length === 1 ? albumArtists[0].uri : undefined,
+            albumArtists: album?.artists?.map((artist) => getArtistLink(artist)),
         },
     };
 }
@@ -247,13 +245,13 @@ function createArtistTopTracks(artist: SpotifyArtist): MediaAlbum {
         itemType: ItemType.Album,
         src: `spotify:top-tracks:${artist.id}`,
         title: 'Top Tracks',
-        artist: artist.name,
+        artists: [artist.name],
         // thumbnails: artist.images as Thumbnail[], // Spotify branding rules
         pager: createTopTracksPager(artist),
         trackCount: undefined,
         synthetic: true,
         links: {
-            artist: artist.uri,
+            artists: [artist.uri],
         },
     };
 }
@@ -300,4 +298,8 @@ function createAlbumTracksPager(album: SpotifyAlbum): Pager<MediaItem> {
             {autofill: true, autofillInterval: 500, autofillMaxPages: 10}
         );
     }
+}
+
+function getArtistLink(artist: SpotifyApi.ArtistObjectSimplified): string {
+    return artist.name === 'Various Artists' ? '' : artist.uri;
 }

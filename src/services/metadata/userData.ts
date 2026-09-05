@@ -10,6 +10,7 @@ type TransientData = Pick<
     | 'playlistItemId'
     | 'isFavoriteStation'
     | 'nanoId'
+    | 'links'
 >;
 
 const userDataKeys: (keyof UserData | keyof ListenData | keyof TransientData)[] = [
@@ -29,6 +30,7 @@ const userDataKeys: (keyof UserData | keyof ListenData | keyof TransientData)[] 
     'playlistItemId',
     'isFavoriteStation',
     'nanoId',
+    'links',
 ];
 
 export function removeUserData<T extends Partial<MediaItem>>(item: T): Subtract<T, UserData> {

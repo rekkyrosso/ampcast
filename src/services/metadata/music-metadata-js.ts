@@ -139,18 +139,28 @@ function createMediaItem(
 ): MediaItem {
     const {common} = metadata;
     const floor = (value: number | null = 0) => Math.floor(Number(value)) || undefined;
-
+    const album = common.album?.trim() || undefined;
+    const artist = common.artist?.trim();
+    let artists = common.artists?.map((artist) => artist?.trim()).filter((artist) => !!artist);
+    if (!artists?.length) {
+        artists = artist ? [artist] : undefined;
+    }
+    const albumArtist = common.albumartist?.trim();
+    let albumArtists = common.albumartists
+        ?.map((artist) => artist?.trim())
+        .filter((artist) => !!artist);
+    if (!albumArtists?.length) {
+        albumArtists = albumArtist ? [albumArtist] : undefined;
+    }
     return {
         itemType: ItemType.Media,
         mediaType,
         playbackType: PlaybackType.Direct,
         src,
         title: (common.title || name).trim(),
-        artists: common.artist
-            ? [common.artist.trim()]
-            : common.artists?.map((artist) => artist.trim()),
-        albumArtist: common.album ? common.albumartist?.trim() || undefined : undefined,
-        album: common.album?.trim() || undefined,
+        artists,
+        album,
+        albumArtists: album ? albumArtists : undefined,
         genres: common.genre,
         duration: 0,
         track: floor(common.track?.no),

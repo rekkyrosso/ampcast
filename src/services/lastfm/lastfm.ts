@@ -114,7 +114,7 @@ async function addMetadata<T extends MediaObject>(item: T): Promise<T> {
         const {album, wiki} = track;
         if (album) {
             metadata.album = album.title;
-            metadata.albumArtist = album.artist;
+            metadata.albumArtists = album.artist ? [album.artist] : undefined;
             if (!item.thumbnails) {
                 metadata.thumbnails = lastfmApi.createThumbnails(album.image);
             }

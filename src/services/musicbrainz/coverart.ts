@@ -53,10 +53,10 @@ export async function getCoverArtThumbnails(
     let artist: string | undefined;
     if (item.itemType === ItemType.Album) {
         album = item.title;
-        artist = item.artist;
+        artist = item.artists?.[0];
     } else {
         album = item.album;
-        artist = item.albumArtist || item.artists?.[0];
+        artist = item.albumArtists?.[0] || item.artists?.[0];
     }
     if (album && artist) {
         const storedItem = await store.items.get([album, artist]);

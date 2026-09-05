@@ -224,7 +224,7 @@ function createMediaAlbum(
     const catalogId = getCatalogId(album);
     const releaseDate = new Date(item.releaseDate);
     const isLibraryAlbum = album.type.startsWith('library-');
-    const artist = album?.relationships?.artists?.data[0];
+    const artists = getNamedArtists(album?.relationships?.artists.data);
 
     return {
         itemType: ItemType.Album,
@@ -239,7 +239,9 @@ function createMediaAlbum(
         title: item.name,
         description: description ? getTextFromHtml(description) : undefined,
         thumbnails: createThumbnails(item),
-        artist: artist?.attributes?.name || album.attributes?.artistName,
+        artists: artists?.map((artist) => artist.attributes.name) || [
+            album.attributes?.artistName || '',
+        ],
         trackCount: item.trackCount,
         genres: getGenres(item),
         releasedAt: Math.round(releaseDate.getTime() / 1000) || undefined,
@@ -252,7 +254,7 @@ function createMediaAlbum(
         apple: {catalogId},
         links: {
             self: !!catalogId,
-            artist: artist ? getLink(artist) : undefined,
+            artists: artists?.map((artist) => getLink(artist)),
         },
         pager: new MusicKitPager(
             `${album.href!}/tracks`,
@@ -285,8 +287,10 @@ function createMediaItem(
     const catalogId = getCatalogId(song);
     const catalogRelationships = getCatalog<AppleMusicApi.Song>(song)?.relationships;
     const album = catalogRelationships?.albums?.data[0] || song.relationships?.albums?.data[0];
-    const albumArtist = album?.relationships?.artists?.data[0];
-    const artists = catalogRelationships?.artists?.data || song.relationships?.artists.data;
+    const albumArtists = getNamedArtists(album?.relationships?.artists?.data);
+    const artists = getNamedArtists(
+        catalogRelationships?.artists?.data || song.relationships?.artists.data
+    );
 
     return {
         itemType: ItemType.Media,
@@ -298,8 +302,12 @@ function createMediaItem(
         title: item.name,
         description: description ? getTextFromHtml(description) : undefined,
         thumbnails: createThumbnails(item),
-        artists: artists?.map((artist) => artist.attributes?.name || ''),
-        albumArtist: albumArtist?.attributes?.name || album?.attributes?.artistName,
+        artists:
+            artists?.map((artist) => artist.attributes.name) ||
+            (item.artistName ? [item.artistName] : undefined),
+        albumArtists:
+            albumArtists?.map((artist) => artist.attributes.name) ||
+            (album?.attributes?.artistName ? [album?.attributes.artistName] : undefined),
         album: item.albumName,
         duration: item.durationInMillis / 1000,
         genres: getGenres(item),
@@ -320,7 +328,7 @@ function createMediaItem(
         links: {
             self: !isLibraryItem,
             album: album ? getLink(album) : undefined,
-            albumArtist: albumArtist ? getLink(albumArtist) : undefined,
+            albumArtists: albumArtists?.map((artist) => getLink(artist)),
             artists: artists?.map((artist) => getLink(artist)),
         },
     };
@@ -474,7 +482,7 @@ function createArtistTopTracks(
         src: `${serviceId}:top-tracks:${artist.id}`,
         title: 'Top Tracks',
         thumbnails: createThumbnails(item as any),
-        artist: item.name,
+        artists: [item.name],
         genres: getGenres(item),
         pager: createTopTracksPager(artist),
         synthetic: true,
@@ -482,7 +490,7 @@ function createArtistTopTracks(
         trackCount: undefined,
         apple: {catalogId: ''},
         links: {
-            artist: `${serviceId}:${artist.type}:${artist.id}`,
+            artists: [getLink(artist)],
         },
     };
 }
@@ -495,7 +503,7 @@ function createArtistRadios(artist: AppleMusicApi.Artist | LibraryArtist): Media
         src: `${serviceId}:radios:${artist.id}`,
         title: 'Radios',
         thumbnails: createThumbnails(item as any),
-        artist: item.name,
+        artists: [item.name],
         genres: getGenres(item),
         pager: createRadiosPager(artist),
         synthetic: true,
@@ -503,7 +511,7 @@ function createArtistRadios(artist: AppleMusicApi.Artist | LibraryArtist): Media
         trackCount: undefined,
         apple: {catalogId: ''},
         links: {
-            artist: `${serviceId}:${artist.type}:${artist.id}`,
+            artists: [getLink(artist)],
         },
     };
 }
@@ -516,7 +524,7 @@ function createArtistVideos(artist: AppleMusicApi.Artist | LibraryArtist): Media
         src: `${serviceId}:videos:${artist.id}`,
         title: 'Music Videos',
         thumbnails: createThumbnails(item as any),
-        artist: item.name,
+        artists: [item.name],
         genres: getGenres(item),
         pager: createVideosPager(artist),
         synthetic: true,
@@ -524,7 +532,7 @@ function createArtistVideos(artist: AppleMusicApi.Artist | LibraryArtist): Media
         trackCount: undefined,
         apple: {catalogId: ''},
         links: {
-            artist: `${serviceId}:${artist.type}:${artist.id}`,
+            artists: [getLink(artist)],
         },
     };
 }
@@ -567,11 +575,6 @@ function createArtistViewPager(
     );
 }
 
-function getLink(item: MusicKit.Resource): string {
-    const catalogId = getCatalogId(item);
-    return catalogId ? `${serviceId}:${item.type.replace('library-', '')}:${catalogId}` : '';
-}
-
 function getCatalog<T extends MusicKitItem>(item: MusicKit.Resource): T {
     return item.relationships?.catalog?.data?.[0];
 }
@@ -593,6 +596,20 @@ function getCatalogId(item: MusicKit.Resource): string {
 
 function getGenres({genreNames = []}: {genreNames: string[]}): readonly string[] | undefined {
     return genreNames.filter((name) => name !== 'Music');
+}
+
+function getLink(item: MusicKit.Resource): string {
+    const catalogId = getCatalogId(item);
+    return catalogId ? `${serviceId}:${item.type.replace('library-', '')}:${catalogId}` : '';
+}
+
+function getNamedArtists(
+    artists: readonly AppleMusicApi.Artist[] | undefined
+): readonly SetRequired<AppleMusicApi.Artist, 'attributes'>[] | undefined {
+    artists = artists?.filter((artist) => !!artist.attributes?.name);
+    return artists?.length
+        ? (artists as SetRequired<AppleMusicApi.Artist, 'attributes'>[])
+        : undefined;
 }
 
 function isTimedMetadata(

@@ -15,7 +15,7 @@ export default interface MediaItem extends BaseMediaObject {
     readonly isExternalMedia?: boolean; // Not provided by the associated `MediaService` (described by `src`)
     readonly isLivePlayback?: boolean;
     readonly artists?: readonly string[];
-    readonly albumArtist?: string;
+    readonly albumArtists?: readonly string[];
     readonly album?: string;
     readonly disc?: number;
     readonly track?: number; // Album track number
@@ -87,10 +87,12 @@ export default interface MediaItem extends BaseMediaObject {
     };
     readonly links?: BaseMediaObject['links'] & {
         readonly album?: string;
-        readonly albumArtist?: string;
+        readonly albumArtists?: readonly string[];
         readonly artists?: readonly string[];
     };
     readonly plex?: {
         readonly playQueueItemID?: number;
     };
+    /**@deprecated */
+    readonly albumArtist?: string;
 }

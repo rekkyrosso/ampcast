@@ -231,7 +231,7 @@ const itemTypes: Record<string, ItemType> = {
     album: ItemType.Album,
     artist: ItemType.Artist,
     playlist: ItemType.Playlist,
-    audio: ItemType.Media,
+    song: ItemType.Media,
 };
 
 async function getMediaObject<T extends MediaObject>(src: string): Promise<T> {
@@ -240,9 +240,7 @@ async function getMediaObject<T extends MediaObject>(src: string): Promise<T> {
     if (itemType === undefined) {
         throw Error('Not supported');
     }
-    const data = await navidromeApi.get<Navidrome.MediaObject>(
-        `${type === 'audio' ? 'song' : type}/${id}`
-    );
+    const data = await navidromeApi.get<Navidrome.MediaObject>(`${type}/${id}`);
     return createMediaObject(itemType, data);
 }
 

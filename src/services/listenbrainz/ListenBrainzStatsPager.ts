@@ -86,7 +86,7 @@ export default class ListenBrainzStatsPager<T extends MediaObject> extends Seque
             src: `listenbrainz:album:${nanoid()}`,
             externalUrl: mbid ? `${musicBrainzHost}/release/${mbid}` : undefined,
             title: item.release_name,
-            artist: item.artist_name,
+            artists: item.artist_name ? [item.artist_name] : undefined,
             release_mbid: mbid,
             artist_mbids: item.artist_mbids,
             caa_mbid: item?.caa_release_mbid,

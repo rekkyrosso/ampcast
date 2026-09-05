@@ -103,10 +103,10 @@ function findThumbnailsInListens(item: MediaItem | MediaAlbum): readonly Thumbna
     let artist: string | undefined;
     if (item.itemType === ItemType.Album) {
         album = item.title;
-        artist = item.artist;
+        artist = item.artists?.[0];
     } else {
         album = item.album;
-        artist = item.albumArtist || item.artists?.[0];
+        artist = item.albumArtists?.[0] || item.artists?.[0];
     }
     if (!album || !artist) {
         return undefined;
@@ -118,6 +118,7 @@ function findThumbnailsInListens(item: MediaItem | MediaAlbum): readonly Thumbna
         (listen) =>
             listen.thumbnails &&
             decode(listen.album || '') === decodedAlbum &&
-            decode(listen.albumArtist || listen.artists?.[0] || '') === decodedArtist
+            decode(listen.albumArtists?.[0] || listen.albumArtist || listen.artists?.[0] || '') ===
+                decodedArtist
     )?.thumbnails;
 }

@@ -54,6 +54,10 @@ declare namespace Navidrome {
         readonly starred: boolean;
         readonly starredAt: string;
         readonly updatedAt: string;
+        readonly participants?: {
+            albumartist?: readonly Participant[];
+            artist?: readonly Participant[];
+        };
     }
 
     interface Song {

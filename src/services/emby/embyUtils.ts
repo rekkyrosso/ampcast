@@ -1,5 +1,5 @@
-import {SetOptional, Writable} from 'type-fest';
-import type {BaseItemDto} from '@jellyfin/sdk/lib/generated-client/models';
+import {SetFieldType, SetOptional, SetRequired, Writable} from 'type-fest';
+import type {BaseItemDto, NameGuidPair} from '@jellyfin/sdk/lib/generated-client/models';
 import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
@@ -70,7 +70,7 @@ function createMediaArtist(artist: BaseItemDto, albumSort?: SortParams): MediaAr
         thumbnails: createThumbnails(artist),
         artist_mbid: artist.ProviderIds?.MusicBrainzArtist ?? undefined,
         links: {
-            self: true,
+            self: artist.Name !== 'Various Artists',
         },
     };
     mediaArtist.pager = createArtistAlbumsPager(mediaArtist as MediaArtist, albumSort);
@@ -78,7 +78,7 @@ function createMediaArtist(artist: BaseItemDto, albumSort?: SortParams): MediaAr
 }
 
 function createMediaAlbum(album: BaseItemDto): MediaAlbum {
-    const [artist] = album.AlbumArtists || [];
+    const artists = getNamedArtists(album.AlbumArtists);
     return {
         itemType: ItemType.Album,
         src: `${serviceId}:album:${album.Id}`,
@@ -93,13 +93,15 @@ function createMediaAlbum(album: BaseItemDto): MediaAlbum {
         inLibrary: album.UserData?.IsFavorite,
         thumbnails: createThumbnails(album),
         trackCount: album.ChildCount || undefined,
-        artist: artist?.Name || undefined,
+        artists:
+            artists?.map((artist) => artist.Name) ||
+            (album.AlbumArtist ? [album.AlbumArtist] : undefined),
         year: album.ProductionYear || undefined,
         release_mbid: album.ProviderIds?.MusicBrainzAlbum ?? undefined,
         pager: createAlbumTracksPager(album),
         links: {
             self: true,
-            artist: artist ? `${serviceId}:artist:${artist.Id}` : undefined,
+            artists: artists?.map((artist) => getArtistLink(artist)),
         },
     };
 }
@@ -149,14 +151,15 @@ function createMediaFolder(folder: BaseItemDto, parent?: MediaFolder): MediaFold
 }
 
 function createMediaItem(track: BaseItemDto): MediaItem {
-    const [albumArtist] = track.AlbumArtists || [];
+    const artists = getNamedArtists(track.ArtistItems);
+    const albumArtists = getNamedArtists(track.AlbumArtists);
     const isVideo = track.MediaType === 'Video';
     const [source] = track.MediaSources || [];
     const artist_mbid = track.ProviderIds?.MusicBrainzArtist;
     return {
         itemType: ItemType.Media,
         mediaType: isVideo ? MediaType.Video : MediaType.Audio,
-        src: `${serviceId}:${isVideo ? 'video' : 'audio'}:${track.Id}:${
+        src: `${serviceId}:${isVideo ? 'video' : 'song'}:${track.Id}:${
             (track as any).PresentationUniqueKey || ''
         }`,
         externalUrl: getExternalUrl(track),
@@ -170,8 +173,10 @@ function createMediaItem(track: BaseItemDto): MediaItem {
         genres: track.Genres || undefined,
         thumbnails: createThumbnails(track),
         inLibrary: track.UserData?.IsFavorite,
-        artists: track.Artists?.length ? track.Artists : undefined,
-        albumArtist: albumArtist?.Name || undefined,
+        artists: artists?.map((artist) => artist.Name) || track.Artists || undefined,
+        albumArtists:
+            albumArtists?.map((artist) => artist.Name) ||
+            (track.AlbumArtist ? [track.AlbumArtist] : undefined),
         album: track.Album || undefined,
         disc: track.Album ? track.ParentIndexNumber || undefined : undefined,
         track: track.Album ? track.IndexNumber || 0 : 0,
@@ -195,8 +200,8 @@ function createMediaItem(track: BaseItemDto): MediaItem {
                       track.Album && track.AlbumId
                           ? `${serviceId}:album:${track.AlbumId}`
                           : undefined,
-                  albumArtist: albumArtist ? `${serviceId}:artist:${albumArtist.Id}` : undefined,
-                  artists: track.ArtistItems?.map((artist) => `${serviceId}:artist:${artist.Id}`),
+                  albumArtists: albumArtists?.map((artist) => getArtistLink(artist)),
+                  artists: artists?.map((artist) => getArtistLink(artist)),
               },
     };
 }
@@ -225,14 +230,17 @@ export function createArtistAlbumsPager(
     artist: MediaArtist,
     albumSort = embyArtistAlbumsSort.defaultSort
 ): Pager<MediaAlbum> {
-    const allTracks = createArtistAllTracks(artist);
-    const radios = createArtistRadios(artist);
-    const otherTracksPager = new SimplePager<MediaAlbum>([allTracks, radios]);
     const albumsPager = new EmbyPager<MediaAlbum>(`Users/${embySettings.userId}/Items`, {
         AlbumArtistIds: getMediaObjectId(artist),
         IncludeItemTypes: 'MusicAlbum',
         ...getSortParams(albumSort, embyArtistAlbumsSortMap),
     });
+    if (artist.title === 'Various Artists') {
+        return albumsPager;
+    }
+    const allTracks = createArtistAllTracks(artist);
+    const radios = createArtistRadios(artist);
+    const otherTracksPager = new SimplePager<MediaAlbum>([allTracks, radios]);
     return new WrappedPager(undefined, albumsPager, otherTracksPager);
 }
 
@@ -241,13 +249,13 @@ function createArtistAllTracks(artist: MediaArtist): MediaAlbum {
         itemType: ItemType.Album,
         src: `${serviceId}:all-tracks:${getMediaObjectId(artist)}`,
         title: 'All Songs',
-        artist: artist.title,
+        artists: [artist.title],
         thumbnails: artist.thumbnails,
         pager: createAllTracksPager(artist),
         trackCount: undefined,
         synthetic: true,
         links: {
-            artist: artist.src,
+            artists: [getArtistLink(artist)],
         },
     };
 }
@@ -286,13 +294,13 @@ function createArtistRadios(artist: MediaArtist): MediaAlbum {
         itemType: ItemType.Album,
         src: `${serviceId}:radios:${id}`,
         title: 'Radios',
-        artist: artist.title,
+        artists: [artist.title],
         thumbnails: artist.thumbnails,
         pager: new SimplePager([radio]),
         trackCount: undefined,
         synthetic: true,
         links: {
-            artist: artist.src,
+            artists: [getArtistLink(artist)],
         },
     };
 }
@@ -340,12 +348,29 @@ function createFolderPager(folder: MediaFolder, parent?: MediaFolder): Pager<Med
     }
 }
 
+function getArtistLink(artist: NameGuidPair | MediaArtist): string {
+    if ('itemType' in artist) {
+        return artist.title === 'Various Artists' ? '' : artist.src;
+    } else {
+        const id = artist.Name === 'Various Artists' ? '' : artist.Id;
+        return id ? `${serviceId}:artist:${id}` : '';
+    }
+}
+
 function getExternalUrl(item: BaseItemDto): string {
     return `${embySettings.host}/web/index.html#!/item?id=${item.Id}&serverId=${embySettings.serverId}`;
 }
 
 function getFileName(path: string): string | undefined {
     return path.split(/[/\\]/).pop();
+}
+
+type HasName = SetFieldType<SetRequired<NameGuidPair, 'Name'>, 'Name', string>;
+function getNamedArtists(
+    artists: readonly NameGuidPair[] | null | undefined
+): readonly HasName[] | undefined {
+    artists = artists?.filter((artist) => !!artist.Name);
+    return artists?.length ? (artists as HasName[]) : undefined;
 }
 
 function parseDate(date?: string | null): number | undefined {

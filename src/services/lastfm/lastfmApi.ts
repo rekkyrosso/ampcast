@@ -148,10 +148,10 @@ export class LastFmApi {
         let artist: string | undefined;
         if (item.itemType === ItemType.Album) {
             album = item.title;
-            artist = item.artist;
+            artist = item.artists?.[0];
         } else {
             album = item.album;
-            artist = item.albumArtist || item.artists?.[0];
+            artist = item.albumArtists?.[0] || item.artists?.[0];
         }
         if (album && artist) {
             const albumInfo = await this.getAlbumInfo(album, artist, undefined, signal);
@@ -306,8 +306,8 @@ export class LastFmApi {
         params.artist = artist;
         if (album) {
             params.album = album;
-            if (item.albumArtist) {
-                params.albumArtist = item.albumArtist;
+            if (item.albumArtists) {
+                params.albumArtist = item.albumArtists.join(', ');
             }
         }
         if (item.duration) {
@@ -335,7 +335,7 @@ export class LastFmApi {
             title: track.name,
             artists: artist?.name ? [artist.name] : undefined,
             album: album?.title || undefined,
-            albumArtist: album?.artist || undefined,
+            albumArtists: album?.artist ? [album.artist] : undefined,
             artist_mbids: artist?.mbid ? [artist.mbid] : undefined,
             release_mbid: album?.mbid || undefined,
             recording_mbid: track.mbid || undefined,

@@ -138,9 +138,7 @@ function getSyntheticSort<T extends MediaObject>(item: T): number {
 function getText<T extends MediaObject>(item: T, field: Field): string {
     switch (field) {
         case 'Artist':
-            return String(
-                (item.itemType === ItemType.Album ? item.artist : (item as MediaItem).artists) || ''
-            );
+            return String((item as MediaItem).artists || '');
         case 'Title':
         case 'IconTitle':
         case 'Name':
@@ -151,7 +149,9 @@ function getText<T extends MediaObject>(item: T, field: Field): string {
         case 'AlbumAndYear':
             return (item as MediaItem).album || '';
         case 'AlbumArtist':
-            return (item as MediaItem).albumArtist || '';
+            return String(
+                (item as MediaItem).albumArtists || (item as MediaItem).albumArtist || ''
+            );
         case 'AlbumType':
             return (item as MediaAlbum).albumType || '';
         case 'FileName':
@@ -213,7 +213,7 @@ function getNumber<T extends MediaObject>(item: T, field: Field): number {
 
 function albumCompare(a: MediaAlbum, b: MediaAlbum): number {
     return (
-        titleCompare(a.artist, b.artist) ||
+        titleCompare(String(a.artists || ''), String(b.artists || '')) ||
         (a.year || 0) - (b.year || 0) ||
         localeCompare(a.title, b.title)
     );
@@ -221,7 +221,7 @@ function albumCompare(a: MediaAlbum, b: MediaAlbum): number {
 
 function trackCompare(a: MediaItem, b: MediaItem): number {
     return (
-        titleCompare(a.albumArtist, b.albumArtist) ||
+        titleCompare(String(a.albumArtists || ''), String(b.albumArtists || '')) ||
         localeCompare(a.album, b.album) ||
         (a.disc === b.disc ? (a.track || 0) - (b.track || 0) : (a.disc || 0) - (b.disc || 0))
     );

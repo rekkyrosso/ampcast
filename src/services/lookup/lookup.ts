@@ -249,7 +249,7 @@ class Lookup {
                         .replace(/['"]/g, ' ')
                         .replace(/\s\s+/g, ' ');
                 const matches = await service.lookup(
-                    searchString(item.albumArtist || removeFeaturedArtists(artist)),
+                    searchString(item.albumArtists?.join(', ') || removeFeaturedArtists(artist)),
                     searchString(removeFeaturedArtists(title)),
                     10,
                     5_000

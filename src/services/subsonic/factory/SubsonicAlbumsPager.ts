@@ -68,13 +68,13 @@ export default class SubsonicAlbumsPager extends SimpleMediaPager<MediaAlbum> {
             itemType: ItemType.Album,
             src: `${this.serviceId}:all-tracks:${artist.id}`,
             title: 'All Songs',
-            artist: artist.name,
+            artists: [artist.name],
             thumbnails: this.utils.createThumbnails(artist.coverArt),
             pager: new SimpleMediaPager(async () => sorter.sort(items, 'Year')),
             trackCount: undefined,
             synthetic: true,
             links: {
-                artist: `${this.serviceId}:artist:${artist.id}`,
+                artists: [this.utils.getArtistLink(artist)],
             },
         };
     }
@@ -84,13 +84,13 @@ export default class SubsonicAlbumsPager extends SimpleMediaPager<MediaAlbum> {
             itemType: ItemType.Album,
             src: `${this.serviceId}:other-tracks:${artist.id}`,
             title: 'Other Songs',
-            artist: artist.name,
+            artists: [artist.name],
             thumbnails: this.utils.createThumbnails(artist.coverArt),
             pager: new SimpleMediaPager(async () => sorter.sort(items, 'Year')),
             trackCount: undefined,
             synthetic: true,
             links: {
-                artist: `${this.serviceId}:artist:${artist.id}`,
+                artists: [this.utils.getArtistLink(artist)],
             },
         };
     }

@@ -57,7 +57,7 @@ export default class ListenBrainzLikesPager extends SequentialPager<MediaItem> {
             src: `listenbrainz:track:${nanoid()}`,
             title: data.track_name,
             artists: data.artist_name ? [data.artist_name] : undefined,
-            albumArtist: info?.release_artist_name,
+            albumArtists: info?.release_artist_name ? [info?.release_artist_name] : undefined,
             album: data.release_name,
             duration:
                 info?.duration || (info?.duration_ms ? Math.round(info.duration_ms / 1000) : 0),

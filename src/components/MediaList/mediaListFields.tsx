@@ -103,40 +103,30 @@ const Copyright: RenderField<MediaAlbum | MediaItem> = (item) => <Text value={it
 const Position: RenderField = (item) => <Text value={item.position || '-'} />;
 
 const Artist: RenderField<MediaAlbum | MediaItem> = (item) => {
-    if (item.itemType === ItemType.Album) {
-        return item.links?.artist ? (
-            <InternalLink className="text" path={srcToPath(item.links.artist)}>
-                {item.artist}
-            </InternalLink>
-        ) : (
-            <Text value={item.artist} />
-        );
-    } else {
-        return item.links?.artists ? (
-            <>
-                {item.artists
-                    ?.map((artist, index) => {
-                        const link = item.links!.artists![index];
-                        return link ? (
-                            <InternalLink className="text" path={srcToPath(link)}>
-                                {artist}
-                            </InternalLink>
-                        ) : (
-                            <Text value={artist} />
-                        );
-                    })
-                    // This is basically `Array.join(',')` in React.
-                    .reduce(
-                        (list: React.JSX.Element | null, item: React.JSX.Element | null) =>
-                            // prettier-ignore
-                            list ? (<>{list}, {item}</>) : item,
-                        null
-                    )}
-            </>
-        ) : (
-            <Text value={item.artists?.join(', ')} />
-        );
-    }
+    return item.links?.artists ? (
+        <>
+            {item.artists
+                ?.map((artist, index) => {
+                    const link = item.links!.artists![index];
+                    return link ? (
+                        <InternalLink className="text" path={srcToPath(link)}>
+                            {artist}
+                        </InternalLink>
+                    ) : (
+                        <Text value={artist} />
+                    );
+                })
+                // This is basically `Array.join(',')` in React.
+                .reduce(
+                    (list: React.JSX.Element | null, item: React.JSX.Element | null) =>
+                        // prettier-ignore
+                        list ? (<>{list}, {item}</>) : item,
+                    null
+                )}
+        </>
+    ) : (
+        <Text value={item.artists?.join(', ')} />
+    );
 };
 
 const Album: RenderField<MediaItem> = (item) => {
@@ -150,12 +140,29 @@ const Album: RenderField<MediaItem> = (item) => {
 };
 
 const AlbumArtist: RenderField<MediaItem> = (item) => {
-    return item.links?.albumArtist ? (
-        <InternalLink className="text" path={srcToPath(item.links.albumArtist)}>
-            {item.albumArtist}
-        </InternalLink>
+    return item.links?.albumArtists ? (
+        <>
+            {item.albumArtists
+                ?.map((artist, index) => {
+                    const link = item.links!.albumArtists![index];
+                    return link ? (
+                        <InternalLink className="text" path={srcToPath(link)}>
+                            {artist}
+                        </InternalLink>
+                    ) : (
+                        <Text value={artist} />
+                    );
+                })
+                // This is basically `Array.join(',')` in React.
+                .reduce(
+                    (list: React.JSX.Element | null, item: React.JSX.Element | null) =>
+                        // prettier-ignore
+                        list ? (<>{list}, {item}</>) : item,
+                    null
+                )}
+        </>
     ) : (
-        <Text value={item.albumArtist} />
+        <Text value={item.albumArtists?.join(', ') || item.albumArtist} />
     );
 };
 

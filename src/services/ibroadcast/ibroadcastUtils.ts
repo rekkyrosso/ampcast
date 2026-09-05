@@ -57,7 +57,7 @@ function createMediaArtist(
         genres: getGenres('artists', artist, library, true),
         thumbnails: createThumbnails(artist[map.artwork_id]),
         links: {
-            self: true,
+            self: artist[map.name] !== 'Various Artists',
         },
     };
     mediaArtist.pager = createArtistAlbumsPager(mediaArtist as MediaArtist, albumSort);
@@ -70,6 +70,7 @@ export function createArtistAlbumsPager(
 ): Pager<MediaAlbum> {
     const id = getIdFromSrc(artist);
     const artistSrc = artist.src;
+    const artistName = artist.title;
     return new SimpleMediaPager(async () => {
         const library = await ibroadcastLibrary.load();
         const artist = library.artists[id];
@@ -105,6 +106,9 @@ export function createArtistAlbumsPager(
             );
         }
         const albums = albumIds.map((id) => createMediaAlbum(id, library));
+        if (artistName === 'Various Artists') {
+            return albums;
+        }
         const hasAlbums = albums.length > 0;
         if (hasAlbums) {
             const otherTrackIds = [...allTrackIds].filter((id) => !albumTrackIds.has(id));
@@ -113,7 +117,7 @@ export function createArtistAlbumsPager(
                     itemType: ItemType.Album,
                     src: `${serviceId}:other-tracks:${id}`,
                     title: 'Other Tracks',
-                    artist: artist[artistMap.name],
+                    artists: [artistName],
                     thumbnails: createThumbnails(artist[artistMap.artwork_id]),
                     pager: new SimpleMediaPager(async () => {
                         const tracks = otherTrackIds.map((id) => createMediaItem(id, library));
@@ -122,7 +126,7 @@ export function createArtistAlbumsPager(
                     trackCount: otherTrackIds.length,
                     synthetic: true,
                     links: {
-                        artist: artistSrc,
+                        artists: [artistSrc],
                     },
                 };
                 albums.push(otherTracksAlbum);
@@ -132,7 +136,7 @@ export function createArtistAlbumsPager(
             itemType: ItemType.Album,
             src: `${serviceId}:${hasAlbums ? 'all' : 'other'}-tracks:${id}`,
             title: hasAlbums ? 'All Tracks' : 'Tracks',
-            artist: artist[artistMap.name],
+            artists: [artistName],
             thumbnails: createThumbnails(artist[artistMap.artwork_id]),
             pager: new SimpleMediaPager(async () => {
                 const tracks = [...allTrackIds].map((id) => createMediaItem(id, library));
@@ -141,7 +145,7 @@ export function createArtistAlbumsPager(
             trackCount: allTrackIds.size,
             synthetic: true,
             links: {
-                artist: artistSrc,
+                artists: [artistSrc],
             },
         };
         return albums.concat(allTracksAlbum);
@@ -165,7 +169,8 @@ function createMediaAlbum(id: number, library: iBroadcast.Library): MediaAlbum {
         title: album[map.name],
         thumbnails: createThumbnails(firstTrack?.[tracks.map.artwork_id]),
         trackCount: trackIds.length,
-        artist: artistId === 0 ? 'Various Artists' : artist?.[artists.map.name],
+        artists:
+            artistId === 0 ? ['Various Artists'] : artist ? [artist[artists.map.name]] : undefined,
         year: album[map.year],
         rating: album[map.rating],
         genres: getGenres('albums', album, library, true),
@@ -175,7 +180,7 @@ function createMediaAlbum(id: number, library: iBroadcast.Library): MediaAlbum {
         }),
         links: {
             self: true,
-            artist: artistId ? `${serviceId}:artist:${artistId}` : undefined,
+            artists: artistId ? [`${serviceId}:artist:${artistId}`] : undefined,
         },
     };
 }
@@ -261,7 +266,12 @@ export function createMediaItem(
         thumbnails: createThumbnails(track[map.artwork_id]),
         artists: artist ? [artist[artists.map.name]] : undefined,
         album: album?.[albums.map.name],
-        albumArtist: albumArtistId === 0 ? 'Various Artists' : albumArtist?.[artists.map.name],
+        albumArtists:
+            albumArtistId === 0
+                ? ['Various Artists']
+                : albumArtist
+                  ? [albumArtist[artists.map.name]]
+                  : undefined,
         track: track[map.track],
         disc: album?.[albums.map.disc],
         rating: track[map.rating],
@@ -271,8 +281,8 @@ export function createMediaItem(
         links: {
             self: true,
             album: album ? `${serviceId}:album:${albumId}` : undefined,
-            albumArtist:
-                albumArtist && albumArtistId ? `${serviceId}:artist:${albumArtistId}` : undefined,
+            albumArtists:
+                albumArtist && albumArtistId ? [`${serviceId}:artist:${albumArtistId}`] : undefined,
             artists: artist ? [`${serviceId}:artist:${artistId}`] : undefined,
         },
     };

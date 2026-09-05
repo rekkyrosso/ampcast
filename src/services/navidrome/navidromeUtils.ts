@@ -56,6 +56,14 @@ export function createArtistAlbumsPager(
     {sortBy, sortOrder} = navidromeArtistAlbumsSort.defaultSort
 ): Pager<MediaAlbum> {
     const id = getMediaObjectId(artist);
+    const albumsPager = new NavidromeIndexedPager<MediaAlbum>(ItemType.Album, 'album', {
+        album_artist_id: id,
+        _sort: navidromeAlbumsSortMap[sortBy] || sortBy,
+        _order: sortOrder === -1 ? 'DESC' : 'ASC',
+    });
+    if (artist.title === 'Various Artists') {
+        return albumsPager;
+    }
     const topTracks = createArtistTopTracks(artist);
     const topTracksPager = new SimplePager([topTracks]);
     const radios = createArtistRadios(artist);
@@ -63,11 +71,6 @@ export function createArtistAlbumsPager(
     const otherTracksPager = new SimplePager<MediaAlbum>(
         checkVersion(navidromeSettings.serverVersion, '0.56.0') ? [allTracks, radios] : [radios]
     );
-    const albumsPager = new NavidromeIndexedPager<MediaAlbum>(ItemType.Album, 'album', {
-        album_artist_id: id,
-        _sort: navidromeAlbumsSortMap[sortBy] || sortBy,
-        _order: sortOrder === -1 ? 'DESC' : 'ASC',
-    });
     return new WrappedPager(topTracksPager, albumsPager, otherTracksPager);
 }
 
@@ -80,19 +83,22 @@ export function createPlaylistItemsPager(
 
 function createMediaItem(song: Navidrome.Song): MediaItem {
     const id = song.mediaFileId || song.id;
+    const hasArtist = song.artist && song.artist !== '[Unknown Artist]';
+    const hasAlbumArtist = song.albumArtist && song.albumArtist !== '[Unknown Artist]';
+    const artists = song.participants?.artist;
+    const albumArtists = song.participants?.albumartist;
     return {
         itemType: ItemType.Media,
         mediaType: MediaType.Audio,
         playbackType: PlaybackType.Direct,
-        src: `${serviceId}:audio:${id}`,
+        src: `${serviceId}:song:${id}`,
         externalUrl: getExternalUrl(`album/${song.albumId}`),
         title: song.title,
         addedAt: parseDate(song.createdAt),
-        artists:
-            song.artist === '[Unknown Artist]'
-                ? undefined
-                : song.participants?.artist?.map((artist) => artist.name) || [song.artist],
-        albumArtist: song.albumArtist === '[Unknown Artist]' ? undefined : song.albumArtist,
+        artists: hasArtist ? artists?.map((artist) => artist.name) || [song.artist] : undefined,
+        albumArtists: hasAlbumArtist
+            ? albumArtists?.map((artist) => artist.name) || [song.albumArtist]
+            : undefined,
         album: song.album === '[Unknown Album]' ? undefined : song.album,
         duration: song.duration,
         track: song.trackNumber,
@@ -127,15 +133,17 @@ function createMediaItem(song: Navidrome.Song): MediaItem {
                 song.albumId && song.album !== '[Unknown Album]'
                     ? `${serviceId}:album:${song.albumId}`
                     : undefined,
-            albumArtist:
-                song.albumArtistId && song.albumArtist !== '[Unknown Album]'
-                    ? `${serviceId}:artist:${song.albumArtistId}`
+            albumArtists:
+                hasAlbumArtist && song.albumArtistId
+                    ? albumArtists?.map((artist) => getArtistLink(artist)) || [
+                          `${serviceId}:artist:${song.albumArtistId}`,
+                      ]
                     : undefined,
             artists:
-                song.artistId && song.artist !== '[Unknown Artist]'
-                    ? song.participants?.artist?.map(
-                          (artist) => `${serviceId}:artist:${artist.id}`
-                      ) || [`${serviceId}:artist:${song.artistId}`]
+                hasArtist && song.artistId
+                    ? artists?.map((artist) => getArtistLink(artist)) || [
+                          `${serviceId}:artist:${song.artistId}`,
+                      ]
                     : undefined,
         },
     };
@@ -161,13 +169,17 @@ function createRadioStation(radio: Navidrome.Radio): MediaItem {
 
 function createMediaAlbum(album: Navidrome.Album): MediaAlbum {
     const album_id = album.id;
+    const hasArtist = album.albumArtist && album.albumArtist !== '[Unknown Artist]';
+    const artists = album.participants?.albumartist;
     return {
         itemType: ItemType.Album,
         src: `${serviceId}:album:${album_id}`,
         externalUrl: getExternalUrl(`album/${album_id}`),
         title: album.name,
         addedAt: parseDate(album.createdAt),
-        artist: album.albumArtist,
+        artists: hasArtist
+            ? artists?.map((artist) => artist.name) || [album.albumArtist]
+            : undefined,
         inLibrary: !!album.starred,
         rating: album.rating || 0,
         year: album.minYear || album.maxYear || undefined,
@@ -181,7 +193,12 @@ function createMediaAlbum(album: Navidrome.Album): MediaAlbum {
         artist_mbids: album.mbzAlbumArtistId ? [album.mbzAlbumArtistId] : undefined,
         links: {
             self: true,
-            artist: album.albumArtistId ? `${serviceId}:artist:${album.albumArtistId}` : undefined,
+            artists:
+                hasArtist && album.albumArtistId
+                    ? artists?.map((artist) => getArtistLink(artist)) || [
+                          `${serviceId}:artist:${album.albumArtistId}`,
+                      ]
+                    : undefined,
         },
     };
 }
@@ -200,7 +217,7 @@ function createMediaArtist(artist: Navidrome.Artist, albumSort?: SortParams): Me
         thumbnails: createThumbnails(artist_id),
         artist_mbid: artist.mbzArtistId,
         links: {
-            self: true,
+            self: artist.name !== 'Various Artists',
         },
     };
     mediaArtist.pager = createArtistAlbumsPager(mediaArtist as MediaArtist, albumSort);
@@ -268,13 +285,13 @@ function createArtistAllTracks(artist: MediaArtist): MediaAlbum {
         itemType: ItemType.Album,
         src: `${serviceId}:all-tracks:${id}`,
         title: 'All Songs',
-        artist: artist.title,
+        artists: [artist.title],
         thumbnails: artist.thumbnails,
         pager: createArtistAllTracksPager(artist),
         trackCount: undefined,
         synthetic: true,
         links: {
-            artist: artist.src,
+            artists: artist.links?.self ? [artist.src] : undefined,
         },
     };
 }
@@ -313,13 +330,13 @@ function createArtistRadios(artist: MediaArtist): MediaAlbum {
         itemType: ItemType.Album,
         src: `${serviceId}:radios:${id}`,
         title: 'Radios',
-        artist: artist.title,
+        artists: [artist.title],
         thumbnails: artist.thumbnails,
         pager: new SimplePager([radio]),
         trackCount: undefined,
         synthetic: true,
         links: {
-            artist: artist.src,
+            artists: artist.links?.self ? [artist.src] : undefined,
         },
     };
 }
@@ -330,15 +347,20 @@ function createArtistTopTracks(artist: MediaArtist): MediaAlbum {
         itemType: ItemType.Album,
         src: `${serviceId}:top-tracks:${id}`,
         title: 'Top Songs',
-        artist: artist.title,
+        artists: [artist.title],
         thumbnails: artist.thumbnails,
         pager: subsonicService.createTopTracksPager(artist.title),
         trackCount: undefined,
         synthetic: true,
         links: {
-            artist: artist.src,
+            artists: artist.links?.self ? [artist.src] : undefined,
         },
     };
+}
+
+function getArtistLink(artist: Navidrome.Participant): string {
+    const id = artist.name === 'Various Artists' ? '' : artist.id;
+    return id ? `${serviceId}:artist:${id}` : '';
 }
 
 function getExternalUrl(id: string): string {

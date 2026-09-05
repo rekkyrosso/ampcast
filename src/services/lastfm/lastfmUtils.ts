@@ -66,9 +66,9 @@ export function createMediaItem(
             playedAt || isNowPlaying
                 ? `${serviceId}:listen:${isNowPlaying ? 'now-playing' : playedAt}`
                 : `${serviceId}:track:${nanoid()}`,
-        artists: track.artist ? [track.artist.name] : undefined,
+        artists: track.artist?.name ? [track.artist.name] : undefined,
         album: album?.name || track.album?.['#text'],
-        albumArtist: album?.artist.name,
+        albumArtists: album?.artist?.name ? [album.artist.name] : undefined,
         release_mbid: album?.mbid || track.album?.mbid,
         track_mbid: track.mbid,
         duration: Number(track.duration) || 0,
@@ -85,7 +85,7 @@ function createMediaAlbum(
     return {
         ...(createMediaObject(ItemType.Album, album, playCountName) as MediaAlbum),
         src: `${serviceId}:album:${nanoid()}`,
-        artist: album.artist.name,
+        artists: album.artist?.name ? [album.artist.name] : undefined,
         year: album.wiki?.published
             ? new Date(album.wiki.published).getFullYear() || undefined
             : undefined,
@@ -110,7 +110,7 @@ function createArtistTopTracks(artist: LastFm.Artist): MediaAlbum {
         title: 'Top Tracks',
         thumbnails: lastfmApi.createThumbnails(artist.image),
         src: `${serviceId}:top-tracks:${nanoid()}`,
-        artist: artist.name,
+        artists: [artist.name],
         pager: createTopTracksPager(artist),
         trackCount: undefined,
         synthetic: true,
@@ -145,7 +145,7 @@ function createArtistRadios(artist: LastFm.Artist): MediaAlbum {
         itemType: ItemType.Album,
         src: radiosSrc,
         title: 'Radios',
-        artist: artistName,
+        artists: [artistName],
         thumbnails,
         pager: new SimpleMediaPager(async () => {
             if (MusicCatalogRequiredError.canIgnore(radiosId)) {

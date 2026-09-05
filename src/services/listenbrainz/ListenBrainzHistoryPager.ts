@@ -89,7 +89,7 @@ export default class ListenBrainzHistoryPager extends SequentialPager<MediaItem>
             title: data.track_name,
             addedAt: item.inserted_at,
             artists: data.artist_name ? [data.artist_name] : undefined,
-            albumArtist: info?.release_artist_name,
+            albumArtists: info?.release_artist_name ? [info?.release_artist_name] : undefined,
             album: data.release_name,
             duration:
                 info?.duration || (info?.duration_ms ? Math.round(info.duration_ms / 1000) : 0),

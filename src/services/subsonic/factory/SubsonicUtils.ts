@@ -1,5 +1,6 @@
 import {nanoid} from 'nanoid';
 import {SetOptional, SetRequired, Writable} from 'type-fest';
+import AlbumType from 'types/AlbumType';
 import ItemType from 'types/ItemType';
 import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
@@ -63,19 +64,31 @@ export default class SubsonicUtils {
         }
     }
 
+    private releaseTypeMap: Record<string, AlbumType> = {
+        Compilation: AlbumType.Compilation,
+        EP: AlbumType.EP,
+        Live: AlbumType.LiveAlbum,
+        Single: AlbumType.Single,
+        Soundtrack: AlbumType.Soundtrack,
+    };
+
     createMediaAlbum(album: Subsonic.Album): MediaAlbum {
         return {
             itemType: ItemType.Album,
             src: `${this.serviceId}:album:${album.id}`,
             title: album.name,
             addedAt: this.parseDate(album.created),
-            artist: album.artist,
+            artists:
+                album.artists?.map((artist) => artist.name) ||
+                (album.artist ? [album.artist] : undefined),
             year: album.year || undefined,
             playCount: album.playCount,
             trackCount: album.songCount,
             inLibrary: !!album.starred,
             rating: album.userRating || 0,
-            genres: album.genre ? [album.genre] : undefined,
+            genres:
+                album.genres?.map((genre) => genre.name) ||
+                (album.genre ? [album.genre] : undefined),
             pager: this.createAlbumTracksPager(album),
             thumbnails: this.createThumbnails(album.coverArt),
             subsonic: {
@@ -83,9 +96,18 @@ export default class SubsonicUtils {
             },
             links: {
                 self: true,
-                artist: album.artistId ? `${this.serviceId}:artist:${album.artistId}` : undefined,
+                artists:
+                    album.artists?.map((artist) => this.getArtistLink(artist)) ||
+                    (album.artist && album.artist !== 'Various Artists' && album.artistId
+                        ? [`${this.serviceId}:artist:${album.artistId}`]
+                        : undefined),
             },
             // OpenSubsonic extensions
+            albumType:
+                this.releaseTypeMap[
+                    album.releaseTypes?.filter((type) => type !== 'Album')[0] || ''
+                ],
+            explicit: album.explicitStatus === 'explicit',
             release_mbid: typeof album.musicBrainzId === 'string' ? album.musicBrainzId : undefined,
         };
     }
@@ -100,7 +122,7 @@ export default class SubsonicUtils {
             inLibrary: !!artist.starred,
             rating: artist.userRating || 0,
             links: {
-                self: true,
+                self: artist.name !== 'Various Artists',
             },
             // OpenSubsonic extensions
             artist_mbid:
@@ -141,16 +163,17 @@ export default class SubsonicUtils {
         song: Subsonic.Song,
         position?: number
     ): SetRequired<MediaItem, 'fileName'> {
-        const [albumArtist] = song.albumArtists || [];
         const serviceId = this.serviceId;
         return {
             itemType: ItemType.Media,
             mediaType: MediaType.Audio,
             playbackType: PlaybackType.Direct,
-            src: `${serviceId}:audio:${song.id}`,
+            src: `${serviceId}:song:${song.id}`,
             fileName: this.getFileName(song.path || '') || '[unknown]',
             title: song.title,
-            artists: [song.artist],
+            artists:
+                song.artists?.map((artist) => artist.name) ||
+                (song.artist ? [song.artist] : undefined),
             album: song.album,
             duration: song.duration,
             track: song.track,
@@ -163,7 +186,8 @@ export default class SubsonicUtils {
             nanoId: position == null ? undefined : nanoid(),
             inLibrary: !!song.starred,
             rating: song.userRating || 0,
-            genres: song.genre ? [song.genre] : undefined,
+            genres:
+                song.genres?.map((genre) => genre.name) || (song.genre ? [song.genre] : undefined),
             thumbnails: this.createThumbnails(song.coverArt),
             bitRate: song.bitRate,
             bpm: song.bpm,
@@ -172,11 +196,16 @@ export default class SubsonicUtils {
             links: {
                 self: true,
                 album: song.albumId ? `${serviceId}:album:${song.albumId}` : undefined,
-                albumArtist: albumArtist ? `${serviceId}:artist:${albumArtist.id}` : undefined,
-                artists: song.artistId ? [`${serviceId}:artist:${song.artistId}`] : undefined,
+                albumArtists: song.albumArtists?.map((artist) => this.getArtistLink(artist)),
+                artists:
+                    song.artists?.map((artist) => this.getArtistLink(artist)) ||
+                    (song.artist && song.artistId
+                        ? [`${serviceId}:artist:${song.artistId}`]
+                        : undefined),
             },
             // OpenSubsonic extensions
-            albumArtist: albumArtist?.name || song.albumArtist,
+            albumArtists: song.albumArtists?.map((artist) => artist.name),
+            explicit: song.explicitStatus === 'explicit',
             isrc: song.isrc?.[0],
             recording_mbid:
                 typeof song.musicBrainzId === 'string'
@@ -232,16 +261,17 @@ export default class SubsonicUtils {
             thumbnails: this.createThumbnails(playlist.coverArt),
             isPinned: pinStore.isPinned(src),
             owned,
-            owner: {name: playlist.owner},
+            owner: playlist.owner ? {name: playlist.owner} : undefined,
             editable: owned,
             public: playlist.public,
-            items: owned
-                ? {
-                      deletable: true,
-                      droppable: true,
-                      moveable: true,
-                  }
-                : undefined,
+            items:
+                owned && !playlist.readonly
+                    ? {
+                          deletable: true,
+                          droppable: true,
+                          moveable: true,
+                      }
+                    : undefined,
             links: {
                 self: true,
             },
@@ -277,7 +307,7 @@ export default class SubsonicUtils {
         };
     }
 
-    createThumbnails(id: string): Thumbnail[] | undefined {
+    createThumbnails(id: string | undefined): Thumbnail[] | undefined {
         return id
             ? [
                   this.createThumbnail(id, 240),
@@ -286,6 +316,11 @@ export default class SubsonicUtils {
                   this.createThumbnail(id, 800),
               ]
             : undefined;
+    }
+
+    getArtistLink(artist: Subsonic.NamedArtist): string {
+        const id = artist.name === 'Various Artists' ? '' : artist.id;
+        return id ? `${this.serviceId}:artist:${id}` : '';
     }
 
     private createAlbumTracksPager(album: Subsonic.Album): Pager<MediaItem> {
@@ -307,6 +342,9 @@ export default class SubsonicUtils {
 
     private createArtistAlbumsPager(artist: Subsonic.Artist): Pager<MediaAlbum> {
         const albumsPager = new SubsonicAlbumsPager(this.service, artist);
+        if (artist.name === 'Various Artists') {
+            return albumsPager;
+        }
         const topTracks = this.createArtistTopTracks(artist);
         const topTracksPager = new SimplePager([topTracks]);
         const radios = this.createArtistRadios(artist);
@@ -334,13 +372,13 @@ export default class SubsonicUtils {
             itemType: ItemType.Album,
             src: `${this.serviceId}:radios:${artist.id}`,
             title: 'Radios',
-            artist: artist.name,
+            artists: [artist.name],
             thumbnails,
             pager: new SimplePager([radio]),
             trackCount: undefined,
             synthetic: true,
             links: {
-                artist: `${this.serviceId}:artist:${artist.id}`,
+                artists: [this.getArtistLink(artist)],
             },
         };
     }
@@ -350,13 +388,13 @@ export default class SubsonicUtils {
             itemType: ItemType.Album,
             src: `${this.serviceId}:top-tracks:${artist.id}`,
             title: 'Top Songs',
-            artist: artist.name,
+            artists: [artist.name],
             thumbnails: this.createThumbnails(artist.coverArt),
             pager: this.service.createTopTracksPager(artist.name),
             trackCount: undefined,
             synthetic: true,
             links: {
-                artist: `${this.serviceId}:artist:${artist.id}`,
+                artists: [this.getArtistLink(artist)],
             },
         };
     }

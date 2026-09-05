@@ -119,11 +119,11 @@ function compareArtist<T extends MediaItem>(match: MediaItem, item: T, strict: b
     if (compareString(removeFeaturedArtists(artist), removeFeaturedArtists(matchedArtist))) {
         return true;
     }
-    const albumArtist = item.albumArtist;
+    const albumArtist = item.albumArtists?.[0];
     if (albumArtist && compareString(normalize(albumArtist), normalize(matchedArtist))) {
         return true;
     }
-    if (compareString(removeFeaturedArtists(artist), match.albumArtist)) {
+    if (compareString(removeFeaturedArtists(artist), match.albumArtists?.[0])) {
         return true;
     }
     if (compareMultiArtist(match, item)) {

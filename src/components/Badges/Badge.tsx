@@ -113,15 +113,16 @@ export function LastFmBadge({item}: ExternalLinkBadgeProps) {
     switch (item.itemType) {
         case ItemType.Media: {
             const artist = encodeURIComponent(item.artists?.[0] || '');
-            if (artist && item.title) {
+            if (artist && title) {
                 path = `${artist}/${encodeURIComponent(item.album || '') || '_'}/${title}`;
             }
             break;
         }
 
         case ItemType.Album: {
-            if (item.artist && title) {
-                path = `${encodeURIComponent(item.artist)}/${title}`;
+            const artist = encodeURIComponent(item.artists?.[0] || '');
+            if (artist && title) {
+                path = `${encodeURIComponent(artist)}/${title}`;
             }
             break;
         }

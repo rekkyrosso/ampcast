@@ -36,7 +36,7 @@ export default class ListenBrainzNewAlbumsPager extends SimpleMediaPager<MediaAl
             src: `listenbrainz:album:${nanoid()}`,
             externalUrl: mbid ? `${musicBrainzHost}/release/${mbid}` : undefined,
             title: album.release_name,
-            artist: album.artist_credit_name,
+            artists: album.artist_credit_name ? [album.artist_credit_name] : undefined,
             release_mbid: mbid,
             artist_mbids: album.artist_mbids,
             caa_mbid: album?.caa_release_mbid,

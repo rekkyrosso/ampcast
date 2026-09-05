@@ -90,7 +90,7 @@ function AlbumInfo({item: album}: MediaInfoProps<MediaAlbum>) {
             <div className="media-info-main">
                 <Thumbnail item={album} extendedSearch />
                 <Title title={album.title} />
-                <Artist artist={album.artist} />
+                <Artist artist={album.artists?.join(', ')} />
                 <Year year={album.year} />
                 <Genre genres={album.genres} />
                 <div className="media-info-icon-bar">
@@ -183,7 +183,7 @@ function TrackCount<T extends MediaAlbum | MediaPlaylist>({trackCount}: Pick<T, 
     return isNaN(value) ? null : <p className="track-count">{value.toLocaleString()}</p>;
 }
 
-function Artist<T extends MediaAlbum>({artist}: Pick<T, 'artist'>) {
+function Artist({artist}: {artist?: string}) {
     return artist ? (
         <h4 className="artist">
             <span className="text-label">By:</span> {artist}

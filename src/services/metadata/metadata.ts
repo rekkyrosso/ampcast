@@ -104,10 +104,10 @@ export function bestOf<T extends MediaObject>(a: T, b: Partial<T> = {}): T {
         // Don't set album details if albums don't match.
         if (a.album !== (b as any).album) {
             if (a.album) {
-                result.albumArtist = a.albumArtist;
+                result.albumArtists = a.albumArtists;
                 result.track = a.track;
             } else {
-                result.albumArtist = (b as any).albumArtist;
+                result.albumArtists = (b as any).albumArtists;
                 result.track = (b as any).track;
             }
         }
