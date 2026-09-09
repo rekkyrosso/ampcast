@@ -129,7 +129,7 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
         }
     }
 
-    disconnect(): void {
+    disconnect(disconnectChildren = true): void {
         if (!this.disconnected) {
             this.#disconnected = true;
             if (this.#subscriptions) {
@@ -141,7 +141,9 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
                     }
                 }
             }
-            this.#items$?.value.forEach((item) => (item as any)?.pager?.disconnect());
+            if (disconnectChildren) {
+                this.#items$?.value.forEach((item) => (item as any)?.pager?.disconnect());
+            }
             this.#items$?.complete();
             this.#additions$?.complete();
             this.#size$?.complete();

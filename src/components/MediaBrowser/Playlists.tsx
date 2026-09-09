@@ -1,4 +1,5 @@
 import React, {useState} from 'react';
+import MediaObjectBrowser from 'components/MediaObjectBrowser';
 import MediaPlaylist from 'types/MediaPlaylist';
 import {playlistItemsLayout} from 'components/MediaList/layouts';
 import PlaylistList from 'components/MediaList/PlaylistList';
@@ -35,7 +36,11 @@ export default function Playlists({source, ...props}: PagedItemsProps<MediaPlayl
 
     return (
         <div className="panel">
-            {source.secondaryItems?.layout?.view === 'none' ? (
+            {source.singular ? (
+                <MediaObjectBrowser item={selectedPlaylist} itemList={playlistList}>
+                    {playlistItems}
+                </MediaObjectBrowser>
+            ) : source.secondaryItems?.layout?.view === 'none' ? (
                 playlistList
             ) : (
                 <Splitter id="playlists-items-layout" arrange="rows">

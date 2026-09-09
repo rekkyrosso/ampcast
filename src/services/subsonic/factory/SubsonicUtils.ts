@@ -318,7 +318,7 @@ export default class SubsonicUtils {
             : undefined;
     }
 
-    getArtistLink(artist: Subsonic.NamedArtist): string {
+    getArtistLink(artist: Subsonic.Artist): string {
         const id = artist.name === 'Various Artists' ? '' : artist.id;
         return id ? `${this.serviceId}:artist:${id}` : '';
     }

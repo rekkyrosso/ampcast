@@ -1,5 +1,5 @@
 import type React from 'react';
-import {ConditionalKeys, Except} from 'type-fest';
+import {ConditionalKeys} from 'type-fest';
 import type {IconName} from 'components/Icon';
 import ChildOf from './ChildOf';
 import FilterType from './FilterType';
@@ -78,13 +78,6 @@ export type MediaMultiSource<T extends MediaObject = MediaObject> = Pick<
     readonly sources: readonly MediaSource<T>[];
 };
 
-export type MediaObjectSource<T extends MediaObject = MediaObject> = Except<
-    MediaSource<T>,
-    'itemType'
-> & {
-    readonly itemType?: never;
-};
-
 export type AnyMediaSource =
     | MediaSource<MediaAlbum>
     | MediaSource<MediaArtist>
@@ -92,5 +85,4 @@ export type AnyMediaSource =
     | MediaSource<MediaFolderItem>
     | MediaSource<MediaPlaylist>
     | MediaSource<Pinnable>
-    | MediaMultiSource
-    | MediaObjectSource;
+    | MediaMultiSource;

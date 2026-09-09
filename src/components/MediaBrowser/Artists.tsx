@@ -2,6 +2,7 @@ import React, {useEffect, useState} from 'react';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaItemList from 'components/MediaList/MediaItemList';
+import MediaObjectBrowser from 'components/MediaObjectBrowser';
 import {albumTracksLayout} from 'components/MediaList/layouts';
 import AlbumList from 'components/MediaList/AlbumList';
 import ArtistList from 'components/MediaList/ArtistList';
@@ -61,7 +62,14 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
 
     return (
         <div className="panel">
-            {source.secondaryItems?.layout?.view === 'none' ? (
+            {source.singular ? (
+                <MediaObjectBrowser item={selectedArtist} itemList={artistList}>
+                    <Splitter id="artist-albums-tracks-layout" arrange="rows">
+                        {albumList}
+                        {trackList}
+                    </Splitter>
+                </MediaObjectBrowser>
+            ) : source.secondaryItems?.layout?.view === 'none' ? (
                 artistList
             ) : source.tertiaryItems?.layout?.view === 'none' ? (
                 <Splitter id="artists-albums-layout" arrange="rows">

@@ -6,12 +6,13 @@ import './TabList.scss';
 export interface TabItem {
     readonly tab: React.ReactNode;
     readonly panel: React.ReactNode;
+    readonly prefix?: string;
 }
 
 export interface TabListProps {
-    className?: string;
     label: string;
     items: TabItem[];
+    className?: string;
 }
 
 export default function TabList({label, items, className = ''}: TabListProps) {

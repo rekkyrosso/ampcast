@@ -3,6 +3,7 @@ import MediaAlbum from 'types/MediaAlbum';
 import {albumTracksLayout} from 'components/MediaList/layouts';
 import AlbumList from 'components/MediaList/AlbumList';
 import MediaItemList from 'components/MediaList/MediaItemList';
+import MediaObjectBrowser from 'components/MediaObjectBrowser';
 import Splitter from 'components/Splitter';
 import {PagedItemsProps} from './PagedItems';
 
@@ -35,7 +36,11 @@ export default function Albums({source, ...props}: PagedItemsProps<MediaAlbum>) 
 
     return (
         <div className="panel">
-            {source.secondaryItems?.layout?.view === 'none' ? (
+            {source.singular ? (
+                <MediaObjectBrowser item={selectedAlbum} itemList={albumList}>
+                    {trackList}
+                </MediaObjectBrowser>
+            ) : source.secondaryItems?.layout?.view === 'none' ? (
                 albumList
             ) : (
                 <Splitter id="albums-tracks-layout" arrange="rows">

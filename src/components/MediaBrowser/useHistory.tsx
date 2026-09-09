@@ -1,9 +1,8 @@
 import React, {useCallback} from 'react';
 import {BehaviorSubject, fromEvent, map} from 'rxjs';
 import {nanoid} from 'nanoid';
-import MediaObject from 'types/MediaObject';
-import MediaSource, {AnyMediaSource, MediaObjectSource} from 'types/MediaSource';
-import Pager from 'types/Pager';
+import ItemType from 'types/ItemType';
+import MediaSource, {AnyMediaSource} from 'types/MediaSource';
 import {Pinnable} from 'types/Pin';
 import {Logger} from 'utils';
 import {WEB_LINKS} from 'services/features';
@@ -191,7 +190,7 @@ function getMediaSource(path: string): AnyMediaSource | undefined {
         : service?.sources?.find((source) => source.id === path);
 }
 
-function createMediaObjectSource(path: string): MediaObjectSource | undefined {
+function createMediaObjectSource(path: string): MediaSource<any> | undefined {
     const service = getServiceFromPath(path);
     if (service?.getMediaObject) {
         const src = path.replaceAll('/', ':');
@@ -199,8 +198,10 @@ function createMediaObjectSource(path: string): MediaObjectSource | undefined {
             id: src,
             title: '',
             icon: service.id,
+            itemType: getItemTypeFromPath(path),
             singular: true,
-            search(): Pager<MediaObject> {
+            primaryItems: {layout: {view: 'card compact'}},
+            search() {
                 return new SimpleMediaPager(async () => {
                     const object = await service.getMediaObject!(src);
                     return [object];
@@ -215,4 +216,18 @@ function createPin(path: string): MediaSource<Pinnable> | undefined {
     const src = path.slice(5).replaceAll('/', ':');
     const pin = pinStore.getPin(src);
     return pin ? service?.createSourceFromPin?.(pin) : undefined;
+}
+
+function getItemTypeFromPath(path: string): ItemType {
+    const [a, b, c] = path.split('/');
+    const type = a === 'pins' ? c : b;
+    if (type.includes('artist')) {
+        return ItemType.Artist;
+    } else if (type.includes('playlist')) {
+        return ItemType.Playlist;
+    } else if (type.includes('album')) {
+        return ItemType.Album;
+    } else {
+        return ItemType.Media;
+    }
 }

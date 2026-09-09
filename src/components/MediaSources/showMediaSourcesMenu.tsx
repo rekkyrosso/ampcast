@@ -8,7 +8,6 @@ import PopupMenu, {
     PopupMenuSeparator,
     showPopupMenu,
 } from 'components/PopupMenu';
-import {showMediaServiceSettingsDialog} from 'components/Settings/MediaLibrarySettings/MediaServiceSettingsDialog';
 import {showMediaServicePinsDialog} from 'components/Settings/MediaLibrarySettings/MediaServicePinsDialog';
 import {showEditSourcesDialog} from './EditSourcesDialog';
 
@@ -47,12 +46,6 @@ function MediaSourcesMenu({service, ...props}: PopupMenuProps & MediaSourcesMenu
         }
     }, [service]);
 
-    const handleSettingsClick = useCallback(() => {
-        if (service) {
-            showMediaServiceSettingsDialog(service);
-        }
-    }, [service]);
-
     const handleEditSourcesClick = useCallback(() => {
         if (service) {
             showEditSourcesDialog(service);
@@ -67,7 +60,6 @@ function MediaSourcesMenu({service, ...props}: PopupMenuProps & MediaSourcesMenu
 
     return (
         <PopupMenu {...props}>
-            <PopupMenuItem label={`${service.name} Settings…`} onClick={handleSettingsClick} />
             {!service.noAuth && service.isConnected() ? (
                 <PopupMenuItem
                     label={`Disconnect from ${service.name}…`}

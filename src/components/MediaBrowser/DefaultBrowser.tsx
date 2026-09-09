@@ -19,7 +19,7 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
     const [query, setQuery] = useState('');
     const pager = useSearch(selectedSource, query);
     const searchable = !!source.searchable;
-    const showPagerHeader = !searchable && !source.isPin;
+    const showPagerHeader = !searchable && !source.isPin && !source.singular;
     const isSearch = !!query;
 
     useEffect(() => {
@@ -71,7 +71,7 @@ export default function DefaultBrowser({service, source}: MediaBrowserProps) {
                     withButtons={searchable}
                     isSearch={isSearch}
                 />
-            ) : showPagerHeader || selectedSource.isPin ? null : (
+            ) : showPagerHeader || source.isPin || source.singular ? null : (
                 <MenuBar source={selectedSource} isSearch={isSearch} />
             )}
             <PagedItems

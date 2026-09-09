@@ -24,7 +24,7 @@ export default function fetchFirstPage<T>(
         );
         race(items$, error$).subscribe((result) => {
             if (!keepAlive) {
-                pager.disconnect();
+                pager.disconnect(false);
             }
             if (result instanceof Error) {
                 reject(result);

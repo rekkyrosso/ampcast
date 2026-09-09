@@ -74,6 +74,7 @@ export default function MediaList<T extends MediaObject>({
     statusBarIcons,
     loadingText,
     emptyMessage,
+    disabled,
     onContextMenu,
     onDoubleClick,
     onEnter,
@@ -87,6 +88,7 @@ export default function MediaList<T extends MediaObject>({
 }: MediaListProps<T>) {
     const uniqueId = useId();
     const [inactive, setInactive] = useState(false);
+    const singular = level === 1 && (source?.isPin || source?.singular);
     const [, forceUpdate] = useReducer((i) => i + 1, 0);
     const id = source ? `${source.sourceId || source.id}/${level}` : uniqueId;
     const containerRef = useRef<HTMLDivElement | null>(null);
@@ -302,8 +304,9 @@ export default function MediaList<T extends MediaObject>({
                     emptyMessage={
                         loaded && empty ? emptyMessage || sourceItems?.emptyMessage : undefined
                     }
+                    disabled={singular ? true : disabled}
                     hidden={inactive}
-                    draggable={draggable}
+                    draggable={singular ? false : draggable}
                     reorderable={reorderable}
                     sortable={sortable}
                     sortParams={sortParams}
@@ -320,7 +323,7 @@ export default function MediaList<T extends MediaObject>({
                     onSelect={handleSelect}
                 />
             )}
-            {statusBar && !inactive ? (
+            {statusBar && !singular && !inactive ? (
                 <MediaListStatusBar
                     items={items}
                     error={error}

@@ -43,7 +43,7 @@ declare namespace Subsonic {
         readonly year?: number;
         readonly song?: Song[];
         // OpenSubsonic extensions
-        readonly artists?: readonly NamedArtist[];
+        readonly artists?: readonly Artist[];
         readonly displayArtist?: string;
         readonly explicitStatus?: 'explicit' | 'clean' | '';
         readonly genres?: readonly ItemGenre[];
@@ -90,8 +90,8 @@ declare namespace Subsonic {
         readonly type: 'music';
         readonly year?: number;
         // OpenSubsonic extensions.
-        readonly albumArtists?: readonly NamedArtist[];
-        readonly artists?: readonly NamedArtist[];
+        readonly albumArtists?: readonly Artist[];
+        readonly artists?: readonly Artist[];
         readonly bitDepth?: number;
         readonly bpm?: number;
         readonly comment?: string;
@@ -116,11 +116,6 @@ declare namespace Subsonic {
     }
 
     interface ItemGenre {
-        readonly name: string;
-    }
-
-    interface NamedArtist {
-        readonly id: string;
         readonly name: string;
     }
 

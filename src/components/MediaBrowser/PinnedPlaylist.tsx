@@ -88,8 +88,6 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
                     defaultLayout={defaultLayout}
                     source={sourceWithIconTitle}
                     level={1}
-                    statusBar={false}
-                    disabled
                     onContextMenu={handleContextMenu}
                     onError={setError}
                     onSelect={setPinnedPlaylist}
