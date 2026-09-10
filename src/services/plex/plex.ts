@@ -9,12 +9,10 @@ import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
-import MediaSource from 'types/MediaSource';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
-import Pin, {Pinnable} from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
 import {getMediaObjectId} from 'utils';
@@ -32,15 +30,14 @@ import {
     reconnect,
 } from './plexAuth';
 import plexApi from './plexApi';
-import plexMediaType from './plexMediaType';
 import PlexPager from './PlexPager';
 import PlexRadioPager from './PlexRadioPager';
 import {scrobble} from './plexScrobbler';
 import plexSettings from './plexSettings';
 import plexSources, {
     createSearchPager,
+    createSourceFromPin,
     plexEditablePlaylists,
-    plexPlaylistItems,
     plexSearch,
 } from './plexSources';
 import ServerSettings from './components/PlexServerSettings';
@@ -170,31 +167,6 @@ function createRadioPager(item: MediaItem): Pager<MediaItem> {
 async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {
     await plexApi.editPlaylist(playlist);
     return playlist;
-}
-
-function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
-    if (pin.itemType !== ItemType.Playlist) {
-        throw Error('Unsupported Pin type.');
-    }
-    return {
-        title: pin.title,
-        itemType: pin.itemType,
-        id: pin.src,
-        sourceId: `${serviceId}/pinned-playlist`,
-        icon: 'pin',
-        isPin: true,
-        secondaryItems: plexPlaylistItems,
-
-        search(): Pager<T> {
-            return new PlexPager({
-                path: `/playlists/${getMediaObjectId(pin)}`,
-                params: {
-                    type: plexMediaType.Playlist,
-                    playlistType: 'audio',
-                },
-            });
-        },
-    } as MediaSource<T>;
 }
 
 async function getFilters(

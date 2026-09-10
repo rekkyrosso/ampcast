@@ -9,11 +9,9 @@ import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
-import MediaSource from 'types/MediaSource';
 import Pager, {PagerConfig} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
-import Pin, {Pinnable} from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
 import {getTextFromHtml, Logger} from 'utils';
@@ -35,16 +33,14 @@ import {
 } from './navidromeAuth';
 import NavidromeIndexedPager from './NavidromeIndexedPager';
 import navidromeSettings from './navidromeSettings';
-import {navidromePlaylistItemsSort} from './navidromeSorting';
 import navidromeSources, {
-    navidromePlaylistItems,
-    navidromePlaylistLayout,
+    createSourceFromPin,
     navidromePlaylists,
     navidromeSearch,
 } from './navidromeSources';
 import navidromeApi from './navidromeApi';
 import subsonicApi, {subsonicService} from './subsonicApi';
-import {createMediaObject, createPlaylistItemsPager} from './navidromeUtils';
+import {createMediaObject} from './navidromeUtils';
 
 const serviceId: MediaServiceId = 'navidrome';
 
@@ -171,38 +167,6 @@ async function createPlaylist<T extends MediaItem>(
         pager: new SimplePager(),
         trackCount: items.length,
     };
-}
-
-function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
-    if (pin.itemType !== ItemType.Playlist) {
-        throw Error('Unsupported Pin type.');
-    }
-    return {
-        title: pin.title,
-        itemType: pin.itemType,
-        id: pin.src,
-        sourceId: `${serviceId}/pinned-playlist`,
-        icon: 'pin',
-        isPin: true,
-        primaryItems: {
-            layout: navidromePlaylistLayout,
-        },
-        secondaryItems: navidromePlaylistItems,
-
-        search(): Pager<MediaPlaylist> {
-            const id = getIdFromSrc(pin);
-            return new NavidromeIndexedPager(
-                ItemType.Playlist,
-                `playlist/${id}`,
-                undefined,
-                {
-                    childSort: navidromePlaylistItemsSort.defaultSort,
-                    childSortId: `${serviceId}/pinned-playlist/2`,
-                },
-                createPlaylistItemsPager
-            );
-        },
-    } as MediaSource<T>;
 }
 
 async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {

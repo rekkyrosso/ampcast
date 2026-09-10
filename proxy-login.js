@@ -21,13 +21,22 @@ async function handleProxyLogin(req, res) {
     try {
         switch (server) {
             case 'emby':
-            case 'jellyfin':
                 await simpleLogin(
                     req,
                     res,
                     url,
                     {Username: user, Pw: password},
                     {'X-Emby-Authorization': req.headers['x-emby-authorization']}
+                );
+                break;
+
+            case 'jellyfin':
+                await simpleLogin(
+                    req,
+                    res,
+                    url,
+                    {Username: user, Pw: password},
+                    {'Authorization': req.headers['authorization']}
                 );
                 break;
 

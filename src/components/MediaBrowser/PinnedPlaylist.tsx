@@ -10,7 +10,6 @@ import {defaultMediaItemCard, playlistItemsLayout} from 'components/MediaList/la
 import PlaylistList from 'components/MediaList/PlaylistList';
 import PlaylistItemsList from 'components/MediaList/PlaylistItemsList';
 import {PagedItemsProps} from './PagedItems';
-import usePinnedSource from './usePinnedSource';
 import usePinnedPlaylistActions from './usePinnedPlaylistActions';
 import showPinnedPlaylistMenu from './showPinnedPlaylistMenu';
 import './PinnedPlaylist.scss';
@@ -44,7 +43,6 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
     const [error, setError] = useState<unknown>();
     const [[pinnedPlaylist], setPinnedPlaylist] = useState<readonly MediaPlaylist[]>([]);
     const PinnedPlaylistActions = usePinnedPlaylistActions(source);
-    const sourceWithIconTitle = usePinnedSource(source);
     const defaultItemsLayout = pinnedPlaylist?.isChart
         ? chartPlaylistItemsLayout
         : defaultPlaylistItemsLayout;
@@ -86,7 +84,7 @@ export default function PinnedPlaylist({source, ...props}: PagedItemsProps<Media
                     {...props}
                     title={source.title}
                     defaultLayout={defaultLayout}
-                    source={sourceWithIconTitle}
+                    source={source}
                     level={1}
                     onContextMenu={handleContextMenu}
                     onError={setError}

@@ -8,9 +8,6 @@ import MediaFilter from 'types/MediaFilter';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
-import MediaSource from 'types/MediaSource';
-import Pager from 'types/Pager';
-import Pin, {Pinnable} from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
@@ -35,8 +32,8 @@ import SpotifyPager, {SpotifyPage} from './SpotifyPager';
 import spotifySettings from './spotifySettings';
 import spotifySources, {
     createSearchPager,
+    createSourceFromPin,
     spotifyEditablePlaylists,
-    spotifyPlaylistItems,
     spotifySearch,
 } from './spotifySources';
 import {createMediaItemFromTrack} from './spotifyUtils';
@@ -177,30 +174,6 @@ async function removePlaylistItems(
         const uris = items.map((item) => item.src);
         await spotifyApi.removePlaylistItems(playlistId, uris);
     }
-}
-
-function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
-    if (pin.itemType !== ItemType.Playlist) {
-        throw Error('Unsupported Pin type.');
-    }
-    return {
-        title: pin.title,
-        itemType: pin.itemType,
-        id: pin.src,
-        sourceId: `${serviceId}/pinned-playlist`,
-        icon: 'pin',
-        isPin: true,
-        secondaryItems: spotifyPlaylistItems,
-
-        search(): Pager<T> {
-            const id = getMediaObjectId(pin);
-            const fields = 'id,type,external_urls,name,description,images,owner,uri,tracks.total';
-            return new SpotifyPager(async (): Promise<SpotifyPage> => {
-                const playlist = await spotifyApi.getPlaylist(id, fields);
-                return {items: [{...playlist, isChart: pin.isChart}], total: 1};
-            });
-        },
-    } as MediaSource<T>;
 }
 
 async function getFilters(filterType: FilterType): Promise<readonly MediaFilter[]> {

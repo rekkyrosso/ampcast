@@ -11,7 +11,8 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
 import MediaSource, {AnyMediaSource, MediaMultiSource, MediaSourceItems} from 'types/MediaSource';
 import Pager, {PagerConfig} from 'types/Pager';
-import {exists, partition} from 'utils';
+import Pin, {Pinnable} from 'types/Pin';
+import {exists, getMediaObjectId, partition} from 'utils';
 import {NoSpotifyChartsError} from 'services/errors';
 import SimplePager from 'services/pagers/SimplePager';
 import {setHiddenSources} from 'services/mediaServices/servicesSettings';
@@ -51,6 +52,30 @@ export const spotifyPlaylistItems: MediaSourceItems<SetRequired<MediaItem, 'nano
         },
     },
 };
+
+export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
+    if (pin.itemType !== ItemType.Playlist) {
+        throw Error('Unsupported Pin type.');
+    }
+    return {
+        title: pin.title,
+        itemType: pin.itemType,
+        id: pin.src,
+        sourceId: `${serviceId}/pinned-playlist`,
+        icon: 'pin',
+        isPin: true,
+        secondaryItems: spotifyPlaylistItems,
+
+        search(): Pager<T> {
+            const id = getMediaObjectId(pin);
+            const fields = 'id,type,external_urls,name,description,images,owner,uri,tracks.total';
+            return new SpotifyPager(async (): Promise<SpotifyPage> => {
+                const playlist = await spotifyApi.getPlaylist(id, fields);
+                return {items: [{...playlist, isChart: pin.isChart}], total: 1};
+            });
+        },
+    } as MediaSource<T>;
+}
 
 export const spotifySearch: MediaMultiSource = {
     id: `${serviceId}/search`,

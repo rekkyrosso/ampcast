@@ -1,5 +1,4 @@
 import React, {useCallback, useEffect, useId, useState} from 'react';
-import {defer} from 'rxjs';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
 import MediaFilter from 'types/MediaFilter';
@@ -34,17 +33,17 @@ export default function FilterSelect({
     }, [filter, onSelect]);
 
     useEffect(() => {
-        const subscription = defer(() => service.getFilters!(filterType, itemType)).subscribe({
-            next: (filters) => {
+        const timerId = setTimeout(async () => {
+            try {
+                const filters = await service.getFilters!(filterType, itemType);
                 setLoading(false);
                 setFilters(filters);
-            },
-            error: (err) => {
+            } catch (err) {
                 setLoading(false);
                 onError?.(err);
-            },
+            }
         });
-        return () => subscription.unsubscribe();
+        return () => clearTimeout(timerId);
     }, [service, filterType, itemType, onError]);
 
     useEffect(() => {

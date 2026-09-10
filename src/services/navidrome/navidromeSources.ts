@@ -12,7 +12,8 @@ import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
 import MediaSource, {AnyMediaSource, MediaMultiSource, MediaSourceItems} from 'types/MediaSource';
 import Pager from 'types/Pager';
-import {uniq} from 'utils';
+import Pin, {Pinnable} from 'types/Pin';
+import {getMediaObjectId} from 'utils';
 import {t} from 'services/i18n';
 import SimplePager from 'services/pagers/SimplePager';
 import NavidromeIndexedPager from './NavidromeIndexedPager';
@@ -32,7 +33,6 @@ import {createArtistAlbumsPager, createPlaylistItemsPager} from './navidromeUtil
 import {
     defaultMediaItemCard,
     albumsLayout,
-    mediaItemsLayout,
     mostPlayedTracksLayout,
     radiosLayoutSmall,
     recentlyAddedAlbumsLayout,
@@ -42,10 +42,6 @@ import {
 } from 'components/MediaList/layouts';
 
 const serviceId: MediaServiceId = 'navidrome';
-
-const navidromeTracksLayout: MediaListLayout = addRating(mediaItemsLayout);
-
-const navidromeAlbumsLayout: MediaListLayout = addRating(albumsLayout);
 
 export const navidromePlaylistLayout: Partial<MediaListLayout> = {
     card: {
@@ -69,6 +65,38 @@ export const navidromePlaylistItems: MediaSourceItems<SetRequired<MediaItem, 'na
     itemKey: 'nanoId',
 };
 
+export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
+    if (pin.itemType !== ItemType.Playlist) {
+        throw Error('Unsupported Pin type.');
+    }
+    return {
+        title: pin.title,
+        itemType: pin.itemType,
+        id: pin.src,
+        sourceId: `${serviceId}/pinned-playlist`,
+        icon: 'pin',
+        isPin: true,
+        primaryItems: {
+            layout: navidromePlaylistLayout,
+        },
+        secondaryItems: navidromePlaylistItems,
+
+        search(): Pager<MediaPlaylist> {
+            const id = getMediaObjectId(pin);
+            return new NavidromeIndexedPager(
+                ItemType.Playlist,
+                `playlist/${id}`,
+                undefined,
+                {
+                    childSort: navidromePlaylistItemsSort.defaultSort,
+                    childSortId: `${serviceId}/pinned-playlist/2`,
+                },
+                createPlaylistItemsPager
+            );
+        },
+    } as MediaSource<T>;
+}
+
 export const navidromeSearch: MediaMultiSource = {
     id: `${serviceId}/search`,
     title: 'Search',
@@ -82,7 +110,6 @@ export const navidromeSearch: MediaMultiSource = {
                 title: 'Songs',
                 primaryItems: {
                     layout: {
-                        ...navidromeTracksLayout,
                         view: 'details',
                     },
                     sort: {
@@ -107,7 +134,6 @@ export const navidromeSearch: MediaMultiSource = {
                 id: 'albums',
                 title: 'Albums',
                 primaryItems: {
-                    layout: navidromeAlbumsLayout,
                     sort: {
                         sortOptions: {
                             Title: 'Title',
@@ -173,7 +199,6 @@ const navidromeLikedSongs: MediaSource<MediaItem> = {
     lockActionsStore: true,
     primaryItems: {
         emptyMessage: t("You don't have any favorite songs."),
-        layout: navidromeTracksLayout,
         sort: {
             sortOptions: {
                 Title: 'Title',
@@ -209,7 +234,6 @@ const navidromeLikedAlbums: MediaSource<MediaAlbum> = {
     lockActionsStore: true,
     primaryItems: {
         emptyMessage: t("You don't have any favorite albums."),
-        layout: navidromeAlbumsLayout,
         sort: {
             sortOptions: {
                 Title: 'Title',
@@ -311,9 +335,9 @@ const navidromeTopAlbums: MediaSource<MediaAlbum> = {
     defaultHidden: true,
     primaryItems: {
         layout: {
-            ...navidromeAlbumsLayout,
+            ...albumsLayout,
             card: {
-                ...navidromeAlbumsLayout.card,
+                ...albumsLayout.card,
                 data: 'Rating',
             },
         },
@@ -338,7 +362,7 @@ const navidromeTopArtists: MediaSource<MediaArtist> = {
     defaultHidden: true,
     primaryItems: {
         layout: {
-            ...addRating(artistsLayout),
+            ...artistsLayout,
             card: {
                 ...artistsLayout.card,
                 h3: 'Rating',
@@ -370,7 +394,7 @@ const navidromeRecentlyAdded: MediaSource<MediaAlbum> = {
     icon: 'recently-added',
     itemType: ItemType.Album,
     primaryItems: {
-        layout: addRating(recentlyAddedAlbumsLayout),
+        layout: recentlyAddedAlbumsLayout,
     },
 
     search(): Pager<MediaAlbum> {
@@ -462,7 +486,6 @@ const navidromeTracksByGenre: MediaSource<MediaItem> = {
     filterType: FilterType.ByGenre,
     defaultHidden: true,
     primaryItems: {
-        layout: navidromeTracksLayout,
         sort: {
             sortOptions: {
                 Title: 'Title',
@@ -500,7 +523,6 @@ const navidromeAlbumsByGenre: MediaSource<MediaAlbum> = {
     itemType: ItemType.Album,
     filterType: FilterType.ByGenre,
     primaryItems: {
-        layout: navidromeAlbumsLayout,
         sort: {
             sortOptions: {
                 Title: 'Title',
@@ -535,9 +557,6 @@ const navidromeRandomTracks: MediaSource<MediaItem> = {
     title: 'Random Songs',
     icon: 'shuffle',
     itemType: ItemType.Media,
-    primaryItems: {
-        layout: navidromeTracksLayout,
-    },
 
     search(): Pager<MediaItem> {
         return new NavidromeIndexedPager(ItemType.Media, 'song', {_sort: 'random'}, {maxSize: 100});
@@ -549,9 +568,6 @@ const navidromeRandomAlbums: MediaSource<MediaAlbum> = {
     title: 'Random Albums',
     icon: 'shuffle',
     itemType: ItemType.Album,
-    primaryItems: {
-        layout: navidromeAlbumsLayout,
-    },
 
     search(): Pager<MediaAlbum> {
         return new NavidromeIndexedPager(
@@ -670,12 +686,5 @@ function createSearch<T extends MediaObject>(
                     throw TypeError('Search not supported for this type of media');
             }
         },
-    };
-}
-
-function addRating(layout: MediaListLayout): MediaListLayout {
-    return {
-        ...layout,
-        details: uniq(layout.details.concat('Rating')),
     };
 }

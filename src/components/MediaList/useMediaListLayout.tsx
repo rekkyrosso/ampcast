@@ -1,8 +1,12 @@
 import React, {useMemo} from 'react';
+import ItemType from 'types/ItemType';
+import MediaType from 'types/MediaType';
 import MediaListLayout, {Field} from 'types/MediaListLayout';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
+import MediaSource from 'types/MediaSource';
 import {exists, uniq} from 'utils';
+import {getServiceFromPath} from 'services/mediaServices';
 import {setSourceFields} from 'services/mediaServices/servicesSettings';
 import {ListViewLayout} from 'components/ListView';
 import DefaultActions, {ActionsProps} from 'components/Actions';
@@ -14,6 +18,8 @@ import showDetailsMenu from './showDetailsMenu';
 import {showEditFieldsDialog} from './EditFieldsDialog';
 
 export default function useMediaListLayout(
+    source: MediaSource<any> | undefined,
+    level: 1 | 2 | 3,
     listId: string,
     defaultLayout: MediaListLayout,
     layoutOptions?: Partial<MediaListLayout>,
@@ -23,11 +29,12 @@ export default function useMediaListLayout(
     const view = useMediaListView(listId);
     const fields = useMediaListFields(listId);
     return useMemo(() => {
-        let extraFields: Field[] = [
-            'Index',
-            ...(layoutOptions?.details || defaultLayout.details),
-            ...(defaultLayout.extraFields || []),
-        ];
+        let card = layoutOptions?.card || defaultLayout.card;
+        if (level === 1 && (source?.singular || source?.isPin)) {
+            card = {...card, h1: 'IconTitle'};
+        }
+        const details = addRating(layoutOptions?.details || defaultLayout.details, source, level);
+        let extraFields: Field[] = ['Index', ...details, ...(defaultLayout.extraFields || [])];
         if (extraFields.includes('IconTitle')) {
             extraFields = extraFields.map((field) => (field === 'Title' ? 'IconTitle' : field));
         } else if (extraFields.includes('Name')) {
@@ -38,14 +45,46 @@ export default function useMediaListLayout(
             listId,
             {
                 view: view || layoutOptions?.view || defaultLayout.view,
-                card: layoutOptions?.card || defaultLayout.card,
-                details: fields || layoutOptions?.details || defaultLayout.details,
+                card,
+                details: fields || details,
                 extraFields,
             },
             Actions,
             parentPlaylist
         );
-    }, [listId, view, fields, defaultLayout, layoutOptions, Actions, parentPlaylist]);
+    }, [
+        source,
+        level,
+        listId,
+        view,
+        fields,
+        defaultLayout,
+        layoutOptions,
+        Actions,
+        parentPlaylist,
+    ]);
+}
+
+function addRating(
+    details: MediaListLayout['details'],
+    source: MediaSource<any> | undefined,
+    level: 1 | 2 | 3
+): MediaListLayout['details'] {
+    if (source) {
+        const service = getServiceFromPath(source.sourceId || source.id);
+        const itemType =
+            level === 1
+                ? source.itemType
+                : source.itemType === ItemType.Artist
+                  ? ItemType.Album
+                  : ItemType.Media;
+        const {linearType, mediaType = MediaType.Audio} = source;
+        const ratable: any = {itemType, mediaType, linearType};
+        if (service?.canRate?.(ratable)) {
+            return uniq(details.concat('Rating'));
+        }
+    }
+    return details;
 }
 
 function createMediaListLayout(

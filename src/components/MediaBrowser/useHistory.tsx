@@ -194,8 +194,10 @@ function createMediaObjectSource(path: string): MediaSource<any> | undefined {
     const service = getServiceFromPath(path);
     if (service?.getMediaObject) {
         const src = path.replaceAll('/', ':');
+        const [, type] = src.split(':');
         return {
             id: src,
+            sourceId: `${service.id}/${type}`,
             title: '',
             icon: service.id,
             itemType: getItemTypeFromPath(path),

@@ -10,12 +10,10 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
-import MediaSource from 'types/MediaSource';
 import Pager, {PagerConfig} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
 import PlaybackType from 'types/PlaybackType';
-import Pin, {Pinnable} from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
 import embyScrobbler from 'services/emby/embyScrobbler';
@@ -36,15 +34,12 @@ import {
 import jellyfinSettings from './jellyfinSettings';
 import JellyfinPager from './JellyfinPager';
 import jellyfinApi from './jellyfinApi';
-import {jellyfinPlaylistItemsSort} from './jellyfinSorting';
 import jellyfinSources, {
-    createItemsPager,
     createSearchPager,
+    createSourceFromPin,
     jellyfinEditablePlaylists,
-    jellyfinPlaylistLayout,
     jellyfinSearch,
 } from './jellyfinSources';
-import {createPlaylistItemsPager} from './jellyfinUtils';
 
 const serviceId: MediaServiceId = 'jellyfin';
 
@@ -169,40 +164,6 @@ function createRadioPager(item: MediaItem): Pager<MediaItem> {
 async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {
     await jellyfinApi.editPlaylist(playlist);
     return playlist;
-}
-
-function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
-    if (pin.itemType !== ItemType.Playlist) {
-        throw Error('Unsupported Pin type.');
-    }
-    return {
-        title: pin.title,
-        itemType: pin.itemType,
-        id: pin.src,
-        sourceId: `${serviceId}/pinned-playlist`,
-        icon: 'pin',
-        isPin: true,
-        primaryItems: {
-            layout: jellyfinPlaylistLayout,
-        },
-        secondaryItems: {
-            sort: jellyfinPlaylistItemsSort,
-        },
-
-        search(): Pager<MediaPlaylist> {
-            return createItemsPager(
-                {
-                    ids: getIdFromSrc(pin),
-                    IncludeItemTypes: 'Playlist',
-                },
-                {
-                    childSort: jellyfinPlaylistItemsSort.defaultSort,
-                    childSortId: `${serviceId}/pinned-playlist/2`,
-                },
-                createPlaylistItemsPager
-            );
-        },
-    } as MediaSource<T>;
 }
 
 async function getFilters(

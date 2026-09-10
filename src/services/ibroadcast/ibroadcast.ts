@@ -7,10 +7,8 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
-import MediaSource from 'types/MediaSource';
-import Pager, {PagerConfig} from 'types/Pager';
+import {PagerConfig} from 'types/Pager';
 import PersonalMediaService from 'types/PersonalMediaService';
-import Pin, {Pinnable} from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
@@ -26,15 +24,13 @@ import {
 } from './ibroadcastAuth';
 import ibroadcastLibrary from './ibroadcastLibrary';
 import ibroadcastSources, {
-    ibroadcastPlaylistItems,
-    ibroadcastPlaylistItemsSort,
-    ibroadcastPlaylistLayout,
+    createSourceFromPin,
     ibroadcastPlaylists,
     ibroadcastSearch,
 } from './ibroadcastSources';
 import IBroadcastPager from './IBroadcastPager';
 import ibroadcastSettings from './ibroadcastSettings';
-import {createPlaylistItemsPager, getIdFromSrc, getLibrarySectionFromItem} from './ibroadcastUtils';
+import {getIdFromSrc, getLibrarySectionFromItem} from './ibroadcastUtils';
 import {scrobble} from './ibroadcastScrobbler';
 import Credentials from './components/IBroadcastCredentials';
 import Login from './components/IBroadcastLogin';
@@ -141,46 +137,6 @@ async function createPlaylist<T extends MediaItem>(
     {description = '', isPublic = false, items = []}: CreatePlaylistOptions<T> = {}
 ): Promise<MediaPlaylist> {
     return ibroadcastLibrary.createPlaylist(name, description, isPublic, items.map(getIdFromSrc));
-}
-
-function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
-    if (pin.itemType !== ItemType.Playlist) {
-        throw Error('Unsupported Pin type.');
-    }
-    return {
-        title: pin.title,
-        itemType: pin.itemType,
-        id: pin.src,
-        sourceId: `${serviceId}/pinned-playlist`,
-        icon: 'pin',
-        isPin: true,
-        primaryItems: {
-            layout: ibroadcastPlaylistLayout,
-        },
-        secondaryItems: ibroadcastPlaylistItems,
-
-        search(): Pager<MediaPlaylist> {
-            const pinId = getIdFromSrc(pin);
-            return new IBroadcastPager(
-                'playlists',
-                async () => {
-                    const [playlist] = await ibroadcastLibrary.query({
-                        section: 'playlists',
-                        filter: (_, map, library, id) => id == pinId,
-                    });
-                    if (!playlist) {
-                        throw Error('Playlist not found');
-                    }
-                    return [playlist];
-                },
-                {
-                    childSort: ibroadcastPlaylistItemsSort.defaultSort,
-                    childSortId: `${serviceId}/pinned-playlist/2`,
-                },
-                createPlaylistItemsPager
-            );
-        },
-    } as MediaSource<T>;
 }
 
 async function deletePlaylist(playlist: MediaPlaylist): Promise<void> {

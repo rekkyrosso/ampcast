@@ -14,6 +14,8 @@ import MediaServiceId from 'types/MediaServiceId';
 import MediaSource, {AnyMediaSource, MediaMultiSource} from 'types/MediaSource';
 import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
+import Pin, {Pinnable} from 'types/Pin';
+import {getMediaObjectId} from 'utils';
 import {NoMusicVideoLibraryError} from 'services/errors';
 import {t} from 'services/i18n';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
@@ -52,6 +54,40 @@ export const jellyfinPlaylistLayout: Partial<MediaListLayout> = {
     },
     details: ['Name', 'Genre', 'TrackCount', 'Progress'],
 };
+
+export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
+    if (pin.itemType !== ItemType.Playlist) {
+        throw Error('Unsupported Pin type.');
+    }
+    return {
+        title: pin.title,
+        itemType: pin.itemType,
+        id: pin.src,
+        sourceId: `${serviceId}/pinned-playlist`,
+        icon: 'pin',
+        isPin: true,
+        primaryItems: {
+            layout: jellyfinPlaylistLayout,
+        },
+        secondaryItems: {
+            sort: jellyfinPlaylistItemsSort,
+        },
+
+        search(): Pager<MediaPlaylist> {
+            return createItemsPager(
+                {
+                    ids: getMediaObjectId(pin),
+                    IncludeItemTypes: 'Playlist',
+                },
+                {
+                    childSort: jellyfinPlaylistItemsSort.defaultSort,
+                    childSortId: `${serviceId}/pinned-playlist/2`,
+                },
+                createPlaylistItemsPager
+            );
+        },
+    } as MediaSource<T>;
+}
 
 export const jellyfinSearch: MediaMultiSource = {
     id: `${serviceId}/search`,

@@ -8,7 +8,8 @@ import MediaServiceId from 'types/MediaServiceId';
 import MediaSource, {AnyMediaSource, MediaMultiSource, MediaSourceItems} from 'types/MediaSource';
 import MediaType from 'types/MediaType';
 import Pager from 'types/Pager';
-import {uniqBy} from 'utils';
+import Pin, {Pinnable} from 'types/Pin';
+import {getMediaObjectId, uniqBy} from 'utils';
 import {getListens} from 'services/localdb/listens';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
@@ -52,6 +53,32 @@ export const youtubePlaylistItems: MediaSourceItems = {
         },
     },
 };
+
+export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
+    if (pin.itemType !== ItemType.Playlist) {
+        throw Error('Unsupported Pin type.');
+    }
+    return {
+        title: pin.title,
+        itemType: pin.itemType,
+        id: pin.src,
+        sourceId: `${serviceId}/pinned-playlist`,
+        icon: 'pin',
+        isPin: true,
+        primaryItems: {
+            layout: youtubePlaylistLayout,
+        },
+        secondaryItems: youtubePlaylistItems,
+
+        search(): Pager<T> {
+            return new YouTubePager('/playlists', {
+                id: getMediaObjectId(pin),
+                part: 'snippet,contentDetails',
+                fields: YouTubePager.playlistFields,
+            });
+        },
+    } as MediaSource<T>;
+}
 
 export const youtubeSearch: MediaMultiSource = {
     id: `${serviceId}/search`,

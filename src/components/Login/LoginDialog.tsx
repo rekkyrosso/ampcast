@@ -34,9 +34,10 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
     const passwordRef = useRef<HTMLInputElement>(null);
     const useProxyRef = useRef<HTMLInputElement>(null);
     const canUseProxy = hasProxyLogin(service.id);
-    const [useProxy, setUseProxy] = useState(() => canUseProxy && !settings.useManualLogin);
+    const locked = isServerLocked(service.id);
+    const useManualLogin = settings.useManualLogin && !locked;
+    const [useProxy, setUseProxy] = useState(() => canUseProxy && !useManualLogin);
     const initialUseProxy = useFirstValue(useProxy);
-    const readOnly = isServerLocked(service.id);
 
     const submit = useCallback(async () => {
         try {
@@ -116,7 +117,7 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
                                 type="radio"
                                 name={`${id}-login-type`}
                                 id={`${id}-login-proxy`}
-                                defaultChecked={!settings.useManualLogin}
+                                defaultChecked={!useManualLogin}
                                 onChange={handleLoginTypeChange}
                                 ref={useProxyRef}
                             />
@@ -127,8 +128,8 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
                                 type="radio"
                                 name={`${id}-login-type`}
                                 id={`${id}-login-manual`}
-                                defaultChecked={settings.useManualLogin}
-                                disabled={readOnly}
+                                defaultChecked={useManualLogin}
+                                disabled={locked}
                                 onChange={handleLoginTypeChange}
                             />
                             <label htmlFor={`${id}-login-manual`}>Advanced login:</label>
@@ -146,7 +147,7 @@ export default function LoginDialog({service, settings, login, ...props}: LoginD
                             disabled={useProxy}
                             placeholder="http://"
                             autoComplete={useProxy ? 'off' : `section-${id} url`}
-                            readOnly={readOnly}
+                            readOnly={locked}
                             required
                             ref={hostRef}
                         />

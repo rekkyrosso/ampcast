@@ -14,6 +14,7 @@ import MediaServiceId from 'types/MediaServiceId';
 import MediaSource, {AnyMediaSource, MediaMultiSource} from 'types/MediaSource';
 import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
+import Pin, {Pinnable} from 'types/Pin';
 import {exists} from 'utils';
 import {NoFavoritesPlaylistError} from 'services/errors';
 import SimplePager from 'services/pagers/SimplePager';
@@ -56,6 +57,38 @@ const appleLibrarySort: MediaListSort = {
         sortOrder: -1,
     },
 };
+
+export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
+    if (pin.itemType !== ItemType.Playlist) {
+        throw Error('Unsupported Pin type.');
+    }
+    return {
+        title: pin.title,
+        itemType: pin.itemType,
+        id: pin.src,
+        sourceId: `${serviceId}/pinned-playlist`,
+        icon: 'pin',
+        isPin: true,
+
+        search(): Pager<T> {
+            const [, type, id] = pin.src.split(':');
+            const isLibraryItem = type.startsWith('library-');
+            const path = isLibraryItem ? '/v1/me/library' : '/v1/catalog/{{storefrontId}}';
+            return new MusicKitPager(
+                `${path}/playlists/${id}`,
+                isLibraryItem
+                    ? {
+                          'include[library-playlists]': 'catalog',
+                          'fields[library-playlists]': 'name,playParams,artwork,canEdit',
+                      }
+                    : {
+                          'omit[resource:playlists]': 'relationships',
+                      },
+                {pageSize: 0}
+            );
+        },
+    };
+}
 
 export const appleSearch: MediaMultiSource = {
     id: `${serviceId}/search`,

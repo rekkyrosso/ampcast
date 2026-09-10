@@ -42,7 +42,6 @@ async function getPage(
             IncludeItemTypes: 'Audio',
             Fields: 'AudioInfo,ChildCount,DateCreated,Genres,MediaSources,Path,ProviderIds,Overview',
             EnableUserData: true,
-            Recursive: true,
             ImageTypeLimit: 1,
             EnableImageTypes: 'Primary',
             EnableTotalRecordCount: true,
@@ -83,14 +82,14 @@ async function updatePlaylist(playlistId: string, ids: readonly string[]): Promi
     await post(`Playlists/${playlistId}`, {Ids, UserId});
 }
 
-const cachedFilters: Record<string, readonly MediaFilter[]> = {};
+const cachedFilters: Record<string, QueryFiltersLegacy> = {};
 
 async function getFilters(
     filterType: FilterType,
     itemType: ItemType
 ): Promise<readonly MediaFilter[]> {
     const libraryId = getMusicLibraryId();
-    const cacheKey = `${libraryId}-${itemType}-${filterType}`;
+    const cacheKey = `${jellyfinSettings.userId}-${libraryId}`;
     if (!cachedFilters[cacheKey]) {
         const params = {
             UserId: jellyfinSettings.userId,
@@ -105,34 +104,31 @@ async function getFilters(
                 params.IncludeItemTypes = 'AlbumArtist';
                 break;
         }
-
-        const data = await get<QueryFiltersLegacy>('Items/Filters', params);
-
-        switch (filterType) {
-            case FilterType.ByGenre:
-                cachedFilters[cacheKey] = data.Genres?.map((title) => ({id: title, title})) || [];
-                break;
-
-            case FilterType.ByDecade: {
-                const thisYear = new Date().getFullYear();
-                const toDecade = (year: number) => Math.floor(year / 10) * 10;
-                const years = data.Years?.filter((year) => year > 500 && year <= thisYear) || [];
-                const decades = groupBy(years, toDecade);
-                cachedFilters[cacheKey] = Object.keys(decades)
-                    .sort()
-                    .reverse()
-                    .map((key) => ({
-                        id: decades[key as any].join(','),
-                        title: `${key}s`,
-                    }));
-                break;
-            }
-
-            default:
-                throw Error('Not supported');
-        }
+        cachedFilters[cacheKey] = await get<QueryFiltersLegacy>('Items/Filters', params);
     }
-    return cachedFilters[cacheKey];
+    const filters = cachedFilters[cacheKey];
+
+    switch (filterType) {
+        case FilterType.ByGenre:
+            return filters.Genres?.map((title) => ({id: title, title})) || [];
+
+        case FilterType.ByDecade: {
+            const thisYear = new Date().getFullYear();
+            const toDecade = (year: number) => Math.floor(year / 10) * 10;
+            const years = filters.Years?.filter((year) => year > 500 && year <= thisYear) || [];
+            const decades = groupBy(years, toDecade);
+            return Object.keys(decades)
+                .sort()
+                .reverse()
+                .map((key) => ({
+                    id: decades[key as any].join(','),
+                    title: `${key}s`,
+                }));
+        }
+
+        default:
+            throw Error('Not supported');
+    }
 }
 
 async function getEndpointInfo(): Promise<EndPointInfo> {

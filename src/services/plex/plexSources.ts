@@ -1,6 +1,7 @@
 import {Except, SetOptional, Writable} from 'type-fest';
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import MediaAlbum from 'types/MediaAlbum';
 import MediaArtist from 'types/MediaArtist';
 import MediaFolder from 'types/MediaFolder';
@@ -14,8 +15,9 @@ import MediaServiceId from 'types/MediaServiceId';
 import MediaSource, {MediaMultiSource, MediaSourceItems} from 'types/MediaSource';
 import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
+import Pin, {Pinnable} from 'types/Pin';
 import SortParams from 'types/SortParams';
-import {uniq} from 'utils';
+import {getMediaObjectId} from 'utils';
 import {CreateChildPager} from 'services/pagers/MediaPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
@@ -30,7 +32,6 @@ import {
     albumsLayout,
     artistsLayout,
     defaultMediaItemCard,
-    mediaItemsLayout,
     mostPlayedTracksLayout,
     radiosLayoutSmall,
     recentlyAddedAlbumsLayout,
@@ -49,17 +50,11 @@ import {
 
 const serviceId: MediaServiceId = 'plex';
 
-const plexTracksLayout: MediaListLayout = addRating(mediaItemsLayout);
-
 const plexTracks: MediaSourceItems = {
-    layout: plexTracksLayout,
     sort: plexTracksSort,
 };
 
-const plexAlbumsLayout: MediaListLayout = addRating(albumsLayout);
-
 const plexAlbums: MediaSourceItems = {
-    layout: plexAlbumsLayout,
     sort: plexAlbumsSort,
 };
 
@@ -74,6 +69,31 @@ export const plexPlaylistItems: MediaSourceItems = {
     sort: plexPlaylistItemsSort,
 };
 
+export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
+    if (pin.itemType !== ItemType.Playlist) {
+        throw Error('Unsupported Pin type.');
+    }
+    return {
+        title: pin.title,
+        itemType: pin.itemType,
+        id: pin.src,
+        sourceId: `${serviceId}/pinned-playlist`,
+        icon: 'pin',
+        isPin: true,
+        secondaryItems: plexPlaylistItems,
+
+        search(): Pager<T> {
+            return new PlexPager({
+                path: `/playlists/${getMediaObjectId(pin)}`,
+                params: {
+                    type: plexMediaType.Playlist,
+                    playlistType: 'audio',
+                },
+            });
+        },
+    } as MediaSource<T>;
+}
+
 export const plexSearch: MediaMultiSource = {
     id: `${serviceId}/search`,
     title: 'Search',
@@ -87,7 +107,6 @@ export const plexSearch: MediaMultiSource = {
                 title: 'Tracks',
                 primaryItems: {
                     layout: {
-                        ...plexTracksLayout,
                         view: 'details',
                     },
                     sort: plexTracksSort,
@@ -100,10 +119,7 @@ export const plexSearch: MediaMultiSource = {
             {
                 id: 'albums',
                 title: 'Albums',
-                primaryItems: {
-                    layout: plexAlbumsLayout,
-                    sort: plexAlbumsSort,
-                },
+                primaryItems: plexAlbums,
             },
             getAlbumSort
         ),
@@ -155,6 +171,7 @@ const plexRadio: MediaSource<MediaItem> = {
     title: 'Radio',
     icon: 'radio',
     itemType: ItemType.Media,
+    linearType: LinearType.Station,
     filterType: FilterType.ByPlexStationType,
     primaryItems: {
         label: 'Radios',
@@ -182,7 +199,7 @@ const plexRecentlyAdded: MediaSource<MediaAlbum> = {
     icon: 'recently-added',
     itemType: ItemType.Album,
     primaryItems: {
-        layout: addRating(recentlyAddedAlbumsLayout),
+        layout: recentlyAddedAlbumsLayout,
     },
 
     search(): Pager<MediaAlbum> {
@@ -261,7 +278,7 @@ const plexTopAlbums: MediaSource<MediaAlbum> = {
     lockActionsStore: true,
     primaryItems: {
         layout: {
-            ...plexAlbumsLayout,
+            ...albumsLayout,
             card: {
                 ...albumsLayout.card,
                 data: 'Rating',
@@ -290,7 +307,7 @@ const plexTopArtists: MediaSource<MediaArtist> = {
     defaultHidden: true,
     primaryItems: {
         layout: {
-            ...addRating(artistsLayout),
+            ...artistsLayout,
             card: {
                 ...artistsLayout.card,
                 h3: 'Rating',
@@ -571,9 +588,6 @@ const plexAlbumsByDecade: MediaSource<MediaAlbum> = {
     icon: 'calendar',
     itemType: ItemType.Album,
     filterType: FilterType.ByDecade,
-    primaryItems: {
-        layout: plexAlbumsLayout,
-    },
 
     search(decade?: MediaFilter): Pager<MediaAlbum> {
         if (decade) {
@@ -596,9 +610,6 @@ const plexRandomTracks: MediaSource<MediaItem> = {
     title: 'Random Tracks',
     icon: 'shuffle',
     itemType: ItemType.Media,
-    primaryItems: {
-        layout: plexTracksLayout,
-    },
 
     search(): Pager<MediaItem> {
         return new PlexPager(
@@ -616,9 +627,6 @@ const plexRandomAlbums: MediaSource<MediaAlbum> = {
     title: 'Random Albums',
     icon: 'shuffle',
     itemType: ItemType.Album,
-    primaryItems: {
-        layout: plexAlbumsLayout,
-    },
 
     search(): Pager<MediaAlbum> {
         return new PlexPager(
@@ -775,11 +783,4 @@ export function createSearchPager<T extends MediaObject>(
         params.playlistType = 'audio';
     }
     return new PlexPager<T>({path, params}, options, undefined, createChildPager);
-}
-
-function addRating(layout: MediaListLayout): MediaListLayout {
-    return {
-        ...layout,
-        details: uniq(layout.details.concat('Rating')),
-    };
 }

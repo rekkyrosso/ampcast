@@ -5,19 +5,9 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
-import MediaSource from 'types/MediaSource';
-import Pager from 'types/Pager';
-import Pin, {Pinnable} from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import noAuth from 'services/mediaServices/noAuth';
-import ErrorPager from 'services/pagers/ErrorPager';
-import {localPlaylistItemsSort} from './localSorting';
-import localSources, {
-    localPlaylistItems,
-    localPlaylistLayout,
-    localPlaylists,
-    localScrobbles,
-} from './localSources';
+import localSources, {createSourceFromPin, localPlaylists, localScrobbles} from './localSources';
 import playlists, {LocalPlaylistItem} from './playlists';
 import ManagePlaylists from './components/ManagePlaylists';
 
@@ -62,40 +52,6 @@ async function createPlaylist<T extends MediaItem>(
     options: CreatePlaylistOptions<T> = {}
 ): Promise<MediaPlaylist> {
     return playlists.createPlaylist(name, options);
-}
-
-function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
-    if (pin.itemType !== ItemType.Playlist) {
-        throw Error('Unsupported Pin type.');
-    }
-    return {
-        title: pin.title,
-        itemType: pin.itemType,
-        id: pin.src,
-        sourceId: `${serviceId}/pinned-playlist`,
-        icon: 'pin',
-        isPin: true,
-        primaryItems: {
-            layout: localPlaylistLayout,
-        },
-        secondaryItems: localPlaylistItems,
-
-        search(): Pager<MediaPlaylist> {
-            if (playlists.getLocalPlaylist(pin.src)) {
-                return playlists.search(
-                    {
-                        filter: (playlist) => playlist.src === pin.src,
-                    },
-                    {
-                        childSort: localPlaylistItemsSort.defaultSort,
-                        childSortId: `${serviceId}/pinned-playlist/2`,
-                    }
-                );
-            } else {
-                return new ErrorPager(() => Error('Not found'));
-            }
-        },
-    } as MediaSource<T>;
 }
 
 async function deletePlaylist(playlist: MediaPlaylist): Promise<void> {

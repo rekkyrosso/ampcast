@@ -90,12 +90,20 @@ export default function MediaList<T extends MediaObject>({
     const [inactive, setInactive] = useState(false);
     const singular = level === 1 && (source?.isPin || source?.singular);
     const [, forceUpdate] = useReducer((i) => i + 1, 0);
-    const id = source ? `${source.sourceId || source.id}/${level}` : uniqueId;
+    const listId = source ? `${source.sourceId || source.id}/${level}` : uniqueId;
     const containerRef = useRef<HTMLDivElement | null>(null);
     const sourceItems = getSourceItems(source, level); // view config
     const {itemKey = 'src', layout: layoutOptions} = sourceItems;
     const parentPlaylist = isPlaylist(parent) ? parent : undefined;
-    const layout = useMediaListLayout(id, defaultLayout, layoutOptions, Actions, parentPlaylist);
+    const layout = useMediaListLayout(
+        source,
+        level,
+        listId,
+        defaultLayout,
+        layoutOptions,
+        Actions,
+        parentPlaylist
+    );
     const [scrollIndex, setScrollIndex] = useState(0);
     const [pageSize, setPageSize] = useState(0);
     const [{items, loaded, busy, complete, error, size, maxSize}, fetchAt] = usePager(pager);
@@ -120,7 +128,7 @@ export default function MediaList<T extends MediaObject>({
         [complete, sourceItems, layout, isSearchResult]
     );
     const {sortedItems, sortParams, savedSortParams, onSort} = useMediaListSort(
-        id,
+        listId,
         items,
         isSearchResult,
         sourceItems,
@@ -255,10 +263,13 @@ export default function MediaList<T extends MediaObject>({
                 } else {
                     newFields.push(col.id);
                 }
-                setSourceFields(id, newFields.filter((field) => field !== 'Actions') as Field[]);
+                setSourceFields(
+                    listId,
+                    newFields.filter((field) => field !== 'Actions') as Field[]
+                );
             }
         },
-        [id, layout]
+        [listId, layout]
     );
 
     const itemClassName = useCallback(
@@ -286,13 +297,13 @@ export default function MediaList<T extends MediaObject>({
     return (
         <div
             className={`panel ${className} ${viewClassName}`}
-            id={id}
+            id={listId}
             data-view={layout.view}
             onDragStart={onDragStart}
             ref={containerRef}
         >
             {empty && error ? (
-                <Error error={error} reportedBy="MediaList" reportingId={id} />
+                <Error error={error} reportedBy="MediaList" reportingId={listId} />
             ) : (
                 <ListView
                     {...props}
@@ -311,7 +322,7 @@ export default function MediaList<T extends MediaObject>({
                     sortable={sortable}
                     sortParams={sortParams}
                     savedSortParams={savedSortParams}
-                    storageId={id}
+                    storageId={listId}
                     onContextMenu={onContextMenu || handleContextMenu}
                     onDoubleClick={handleDoubleClick}
                     onEnter={handleEnter}

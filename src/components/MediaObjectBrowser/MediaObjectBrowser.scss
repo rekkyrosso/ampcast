@@ -42,8 +42,9 @@
 
     .media-info {
         padding: 1em;
+        color: var(--text-color);
         background-color: var(--background-color);
-        height: calc(100% - var(--gutter-width));
+        height: calc(100% - 1em);
     }
 
     .tab-details[aria-selected=true] {

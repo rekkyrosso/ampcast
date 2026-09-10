@@ -1,4 +1,5 @@
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import MediaItem from 'types/MediaItem';
 import MediaListLayout from 'types/MediaListLayout';
 import MediaServiceId from 'types/MediaServiceId';
@@ -24,6 +25,7 @@ const myStations: MediaSource<MediaItem> = {
     title: 'My Stations',
     icon: 'heart',
     itemType: ItemType.Media,
+    linearType: LinearType.Station,
     primaryItems: {layout: myStationsLayout},
 
     search(): Pager<MediaItem> {

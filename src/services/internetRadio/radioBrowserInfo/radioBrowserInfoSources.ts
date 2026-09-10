@@ -1,5 +1,6 @@
 import FilterType from 'types/FilterType';
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
 import MediaFilter from 'types/MediaFilter';
 import MediaItem from 'types/MediaItem';
 import MediaListLayout from 'types/MediaListLayout';
@@ -32,6 +33,7 @@ export const radioBrowserInfoSearch: MediaSource<MediaItem> = {
     title: 'Search',
     icon: 'search',
     itemType: ItemType.Media,
+    linearType: LinearType.Station,
     filterType: FilterType.ByCountry,
     searchable: true,
     searchPlaceholder: 'Search radio-browser.info',

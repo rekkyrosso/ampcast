@@ -4,15 +4,11 @@ import ItemType from 'types/ItemType';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
-import MediaSource from 'types/MediaSource';
 import MediaType from 'types/MediaType';
-import Pager from 'types/Pager';
-import Pin, {Pinnable} from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
 import SimplePager from 'services/pagers/SimplePager';
-import YouTubePager from './YouTubePager';
 import youtubeApi from './youtubeApi';
 import {
     observeConnecting,
@@ -28,8 +24,7 @@ import {
 import {addMetadata, scrobble} from './youtubeScrobbler';
 import youtubeSettings from './youtubeSettings';
 import youtubeSources, {
-    youtubePlaylistItems,
-    youtubePlaylistLayout,
+    createSourceFromPin,
     youtubePlaylists,
     youtubeSearch,
 } from './youtubeSources';
@@ -154,33 +149,6 @@ async function createPlaylist<T extends MediaItem>(
         }
         throw err;
     }
-}
-
-function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
-    if (pin.itemType !== ItemType.Playlist) {
-        throw Error('Unsupported Pin type.');
-    }
-    return {
-        title: pin.title,
-        itemType: pin.itemType,
-        id: pin.src,
-        sourceId: `${serviceId}/pinned-playlist`,
-        icon: 'pin',
-        isPin: true,
-        primaryItems: {
-            layout: youtubePlaylistLayout,
-        },
-        secondaryItems: youtubePlaylistItems,
-
-        search(): Pager<T> {
-            const [, , playlistId] = pin.src.split(':');
-            return new YouTubePager('/playlists', {
-                id: playlistId,
-                part: 'snippet,contentDetails',
-                fields: YouTubePager.playlistFields,
-            });
-        },
-    } as MediaSource<T>;
 }
 
 async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {

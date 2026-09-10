@@ -9,9 +9,6 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
-import MediaSource from 'types/MediaSource';
-import Pager from 'types/Pager';
-import Pin, {Pinnable} from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
@@ -33,7 +30,11 @@ import {
     reconnect,
 } from './appleAuth';
 import appleSettings from './appleSettings';
-import appleSources, {appleEditablePlaylists, appleSearch} from './appleSources';
+import appleSources, {
+    appleEditablePlaylists,
+    appleSearch,
+    createSourceFromPin,
+} from './appleSources';
 import Credentials from './components/AppleCredentials';
 import Login from './components/AppleLogin';
 import StreamingSettings from './components/AppleStreamingSettings';
@@ -188,38 +189,6 @@ async function createPlaylist<T extends MediaItem>(
 
 function compareForRating<T extends MediaObject>(a: T, b: T): boolean {
     return a.src === b.src;
-}
-
-function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
-    if (pin.itemType !== ItemType.Playlist) {
-        throw Error('Unsupported Pin type.');
-    }
-    return {
-        title: pin.title,
-        itemType: pin.itemType,
-        id: pin.src,
-        sourceId: `${serviceId}/pinned-playlist`,
-        icon: 'pin',
-        isPin: true,
-
-        search(): Pager<T> {
-            const [, type, id] = pin.src.split(':');
-            const isLibraryItem = type.startsWith('library-');
-            const path = isLibraryItem ? '/v1/me/library' : '/v1/catalog/{{storefrontId}}';
-            return new MusicKitPager(
-                `${path}/playlists/${id}`,
-                isLibraryItem
-                    ? {
-                          'include[library-playlists]': 'catalog',
-                          'fields[library-playlists]': 'name,playParams,artwork,canEdit',
-                      }
-                    : {
-                          'omit[resource:playlists]': 'relationships',
-                      },
-                {pageSize: 0}
-            );
-        },
-    };
 }
 
 async function getDroppedItems(

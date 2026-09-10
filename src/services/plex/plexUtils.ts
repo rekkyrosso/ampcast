@@ -123,10 +123,10 @@ export function createMediaItemFromTrack(
         description: track.summary,
         externalUrl: getExternalUrl(track),
         addedAt: track.addedAt,
-        artists: isVariousArtists
-            ? undefined
-            : track.originalTitle
-              ? [track.originalTitle]
+        artists: track.originalTitle
+            ? [track.originalTitle]
+            : isVariousArtists
+              ? undefined
               : album?.artists,
         albumArtists: album?.artists,
         album: album?.title === '[Unknown Album]' ? undefined : album?.title,

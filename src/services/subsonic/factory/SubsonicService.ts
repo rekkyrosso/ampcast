@@ -25,7 +25,7 @@ import {PersonalMediaServiceId} from 'types/MediaServiceId';
 import Pin, {Pinnable} from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
-import {getTextFromHtml, Logger, uniq} from 'utils';
+import {getTextFromHtml, Logger} from 'utils';
 import {OpenSubsonicRequiredError} from 'services/errors';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
@@ -33,9 +33,7 @@ import WrappedPager from 'services/pagers/WrappedPager';
 import fetchFirstPage from 'services/pagers/fetchFirstPage';
 import {
     albumsLayout,
-    artistsLayout,
     defaultMediaItemCard,
-    mediaItemsLayout,
     mostPlayedTracksLayout,
     radiosLayoutSmall,
     recentlyAddedAlbumsLayout,
@@ -46,21 +44,6 @@ import SubsonicPager from './SubsonicPager';
 import subsonicScrobbler from './subsonicScrobbler';
 import SubsonicSettings from './SubsonicSettings';
 import SubsonicUtils from './SubsonicUtils';
-
-function addRating(layout: MediaListLayout): MediaListLayout {
-    return {
-        ...layout,
-        details: uniq(layout.details.concat('Rating')),
-    };
-}
-
-const subsonicAlbumsLayout: MediaListLayout = addRating(albumsLayout);
-const subsonicAlbums: MediaSourceItems = {
-    layout: subsonicAlbumsLayout,
-};
-const subsonicTracks: MediaSourceItems = {
-    layout: addRating(mediaItemsLayout),
-};
 
 const subsonicPlaylistItemsLayout: Partial<MediaListLayout> = {
     view: 'details',
@@ -145,7 +128,6 @@ export default class SubsonicService implements PersonalMediaService {
                 this.createSearch<MediaAlbum>(ItemType.Album, {
                     id: 'albums',
                     title: 'Albums',
-                    primaryItems: subsonicAlbums,
                 }),
                 this.createSearch<MediaArtist>(ItemType.Artist, {
                     id: 'artists',
@@ -161,7 +143,6 @@ export default class SubsonicService implements PersonalMediaService {
             itemType: ItemType.Media,
             lockActionsStore: true,
             primaryItems: {
-                ...subsonicTracks,
                 emptyMessage: "You don't have any liked songs.",
             },
 
@@ -184,7 +165,6 @@ export default class SubsonicService implements PersonalMediaService {
             itemType: ItemType.Album,
             lockActionsStore: true,
             primaryItems: {
-                ...subsonicAlbums,
                 emptyMessage: "You don't have any liked albums.",
             },
 
@@ -209,7 +189,6 @@ export default class SubsonicService implements PersonalMediaService {
             defaultHidden: true,
             primaryItems: {
                 emptyMessage: "You don't have any liked artists.",
-                layout: addRating(artistsLayout),
             },
 
             search(): Pager<MediaArtist> {
@@ -233,9 +212,9 @@ export default class SubsonicService implements PersonalMediaService {
             defaultHidden: true,
             primaryItems: {
                 layout: {
-                    ...subsonicAlbumsLayout,
+                    ...albumsLayout,
                     card: {
-                        ...subsonicAlbumsLayout.card,
+                        ...albumsLayout.card,
                         data: 'Rating',
                     },
                 },
@@ -262,7 +241,7 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'recently-added',
             itemType: ItemType.Album,
             primaryItems: {
-                layout: addRating(recentlyAddedAlbumsLayout),
+                layout: recentlyAddedAlbumsLayout,
             },
 
             search(): Pager<MediaAlbum> {
@@ -282,7 +261,6 @@ export default class SubsonicService implements PersonalMediaService {
             title: 'Recently Played',
             icon: 'clock',
             itemType: ItemType.Album,
-            primaryItems: subsonicAlbums,
 
             search(): Pager<MediaAlbum> {
                 return new SubsonicPager(
@@ -302,7 +280,7 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'most-played',
             itemType: ItemType.Album,
             primaryItems: {
-                layout: addRating(mostPlayedTracksLayout),
+                layout: mostPlayedTracksLayout,
             },
 
             search(): Pager<MediaAlbum> {
@@ -343,7 +321,6 @@ export default class SubsonicService implements PersonalMediaService {
             itemType: ItemType.Media,
             filterType: FilterType.ByGenre,
             defaultHidden: true,
-            primaryItems: subsonicTracks,
 
             search(genre?: MediaFilter): Pager<MediaItem> {
                 if (genre) {
@@ -370,7 +347,6 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'genre',
             itemType: ItemType.Album,
             filterType: FilterType.ByGenre,
-            primaryItems: subsonicAlbums,
 
             search(genre?: MediaFilter): Pager<MediaAlbum> {
                 if (genre) {
@@ -394,7 +370,6 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'calendar',
             itemType: ItemType.Album,
             filterType: FilterType.ByDecade,
-            primaryItems: subsonicAlbums,
 
             search(decade?: MediaFilter): Pager<MediaAlbum> {
                 if (decade) {
@@ -418,7 +393,6 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'shuffle',
             itemType: ItemType.Media,
             defaultHidden: true,
-            primaryItems: subsonicTracks,
 
             search(): Pager<MediaItem> {
                 return new SubsonicPager(service, ItemType.Media, async () => {
@@ -434,7 +408,6 @@ export default class SubsonicService implements PersonalMediaService {
             icon: 'shuffle',
             itemType: ItemType.Album,
             defaultHidden: true,
-            primaryItems: subsonicAlbums,
 
             search(): Pager<MediaAlbum> {
                 return new SubsonicPager(service, ItemType.Album, async () => {

@@ -10,12 +10,10 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
-import MediaSource from 'types/MediaSource';
 import Pager, {PagerConfig} from 'types/Pager';
 import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
 import PlaybackType from 'types/PlaybackType';
-import Pin, {Pinnable} from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import actionsStore from 'services/actions/actionsStore';
 import {bestOf} from 'services/metadata';
@@ -36,15 +34,12 @@ import EmbyPager from './EmbyPager';
 import embySettings from './embySettings';
 import embyApi from './embyApi';
 import embyScrobbler from './embyScrobbler';
-import {embyPlaylistItemsSort} from './embySorting';
 import embySources, {
-    createItemsPager,
     createSearchPager,
+    createSourceFromPin,
     embyEditablePlaylists,
-    embyPlaylistLayout,
     embySearch,
 } from './embySources';
-import {createPlaylistItemsPager} from './embyUtils';
 
 const serviceId: MediaServiceId = 'emby';
 
@@ -164,40 +159,6 @@ function createRadioPager(item: MediaItem): Pager<MediaItem> {
         throw Error('Not supported');
     }
     return new EmbyPager(`Items/${id}/InstantMix`, {UserId: embySettings.userId});
-}
-
-function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
-    if (pin.itemType !== ItemType.Playlist) {
-        throw Error('Unsupported Pin type.');
-    }
-    return {
-        title: pin.title,
-        itemType: pin.itemType,
-        id: pin.src,
-        sourceId: `${serviceId}/pinned-playlist`,
-        icon: 'pin',
-        isPin: true,
-        primaryItems: {
-            layout: embyPlaylistLayout,
-        },
-        secondaryItems: {
-            sort: embyPlaylistItemsSort,
-        },
-
-        search(): Pager<MediaPlaylist> {
-            return createItemsPager(
-                {
-                    ids: getIdFromSrc(pin),
-                    IncludeItemTypes: 'Playlist',
-                },
-                {
-                    childSort: embyPlaylistItemsSort.defaultSort,
-                    childSortId: `${serviceId}/pinned-playlist/2`,
-                },
-                createPlaylistItemsPager
-            );
-        },
-    } as MediaSource<T>;
 }
 
 async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {

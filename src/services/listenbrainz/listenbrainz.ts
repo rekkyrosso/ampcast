@@ -5,9 +5,6 @@ import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaPlaylist from 'types/MediaPlaylist';
 import MediaServiceId from 'types/MediaServiceId';
-import MediaSource from 'types/MediaSource';
-import Pager from 'types/Pager';
-import Pin, {Pinnable} from 'types/Pin';
 import ServiceType from 'types/ServiceType';
 import DataService from 'types/DataService';
 import {dispatchMetadataChanges} from 'services/metadata';
@@ -23,9 +20,9 @@ import {
     logout,
     reconnect,
 } from './listenbrainzAuth';
-import ListenBrainzPlaylistsPager from './ListenBrainzPlaylistsPager';
 import {scrobble} from './listenbrainzScrobbler';
 import listenbrainzSources, {
+    createSourceFromPin,
     listenbrainzPlaylists,
     listenbrainzScrobbles,
 } from './listenbrainzSources';
@@ -114,25 +111,6 @@ async function createPlaylist<T extends MediaItem>(
         pager: new SimplePager(),
         trackCount: 0,
     };
-}
-
-function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
-    if (pin.itemType !== ItemType.Playlist) {
-        throw Error('Unsupported Pin type.');
-    }
-    return {
-        title: pin.title,
-        itemType: pin.itemType,
-        id: pin.src,
-        sourceId: `${serviceId}/pinned-playlist`,
-        icon: 'pin',
-        isPin: true,
-
-        search(): Pager<MediaPlaylist> {
-            const [, , playlist_mbid] = pin.src.split(':');
-            return new ListenBrainzPlaylistsPager(`playlist/${playlist_mbid}`, true);
-        },
-    } as MediaSource<T>;
 }
 
 async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {
