@@ -183,6 +183,10 @@ function getPlayableUrl(item: MediaItem): string {
     return embyApi.getPlayableUrl(item, jellyfinSettings);
 }
 
+function getExportUrl(item: MediaItem, options: {format: 'mp3'; bitRate: number}): string {
+    return embyApi.getExportUrl(item, options, jellyfinSettings);
+}
+
 async function getPlaybackType(item: MediaItem): Promise<PlaybackType> {
     return embyApi.getPlaybackType(item, jellyfinSettings);
 }
@@ -203,6 +207,7 @@ const jellyfinApi = {
     getFilters,
     getLyrics,
     getMusicLibraries,
+    getExportUrl,
     getPlayableUrl,
     getPlaybackType,
     getSystemInfo,

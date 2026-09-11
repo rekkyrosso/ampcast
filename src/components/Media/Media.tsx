@@ -15,8 +15,14 @@ import useMouseBusy from 'hooks/useMouseBusy';
 import useOnResize from 'hooks/useOnResize';
 import usePaused from 'hooks/usePaused';
 import useVisualizerSettings from 'hooks/useVisualizerSettings';
+import useObservable from 'hooks/useObservable';
+import {
+    getPlaylistExportState,
+    observePlaylistExportState,
+} from 'services/playlist/playlistExportProgress';
 import Interstitial from './Interstitial';
 import Players from './Players';
+import PlaylistExportProgress from './PlaylistExportProgress';
 import ProgressBar from './ProgressBar';
 import VisualizerControls from './VisualizerControls';
 import useLoadingState from './useLoadingState';
@@ -47,6 +53,7 @@ export default memo(function Media() {
                 loadingState !== 'loading'));
     const isIdle = !useMouseBusy(ref.current, 4000);
     const paused = usePaused();
+    const exportState = useObservable(observePlaylistExportState, getPlaylistExportState());
 
     useEffect(() => {
         const style = ref.current!.style;
@@ -92,7 +99,7 @@ export default memo(function Media() {
                 isShowingCoverArt ? 'is-showing-cover-art' : ''
             } ${isIdle ? 'idle' : ''} ${
                 isFullscreen || isMiniPlayer ? 'fullscreen' : ''
-            } ${miniPlayerActive ? 'mini-player-active' : ''}`}
+            } ${miniPlayerActive ? 'mini-player-active' : ''} ${exportState ? 'exporting' : ''}`}
             id="media"
             onDoubleClick={handleDoubleClick}
             style={style}
@@ -100,6 +107,7 @@ export default memo(function Media() {
         >
             <Players />
             <Interstitial />
+            {exportState ? <PlaylistExportProgress state={exportState} /> : null}
             {(isFullscreen || isMiniPlayer) && fullscreenProgress ? <ProgressBar /> : null}
             <VisualizerControls fullscreen={isFullscreen} onFullscreenToggle={toggleFullscreen} />
         </div>
