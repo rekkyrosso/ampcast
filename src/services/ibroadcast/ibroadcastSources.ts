@@ -13,7 +13,8 @@ import MediaServiceId from 'types/MediaServiceId';
 import MediaSource, {AnyMediaSource, MediaMultiSource, MediaSourceItems} from 'types/MediaSource';
 import Pager from 'types/Pager';
 import Pin, {Pinnable} from 'types/Pin';
-import {shuffle} from 'utils';
+import {getItemTypeFromSrc, shuffle} from 'utils';
+import mediaSources from 'services/mediaServices/mediaSources';
 import SimplePager from 'services/pagers/SimplePager';
 import {
     albumsLayout,
@@ -29,7 +30,6 @@ import {
     createArtistAlbumsPager,
     createPlaylistItemsPager,
     getGenres,
-    getIdFromSrc,
     sortAlbums,
     sortByTitle,
     sortTracks,
@@ -81,44 +81,52 @@ export const ibroadcastPlaylistItems: MediaSourceItems<SetRequired<MediaItem, 'p
     sort: ibroadcastPlaylistItemsSort,
 };
 
-export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
-    if (pin.itemType !== ItemType.Playlist) {
-        throw Error('Unsupported Pin type.');
+export function createSourceFromObject<T extends MediaObject>(src: string): MediaSource<T> {
+    const itemType = getItemTypeFromSrc(src);
+    switch (itemType) {
+        case ItemType.Artist:
+            return mediaSources.createFromObject<MediaArtist>({
+                src,
+                itemType,
+                secondaryItems: {
+                    sort: ibroadcastArtistAlbumsSort,
+                },
+                childSort: ibroadcastArtistAlbumsSort.defaultSort,
+                createChildPager: createArtistAlbumsPager,
+            }) as MediaSource<T>;
+
+        case ItemType.Playlist:
+            return mediaSources.createFromObject<MediaPlaylist>({
+                src,
+                itemType,
+                primaryItems: {
+                    layout: ibroadcastPlaylistLayout,
+                },
+                secondaryItems: ibroadcastPlaylistItems,
+                childSort: ibroadcastPlaylistItemsSort.defaultSort,
+                createChildPager: createPlaylistItemsPager,
+            }) as MediaSource<T>;
+
+        default:
+            return mediaSources.createFromObject<T>({
+                src,
+                itemType,
+            });
     }
-    return {
-        title: pin.title,
-        itemType: pin.itemType,
-        id: pin.src,
-        sourceId: `${serviceId}/pinned-playlist`,
-        icon: 'pin',
+}
+
+export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
+    return mediaSources.createFromObject<MediaPlaylist>({
+        src: pin.src,
+        itemType: ItemType.Playlist,
         isPin: true,
         primaryItems: {
             layout: ibroadcastPlaylistLayout,
         },
         secondaryItems: ibroadcastPlaylistItems,
-
-        search(): Pager<MediaPlaylist> {
-            const pinId = getIdFromSrc(pin);
-            return new IBroadcastPager(
-                'playlists',
-                async () => {
-                    const [playlist] = await ibroadcastLibrary.query({
-                        section: 'playlists',
-                        filter: (_, map, library, id) => id == pinId,
-                    });
-                    if (!playlist) {
-                        throw Error('Playlist not found');
-                    }
-                    return [playlist];
-                },
-                {
-                    childSort: ibroadcastPlaylistItemsSort.defaultSort,
-                    childSortId: `${serviceId}/pinned-playlist/2`,
-                },
-                createPlaylistItemsPager
-            );
-        },
-    } as MediaSource<T>;
+        childSort: ibroadcastPlaylistItemsSort.defaultSort,
+        createChildPager: createPlaylistItemsPager,
+    }) as MediaSource<T>;
 }
 
 export const ibroadcastSearch: MediaMultiSource = {

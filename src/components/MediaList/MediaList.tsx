@@ -11,7 +11,7 @@ import Pager from 'types/Pager';
 import ParentOf from 'types/ParentOf';
 import SortParams from 'types/SortParams';
 import {setSourceFields} from 'services/mediaServices/servicesSettings';
-import {ActionsProps, performAction, showActionsMenu} from 'components/Actions';
+import {performAction, showActionsMenu} from 'components/Actions';
 import ErrorBox, {ErrorBoxProps} from 'components/Errors/ErrorBox';
 import ListView, {Column, ListViewProps} from 'components/ListView';
 import useHistory from 'components/MediaBrowser/useHistory';
@@ -56,7 +56,6 @@ export interface MediaListProps<T extends MediaObject> extends Except<
     onError?: (error: unknown) => void;
     onLoad?: () => void;
     onInternalSort?: (params: SortParams) => void;
-    Actions?: React.FC<ActionsProps>;
     Error?: React.FC<ErrorBoxProps>;
 }
 
@@ -82,7 +81,6 @@ export default function MediaList<T extends MediaObject>({
     onInternalSort,
     onLoad,
     onSelect,
-    Actions,
     Error = ErrorBox,
     ...props
 }: MediaListProps<T>) {
@@ -101,7 +99,6 @@ export default function MediaList<T extends MediaObject>({
         listId,
         defaultLayout,
         layoutOptions,
-        Actions,
         parentPlaylist
     );
     const [scrollIndex, setScrollIndex] = useState(0);
@@ -296,7 +293,7 @@ export default function MediaList<T extends MediaObject>({
 
     return (
         <div
-            className={`panel ${className} ${viewClassName}`}
+            className={`panel ${className} ${viewClassName} ${level === 3 ? 'tertiary' : level === 2 ? 'secondary' : 'primary'}-items`}
             id={listId}
             data-view={layout.view}
             onDragStart={onDragStart}

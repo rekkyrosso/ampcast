@@ -17,7 +17,8 @@ import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
 import Pin, {Pinnable} from 'types/Pin';
 import SortParams from 'types/SortParams';
-import {getMediaObjectId} from 'utils';
+import {getItemTypeFromSrc} from 'utils';
+import mediaSources from 'services/mediaServices/mediaSources';
 import {CreateChildPager} from 'services/pagers/MediaPager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
@@ -69,29 +70,42 @@ export const plexPlaylistItems: MediaSourceItems = {
     sort: plexPlaylistItemsSort,
 };
 
-export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
-    if (pin.itemType !== ItemType.Playlist) {
-        throw Error('Unsupported Pin type.');
+export function createSourceFromObject<T extends MediaObject>(src: string): MediaSource<T> {
+    const itemType = getItemTypeFromSrc(src);
+    switch (itemType) {
+        case ItemType.Artist:
+            return mediaSources.createFromObject<MediaArtist>({
+                src,
+                itemType,
+                secondaryItems: {
+                    sort: plexArtistAlbumsSort,
+                },
+                childSort: plexArtistAlbumsSort.defaultSort,
+                createChildPager: createArtistAlbumsPager,
+            }) as MediaSource<T>;
+
+        case ItemType.Playlist:
+            return mediaSources.createFromObject<MediaPlaylist>({
+                src,
+                itemType,
+                secondaryItems: plexPlaylistItems,
+            }) as MediaSource<T>;
+
+        default:
+            return mediaSources.createFromObject<T>({
+                src,
+                itemType,
+            });
     }
-    return {
-        title: pin.title,
-        itemType: pin.itemType,
-        id: pin.src,
-        sourceId: `${serviceId}/pinned-playlist`,
-        icon: 'pin',
+}
+
+export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
+    return mediaSources.createFromObject<MediaPlaylist>({
+        src: pin.src,
+        itemType: ItemType.Playlist,
         isPin: true,
         secondaryItems: plexPlaylistItems,
-
-        search(): Pager<T> {
-            return new PlexPager({
-                path: `/playlists/${getMediaObjectId(pin)}`,
-                params: {
-                    type: plexMediaType.Playlist,
-                    playlistType: 'audio',
-                },
-            });
-        },
-    } as MediaSource<T>;
+    }) as MediaSource<T>;
 }
 
 export const plexSearch: MediaMultiSource = {

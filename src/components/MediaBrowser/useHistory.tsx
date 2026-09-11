@@ -1,14 +1,12 @@
 import React, {useCallback} from 'react';
 import {BehaviorSubject, fromEvent, map} from 'rxjs';
 import {nanoid} from 'nanoid';
-import ItemType from 'types/ItemType';
 import MediaSource, {AnyMediaSource} from 'types/MediaSource';
 import {Pinnable} from 'types/Pin';
 import {Logger} from 'utils';
 import {WEB_LINKS} from 'services/features';
 import {getServiceFromPath, isPersonalMediaService} from 'services/mediaServices';
 import pinStore from 'services/pins/pinStore';
-import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import useObservable from 'hooks/useObservable';
 import ErrorScreen from './ErrorScreen';
 import MediaBrowser from './MediaBrowser';
@@ -192,24 +190,9 @@ function getMediaSource(path: string): AnyMediaSource | undefined {
 
 function createMediaObjectSource(path: string): MediaSource<any> | undefined {
     const service = getServiceFromPath(path);
-    if (service?.getMediaObject) {
-        const src = path.replaceAll('/', ':');
-        const [, type] = src.split(':');
-        return {
-            id: src,
-            sourceId: `${service.id}/${type}`,
-            title: '',
-            icon: service.id,
-            itemType: getItemTypeFromPath(path),
-            singular: true,
-            primaryItems: {layout: {view: 'card compact'}},
-            search() {
-                return new SimpleMediaPager(async () => {
-                    const object = await service.getMediaObject!(src);
-                    return [object];
-                });
-            },
-        };
+    const src = path.replaceAll('/', ':');
+    if (service?.createSourceFromObject) {
+        return service.createSourceFromObject(src);
     }
 }
 
@@ -218,18 +201,4 @@ function createPin(path: string): MediaSource<Pinnable> | undefined {
     const src = path.slice(5).replaceAll('/', ':');
     const pin = pinStore.getPin(src);
     return pin ? service?.createSourceFromPin?.(pin) : undefined;
-}
-
-function getItemTypeFromPath(path: string): ItemType {
-    const [a, b, c] = path.split('/');
-    const type = a === 'pins' ? c : b;
-    if (type.includes('artist')) {
-        return ItemType.Artist;
-    } else if (type.includes('playlist')) {
-        return ItemType.Playlist;
-    } else if (type.includes('album')) {
-        return ItemType.Album;
-    } else {
-        return ItemType.Media;
-    }
 }

@@ -65,6 +65,7 @@ export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T
         sourceId: `${serviceId}/pinned-playlist`,
         icon: 'pin',
         isPin: true,
+        singular: true,
         primaryItems: {
             layout: youtubePlaylistLayout,
         },

@@ -138,6 +138,9 @@ function getMenuItems(
     const menuItems: MenuItems = {
         label: items?.label || getDefaultLabel(source.id, itemType),
     };
+    if (source?.singular && level === 1) {
+        return menuItems;
+    }
     if (items?.sort && !isSearch) {
         const sorting = getSourceSorting(id) || items.sort.defaultSort;
         const sortOptions = items.sort.sortOptions || {};

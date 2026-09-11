@@ -36,6 +36,7 @@ import embyApi from './embyApi';
 import embyScrobbler from './embyScrobbler';
 import embySources, {
     createSearchPager,
+    createSourceFromObject,
     createSourceFromPin,
     embyEditablePlaylists,
     embySearch,
@@ -84,6 +85,7 @@ const emby: PersonalMediaService = {
     compareForRating,
     createPlaylist,
     createRadioPager,
+    createSourceFromObject,
     createSourceFromPin,
     editPlaylist,
     getFilters,

@@ -1,4 +1,5 @@
 import React, {useMemo} from 'react';
+import Action from 'types/Action';
 import ItemType from 'types/ItemType';
 import MediaType from 'types/MediaType';
 import MediaListLayout, {Field} from 'types/MediaListLayout';
@@ -8,8 +9,8 @@ import MediaSource from 'types/MediaSource';
 import {exists, uniq} from 'utils';
 import {getServiceFromPath} from 'services/mediaServices';
 import {setSourceFields} from 'services/mediaServices/servicesSettings';
+import Actions, {showActionsMenu} from 'components/Actions';
 import {ListViewLayout} from 'components/ListView';
-import DefaultActions, {ActionsProps} from 'components/Actions';
 import {PopupMenuButton} from 'components/Button';
 import mediaListFields, {FieldSpec} from './mediaListFields';
 import useMediaListFields from './useMediaListFields';
@@ -23,7 +24,6 @@ export default function useMediaListLayout(
     listId: string,
     defaultLayout: MediaListLayout,
     layoutOptions?: Partial<MediaListLayout>,
-    Actions: React.FC<ActionsProps> = DefaultActions,
     parentPlaylist?: MediaPlaylist
 ): ListViewLayout<MediaObject> {
     const view = useMediaListView(listId);
@@ -42,6 +42,8 @@ export default function useMediaListLayout(
         }
         extraFields = uniq(extraFields);
         return createMediaListLayout(
+            source,
+            level,
             listId,
             {
                 view: view || layoutOptions?.view || defaultLayout.view,
@@ -49,20 +51,9 @@ export default function useMediaListLayout(
                 details: fields || details,
                 extraFields,
             },
-            Actions,
             parentPlaylist
         );
-    }, [
-        source,
-        level,
-        listId,
-        view,
-        fields,
-        defaultLayout,
-        layoutOptions,
-        Actions,
-        parentPlaylist,
-    ]);
+    }, [source, level, listId, view, fields, defaultLayout, layoutOptions, parentPlaylist]);
 }
 
 function addRating(
@@ -88,19 +79,37 @@ function addRating(
 }
 
 function createMediaListLayout(
+    source: MediaSource<any> | undefined,
+    level: 1 | 2 | 3,
     listId: string,
     layout: MediaListLayout,
-    Actions: React.FC<ActionsProps>,
     parentPlaylist?: MediaPlaylist
 ): ListViewLayout<MediaObject> {
     if (layout.view === 'none') {
         return {view: 'details', cols: []};
     }
+    let showMenu = showActionsMenu;
+    if (level === 1 && (source?.singular || source?.isPin)) {
+        showMenu = (
+            items: readonly any[],
+            target: HTMLElement,
+            x: number,
+            y: number,
+            align: 'left' | 'right' = 'left'
+        ): Promise<Action | undefined> => {
+            return showActionsMenu(items, target, x, y, align, {
+                source,
+                level,
+                parentPlaylist,
+                inListView: true,
+            });
+        };
+    }
     const actions: FieldSpec = {
         id: 'Actions' as Field,
         title: 'Actions',
         render: (item: MediaObject) => (
-            <Actions item={item} inListView parentPlaylist={parentPlaylist} />
+            <Actions item={item} inListView parentPlaylist={parentPlaylist} showMenu={showMenu} />
         ),
         className: 'actions',
         align: 'right',

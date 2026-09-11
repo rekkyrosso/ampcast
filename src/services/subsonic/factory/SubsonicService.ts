@@ -25,8 +25,9 @@ import {PersonalMediaServiceId} from 'types/MediaServiceId';
 import Pin, {Pinnable} from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
-import {getTextFromHtml, Logger} from 'utils';
+import {getItemTypeFromSrc, getTextFromHtml, Logger} from 'utils';
 import {OpenSubsonicRequiredError} from 'services/errors';
+import mediaSources from 'services/mediaServices/mediaSources';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import WrappedPager from 'services/pagers/WrappedPager';
@@ -680,33 +681,31 @@ export default class SubsonicService implements PersonalMediaService {
         });
     }
 
-    createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
-        if (pin.itemType !== ItemType.Playlist) {
-            throw Error('Unsupported Pin type.');
+    createSourceFromObject<T extends MediaObject>(src: string): MediaSource<T> {
+        const itemType = getItemTypeFromSrc(src);
+        switch (itemType) {
+            case ItemType.Playlist:
+                return mediaSources.createFromObject<MediaPlaylist>({
+                    src,
+                    itemType,
+                    secondaryItems: subsonicPlaylistItems,
+                }) as MediaSource<T>;
+
+            default:
+                return mediaSources.createFromObject<T>({
+                    src,
+                    itemType,
+                });
         }
-        // eslint-disable-next-line @typescript-eslint/no-this-alias
-        const service = this;
-        return {
-            title: pin.title,
-            itemType: pin.itemType,
-            id: pin.src,
-            sourceId: `${this.id}/pinned-playlist`,
-            icon: 'pin',
+    }
+
+    createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
+        return mediaSources.createFromObject<MediaPlaylist>({
+            src: pin.src,
+            itemType: ItemType.Playlist,
             isPin: true,
             secondaryItems: subsonicPlaylistItems,
-
-            search(): Pager<T> {
-                const id = service.getIdFromSrc(pin);
-                return new SubsonicPager(
-                    service,
-                    ItemType.Playlist,
-                    async (): Promise<Page<Subsonic.Playlist>> => {
-                        const playlist = await service.api.getPlaylist(id);
-                        return {items: [playlist], atEnd: true};
-                    }
-                );
-            },
-        } as MediaSource<T>;
+        }) as MediaSource<T>;
     }
 
     createTopTracksPager(name: string): Pager<MediaItem> {

@@ -36,6 +36,7 @@ import {scrobble} from './plexScrobbler';
 import plexSettings from './plexSettings';
 import plexSources, {
     createSearchPager,
+    createSourceFromObject,
     createSourceFromPin,
     plexEditablePlaylists,
     plexSearch,
@@ -86,6 +87,7 @@ const plex: PersonalMediaService = {
     compareForRating,
     createPlaylist,
     createRadioPager,
+    createSourceFromObject,
     createSourceFromPin,
     editPlaylist,
     getFilters,

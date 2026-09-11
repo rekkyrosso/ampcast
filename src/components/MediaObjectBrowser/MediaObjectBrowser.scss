@@ -38,6 +38,10 @@
     .tab-panel {
         padding: 0;
         height: 100%;
+
+        .secondary-items .list-view {
+            border-top-left-radius: 0;
+        }
     }
 
     .media-info {

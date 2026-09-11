@@ -27,16 +27,16 @@ export default function MediaObjectTabs<T extends MediaObject>({
             },
             {
                 tab: 'Info',
-                panel: <MediaInfo item={item} />,
+                panel: item ? <MediaInfo item={item} /> : <div />,
                 prefix: 'info',
             },
             {
                 tab: 'Details',
-                panel: <MediaDetails item={item} />,
+                panel: item ? <MediaDetails item={item} /> : <div />,
                 prefix: 'details',
             },
         ];
     }, [item, children]);
 
-    return <TabList className="media-object-tabs" items={tabs} label={item.title} />;
+    return <TabList className="media-object-tabs" items={tabs} label={item?.title} />;
 }

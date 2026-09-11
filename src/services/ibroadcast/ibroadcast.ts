@@ -24,6 +24,7 @@ import {
 } from './ibroadcastAuth';
 import ibroadcastLibrary from './ibroadcastLibrary';
 import ibroadcastSources, {
+    createSourceFromObject,
     createSourceFromPin,
     ibroadcastPlaylists,
     ibroadcastSearch,
@@ -67,6 +68,7 @@ const ibroadcast: PersonalMediaService = {
     canRate,
     compareForRating,
     createPlaylist,
+    createSourceFromObject,
     createSourceFromPin,
     deletePlaylist,
     editPlaylist,

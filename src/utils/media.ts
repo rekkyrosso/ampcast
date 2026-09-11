@@ -58,6 +58,21 @@ export function canPlayMedia(type: 'audio' | 'video', src: string): Promise<bool
     });
 }
 
+export function getItemTypeFromSrc(src: string): ItemType {
+    const [, type = ''] = src.split(':');
+    if (type.includes('artist')) {
+        return ItemType.Artist;
+    } else if (type.includes('playlist')) {
+        return ItemType.Playlist;
+    } else if (type.includes('album')) {
+        return ItemType.Album;
+    } else if (type.includes('folder')) {
+        return ItemType.Folder;
+    } else {
+        return ItemType.Media;
+    }
+}
+
 export function getMediaLabel(itemType: ItemType, serviceId?: string): string {
     switch (itemType) {
         case ItemType.Playlist:

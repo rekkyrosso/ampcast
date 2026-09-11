@@ -10,6 +10,7 @@ import {browser} from 'utils';
 import {isListen} from 'services/localdb/listens';
 import {getService, getServiceFromSrc} from 'services/mediaServices';
 import {isServiceVisible} from 'services/mediaServices/servicesSettings';
+import {MediaSourceMenuItems} from 'components/MediaBrowser/MediaSourceMenu';
 import PopupMenu, {
     PopupMenuItem,
     PopupMenuProps,
@@ -26,7 +27,10 @@ export async function showActionsMenu<T extends MediaObject>(
     x: number,
     y: number,
     align: 'left' | 'right' = 'left',
-    actionsMenuProps?: Pick<ActionsMenuProps<T>, 'inListView' | 'parentPlaylist' | 'source'>
+    actionsMenuProps?: Pick<
+        ActionsMenuProps<T>,
+        'inListView' | 'parentPlaylist' | 'source' | 'level'
+    >
 ): Promise<Action | undefined> {
     return showPopupMenu(
         (props: PopupMenuProps<Action>) => (
@@ -44,6 +48,7 @@ export interface ActionsMenuProps<T extends MediaObject> {
     inListView?: boolean;
     parentPlaylist?: MediaPlaylist;
     source?: MediaSource<any>;
+    level?: 1 | 2 | 3;
 }
 
 export default function ActionsMenu<T extends MediaObject>({
@@ -51,6 +56,7 @@ export default function ActionsMenu<T extends MediaObject>({
     inListView,
     parentPlaylist,
     source,
+    level,
     ...props
 }: PopupMenuProps<Action> & ActionsMenuProps<T>) {
     return (
@@ -61,6 +67,12 @@ export default function ActionsMenu<T extends MediaObject>({
                 parentPlaylist={parentPlaylist}
                 source={source}
             />
+            {source?.singular && level === 1 ? (
+                <>
+                    <PopupMenuSeparator />
+                    <MediaSourceMenuItems source={source} />
+                </>
+            ) : null}
         </PopupMenu>
     );
 }

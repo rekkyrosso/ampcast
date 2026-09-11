@@ -34,6 +34,7 @@ import {
 import NavidromeIndexedPager from './NavidromeIndexedPager';
 import navidromeSettings from './navidromeSettings';
 import navidromeSources, {
+    createSourceFromObject,
     createSourceFromPin,
     navidromePlaylists,
     navidromeSearch,
@@ -87,6 +88,7 @@ const navidrome: PersonalMediaService = {
     canStore,
     compareForRating,
     createPlaylist,
+    createSourceFromObject,
     createSourceFromPin,
     editPlaylist,
     createRadioPager,

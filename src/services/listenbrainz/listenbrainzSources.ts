@@ -35,6 +35,7 @@ export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T
         sourceId: `${serviceId}/pinned-playlist`,
         icon: 'pin',
         isPin: true,
+        singular: true,
 
         search(): Pager<MediaPlaylist> {
             const [, , playlist_mbid] = pin.src.split(':');

@@ -174,7 +174,10 @@ async function getNewReleases(
     return get('/browse/new-releases', {offset, limit});
 }
 
-async function getPlaylist(id: string, fields = ''): Promise<SpotifyApi.SinglePlaylistResponse> {
+async function getPlaylist(
+    id: string,
+    fields = 'id,type,external_urls,name,description,images,owner,uri,items.total'
+): Promise<SpotifyApi.SinglePlaylistResponse> {
     const market = spotifySettings.market;
     return get(`/playlists/${id}`, {fields, market});
 }

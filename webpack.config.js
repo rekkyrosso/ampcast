@@ -228,7 +228,6 @@ module.exports = (args) => {
                 styles: resolve(__dirname, 'src/styles/'),
                 types: resolve(__dirname, 'src/types/'),
                 utils: resolve(__dirname, 'src/utils/'),
-                libs: resolve(__dirname, 'libs/'),
             },
             extensions: ['.tsx', '.ts', '.js'],
         },

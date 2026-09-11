@@ -12,8 +12,9 @@ import MediaServiceId from 'types/MediaServiceId';
 import MediaSource, {AnyMediaSource, MediaMultiSource, MediaSourceItems} from 'types/MediaSource';
 import Pager, {PagerConfig} from 'types/Pager';
 import Pin, {Pinnable} from 'types/Pin';
-import {exists, getMediaObjectId, partition} from 'utils';
+import {exists, getItemTypeFromSrc, getMediaObjectId, partition} from 'utils';
 import {NoSpotifyChartsError} from 'services/errors';
+import mediaSources from 'services/mediaServices/mediaSources';
 import SimplePager from 'services/pagers/SimplePager';
 import {setHiddenSources} from 'services/mediaServices/servicesSettings';
 import {
@@ -53,6 +54,24 @@ export const spotifyPlaylistItems: MediaSourceItems<SetRequired<MediaItem, 'nano
     },
 };
 
+export function createSourceFromObject<T extends MediaObject>(src: string): MediaSource<T> {
+    const itemType = getItemTypeFromSrc(src);
+    switch (itemType) {
+        case ItemType.Playlist:
+            return mediaSources.createFromObject<MediaPlaylist>({
+                src,
+                itemType,
+                secondaryItems: spotifyPlaylistItems,
+            }) as MediaSource<T>;
+
+        default:
+            return mediaSources.createFromObject<T>({
+                src,
+                itemType,
+            });
+    }
+}
+
 export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
     if (pin.itemType !== ItemType.Playlist) {
         throw Error('Unsupported Pin type.');
@@ -64,13 +83,13 @@ export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T
         sourceId: `${serviceId}/pinned-playlist`,
         icon: 'pin',
         isPin: true,
+        singular: true,
         secondaryItems: spotifyPlaylistItems,
 
         search(): Pager<T> {
-            const id = getMediaObjectId(pin);
-            const fields = 'id,type,external_urls,name,description,images,owner,uri,tracks.total';
             return new SpotifyPager(async (): Promise<SpotifyPage> => {
-                const playlist = await spotifyApi.getPlaylist(id, fields);
+                const id = getMediaObjectId(pin);
+                const playlist = await spotifyApi.getPlaylist(id);
                 return {items: [{...playlist, isChart: pin.isChart}], total: 1};
             });
         },

@@ -15,8 +15,9 @@ import MediaSource, {AnyMediaSource, MediaMultiSource} from 'types/MediaSource';
 import MediaType from 'types/MediaType';
 import Pager, {PagerConfig} from 'types/Pager';
 import Pin, {Pinnable} from 'types/Pin';
-import {exists} from 'utils';
+import {exists, getItemTypeFromSrc} from 'utils';
 import {NoFavoritesPlaylistError} from 'services/errors';
+import mediaSources from 'services/mediaServices/mediaSources';
 import SimplePager from 'services/pagers/SimplePager';
 import {t} from 'services/i18n';
 import {songChartsLayout} from 'components/MediaList/layouts';
@@ -58,36 +59,20 @@ const appleLibrarySort: MediaListSort = {
     },
 };
 
-export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
-    if (pin.itemType !== ItemType.Playlist) {
-        throw Error('Unsupported Pin type.');
-    }
-    return {
-        title: pin.title,
-        itemType: pin.itemType,
-        id: pin.src,
-        sourceId: `${serviceId}/pinned-playlist`,
-        icon: 'pin',
-        isPin: true,
+export function createSourceFromObject<T extends MediaObject>(src: string): MediaSource<T> {
+    const itemType = getItemTypeFromSrc(src);
+    return mediaSources.createFromObject<T>({
+        src,
+        itemType,
+    });
+}
 
-        search(): Pager<T> {
-            const [, type, id] = pin.src.split(':');
-            const isLibraryItem = type.startsWith('library-');
-            const path = isLibraryItem ? '/v1/me/library' : '/v1/catalog/{{storefrontId}}';
-            return new MusicKitPager(
-                `${path}/playlists/${id}`,
-                isLibraryItem
-                    ? {
-                          'include[library-playlists]': 'catalog',
-                          'fields[library-playlists]': 'name,playParams,artwork,canEdit',
-                      }
-                    : {
-                          'omit[resource:playlists]': 'relationships',
-                      },
-                {pageSize: 0}
-            );
-        },
-    };
+export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
+    return mediaSources.createFromObject<MediaPlaylist>({
+        src: pin.src,
+        itemType: ItemType.Playlist,
+        isPin: true,
+    }) as MediaSource<T>;
 }
 
 export const appleSearch: MediaMultiSource = {

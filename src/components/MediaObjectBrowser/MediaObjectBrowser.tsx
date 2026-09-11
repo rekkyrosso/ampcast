@@ -19,7 +19,7 @@ export default function MediaObjectBrowser<T extends MediaObject>({
         <div className="panel media-object-browser">
             <div className="media-object-browser-content">
                 <MediaObjectHeader>{itemList}</MediaObjectHeader>
-                {item ? <MediaObjectTabs item={item}>{children}</MediaObjectTabs> : null}
+                <MediaObjectTabs item={item}>{children}</MediaObjectTabs>
             </div>
         </div>
     );

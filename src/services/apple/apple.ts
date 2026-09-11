@@ -33,6 +33,7 @@ import appleSettings from './appleSettings';
 import appleSources, {
     appleEditablePlaylists,
     appleSearch,
+    createSourceFromObject,
     createSourceFromPin,
 } from './appleSources';
 import Credentials from './components/AppleCredentials';
@@ -74,6 +75,7 @@ const apple: PublicMediaService = {
     canStore,
     compareForRating,
     createPlaylist,
+    createSourceFromObject,
     createSourceFromPin,
     getDroppedItems,
     getFilters,

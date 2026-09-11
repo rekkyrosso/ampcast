@@ -36,6 +36,7 @@ import JellyfinPager from './JellyfinPager';
 import jellyfinApi from './jellyfinApi';
 import jellyfinSources, {
     createSearchPager,
+    createSourceFromObject,
     createSourceFromPin,
     jellyfinEditablePlaylists,
     jellyfinSearch,
@@ -84,6 +85,7 @@ const jellyfin: PersonalMediaService = {
     compareForRating,
     createPlaylist,
     createRadioPager,
+    createSourceFromObject,
     createSourceFromPin,
     editPlaylist,
     getFilters,

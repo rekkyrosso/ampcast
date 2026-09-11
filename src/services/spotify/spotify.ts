@@ -32,6 +32,7 @@ import SpotifyPager, {SpotifyPage} from './SpotifyPager';
 import spotifySettings from './spotifySettings';
 import spotifySources, {
     createSearchPager,
+    createSourceFromObject,
     createSourceFromPin,
     spotifyEditablePlaylists,
     spotifySearch,
@@ -76,6 +77,7 @@ const spotify: PublicMediaService = {
     canStore,
     compareForRating,
     createPlaylist,
+    createSourceFromObject,
     createSourceFromPin,
     editPlaylist,
     getDroppedItems,

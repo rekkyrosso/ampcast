@@ -13,8 +13,9 @@ import MediaServiceId from 'types/MediaServiceId';
 import MediaSource, {AnyMediaSource, MediaMultiSource, MediaSourceItems} from 'types/MediaSource';
 import Pager from 'types/Pager';
 import Pin, {Pinnable} from 'types/Pin';
-import {getMediaObjectId} from 'utils';
+import {getItemTypeFromSrc} from 'utils';
 import {t} from 'services/i18n';
+import mediaSources from 'services/mediaServices/mediaSources';
 import SimplePager from 'services/pagers/SimplePager';
 import NavidromeIndexedPager from './NavidromeIndexedPager';
 import NavidromeRecentlyPlayedPager from './NavidromeRecentlyPlayedPager';
@@ -65,36 +66,52 @@ export const navidromePlaylistItems: MediaSourceItems<SetRequired<MediaItem, 'na
     itemKey: 'nanoId',
 };
 
-export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
-    if (pin.itemType !== ItemType.Playlist) {
-        throw Error('Unsupported Pin type.');
+export function createSourceFromObject<T extends MediaObject>(src: string): MediaSource<T> {
+    const itemType = getItemTypeFromSrc(src);
+    switch (itemType) {
+        case ItemType.Artist:
+            return mediaSources.createFromObject<MediaArtist>({
+                src,
+                itemType,
+                secondaryItems: {
+                    sort: navidromeArtistAlbumsSort,
+                },
+                childSort: navidromeArtistAlbumsSort.defaultSort,
+                createChildPager: createArtistAlbumsPager,
+            }) as MediaSource<T>;
+
+        case ItemType.Playlist:
+            return mediaSources.createFromObject<MediaPlaylist>({
+                src,
+                itemType,
+                primaryItems: {
+                    layout: navidromePlaylistLayout,
+                },
+                secondaryItems: navidromePlaylistItems,
+                childSort: navidromePlaylistItemsSort.defaultSort,
+                createChildPager: createPlaylistItemsPager,
+            }) as MediaSource<T>;
+
+        default:
+            return mediaSources.createFromObject<T>({
+                src,
+                itemType,
+            });
     }
-    return {
-        title: pin.title,
-        itemType: pin.itemType,
-        id: pin.src,
-        sourceId: `${serviceId}/pinned-playlist`,
-        icon: 'pin',
+}
+
+export function createSourceFromPin<T extends Pinnable>(pin: Pin): MediaSource<T> {
+    return mediaSources.createFromObject<MediaPlaylist>({
+        src: pin.src,
+        itemType: ItemType.Playlist,
         isPin: true,
         primaryItems: {
             layout: navidromePlaylistLayout,
         },
         secondaryItems: navidromePlaylistItems,
-
-        search(): Pager<MediaPlaylist> {
-            const id = getMediaObjectId(pin);
-            return new NavidromeIndexedPager(
-                ItemType.Playlist,
-                `playlist/${id}`,
-                undefined,
-                {
-                    childSort: navidromePlaylistItemsSort.defaultSort,
-                    childSortId: `${serviceId}/pinned-playlist/2`,
-                },
-                createPlaylistItemsPager
-            );
-        },
-    } as MediaSource<T>;
+        childSort: navidromePlaylistItemsSort.defaultSort,
+        createChildPager: createPlaylistItemsPager,
+    }) as MediaSource<T>;
 }
 
 export const navidromeSearch: MediaMultiSource = {
