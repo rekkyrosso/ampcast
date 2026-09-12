@@ -17,7 +17,7 @@ import ParentOf from 'types/ParentOf';
 import PlaybackType from 'types/PlaybackType';
 import SortParams from 'types/SortParams';
 import Thumbnail from 'types/Thumbnail';
-import {Logger, getMediaObjectId, uniq} from 'utils';
+import {Logger, exists, getMediaObjectId, uniq} from 'utils';
 import {MAX_DURATION} from 'services/constants';
 import SimplePager from 'services/pagers/SimplePager';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
@@ -491,27 +491,30 @@ export function createArtistAlbumsPager(
         if (artist.title === 'Various Artists') {
             return albumsPager;
         }
-        const createNonEmptyPager = (album: MediaAlbum, ...albums: MediaAlbum[]) =>
+        const createSyntheticAlbums = (...albums: MediaAlbum[]) =>
             new SimpleMediaPager<MediaAlbum>(async () => {
-                try {
-                    const items = await fetchFirstPage(album.pager, {keepAlive: true});
-                    if (items.length === 0) {
-                        album.pager.disconnect();
-                        return [...albums];
-                    } else {
-                        return [album, ...albums];
-                    }
-                } catch (err) {
-                    logger.error(err);
-                    album.pager.disconnect();
-                    return [...albums];
-                }
+                const result = await Promise.all<MediaAlbum | undefined>([
+                    ...albums.map(async (album) => {
+                        try {
+                            const items = await fetchFirstPage(album.pager, {keepAlive: true});
+                            if (items.length === 0) {
+                                album.pager.disconnect();
+                            } else {
+                                return album;
+                            }
+                        } catch (err) {
+                            logger.error(err);
+                            album.pager.disconnect();
+                        }
+                    }),
+                ]);
+                return result.filter(exists);
             });
         const videos = createArtistVideos(artist);
         const radios = createArtistRadios(artist);
         const allTracks = createArtistAllTracks(artist);
-        const topPager = createNonEmptyPager(videos);
-        const otherTracksPager = createNonEmptyPager(otherTracks, allTracks, radios);
+        const topPager = createSyntheticAlbums(videos, radios);
+        const otherTracksPager = createSyntheticAlbums(otherTracks, allTracks);
         return new WrappedPager(topPager, albumsPager, otherTracksPager);
     }
 }
@@ -613,7 +616,7 @@ function createArtistOtherTracksPager(artist: MediaArtist): Pager<MediaItem> {
 }
 
 function createArtistAllTracksPager(artist: MediaArtist): Pager<MediaItem> {
-    const allAlbumTracks = createPager<MediaItem>(
+    return createPager<MediaItem>(
         {
             params: {
                 'artist.id': getMediaObjectId(artist),
@@ -623,8 +626,6 @@ function createArtistAllTracksPager(artist: MediaArtist): Pager<MediaItem> {
         },
         {autofill: true, pageSize: 1000}
     );
-    const otherTracksPager = createArtistOtherTracksPager(artist);
-    return new WrappedPager(undefined, allAlbumTracks, otherTracksPager);
 }
 
 function createArtistVideosPager(artist: MediaArtist): Pager<MediaItem> {

@@ -129,7 +129,7 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
         }
     }
 
-    disconnect(disconnectChildren = true): void {
+    disconnect(keepChildrenConnected?: boolean): void {
         if (!this.disconnected) {
             this.#disconnected = true;
             if (this.#subscriptions) {
@@ -141,7 +141,7 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
                     }
                 }
             }
-            if (disconnectChildren) {
+            if (!keepChildrenConnected) {
                 this.#items$?.value.forEach((item) => (item as any)?.pager?.disconnect());
             }
             this.#items$?.complete();
@@ -153,14 +153,10 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
         }
     }
 
-    fetchAt(index: number, length = this.config.pageSize): void {
+    fetchAt(index: number, length = this.config.pageSize || 50): void {
         if (this.disconnected) {
             logger.warn('disconnected');
             return;
-        }
-
-        if (!length) {
-            length = 50;
         }
 
         if (!this.connected) {

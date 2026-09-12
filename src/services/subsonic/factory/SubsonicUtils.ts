@@ -24,7 +24,7 @@ import stationStore from 'services/internetRadio/stationStore';
 import type SubsonicService from './SubsonicService';
 import type SubsonicApi from './SubsonicApi';
 import SubsonicPager, {SubsonicPlaylistItemsPager} from './SubsonicPager';
-import SubsonicAlbumsPager from './SubsonicAlbumsPager';
+import SubsonicArtistAlbumsPager from './SubsonicArtistAlbumsPager';
 
 export default class SubsonicUtils {
     constructor(protected readonly service: SubsonicService) {}
@@ -341,62 +341,7 @@ export default class SubsonicUtils {
     }
 
     private createArtistAlbumsPager(artist: Subsonic.Artist): Pager<MediaAlbum> {
-        const albumsPager = new SubsonicAlbumsPager(this.service, artist);
-        if (artist.name === 'Various Artists') {
-            return albumsPager;
-        }
-        const topTracks = this.createArtistTopTracks(artist);
-        const topTracksPager = new SimplePager([topTracks]);
-        const radios = this.createArtistRadios(artist);
-        const radiosPager = new SimplePager([radios]);
-        return new WrappedPager(topTracksPager, albumsPager, radiosPager);
-    }
-
-    private createArtistRadios(artist: Subsonic.Artist): MediaAlbum {
-        const src = `${this.serviceId}:artist-radio:${artist.id}`;
-        const thumbnails = this.createThumbnails(artist.coverArt);
-        const radio: MediaItem = {
-            src,
-            title: `${artist.name} - Radio`,
-            itemType: ItemType.Media,
-            mediaType: MediaType.Audio,
-            linearType: LinearType.Station,
-            playbackType: PlaybackType.Direct,
-            duration: MAX_DURATION,
-            thumbnails,
-            playedAt: 0,
-            skippable: true,
-            isFavoriteStation: stationStore.isFavorite({src}),
-        };
-        return {
-            itemType: ItemType.Album,
-            src: `${this.serviceId}:radios:${artist.id}`,
-            title: 'Radios',
-            artists: [artist.name],
-            thumbnails,
-            pager: new SimplePager([radio]),
-            trackCount: undefined,
-            synthetic: true,
-            links: {
-                artists: [this.getArtistLink(artist)],
-            },
-        };
-    }
-
-    private createArtistTopTracks(artist: Subsonic.Artist): MediaAlbum {
-        return {
-            itemType: ItemType.Album,
-            src: `${this.serviceId}:top-tracks:${artist.id}`,
-            title: 'Top Songs',
-            artists: [artist.name],
-            thumbnails: this.createThumbnails(artist.coverArt),
-            pager: this.service.createTopTracksPager(artist.name),
-            trackCount: undefined,
-            synthetic: true,
-            links: {
-                artists: [this.getArtistLink(artist)],
-            },
-        };
+        return new SubsonicArtistAlbumsPager(this.service, artist);
     }
 
     private createFolderItem(

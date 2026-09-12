@@ -262,7 +262,11 @@ export default class RadioPlayer implements Player<MediaItem> {
     }
 
     canPlay(item: MediaItem): boolean {
-        return item.src.includes(':radio:') || item.src.includes(':artist-radio:');
+        return (
+            item.src.includes(':radio:') ||
+            item.src.includes(':artist-radio:') ||
+            item.src.includes(':song-radio:')
+        );
     }
 
     load(station: MediaItem): void {

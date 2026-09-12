@@ -12,24 +12,15 @@ export default function fetchFirstPage<T>(
 ): Promise<readonly T[]> {
     return new Promise((resolve, reject) => {
         const items$ = pager.observeItems();
-        const error$ = race(
-            pager
-                .observeError()
-                .pipe(
-                    map((error: any) =>
-                        error instanceof Error ? error : Error(error?.message || 'unknown')
-                    )
-                ),
-            timer(timeout).pipe(map(() => Error('timeout')))
-        );
+        const error$ = race(pager.observeError(), timer(timeout).pipe(map(() => Error('timeout'))));
         race(items$, error$).subscribe((result) => {
             if (!keepAlive) {
-                pager.disconnect(false);
+                pager.disconnect(true);
             }
-            if (result instanceof Error) {
-                reject(result);
-            } else {
+            if (Array.isArray(result)) {
                 resolve(result);
+            } else {
+                reject(result);
             }
         });
         pager.fetchAt(0);

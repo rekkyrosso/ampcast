@@ -264,6 +264,12 @@ accessToken$
 async function checkConnection(): Promise<boolean> {
     try {
         plexSettings.libraries = await plexApi.getMusicLibraries();
+        try {
+            const libraryPrefs = await plexApi.getLibraryPrefs(plexSettings.libraryId);
+            plexSettings.sonicAnalysis = libraryPrefs.musicAnalysis;
+        } catch (err) {
+            logger.error(err);
+        }
         return true;
     } catch (err: any) {
         if (err.status === 401) {

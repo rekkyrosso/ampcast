@@ -15,12 +15,11 @@ import {
 import MediaObject from 'types/MediaObject';
 import Pager from 'types/Pager';
 import {Logger} from 'utils';
-import {PageFetch} from './MediaPager';
 
 const logger = new Logger('WrappedPager');
 
 export default class WrappedPager<T extends MediaObject> implements Pager<T> {
-    private readonly fetches$ = new BehaviorSubject<PageFetch>({index: 0, length: 0});
+    private readonly fetches$ = new BehaviorSubject(-1);
     private subscriptions?: Subscription;
     private disconnected = false;
 
@@ -90,17 +89,17 @@ export default class WrappedPager<T extends MediaObject> implements Pager<T> {
         return this.bodyPager.observeError();
     }
 
-    disconnect(): void {
+    disconnect(keepChildrenConnected?: boolean): void {
         if (!this.disconnected) {
             this.disconnected = true;
             this.subscriptions?.unsubscribe();
-            this.headerPager?.disconnect();
-            this.bodyPager.disconnect();
-            this.footerPager?.disconnect();
+            this.headerPager?.disconnect(keepChildrenConnected);
+            this.bodyPager.disconnect(keepChildrenConnected);
+            this.footerPager?.disconnect(keepChildrenConnected);
         }
     }
 
-    fetchAt(index: number, length: number): void {
+    fetchAt(index: number): void {
         if (this.disconnected) {
             logger.warn('disconnected');
             return;
@@ -108,7 +107,7 @@ export default class WrappedPager<T extends MediaObject> implements Pager<T> {
         if (!this.subscriptions) {
             this.connect();
         }
-        this.fetches$.next({index, length});
+        this.fetches$.next(index);
     }
 
     private connect(): void {
@@ -118,7 +117,7 @@ export default class WrappedPager<T extends MediaObject> implements Pager<T> {
             if (this.headerPager) {
                 this.subscribeTo(
                     this.observeFetches().pipe(
-                        tap(({index, length}) => this.headerPager!.fetchAt(index, length)),
+                        tap((index) => this.headerPager!.fetchAt(index)),
                         take(1)
                     )
                 );
@@ -126,8 +125,8 @@ export default class WrappedPager<T extends MediaObject> implements Pager<T> {
 
             this.subscribeTo(
                 combineLatest([this.observeHeaderSize(), this.observeFetches()]).pipe(
-                    tap(([headerSize, fetch]) =>
-                        this.bodyPager.fetchAt(Math.max(fetch.index - headerSize, 0), fetch.length)
+                    tap(([headerSize, index]) =>
+                        this.bodyPager.fetchAt(Math.max(index - headerSize, 0))
                     )
                 )
             );
@@ -148,8 +147,8 @@ export default class WrappedPager<T extends MediaObject> implements Pager<T> {
         );
     }
 
-    private observeFetches(): Observable<PageFetch> {
-        return this.fetches$.pipe(filter((fetch) => fetch.length > 0));
+    private observeFetches(): Observable<number> {
+        return this.fetches$.pipe(filter((index) => index !== -1));
     }
 
     private observeHeaderSize(): Observable<number> {

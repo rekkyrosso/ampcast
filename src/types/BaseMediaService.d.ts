@@ -73,6 +73,7 @@ type BaseMediaService = Auth & {
         options?: CreatePlaylistOptions<T>
     ) => Promise<MediaPlaylist>;
     createRadioPager?: (radio: MediaItem) => Pager<MediaItem>;
+    createSongRadio?: (song: MediaItem) => MediaItem | null;
     createSourceFromObject?: <T extends MediaObject>(src: string) => MediaSource<T>;
     createSourceFromPin?: <T extends Pinnable>(pin: Pin) => MediaSource<T>;
     deletePlaylist?: (playlist: MediaPlaylist) => Promise<void>;

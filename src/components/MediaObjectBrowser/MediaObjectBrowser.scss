@@ -16,6 +16,7 @@
             visibility: inherit !important;
         }
 
+        .error-report,
         .scrollbar {
             display: none;
         }
@@ -27,12 +28,25 @@
         top: 5.5em;
         right: 0;
         bottom: 0;
+
+        .error-box {
+            height: calc(100% - var(--gutter-width));
+
+             h2 {
+                display: none;
+            }
+        }
     }
 
     .tab-list-panels {
         background-color: var(--frame-color);
         border: 0;
         border-radius: 0;
+    }
+    
+    .tab[aria-selected="true"] {
+        border-color: var(--frame-color-lo);
+        border-bottom-color: var(--background-color);
     }
 
     .tab-panel {
@@ -51,7 +65,7 @@
         height: calc(100% - 1em);
     }
 
-    .tab-details[aria-selected=true] {
+    .tab-details[aria-selected=true]:has(.list-view) {
         border-bottom-color: var(--black);
     }
 

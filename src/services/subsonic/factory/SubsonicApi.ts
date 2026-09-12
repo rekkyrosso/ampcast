@@ -199,7 +199,7 @@ export default class SubsonicApi {
         return data.artistInfo2;
     }
 
-    async getArtistRadioTracks(id: string, count = 200): Promise<Subsonic.MediaItem[]> {
+    async getRadioTracks(id: string, count = 200): Promise<Subsonic.MediaItem[]> {
         const data = await this.get<{similarSongs2: {song: Subsonic.MediaItem[]}}>(
             'getSimilarSongs2',
             {id, count}

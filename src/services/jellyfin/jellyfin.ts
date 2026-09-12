@@ -15,8 +15,10 @@ import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
+import {getMediaObjectId} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
 import embyScrobbler from 'services/emby/embyScrobbler';
+import mediaSources from 'services/mediaServices/mediaSources';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
 import {t} from 'services/i18n';
@@ -85,6 +87,7 @@ const jellyfin: PersonalMediaService = {
     compareForRating,
     createPlaylist,
     createRadioPager,
+    createSongRadio,
     createSourceFromObject,
     createSourceFromPin,
     editPlaylist,
@@ -156,11 +159,20 @@ async function createPlaylist<T extends MediaItem>(
 }
 
 function createRadioPager(item: MediaItem): Pager<MediaItem> {
-    const [, type, id] = item.src.split(':');
-    if (type !== 'artist-radio') {
+    if (item.linearType !== LinearType.Station) {
         throw Error('Not supported');
     }
+    const id = getMediaObjectId(item);
     return new JellyfinPager(`Items/${id}/InstantMix`, {UserId: jellyfinSettings.userId});
+}
+
+function createSongRadio(song: MediaItem): MediaItem | null {
+    const id = getMediaObjectId(song);
+    return mediaSources.createRadioItem({
+        src: `${serviceId}:song-radio:${id}`,
+        title: `${song.title} - Radio`,
+        thumbnails: song.thumbnails,
+    });
 }
 
 async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {

@@ -65,13 +65,13 @@ export function createArtistAlbumsPager(
         return albumsPager;
     }
     const topTracks = createArtistTopTracks(artist);
-    const topTracksPager = new SimplePager([topTracks]);
     const radios = createArtistRadios(artist);
+    const topPager = new SimplePager([topTracks, radios]);
     const allTracks = createArtistAllTracks(artist);
-    const otherTracksPager = new SimplePager<MediaAlbum>(
-        checkVersion(navidromeSettings.serverVersion, '0.56.0') ? [allTracks, radios] : [radios]
-    );
-    return new WrappedPager(topTracksPager, albumsPager, otherTracksPager);
+    const allTracksPager = checkVersion(navidromeSettings.serverVersion, '0.56.0')
+        ? new SimplePager<MediaAlbum>([allTracks])
+        : undefined;
+    return new WrappedPager(topPager, albumsPager, allTracksPager);
 }
 
 export function createPlaylistItemsPager(

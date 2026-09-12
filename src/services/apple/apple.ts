@@ -14,6 +14,7 @@ import PublicMediaService from 'types/PublicMediaService';
 import ServiceType from 'types/ServiceType';
 import {chunk, groupBy} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
+import mediaSources from 'services/mediaServices/mediaSources';
 import {dispatchMetadataChanges} from 'services/metadata';
 import fetchAllTracks from 'services/pagers/fetchAllTracks';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
@@ -75,6 +76,7 @@ const apple: PublicMediaService = {
     canStore,
     compareForRating,
     createPlaylist,
+    createSongRadio,
     createSourceFromObject,
     createSourceFromPin,
     getDroppedItems,
@@ -187,6 +189,19 @@ async function createPlaylist<T extends MediaItem>(
         pager: new SimplePager(),
         trackCount: items.length,
     };
+}
+
+function createSongRadio(song: MediaItem): MediaItem | null {
+    const catalogId = song.apple?.catalogId;
+    if (catalogId) {
+        return mediaSources.createRadioItem({
+            src: `${serviceId}:stations:ra.${catalogId}`,
+            title: `${song.title} Station`,
+            thumbnails: song.thumbnails,
+        });
+    } else {
+        return null;
+    }
 }
 
 function compareForRating<T extends MediaObject>(a: T, b: T): boolean {

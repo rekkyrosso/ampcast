@@ -30,9 +30,9 @@ export default class DexiePager<T extends MediaObject> extends MediaPager<T> {
         }
     }
 
-    disconnect(): void {
+    disconnect(keepChildrenConnected?: boolean): void {
         if (!this.disconnected) {
-            super.disconnect();
+            super.disconnect(keepChildrenConnected);
             this.subscription?.unsubscribe();
         }
     }

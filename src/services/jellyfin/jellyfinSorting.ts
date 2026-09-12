@@ -16,7 +16,7 @@ export const jellyfinSongsSort: MediaListSort = {
         AlbumArtist: 'Album Artist',
     },
     defaultSort: {
-        sortBy: 'AlbumArtist',
+        sortBy: 'Title',
         sortOrder: 1,
     },
 };

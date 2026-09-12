@@ -25,7 +25,7 @@ import {PersonalMediaServiceId} from 'types/MediaServiceId';
 import Pin, {Pinnable} from 'types/Pin';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
-import {getItemTypeFromSrc, getTextFromHtml, Logger} from 'utils';
+import {getItemTypeFromSrc, getMediaObjectId, getTextFromHtml, Logger} from 'utils';
 import {OpenSubsonicRequiredError} from 'services/errors';
 import mediaSources from 'services/mediaServices/mediaSources';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
@@ -671,13 +671,22 @@ export default class SubsonicService implements PersonalMediaService {
     }
 
     createRadioPager(item: MediaItem): Pager<MediaItem> {
-        const [, type, id] = item.src.split(':');
-        if (type !== 'artist-radio') {
+        if (item.linearType !== LinearType.Station) {
             throw Error('Not supported');
         }
         return new SubsonicPager<MediaItem>(this, ItemType.Media, async () => {
-            const items = await this.api.getArtistRadioTracks(id);
+            const id = getMediaObjectId(item);
+            const items = await this.api.getRadioTracks(id);
             return {items, atEnd: true};
+        });
+    }
+
+    createSongRadio(song: MediaItem): MediaItem | null {
+        const id = getMediaObjectId(song);
+        return mediaSources.createRadioItem({
+            src: `${this.id}:song-radio:${id}`,
+            title: `${song.title} - Radio`,
+            thumbnails: song.thumbnails,
         });
     }
 

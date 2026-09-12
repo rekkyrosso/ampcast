@@ -13,6 +13,7 @@ import {PagedItemsProps} from './PagedItems';
 export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>) {
     const [[selectedArtist], setSelectedArtist] = useState<readonly MediaArtist[]>([]);
     const [[selectedAlbum], setSelectedAlbum] = useState<readonly MediaAlbum[]>([]);
+    const [error, setError] = useState<unknown>();
     const albumsPager = selectedArtist?.pager || null;
     const tracksPager = selectedAlbum?.pager || null;
     const [tracksSource, setTracksSource, clearTracksSource] = useSyntheticAlbumSource();
@@ -31,6 +32,7 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
             title={source.title}
             source={source}
             level={1}
+            onError={setError}
             onSelect={setSelectedArtist}
         />
     );
@@ -63,7 +65,7 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
     return (
         <div className="panel">
             {source.singular ? (
-                <MediaObjectBrowser item={selectedArtist} itemList={artistList}>
+                <MediaObjectBrowser item={selectedArtist} itemList={artistList} error={error}>
                     <Splitter id="artist-albums-tracks-layout" arrange="rows">
                         {albumList}
                         {trackList}

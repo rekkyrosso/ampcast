@@ -274,9 +274,10 @@ export default function MediaList<T extends MediaObject>({
             if (item?.itemType === ItemType.Media) {
                 const [serviceId] = item.src.split(':');
                 const playing =
-                    item.src === playingSrc ||
-                    (playingCatalogId && item.apple?.catalogId === playingCatalogId) ||
-                    item.playedAt === -1
+                    !singular &&
+                    (item.src === playingSrc ||
+                        (playingCatalogId && item.apple?.catalogId === playingCatalogId) ||
+                        item.playedAt === -1)
                         ? 'playing'
                         : '';
                 const unplayable =
@@ -288,7 +289,7 @@ export default function MediaList<T extends MediaObject>({
                 return '';
             }
         },
-        [playingSrc, playingCatalogId, disableExplicitContent]
+        [singular, playingSrc, playingCatalogId, disableExplicitContent]
     );
 
     return (

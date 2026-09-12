@@ -324,6 +324,19 @@ declare namespace plex {
         readonly playQueueItemID: number;
     }
 
+    interface LibraryPrefs {
+        readonly Setting: readonly LibrarySetting[];
+    }
+
+    interface LibrarySetting {
+        readonly id: string;
+        readonly value: string;
+    }
+
+    interface LibraryPrefsResponse {
+        readonly MediaContainer: LibraryPrefs;
+    }
+
     interface Directory {
         readonly Location: readonly Location[];
         readonly agent: string;

@@ -14,8 +14,9 @@ import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
-import {getTextFromHtml, Logger} from 'utils';
+import {getMediaObjectId, getTextFromHtml, Logger} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
+import mediaSources from 'services/mediaServices/mediaSources';
 import {bestOf} from 'services/metadata';
 import SimplePager from 'services/pagers/SimplePager';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
@@ -92,6 +93,7 @@ const navidrome: PersonalMediaService = {
     createSourceFromPin,
     editPlaylist,
     createRadioPager,
+    createSongRadio,
     getFilters,
     getLyrics,
     getMediaObject,
@@ -212,6 +214,15 @@ async function getMediaObject<T extends MediaObject>(src: string): Promise<T> {
 
 function createRadioPager(item: MediaItem): Pager<MediaItem> {
     return subsonicService.createRadioPager(item);
+}
+
+function createSongRadio(song: MediaItem): MediaItem | null {
+    const id = getMediaObjectId(song);
+    return mediaSources.createRadioItem({
+        src: `${serviceId}:song-radio:${id}`,
+        title: `${song.title} - Radio`,
+        thumbnails: song.thumbnails,
+    });
 }
 
 async function addMetadata<T extends MediaObject>(item: T): Promise<T> {

@@ -15,9 +15,11 @@ import PersonalMediaLibrary from 'types/PersonalMediaLibrary';
 import PersonalMediaService from 'types/PersonalMediaService';
 import PlaybackType from 'types/PlaybackType';
 import ServiceType from 'types/ServiceType';
-import {getMediaObjectId} from 'utils';
+import {getMediaObjectId, Logger} from 'utils';
 import actionsStore from 'services/actions/actionsStore';
+import mediaSources from 'services/mediaServices/mediaSources';
 import fetchFirstPage, {fetchFirstItem} from 'services/pagers/fetchFirstPage';
+import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
 import SimplePager from 'services/pagers/SimplePager';
 import {
     observeConnecting,
@@ -44,6 +46,8 @@ import plexSources, {
 import ServerSettings from './components/PlexServerSettings';
 
 const serviceId: MediaServiceId = 'plex';
+
+const logger = new Logger(serviceId);
 
 const plex: PersonalMediaService = {
     id: serviceId,
@@ -87,6 +91,7 @@ const plex: PersonalMediaService = {
     compareForRating,
     createPlaylist,
     createRadioPager,
+    createSongRadio,
     createSourceFromObject,
     createSourceFromPin,
     editPlaylist,
@@ -159,11 +164,39 @@ async function createPlaylist<T extends MediaItem>(
 }
 
 function createRadioPager(item: MediaItem): Pager<MediaItem> {
-    const [, type] = item.src.split(':');
-    if (type !== 'radio' && type !== 'artist-radio') {
+    if (item.linearType !== LinearType.Station) {
         throw Error('Not supported');
     }
-    return new PlexRadioPager(item.src);
+    const [, type, ratingKey] = item.src.split(':');
+    return type === 'song-radio'
+        ? new SimpleMediaPager(async () => {
+              const item = await getMediaObject<MediaItem>(`plex:track:${ratingKey}`);
+              const pager = new PlexPager<MediaItem>({
+                  path: `/library/metadata/${ratingKey}/similar`,
+              });
+              try {
+                  const items = await fetchFirstPage(pager);
+                  return [item, ...items];
+              } catch (err) {
+                  logger.info('createRadioPager');
+                  logger.error(err);
+                  return [item];
+              }
+          })
+        : new PlexRadioPager(item.src);
+}
+
+function createSongRadio(song: MediaItem): MediaItem | null {
+    if (plexSettings.sonicAnalysis) {
+        const id = getMediaObjectId(song);
+        return mediaSources.createRadioItem({
+            src: `${serviceId}:song-radio:${id}`,
+            title: `${song.title} - Radio`,
+            thumbnails: song.thumbnails,
+        });
+    } else {
+        return null;
+    }
 }
 
 async function editPlaylist(playlist: MediaPlaylist): Promise<MediaPlaylist> {

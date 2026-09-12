@@ -1,42 +1,52 @@
 import React, {useMemo} from 'react';
 import MediaObject from 'types/MediaObject';
+import ErrorBox from 'components/Errors/ErrorBox';
 import MediaDetails from 'components/MediaInfo/MediaDetails';
 import MediaInfo from 'components/MediaInfo';
 import TabList, {TabItem} from 'components/TabList';
 
 export interface MediaObjectTabsProps<T extends MediaObject> {
-    item: T;
+    item: T | undefined;
     children?: React.ReactNode;
+    error?: unknown;
 }
 
 export default function MediaObjectTabs<T extends MediaObject>({
     item,
     children,
+    error,
 }: MediaObjectTabsProps<T>) {
     const tabs: TabItem[] = useMemo(() => {
+        const errorBox = error ? <ErrorBox error={error} reportedBy="MediaObjectBrowser" /> : null;
         return [
             {
                 tab: 'Media',
-                panel: children,
+                panel: errorBox || children,
                 prefix: 'media',
             },
             {
                 tab: 'Related',
-                panel: <p>Related</p>,
+                panel: errorBox || <p>Related</p>,
                 prefix: 'related',
             },
             {
                 tab: 'Info',
-                panel: item ? <MediaInfo item={item} /> : <div />,
+                panel: errorBox || (item ? <MediaInfo item={item} /> : <div />),
                 prefix: 'info',
             },
             {
                 tab: 'Details',
-                panel: item ? <MediaDetails item={item} /> : <div />,
+                panel: errorBox || (item ? <MediaDetails item={item} /> : <div />),
                 prefix: 'details',
             },
         ];
-    }, [item, children]);
+    }, [item, children, error]);
 
-    return <TabList className="media-object-tabs" items={tabs} label={item?.title} />;
+    return (
+        <TabList
+            className="media-object-tabs"
+            items={tabs}
+            label={error ? 'Error' : item?.title || ''}
+        />
+    );
 }

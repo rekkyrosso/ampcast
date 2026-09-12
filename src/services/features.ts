@@ -1,1 +1,1 @@
-export const WEB_LINKS = false;
+export const WEB_LINKS = true;

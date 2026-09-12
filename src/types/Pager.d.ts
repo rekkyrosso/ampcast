@@ -11,7 +11,7 @@ export default interface Pager<T> {
     observeSize(): Observable<number>;
     observeError(): Observable<unknown>;
     fetchAt(index: number, length?: number): void;
-    disconnect(disconnectChildren?: boolean): void; // Disconnect child pagers (defaults to `true`).
+    disconnect(keepChildrenConnected?: boolean): void;
     activate?(): void; // Mark the pager as `active` (currently providing data to a component in view)
     deactivate?(): void;
     // These optional methods are for dynamic lists (e.g. playlists)

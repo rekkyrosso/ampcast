@@ -10,6 +10,7 @@ import {PagedItemsProps} from './PagedItems';
 
 export default function Playlists({source, ...props}: PagedItemsProps<MediaPlaylist>) {
     const [[selectedPlaylist], setSelectedPlaylist] = useState<readonly MediaPlaylist[]>([]);
+    const [error, setError] = useState<unknown>();
     const [{complete: draggable}] = usePager(selectedPlaylist?.pager);
 
     const playlistList = (
@@ -19,6 +20,7 @@ export default function Playlists({source, ...props}: PagedItemsProps<MediaPlayl
             source={source}
             level={1}
             draggable={draggable}
+            onError={setError}
             onSelect={setSelectedPlaylist}
         />
     );
@@ -37,7 +39,7 @@ export default function Playlists({source, ...props}: PagedItemsProps<MediaPlayl
     return (
         <div className="panel">
             {source.singular ? (
-                <MediaObjectBrowser item={selectedPlaylist} itemList={playlistList}>
+                <MediaObjectBrowser item={selectedPlaylist} itemList={playlistList} error={error}>
                     {playlistItems}
                 </MediaObjectBrowser>
             ) : source.secondaryItems?.layout?.view === 'none' ? (

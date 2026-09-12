@@ -1,10 +1,16 @@
 import ItemType from 'types/ItemType';
+import LinearType from 'types/LinearType';
+import MediaItem from 'types/MediaItem';
 import MediaObject from 'types/MediaObject';
 import MediaSource from 'types/MediaSource';
+import MediaType from 'types/MediaType';
+import PlaybackType from 'types/PlaybackType';
 import SortParams from 'types/SortParams';
+import {MAX_DURATION} from 'services/constants';
 import {CreateChildPager} from 'services/pagers/MediaPager';
 import {getService} from 'services/mediaServices';
 import SimpleMediaPager from 'services/pagers/SimpleMediaPager';
+import stationStore from 'services/internetRadio/stationStore';
 
 type CreateFromObjectParams<T extends MediaObject> = Pick<
     MediaSource<T>,
@@ -72,8 +78,30 @@ function createFromObject<T extends MediaObject>({
     };
 }
 
+function createRadioItem({
+    src,
+    title,
+    thumbnails,
+}: Pick<MediaItem, 'src' | 'title' | 'thumbnails'>): MediaItem {
+    return {
+        src,
+        title,
+        thumbnails,
+        itemType: ItemType.Media,
+        mediaType: MediaType.Audio,
+        linearType: LinearType.Station,
+        playbackType: PlaybackType.Direct,
+        duration: MAX_DURATION,
+        playedAt: 0,
+        skippable: true,
+        isFavoriteStation: stationStore.isFavorite({src}),
+        synthetic: true,
+    };
+}
+
 const mediaSources = {
     createFromObject,
+    createRadioItem,
 };
 
 export default mediaSources;

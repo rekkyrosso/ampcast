@@ -240,6 +240,17 @@ async function createPlayQueue(
     return playQueue;
 }
 
+async function getLibraryPrefs(libraryId: string): Promise<{musicAnalysis: boolean}> {
+    const {MediaContainer: prefs} = await fetchJSON<plex.LibraryPrefsResponse>({
+        path: `/library/sections/${libraryId}/prefs`,
+        params: {agent: 'tv.plex.agents.music'},
+    });
+    const musicAnalysis = prefs.Setting.some(
+        (setting) => setting.id === 'musicAnalysis' && setting.value === 'true'
+    );
+    return {musicAnalysis};
+}
+
 async function getPlayQueue(id: number): Promise<plex.PlayQueue> {
     const {MediaContainer: playQueue} = await fetchJSON<plex.PlayQueueResponse>({
         path: `/playQueues/${id}`,
@@ -725,6 +736,7 @@ const plexApi = {
     fetchJSON,
     getFilters,
     getHeaders,
+    getLibraryPrefs,
     getLyrics,
     getMetadata,
     getMusicLibraries,

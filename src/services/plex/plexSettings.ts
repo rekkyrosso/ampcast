@@ -96,6 +96,14 @@ const plexSettings = {
         return this.server?.clientIdentifier || '';
     },
 
+    get sonicAnalysis(): boolean {
+        return storage.getBoolean('sonicAnalysis');
+    },
+
+    set sonicAnalysis(enabled: boolean) {
+        storage.setBoolean('sonicAnalysis', enabled);
+    },
+
     get userId(): string {
         return storage.getString('userId');
     },

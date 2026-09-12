@@ -9,6 +9,7 @@ import {PagedItemsProps} from './PagedItems';
 
 export default function Albums({source, ...props}: PagedItemsProps<MediaAlbum>) {
     const [[selectedAlbum], setSelectedAlbum] = useState<readonly MediaAlbum[]>([]);
+    const [error, setError] = useState<unknown>();
     const tracksPager = selectedAlbum?.pager || null;
 
     const albumList = (
@@ -17,6 +18,7 @@ export default function Albums({source, ...props}: PagedItemsProps<MediaAlbum>) 
             title={source.title}
             source={source}
             level={1}
+            onError={setError}
             onSelect={setSelectedAlbum}
         />
     );
@@ -37,7 +39,7 @@ export default function Albums({source, ...props}: PagedItemsProps<MediaAlbum>) 
     return (
         <div className="panel">
             {source.singular ? (
-                <MediaObjectBrowser item={selectedAlbum} itemList={albumList}>
+                <MediaObjectBrowser item={selectedAlbum} itemList={albumList} error={error}>
                     {trackList}
                 </MediaObjectBrowser>
             ) : source.secondaryItems?.layout?.view === 'none' ? (

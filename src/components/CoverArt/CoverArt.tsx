@@ -1,7 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {defer} from 'rxjs';
-import ItemType from 'types/ItemType';
-import MediaAlbum from 'types/MediaAlbum';
 import MediaObject from 'types/MediaObject';
 import Thumbnail from 'types/Thumbnail';
 import {Logger} from 'utils';
@@ -25,7 +23,7 @@ export interface CoverArtProps {
 
 export default function CoverArt({item, className = '', placeholder, ...props}: CoverArtProps) {
     const [ready, setReady] = useState(!placeholder);
-    const overlayIcon = item.itemType === ItemType.Album && getOverlayIcon(item);
+    const overlayIcon = getOverlayIcon(item);
 
     useEffect(() => {
         if (!placeholder) {
@@ -49,7 +47,7 @@ function CoverArtImage({item, size, extendedSearch, onLoad, onError}: CoverArtPr
     const hasThumbnails = !!thumbnails?.length;
     const thumbnail = hasThumbnails ? findBestThumbnail(thumbnails, size) : undefined;
     const src = thumbnail ? getThumbnailUrl(thumbnail) : '';
-    const overlayIcon = item.itemType === ItemType.Album && getOverlayIcon(item);
+    const overlayIcon = getOverlayIcon(item);
 
     useEffect(() => {
         setInError(false);
@@ -131,7 +129,7 @@ function findBestThumbnail(thumbnails: readonly Thumbnail[], size = 240): Thumbn
     return matches[0];
 }
 
-function getOverlayIcon(item: MediaAlbum): IconName | '' {
+function getOverlayIcon(item: MediaObject): IconName | '' {
     if (!item.synthetic) {
         return '';
     }
@@ -140,7 +138,11 @@ function getOverlayIcon(item: MediaAlbum): IconName | '' {
         case 'top-tracks':
             return 'star';
 
+        case 'radio':
         case 'radios':
+        case 'stations':
+        case 'artist-radio':
+        case 'song-radio':
             return 'radio';
 
         case 'videos':

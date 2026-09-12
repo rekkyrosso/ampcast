@@ -265,9 +265,10 @@ export function createArtistAlbumsPager(
         return albumsPager;
     }
     const allTracks = createArtistAllTracks(artist);
+    const allTracksPager = new SimplePager<MediaAlbum>([allTracks]);
     const radios = createArtistRadios(artist);
-    const otherTracksPager = new SimplePager<MediaAlbum>([allTracks, radios]);
-    return new WrappedPager(undefined, albumsPager, otherTracksPager);
+    const radiosPager = new SimplePager<MediaAlbum>([ radios]);
+    return new WrappedPager(radiosPager, albumsPager, allTracksPager);
 }
 
 function createArtistAllTracks(artist: MediaArtist): MediaAlbum {
