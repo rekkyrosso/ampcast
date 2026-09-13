@@ -349,7 +349,7 @@ function createArtistTopTracks(artist: MediaArtist): MediaAlbum {
         title: 'Top Songs',
         artists: [artist.title],
         thumbnails: artist.thumbnails,
-        pager: subsonicService.createTopTracksPager(artist.title),
+        pager: subsonicService.createTopTracksPager(id, artist.title),
         trackCount: undefined,
         synthetic: true,
         links: {

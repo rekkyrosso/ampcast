@@ -20,6 +20,9 @@ export default function ScrollableNative({
         scrollTo: (options) => {
             containerRef.current!.scrollTo(options);
         },
+        get scrollTop() {
+            return containerRef.current!.scrollTop;
+        },
     }));
 
     useOnResize(containerRef, () => {

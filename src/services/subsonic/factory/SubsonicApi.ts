@@ -207,11 +207,19 @@ export default class SubsonicApi {
         return data.similarSongs2.song || [];
     }
 
-    async getArtistTopTracks(artist: string, count = 50): Promise<Subsonic.MediaItem[]> {
-        const data = await this.get<{topSongs: {song: Subsonic.MediaItem[]}}>('getTopSongs', {
-            artist,
-            count,
-        });
+    async getArtistTopTracks(
+        id: string,
+        artist: string,
+        count = 50
+    ): Promise<Subsonic.MediaItem[]> {
+        const params: Record<string, string | number> = {artist, count};
+        if (this.openSubsonic?.topSongsByArtistId) {
+            params.id = id;
+        }
+        const data = await this.get<{topSongs: {song: Subsonic.MediaItem[]}}>(
+            'getTopSongs',
+            params
+        );
         return data.topSongs.song || [];
     }
 

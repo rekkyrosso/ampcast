@@ -266,6 +266,7 @@ declare namespace Subsonic {
         | 'songLyrics'
         | 'sonicSimilarity'
         | 'template'
+        | 'topSongsByArtistId'
         | 'transcodeOffset'
         | 'transcoding';
 

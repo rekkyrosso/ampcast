@@ -17,6 +17,7 @@ export interface ScrollableClient {
 
 export interface ScrollableHandle {
     scrollTo: (position: Partial<ScrollablePosition>) => void;
+    readonly scrollTop: number;
 }
 
 export interface ScrollableProps {

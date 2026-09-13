@@ -2,8 +2,8 @@ import {
     EMPTY,
     catchError,
     concatMap,
-    debounceTime,
     delay,
+    distinctUntilChanged,
     filter,
     map,
     mergeMap,
@@ -12,6 +12,7 @@ import {
     switchMap,
     take,
     takeUntil,
+    throttleTime,
 } from 'rxjs';
 import MediaObject from 'types/MediaObject';
 import {Page, PagerConfig} from 'types/Pager';
@@ -44,9 +45,10 @@ export default class IndexedPager<T extends MediaObject> extends MediaPager<T> {
             this.subscribeTo(
                 this.observeFetches().pipe(
                     filter(({index, length}) => length > 0 && this.isInRange(index)),
-                    debounceTime(200),
+                    throttleTime(100, undefined, {leading: true, trailing: true}),
                     map(({index, length}) => this.getPageNumbersFromIndex(index, length)),
                     mergeMap((pageNumbers) => pageNumbers),
+                    distinctUntilChanged(),
                     mergeMap((pageNumber) => this.fetchPage(pageNumber)),
                     catchError((err: unknown) => {
                         logger.error(err);

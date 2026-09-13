@@ -133,7 +133,7 @@ export default class SubsonicArtistAlbumsPager extends SimpleMediaPager<MediaAlb
             title: 'Top Songs',
             artists: [artist.name],
             thumbnails: this.utils.createThumbnails(artist.coverArt),
-            pager: this.service.createTopTracksPager(artist.name),
+            pager: this.service.createTopTracksPager(artist.id, artist.name),
             trackCount: undefined,
             synthetic: true,
             links: {

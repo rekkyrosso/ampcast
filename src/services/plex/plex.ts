@@ -172,7 +172,8 @@ function createRadioPager(item: MediaItem): Pager<MediaItem> {
         ? new SimpleMediaPager(async () => {
               const item = await getMediaObject<MediaItem>(`plex:track:${ratingKey}`);
               const pager = new PlexPager<MediaItem>({
-                  path: `/library/metadata/${ratingKey}/similar`,
+                  path: `/library/metadata/${ratingKey}/nearest`,
+                  params: {maxDistance: 0.5},
               });
               try {
                   const items = await fetchFirstPage(pager);

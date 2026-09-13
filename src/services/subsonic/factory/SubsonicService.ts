@@ -717,9 +717,9 @@ export default class SubsonicService implements PersonalMediaService {
         }) as MediaSource<T>;
     }
 
-    createTopTracksPager(name: string): Pager<MediaItem> {
+    createTopTracksPager(id: string, name: string): Pager<MediaItem> {
         return new SubsonicPager(this, ItemType.Media, async () => {
-            const items = await this.api.getArtistTopTracks(name);
+            const items = await this.api.getArtistTopTracks(id, name);
             return {items, atEnd: true};
         });
     }

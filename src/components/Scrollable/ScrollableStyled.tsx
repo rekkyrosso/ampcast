@@ -64,6 +64,9 @@ export default function ScrollableStyled({
                 vScrollbarRef.current!.scrollTo(top);
             }
         },
+        get scrollTop() {
+            return parseFloat(bodyContentRef.current!.dataset.scrollTop!);
+        },
     }));
 
     useEffect(() => {
@@ -217,6 +220,7 @@ export default function ScrollableStyled({
                         style={{
                             transform: `translateY(-${scrollTop}px)`,
                         }}
+                        data-scroll-top={scrollTop}
                         ref={bodyContentRef}
                     >
                         {body}

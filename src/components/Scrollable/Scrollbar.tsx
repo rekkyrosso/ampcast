@@ -72,12 +72,20 @@ function Scrollbar({
     const atEnd = useMemo(() => () => isAtEnd, [isAtEnd]);
     const atStart = useMemo(() => () => isAtStart, [isAtStart]);
 
-    useImperativeHandle(ref, () => ({scrollBy, scrollTo, atEnd, atStart}));
-
-    useEffect(
-        () => resize(props.clientSize, props.scrollSize),
-        [props.clientSize, props.scrollSize, resize]
+    useImperativeHandle(
+        ref,
+        () => ({
+            scrollBy,
+            scrollTo,
+            atEnd,
+            atStart,
+        }),
+        [scrollBy, scrollTo, atEnd, atStart]
     );
+
+    useEffect(() => {
+        resize(props.clientSize, props.scrollSize);
+    }, [props.clientSize, props.scrollSize, resize]);
 
     useLayoutEffect(() => {
         // Perform single-line scrolls a bit faster.
@@ -93,7 +101,9 @@ function Scrollbar({
         }
     }, [position, onChange, smallChange]);
 
-    useEffect(() => onResize?.(size), [size, onResize]);
+    useEffect(() => {
+        onResize?.(size);
+    }, [size, onResize]);
 
     useOnResize(
         trackRef,

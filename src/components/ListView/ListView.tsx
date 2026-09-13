@@ -1,4 +1,5 @@
 import React, {useCallback, useEffect, useId, useRef, useState} from 'react';
+import {animationFrameScheduler, filter, tap, throttleTime} from 'rxjs';
 import {ConditionalKeys} from 'type-fest';
 import SortParams from 'types/SortParams';
 import {browser} from 'utils';
@@ -12,6 +13,7 @@ import useKeyboardBusy from 'hooks/useKeyboardBusy';
 import useFontSize from 'hooks/useFontSize';
 import useOnResize from 'hooks/useOnResize';
 import usePrevious from 'hooks/usePrevious';
+import useSubject from 'hooks/useSubject';
 import ListViewHead from './ListViewHead';
 import ListViewBody from './ListViewBody';
 import useColumns from './useColumns';
@@ -113,7 +115,7 @@ export interface ListViewProps<T> {
 
 const emptyString = () => '';
 
-const scrollKeys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown'];
+const scrollKeys = ['ArrowUp', 'ArrowDown', 'PageUp', 'PageDown', 'Home', 'End'];
 
 export default function ListView<T>({
     items = [],
@@ -160,7 +162,9 @@ export default function ListView<T>({
     const scrollableRef = useRef<ScrollableHandle>(null);
     const cursorRef = useRef<HTMLDivElement>(null);
     const dragImageRef = useRef<HTMLUListElement>(null);
+    const rowIndexRef = useRef(selectedIndex);
     const fontSize = useFontSize(containerRef);
+    const [keyDown$, nextKeyDown] = useSubject<React.KeyboardEvent>();
     const showTitles = layout.view === 'details' && layout.showTitles;
     const sizeable = layout.view === 'details' && layout.sizeable;
     const [rowIndex, setRowIndex] = useState(selectedIndex);
@@ -196,6 +200,8 @@ export default function ListView<T>({
     const isThin = clientWidth < fontSize * 20;
     const hasFocus = containerRef.current && containerRef.current === document.activeElement;
     const dropTargetPadding = droppable ? Math.min(2 * fontSize, rowHeight) : 0;
+    const scrollIndex = rowHeight ? Math.floor(scrollTop / rowHeight) : 0;
+    const hasScrolled = scrollTop !== 0;
 
     const focus = useCallback(() => containerRef.current?.focus(), []);
 
@@ -203,7 +209,7 @@ export default function ListView<T>({
         (rowIndex: number) => {
             rowIndex = Math.min(Math.max(rowIndex, 0), size - 1);
             const scrollable = scrollableRef.current!;
-            const topIndex = Math.floor(scrollTop / rowHeight);
+            const topIndex = Math.floor(scrollable.scrollTop / rowHeight);
             if (rowIndex >= topIndex + pageSize - 1) {
                 // too far below
                 const scrollHeight = (size + (showTitles ? 1 : 0)) * rowHeight;
@@ -219,7 +225,7 @@ export default function ListView<T>({
                 scrollable.scrollTo({top});
             }
         },
-        [scrollTop, rowHeight, pageSize, showTitles, size]
+        [rowHeight, pageSize, showTitles, size]
     );
 
     useEffect(() => {
@@ -228,6 +234,7 @@ export default function ListView<T>({
             scrollIntoView: (index: number) => {
                 const rowIndex = Math.min(Math.max(index, 0), size - 1);
                 scrollTo(rowIndex);
+                rowIndexRef.current = rowIndex;
                 setRowIndex(rowIndex);
                 selectAt(index); // Not `rowIndex`.
             },
@@ -249,9 +256,8 @@ export default function ListView<T>({
     useEffect(() => onRowIndexChange?.(rowIndex), [rowIndex, onRowIndexChange]);
 
     useEffect(() => {
-        const scrollIndex = rowHeight ? Math.floor(scrollTop / rowHeight) : 0;
         onScrollIndexChange?.(scrollIndex);
-    }, [rowHeight, scrollTop, onScrollIndexChange]);
+    }, [scrollIndex, onScrollIndexChange]);
 
     useEffect(() => {
         if (pageSize && onPageSizeChange) {
@@ -259,19 +265,25 @@ export default function ListView<T>({
         }
     }, [pageSize, onPageSizeChange]);
 
-    useEffect(() => onSelect?.(debouncedSelectedItems), [debouncedSelectedItems, onSelect]);
-
-    useEffect(() => setRowIndex(Math.min(size - 1, rowIndex)), [size, rowIndex]);
+    useEffect(() => {
+        onSelect?.(debouncedSelectedItems);
+    }, [debouncedSelectedItems, onSelect]);
 
     useEffect(() => {
-        if (scrollTop) {
+        const newIndex = Math.min(size - 1, rowIndex);
+        rowIndexRef.current = newIndex;
+        setRowIndex(newIndex);
+    }, [size, rowIndex]);
+
+    useEffect(() => {
+        if (hasScrolled) {
             setIsScrolling(true);
             const timer = setTimeout(() => setIsScrolling(false), 100);
             return () => clearTimeout(timer);
         } else {
             setIsScrolling(false);
         }
-    }, [scrollTop]);
+    }, [hasScrolled]);
 
     useEffect(() => {
         if (prevItems) {
@@ -281,6 +293,7 @@ export default function ListView<T>({
                     (item) => item && item[itemKey] === prevItem[itemKey]
                 );
                 if (index !== -1) {
+                    rowIndexRef.current = index;
                     setRowIndex(index);
                 }
             }
@@ -295,6 +308,7 @@ export default function ListView<T>({
 
     useEffect(() => {
         if (isEmpty) {
+            rowIndexRef.current = -1;
             setRowIndex(-1);
         }
     }, [isEmpty]);
@@ -307,100 +321,128 @@ export default function ListView<T>({
 
     const handleKeyDown = useCallback(
         (event: React.KeyboardEvent) => {
-            switch (event.code) {
-                case 'Enter':
+            nextKeyDown(event);
+        },
+        [nextKeyDown]
+    );
+
+    const handleKeyUp = useCallback((event: React.KeyboardEvent) => {
+        if (event.key === 'Shift') {
+            setRangeSelectionStart(-1);
+        }
+    }, []);
+
+    useEffect(() => {
+        const subscription = keyDown$
+            .pipe(filter((event) => event.code === 'Enter'))
+            .subscribe((event) => {
+                event.stopPropagation();
+                if (!event.repeat) {
+                    onEnter?.(selectedItems, event[browser.cmdKey], event.shiftKey);
+                }
+            });
+        return () => subscription.unsubscribe();
+    }, [keyDown$, onEnter, selectedItems]);
+
+    useEffect(() => {
+        const subscription = keyDown$
+            .pipe(filter((event) => event.code === 'Delete'))
+            .subscribe((event) => {
+                event.stopPropagation();
+                onDelete?.(selectedItems); // let this repeat
+            });
+        return () => subscription.unsubscribe();
+    }, [keyDown$, onDelete, selectedItems]);
+
+    useEffect(() => {
+        const subscription = keyDown$
+            .pipe(filter((event) => event.code === 'KeyI'))
+            .subscribe((event) => {
+                if (event[browser.cmdKey] && !event.shiftKey && !event.altKey) {
+                    event.preventDefault();
                     event.stopPropagation();
                     if (!event.repeat) {
-                        onEnter?.(selectedItems, event[browser.cmdKey], event.shiftKey);
-                    }
-                    break;
-
-                case 'Delete':
-                    event.stopPropagation();
-                    onDelete?.(selectedItems); // let this repeat
-                    break;
-
-                case 'KeyI':
-                    if (event[browser.cmdKey] && !event.shiftKey && !event.altKey) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        if (!event.repeat) {
-                            onInfo?.(selectedItems);
-                        }
-                    }
-                    break;
-
-                case 'KeyA':
-                    if (event[browser.cmdKey] && !event.shiftKey) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        if (multiple && !event.repeat) {
-                            selectAll();
-                        }
-                    }
-                    break;
-
-                case 'ShiftLeft':
-                case 'ShiftRight':
-                    // TODO: Should this be here?
-                    if (!event.repeat) {
-                        setRangeSelectionStart(rowIndex);
-                    }
-                    break;
-
-                case 'Space':
-                    if (event[browser.cmdKey]) {
-                        event.preventDefault();
-                        event.stopPropagation();
-                        if (!event.repeat) {
-                            toggleSelectionAt(rowIndex); // toggle selected state
-                        }
-                    }
-                    break;
-
-                default: {
-                    const size = items.length;
-                    const nextIndex = getNextIndexByKey(event.key, rowIndex, pageSize, size);
-                    if (nextIndex !== -1) {
-                        // valid scroll key
-                        event.preventDefault();
-                        if (nextIndex !== rowIndex) {
-                            event.stopPropagation();
-                            scrollTo(nextIndex);
-                            setRowIndex(nextIndex);
-                        }
-                        if (multiple && event.shiftKey && rangeSelectionStart !== -1) {
-                            selectRange(rangeSelectionStart, nextIndex);
-                        } else if (!event[browser.cmdKey]) {
-                            selectAt(nextIndex);
-                        }
+                        onInfo?.(selectedItems);
                     }
                 }
-            }
-        },
-        [
-            // Basically everything. :(
-            rowIndex, // changes often
-            items,
-            pageSize,
-            onEnter,
-            onDelete,
-            onInfo,
-            scrollTo,
-            selectAll,
-            selectAt,
-            selectRange,
-            toggleSelectionAt, // changes often
-            selectedItems, // changes often
-            multiple,
-            rangeSelectionStart,
-        ]
-    );
+            });
+        return () => subscription.unsubscribe();
+    }, [keyDown$, onInfo, selectedItems]);
+
+    useEffect(() => {
+        const subscription = keyDown$
+            .pipe(filter((event) => event.code === 'KeyA'))
+            .subscribe((event) => {
+                if (event[browser.cmdKey] && !event.shiftKey) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (multiple && !event.repeat) {
+                        selectAll();
+                    }
+                }
+            });
+        return () => subscription.unsubscribe();
+    }, [keyDown$, multiple, selectAll]);
+
+    useEffect(() => {
+        const subscription = keyDown$
+            .pipe(filter((event) => event.code === 'ShiftLeft' || event.code === 'ShiftRight'))
+            .subscribe((event) => {
+                if (!event.repeat) {
+                    setRangeSelectionStart(rowIndexRef.current);
+                }
+            });
+        return () => subscription.unsubscribe();
+    }, [keyDown$, setRangeSelectionStart]);
+
+    useEffect(() => {
+        const subscription = keyDown$
+            .pipe(filter((event) => event.code === 'Space'))
+            .subscribe((event) => {
+                if (event[browser.cmdKey]) {
+                    event.preventDefault();
+                    event.stopPropagation();
+                    if (!event.repeat) {
+                        toggleSelectionAt(rowIndexRef.current); // toggle selected state
+                    }
+                }
+            });
+        return () => subscription.unsubscribe();
+    }, [keyDown$, toggleSelectionAt]);
+
+    useEffect(() => {
+        const subscription = keyDown$
+            .pipe(
+                filter((event) => scrollKeys.includes(event.code)),
+                tap((event) => {
+                    event.preventDefault();
+                    event.stopPropagation();
+                }),
+                throttleTime(16, animationFrameScheduler, {leading: true, trailing: true})
+            )
+            .subscribe((event) => {
+                const rowIndex = rowIndexRef.current;
+                const nextIndex = getNextIndexByKey(event.key, rowIndex, pageSize, size);
+                if (nextIndex !== -1) {
+                    if (nextIndex !== rowIndex) {
+                        scrollTo(nextIndex);
+                        setRowIndex(nextIndex);
+                    }
+                    if (multiple && event.shiftKey && rangeSelectionStart !== -1) {
+                        selectRange(rangeSelectionStart, nextIndex);
+                    } else if (!event[browser.cmdKey]) {
+                        selectAt(nextIndex);
+                    }
+                }
+            });
+        return () => subscription.unsubscribe();
+    }, [keyDown$, pageSize, size, scrollTo, selectAt, selectRange, multiple, rangeSelectionStart]);
 
     const handleMouseDown = useCallback(
         (event: React.MouseEvent) => {
             const newRowIndex = getRowIndexFromMouseEvent(event);
             if (newRowIndex !== -1) {
+                rowIndexRef.current = newRowIndex;
                 setRowIndex(newRowIndex);
                 if (multiple && event.shiftKey) {
                     if (rangeSelectionStart === -1) {
@@ -432,12 +474,6 @@ export default function ListView<T>({
         },
         [selectAt, multiple, rowIndex]
     );
-
-    const handleKeyUp = useCallback((event: React.KeyboardEvent) => {
-        if (event.key === 'Shift') {
-            setRangeSelectionStart(-1);
-        }
-    }, []);
 
     const handleResize = useCallback(({clientWidth, clientHeight}: ScrollableClient) => {
         setClientWidth(clientWidth);

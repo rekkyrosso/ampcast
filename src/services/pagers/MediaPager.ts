@@ -153,10 +153,14 @@ export default abstract class MediaPager<T extends MediaObject> implements Pager
         }
     }
 
-    fetchAt(index: number, length = this.config.pageSize || 50): void {
+    fetchAt(index: number, length = this.config.pageSize): void {
         if (this.disconnected) {
             logger.warn('disconnected');
             return;
+        }
+
+        if (!length) {
+            length = 50;
         }
 
         if (!this.connected) {
