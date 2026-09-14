@@ -38,6 +38,10 @@
         }
     }
 
+    .tab-list-tabs {
+        z-index: 0;
+    }
+
     .tab-list-panels {
         background-color: var(--frame-color);
         border: 0;
@@ -63,10 +67,6 @@
         color: var(--text-color);
         background-color: var(--background-color);
         height: calc(100% - 1em);
-    }
-
-    .tab-details[aria-selected=true]:has(.list-view) {
-        border-bottom-color: var(--black);
     }
 
     .media-details {

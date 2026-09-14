@@ -60,10 +60,10 @@ cd ./ampcast
 npm i
 
 # build the web view
-npm run build:dev
+npm run build:pwa
 
 # start the web server
-npm run start:dev
+npm run start:pwa
 ```
 
 Navigate to http://localhost:8000 to run the app.
@@ -71,10 +71,17 @@ Navigate to http://localhost:8000 to run the app.
 Start the server with a different host/port:
 
 ```bash
-npm run start:dev -- --host 0.0.0.0 --port 8001
+npm run start:pwa -- --host 1.2.3.4 --port 8001
 ```
 
 You may get CORS errors using anything other than `localhost` but you have the option anyway.
+
+To use the development environment, replace 'pwa' with 'dev':
+
+```bash
+npm run build:dev
+npm run start:dev
+```
 
 You can optionally create a `.env` file ([example](https://raw.githubusercontent.com/rekkyrosso/ampcast/refs/heads/main/.env.example)) to store API keys and other config options.
 

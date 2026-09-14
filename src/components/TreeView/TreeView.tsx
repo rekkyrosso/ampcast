@@ -33,11 +33,12 @@ export interface TreeViewProps<T> {
     roots: readonly TreeNode<T>[];
     className?: string;
     storageId?: string;
-    onContextMenu?: (item: T, x: number, y: number, button: number) => void;
-    onDelete?: (item: T) => void;
-    onEnter?: (item: T) => void;
-    onInfo?: (item: T) => void;
-    onSelect?: (item: T) => void;
+    onClick?: (value: T) => void;
+    onContextMenu?: (value: T, x: number, y: number, button: number) => void;
+    onDelete?: (value: T) => void;
+    onEnter?: (value: T) => void;
+    onInfo?: (value: T) => void;
+    onSelect?: (value: T) => void;
     ref?: React.RefObject<TreeViewHandle | null>;
 }
 
@@ -49,6 +50,7 @@ export default function TreeView<T>({
     roots,
     className = '',
     storageId,
+    onClick,
     onContextMenu,
     onDelete,
     onEnter,
@@ -113,8 +115,17 @@ export default function TreeView<T>({
         }
     }, [ref, selectedId, visibleIds, scrollTo]);
 
-    useOnResize(containerRef, ({width}) => setClientWidth(width));
-    useOnResize(cursorRef, ({height}) => setRowHeight(height), 'border-box');
+    useOnResize(containerRef, ({width}) => {
+        setClientWidth(width);
+    });
+
+    useOnResize(
+        cursorRef,
+        ({height}) => {
+            setRowHeight(height);
+        },
+        'border-box'
+    );
 
     useEffect(() => {
         if (noSelection && hasVisibleNodes) {
@@ -156,6 +167,14 @@ export default function TreeView<T>({
             setDebouncedValue(selectedValue);
         }
     }, [selectedValue, busy]);
+
+    const handleClick = useCallback(
+        (id: string) => {
+            const value = getValue(roots, id);
+            onClick?.(value);
+        },
+        [roots, onClick]
+    );
 
     const handleContextMenu = useCallback(
         (event: React.MouseEvent) => {
@@ -298,6 +317,7 @@ export default function TreeView<T>({
                             setSize={roots.length}
                             emptyMarker={true}
                             showTooltip={showTooltip}
+                            onClick={handleClick}
                             onSelect={setSelectedId}
                             onToggle={toggle}
                             key={id}

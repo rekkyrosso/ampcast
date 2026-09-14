@@ -111,6 +111,9 @@ export default function useHistory() {
     }, []);
 
     const navigateTo = useCallback((path: string) => {
+        if (!path) {
+            return;
+        }
         if (WEB_LINKS && getMediaSource(path)) {
             const service = getServiceFromPath(path);
             const libraryId =
@@ -158,7 +161,7 @@ export default function useHistory() {
 }
 
 function createHistoryEntry(key: string, path: string): HistoryEntry {
-    path = path.replace(/\?.*$/, '');
+    path = path.replace(/\?.*$/, ''); // Remove query params.
     const service = getServiceFromPath(path);
     const source = path.startsWith('pins/')
         ? createPin(path)
@@ -190,8 +193,8 @@ function getMediaSource(path: string): AnyMediaSource | undefined {
 
 function createMediaObjectSource(path: string): MediaSource<any> | undefined {
     const service = getServiceFromPath(path);
-    const src = path.replaceAll('/', ':');
     if (service?.createSourceFromObject) {
+        const src = path.replaceAll('/', ':');
         return service.createSourceFromObject(src);
     }
 }

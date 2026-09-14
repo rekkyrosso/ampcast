@@ -11,6 +11,7 @@ export interface TreeViewNodeProps<T> extends TreeNode<T> {
     setSize: number;
     emptyMarker?: boolean;
     showTooltip?: boolean;
+    onClick?: (id: string) => void;
     onSelect?: (id: string) => void;
     onToggle?: (id: string) => void;
 }
@@ -27,6 +28,7 @@ export default function TreeViewNode<T>({
     setSize,
     emptyMarker,
     showTooltip,
+    onClick,
     onSelect,
     onToggle,
 }: TreeViewNodeProps<T>) {
@@ -58,6 +60,10 @@ export default function TreeViewNode<T>({
         const tooltip = document.getElementById(`tooltip-${rowId}`) as HTMLSpanElement;
         tooltip?.hidePopover();
     }, [rowId]);
+
+    const handleClick = useCallback(() => {
+        onClick?.(id);
+    }, [id, onClick]);
 
     const handleDoubleClick = useCallback(
         (event: React.MouseEvent) => {
@@ -92,6 +98,7 @@ export default function TreeViewNode<T>({
         >
             <span
                 className={`tree-view-row ${selected ? 'selected-text' : ''}`}
+                onClick={handleClick}
                 onDoubleClick={expandable ? handleDoubleClick : undefined}
                 onMouseDown={handleMouseDown}
                 onMouseEnter={showTooltip ? handleMouseEnter : undefined}
@@ -146,6 +153,7 @@ export default function TreeViewNode<T>({
                             nodeIndex={nodeIndex}
                             setSize={children.length}
                             showTooltip={showTooltip}
+                            onClick={onClick}
                             onSelect={onSelect}
                             onToggle={onToggle}
                             key={id}

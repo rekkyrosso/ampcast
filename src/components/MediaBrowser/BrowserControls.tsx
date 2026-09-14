@@ -22,14 +22,14 @@ export default function BrowserControls() {
                 icon="back"
                 onClick={back}
                 title="Back"
-                disabled={currentIndex <= 0}
+                disabled={currentIndex === stack.length - 1}
             />
             <IconButton
                 className="forward"
                 icon="forward"
                 title="Forward"
                 onClick={forward}
-                disabled={currentIndex === stack.length - 1}
+                disabled={currentIndex <= 0}
             />
             <IconButton
                 className="refresh"

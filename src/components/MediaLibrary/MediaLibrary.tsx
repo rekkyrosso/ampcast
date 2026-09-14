@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useRef} from 'react';
 import {skip} from 'rxjs';
 import {browser} from 'utils';
 import {WEB_LINKS} from 'services/features';
@@ -18,7 +18,6 @@ import './MediaLibrary.scss';
 export default memo(function MediaLibrary() {
     const ref = useRef<HTMLDivElement | null>(null);
     const sourcesRef = useRef<TreeViewHandle>(null);
-    const [path, setPath] = useState('');
     const {currentPath, navigateTo, switchLibrary} = useHistory();
     const service = getServiceFromPath(currentPath);
 
@@ -28,12 +27,6 @@ export default memo(function MediaLibrary() {
             sourcesRef.current?.scrollIntoView(path);
         }
     }, [currentPath]);
-
-    useEffect(() => {
-        if (path) {
-            navigateTo(path);
-        }
-    }, [navigateTo, path]);
 
     useEffect(() => {
         if (service && isPersonalMediaService(service)) {
@@ -60,8 +53,9 @@ export default memo(function MediaLibrary() {
             <div className="media-library-body">
                 <Splitter id="media-library-layout" arrange="columns">
                     <MediaSources
+                        onClick={navigateTo}
+                        onSelect={navigateTo}
                         onResize={handleSourcesResize}
-                        onSelect={setPath}
                         ref={sourcesRef}
                     />
                     <BrowserHistory />

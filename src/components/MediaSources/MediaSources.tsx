@@ -11,12 +11,13 @@ import showMediaSourcesMenu from './showMediaSourcesMenu';
 export const storage = new LiteStorage('sources');
 
 export interface MediaSourcesProps {
+    onClick?: (source: string) => void;
     onResize?: (rect: ResizeRect) => void;
     onSelect?: (source: string) => void;
     ref?: React.RefObject<TreeViewHandle | null>;
 }
 
-export default function MediaSources({onResize, onSelect, ref}: MediaSourcesProps) {
+export default function MediaSources({onClick, onResize, onSelect, ref}: MediaSourcesProps) {
     const containerRef = useRef<HTMLDivElement | null>(null);
     const sources = useMediaSources();
     const [wizardShown, setWizardShown] = useState(false);
@@ -48,6 +49,7 @@ export default function MediaSources({onResize, onSelect, ref}: MediaSourcesProp
         <div className="panel media-sources" ref={containerRef}>
             <TreeView<string>
                 roots={sources || []}
+                onClick={onClick}
                 onContextMenu={handleContextMenu}
                 onSelect={onSelect}
                 storageId={storage.id}

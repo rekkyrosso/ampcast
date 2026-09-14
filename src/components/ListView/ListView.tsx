@@ -162,7 +162,7 @@ export default function ListView<T>({
     const scrollableRef = useRef<ScrollableHandle>(null);
     const cursorRef = useRef<HTMLDivElement>(null);
     const dragImageRef = useRef<HTMLUListElement>(null);
-    const rowIndexRef = useRef(selectedIndex);
+    const rowIndexRef = useRef(selectedIndex); // Update this every before calling `setRowIndex`.
     const fontSize = useFontSize(containerRef);
     const [keyDown$, nextKeyDown] = useSubject<React.KeyboardEvent>();
     const showTitles = layout.view === 'details' && layout.showTitles;
@@ -426,6 +426,7 @@ export default function ListView<T>({
                 if (nextIndex !== -1) {
                     if (nextIndex !== rowIndex) {
                         scrollTo(nextIndex);
+                        rowIndexRef.current = nextIndex;
                         setRowIndex(nextIndex);
                     }
                     if (multiple && event.shiftKey && rangeSelectionStart !== -1) {

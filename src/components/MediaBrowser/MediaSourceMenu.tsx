@@ -15,6 +15,7 @@ import PopupMenu, {
     PopupMenuSeparator,
     showPopupMenu,
 } from 'components/PopupMenu';
+import useSyntheticAlbumSource from './useSyntheticAlbumSource';
 
 interface ShowMediaSourceMenuParams {
     source: MediaSource;
@@ -22,7 +23,6 @@ interface ShowMediaSourceMenuParams {
     x: number;
     y: number;
     isSearch?: boolean;
-    syntheticAlbumSource?: MediaSource | null;
 }
 
 export async function showMediaSourceMenu({
@@ -40,37 +40,27 @@ export async function showMediaSourceMenu({
     );
 }
 
-export type MediaSourceMenuProps = Pick<
-    ShowMediaSourceMenuParams,
-    'source' | 'isSearch' | 'syntheticAlbumSource'
->;
+export type MediaSourceMenuProps = Pick<ShowMediaSourceMenuParams, 'source' | 'isSearch'>;
 
-function MediaSourceMenu({
-    source,
-    isSearch,
-    syntheticAlbumSource,
-    ...props
-}: PopupMenuProps & MediaSourceMenuProps) {
+function MediaSourceMenu({source, isSearch, ...props}: PopupMenuProps & MediaSourceMenuProps) {
     return (
         <PopupMenu {...props}>
-            <MediaSourceMenuItems
-                source={source}
-                isSearch={isSearch}
-                syntheticAlbumSource={syntheticAlbumSource}
-            />
+            <MediaSourceMenuItems source={source} isSearch={isSearch} />
         </PopupMenu>
     );
 }
 
-export function MediaSourceMenuItems({
-    source,
-    isSearch,
-    syntheticAlbumSource,
-}: MediaSourceMenuProps) {
+export function MediaSourceMenuItems({source, isSearch}: MediaSourceMenuProps) {
+    const [syntheticAlbumSource] = useSyntheticAlbumSource();
     const primaryMenuItems = getMenuItems(source, 1, source.itemType, isSearch);
     let secondaryMenuItems: MenuItems | undefined;
     let tertiaryMenuItems: MenuItems | undefined;
-    if (source.secondaryItems?.layout?.view !== 'none' && source.itemType !== ItemType.Media) {
+    if (source.singular && source.itemType === ItemType.Media) {
+        secondaryMenuItems = getMenuItems(source, 2, ItemType.Media);
+    } else if (
+        source.secondaryItems?.layout?.view !== 'none' &&
+        source.itemType !== ItemType.Media
+    ) {
         const itemType = source.itemType === ItemType.Artist ? ItemType.Album : ItemType.Media;
         secondaryMenuItems = getMenuItems(source, 2, itemType);
         if (source.tertiaryItems?.layout?.view !== 'none' && source.itemType === ItemType.Artist) {

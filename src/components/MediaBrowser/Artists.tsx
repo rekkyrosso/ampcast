@@ -62,14 +62,18 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
         />
     );
 
+    const albumsAndTracks = (
+        <Splitter id="artist-albums-tracks-layout" arrange="rows">
+            {albumList}
+            {trackList}
+        </Splitter>
+    );
+
     return (
         <div className="panel">
             {source.singular ? (
                 <MediaObjectBrowser item={selectedArtist} itemList={artistList} error={error}>
-                    <Splitter id="artist-albums-tracks-layout" arrange="rows">
-                        {albumList}
-                        {trackList}
-                    </Splitter>
+                    {albumsAndTracks}
                 </MediaObjectBrowser>
             ) : source.secondaryItems?.layout?.view === 'none' ? (
                 artistList
@@ -81,10 +85,7 @@ export default function Artists({source, ...props}: PagedItemsProps<MediaArtist>
             ) : (
                 <Splitter id="artists-albums-tracks-layout" arrange="columns">
                     {artistList}
-                    <Splitter id="artist-albums-tracks-layout" arrange="rows">
-                        {albumList}
-                        {trackList}
-                    </Splitter>
+                    {albumsAndTracks}
                 </Splitter>
             )}
         </div>
